@@ -25,7 +25,13 @@
 		onadd: (t: NodeTemplate) => void;
 	}
 
-	let { templates, trendingSpaces, trendingLoading, onloadtemplate, onadd }: Props = $props();
+	let {
+		templates,
+		trendingSpaces,
+		trendingLoading,
+		onloadtemplate,
+		onadd
+	}: Props = $props();
 
 	function trendingToTemplate(space: TrendingSpace): NodeTemplate {
 		return {
@@ -65,7 +71,7 @@
 			</div>
 		{:else if trendingSpaces.length > 0}
 			{#each SPACE_CATEGORIES as cat}
-				{@const spaces = trendingSpaces.filter(s => s.category === cat.key)}
+				{@const spaces = trendingSpaces.filter((s) => s.category === cat.key)}
 				{#if spaces.length > 0}
 					<div class="trending-cat-label">{cat.label}</div>
 					<div class="trending-grid">
@@ -75,9 +81,13 @@
 								onclick={() => onadd(trendingToTemplate(space))}
 							>
 								<div class="trending-card-top">
-									<span class="trending-dot" class:trending-dot-running={space.running}></span>
+									<span
+										class="trending-dot"
+										class:trending-dot-running={space.running}
+									></span>
 									<span class="trending-card-title">{space.title}</span>
-									<span class="trending-card-likes">&hearts; {space.likes}</span>
+									<span class="trending-card-likes">&hearts; {space.likes}</span
+									>
 								</div>
 								{#if space.description}
 									<div class="trending-card-desc">{space.description}</div>
@@ -205,7 +215,9 @@
 		background: #101118;
 		cursor: pointer;
 		text-align: left;
-		transition: border-color 0.15s, background 0.15s;
+		transition:
+			border-color 0.15s,
+			background 0.15s;
 	}
 
 	.trending-card:hover {
@@ -288,7 +300,9 @@
 	}
 
 	@keyframes trending-spin {
-		to { transform: rotate(360deg); }
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.trending-loading-text {

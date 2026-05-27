@@ -31,8 +31,10 @@
 		side: "output" | "input"
 	): { x: number; y: number } {
 		// DOM measurement — always accurate regardless of layout
-		const dotEl = document.querySelector(`[data-port-id="${nodeId}:${portId}:${side}"]`);
-		const transformEl = document.querySelector('.canvas-transform');
+		const dotEl = document.querySelector(
+			`[data-port-id="${nodeId}:${portId}:${side}"]`
+		);
+		const transformEl = document.querySelector(".canvas-transform");
 		if (dotEl && transformEl) {
 			const dotRect = dotEl.getBoundingClientRect();
 			const transformRect = transformEl.getBoundingClientRect();
@@ -62,13 +64,7 @@
 <svg class="edge-layer">
 	<defs>
 		{#each $workflow.edges as edge (edge.id)}
-			<linearGradient
-				id="grad-{edge.id}"
-				x1="0%"
-				y1="0%"
-				x2="100%"
-				y2="0%"
-			>
+			<linearGradient id="grad-{edge.id}" x1="0%" y1="0%" x2="100%" y2="0%">
 				<stop
 					offset="0%"
 					stop-color={PORT_COLOR[edge.type]}

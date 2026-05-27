@@ -29,148 +29,148 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 	// Text → Text
 	"text-generation": {
 		inputs: [{ id: "in_0", label: "Prompt", type: "text" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }],
+		outputs: [{ id: "out_0", label: "Text", type: "text" }]
 	},
 	"text2text-generation": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }],
+		outputs: [{ id: "out_0", label: "Text", type: "text" }]
 	},
-	"summarization": {
+	summarization: {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Summary", type: "text" }],
+		outputs: [{ id: "out_0", label: "Summary", type: "text" }]
 	},
-	"translation": {
+	translation: {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Translation", type: "text" }],
+		outputs: [{ id: "out_0", label: "Translation", type: "text" }]
 	},
 	"fill-mask": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Result", type: "json" }],
+		outputs: [{ id: "out_0", label: "Result", type: "json" }]
 	},
-	"conversational": {
+	conversational: {
 		inputs: [{ id: "in_0", label: "Message", type: "text" }],
-		outputs: [{ id: "out_0", label: "Reply", type: "text" }],
+		outputs: [{ id: "out_0", label: "Reply", type: "text" }]
 	},
 	// Text → Classification
 	"text-classification": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Labels", type: "json" }],
+		outputs: [{ id: "out_0", label: "Labels", type: "json" }]
 	},
 	"token-classification": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Entities", type: "json" }],
+		outputs: [{ id: "out_0", label: "Entities", type: "json" }]
 	},
 	"zero-shot-classification": {
 		inputs: [
 			{ id: "in_0", label: "Text", type: "text" },
-			{ id: "in_1", label: "Labels", type: "text" },
+			{ id: "in_1", label: "Labels", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Scores", type: "json" }],
+		outputs: [{ id: "out_0", label: "Scores", type: "json" }]
 	},
 	"sentence-similarity": {
 		inputs: [
 			{ id: "in_0", label: "Source", type: "text" },
-			{ id: "in_1", label: "Sentences", type: "text" },
+			{ id: "in_1", label: "Sentences", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Scores", type: "json" }],
+		outputs: [{ id: "out_0", label: "Scores", type: "json" }]
 	},
 	"question-answering": {
 		inputs: [
 			{ id: "in_0", label: "Question", type: "text" },
-			{ id: "in_1", label: "Context", type: "text" },
+			{ id: "in_1", label: "Context", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Answer", type: "text" }],
+		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
 	},
 	"feature-extraction": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Embeddings", type: "json" }],
+		outputs: [{ id: "out_0", label: "Embeddings", type: "json" }]
 	},
 	// Text → Image
 	"text-to-image": {
 		inputs: [{ id: "in_0", label: "Prompt", type: "text" }],
-		outputs: [{ id: "out_0", label: "Image", type: "image" }],
+		outputs: [{ id: "out_0", label: "Image", type: "image" }]
 	},
 	// Text → Audio
 	"text-to-speech": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
-		outputs: [{ id: "out_0", label: "Audio", type: "audio" }],
+		outputs: [{ id: "out_0", label: "Audio", type: "audio" }]
 	},
 	"text-to-audio": {
 		inputs: [{ id: "in_0", label: "Prompt", type: "text" }],
-		outputs: [{ id: "out_0", label: "Audio", type: "audio" }],
+		outputs: [{ id: "out_0", label: "Audio", type: "audio" }]
 	},
 	// Text → Video
 	"text-to-video": {
 		inputs: [{ id: "in_0", label: "Prompt", type: "text" }],
-		outputs: [{ id: "out_0", label: "Video", type: "video" }],
+		outputs: [{ id: "out_0", label: "Video", type: "video" }]
 	},
 	// Image → *
 	"image-classification": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Labels", type: "json" }],
+		outputs: [{ id: "out_0", label: "Labels", type: "json" }]
 	},
 	"object-detection": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Detections", type: "json" }],
+		outputs: [{ id: "out_0", label: "Detections", type: "json" }]
 	},
 	"image-segmentation": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Segments", type: "json" }],
+		outputs: [{ id: "out_0", label: "Segments", type: "json" }]
 	},
 	"image-to-text": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }],
+		outputs: [{ id: "out_0", label: "Text", type: "text" }]
 	},
 	"image-to-image": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
-			{ id: "in_1", label: "Prompt", type: "text" },
+			{ id: "in_1", label: "Prompt", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Image", type: "image" }],
+		outputs: [{ id: "out_0", label: "Image", type: "image" }]
 	},
 	"image-to-video": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Video", type: "video" }],
+		outputs: [{ id: "out_0", label: "Video", type: "video" }]
 	},
 	"depth-estimation": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Depth", type: "image" }],
+		outputs: [{ id: "out_0", label: "Depth", type: "image" }]
 	},
 	"image-text-to-text": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
-			{ id: "in_1", label: "Prompt", type: "text" },
+			{ id: "in_1", label: "Prompt", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }],
+		outputs: [{ id: "out_0", label: "Text", type: "text" }]
 	},
 	// Audio → *
 	"automatic-speech-recognition": {
 		inputs: [{ id: "in_0", label: "Audio", type: "audio" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }],
+		outputs: [{ id: "out_0", label: "Text", type: "text" }]
 	},
 	"audio-classification": {
 		inputs: [{ id: "in_0", label: "Audio", type: "audio" }],
-		outputs: [{ id: "out_0", label: "Labels", type: "json" }],
+		outputs: [{ id: "out_0", label: "Labels", type: "json" }]
 	},
 	"audio-to-audio": {
 		inputs: [{ id: "in_0", label: "Audio", type: "audio" }],
-		outputs: [{ id: "out_0", label: "Audio", type: "audio" }],
+		outputs: [{ id: "out_0", label: "Audio", type: "audio" }]
 	},
 	// Multimodal
 	"visual-question-answering": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
-			{ id: "in_1", label: "Question", type: "text" },
+			{ id: "in_1", label: "Question", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Answer", type: "text" }],
+		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
 	},
 	"document-question-answering": {
 		inputs: [
 			{ id: "in_0", label: "Document", type: "image" },
-			{ id: "in_1", label: "Question", type: "text" },
+			{ id: "in_1", label: "Question", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Answer", type: "text" }],
-	},
+		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
+	}
 };
 
 export const LIBRARY: Record<string, NodeTemplate[]> = {
@@ -293,8 +293,8 @@ export const PIPELINE_TO_CATEGORY: Record<string, string> = {
 	// Text
 	"text-generation": "text",
 	"text2text-generation": "text",
-	"translation": "text",
-	"summarization": "text",
+	translation: "text",
+	summarization: "text",
 	"text-classification": "text",
 	"question-answering": "text",
 	"fill-mask": "text",
@@ -317,7 +317,7 @@ export const PIPELINE_TO_CATEGORY: Record<string, string> = {
 	"zero-shot-image-classification": "multimodal",
 	"video-text-to-text": "multimodal",
 	// Chat
-	"conversational": "chat"
+	conversational: "chat"
 };
 
 const KEYWORD_PATTERNS: [RegExp, string][] = [
@@ -328,13 +328,19 @@ const KEYWORD_PATTERNS: [RegExp, string][] = [
 	// Audio
 	[/\b(audio|voice|speech|tts|whisper|music|sound|sing|talk)\b/i, "audio"],
 	// Chat
-	[/\b(chat|conversation|assistant|llm|gpt|gemma|llama|mistral|qwen(?!.*(?:image|edit|video)))\b/i, "chat"],
+	[
+		/\b(chat|conversation|assistant|llm|gpt|gemma|llama|mistral|qwen(?!.*(?:image|edit|video)))\b/i,
+		"chat"
+	],
 	// Multimodal
 	[/\b(multimodal|vision.?language|vqa|document.?q|ocr)\b/i, "multimodal"],
 	// Code
 	[/\b(code|program|compiler|debug|ide)\b/i, "code"],
 	// Image — broad, check last
-	[/\b(image|photo|picture|paint|draw|sketch|pixel|diffus|flux|stable|edit.*image|image.*edit|face|swap|background|segm|detect|caption|upscal|super.?res|inpaint|outpaint|style.?transfer|lora|controlnet)\b/i, "image"],
+	[
+		/\b(image|photo|picture|paint|draw|sketch|pixel|diffus|flux|stable|edit.*image|image.*edit|face|swap|background|segm|detect|caption|upscal|super.?res|inpaint|outpaint|style.?transfer|lora|controlnet)\b/i,
+		"image"
+	]
 ];
 
 export function categorizeSpace(

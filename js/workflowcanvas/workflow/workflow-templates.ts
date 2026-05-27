@@ -1,6 +1,10 @@
 import type { Workflow } from "./workflow-types";
 
-export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] = [
+export const TEMPLATES: {
+	name: string;
+	desc: string;
+	build: () => Workflow;
+}[] = [
 	{
 		name: "not-lain/background-removal",
 		desc: "Image → background removal → clean image",
@@ -19,7 +23,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t2",
@@ -28,15 +32,13 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					source: "space",
 					space_id: "not-lain/background-removal",
 					endpoint: "/image",
-					inputs: [
-						{ id: "in", label: "Image", type: "image", required: true },
-					],
+					inputs: [{ id: "in", label: "Image", type: "image", required: true }],
 					outputs: [{ id: "out", label: "Image", type: "image" }],
 					x: 420,
 					y: 120,
 					width: 200,
 					height: 90,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t3",
@@ -49,8 +51,8 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
-				},
+					data: {}
+				}
 			],
 			edges: [
 				{
@@ -59,7 +61,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t2",
 					to_port_id: "in",
-					type: "image",
+					type: "image"
 				},
 				{
 					id: "e2",
@@ -67,10 +69,10 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t3",
 					to_port_id: "in",
-					type: "image",
-				},
-			],
-		}),
+					type: "image"
+				}
+			]
+		})
 	},
 	{
 		name: "black-forest-labs/FLUX.1-schnell",
@@ -90,7 +92,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t2",
@@ -98,15 +100,13 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					label: "Generate image",
 					source: "space",
 					space_id: "black-forest-labs/FLUX.1-schnell",
-					inputs: [
-						{ id: "in", label: "Prompt", type: "text", required: true },
-					],
+					inputs: [{ id: "in", label: "Prompt", type: "text", required: true }],
 					outputs: [{ id: "out", label: "Image", type: "image" }],
 					x: 420,
 					y: 120,
 					width: 200,
 					height: 90,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t3",
@@ -119,8 +119,8 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
-				},
+					data: {}
+				}
 			],
 			edges: [
 				{
@@ -129,7 +129,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t2",
 					to_port_id: "in",
-					type: "text",
+					type: "text"
 				},
 				{
 					id: "e2",
@@ -137,10 +137,10 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t3",
 					to_port_id: "in",
-					type: "image",
-				},
-			],
-		}),
+					type: "image"
+				}
+			]
+		})
 	},
 	{
 		name: "hf-audio/whisper-large-v3-turbo",
@@ -160,7 +160,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t2",
@@ -168,15 +168,13 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					label: "Transcribe",
 					source: "space",
 					space_id: "hf-audio/whisper-large-v3-turbo",
-					inputs: [
-						{ id: "in", label: "Audio", type: "audio", required: true },
-					],
+					inputs: [{ id: "in", label: "Audio", type: "audio", required: true }],
 					outputs: [{ id: "out", label: "Text", type: "text" }],
 					x: 420,
 					y: 120,
 					width: 200,
 					height: 90,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t3",
@@ -189,8 +187,8 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
-				},
+					data: {}
+				}
 			],
 			edges: [
 				{
@@ -199,7 +197,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t2",
 					to_port_id: "in",
-					type: "audio",
+					type: "audio"
 				},
 				{
 					id: "e2",
@@ -207,10 +205,10 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t3",
 					to_port_id: "in",
-					type: "text",
-				},
-			],
-		}),
+					type: "text"
+				}
+			]
+		})
 	},
 	{
 		name: "vikhyatk/moondream1",
@@ -230,7 +228,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t2",
@@ -238,15 +236,13 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					label: "Describe image",
 					source: "space",
 					space_id: "vikhyatk/moondream1",
-					inputs: [
-						{ id: "in", label: "Image", type: "image", required: true },
-					],
+					inputs: [{ id: "in", label: "Image", type: "image", required: true }],
 					outputs: [{ id: "out", label: "Caption", type: "text" }],
 					x: 420,
 					y: 120,
 					width: 200,
 					height: 90,
-					data: {},
+					data: {}
 				},
 				{
 					id: "t3",
@@ -259,8 +255,8 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					y: 120,
 					width: 220,
 					height: 160,
-					data: {},
-				},
+					data: {}
+				}
 			],
 			edges: [
 				{
@@ -269,7 +265,7 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t2",
 					to_port_id: "in",
-					type: "image",
+					type: "image"
 				},
 				{
 					id: "e2",
@@ -277,9 +273,9 @@ export const TEMPLATES: { name: string; desc: string; build: () => Workflow }[] 
 					from_port_id: "out",
 					to_node_id: "t3",
 					to_port_id: "in",
-					type: "text",
-				},
-			],
-		}),
-	},
+					type: "text"
+				}
+			]
+		})
+	}
 ];

@@ -1,10 +1,5 @@
 import { writable } from "svelte/store";
-import type {
-	Workflow,
-	WFNode,
-	WFEdge,
-	NodeDataValue
-} from "./workflow-types";
+import type { Workflow, WFNode, WFEdge, NodeDataValue } from "./workflow-types";
 
 function uuid(): string {
 	return crypto.randomUUID();
@@ -39,13 +34,23 @@ function loadFromStorage(): Workflow {
 			const wf = JSON.parse(raw) as Workflow;
 			wf.nodes = wf.nodes.map((n) => {
 				// Migrate: output nodes now have a pass-through output port
-				if (n.kind === "output" && (!n.outputs || n.outputs.length === 0) && n.inputs?.[0]) {
-					n.outputs = [{ id: "out", label: n.inputs[0].label, type: n.inputs[0].type }];
+				if (
+					n.kind === "output" &&
+					(!n.outputs || n.outputs.length === 0) &&
+					n.inputs?.[0]
+				) {
+					n.outputs = [
+						{ id: "out", label: n.inputs[0].label, type: n.inputs[0].type }
+					];
 				}
 				// Migrate: consolidate old input/output kinds into component
-				if ((n.kind === "input" || n.kind === "output") && n.source === "local") {
+				if (
+					(n.kind === "input" || n.kind === "output") &&
+					n.source === "local"
+				) {
 					const portType = n.outputs[0]?.type ?? n.inputs[0]?.type ?? "any";
-					const portLabel = n.outputs[0]?.label ?? n.inputs[0]?.label ?? n.label;
+					const portLabel =
+						n.outputs[0]?.label ?? n.inputs[0]?.label ?? n.label;
 					n.kind = "component";
 					if (!n.inputs || n.inputs.length === 0) {
 						n.inputs = [{ id: "in", label: portLabel, type: portType }];
@@ -75,7 +80,11 @@ workflow.subscribe((wf) => {
 				data: Object.fromEntries(
 					Object.entries(n.data ?? {}).map(([k, v]) => [
 						k,
-						typeof v === "string" || typeof v === "number" || typeof v === "boolean" ? v : null
+						typeof v === "string" ||
+						typeof v === "number" ||
+						typeof v === "boolean"
+							? v
+							: null
 					])
 				)
 			}))
@@ -165,8 +174,6 @@ export function resizeNode(
 ): void {
 	workflow.update((wf) => ({
 		...wf,
-		nodes: wf.nodes.map((n) =>
-			n.id === nodeId ? { ...n, width, height } : n
-		)
+		nodes: wf.nodes.map((n) => (n.id === nodeId ? { ...n, width, height } : n))
 	}));
 }

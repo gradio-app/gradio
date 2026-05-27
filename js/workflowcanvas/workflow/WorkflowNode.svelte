@@ -1,5 +1,10 @@
 <script lang="ts">
-	import type { WFNode, PortType, NodeDataValue, NodeStatus } from "./workflow-types";
+	import type {
+		WFNode,
+		PortType,
+		NodeDataValue,
+		NodeStatus
+	} from "./workflow-types";
 	import { PORT_COLOR, PORT_COLOR_DIM, KIND_LABEL } from "./workflow-types";
 	import { resizeNode, workflow } from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
@@ -25,9 +30,18 @@
 			to_type: PortType
 		) => void;
 		onmove: (id: string, x: number, y: number) => void;
-		ondatachange: (nodeId: string, portId: string, value: NodeDataValue) => void;
+		ondatachange: (
+			nodeId: string,
+			portId: string,
+			value: NodeDataValue
+		) => void;
 		onremove: (id: string) => void;
-		onautoconnect: (nodeId: string, portId: string, portType: PortType, side: "input" | "output") => void;
+		onautoconnect: (
+			nodeId: string,
+			portId: string,
+			portType: PortType,
+			side: "input" | "output"
+		) => void;
 		connectedPorts: Set<string>;
 		status: NodeStatus;
 		error: string;
@@ -65,7 +79,9 @@
 		if (trimmed && trimmed !== node.label) {
 			workflow.update((wf) => ({
 				...wf,
-				nodes: wf.nodes.map((n) => n.id === node.id ? { ...n, label: trimmed } : n)
+				nodes: wf.nodes.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				)
 			}));
 		}
 		editingLabel = false;
@@ -79,22 +95,29 @@
 	// For "component" nodes, derive mode from whether the input port has an incoming edge.
 	// If connected → output mode (readonly, displays results); otherwise → input mode (editable).
 	const isComponent = node.kind === "component";
-	const componentIsOutput = isComponent && node.inputs[0]
-		? connectedPorts.has(`${node.id}:${node.inputs[0].id}:input`)
-		: false;
-	const mode = isComponent ? (componentIsOutput ? "output" : "input") : node.kind;
+	const componentIsOutput =
+		isComponent && node.inputs[0]
+			? connectedPorts.has(`${node.id}:${node.inputs[0].id}:input`)
+			: false;
+	const mode = isComponent
+		? componentIsOutput
+			? "output"
+			: "input"
+		: node.kind;
 
 	const hasWidget = mode === "input" || mode === "output";
-	const widgetPortId = mode === "input"
-		? node.outputs[0]?.id ?? null
-		: mode === "output"
-			? node.inputs[0]?.id ?? null
-			: null;
-	const widgetType: PortType | null = mode === "input"
-		? node.outputs[0]?.type ?? null
-		: mode === "output"
-			? node.inputs[0]?.type ?? null
-			: null;
+	const widgetPortId =
+		mode === "input"
+			? (node.outputs[0]?.id ?? null)
+			: mode === "output"
+				? (node.inputs[0]?.id ?? null)
+				: null;
+	const widgetType: PortType | null =
+		mode === "input"
+			? (node.outputs[0]?.type ?? null)
+			: mode === "output"
+				? (node.inputs[0]?.type ?? null)
+				: null;
 	const isReadonly = mode === "output";
 
 	function onHandleMouseDown(e: MouseEvent) {
@@ -152,12 +175,19 @@
 >
 	<div class="node-top-accent"></div>
 
-	<div class="node-header" role="button" tabindex="-1" onmousedown={onHandleMouseDown}>
+	<div
+		class="node-header"
+		role="button"
+		tabindex="-1"
+		onmousedown={onHandleMouseDown}
+	>
 		<div class="node-header-top">
 			{#if status === "running"}
 				<span class="node-status-spinner"></span>
 			{/if}
-			<span class="kind-tag">{KIND_LABEL[mode] ?? KIND_LABEL[node.kind] ?? "?"}</span>
+			<span class="kind-tag"
+				>{KIND_LABEL[mode] ?? KIND_LABEL[node.kind] ?? "?"}</span
+			>
 			{#if editingLabel}
 				<input
 					bind:this={labelInput}
@@ -178,15 +208,15 @@
 						e.stopPropagation();
 						editingLabel = true;
 						requestAnimationFrame(() => labelInput?.select());
-					}}
-				>{node.label}</span>
+					}}>{node.label}</span
+				>
 			{/if}
 			<button
 				class="node-delete"
 				onmousedown={(e) => e.stopPropagation()}
 				onclick={() => onremove(node.id)}
-				title="Delete node"
-			>&times;</button>
+				title="Delete node">&times;</button
+			>
 		</div>
 		{#if node.source === "space" && node.space_id}
 			<a
@@ -195,8 +225,8 @@
 				target="_blank"
 				rel="noopener"
 				title={node.space_id}
-				onmousedown={(e) => e.stopPropagation()}
-			>{node.space_id}</a>
+				onmousedown={(e) => e.stopPropagation()}>{node.space_id}</a
+			>
 		{/if}
 	</div>
 
@@ -206,8 +236,11 @@
 		{@const hiddenCount = node.inputs.length - INPUT_COLLAPSE_THRESHOLD}
 		<div class="ports">
 			{#each node.inputs as port, i}
-				{@const portConnected = connectedPorts.has(`${node.id}:${port.id}:input`)}
-				{@const visible = showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
+				{@const portConnected = connectedPorts.has(
+					`${node.id}:${port.id}:input`
+				)}
+				{@const visible =
+					showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
 				{#if visible}
 					<div class="port-row input-row">
 						{#if !portConnected && !pending}
@@ -215,9 +248,10 @@
 								class="port-auto-btn"
 								style="--port-color: {PORT_COLOR[port.type]}"
 								onmousedown={(e) => e.stopPropagation()}
-								onclick={() => onautoconnect(node.id, port.id, port.type, "input")}
-								title="Add {port.type} input"
-							>+</button>
+								onclick={() =>
+									onautoconnect(node.id, port.id, port.type, "input")}
+								title="Add {port.type} input">+</button
+							>
 						{/if}
 						<span
 							class="port-dot input-dot"
@@ -234,31 +268,44 @@
 							onmouseup={() =>
 								oncompleteconnection(node.id, port.id, port.type)}
 						></span>
-						<span class="port-label" class:port-label-optional={port.required === false}>{port.label}</span>
 						<span
-							class="port-type-tag"
-							style="color: {PORT_COLOR[port.type]}"
+							class="port-label"
+							class:port-label-optional={port.required === false}
+							>{port.label}</span
+						>
+						<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
 							>{port.type}</span
 						>
 					</div>
 					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div class="port-inline-config" onmousedown={(e) => e.stopPropagation()}>
+						<div
+							class="port-inline-config"
+							onmousedown={(e) => e.stopPropagation()}
+						>
 							{#if port.type === "number"}
 								<input
 									class="inline-input inline-number"
 									type="number"
 									step="any"
-									placeholder={port.default_value != null ? String(port.default_value) : "0"}
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: "0"}
 									value={node.data?.[port.id] ?? ""}
-									oninput={(e) => ondatachange(node.id, port.id, parseFloat(e.currentTarget.value) || 0)}
+									oninput={(e) =>
+										ondatachange(
+											node.id,
+											port.id,
+											parseFloat(e.currentTarget.value) || 0
+										)}
 								/>
 							{:else if port.type === "boolean"}
 								<label class="inline-checkbox">
 									<input
 										type="checkbox"
 										checked={!!node.data?.[port.id]}
-										onchange={(e) => ondatachange(node.id, port.id, e.currentTarget.checked)}
+										onchange={(e) =>
+											ondatachange(node.id, port.id, e.currentTarget.checked)}
 									/>
 									<span>{node.data?.[port.id] ? "On" : "Off"}</span>
 								</label>
@@ -266,9 +313,14 @@
 								<input
 									class="inline-input"
 									type="text"
-									placeholder={port.default_value != null ? String(port.default_value) : port.label}
-									value={typeof node.data?.[port.id] === "string" ? node.data[port.id] : ""}
-									oninput={(e) => ondatachange(node.id, port.id, e.currentTarget.value)}
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: port.label}
+									value={typeof node.data?.[port.id] === "string"
+										? node.data[port.id]
+										: ""}
+									oninput={(e) =>
+										ondatachange(node.id, port.id, e.currentTarget.value)}
 								/>
 							{/if}
 						</div>
@@ -294,18 +346,24 @@
 
 	<!-- Widget zone for input/output nodes -->
 	{#if hasWidget && widgetPortId && widgetType}
-		<NodeWidget {node} {widgetPortId} {widgetType} {isReadonly} {ondatachange} />
+		<NodeWidget
+			{node}
+			{widgetPortId}
+			{widgetType}
+			{isReadonly}
+			{ondatachange}
+		/>
 	{/if}
 
 	<!-- Output ports -->
 	{#if node.outputs.length > 0}
 		<div class="ports">
 			{#each node.outputs as port}
-				{@const portConnected = connectedPorts.has(`${node.id}:${port.id}:output`)}
+				{@const portConnected = connectedPorts.has(
+					`${node.id}:${port.id}:output`
+				)}
 				<div class="port-row output-row">
-					<span
-						class="port-type-tag"
-						style="color: {PORT_COLOR[port.type]}"
+					<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
 						>{port.type}</span
 					>
 					<span class="port-label">{port.label}</span>
@@ -323,9 +381,10 @@
 							class="port-auto-btn"
 							style="--port-color: {PORT_COLOR[port.type]}"
 							onmousedown={(e) => e.stopPropagation()}
-							onclick={() => onautoconnect(node.id, port.id, port.type, "output")}
-							title="Add {port.type} output"
-						>+</button>
+							onclick={() =>
+								onautoconnect(node.id, port.id, port.type, "output")}
+							title="Add {port.type} output">+</button
+						>
 					{/if}
 				</div>
 			{/each}
@@ -349,7 +408,9 @@
 		user-select: none;
 		font-family: "Manrope", sans-serif;
 		overflow: hidden;
-		transition: box-shadow 0.2s, border-color 0.3s;
+		transition:
+			box-shadow 0.2s,
+			border-color 0.3s;
 		box-sizing: border-box;
 		z-index: 1;
 	}
@@ -363,7 +424,9 @@
 
 	.wf-node.node-selected {
 		border-color: #f97316;
-		box-shadow: 0 0 0 1px #f97316, 0 0 16px rgba(249, 115, 22, 0.15);
+		box-shadow:
+			0 0 0 1px #f97316,
+			0 0 16px rgba(249, 115, 22, 0.15);
 		z-index: 3;
 	}
 
@@ -393,7 +456,9 @@
 	}
 
 	@keyframes node-spin {
-		to { transform: rotate(360deg); }
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.node-status-check {
@@ -455,8 +520,16 @@
 		flex: 1;
 		min-width: 0;
 		overflow: hidden;
-		mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
-		-webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+		mask-image: linear-gradient(
+			to right,
+			black calc(100% - 24px),
+			transparent 100%
+		);
+		-webkit-mask-image: linear-gradient(
+			to right,
+			black calc(100% - 24px),
+			transparent 100%
+		);
 	}
 
 	.node-label-input {
@@ -486,7 +559,9 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		text-decoration: none;
-		transition: color 0.15s, background 0.15s;
+		transition:
+			color 0.15s,
+			background 0.15s;
 		align-self: flex-start;
 	}
 
@@ -512,7 +587,9 @@
 		padding: 0;
 		flex-shrink: 0;
 		opacity: 0.6;
-		transition: opacity 0.15s, background 0.15s;
+		transition:
+			opacity 0.15s,
+			background 0.15s;
 	}
 
 	.wf-node:hover .port-auto-btn {
@@ -642,8 +719,14 @@
 	}
 
 	@keyframes port-snap-anim {
-		0% { transform: scale(2); background: var(--port-color); box-shadow: 0 0 12px var(--port-color); }
-		100% { transform: scale(1); }
+		0% {
+			transform: scale(2);
+			background: var(--port-color);
+			box-shadow: 0 0 12px var(--port-color);
+		}
+		100% {
+			transform: scale(1);
+		}
 	}
 
 	@keyframes port-pulse {
@@ -727,5 +810,4 @@
 		color: #8b8d98;
 		cursor: pointer;
 	}
-
 </style>

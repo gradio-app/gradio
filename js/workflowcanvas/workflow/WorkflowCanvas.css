@@ -115,7 +115,10 @@
 	background: transparent;
 	color: #a0a2ae;
 	cursor: pointer;
-	transition: background 0.15s, color 0.15s, border-color 0.15s;
+	transition:
+		background 0.15s,
+		color 0.15s,
+		border-color 0.15s;
 }
 
 .toolbar-login-btn:hover {
@@ -148,7 +151,10 @@
 	background: #0c0d10;
 	color: #6b6e78;
 	outline: none;
-	transition: background 0.15s, color 0.15s, border-color 0.15s;
+	transition:
+		background 0.15s,
+		color 0.15s,
+		border-color 0.15s;
 }
 
 .toolbar-token-input::placeholder {

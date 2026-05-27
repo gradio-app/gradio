@@ -10,7 +10,7 @@
 		addEdge,
 		removeEdge,
 		updateNodeData,
-		removeNode,
+		removeNode
 	} from "./workflow-store";
 	import { PORT_COLOR } from "./workflow-types";
 	import type { PortType, WFNode, WFEdge, NodeStatus } from "./workflow-types";
@@ -20,7 +20,10 @@
 	import { LIBRARY, categorizeSpace } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 
-	let { server = {}, initialValue = null }: { server?: Record<string, any>; initialValue?: string | null } = $props();
+	let {
+		server = {},
+		initialValue = null
+	}: { server?: Record<string, any>; initialValue?: string | null } = $props();
 
 	const auth = createHFAuth(() => server);
 
@@ -44,7 +47,10 @@
 		try {
 			const raw = await server.search_spaces(["trending", "", ""]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			if (!Array.isArray(data)) { trendingSpaces = []; return; }
+			if (!Array.isArray(data)) {
+				trendingSpaces = [];
+				return;
+			}
 			trendingSpaces = data
 				.map((s: any) => {
 					const desc = s.cardData?.short_description || "";
@@ -54,7 +60,12 @@
 						description: desc,
 						likes: s.likes ?? 0,
 						running: s.runtime?.stage === "RUNNING",
-						category: categorizeSpace(s.cardData?.pipeline_tag, s.cardData?.tags, desc, s.id)
+						category: categorizeSpace(
+							s.cardData?.pipeline_tag,
+							s.cardData?.tags,
+							desc,
+							s.id
+						)
 					};
 				})
 				.filter((s: TrendingSpace) => s.category !== null && s.running);
@@ -122,10 +133,17 @@
 	let toasts: WfToast[] = $state([]);
 	let toastCounter = 0;
 
-	function showToast(msg: string, ms = 3000, type: "info" | "warning" | "error" | "success" = "info"): void {
+	function showToast(
+		msg: string,
+		ms = 3000,
+		type: "info" | "warning" | "error" | "success" = "info"
+	): void {
 		const id = ++toastCounter;
 		toasts = [...toasts, { id, message: msg, type }].slice(-3);
-		if (ms > 0) setTimeout(() => { toasts = toasts.filter((t) => t.id !== id); }, ms);
+		if (ms > 0)
+			setTimeout(() => {
+				toasts = toasts.filter((t) => t.id !== id);
+			}, ms);
 	}
 
 	let panX = $state(0);
@@ -135,33 +153,49 @@
 	let panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 	let nameInput: HTMLInputElement;
 	let nodeCount = $derived($workflow.nodes.length);
-	let hasTransforms = $derived($workflow.nodes.some((n) => n.kind === "transform"));
+	let hasTransforms = $derived(
+		$workflow.nodes.some((n) => n.kind === "transform")
+	);
 	let edgeCount = $derived($workflow.edges.length);
 
 	function toCanvas(e: MouseEvent): { x: number; y: number } {
 		const r = canvasEl.getBoundingClientRect();
 		return {
 			x: (e.clientX - r.left - panX) / zoom,
-			y: (e.clientY - r.top - panY) / zoom,
+			y: (e.clientY - r.top - panY) / zoom
 		};
 	}
 
-	function startConnection(from_node_id: string, from_port_id: string, type: PortType, e: MouseEvent): void {
+	function startConnection(
+		from_node_id: string,
+		from_port_id: string,
+		type: PortType,
+		e: MouseEvent
+	): void {
 		pending = { from_node_id, from_port_id, type, ...toCanvas(e) };
 	}
 
-	function completeConnection(to_node_id: string, to_port_id: string, to_type: PortType): void {
+	function completeConnection(
+		to_node_id: string,
+		to_port_id: string,
+		to_type: PortType
+	): void {
 		if (!pending) return;
-		if (!compatible(pending.type, to_type)) { pending = null; return; }
+		if (!compatible(pending.type, to_type)) {
+			pending = null;
+			return;
+		}
 		addEdge({
 			from_node_id: pending.from_node_id,
 			from_port_id: pending.from_port_id,
 			to_node_id,
 			to_port_id,
-			type: pending.type,
+			type: pending.type
 		});
 		pending = null;
-		const dot = document.querySelector(`[data-port-id="${to_node_id}:${to_port_id}:input"]`);
+		const dot = document.querySelector(
+			`[data-port-id="${to_node_id}:${to_port_id}:input"]`
+		);
 		if (dot) {
 			dot.classList.add("port-snap");
 			setTimeout(() => dot.classList.remove("port-snap"), 400);
@@ -172,8 +206,16 @@
 		return a === "any" || b === "any" || a === b;
 	}
 
-	async function addTemplateToCanvas(template: any, x?: number, y?: number): Promise<void> {
-		if (template.source === "space" && template.space_id && template.inputs.length === 0) {
+	async function addTemplateToCanvas(
+		template: any,
+		x?: number,
+		y?: number
+	): Promise<void> {
+		if (
+			template.source === "space" &&
+			template.space_id &&
+			template.inputs.length === 0
+		) {
 			showToast(`Connecting to ${template.space_id}...`);
 			try {
 				const apiInfo = await fetchSpaceApi(template.space_id);
@@ -182,13 +224,20 @@
 				template.endpoint = apiInfo.endpoint;
 				template.width = apiInfo.width;
 			} catch (err) {
-				showToast(err instanceof Error ? err.message : "Failed to connect to Space", 5000, "error");
+				showToast(
+					err instanceof Error ? err.message : "Failed to connect to Space",
+					5000,
+					"error"
+				);
 				return;
 			}
 		}
 		if (x === undefined || y === undefined) {
 			const nodes = $workflow.nodes;
-			x = nodes.length > 0 ? Math.max(...nodes.map((n) => n.x + n.width)) + 80 : 200;
+			x =
+				nodes.length > 0
+					? Math.max(...nodes.map((n) => n.x + n.width)) + 80
+					: 200;
 			y = nodes.length > 0 ? nodes[nodes.length - 1].y : 150;
 		}
 		addNode(template, x, y);
@@ -208,7 +257,12 @@
 	function revokeAllBlobUrls(nodes: WFNode[]): void {
 		for (const node of nodes) {
 			for (const v of Object.values(node.data ?? {})) {
-				if (v && typeof v === "object" && "url" in v && v.url?.startsWith("blob:")) {
+				if (
+					v &&
+					typeof v === "object" &&
+					"url" in v &&
+					v.url?.startsWith("blob:")
+				) {
 					URL.revokeObjectURL(v.url);
 				}
 			}
@@ -224,7 +278,8 @@
 
 	function topoSort(nodes: WFNode[], edges: WFEdge[]): WFNode[] {
 		const deg = new Map(nodes.map((n) => [n.id, 0]));
-		for (const e of edges) deg.set(e.to_node_id, (deg.get(e.to_node_id) ?? 0) + 1);
+		for (const e of edges)
+			deg.set(e.to_node_id, (deg.get(e.to_node_id) ?? 0) + 1);
 		const q = nodes.filter((n) => deg.get(n.id) === 0);
 		const out: WFNode[] = [];
 		while (q.length) {
@@ -281,27 +336,53 @@
 		abortController = new AbortController();
 
 		const oauthToken = await auth.getOAuthToken();
-		if ($workflow.nodes.some((n) => n.source === "space" && n.space_id) && !oauthToken) {
-			showToast("Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.", 5000, "warning");
+		if (
+			$workflow.nodes.some((n) => n.source === "space" && n.space_id) &&
+			!oauthToken
+		) {
+			showToast(
+				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
+				5000,
+				"warning"
+			);
 		}
 
 		const callSpaceWithToken = server?.call_space
 			? async (spaceId: string, endpoint: string, argsJson: string) =>
-				server.call_space([spaceId, endpoint, argsJson, auth.hfToken || ""])
+					server.call_space([spaceId, endpoint, argsJson, auth.hfToken || ""])
 			: undefined;
 
 		const callModelWithToken = server?.call_model
 			? async (modelId: string, pipelineTag: string, argsJson: string) =>
-				server.call_model([modelId, pipelineTag, argsJson, auth.hfToken || ""])
+					server.call_model([
+						modelId,
+						pipelineTag,
+						argsJson,
+						auth.hfToken || ""
+					])
 			: undefined;
 
 		const fetchDatasetWithToken = server?.fetch_dataset
-			? async (datasetId: string, config: string, split: string, offset: string, length: string) =>
-				server.fetch_dataset([datasetId, config, split, offset, length, auth.hfToken || ""])
+			? async (
+					datasetId: string,
+					config: string,
+					split: string,
+					offset: string,
+					length: string
+				) =>
+					server.fetch_dataset([
+						datasetId,
+						config,
+						split,
+						offset,
+						length,
+						auth.hfToken || ""
+					])
 			: undefined;
 
 		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) => server.call_fn([fnName, argsJson])
+			? async (fnName: string, argsJson: string) =>
+					server.call_fn([fnName, argsJson])
 			: undefined;
 
 		await executeWorkflow(
@@ -311,11 +392,18 @@
 				if (error) {
 					nodeErrors = { ...nodeErrors, [nodeId]: error };
 					const node = $workflow.nodes.find((n) => n.id === nodeId);
-					const label = node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
-					showToast(`${label}: ${error}`, errorType === "quota" || errorType === "gpu" ? 0 : 5000, "error");
+					const label =
+						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
+					showToast(
+						`${label}: ${error}`,
+						errorType === "quota" || errorType === "gpu" ? 0 : 5000,
+						"error"
+					);
 				}
 			},
-			(nodeId, portId, value) => { updateNodeData(nodeId, portId, value); },
+			(nodeId, portId, value) => {
+				updateNodeData(nodeId, portId, value);
+			},
 			abortController.signal,
 			callSpaceWithToken,
 			callModelWithToken,
@@ -327,11 +415,17 @@
 		abortController = null;
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
-		showToast(hasErrors ? "Workflow finished with errors" : "Workflow complete", hasErrors ? 5000 : 3000, hasErrors ? "error" : "success");
+		showToast(
+			hasErrors ? "Workflow finished with errors" : "Workflow complete",
+			hasErrors ? 5000 : 3000,
+			hasErrors ? "error" : "success"
+		);
 
 		// clear done status after 3s so nodes return to neutral
 		setTimeout(() => {
-			nodeStatus = Object.fromEntries(Object.entries(nodeStatus).filter(([_, s]) => s === "error"));
+			nodeStatus = Object.fromEntries(
+				Object.entries(nodeStatus).filter(([_, s]) => s === "error")
+			);
 		}, 3000);
 	}
 
@@ -340,14 +434,21 @@
 		running = false;
 		abortController = null;
 		nodeStatus = Object.fromEntries(
-			Object.entries(nodeStatus).map(([id, s]) => [id, s === "running" ? "idle" : s])
+			Object.entries(nodeStatus).map(([id, s]) => [
+				id,
+				s === "running" ? "idle" : s
+			])
 		);
 		showToast("Stopped", 3000, "warning");
 	}
 
 	function handleGlobalClick(e: MouseEvent): void {
 		const target = e.target as HTMLElement;
-		if (showShortcuts && !target?.closest(".shortcuts-panel") && !target?.closest(".zoom-controls")) {
+		if (
+			showShortcuts &&
+			!target?.closest(".shortcuts-panel") &&
+			!target?.closest(".zoom-controls")
+		) {
 			showShortcuts = false;
 		}
 	}
@@ -401,7 +502,10 @@
 
 	function zoomToFit(): void {
 		const nodes = $workflow.nodes;
-		if (nodes.length === 0) { resetView(); return; }
+		if (nodes.length === 0) {
+			resetView();
+			return;
+		}
 		const padding = 60;
 		const minX = Math.min(...nodes.map((n) => n.x));
 		const minY = Math.min(...nodes.map((n) => n.y));
@@ -409,9 +513,15 @@
 		const maxY = Math.max(...nodes.map((n) => n.y + n.height));
 		const contentW = maxX - minX + padding * 2;
 		const contentH = maxY - minY + padding * 2;
-		if (!canvasEl) { resetView(); return; }
+		if (!canvasEl) {
+			resetView();
+			return;
+		}
 		const r = canvasEl.getBoundingClientRect();
-		zoom = Math.min(Math.max(Math.min(r.width / contentW, r.height / contentH), 0.15), 2);
+		zoom = Math.min(
+			Math.max(Math.min(r.width / contentW, r.height / contentH), 0.15),
+			2
+		);
 		panX = (r.width - contentW * zoom) / 2 - (minX - padding) * zoom;
 		panY = (r.height - contentH * zoom) / 2 - (minY - padding) * zoom;
 	}
@@ -433,7 +543,12 @@
 			exportWorkflow();
 			return;
 		}
-		if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !running && hasTransforms) {
+		if (
+			e.key === "Enter" &&
+			(e.metaKey || e.ctrlKey) &&
+			!running &&
+			hasTransforms
+		) {
 			e.preventDefault();
 			runWorkflow();
 			return;
@@ -473,17 +588,36 @@
 		return set;
 	});
 
-	function autoConnect(nodeId: string, portId: string, portType: PortType, side: "input" | "output"): void {
+	function autoConnect(
+		nodeId: string,
+		portId: string,
+		portType: PortType,
+		side: "input" | "output"
+	): void {
 		const node = $workflow.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		const pt = portType === "any" ? "text" : portType;
-		const template = LIBRARY.components.find((t) => t.outputs[0]?.type === pt) ?? LIBRARY.components[0];
+		const template =
+			LIBRARY.components.find((t) => t.outputs[0]?.type === pt) ??
+			LIBRARY.components[0];
 		if (side === "input") {
 			const newId = addNode(template, node.x - template.width - 80, node.y);
-			addEdge({ from_node_id: newId, from_port_id: template.outputs[0].id, to_node_id: nodeId, to_port_id: portId, type: pt });
+			addEdge({
+				from_node_id: newId,
+				from_port_id: template.outputs[0].id,
+				to_node_id: nodeId,
+				to_port_id: portId,
+				type: pt
+			});
 		} else {
 			const newId = addNode(template, node.x + node.width + 80, node.y);
-			addEdge({ from_node_id: nodeId, from_port_id: portId, to_node_id: newId, to_port_id: template.inputs[0].id, type: pt });
+			addEdge({
+				from_node_id: nodeId,
+				from_port_id: portId,
+				to_node_id: newId,
+				to_port_id: template.inputs[0].id,
+				type: pt
+			});
 		}
 	}
 
@@ -532,7 +666,9 @@
 		resetView();
 		showToast(`Loading "${t.name}"...`);
 
-		const spaceNodes = wf.nodes.filter((n: any) => n.source === "space" && n.space_id);
+		const spaceNodes = wf.nodes.filter(
+			(n: any) => n.source === "space" && n.space_id
+		);
 		const updates = await Promise.allSettled(
 			spaceNodes.map(async (node: any) => {
 				const apiInfo = await fetchSpaceApi(node.space_id);
@@ -543,24 +679,38 @@
 		workflow.update((current) => ({
 			...current,
 			nodes: current.nodes.map((n) => {
-				const update = updates.find((u) => u.status === "fulfilled" && u.value.nodeId === n.id);
+				const update = updates.find(
+					(u) => u.status === "fulfilled" && u.value.nodeId === n.id
+				);
 				if (update && update.status === "fulfilled") {
 					const { apiInfo } = update.value;
-					return { ...n, inputs: apiInfo.inputs, outputs: apiInfo.outputs, endpoint: apiInfo.endpoint, width: apiInfo.width };
+					return {
+						...n,
+						inputs: apiInfo.inputs,
+						outputs: apiInfo.outputs,
+						endpoint: apiInfo.endpoint,
+						width: apiInfo.width
+					};
 				}
 				return n;
 			}),
 			edges: current.edges.map((e) => {
-				const srcUpdate = updates.find((u) => u.status === "fulfilled" && u.value.nodeId === e.from_node_id);
-				const dstUpdate = updates.find((u) => u.status === "fulfilled" && u.value.nodeId === e.to_node_id);
+				const srcUpdate = updates.find(
+					(u) => u.status === "fulfilled" && u.value.nodeId === e.from_node_id
+				);
+				const dstUpdate = updates.find(
+					(u) => u.status === "fulfilled" && u.value.nodeId === e.to_node_id
+				);
 				let edge = { ...e };
 				if (srcUpdate && srcUpdate.status === "fulfilled") {
 					const firstOut = srcUpdate.value.apiInfo.outputs[0];
-					if (firstOut && edge.from_port_id === "out") edge = { ...edge, from_port_id: firstOut.id };
+					if (firstOut && edge.from_port_id === "out")
+						edge = { ...edge, from_port_id: firstOut.id };
 				}
 				if (dstUpdate && dstUpdate.status === "fulfilled") {
 					const firstIn = dstUpdate.value.apiInfo.inputs[0];
-					if (firstIn && edge.to_port_id === "in") edge = { ...edge, to_port_id: firstIn.id };
+					if (firstIn && edge.to_port_id === "in")
+						edge = { ...edge, to_port_id: firstIn.id };
 				}
 				return edge;
 			})
@@ -601,15 +751,24 @@
 					<span class="name-edit-icon">&#x270E;</span>
 				</button>
 			{/if}
-			<span class="toolbar-stat">{nodeCount} nodes &middot; {edgeCount} edges</span>
+			<span class="toolbar-stat"
+				>{nodeCount} nodes &middot; {edgeCount} edges</span
+			>
 		</div>
 		<div class="toolbar-right">
 			{#if auth.isHFSpace}
 				{#if auth.loggedInUser}
-					<span class="toolbar-user-info">Logged in as <strong>{auth.loggedInUser}</strong></span>
-					<button class="toolbar-login-btn logged-in" onclick={auth.handleLogout}>Log out</button>
+					<span class="toolbar-user-info"
+						>Logged in as <strong>{auth.loggedInUser}</strong></span
+					>
+					<button
+						class="toolbar-login-btn logged-in"
+						onclick={auth.handleLogout}>Log out</button
+					>
 				{:else}
-					<button class="toolbar-login-btn" onclick={auth.handleLogin}>Sign in with 🤗</button>
+					<button class="toolbar-login-btn" onclick={auth.handleLogin}
+						>Sign in with 🤗</button
+					>
 				{/if}
 			{:else}
 				<form onsubmit={(e) => e.preventDefault()}>
@@ -623,10 +782,20 @@
 					/>
 				</form>
 			{/if}
-			<button class="tool-btn" onclick={exportWorkflow} title="Export workflow.json (Cmd+S)">Export</button>
-			<button class="tool-btn" onclick={importWorkflow} title="Import workflow.json">Import</button>
+			<button
+				class="tool-btn"
+				onclick={exportWorkflow}
+				title="Export workflow.json (Cmd+S)">Export</button
+			>
+			<button
+				class="tool-btn"
+				onclick={importWorkflow}
+				title="Import workflow.json">Import</button
+			>
 			<div class="toolbar-divider"></div>
-			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes">Layout</button>
+			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
+				>Layout</button
+			>
 			<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
 			<div class="toolbar-divider"></div>
 			{#if running}
@@ -642,7 +811,13 @@
 	</div>
 
 	<div class="editor">
-		<WorkflowSidebar onadd={(t) => addTemplateToCanvas(t)} {server} hfToken={auth.hfToken} trendingSpaces={trendingSpaces} trendingLoading={trendingLoading} />
+		<WorkflowSidebar
+			onadd={(t) => addTemplateToCanvas(t)}
+			{server}
+			hfToken={auth.hfToken}
+			{trendingSpaces}
+			{trendingLoading}
+		/>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="canvas"
@@ -696,31 +871,66 @@
 				/>
 			{/if}
 			<div class="zoom-controls">
-				<button class="zoom-ctrl-btn" onclick={() => (showShortcuts = !showShortcuts)} title="Keyboard shortcuts">?</button>
-				<button class="zoom-ctrl-btn" onclick={zoomToFit} title="Fit all (F)">&#x2922;</button>
-				<button class="zoom-ctrl-btn" onclick={() => { zoom = Math.max(0.15, zoom / 1.2); }}>−</button>
-				<button class="zoom-btn" onclick={resetView}>{Math.round(zoom * 100)}%</button>
-				<button class="zoom-ctrl-btn" onclick={() => { zoom = Math.min(4, zoom * 1.2); }}>+</button>
+				<button
+					class="zoom-ctrl-btn"
+					onclick={() => (showShortcuts = !showShortcuts)}
+					title="Keyboard shortcuts">?</button
+				>
+				<button class="zoom-ctrl-btn" onclick={zoomToFit} title="Fit all (F)"
+					>&#x2922;</button
+				>
+				<button
+					class="zoom-ctrl-btn"
+					onclick={() => {
+						zoom = Math.max(0.15, zoom / 1.2);
+					}}>−</button
+				>
+				<button class="zoom-btn" onclick={resetView}
+					>{Math.round(zoom * 100)}%</button
+				>
+				<button
+					class="zoom-ctrl-btn"
+					onclick={() => {
+						zoom = Math.min(4, zoom * 1.2);
+					}}>+</button
+				>
 			</div>
 			{#if showShortcuts}
 				<div class="shortcuts-panel">
 					<div class="shortcuts-title">Keyboard shortcuts</div>
-					<div class="shortcut-row"><kbd>Cmd+Enter</kbd> <span>Run workflow</span></div>
-					<div class="shortcut-row"><kbd>Cmd+S</kbd> <span>Export JSON</span></div>
-					<div class="shortcut-row"><kbd>Cmd+D</kbd> <span>Duplicate node</span></div>
+					<div class="shortcut-row">
+						<kbd>Cmd+Enter</kbd> <span>Run workflow</span>
+					</div>
+					<div class="shortcut-row">
+						<kbd>Cmd+S</kbd> <span>Export JSON</span>
+					</div>
+					<div class="shortcut-row">
+						<kbd>Cmd+D</kbd> <span>Duplicate node</span>
+					</div>
 					<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
-					<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>
-					<div class="shortcut-row"><kbd>Delete</kbd> <span>Remove node</span></div>
-					<div class="shortcut-row"><kbd>Escape</kbd> <span>Deselect</span></div>
+					<div class="shortcut-row">
+						<kbd>Cmd+0</kbd> <span>Reset zoom</span>
+					</div>
+					<div class="shortcut-row">
+						<kbd>Delete</kbd> <span>Remove node</span>
+					</div>
+					<div class="shortcut-row">
+						<kbd>Escape</kbd> <span>Deselect</span>
+					</div>
 					<div class="shortcut-row"><kbd>Scroll</kbd> <span>Zoom</span></div>
-					<div class="shortcut-row"><kbd>Drag canvas</kbd> <span>Pan</span></div>
-					<div class="shortcut-row"><kbd>Double-click</kbd> <span>Rename node</span></div>
+					<div class="shortcut-row">
+						<kbd>Drag canvas</kbd> <span>Pan</span>
+					</div>
+					<div class="shortcut-row">
+						<kbd>Double-click</kbd> <span>Rename node</span>
+					</div>
 				</div>
 			{/if}
 			{#if pending}
 				<div
 					class="connection-badge"
-					style="left: {mouseViewport.x + 14}px; top: {mouseViewport.y - 10}px; --badge-color: {PORT_COLOR[pending.type]}"
+					style="left: {mouseViewport.x + 14}px; top: {mouseViewport.y -
+						10}px; --badge-color: {PORT_COLOR[pending.type]}"
 				>
 					{pending.type}
 				</div>
@@ -738,5 +948,5 @@
 </div>
 
 <style>
-	@import './WorkflowCanvas.css';
+	@import "./WorkflowCanvas.css";
 </style>

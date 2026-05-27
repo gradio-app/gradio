@@ -1,5 +1,10 @@
 <script lang="ts">
-	import type { WFNode, PortType, NodeDataValue, FileValue } from "./workflow-types";
+	import type {
+		WFNode,
+		PortType,
+		NodeDataValue,
+		FileValue
+	} from "./workflow-types";
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
 
@@ -8,10 +13,15 @@
 		widgetPortId: string;
 		widgetType: PortType;
 		isReadonly: boolean;
-		ondatachange: (nodeId: string, portId: string, value: NodeDataValue) => void;
+		ondatachange: (
+			nodeId: string,
+			portId: string,
+			value: NodeDataValue
+		) => void;
 	}
 
-	let { node, widgetPortId, widgetType, isReadonly, ondatachange }: Props = $props();
+	let { node, widgetPortId, widgetType, isReadonly, ondatachange }: Props =
+		$props();
 
 	function getTextValue(): string {
 		const v = node.data?.[widgetPortId];
@@ -78,7 +88,7 @@
 
 	const i18n = (key: string) => key;
 	async function stubUpload(files: File[]): Promise<any[]> {
-		return files.map(f => ({
+		return files.map((f) => ({
 			url: URL.createObjectURL(f),
 			orig_name: f.name,
 			path: f.name,
@@ -86,7 +96,9 @@
 			size: f.size
 		}));
 	}
-	async function stubStream(): Promise<any> { return; }
+	async function stubStream(): Promise<any> {
+		return;
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -99,7 +111,11 @@
 				show_label={false}
 				lines={widgetType === "json" ? 4 : 3}
 				max_lines={8}
-				placeholder={isReadonly ? "Waiting for output..." : widgetType === "json" ? '{"key": "value"}' : "Enter text..."}
+				placeholder={isReadonly
+					? "Waiting for output..."
+					: widgetType === "json"
+						? '{"key": "value"}'
+						: "Enter text..."}
 				disabled={isReadonly}
 				oninput={(val) => ondatachange(node.id, widgetPortId, val)}
 			/>
@@ -127,7 +143,9 @@
 				disabled={isReadonly}
 				onchange={handleBooleanInput}
 			/>
-			<span class="widget-checkbox-label">{getBooleanValue() ? "On" : "Off"}</span>
+			<span class="widget-checkbox-label"
+				>{getBooleanValue() ? "On" : "Off"}</span
+			>
 		</label>
 	{:else if widgetType === "image" || widgetType === "audio" || widgetType === "video" || widgetType === "file" || widgetType === "gallery" || widgetType === "model3d"}
 		{@const fileVal = getFileValue()}
@@ -136,7 +154,12 @@
 				{#if (widgetType === "image" || widgetType === "gallery") && isReadonly}
 					<div class="widget-gradio-wrap widget-gradio-image">
 						<BaseStaticImage
-							value={{ url: fileVal.url, orig_name: fileVal.name, path: fileVal.url, mime_type: fileVal.mime }}
+							value={{
+								url: fileVal.url,
+								orig_name: fileVal.name,
+								path: fileVal.url,
+								mime_type: fileVal.mime
+							}}
 							show_label={false}
 							{i18n}
 							buttons={[]}
@@ -157,25 +180,34 @@
 					<button class="widget-clear" onclick={clearFile}>&times;</button>
 				{/if}
 			</div>
+		{:else if isReadonly}
+			<div class="widget-placeholder">Waiting for output...</div>
 		{:else}
-			{#if isReadonly}
-				<div class="widget-placeholder">Waiting for output...</div>
-			{:else}
-				<label
-					class="widget-file-drop"
-					ondragover={(e) => { e.preventDefault(); e.stopPropagation(); }}
-					ondrop={handleFileDrop}
-				>
-					<input
-						type="file"
-						accept={widgetType === "image" ? "image/*" : widgetType === "audio" ? "audio/*" : widgetType === "video" ? "video/*" : widgetType === "model3d" ? ".glb,.gltf,.obj,.stl" : "*"}
-						onchange={handleFileSelect}
-					/>
-					<span class="widget-drop-text">
-						Drop {widgetType} or click
-					</span>
-				</label>
-			{/if}
+			<label
+				class="widget-file-drop"
+				ondragover={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+				}}
+				ondrop={handleFileDrop}
+			>
+				<input
+					type="file"
+					accept={widgetType === "image"
+						? "image/*"
+						: widgetType === "audio"
+							? "audio/*"
+							: widgetType === "video"
+								? "video/*"
+								: widgetType === "model3d"
+									? ".glb,.gltf,.obj,.stl"
+									: "*"}
+					onchange={handleFileSelect}
+				/>
+				<span class="widget-drop-text">
+					Drop {widgetType} or click
+				</span>
+			</label>
 		{/if}
 	{/if}
 </div>
@@ -374,7 +406,9 @@
 		border-radius: 6px;
 		background: #101118;
 		cursor: pointer;
-		transition: border-color 0.15s, background 0.15s;
+		transition:
+			border-color 0.15s,
+			background 0.15s;
 	}
 
 	.widget-file-drop:hover {

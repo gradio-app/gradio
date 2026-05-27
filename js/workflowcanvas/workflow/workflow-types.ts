@@ -1,4 +1,15 @@
-export type PortType = "image" | "text" | "audio" | "video" | "number" | "boolean" | "file" | "json" | "gallery" | "model3d" | "any";
+export type PortType =
+	| "image"
+	| "text"
+	| "audio"
+	| "video"
+	| "number"
+	| "boolean"
+	| "file"
+	| "json"
+	| "gallery"
+	| "model3d"
+	| "any";
 
 export interface Port {
 	id: string;
@@ -83,7 +94,6 @@ export const PORT_COLOR_DIM: Record<PortType, string> = {
 	model3d: "rgba(167, 139, 250, 0.15)",
 	any: "rgba(107, 110, 120, 0.10)"
 };
-
 
 export const KIND_LABEL: Record<string, string> = {
 	input: "IN",

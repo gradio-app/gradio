@@ -5,7 +5,9 @@
 	import { workflow } from "./workflow/workflow-store";
 
 	let _props = $props();
-	const gradio = new Gradio<Record<string, never>, { value: string | null }>(_props);
+	const gradio = new Gradio<Record<string, never>, { value: string | null }>(
+		_props
+	);
 
 	let serverObj = $derived(gradio.shared?.server ?? {});
 	let initialValue = $derived(gradio.props.value ?? null);
@@ -42,7 +44,7 @@
 </script>
 
 <div class="workflow-fullscreen">
-	<WorkflowCanvas server={serverObj} initialValue={initialValue} />
+	<WorkflowCanvas server={serverObj} {initialValue} />
 </div>
 
 <style>
