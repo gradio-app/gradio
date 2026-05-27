@@ -150,6 +150,13 @@ def test_get_heartbeat_rate(monkeypatch):
     with pytest.warns(UserWarning):
         assert get_heartbeat_rate() == 15
 
+    # A zero or negative value would busy-loop asyncio.sleep(), so it warns
+    # and falls back to the default.
+    for bad_value in ("0", "-5"):
+        monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", bad_value)
+        with pytest.warns(UserWarning):
+            assert get_heartbeat_rate() == 15
+
 
 class TestFormatNERList:
     def test_format_ner_list_standard(self):
