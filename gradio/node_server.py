@@ -141,10 +141,11 @@ def start_node_process(
                 stderr=subprocess.DEVNULL if not debug else None,
             )
 
-            # When Node is the front proxy, Python isn't up yet so SSR
-            # pages will fail. Just check TCP connectivity.
+            # Python is started before Node (see blocks.py), so SSR pages
+            # work immediately.  Use a full HTTP check so we only report the
+            # Node port as ready once it is actually serving responses.
             is_working = verify_server_startup(
-                server_name, port, timeout=5, tcp_only=(python_port is not None)
+                server_name, port, timeout=15
             )
             if is_working:
                 signal.signal(

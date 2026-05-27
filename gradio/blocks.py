@@ -2755,6 +2755,7 @@ Received inputs:
 
         self._node_is_proxy = False
         static_worker_ports: list[int] = []
+        _node_start_config: dict | None = None
 
         if self.ssr_mode:
             self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -2773,8 +2774,12 @@ Received inputs:
                 )
             else:
                 # Production: Node is the front proxy on the user-facing port.
-                # Python moves to an internal port after Node.
-                # Workers get ports after Python.
+                # Python starts first on an internal port; Node is started
+                # *after* Python is ready so the user-facing port only opens
+                # once the full stack is functional. This prevents 502 errors
+                # caused by K8s routing traffic to the pod before the Python
+                # backend is up (the TCP startup probe on the Node port passes
+                # as soon as Node binds the socket, before Python is ready).
                 from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
 
                 user_port = server_port or int(
@@ -2798,25 +2803,20 @@ Received inputs:
                         worker_start + i for i in range(resolved_num_workers)
                     ]
 
-                self.node_server_name, self.node_process, self.node_port = (
-                    start_node_server(
-                        server_name=node_server_name or python_host,
-                        server_port=node_port or user_port,
-                        node_path=self.node_path,
-                        python_port=python_internal_port,
-                        python_host=python_host,
-                        static_worker_ports=static_worker_ports,
-                        debug=debug,
-                    )
+                # Store Node config; the actual start_node_server() call is
+                # deferred until after http_server.start_server() below so
+                # that Python is ready when Node first starts serving traffic.
+                _node_start_config = dict(
+                    server_name=node_server_name or python_host,
+                    server_port=node_port or user_port,
+                    node_path=self.node_path,
+                    python_port=python_internal_port,
+                    python_host=python_host,
+                    static_worker_ports=static_worker_ports,
+                    debug=debug,
                 )
-                # Only use the proxy architecture if Node actually started
-                if self.node_process is not None and self.node_port is not None:
-                    server_port = python_internal_port
-                    self._node_is_proxy = True
-                else:
-                    # Node failed to start — fall back to Python as the
-                    # front server on the original user port.
-                    static_worker_ports = []
+                server_port = python_internal_port
+                self._node_is_proxy = True
         else:
             self.node_server_name = self.node_port = self.node_process = None
 
@@ -2876,6 +2876,18 @@ Received inputs:
             self.has_launched = True
             if self.mcp_server_obj:
                 self.mcp_server_obj._local_url = self.local_url
+
+            # Python is now ready — start Node so the user-facing port (7860)
+            # only opens once the full stack is functional.  This prevents the
+            # K8s TCP startup probe from passing before Python is up, which
+            # would cause 502s while the backend is still initialising.
+            if _node_start_config is not None:
+                self.node_server_name, self.node_process, self.node_port = (
+                    start_node_server(**_node_start_config)
+                )
+                if not (self.node_process and self.node_port):
+                    # Node failed to start; fall back to serving Python directly.
+                    self._node_is_proxy = False
 
             # When Node is the front proxy, the user-facing URL is the Node port
             if self._node_is_proxy and self.node_port is not None:
