@@ -1598,6 +1598,30 @@ def _parse_file_size(size: str | int | None) -> int | None:
     return multiple * size_int
 
 
+def get_heartbeat_rate() -> float:
+    """
+    The interval, in seconds, between heartbeats sent to keep a client session
+    alive (and, on disconnect, to trigger unload events and session cleanup).
+
+    Configurable via the GRADIO_HEARTBEAT_INTERVAL environment variable (a
+    number of seconds). A shorter interval is useful in environments such as
+    Kubernetes, where the default 15 seconds can delay the detection of client
+    disconnections. If the variable is unset (or invalid), falls back to 0.25
+    seconds during end-to-end tests and 15 seconds otherwise.
+    """
+    interval = os.getenv("GRADIO_HEARTBEAT_INTERVAL")
+    if interval:
+        try:
+            return float(interval)
+        except ValueError:
+            warnings.warn(
+                f"Invalid GRADIO_HEARTBEAT_INTERVAL value: {interval!r}. "
+                "Expected a number of seconds; falling back to the default.",
+                UserWarning,
+            )
+    return 0.25 if os.getenv("GRADIO_IS_E2E_TEST") else 15
+
+
 def connect_heartbeat(config: BlocksConfigDict, blocks, fns=None) -> bool:
     """
     Determines whether a heartbeat is required for a given config.

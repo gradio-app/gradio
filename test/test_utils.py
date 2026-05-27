@@ -36,6 +36,7 @@ from gradio.utils import (
     get_extension_from_file_path_or_url,
     get_function_description,
     get_function_params,
+    get_heartbeat_rate,
     get_icon_path,
     get_type_hints,
     ipython_check,
@@ -123,6 +124,31 @@ def test_assert_configs_are_equivalent():
     assert assert_configs_are_equivalent_besides_ids(xray_config, xray_config_diff_ids)
     with pytest.raises(ValueError):
         assert_configs_are_equivalent_besides_ids(xray_config, xray_config_wrong)
+
+
+def test_get_heartbeat_rate(monkeypatch):
+    # Defaults to 15 seconds when nothing is configured.
+    monkeypatch.delenv("GRADIO_HEARTBEAT_INTERVAL", raising=False)
+    monkeypatch.delenv("GRADIO_IS_E2E_TEST", raising=False)
+    assert get_heartbeat_rate() == 15
+
+    # GRADIO_HEARTBEAT_INTERVAL overrides the default with a float value.
+    monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", "1.5")
+    assert get_heartbeat_rate() == 1.5
+
+    # It takes precedence over the GRADIO_IS_E2E_TEST fallback.
+    monkeypatch.setenv("GRADIO_IS_E2E_TEST", "1")
+    assert get_heartbeat_rate() == 1.5
+
+    # Falls back to the E2E rate when only GRADIO_IS_E2E_TEST is set.
+    monkeypatch.delenv("GRADIO_HEARTBEAT_INTERVAL", raising=False)
+    assert get_heartbeat_rate() == 0.25
+
+    # An invalid value warns and falls back to the default.
+    monkeypatch.delenv("GRADIO_IS_E2E_TEST", raising=False)
+    monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", "not-a-number")
+    with pytest.warns(UserWarning):
+        assert get_heartbeat_rate() == 15
 
 
 class TestFormatNERList:
