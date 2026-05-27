@@ -84,19 +84,6 @@ export const PORT_COLOR_DIM: Record<PortType, string> = {
 	any: "rgba(107, 110, 120, 0.10)"
 };
 
-export const PORT_ICON: Record<PortType, string> = {
-	image: "&#xe3f4;",
-	text: "&#xe8e2;",
-	audio: "&#xe310;",
-	video: "&#xe04b;",
-	number: "&#xe80e;",
-	boolean: "&#xe836;",
-	file: "&#xe24d;",
-	json: "&#xe86f;",
-	gallery: "&#xe3b6;",
-	model3d: "&#xe84d;",
-	any: "&#xe9e4;"
-};
 
 export const KIND_LABEL: Record<string, string> = {
 	input: "IN",

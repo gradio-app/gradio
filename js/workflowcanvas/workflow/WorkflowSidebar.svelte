@@ -2,7 +2,7 @@
 	import { LIBRARY, SPACE_CATEGORIES, TASK_SCHEMAS, categorizeSpace, type NodeTemplate } from "./node-library";
 	import { PORT_COLOR } from "./workflow-types";
 	import type { PortType } from "./workflow-types";
-	import { fetchSpaceApi, componentToPortType } from "./space-api";
+	import { fetchSpaceApi } from "./space-api";
 
 	interface TrendingSpace {
 		id: string;

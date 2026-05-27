@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 import os
@@ -13,6 +14,102 @@ from collections.abc import Callable
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+_PY_TO_PORT = {int: "number", float: "number", bool: "boolean"}
+
+
+def _build_edges(
+    edges_spec: list[tuple[str, str]],
+    nodes: list[dict],
+) -> list[dict]:
+    def resolve(spec: str, ports_key: str) -> tuple[str, str, str]:
+        fn_name, _, port_hint = spec.partition(".")
+        fn_name = fn_name.strip()
+        port_hint = port_hint.strip() or None
+
+        node = next((n for n in nodes if n.get("fn") == fn_name), None)
+        if node is None:
+            raise ValueError(
+                f"edges: no function '{fn_name}' in bind dict. "
+                f"Available: {[n['fn'] for n in nodes]}"
+            )
+
+        ports = node[ports_key]
+        if not ports:
+            raise ValueError(f"edges: node '{fn_name}' has no {ports_key}")
+
+        if port_hint is None:
+            port = ports[0]
+            return node["id"], port["id"], port.get("type", "text")
+
+        port = next(
+            (p for p in ports if p["label"] == port_hint or p["id"] == port_hint),
+            None,
+        )
+        if port is None:
+            raise ValueError(
+                f"edges: no {ports_key[:-1]} port '{port_hint}' on '{fn_name}'. "
+                f"Available: {[p['label'] for p in ports]}"
+            )
+        return node["id"], port["id"], port.get("type", "text")
+
+    result = []
+    for i, (from_spec, to_spec) in enumerate(edges_spec):
+        from_node_id, from_port_id, edge_type = resolve(from_spec, "outputs")
+        to_node_id, to_port_id, _ = resolve(to_spec, "inputs")
+        result.append({
+            "id": f"edge_{i}",
+            "from_node_id": from_node_id,
+            "from_port_id": from_port_id,
+            "to_node_id": to_node_id,
+            "to_port_id": to_port_id,
+            "type": edge_type,
+        })
+    return result
+
+
+def _workflow_from_bind(
+    bound: dict[str, Callable],
+    edges: list[tuple[str, str]] | None = None,
+) -> str:
+    nodes = []
+    for i, (name, fn) in enumerate(bound.items()):
+        try:
+            sig = inspect.signature(fn)
+        except (ValueError, TypeError):
+            sig = inspect.Signature()
+
+        inputs = [
+            {
+                "id": f"in_{p}",
+                "label": p,
+                "type": _PY_TO_PORT.get(param.annotation, "text"),
+            }
+            for p, param in sig.parameters.items()
+            if p != "self"
+        ]
+        outputs = [{"id": "out_0", "label": "output", "type": _PY_TO_PORT.get(sig.return_annotation, "text")}]
+
+        if not inputs:
+            inputs = [{"id": "in_0", "label": "input", "type": "text"}]
+
+        nodes.append({
+            "id": f"fn_{name}",
+            "source": "fn",
+            "fn": name,
+            "kind": "transform",
+            "label": name,
+            "x": 80 + i * 280,
+            "y": 150,
+            "width": 220,
+            "height": 80 + max(len(inputs), len(outputs)) * 36,
+            "inputs": inputs,
+            "outputs": outputs,
+            "data": {},
+        })
+
+    edge_dicts = _build_edges(edges or [], nodes)
+    return json.dumps({"version": "1", "name": "My Workflow", "nodes": nodes, "edges": edge_dicts})
 
 
 def _resolve_token(data: list, idx: int, token) -> str | None:
@@ -133,6 +230,7 @@ class Workflow:
         file: str | None = None,
         *,
         bind: dict[str, Callable] | None = None,
+        edges: list[tuple[str, str]] | None = None,
     ):
         """
         Parameters:
@@ -141,15 +239,25 @@ class Workflow:
             bind: Dictionary mapping function names (as used in the workflow JSON's
                 `fn` field) to Python callables. These become callable from the
                 canvas frontend via the `call_fn` server function.
+            edges: List of ``(from_endpoint, to_endpoint)`` tuples that wire nodes
+                together. Each endpoint is either ``"fn_name"`` (uses the first
+                available port) or ``"fn_name.port_label"`` to target a specific port.
+
+                Example::
+
+                    edges=[
+                        ("shout", "reverse"),          # first output → first input
+                        ("clean.output", "tag.text"),  # by port label
+                    ]
         """
         if file is None:
-            import inspect
             frame = inspect.stack()[1]
             caller_dir = os.path.dirname(os.path.abspath(frame.filename))
             file = os.path.join(caller_dir, "workflow.json")
 
         self._workflow_file = file
         self._bound: dict[str, Callable] = bind or {}
+        self._edges: list[tuple[str, str]] = edges or []
         self._demo = self._build()
 
     def _build(self):
@@ -158,9 +266,12 @@ class Workflow:
         from gradio.oauth import OAuthToken
 
         initial_workflow: str | None = None
-        if os.path.exists(self._workflow_file):
+        try:
             with open(self._workflow_file, encoding="utf-8") as f:
                 initial_workflow = f.read()
+        except FileNotFoundError:
+            if self._bound:
+                initial_workflow = _workflow_from_bind(self._bound, self._edges)
 
         bound = self._bound
 
@@ -401,7 +512,19 @@ class Workflow:
                 logger.error("call_fn failed for %s: %s", fn_name, e, exc_info=True)
                 return json.dumps({"error": str(e), "error_type": "unknown", "suggestion": ""})
 
-        server_functions = [get_token, call_space, call_model, fetch_dataset, search_spaces, search_models, search_datasets, get_dataset_schema, call_fn]
+        workflow_file = self._workflow_file
+
+        def save_workflow(data, token: Optional[OAuthToken] = None) -> str:
+            try:
+                payload = data[0] if isinstance(data, list) and data else str(data)
+                with open(workflow_file, "w", encoding="utf-8") as f:
+                    f.write(payload)
+                return "ok"
+            except Exception as e:
+                logger.error("save_workflow failed: %s", e, exc_info=True)
+                return json.dumps({"error": str(e)})
+
+        server_functions = [get_token, call_space, call_model, fetch_dataset, search_spaces, search_models, search_datasets, get_dataset_schema, call_fn, save_workflow]
 
         with gr.Blocks() as demo:
             gr.LoginButton(visible=False)
