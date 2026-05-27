@@ -1,0 +1,165 @@
+{
+  "version": "1",
+  "name": "Marketing Image Creator",
+  "nodes": [
+    {
+      "id": "n_input",
+      "kind": "input",
+      "label": "Product Image",
+      "source": "local",
+      "inputs": [],
+      "outputs": [
+        {
+          "id": "out",
+          "label": "Image",
+          "type": "image"
+        }
+      ],
+      "x": 60,
+      "y": 160,
+      "width": 220,
+      "height": 160,
+      "data": {}
+    },
+    {
+      "id": "n_caption",
+      "kind": "transform",
+      "label": "Describe Product",
+      "source": "fn",
+      "inputs": [
+        {
+          "id": "in_image",
+          "label": "image",
+          "type": "image",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out_0",
+          "label": "output",
+          "type": "text"
+        }
+      ],
+      "x": 360,
+      "y": 160,
+      "width": 220,
+      "height": 120,
+      "data": {},
+      "fn": "describe_product"
+    },
+    {
+      "id": "n_prompt",
+      "kind": "transform",
+      "label": "Craft Prompt",
+      "source": "fn",
+      "fn": "craft_marketing_prompt",
+      "inputs": [
+        {
+          "id": "in_caption",
+          "label": "caption",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out_0",
+          "label": "output",
+          "type": "text"
+        }
+      ],
+      "x": 660,
+      "y": 160,
+      "width": 220,
+      "height": 120,
+      "data": {}
+    },
+    {
+      "id": "n_flux",
+      "kind": "transform",
+      "label": "Generate Image",
+      "source": "space",
+      "space_id": "black-forest-labs/FLUX.1-schnell",
+      "inputs": [
+        {
+          "id": "in",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out",
+          "label": "Image",
+          "type": "image"
+        }
+      ],
+      "x": 960,
+      "y": 160,
+      "width": 220,
+      "height": 191,
+      "data": {}
+    },
+    {
+      "id": "n_output",
+      "kind": "output",
+      "label": "Marketing Image",
+      "source": "local",
+      "inputs": [
+        {
+          "id": "in",
+          "label": "Image",
+          "type": "image"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out",
+          "label": "Image",
+          "type": "image"
+        }
+      ],
+      "x": 1260,
+      "y": 160,
+      "width": 220,
+      "height": 160,
+      "data": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from_node_id": "n_input",
+      "from_port_id": "out",
+      "to_node_id": "n_caption",
+      "to_port_id": "in_image",
+      "type": "image"
+    },
+    {
+      "id": "e2",
+      "from_node_id": "n_caption",
+      "from_port_id": "out_0",
+      "to_node_id": "n_prompt",
+      "to_port_id": "in_caption",
+      "type": "text"
+    },
+    {
+      "id": "e3",
+      "from_node_id": "n_prompt",
+      "from_port_id": "out_0",
+      "to_node_id": "n_flux",
+      "to_port_id": "in",
+      "type": "text"
+    },
+    {
+      "id": "e4",
+      "from_node_id": "n_flux",
+      "from_port_id": "out",
+      "to_node_id": "n_output",
+      "to_port_id": "in",
+      "type": "image"
+    }
+  ]
+}

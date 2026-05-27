@@ -346,7 +346,7 @@ class Workflow:
                 pipeline_tag = data[1] if len(data) > 1 else None
                 args_json = data[2] if len(data) > 2 else "[]"
                 hf_token = _resolve_token(data, 3, token)
-                client = InferenceClient(model=model_id, token=hf_token)
+                client = InferenceClient(model=model_id, token=hf_token, provider="hf-inference")
                 args = json.loads(args_json)
                 task = pipeline_tag or "text-generation"
                 a0 = args[0] if args else ""

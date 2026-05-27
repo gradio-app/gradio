@@ -281,6 +281,13 @@ export async function executeWorkflow(
 				if (!serverCallFn)
 					throw new Error("Python function call not available");
 				const inputs = resolveInputs(node, edges, dataMap);
+				for (const port of node.inputs) {
+					if (port.required && inputs[port.id] === null) {
+						throw new Error(
+							`"${port.label}" is missing — an upstream node may have failed`
+						);
+					}
+				}
 				const args = node.inputs.map((port) => inputs[port.id]);
 				const resultJson = await serverCallFn(node.fn, JSON.stringify(args));
 				const resultData = JSON.parse(resultJson);
@@ -317,6 +324,13 @@ export async function executeWorkflow(
 
 			try {
 				const inputs = resolveInputs(node, edges, dataMap);
+				for (const port of node.inputs) {
+					if (port.required && inputs[port.id] === null) {
+						throw new Error(
+							`"${port.label}" is missing — an upstream node may have failed`
+						);
+					}
+				}
 				const args = await Promise.all(
 					node.inputs.map((port) => toGradioArg(inputs[port.id]))
 				);
