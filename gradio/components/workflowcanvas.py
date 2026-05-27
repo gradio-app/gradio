@@ -9,7 +9,6 @@ from gradio_client.documentation import document
 
 from gradio.blocks import BlockContext
 from gradio.components.base import Component, server
-from gradio.events import all_events
 from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
@@ -34,7 +33,7 @@ class WorkflowCanvas(BlockContext, Component):
         ```
     """
 
-    EVENTS = all_events
+    EVENTS = []
 
     def __init__(
         self,
@@ -94,9 +93,16 @@ class WorkflowCanvas(BlockContext, Component):
             container=container,
         )
         if server_functions:
+            seen: set[str] = set()
             for fn in server_functions:
-                decorated = server(fn)
                 fn_name = getattr(fn, "__name__", str(fn))
+                if fn_name in seen:
+                    raise ValueError(
+                        f"WorkflowCanvas: duplicate server_function name '{fn_name}'. "
+                        "Each function must have a unique __name__."
+                    )
+                seen.add(fn_name)
+                decorated = server(fn)
                 setattr(self, fn_name, decorated)
                 self.server_fns.append(decorated)
 

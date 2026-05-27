@@ -71,9 +71,10 @@ def _build_edges(
 def _workflow_from_bind(
     bound: dict[str, Callable],
     edges: list[tuple[str, str]] | None = None,
+    name: str = "My Workflow",
 ) -> str:
     nodes = []
-    for i, (name, fn) in enumerate(bound.items()):
+    for i, (fn_name, fn) in enumerate(bound.items()):
         try:
             sig = inspect.signature(fn)
         except (ValueError, TypeError):
@@ -94,11 +95,11 @@ def _workflow_from_bind(
             inputs = [{"id": "in_0", "label": "input", "type": "text"}]
 
         nodes.append({
-            "id": f"fn_{name}",
+            "id": f"fn_{fn_name}",
             "source": "fn",
-            "fn": name,
+            "fn": fn_name,
             "kind": "transform",
-            "label": name,
+            "label": fn_name,
             "x": 80 + i * 280,
             "y": 150,
             "width": 220,
@@ -109,7 +110,7 @@ def _workflow_from_bind(
         })
 
     edge_dicts = _build_edges(edges or [], nodes)
-    return json.dumps({"version": "1", "name": "My Workflow", "nodes": nodes, "edges": edge_dicts})
+    return json.dumps({"version": "1", "name": name, "nodes": nodes, "edges": edge_dicts})
 
 
 def _resolve_token(data: list, idx: int, token) -> str | None:
@@ -229,25 +230,27 @@ class Workflow:
         self,
         file: str | None = None,
         *,
-        bind: dict[str, Callable] | None = None,
+        bind: dict[str, Callable] | list[Callable] | None = None,
         edges: list[tuple[str, str]] | None = None,
     ):
         """
         Parameters:
             file: Path to the workflow JSON file. Defaults to `workflow.json` in the
                 same directory as the calling script.
-            bind: Dictionary mapping function names (as used in the workflow JSON's
-                `fn` field) to Python callables. These become callable from the
-                canvas frontend via the `call_fn` server function.
+            bind: Functions callable from the canvas frontend via the `call_fn` server
+                function. Pass a list of callables (keys default to ``fn.__name__``) or
+                a dict mapping explicit names to callables.
             edges: List of ``(from_endpoint, to_endpoint)`` tuples that wire nodes
-                together. Each endpoint is either ``"fn_name"`` (uses the first
-                available port) or ``"fn_name.port_label"`` to target a specific port.
+                together when generating a workflow from ``bind`` (ignored when an
+                existing ``file`` is loaded). Each endpoint is either ``"fn_name"``
+                (uses the first available port) or ``"fn_name.port_label"`` to target
+                a specific port.
 
                 Example::
 
                     edges=[
-                        ("shout", "reverse"),          # first output → first input
-                        ("clean.output", "tag.text"),  # by port label
+                        ("shout", "reverse"),         # first output → first input
+                        ("clean.output", "tag.text"), # by port label
                     ]
         """
         if file is None:
@@ -255,7 +258,11 @@ class Workflow:
             caller_dir = os.path.dirname(os.path.abspath(frame.filename))
             file = os.path.join(caller_dir, "workflow.json")
 
+        if isinstance(bind, list):
+            bind = {fn.__name__: fn for fn in bind}
+
         self._workflow_file = file
+        self._workflow_name = os.path.splitext(os.path.basename(file))[0].replace("_", " ").replace("-", " ").title()
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
         self._demo = self._build()
@@ -269,9 +276,17 @@ class Workflow:
         try:
             with open(self._workflow_file, encoding="utf-8") as f:
                 initial_workflow = f.read()
+            if self._edges:
+                logger.warning(
+                    "Workflow: edges= is ignored because '%s' already exists. "
+                    "Delete the file to regenerate the workflow from bind/edges.",
+                    self._workflow_file,
+                )
         except FileNotFoundError:
             if self._bound:
-                initial_workflow = _workflow_from_bind(self._bound, self._edges)
+                initial_workflow = _workflow_from_bind(
+                    self._bound, self._edges, name=self._workflow_name
+                )
 
         bound = self._bound
 
@@ -534,6 +549,11 @@ class Workflow:
             )
 
         return demo
+
+    def queue(self, **kwargs):
+        """Configure the event queue. Accepts the same arguments as `gr.Blocks.queue()`."""
+        self._demo.queue(**kwargs)
+        return self
 
     def launch(self, **kwargs):
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`."""
