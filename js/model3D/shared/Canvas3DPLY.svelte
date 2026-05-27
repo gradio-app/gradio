@@ -1,9 +1,14 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/client";
 	import { onDestroy } from "svelte";
-	import type Canvas3D from "./Canvas3D.svelte";
-	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import { load_ply_point_cloud, type PointCloudData } from "./point-cloud";
+	import {
+		loadCanvas3D,
+		loadCanvas3DGS,
+		type Canvas3DComponentType,
+		type Canvas3DGSComponentType,
+		type Canvas3DLike
+	} from "./renderer-loader";
 
 	let {
 		value,
@@ -23,25 +28,15 @@
 		reset_camera_available?: boolean;
 	} = $props();
 
-	let canvas3d = $state<Canvas3D | undefined>();
-	let Canvas3DComponent = $state<typeof Canvas3D>();
-	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
+	let canvas3d = $state<Canvas3DLike | undefined>();
+	let Canvas3DComponent = $state<Canvas3DComponentType>();
+	let Canvas3DGSComponent = $state<Canvas3DGSComponentType>();
 	let point_cloud = $state<PointCloudData | null>(null);
 	let gs_value = $state<FileData | undefined>();
 	let renderer = $state<"loading" | "point_cloud" | "gs">("loading");
 	let loaded_url: string | undefined;
 	let fallback_url: string | undefined;
 	let loadToken = 0;
-
-	async function loadCanvas3D(): Promise<typeof Canvas3D> {
-		const module = await import("./Canvas3D.svelte");
-		return module.default;
-	}
-
-	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
-		const module = await import("./Canvas3DGS.svelte");
-		return module.default;
-	}
 
 	function revoke_object_url(url: string | undefined): void {
 		if (

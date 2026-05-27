@@ -1,9 +1,17 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 import {
 	load_renderer_component,
 	renderer_for_model3d_path
 } from "./renderer-loader";
+
+const canvas3d_ply_source = readFileSync(
+	resolve(dirname(fileURLToPath(import.meta.url)), "Canvas3DPLY.svelte"),
+	"utf-8"
+);
 
 function deferred<T>(): {
 	promise: Promise<T>;
@@ -82,5 +90,16 @@ describe("load_renderer_component", () => {
 
 		expect(assigned).toEqual([]);
 		expect(errors).toEqual([error]);
+	});
+});
+
+describe("Canvas3DPLY renderer loaders", () => {
+	test("uses shared dynamic renderer loader functions", () => {
+		expect(canvas3d_ply_source).toContain(`from "./renderer-loader"`);
+		expect(canvas3d_ply_source).toContain("loadCanvas3D");
+		expect(canvas3d_ply_source).toContain("loadCanvas3DGS");
+		expect(canvas3d_ply_source).not.toMatch(
+			/function\s+loadCanvas3D(?:GS)?\s*\(/
+		);
 	});
 });
