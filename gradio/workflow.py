@@ -319,13 +319,15 @@ class Workflow:
                 result = client.predict(*processed, api_name=endpoint)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
 
+                _tmpdir = tempfile.gettempdir()
+
                 def process_item(item):
                     if isinstance(item, dict):
                         path = item.get("path") or item.get("value")
-                        if isinstance(path, str) and os.path.exists(path):
+                        if isinstance(path, str) and path.startswith(_tmpdir) and os.path.exists(path):
                             return {"path": path, "url": f"/gradio_api/file={path}", "is_file": True}
                         return item
-                    if isinstance(item, str) and os.path.exists(item):
+                    if isinstance(item, str) and item.startswith(_tmpdir) and os.path.exists(item):
                         return {"path": item, "url": f"/gradio_api/file={item}", "is_file": True}
                     if isinstance(item, (list, tuple)):
                         return [process_item(s) for s in item]
@@ -488,8 +490,8 @@ class Workflow:
                         f"https://datasets-server.huggingface.co/splits?dataset={urllib.parse.quote(dataset_id)}",
                         hf_token, timeout=30,
                     ))
-                except Exception:
-                    raise Exception("Could not load dataset — it may not be viewer-compatible")
+                except Exception as exc:
+                    raise Exception("Could not load dataset — it may not be viewer-compatible") from exc
                 splits = splits_data.get("splits", [])
                 if not splits:
                     raise Exception("No available splits found for this dataset")
@@ -501,8 +503,8 @@ class Workflow:
                         }),
                         hf_token, timeout=30,
                     ))
-                except Exception:
-                    raise Exception("Could not load dataset — it may not be viewer-compatible")
+                except Exception as exc:
+                    raise Exception("Could not load dataset — it may not be viewer-compatible") from exc
                 return json.dumps({
                     "config": picked["config"],
                     "split": picked["split"],
@@ -520,6 +522,8 @@ class Workflow:
                 if fn is None:
                     return json.dumps({"error": f"No function '{fn_name}' bound to this workflow", "error_type": "unknown", "suggestion": "Check the bind= argument to Workflow()"})
                 args = json.loads(args_json)
+                if not isinstance(args, list):
+                    args = [args]
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(result)
@@ -529,9 +533,17 @@ class Workflow:
 
         workflow_file = self._workflow_file
 
+        _MAX_WORKFLOW_BYTES = 5 * 1024 * 1024
+
         def save_workflow(data, token: Optional[OAuthToken] = None) -> str:
             try:
                 payload = data[0] if isinstance(data, list) and data else str(data)
+                if len(payload.encode()) > _MAX_WORKFLOW_BYTES:
+                    return json.dumps({"error": "Workflow payload exceeds 5 MB limit"})
+                try:
+                    json.loads(payload)
+                except json.JSONDecodeError as exc:
+                    return json.dumps({"error": f"Invalid workflow JSON: {exc}"})
                 with open(workflow_file, "w", encoding="utf-8") as f:
                     f.write(payload)
                 return "ok"
