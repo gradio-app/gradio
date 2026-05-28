@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Fix infinite effect loop in tabs and stack overflow in dataframe
+fix:Fix browser freeze when a dataframe's value is set (e.g. on tab select)
