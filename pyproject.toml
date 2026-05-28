@@ -107,7 +107,7 @@ exclude = [
 ]
 
 [tool.uv]
-exclude-newer = "7 days"
+exclude-newer = "5 days"
 exclude-newer-package = {hf-gradio = false, gradio-client = false}
 
 [tool.ruff]
