@@ -377,9 +377,9 @@ class Workflow:
                 client = Client(space_id, token=hf_token)
                 args = json.loads(args_json)
                 if not endpoint or endpoint == "/predict":
+                    api_info = client.view_api(return_format="dict")
                     named = list(
-                        client.view_api(return_format="dict")
-                        .get("named_endpoints", {})
+                        (api_info.get("named_endpoints", {}) if isinstance(api_info, dict) else {})
                         .keys()
                     )
                     endpoint = (
@@ -508,9 +508,9 @@ class Workflow:
                         ]
                     )
                 if task == "question-answering":
-                    return json.dumps(
-                        [client.question_answering(question=a0, context=a1).answer]
-                    )
+                    qa_result = client.question_answering(question=a0, context=a1)
+                    qa_answer = qa_result[0].answer if isinstance(qa_result, list) else qa_result.answer  # type: ignore[union-attr]
+                    return json.dumps([qa_answer])
                 if task == "feature-extraction":
                     r = client.feature_extraction(a0)
                     return json.dumps([r.tolist() if hasattr(r, "tolist") else r])
@@ -584,9 +584,21 @@ class Workflow:
                     r = client.visual_question_answering(_img_url(a0), a1)
                     return json.dumps([r[0].answer if r else ""])
                 if task == "depth-estimation":
-                    return json.dumps(
-                        [_save_tmp(client.depth_estimation(_img_url(a0)).depth, "png")]
+                    import requests as _requests
+
+                    headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+                    resp = _requests.post(
+                        f"https://api-inference.huggingface.co/models/{model_id}",
+                        headers=headers,
+                        json={"inputs": _img_url(a0)},
+                        timeout=60,
                     )
+                    resp.raise_for_status()
+                    from PIL import Image as _Image
+                    import io as _io
+
+                    depth_img = _Image.open(_io.BytesIO(resp.content))
+                    return json.dumps([_save_tmp(depth_img, "png")])
                 return json.dumps(
                     {
                         "error": f"Unsupported task: {task}",
