@@ -562,26 +562,32 @@ class Dataframe(Component):
             ]
 
         elif isinstance(value, np.ndarray):
-            self.datatype = [
-                dtype_mapping.get(
-                    numbers_re.sub(
-                        "", brackets_re.sub("", str(type(value[0, i]).__name__))
-                    ).lower(),
-                    "str",
-                )
-                for i in range(value.shape[1])
-            ]
+            if value.size == 0 or value.ndim < 2:
+                self.datatype = "str"
+            else:
+                self.datatype = [
+                    dtype_mapping.get(
+                        numbers_re.sub(
+                            "", brackets_re.sub("", str(type(value[0, i]).__name__))
+                        ).lower(),
+                        "str",
+                    )
+                    for i in range(value.shape[1])
+                ]
 
         elif isinstance(value, list):
-            self.datatype = [
-                dtype_mapping.get(
-                    numbers_re.sub(
-                        "", brackets_re.sub("", str(type(val).__name__))
-                    ).lower(),
-                    "str",
-                )
-                for val in value[0]
-            ]
+            if len(value) == 0 or not isinstance(value[0], (list, tuple)):
+                self.datatype = "str"
+            else:
+                self.datatype = [
+                    dtype_mapping.get(
+                        numbers_re.sub(
+                            "", brackets_re.sub("", str(type(val).__name__))
+                        ).lower(),
+                        "str",
+                    )
+                    for val in value[0]
+                ]
 
         elif _is_polars_available():
             pl = _import_polars()

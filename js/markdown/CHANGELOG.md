@@ -1,5 +1,11 @@
 # @gradio/markdown
 
+## 0.13.34
+
+### Dependency updates
+
+- @gradio/markdown-code@0.8.0
+
 ## 0.13.33
 
 ### Fixes
