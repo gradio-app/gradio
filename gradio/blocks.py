@@ -2755,6 +2755,12 @@ Received inputs:
 
         self._node_is_proxy = False
         static_worker_ports: list[int] = []
+        # Stashed kwargs for the deferred production Node proxy start.
+        # When set, the user-facing Node front proxy is started after
+        # Python (and any static workers) are listening — see the
+        # `if _pending_node_proxy_kwargs is not None:` block further
+        # down for the rationale.
+        _pending_node_proxy_kwargs: dict | None = None
 
         if self.ssr_mode:
             self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -2771,10 +2777,14 @@ Received inputs:
                         debug=debug,
                     )
                 )
-            else:
-                # Production: Node is the front proxy on the user-facing port.
-                # Python moves to an internal port after Node.
-                # Workers get ports after Python.
+            elif self.node_path:
+                # Production: Node will be the front proxy on the user-facing
+                # port and Python will be on an internal port behind it.
+                # We DEFER actually starting Node until after Python (and any
+                # static workers) are listening — otherwise the user-facing
+                # port opens before the proxy's targets exist, and any
+                # traffic that arrives during the startup window receives a
+                # 502 from the proxy (observed on HF Spaces after #13366).
                 from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
 
                 user_port = server_port or int(
@@ -2784,39 +2794,41 @@ Received inputs:
                     "GRADIO_SERVER_NAME", "127.0.0.1"
                 )
 
-                # Find a free port for Python starting after the user-facing port.
-                # We need to know Python's port before starting Node so Node
-                # can proxy to it.
+                # Reserve a free internal port for Python; Node will proxy
+                # non-static traffic here once it starts.
                 python_internal_port = _find_free_port(
                     python_host, start=user_port + 1, try_count=TRY_NUM_PORTS
                 )
 
-                # Pre-compute static worker ports
                 if resolved_num_workers is not None and resolved_num_workers >= 1:
                     worker_start = python_internal_port + 1
                     static_worker_ports = [
                         worker_start + i for i in range(resolved_num_workers)
                     ]
 
-                self.node_server_name, self.node_process, self.node_port = (
-                    start_node_server(
-                        server_name=node_server_name or python_host,
-                        server_port=node_port or user_port,
-                        node_path=self.node_path,
-                        python_port=python_internal_port,
-                        python_host=python_host,
-                        static_worker_ports=static_worker_ports,
-                        debug=debug,
-                    )
-                )
-                # Only use the proxy architecture if Node actually started
-                if self.node_process is not None and self.node_port is not None:
-                    server_port = python_internal_port
-                    self._node_is_proxy = True
-                else:
-                    # Node failed to start — fall back to Python as the
-                    # front server on the original user port.
-                    static_worker_ports = []
+                # Commit Python to the internal port now (so it can bind
+                # without contending with the user-facing port) and stash
+                # the Node start kwargs for later. We also commit to proxy
+                # mode here; if Node ultimately fails to start, Python is
+                # left listening on the internal port — a degraded but
+                # working state we surface via a warning below.
+                server_port = python_internal_port
+                _pending_node_proxy_kwargs = {
+                    "server_name": node_server_name or python_host,
+                    "server_port": node_port or user_port,
+                    "node_path": self.node_path,
+                    "python_port": python_internal_port,
+                    "python_host": python_host,
+                    "static_worker_ports": static_worker_ports,
+                    "debug": debug,
+                }
+                self.node_server_name = self.node_port = self.node_process = None
+            else:
+                # SSR was requested but Node isn't available; fall through to
+                # the Python-only path (matches the original behaviour when
+                # start_node_server returned None).
+                static_worker_ports = []
+                self.node_server_name = self.node_port = self.node_process = None
         else:
             self.node_server_name = self.node_port = self.node_process = None
 
@@ -2877,31 +2889,11 @@ Received inputs:
             if self.mcp_server_obj:
                 self.mcp_server_obj._local_url = self.local_url
 
-            # When Node is the front proxy, the user-facing URL is the Node port
-            if self._node_is_proxy and self.node_port is not None:
-                url_host = (
-                    "localhost" if self.server_name == "0.0.0.0" else self.server_name
-                )
-                self.local_url = f"http://{url_host}:{self.node_port}/"
-                self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
-
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not self.is_colab and not quiet:
-                if self._node_is_proxy and self.node_port is not None:
-                    print(
-                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.node_port}, with SSR ⚡ (Node proxy -> Python :{self.server_port})"
-                    )
-                elif self.ssr_mode:
-                    print(
-                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.server_port}, with SSR ⚡ (dev mode)"
-                    )
-                else:
-                    s = "* Running on local URL:  {}://{}:{}"
-                    print(s.format(self.protocol, self.server_name, self.server_port))
 
             self._queue.set_server_app(self.server_app)
 
@@ -2944,6 +2936,47 @@ Received inputs:
                     print(
                         f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"
                     )
+
+            # Now that Python (and any static workers) are listening,
+            # start the Node front proxy. Opening the user-facing port
+            # here — rather than before Python is up — closes the race
+            # window in which the proxy port was reachable but every
+            # request resolved to a 502 from an unreachable upstream.
+            if _pending_node_proxy_kwargs is not None:
+                self.node_server_name, self.node_process, self.node_port = (
+                    start_node_server(**_pending_node_proxy_kwargs)
+                )
+                if self.node_process is not None and self.node_port is not None:
+                    self._node_is_proxy = True
+                    url_host = (
+                        "localhost"
+                        if self.server_name == "0.0.0.0"
+                        else self.server_name
+                    )
+                    self.local_url = f"http://{url_host}:{self.node_port}/"
+                    self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
+                    if self.mcp_server_obj:
+                        self.mcp_server_obj._local_url = self.local_url
+                elif not quiet:
+                    warnings.warn(
+                        "Failed to start Node front proxy for SSR; Gradio is "
+                        f"reachable directly on the internal Python port "
+                        f":{self.server_port}. Check the Node installation "
+                        "or set GRADIO_NODE_PATH."
+                    )
+
+            if not self.is_colab and not quiet:
+                if self._node_is_proxy and self.node_port is not None:
+                    print(
+                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.node_port}, with SSR ⚡ (Node proxy -> Python :{self.server_port})"
+                    )
+                elif self.ssr_mode:
+                    print(
+                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.server_port}, with SSR ⚡ (dev mode)"
+                    )
+                else:
+                    s = "* Running on local URL:  {}://{}:{}"
+                    print(s.format(self.protocol, self.server_name, self.server_port))
 
             resp = httpx.get(
                 f"{self.local_api_url}startup-events",
@@ -3018,7 +3051,7 @@ Received inputs:
                 print(f"* Running on public URL: {self.share_url}")
                 if not (quiet):
                     print(
-                        "\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+                        "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
                     )
             except Exception as e:
                 if self.analytics_enabled:
