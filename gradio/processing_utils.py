@@ -183,7 +183,18 @@ def save_img_array_to_cache(
 def save_audio_to_cache(
     data: np.ndarray, sample_rate: int, format: str, cache_dir: str
 ) -> str:
-    temp_dir = Path(cache_dir) / hash_bytes(data.tobytes())
+    audio_metadata = {
+        "cache_schema": "audio-cache-v1",
+        "dtype": str(data.dtype),
+        "format": format,
+        "sample_rate": int(sample_rate),
+        "shape": data.shape,
+    }
+    audio_hash = hashlib.sha256()
+    audio_hash.update(hash_seed)
+    audio_hash.update(json.dumps(audio_metadata, sort_keys=True).encode("utf-8"))
+    audio_hash.update(data.tobytes())
+    temp_dir = Path(cache_dir) / audio_hash.hexdigest()
     temp_dir.mkdir(exist_ok=True, parents=True)
     filename = str((temp_dir / f"audio.{format}").resolve())
     audio_to_file(sample_rate, data, filename, format=format)

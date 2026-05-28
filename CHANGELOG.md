@@ -1,5 +1,39 @@
 # gradio
 
+## 6.15.1
+
+### Features
+
+- [#13388](https://github.com/gradio-app/gradio/pull/13388) [`c889673`](https://github.com/gradio-app/gradio/commit/c889673a242c2a368c2a222da34c8267491d0495) - tests:add regression coverage for the `Blocks.from_config()` proxy_url SSRF guard (GHSA-jmh7-g254-2cq9).  Thanks @xr843!
+
+### Fixes
+
+- [#13394](https://github.com/gradio-app/gradio/pull/13394) [`1c609af`](https://github.com/gradio-app/gradio/commit/1c609af6918b20d0b4347b9f41b04569d6adca24) - Fix audio cache keys to include metadata.  Thanks @3em0!
+- [#13424](https://github.com/gradio-app/gradio/pull/13424) [`14ccbf1`](https://github.com/gradio-app/gradio/commit/14ccbf1115d30b7bb666f7d11264bd9280a40176) - Defer Node front proxy startup until Python is ready in SSR mode.  Thanks @pngwn!
+- [#13391](https://github.com/gradio-app/gradio/pull/13391) [`270c12a`](https://github.com/gradio-app/gradio/commit/270c12a8ea382d20ce701e391fea61b12badbf5c) - fix(dataframe): handle empty and 1d auto datatype values.  Thanks @danyalahmed1995!
+
+## 6.15.0
+
+### Features
+
+- [#13322](https://github.com/gradio-app/gradio/pull/13322) [`6c48f80`](https://github.com/gradio-app/gradio/commit/6c48f80948abb330f201d0dac38f89a276348029) - Allow applying `gr.cache()` to intermediate functions directly.  Thanks @abidlabs!
+- [#13367](https://github.com/gradio-app/gradio/pull/13367) [`5d9c9fe`](https://github.com/gradio-app/gradio/commit/5d9c9fe5ff32951309765d37da610a4833b4b694) - fix: upgrade handlebars to 4.7.9 (CVE-2026-33937).  Thanks @orbisai0security!
+- [#13408](https://github.com/gradio-app/gradio/pull/13408) [`6b0c8af`](https://github.com/gradio-app/gradio/commit/6b0c8aff7a9688ad605e4ca52a083c5754fe1610) - Markdown link fix.  Thanks @dawoodkhan82!
+- [#13366](https://github.com/gradio-app/gradio/pull/13366) [`10f43e0`](https://github.com/gradio-app/gradio/commit/10f43e0fe187aac9594f3a9765f8addc81b63ad1) - Offload traffic to static workers and use node as the proxy.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#13384](https://github.com/gradio-app/gradio/pull/13384) [`feb7237`](https://github.com/gradio-app/gradio/commit/feb7237d01f359d2ad4ee42d00344e61692b3b39) - Isolate cookie jars in `/proxy=` requests so a malicious upstream Space cannot leak cookies into proxied requests to a different `*.hf.space` (GHSA-2mr9-9r47-px2g).  Thanks @xr843!
+- [#13344](https://github.com/gradio-app/gradio/pull/13344) [`563e7b7`](https://github.com/gradio-app/gradio/commit/563e7b7948ba2da9d900065c69301ab349648cb0) - Stop @gr.render from crashing with KeyError when an inner gr.Examples pops its fake-event fn.  Thanks @GopalGB!
+- [#13379](https://github.com/gradio-app/gradio/pull/13379) [`b8e8745`](https://github.com/gradio-app/gradio/commit/b8e8745d2f4fb156dd12d57a3f4eb2e165f20216) - fix default tool logic in gr.ImageEditor.  Thanks @hannahblair!
+- [#13363](https://github.com/gradio-app/gradio/pull/13363) [`0872f5e`](https://github.com/gradio-app/gradio/commit/0872f5eccad07a140ed5e24e3adddc661667ff9a) - add colour picker unit tests.  Thanks @hannahblair!
+- [#13383](https://github.com/gradio-app/gradio/pull/13383) [`9acecd2`](https://github.com/gradio-app/gradio/commit/9acecd2d69653e7d0f7961fa1b63a172a9ae76ec) - Warn when gr.Tabs() has non-Tab direct children (#9832).  Thanks @wjddnwp29!
+- [#13403](https://github.com/gradio-app/gradio/pull/13403) [`df56862`](https://github.com/gradio-app/gradio/commit/df56862a1531fc372a3248716dc4bd07e6db1c52) - [js-client] close submit iterator on next/close race.  Thanks @hysts!
+- [#13380](https://github.com/gradio-app/gradio/pull/13380) [`5d7a9ba`](https://github.com/gradio-app/gradio/commit/5d7a9bae2698c792db867f2b689fd91cee8bf4a5) - update pypi prompt.  Thanks @hannahblair!
+- [#13390](https://github.com/gradio-app/gradio/pull/13390) [`d86903e`](https://github.com/gradio-app/gradio/commit/d86903eaa5628ca0b30f27b87ec1d7e194b3eff6) - Add Estonian language support and translation.  Thanks @paulpall!
+- [#13336](https://github.com/gradio-app/gradio/pull/13336) [`14c8870`](https://github.com/gradio-app/gradio/commit/14c88701756c5fa57e8eaeac4df1385b9601da45) - Add UploadButton unit tests.  Thanks @freddyaboulton!
+- [#13360](https://github.com/gradio-app/gradio/pull/13360) [`2887302`](https://github.com/gradio-app/gradio/commit/2887302069b2d33429ead157e7699d5502e29e0a) - [codex] fix component load event target.  Thanks @thomwolf!
+
 ## 6.14.0
 
 ### Features
