@@ -382,11 +382,13 @@ export async function executeWorkflow(
 					typeof resultData === "object" &&
 					"error" in resultData
 				) {
-					const title = resultData.title;
 					const suggestion = resultData.suggestion;
 					const errorType = resultData.error_type;
-					let msg = title ? `${title}: ${resultData.error}` : resultData.error;
-					if (suggestion) msg += ` — ${suggestion}`;
+					const title = resultData.title;
+					const rawMsg = title
+						? `${title}: ${resultData.error}`
+						: resultData.error;
+					const msg = suggestion || rawMsg;
 					const err = new Error(msg);
 					(err as any).errorType = errorType;
 					throw err;

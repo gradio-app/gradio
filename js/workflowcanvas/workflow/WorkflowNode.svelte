@@ -813,4 +813,77 @@
 		color: #8b8d98;
 		cursor: pointer;
 	}
+
+	/* ─── Light mode ─── */
+	:global(body:not(.dark)) .wf-node {
+		background: #ffffff;
+		border-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .wf-node:hover {
+		box-shadow:
+			0 0 0 1px var(--accent-dim),
+			0 4px 20px rgba(0, 0, 0, 0.08);
+	}
+
+	:global(body:not(.dark)) .node-header {
+		border-bottom-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .node-label {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .node-label-input {
+		color: #1a1b25;
+		background: #ffffff;
+	}
+
+	:global(body:not(.dark)) .port-dot {
+		background: #ffffff;
+	}
+
+	:global(body:not(.dark)) .port-label {
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .source-badge {
+		background: #f0f1f5;
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .source-badge:hover {
+		color: #1a1b25;
+		background: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .ports-toggle {
+		color: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .ports-toggle:hover {
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .node-delete {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .inline-input {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .inline-input:focus {
+		border-color: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .inline-input::placeholder {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .inline-checkbox {
+		color: #6b6e78;
+	}
 </style>

@@ -1642,4 +1642,100 @@
 		color: #2e2f3d;
 		letter-spacing: 0.02em;
 	}
+
+	/* ─── Light mode ─── */
+	:global(body:not(.dark)) .sidebar {
+		background: #f8f9fb;
+		border-right-color: #e2e4ea;
+		color-scheme: light;
+	}
+
+	:global(body:not(.dark)) .sidebar-header {
+		border-bottom-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .sidebar-collapse-btn {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .sidebar-collapse-btn:hover {
+		background: #e8eaf0;
+		color: #3e4050;
+	}
+
+	:global(body:not(.dark)) .section-toggle:hover {
+		background: #f0f1f5;
+	}
+
+	:global(body:not(.dark)) .section-label {
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .section-count {
+		color: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .section-chevron {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .chip:hover {
+		background: #f0f1f5;
+	}
+
+	:global(body:not(.dark)) .chip-label {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .chip-link {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .chip-link:hover {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .category-label {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .category-count {
+		color: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .space-card:hover {
+		background: #f0f1f5;
+	}
+
+	:global(body:not(.dark)) .space-card-name {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .space-card-likes {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .space-card-link {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .space-card-link:hover {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .space-card-id {
+		color: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .space-card-desc {
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .space-card-status {
+		background: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .trending-status-text {
+		color: #9a9caa;
+	}
 </style>

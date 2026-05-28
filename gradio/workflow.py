@@ -13,6 +13,8 @@ import urllib.request
 from collections.abc import Callable
 from typing import Optional
 
+from gradio.oauth import OAuthToken
+
 logger = logging.getLogger(__name__)
 
 _PY_TO_PORT = {int: "number", float: "number", bool: "boolean"}
@@ -335,7 +337,6 @@ class Workflow:
     def _build(self):
         import gradio as gr
         from gradio.components.workflowcanvas import WorkflowCanvas
-        from gradio.oauth import OAuthToken
 
         initial_workflow: str | None = None
         try:

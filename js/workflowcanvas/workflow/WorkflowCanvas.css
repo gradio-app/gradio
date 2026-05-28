@@ -379,7 +379,10 @@
 	border: 1px solid #2a2b36;
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 	opacity: 1;
-	white-space: nowrap;
+	max-width: min(480px, 80vw);
+	white-space: normal;
+	word-break: break-word;
+	text-align: center;
 	animation: wf-toast-in 0.2s ease-out;
 }
 
@@ -421,4 +424,154 @@
 	pointer-events: none;
 	z-index: 20;
 	white-space: nowrap;
+}
+
+/* ─── Light mode ─── */
+body:not(.dark) .workflow-root {
+	background: #f8f9fb;
+	border-color: #e2e4ea;
+	color-scheme: light;
+	box-shadow:
+		0 0 0 1px rgba(0, 0, 0, 0.04),
+		0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+body:not(.dark) .toolbar {
+	background: #ffffff;
+	border-bottom-color: #e2e4ea;
+}
+
+body:not(.dark) .name-btn:hover {
+	background: #f0f1f5;
+}
+
+body:not(.dark) .name-text {
+	color: #1a1b25;
+}
+
+body:not(.dark) .name-edit-icon {
+	color: #b0b2bc;
+}
+
+body:not(.dark) .name-input {
+	background: #ffffff;
+	color: #1a1b25;
+}
+
+body:not(.dark) .toolbar-stat {
+	color: #b0b2bc;
+}
+
+body:not(.dark) .tool-btn {
+	border-color: #e2e4ea;
+	color: #8b8d98;
+}
+
+body:not(.dark) .tool-btn:hover {
+	background: #f0f1f5;
+	color: #3e4050;
+	border-color: #d0d2dc;
+}
+
+body:not(.dark) .toolbar-login-btn {
+	border-color: #e2e4ea;
+	color: #6b6e78;
+}
+
+body:not(.dark) .toolbar-login-btn:hover {
+	background: #f0f1f5;
+	color: #1a1b25;
+	border-color: #d0d2dc;
+}
+
+body:not(.dark) .toolbar-login-btn.logged-in {
+	color: #8b8d98;
+}
+
+body:not(.dark) .toolbar-user-info {
+	color: #8b8d98;
+}
+
+body:not(.dark) .toolbar-user-info strong {
+	color: #3e4050;
+}
+
+body:not(.dark) .toolbar-token-input {
+	background: #ffffff;
+	color: #6b6e78;
+	border-color: #e2e4ea;
+}
+
+body:not(.dark) .toolbar-token-input::placeholder {
+	color: #c0c2cc;
+}
+
+body:not(.dark) .toolbar-token-input:focus {
+	background: #ffffff;
+	color: #3e4050;
+}
+
+body:not(.dark) .toolbar-divider {
+	background: #e2e4ea;
+}
+
+body:not(.dark) .canvas {
+	background-color: #ffffff;
+	background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+}
+
+body:not(.dark) .zoom-controls {
+	background: #ffffff;
+	border-color: #e2e4ea;
+}
+
+body:not(.dark) .zoom-ctrl-btn {
+	color: #9a9caa;
+}
+
+body:not(.dark) .zoom-ctrl-btn:hover {
+	background: #f0f1f5;
+	color: #3e4050;
+}
+
+body:not(.dark) .zoom-btn {
+	background: #ffffff;
+	border-color: #e2e4ea;
+	color: #9a9caa;
+}
+
+body:not(.dark) .zoom-btn:hover {
+	color: #3e4050;
+	border-color: #d0d2dc;
+}
+
+body:not(.dark) .shortcuts-panel {
+	background: #ffffff;
+	border-color: #e2e4ea;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+body:not(.dark) .shortcuts-title {
+	color: #6b6e78;
+}
+
+body:not(.dark) .shortcut-row {
+	color: #9a9caa;
+}
+
+body:not(.dark) .shortcut-row kbd {
+	background: #f0f1f5;
+	color: #3e4050;
+	border-color: #d0d2dc;
+}
+
+body:not(.dark) .wf-toast {
+	background: #ffffff;
+	color: #2a2b36;
+	border-color: #e2e4ea;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+body:not(.dark) .connection-badge {
+	color: #ffffff;
 }
