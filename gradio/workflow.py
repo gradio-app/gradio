@@ -355,7 +355,7 @@ class Workflow:
 
         bound = self._bound
 
-        def get_token(data=None, token: Optional[OAuthToken] = None) -> str:
+        def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
             return token.token if token else ""
 
         def call_space(data, token: Optional[OAuthToken] = None) -> str:
@@ -749,7 +749,7 @@ class Workflow:
                 )
                 return json.dumps({"error": str(e)})
 
-        def call_fn(data, token: Optional[OAuthToken] = None) -> str:
+        def call_fn(data, _token: Optional[OAuthToken] = None) -> str:
             fn_name = data[0] if data else ""
             try:
                 args_json = data[1] if len(data) > 1 else "[]"
@@ -776,12 +776,12 @@ class Workflow:
 
         workflow_file = self._workflow_file
 
-        _MAX_WORKFLOW_BYTES = 5 * 1024 * 1024
+        _max_workflow_bytes = 5 * 1024 * 1024
 
-        def save_workflow(data, token: Optional[OAuthToken] = None) -> str:
+        def save_workflow(data, _token: Optional[OAuthToken] = None) -> str:
             try:
                 payload = data[0] if isinstance(data, list) and data else str(data)
-                if len(payload.encode()) > _MAX_WORKFLOW_BYTES:
+                if len(payload.encode()) > _max_workflow_bytes:
                     return json.dumps({"error": "Workflow payload exceeds 5 MB limit"})
                 try:
                     json.loads(payload)

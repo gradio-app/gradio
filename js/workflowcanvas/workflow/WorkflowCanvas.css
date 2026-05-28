@@ -233,9 +233,7 @@
 	position: relative;
 	overflow: hidden;
 	background-color: #0c0d10;
-	background-image:
-		linear-gradient(#151620 1px, transparent 1px),
-		linear-gradient(90deg, #151620 1px, transparent 1px);
+	background-image: radial-gradient(circle, #2a2d3a 1px, transparent 1px);
 	background-size: calc(22px * var(--zoom, 1)) calc(22px * var(--zoom, 1));
 	background-position: var(--pan-x, 0px) var(--pan-y, 0px);
 	cursor: grab;
