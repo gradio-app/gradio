@@ -116,6 +116,7 @@
 		show_search={gradio.props.show_search}
 		pinned_columns={gradio.props.pinned_columns}
 		static_columns={gradio.props.static_columns ?? []}
+		filter_case_sensitive={gradio.props.filter_case_sensitive ?? false}
 		{fullscreen}
 		onfullscreen={() => {
 			fullscreen = !fullscreen;

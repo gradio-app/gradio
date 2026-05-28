@@ -4,13 +4,16 @@
 	import type { FilterDatatype } from "./types";
 
 	let {
-		on_filter = () => {}
+		on_filter = () => {},
+		filter_case_sensitive = false
 	}: {
 		on_filter?: (
 			datatype: FilterDatatype,
 			selected_filter: string,
-			value: string
+			value: string,
+			case_sensitive: boolean
 		) => void;
+		filter_case_sensitive?: boolean;
 	} = $props();
 
 	let menu_element: HTMLDivElement;
@@ -18,6 +21,7 @@
 	let current_filter = $state("Contains");
 	let filter_dropdown_open = $state(false);
 	let filter_input_value = $state("");
+	let case_sensitive = $state(filter_case_sensitive);
 
 	const filter_options = {
 		string: [
@@ -115,9 +119,20 @@
 			/>
 		</div>
 
+		{#if datatype === "string"}
+			<label class="case-sensitive-label">
+				<input
+					type="checkbox"
+					bind:checked={case_sensitive}
+					onclick={(e) => e.stopPropagation()}
+				/>
+				Case sensitive
+			</label>
+		{/if}
+
 		<button
 			class="check-button"
-			onclick={() => on_filter(datatype, current_filter, filter_input_value)}
+			onclick={() => on_filter(datatype, current_filter, filter_input_value, case_sensitive)}
 		>
 			<Check />
 		</button>
@@ -234,6 +249,41 @@
 		width: var(--size-4);
 		height: var(--size-4);
 		margin-left: auto;
+	}
+
+	.case-sensitive-label {
+		display: flex;
+		align-items: center;
+		gap: var(--size-2);
+		font-size: var(--text-sm);
+		color: var(--body-text-color);
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.case-sensitive-label input[type="checkbox"] {
+		cursor: pointer;
+		box-shadow: var(--checkbox-shadow);
+		border: 1px solid var(--checkbox-border-color);
+		border-radius: var(--checkbox-border-radius);
+		background-color: var(--checkbox-background-color);
+	}
+
+	.case-sensitive-label input[type="checkbox"]:checked {
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--checkbox-border-color-focus);
+	}
+
+	.case-sensitive-label input[type="checkbox"]:hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-color-hover);
+	}
+
+	.case-sensitive-label input[type="checkbox"]:checked:hover {
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--checkbox-border-color-focus);
 	}
 
 	.filter-menu .check-button {

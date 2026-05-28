@@ -110,6 +110,7 @@ class Dataframe(Component):
         show_search: Literal["none", "search", "filter"] = "none",
         pinned_columns: int | None = None,
         static_columns: list[int] | None = None,
+        filter_case_sensitive: bool = False,
     ):
         """
         Parameters:
@@ -147,6 +148,7 @@ class Dataframe(Component):
             show_search: Show a search input in the toolbar. If "search", a search input is shown. If "filter", a search input and filter buttons are shown. If "none", no search input is shown.
             pinned_columns: If provided, will pin the specified number of columns from the left.
             static_columns: List of column indices (int) that should not be editable. Only applies when interactive=True. When specified, col_count is automatically set to "fixed" and columns cannot be inserted or deleted.
+            filter_case_sensitive: If False (default), string column filters match case-insensitively. If True, filters are case-sensitive. Users can toggle via the checkbox in the filter dropdown.
         """
         if isinstance(row_count, tuple):
             warnings.warn(
@@ -242,6 +244,7 @@ class Dataframe(Component):
         self.max_chars = max_chars
         self.show_search = show_search
         self.pinned_columns = pinned_columns
+        self.filter_case_sensitive = filter_case_sensitive
 
         super().__init__(
             label=label,

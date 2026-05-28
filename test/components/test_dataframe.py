@@ -67,6 +67,7 @@ class TestDataframe:
             "column_widths": [],
             "buttons": None,
             "max_chars": None,
+            "filter_case_sensitive": False,
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))  # type: ignore
@@ -121,6 +122,7 @@ class TestDataframe:
             "column_widths": [],
             "buttons": None,
             "max_chars": None,
+            "filter_case_sensitive": False,
         }
 
         dataframe_input = gr.Dataframe(column_widths=["100px", 200, "50%"])
@@ -532,3 +534,36 @@ class TestDataframe:
 
         dataframe = gr.Dataframe(value=np.array([[1, 2], [3, 4]]), datatype="auto")
         assert dataframe.datatype == ["number", "number"]
+
+
+class TestDataframeFilterCaseSensitive:
+    """Tests for the filter_case_sensitive parameter."""
+
+    def test_default_is_case_insensitive(self):
+        """filter_case_sensitive defaults to False (preserves original behaviour)."""
+        df = gr.Dataframe()
+        assert df.filter_case_sensitive is False
+
+    def test_config_includes_filter_case_sensitive(self):
+        """get_config() exposes filter_case_sensitive so the frontend receives it."""
+        df_true = gr.Dataframe(filter_case_sensitive=True)
+        assert df_true.get_config()["filter_case_sensitive"] is True
+
+        df_false = gr.Dataframe(filter_case_sensitive=False)
+        assert df_false.get_config()["filter_case_sensitive"] is False
+
+    def test_filter_case_sensitive_false_stored(self):
+        """Setting filter_case_sensitive=False is stored on the component."""
+        df = gr.Dataframe(filter_case_sensitive=False)
+        assert df.filter_case_sensitive is False
+
+    def test_filter_case_sensitive_combined_with_show_search(self):
+        """filter_case_sensitive works regardless of show_search value."""
+        for mode in ("none", "search", "filter"):
+            df = gr.Dataframe(
+                show_search=mode,  # type: ignore[arg-type]
+                filter_case_sensitive=False,
+            )
+            cfg = df.get_config()
+            assert cfg["show_search"] == mode
+            assert cfg["filter_case_sensitive"] is False

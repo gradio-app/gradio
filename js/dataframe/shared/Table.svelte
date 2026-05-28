@@ -68,6 +68,7 @@
 		fullscreen = false,
 		display_value = null,
 		styling = null,
+		filter_case_sensitive = false,
 		onchange,
 		oninput,
 		onselect,
@@ -109,6 +110,7 @@
 		onedit?: (detail: EditData) => void;
 		onsearch?: (detail: string | null) => void;
 		onfullscreen?: () => void;
+		filter_case_sensitive?: boolean;
 	} = $props();
 
 	type GradioRow = Record<string, CellValue> & { _index: number };
@@ -530,7 +532,8 @@
 		col: number,
 		dtype: FilterDatatype,
 		filter: string,
-		fvalue: string
+		fvalue: string,
+		case_sensitive: boolean = filter_case_sensitive
 	): void {
 		const col_id = `col_${col}`;
 		const existing = column_filters.findIndex((f) => f.id === col_id);
@@ -539,7 +542,7 @@
 		} else {
 			column_filters = [
 				...column_filters,
-				{ id: col_id, value: { dtype, filter, value: fvalue } }
+				{ id: col_id, value: { dtype, filter, value: fvalue, case_sensitive } }
 			];
 		}
 	}
@@ -1213,11 +1216,12 @@
 			? get_sort_info(active_header_menu.col).priority
 			: null}
 		on_filter={active_header_menu
-			? (dtype, filter, fvalue) => {
-					handle_filter(active_header_menu!.col, dtype, filter, fvalue);
+			? (dtype, filter, fvalue, case_sensitive) => {
+					handle_filter(active_header_menu!.col, dtype, filter, fvalue, case_sensitive);
 					active_header_menu = null;
 				}
 			: undefined}
+		{filter_case_sensitive}
 		on_clear_filter={active_header_menu
 			? () => {
 					clear_filter();

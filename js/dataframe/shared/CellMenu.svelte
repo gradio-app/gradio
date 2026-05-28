@@ -26,6 +26,7 @@
 		on_filter = () => {},
 		on_clear_filter = () => {},
 		filter_active = null,
+		filter_case_sensitive = false,
 		editable = true,
 		i18n
 	}: {
@@ -49,10 +50,12 @@
 		on_filter?: (
 			datatype: FilterDatatype,
 			selected_filter: string,
-			value: string
+			value: string,
+			case_sensitive: boolean
 		) => void;
 		on_clear_filter?: () => void;
 		filter_active?: boolean | null;
+		filter_case_sensitive?: boolean;
 		editable?: boolean;
 		i18n: I18nFormatter;
 	} = $props();
@@ -92,7 +95,7 @@
 
 	function toggle_filter_menu(): void {
 		if (filter_active) {
-			on_filter("string", "", "");
+			on_filter("string", "", "", filter_case_sensitive);
 			return;
 		}
 
@@ -213,7 +216,7 @@
 </div>
 
 {#if active_filter_menu}
-	<FilterMenu {on_filter} />
+	<FilterMenu {on_filter} {filter_case_sensitive} />
 {/if}
 
 <style>

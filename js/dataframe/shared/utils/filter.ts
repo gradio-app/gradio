@@ -7,7 +7,7 @@ export function gradio_filter_fn(
 	columnId: string,
 	filterValue: any
 ): boolean {
-	const { dtype, filter, value: fval } = filterValue;
+	const { dtype, filter, value: fval, case_sensitive = false } = filterValue;
 	const cell_value = String(row.getValue(columnId) ?? "");
 	const compare_val = fval ?? "";
 
@@ -41,21 +41,22 @@ export function gradio_filter_fn(
 		}
 	}
 
-	const lower = cell_value.toLowerCase();
-	const target_lower = compare_val.toLowerCase();
+	const normalise = (s: string): string => (case_sensitive ? s : s.toLowerCase());
+	const cv = normalise(cell_value);
+	const query = normalise(compare_val);
 	switch (filter) {
 		case "Contains":
-			return lower.includes(target_lower);
+			return cv.includes(query);
 		case "Does not contain":
-			return !lower.includes(target_lower);
+			return !cv.includes(query);
 		case "Starts with":
-			return lower.startsWith(target_lower);
+			return cv.startsWith(query);
 		case "Ends with":
-			return lower.endsWith(target_lower);
+			return cv.endsWith(query);
 		case "Is":
-			return lower === target_lower;
+			return cv === query;
 		case "Is not":
-			return lower !== target_lower;
+			return cv !== query;
 		case "Is empty":
 			return cell_value.trim() === "";
 		case "Is not empty":
