@@ -235,6 +235,15 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_NUM_WORKERS=4
   ```
 
+### 25. `GRADIO_HEARTBEAT_INTERVAL`
+
+- **Description**: Sets the interval, in seconds, between heartbeats that keep a client session alive. When a client disconnects, this heartbeat is used to trigger `unload` events and clean up session state. Lowering this value can help detect disconnections faster in environments such as Kubernetes, where the default interval can delay session cleanup.
+- **Default**: `15`
+- **Example**:
+  ```sh
+  export GRADIO_HEARTBEAT_INTERVAL=5
+  ```
+
 ## How to Set Environment Variables
 
 To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:
