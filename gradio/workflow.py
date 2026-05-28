@@ -594,8 +594,9 @@ class Workflow:
                         timeout=60,
                     )
                     resp.raise_for_status()
-                    from PIL import Image as _Image
                     import io as _io
+
+                    from PIL import Image as _Image
 
                     depth_img = _Image.open(_io.BytesIO(resp.content))
                     return json.dumps([_save_tmp(depth_img, "png")])
