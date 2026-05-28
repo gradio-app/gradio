@@ -379,8 +379,11 @@ class Workflow:
                 if not endpoint or endpoint == "/predict":
                     api_info = client.view_api(return_format="dict")
                     named = list(
-                        (api_info.get("named_endpoints", {}) if isinstance(api_info, dict) else {})
-                        .keys()
+                        (
+                            api_info.get("named_endpoints", {})
+                            if isinstance(api_info, dict)
+                            else {}
+                        ).keys()
                     )
                     endpoint = (
                         endpoint
@@ -509,7 +512,11 @@ class Workflow:
                     )
                 if task == "question-answering":
                     qa_result = client.question_answering(question=a0, context=a1)
-                    qa_answer = qa_result[0].answer if isinstance(qa_result, list) else qa_result.answer  # type: ignore[union-attr]
+                    qa_answer = (
+                        qa_result[0].answer
+                        if isinstance(qa_result, list)
+                        else qa_result.answer
+                    )  # type: ignore[union-attr]
                     return json.dumps([qa_answer])
                 if task == "feature-extraction":
                     r = client.feature_extraction(a0)
@@ -586,7 +593,9 @@ class Workflow:
                 if task == "depth-estimation":
                     import requests as _requests
 
-                    headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+                    headers = (
+                        {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+                    )
                     resp = _requests.post(
                         f"https://api-inference.huggingface.co/models/{model_id}",
                         headers=headers,
