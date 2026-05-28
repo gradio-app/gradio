@@ -1,5 +1,15 @@
 # gradio
 
+## 6.15.2
+
+### Features
+
+- [#13430](https://github.com/gradio-app/gradio/pull/13430) [`36f6b4e`](https://github.com/gradio-app/gradio/commit/36f6b4e571390ce8af8338f245685917c9e6c5d2) - upgrade `starlette` dependency to 1.0.1 or higher.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13396](https://github.com/gradio-app/gradio/pull/13396) [`67df918`](https://github.com/gradio-app/gradio/commit/67df918b1794cdfeaf485e801466eafea4cb80e4) - Convert audio to int16 for all formats in `audio_to_file` so non-WAV outputs (mp3, flac, ogg) no longer encode as noise.  Thanks @GopalGB!
+
 ## 6.15.1
 
 ### Features
