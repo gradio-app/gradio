@@ -469,9 +469,15 @@ export class AppTree {
 			}
 
 			// Also store as pending so the value can be applied via _set_data
-			// when the component eventually mounts and registers
+			// when the component eventually mounts and registers.
+			// Exclude loading_status because it is a transient real-time prop
+			// managed independently by the loading status store. Storing it would
+			// cause a stale "pending" update to be applied after the correct
+			// "complete" status has already been received, trapping the component
+			// in an infinite loading state.
+			const { loading_status: _ls, ...rest_new_state } = new_state;
 			const existing = this.#pending_updates.get(id) || {};
-			this.#pending_updates.set(id, { ...existing, ...new_state });
+			this.#pending_updates.set(id, { ...existing, ...rest_new_state });
 
 			if ("value" in new_state && !dequal(old_value, new_state.value)) {
 				this.#event_dispatcher(id, "change", null);
