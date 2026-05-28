@@ -54,6 +54,18 @@ test("Dataframe blur event works as expected", async ({ page }) => {
 	await expect(page.getByLabel("Change events")).toHaveValue("1");
 });
 
+test("Dataframe shows visible focus on the keyboard-focusable grid", async ({
+	page
+}) => {
+	const grid = page.locator("#dataframe .table-wrap").first();
+
+	await grid.focus();
+
+	await expect(grid).toBeFocused();
+	await expect(grid).toHaveCSS("outline-style", "solid");
+	await expect(grid).not.toHaveCSS("outline-color", "rgba(0, 0, 0, 0)");
+});
+
 test("Dataframe filter functionality works correctly", async ({ page }) => {
 	await page.getByRole("button", { name: "Update dataframe" }).click();
 	await page.waitForTimeout(500);

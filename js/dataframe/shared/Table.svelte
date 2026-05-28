@@ -1289,6 +1289,12 @@
 		outline: none;
 	}
 
+	.table-wrap:focus-visible {
+		outline: var(--input-border-width) solid var(--input-border-color-focus);
+		outline-offset: var(--size-1);
+		box-shadow: var(--input-shadow-focus);
+	}
+
 	.table-wrap.dragging {
 		cursor: crosshair !important;
 		user-select: none;
