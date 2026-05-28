@@ -337,10 +337,6 @@ sortedcontainers==2.4.0
     # via hypothesis
 stack-data==0.6.3
     # via ipython
-starlette==0.45.3
-    # via
-    #   fastapi
-    #   gradio
 sympy==1.13.1
     # via torch
 tifffile==2025.1.10
