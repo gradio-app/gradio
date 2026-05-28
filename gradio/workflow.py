@@ -319,7 +319,7 @@ class Workflow:
             file = os.path.join(caller_dir, "workflow.json")
 
         if isinstance(bind, list):
-            bind = {fn.__name__: fn for fn in bind}
+            bind = {getattr(fn, "__name__", repr(fn)): fn for fn in bind}
 
         self._workflow_file = file
         self._workflow_name = (
