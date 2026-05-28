@@ -3051,7 +3051,7 @@ Received inputs:
                 print(f"* Running on public URL: {self.share_url}")
                 if not (quiet):
                     print(
-                        "\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+                        "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
                     )
             except Exception as e:
                 if self.analytics_enabled:
