@@ -1476,7 +1476,7 @@ class App(FastAPI):
             process_msg: Callable[[EventMessage], str | None],
         ):
             blocks = app.get_blocks()
-            heartbeat_rate = 15
+            heartbeat_rate = utils.get_heartbeat_rate()
 
             async def heartbeat():
                 while blocks.is_running:
