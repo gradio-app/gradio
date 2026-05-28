@@ -37,16 +37,20 @@
 
 	// When initial_tabs changes (e.g. a non-mounted tab's props were updated),
 	// sync the internal tabs array so the tab buttons reflect the new state.
-	// Using a function call so the $: dependency is only on initial_tabs,
-	// not on tabs (which would cause a loop with register_tab).
+	// The tabs mutation is deferred via tick() because in Svelte 5 legacy mode
+	// $: effects track all reads inside called functions — writing tabs[i]
+	// through the $state proxy would track `tabs` as a dependency, creating
+	// an infinite self-triggering loop.
 	$: _sync_tabs(initial_tabs);
 
 	function _sync_tabs(new_tabs: Tab[]): void {
-		for (let i = 0; i < new_tabs.length; i++) {
-			if (new_tabs[i] && !mounted_tab_orders.has(i)) {
-				tabs[i] = new_tabs[i];
+		tick().then(() => {
+			for (let i = 0; i < new_tabs.length; i++) {
+				if (new_tabs[i] && !mounted_tab_orders.has(i)) {
+					tabs[i] = new_tabs[i];
+				}
 			}
-		}
+		});
 	}
 
 	$: has_tabs = tabs.length > 0;
