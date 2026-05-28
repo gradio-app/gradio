@@ -11,14 +11,17 @@ import { test, expect } from "@self/tootils";
 test("switching to a tab that populates a dataframe does not freeze", async ({
 	page,
 }) => {
-	// Tab 2's data is not present until the tab is selected.
-	await expect(page.getByText("Item 9")).not.toBeVisible();
+	const df = page.locator("#tab_df");
+
+	// No data rows are present before the tab is selected.
+	await expect(df.getByTestId("cell-0-1")).toHaveCount(0);
 
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 
-	// The select event populates the dataframe with 10 rows.
-	await expect(page.getByText("Item 0")).toBeVisible();
-	await expect(page.getByText("Item 9")).toBeVisible();
+	// The select event populates the dataframe with 10 rows (the "Name" column
+	// is col 1). If the page froze, these assertions would time out.
+	await expect(df.getByTestId("cell-0-1")).toContainText("Item 0");
+	await expect(df.getByTestId("cell-9-1")).toContainText("Item 9");
 
 	// The main thread must still be responsive after rendering: a frozen page
 	// could not switch back to Tab 1.
