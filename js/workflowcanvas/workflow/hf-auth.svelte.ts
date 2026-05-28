@@ -1,6 +1,7 @@
 export function createHFAuth(getServer: () => Record<string, any>) {
 	let loggedInUser = $state("");
 	let isHFSpace = $state(false);
+	let isCheckingLogin = $state(true);
 	let hfToken = $state(
 		typeof localStorage !== "undefined"
 			? (localStorage.getItem("hf_token") ?? "")
@@ -27,10 +28,14 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 
 	async function checkLoginStatus(): Promise<void> {
 		isHFSpace = window.location.hostname.endsWith(".hf.space");
-		if (!isHFSpace) return;
+		if (!isHFSpace) {
+			isCheckingLogin = false;
+			return;
+		}
 		const token = await getOAuthToken();
 		if (!token) {
 			loggedInUser = "";
+			isCheckingLogin = false;
 			return;
 		}
 		try {
@@ -40,6 +45,8 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			loggedInUser = res.ok ? (await res.json()).name || "User" : "";
 		} catch {
 			loggedInUser = "User";
+		} finally {
+			isCheckingLogin = false;
 		}
 	}
 
@@ -57,10 +64,6 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		window.location.assign(`/logout?_target_url=${target}`);
 	}
 
-	$effect(() => {
-		checkLoginStatus();
-	});
-
 	return {
 		get loggedInUser() {
 			return loggedInUser;
@@ -68,12 +71,16 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		get isHFSpace() {
 			return isHFSpace;
 		},
+		get isCheckingLogin() {
+			return isCheckingLogin;
+		},
 		get hfToken() {
 			return hfToken;
 		},
 		saveToken,
 		handleLogin,
 		handleLogout,
-		getOAuthToken
+		getOAuthToken,
+		checkLoginStatus
 	};
 }

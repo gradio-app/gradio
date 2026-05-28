@@ -81,6 +81,12 @@
 	}
 
 	$effect(() => {
+		if (server?.get_token) {
+			void auth.checkLoginStatus();
+		}
+	});
+
+	$effect(() => {
 		if (!initialValue) return;
 		try {
 			const wf = JSON.parse(initialValue);
@@ -756,31 +762,33 @@
 			>
 		</div>
 		<div class="toolbar-right">
-			{#if auth.isHFSpace}
-				{#if auth.loggedInUser}
-					<span class="toolbar-user-info"
-						>Logged in as <strong>{auth.loggedInUser}</strong></span
-					>
-					<button
-						class="toolbar-login-btn logged-in"
-						onclick={auth.handleLogout}>Log out</button
-					>
+			{#if !auth.isCheckingLogin}
+				{#if auth.isHFSpace}
+					{#if auth.loggedInUser}
+						<span class="toolbar-user-info"
+							>Logged in as <strong>{auth.loggedInUser}</strong></span
+						>
+						<button
+							class="toolbar-login-btn logged-in"
+							onclick={auth.handleLogout}>Log out</button
+						>
+					{:else}
+						<button class="toolbar-login-btn" onclick={auth.handleLogin}
+							>Sign in with 🤗</button
+						>
+					{/if}
 				{:else}
-					<button class="toolbar-login-btn" onclick={auth.handleLogin}
-						>Sign in with 🤗</button
-					>
+					<form onsubmit={(e) => e.preventDefault()}>
+						<input
+							class="toolbar-token-input"
+							type="password"
+							placeholder="Paste HF token (hf_...)"
+							value={auth.hfToken}
+							onchange={(e) => auth.saveToken(e.currentTarget.value)}
+							title="HuggingFace token for GPU access"
+						/>
+					</form>
 				{/if}
-			{:else}
-				<form onsubmit={(e) => e.preventDefault()}>
-					<input
-						class="toolbar-token-input"
-						type="password"
-						placeholder="Paste HF token (hf_...)"
-						value={auth.hfToken}
-						onchange={(e) => auth.saveToken(e.currentTarget.value)}
-						title="HuggingFace token for GPU access"
-					/>
-				</form>
 			{/if}
 			<button
 				class="tool-btn"

@@ -749,6 +749,9 @@
 		padding: 6px 12px;
 		line-height: 1.4;
 		word-break: break-word;
+		overflow: hidden;
+		max-height: 4.5em;
+		overflow-y: auto;
 	}
 
 	.ports-toggle {
