@@ -57,14 +57,16 @@ def _build_edges(
     for i, (from_spec, to_spec) in enumerate(edges_spec):
         from_node_id, from_port_id, edge_type = resolve(from_spec, "outputs")
         to_node_id, to_port_id, _ = resolve(to_spec, "inputs")
-        result.append({
-            "id": f"edge_{i}",
-            "from_node_id": from_node_id,
-            "from_port_id": from_port_id,
-            "to_node_id": to_node_id,
-            "to_port_id": to_port_id,
-            "type": edge_type,
-        })
+        result.append(
+            {
+                "id": f"edge_{i}",
+                "from_node_id": from_node_id,
+                "from_port_id": from_port_id,
+                "to_node_id": to_node_id,
+                "to_port_id": to_port_id,
+                "type": edge_type,
+            }
+        )
     return result
 
 
@@ -89,28 +91,38 @@ def _workflow_from_bind(
             for p, param in sig.parameters.items()
             if p != "self"
         ]
-        outputs = [{"id": "out_0", "label": "output", "type": _PY_TO_PORT.get(sig.return_annotation, "text")}]
+        outputs = [
+            {
+                "id": "out_0",
+                "label": "output",
+                "type": _PY_TO_PORT.get(sig.return_annotation, "text"),
+            }
+        ]
 
         if not inputs:
             inputs = [{"id": "in_0", "label": "input", "type": "text"}]
 
-        nodes.append({
-            "id": f"fn_{fn_name}",
-            "source": "fn",
-            "fn": fn_name,
-            "kind": "transform",
-            "label": fn_name,
-            "x": 80 + i * 280,
-            "y": 150,
-            "width": 220,
-            "height": 80 + max(len(inputs), len(outputs)) * 36,
-            "inputs": inputs,
-            "outputs": outputs,
-            "data": {},
-        })
+        nodes.append(
+            {
+                "id": f"fn_{fn_name}",
+                "source": "fn",
+                "fn": fn_name,
+                "kind": "transform",
+                "label": fn_name,
+                "x": 80 + i * 280,
+                "y": 150,
+                "width": 220,
+                "height": 80 + max(len(inputs), len(outputs)) * 36,
+                "inputs": inputs,
+                "outputs": outputs,
+                "data": {},
+            }
+        )
 
     edge_dicts = _build_edges(edges or [], nodes)
-    return json.dumps({"version": "1", "name": name, "nodes": nodes, "edges": edge_dicts})
+    return json.dumps(
+        {"version": "1", "name": name, "nodes": nodes, "edges": edge_dicts}
+    )
 
 
 def _resolve_token(data: list, idx: int, token) -> str | None:
@@ -127,7 +139,9 @@ def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
 
 
 def _save_tmp(result, ext: str) -> dict:
-    path = os.path.join(tempfile.gettempdir(), f"hf_workflow_{os.urandom(8).hex()}.{ext}")
+    path = os.path.join(
+        tempfile.gettempdir(), f"hf_workflow_{os.urandom(8).hex()}.{ext}"
+    )
     if hasattr(result, "save"):
         result.save(path)
     else:
@@ -149,36 +163,82 @@ def _classify_error(e: Exception) -> dict:
         http_status = getattr(e, "status_code", None)
 
     if http_status in (401, 403):
-        return {"error_type": "auth", "suggestion": "Sign in with your HF account to use this model"}
+        return {
+            "error_type": "auth",
+            "suggestion": "Sign in with your HF account to use this model",
+        }
     if http_status == 404:
-        return {"error_type": "not_found", "suggestion": "Space not found — it may have been deleted or renamed"}
+        return {
+            "error_type": "not_found",
+            "suggestion": "Space not found — it may have been deleted or renamed",
+        }
     if http_status == 429:
-        return {"error_type": "quota", "suggestion": "GPU quota exceeded — log in with your HF account for more compute"}
+        return {
+            "error_type": "quota",
+            "suggestion": "GPU quota exceeded — log in with your HF account for more compute",
+        }
 
     type_name = type(e).__name__
-    if type_name in ("RepositoryNotFoundError", "EntryNotFoundError", "RevisionNotFoundError"):
-        return {"error_type": "not_found", "suggestion": "Space not found — it may have been deleted or renamed"}
+    if type_name in (
+        "RepositoryNotFoundError",
+        "EntryNotFoundError",
+        "RevisionNotFoundError",
+    ):
+        return {
+            "error_type": "not_found",
+            "suggestion": "Space not found — it may have been deleted or renamed",
+        }
     if type_name == "GatedRepoError":
-        return {"error_type": "auth", "suggestion": "Sign in with your HF account to use this model"}
+        return {
+            "error_type": "auth",
+            "suggestion": "Sign in with your HF account to use this model",
+        }
 
     title = getattr(e, "title", None) or ""
     message = getattr(e, "message", None) or str(e)
     full = f"{title} {message}".lower()
 
     if "zerogpu" in full or ("gpu" in full and "worker" in full):
-        return {"error_type": "gpu", "suggestion": "GPU unavailable — try again or log in with your HF account"}
+        return {
+            "error_type": "gpu",
+            "suggestion": "GPU unavailable — try again or log in with your HF account",
+        }
     if "quota" in full or "rate limit" in full or "rate_limit" in full:
-        return {"error_type": "quota", "suggestion": "GPU quota exceeded — log in with your HF account for more compute"}
+        return {
+            "error_type": "quota",
+            "suggestion": "GPU quota exceeded — log in with your HF account for more compute",
+        }
     if "sleeping" in full or "paused" in full:
-        return {"error_type": "sleeping", "suggestion": "Space is sleeping or paused — try again in a minute"}
-    if "unauthorized" in full or "authentication" in full or "log in" in full or "api_key" in full or "api key" in full:
-        return {"error_type": "auth", "suggestion": "Sign in with your HF account to use this model"}
+        return {
+            "error_type": "sleeping",
+            "suggestion": "Space is sleeping or paused — try again in a minute",
+        }
+    if (
+        "unauthorized" in full
+        or "authentication" in full
+        or "log in" in full
+        or "api_key" in full
+        or "api key" in full
+    ):
+        return {
+            "error_type": "auth",
+            "suggestion": "Sign in with your HF account to use this model",
+        }
     if "not found" in full or "repository not found" in full:
-        return {"error_type": "not_found", "suggestion": "Space not found — it may have been deleted or renamed"}
+        return {
+            "error_type": "not_found",
+            "suggestion": "Space not found — it may have been deleted or renamed",
+        }
     if "build_error" in full or "build error" in full:
-        return {"error_type": "build_error", "suggestion": "Space has a build error — contact the Space owner"}
+        return {
+            "error_type": "build_error",
+            "suggestion": "Space has a build error — contact the Space owner",
+        }
     if "timed out" in full or "timeout" in full or "connection" in full:
-        return {"error_type": "connection", "suggestion": "Could not connect to the Space — it may be down"}
+        return {
+            "error_type": "connection",
+            "suggestion": "Could not connect to the Space — it may be down",
+        }
     return {"error_type": "unknown", "suggestion": ""}
 
 
@@ -262,7 +322,12 @@ class Workflow:
             bind = {fn.__name__: fn for fn in bind}
 
         self._workflow_file = file
-        self._workflow_name = os.path.splitext(os.path.basename(file))[0].replace("_", " ").replace("-", " ").title()
+        self._workflow_name = (
+            os.path.splitext(os.path.basename(file))[0]
+            .replace("_", " ")
+            .replace("-", " ")
+            .title()
+        )
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
         self._demo = self._build()
@@ -297,16 +362,31 @@ class Workflow:
             space_id = data[0] if data else ""
             try:
                 from gradio_client import Client, handle_file
+
                 endpoint = data[1] if len(data) > 1 else None
                 args_json = data[2] if len(data) > 2 else "[]"
                 hf_token = _resolve_token(data, 3, token)
                 if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+", space_id or ""):
-                    return json.dumps({"error": "Invalid Space ID", "error_type": "not_found", "suggestion": "Space ID must be in owner/repo format"})
+                    return json.dumps(
+                        {
+                            "error": "Invalid Space ID",
+                            "error_type": "not_found",
+                            "suggestion": "Space ID must be in owner/repo format",
+                        }
+                    )
                 client = Client(space_id, token=hf_token)
                 args = json.loads(args_json)
                 if not endpoint or endpoint == "/predict":
-                    named = list(client.view_api(return_format="dict").get("named_endpoints", {}).keys())
-                    endpoint = endpoint if endpoint in named else (named[0] if named else "/predict")
+                    named = list(
+                        client.view_api(return_format="dict")
+                        .get("named_endpoints", {})
+                        .keys()
+                    )
+                    endpoint = (
+                        endpoint
+                        if endpoint in named
+                        else (named[0] if named else "/predict")
+                    )
                 processed = []
                 for arg in args:
                     if isinstance(arg, dict) and ("url" in arg or "path" in arg):
@@ -324,11 +404,27 @@ class Workflow:
                 def process_item(item):
                     if isinstance(item, dict):
                         path = item.get("path") or item.get("value")
-                        if isinstance(path, str) and path.startswith(_tmpdir) and os.path.exists(path):
-                            return {"path": path, "url": f"/gradio_api/file={path}", "is_file": True}
+                        if (
+                            isinstance(path, str)
+                            and path.startswith(_tmpdir)
+                            and os.path.exists(path)
+                        ):
+                            return {
+                                "path": path,
+                                "url": f"/gradio_api/file={path}",
+                                "is_file": True,
+                            }
                         return item
-                    if isinstance(item, str) and item.startswith(_tmpdir) and os.path.exists(item):
-                        return {"path": item, "url": f"/gradio_api/file={item}", "is_file": True}
+                    if (
+                        isinstance(item, str)
+                        and item.startswith(_tmpdir)
+                        and os.path.exists(item)
+                    ):
+                        return {
+                            "path": item,
+                            "url": f"/gradio_api/file={item}",
+                            "is_file": True,
+                        }
                     if isinstance(item, (list, tuple)):
                         return [process_item(s) for s in item]
                     return item
@@ -343,22 +439,31 @@ class Workflow:
             task = ""
             try:
                 from huggingface_hub import InferenceClient
+
                 pipeline_tag = data[1] if len(data) > 1 else None
                 args_json = data[2] if len(data) > 2 else "[]"
                 hf_token = _resolve_token(data, 3, token)
-                client = InferenceClient(model=model_id, token=hf_token, provider="hf-inference")
+                client = InferenceClient(
+                    model=model_id, token=hf_token, provider="hf-inference"
+                )
                 args = json.loads(args_json)
                 task = pipeline_tag or "text-generation"
                 a0 = args[0] if args else ""
                 a1 = args[1] if len(args) > 1 else ""
 
-                if task in ("text-generation", "text2text-generation", "conversational"):
+                if task in (
+                    "text-generation",
+                    "text2text-generation",
+                    "conversational",
+                ):
                     try:
                         result = client.text_generation(a0, max_new_tokens=512)
                     except Exception as inner:
                         msg = str(inner).lower()
                         if "not supported" in msg and "conversational" in msg:
-                            r = client.chat_completion([{"role": "user", "content": a0}], max_tokens=512)
+                            r = client.chat_completion(
+                                [{"role": "user", "content": a0}], max_tokens=512
+                            )
                             result = r.choices[0].message.content
                         else:
                             raise
@@ -368,18 +473,51 @@ class Workflow:
                 if task == "translation":
                     return json.dumps([client.translation(a0).translation_text])
                 if task in ("text-classification", "zero-shot-classification"):
-                    return json.dumps([[{"label": r.label, "score": r.score} for r in client.text_classification(a0)]])
+                    return json.dumps(
+                        [
+                            [
+                                {"label": r.label, "score": r.score}
+                                for r in client.text_classification(a0)
+                            ]
+                        ]
+                    )
                 if task == "token-classification":
-                    return json.dumps([[{"entity_group": r.entity_group, "word": r.word, "score": r.score} for r in client.token_classification(a0)]])
+                    return json.dumps(
+                        [
+                            [
+                                {
+                                    "entity_group": r.entity_group,
+                                    "word": r.word,
+                                    "score": r.score,
+                                }
+                                for r in client.token_classification(a0)
+                            ]
+                        ]
+                    )
                 if task == "fill-mask":
-                    return json.dumps([[{"token_str": r.token_str, "score": r.score, "sequence": r.sequence} for r in client.fill_mask(a0)]])
+                    return json.dumps(
+                        [
+                            [
+                                {
+                                    "token_str": r.token_str,
+                                    "score": r.score,
+                                    "sequence": r.sequence,
+                                }
+                                for r in client.fill_mask(a0)
+                            ]
+                        ]
+                    )
                 if task == "question-answering":
-                    return json.dumps([client.question_answering(question=a0, context=a1).answer])
+                    return json.dumps(
+                        [client.question_answering(question=a0, context=a1).answer]
+                    )
                 if task == "feature-extraction":
                     r = client.feature_extraction(a0)
                     return json.dumps([r.tolist() if hasattr(r, "tolist") else r])
                 if task == "sentence-similarity":
-                    return json.dumps([client.sentence_similarity(a0, a1.split("\n") if a1 else [])])
+                    return json.dumps(
+                        [client.sentence_similarity(a0, a1.split("\n") if a1 else [])]
+                    )
                 if task == "text-to-image":
                     return json.dumps([_save_tmp(client.text_to_image(a0), "png")])
                 if task in ("text-to-speech", "text-to-audio"):
@@ -387,29 +525,83 @@ class Workflow:
                 if task == "text-to-video":
                     return json.dumps([_save_tmp(client.text_to_video(a0), "mp4")])
                 if task == "image-classification":
-                    return json.dumps([[{"label": r.label, "score": r.score} for r in client.image_classification(_img_url(a0))]])
+                    return json.dumps(
+                        [
+                            [
+                                {"label": r.label, "score": r.score}
+                                for r in client.image_classification(_img_url(a0))
+                            ]
+                        ]
+                    )
                 if task == "object-detection":
-                    return json.dumps([[{"label": r.label, "score": r.score, "box": r.box} for r in client.object_detection(_img_url(a0))]])
+                    return json.dumps(
+                        [
+                            [
+                                {"label": r.label, "score": r.score, "box": r.box}
+                                for r in client.object_detection(_img_url(a0))
+                            ]
+                        ]
+                    )
                 if task == "image-segmentation":
-                    return json.dumps([[{"label": r.label, "score": r.score} for r in client.image_segmentation(_img_url(a0))]])
+                    return json.dumps(
+                        [
+                            [
+                                {"label": r.label, "score": r.score}
+                                for r in client.image_segmentation(_img_url(a0))
+                            ]
+                        ]
+                    )
                 if task == "image-to-text":
                     r = client.image_to_text(_img_url(a0))
-                    return json.dumps([r.generated_text if hasattr(r, "generated_text") else str(r)])
+                    return json.dumps(
+                        [r.generated_text if hasattr(r, "generated_text") else str(r)]
+                    )
                 if task == "image-to-image":
-                    return json.dumps([_save_tmp(client.image_to_image(_img_url(a0), prompt=a1), "png")])
+                    return json.dumps(
+                        [
+                            _save_tmp(
+                                client.image_to_image(_img_url(a0), prompt=a1), "png"
+                            )
+                        ]
+                    )
                 if task == "automatic-speech-recognition":
                     r = client.automatic_speech_recognition(_img_url(a0))
                     return json.dumps([r.text if hasattr(r, "text") else str(r)])
                 if task == "audio-classification":
-                    return json.dumps([[{"label": r.label, "score": r.score} for r in client.audio_classification(_img_url(a0))]])
-                if task in ("visual-question-answering", "document-question-answering", "image-text-to-text"):
+                    return json.dumps(
+                        [
+                            [
+                                {"label": r.label, "score": r.score}
+                                for r in client.audio_classification(_img_url(a0))
+                            ]
+                        ]
+                    )
+                if task in (
+                    "visual-question-answering",
+                    "document-question-answering",
+                    "image-text-to-text",
+                ):
                     r = client.visual_question_answering(_img_url(a0), a1)
                     return json.dumps([r[0].answer if r else ""])
                 if task == "depth-estimation":
-                    return json.dumps([_save_tmp(client.depth_estimation(_img_url(a0)).depth, "png")])
-                return json.dumps({"error": f"Unsupported task: {task}", "error_type": "unknown", "suggestion": ""})
+                    return json.dumps(
+                        [_save_tmp(client.depth_estimation(_img_url(a0)).depth, "png")]
+                    )
+                return json.dumps(
+                    {
+                        "error": f"Unsupported task: {task}",
+                        "error_type": "unknown",
+                        "suggestion": "",
+                    }
+                )
             except Exception as e:
-                logger.error("call_model failed for %s (task=%s): %s", model_id, task, e, exc_info=True)
+                logger.error(
+                    "call_model failed for %s (task=%s): %s",
+                    model_id,
+                    task,
+                    e,
+                    exc_info=True,
+                )
                 return _format_error(e)
 
         def fetch_dataset(data, token: Optional[OAuthToken] = None) -> str:
@@ -420,21 +612,39 @@ class Workflow:
                 offset = int(data[3]) if len(data) > 3 and data[3] else 0
                 length = int(data[4]) if len(data) > 4 and data[4] else 10
                 hf_token = _resolve_token(data, 5, token)
-                params = urllib.parse.urlencode({
-                    "dataset": dataset_id, "config": config, "split": split,
-                    "offset": offset, "length": min(length, 100),
-                })
-                result = json.loads(_hf_request(
-                    f"https://datasets-server.huggingface.co/rows?{params}", hf_token, timeout=30
-                ))
-                return json.dumps({
-                    "features": result.get("features", []),
-                    "rows": [r.get("row", {}) for r in result.get("rows", [])],
-                    "num_rows_total": result.get("num_rows_total", 0),
-                })
+                params = urllib.parse.urlencode(
+                    {
+                        "dataset": dataset_id,
+                        "config": config,
+                        "split": split,
+                        "offset": offset,
+                        "length": min(length, 100),
+                    }
+                )
+                result = json.loads(
+                    _hf_request(
+                        f"https://datasets-server.huggingface.co/rows?{params}",
+                        hf_token,
+                        timeout=30,
+                    )
+                )
+                return json.dumps(
+                    {
+                        "features": result.get("features", []),
+                        "rows": [r.get("row", {}) for r in result.get("rows", [])],
+                        "num_rows_total": result.get("num_rows_total", 0),
+                    }
+                )
             except Exception as e:
-                logger.error("fetch_dataset failed for %s: %s", data[0] if data else "", e, exc_info=True)
-                return json.dumps({"error": str(e), "error_type": "unknown", "suggestion": ""})
+                logger.error(
+                    "fetch_dataset failed for %s: %s",
+                    data[0] if data else "",
+                    e,
+                    exc_info=True,
+                )
+                return json.dumps(
+                    {"error": str(e), "error_type": "unknown", "suggestion": ""}
+                )
 
         def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
             kind = data[0] if data else "trending"
@@ -447,7 +657,9 @@ class Workflow:
                     url = "https://huggingface.co/api/spaces?filter=gradio&limit=48&sort=trendingScore&direction=-1&expand[]=likes&expand[]=cardData&expand[]=runtime"
                 return _hf_request(url, hf_token)
             except Exception as e:
-                logger.error("search_spaces failed (kind=%s): %s", kind, e, exc_info=True)
+                logger.error(
+                    "search_spaces failed (kind=%s): %s", kind, e, exc_info=True
+                )
                 return json.dumps({"error": str(e)})
 
         def search_models(data, token: Optional[OAuthToken] = None) -> str:
@@ -466,7 +678,9 @@ class Workflow:
                         url += f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}"
                 return _hf_request(url, hf_token)
             except Exception as e:
-                logger.error("search_models failed (kind=%s): %s", kind, e, exc_info=True)
+                logger.error(
+                    "search_models failed (kind=%s): %s", kind, e, exc_info=True
+                )
                 return json.dumps({"error": str(e)})
 
         def search_datasets(data, token: Optional[OAuthToken] = None) -> str:
@@ -478,7 +692,9 @@ class Workflow:
                     hf_token,
                 )
             except Exception as e:
-                logger.error("search_datasets failed (query=%s): %s", query, e, exc_info=True)
+                logger.error(
+                    "search_datasets failed (query=%s): %s", query, e, exc_info=True
+                )
                 return json.dumps({"error": str(e)})
 
         def get_dataset_schema(data, token: Optional[OAuthToken] = None) -> str:
@@ -486,32 +702,51 @@ class Workflow:
             try:
                 hf_token = _resolve_token(data, 1, token)
                 try:
-                    splits_data = json.loads(_hf_request(
-                        f"https://datasets-server.huggingface.co/splits?dataset={urllib.parse.quote(dataset_id)}",
-                        hf_token, timeout=30,
-                    ))
+                    splits_data = json.loads(
+                        _hf_request(
+                            f"https://datasets-server.huggingface.co/splits?dataset={urllib.parse.quote(dataset_id)}",
+                            hf_token,
+                            timeout=30,
+                        )
+                    )
                 except Exception as exc:
-                    raise Exception("Could not load dataset — it may not be viewer-compatible") from exc
+                    raise Exception(
+                        "Could not load dataset — it may not be viewer-compatible"
+                    ) from exc
                 splits = splits_data.get("splits", [])
                 if not splits:
                     raise Exception("No available splits found for this dataset")
                 picked = next((s for s in splits if s["split"] == "train"), splits[0])
                 try:
-                    rows_data = json.loads(_hf_request(
-                        "https://datasets-server.huggingface.co/first-rows?" + urllib.parse.urlencode({
-                            "dataset": dataset_id, "config": picked["config"], "split": picked["split"],
-                        }),
-                        hf_token, timeout=30,
-                    ))
+                    rows_data = json.loads(
+                        _hf_request(
+                            "https://datasets-server.huggingface.co/first-rows?"
+                            + urllib.parse.urlencode(
+                                {
+                                    "dataset": dataset_id,
+                                    "config": picked["config"],
+                                    "split": picked["split"],
+                                }
+                            ),
+                            hf_token,
+                            timeout=30,
+                        )
+                    )
                 except Exception as exc:
-                    raise Exception("Could not load dataset — it may not be viewer-compatible") from exc
-                return json.dumps({
-                    "config": picked["config"],
-                    "split": picked["split"],
-                    "features": rows_data.get("features", []),
-                })
+                    raise Exception(
+                        "Could not load dataset — it may not be viewer-compatible"
+                    ) from exc
+                return json.dumps(
+                    {
+                        "config": picked["config"],
+                        "split": picked["split"],
+                        "features": rows_data.get("features", []),
+                    }
+                )
             except Exception as e:
-                logger.error("get_dataset_schema failed for %s: %s", dataset_id, e, exc_info=True)
+                logger.error(
+                    "get_dataset_schema failed for %s: %s", dataset_id, e, exc_info=True
+                )
                 return json.dumps({"error": str(e)})
 
         def call_fn(data, token: Optional[OAuthToken] = None) -> str:
@@ -520,7 +755,13 @@ class Workflow:
                 args_json = data[1] if len(data) > 1 else "[]"
                 fn = bound.get(fn_name)
                 if fn is None:
-                    return json.dumps({"error": f"No function '{fn_name}' bound to this workflow", "error_type": "unknown", "suggestion": "Check the bind= argument to Workflow()"})
+                    return json.dumps(
+                        {
+                            "error": f"No function '{fn_name}' bound to this workflow",
+                            "error_type": "unknown",
+                            "suggestion": "Check the bind= argument to Workflow()",
+                        }
+                    )
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
@@ -529,7 +770,9 @@ class Workflow:
                 return json.dumps(result)
             except Exception as e:
                 logger.error("call_fn failed for %s: %s", fn_name, e, exc_info=True)
-                return json.dumps({"error": str(e), "error_type": "unknown", "suggestion": ""})
+                return json.dumps(
+                    {"error": str(e), "error_type": "unknown", "suggestion": ""}
+                )
 
         workflow_file = self._workflow_file
 
@@ -551,7 +794,18 @@ class Workflow:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
 
-        server_functions = [get_token, call_space, call_model, fetch_dataset, search_spaces, search_models, search_datasets, get_dataset_schema, call_fn, save_workflow]
+        server_functions = [
+            get_token,
+            call_space,
+            call_model,
+            fetch_dataset,
+            search_spaces,
+            search_models,
+            search_datasets,
+            get_dataset_schema,
+            call_fn,
+            save_workflow,
+        ]
 
         with gr.Blocks() as demo:
             gr.LoginButton(visible=False)
