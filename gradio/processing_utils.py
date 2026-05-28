@@ -696,7 +696,7 @@ def audio_to_file(sample_rate, data, filename, format="wav"):
     # noise. Run the same int16 conversion for every format so the encoded
     # output matches the input waveform regardless of `format`. See #13364.
     if data.dtype != np.int16:
-        data = convert_to_16_bit_wav(data)
+        data = convert_to_16_bit_audio(data)
 
     audio = AudioSegment(
         data.tobytes(),
@@ -708,14 +708,20 @@ def audio_to_file(sample_rate, data, filename, format="wav"):
     file.close()  # type: ignore
 
 
-def convert_to_16_bit_wav(data):
+def convert_to_16_bit_audio(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
     warning = "Trying to convert audio automatically from {} to 16-bit int format."
     if data.dtype in [np.float64, np.float32, np.float16]:
         warnings.warn(warning.format(data.dtype))
-        data = data / np.abs(data).max()
-        data = data * 32767
-        data = data.astype(np.int16)
+        peak = np.abs(data).max()
+        if peak == 0:
+            # Silence: avoid dividing by zero (which would produce NaNs that
+            # cast to nonzero int16 garbage and turn silence into noise).
+            data = np.zeros_like(data, dtype=np.int16)
+        else:
+            data = data / peak
+            data = data * 32767
+            data = data.astype(np.int16)
     elif data.dtype == np.int32:
         warnings.warn(warning.format(data.dtype))
         data = data / 65536
@@ -740,6 +746,12 @@ def convert_to_16_bit_wav(data):
             f"{data.dtype} to 16-bit int format."
         )
     return data
+
+
+# Backwards-compatible alias: this function now handles non-WAV formats too,
+# but it was previously named `convert_to_16_bit_wav` and may be imported by
+# external code.
+convert_to_16_bit_wav = convert_to_16_bit_audio
 
 
 ##################

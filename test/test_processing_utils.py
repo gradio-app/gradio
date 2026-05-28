@@ -277,25 +277,42 @@ class TestAudioPreprocessing:
             )
         assert Path(path_py_int).parent == Path(path_np_int).parent
 
-    def test_convert_to_16_bit_wav(self):
+    def test_convert_to_16_bit_audio(self):
         # Generate a random audio sample and set the amplitude
         audio = np.random.randint(-100, 100, size=(100), dtype="int16")
         audio[0] = -32767
         audio[1] = 32766
 
         audio_ = audio.astype("float64")
-        audio_ = processing_utils.convert_to_16_bit_wav(audio_)
+        audio_ = processing_utils.convert_to_16_bit_audio(audio_)
         assert np.allclose(audio, audio_)
         assert audio_.dtype == "int16"
 
         audio_ = audio.astype("float32")
-        audio_ = processing_utils.convert_to_16_bit_wav(audio_)
+        audio_ = processing_utils.convert_to_16_bit_audio(audio_)
         assert np.allclose(audio, audio_)
         assert audio_.dtype == "int16"
 
-        audio_ = processing_utils.convert_to_16_bit_wav(audio)
+        audio_ = processing_utils.convert_to_16_bit_audio(audio)
         assert np.allclose(audio, audio_)
         assert audio_.dtype == "int16"
+
+    def test_convert_to_16_bit_audio_silence(self):
+        # Regression test: all-zero float input has a peak of 0, which used to
+        # divide by zero and produce NaNs that cast to nonzero int16 garbage,
+        # turning silence into noise. Silence must stay silent.
+        for dtype in ("float16", "float32", "float64"):
+            silence = np.zeros(100, dtype=dtype)
+            converted = processing_utils.convert_to_16_bit_audio(silence)
+            assert converted.dtype == "int16"
+            assert np.all(converted == 0)
+
+    def test_convert_to_16_bit_wav_alias(self):
+        # `convert_to_16_bit_wav` is kept as a backwards-compatible alias.
+        assert (
+            processing_utils.convert_to_16_bit_wav
+            is processing_utils.convert_to_16_bit_audio
+        )
 
 
 class TestOutputPreprocessing:
