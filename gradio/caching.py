@@ -254,6 +254,17 @@ class _CacheStore:
 
 
 _per_session_stores: weakref.WeakSet[_CacheStore] = weakref.WeakSet()
+# We need this store because runtime `gr.cache(fn)(...)` may be evaluated on
+# every request, and we want one shared wrapper/cache per function+config
+# instead of recreating an empty cache each time. Bounded with LRU eviction so
+# dynamically-created callables in long-running servers can't grow it without
+# limit.
+_RUNTIME_WRAPPER_REGISTRY_MAX = 1024
+_cache_wrappers: OrderedDict[tuple[Any, ...], Callable] = OrderedDict()
+# We need this lock because requests can resolve `gr.cache(fn)` concurrently,
+# and wrapper creation must be atomic so only one shared wrapper/cache is
+# installed for a given cache key.
+_runtime_cache_lock = threading.Lock()
 
 
 def _normalize_kwargs(signature: inspect.Signature, args: tuple, kwargs: dict) -> dict:
@@ -331,7 +342,11 @@ def clear_session_caches(session_hash: str | None) -> None:
 
 
 def _make_wrapper(
-    func: Callable, store: _CacheStore, key: Callable | None = None
+    func: Callable,
+    store: _CacheStore,
+    key: Callable | None = None,
+    *,
+    track_cache_hits: bool = False,
 ) -> Callable:
     signature = inspect.signature(func)
 
@@ -344,6 +359,10 @@ def _make_wrapper(
         if _probe_mode_active.get():
             raise CacheMissError()
 
+    def _on_hit():
+        if track_cache_hits and not _probe_mode_active.get():
+            mark_manual_cache_hit()
+
     if inspect.isgeneratorfunction(func):
 
         @functools.wraps(func)
@@ -352,7 +371,10 @@ def _make_wrapper(
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
-                yield from entry["yields"]
+                for value in entry["yields"]:
+                    _on_hit()
+                    yield value
+                _on_hit()
                 return
             _on_miss()
             all_yields = []
@@ -372,7 +394,9 @@ def _make_wrapper(
             entry = store.get(key_hash)
             if entry is not None:
                 for value in entry["yields"]:
+                    _on_hit()
                     yield value
+                _on_hit()
                 return
             _on_miss()
             all_yields = []
@@ -391,6 +415,7 @@ def _make_wrapper(
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
+                _on_hit()
                 return entry["value"]
             _on_miss()
             result = await func(**normalized)
@@ -407,6 +432,7 @@ def _make_wrapper(
             key_hash = _compute_hash(normalized)
             entry = store.get(key_hash)
             if entry is not None:
+                _on_hit()
                 return entry["value"]
             _on_miss()
             result = func(**normalized)
@@ -414,6 +440,42 @@ def _make_wrapper(
             return result
 
         return sync_wrapper
+
+
+def _get_cached_wrapper(
+    func: Callable,
+    *,
+    key: Callable | None,
+    max_size: int,
+    max_memory: str | int | None,
+    per_session: bool,
+) -> Callable:
+    from gradio.utils import _parse_file_size
+
+    registry_key = (
+        id(func),
+        id(key) if key is not None else None,
+        max_size,
+        _parse_file_size(max_memory),
+        per_session,
+    )
+    with _runtime_cache_lock:
+        wrapper = _cache_wrappers.get(registry_key)
+        if wrapper is not None:
+            _cache_wrappers.move_to_end(registry_key)
+            return wrapper
+        store = _make_store(max_size, max_memory, per_session)
+        wrapper = _make_wrapper(
+            func,
+            store,
+            key=key,
+            track_cache_hits=True,
+        )
+        wrapper.cache = store  # type: ignore
+        _cache_wrappers[registry_key] = wrapper
+        while len(_cache_wrappers) > _RUNTIME_WRAPPER_REGISTRY_MAX:
+            _cache_wrappers.popitem(last=False)
+        return wrapper
 
 
 @document()
@@ -426,30 +488,45 @@ def cache(
     per_session: bool = False,
 ):
     """
-    Decorator that auto-caches function results based on content-hashed inputs. Works with sync/async functions and sync/async generators. For generators, all yielded values are cached and replayed on hit. Cache hits bypass the Gradio queue.
+    Decorator that auto-caches function results based on content-hashed inputs. Works with sync/async functions and sync/async generators. For generators, all yielded values are cached and replayed on hit. Cache hits bypass the Gradio queue. It can also be called at runtime as `gr.cache(fn)(*args)` to cache intermediate helper calls.
     Parameters:
-        fn: The function to cache. When used as @gr.cache without parentheses, this is the decorated function. When used as @gr.cache(...), this is None.
+        fn: The function to cache. When used as @gr.cache without parentheses, this is the decorated function. When used as @gr.cache(...), this is None. When used as `gr.cache(fn)(...)`, this must be a callable.
         key: Optional function that receives the kwargs dict and returns a hashable cache key, e.g. to only cache based on the prompt, pass in: lambda kw: kw["prompt"]
         max_size: Maximum number of cache entries. Least-recently-used entries are evicted when full. Set to 0 for unlimited. Default: 128.
         max_memory: Maximum total memory usage before eviction. Accepts strings like "512mb", "2gb" or integer bytes. When exceeded, least-recently-used entries are evicted. If None, no memory limit is applied. If both max_size and max_memory are set, the cache will evict entries when either limit is reached.
         per_session: When True, each user session gets an isolated cache namespace, preventing cached results from leaking between users. Per-session entries are cleared when the client session disconnects. The max_size and max_memory limits apply to the sum of all entries across all sessions.
-    Example:
+    Example: (decorator)
         import gradio as gr
         @gr.cache
         def classify(image):
             return model.predict(image)
+
         @gr.cache(max_size=256, per_session=True)
         def generate(prompt):
             return llm(prompt)
+    Example: (runtime)
+        import gradio as gr
+        def chat(message):
+            cached_retrieve = gr.cache(retrieve_docs)
+            docs = cached_retrieve(message)
+            return llm(message, docs)
     """
-    store = _make_store(max_size, max_memory, per_session)
 
     def decorator(func: Callable) -> Callable:
-        wrapper = _make_wrapper(func, store, key=key)
-        wrapper.cache = store  # type: ignore
-        return wrapper
+        return _get_cached_wrapper(
+            func,
+            key=key,
+            max_size=max_size,
+            max_memory=max_memory,
+            per_session=per_session,
+        )
 
     if fn is not None:
+        if not callable(fn):
+            raise TypeError(
+                "gr.cache(...) expected a callable when used at runtime. "
+                "Use gr.cache(fn)(*args) instead of gr.cache(fn(*args))."
+            )
         return decorator(fn)
     return decorator
 

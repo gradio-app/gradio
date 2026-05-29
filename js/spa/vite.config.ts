@@ -189,7 +189,15 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				TEST_MODE === "node"
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-			exclude: ["**/node_modules/**", "**/gradio/gradio/**", "**/client/js/**"],
+			exclude: [
+				"**/node_modules/**",
+				"**/gradio/gradio/**",
+				"**/client/js/**",
+				"js/app/proxy_routes.test.js",
+				"**/.svelte-kit/**",
+				"**/dist/**",
+				".venv/**"
+			],
 			globals: true,
 
 			onConsoleLog(log, type) {

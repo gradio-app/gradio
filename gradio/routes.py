@@ -6,7 +6,6 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
-import importlib.resources
 import inspect
 import io
 import json
@@ -60,12 +59,12 @@ from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
+from starlette.formparsers import MultiPartException
 from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import (
     caching,
-    ranged_response,
     route_utils,
     themes,
     utils,
@@ -96,18 +95,27 @@ from gradio.node_server import (
 from gradio.oauth import attach_oauth
 from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
+    BUILD_PATH_LIB,
+    DEFAULT_TEMP_DIR,
+    STATIC_PATH_LIB,
+    STATIC_TEMPLATE_LIB,
+    VERSION,
+    XSS_SAFE_MIMETYPES,
     CustomCORSMiddleware,
     FileUploadProgress,
     FileUploadProgressNotQueuedError,
     FileUploadProgressNotTrackedError,
     GradioMultiPartParser,
     GradioUploadFile,
-    MultiPartException,
-    NodeProxyCache,
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
+    favicon,
+    file_fetch,
+    file_response,
     move_uploaded_files_to_cache,
+    routes_safe_join,
+    upload_fn,
 )
 from gradio.screen_recording_utils import process_video_with_ffmpeg
 from gradio.server_messages import (
@@ -124,7 +132,6 @@ from gradio.themes import ThemeClass as Theme
 from gradio.utils import (
     cancel_tasks,
     get_node_path,
-    get_package_version,
     get_upload_folder,
     safe_aclose_iterator,
 )
@@ -138,42 +145,6 @@ import shutil
 import tempfile
 
 mimetypes.init()
-
-STATIC_TEMPLATE_LIB = cast(
-    DeveloperPath,
-    importlib.resources.files("gradio").joinpath("templates").as_posix(),  # type: ignore
-)
-STATIC_PATH_LIB = cast(
-    DeveloperPath,
-    importlib.resources.files("gradio")
-    .joinpath("templates/frontend/static")
-    .as_posix(),  # type: ignore
-)
-BUILD_PATH_LIB = cast(
-    DeveloperPath,
-    importlib.resources.files("gradio")
-    .joinpath("templates/frontend/assets")
-    .as_posix(),  # type: ignore
-)
-VERSION = get_package_version()
-XSS_SAFE_MIMETYPES = {
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "audio/mpeg",
-    "audio/wav",
-    "audio/ogg",
-    "video/mp4",
-    "video/webm",
-    "video/ogg",
-    "text/plain",
-    "application/json",
-}
-
-DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
-    Path(tempfile.gettempdir()) / "gradio"
-)
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t  # type: ignore
@@ -230,13 +201,18 @@ def toorjson(value):
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
-client = httpx.AsyncClient(
+# Shared transport keeps the connection pool warm without sharing an
+# `httpx.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
+# A single shared `AsyncClient` would persist `Set-Cookie` headers from one
+# proxied response and replay them on subsequent requests to any sibling
+# `*.hf.space` URL — see GHSA-2mr9-9r47-px2g.
+_proxy_transport = httpx.AsyncHTTPTransport(
     limits=httpx.Limits(
         max_connections=100,
         max_keepalive_connections=20,
     ),
-    timeout=httpx.Timeout(10.0),
 )
+
 
 file_upload_statuses = FileUploadProgress()
 
@@ -273,7 +249,11 @@ class App(FastAPI):
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
+        self.static_worker_pool = None  # Set by launch() when num_workers > 0
         self.all_app_info = None
+        self._static_prefixes: tuple[
+            str, ...
+        ] = ()  # Populated by enable_static_workers
 
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
@@ -281,63 +261,6 @@ class App(FastAPI):
         kwargs.setdefault("redoc_url", None)
         self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
-
-    # Create a single client to be reused across requests
-    # We're not overriding any defaults here
-
-    client = httpx.AsyncClient()
-    proxy_cache = NodeProxyCache(client)
-
-    @staticmethod
-    async def proxy_to_node(
-        request: fastapi.Request,
-        app: App,
-        server_name: str,
-        node_port: int,
-        python_port: int,
-        scheme: str = "http",
-        mounted_path: str = "",
-    ) -> Response:
-        full_path = request.url.path
-        if mounted_path:
-            full_path = full_path.replace(mounted_path, "")
-        if request.url.query:
-            full_path += f"?{request.url.query}"
-
-        root_path = route_utils.get_root_url(
-            request=request,
-            route_path=request.url.path,
-            root_path=app.root_path,
-        )
-
-        url = f"{scheme}://{server_name}:{node_port}{full_path}"
-
-        server_url = f"{scheme}://{server_name}"
-        if python_port:
-            server_url += f":{python_port}"
-        if mounted_path:
-            server_url += mounted_path
-
-        headers = dict(request.headers)
-        headers["x-gradio-server"] = server_url
-        headers["x-gradio-port"] = str(python_port)
-        headers["x-gradio-mounted-path"] = mounted_path
-        headers["x-gradio-original-url"] = str(root_path)
-
-        if os.getenv("GRADIO_LOCAL_DEV_MODE"):
-            headers["x-gradio-local-dev-mode"] = "1"
-
-        new_request = App.client.build_request(
-            request.method, httpx.URL(url), headers=headers
-        )
-        node_response = await App.client.send(new_request, stream=True)
-
-        return StreamingResponse(
-            node_response.aiter_raw(),
-            status_code=node_response.status_code,
-            headers=node_response.headers,
-            background=BackgroundTask(node_response.aclose),
-        )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -377,8 +300,10 @@ class App(FastAPI):
         headers = {}
         if Context.token is not None:
             headers["Authorization"] = f"Bearer {Context.token}"
-        rp_req = client.build_request("GET", url, headers=headers)
-        return rp_req
+        # Build a plain request rather than `client.build_request` so that
+        # the proxy does not share an `httpx.AsyncClient` (or cookie jar)
+        # across calls (see GHSA-2mr9-9r47-px2g).
+        return url, headers
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -436,7 +361,6 @@ class App(FastAPI):
         app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
-        ssr_mode: bool = False,
         mcp_server: bool | None = None,
         debug: bool = False,
     ) -> App:
@@ -467,44 +391,9 @@ class App(FastAPI):
             excluded_handlers=[mcp_subpath],
         )
 
-        if ssr_mode:
-
-            @app.middleware("http")
-            async def conditional_routing_middleware(
-                request: fastapi.Request, call_next
-            ):
-                blocks = app.get_blocks()
-                custom_mount_path = blocks.custom_mount_path
-                path = (
-                    request.url.path.replace(blocks.custom_mount_path or "", "")
-                    if custom_mount_path is not None
-                    else request.url.path
-                )
-
-                if (
-                    getattr(blocks, "node_process", None) is not None
-                    and blocks.node_port is not None
-                    and not any(path.startswith(f"/{url}") for url in INTERNAL_ROUTES)
-                ):
-                    if App.app_port is None:
-                        App.app_port = request.url.port or int(
-                            os.getenv("GRADIO_SERVER_PORT", "7860")
-                        )
-
-                    try:
-                        return await App.proxy_to_node(
-                            request,
-                            app,
-                            blocks.node_server_name or "0.0.0.0",
-                            blocks.node_port,
-                            App.app_port,
-                            request.url.scheme,
-                            custom_mount_path or "",
-                        )
-                    except Exception as e:
-                        print(e)
-                response = await call_next(request)
-                return response
+        # Note: In the current architecture, Node is the front proxy and
+        # routes requests to Python. The old conditional_routing_middleware
+        # that proxied Python -> Node is no longer needed.
 
         @router.get("/user")
         @router.get("/user/")
@@ -659,13 +548,9 @@ class App(FastAPI):
         ###############
 
         @app.get("/svelte/{path:path}")
-        def _(path: str):
-            svelte_path = Path(BUILD_PATH_LIB) / "svelte"
-            return FileResponse(
-                routes_safe_join(
-                    DeveloperPath(str(svelte_path)), UserProvidedPath(path)
-                )
-            )
+        async def _(path: str):
+            svelte_path = DeveloperPath(str(Path(BUILD_PATH_LIB) / "svelte"))
+            return file_response(svelte_path, UserProvidedPath(path))
 
         def attach_page(page):
             @app.get(f"/{page}", response_class=HTMLResponse)
@@ -1090,9 +975,8 @@ class App(FastAPI):
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
-        def static_resource(path: str):
-            static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
-            return FileResponse(static_file)
+        async def static_resource(path: str):
+            return file_response(STATIC_PATH_LIB, UserProvidedPath(path))
 
         @router.get("/custom_component/{id}/{environment}/{type}/{file_name}")
         def custom_component_path(
@@ -1160,27 +1044,30 @@ class App(FastAPI):
             return FileResponse(path, headers=headers)
 
         @app.get("/assets/{path:path}")
-        def build_resource(path: str):
-            build_file = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath(path))
-            return FileResponse(build_file)
+        async def build_resource(path: str):
+            return file_response(BUILD_PATH_LIB, UserProvidedPath(path))
 
         @app.get("/favicon.ico")
-        async def favicon():
-            blocks = app.get_blocks()
-            if blocks.favicon_path is None:
-                return static_resource("img/logo.svg")
-            else:
-                return FileResponse(blocks.favicon_path)
+        async def _():
+            favicon_path = app.get_blocks().favicon_path
+            return favicon(favicon_path)
 
         @router.head("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         @router.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
-                rp_req = app.build_proxy_request(url_path)
+                proxy_client = httpx.AsyncClient(
+                    transport=_proxy_transport,
+                    timeout=httpx.Timeout(10.0),
+                )
+                url, headers = app.build_proxy_request(url_path)
+                rp_req = proxy_client.build_request("GET", url, headers=headers)
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
-            rp_resp = await client.send(rp_req, stream=True)
+
+            rp_resp = await proxy_client.send(rp_req, stream=True)
+
             mime_type, _ = mimetypes.guess_type(url_path)
             if mime_type not in XSS_SAFE_MIMETYPES:
                 rp_resp.headers.update({"Content-Disposition": "attachment"})
@@ -1196,67 +1083,7 @@ class App(FastAPI):
         @router.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
-            if client_utils.is_http_url_like(path_or_url):
-                return RedirectResponse(
-                    url=path_or_url, status_code=status.HTTP_302_FOUND
-                )
-
-            if route_utils.starts_with_protocol(path_or_url):
-                raise HTTPException(403, f"File not allowed: {path_or_url}.")
-
-            abs_path = utils.abspath(path_or_url)
-            # Catch potential permission errors to not display the full traceback
-            # see https://github.com/gradio-app/gradio/issues/11194
-            try:
-                if abs_path.is_dir() or not abs_path.exists():
-                    raise HTTPException(403, f"File not allowed: {path_or_url}.")
-            except Exception as e:
-                raise HTTPException(403, f"File not allowed: {path_or_url}.") from e
-
-            from gradio.data_classes import _StaticFiles
-
-            allowed, reason = utils.is_allowed_file(
-                abs_path,
-                blocked_paths=blocks.blocked_paths,
-                allowed_paths=blocks.allowed_paths + _StaticFiles.all_paths,
-                created_paths=[app.uploaded_file_dir, utils.get_cache_folder()],
-            )
-            if not allowed:
-                raise HTTPException(403, f"File not allowed: {path_or_url}.")
-
-            mime_type, _ = mimetypes.guess_type(abs_path)
-            if mime_type in XSS_SAFE_MIMETYPES or reason == "allowed":
-                media_type = mime_type or "application/octet-stream"
-                content_disposition_type = "inline"
-            else:
-                media_type = "application/octet-stream"
-                content_disposition_type = "attachment"
-
-            range_val = request.headers.get("Range", "").strip()
-            if range_val.startswith("bytes=") and "-" in range_val:
-                range_val = range_val[6:]
-                start, end = range_val.split("-")
-                if start.isnumeric() and end.isnumeric():
-                    start = int(start)
-                    end = int(end)
-                    headers = dict(request.headers)
-                    headers["Content-Disposition"] = content_disposition_type
-                    headers["Content-Type"] = media_type
-                    response = ranged_response.RangedFileResponse(
-                        abs_path,
-                        ranged_response.OpenRange(start, end),
-                        headers,
-                        stat_result=os.stat(abs_path),
-                    )
-                    return response
-
-            return FileResponse(
-                abs_path,
-                headers={"Accept-Ranges": "bytes"},
-                content_disposition_type=content_disposition_type,
-                media_type=media_type,
-                filename=abs_path.name,
-            )
+            return file_fetch(path_or_url, request, blocks, app.uploaded_file_dir)
 
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
@@ -1375,7 +1202,7 @@ class App(FastAPI):
             """Clients make a persistent connection to this endpoint to keep the session alive.
             When the client disconnects, the session state is deleted.
             """
-            heartbeat_rate = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
+            heartbeat_rate = utils.get_heartbeat_rate()
 
             async def iterator():
                 stop_stream_task = asyncio.create_task(app.stop_event.wait())
@@ -1649,7 +1476,7 @@ class App(FastAPI):
             process_msg: Callable[[EventMessage], str | None],
         ):
             blocks = app.get_blocks()
-            heartbeat_rate = 15
+            heartbeat_rate = utils.get_heartbeat_rate()
 
             async def heartbeat():
                 while blocks.is_running:
@@ -1917,66 +1744,21 @@ class App(FastAPI):
             start = None
             if PROFILING_ENABLED:
                 start = time.monotonic()
-            content_type_header = request.headers.get("Content-Type")
-            content_type: bytes
-            content_type, _ = parse_options_header(content_type_header or "")
-            if content_type != b"multipart/form-data":
-                raise HTTPException(status_code=400, detail="Invalid content type.")
-
             try:
-                if upload_id:
-                    file_upload_statuses.track(upload_id)
-                max_file_size = app.get_blocks().max_file_size
-                max_file_size = max_file_size if max_file_size is not None else math.inf
-                multipart_parser = GradioMultiPartParser(
-                    request.headers,
-                    request.stream(),
-                    max_files=1000,
-                    max_fields=1000,
-                    max_file_size=max_file_size,
-                    upload_id=upload_id if upload_id else None,
+                output_files, files_to_copy, locations = await upload_fn(
+                    request,
+                    app.uploaded_file_dir,
+                    blocks.max_file_size
+                    if blocks.max_file_size is not None
+                    else math.inf,
+                    upload_id,
+                    force_move=False,
                     upload_progress=file_upload_statuses if upload_id else None,
                 )
-                form = await multipart_parser.parse()
             except MultiPartException as exc:
                 code = 413 if "maximum allowed size" in exc.message else 400
                 return PlainTextResponse(exc.message, status_code=code)
 
-            output_files = []
-            files_to_copy = []
-            locations: list[str] = []
-
-            for temp_file in form.getlist("files"):
-                if not isinstance(temp_file, GradioUploadFile):
-                    raise TypeError("File is not an instance of GradioUploadFile")
-                if temp_file.filename:
-                    file_name = Path(temp_file.filename).name
-                    name = client_utils.strip_invalid_filename_characters(file_name)
-                else:
-                    name = f"tmp{secrets.token_hex(5)}"
-                directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
-                directory.mkdir(exist_ok=True, parents=True)
-                try:
-                    dest = utils.safe_join(
-                        DeveloperPath(str(directory)), UserProvidedPath(name)
-                    )
-                except InvalidPathError as err:
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid file name: {name}"
-                    ) from err
-                temp_file.file.close()
-                # we need to move the temp file to the cache directory
-                # but that's possibly blocking and we're in an async function
-                # so we try to rename (this is what shutil.move tries first)
-                # which should be super fast.
-                # if that fails, we move in the background.
-                try:
-                    os.rename(temp_file.file.name, dest)
-                except OSError:
-                    files_to_copy.append(temp_file.file.name)
-                    locations.append(dest)
-                output_files.append(dest)
-                blocks.upload_file_set.add(dest)
             if files_to_copy:
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations
@@ -1985,6 +1767,7 @@ class App(FastAPI):
                 bg_tasks.add_task(
                     set_upload_trace, request.headers.get("session_hash", ""), start
                 )
+            blocks.upload_file_set.update(output_files)
 
             return output_files
 
@@ -2035,9 +1818,6 @@ class App(FastAPI):
 
         @app.get("/manifest.json")
         def manifest_json():
-            # if not blocks.pwa:
-            #     raise HTTPException(status_code=404, detail="PWA not enabled.")
-
             favicon_path = blocks.favicon_path
             if isinstance(favicon_path, Path):
                 favicon_path = str(favicon_path)
@@ -2632,25 +2412,6 @@ demo.launch()
     return system_prompt
 
 
-def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
-    """Safely join the user path to the directory while performing some additional http-related checks,
-    e.g. ensuring that the full path exists on the local file system and is not a directory
-    """
-    if path == "":
-        raise fastapi.HTTPException(400)
-    if route_utils.starts_with_protocol(path):
-        raise fastapi.HTTPException(403)
-    try:
-        fullpath = Path(utils.safe_join(directory, path))
-    except InvalidPathError as e:
-        raise fastapi.HTTPException(403) from e
-    if fullpath.is_dir():
-        raise fastapi.HTTPException(403)
-    if not fullpath.exists():
-        raise fastapi.HTTPException(404)
-    return str(fullpath)
-
-
 def get_types(cls_set: list[type]):
     docset = []
     types = []
@@ -2815,7 +2576,6 @@ def mount_gradio_app(
         blocks,
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
-        ssr_mode=blocks.ssr_mode,
         mcp_server=mcp_server,
     )
     old_lifespan = app.router.lifespan_context

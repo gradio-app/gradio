@@ -183,7 +183,18 @@ def save_img_array_to_cache(
 def save_audio_to_cache(
     data: np.ndarray, sample_rate: int, format: str, cache_dir: str
 ) -> str:
-    temp_dir = Path(cache_dir) / hash_bytes(data.tobytes())
+    audio_metadata = {
+        "cache_schema": "audio-cache-v1",
+        "dtype": str(data.dtype),
+        "format": format,
+        "sample_rate": int(sample_rate),
+        "shape": data.shape,
+    }
+    audio_hash = hashlib.sha256()
+    audio_hash.update(hash_seed)
+    audio_hash.update(json.dumps(audio_metadata, sort_keys=True).encode("utf-8"))
+    audio_hash.update(data.tobytes())
+    temp_dir = Path(cache_dir) / audio_hash.hexdigest()
     temp_dir.mkdir(exist_ok=True, parents=True)
     filename = str((temp_dir / f"audio.{format}").resolve())
     audio_to_file(sample_rate, data, filename, format=format)
@@ -678,8 +689,14 @@ def audio_from_file(
 
 
 def audio_to_file(sample_rate, data, filename, format="wav"):
-    if format == "wav":
-        data = convert_to_16_bit_wav(data)
+    # pydub's `AudioSegment` raw constructor only supports integer PCM, and
+    # interprets `sample_width=4` as int32 rather than float32. Without an
+    # explicit conversion, non-WAV formats (mp3, flac, ogg, ...) end up
+    # feeding float32 bytes through ffmpeg as `pcm_s32le`, which decodes as
+    # noise. Run the same int16 conversion for every format so the encoded
+    # output matches the input waveform regardless of `format`. See #13364.
+    if data.dtype != np.int16:
+        data = convert_to_16_bit_audio(data)
 
     audio = AudioSegment(
         data.tobytes(),
@@ -691,14 +708,20 @@ def audio_to_file(sample_rate, data, filename, format="wav"):
     file.close()  # type: ignore
 
 
-def convert_to_16_bit_wav(data):
+def convert_to_16_bit_audio(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
     warning = "Trying to convert audio automatically from {} to 16-bit int format."
     if data.dtype in [np.float64, np.float32, np.float16]:
         warnings.warn(warning.format(data.dtype))
-        data = data / np.abs(data).max()
-        data = data * 32767
-        data = data.astype(np.int16)
+        peak = np.abs(data).max()
+        if peak == 0:
+            # Silence: avoid dividing by zero (which would produce NaNs that
+            # cast to nonzero int16 garbage and turn silence into noise).
+            data = np.zeros_like(data, dtype=np.int16)
+        else:
+            data = data / peak
+            data = data * 32767
+            data = data.astype(np.int16)
     elif data.dtype == np.int32:
         warnings.warn(warning.format(data.dtype))
         data = data / 65536
@@ -723,6 +746,12 @@ def convert_to_16_bit_wav(data):
             f"{data.dtype} to 16-bit int format."
         )
     return data
+
+
+# Backwards-compatible alias: this function now handles non-WAV formats too,
+# but it was previously named `convert_to_16_bit_wav` and may be imported by
+# external code.
+convert_to_16_bit_wav = convert_to_16_bit_audio
 
 
 ##################

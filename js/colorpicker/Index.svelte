@@ -24,7 +24,7 @@
 	$effect(() => {
 		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
-			gradio.dispatch("change");
+			gradio.dispatch("change", gradio.props.value);
 		}
 	});
 </script>

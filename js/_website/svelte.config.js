@@ -112,6 +112,7 @@ const config = {
 			crawl: true,
 			entries: [
 				"*",
+				"/workflow",
 				`/${version}/docs`,
 				`/${version}/guides`,
 				`/main/docs`,

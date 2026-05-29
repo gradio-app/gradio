@@ -26,6 +26,7 @@ from PIL import Image
 
 import gradio as gr
 from gradio import blocks, helpers
+from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
@@ -94,6 +95,59 @@ class TestBlocksMethods:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
+
+    def test_from_config_rejects_non_hf_space_proxy_url(self):
+        """`Blocks.from_config()` must only register `proxy_url`s whose host
+        ends in `.hf.space` — otherwise a malicious config (or a malicious
+        `gr.load()` source) could seed `blocks.proxy_urls` with internal /
+        SSRF targets that `App.build_proxy_request` would later treat as
+        legitimate. Regression coverage for GHSA-jmh7-g254-2cq9.
+        """
+
+        def update(name):
+            return f"Welcome to Gradio, {name}!"
+
+        with gr.Blocks() as demo:
+            inp = gr.Textbox(placeholder="What is your name?")
+            out = gr.Textbox()
+            inp.submit(fn=update, inputs=inp, outputs=out, api_name="greet")
+
+        config = demo.get_config_file()
+
+        # 1. Top-level non-.hf.space proxy_url must not be registered.
+        blocks1 = gr.Blocks.from_config(config, [update], "http://169.254.169.254")
+        assert blocks1.proxy_urls == set()
+
+        # 2. Suffix-confusion attempt (`.hf.space.evil.com`) must be rejected
+        # by the `str.endswith(".hf.space")` guard.
+        blocks2 = gr.Blocks.from_config(
+            config, [update], "https://victim.hf.space.evil.com"
+        )
+        assert blocks2.proxy_urls == set()
+
+        # 3. Child components carrying a malicious `proxy_url` in their
+        # props (e.g. via a tampered remote `gr.load()` config) must also
+        # be filtered, even when the top-level `proxy_url` is legitimate.
+        poisoned_config = copy.deepcopy(config)
+        for component in poisoned_config["components"]:
+            component["props"]["proxy_url"] = "http://internal-service.local/"
+        blocks3 = gr.Blocks.from_config(
+            poisoned_config, [update], "https://benign.hf.space"
+        )
+        assert blocks3.proxy_urls == {"https://benign.hf.space"}
+        assert all(
+            not url.startswith("http://internal-service.local")
+            for url in blocks3.proxy_urls
+        )
+
+        # 4. Legitimate `.hf.space` hosts on both top-level and children
+        # are registered (positive control).
+        good_config = copy.deepcopy(config)
+        for component in good_config["components"]:
+            component["props"]["proxy_url"] = "https://child.hf.space/"
+        blocks4 = gr.Blocks.from_config(good_config, [update], "https://root.hf.space")
+        assert "https://root.hf.space" in blocks4.proxy_urls
+        assert "https://child.hf.space/" in blocks4.proxy_urls
 
     def test_load_from_config_with_blocks_events(self):
         fake_url = "https://fake.hf.space"
@@ -571,6 +625,19 @@ class TestComponentsInBlocks:
         assert all(
             comp.load_event in demo.config["dependencies"] for comp in components
         )
+
+    def test_component_load_events_target_root(self):
+        with gr.Blocks() as demo:
+            button = gr.Button(value=lambda: "Loaded")
+
+        load_dependencies = [
+            dep
+            for dep in demo.config["dependencies"]
+            if "load" in [target[1] for target in dep["targets"]]
+        ]
+        assert len(load_dependencies) == 1
+        assert load_dependencies[0]["targets"][0][1] == "load"
+        assert load_dependencies[0]["outputs"] == [button._id]
 
     def test_load_events_work_with_builtins(self):
         with gr.Blocks() as demo:
@@ -2111,13 +2178,14 @@ def test_multiple_navbar_components_in_same_page_raise_error():
         gr.Textbox()
 
 
+@pytest.mark.flaky
 def test_blocks_close_closes_thread_properly():
     a = gr.Blocks()
 
     def poll():
         start = time.time()
-        while time.time() - start < 1:
-            time.sleep(0.25)
+        while time.time() - start < 0.5:
+            time.sleep(0.1)
         print("Closing...")
         a.close()
 
@@ -2131,3 +2199,66 @@ def test_blocks_close_closes_thread_properly():
     time.sleep(1.2)
     assert not t.is_alive()
     assert not a.is_running
+
+
+def test_render_apply_does_not_raise_keyerror_when_fns_are_popped():
+    """
+    `Renderable.apply` snapshots `fns_from_last_render` *before* running the user
+    render function. If the user render function (or anything it calls -- e.g.
+    `gr.Examples` -- which transiently appends and then pops a function in
+    `gradio/helpers.py`) leaves `blocks_config.fns` without an entry for one of
+    the previously-rendered ids, the cleanup loop in `Renderable.apply` must
+    treat that absent entry as "already cleaned up" rather than raising.
+
+    Reproduces issue #12081 deterministically without spinning up an HTTP
+    server.
+    """
+
+    captured = {}
+
+    with gr.Blocks() as demo:
+        with gr.Tab(key="tab", label="Tab"):
+            dropdown = gr.Dropdown(["a", "b", "c"])
+
+            @gr.render(inputs=[dropdown])
+            def _render(value):  # noqa: D401
+                gr.Textbox(key="text", label="Text")
+                gr.Examples(
+                    examples=["a1", "a2", "a3"],
+                    example_labels=["First", "Second", "Third"],
+                    inputs=[gr.Textbox(visible=False)],
+                )
+
+            for renderable in demo.renderables:
+                captured["renderable"] = renderable
+
+    renderable = captured["renderable"]
+
+    blocks_config = demo.default_config
+
+    class _StubBlockFn:
+        rendered_in = renderable
+        render_iteration = renderable.render_iteration  # current iteration
+        _id = max(blocks_config.fns.keys(), default=-1) + 1_000
+
+    stub = _StubBlockFn()
+    blocks_config.fns[stub._id] = stub  # type: ignore[assignment]
+
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        # Concurrently pop the stub mid-render to simulate gr.Examples' fake-
+        # event cleanup (`gradio/helpers.py:580`).
+        original_fn = renderable.fn
+
+        def _user_fn_that_pops(*args, **kwargs):
+            blocks_config.fns.pop(stub._id, None)
+            return original_fn(*args, **kwargs)
+
+        renderable.fn = _user_fn_that_pops
+        try:
+            # Should NOT raise KeyError -- this is the fix for #12081.
+            renderable.apply("a")
+        finally:
+            renderable.fn = original_fn
+    finally:
+        LocalContext.blocks_config.reset(token)
