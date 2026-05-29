@@ -18,9 +18,13 @@ def test_extract_svg_content_from_url(monkeypatch):
         def raise_for_status(self):
             pass
 
-    def mock_get(*args, **kwargs):
+    async def mock_get(*args, **kwargs):
         return MockResponse()
 
-    monkeypatch.setattr("httpx.get", mock_get)
+    # extract_svg_content now routes through the SSRF-protected helper rather
+    # than calling httpx.get directly, so patch that instead.
+    monkeypatch.setattr(
+        "gradio.processing_utils.async_ssrf_protected_get", mock_get
+    )
     svg_content = extract_svg_content("https://example.com/test.svg")
     assert svg_content == "<svg>mock svg content</svg>"

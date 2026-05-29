@@ -17,7 +17,7 @@ from functools import lru_cache, wraps
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import httpx
 import numpy as np
@@ -294,24 +294,27 @@ def lru_cache_async(maxsize: int = 128):
     return decorator
 
 
+MAX_REDIRECTS = 20
+
+
 async def async_ssrf_protected_get(url: str) -> httpx.Response:
     """SSRF-protected GET: routes through `safehttpx` with the public hostname
     allow-list and re-validates each redirect. Returns the `httpx.Response`
     without raising on non-2xx status (callers decide how to handle that)."""
-    parsed_url = urlparse(url)
-    hostname = parsed_url.hostname
     response = await sh.get(
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
     )
+    redirects = 0
     while response.is_redirect:
-        redirect_url = response.headers["Location"]
-        redirect_parsed = urlparse(redirect_url)
-        if not redirect_parsed.hostname:
-            redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
+        if redirects >= MAX_REDIRECTS:
+            raise Exception(f"Exceeded maximum of {MAX_REDIRECTS} redirects.")
+        redirects += 1
+        # Resolve the Location against the URL that produced this redirect, so
+        # relative/scheme-relative redirects and host changes across hops are
+        # handled per RFC 3986. safehttpx re-validates the resolved host.
+        url = urljoin(str(response.url), response.headers["Location"])
         response = await sh.get(
-            redirect_url,
-            domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
-            _transport=async_transport,
+            url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
         )
     return response
 
@@ -330,23 +333,7 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     if Path(full_temp_file_path).exists():
         return full_temp_file_path
 
-    hostname = parsed_url.hostname
-    response = await sh.get(
-        url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
-    )
-
-    while response.is_redirect:
-        redirect_url = response.headers["Location"]
-        redirect_parsed = urlparse(redirect_url)
-
-        if not redirect_parsed.hostname:
-            redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
-
-        response = await sh.get(
-            redirect_url,
-            domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
-            _transport=async_transport,
-        )
+    response = await async_ssrf_protected_get(url)
     if response.status_code != 200:
         raise Exception(f"Failed to download file. Status code: {response.status_code}")
 
