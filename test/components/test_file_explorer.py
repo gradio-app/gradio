@@ -97,4 +97,5 @@ class TestFileExplorer:
 
         file_explorer = gr.FileExplorer(root_dir=Path(tmpdir), file_count="single")
         result = file_explorer.preprocess(FileExplorerData(root=[["sub", "ok.txt"]]))
+        assert isinstance(result, str)
         assert Path(result) == Path(tmpdir) / "sub" / "ok.txt"
