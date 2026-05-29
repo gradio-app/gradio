@@ -149,8 +149,6 @@ class FileExplorer(Component):
             elif len(payload.root) == 0:
                 return None
             else:
-                # Use _safe_join (like ls()) to reject paths that escape
-                # root_dir via absolute segments or `..` traversal.
                 return self._safe_join(payload.root[0])
         files = []
         for file in payload.root:
