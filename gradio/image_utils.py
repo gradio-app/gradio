@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Literal, cast
 from urllib.parse import quote
 
-import httpx
 import numpy as np
 import PIL.Image
+from gradio_client import utils as client_utils
 from gradio_client.utils import get_mimetype, is_http_url_like
 from PIL import ImageOps
 
@@ -250,8 +250,13 @@ def extract_svg_content(image_file: str | Path) -> str:
     """
     image_file = str(image_file)
     if is_http_url_like(image_file):
-        response = httpx.get(image_file)
-        response.raise_for_status()  # Raise an error for bad status codes
+        # Route through safehttpx to apply SSRF protection (private-IP filter,
+        # domain allow-list, and redirect re-validation) instead of a bare
+        # httpx request, which would otherwise leak internal responses.
+        response = client_utils.synchronize_async(
+            processing_utils.async_ssrf_protected_get, image_file
+        )
+        response.raise_for_status()
         return response.text
     else:
         with open(image_file) as file:

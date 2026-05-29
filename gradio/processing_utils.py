@@ -294,6 +294,28 @@ def lru_cache_async(maxsize: int = 128):
     return decorator
 
 
+async def async_ssrf_protected_get(url: str) -> httpx.Response:
+    """SSRF-protected GET: routes through `safehttpx` with the public hostname
+    allow-list and re-validates each redirect. Returns the `httpx.Response`
+    without raising on non-2xx status (callers decide how to handle that)."""
+    parsed_url = urlparse(url)
+    hostname = parsed_url.hostname
+    response = await sh.get(
+        url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
+    )
+    while response.is_redirect:
+        redirect_url = response.headers["Location"]
+        redirect_parsed = urlparse(redirect_url)
+        if not redirect_parsed.hostname:
+            redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
+        response = await sh.get(
+            redirect_url,
+            domain_whitelist=PUBLIC_HOSTNAME_WHITELIST,
+            _transport=async_transport,
+        )
+    return response
+
+
 async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
