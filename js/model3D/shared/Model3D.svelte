@@ -37,6 +37,9 @@
 	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3D | undefined>();
 
+	// Guard to prevent re-resolving on internal state changes
+	let render_guard = $state(false);
+
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
 		return module.default;
@@ -46,20 +49,52 @@
 		return module.default;
 	}
 
+	// Only run initial resolution when value changes
 	$effect(() => {
 		if (value) {
-			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
-			if (use_3dgs) {
+			// Reset guard on new value
+			render_guard = false;
+		}
+	});
+
+	$effect(() => {
+		if (value && !render_guard) {
+			const path = value.path || value.url || "";
+			render_guard = true;
+			if (path.endsWith(".splat")) {
+				use_3dgs = true;
+				Canvas3DGSComponent = undefined;
+				loadCanvas3DGS().then((component) => {
+					Canvas3DGSComponent = component;
+				});
+			} else if (path.endsWith(".ply")) {
+				// Try Canvas3DGS first; simple point clouds fall back via onerror
+				use_3dgs = true;
+				Canvas3DGSComponent = undefined;
 				loadCanvas3DGS().then((component) => {
 					Canvas3DGSComponent = component;
 				});
 			} else {
+				use_3dgs = false;
+				Canvas3DComponent = undefined;
 				loadCanvas3D().then((component) => {
 					Canvas3DComponent = component;
 				});
 			}
 		}
 	});
+
+	// Fallback: when gsplat fails for a .ply file, switch to Canvas3D
+	function handleGsplatError(_message?: string): void {
+		const path = value?.path || value?.url || "";
+		if (path.endsWith(".ply") && use_3dgs) {
+			use_3dgs = false;
+			Canvas3DComponent = undefined;
+			loadCanvas3D().then((component) => {
+				Canvas3DComponent = component;
+			});
+		}
+	}
 
 	function handle_undo(): void {
 		canvas3d?.reset_camera_position();
@@ -86,7 +121,6 @@
 	<div class="model3D" data-testid="model3d">
 		<IconButtonWrapper>
 			{#if !use_3dgs}
-				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->
 				<IconButton
 					Icon={Undo}
 					label="Undo"
@@ -110,6 +144,7 @@
 				{value}
 				{zoom_speed}
 				{pan_speed}
+				onerror={handleGsplatError}
 			/>
 		{:else}
 			<svelte:component

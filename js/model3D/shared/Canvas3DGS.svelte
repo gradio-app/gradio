@@ -6,11 +6,13 @@
 	let {
 		value,
 		zoom_speed,
-		pan_speed
+		pan_speed,
+		onerror
 	}: {
 		value: FileData;
 		zoom_speed: number;
 		pan_speed: number;
+		onerror?: (message: string) => void;
 	} = $props();
 
 	let url = $derived(value.url);
@@ -55,12 +57,17 @@
 				throw new Error("No resolved URL");
 			}
 			loading = true;
-			if (url.endsWith(".ply")) {
-				await SPLAT.PLYLoader.LoadAsync(url, scene, undefined);
-			} else if (url.endsWith(".splat")) {
-				await SPLAT.Loader.LoadAsync(url, scene, undefined);
-			} else {
-				throw new Error("Unsupported file type");
+			try {
+				if (url.endsWith(".ply")) {
+					await SPLAT.PLYLoader.LoadAsync(url, scene, undefined);
+				} else if (url.endsWith(".splat")) {
+					await SPLAT.Loader.LoadAsync(url, scene, undefined);
+				} else {
+					throw new Error("Unsupported file type");
+				}
+			} catch (e) {
+				console.error("Failed to load 3D file with gsplat:", e);
+				onerror?.((e as Error).message);
 			}
 			loading = false;
 		};

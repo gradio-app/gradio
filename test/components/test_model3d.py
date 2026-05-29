@@ -49,3 +49,9 @@ class TestModel3D:
         input_data = "test/test_files/Box.gltf"
         output_data = iface(input_data)
         assert output_data.endswith(".gltf")
+
+    def test_value_description_includes_pointcloud(self):
+        """Value description should mention point cloud support."""
+        model_component = gr.components.Model3D(None, label="Model")
+        desc = model_component._value_description
+        assert "point cloud" in desc.lower()

@@ -25,6 +25,11 @@ class Model3D(Component):
     """
     Creates a component allows users to upload or view 3D Model files (.obj, .glb, .stl, .gltf, .splat, or .ply).
 
+    Supports both mesh files (with faces) and point cloud files (vertices without faces).
+    For .obj files, point cloud data (vertices without "f" lines) is rendered as a point cloud.
+    For .ply files, both 3D Gaussian Splatting format and simple point cloud format
+    (x, y, z with optional r, g, b) are supported.
+
     Guides: how-to-use-3D-model-component
     """
 
@@ -67,7 +72,7 @@ class Model3D(Component):
         """
         Parameters:
             value: path to (.obj, .glb, .stl, .gltf, .splat, or .ply) file to show in model3D viewer. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
-            display_mode: the display mode of the 3D model in the scene. Can be "solid" (which renders the model as a solid object), "point_cloud", or "wireframe". For .splat, or .ply files, this parameter is ignored, as those files can only be rendered as solid objects.
+            display_mode: the display mode of the 3D model in the scene. Can be "solid" (which renders the model as a solid object), "point_cloud", or "wireframe". For .splat files, this parameter is ignored, as those files can only be rendered as solid objects.
             clear_color: background color of scene, should be a tuple of 4 floats between 0 and 1 representing RGBA values.
             camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
             zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
@@ -114,7 +119,8 @@ class Model3D(Component):
         )
         self.buttons = set_default_buttons(buttons, None)
         self._value_description = (
-            "a string path to a (.obj, .glb, .stl, .gltf, .splat, or .ply) file."
+            "a filepath or URL to a (.obj, .glb, .stl, .gltf, .splat, or .ply) file. "
+            "Point cloud files (.obj without faces, .ply with only x,y,z,r,g,b) are supported."
         )
 
     def preprocess(self, payload: FileData | None) -> str | None:
@@ -131,7 +137,7 @@ class Model3D(Component):
     def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
-            value: Expects function to return a {str} or {pathlib.Path} filepath of type (.obj, .glb, .stl, or .gltf)
+            value: Expects function to return a {str} or {pathlib.Path} filepath of type (.obj, .glb, .stl, .gltf, or .ply)
         Returns:
             The uploaded file as an instance of `FileData`.
         """
