@@ -16,8 +16,6 @@
 		if (gradio.props.selected) {
 			const selected = gradio.props.selected;
 			const initial_tabs = untrack(() => gradio.props.initial_tabs);
-			// defer dispatch to avoid race with selected-prop propagation
-			// to the shared tabs component
 			tick().then(() => {
 				const i = initial_tabs.findIndex((t) => t.id === selected);
 				if (i === -1) return;
@@ -31,8 +29,6 @@
 			});
 		}
 	});
-
-	$inspect(gradio.props.selected);
 </script>
 
 {#if gradio.props.name === "walkthrough"}

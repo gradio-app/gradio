@@ -30,25 +30,8 @@
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
-	// TODO: MIGRATE TABS
-	//
-	// Track which tab orders have been registered by mounted TabItem components.
-	// Once a TabItem mounts and calls register_tab, it manages its own tab entry
-	// via _set_data -> register_tab, so _sync_tabs should not overwrite it.
 	let mounted_tab_orders: Set<number> = new Set();
 
-	// When initial_tabs changes (e.g. a non-mounted tab's props were updated),
-	// sync the internal tabs array so the tab buttons reflect the new state.
-	// Using a function call so the `$:` dependency is only on `initial_tabs`,
-	// not on `tabs` (which would cause a loop with `register_tab`).
-	//
-	// The `_tick++` write inside the block prevents a Svelte 5 async-mode
-	// batch-scheduler loop (`effect_update_depth_exceeded`) that otherwise
-	// fires when a tab switch reveals previously-hidden children, whose
-	// mount cascades into reactive updates that re-fire the $: statements
-	// in this file. Adding a local self-invalidating write decouples this
-	// statement's batch from the cascade. TODO: revisit once Svelte 5's
-	// legacy-$: interaction with async-mode batching is fixed upstream.
 	let _tick = 0;
 	$: {
 		_tick++;
@@ -56,12 +39,6 @@
 	}
 
 	function _sync_tabs(new_tabs: Tab[]): void {
-		console.log(
-			"[_sync_tabs] mounted_orders=",
-			[...mounted_tab_orders],
-			"incoming=",
-			new_tabs.map((t) => t && { id: t.id, visible: t.visible })
-		);
 		for (let i = 0; i < new_tabs.length; i++) {
 			if (new_tabs[i] && !mounted_tab_orders.has(i)) {
 				tabs[i] = new_tabs[i];
@@ -99,7 +76,6 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
-			console.log("Reg", tab, order);
 			mounted_tab_orders.add(order);
 			tabs[order] = tab;
 
@@ -110,7 +86,6 @@
 			return order;
 		},
 		unregister_tab: (tab: Tab, order: number) => {
-			console.log("Unreg", tab, order);
 			mounted_tab_orders.delete(order);
 			if ($selected_tab === tab.id) {
 				$selected_tab = tabs[0]?.id || false;
