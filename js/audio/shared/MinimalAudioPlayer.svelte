@@ -22,9 +22,8 @@
 	let waveform_ready = $state(false);
 
 	let resolved_src = $derived(value.url);
-
-	const create_waveform = async (): Promise<void> => {
-		if (!container || !resolved_src || waveform_ready) return;
+const create_waveform = async (): Promise<void> => {
+		if (!container || !resolved_src) return;
 
 		if (waveform) {
 			waveform.destroy();
@@ -71,6 +70,16 @@
 
 		await waveform.load(resolved_src);
 	};
+
+
+	$effect(() => {
+		if (resolved_src) {
+			currentTime = 0;
+			playing = false;
+			waveform_ready = false;
+			create_waveform();
+		}
+	});
 
 	onMount(async () => {
 		await create_waveform();
