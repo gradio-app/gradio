@@ -149,10 +149,10 @@ class FileExplorer(Component):
             elif len(payload.root) == 0:
                 return None
             else:
-                return os.path.normpath(os.path.join(self.root_dir, *payload.root[0]))
+                return self._safe_join(payload.root[0])
         files = []
         for file in payload.root:
-            file_ = os.path.normpath(os.path.join(self.root_dir, *file))
+            file_ = self._safe_join(file)
             files.append(file_)
         return files
 
