@@ -2361,6 +2361,30 @@ class TestOAuthSecurity:
         response = _redirect_to_target(request)
         assert response.headers["location"] == "/"
 
+    def test_redirect_to_target_blocks_multi_slash_bypass(self):
+        """Regression for GHSA-vwgg-rgg9-xx9q: urlparse keeps 4+ leading
+        slashes in `.path`, so `////evil.com` must not be echoed as the
+        scheme-relative `//evil.com` (which browsers resolve to an external
+        host), bypassing the CVE-2026-28415 fix. Backslashes are treated the
+        same way by browsers and must also be collapsed."""
+        from gradio.oauth import _redirect_to_target
+
+        scope = {"type": "http", "method": "GET", "headers": []}
+
+        # Each hostile target must resolve to a same-origin path: a single
+        # leading slash, never "//host" or "/\host".
+        hostile_to_expected = {
+            b"_target_url=////evil.com/foo": "/evil.com/foo",
+            b"_target_url=//////evil.com/foo": "/evil.com/foo",
+            b"_target_url=/%5Cevil.com": "/evil.com",  # /\evil.com
+        }
+        for query_string, expected in hostile_to_expected.items():
+            scope["query_string"] = query_string
+            location = _redirect_to_target(Request(scope)).headers["location"]
+            assert location == expected
+            assert location.startswith("/")
+            assert not location.startswith(("//", "/\\"))
+
     def test_mocked_oauth_does_not_leak_real_token(self):
         """_get_mocked_oauth_info should return a dummy token, not the real HF token."""
         from unittest.mock import patch
