@@ -814,12 +814,21 @@
 		const { canvasX, canvasY } = doubleClickMenu;
 		doubleClickMenu = null;
 
+		// Attach the input to body briefly. Safari (and some popup
+		// blockers) refuse to open the OS file-picker dialog when
+		// `input.click()` is called on a detached element, even from
+		// a real user gesture.
 		const input = document.createElement("input");
 		input.type = "file";
 		input.accept = "image/*,audio/*,video/*";
+		input.style.display = "none";
+		document.body.appendChild(input);
+		const cleanup = (): void => {
+			try { document.body.removeChild(input); } catch { /* noop */ }
+		};
 		input.onchange = () => {
 			const file = input.files?.[0];
-			if (!file) return;
+			if (!file) { cleanup(); return; }
 			let portType: PortType = "file";
 			if (file.type.startsWith("image/")) portType = "image";
 			else if (file.type.startsWith("audio/")) portType = "audio";
@@ -843,7 +852,10 @@
 					name: file.name
 				} as any);
 			}
+			cleanup();
 		};
+		// `cancel` fires when the user dismisses the dialog without picking.
+		input.oncancel = cleanup;
 		input.click();
 	}
 
@@ -1813,10 +1825,14 @@
 
 		{#if doubleClickMenu}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<!-- Stop click+mousedown so handleGlobalClick (on .workflow-root)
+			     doesn't close the menu before the inner button fires.
+			     Same bug we fixed on .drop-menu earlier. -->
 			<div
 				class="add-node-menu"
 				style="left: {doubleClickMenu.clientX}px; top: {doubleClickMenu.clientY}px;"
 				onmousedown={(e) => e.stopPropagation()}
+				onclick={(e) => e.stopPropagation()}
 			>
 				<div class="add-node-section-label">Add</div>
 				<div class="add-node-grid">
@@ -1909,23 +1925,30 @@
 		/>
 
 		{#if activePicker}
-			<NodeModelPicker
-				mode={activePicker.mode}
-				modality={activePicker.modality}
-				nodeId={activePicker.nodeId}
-				initialSource={activePicker.initialSource}
-				initialSubtab={activePicker.initialSubtab}
-				{server}
-				hfToken={auth.hfToken}
-				anchorX={activePicker.anchorX}
-				anchorY={activePicker.anchorY}
-				oncreate={handlePickerCreate}
-				onupdate={handlePickerUpdate}
-				onclose={() => {
-					activePicker = null;
-				}}
-				onerror={(msg) => showToast(msg, 5000, "error")}
-			/>
+			<!-- Key on modality so swapping the bottom-bar modality button
+			     while the picker is open re-mounts the component and
+			     re-fetches Trending / New for the new modality. Without
+			     this, NodeModelPicker just sees its `modality` prop change
+			     and keeps stale activeSubtab + results. -->
+			{#key activePicker.modality.key}
+				<NodeModelPicker
+					mode={activePicker.mode}
+					modality={activePicker.modality}
+					nodeId={activePicker.nodeId}
+					initialSource={activePicker.initialSource}
+					initialSubtab={activePicker.initialSubtab}
+					{server}
+					hfToken={auth.hfToken}
+					anchorX={activePicker.anchorX}
+					anchorY={activePicker.anchorY}
+					oncreate={handlePickerCreate}
+					onupdate={handlePickerUpdate}
+					onclose={() => {
+						activePicker = null;
+					}}
+					onerror={(msg) => showToast(msg, 5000, "error")}
+				/>
+			{/key}
 		{/if}
 	</div>
 

@@ -315,7 +315,13 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1px;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+		/* Negative Y offset casts the shadow UPWARD, since the menu opens
+		 * above the bottom bar. The previous downward shadow smudged onto
+		 * the button below. Pair with a subtle inset ring for crisper
+		 * edge definition on dark bg. */
+		box-shadow:
+			0 -6px 20px rgba(0, 0, 0, 0.35),
+			0 0 0 1px rgba(255, 255, 255, 0.03);
 		z-index: 30;
 		min-width: 90px;
 	}

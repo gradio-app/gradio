@@ -226,6 +226,11 @@
 	position: relative;
 	overflow: hidden;
 	background-color: #0c0d10;
+	/* Block the browser's "select word/paragraph" behaviour on
+	 * dbl-click. Input fields, textboxes, and node labels opt back
+	 * in to text selection where needed. */
+	user-select: none;
+	-webkit-user-select: none;
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M17 20h6M20 17v6' stroke='%233a3c4d' stroke-width='1' stroke-opacity='0.18'/%3E%3C/svg%3E");
 	background-size: var(--grid-spacing, 40px) var(--grid-spacing, 40px);
 	background-position: var(--pan-x, 0px) var(--pan-y, 0px);
@@ -626,6 +631,31 @@
 	height: 1px;
 	background: #1e1f2a;
 	margin: 6px 0;
+}
+
+:global(body:not(.dark)) .add-node-menu {
+	background: #ffffff;
+	border-color: #e2e4ea;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+:global(body:not(.dark)) .add-node-section-label {
+	color: #8b8d98;
+}
+
+:global(body:not(.dark)) .add-node-type-btn {
+	border-color: #e2e4ea;
+	color: #6b6e78;
+}
+
+:global(body:not(.dark)) .add-node-type-btn:hover {
+	background: rgba(0, 0, 0, 0.04);
+	color: #2c2e36;
+	border-color: #c8cad2;
+}
+
+:global(body:not(.dark)) .add-node-divider {
+	background: #e2e4ea;
 }
 
 .connection-badge {

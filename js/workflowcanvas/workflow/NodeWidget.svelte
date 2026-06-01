@@ -397,6 +397,11 @@
 	.widget-zone {
 		padding: 0;
 		border-top: 1px solid #1e1f2a;
+		/* Canvas blocks user-select to stop dbl-click selecting random
+		 * UI text; opt the widget back in so users can highlight + copy
+		 * text inside textboxes / display zones. */
+		user-select: text;
+		-webkit-user-select: text;
 	}
 
 	.widget-zone.text-full {
