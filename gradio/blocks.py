@@ -155,7 +155,7 @@ class Block:
         )
         self.mcp_server_obj = None
 
-        # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
+        # Keep tracks of files that should not be deleted when the delete_cache parameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
         self.has_launched = False
