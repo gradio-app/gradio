@@ -417,3 +417,46 @@ async def test_x_gradio_user_mcp_gets_set():
                 )
     finally:
         app.close()
+
+
+@pytest.mark.asyncio
+async def test_mcp_browser_get_returns_landing_page():
+    def test_tool(x):
+        return x
+
+    demo = gr.Interface(test_tool, "text", "text")
+    server = GradioMCPServer(demo)
+
+    messages = []
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message):
+        messages.append(message)
+
+    # A browser GET does not accept the SSE stream the MCP transport requires.
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/gradio_api/mcp",
+        "scheme": "http",
+        "headers": [(b"accept", b"text/html"), (b"host", b"example.com")],
+        "query_string": b"",
+    }
+    await server.handle_streamable_http(scope, receive, send)
+
+    start = next(m for m in messages if m["type"] == "http.response.start")
+    body = b"".join(
+        m.get("body", b"") for m in messages if m["type"] == "http.response.body"
+    )
+    assert start["status"] == 200
+    assert any(
+        key.lower() == b"content-type" and b"text/html" in value
+        for key, value in start["headers"]
+    )
+    assert b"Model Context Protocol" in body
+    # The reconstructed server URL is surfaced on the page, along with
+    # connection snippets for common MCP clients.
+    assert b"example.com/gradio_api/mcp/" in body
+    assert b"Connect your AI assistant" in body
