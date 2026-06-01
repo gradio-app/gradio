@@ -213,6 +213,7 @@
 				<button
 					class="node-outside-label"
 					title="Click to change source"
+					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => { e.stopPropagation(); ctx.onopenpicker(node.id); }}
 				>{itemId.split("/").pop() ?? itemId}</button>
@@ -233,9 +234,17 @@
 					</svg>
 				</a>
 			</div>
+		{:else if node.fn}
+			<!-- Python fn nodes already have a "source" — their function
+			     name. Show that above the card; no picker swap because
+			     fn nodes can't be replaced by a Space/Model in place. -->
+			<div class="node-outside-label-wrap">
+				<span class="node-outside-label node-outside-label-fn">{node.fn}()</span>
+			</div>
 		{:else}
 			<button
 				class="node-outside-label node-outside-label-empty"
+				onpointerdown={(e) => e.stopPropagation()}
 				onmousedown={(e) => e.stopPropagation()}
 				onclick={(e) => { e.stopPropagation(); ctx.onopenpicker(node.id); }}
 			>+ source</button>
@@ -562,6 +571,13 @@
 
 	.node-outside-label-empty:hover {
 		color: #f97316;
+	}
+
+	.node-outside-label-fn {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10.5px;
+		color: #8b8d98;
+		cursor: default;
 	}
 
 	.node-delete {
