@@ -58,7 +58,7 @@ jobs:
           restore-keys: |
             playwright-${{ runner.os }}-
       - name: install playwright
-        timeout-minutes: 15
+        timeout-minutes: 3
         run: pnpm exec playwright install chromium --no-shell
       - name: build client
         run: pnpm --filter @gradio/client build
