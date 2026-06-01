@@ -353,7 +353,7 @@ class Audio(
                 "extension": ".aac",
             }, output_file
         if client_utils.is_http_url_like(value["path"]):
-            response = httpx.get(value["path"])
+            response = await processing_utils.async_ssrf_protected_get(value["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = value["orig_name"]

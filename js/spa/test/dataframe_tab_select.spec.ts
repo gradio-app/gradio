@@ -9,7 +9,7 @@ import { test, expect } from "@self/tootils";
 // `$derived`, re-firing the reset). That loop saturated the microtask queue
 // and froze the browser tab. These assertions would time out if it regressed.
 test("switching to a tab that populates a dataframe does not freeze", async ({
-	page,
+	page
 }) => {
 	const df = page.locator("#tab_df");
 
