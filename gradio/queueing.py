@@ -256,7 +256,7 @@ class Queue:
         of the `default_concurrency_limit` parameter of the `Blocks.queue()` or the `GRADIO_DEFAULT_CONCURRENCY_LIMIT`
         environment variable. The parameter in `Blocks.queue()` takes precedence over the environment variable.
         Parameters:
-            default_concurrency_limit: The default concurrency limit, as specified by a user in `Blocks.queu()`.
+            default_concurrency_limit: The default concurrency limit, as specified by a user in `Blocks.queue()`.
         """
         if default_concurrency_limit != "not_set":
             return default_concurrency_limit
