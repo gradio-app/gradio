@@ -60,7 +60,16 @@ jobs:
           . venv/bin/activate
           uv pip install -r demo/outbreak_forecast/requirements.txt
           uv pip install -r demo/stream_video_out/requirements.txt
-      - run: pnpm exec playwright install chromium firefox
+      - name: cache playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      - name: install playwright
+        timeout-minutes: 3
+        run: pnpm exec playwright install chromium --no-shell
       - name: build essential packages
         run: pnpm --filter @gradio/utils --filter @gradio/theme package
       - name: run browser tests

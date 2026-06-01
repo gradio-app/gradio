@@ -59,7 +59,16 @@ jobs:
         run: |
           . venv/bin/activate
           python scripts/generate_theme.py --outfile js/storybook/theme.css
-      - run: pnpm exec playwright install chromium
+      - name: cache playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      - name: install playwright
+        timeout-minutes: 3
+        run: pnpm exec playwright install chromium --no-shell
       - name: build storybook
         run: |
           . venv/bin/activate
