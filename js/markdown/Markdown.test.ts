@@ -304,16 +304,14 @@ describe("get_data / set_data", () => {
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
 
-	test("change event fires on mount when value is truthy", async () => {
-		// The Markdown component's $effect fires onchange when value is initially set,
-		// which dispatches a "change" event on mount. This is by design.
+	test("regression #13414: no change event fires on mount when value is truthy", async () => {
 		const { listen } = await render(Markdown, {
 			...default_props,
 			value: "Initial"
 		});
 
 		const change = listen("change", { retrospective: true });
-		expect(change).toHaveBeenCalledTimes(1);
+		expect(change).not.toHaveBeenCalled();
 	});
 
 	test("no change event fires on mount when value is empty", async () => {

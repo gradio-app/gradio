@@ -52,6 +52,9 @@
 
 	let filter_input: HTMLElement;
 
+	const uid = $props.id();
+	const listbox_id = `${uid}-options`;
+
 	let show_options = $derived.by(() => {
 		return is_browser && filter_input === document.activeElement;
 	});
@@ -60,20 +63,34 @@
 	let input_text = $state("");
 	let selected_index: number | null = $state(null);
 
+	function is_focused(): boolean {
+		return is_browser && filter_input === document.activeElement;
+	}
+
 	$effect(() => {
+		// Reference reactive deps explicitly so this effect re-runs when the
+		// value or available choices change.
+		const current_value = value;
+		const values = choices_values;
+		const names = choices_names;
+		// While the user is typing in the input, don't overwrite what they have
+		// entered just because `choices` were updated from the backend (e.g.
+		// dynamic filtering via `key_up`). Doing so wipes the in-progress text.
+		if (is_focused()) {
+			return;
+		}
 		if (
-			value === undefined ||
-			value === null ||
-			(Array.isArray(value) && value.length === 0)
+			current_value === undefined ||
+			current_value === null ||
+			(Array.isArray(current_value) && current_value.length === 0)
 		) {
 			input_text = "";
 			selected_index = null;
-		} else if (choices_values.includes(value as string | number)) {
-			input_text =
-				choices_names[choices_values.indexOf(value as string | number)];
-			selected_index = choices_values.indexOf(value as string | number);
+		} else if (values.includes(current_value as string | number)) {
+			input_text = names[values.indexOf(current_value as string | number)];
+			selected_index = values.indexOf(current_value as string | number);
 		} else if (allow_custom_value) {
-			input_text = value as string;
+			input_text = current_value as string;
 			selected_index = null;
 		} else {
 			input_text = "";
@@ -92,6 +109,14 @@
 	let selected_indices = $derived(
 		selected_index === null ? [] : [selected_index]
 	);
+
+	// When the choices change (e.g. the backend returns new options in response
+	// to a `key_up` event for search-as-you-type), surface all of the newly
+	// provided choices instead of leaving a stale filtered list behind.
+	$effect(() => {
+		choices;
+		filtered_indices = choices.map((_, i) => i);
+	});
 
 	function handle_option_selected(index: any): void {
 		selected_index = parseInt(index);
@@ -197,9 +222,14 @@
 		<div class="wrap-inner" class:show_options>
 			<div class="secondary-wrap">
 				<input
-					role="listbox"
-					aria-controls="dropdown-options"
+					role="combobox"
+					aria-controls={listbox_id}
 					aria-expanded={show_options}
+					aria-haspopup="listbox"
+					aria-autocomplete={filterable ? "list" : "none"}
+					aria-activedescendant={show_options && active_index !== null
+						? `${listbox_id}-option-${active_index}`
+						: undefined}
 					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
@@ -233,6 +263,7 @@
 			{disabled}
 			{selected_indices}
 			{active_index}
+			{listbox_id}
 			onchange={handle_option_selected}
 			onload={() => (initialized = true)}
 		/>

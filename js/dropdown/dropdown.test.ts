@@ -719,6 +719,123 @@ describe("Single-select: get_data / set_data", () => {
 	});
 });
 
+describe("Single-select: Accessibility (#13197)", () => {
+	afterEach(() => cleanup());
+
+	test("input exposes the combobox role", async () => {
+		const { getByLabelText } = await render(Dropdown, single_select_props);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input).toHaveAttribute("role", "combobox");
+	});
+
+	test("filterable input advertises list autocomplete", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			filterable: true
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input).toHaveAttribute("aria-autocomplete", "list");
+	});
+
+	test("non-filterable input does not advertise autocomplete", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			filterable: false
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input).toHaveAttribute("aria-autocomplete", "none");
+	});
+
+	test("aria-controls points at the rendered listbox", async () => {
+		const { getByLabelText } = await render(Dropdown, single_select_props);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		const controls = input.getAttribute("aria-controls");
+		expect(controls).toBeTruthy();
+
+		await input.focus();
+
+		const listbox = document.getElementById(controls as string);
+		expect(listbox).toBeTruthy();
+		expect(listbox).toHaveAttribute("role", "listbox");
+	});
+
+	test("active option is linked via aria-activedescendant", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("{ArrowDown}");
+
+		const active = input.getAttribute("aria-activedescendant");
+		expect(active).toBeTruthy();
+
+		const active_option = document.getElementById(active as string);
+		expect(active_option).toHaveAttribute("role", "option");
+	});
+});
+
+describe("Single-select: Dynamic choices (#13127)", () => {
+	afterEach(() => cleanup());
+
+	test("updating choices while typing does not clear the typed text", async () => {
+		const { getByLabelText, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: null,
+			allow_custom_value: true,
+			choices: [] as [string, string | number][]
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("ap");
+		expect(input.value).toBe("ap");
+
+		await set_data({
+			choices: [
+				["ap item 1", "ap item 1"],
+				["ap item 2", "ap item 2"]
+			] as [string, string | number][]
+		});
+
+		expect(input.value).toBe("ap");
+	});
+
+	test("choices returned while open surface as new options", async () => {
+		const { getByLabelText, getAllByTestId, set_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: null,
+				allow_custom_value: true,
+				choices: [["old", "old"]] as [string, string | number][]
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("new");
+
+		await set_data({
+			choices: [
+				["new item 1", "a"],
+				["new item 2", "b"],
+				["new item 3", "c"]
+			] as [string, string | number][]
+		});
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(3);
+		expect(options[0]).toHaveAttribute("aria-label", "new item 1");
+	});
+});
+
 describe("Multiselect: Rendering", () => {
 	afterEach(() => cleanup());
 
