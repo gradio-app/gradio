@@ -141,11 +141,13 @@ def start_node_process(
                 stderr=subprocess.DEVNULL if not debug else None,
             )
 
-            # When Node is the front proxy, Python isn't up yet so SSR
-            # pages will fail. Just check TCP connectivity.
-            is_working = verify_server_startup(
-                server_name, port, timeout=5, tcp_only=(python_port is not None)
-            )
+            # Node starts only after the Python backend is already
+            # listening (Blocks.launch defers the front-proxy start), so we
+            # can verify that Node actually renders a page rather than merely
+            # opening its TCP port. Polling HEAD / until it succeeds means the
+            # SSR runtime is warm before we return — otherwise the user-facing
+            # port is reachable while the first requests 502 as SSR initialises.
+            is_working = verify_server_startup(server_name, port, timeout=30)
             if is_working:
                 signal.signal(
                     signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
@@ -196,29 +198,19 @@ def attempt_connection(host: str, port: int) -> bool:
         return False
 
 
-def verify_server_startup(
-    host: str, port: int, timeout: float = 15.0, tcp_only: bool = False
-) -> bool:
-    """Verifies if a server is up and running.
-
-    When tcp_only=False (default), makes an HTTP HEAD request and checks for
-    a non-500 status. When tcp_only=True, only checks TCP connectivity — this
-    is needed when Node acts as a front proxy because the SSR handler cannot
-    render pages until the Python backend is up.
-    """
+def verify_server_startup(host: str, port: int, timeout: float = 15.0) -> bool:
+    """Polls ``HEAD /`` until the server returns a non-5xx status (or the
+    timeout elapses), confirming it can actually serve requests rather than
+    just that its TCP port is open."""
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            if tcp_only:
-                with closing(socket.create_connection((host, port), timeout=2)):
-                    return True
-            else:
-                conn = HTTPConnection(host, port, timeout=2)
-                conn.request("HEAD", "/")
-                resp = conn.getresponse()
-                conn.close()
-                if resp.status < 500:
-                    return True
+            conn = HTTPConnection(host, port, timeout=2)
+            conn.request("HEAD", "/")
+            resp = conn.getresponse()
+            conn.close()
+            if resp.status < 500:
+                return True
         except Exception:
             pass
         time.sleep(0.2)
