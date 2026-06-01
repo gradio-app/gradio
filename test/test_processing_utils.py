@@ -659,6 +659,14 @@ async def test_async_private_request_fail():
         )
 
 
+@pytest.mark.asyncio
+async def test_async_get_private_request_fail():
+    with pytest.raises(ValueError, match="failed validation"):
+        await processing_utils.async_ssrf_protected_get(
+            "http://192.168.1.250.nip.io/image.png"
+        )
+
+
 class TestAudioFormatDetection:
     @pytest.mark.parametrize(
         "file_path,expected",
