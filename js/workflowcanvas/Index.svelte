@@ -2,7 +2,7 @@
 	import { Gradio } from "@gradio/utils";
 	import { get } from "svelte/store";
 	import WorkflowCanvas from "./workflow/WorkflowCanvas.svelte";
-	import { workflow } from "./workflow/workflow-store";
+	import { workflow, sanitizeForSave } from "./workflow/workflow-store";
 
 	let _props = $props();
 	const gradio = new Gradio<Record<string, never>, { value: string | null }>(
@@ -29,7 +29,7 @@
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					data: [JSON.stringify(get(workflow))],
+					data: [JSON.stringify(sanitizeForSave(get(workflow)))],
 					component_id: componentId,
 					fn_name: "save_workflow",
 					session_hash: client.session_hash

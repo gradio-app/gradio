@@ -22,7 +22,8 @@
 		removeEdge,
 		updateNodeData,
 		removeNode,
-		replaceNodeSource
+		replaceNodeSource,
+		sanitizeForSave
 	} from "./workflow-store";
 	import { migrateToV2, toLegacyShape } from "./workflow-migration";
 	import { PORT_COLOR } from "./workflow-types";
@@ -84,7 +85,7 @@
 	$effect(() => {
 		const wf = $workflow;
 		if (!server?.save_workflow) return;
-		const payload = JSON.stringify(wf);
+		const payload = JSON.stringify(sanitizeForSave(wf));
 		const timer = setTimeout(() => {
 			server.save_workflow([payload]).catch(() => {});
 		}, 500);

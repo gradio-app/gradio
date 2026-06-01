@@ -5,9 +5,10 @@ import {
 	addNode,
 	addOperator,
 	replaceNodeSource,
-	removeNode
+	removeNode,
+	sanitizeForSave
 } from "./workflow-store";
-import type { OperatorNode } from "./workflow-types";
+import type { OperatorNode, ReferenceNode, Workflow } from "./workflow-types";
 
 function resetWorkflow(): void {
 	workflow.set({
@@ -103,5 +104,81 @@ describe("removeNode", () => {
 		);
 		removeNode(id);
 		expect(get(workflow).operators.find((o) => o.id === id)).toBeUndefined();
+	});
+});
+
+describe("sanitizeForSave", () => {
+	function wf(refs: ReferenceNode[] = []): Workflow {
+		return {
+			schema_version: "2",
+			name: "Test",
+			runtime: { default: "client" },
+			references: refs,
+			operators: [],
+			subjects: [],
+			edges: [],
+			view: { default: "canvas" }
+		};
+	}
+
+	function refNode(id: string, data: Record<string, unknown>): ReferenceNode {
+		return {
+			id,
+			role: "reference",
+			label: id,
+			asset_type: "image",
+			inputs: [{ id: "in", label: "in", type: "image" }],
+			outputs: [{ id: "out", label: "out", type: "image" }],
+			data: data as ReferenceNode["data"],
+			x: 0,
+			y: 0,
+			width: 220,
+			height: 160
+		};
+	}
+
+	test("strips blob: URLs from node data", () => {
+		const w = wf([
+			refNode("a", {
+				in: { name: "img.png", url: "blob:http://x/abc", mime: "image/png" }
+			})
+		]);
+		expect(sanitizeForSave(w).references[0].data).toEqual({});
+	});
+
+	test("strips data: URLs from node data", () => {
+		const w = wf([
+			refNode("a", {
+				in: { name: "img.png", url: "data:image/png;base64,iVBOR", mime: "image/png" }
+			})
+		]);
+		expect(sanitizeForSave(w).references[0].data).toEqual({});
+	});
+
+	test("preserves server-served file URLs (http / file paths)", () => {
+		const fileVal = { name: "out.png", url: "/file=/tmp/out.png", mime: "image/png" };
+		const w = wf([refNode("a", { in: fileVal })]);
+		expect(sanitizeForSave(w).references[0].data).toEqual({ in: fileVal });
+	});
+
+	test("preserves non-file primitive data (text, numbers, booleans)", () => {
+		const w = wf([
+			refNode("a", { in: "hello world" }),
+			refNode("b", { in: 42 }),
+			refNode("c", { in: true })
+		]);
+		const result = sanitizeForSave(w);
+		expect(result.references[0].data).toEqual({ in: "hello world" });
+		expect(result.references[1].data).toEqual({ in: 42 });
+		expect(result.references[2].data).toEqual({ in: true });
+	});
+
+	test("does not mutate the input workflow", () => {
+		const original = wf([
+			refNode("a", { in: { name: "x", url: "blob:nope" } })
+		]);
+		const snapshot = JSON.stringify(original);
+		sanitizeForSave(original);
+		expect(JSON.stringify(original)).toBe(snapshot);
 	});
 });

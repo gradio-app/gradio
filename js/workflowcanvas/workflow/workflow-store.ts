@@ -54,6 +54,37 @@ export const workflow = writable<Workflow>(DEFAULT);
 // Re-export read helpers so callers import them from one place
 export { allNodes, findNode, isV2, migrateToV2 };
 
+/**
+ * Strip session-bound media (blob: / data: URLs) from node data before
+ * serialising the workflow. blob: URLs die with the page that minted
+ * them, and data: URLs would bloat workflow.json with base64 payloads —
+ * so we drop the field entirely and let the user re-upload on refresh.
+ * Other data (text, numbers, server-served file paths) passes through.
+ */
+export function sanitizeForSave(wf: Workflow): Workflow {
+	const stripBlobs = <T extends { data?: Record<string, unknown> }>(n: T): T => {
+		if (!n.data) return n;
+		const cleaned: Record<string, unknown> = {};
+		for (const [k, v] of Object.entries(n.data)) {
+			const url = (v as { url?: string } | null)?.url;
+			if (
+				typeof url === "string" &&
+				(url.startsWith("blob:") || url.startsWith("data:"))
+			) {
+				continue;
+			}
+			cleaned[k] = v;
+		}
+		return { ...n, data: cleaned };
+	};
+	return {
+		...wf,
+		references: wf.references.map(stripBlobs),
+		operators: wf.operators.map(stripBlobs),
+		subjects: wf.subjects.map(stripBlobs)
+	};
+}
+
 // ─── Actions ────────────────────────────────────────────────────────────────
 
 export function addReference(
