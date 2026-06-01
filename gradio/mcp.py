@@ -1,6 +1,8 @@
 import base64
 import contextlib
 import copy
+import html
+import json
 import os
 import re
 import tempfile
@@ -42,6 +44,284 @@ if TYPE_CHECKING:
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
+
+
+# Landing page served on a plain browser GET to the MCP endpoint. The
+# `__SERVER_URL__` / `__DOCS_URL__` (JSON-encoded, for the inline <script>) and
+# `__SERVER_URL_TEXT__` (HTML-escaped, for display) placeholders are filled in
+# by `GradioMCPServer._landing_page_html`.
+_MCP_LANDING_PAGE_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gradio MCP Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --primary: #ff7c00;
+    --primary-soft: #fff2e5;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --bg: #f6f7f8;
+    --card: #ffffff;
+    --radius: 12px;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--sans);
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--bg);
+    margin: 0;
+    padding: 3rem 1.25rem 4rem;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; }
+  header { margin-bottom: 1.75rem; }
+  h1 { font-size: 1.7rem; font-weight: 700; margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--text-muted); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .card h2 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+    margin: 0 0 0.85rem;
+  }
+  .url-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fafafa;
+    padding: 0.7rem 0.85rem;
+  }
+  .url-box code {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    color: var(--text);
+    word-break: break-all;
+    background: none;
+  }
+  .copy-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-muted);
+    border-radius: 7px;
+    padding: 0.35rem 0.55rem;
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .copy-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .copy-btn.copied { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.1rem;
+  }
+  .tab {
+    appearance: none;
+    border: none;
+    background: none;
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    padding: 0.5rem 0;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.12s ease;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+  .instruction { margin: 0 0 0.7rem; font-size: 0.95rem; }
+  .instruction code { font-family: var(--mono); font-size: 0.85em; background: var(--primary-soft); color: #b45309; padding: 0.1rem 0.35rem; border-radius: 5px; }
+  .code-block { position: relative; }
+  .code-block pre {
+    margin: 0;
+    background: #0b1221;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  .code-block .copy-btn {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+  }
+  .code-block .copy-btn:hover { background: rgba(255, 124, 0, 0.18); border-color: var(--primary); color: #fff; }
+  .code-block .copy-btn.copied { background: rgba(255, 124, 0, 0.25); border-color: var(--primary); color: #fff; }
+  footer { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem; }
+  footer a { color: var(--primary); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>\U0001f6e0️ Gradio MCP Server</h1>
+      <p>This is the <strong>Model Context Protocol (MCP)</strong> endpoint for a Gradio app. It is meant to be connected to by an MCP client (such as an AI assistant), not opened directly in a browser.</p>
+    </header>
+
+    <section class="card">
+      <h2>MCP Server URL</h2>
+      <div class="url-box">
+        <code id="server-url">__SERVER_URL_TEXT__</code>
+        <button class="copy-btn" data-copy-target="server-url" type="button">Copy</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Connect your AI assistant</h2>
+      <div class="tabs" id="tabs"></div>
+      <p class="instruction" id="instruction"></p>
+      <div class="code-block">
+        <button class="copy-btn" data-copy-target="snippet" type="button">Copy</button>
+        <pre><code id="snippet"></code></pre>
+      </div>
+    </section>
+
+    <footer>
+      Need help? Read the <a id="docs-link" href="#">Gradio MCP guide</a>.
+    </footer>
+  </div>
+
+<script>
+  const SERVER_URL = __SERVER_URL__;
+  const DOCS_URL = __DOCS_URL__;
+  document.getElementById("docs-link").href = DOCS_URL;
+
+  const CLIENTS = [
+    {
+      id: "cursor",
+      name: "Cursor",
+      instruction: 'Add this to your <code>~/.cursor/mcp.json</code>:',
+      config: { mcpServers: { gradio: { url: SERVER_URL } } },
+    },
+    {
+      id: "claude-desktop",
+      name: "Claude Desktop",
+      instruction: 'Add this to your <code>claude_desktop_config.json</code> (requires Node.js):',
+      config: { mcpServers: { gradio: { command: "npx", args: ["mcp-remote", SERVER_URL] } } },
+    },
+    {
+      id: "claude-code",
+      name: "Claude Code",
+      instruction: "Run this command in your terminal:",
+      command: "claude mcp add --transport http gradio " + SERVER_URL,
+    },
+    {
+      id: "vscode",
+      name: "VS Code",
+      instruction: 'Add this to <code>.vscode/mcp.json</code> in your workspace:',
+      config: { servers: { gradio: { type: "http", url: SERVER_URL } } },
+    },
+    {
+      id: "cline",
+      name: "Cline",
+      instruction: 'Add this to your <code>cline_mcp_settings.json</code>:',
+      config: { mcpServers: { gradio: { type: "streamableHttp", url: SERVER_URL } } },
+    },
+    {
+      id: "windsurf",
+      name: "Windsurf",
+      instruction: 'Add this to your <code>~/.codeium/windsurf/mcp_config.json</code>:',
+      config: { mcpServers: { gradio: { serverUrl: SERVER_URL } } },
+    },
+  ];
+
+  const tabsEl = document.getElementById("tabs");
+  const instructionEl = document.getElementById("instruction");
+  const snippetEl = document.getElementById("snippet");
+  let active = CLIENTS[0].id;
+
+  function snippetFor(client) {
+    return client.command ? client.command : JSON.stringify(client.config, null, 2);
+  }
+
+  function render() {
+    tabsEl.innerHTML = "";
+    CLIENTS.forEach(function (client) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tab" + (client.id === active ? " active" : "");
+      btn.textContent = client.name;
+      btn.addEventListener("click", function () {
+        active = client.id;
+        render();
+      });
+      tabsEl.appendChild(btn);
+    });
+    const client = CLIENTS.find(function (c) { return c.id === active; });
+    instructionEl.innerHTML = client.instruction;
+    snippetEl.textContent = snippetFor(client);
+  }
+
+  function copyText(text, btn) {
+    const done = function () {
+      const original = btn.textContent;
+      btn.textContent = "Copied!";
+      btn.classList.add("copied");
+      setTimeout(function () {
+        btn.textContent = original;
+        btn.classList.remove("copied");
+      }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {});
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  }
+
+  document.addEventListener("click", function (event) {
+    const btn = event.target.closest("[data-copy-target]");
+    if (!btn) return;
+    const target = document.getElementById(btn.getAttribute("data-copy-target"));
+    if (target) copyText(target.textContent, btn);
+  });
+
+  render();
+</script>
+</body>
+</html>
+"""
 
 
 class GradioMCPServer:
@@ -119,7 +399,8 @@ class GradioMCPServer:
                         accept = value
                         break
                 if b"text/event-stream" not in accept:
-                    response = HTMLResponse(content=self._landing_page_html())
+                    server_url = self._server_url_from_scope(scope)
+                    response = HTMLResponse(content=self._landing_page_html(server_url))
                     await response(scope, receive, send)
                     return
 
@@ -143,40 +424,55 @@ class GradioMCPServer:
         return self._local_url
 
     @staticmethod
-    def _landing_page_html() -> str:
+    def _server_url_from_scope(scope: Scope) -> str:
+        """Reconstruct the public URL of the MCP endpoint from an ASGI scope.
+
+        Honours ``X-Forwarded-Proto``/``X-Forwarded-Host`` so that the URL
+        shown on the landing page matches what the user typed into the browser
+        even when Gradio is behind a proxy (e.g. a Hugging Face Space).
+        """
+        headers = {key.lower(): value for key, value in scope.get("headers", []) or []}
+
+        scheme = scope.get("scheme", "http")
+        if (forwarded_proto := headers.get(b"x-forwarded-proto")) is not None:
+            scheme = forwarded_proto.decode("latin-1").split(",")[0].strip()
+
+        host = b""
+        if (forwarded_host := headers.get(b"x-forwarded-host")) is not None:
+            host = forwarded_host.split(b",")[0].strip()
+        elif (host_header := headers.get(b"host")) is not None:
+            host = host_header
+        host_str = host.decode("latin-1") or "localhost"
+
+        # Normalise to the canonical streamable HTTP path with a trailing slash,
+        # matching the URL Gradio prints to the terminal at launch.
+        path = scope.get("path", "/gradio_api/mcp")
+        path = "/" + path.strip("/")
+        if path.endswith(("/http", "/http/")):
+            path = path[: path.rfind("/http")]
+        path = path.rstrip("/") + "/"
+
+        return f"{scheme}://{host_str}{path}"
+
+    @staticmethod
+    def _landing_page_html(server_url: str) -> str:
         """HTML landing page shown when a browser navigates to the MCP endpoint.
 
         MCP clients connect using the streamable HTTP transport (which requires
         an ``Accept: text/event-stream`` header). A plain browser ``GET`` would
         otherwise receive a raw JSON-RPC "Not Acceptable" error, so we serve
-        this informational page instead.
+        this informational page instead. It surfaces the server URL and ready
+        to paste configuration snippets for popular MCP clients.
         """
         docs_url = "https://www.gradio.app/guides/building-mcp-server-with-gradio"
-        return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gradio MCP Server</title>
-<style>
-  body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 42rem; margin: 4rem auto; padding: 0 1.25rem; color: #1f2937; }}
-  h1 {{ font-size: 1.6rem; margin-bottom: 0.25rem; }}
-  code {{ background: #f3f4f6; padding: 0.15rem 0.35rem; border-radius: 0.35rem; font-size: 0.9em; }}
-  a {{ color: #f97316; }}
-  .muted {{ color: #6b7280; }}
-</style>
-</head>
-<body>
-  <h1>🛠️ Gradio MCP Server</h1>
-  <p class="muted">This is the <strong>Model Context Protocol (MCP)</strong> server endpoint for a Gradio app.</p>
-  <p>It is meant to be connected to by an MCP client (such as an AI assistant), not opened
-     directly in a browser. MCP clients should connect to this URL using the streamable
-     HTTP transport.</p>
-  <p>To learn how to use this server and connect a client, see the
-     <a href="{docs_url}">Gradio MCP guide</a>.</p>
-</body>
-</html>
-"""
+        # JSON-encode for safe interpolation into the inline <script> below.
+        server_url_js = json.dumps(server_url)
+        docs_url_js = json.dumps(docs_url)
+        return (
+            _MCP_LANDING_PAGE_TEMPLATE.replace("__SERVER_URL__", server_url_js)
+            .replace("__DOCS_URL__", docs_url_js)
+            .replace("__SERVER_URL_TEXT__", html.escape(server_url))
+        )
 
     def get_route_path(self, request: Request) -> str:  # type: ignore
         """

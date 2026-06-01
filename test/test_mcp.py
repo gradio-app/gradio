@@ -440,7 +440,8 @@ async def test_mcp_browser_get_returns_landing_page():
         "type": "http",
         "method": "GET",
         "path": "/gradio_api/mcp",
-        "headers": [(b"accept", b"text/html")],
+        "scheme": "http",
+        "headers": [(b"accept", b"text/html"), (b"host", b"example.com")],
         "query_string": b"",
     }
     await server.handle_streamable_http(scope, receive, send)
@@ -455,9 +456,53 @@ async def test_mcp_browser_get_returns_landing_page():
         for key, value in start["headers"]
     )
     assert b"Model Context Protocol" in body
+    # The reconstructed server URL is surfaced on the page.
+    assert b"example.com/gradio_api/mcp/" in body
 
 
 def test_mcp_landing_page_links_to_docs():
-    html = GradioMCPServer._landing_page_html()
+    html = GradioMCPServer._landing_page_html("http://localhost:7860/gradio_api/mcp/")
     assert "<html" in html
     assert "https://www.gradio.app/guides/building-mcp-server-with-gradio" in html
+
+
+def test_mcp_landing_page_shows_server_url_and_clients():
+    url = "https://my-space.hf.space/gradio_api/mcp/"
+    html = GradioMCPServer._landing_page_html(url)
+    # URL appears both as visible text and inside the JS config snippets.
+    assert url in html
+    assert "Connect your AI assistant" in html
+    for client in ("Cursor", "Claude Desktop", "VS Code", "Cline", "Windsurf"):
+        assert client in html
+
+
+def test_mcp_server_url_from_scope_canonicalizes_path():
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/gradio_api/mcp/http/",
+        "scheme": "http",
+        "headers": [(b"host", b"localhost:7860")],
+    }
+    assert (
+        GradioMCPServer._server_url_from_scope(scope)
+        == "http://localhost:7860/gradio_api/mcp/"
+    )
+
+
+def test_mcp_server_url_from_scope_honors_forwarded_headers():
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/gradio_api/mcp",
+        "scheme": "http",
+        "headers": [
+            (b"host", b"internal:7860"),
+            (b"x-forwarded-proto", b"https"),
+            (b"x-forwarded-host", b"my-space.hf.space"),
+        ],
+    }
+    assert (
+        GradioMCPServer._server_url_from_scope(scope)
+        == "https://my-space.hf.space/gradio_api/mcp/"
+    )
