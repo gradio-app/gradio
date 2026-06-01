@@ -3,7 +3,19 @@ import type { PortType } from "./workflow-types";
 export interface SubTab {
 	key: string;
 	label: string;
+	/**
+	 * Used as `pipeline_tag=` on the models API AND as `filter=` on the
+	 * spaces API. For subtabs where Spaces have a category that differs
+	 * from the model pipeline tag (e.g. Edit → `image-editing` Space
+	 * category vs `image-to-image` model pipeline tag), use
+	 * `spaceTags` / `modelTags` to override.
+	 */
 	pipelineTags: string[];
+	/** Override for the spaces API. Falls back to `pipelineTags` when unset. */
+	spaceTags?: string[];
+	/** Override for the models API. Falls back to `pipelineTags` when unset. */
+	modelTags?: string[];
+	/** Freetext query fallback (used when no API tag exists, e.g. Enhance for models). */
 	query?: string;
 }
 
@@ -55,12 +67,23 @@ export const MODALITIES: ModalityConfig[] = [
 		port_type: "image",
 		subtabs: [
 			{ key: "all", label: "All", pipelineTags: [] },
-			{ key: "generate", label: "Generate", pipelineTags: ["text-to-image"] },
-			{ key: "edit", label: "Edit", pipelineTags: ["image-to-image"] },
+			{
+				key: "generate",
+				label: "Generate",
+				pipelineTags: ["text-to-image"],
+				spaceTags: ["image-generation"]
+			},
+			{
+				key: "edit",
+				label: "Edit",
+				pipelineTags: ["image-to-image"],
+				spaceTags: ["image-editing"]
+			},
 			{
 				key: "enhance",
 				label: "Enhance",
 				pipelineTags: [],
+				spaceTags: ["image-upscaling"],
 				query: "upscale super resolution restore enhance denoise"
 			},
 			{
@@ -72,6 +95,7 @@ export const MODALITIES: ModalityConfig[] = [
 				key: "removebg",
 				label: "Remove Background",
 				pipelineTags: [],
+				spaceTags: ["background-removal"],
 				query: "background removal remove background matting"
 			}
 		]
@@ -83,10 +107,34 @@ export const MODALITIES: ModalityConfig[] = [
 		port_type: "audio",
 		subtabs: [
 			{ key: "all", label: "All", pipelineTags: [] },
-			{ key: "speech", label: "Speech", pipelineTags: ["text-to-speech"] },
-			{ key: "music", label: "Music", pipelineTags: ["text-to-audio"], query: "music generation" },
-			{ key: "transcribe", label: "Transcribe", pipelineTags: ["automatic-speech-recognition"] },
-			{ key: "clone", label: "Clone Voice", pipelineTags: [], query: "voice clone" }
+			{
+				key: "speech",
+				label: "Speech",
+				pipelineTags: ["text-to-speech"],
+				spaceTags: ["speech-synthesis"]
+			},
+			{
+				key: "music",
+				label: "Music",
+				pipelineTags: ["text-to-audio"],
+				spaceTags: ["music-generation"],
+				query: "music generation"
+			},
+			{
+				key: "transcribe",
+				label: "Transcribe",
+				pipelineTags: ["automatic-speech-recognition"],
+				// No matching HF Space category for ASR; freeform query
+				// catches the major transcription Spaces.
+				query: "speech recognition transcription whisper subtitle"
+			},
+			{
+				key: "clone",
+				label: "Clone Voice",
+				pipelineTags: [],
+				spaceTags: ["voice-cloning"],
+				query: "voice clone"
+			}
 		]
 	},
 	{
@@ -96,8 +144,18 @@ export const MODALITIES: ModalityConfig[] = [
 		port_type: "video",
 		subtabs: [
 			{ key: "all", label: "All", pipelineTags: [] },
-			{ key: "generate", label: "Generate", pipelineTags: ["text-to-video"] },
-			{ key: "animate", label: "Animate", pipelineTags: ["image-to-video"] }
+			{
+				key: "generate",
+				label: "Generate",
+				pipelineTags: ["text-to-video"],
+				spaceTags: ["video-generation"]
+			},
+			{
+				key: "animate",
+				label: "Animate",
+				pipelineTags: ["image-to-video"],
+				spaceTags: ["character-animation"]
+			}
 		]
 	},
 	{
@@ -107,8 +165,18 @@ export const MODALITIES: ModalityConfig[] = [
 		port_type: "model3d",
 		subtabs: [
 			{ key: "all", label: "All", pipelineTags: [] },
-			{ key: "from-text", label: "From Text", pipelineTags: ["text-to-3d"] },
-			{ key: "from-image", label: "From Image", pipelineTags: ["image-to-3d"] }
+			{
+				key: "from-text",
+				label: "From Text",
+				pipelineTags: ["text-to-3d"],
+				spaceTags: ["3d-modeling"]
+			},
+			{
+				key: "from-image",
+				label: "From Image",
+				pipelineTags: ["image-to-3d"],
+				spaceTags: ["3d-modeling"]
+			}
 		]
 	},
 	{
@@ -119,10 +187,31 @@ export const MODALITIES: ModalityConfig[] = [
 		acceptedCategories: ["text", "chat"],
 		subtabs: [
 			{ key: "all", label: "All", pipelineTags: [] },
-			{ key: "generate", label: "Generate", pipelineTags: ["text-generation"] },
-			{ key: "summarize", label: "Summarize", pipelineTags: ["summarization"] },
-			{ key: "translate", label: "Translate", pipelineTags: ["translation"] },
-			{ key: "code", label: "Code", pipelineTags: [], query: "code generation programming copilot" }
+			{
+				key: "generate",
+				label: "Generate",
+				pipelineTags: ["text-generation"],
+				spaceTags: ["text-generation"]
+			},
+			{
+				key: "summarize",
+				label: "Summarize",
+				pipelineTags: ["summarization"],
+				spaceTags: ["text-summarization"]
+			},
+			{
+				key: "translate",
+				label: "Translate",
+				pipelineTags: ["translation"],
+				spaceTags: ["language-translation"]
+			},
+			{
+				key: "code",
+				label: "Code",
+				pipelineTags: [],
+				spaceTags: ["code-generation"],
+				query: "code generation programming copilot"
+			}
 		]
 	}
 ];

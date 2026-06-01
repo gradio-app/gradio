@@ -67,14 +67,21 @@
 	// hidden — they wouldn't return anything meaningful from the models API.
 	const visibleSubtabs = $derived(
 		isModel
-			? modality.subtabs.filter(
-					(st) => st.key === "all" || st.pipelineTags.length > 0
-				)
+			? modality.subtabs.filter((st) => {
+					if (st.key === "all") return true;
+					const modelTagList = st.modelTags ?? st.pipelineTags;
+					return modelTagList.length > 0;
+				})
 			: modality.subtabs
 	);
 
 	function setSource(next: Source): void {
 		if (next === source) return;
+		// Reset emptiness flags up front so the auto-switch effect can't
+		// fire on a stale value mid-source-change (same race as the
+		// subtab onclick).
+		trendingEmpty = null;
+		newEmpty = null;
 		source = next;
 		// If the active subtab disappears in the new source, fall back to "all"
 		if (!visibleSubtabs.some((st) => st.key === activeSubtab.key)) {
@@ -193,8 +200,12 @@
 		loading = true;
 		results = [];
 		try {
-			const pipelineTag =
-				activeSubtab.pipelineTags.length > 0 ? activeSubtab.pipelineTags[0] : "";
+			// Spaces use the per-subtab `spaceTags` override when present
+			// (category names like "image-editing") and fall back to
+			// `pipelineTags` for subtabs where the model pipeline tag
+			// works as a Space category too (e.g. text-to-image).
+			const spaceTagList = activeSubtab.spaceTags ?? activeSubtab.pipelineTags;
+			const spaceTag = spaceTagList.length > 0 ? spaceTagList[0] : "";
 
 			let kind: string;
 			let query: string;
@@ -202,23 +213,31 @@
 			if (activeContentTab === "search") {
 				kind = "search";
 				query = searchQuery;
-			} else if (activeSubtab.query && !pipelineTag) {
-				// Sub-tabs with explicit query (Remove BG, Upscale, Clone Voice)
-				kind = "search";
+			} else if (activeSubtab.query) {
+				// Always forward the subtab's freeform query alongside the
+				// category. The server prefers `category=` when valid and
+				// falls back to `q=` when the category isn't a real HF
+				// Space category (e.g. `automatic-speech-recognition`).
+				kind = activeContentTab === "new" ? "new" : "trending";
 				query = activeSubtab.query;
 			} else {
 				kind = activeContentTab === "new" ? "new" : "trending";
 				query = "";
 			}
 
-			const raw = await server.search_spaces([kind, query, pipelineTag]);
+			const raw = await server.search_spaces([kind, query, spaceTag]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			let parsed = parseResults(data);
 
-			// Filter by modality category unless the user explicitly typed a freeform query
-			if (activeContentTab !== "search") {
+			// Filter by modality category only when the server didn't already
+			// narrow by tag. Keep results that EITHER match the modality
+			// OR couldn't be categorised — most Gradio Spaces lack a
+			// pipeline_tag on their card, so dropping uncategorised ones
+			// hides the bulk of legitimate results. We only exclude things
+			// confidently categorised to a different modality.
+			if (activeContentTab !== "search" && !spaceTag) {
 				const cats = modality.acceptedCategories ?? [modality.category];
-				parsed = parsed.filter((s) => cats.includes(s.category ?? ""));
+				parsed = parsed.filter((s) => !s.category || cats.includes(s.category));
 			}
 
 			results = parsed.slice(0, 20);
@@ -262,7 +281,12 @@
 		loading = true;
 		results = [];
 		try {
-			const pipelineTag = activeSubtab.pipelineTags[0] ?? "";
+			// Models use the per-subtab `modelTags` override when present
+			// and fall back to `pipelineTags`. `spaceTags` is ignored here
+			// because Space category names (e.g. "image-editing") aren't
+			// valid model pipeline tags.
+			const modelTagList = activeSubtab.modelTags ?? activeSubtab.pipelineTags;
+			const pipelineTag = modelTagList[0] ?? "";
 			let kind: string;
 			if (activeContentTab === "search") {
 				kind = "search";
@@ -291,16 +315,6 @@
 			loading = false;
 		}
 	}
-
-	// Reset per-tab emptiness flags when the filter context changes — the
-	// next fetch may produce different results.
-	$effect(() => {
-		activeSubtab;
-		isDataset;
-		isModel;
-		trendingEmpty = null;
-		newEmpty = null;
-	});
 
 	// Fetch when tab/subtab/mode changes (Featured is static, no API call).
 	// After each fetch, record whether the active tab came back empty so we
@@ -496,7 +510,9 @@
 		onclick={(e) => e.stopPropagation()}
 		onwheel={(e) => e.stopPropagation()}
 	>
-		<!-- Search -->
+		<!-- Search row — input only. Mode tabs (Featured / Trending / New)
+		     live in the subtab strip below so they share visual weight
+		     with the modality categories (Generate / Edit / …). -->
 		<div class="picker-search-row">
 			<div class="picker-search-wrap">
 				<svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -511,7 +527,11 @@
 					oninput={handleSearchInput}
 					autofocus
 				/>
-				<button class="picker-close-inline" onclick={onclose}>&times;</button>
+				<button class="picker-close-inline" onclick={onclose} aria-label="Close">
+					<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+						<path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+					</svg>
+				</button>
 			</div>
 		</div>
 
@@ -531,7 +551,7 @@
 			</div>
 		{/if}
 
-		<!-- Sub-tabs (modality filters — hidden for datasets) -->
+		<!-- Modality subtabs: which kind of Space (Generate / Edit / …). -->
 		{#if !isDataset && visibleSubtabs.length > 1}
 			<div class="picker-subtabs">
 				{#each visibleSubtabs as st}
@@ -539,6 +559,13 @@
 						class="picker-subtab"
 						class:active={activeSubtab.key === st.key}
 						onclick={() => {
+							// Reset emptiness flags BEFORE writing activeSubtab /
+							// activeContentTab. Otherwise the auto-switch effect
+							// can fire first and read a stale `trendingEmpty=true`
+							// from the previous subtab, bumping activeContentTab
+							// to "search" — which then fetches the wrong list.
+							trendingEmpty = null;
+							newEmpty = null;
 							activeSubtab = st;
 							if (activeContentTab !== "search") activeContentTab = "trending";
 						}}
@@ -549,48 +576,45 @@
 			</div>
 		{/if}
 
-		<!-- Content tabs (hidden for datasets — search-only) -->
+		<!-- Content modes: how the list is sorted (Featured / Trending / New).
+		     Smaller and lighter than the category subtabs so they read as
+		     a secondary sort control, not a competing category. -->
 		{#if !isDataset}
-			<div class="picker-tabs">
+			<div class="picker-mode-row">
+				<span class="picker-mode-label">Sort:</span>
 				{#if featuredResults.length > 0}
 					<button
-						class="picker-tab"
+						class="picker-mode-btn"
 						class:active={activeContentTab === "featured"}
 						onclick={() => {
 							activeContentTab = "featured";
 							searchQuery = "";
-						}}>Featured</button
-					>
+						}}
+					>Featured</button>
 				{/if}
 				{#if trendingEmpty !== true}
 					<button
-						class="picker-tab"
+						class="picker-mode-btn"
 						class:active={activeContentTab === "trending"}
 						onclick={() => {
 							activeContentTab = "trending";
 							searchQuery = "";
-						}}>Trending</button
-					>
+						}}
+					>Trending</button>
 				{/if}
 				{#if newEmpty !== true}
 					<button
-						class="picker-tab"
+						class="picker-mode-btn"
 						class:active={activeContentTab === "new"}
 						onclick={() => {
 							activeContentTab = "new";
 							searchQuery = "";
-						}}>New ✦</button
-					>
+						}}
+					>New ✦</button>
 				{/if}
-				{#if activeContentTab === "search" || searchQuery.length >= 2}
-					<button class="picker-tab active">Search</button>
-				{/if}
-			</div>
-		{:else}
-			<div class="picker-tabs">
-				<button class="picker-tab active">Search datasets</button>
 			</div>
 		{/if}
+
 
 		<!-- Results -->
 		<div class="picker-results">
@@ -735,6 +759,15 @@
 		color: #a0a2ae;
 	}
 
+	:global(body:not(.dark)) .picker-close-inline {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .picker-close-inline:hover {
+		background: rgba(0, 0, 0, 0.06);
+		color: #3e4050;
+	}
+
 	.picker-search-row {
 		padding: 14px 16px 0;
 		flex-shrink: 0;
@@ -744,6 +777,65 @@
 		position: relative;
 		display: flex;
 		align-items: center;
+	}
+
+	.picker-mode-row {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		padding: 6px 16px 0;
+		flex-shrink: 0;
+	}
+
+	.picker-mode-label {
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #4a4d57;
+		margin-right: 4px;
+	}
+
+	.picker-mode-btn {
+		padding: 3px 8px;
+		border: none;
+		border-radius: 14px;
+		background: transparent;
+		color: #6b6e78;
+		font-family: "Manrope", sans-serif;
+		font-size: 11px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background 0.1s, color 0.1s;
+	}
+
+	.picker-mode-btn:hover {
+		color: #c8c9d2;
+		background: rgba(255, 255, 255, 0.04);
+	}
+
+	.picker-mode-btn.active {
+		color: #f97316;
+		background: rgba(249, 115, 22, 0.08);
+	}
+
+	:global(body:not(.dark)) .picker-mode-label {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .picker-mode-btn {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .picker-mode-btn:hover {
+		color: #3e4050;
+		background: rgba(0, 0, 0, 0.04);
+	}
+
+	:global(body:not(.dark)) .picker-mode-btn.active {
+		color: #ea580c;
+		background: rgba(249, 115, 22, 0.1);
 	}
 
 	.search-icon {

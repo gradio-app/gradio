@@ -710,36 +710,112 @@ class Workflow:
                     {"error": str(e), "error_type": "unknown", "suggestion": ""}
                 )
 
+        # Categories accepted by /api/spaces/semantic-search. Anything outside
+        # this list returns a 400 from the endpoint, so the picker drops the
+        # category and falls back to the broader query / unfiltered path.
+        VALID_SPACE_CATEGORIES = {
+            "image-generation", "video-generation", "text-generation",
+            "language-translation", "speech-synthesis", "voice-cloning",
+            "face-recognition", "object-detection", "pose-estimation",
+            "text-analysis", "sentiment-analysis", "question-answering",
+            "code-generation", "data-visualization", "3d-modeling",
+            "image-editing", "background-removal", "image-upscaling",
+            "ocr", "document-analysis", "visual-qa", "image-captioning",
+            "chatbots", "text-summarization", "music-generation",
+            "medical-imaging", "financial-analysis", "game-ai",
+            "model-benchmarking", "fine-tuning-tools", "dataset-creation",
+            "anomaly-detection", "recommendation-systems",
+            "character-animation", "style-transfer", "agent-environment",
+            "image", "other",
+        }
+
         def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
             kind = data[0] if data else "trending"
             try:
                 query = data[1] if len(data) > 1 and data[1] else ""
                 pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
+                # If the supplied tag isn't a valid Space category, drop it
+                # so semantic-search doesn't reject the whole request.
+                # The frontend's pipelineTags often carry model-pipeline
+                # values (`summarization`, `image-to-video`, …) that
+                # don't exist as Space categories.
+                if pipeline_tag and pipeline_tag not in VALID_SPACE_CATEGORIES:
+                    pipeline_tag = ""
                 hf_token = _resolve_token(data, 3, token)
-                # The spaces API takes filter= repeated for AND-style
-                # tag filtering. Pipeline tags double as category tags on
-                # Spaces (e.g. text-generation, text-to-image), so we
-                # forward whatever the picker sends as an additional
-                # filter rather than `pipeline_tag=` (which trending
-                # silently ignores).
-                tag_filter = (
-                    f"&filter={urllib.parse.quote(pipeline_tag)}" if pipeline_tag else ""
-                )
-                base_expand = "&expand[]=likes&expand[]=cardData&expand[]=runtime"
-                if kind == "search":
+
+                # When a category OR query is set, use the semantic-search
+                # endpoint. It expands category slugs across multiple
+                # related tags (`image-upscaling` → upscaler /
+                # super-resolution / image-restoration / …), which the
+                # plain `/api/spaces?filter=` endpoint doesn't do.
+                #
+                # When neither is set ("All" subtab, no search), fall back
+                # to `/api/spaces?filter=gradio` since semantic-search
+                # rejects calls with no category and no query.
+                if pipeline_tag or query:
+                    params = ["sdk=gradio", "includeNonRunning=false"]
+                    if pipeline_tag:
+                        params.append(f"category={urllib.parse.quote(pipeline_tag)}")
+                    # Only send q= when there's no category; otherwise the
+                    # AND-filter narrows results unnecessarily (within a
+                    # precise category like background-removal, the
+                    # query phrase drops valid hits).
+                    elif query:
+                        params.append(f"q={urllib.parse.quote(query)}")
                     url = (
-                        f"https://huggingface.co/api/spaces?filter=gradio{tag_filter}"
-                        f"&search={urllib.parse.quote(query)}&limit=30"
-                        f"&sort=likes&direction=-1{base_expand}"
+                        "https://huggingface.co/api/spaces/semantic-search?"
+                        + "&".join(params)
                     )
-                elif kind == "new":
+                    raw = _hf_request(url, hf_token)
+                    parsed = json.loads(raw)
+                    if not isinstance(parsed, list):
+                        return raw  # surface the API's error blob as-is
+                    if kind == "new":
+                        parsed.sort(
+                            key=lambda s: s.get("createdAt") or "",
+                            reverse=True,
+                        )
+                    elif kind != "search":
+                        parsed.sort(
+                            key=lambda s: s.get("trendingScore") or 0,
+                            reverse=True,
+                        )
+                    # Reshape so the frontend's parseResults (which reads
+                    # cardData.* and pipeline_tag) keeps working.
+                    normalized = []
+                    for s in parsed[:48]:
+                        normalized.append(
+                            {
+                                "id": s.get("id"),
+                                "likes": s.get("likes", 0),
+                                "trendingScore": s.get("trendingScore", 0),
+                                "runtime": s.get("runtime"),
+                                "pipeline_tag": pipeline_tag or s.get("ai_category"),
+                                "cardData": {
+                                    "title": s.get("title"),
+                                    "short_description": (
+                                        s.get("shortDescription")
+                                        or s.get("ai_short_description")
+                                    ),
+                                    "pipeline_tag": pipeline_tag
+                                    or s.get("ai_category"),
+                                    "tags": s.get("tags", []),
+                                    "sdk": s.get("sdk"),
+                                },
+                            }
+                        )
+                    return json.dumps(normalized)
+
+                # No category, no query — browse mode.
+                base_expand = "&expand[]=likes&expand[]=cardData&expand[]=runtime"
+                if kind == "new":
                     url = (
-                        f"https://huggingface.co/api/spaces?filter=gradio{tag_filter}"
+                        f"https://huggingface.co/api/spaces?filter=gradio"
                         f"&limit=24&sort=createdAt&direction=-1{base_expand}"
                     )
                 else:
                     url = (
-                        f"https://huggingface.co/api/spaces?filter=gradio{tag_filter}"
+                        f"https://huggingface.co/api/spaces?filter=gradio"
                         f"&limit=48&sort=trendingScore&direction=-1{base_expand}"
                     )
                 return _hf_request(url, hf_token)
