@@ -59,7 +59,7 @@ jobs:
             playwright-${{ runner.os }}-
       - name: install playwright
         timeout-minutes: 3
-        run: pnpm exec playwright install chromium --no-shell
+        run: pnpm exec playwright install chromium --only-shell
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: format check
