@@ -5,10 +5,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
 import numpy as np
 import pytest
 from PIL import Image, ImageCms
 from pydantic import BaseModel
+from pydub import AudioSegment
 
 import gradio as gr
 from gradio import components, data_classes, processing_utils, utils
@@ -204,6 +206,38 @@ class TestAudioPreprocessing:
         assert os.path.exists("test_audio_to_file")
         os.remove("test_audio_to_file")
 
+    @pytest.mark.parametrize("fmt", ["wav", "mp3", "flac"])
+    def test_audio_to_file_float32_non_wav(self, fmt, tmp_path):
+        # Regression test for #13364: audio_to_file produced static noise for
+        # non-WAV formats because float32 samples were not converted to int16
+        # before being handed to pydub (which then treated the 4-byte values
+        # as int32 PCM). Round-tripping a sine through audio_to_file and
+        # decoding it back should preserve the waveform shape for every
+        # supported format, not just "wav".
+        sr = 24000
+        t = np.arange(sr) / sr  # 1 second
+        sine = np.sin(2 * np.pi * 440 * t).astype(np.float32)
+        out_path = tmp_path / f"sine.{fmt}"
+
+        processing_utils.audio_to_file(sr, sine, str(out_path), format=fmt)
+        assert out_path.exists()
+
+        decoded = AudioSegment.from_file(str(out_path), format=fmt)
+        samples = np.array(decoded.get_array_of_samples(), dtype=np.float64)
+        n = min(len(samples), len(sine))
+        samples = samples[:n]
+        reference = sine[:n].astype(np.float64)
+        if np.abs(samples).max() > 0:
+            samples = samples / np.abs(samples).max()
+        # Lossy codecs (mp3) blur the waveform but preserve overall shape;
+        # the int32-misinterpretation bug produced noise with RMS error
+        # ~0.3+, so 0.1 cleanly separates "encoded correctly" from "noise".
+        rms_error = float(np.sqrt(np.mean((samples - reference) ** 2)))
+        assert rms_error < 0.1, (
+            f"audio_to_file produced noise for format={fmt!r} "
+            f"(RMS error {rms_error:.3f} vs sine input)"
+        )
+
     def test_save_audio_to_cache_uses_audio_metadata_in_cache_key(
         self, gradio_temp_dir
     ):
@@ -244,25 +278,42 @@ class TestAudioPreprocessing:
             )
         assert Path(path_py_int).parent == Path(path_np_int).parent
 
-    def test_convert_to_16_bit_wav(self):
+    def test_convert_to_16_bit_audio(self):
         # Generate a random audio sample and set the amplitude
         audio = np.random.randint(-100, 100, size=(100), dtype="int16")
         audio[0] = -32767
         audio[1] = 32766
 
         audio_ = audio.astype("float64")
-        audio_ = processing_utils.convert_to_16_bit_wav(audio_)
+        audio_ = processing_utils.convert_to_16_bit_audio(audio_)
         assert np.allclose(audio, audio_)
         assert audio_.dtype == "int16"
 
         audio_ = audio.astype("float32")
-        audio_ = processing_utils.convert_to_16_bit_wav(audio_)
+        audio_ = processing_utils.convert_to_16_bit_audio(audio_)
         assert np.allclose(audio, audio_)
         assert audio_.dtype == "int16"
 
-        audio_ = processing_utils.convert_to_16_bit_wav(audio)
+        audio_ = processing_utils.convert_to_16_bit_audio(audio)
         assert np.allclose(audio, audio_)
         assert audio_.dtype == "int16"
+
+    def test_convert_to_16_bit_audio_silence(self):
+        # Regression test: all-zero float input has a peak of 0, which used to
+        # divide by zero and produce NaNs that cast to nonzero int16 garbage,
+        # turning silence into noise. Silence must stay silent.
+        for dtype in ("float16", "float32", "float64"):
+            silence = np.zeros(100, dtype=dtype)
+            converted = processing_utils.convert_to_16_bit_audio(silence)
+            assert converted.dtype == "int16"
+            assert np.all(converted == 0)
+
+    def test_convert_to_16_bit_wav_alias(self):
+        # `convert_to_16_bit_wav` is kept as a backwards-compatible alias.
+        assert (
+            processing_utils.convert_to_16_bit_wav
+            is processing_utils.convert_to_16_bit_audio
+        )
 
 
 class TestOutputPreprocessing:
@@ -607,6 +658,32 @@ async def test_async_private_request_fail():
         await processing_utils.async_ssrf_protected_download(
             "http://192.168.1.250.nip.io/image.png", tempdir.name
         )
+
+
+@pytest.mark.asyncio
+async def test_async_get_private_request_fail():
+    with pytest.raises(ValueError, match="failed validation"):
+        await processing_utils.async_ssrf_protected_get(
+            "http://192.168.1.250.nip.io/image.png"
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_get_redirect_without_location_returns_response(monkeypatch):
+    expected = httpx.Response(
+        302, request=httpx.Request("GET", "https://example.com/image.png")
+    )
+
+    async def mock_get(*args, **kwargs):
+        return expected
+
+    monkeypatch.setattr(processing_utils.sh, "get", mock_get)
+
+    response = await processing_utils.async_ssrf_protected_get(
+        "https://example.com/image.png"
+    )
+
+    assert response is expected
 
 
 class TestAudioFormatDetection:

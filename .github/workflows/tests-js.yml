@@ -50,8 +50,16 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           skip_build: true
+      - name: cache playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
       - name: install playwright
-        run: pnpm exec playwright install
+        timeout-minutes: 3
+        run: pnpm exec playwright install chromium --only-shell
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: format check
