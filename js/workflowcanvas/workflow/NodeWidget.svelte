@@ -23,6 +23,8 @@
 	let { node, widgetPortId, widgetType, isReadonly, ondatachange }: Props =
 		$props();
 
+	let fileInputEl: HTMLInputElement | undefined = $state();
+
 	function getTextValue(): string {
 		const v = node.data?.[widgetPortId];
 		return typeof v === "string" ? v : "";
@@ -102,51 +104,57 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="widget-zone" onmousedown={(e) => e.stopPropagation()}>
+<div class="widget-zone nodrag nopan" class:text-full={widgetType === "text" || widgetType === "json"} onmousedown={(e) => e.stopPropagation()} onpointerdown={(e) => e.stopPropagation()}>
 	{#if widgetType === "text" || widgetType === "json"}
-		<div class="widget-gradio-wrap">
-			<BaseTextbox
-				value={getTextValue()}
-				label="text"
-				show_label={false}
-				lines={widgetType === "json" ? 4 : 3}
-				max_lines={8}
-				placeholder={isReadonly
-					? "Waiting for output..."
-					: widgetType === "json"
-						? '{"key": "value"}'
-						: "Enter text..."}
-				disabled={isReadonly}
-				oninput={(val) => ondatachange(node.id, widgetPortId, val)}
-			/>
+		<div class="widget-text-wrap">
+			<div class="widget-gradio-wrap">
+				<BaseTextbox
+					value={getTextValue()}
+					label="text"
+					show_label={false}
+					lines={widgetType === "json" ? 4 : 3}
+					max_lines={8}
+					placeholder={isReadonly
+						? "Waiting for output..."
+						: widgetType === "json"
+							? '{"key": "value"}'
+							: "Enter text..."}
+					disabled={isReadonly}
+					oninput={(val) => ondatachange(node.id, widgetPortId, val)}
+				/>
+			</div>
 		</div>
 	{:else if widgetType === "number"}
-		{#if isReadonly}
-			<div class="widget-text-display">
-				{getNumberValue()}
-			</div>
-		{:else}
-			<input
-				class="widget-number"
-				type="number"
-				value={getNumberValue()}
-				oninput={handleNumberInput}
-				step="any"
-			/>
-		{/if}
+		<div class="widget-number-wrap">
+			{#if isReadonly}
+				<div class="widget-text-display">
+					{getNumberValue()}
+				</div>
+			{:else}
+				<input
+					class="widget-number"
+					type="number"
+					value={getNumberValue()}
+					oninput={handleNumberInput}
+					step="any"
+				/>
+			{/if}
+		</div>
 	{:else if widgetType === "boolean"}
-		<label class="widget-checkbox-row">
-			<input
-				class="widget-checkbox"
-				type="checkbox"
-				checked={getBooleanValue()}
-				disabled={isReadonly}
-				onchange={handleBooleanInput}
-			/>
-			<span class="widget-checkbox-label"
-				>{getBooleanValue() ? "On" : "Off"}</span
-			>
-		</label>
+		<div class="widget-bool-wrap">
+			<label class="widget-checkbox-row">
+				<input
+					class="widget-checkbox"
+					type="checkbox"
+					checked={getBooleanValue()}
+					disabled={isReadonly}
+					onchange={handleBooleanInput}
+				/>
+				<span class="widget-checkbox-label"
+					>{getBooleanValue() ? "On" : "Off"}</span
+				>
+			</label>
+		</div>
 	{:else if widgetType === "image" || widgetType === "audio" || widgetType === "video" || widgetType === "file" || widgetType === "gallery" || widgetType === "model3d"}
 		{@const fileVal = getFileValue()}
 		{#if fileVal}
@@ -183,15 +191,20 @@
 		{:else if isReadonly}
 			<div class="widget-placeholder">Waiting for output...</div>
 		{:else}
-			<label
-				class="widget-file-drop"
-				ondragover={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-				}}
+			<!-- svelte-ignore a11y_interactive_supports_focus -->
+			<div
+				class="widget-file-drop nodrag nopan"
+				role="button"
+				tabindex="0"
+				onclick={() => fileInputEl?.click()}
+				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputEl?.click(); }}
+				onmousedown={(e) => e.stopPropagation()}
+				onpointerdown={(e) => e.stopPropagation()}
+				ondragover={(e) => { e.preventDefault(); e.stopPropagation(); }}
 				ondrop={handleFileDrop}
 			>
 				<input
+					bind:this={fileInputEl}
 					type="file"
 					accept={widgetType === "image"
 						? "image/*"
@@ -203,17 +216,24 @@
 									? ".glb,.gltf,.obj,.stl"
 									: "*"}
 					onchange={handleFileSelect}
+					style="display: none"
 				/>
 				<span class="widget-drop-text">
 					Drop {widgetType} or click
 				</span>
-			</label>
+			</div>
 		{/if}
 	{/if}
 </div>
 
 <style>
 	/* ─── Gradio Component Wrapper ─── */
+	.widget-text-wrap,
+	.widget-number-wrap,
+	.widget-bool-wrap {
+		padding: 6px 12px 8px;
+	}
+
 	.widget-gradio-wrap {
 		font-size: 12px;
 		--input-text-size: 11px;
@@ -326,8 +346,33 @@
 
 	/* ─── Widget Zone ─── */
 	.widget-zone {
-		padding: 6px 12px 8px;
+		padding: 0;
 		border-top: 1px solid #1e1f2a;
+	}
+
+	.widget-zone.text-full {
+		border-top: none;
+	}
+
+	.widget-zone.text-full .widget-text-wrap {
+		padding: 0;
+	}
+
+	.widget-zone.text-full :global(textarea) {
+		border-radius: 0 0 9px 9px !important;
+		border-top: 1px solid #1e1f2a !important;
+		border-left: none !important;
+		border-right: none !important;
+		border-bottom: none !important;
+		min-height: 120px !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		resize: vertical !important;
+	}
+
+	.widget-zone.text-full :global(textarea:focus) {
+		border-top-color: var(--accent) !important;
+		box-shadow: none !important;
 	}
 
 	.widget-text-display {
@@ -401,18 +446,15 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		height: 60px;
-		border: 1px dashed #24252e;
-		border-radius: 6px;
+		height: 80px;
+		border: none;
+		border-radius: 0 0 10px 10px;
 		background: #101118;
 		cursor: pointer;
-		transition:
-			border-color 0.15s,
-			background 0.15s;
+		transition: background 0.15s;
 	}
 
 	.widget-file-drop:hover {
-		border-color: var(--accent);
 		background: #14151a;
 	}
 
@@ -430,26 +472,23 @@
 		font-size: 10px;
 		color: #2e2f3d;
 		text-align: center;
-		padding: 18px 0;
-		border: 1px dashed #1e1f2a;
-		border-radius: 6px;
+		padding: 24px 0;
 		background: #101118;
+		border-radius: 0 0 10px 10px;
 	}
 
 	.widget-preview {
 		position: relative;
-		border-radius: 6px;
 		overflow: hidden;
-		background: #101118;
-		border: 1px solid #1e1f2a;
+		border-radius: 0 0 10px 10px;
 	}
 
 	.widget-img {
 		display: block;
 		width: 100%;
-		max-height: 140px;
+		max-height: 320px;
 		object-fit: contain;
-		border-radius: 5px;
+		background: #101118;
 	}
 
 	.widget-audio {
@@ -489,5 +528,78 @@
 	.widget-clear:hover {
 		background: rgba(239, 68, 68, 0.7);
 		color: #fff;
+	}
+
+	/* ─── Light mode ─── */
+	:global(body:not(.dark)) .widget-zone {
+		border-top-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .widget-gradio-wrap {
+		--input-background-fill: #f8f9fb;
+		--input-background-fill-focus: #ffffff;
+		--input-border-color: #e2e4ea;
+		--input-placeholder-color: #c0c2cc;
+		--body-text-color: #1a1b25;
+		--layer-1: #f8f9fb;
+		--button-secondary-background-fill: #f0f1f5;
+		--button-secondary-background-fill-hover: #e2e4ea;
+		--button-secondary-text-color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .widget-gradio-wrap :global(textarea),
+	:global(body:not(.dark)) .widget-gradio-wrap :global(input) {
+		background: #f8f9fb !important;
+		color: #1a1b25 !important;
+		border-color: #e2e4ea !important;
+	}
+
+	:global(body:not(.dark)) .widget-gradio-wrap :global(textarea::placeholder),
+	:global(body:not(.dark)) .widget-gradio-wrap :global(input::placeholder) {
+		color: #c0c2cc !important;
+	}
+
+	:global(body:not(.dark)) .widget-text-display {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .widget-number {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .widget-checkbox-label {
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .widget-file-name {
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .widget-file-drop {
+		background: #f8f9fb;
+		border-color: #d0d2dc;
+	}
+
+	:global(body:not(.dark)) .widget-file-drop:hover {
+		background: #f0f1f5;
+	}
+
+	:global(body:not(.dark)) .widget-drop-text {
+		color: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .widget-placeholder {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #b0b2bc;
+	}
+
+	:global(body:not(.dark)) .widget-preview {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
 	}
 </style>

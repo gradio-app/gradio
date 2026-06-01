@@ -5,7 +5,7 @@
 		NodeDataValue,
 		NodeStatus
 	} from "./workflow-types";
-	import { PORT_COLOR, PORT_COLOR_DIM, KIND_LABEL } from "./workflow-types";
+	import { PORT_COLOR, PORT_COLOR_DIM } from "./workflow-types";
 	import { resizeNode, workflow } from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 
@@ -17,12 +17,14 @@
 			type: PortType;
 			x: number;
 			y: number;
+			reversed?: boolean;
 		} | null;
 		onstartconnection: (
 			from_node_id: string,
 			from_port_id: string,
 			type: PortType,
-			e: MouseEvent
+			e: MouseEvent,
+			reversed?: boolean
 		) => void;
 		oncompleteconnection: (
 			to_node_id: string,
@@ -42,6 +44,7 @@
 			portType: PortType,
 			side: "input" | "output"
 		) => void;
+		onopenpicker?: (nodeId: string) => void;
 		connectedPorts: Set<string>;
 		status: NodeStatus;
 		error: string;
@@ -59,6 +62,7 @@
 		ondatachange,
 		onremove,
 		onautoconnect,
+		onopenpicker,
 		connectedPorts,
 		status,
 		error,
@@ -144,6 +148,27 @@
 		return a === "any" || b === "any" || a === b;
 	}
 
+	function firstCompatibleInput(): typeof node.inputs[0] | null {
+		if (!pending || pending.from_node_id === node.id) return null;
+		return (
+			node.inputs.find(
+				(p) =>
+					compatible(pending.type, p.type) &&
+					!connectedPorts.has(`${node.id}:${p.id}:input`)
+			) ?? null
+		);
+	}
+
+	const isDropTarget = $derived(
+		pending !== null &&
+			pending.from_node_id !== node.id &&
+			node.inputs.some(
+				(p) =>
+					compatible(pending.type, p.type) &&
+					!connectedPorts.has(`${node.id}:${p.id}:input`)
+			)
+	);
+
 	$effect(() => {
 		if (!nodeEl) return;
 		const ro = new ResizeObserver(([entry]) => {
@@ -163,8 +188,17 @@
 	class:node-done={status === "done"}
 	class:node-error={status === "error"}
 	class:node-selected={selected}
+	class:node-droptarget={isDropTarget}
+	class:has-pending={pending !== null}
 	bind:this={nodeEl}
 	onclick={() => onselect(node.id)}
+	onmouseup={(e) => {
+		const port = firstCompatibleInput();
+		if (port) {
+			e.stopPropagation();
+			oncompleteconnection(node.id, port.id, port.type);
+		}
+	}}
 	style="
 		left: {node.x}px;
 		top: {node.y}px;
@@ -173,7 +207,6 @@
 		--accent-dim: {accentDim};
 	"
 >
-	<div class="node-top-accent"></div>
 
 	<div
 		class="node-header"
@@ -185,10 +218,7 @@
 			{#if status === "running"}
 				<span class="node-status-spinner"></span>
 			{/if}
-			<span class="kind-tag"
-				>{KIND_LABEL[mode] ?? KIND_LABEL[node.kind] ?? "?"}</span
-			>
-			{#if editingLabel}
+{#if editingLabel}
 				<input
 					bind:this={labelInput}
 					class="node-label-input"
@@ -218,15 +248,34 @@
 				title="Delete node">&times;</button
 			>
 		</div>
-		{#if node.source === "space" && node.space_id}
-			<a
-				class="source-badge"
-				href="https://huggingface.co/spaces/{node.space_id}"
-				target="_blank"
-				rel="noopener"
-				title={node.space_id}
-				onmousedown={(e) => e.stopPropagation()}>{node.space_id}</a
-			>
+		{#if node.kind === "transform" && node.source === "space"}
+			{#if node.space_id}
+				<button
+					class="source-badge source-badge-btn"
+					title="Click to change model"
+					onmousedown={(e) => e.stopPropagation()}
+					onclick={(e) => {
+						e.stopPropagation();
+						onopenpicker?.(node.id);
+					}}
+				>
+					<span class="source-badge-text">{node.space_id}</span>
+					<span class="source-badge-edit">✎</span>
+				</button>
+			{:else}
+				<button
+					class="source-badge source-badge-empty"
+					onmousedown={(e) => e.stopPropagation()}
+					onclick={(e) => {
+						e.stopPropagation();
+						onopenpicker?.(node.id);
+					}}
+				>
+					Search for a model...
+				</button>
+			{/if}
+		{:else if node.source === "space" && node.space_id}
+			<span class="source-badge">{node.space_id}</span>
 		{/if}
 	</div>
 
@@ -234,7 +283,7 @@
 	{#if node.inputs.length > 0}
 		{@const collapsible = node.inputs.length > INPUT_COLLAPSE_THRESHOLD}
 		{@const hiddenCount = node.inputs.length - INPUT_COLLAPSE_THRESHOLD}
-		<div class="ports">
+		<div class="ports" class:widget-ports={hasWidget}>
 			{#each node.inputs as port, i}
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
@@ -242,17 +291,7 @@
 				{@const visible =
 					showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
 				{#if visible}
-					<div class="port-row input-row">
-						{#if !portConnected && !pending}
-							<button
-								class="port-auto-btn"
-								style="--port-color: {PORT_COLOR[port.type]}"
-								onmousedown={(e) => e.stopPropagation()}
-								onclick={() =>
-									onautoconnect(node.id, port.id, port.type, "input")}
-								title="Add {port.type} input">+</button
-							>
-						{/if}
+					<div class="port-row input-row" class:widget-port={hasWidget}>
 						<span
 							class="port-dot input-dot"
 							class:port-optional={port.required === false}
@@ -265,17 +304,40 @@
 							data-port-id="{node.id}:{port.id}:input"
 							role="button"
 							tabindex="-1"
-							onmouseup={() =>
-								oncompleteconnection(node.id, port.id, port.type)}
+							onmousedown={(e) => {
+							if (!pending) {
+								e.stopPropagation();
+								const sx = e.clientX, sy = e.clientY;
+								let fired = false;
+								function onMove(mv: MouseEvent) {
+									if (!fired && (Math.abs(mv.clientX - sx) > 4 || Math.abs(mv.clientY - sy) > 4)) {
+										fired = true;
+										onstartconnection(node.id, port.id, port.type, mv, true);
+									}
+								}
+								function onUp() {
+									window.removeEventListener("mousemove", onMove);
+									window.removeEventListener("mouseup", onUp);
+								}
+								window.addEventListener("mousemove", onMove);
+								window.addEventListener("mouseup", onUp);
+							}
+						}}
+						onmouseup={(e) => {
+							e.stopPropagation();
+							oncompleteconnection(node.id, port.id, port.type);
+						}}
 						></span>
-						<span
-							class="port-label"
-							class:port-label-optional={port.required === false}
-							>{port.label}</span
-						>
-						<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
-							>{port.type}</span
-						>
+						{#if !hasWidget}
+							<span
+								class="port-label"
+								class:port-label-optional={port.required === false}
+								>{port.label}</span
+							>
+							<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
+								>{port.type}</span
+							>
+						{/if}
 					</div>
 					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -357,16 +419,18 @@
 
 	<!-- Output ports -->
 	{#if node.outputs.length > 0}
-		<div class="ports">
+		<div class="ports" class:widget-ports={hasWidget}>
 			{#each node.outputs as port}
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:output`
 				)}
-				<div class="port-row output-row">
-					<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
-						>{port.type}</span
-					>
-					<span class="port-label">{port.label}</span>
+				<div class="port-row output-row" class:widget-port={hasWidget}>
+					{#if !hasWidget}
+						<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
+							>{port.type}</span
+						>
+						<span class="port-label">{port.label}</span>
+					{/if}
 					<span
 						class="port-dot output-dot"
 						style="--port-color: {PORT_COLOR[port.type]}"
@@ -376,16 +440,6 @@
 						onmousedown={(e) =>
 							onstartconnection(node.id, port.id, port.type, e)}
 					></span>
-					{#if !portConnected && !pending}
-						<button
-							class="port-auto-btn"
-							style="--port-color: {PORT_COLOR[port.type]}"
-							onmousedown={(e) => e.stopPropagation()}
-							onclick={() =>
-								onautoconnect(node.id, port.id, port.type, "output")}
-							title="Add {port.type} output">+</button
-						>
-					{/if}
 				</div>
 			{/each}
 		</div>
@@ -407,7 +461,7 @@
 		min-height: 90px;
 		user-select: none;
 		font-family: "Manrope", sans-serif;
-		overflow: hidden;
+		overflow: visible;
 		transition:
 			box-shadow 0.2s,
 			border-color 0.3s;
@@ -428,6 +482,13 @@
 			0 0 0 1px #f97316,
 			0 0 16px rgba(249, 115, 22, 0.15);
 		z-index: 3;
+	}
+
+	.wf-node.node-droptarget {
+		border-color: var(--accent);
+		box-shadow:
+			0 0 0 1px var(--accent),
+			0 0 20px var(--accent-dim);
 	}
 
 	.wf-node.node-running {
@@ -474,12 +535,6 @@
 		flex-shrink: 0;
 	}
 
-	.node-top-accent {
-		height: 2px;
-		background: linear-gradient(90deg, var(--accent), transparent);
-		opacity: 0.7;
-	}
-
 	.node-header {
 		display: flex;
 		flex-direction: column;
@@ -499,19 +554,7 @@
 		gap: 7px;
 	}
 
-	.kind-tag {
-		font-family: "JetBrains Mono", monospace;
-		font-size: 9px;
-		font-weight: 700;
-		letter-spacing: 0.06em;
-		padding: 2px 5px;
-		border-radius: 3px;
-		background: var(--accent-dim);
-		color: var(--accent);
-		line-height: 1;
-	}
-
-	.node-label {
+.node-label {
 		font-size: 12.5px;
 		font-weight: 600;
 		color: #d5d6de;
@@ -520,6 +563,10 @@
 		flex: 1;
 		min-width: 0;
 		overflow: hidden;
+		padding: 1px 4px;
+		border: 1px solid transparent;
+		border-radius: 4px;
+		box-sizing: border-box;
 		mask-image: linear-gradient(
 			to right,
 			black calc(100% - 24px),
@@ -570,37 +617,46 @@
 		background: #2a2b36;
 	}
 
-	.port-auto-btn {
-		display: none;
-		width: 16px;
-		height: 16px;
-		border: 1px solid var(--port-color);
-		border-radius: 3px;
-		background: transparent;
-		color: var(--port-color);
-		font-size: 12px;
-		font-weight: 700;
-		line-height: 1;
-		cursor: pointer;
-		align-items: center;
-		justify-content: center;
-		padding: 0;
-		flex-shrink: 0;
-		opacity: 0.6;
-		transition:
-			opacity 0.15s,
-			background 0.15s;
-	}
-
-	.wf-node:hover .port-auto-btn {
+	.source-badge-btn {
 		display: flex;
+		align-items: center;
+		gap: 4px;
+		border: none;
+		cursor: pointer;
+		max-width: 100%;
 	}
 
-	.port-auto-btn:hover {
-		opacity: 1;
-		background: var(--port-color);
-		color: #0c0d10;
+	.source-badge-text {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
+
+	.source-badge-edit {
+		font-size: 9px;
+		opacity: 0;
+		transition: opacity 0.15s;
+		flex-shrink: 0;
+	}
+
+	.source-badge-btn:hover .source-badge-edit {
+		opacity: 1;
+	}
+
+	.source-badge-empty {
+		border: 1px dashed #2a2b36;
+		background: transparent;
+		color: #3e4050;
+		cursor: pointer;
+		font-size: 9px;
+	}
+
+	.source-badge-empty:hover {
+		border-color: #f97316;
+		color: #f97316;
+		background: rgba(249, 115, 22, 0.06);
+	}
+
 
 	.node-delete {
 		display: none;
@@ -635,15 +691,32 @@
 		padding: 6px 0 8px;
 	}
 
+	.ports.widget-ports {
+		padding: 0;
+	}
+
+	.port-row.widget-port {
+		padding: 0;
+		min-height: 0;
+		position: static;
+	}
+
 	.port-row {
 		display: flex;
 		align-items: center;
 		gap: 7px;
 		padding: 4px 12px;
+		position: relative;
+		min-height: 22px;
+	}
+
+	.input-row {
+		padding-left: 20px;
 	}
 
 	.output-row {
 		justify-content: flex-end;
+		padding-right: 20px;
 	}
 
 	.port-label {
@@ -661,23 +734,44 @@
 	}
 
 	.port-dot {
-		width: 10px;
-		height: 10px;
+		width: 12px;
+		height: 12px;
 		border-radius: 50%;
 		border: 2px solid var(--port-color);
-		background: #16171f;
+		background: #0c0d10;
 		cursor: crosshair;
 		flex-shrink: 0;
+		opacity: 0;
 		transition:
+			opacity 0.15s,
 			transform 0.15s,
 			background 0.15s,
 			border-color 0.15s,
 			box-shadow 0.15s;
-		position: relative;
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+	.wf-node:hover .port-dot,
+	.node-selected .port-dot,
+	.has-pending .port-dot {
+		opacity: 1;
+	}
+
+	.input-dot {
+		left: -24px;
+	}
+
+	.output-dot {
+		right: -24px;
+		border-radius: 2px;
+		transform: translateY(-50%) rotate(45deg);
 	}
 
 	.port-filled {
 		background: var(--port-color);
+		box-shadow: 0 0 6px var(--port-color);
 	}
 
 	.port-optional {
@@ -689,19 +783,14 @@
 		opacity: 0.5;
 	}
 
-	.output-dot {
-		border-radius: 2px;
-		transform: rotate(45deg);
-	}
-
 	.port-dot:hover {
-		transform: scale(1.4);
+		transform: translateY(-50%) scale(1.4);
 		background: var(--port-color);
 		box-shadow: 0 0 6px var(--port-color);
 	}
 
 	.output-dot:hover {
-		transform: rotate(45deg) scale(1.4);
+		transform: translateY(-50%) rotate(45deg) scale(1.4);
 	}
 
 	.port-dot.pulse {
@@ -720,12 +809,12 @@
 
 	@keyframes port-snap-anim {
 		0% {
-			transform: scale(2);
+			transform: translateY(-50%) scale(2);
 			background: var(--port-color);
 			box-shadow: 0 0 12px var(--port-color);
 		}
 		100% {
-			transform: scale(1);
+			transform: translateY(-50%) scale(1);
 		}
 	}
 
@@ -746,6 +835,7 @@
 		color: #fca5a5;
 		background: rgba(239, 68, 68, 0.1);
 		border-top: 1px solid rgba(239, 68, 68, 0.2);
+		border-radius: 0 0 10px 10px;
 		padding: 6px 12px;
 		line-height: 1.4;
 		word-break: break-word;
@@ -776,7 +866,7 @@
 
 	/* ─── Inline Config ─── */
 	.port-inline-config {
-		padding: 2px 12px 4px 30px;
+		padding: 2px 12px 4px 20px;
 	}
 
 	.inline-input {

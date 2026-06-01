@@ -10,6 +10,7 @@
 			type: PortType;
 			x: number;
 			y: number;
+			reversed?: boolean;
 		} | null;
 		onremove: (id: string) => void;
 		zoom: number;
@@ -38,8 +39,11 @@
 		if (dotEl && transformEl) {
 			const dotRect = dotEl.getBoundingClientRect();
 			const transformRect = transformEl.getBoundingClientRect();
+			const edgeX = side === "output"
+				? dotRect.right - transformRect.left
+				: dotRect.left - transformRect.left;
 			return {
-				x: (dotRect.left + dotRect.width / 2 - transformRect.left) / zoom,
+				x: edgeX / zoom,
 				y: (dotRect.top + dotRect.height / 2 - transformRect.top) / zoom
 			};
 		}
@@ -50,7 +54,8 @@
 		const ports = side === "output" ? node.outputs : node.inputs;
 		const idx = ports.findIndex((p) => p.id === portId);
 		const portIndex = idx >= 0 ? idx : 0;
-		const x = side === "output" ? node.x + node.width : node.x;
+		const DOT_OUTSET = 24;
+		const x = side === "output" ? node.x + node.width + DOT_OUTSET : node.x - DOT_OUTSET;
 		const headerH = node.source === "space" && node.space_id ? 60 : 44;
 		if (side === "input") {
 			return { x, y: node.y + headerH + portIndex * 26 };
@@ -132,29 +137,19 @@
 			stroke-opacity="0.5"
 			style="pointer-events: none"
 		/>
-		<!-- end diamond -->
-		{@const ds = 3.5 / zoom}
-		<rect
-			x={to.x - ds}
-			y={to.y - ds}
-			width={ds * 2}
-			height={ds * 2}
-			rx={1 / zoom}
-			fill={PORT_COLOR[edge.type]}
-			transform="rotate(45 {to.x} {to.y})"
-			style="pointer-events: none"
-		/>
 	{/each}
 
 	{#if pending}
-		{@const from = getPortPos(
+		{@const anchor = getPortPos(
 			$workflow.nodes,
 			pending.from_node_id,
 			pending.from_port_id,
-			"output"
+			pending.reversed ? "input" : "output"
 		)}
 		<path
-			d={bez(from.x, from.y, pending.x, pending.y)}
+			d={pending.reversed
+				? bez(pending.x, pending.y, anchor.x, anchor.y)
+				: bez(anchor.x, anchor.y, pending.x, pending.y)}
 			fill="none"
 			stroke={PORT_COLOR[pending.type] ?? "#5c5e6a"}
 			stroke-width={2 / zoom}

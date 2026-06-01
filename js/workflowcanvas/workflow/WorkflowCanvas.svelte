@@ -1,7 +1,18 @@
 <script lang="ts">
-	import WorkflowNode from "./WorkflowNode.svelte";
-	import WorkflowEdges from "./WorkflowEdges.svelte";
-	import WorkflowSidebar from "./WorkflowSidebar.svelte";
+	import { setContext } from "svelte";
+
+	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
+	import WorkflowBottomBar from "./WorkflowBottomBar.svelte";
+	import NodeModelPicker from "./NodeModelPicker.svelte";
+	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
+
+	import {
+		MODALITIES,
+		DATASET_MODALITY,
+		portMeta,
+		modalityForPort
+	} from "./workflow-modalities";
+	import type { ModalityConfig } from "./workflow-modalities";
 	import { fetchSpaceApi } from "./space-api";
 	import {
 		workflow,
@@ -10,15 +21,42 @@
 		addEdge,
 		removeEdge,
 		updateNodeData,
-		removeNode
+		removeNode,
+		replaceNodeSource
 	} from "./workflow-store";
+	import { migrateToV2, toLegacyShape } from "./workflow-migration";
 	import { PORT_COLOR } from "./workflow-types";
-	import type { PortType, WFNode, WFEdge, NodeStatus } from "./workflow-types";
+	import type {
+		PortType,
+		WFNode,
+		WFEdge,
+		NodeStatus,
+		NodeRole
+	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
-	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
-	import { TEMPLATES } from "./workflow-templates";
-	import { LIBRARY, categorizeSpace } from "./node-library";
+	import { streamTextGeneration } from "./inference-stream";
+	import {
+		findFreeSpot as findFreeSpotImpl,
+		topoSort,
+		resolveCurrentInputs as resolveCurrentInputsImpl,
+		computeStaleNodes,
+		buildUpstreamSubgraph as buildUpstreamSubgraphImpl
+	} from "./workflow-graph";
+	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
+
+	/**
+	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
+	 * picker use `kind: "component" | "transform"` — map them to v2 roles here.
+	 * Subjects aren't auto-created by templates today; they're created when an
+	 * edge wires into a reference (future enhancement). For now, components default
+	 * to reference.
+	 */
+	function templateRole(template: any): NodeRole {
+		if (template?.role) return template.role;
+		if (template?.kind === "transform") return "operator";
+		return "reference";
+	}
 
 	let {
 		server = {},
@@ -26,59 +64,6 @@
 	}: { server?: Record<string, any>; initialValue?: string | null } = $props();
 
 	const auth = createHFAuth(() => server);
-
-	interface TrendingSpace {
-		id: string;
-		title: string;
-		description: string;
-		likes: number;
-		running: boolean;
-		category: string | null;
-	}
-
-	let trendingSpaces: TrendingSpace[] = $state([]);
-	let trendingLoading = $state(true);
-
-	async function fetchTrending() {
-		if (!server?.search_spaces) {
-			trendingLoading = false;
-			return;
-		}
-		try {
-			const raw = await server.search_spaces(["trending", "", ""]);
-			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			if (!Array.isArray(data)) {
-				trendingSpaces = [];
-				return;
-			}
-			trendingSpaces = data
-				.map((s: any) => {
-					const desc = s.cardData?.short_description || "";
-					return {
-						id: s.id,
-						title: s.cardData?.title || s.id.split("/").pop() || s.id,
-						description: desc,
-						likes: s.likes ?? 0,
-						running: s.runtime?.stage === "RUNNING",
-						category: categorizeSpace(
-							s.cardData?.pipeline_tag,
-							s.cardData?.tags,
-							desc,
-							s.id
-						)
-					};
-				})
-				.filter((s: TrendingSpace) => s.category !== null && s.running);
-		} catch {
-			trendingSpaces = [];
-		} finally {
-			trendingLoading = false;
-		}
-	}
-
-	if (typeof window !== "undefined") {
-		fetchTrending();
-	}
 
 	$effect(() => {
 		if (server?.get_token) {
@@ -89,11 +74,10 @@
 	$effect(() => {
 		if (!initialValue) return;
 		try {
-			const wf = JSON.parse(initialValue);
-			if (wf.nodes && wf.edges) {
-				wf.nodes = wf.nodes.map((n: any) => ({ ...n, data: n.data ?? {} }));
-				workflow.set(wf);
-			}
+			const parsed = JSON.parse(initialValue);
+			// Migration handles both v1 (legacy workflow.json files) and v2.
+			const v2 = migrateToV2(parsed);
+			workflow.set(v2);
 		} catch {}
 	});
 
@@ -112,24 +96,57 @@
 		return () => window.removeEventListener("keydown", handleKeydown);
 	});
 
+	// ─── Canvas state ───────────────────────────────────────────────────────────
+	let viewport = $state({ x: 0, y: 0, zoom: 1 });
+
+	// Pointer interaction state: track which kind of drag is happening so
+	// pointermove/up know what to do. Mutually exclusive — at most one mode.
+	type DragMode =
+		| { kind: "pan"; startX: number; startY: number; vx: number; vy: number }
+		| {
+			kind: "node";
+			nodeId: string;
+			startClientX: number;
+			startClientY: number;
+			startNodeX: number;
+			startNodeY: number;
+		}
+		| {
+			kind: "connection";
+			fromNodeId: string;
+			fromPortId: string;
+			type: PortType;
+			reversed: boolean;
+			cursorCanvasX: number;
+			cursorCanvasY: number;
+		};
+	let dragMode = $state<DragMode | null>(null);
+
+	// ─── App state ──────────────────────────────────────────────────────────────
 	let canvasEl: HTMLDivElement;
+	let running = $state(false);
+	let abortController: AbortController | null = null;
+	let nodeStatus: Record<string, NodeStatus> = $state({});
+	let nodeErrors: Record<string, string> = $state({});
+	/**
+	 * Snapshot of resolved inputs at the moment a node last completed. Used
+	 * to flag nodes as stale when their current inputs differ from the
+	 * snapshot — i.e. an upstream value changed but this node hasn't been
+	 * re-run yet. Pattern lifted from gradio-app/daggr.
+	 */
+	let nodeInputSnapshots: Record<string, string> = $state({});
+	let editingName = $state(false);
+	let selectedNodeId: string | null = $state(null);
+	let showShortcuts = $state(false);
+	let nameInput: HTMLInputElement = $state()!;
 
 	type Pending = {
 		from_node_id: string;
 		from_port_id: string;
 		type: PortType;
-		x: number;
-		y: number;
+		reversed?: boolean;
 	};
-	let pending: Pending | null = $state(null);
-	let mouseViewport = $state({ x: 0, y: 0 });
-	let running = $state(false);
-	let abortController: AbortController | null = null;
-	let nodeStatus: Record<string, NodeStatus> = $state({});
-	let nodeErrors: Record<string, string> = $state({});
-	let editingName = $state(false);
-	let selectedNodeId: string | null = $state(null);
-	let showShortcuts = $state(false);
+	let activeConnection: Pending | null = $state(null);
 
 	interface WfToast {
 		id: number;
@@ -152,76 +169,616 @@
 			}, ms);
 	}
 
-	let panX = $state(0);
-	let panY = $state(0);
-	let zoom = $state(1);
-	let isPanning = $state(false);
-	let panStart = { x: 0, y: 0, panX: 0, panY: 0 };
-	let nameInput: HTMLInputElement;
-	let nodeCount = $derived($workflow.nodes.length);
-	let hasTransforms = $derived(
-		$workflow.nodes.some((n) => n.kind === "transform")
-	);
-	let edgeCount = $derived($workflow.edges.length);
+	// v1-shaped projection of the v2 store for reads only. The executor + most
+	// of this file's read paths still speak v1; writes go through the v2 store
+	// actions directly. When studio view lands, those reads can switch to the
+	// role-aware v2 arrays.
+	const legacyView = $derived(toLegacyShape($workflow));
 
-	function toCanvas(e: MouseEvent): { x: number; y: number } {
-		const r = canvasEl.getBoundingClientRect();
+	const gridTile = $derived.by(() => {
+		let tile = 22 * viewport.zoom;
+		while (tile < 16) tile *= 2;
+		return tile;
+	});
+
+	const nodeCount = $derived(legacyView.nodes.length);
+	const hasTransforms = $derived($workflow.operators.length > 0);
+	const edgeCount = $derived($workflow.edges.length);
+
+	const connectedPortsSet = $derived(() => {
+		const set = new Set<string>();
+		for (const e of $workflow.edges) {
+			set.add(`${e.from_node_id}:${e.from_port_id}:output`);
+			set.add(`${e.to_node_id}:${e.to_port_id}:input`);
+		}
+		return set;
+	});
+
+	interface ActivePicker {
+		mode: "create" | "update";
+		modality: ModalityConfig;
+		nodeId?: string;
+		anchorX?: number;
+		anchorY?: number;
+		initialSource?: "spaces" | "models" | "datasets";
+		initialSubtab?: string;
+	}
+	let activePicker: ActivePicker | null = $state(null);
+
+	interface PendingDrop {
+		from_node_id: string;
+		from_port_id: string;
+		type: PortType;
+		x: number;
+		y: number;
+		reversed?: boolean;
+		positionOnly?: boolean;
+	}
+	let pendingDrop: PendingDrop | null = $state(null);
+
+	interface DropOption {
+		kind: "model" | "component";
+		label: string;
+		subtab?: string;
+	}
+	interface DropChoice {
+		clientX: number;
+		clientY: number;
+		modelOptions: DropOption[];
+		componentOptions: DropOption[];
+		/** true → user dragged from an input port (needs a Source);
+		 *  false → user dragged from an output port (needs an Output sink). */
+		reversed: boolean;
+	}
+	let dropChoice: DropChoice | null = $state(null);
+
+	interface DoubleClickMenu {
+		clientX: number;
+		clientY: number;
+		canvasX: number;
+		canvasY: number;
+	}
+	let doubleClickMenu: DoubleClickMenu | null = $state(null);
+
+	function inputOutputLabel(type: PortType, reversed: boolean): string {
+		const base = portMeta(type)?.label ?? "File";
+		// When dragging from an input (reversed), media types want an "Upload"
+		// affordance; scalar types reuse their own label as the source widget.
+		if (reversed) {
+			const scalar = type === "text" || type === "number" || type === "json" || type === "boolean";
+			return scalar ? base : "Upload";
+		}
+		return base;
+	}
+
+	// ─── Context for node components ────────────────────────────────────────────
+	const wfCtx = $state({
+		pending: null as Pending | null,
+		nodeStatus: {} as Record<string, NodeStatus>,
+		nodeErrors: {} as Record<string, string>,
+		staleNodes: new Set<string>(),
+		connectedPorts: new Set<string>(),
+		ondatachange: updateNodeData,
+		onremove: (id: string) => removeNode(id),
+		onopenpicker: (id: string) => openPickerForNode(id),
+		onrunnode: (id: string) => void runNode(id),
+		onselect: (id: string) => selectNode(id),
+		onnodepointerdown: (e: PointerEvent, id: string) => startNodeDrag(e, id),
+		onportpointerdown: (
+			e: PointerEvent,
+			nodeId: string,
+			portId: string,
+			type: PortType,
+			isInput: boolean
+		) => startConnection(e, nodeId, portId, type, isInput)
+	});
+	setContext("wf", wfCtx);
+
+	$effect(() => { wfCtx.pending = activeConnection; });
+	$effect(() => { wfCtx.nodeStatus = nodeStatus; });
+	$effect(() => { wfCtx.nodeErrors = nodeErrors; });
+	$effect(() => { wfCtx.staleNodes = staleNodes; });
+	$effect(() => { wfCtx.connectedPorts = connectedPortsSet(); });
+
+	// ─── Custom canvas event handlers ───────────────────────────────────────────
+	// v1 port compatibility policy: exact-match or `any` wildcard. No subtyping
+	// (e.g. gallery ↔ image) — that's a v2 extension layered on top of this
+	// single predicate. If you change this rule, change it here only.
+	function compatible(a: PortType, b: PortType): boolean {
+		return a === "any" || b === "any" || a === b;
+	}
+
+	function clientToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+		const r = canvasEl?.getBoundingClientRect();
+		if (!r) return { x: 0, y: 0 };
 		return {
-			x: (e.clientX - r.left - panX) / zoom,
-			y: (e.clientY - r.top - panY) / zoom
+			x: (clientX - r.left - viewport.x) / viewport.zoom,
+			y: (clientY - r.top - viewport.y) / viewport.zoom
 		};
 	}
 
-	function startConnection(
-		from_node_id: string,
-		from_port_id: string,
-		type: PortType,
-		e: MouseEvent
-	): void {
-		pending = { from_node_id, from_port_id, type, ...toCanvas(e) };
-	}
-
-	function completeConnection(
-		to_node_id: string,
-		to_port_id: string,
-		to_type: PortType
-	): void {
-		if (!pending) return;
-		if (!compatible(pending.type, to_type)) {
-			pending = null;
+	function onCanvasPointerDown(e: PointerEvent): void {
+		if (e.button !== 0) return;
+		const target = e.target as HTMLElement;
+		// Only start pan when clicking truly empty canvas — not nodes, edges, ports, UI
+		if (target.closest(".node-pos-wrap, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar")) {
 			return;
 		}
-		addEdge({
-			from_node_id: pending.from_node_id,
-			from_port_id: pending.from_port_id,
-			to_node_id,
-			to_port_id,
-			type: pending.type
-		});
-		pending = null;
-		const dot = document.querySelector(
-			`[data-port-id="${to_node_id}:${to_port_id}:input"]`
-		);
-		if (dot) {
-			dot.classList.add("port-snap");
-			setTimeout(() => dot.classList.remove("port-snap"), 400);
+		dragMode = {
+			kind: "pan",
+			startX: e.clientX,
+			startY: e.clientY,
+			vx: viewport.x,
+			vy: viewport.y
+		};
+		canvasEl.setPointerCapture(e.pointerId);
+	}
+
+	function onWheel(e: WheelEvent): void {
+		if (!canvasEl) return;
+		e.preventDefault();
+		const r = canvasEl.getBoundingClientRect();
+		const cx = e.clientX - r.left;
+		const cy = e.clientY - r.top;
+		const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+		const oldZoom = viewport.zoom;
+		const newZoom = Math.max(0.15, Math.min(4, oldZoom * factor));
+		viewport = {
+			x: cx - (cx - viewport.x) * (newZoom / oldZoom),
+			y: cy - (cy - viewport.y) * (newZoom / oldZoom),
+			zoom: newZoom
+		};
+	}
+
+	function startNodeDrag(e: PointerEvent, nodeId: string): void {
+		if (e.button !== 0) return;
+		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		if (!node) return;
+		e.stopPropagation();
+		dragMode = {
+			kind: "node",
+			nodeId,
+			startClientX: e.clientX,
+			startClientY: e.clientY,
+			startNodeX: node.x,
+			startNodeY: node.y
+		};
+		canvasEl?.setPointerCapture(e.pointerId);
+	}
+
+	function startConnection(
+		e: PointerEvent,
+		nodeId: string,
+		portId: string,
+		type: PortType,
+		isInput: boolean
+	): void {
+		if (e.button !== 0) return;
+		e.stopPropagation();
+		const { x, y } = clientToCanvas(e.clientX, e.clientY);
+		dragMode = {
+			kind: "connection",
+			fromNodeId: nodeId,
+			fromPortId: portId,
+			type,
+			reversed: isInput,
+			cursorCanvasX: x,
+			cursorCanvasY: y
+		};
+		activeConnection = { from_node_id: nodeId, from_port_id: portId, type, reversed: isInput };
+		canvasEl?.setPointerCapture(e.pointerId);
+	}
+
+	function onCanvasPointerMove(e: PointerEvent): void {
+		if (!dragMode) return;
+		if (dragMode.kind === "pan") {
+			viewport = {
+				...viewport,
+				x: dragMode.vx + (e.clientX - dragMode.startX),
+				y: dragMode.vy + (e.clientY - dragMode.startY)
+			};
+		} else if (dragMode.kind === "node") {
+			const dx = (e.clientX - dragMode.startClientX) / viewport.zoom;
+			const dy = (e.clientY - dragMode.startClientY) / viewport.zoom;
+			moveNode(dragMode.nodeId, dragMode.startNodeX + dx, dragMode.startNodeY + dy);
+		} else if (dragMode.kind === "connection") {
+			const { x, y } = clientToCanvas(e.clientX, e.clientY);
+			dragMode = { ...dragMode, cursorCanvasX: x, cursorCanvasY: y };
 		}
 	}
 
-	function compatible(a: PortType, b: PortType): boolean {
-		return a === "any" || b === "any" || a === b;
+	function onCanvasPointerUp(e: PointerEvent): void {
+		if (!dragMode) return;
+		const mode = dragMode;
+		if (mode.kind === "connection") {
+			activeConnection = null;
+			const targetEl = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+
+			// 1. Precise hit on a port handle — use it directly.
+			const portEl = targetEl?.closest("[data-port-id]") as HTMLElement | null;
+			if (portEl) {
+				const toNodeId = portEl.getAttribute("data-node-id");
+				const toPortId = portEl.getAttribute("data-port-id");
+				const toIsInput = portEl.getAttribute("data-port-direction") === "input";
+				if (toNodeId && toPortId && toNodeId !== mode.fromNodeId) {
+					tryCreateEdge(
+						mode.fromNodeId,
+						mode.fromPortId,
+						mode.reversed,
+						toNodeId,
+						toPortId,
+						toIsInput
+					);
+				}
+				dragMode = null;
+				try { canvasEl?.releasePointerCapture(e.pointerId); } catch {}
+				return;
+			}
+
+			// 2. Fuzzy hit — dropped on a node body, not its port. Find the first
+			// compatible free port on that node and use it. This is what users
+			// usually mean: "connect to that node", not "to that 12px circle."
+			const nodeWrap = targetEl?.closest("[data-node-id]") as HTMLElement | null;
+			const droppedNodeId = nodeWrap?.getAttribute("data-node-id");
+			if (droppedNodeId && droppedNodeId !== mode.fromNodeId) {
+				const autoPort = pickCompatiblePort(droppedNodeId, mode.type, mode.reversed);
+				if (autoPort) {
+					tryCreateEdge(
+						mode.fromNodeId,
+						mode.fromPortId,
+						mode.reversed,
+						droppedNodeId,
+						autoPort.id,
+						autoPort.direction === "input"
+					);
+					dragMode = null;
+					try { canvasEl?.releasePointerCapture(e.pointerId); } catch {}
+					return;
+				}
+			}
+
+			// 3. Empty drop — open the drop-choice menu so the user can spawn a new node.
+			const r = canvasEl?.getBoundingClientRect();
+			if (r) {
+				const drop: PendingDrop = {
+					from_node_id: mode.fromNodeId,
+					from_port_id: mode.fromPortId,
+					type: mode.type,
+					x: mode.cursorCanvasX,
+					y: mode.cursorCanvasY,
+					reversed: mode.reversed
+				};
+				const choice: DropChoice = {
+					clientX: e.clientX - r.left,
+					clientY: e.clientY - r.top,
+					modelOptions: buildModelOptions(mode.type),
+					componentOptions: buildComponentOptions(mode.type, mode.reversed),
+					reversed: mode.reversed
+				};
+				setTimeout(() => {
+					pendingDrop = drop;
+					dropChoice = choice;
+				}, 0);
+			}
+		}
+		dragMode = null;
+		try {
+			canvasEl?.releasePointerCapture(e.pointerId);
+		} catch {}
+	}
+
+	/**
+	 * Choose the best port on `nodeId` for a connection of `type` whose source
+	 * is reversed/forward. Forward = we're dragging an output, so we want an
+	 * unconnected input on the target; reversed = we're dragging an input, so
+	 * we want any output on the target. Returns null if nothing fits.
+	 */
+	function pickCompatiblePort(
+		nodeId: string,
+		type: PortType,
+		reversed: boolean
+	): { id: string; direction: "input" | "output" } | null {
+		const target = legacyView.nodes.find((n) => n.id === nodeId);
+		if (!target) return null;
+		if (reversed) {
+			// Looking for an OUTPUT on the target
+			const out = target.outputs.find((p) => compatible(p.type, type));
+			return out ? { id: out.id, direction: "output" } : null;
+		}
+		// Looking for an unconnected INPUT on the target
+		const inPort = target.inputs.find(
+			(p) =>
+				compatible(type, p.type) &&
+				!$workflow.edges.some(
+					(e) => e.to_node_id === nodeId && e.to_port_id === p.id
+				)
+		);
+		return inPort ? { id: inPort.id, direction: "input" } : null;
+	}
+
+	/**
+	 * Cache of measured port-handle centers in canvas-space. Re-populated after
+	 * any node change via the effect below; canvas coords are invariant to
+	 * pan/zoom so we don't need to re-measure on viewport changes.
+	 */
+	let portPositions = $state(new Map<string, { x: number; y: number }>());
+
+	function portKey(
+		nodeId: string,
+		portId: string,
+		direction: "input" | "output"
+	): string {
+		return `${nodeId}:${portId}:${direction}`;
+	}
+
+	$effect(() => {
+		legacyView.nodes;
+		// Defer until after Svelte commits this render so the handle elements
+		// have their final positions in the DOM.
+		const raf = requestAnimationFrame(() => {
+			if (!canvasEl) return;
+			const cr = canvasEl.getBoundingClientRect();
+			const next = new Map<string, { x: number; y: number }>();
+			canvasEl.querySelectorAll<HTMLElement>("[data-port-id]").forEach((el) => {
+				const nodeId = el.getAttribute("data-node-id");
+				const portId = el.getAttribute("data-port-id");
+				const dir = el.getAttribute("data-port-direction") as
+					| "input"
+					| "output"
+					| null;
+				if (!nodeId || !portId || !dir) return;
+				const r = el.getBoundingClientRect();
+				const cx = r.left + r.width / 2 - cr.left;
+				const cy = r.top + r.height / 2 - cr.top;
+				next.set(portKey(nodeId, portId, dir), {
+					x: (cx - viewport.x) / viewport.zoom,
+					y: (cy - viewport.y) / viewport.zoom
+				});
+			});
+			portPositions = next;
+		});
+		return () => cancelAnimationFrame(raf);
+	});
+
+	/**
+	 * Canvas-space position of a port handle. Uses the measured DOM position
+	 * when available; falls back to a coarse estimate for the first paint
+	 * before the measurement effect has run (handles are ~24px outside the
+	 * node edge, so the heuristic offsets X by ±18 to hit the handle center).
+	 */
+	function portPos(
+		nodeId: string,
+		portId: string,
+		direction: "input" | "output"
+	): { x: number; y: number } | null {
+		const measured = portPositions.get(portKey(nodeId, portId, direction));
+		if (measured) return measured;
+		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		if (!node) return null;
+		const ports = direction === "input" ? node.inputs : node.outputs;
+		const i = ports.findIndex((p) => p.id === portId);
+		if (i < 0) return null;
+		const headerHeight = 36;
+		const rowHeight = 30;
+		const y = node.y + headerHeight + i * rowHeight + rowHeight / 2;
+		const x = direction === "input" ? node.x - 18 : node.x + node.width + 18;
+		return { x, y };
+	}
+
+	function bezier(
+		a: { x: number; y: number },
+		b: { x: number; y: number }
+	): string {
+		const dx = Math.max(40, Math.abs(b.x - a.x) * 0.5);
+		return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+	}
+
+	function edgePath(edge: WFEdge): string | null {
+		const a = portPos(edge.from_node_id, edge.from_port_id, "output");
+		const b = portPos(edge.to_node_id, edge.to_port_id, "input");
+		if (!a || !b) return null;
+		return bezier(a, b);
+	}
+
+	function connectionPreviewPath(
+		mode: Extract<DragMode, { kind: "connection" }>
+	): string | null {
+		const port = portPos(
+			mode.fromNodeId,
+			mode.fromPortId,
+			mode.reversed ? "input" : "output"
+		);
+		if (!port) return null;
+		const cursor = { x: mode.cursorCanvasX, y: mode.cursorCanvasY };
+		return mode.reversed ? bezier(cursor, port) : bezier(port, cursor);
+	}
+
+	function tryCreateEdge(
+		fromId: string,
+		fromPort: string,
+		fromIsInput: boolean,
+		toId: string,
+		toPort: string,
+		toIsInput: boolean
+	): void {
+		if (fromIsInput === toIsInput) return; // both ends same direction → invalid
+		// Normalize: edges always flow output → input
+		const [sourceId, sourcePort, targetId, targetPort] = fromIsInput
+			? [toId, toPort, fromId, fromPort]
+			: [fromId, fromPort, toId, toPort];
+		const sourceNode = legacyView.nodes.find((n) => n.id === sourceId);
+		const targetNode = legacyView.nodes.find((n) => n.id === targetId);
+		if (!sourceNode || !targetNode) return;
+		const outPort = sourceNode.outputs.find((p) => p.id === sourcePort);
+		const inPort = targetNode.inputs.find((p) => p.id === targetPort);
+		if (!outPort || !inPort || !compatible(outPort.type, inPort.type)) return;
+		addEdge({
+			from_node_id: sourceId,
+			from_port_id: sourcePort,
+			to_node_id: targetId,
+			to_port_id: targetPort,
+			type: outPort.type
+		});
+	}
+
+	function buildModelOptions(type: PortType): DropOption[] {
+		const modality = modalityForPort(type);
+		if (!modality) return [];
+		return modality.subtabs
+			.filter((st) => st.key !== "all")
+			.map((st) => ({ kind: "model" as const, label: st.label, subtab: st.key }));
+	}
+
+	function buildComponentOptions(type: PortType, reversed: boolean): DropOption[] {
+		return [{ kind: "component" as const, label: inputOutputLabel(type, reversed) }];
+	}
+
+	function handleDropChoiceModel(subtab?: string): void {
+		dropChoice = null;
+		if (!pendingDrop) return;
+		const modality = modalityForPort(pendingDrop.type);
+		if (!modality) return;
+		activePicker = { mode: "create", modality, initialSubtab: subtab };
+	}
+
+	function handleDropChoiceUpload(): void {
+		dropChoice = null;
+		const drop = pendingDrop;
+		pendingDrop = null;
+		if (!drop) return;
+		const typedComponents: Record<string, any> = {};
+		for (const c of LIBRARY.components) {
+			typedComponents[c.outputs[0]?.type ?? "any"] = c;
+		}
+		const template = typedComponents[drop.type] ?? LIBRARY.components[0];
+		const x = drop.reversed
+			? drop.x - (template.width ?? 200) - 80
+			: drop.x - (template.width ?? 200) / 2;
+		const y = drop.y - 45;
+		// reversed=true → user dragged from an input port; they need a Source
+		// (reference) supplying that value. reversed=false → user dragged from
+		// an output port; they need a Sink (subject) displaying that value.
+		const role: "reference" | "subject" = drop.reversed ? "reference" : "subject";
+		const newId = addNode(role, template, x, y);
+		const newNode = legacyView.nodes.find((n) => n.id === newId);
+		if (drop.reversed) {
+			const outputPort = newNode?.outputs.find((p: any) => compatible(p.type, drop.type));
+			if (outputPort) {
+				addEdge({ from_node_id: newId, from_port_id: outputPort.id, to_node_id: drop.from_node_id, to_port_id: drop.from_port_id, type: drop.type });
+			}
+		} else {
+			const inputPort = newNode?.inputs.find((p: any) => compatible(drop.type, p.type));
+			if (inputPort) {
+				addEdge({ from_node_id: drop.from_node_id, from_port_id: drop.from_port_id, to_node_id: newId, to_port_id: inputPort.id, type: drop.type });
+			}
+		}
+	}
+
+	function handleCanvasDoubleClick(e: MouseEvent): void {
+		const target = e.target as HTMLElement;
+		if (target.closest(".node-pos-wrap") || target.closest(".drop-menu") || target.closest(".picker-panel")) return;
+		const r = canvasEl?.getBoundingClientRect();
+		if (!r) return;
+		setTimeout(() => {
+			doubleClickMenu = {
+				clientX: e.clientX - r.left,
+				clientY: e.clientY - r.top,
+				canvasX: (e.clientX - r.left - viewport.x) / viewport.zoom,
+				canvasY: (e.clientY - r.top - viewport.y) / viewport.zoom
+			};
+		}, 0);
+	}
+
+	function handleDoubleClickInputNode(portType: PortType): void {
+		if (!doubleClickMenu) return;
+		const { canvasX, canvasY } = doubleClickMenu;
+		doubleClickMenu = null;
+		const typedComponents: Record<string, any> = {};
+		for (const c of LIBRARY.components) {
+			typedComponents[c.outputs[0]?.type ?? "any"] = c;
+		}
+		const template = typedComponents[portType] ?? LIBRARY.components[0];
+		addNode("reference", template, canvasX - (template.width ?? 200) / 2, canvasY - 45);
+	}
+
+	function handleDoubleClickUpload(): void {
+		if (!doubleClickMenu) return;
+		const { canvasX, canvasY } = doubleClickMenu;
+		doubleClickMenu = null;
+
+		const input = document.createElement("input");
+		input.type = "file";
+		input.accept = "image/*,audio/*,video/*";
+		input.onchange = () => {
+			const file = input.files?.[0];
+			if (!file) return;
+			let portType: PortType = "file";
+			if (file.type.startsWith("image/")) portType = "image";
+			else if (file.type.startsWith("audio/")) portType = "audio";
+			else if (file.type.startsWith("video/")) portType = "video";
+			const typedComponents: Record<string, any> = {};
+			for (const c of LIBRARY.components) {
+				typedComponents[c.outputs[0]?.type ?? "any"] = c;
+			}
+			const template = typedComponents[portType] ?? LIBRARY.components[0];
+			const newId = addNode("reference", template, canvasX - (template.width ?? 200) / 2, canvasY - 45);
+			const url = URL.createObjectURL(file);
+			const portId = template.outputs[0]?.id;
+			if (portId && newId) {
+				updateNodeData(newId, portId, { url, path: file.name, name: file.name } as any);
+			}
+		};
+		input.click();
+	}
+
+	function handleDoubleClickSpaceModel(modality: ModalityConfig): void {
+		if (!doubleClickMenu) return;
+		const { canvasX, canvasY } = doubleClickMenu;
+		doubleClickMenu = null;
+		pendingDrop = { from_node_id: "", from_port_id: "", type: "any" as PortType, x: canvasX, y: canvasY, positionOnly: true };
+		activePicker = { mode: "create", modality };
+	}
+
+	// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+	function resolveCurrentInputs(node: WFNode): Record<string, unknown> {
+		return resolveCurrentInputsImpl(node, legacyView.nodes, $workflow.edges);
+	}
+
+	const staleNodes = $derived(
+		computeStaleNodes(
+			legacyView.nodes,
+			$workflow.edges,
+			nodeStatus,
+			nodeInputSnapshots
+		)
+	);
+
+	function canvasCenter(): { x: number; y: number } {
+		if (!canvasEl) return { x: 200, y: 200 };
+		const r = canvasEl.getBoundingClientRect();
+		return {
+			x: (r.width / 2 - viewport.x) / viewport.zoom - 150,
+			y: (r.height / 2 - viewport.y) / viewport.zoom - 60
+		};
+	}
+
+	/**
+	 * Walk diagonally from (x, y) in 28px steps until an open spot is found
+	 * that doesn't visually overlap an existing node. Used by any code path
+	 * that drops a fresh node at a fixed fallback position (canvas center,
+	 * picker create, etc.) — without this, successive adds stack identically.
+	 */
+	function findFreeSpot(x: number, y: number): { x: number; y: number } {
+		return findFreeSpotImpl(legacyView.nodes, x, y);
 	}
 
 	async function addTemplateToCanvas(
 		template: any,
 		x?: number,
 		y?: number
-	): Promise<void> {
-		if (
-			template.source === "space" &&
-			template.space_id &&
-			template.inputs.length === 0
-		) {
+	): Promise<string | null> {
+		if (template.source === "space" && template.space_id && template.inputs.length === 0) {
 			showToast(`Connecting to ${template.space_id}...`);
 			try {
 				const apiInfo = await fetchSpaceApi(template.space_id);
@@ -235,18 +792,15 @@
 					5000,
 					"error"
 				);
-				return;
+				return null;
 			}
 		}
 		if (x === undefined || y === undefined) {
-			const nodes = $workflow.nodes;
-			x =
-				nodes.length > 0
-					? Math.max(...nodes.map((n) => n.x + n.width)) + 80
-					: 200;
+			const nodes = legacyView.nodes;
+			x = nodes.length > 0 ? Math.max(...nodes.map((n) => n.x + n.width)) + 80 : 200;
 			y = nodes.length > 0 ? nodes[nodes.length - 1].y : 150;
 		}
-		addNode(template, x, y);
+		return addNode(templateRole(template), template, x, y);
 	}
 
 	async function handleDrop(e: DragEvent): Promise<void> {
@@ -255,53 +809,45 @@
 		if (!raw) return;
 		const template = JSON.parse(raw);
 		const r = canvasEl.getBoundingClientRect();
-		const x = (e.clientX - r.left - panX) / zoom - 100;
-		const y = (e.clientY - r.top - panY) / zoom - 45;
+		const x = (e.clientX - r.left - viewport.x) / viewport.zoom - 100;
+		const y = (e.clientY - r.top - viewport.y) / viewport.zoom - 45;
 		await addTemplateToCanvas(template, x, y);
 	}
 
 	function revokeAllBlobUrls(nodes: WFNode[]): void {
 		for (const node of nodes) {
 			for (const v of Object.values(node.data ?? {})) {
-				if (
-					v &&
-					typeof v === "object" &&
-					"url" in v &&
-					v.url?.startsWith("blob:")
-				) {
+				if (v && typeof v === "object" && "url" in v && v.url?.startsWith("blob:")) {
 					URL.revokeObjectURL(v.url);
 				}
 			}
 		}
 	}
 
+	let clearConfirm = $state(false);
+
 	function clearWorkflow(): void {
-		if ($workflow.nodes.length === 0) return;
-		if (!confirm("Clear all nodes and edges?")) return;
-		revokeAllBlobUrls($workflow.nodes);
-		workflow.set({ version: "1", name: $workflow.name, nodes: [], edges: [] });
+		if (legacyView.nodes.length === 0) return;
+		clearConfirm = true;
 	}
 
-	function topoSort(nodes: WFNode[], edges: WFEdge[]): WFNode[] {
-		const deg = new Map(nodes.map((n) => [n.id, 0]));
-		for (const e of edges)
-			deg.set(e.to_node_id, (deg.get(e.to_node_id) ?? 0) + 1);
-		const q = nodes.filter((n) => deg.get(n.id) === 0);
-		const out: WFNode[] = [];
-		while (q.length) {
-			const n = q.shift()!;
-			out.push(n);
-			for (const e of edges.filter((e) => e.from_node_id === n.id)) {
-				const d = (deg.get(e.to_node_id) ?? 1) - 1;
-				deg.set(e.to_node_id, d);
-				if (d === 0) q.push(nodes.find((nd) => nd.id === e.to_node_id)!);
-			}
-		}
-		return out;
+	function confirmClearWorkflow(): void {
+		clearConfirm = false;
+		revokeAllBlobUrls(legacyView.nodes);
+		workflow.set({
+			schema_version: "2",
+			name: $workflow.name,
+			runtime: { default: "client" },
+			references: [],
+			operators: [],
+			subjects: [],
+			edges: [],
+			view: { default: "canvas" }
+		});
 	}
 
 	function autoLayout(): void {
-		const sorted = topoSort($workflow.nodes, $workflow.edges);
+		const sorted = topoSort(legacyView.nodes, $workflow.edges);
 		const edges = $workflow.edges;
 		const depth = new Map<string, number>();
 		for (const node of sorted) {
@@ -319,33 +865,60 @@
 		}
 		const gap = 30;
 		const colGap = 80;
-		const updated: WFNode[] = [];
+		// Auto-layout produces { id -> {x, y} }; apply to v2 arrays without
+		// changing role membership.
+		const positions = new Map<string, { x: number; y: number }>();
 		let xOffset = 80;
 		for (const [_, col] of [...columns.entries()].sort((a, b) => a[0] - b[0])) {
 			let yOffset = 80;
 			let maxWidth = 0;
 			for (const node of col) {
-				updated.push({ ...node, x: xOffset, y: yOffset });
+				positions.set(node.id, { x: xOffset, y: yOffset });
 				yOffset += node.height + gap;
 				maxWidth = Math.max(maxWidth, node.width);
 			}
 			xOffset += maxWidth + colGap;
 		}
-		workflow.update((wf) => ({ ...wf, nodes: updated }));
+		workflow.update((wf) => {
+			const reposition = <T extends { id: string; x: number; y: number }>(n: T): T => {
+				const p = positions.get(n.id);
+				return p ? { ...n, x: p.x, y: p.y } : n;
+			};
+			return {
+				...wf,
+				references: wf.references.map(reposition),
+				operators: wf.operators.map(reposition),
+				subjects: wf.subjects.map(reposition)
+			};
+		});
 	}
 
-	async function runWorkflow(): Promise<void> {
+	async function runNode(targetId: string): Promise<void> {
+		if (running) return;
+		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId));
+	}
+
+	async function runWorkflow(target?: Workflow): Promise<void> {
 		if (running) return;
 		running = true;
-		nodeStatus = {};
-		nodeErrors = {};
+		const wfToRun = target ?? $workflow;
+		// Clear status only for nodes we're about to run, so already-finished
+		// nodes outside the target subgraph keep their snapshots + state.
+		const runningIds = new Set([
+			...wfToRun.references.map((n) => n.id),
+			...wfToRun.operators.map((n) => n.id),
+			...wfToRun.subjects.map((n) => n.id)
+		]);
+		nodeStatus = Object.fromEntries(
+			Object.entries(nodeStatus).filter(([id]) => !runningIds.has(id))
+		);
+		nodeErrors = Object.fromEntries(
+			Object.entries(nodeErrors).filter(([id]) => !runningIds.has(id))
+		);
 		abortController = new AbortController();
 
 		const oauthToken = await auth.getOAuthToken();
-		if (
-			$workflow.nodes.some((n) => n.source === "space" && n.space_id) &&
-			!oauthToken
-		) {
+		if (legacyView.nodes.some((n) => n.source === "space" && n.space_id) && !oauthToken) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
 				5000,
@@ -359,12 +932,18 @@
 			: undefined;
 
 		const callModelWithToken = server?.call_model
-			? async (modelId: string, pipelineTag: string, argsJson: string) =>
+			? async (
+					modelId: string,
+					pipelineTag: string,
+					argsJson: string,
+					provider?: string
+				) =>
 					server.call_model([
 						modelId,
 						pipelineTag,
 						argsJson,
-						auth.hfToken || ""
+						auth.hfToken || "",
+						provider ?? ""
 					])
 			: undefined;
 
@@ -375,31 +954,30 @@
 					split: string,
 					offset: string,
 					length: string
-				) =>
-					server.fetch_dataset([
-						datasetId,
-						config,
-						split,
-						offset,
-						length,
-						auth.hfToken || ""
-					])
+				) => server.fetch_dataset([datasetId, config, split, offset, length, auth.hfToken || ""])
 			: undefined;
 
 		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) =>
-					server.call_fn([fnName, argsJson])
+			? async (fnName: string, argsJson: string) => server.call_fn([fnName, argsJson])
 			: undefined;
 
 		await executeWorkflow(
-			$workflow,
+			wfToRun,
 			(nodeId, status, error, errorType) => {
 				nodeStatus = { ...nodeStatus, [nodeId]: status };
+				if (status === "done") {
+					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					if (node) {
+						nodeInputSnapshots = {
+							...nodeInputSnapshots,
+							[nodeId]: JSON.stringify(resolveCurrentInputs(node))
+						};
+					}
+				}
 				if (error) {
 					nodeErrors = { ...nodeErrors, [nodeId]: error };
-					const node = $workflow.nodes.find((n) => n.id === nodeId);
-					const label =
-						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
+					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const label = node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
 					showToast(
 						`${label}: ${error}`,
 						errorType === "quota" || errorType === "gpu" ? 0 : 5000,
@@ -407,14 +985,21 @@
 					);
 				}
 			},
-			(nodeId, portId, value) => {
-				updateNodeData(nodeId, portId, value);
-			},
+			(nodeId, portId, value) => { updateNodeData(nodeId, portId, value); },
 			abortController.signal,
 			callSpaceWithToken,
 			callModelWithToken,
 			fetchDatasetWithToken,
-			callFnWithToken
+			callFnWithToken,
+			(modelId, prompt, provider, signal, onChunk) =>
+				streamTextGeneration({
+					modelId,
+					prompt,
+					provider,
+					hfToken: auth.hfToken || undefined,
+					signal: signal ?? undefined,
+					onChunk
+				})
 		);
 
 		running = false;
@@ -427,7 +1012,6 @@
 			hasErrors ? "error" : "success"
 		);
 
-		// clear done status after 3s so nodes return to neutral
 		setTimeout(() => {
 			nodeStatus = Object.fromEntries(
 				Object.entries(nodeStatus).filter(([_, s]) => s === "error")
@@ -440,16 +1024,20 @@
 		running = false;
 		abortController = null;
 		nodeStatus = Object.fromEntries(
-			Object.entries(nodeStatus).map(([id, s]) => [
-				id,
-				s === "running" ? "idle" : s
-			])
+			Object.entries(nodeStatus).map(([id, s]) => [id, s === "running" ? "idle" : s])
 		);
 		showToast("Stopped", 3000, "warning");
 	}
 
 	function handleGlobalClick(e: MouseEvent): void {
 		const target = e.target as HTMLElement;
+		if (dropChoice && !target?.closest(".drop-menu")) {
+			dropChoice = null;
+			pendingDrop = null;
+		}
+		if (doubleClickMenu && !target?.closest(".add-node-menu")) {
+			doubleClickMenu = null;
+		}
 		if (
 			showShortcuts &&
 			!target?.closest(".shortcuts-panel") &&
@@ -457,59 +1045,15 @@
 		) {
 			showShortcuts = false;
 		}
-	}
-
-	function handleWheel(e: WheelEvent): void {
-		if ((e.target as HTMLElement)?.closest(".empty-state")) return;
-		e.preventDefault();
-		const r = canvasEl.getBoundingClientRect();
-		const mx = e.clientX - r.left;
-		const my = e.clientY - r.top;
-		const factor = 1 + Math.min(Math.abs(e.deltaY) * 0.001, 0.05);
-		const delta = e.deltaY > 0 ? 1 / factor : factor;
-		const newZoom = Math.min(Math.max(zoom * delta, 0.15), 4);
-		const scale = newZoom / zoom;
-		panX = mx - (mx - panX) * scale;
-		panY = my - (my - panY) * scale;
-		zoom = newZoom;
-	}
-
-	function handleCanvasMouseDown(e: MouseEvent): void {
-		if (e.button === 1 || (e.button === 0 && e.target === canvasEl)) {
-			e.preventDefault();
-			selectedNodeId = null;
-			isPanning = true;
-			panStart = { x: e.clientX, y: e.clientY, panX, panY };
+		if (activePicker && !target?.closest(".picker-panel")) {
+			activePicker = null;
 		}
-	}
-
-	function handleCanvasMouseMove(e: MouseEvent): void {
-		if (isPanning) {
-			panX = panStart.panX + (e.clientX - panStart.x);
-			panY = panStart.panY + (e.clientY - panStart.y);
-		}
-		if (pending) {
-			pending = { ...pending, ...toCanvas(e) };
-			const r = canvasEl.getBoundingClientRect();
-			mouseViewport = { x: e.clientX - r.left, y: e.clientY - r.top };
-		}
-	}
-
-	function handleCanvasMouseUp(): void {
-		isPanning = false;
-		pending = null;
-	}
-
-	function resetView(): void {
-		panX = 0;
-		panY = 0;
-		zoom = 1;
 	}
 
 	function zoomToFit(): void {
-		const nodes = $workflow.nodes;
+		const nodes = legacyView.nodes;
 		if (nodes.length === 0) {
-			resetView();
+			viewport = { x: 0, y: 0, zoom: 1 };
 			return;
 		}
 		const padding = 60;
@@ -519,17 +1063,17 @@
 		const maxY = Math.max(...nodes.map((n) => n.y + n.height));
 		const contentW = maxX - minX + padding * 2;
 		const contentH = maxY - minY + padding * 2;
-		if (!canvasEl) {
-			resetView();
-			return;
-		}
+		if (!canvasEl) { viewport = { x: 0, y: 0, zoom: 1 }; return; }
 		const r = canvasEl.getBoundingClientRect();
-		zoom = Math.min(
+		const newZoom = Math.min(
 			Math.max(Math.min(r.width / contentW, r.height / contentH), 0.15),
 			2
 		);
-		panX = (r.width - contentW * zoom) / 2 - (minX - padding) * zoom;
-		panY = (r.height - contentH * zoom) / 2 - (minY - padding) * zoom;
+		viewport = {
+			x: (r.width - contentW * newZoom) / 2 - (minX - padding) * newZoom,
+			y: (r.height - contentH * newZoom) / 2 - (minY - padding) * newZoom,
+			zoom: newZoom
+		};
 	}
 
 	function selectNode(id: string): void {
@@ -537,10 +1081,10 @@
 	}
 
 	function duplicateNode(id: string): void {
-		const node = $workflow.nodes.find((n) => n.id === id);
+		const node = legacyView.nodes.find((n) => n.id === id);
 		if (!node) return;
 		const { id: _, data: __, ...template } = node;
-		selectedNodeId = addNode(template, node.x + 40, node.y + 40);
+		selectedNodeId = addNode(templateRole(template), template, node.x + 40, node.y + 40);
 	}
 
 	function handleKeydown(e: KeyboardEvent): void {
@@ -549,12 +1093,7 @@
 			exportWorkflow();
 			return;
 		}
-		if (
-			e.key === "Enter" &&
-			(e.metaKey || e.ctrlKey) &&
-			!running &&
-			hasTransforms
-		) {
+		if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !running && hasTransforms) {
 			e.preventDefault();
 			runWorkflow();
 			return;
@@ -577,54 +1116,186 @@
 		}
 		if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
-			resetView();
+			viewport = { x: 0, y: 0, zoom: 1 };
 		}
 		if (e.key === "Escape") {
 			selectedNodeId = null;
-			pending = null;
+			activeConnection = null;
+			activePicker = null;
+			pendingDrop = null;
+			dropChoice = null;
+			doubleClickMenu = null;
+			clearConfirm = false;
+		}
+		if (e.key === "Enter" && clearConfirm) {
+			e.preventDefault();
+			confirmClearWorkflow();
 		}
 	}
 
-	let connectedPorts = $derived(() => {
-		const set = new Set<string>();
-		for (const e of $workflow.edges) {
-			set.add(`${e.from_node_id}:${e.from_port_id}:output`);
-			set.add(`${e.to_node_id}:${e.to_port_id}:input`);
-		}
-		return set;
-	});
+	function openPicker(modality: ModalityConfig): void {
+		activePicker = { mode: "create", modality };
+	}
 
-	function autoConnect(
-		nodeId: string,
-		portId: string,
-		portType: PortType,
-		side: "input" | "output"
-	): void {
-		const node = $workflow.nodes.find((n) => n.id === nodeId);
+	function openPickerForNode(nodeId: string): void {
+		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
-		const pt = portType === "any" ? "text" : portType;
-		const template =
-			LIBRARY.components.find((t) => t.outputs[0]?.type === pt) ??
-			LIBRARY.components[0];
-		if (side === "input") {
-			const newId = addNode(template, node.x - template.width - 80, node.y);
-			addEdge({
-				from_node_id: newId,
-				from_port_id: template.outputs[0].id,
-				to_node_id: nodeId,
-				to_port_id: portId,
-				type: pt
-			});
+
+		// Components no longer open the picker — only transform nodes can have
+		// their model/space swapped. Guard so any stale callers no-op cleanly.
+		if (node.kind !== "transform") return;
+
+		let modality: ModalityConfig;
+		let initialSource: "spaces" | "models" | "datasets" = "spaces";
+		if (node.dataset_id) {
+			modality = DATASET_MODALITY;
+			initialSource = "datasets";
 		} else {
-			const newId = addNode(template, node.x + node.width + 80, node.y);
-			addEdge({
-				from_node_id: nodeId,
-				from_port_id: portId,
-				to_node_id: newId,
-				to_port_id: template.inputs[0].id,
-				type: pt
-			});
+			const cat = node.pipeline_tag
+				? getModalityForPipelineTag(node.pipeline_tag)
+				: "image";
+			modality = MODALITIES.find((m) => m.category === cat) ?? MODALITIES[0];
+			initialSource = node.model_id ? "models" : "spaces";
 		}
+
+		let anchorX: number | undefined;
+		let anchorY: number | undefined;
+		if (canvasEl) {
+			const r = canvasEl.getBoundingClientRect();
+			const panelWidth = 536;
+			const panelHeight = 620;
+			const nodeScreenRight =
+				node.x * viewport.zoom + viewport.x + node.width * viewport.zoom;
+			anchorX = nodeScreenRight + 12;
+			if (anchorX + panelWidth > r.width) {
+				anchorX = Math.max(4, node.x * viewport.zoom + viewport.x - panelWidth - 12);
+			}
+			anchorX = Math.max(4, anchorX);
+			anchorY = Math.max(
+				4,
+				Math.min(node.y * viewport.zoom + viewport.y, r.height - panelHeight - 8)
+			);
+		}
+
+		activePicker = { mode: "update", modality, nodeId, anchorX, anchorY, initialSource };
+	}
+
+	function getModalityForPipelineTag(tag: string): string {
+		const map: Record<string, string> = {
+			"text-to-image": "image", "image-to-image": "image",
+			"text-to-audio": "audio", "text-to-speech": "audio",
+			"automatic-speech-recognition": "audio",
+			"text-to-video": "video", "image-to-video": "video",
+			"text-to-3d": "3d", "image-to-3d": "3d",
+			"text-generation": "text", "summarization": "text", "translation": "text"
+		};
+		return map[tag] ?? "image";
+	}
+
+	const SUBGRAPH_PORT_TYPES = new Set(["image", "audio", "video", "text", "file", "gallery"]);
+
+	async function handlePickerCreate(template: any): Promise<void> {
+		activePicker = null;
+		const drop = pendingDrop;
+		pendingDrop = null;
+		let x: number, y: number;
+		if (drop) {
+			x = drop.reversed
+				? drop.x - (template.width ?? 200) - 80
+				: drop.x - (template.width ?? 200) / 2;
+			y = drop.y - 60;
+		} else {
+			({ x, y } = findFreeSpot(canvasCenter().x, canvasCenter().y));
+		}
+		const newId = await addTemplateToCanvas({ ...template }, x, y);
+		if (!newId) return;
+
+		// For spaces added fresh to the canvas (not wired from an existing port),
+		// auto-create input + output components to form a ready-to-run subgraph
+		const isSpaceFresh = template.source === "space" && (!drop || drop.positionOnly);
+		if (isSpaceFresh) {
+			const spaceNode = legacyView.nodes.find((n) => n.id === newId);
+			if (spaceNode) {
+				const compGap = 24;
+				const compH = 180;
+				const inputPorts = spaceNode.inputs.filter((p) => SUBGRAPH_PORT_TYPES.has(p.type));
+				const outputPorts = spaceNode.outputs.filter((p) => SUBGRAPH_PORT_TYPES.has(p.type));
+
+				// Input components — stacked left of the space node
+				const inTotal = inputPorts.length * (compH + compGap) - compGap;
+				const inStartY = y + (spaceNode.height ?? 90) / 2 - inTotal / 2;
+				inputPorts.forEach((port, i) => {
+					const comp = getComponentForPortType(port.type);
+					if (!comp) return;
+					const cId = addNode("reference", comp, x - 220 - 80, inStartY + i * (compH + compGap));
+					addEdge({ from_node_id: cId, from_port_id: "out", to_node_id: newId, to_port_id: port.id, type: port.type });
+				});
+
+				// Output components — stacked right of the space node (rendered as subjects)
+				const outTotal = outputPorts.length * (compH + compGap) - compGap;
+				const outStartY = y + (spaceNode.height ?? 90) / 2 - outTotal / 2;
+				outputPorts.forEach((port, i) => {
+					const comp = getComponentForPortType(port.type);
+					if (!comp) return;
+					const cId = addNode("subject", comp, x + (spaceNode.width ?? 280) + 80, outStartY + i * (compH + compGap));
+					addEdge({ from_node_id: newId, from_port_id: port.id, to_node_id: cId, to_port_id: "in", type: port.type });
+				});
+			}
+			return;
+		}
+
+		// Wiring from an existing port drag
+		if (drop && !drop.positionOnly) {
+			const newNode = legacyView.nodes.find((n) => n.id === newId);
+			if (drop.reversed) {
+				const outputPort = newNode?.outputs.find((p: any) => compatible(p.type, drop.type));
+				if (outputPort) {
+					addEdge({
+						from_node_id: newId,
+						from_port_id: outputPort.id,
+						to_node_id: drop.from_node_id,
+						to_port_id: drop.from_port_id,
+						type: drop.type
+					});
+				}
+			} else {
+				const inputPort = newNode?.inputs.find((p: any) => compatible(drop.type, p.type));
+				if (inputPort) {
+					addEdge({
+						from_node_id: drop.from_node_id,
+						from_port_id: drop.from_port_id,
+						to_node_id: newId,
+						to_port_id: inputPort.id,
+						type: drop.type
+					});
+				}
+			}
+		}
+	}
+
+	function handlePickerUpdate(nodeId: string, template: any): void {
+		replaceNodeSource(nodeId, template);
+		activePicker = null;
+	}
+
+	function addInputNode(portType: string, cx?: number, cy?: number): void {
+		let pos: { x: number; y: number };
+		if (cx !== undefined && cy !== undefined) {
+			const r = canvasEl?.getBoundingClientRect();
+			pos = r
+				? { x: (cx - r.left - viewport.x) / viewport.zoom, y: (cy - r.top - viewport.y) / viewport.zoom }
+				: canvasCenter();
+		} else {
+			pos = canvasCenter();
+		}
+		const typedComponents: Record<string, any> = {};
+		for (const c of LIBRARY.components) {
+			typedComponents[c.outputs[0]?.type ?? "any"] = c;
+		}
+		const template = typedComponents[portType] ?? LIBRARY.components[0];
+		const half = (template.width ?? 200) / 2;
+		const { x, y } = findFreeSpot(pos.x - half, pos.y - 45);
+		addNode("reference", template, x, y);
 	}
 
 	function exportWorkflow(): void {
@@ -648,13 +1319,11 @@
 			if (!file) return;
 			try {
 				const text = await file.text();
-				const wf = JSON.parse(text);
-				if (wf.nodes && wf.edges) {
-					revokeAllBlobUrls($workflow.nodes);
-					wf.nodes = wf.nodes.map((n: any) => ({ ...n, data: n.data ?? {} }));
-					workflow.set(wf);
-					showToast("Imported workflow");
-				}
+				const parsed = JSON.parse(text);
+				revokeAllBlobUrls(legacyView.nodes);
+				// Accept both v1 (legacy export) and v2 files transparently.
+				workflow.set(migrateToV2(parsed));
+				showToast("Imported workflow");
 			} catch {}
 		};
 		input.click();
@@ -663,70 +1332,6 @@
 	function setName(value: string): void {
 		workflow.update((wf) => ({ ...wf, name: value }));
 		editingName = false;
-	}
-
-	async function loadTemplate(t: (typeof TEMPLATES)[number]): Promise<void> {
-		revokeAllBlobUrls($workflow.nodes);
-		const wf = t.build();
-		workflow.set(wf);
-		resetView();
-		showToast(`Loading "${t.name}"...`);
-
-		const spaceNodes = wf.nodes.filter(
-			(n: any) => n.source === "space" && n.space_id
-		);
-		const updates = await Promise.allSettled(
-			spaceNodes.map(async (node: any) => {
-				const apiInfo = await fetchSpaceApi(node.space_id);
-				return { nodeId: node.id, apiInfo };
-			})
-		);
-
-		workflow.update((current) => ({
-			...current,
-			nodes: current.nodes.map((n) => {
-				const update = updates.find(
-					(u) => u.status === "fulfilled" && u.value.nodeId === n.id
-				);
-				if (update && update.status === "fulfilled") {
-					const { apiInfo } = update.value;
-					return {
-						...n,
-						inputs: apiInfo.inputs,
-						outputs: apiInfo.outputs,
-						endpoint: apiInfo.endpoint,
-						width: apiInfo.width
-					};
-				}
-				return n;
-			}),
-			edges: current.edges.map((e) => {
-				const srcUpdate = updates.find(
-					(u) => u.status === "fulfilled" && u.value.nodeId === e.from_node_id
-				);
-				const dstUpdate = updates.find(
-					(u) => u.status === "fulfilled" && u.value.nodeId === e.to_node_id
-				);
-				let edge = { ...e };
-				if (srcUpdate && srcUpdate.status === "fulfilled") {
-					const firstOut = srcUpdate.value.apiInfo.outputs[0];
-					if (firstOut && edge.from_port_id === "out")
-						edge = { ...edge, from_port_id: firstOut.id };
-				}
-				if (dstUpdate && dstUpdate.status === "fulfilled") {
-					const firstIn = dstUpdate.value.apiInfo.inputs[0];
-					if (firstIn && edge.to_port_id === "in")
-						edge = { ...edge, to_port_id: firstIn.id };
-				}
-				return edge;
-			})
-		}));
-
-		if (updates.some((u) => u.status === "rejected")) {
-			showToast("Some Spaces could not be reached", 5000, "warning");
-		} else {
-			showToast(`Loaded "${t.name}"`, 3000, "success");
-		}
 	}
 </script>
 
@@ -757,9 +1362,7 @@
 					<span class="name-edit-icon">&#x270E;</span>
 				</button>
 			{/if}
-			<span class="toolbar-stat"
-				>{nodeCount} nodes &middot; {edgeCount} edges</span
-			>
+			<span class="toolbar-stat">{nodeCount} nodes &middot; {edgeCount} edges</span>
 		</div>
 		<div class="toolbar-right">
 			{#if !auth.isCheckingLogin}
@@ -768,9 +1371,8 @@
 						<span class="toolbar-user-info"
 							>Logged in as <strong>{auth.loggedInUser}</strong></span
 						>
-						<button
-							class="toolbar-login-btn logged-in"
-							onclick={auth.handleLogout}>Log out</button
+						<button class="toolbar-login-btn logged-in" onclick={auth.handleLogout}
+							>Log out</button
 						>
 					{:else}
 						<button class="toolbar-login-btn" onclick={auth.handleLogin}
@@ -790,160 +1392,207 @@
 					</form>
 				{/if}
 			{/if}
-			<button
-				class="tool-btn"
-				onclick={exportWorkflow}
-				title="Export workflow.json (Cmd+S)">Export</button
+			<button class="tool-btn" onclick={exportWorkflow} title="Export workflow.json (Cmd+S)"
+				>Export</button
 			>
-			<button
-				class="tool-btn"
-				onclick={importWorkflow}
-				title="Import workflow.json">Import</button
+			<button class="tool-btn" onclick={importWorkflow} title="Import workflow.json"
+				>Import</button
 			>
 			<div class="toolbar-divider"></div>
-			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
-				>Layout</button
-			>
+			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes">Layout</button>
 			<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-			<div class="toolbar-divider"></div>
-			{#if running}
-				<button class="run-btn stop" onclick={stopWorkflow}>
-					<span class="run-icon">&#x25A0;</span> Stop
-				</button>
-			{:else}
-				<button class="run-btn" onclick={runWorkflow} disabled={!hasTransforms}>
-					<span class="run-icon">&#x25B6;</span> Run
-				</button>
-			{/if}
 		</div>
 	</div>
 
-	<div class="editor">
-		<WorkflowSidebar
-			onadd={(t) => addTemplateToCanvas(t)}
-			{server}
-			hfToken={auth.hfToken}
-			{trendingSpaces}
-			{trendingLoading}
-		/>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="editor"
+		class:editor-panning={dragMode?.kind === "pan"}
+		bind:this={canvasEl}
+		ondragover={(e) => e.preventDefault()}
+		ondrop={handleDrop}
+		ondblclick={handleCanvasDoubleClick}
+		onpointerdown={onCanvasPointerDown}
+		onpointermove={onCanvasPointerMove}
+		onpointerup={onCanvasPointerUp}
+		onwheel={onWheel}
+	>
+		<!-- Dot grid background — fixed in screen space, parallax-free -->
 		<div
-			class="canvas"
-			class:panning={isPanning}
-			bind:this={canvasEl}
-			style="--zoom: {zoom}; --pan-x: {panX}px; --pan-y: {panY}px"
-			ondragover={(e) => e.preventDefault()}
-			ondrop={handleDrop}
-			onwheel={handleWheel}
-			onmousedown={handleCanvasMouseDown}
-			onmousemove={handleCanvasMouseMove}
-			onmouseup={handleCanvasMouseUp}
-			onkeydown={handleKeydown}
-			role="application"
-			tabindex="0"
+			class="canvas-bg"
+			style="background-position: {viewport.x}px {viewport.y}px; background-size: {gridTile}px {gridTile}px;"
+		></div>
+
+		<!-- Viewport: all nodes + edges live in here, sharing one transform -->
+		<div
+			class="canvas-viewport"
+			style="transform: translate({viewport.x}px, {viewport.y}px) scale({viewport.zoom});"
 		>
-			<div
-				class="canvas-transform"
-				style="transform: translate({panX}px, {panY}px) scale({zoom})"
-			>
-				{#each $workflow.nodes as node (node.id)}
-					<WorkflowNode
-						{node}
-						{pending}
-						onstartconnection={startConnection}
-						oncompleteconnection={completeConnection}
-						onmove={moveNode}
-						ondatachange={updateNodeData}
-						onremove={removeNode}
-						onautoconnect={autoConnect}
-						connectedPorts={connectedPorts()}
-						status={nodeStatus[node.id] ?? "idle"}
-						error={nodeErrors[node.id] ?? ""}
-						{zoom}
-						selected={selectedNodeId === node.id}
-						onselect={selectNode}
-					/>
+			<!-- Edges layer (SVG). overflow:visible so edges aren't clipped. -->
+			<svg class="edges-layer" width="1" height="1" style="overflow: visible;">
+				{#each legacyView.edges as edge (edge.id)}
+					{@const path = edgePath(edge)}
+					{#if path}
+						<path
+							class="edge-path"
+							d={path}
+							stroke={PORT_COLOR[edge.type] ?? "#6b6e78"}
+							stroke-width={2 / viewport.zoom}
+							fill="none"
+							onclick={() => removeEdge(edge.id)}
+						/>
+					{/if}
 				{/each}
-				<WorkflowEdges {pending} onremove={removeEdge} {zoom} {panX} {panY} />
-			</div>
-			{#if running}
-				<div class="run-overlay"></div>
-			{/if}
-			{#if nodeCount === 0}
-				<WorkflowEmptyState
-					templates={TEMPLATES}
-					{trendingSpaces}
-					{trendingLoading}
-					onloadtemplate={loadTemplate}
-					onadd={(t) => addTemplateToCanvas(t)}
-				/>
-			{/if}
-			<div class="zoom-controls">
-				<button
-					class="zoom-ctrl-btn"
-					onclick={() => (showShortcuts = !showShortcuts)}
-					title="Keyboard shortcuts">?</button
-				>
-				<button class="zoom-ctrl-btn" onclick={zoomToFit} title="Fit all (F)"
-					>&#x2922;</button
-				>
-				<button
-					class="zoom-ctrl-btn"
-					onclick={() => {
-						zoom = Math.max(0.15, zoom / 1.2);
-					}}>−</button
-				>
-				<button class="zoom-btn" onclick={resetView}
-					>{Math.round(zoom * 100)}%</button
-				>
-				<button
-					class="zoom-ctrl-btn"
-					onclick={() => {
-						zoom = Math.min(4, zoom * 1.2);
-					}}>+</button
-				>
-			</div>
-			{#if showShortcuts}
-				<div class="shortcuts-panel">
-					<div class="shortcuts-title">Keyboard shortcuts</div>
-					<div class="shortcut-row">
-						<kbd>Cmd+Enter</kbd> <span>Run workflow</span>
-					</div>
-					<div class="shortcut-row">
-						<kbd>Cmd+S</kbd> <span>Export JSON</span>
-					</div>
-					<div class="shortcut-row">
-						<kbd>Cmd+D</kbd> <span>Duplicate node</span>
-					</div>
-					<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
-					<div class="shortcut-row">
-						<kbd>Cmd+0</kbd> <span>Reset zoom</span>
-					</div>
-					<div class="shortcut-row">
-						<kbd>Delete</kbd> <span>Remove node</span>
-					</div>
-					<div class="shortcut-row">
-						<kbd>Escape</kbd> <span>Deselect</span>
-					</div>
-					<div class="shortcut-row"><kbd>Scroll</kbd> <span>Zoom</span></div>
-					<div class="shortcut-row">
-						<kbd>Drag canvas</kbd> <span>Pan</span>
-					</div>
-					<div class="shortcut-row">
-						<kbd>Double-click</kbd> <span>Rename node</span>
-					</div>
-				</div>
-			{/if}
-			{#if pending}
+				{#if dragMode?.kind === "connection"}
+					{@const preview = connectionPreviewPath(dragMode)}
+					{#if preview}
+						<path
+							class="edge-preview"
+							d={preview}
+							stroke={PORT_COLOR[dragMode.type] ?? "#6b6e78"}
+							stroke-width={2 / viewport.zoom}
+							stroke-dasharray="6 4"
+							fill="none"
+						/>
+					{/if}
+				{/if}
+			</svg>
+
+			<!-- Nodes layer -->
+			{#each legacyView.nodes as n (n.id)}
 				<div
-					class="connection-badge"
-					style="left: {mouseViewport.x + 14}px; top: {mouseViewport.y -
-						10}px; --badge-color: {PORT_COLOR[pending.type]}"
+					class="node-pos-wrap"
+					data-node-id={n.id}
+					style="left: {n.x}px; top: {n.y}px; width: {n.width}px;"
+					onpointerdown={(e) => startNodeDrag(e, n.id)}
 				>
-					{pending.type}
+					<WorkflowNodeSF id={n.id} data={n} selected={selectedNodeId === n.id} />
 				</div>
-			{/if}
+			{/each}
 		</div>
+
+		{#if nodeCount === 0}
+			<WorkflowEmptyState />
+		{/if}
+
+		{#if running}
+			<div class="run-overlay"></div>
+		{/if}
+
+		{#if dropChoice}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<!-- Stop click + mousedown propagation: handleGlobalClick on
+			     workflow-root closes activePicker when the click target is
+			     outside .picker-panel. Without onclick stopPropagation, a
+			     "Generate" click here would set activePicker and then have
+			     the very same click bubble out and close it. -->
+			<div
+				class="drop-menu"
+				style="left: {dropChoice.clientX}px; top: {dropChoice.clientY}px;"
+				onmousedown={(e) => e.stopPropagation()}
+				onclick={(e) => e.stopPropagation()}
+			>
+				{#if dropChoice.modelOptions.length > 0}
+					<div class="drop-section-label">Models</div>
+					{#each dropChoice.modelOptions as opt}
+						<button class="drop-opt" onclick={() => handleDropChoiceModel(opt.subtab)}>{opt.label}</button>
+					{/each}
+				{/if}
+				{#if dropChoice.componentOptions.length > 0}
+					<div class="drop-section-label">{dropChoice.reversed ? "Sources" : "Outputs"}</div>
+					{#each dropChoice.componentOptions as opt}
+						<button class="drop-opt" onclick={handleDropChoiceUpload}>{opt.label}</button>
+					{/each}
+				{/if}
+			</div>
+		{/if}
+
+		{#if doubleClickMenu}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="add-node-menu"
+				style="left: {doubleClickMenu.clientX}px; top: {doubleClickMenu.clientY}px;"
+				onmousedown={(e) => e.stopPropagation()}
+			>
+				<div class="add-node-section-label">Add</div>
+				<div class="add-node-grid">
+					<button class="add-node-type-btn" onclick={handleDoubleClickUpload}>Upload Media</button>
+					<button class="add-node-type-btn" onclick={() => handleDoubleClickInputNode("text" as PortType)}>Text</button>
+				</div>
+				<div class="add-node-divider"></div>
+				<div class="add-node-section-label">Space / Model</div>
+				<div class="add-node-grid">
+					{#each MODALITIES.filter(m => ["image","audio","video","text","3d"].includes(m.key)) as m}
+						<button class="add-node-type-btn" onclick={() => handleDoubleClickSpaceModel(m)}>{m.label}</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		<div class="zoom-controls">
+			<button
+				class="zoom-ctrl-btn"
+				onclick={() => (showShortcuts = !showShortcuts)}
+				title="Keyboard shortcuts">?</button
+			>
+			<button class="zoom-ctrl-btn" onclick={zoomToFit} title="Fit all (F)">&#x2922;</button>
+			<button
+				class="zoom-ctrl-btn"
+				onclick={() => { viewport = { ...viewport, zoom: Math.max(0.15, viewport.zoom / 1.2) }; }}
+				>−</button
+			>
+			<button class="zoom-btn" onclick={() => { viewport = { x: 0, y: 0, zoom: 1 }; }}
+				>{Math.round(viewport.zoom * 100)}%</button
+			>
+			<button
+				class="zoom-ctrl-btn"
+				onclick={() => { viewport = { ...viewport, zoom: Math.min(4, viewport.zoom * 1.2) }; }}
+				>+</button
+			>
+		</div>
+
+		{#if showShortcuts}
+			<div class="shortcuts-panel">
+				<div class="shortcuts-title">Keyboard shortcuts</div>
+				<div class="shortcut-row"><kbd>Cmd+Enter</kbd> <span>Run workflow</span></div>
+				<div class="shortcut-row"><kbd>Cmd+S</kbd> <span>Export JSON</span></div>
+				<div class="shortcut-row"><kbd>Cmd+D</kbd> <span>Duplicate node</span></div>
+				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
+				<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>
+				<div class="shortcut-row"><kbd>Delete</kbd> <span>Remove node</span></div>
+				<div class="shortcut-row"><kbd>Escape</kbd> <span>Deselect</span></div>
+				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Zoom</span></div>
+				<div class="shortcut-row"><kbd>Drag canvas</kbd> <span>Pan</span></div>
+				<div class="shortcut-row"><kbd>Double-click</kbd> <span>Rename node</span></div>
+			</div>
+		{/if}
+
+		<WorkflowBottomBar
+			{running}
+			{hasTransforms}
+			onopenpicker={openPicker}
+			onaddinput={addInputNode}
+			onrun={() => void runWorkflow()}
+			onstop={stopWorkflow}
+		/>
+
+		{#if activePicker}
+			<NodeModelPicker
+				mode={activePicker.mode}
+				modality={activePicker.modality}
+				nodeId={activePicker.nodeId}
+				initialSource={activePicker.initialSource}
+				initialSubtab={activePicker.initialSubtab}
+				{server}
+				hfToken={auth.hfToken}
+				anchorX={activePicker.anchorX}
+				anchorY={activePicker.anchorY}
+				oncreate={handlePickerCreate}
+				onupdate={handlePickerUpdate}
+				onclose={() => { activePicker = null; }}
+				onerror={(msg) => showToast(msg, 5000, "error")}
+			/>
+		{/if}
 	</div>
 
 	{#if toasts.length > 0}
@@ -953,8 +1602,142 @@
 			{/each}
 		</div>
 	{/if}
+
+	{#if clearConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="wf-modal-backdrop"
+			onclick={() => (clearConfirm = false)}
+		>
+			<div
+				class="wf-modal"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="wf-modal-title"
+				onclick={(e) => e.stopPropagation()}
+			>
+				<div class="wf-modal-title" id="wf-modal-title">Clear workflow?</div>
+				<div class="wf-modal-body">
+					This will remove <strong>{nodeCount}</strong>
+					{nodeCount === 1 ? "node" : "nodes"} and
+					<strong>{edgeCount}</strong>
+					{edgeCount === 1 ? "edge" : "edges"}. This can't be undone.
+				</div>
+				<div class="wf-modal-actions">
+					<button
+						class="wf-modal-btn"
+						onclick={() => (clearConfirm = false)}
+					>Cancel</button>
+					<button
+						class="wf-modal-btn wf-modal-btn-danger"
+						onclick={confirmClearWorkflow}
+					>Clear</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
 	@import "./WorkflowCanvas.css";
+
+	/* ─── Custom canvas ─────────────────────────────────────────────────────── */
+	.editor {
+		cursor: grab;
+	}
+
+	.editor.editor-panning {
+		cursor: grabbing;
+	}
+
+	.canvas-bg {
+		position: absolute;
+		inset: 0;
+		background-image: radial-gradient(#2a2b36 1px, transparent 1px);
+		background-repeat: repeat;
+		pointer-events: none;
+	}
+
+	.canvas-viewport {
+		position: absolute;
+		top: 0;
+		left: 0;
+		transform-origin: 0 0;
+		width: 0;
+		height: 0;
+	}
+
+	.edges-layer {
+		position: absolute;
+		top: 0;
+		left: 0;
+		overflow: visible;
+		pointer-events: none;
+	}
+
+	.edges-layer .edge-path {
+		cursor: pointer;
+		pointer-events: stroke;
+		transition: stroke-width 0.1s;
+	}
+
+	.edges-layer .edge-path:hover {
+		stroke-width: 3 !important;
+	}
+
+	.edges-layer .edge-preview {
+		pointer-events: none;
+	}
+
+	.node-pos-wrap {
+		position: absolute;
+		touch-action: none;
+	}
+
+	:global(body:not(.dark)) .canvas-bg {
+		background-image: radial-gradient(#d0d2dc 1px, transparent 1px);
+	}
+
+	/* ─── Light mode ─── */
+	:global(body:not(.dark) .workflow-root) {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color-scheme: light;
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.04),
+			0 20px 60px rgba(0, 0, 0, 0.08);
+	}
+
+	:global(body:not(.dark) .toolbar) {
+		background: #ffffff;
+		border-bottom-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark) .name-btn:hover) { background: #f0f1f5; }
+	:global(body:not(.dark) .name-text) { color: #1a1b25; }
+	:global(body:not(.dark) .name-edit-icon) { color: #b0b2bc; }
+	:global(body:not(.dark) .name-input) { background: #ffffff; color: #1a1b25; }
+	:global(body:not(.dark) .toolbar-stat) { color: #b0b2bc; }
+	:global(body:not(.dark) .tool-btn) { border-color: #e2e4ea; color: #8b8d98; }
+	:global(body:not(.dark) .tool-btn:hover) { background: #f0f1f5; color: #3e4050; border-color: #d0d2dc; }
+	:global(body:not(.dark) .toolbar-login-btn) { border-color: #e2e4ea; color: #6b6e78; }
+	:global(body:not(.dark) .toolbar-login-btn:hover) { background: #f0f1f5; color: #1a1b25; border-color: #d0d2dc; }
+	:global(body:not(.dark) .toolbar-login-btn.logged-in) { color: #8b8d98; }
+	:global(body:not(.dark) .toolbar-user-info) { color: #8b8d98; }
+	:global(body:not(.dark) .toolbar-user-info strong) { color: #3e4050; }
+	:global(body:not(.dark) .toolbar-token-input) { background: #ffffff; color: #6b6e78; border-color: #e2e4ea; }
+	:global(body:not(.dark) .toolbar-token-input::placeholder) { color: #c0c2cc; }
+	:global(body:not(.dark) .toolbar-token-input:focus) { background: #ffffff; color: #3e4050; }
+	:global(body:not(.dark) .toolbar-divider) { background: #e2e4ea; }
+	:global(body:not(.dark) .zoom-controls) { background: #ffffff; border-color: #e2e4ea; }
+	:global(body:not(.dark) .zoom-ctrl-btn) { color: #9a9caa; }
+	:global(body:not(.dark) .zoom-ctrl-btn:hover) { background: #f0f1f5; color: #3e4050; }
+	:global(body:not(.dark) .zoom-btn) { background: #ffffff; border-color: #e2e4ea; color: #9a9caa; }
+	:global(body:not(.dark) .zoom-btn:hover) { color: #3e4050; border-color: #d0d2dc; }
+	:global(body:not(.dark) .shortcuts-panel) { background: #ffffff; border-color: #e2e4ea; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+	:global(body:not(.dark) .shortcuts-title) { color: #6b6e78; }
+	:global(body:not(.dark) .shortcut-row) { color: #9a9caa; }
+	:global(body:not(.dark) .shortcut-row kbd) { background: #f0f1f5; color: #3e4050; border-color: #d0d2dc; }
+	:global(body:not(.dark) .wf-toast) { background: #ffffff; color: #2a2b36; border-color: #e2e4ea; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
 </style>
