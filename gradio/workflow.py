@@ -716,13 +716,32 @@ class Workflow:
                 query = data[1] if len(data) > 1 and data[1] else ""
                 pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
                 hf_token = _resolve_token(data, 3, token)
-                tag_param = f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}" if pipeline_tag else ""
+                # The spaces API takes filter= repeated for AND-style
+                # tag filtering. Pipeline tags double as category tags on
+                # Spaces (e.g. text-generation, text-to-image), so we
+                # forward whatever the picker sends as an additional
+                # filter rather than `pipeline_tag=` (which trending
+                # silently ignores).
+                tag_filter = (
+                    f"&filter={urllib.parse.quote(pipeline_tag)}" if pipeline_tag else ""
+                )
+                base_expand = "&expand[]=likes&expand[]=cardData&expand[]=runtime"
                 if kind == "search":
-                    url = f"https://huggingface.co/api/spaces/semantic-search?q={urllib.parse.quote(query)}&limit=12{tag_param}"
+                    url = (
+                        f"https://huggingface.co/api/spaces?filter=gradio{tag_filter}"
+                        f"&search={urllib.parse.quote(query)}&limit=30"
+                        f"&sort=likes&direction=-1{base_expand}"
+                    )
                 elif kind == "new":
-                    url = f"https://huggingface.co/api/spaces?filter=gradio&limit=24&sort=createdAt&direction=-1&expand[]=likes&expand[]=cardData&expand[]=runtime{tag_param}"
+                    url = (
+                        f"https://huggingface.co/api/spaces?filter=gradio{tag_filter}"
+                        f"&limit=24&sort=createdAt&direction=-1{base_expand}"
+                    )
                 else:
-                    url = f"https://huggingface.co/api/spaces?filter=gradio&limit=48&sort=trendingScore&direction=-1&expand[]=likes&expand[]=cardData&expand[]=runtime{tag_param}"
+                    url = (
+                        f"https://huggingface.co/api/spaces?filter=gradio{tag_filter}"
+                        f"&limit=48&sort=trendingScore&direction=-1{base_expand}"
+                    )
                 return _hf_request(url, hf_token)
             except Exception as e:
                 logger.error(
@@ -736,14 +755,24 @@ class Workflow:
                 query = data[1] if len(data) > 1 and data[1] else ""
                 pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
                 hf_token = _resolve_token(data, 3, token)
-                if kind == "trending":
-                    url = "https://huggingface.co/api/models?sort=trendingScore&direction=-1&limit=30&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
+                # Always apply pipeline_tag when set — the frontend further
+                # filters to models with a TASK_SCHEMAS entry, so the
+                # unfiltered list ends up tiny. Higher limits give the
+                # client-side filter more to work with.
+                if kind == "search":
+                    sort = "likes&direction=-1"
+                elif kind == "new":
+                    sort = "createdAt&direction=-1"
                 else:
-                    url = "https://huggingface.co/api/models?sort=likes&direction=-1&limit=12&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
-                    if query:
-                        url += f"&search={urllib.parse.quote(query)}"
-                    if pipeline_tag:
-                        url += f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}"
+                    sort = "trendingScore&direction=-1"
+                url = (
+                    f"https://huggingface.co/api/models?sort={sort}&limit=60"
+                    f"&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
+                )
+                if query:
+                    url += f"&search={urllib.parse.quote(query)}"
+                if pipeline_tag:
+                    url += f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}"
                 return _hf_request(url, hf_token)
             except Exception as e:
                 logger.error(
@@ -845,6 +874,46 @@ class Workflow:
 
         _max_workflow_bytes = 5 * 1024 * 1024
 
+        def list_bound_fns(_data=None, _token: Optional[OAuthToken] = None) -> str:
+            """Return the bound functions' signatures so the canvas can offer
+            them as add-able nodes via a dedicated bottom-bar button. The
+            output port shape mirrors `_workflow_from_bind` so re-adding a
+            previously-deleted node produces an identical template.
+            """
+            templates = []
+            for fn_name, fn in bound.items():
+                try:
+                    sig = inspect.signature(fn)
+                except (ValueError, TypeError):
+                    sig = inspect.Signature()
+                inputs = [
+                    {
+                        "id": f"in_{p}",
+                        "label": p,
+                        "type": _PY_TO_PORT.get(param.annotation, "text"),
+                    }
+                    for p, param in sig.parameters.items()
+                    if p != "self"
+                ]
+                if not inputs:
+                    inputs = [{"id": "in_0", "label": "input", "type": "text"}]
+                outputs = [
+                    {
+                        "id": "out_0",
+                        "label": "output",
+                        "type": _PY_TO_PORT.get(sig.return_annotation, "text"),
+                    }
+                ]
+                templates.append(
+                    {
+                        "fn": fn_name,
+                        "label": fn_name,
+                        "inputs": inputs,
+                        "outputs": outputs,
+                    }
+                )
+            return json.dumps(templates)
+
         def save_workflow(data, _token: Optional[OAuthToken] = None) -> str:
             try:
                 payload = data[0] if isinstance(data, list) and data else str(data)
@@ -871,6 +940,7 @@ class Workflow:
             search_datasets,
             get_dataset_schema,
             call_fn,
+            list_bound_fns,
             save_workflow,
         ]
 

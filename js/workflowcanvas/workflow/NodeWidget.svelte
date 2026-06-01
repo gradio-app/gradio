@@ -88,6 +88,42 @@
 		ondatachange(node.id, widgetPortId, null);
 	}
 
+	/**
+	 * Download the current file value. Same-origin and blob/data URLs work
+	 * via a direct `<a download>`. Cross-origin URLs (e.g. HF Inference
+	 * results) often ignore the download attribute and navigate instead,
+	 * so we fetch into a blob first and then trigger the link on the
+	 * resulting object URL — that forces a save instead of a tab swap.
+	 */
+	async function downloadFile() {
+		const v = getFileValue();
+		if (!v?.url) return;
+		const name = v.name || "download";
+		const sameOrigin =
+			v.url.startsWith("blob:") ||
+			v.url.startsWith("data:") ||
+			(v.url.startsWith("http") &&
+				new URL(v.url, window.location.origin).origin === window.location.origin) ||
+			!v.url.startsWith("http");
+		try {
+			const url = sameOrigin
+				? v.url
+				: await fetch(v.url)
+						.then((r) => r.blob())
+						.then((b) => URL.createObjectURL(b));
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = name;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			if (!sameOrigin) setTimeout(() => URL.revokeObjectURL(url), 1000);
+		} catch {
+			// Fall back to navigating; user can right-click → save.
+			window.open(v.url, "_blank", "noopener");
+		}
+	}
+
 	const i18n = (key: string) => key;
 	async function stubUpload(files: File[]): Promise<any[]> {
 		return files.map((f) => ({
@@ -184,9 +220,22 @@
 						<span class="widget-file-name">{fileVal.name}</span>
 					</div>
 				{/if}
-				{#if !isReadonly}
-					<button class="widget-clear" onclick={clearFile}>&times;</button>
-				{/if}
+				<div class="widget-preview-actions">
+					<button
+						class="widget-action"
+						onclick={downloadFile}
+						title="Download {fileVal.name}"
+						aria-label="Download"
+					>
+						<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+							<path d="M6 1.5v6.5M6 8L3 5M6 8l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M2 9.5v.5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+						</svg>
+					</button>
+					{#if !isReadonly}
+						<button class="widget-action widget-clear" onclick={clearFile} title="Clear" aria-label="Clear">&times;</button>
+					{/if}
+				</div>
 			</div>
 		{:else if isReadonly}
 			<div class="widget-placeholder">Waiting for output...</div>
@@ -506,27 +555,44 @@
 		border-radius: 5px;
 	}
 
-	.widget-clear {
+	.widget-preview-actions {
 		position: absolute;
 		top: 4px;
 		right: 4px;
-		width: 18px;
-		height: 18px;
+		display: flex;
+		gap: 4px;
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	.widget-preview:hover .widget-preview-actions {
+		opacity: 1;
+	}
+
+	.widget-action {
+		width: 22px;
+		height: 22px;
 		border-radius: 50%;
 		border: none;
 		background: rgba(0, 0, 0, 0.6);
-		color: #a0a2ae;
-		font-size: 12px;
+		color: #d5d6de;
+		font-size: 13px;
 		line-height: 1;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: background 0.15s;
+		padding: 0;
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.widget-action:hover {
+		background: rgba(0, 0, 0, 0.85);
+		color: #fff;
 	}
 
 	.widget-clear:hover {
-		background: rgba(239, 68, 68, 0.7);
+		background: rgba(239, 68, 68, 0.85);
 		color: #fff;
 	}
 

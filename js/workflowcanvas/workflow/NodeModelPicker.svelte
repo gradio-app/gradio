@@ -206,10 +206,6 @@
 				// Sub-tabs with explicit query (Remove BG, Upscale, Clone Voice)
 				kind = "search";
 				query = activeSubtab.query;
-			} else if (pipelineTag && activeContentTab === "trending") {
-				// HF spaces trending API ignores pipeline_tag — use semantic search instead
-				kind = "search";
-				query = pipelineTag.replace(/-/g, " ");
 			} else {
 				kind = activeContentTab === "new" ? "new" : "trending";
 				query = "";

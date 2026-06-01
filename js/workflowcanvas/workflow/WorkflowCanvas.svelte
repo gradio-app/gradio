@@ -3,6 +3,7 @@
 
 	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
 	import WorkflowBottomBar from "./WorkflowBottomBar.svelte";
+	import type { BoundFnTemplate } from "./WorkflowBottomBar.svelte";
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 
@@ -92,6 +93,25 @@
 		return () => clearTimeout(timer);
 	});
 
+	// Pull the bind=[…] list from the server once on mount so the
+	// Functions button in the bottom bar can offer them as add-able
+	// nodes. Silently no-op if the server doesn't expose it (older
+	// gradio backends).
+	$effect(() => {
+		if (!server?.list_bound_fns) return;
+		void server
+			.list_bound_fns()
+			.then((raw: string) => {
+				try {
+					const parsed = JSON.parse(raw);
+					if (Array.isArray(parsed)) boundFns = parsed as BoundFnTemplate[];
+				} catch {
+					/* ignore malformed */
+				}
+			})
+			.catch(() => {});
+	});
+
 	$effect(() => {
 		window.addEventListener("keydown", handleKeydown);
 		return () => window.removeEventListener("keydown", handleKeydown);
@@ -129,6 +149,12 @@
 	let abortController: AbortController | null = null;
 	let nodeStatus: Record<string, NodeStatus> = $state({});
 	let nodeErrors: Record<string, string> = $state({});
+	/**
+	 * Bound Python functions advertised by the server (`list_bound_fns`).
+	 * Populates the bottom-bar Functions button so users can re-add an
+	 * fn node after deleting it without re-launching the app.
+	 */
+	let boundFns = $state<BoundFnTemplate[]>([]);
 	/**
 	 * Snapshot of resolved inputs at the moment a node last completed. Used
 	 * to flag nodes as stale when their current inputs differ from the
@@ -705,10 +731,10 @@
 			typedComponents[c.outputs[0]?.type ?? "any"] = c;
 		}
 		const template = typedComponents[drop.type] ?? LIBRARY.components[0];
-		const x = drop.reversed
+		const rawX = drop.reversed
 			? drop.x - (template.width ?? 200) - 80
 			: drop.x - (template.width ?? 200) / 2;
-		const y = drop.y - 45;
+		const { x, y } = findFreeSpot(rawX, drop.y - 45);
 		// reversed=true → user dragged from an input port; they need a Source
 		// (reference) supplying that value. reversed=false → user dragged from
 		// an output port; they need a Sink (subject) displaying that value.
@@ -803,12 +829,11 @@
 				typedComponents[c.outputs[0]?.type ?? "any"] = c;
 			}
 			const template = typedComponents[portType] ?? LIBRARY.components[0];
-			const newId = addNode(
-				"reference",
-				template,
+			const { x: fx, y: fy } = findFreeSpot(
 				canvasX - (template.width ?? 200) / 2,
 				canvasY - 45
 			);
+			const newId = addNode("reference", template, fx, fy);
 			const url = URL.createObjectURL(file);
 			const portId = template.outputs[0]?.id;
 			if (portId && newId) {
@@ -1402,12 +1427,11 @@
 				inputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
-					const cId = addNode(
-						"reference",
-						comp,
+					const { x: cx, y: cy } = findFreeSpot(
 						x - 220 - 80,
 						inStartY + i * (compH + compGap)
 					);
+					const cId = addNode("reference", comp, cx, cy);
 					addEdge({
 						from_node_id: cId,
 						from_port_id: "out",
@@ -1423,12 +1447,11 @@
 				outputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
-					const cId = addNode(
-						"subject",
-						comp,
+					const { x: cx, y: cy } = findFreeSpot(
 						x + (spaceNode.width ?? 280) + 80,
 						outStartY + i * (compH + compGap)
 					);
+					const cId = addNode("subject", comp, cx, cy);
 					addEdge({
 						from_node_id: newId,
 						from_port_id: port.id,
@@ -1500,6 +1523,33 @@
 		const half = (template.width ?? 200) / 2;
 		const { x, y } = findFreeSpot(pos.x - half, pos.y - 45);
 		addNode("reference", template, x, y);
+	}
+
+	/**
+	 * Spawn a Python fn node from a server-advertised bound function.
+	 * Wire-compatible with `_workflow_from_bind`: same id prefix, same
+	 * port shape, so it merges cleanly with any auto-generated fn nodes
+	 * already on the canvas.
+	 */
+	function addFnNode(tmpl: BoundFnTemplate): void {
+		const half = 110;
+		const { x, y } = findFreeSpot(canvasCenter().x - half, canvasCenter().y - 45);
+		const height = 80 + Math.max(tmpl.inputs.length, tmpl.outputs.length, 1) * 36;
+		addNode(
+			"operator",
+			{
+				label: tmpl.label,
+				kind: "fn",
+				source: "fn",
+				fn: tmpl.fn,
+				inputs: tmpl.inputs,
+				outputs: tmpl.outputs,
+				width: 220,
+				height
+			},
+			x,
+			y
+		);
 	}
 
 	function exportWorkflow(): void {
@@ -1850,8 +1900,10 @@
 		<WorkflowBottomBar
 			{running}
 			{hasTransforms}
+			boundFns={boundFns}
 			onopenpicker={openPicker}
 			onaddinput={addInputNode}
+			onaddfn={addFnNode}
 			onrun={() => void runWorkflow()}
 			onstop={stopWorkflow}
 		/>

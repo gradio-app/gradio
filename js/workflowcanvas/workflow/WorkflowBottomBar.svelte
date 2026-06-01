@@ -2,16 +2,34 @@
 	import { MODALITIES, DATASET_MODALITY } from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
 
+	export interface BoundFnTemplate {
+		fn: string;
+		label: string;
+		inputs: { id: string; label: string; type: string }[];
+		outputs: { id: string; label: string; type: string }[];
+	}
+
 	interface Props {
 		running: boolean;
 		hasTransforms: boolean;
+		boundFns: BoundFnTemplate[];
 		onopenpicker: (modality: ModalityConfig) => void;
 		onaddinput: (portType: string) => void;
+		onaddfn: (template: BoundFnTemplate) => void;
 		onrun: () => void;
 		onstop: () => void;
 	}
 
-	let { running, hasTransforms, onopenpicker, onaddinput, onrun, onstop }: Props = $props();
+	let {
+		running,
+		hasTransforms,
+		boundFns,
+		onopenpicker,
+		onaddinput,
+		onaddfn,
+		onrun,
+		onstop
+	}: Props = $props();
 
 	const INPUT_TYPES = [
 		{ key: "image", label: "Image" },
@@ -23,10 +41,23 @@
 	];
 
 	let showInputMenu = $state(false);
+	let showFnMenu = $state(false);
+
+	function closeMenus(): void {
+		showInputMenu = false;
+		showFnMenu = false;
+	}
 
 	function toggleInputMenu(e: MouseEvent) {
 		e.stopPropagation();
+		showFnMenu = false;
 		showInputMenu = !showInputMenu;
+	}
+
+	function toggleFnMenu(e: MouseEvent) {
+		e.stopPropagation();
+		showInputMenu = false;
+		showFnMenu = !showFnMenu;
 	}
 
 	function handleInputType(type: string, e: MouseEvent) {
@@ -34,16 +65,22 @@
 		showInputMenu = false;
 		onaddinput(type);
 	}
+
+	function handleFnClick(tmpl: BoundFnTemplate, e: MouseEvent) {
+		e.stopPropagation();
+		showFnMenu = false;
+		onaddfn(tmpl);
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="bottom-bar" onclick={(e) => { e.stopPropagation(); showInputMenu = false; }}>
+<div class="bottom-bar" onclick={(e) => { e.stopPropagation(); closeMenus(); }}>
 	<div class="bb-group">
 		{#each MODALITIES as m}
 			<div class="bb-modality-wrap">
 				<button
 					class="bb-btn"
-					onclick={(e) => { e.stopPropagation(); showInputMenu = false; onopenpicker(m); }}
+					onclick={(e) => { e.stopPropagation(); closeMenus(); onopenpicker(m); }}
 					title="Add {m.label} node"
 				>
 					<span class="bb-icon">
@@ -122,6 +159,27 @@
 			</div>
 		{/if}
 	</div>
+
+	{#if boundFns.length > 0}
+		<div class="bb-input-wrap">
+			<button class="bb-input-btn" onclick={toggleFnMenu} title="Add Python function node">
+				<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+					<path d="M2 3h2.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+					<path d="M10 3H7.5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+				</svg>
+				Function
+			</button>
+			{#if showFnMenu}
+				<div class="input-type-menu fn-menu">
+					{#each boundFns as t}
+						<button class="input-type-opt" onclick={(e) => handleFnClick(t, e)} title={t.fn}>
+							{t.label}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 
 	<div class="bb-divider"></div>
 
