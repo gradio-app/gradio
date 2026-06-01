@@ -69,7 +69,7 @@ jobs:
             playwright-${{ runner.os }}-
       - name: install playwright
         timeout-minutes: 3
-        run: pnpm exec playwright install chromium --no-shell
+        run: pnpm exec playwright install chromium --only-shell
       - name: build essential packages
         run: pnpm --filter @gradio/utils --filter @gradio/theme package
       - name: run browser tests
