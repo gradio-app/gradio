@@ -88,7 +88,7 @@ jobs:
       - name: Install Playwright (base)
         if: steps.changes.outputs.should_run == 'true'
         timeout-minutes: 3
-        run: pnpm exec playwright install chromium --no-shell
+        run: pnpm exec playwright install chromium --only-shell
 
       - name: Checkout benchmark spec and demo from PR
         if: steps.changes.outputs.should_run == 'true'
@@ -122,7 +122,7 @@ jobs:
       - name: Install Playwright (PR)
         if: steps.changes.outputs.should_run == 'true'
         timeout-minutes: 3
-        run: pnpm exec playwright install chromium --no-shell
+        run: pnpm exec playwright install chromium --only-shell
 
       - name: Run benchmark (PR)
         if: steps.changes.outputs.should_run == 'true'
