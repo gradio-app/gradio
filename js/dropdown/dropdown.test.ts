@@ -267,6 +267,67 @@ describe("Single-select: Filtering", () => {
 	});
 });
 
+describe("Single-select: Large choice lists", () => {
+	afterEach(() => cleanup());
+
+	const large_choices = Array.from({ length: 1_000 }, (_, index) => {
+		const label = `Option ${index.toString().padStart(4, "0")}`;
+		return [label, label] as [string, string];
+	});
+
+	test("renders only the visible option window", async () => {
+		const { getByLabelText, getAllByTestId, getByText, queryByText } =
+			await render(Dropdown, {
+				...single_select_props,
+				choices: large_choices,
+				value: null
+			});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option").length).toBeGreaterThan(0);
+		});
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options.length).toBeLessThan(large_choices.length);
+		expect(getByText("Option 0000")).toBeInTheDocument();
+		expect(queryByText("Option 0999")).not.toBeInTheDocument();
+	});
+
+	test("scrolling a virtualized list exposes and selects later options", async () => {
+		const { getByLabelText, getAllByTestId, getByText, get_data } =
+			await render(Dropdown, {
+				...single_select_props,
+				choices: large_choices,
+				value: null
+			});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option").length).toBeGreaterThan(0);
+		});
+
+		const options_list = getAllByTestId("dropdown-option")[0].closest(
+			"[role='listbox']"
+		) as HTMLElement;
+		options_list.scrollTo(0, 999 * 32);
+		await fireEvent.scroll(options_list);
+
+		await waitFor(() => {
+			expect(getByText("Option 0999")).toBeVisible();
+		});
+		await event.click(getByText("Option 0999"));
+
+		const data = await get_data();
+		expect(data.value).toBe("Option 0999");
+		expect(input.value).toBe("Option 0999");
+	});
+});
+
 describe("Single-select: Selection", () => {
 	afterEach(() => cleanup());
 
