@@ -36,7 +36,7 @@ PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
 35,0,1,"Meyer, Mr. Edgar Joseph",male,28,1,0,PC 17604,82.1708,,C
 36,0,1,"Holverson, Mr. Alexander Oskar",male,42,1,0,113789,52,,S
 37,1,3,"Mamee, Mr. Hanna",male,,0,0,2677,7.2292,,C
-38,0,3,"Can, Mr. Ernest Charles",male,21,0,0,A./5. 2152,8.05,,S
+38,0,3,"Cann, Mr. Ernest Charles",male,21,0,0,A./5. 2152,8.05,,S
 39,0,3,"Vander Planke, Miss. Augusta Maria",female,18,2,0,345764,18,,S
 40,1,3,"Nicola-Yarred, Miss. Jamila",female,14,1,0,2651,11.2417,,C
 41,0,3,"Ahlin, Mrs. Johan (Johanna Persdotter Larsson)",female,40,1,0,7546,9.475,,S
@@ -69,7 +69,7 @@ PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
 68,0,3,"Crease, Mr. Ernest James",male,19,0,0,S.P. 3464,8.1583,,S
 69,1,3,"Andersson, Miss. Erna Alexandra",female,17,4,2,3101281,7.925,,S
 70,0,3,"Kink, Mr. Vincenz",male,26,2,0,315151,8.6625,,S
-71,0,2,"Jenkins, Mr. Stephen Curnow",male,32,0,0,C.A. 33111,10.5,,S
+71,0,2,"Jenkin, Mr. Stephen Curnow",male,32,0,0,C.A. 33111,10.5,,S
 72,0,3,"Goodwin, Miss. Lillian Amy",female,16,5,2,CA 2144,46.9,,S
 73,0,2,"Hood, Mr. Ambrose Jr",male,21,0,0,S.O.C. 14879,73.5,,S
 74,0,3,"Chronopoulos, Mr. Apostolos",male,26,1,0,2680,14.4542,,C
@@ -386,7 +386,7 @@ PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
 385,0,3,"Plotcharsky, Mr. Vasil",male,,0,0,349227,7.8958,,S
 386,0,2,"Davies, Mr. Charles Henry",male,18,0,0,S.O.C. 14879,73.5,,S
 387,0,3,"Goodwin, Master. Sidney Leonard",male,1,5,2,CA 2144,46.9,,S
-388,1,2,"Bus, Miss. Kate",female,36,0,0,27849,13,,S
+388,1,2,"Buss, Miss. Kate",female,36,0,0,27849,13,,S
 389,0,3,"Sadlier, Mr. Matthew",male,,0,0,367655,7.7292,,Q
 390,1,2,"Lehmann, Miss. Bertha",female,17,0,0,SC 1748,12,,C
 391,1,1,"Carter, Mr. William Ernest",male,36,1,2,113760,120,B96 B98,S
@@ -854,12 +854,12 @@ PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
 853,0,3,"Boulos, Miss. Nourelain",female,9,1,1,2678,15.2458,,C
 854,1,1,"Lines, Miss. Mary Conover",female,16,0,1,PC 17592,39.4,D28,S
 855,0,2,"Carter, Mrs. Ernest Courtenay (Lilian Hughes)",female,44,1,0,244252,26,,S
-856,1,3,"Ask, Mrs. Sam (Leah Rosen)",female,18,0,1,392091,9.35,,S
+856,1,3,"Aks, Mrs. Sam (Leah Rosen)",female,18,0,1,392091,9.35,,S
 857,1,1,"Wick, Mrs. George Dennick (Mary Hitchcock)",female,45,1,1,36928,164.8667,,S
 858,1,1,"Daly, Mr. Peter Denis ",male,51,0,0,113055,26.55,E17,S
 859,1,3,"Baclini, Mrs. Solomon (Latifa Qurban)",female,24,0,3,2666,19.2583,,C
 860,0,3,"Razi, Mr. Raihed",male,,0,0,2629,7.2292,,C
-861,0,3,"Hansen, Mr. Clause Peter",male,41,2,0,350026,14.1083,,S
+861,0,3,"Hansen, Mr. Claus Peter",male,41,2,0,350026,14.1083,,S
 862,0,2,"Giles, Mr. Frederick Edward",male,21,1,0,28134,11.5,,S
 863,1,1,"Swift, Mrs. Frederick Joel (Margaret Welles Barron)",female,48,0,0,17466,25.9292,D17,S
 864,0,3,"Sage, Miss. Dorothy Edith ""Dolly""",female,,8,2,CA. 2343,69.55,,S

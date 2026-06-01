@@ -7667,7 +7667,7 @@ If you're working from a Jupyter or Colab Notebook, use these magic commands ins
 
 We updated the Image component to add support for inpainting demos. It works by adding `tool="sketch"` as a parameter, that passes both an image and a sketchable mask to your prediction function.
 
-Here's an example from the [LLAMA space](https://huggingface.co/spaces/akhaliq/llama):
+Here's an example from the [LAMA space](https://huggingface.co/spaces/akhaliq/lama):
 
 ![FXApVlFVsAALSD-](https://user-images.githubusercontent.com/9021060/178989479-549867c8-7fb0-436a-a97d-1e91c9f5e611.jpeg)
 
