@@ -47,6 +47,53 @@ rules:
         - Cryptographic Issues
         - Other
 
+  - id: no-bare-httpx-url-fetch-ssrf
+    languages:
+      - python
+    severity: ERROR
+    message: >
+      Do not use bare `httpx` request functions to fetch URLs in components or
+      media/processing utilities. These code paths handle user-influenced URLs
+      (e.g. an `Image`/`Gallery` SVG source or an `Audio` path) and a plain
+      `httpx` request has no SSRF protection (no private-IP filter, domain
+      allow-list, or redirect re-validation), which can leak internal responses
+      to the client (CWE-918). Route the request through `safehttpx` instead,
+      e.g. `processing_utils.async_ssrf_protected_get` /
+      `async_ssrf_protected_download`, which use `PUBLIC_HOSTNAME_WHITELIST`.
+    paths:
+      include:
+        - "**/gradio/components/"
+        - "**/gradio/image_utils.py"
+        - "**/gradio/processing_utils.py"
+    patterns:
+      - pattern-either:
+          - pattern: httpx.get(...)
+          - pattern: httpx.post(...)
+          - pattern: httpx.put(...)
+          - pattern: httpx.patch(...)
+          - pattern: httpx.delete(...)
+          - pattern: httpx.head(...)
+          - pattern: httpx.request(...)
+          - pattern: httpx.stream(...)
+    metadata:
+      category: security
+      owasp:
+        - A10:2021 - Server-Side Request Forgery (SSRF)
+      cwe:
+        - "CWE-918: Server-Side Request Forgery (SSRF)"
+      technology:
+        - python
+      references:
+        - https://github.com/gradio-app/gradio/security/advisories/GHSA-3xvj-7669-6whx
+      subcategory:
+        - vuln
+      likelihood: MEDIUM
+      impact: HIGH
+      confidence: HIGH
+      license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+      vulnerability_class:
+        - Server-Side Request Forgery (SSRF)
+
   - id: insecure-file-permissions
     languages:
       - python
