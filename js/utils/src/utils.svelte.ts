@@ -383,6 +383,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			this.shared[key] = _props.shared_props[key];
 		}
 		for (const key in _props.props) {
+			// i18n_store is a store reference kept off `props`/`$state` (see below)
+			if (key === "i18n_store") continue;
 			// @ts-ignore same here
 			this.props[key] = _props.props[key];
 		}
@@ -440,6 +442,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				this.shared[key] = _props.shared_props[key];
 			}
 			for (const key in _props.props) {
+				if (key === "i18n_store") continue;
 				if (this._is_i18n_managed(`props.${key}`, _props.props[key])) continue;
 				// @ts-ignore same here
 				this.props[key] = _props.props[key];
