@@ -168,6 +168,46 @@
 	box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.1);
 }
 
+.toolbar-token-input.has-user {
+	border-color: #4fd1a5;
+	box-shadow: 0 0 0 2px rgba(79, 209, 165, 0.08);
+}
+
+.toolbar-token-input.invalid {
+	border-color: #ef4444;
+	box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+.toolbar-token-form {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.toolbar-token-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-family: "Manrope", sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.toolbar-token-status.valid {
+	color: #4fd1a5;
+}
+
+.toolbar-token-status.validating {
+	color: #8b8d98;
+	font-weight: 500;
+	font-style: italic;
+}
+
+.toolbar-token-status.invalid {
+	color: #ef4444;
+}
+
 .toolbar-divider {
 	width: 1px;
 	height: 20px;

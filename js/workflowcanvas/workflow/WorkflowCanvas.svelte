@@ -105,22 +105,22 @@
 	type DragMode =
 		| { kind: "pan"; startX: number; startY: number; vx: number; vy: number }
 		| {
-			kind: "node";
-			nodeId: string;
-			startClientX: number;
-			startClientY: number;
-			startNodeX: number;
-			startNodeY: number;
-		}
+				kind: "node";
+				nodeId: string;
+				startClientX: number;
+				startClientY: number;
+				startNodeX: number;
+				startNodeY: number;
+		  }
 		| {
-			kind: "connection";
-			fromNodeId: string;
-			fromPortId: string;
-			type: PortType;
-			reversed: boolean;
-			cursorCanvasX: number;
-			cursorCanvasY: number;
-		};
+				kind: "connection";
+				fromNodeId: string;
+				fromPortId: string;
+				type: PortType;
+				reversed: boolean;
+				cursorCanvasX: number;
+				cursorCanvasY: number;
+		  };
 	let dragMode = $state<DragMode | null>(null);
 
 	// ─── App state ──────────────────────────────────────────────────────────────
@@ -246,7 +246,11 @@
 		// When dragging from an input (reversed), media types want an "Upload"
 		// affordance; scalar types reuse their own label as the source widget.
 		if (reversed) {
-			const scalar = type === "text" || type === "number" || type === "json" || type === "boolean";
+			const scalar =
+				type === "text" ||
+				type === "number" ||
+				type === "json" ||
+				type === "boolean";
 			return scalar ? base : "Upload";
 		}
 		return base;
@@ -275,11 +279,21 @@
 	});
 	setContext("wf", wfCtx);
 
-	$effect(() => { wfCtx.pending = activeConnection; });
-	$effect(() => { wfCtx.nodeStatus = nodeStatus; });
-	$effect(() => { wfCtx.nodeErrors = nodeErrors; });
-	$effect(() => { wfCtx.staleNodes = staleNodes; });
-	$effect(() => { wfCtx.connectedPorts = connectedPortsSet(); });
+	$effect(() => {
+		wfCtx.pending = activeConnection;
+	});
+	$effect(() => {
+		wfCtx.nodeStatus = nodeStatus;
+	});
+	$effect(() => {
+		wfCtx.nodeErrors = nodeErrors;
+	});
+	$effect(() => {
+		wfCtx.staleNodes = staleNodes;
+	});
+	$effect(() => {
+		wfCtx.connectedPorts = connectedPortsSet();
+	});
 
 	// ─── Custom canvas event handlers ───────────────────────────────────────────
 	// v1 port compatibility policy: exact-match or `any` wildcard. No subtyping
@@ -289,7 +303,10 @@
 		return a === "any" || b === "any" || a === b;
 	}
 
-	function clientToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+	function clientToCanvas(
+		clientX: number,
+		clientY: number
+	): { x: number; y: number } {
 		const r = canvasEl?.getBoundingClientRect();
 		if (!r) return { x: 0, y: 0 };
 		return {
@@ -302,7 +319,11 @@
 		if (e.button !== 0) return;
 		const target = e.target as HTMLElement;
 		// Only start pan when clicking truly empty canvas — not nodes, edges, ports, UI
-		if (target.closest(".node-pos-wrap, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar")) {
+		if (
+			target.closest(
+				".node-pos-wrap, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar"
+			)
+		) {
 			return;
 		}
 		dragMode = {
@@ -366,7 +387,12 @@
 			cursorCanvasX: x,
 			cursorCanvasY: y
 		};
-		activeConnection = { from_node_id: nodeId, from_port_id: portId, type, reversed: isInput };
+		activeConnection = {
+			from_node_id: nodeId,
+			from_port_id: portId,
+			type,
+			reversed: isInput
+		};
 		canvasEl?.setPointerCapture(e.pointerId);
 	}
 
@@ -381,7 +407,11 @@
 		} else if (dragMode.kind === "node") {
 			const dx = (e.clientX - dragMode.startClientX) / viewport.zoom;
 			const dy = (e.clientY - dragMode.startClientY) / viewport.zoom;
-			moveNode(dragMode.nodeId, dragMode.startNodeX + dx, dragMode.startNodeY + dy);
+			moveNode(
+				dragMode.nodeId,
+				dragMode.startNodeX + dx,
+				dragMode.startNodeY + dy
+			);
 		} else if (dragMode.kind === "connection") {
 			const { x, y } = clientToCanvas(e.clientX, e.clientY);
 			dragMode = { ...dragMode, cursorCanvasX: x, cursorCanvasY: y };
@@ -393,14 +423,18 @@
 		const mode = dragMode;
 		if (mode.kind === "connection") {
 			activeConnection = null;
-			const targetEl = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+			const targetEl = document.elementFromPoint(
+				e.clientX,
+				e.clientY
+			) as HTMLElement | null;
 
 			// 1. Precise hit on a port handle — use it directly.
 			const portEl = targetEl?.closest("[data-port-id]") as HTMLElement | null;
 			if (portEl) {
 				const toNodeId = portEl.getAttribute("data-node-id");
 				const toPortId = portEl.getAttribute("data-port-id");
-				const toIsInput = portEl.getAttribute("data-port-direction") === "input";
+				const toIsInput =
+					portEl.getAttribute("data-port-direction") === "input";
 				if (toNodeId && toPortId && toNodeId !== mode.fromNodeId) {
 					tryCreateEdge(
 						mode.fromNodeId,
@@ -412,17 +446,25 @@
 					);
 				}
 				dragMode = null;
-				try { canvasEl?.releasePointerCapture(e.pointerId); } catch {}
+				try {
+					canvasEl?.releasePointerCapture(e.pointerId);
+				} catch {}
 				return;
 			}
 
 			// 2. Fuzzy hit — dropped on a node body, not its port. Find the first
 			// compatible free port on that node and use it. This is what users
 			// usually mean: "connect to that node", not "to that 12px circle."
-			const nodeWrap = targetEl?.closest("[data-node-id]") as HTMLElement | null;
+			const nodeWrap = targetEl?.closest(
+				"[data-node-id]"
+			) as HTMLElement | null;
 			const droppedNodeId = nodeWrap?.getAttribute("data-node-id");
 			if (droppedNodeId && droppedNodeId !== mode.fromNodeId) {
-				const autoPort = pickCompatiblePort(droppedNodeId, mode.type, mode.reversed);
+				const autoPort = pickCompatiblePort(
+					droppedNodeId,
+					mode.type,
+					mode.reversed
+				);
 				if (autoPort) {
 					tryCreateEdge(
 						mode.fromNodeId,
@@ -433,7 +475,9 @@
 						autoPort.direction === "input"
 					);
 					dragMode = null;
-					try { canvasEl?.releasePointerCapture(e.pointerId); } catch {}
+					try {
+						canvasEl?.releasePointerCapture(e.pointerId);
+					} catch {}
 					return;
 				}
 			}
@@ -627,11 +671,20 @@
 		if (!modality) return [];
 		return modality.subtabs
 			.filter((st) => st.key !== "all")
-			.map((st) => ({ kind: "model" as const, label: st.label, subtab: st.key }));
+			.map((st) => ({
+				kind: "model" as const,
+				label: st.label,
+				subtab: st.key
+			}));
 	}
 
-	function buildComponentOptions(type: PortType, reversed: boolean): DropOption[] {
-		return [{ kind: "component" as const, label: inputOutputLabel(type, reversed) }];
+	function buildComponentOptions(
+		type: PortType,
+		reversed: boolean
+	): DropOption[] {
+		return [
+			{ kind: "component" as const, label: inputOutputLabel(type, reversed) }
+		];
 	}
 
 	function handleDropChoiceModel(subtab?: string): void {
@@ -659,25 +712,48 @@
 		// reversed=true → user dragged from an input port; they need a Source
 		// (reference) supplying that value. reversed=false → user dragged from
 		// an output port; they need a Sink (subject) displaying that value.
-		const role: "reference" | "subject" = drop.reversed ? "reference" : "subject";
+		const role: "reference" | "subject" = drop.reversed
+			? "reference"
+			: "subject";
 		const newId = addNode(role, template, x, y);
 		const newNode = legacyView.nodes.find((n) => n.id === newId);
 		if (drop.reversed) {
-			const outputPort = newNode?.outputs.find((p: any) => compatible(p.type, drop.type));
+			const outputPort = newNode?.outputs.find((p: any) =>
+				compatible(p.type, drop.type)
+			);
 			if (outputPort) {
-				addEdge({ from_node_id: newId, from_port_id: outputPort.id, to_node_id: drop.from_node_id, to_port_id: drop.from_port_id, type: drop.type });
+				addEdge({
+					from_node_id: newId,
+					from_port_id: outputPort.id,
+					to_node_id: drop.from_node_id,
+					to_port_id: drop.from_port_id,
+					type: drop.type
+				});
 			}
 		} else {
-			const inputPort = newNode?.inputs.find((p: any) => compatible(drop.type, p.type));
+			const inputPort = newNode?.inputs.find((p: any) =>
+				compatible(drop.type, p.type)
+			);
 			if (inputPort) {
-				addEdge({ from_node_id: drop.from_node_id, from_port_id: drop.from_port_id, to_node_id: newId, to_port_id: inputPort.id, type: drop.type });
+				addEdge({
+					from_node_id: drop.from_node_id,
+					from_port_id: drop.from_port_id,
+					to_node_id: newId,
+					to_port_id: inputPort.id,
+					type: drop.type
+				});
 			}
 		}
 	}
 
 	function handleCanvasDoubleClick(e: MouseEvent): void {
 		const target = e.target as HTMLElement;
-		if (target.closest(".node-pos-wrap") || target.closest(".drop-menu") || target.closest(".picker-panel")) return;
+		if (
+			target.closest(".node-pos-wrap") ||
+			target.closest(".drop-menu") ||
+			target.closest(".picker-panel")
+		)
+			return;
 		const r = canvasEl?.getBoundingClientRect();
 		if (!r) return;
 		setTimeout(() => {
@@ -699,7 +775,12 @@
 			typedComponents[c.outputs[0]?.type ?? "any"] = c;
 		}
 		const template = typedComponents[portType] ?? LIBRARY.components[0];
-		addNode("reference", template, canvasX - (template.width ?? 200) / 2, canvasY - 45);
+		addNode(
+			"reference",
+			template,
+			canvasX - (template.width ?? 200) / 2,
+			canvasY - 45
+		);
 	}
 
 	function handleDoubleClickUpload(): void {
@@ -722,11 +803,20 @@
 				typedComponents[c.outputs[0]?.type ?? "any"] = c;
 			}
 			const template = typedComponents[portType] ?? LIBRARY.components[0];
-			const newId = addNode("reference", template, canvasX - (template.width ?? 200) / 2, canvasY - 45);
+			const newId = addNode(
+				"reference",
+				template,
+				canvasX - (template.width ?? 200) / 2,
+				canvasY - 45
+			);
 			const url = URL.createObjectURL(file);
 			const portId = template.outputs[0]?.id;
 			if (portId && newId) {
-				updateNodeData(newId, portId, { url, path: file.name, name: file.name } as any);
+				updateNodeData(newId, portId, {
+					url,
+					path: file.name,
+					name: file.name
+				} as any);
 			}
 		};
 		input.click();
@@ -736,7 +826,14 @@
 		if (!doubleClickMenu) return;
 		const { canvasX, canvasY } = doubleClickMenu;
 		doubleClickMenu = null;
-		pendingDrop = { from_node_id: "", from_port_id: "", type: "any" as PortType, x: canvasX, y: canvasY, positionOnly: true };
+		pendingDrop = {
+			from_node_id: "",
+			from_port_id: "",
+			type: "any" as PortType,
+			x: canvasX,
+			y: canvasY,
+			positionOnly: true
+		};
 		activePicker = { mode: "create", modality };
 	}
 
@@ -779,7 +876,11 @@
 		x?: number,
 		y?: number
 	): Promise<string | null> {
-		if (template.source === "space" && template.space_id && template.inputs.length === 0) {
+		if (
+			template.source === "space" &&
+			template.space_id &&
+			template.inputs.length === 0
+		) {
 			showToast(`Connecting to ${template.space_id}...`);
 			try {
 				const apiInfo = await fetchSpaceApi(template.space_id);
@@ -798,7 +899,10 @@
 		}
 		if (x === undefined || y === undefined) {
 			const nodes = legacyView.nodes;
-			x = nodes.length > 0 ? Math.max(...nodes.map((n) => n.x + n.width)) + 80 : 200;
+			x =
+				nodes.length > 0
+					? Math.max(...nodes.map((n) => n.x + n.width)) + 80
+					: 200;
 			y = nodes.length > 0 ? nodes[nodes.length - 1].y : 150;
 		}
 		return addNode(templateRole(template), template, x, y);
@@ -818,7 +922,12 @@
 	function revokeAllBlobUrls(nodes: WFNode[]): void {
 		for (const node of nodes) {
 			for (const v of Object.values(node.data ?? {})) {
-				if (v && typeof v === "object" && "url" in v && v.url?.startsWith("blob:")) {
+				if (
+					v &&
+					typeof v === "object" &&
+					"url" in v &&
+					v.url?.startsWith("blob:")
+				) {
 					URL.revokeObjectURL(v.url);
 				}
 			}
@@ -881,7 +990,9 @@
 			xOffset += maxWidth + colGap;
 		}
 		workflow.update((wf) => {
-			const reposition = <T extends { id: string; x: number; y: number }>(n: T): T => {
+			const reposition = <T extends { id: string; x: number; y: number }>(
+				n: T
+			): T => {
 				const p = positions.get(n.id);
 				return p ? { ...n, x: p.x, y: p.y } : n;
 			};
@@ -919,7 +1030,11 @@
 		abortController = new AbortController();
 
 		const oauthToken = await auth.getOAuthToken();
-		if (legacyView.nodes.some((n) => n.source === "space" && n.space_id) && !oauthToken) {
+		const hasAuth = !!oauthToken || !!auth.hfToken;
+		if (
+			legacyView.nodes.some((n) => n.source === "space" && n.space_id) &&
+			!hasAuth
+		) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
 				5000,
@@ -955,11 +1070,20 @@
 					split: string,
 					offset: string,
 					length: string
-				) => server.fetch_dataset([datasetId, config, split, offset, length, auth.hfToken || ""])
+				) =>
+					server.fetch_dataset([
+						datasetId,
+						config,
+						split,
+						offset,
+						length,
+						auth.hfToken || ""
+					])
 			: undefined;
 
 		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) => server.call_fn([fnName, argsJson])
+			? async (fnName: string, argsJson: string) =>
+					server.call_fn([fnName, argsJson])
 			: undefined;
 
 		await executeWorkflow(
@@ -978,7 +1102,8 @@
 				if (error) {
 					nodeErrors = { ...nodeErrors, [nodeId]: error };
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
-					const label = node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
+					const label =
+						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
 					showToast(
 						`${label}: ${error}`,
 						errorType === "quota" || errorType === "gpu" ? 0 : 5000,
@@ -986,7 +1111,9 @@
 					);
 				}
 			},
-			(nodeId, portId, value) => { updateNodeData(nodeId, portId, value); },
+			(nodeId, portId, value) => {
+				updateNodeData(nodeId, portId, value);
+			},
 			abortController.signal,
 			callSpaceWithToken,
 			callModelWithToken,
@@ -1025,7 +1152,10 @@
 		running = false;
 		abortController = null;
 		nodeStatus = Object.fromEntries(
-			Object.entries(nodeStatus).map(([id, s]) => [id, s === "running" ? "idle" : s])
+			Object.entries(nodeStatus).map(([id, s]) => [
+				id,
+				s === "running" ? "idle" : s
+			])
 		);
 		showToast("Stopped", 3000, "warning");
 	}
@@ -1064,7 +1194,10 @@
 		const maxY = Math.max(...nodes.map((n) => n.y + n.height));
 		const contentW = maxX - minX + padding * 2;
 		const contentH = maxY - minY + padding * 2;
-		if (!canvasEl) { viewport = { x: 0, y: 0, zoom: 1 }; return; }
+		if (!canvasEl) {
+			viewport = { x: 0, y: 0, zoom: 1 };
+			return;
+		}
 		const r = canvasEl.getBoundingClientRect();
 		const newZoom = Math.min(
 			Math.max(Math.min(r.width / contentW, r.height / contentH), 0.15),
@@ -1085,7 +1218,12 @@
 		const node = legacyView.nodes.find((n) => n.id === id);
 		if (!node) return;
 		const { id: _, data: __, ...template } = node;
-		selectedNodeId = addNode(templateRole(template), template, node.x + 40, node.y + 40);
+		selectedNodeId = addNode(
+			templateRole(template),
+			template,
+			node.x + 40,
+			node.y + 40
+		);
 	}
 
 	function handleKeydown(e: KeyboardEvent): void {
@@ -1094,7 +1232,12 @@
 			exportWorkflow();
 			return;
 		}
-		if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !running && hasTransforms) {
+		if (
+			e.key === "Enter" &&
+			(e.metaKey || e.ctrlKey) &&
+			!running &&
+			hasTransforms
+		) {
 			e.preventDefault();
 			runWorkflow();
 			return;
@@ -1169,31 +1312,57 @@
 				node.x * viewport.zoom + viewport.x + node.width * viewport.zoom;
 			anchorX = nodeScreenRight + 12;
 			if (anchorX + panelWidth > r.width) {
-				anchorX = Math.max(4, node.x * viewport.zoom + viewport.x - panelWidth - 12);
+				anchorX = Math.max(
+					4,
+					node.x * viewport.zoom + viewport.x - panelWidth - 12
+				);
 			}
 			anchorX = Math.max(4, anchorX);
 			anchorY = Math.max(
 				4,
-				Math.min(node.y * viewport.zoom + viewport.y, r.height - panelHeight - 8)
+				Math.min(
+					node.y * viewport.zoom + viewport.y,
+					r.height - panelHeight - 8
+				)
 			);
 		}
 
-		activePicker = { mode: "update", modality, nodeId, anchorX, anchorY, initialSource };
+		activePicker = {
+			mode: "update",
+			modality,
+			nodeId,
+			anchorX,
+			anchorY,
+			initialSource
+		};
 	}
 
 	function getModalityForPipelineTag(tag: string): string {
 		const map: Record<string, string> = {
-			"text-to-image": "image", "image-to-image": "image",
-			"text-to-audio": "audio", "text-to-speech": "audio",
+			"text-to-image": "image",
+			"image-to-image": "image",
+			"text-to-audio": "audio",
+			"text-to-speech": "audio",
 			"automatic-speech-recognition": "audio",
-			"text-to-video": "video", "image-to-video": "video",
-			"text-to-3d": "3d", "image-to-3d": "3d",
-			"text-generation": "text", "summarization": "text", "translation": "text"
+			"text-to-video": "video",
+			"image-to-video": "video",
+			"text-to-3d": "3d",
+			"image-to-3d": "3d",
+			"text-generation": "text",
+			summarization: "text",
+			translation: "text"
 		};
 		return map[tag] ?? "image";
 	}
 
-	const SUBGRAPH_PORT_TYPES = new Set(["image", "audio", "video", "text", "file", "gallery"]);
+	const SUBGRAPH_PORT_TYPES = new Set([
+		"image",
+		"audio",
+		"video",
+		"text",
+		"file",
+		"gallery"
+	]);
 
 	async function handlePickerCreate(template: any): Promise<void> {
 		activePicker = null;
@@ -1213,14 +1382,19 @@
 
 		// For spaces added fresh to the canvas (not wired from an existing port),
 		// auto-create input + output components to form a ready-to-run subgraph
-		const isSpaceFresh = template.source === "space" && (!drop || drop.positionOnly);
+		const isSpaceFresh =
+			template.source === "space" && (!drop || drop.positionOnly);
 		if (isSpaceFresh) {
 			const spaceNode = legacyView.nodes.find((n) => n.id === newId);
 			if (spaceNode) {
 				const compGap = 24;
 				const compH = 180;
-				const inputPorts = spaceNode.inputs.filter((p) => SUBGRAPH_PORT_TYPES.has(p.type));
-				const outputPorts = spaceNode.outputs.filter((p) => SUBGRAPH_PORT_TYPES.has(p.type));
+				const inputPorts = spaceNode.inputs.filter((p) =>
+					SUBGRAPH_PORT_TYPES.has(p.type)
+				);
+				const outputPorts = spaceNode.outputs.filter((p) =>
+					SUBGRAPH_PORT_TYPES.has(p.type)
+				);
 
 				// Input components — stacked left of the space node
 				const inTotal = inputPorts.length * (compH + compGap) - compGap;
@@ -1228,8 +1402,19 @@
 				inputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
-					const cId = addNode("reference", comp, x - 220 - 80, inStartY + i * (compH + compGap));
-					addEdge({ from_node_id: cId, from_port_id: "out", to_node_id: newId, to_port_id: port.id, type: port.type });
+					const cId = addNode(
+						"reference",
+						comp,
+						x - 220 - 80,
+						inStartY + i * (compH + compGap)
+					);
+					addEdge({
+						from_node_id: cId,
+						from_port_id: "out",
+						to_node_id: newId,
+						to_port_id: port.id,
+						type: port.type
+					});
 				});
 
 				// Output components — stacked right of the space node (rendered as subjects)
@@ -1238,8 +1423,19 @@
 				outputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
-					const cId = addNode("subject", comp, x + (spaceNode.width ?? 280) + 80, outStartY + i * (compH + compGap));
-					addEdge({ from_node_id: newId, from_port_id: port.id, to_node_id: cId, to_port_id: "in", type: port.type });
+					const cId = addNode(
+						"subject",
+						comp,
+						x + (spaceNode.width ?? 280) + 80,
+						outStartY + i * (compH + compGap)
+					);
+					addEdge({
+						from_node_id: newId,
+						from_port_id: port.id,
+						to_node_id: cId,
+						to_port_id: "in",
+						type: port.type
+					});
 				});
 			}
 			return;
@@ -1249,7 +1445,9 @@
 		if (drop && !drop.positionOnly) {
 			const newNode = legacyView.nodes.find((n) => n.id === newId);
 			if (drop.reversed) {
-				const outputPort = newNode?.outputs.find((p: any) => compatible(p.type, drop.type));
+				const outputPort = newNode?.outputs.find((p: any) =>
+					compatible(p.type, drop.type)
+				);
 				if (outputPort) {
 					addEdge({
 						from_node_id: newId,
@@ -1260,7 +1458,9 @@
 					});
 				}
 			} else {
-				const inputPort = newNode?.inputs.find((p: any) => compatible(drop.type, p.type));
+				const inputPort = newNode?.inputs.find((p: any) =>
+					compatible(drop.type, p.type)
+				);
 				if (inputPort) {
 					addEdge({
 						from_node_id: drop.from_node_id,
@@ -1284,7 +1484,10 @@
 		if (cx !== undefined && cy !== undefined) {
 			const r = canvasEl?.getBoundingClientRect();
 			pos = r
-				? { x: (cx - r.left - viewport.x) / viewport.zoom, y: (cy - r.top - viewport.y) / viewport.zoom }
+				? {
+						x: (cx - r.left - viewport.x) / viewport.zoom,
+						y: (cy - r.top - viewport.y) / viewport.zoom
+					}
 				: canvasCenter();
 		} else {
 			pos = canvasCenter();
@@ -1363,7 +1566,9 @@
 					<span class="name-edit-icon">&#x270E;</span>
 				</button>
 			{/if}
-			<span class="toolbar-stat">{nodeCount} nodes &middot; {edgeCount} edges</span>
+			<span class="toolbar-stat"
+				>{nodeCount} nodes &middot; {edgeCount} edges</span
+			>
 		</div>
 		<div class="toolbar-right">
 			{#if !auth.isCheckingLogin}
@@ -1372,8 +1577,9 @@
 						<span class="toolbar-user-info"
 							>Logged in as <strong>{auth.loggedInUser}</strong></span
 						>
-						<button class="toolbar-login-btn logged-in" onclick={auth.handleLogout}
-							>Log out</button
+						<button
+							class="toolbar-login-btn logged-in"
+							onclick={auth.handleLogout}>Log out</button
 						>
 					{:else}
 						<button class="toolbar-login-btn" onclick={auth.handleLogin}
@@ -1381,26 +1587,61 @@
 						>
 					{/if}
 				{:else}
-					<form onsubmit={(e) => e.preventDefault()}>
+					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
 						<input
 							class="toolbar-token-input"
+							class:has-user={!!auth.tokenUser}
+							class:invalid={auth.tokenStatus === "invalid"}
 							type="password"
 							placeholder="Paste HF token (hf_...)"
 							value={auth.hfToken}
 							onchange={(e) => auth.saveToken(e.currentTarget.value)}
 							title="HuggingFace token for GPU access"
 						/>
+						{#if auth.tokenUser}
+							<span
+								class="toolbar-token-status valid"
+								title={`Signed in as ${auth.tokenUser}`}
+							>
+								<svg
+									width="11"
+									height="11"
+									viewBox="0 0 11 11"
+									fill="none"
+									aria-hidden="true"
+								>
+									<path
+										d="M2 5.5L4.5 8L9 3"
+										stroke="currentColor"
+										stroke-width="1.6"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+								{auth.tokenUser}
+							</span>
+						{:else if auth.tokenStatus === "validating"}
+							<span class="toolbar-token-status validating">checking…</span>
+						{:else if auth.tokenStatus === "invalid"}
+							<span class="toolbar-token-status invalid">invalid</span>
+						{/if}
 					</form>
 				{/if}
 			{/if}
-			<button class="tool-btn" onclick={exportWorkflow} title="Export workflow.json (Cmd+S)"
-				>Export</button
+			<button
+				class="tool-btn"
+				onclick={exportWorkflow}
+				title="Export workflow.json (Cmd+S)">Export</button
 			>
-			<button class="tool-btn" onclick={importWorkflow} title="Import workflow.json"
-				>Import</button
+			<button
+				class="tool-btn"
+				onclick={importWorkflow}
+				title="Import workflow.json">Import</button
 			>
 			<div class="toolbar-divider"></div>
-			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes">Layout</button>
+			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
+				>Layout</button
+			>
 			<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
 		</div>
 	</div>
@@ -1467,7 +1708,11 @@
 					style="left: {n.x}px; top: {n.y}px; width: {n.width}px;"
 					onpointerdown={(e) => startNodeDrag(e, n.id)}
 				>
-					<WorkflowNodeSF id={n.id} data={n} selected={selectedNodeId === n.id} />
+					<WorkflowNodeSF
+						id={n.id}
+						data={n}
+						selected={selectedNodeId === n.id}
+					/>
 				</div>
 			{/each}
 		</div>
@@ -1496,13 +1741,21 @@
 				{#if dropChoice.modelOptions.length > 0}
 					<div class="drop-section-label">Models</div>
 					{#each dropChoice.modelOptions as opt}
-						<button class="drop-opt" onclick={() => handleDropChoiceModel(opt.subtab)}>{opt.label}</button>
+						<button
+							class="drop-opt"
+							onclick={() => handleDropChoiceModel(opt.subtab)}
+							>{opt.label}</button
+						>
 					{/each}
 				{/if}
 				{#if dropChoice.componentOptions.length > 0}
-					<div class="drop-section-label">{dropChoice.reversed ? "Sources" : "Outputs"}</div>
+					<div class="drop-section-label">
+						{dropChoice.reversed ? "Sources" : "Outputs"}
+					</div>
 					{#each dropChoice.componentOptions as opt}
-						<button class="drop-opt" onclick={handleDropChoiceUpload}>{opt.label}</button>
+						<button class="drop-opt" onclick={handleDropChoiceUpload}
+							>{opt.label}</button
+						>
 					{/each}
 				{/if}
 			</div>
@@ -1517,14 +1770,23 @@
 			>
 				<div class="add-node-section-label">Add</div>
 				<div class="add-node-grid">
-					<button class="add-node-type-btn" onclick={handleDoubleClickUpload}>Upload Media</button>
-					<button class="add-node-type-btn" onclick={() => handleDoubleClickInputNode("text" as PortType)}>Text</button>
+					<button class="add-node-type-btn" onclick={handleDoubleClickUpload}
+						>Upload Media</button
+					>
+					<button
+						class="add-node-type-btn"
+						onclick={() => handleDoubleClickInputNode("text" as PortType)}
+						>Text</button
+					>
 				</div>
 				<div class="add-node-divider"></div>
 				<div class="add-node-section-label">Space / Model</div>
 				<div class="add-node-grid">
-					{#each MODALITIES.filter(m => ["image","audio","video","text","3d"].includes(m.key)) as m}
-						<button class="add-node-type-btn" onclick={() => handleDoubleClickSpaceModel(m)}>{m.label}</button>
+					{#each MODALITIES.filter( (m) => ["image", "audio", "video", "text", "3d"].includes(m.key) ) as m}
+						<button
+							class="add-node-type-btn"
+							onclick={() => handleDoubleClickSpaceModel(m)}>{m.label}</button
+						>
 					{/each}
 				</div>
 			</div>
@@ -1536,35 +1798,52 @@
 				onclick={() => (showShortcuts = !showShortcuts)}
 				title="Keyboard shortcuts">?</button
 			>
-			<button class="zoom-ctrl-btn" onclick={zoomToFit} title="Fit all (F)">&#x2922;</button>
-			<button
-				class="zoom-ctrl-btn"
-				onclick={() => { viewport = { ...viewport, zoom: Math.max(0.15, viewport.zoom / 1.2) }; }}
-				>−</button
-			>
-			<button class="zoom-btn" onclick={() => { viewport = { x: 0, y: 0, zoom: 1 }; }}
-				>{Math.round(viewport.zoom * 100)}%</button
+			<button class="zoom-ctrl-btn" onclick={zoomToFit} title="Fit all (F)"
+				>&#x2922;</button
 			>
 			<button
 				class="zoom-ctrl-btn"
-				onclick={() => { viewport = { ...viewport, zoom: Math.min(4, viewport.zoom * 1.2) }; }}
-				>+</button
+				onclick={() => {
+					viewport = { ...viewport, zoom: Math.max(0.15, viewport.zoom / 1.2) };
+				}}>−</button
+			>
+			<button
+				class="zoom-btn"
+				onclick={() => {
+					viewport = { x: 0, y: 0, zoom: 1 };
+				}}>{Math.round(viewport.zoom * 100)}%</button
+			>
+			<button
+				class="zoom-ctrl-btn"
+				onclick={() => {
+					viewport = { ...viewport, zoom: Math.min(4, viewport.zoom * 1.2) };
+				}}>+</button
 			>
 		</div>
 
 		{#if showShortcuts}
 			<div class="shortcuts-panel">
 				<div class="shortcuts-title">Keyboard shortcuts</div>
-				<div class="shortcut-row"><kbd>Cmd+Enter</kbd> <span>Run workflow</span></div>
-				<div class="shortcut-row"><kbd>Cmd+S</kbd> <span>Export JSON</span></div>
-				<div class="shortcut-row"><kbd>Cmd+D</kbd> <span>Duplicate node</span></div>
+				<div class="shortcut-row">
+					<kbd>Cmd+Enter</kbd> <span>Run workflow</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Cmd+S</kbd> <span>Export JSON</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Cmd+D</kbd> <span>Duplicate node</span>
+				</div>
 				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
 				<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>
-				<div class="shortcut-row"><kbd>Delete</kbd> <span>Remove node</span></div>
+				<div class="shortcut-row">
+					<kbd>Delete</kbd> <span>Remove node</span>
+				</div>
 				<div class="shortcut-row"><kbd>Escape</kbd> <span>Deselect</span></div>
 				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Zoom</span></div>
 				<div class="shortcut-row"><kbd>Drag canvas</kbd> <span>Pan</span></div>
-				<div class="shortcut-row"><kbd>Double-click</kbd> <span>Rename node</span></div>
+				<div class="shortcut-row">
+					<kbd>Double-click</kbd> <span>Rename node</span>
+				</div>
 			</div>
 		{/if}
 
@@ -1590,7 +1869,9 @@
 				anchorY={activePicker.anchorY}
 				oncreate={handlePickerCreate}
 				onupdate={handlePickerUpdate}
-				onclose={() => { activePicker = null; }}
+				onclose={() => {
+					activePicker = null;
+				}}
 				onerror={(msg) => showToast(msg, 5000, "error")}
 			/>
 		{/if}
@@ -1607,10 +1888,7 @@
 	{#if clearConfirm}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="wf-modal-backdrop"
-			onclick={() => (clearConfirm = false)}
-		>
+		<div class="wf-modal-backdrop" onclick={() => (clearConfirm = false)}>
 			<div
 				class="wf-modal"
 				role="dialog"
@@ -1626,14 +1904,13 @@
 					{edgeCount === 1 ? "edge" : "edges"}. This can't be undone.
 				</div>
 				<div class="wf-modal-actions">
-					<button
-						class="wf-modal-btn"
-						onclick={() => (clearConfirm = false)}
-					>Cancel</button>
+					<button class="wf-modal-btn" onclick={() => (clearConfirm = false)}
+						>Cancel</button
+					>
 					<button
 						class="wf-modal-btn wf-modal-btn-danger"
-						onclick={confirmClearWorkflow}
-					>Clear</button>
+						onclick={confirmClearWorkflow}>Clear</button
+					>
 				</div>
 			</div>
 		</div>
@@ -1715,30 +1992,104 @@
 		border-bottom-color: #e2e4ea;
 	}
 
-	:global(body:not(.dark) .name-btn:hover) { background: #f0f1f5; }
-	:global(body:not(.dark) .name-text) { color: #1a1b25; }
-	:global(body:not(.dark) .name-edit-icon) { color: #b0b2bc; }
-	:global(body:not(.dark) .name-input) { background: #ffffff; color: #1a1b25; }
-	:global(body:not(.dark) .toolbar-stat) { color: #b0b2bc; }
-	:global(body:not(.dark) .tool-btn) { border-color: #e2e4ea; color: #8b8d98; }
-	:global(body:not(.dark) .tool-btn:hover) { background: #f0f1f5; color: #3e4050; border-color: #d0d2dc; }
-	:global(body:not(.dark) .toolbar-login-btn) { border-color: #e2e4ea; color: #6b6e78; }
-	:global(body:not(.dark) .toolbar-login-btn:hover) { background: #f0f1f5; color: #1a1b25; border-color: #d0d2dc; }
-	:global(body:not(.dark) .toolbar-login-btn.logged-in) { color: #8b8d98; }
-	:global(body:not(.dark) .toolbar-user-info) { color: #8b8d98; }
-	:global(body:not(.dark) .toolbar-user-info strong) { color: #3e4050; }
-	:global(body:not(.dark) .toolbar-token-input) { background: #ffffff; color: #6b6e78; border-color: #e2e4ea; }
-	:global(body:not(.dark) .toolbar-token-input::placeholder) { color: #c0c2cc; }
-	:global(body:not(.dark) .toolbar-token-input:focus) { background: #ffffff; color: #3e4050; }
-	:global(body:not(.dark) .toolbar-divider) { background: #e2e4ea; }
-	:global(body:not(.dark) .zoom-controls) { background: #ffffff; border-color: #e2e4ea; }
-	:global(body:not(.dark) .zoom-ctrl-btn) { color: #9a9caa; }
-	:global(body:not(.dark) .zoom-ctrl-btn:hover) { background: #f0f1f5; color: #3e4050; }
-	:global(body:not(.dark) .zoom-btn) { background: #ffffff; border-color: #e2e4ea; color: #9a9caa; }
-	:global(body:not(.dark) .zoom-btn:hover) { color: #3e4050; border-color: #d0d2dc; }
-	:global(body:not(.dark) .shortcuts-panel) { background: #ffffff; border-color: #e2e4ea; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-	:global(body:not(.dark) .shortcuts-title) { color: #6b6e78; }
-	:global(body:not(.dark) .shortcut-row) { color: #9a9caa; }
-	:global(body:not(.dark) .shortcut-row kbd) { background: #f0f1f5; color: #3e4050; border-color: #d0d2dc; }
-	:global(body:not(.dark) .wf-toast) { background: #ffffff; color: #2a2b36; border-color: #e2e4ea; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+	:global(body:not(.dark) .name-btn:hover) {
+		background: #f0f1f5;
+	}
+	:global(body:not(.dark) .name-text) {
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .name-edit-icon) {
+		color: #b0b2bc;
+	}
+	:global(body:not(.dark) .name-input) {
+		background: #ffffff;
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .toolbar-stat) {
+		color: #b0b2bc;
+	}
+	:global(body:not(.dark) .tool-btn) {
+		border-color: #e2e4ea;
+		color: #8b8d98;
+	}
+	:global(body:not(.dark) .tool-btn:hover) {
+		background: #f0f1f5;
+		color: #3e4050;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .toolbar-login-btn) {
+		border-color: #e2e4ea;
+		color: #6b6e78;
+	}
+	:global(body:not(.dark) .toolbar-login-btn:hover) {
+		background: #f0f1f5;
+		color: #1a1b25;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .toolbar-login-btn.logged-in) {
+		color: #8b8d98;
+	}
+	:global(body:not(.dark) .toolbar-user-info) {
+		color: #8b8d98;
+	}
+	:global(body:not(.dark) .toolbar-user-info strong) {
+		color: #3e4050;
+	}
+	:global(body:not(.dark) .toolbar-token-input) {
+		background: #ffffff;
+		color: #6b6e78;
+		border-color: #e2e4ea;
+	}
+	:global(body:not(.dark) .toolbar-token-input::placeholder) {
+		color: #c0c2cc;
+	}
+	:global(body:not(.dark) .toolbar-token-input:focus) {
+		background: #ffffff;
+		color: #3e4050;
+	}
+	:global(body:not(.dark) .toolbar-divider) {
+		background: #e2e4ea;
+	}
+	:global(body:not(.dark) .zoom-controls) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+	}
+	:global(body:not(.dark) .zoom-ctrl-btn) {
+		color: #9a9caa;
+	}
+	:global(body:not(.dark) .zoom-ctrl-btn:hover) {
+		background: #f0f1f5;
+		color: #3e4050;
+	}
+	:global(body:not(.dark) .zoom-btn) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+		color: #9a9caa;
+	}
+	:global(body:not(.dark) .zoom-btn:hover) {
+		color: #3e4050;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .shortcuts-panel) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+	}
+	:global(body:not(.dark) .shortcuts-title) {
+		color: #6b6e78;
+	}
+	:global(body:not(.dark) .shortcut-row) {
+		color: #9a9caa;
+	}
+	:global(body:not(.dark) .shortcut-row kbd) {
+		background: #f0f1f5;
+		color: #3e4050;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .wf-toast) {
+		background: #ffffff;
+		color: #2a2b36;
+		border-color: #e2e4ea;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+	}
 </style>
