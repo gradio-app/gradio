@@ -337,6 +337,36 @@ describe("Single-select: Selection", () => {
 		expect(input.value).toBe("apple");
 	});
 
+	test("arrow down from a selected option moves to the next option", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: "banana"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await event.keyboard("{ArrowDown}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("cherry");
+	});
+
+	test("arrow up from a selected option moves to the previous option", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: "banana"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await event.keyboard("{ArrowUp}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("apple");
+	});
+
 	test("selecting a new option replaces the previous one", async () => {
 		const { getByLabelText, getAllByTestId } = await render(
 			Dropdown,
