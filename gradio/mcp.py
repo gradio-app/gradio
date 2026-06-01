@@ -20,7 +20,7 @@ from PIL import Image
 from pydantic import AnyUrl
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.types import Receive, Scope, Send
 
@@ -107,6 +107,22 @@ class GradioMCPServer:
                 await response(scope, receive, send)
                 return
 
+            # MCP clients connect using the streamable HTTP transport, which
+            # requires an `Accept: text/event-stream` header. A plain browser
+            # GET (e.g. a user clicking the MCP link printed in the terminal)
+            # would otherwise receive a raw JSON-RPC "Not Acceptable" error, so
+            # serve a human-friendly landing page instead.
+            if scope.get("method") == "GET":
+                accept = b""
+                for key, value in scope.get("headers", []):
+                    if key.lower() == b"accept":
+                        accept = value
+                        break
+                if b"text/event-stream" not in accept:
+                    response = HTMLResponse(content=self._landing_page_html())
+                    await response(scope, receive, send)
+                    return
+
             await manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
@@ -125,6 +141,42 @@ class GradioMCPServer:
     @property
     def local_url(self) -> str | None:
         return self._local_url
+
+    @staticmethod
+    def _landing_page_html() -> str:
+        """HTML landing page shown when a browser navigates to the MCP endpoint.
+
+        MCP clients connect using the streamable HTTP transport (which requires
+        an ``Accept: text/event-stream`` header). A plain browser ``GET`` would
+        otherwise receive a raw JSON-RPC "Not Acceptable" error, so we serve
+        this informational page instead.
+        """
+        docs_url = "https://www.gradio.app/guides/building-mcp-server-with-gradio"
+        return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gradio MCP Server</title>
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 42rem; margin: 4rem auto; padding: 0 1.25rem; color: #1f2937; }}
+  h1 {{ font-size: 1.6rem; margin-bottom: 0.25rem; }}
+  code {{ background: #f3f4f6; padding: 0.15rem 0.35rem; border-radius: 0.35rem; font-size: 0.9em; }}
+  a {{ color: #f97316; }}
+  .muted {{ color: #6b7280; }}
+</style>
+</head>
+<body>
+  <h1>🛠️ Gradio MCP Server</h1>
+  <p class="muted">This is the <strong>Model Context Protocol (MCP)</strong> server endpoint for a Gradio app.</p>
+  <p>It is meant to be connected to by an MCP client (such as an AI assistant), not opened
+     directly in a browser. MCP clients should connect to this URL using the streamable
+     HTTP transport.</p>
+  <p>To learn how to use this server and connect a client, see the
+     <a href="{docs_url}">Gradio MCP guide</a>.</p>
+</body>
+</html>
+"""
 
     def get_route_path(self, request: Request) -> str:  # type: ignore
         """
