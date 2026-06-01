@@ -6,6 +6,7 @@ import type {
 	NodeStatus,
 	FileValue
 } from "./workflow-types";
+import { toLegacyShape } from "./workflow-migration";
 
 type StatusCallback = (
 	nodeId: string,
@@ -26,7 +27,8 @@ type ServerCallFn = (
 type ServerCallModelFn = (
 	modelId: string,
 	pipelineTag: string,
-	argsJson: string
+	argsJson: string,
+	provider?: string
 ) => Promise<string>;
 type ServerFetchDatasetFn = (
 	datasetId: string,
@@ -36,6 +38,18 @@ type ServerFetchDatasetFn = (
 	length: string
 ) => Promise<string>;
 type ServerCallPyFn = (fnName: string, argsJson: string) => Promise<string>;
+/**
+ * Browser-side streaming for text-generation tasks. Returns the final
+ * accumulated string. `onChunk` fires per delta so the executor can call
+ * `onOutput` incrementally and the UI updates live as tokens arrive.
+ */
+type StreamTextFn = (
+	modelId: string,
+	prompt: string,
+	provider: string | undefined,
+	signal: AbortSignal | undefined,
+	onChunk: (delta: string, accumulated: string) => void
+) => Promise<string>;
 
 function topoSort(nodes: WFNode[], edges: WFEdge[]): WFNode[] {
 	const deg = new Map(nodes.map((n) => [n.id, 0]));
@@ -166,9 +180,14 @@ export async function executeWorkflow(
 	serverCallSpace?: ServerCallFn,
 	serverCallModel?: ServerCallModelFn,
 	serverFetchDataset?: ServerFetchDatasetFn,
-	serverCallFn?: ServerCallPyFn
+	serverCallFn?: ServerCallPyFn,
+	streamTextGeneration?: StreamTextFn
 ): Promise<void> {
-	const { nodes, edges } = workflow;
+	// Executor still reasons in v1 vocabulary (kind / source). Project the v2
+	// workflow into a v1 view; the underlying ids are identical so edges still
+	// resolve correctly. This adapter goes away when the executor is rewritten
+	// around role-based dispatch.
+	const { nodes, edges } = toLegacyShape(workflow);
 	const dataMap: Record<string, Record<string, NodeDataValue>> = {};
 
 	// Seed input nodes (including component nodes with no incoming edges)
@@ -204,17 +223,23 @@ export async function executeWorkflow(
 		const isComponentInput =
 			node.kind === "component" && !edges.some((e) => e.to_node_id === node.id);
 
-		// Dataset input nodes fetch data from HF datasets server
+		// Dataset operators take a single scalar "row_index" input. When wired,
+		// upstream supplies the offset; when unwired the inline default (set at
+		// picker time, edited on the node body) is used.
 		if (node.source === "dataset" && node.dataset_id) {
 			onStatus(node.id, "running");
 			try {
 				if (!serverFetchDataset)
 					throw new Error("Dataset fetch function not available");
+				const inputs = resolveInputs(node, edges, dataMap);
+				const raw = inputs["row_index"] ?? 0;
+				const n = typeof raw === "number" ? raw : Number(raw);
+				const offset = Math.max(0, Math.trunc(Number.isFinite(n) ? n : 0));
 				const resultJson = await serverFetchDataset(
 					node.dataset_id,
 					node.dataset_config ?? "default",
 					node.dataset_split ?? "train",
-					"0",
+					String(offset),
 					"1"
 				);
 				const result = JSON.parse(resultJson);
@@ -341,20 +366,45 @@ export async function executeWorkflow(
 					if (!serverCallModel) {
 						throw new Error("Model call function not available");
 					}
-					resultJson = await Promise.race([
-						serverCallModel(
+					// Prefer browser-side streaming for chat-completion-compatible
+					// text tasks so the UI receives tokens as they arrive. The
+					// Python path stays for every other task.
+					const tag = node.pipeline_tag ?? "text-generation";
+					const streamable =
+						(tag === "text-generation" ||
+							tag === "text2text-generation" ||
+							tag === "conversational") &&
+						!!streamTextGeneration;
+					if (streamable) {
+						const prompt = typeof args[0] === "string" ? args[0] : String(args[0] ?? "");
+						const outputPort = node.outputs[0];
+						const final = await streamTextGeneration!(
 							node.model_id,
-							node.pipeline_tag ?? "text-generation",
-							JSON.stringify(args)
-						),
-						new Promise<never>((_, reject) =>
-							setTimeout(
-								() =>
-									reject(new Error("Request timed out — model may be loading")),
-								300000
+							prompt,
+							node.provider,
+							signal,
+							(_delta, accumulated) => {
+								if (outputPort) onOutput(node.id, outputPort.id, accumulated);
+							}
+						);
+						resultJson = JSON.stringify([final]);
+					} else {
+						resultJson = await Promise.race([
+							serverCallModel(
+								node.model_id,
+								tag,
+								JSON.stringify(args),
+								node.provider
+							),
+							new Promise<never>((_, reject) =>
+								setTimeout(
+									() =>
+										reject(new Error("Request timed out — model may be loading")),
+									300000
+								)
 							)
-						)
-					]);
+						]);
+					}
 				} else {
 					const endpointName = node.endpoint ?? "/predict";
 					if (!serverCallSpace) {
