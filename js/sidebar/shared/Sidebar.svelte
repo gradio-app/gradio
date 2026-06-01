@@ -43,15 +43,18 @@
 
 	onMount(() => {
 		sidebar_div.closest(".wrap")?.classList.add("sidebar-parent");
-		check_overlap();
-		window.addEventListener("resize", check_overlap);
 		const update_parent_overlap = (): void => {
 			document.documentElement.style.setProperty(
 				"--overlap-amount",
 				`${overlap_amount}px`
 			);
 		};
-		update_parent_overlap();
+		const handle_resize = (): void => {
+			check_overlap();
+			update_parent_overlap();
+		};
+		handle_resize();
+		window.addEventListener("resize", handle_resize);
 		mounted = true;
 		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 		prefersReducedMotion = mediaQuery.matches;
@@ -60,7 +63,7 @@
 		};
 		mediaQuery.addEventListener("change", updateMotionPreference);
 		return () => {
-			window.removeEventListener("resize", check_overlap);
+			window.removeEventListener("resize", handle_resize);
 			mediaQuery.removeEventListener("change", updateMotionPreference);
 		};
 	});

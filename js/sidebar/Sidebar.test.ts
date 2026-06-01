@@ -1,8 +1,23 @@
-import { test, describe, afterEach, expect } from "vitest";
+import { test, describe, afterEach, expect, vi } from "vitest";
 import { cleanup, render, fireEvent } from "@self/tootils/render";
 
 import Sidebar from "./Index.svelte";
 import SidebarWithChild from "./WithChild.svelte";
+
+function rect(overrides: Partial<DOMRect> = {}): DOMRect {
+	return {
+		x: 0,
+		y: 0,
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+		width: 0,
+		height: 0,
+		toJSON: () => ({}),
+		...overrides
+	} as DOMRect;
+}
 
 // Sidebar requires both `visible` and `open` to be passed explicitly:
 // - Index.svelte uses {#if gradio.shared.visible}, so omitting visible leaves
@@ -91,6 +106,57 @@ describe("Sidebar", () => {
 			elem_id: "sb-str-hidden"
 		});
 		expect(container.querySelector("#sb-str-hidden")).not.toBeNull();
+	});
+});
+
+describe("Parent overlap", () => {
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+		document.documentElement.style.removeProperty("--overlap-amount");
+	});
+
+	test("updates the overlap CSS variable when the window resizes", async () => {
+		const wrap = document.createElement("div");
+		wrap.className = "wrap";
+		document.body.appendChild(wrap);
+
+		let sidebar_width = 320;
+		vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+			function () {
+				if (this.classList.contains("wrap")) {
+					return rect({ left: 120, right: 720, width: 600 });
+				}
+
+				if (this.classList.contains("sidebar")) {
+					return rect({ right: sidebar_width, width: sidebar_width });
+				}
+
+				return rect();
+			}
+		);
+
+		await render(
+			Sidebar,
+			{
+				width: 320,
+				visible: true,
+				open: true,
+				position: "left"
+			},
+			{ container: wrap }
+		);
+
+		expect(
+			document.documentElement.style.getPropertyValue("--overlap-amount")
+		).toBe("230px");
+
+		sidebar_width = 180;
+		await fireEvent.resize(window);
+
+		expect(
+			document.documentElement.style.getPropertyValue("--overlap-amount")
+		).toBe("90px");
 	});
 });
 
