@@ -338,21 +338,30 @@ class Workflow:
         import gradio as gr
         from gradio.components.workflowcanvas import WorkflowCanvas
 
-        initial_workflow: str | None = None
-        try:
-            with open(self._workflow_file, encoding="utf-8") as f:
-                initial_workflow = f.read()
-            if self._edges:
-                logger.warning(
-                    "Workflow: edges= is ignored because '%s' already exists. "
-                    "Delete the file to regenerate the workflow from bind/edges.",
-                    self._workflow_file,
-                )
-        except FileNotFoundError:
-            if self._bound:
-                initial_workflow = _workflow_from_bind(
-                    self._bound, self._edges, name=self._workflow_name
-                )
+        # Log the "edges= ignored because file exists" warning once at
+        # construction time, mirroring the previous behaviour.
+        if self._edges and os.path.exists(self._workflow_file):
+            logger.warning(
+                "Workflow: edges= is ignored because '%s' already exists. "
+                "Delete the file to regenerate the workflow from bind/edges.",
+                self._workflow_file,
+            )
+
+        # Initial workflow is read on every browser session, not just once at
+        # construction. This way edits made via `save_workflow` (which writes
+        # `workflow.json` as the user works) survive a page refresh — without
+        # the callable, the captured-at-startup string would always win and
+        # cleared canvases would respawn the old nodes.
+        def _load_initial() -> str | None:
+            try:
+                with open(self._workflow_file, encoding="utf-8") as f:
+                    return f.read()
+            except FileNotFoundError:
+                if self._bound:
+                    return _workflow_from_bind(
+                        self._bound, self._edges, name=self._workflow_name
+                    )
+                return None
 
         bound = self._bound
 
@@ -403,14 +412,14 @@ class Workflow:
                 result = client.predict(*processed, api_name=endpoint)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
 
-                _tmpdir = tempfile.gettempdir()
+                _tmpdir = os.path.realpath(tempfile.gettempdir())
 
                 def process_item(item):
                     if isinstance(item, dict):
                         path = item.get("path") or item.get("value")
                         if (
                             isinstance(path, str)
-                            and path.startswith(_tmpdir)
+                            and os.path.realpath(path).startswith(_tmpdir)
                             and os.path.exists(path)
                         ):
                             return {
@@ -421,7 +430,7 @@ class Workflow:
                         return item
                     if (
                         isinstance(item, str)
-                        and item.startswith(_tmpdir)
+                        and os.path.realpath(item).startswith(_tmpdir)
                         and os.path.exists(item)
                     ):
                         return {
@@ -447,8 +456,16 @@ class Workflow:
                 pipeline_tag = data[1] if len(data) > 1 else None
                 args_json = data[2] if len(data) > 2 else "[]"
                 hf_token = _resolve_token(data, 3, token)
+                # data[4] is an optional provider override. Default "auto"
+                # lets HF route to whichever provider serves the model
+                # (hf-inference, together, replicate, ...) — far more
+                # reliable than pinning to "hf-inference" which 404s for
+                # models not hosted there.
+                provider = (
+                    data[4] if len(data) > 4 and data[4] else "auto"
+                )
                 client = InferenceClient(
-                    model=model_id, token=hf_token, provider="hf-inference"
+                    model=model_id, token=hf_token, provider=provider
                 )
                 args = json.loads(args_json)
                 task = pipeline_tag or "text-generation"
@@ -610,13 +627,37 @@ class Workflow:
 
                     depth_img = _Image.open(_io.BytesIO(resp.content))
                     return json.dumps([_save_tmp(depth_img, "png")])
-                return json.dumps(
-                    {
-                        "error": f"Unsupported task: {task}",
-                        "error_type": "unknown",
-                        "suggestion": "",
-                    }
+
+                # Generic fallback for tasks not handled above. Tries
+                # `client.chat_completion` (OpenAI-style endpoint, supported
+                # by most text models across providers), then a raw POST to
+                # the HF Inference API as a last resort. This covers newer
+                # or less common pipeline_tags without requiring a code
+                # change per task. Errors bubble up to the outer except.
+                try:
+                    r = client.chat_completion(
+                        [{"role": "user", "content": a0}], max_tokens=512
+                    )
+                    return json.dumps([r.choices[0].message.content])
+                except Exception:
+                    pass
+                import requests as _requests
+
+                headers = (
+                    {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
                 )
+                fallback_resp = _requests.post(
+                    f"https://api-inference.huggingface.co/models/{model_id}",
+                    headers=headers,
+                    json={"inputs": a0 if not a1 else [a0, a1]},
+                    timeout=60,
+                )
+                fallback_resp.raise_for_status()
+                try:
+                    parsed = fallback_resp.json()
+                except Exception:
+                    parsed = fallback_resp.text
+                return json.dumps([parsed])
             except Exception as e:
                 logger.error(
                     "call_model failed for %s (task=%s): %s",
@@ -673,11 +714,15 @@ class Workflow:
             kind = data[0] if data else "trending"
             try:
                 query = data[1] if len(data) > 1 and data[1] else ""
-                hf_token = _resolve_token(data, 2, token)
+                pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
+                hf_token = _resolve_token(data, 3, token)
+                tag_param = f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}" if pipeline_tag else ""
                 if kind == "search":
-                    url = f"https://huggingface.co/api/spaces/semantic-search?q={urllib.parse.quote(query)}&limit=8"
+                    url = f"https://huggingface.co/api/spaces/semantic-search?q={urllib.parse.quote(query)}&limit=12{tag_param}"
+                elif kind == "new":
+                    url = f"https://huggingface.co/api/spaces?filter=gradio&limit=24&sort=createdAt&direction=-1&expand[]=likes&expand[]=cardData&expand[]=runtime{tag_param}"
                 else:
-                    url = "https://huggingface.co/api/spaces?filter=gradio&limit=48&sort=trendingScore&direction=-1&expand[]=likes&expand[]=cardData&expand[]=runtime"
+                    url = f"https://huggingface.co/api/spaces?filter=gradio&limit=48&sort=trendingScore&direction=-1&expand[]=likes&expand[]=cardData&expand[]=runtime{tag_param}"
                 return _hf_request(url, hf_token)
             except Exception as e:
                 logger.error(
@@ -710,10 +755,9 @@ class Workflow:
             query = data[0] if data else ""
             try:
                 hf_token = _resolve_token(data, 1, token)
-                return _hf_request(
-                    f"https://huggingface.co/api/datasets?search={urllib.parse.quote(query)}&sort=likes&direction=-1&limit=8",
-                    hf_token,
-                )
+                search_param = f"search={urllib.parse.quote(query)}&" if query else ""
+                url = f"https://huggingface.co/api/datasets?{search_param}sort=likes&direction=-1&limit=20"
+                return _hf_request(url, hf_token)
             except Exception as e:
                 logger.error(
                     "search_datasets failed (query=%s): %s", query, e, exc_info=True
@@ -833,7 +877,7 @@ class Workflow:
         with gr.Blocks() as demo:
             gr.LoginButton(visible=False)
             WorkflowCanvas(
-                value=initial_workflow,
+                value=_load_initial,
                 server_functions=server_functions,
             )
 

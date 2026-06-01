@@ -37,7 +37,7 @@ class WorkflowCanvas(BlockContext, Component):
 
     def __init__(
         self,
-        value: str | None = None,
+        value: str | Callable[..., str | None] | None = None,
         *,
         label: str | I18nData | None = None,
         every: Timer | float | None = None,
@@ -54,7 +54,7 @@ class WorkflowCanvas(BlockContext, Component):
     ):
         """
         Parameters:
-            value: Initial workflow JSON string.
+            value: Initial workflow JSON string. If a callable is passed, it is called on each browser session load and its return value is used as the initial workflow.
             label: Label for this component.
             every: Continously calls `value` to recalculate it if `value` is a function.
             inputs: Components used as inputs to calculate `value` if `value` is a function.
