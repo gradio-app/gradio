@@ -357,6 +357,9 @@ export class AppTree {
 		}
 		if (reactive_formatter) {
 			component.props.i18n = reactive_formatter;
+			// Inject the live formatter store so dynamically rendered components
+			// (gr.render / reload) also re-translate their props on locale change.
+			component.props.i18n_store = reactive_formatter_store;
 		}
 
 		const processed_props = gather_props(
