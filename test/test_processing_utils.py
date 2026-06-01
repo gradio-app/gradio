@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
 import numpy as np
 import pytest
 from PIL import Image, ImageCms
@@ -665,6 +666,24 @@ async def test_async_get_private_request_fail():
         await processing_utils.async_ssrf_protected_get(
             "http://192.168.1.250.nip.io/image.png"
         )
+
+
+@pytest.mark.asyncio
+async def test_async_get_redirect_without_location_returns_response(monkeypatch):
+    expected = httpx.Response(
+        302, request=httpx.Request("GET", "https://example.com/image.png")
+    )
+
+    async def mock_get(*args, **kwargs):
+        return expected
+
+    monkeypatch.setattr(processing_utils.sh, "get", mock_get)
+
+    response = await processing_utils.async_ssrf_protected_get(
+        "https://example.com/image.png"
+    )
+
+    assert response is expected
 
 
 class TestAudioFormatDetection:

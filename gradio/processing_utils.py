@@ -305,7 +305,7 @@ async def async_ssrf_protected_get(url: str) -> httpx.Response:
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
     )
     redirects = 0
-    while response.is_redirect:
+    while response.has_redirect_location:
         if redirects >= MAX_REDIRECTS:
             raise Exception(f"Exceeded maximum of {MAX_REDIRECTS} redirects.")
         redirects += 1
