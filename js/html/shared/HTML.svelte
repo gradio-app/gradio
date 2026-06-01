@@ -324,6 +324,14 @@
 				if (src) {
 					if (document.querySelector(`script[src="${src}"]`)) continue;
 					const script = document.createElement("script");
+					// Dynamically created scripts are "force async" by default, so
+					// they execute in download-completion order. Copy the author's
+					// async intent instead: an explicit `async` stays async, while a
+					// plain `<script src>` falls back to async=false and executes in
+					// document order (matching literal <script src> semantics), so
+					// dependent libraries load in the order they are written. The
+					// parallel download is preserved either way.
+					script.async = (el as HTMLScriptElement).async;
 					script.src = src;
 					promises.push(
 						new Promise<void>((resolve, reject) => {
