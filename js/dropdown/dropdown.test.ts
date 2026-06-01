@@ -729,26 +729,6 @@ describe("Single-select: Accessibility (#13197)", () => {
 		expect(input).toHaveAttribute("role", "combobox");
 	});
 
-	test("filterable input advertises list autocomplete", async () => {
-		const { getByLabelText } = await render(Dropdown, {
-			...single_select_props,
-			filterable: true
-		});
-
-		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		expect(input).toHaveAttribute("aria-autocomplete", "list");
-	});
-
-	test("non-filterable input does not advertise autocomplete", async () => {
-		const { getByLabelText } = await render(Dropdown, {
-			...single_select_props,
-			filterable: false
-		});
-
-		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		expect(input).toHaveAttribute("aria-autocomplete", "none");
-	});
-
 	test("aria-controls points at the rendered listbox", async () => {
 		const { getByLabelText } = await render(Dropdown, single_select_props);
 

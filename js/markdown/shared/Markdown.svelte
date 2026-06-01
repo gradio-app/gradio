@@ -48,11 +48,6 @@
 	let copied = $state(false);
 	let timer: NodeJS.Timeout;
 
-	// Only dispatch `change` when the value actually changes, not every time the
-	// component mounts (e.g. when it is revealed via a `visible` update). Firing
-	// on mount produces a spurious `change` event each time the markdown becomes
-	// visible, which can drive unwanted reprocessing/loops in the parent app
-	// (see issue #13414).
 	let old_value = value;
 	$effect(() => {
 		if (value !== old_value) {

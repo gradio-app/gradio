@@ -68,14 +68,9 @@
 	}
 
 	$effect(() => {
-		// Reference reactive deps explicitly so this effect re-runs when the
-		// value or available choices change.
 		const current_value = value;
 		const values = choices_values;
 		const names = choices_names;
-		// While the user is typing in the input, don't overwrite what they have
-		// entered just because `choices` were updated from the backend (e.g.
-		// dynamic filtering via `key_up`). Doing so wipes the in-progress text.
 		if (is_focused()) {
 			return;
 		}
@@ -110,9 +105,6 @@
 		selected_index === null ? [] : [selected_index]
 	);
 
-	// When the choices change (e.g. the backend returns new options in response
-	// to a `key_up` event for search-as-you-type), surface all of the newly
-	// provided choices instead of leaving a stale filtered list behind.
 	$effect(() => {
 		choices;
 		filtered_indices = choices.map((_, i) => i);
