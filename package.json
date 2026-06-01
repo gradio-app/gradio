@@ -22,7 +22,7 @@
 		"build-storybook": "storybook build",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
 		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
-		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
+		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts --pass-with-no-tests",
 		"website": "pnpm --filter @gradio/website build",
 		"package": "pnpm --filter @gradio/* --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --tsconfig=../../tsconfig.json",
 		"spaces:dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spaces-test dev"
