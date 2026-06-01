@@ -322,7 +322,11 @@
 			if (el.tagName === "SCRIPT") {
 				const src = (el as HTMLScriptElement).src;
 				if (src) {
-					if (document.querySelector(`script[src="${src}"]`)) continue;
+					// `head` is author-provided, so `src` can contain characters that
+					// break a CSS attribute selector (e.g. a `]` in the path), which
+					// would make querySelector throw and abort loadHead. Compare the
+					// resolved URLs directly instead of building a selector string.
+					if (Array.from(document.scripts).some((s) => s.src === src)) continue;
 					const script = document.createElement("script");
 					// Dynamically created scripts are "force async" by default, so
 					// they execute in download-completion order. Copy the author's
@@ -347,12 +351,14 @@
 					document.head.appendChild(script);
 				}
 			} else {
-				const existing =
-					el.tagName === "LINK" && (el as HTMLLinkElement).href
-						? document.querySelector(
-								`link[href="${(el as HTMLLinkElement).href}"]`
-							)
-						: null;
+				// Same selector-injection concern as the script[src] check above:
+				// compare resolved hrefs directly rather than via a selector string.
+				const href = el.tagName === "LINK" ? (el as HTMLLinkElement).href : "";
+				const existing = href
+					? Array.from(document.querySelectorAll("link")).some(
+							(l) => (l as HTMLLinkElement).href === href
+						)
+					: false;
 				if (!existing) {
 					document.head.appendChild(el.cloneNode(true));
 				}
