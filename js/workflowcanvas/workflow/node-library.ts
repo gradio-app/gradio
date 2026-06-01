@@ -1,4 +1,6 @@
 import type { PortType } from "./workflow-types";
+import { PORT_REGISTRY } from "./workflow-modalities";
+import type { PortMeta } from "./workflow-modalities";
 
 export interface NodeTemplate {
 	label: string;
@@ -173,92 +175,36 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 	}
 };
 
+/**
+ * Build a reference/subject template for a port-registry entry. Reference
+ * and subject nodes share the same shape today (in/out of the same type) —
+ * the role tag in the workflow store disambiguates them at the data layer.
+ * Width/height stay constant; the runtime widget decides actual rendering.
+ */
+function componentTemplate(meta: PortMeta): NodeTemplate {
+	const height = meta.port_type === "number" ? 130 : 160;
+	return {
+		label: meta.label,
+		kind: "component",
+		source: "local",
+		inputs: [{ id: "in", label: meta.label, type: meta.port_type }],
+		outputs: [{ id: "out", label: meta.label, type: meta.port_type }],
+		width: 220,
+		height
+	};
+}
+
 export const LIBRARY: Record<string, NodeTemplate[]> = {
-	components: [
-		{
-			label: "Image",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "Image", type: "image" }],
-			outputs: [{ id: "out", label: "Image", type: "image" }],
-			width: 220,
-			height: 160
-		},
-		{
-			label: "Textbox",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "Text", type: "text" }],
-			outputs: [{ id: "out", label: "Text", type: "text" }],
-			width: 220,
-			height: 160
-		},
-		{
-			label: "Audio",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "Audio", type: "audio" }],
-			outputs: [{ id: "out", label: "Audio", type: "audio" }],
-			width: 220,
-			height: 160
-		},
-		{
-			label: "Video",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "Video", type: "video" }],
-			outputs: [{ id: "out", label: "Video", type: "video" }],
-			width: 220,
-			height: 160
-		},
-		{
-			label: "Number",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "Number", type: "number" }],
-			outputs: [{ id: "out", label: "Number", type: "number" }],
-			width: 220,
-			height: 130
-		},
-		{
-			label: "File",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "File", type: "file" }],
-			outputs: [{ id: "out", label: "File", type: "file" }],
-			width: 220,
-			height: 160
-		},
-		{
-			label: "JSON",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "JSON", type: "json" }],
-			outputs: [{ id: "out", label: "JSON", type: "json" }],
-			width: 220,
-			height: 160
-		},
-		{
-			label: "Gallery",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "Gallery", type: "gallery" }],
-			outputs: [{ id: "out", label: "Gallery", type: "gallery" }],
-			width: 220,
-			height: 160
-		},
-		{
-			label: "Model3D",
-			kind: "component",
-			source: "local",
-			inputs: [{ id: "in", label: "Model", type: "model3d" }],
-			outputs: [{ id: "out", label: "Model", type: "model3d" }],
-			width: 220,
-			height: 160
-		}
-	],
+	components: PORT_REGISTRY.map(componentTemplate),
 	spaces: [] as NodeTemplate[]
 };
+
+export function getComponentForPortType(type: string): NodeTemplate | null {
+	// `any`/`file` are inference-only fallbacks — default them to Image so
+	// the user gets a usable picker entry rather than nothing.
+	const lookup = (type === "any" || type === "file" ? "image" : type) as PortType;
+	return LIBRARY.components.find((c) => c.outputs[0]?.type === lookup) ?? null;
+}
 
 /* ── Expanded categories & pipeline-tag mapping ── */
 

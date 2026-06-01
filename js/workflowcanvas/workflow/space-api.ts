@@ -1,9 +1,13 @@
-import type { PortType } from "./workflow-types";
+import type { PortType, Port } from "./workflow-types";
+import { modalityForPort } from "./workflow-modalities";
+import type { ModalityConfig } from "./workflow-modalities";
 
 /** Map Gradio component types to our port types */
 export function componentToPortType(
 	component: string,
-	type?: string
+	type?: string,
+	pythonType?: string,
+	labelHint?: string
 ): PortType {
 	const c = component.toLowerCase();
 	if (c === "image" || c === "imageeditor" || c === "imageslider")
@@ -33,6 +37,30 @@ export function componentToPortType(
 		c === "html"
 	)
 		return "text";
+
+	// gr.api endpoints use component="Api" with python_type containing the real hint
+	if (pythonType) {
+		const cleaned = pythonType
+			.toLowerCase()
+			.replace(/^none\s*\|\s*/, "")
+			.replace(/\s*\|\s*none$/, "")
+			.trim();
+		if (cleaned === "str" || cleaned === "string") return "text";
+		if (cleaned === "int" || cleaned === "integer" || cleaned === "float" || cleaned === "number")
+			return "number";
+		if (cleaned === "bool" || cleaned === "boolean") return "boolean";
+		if (cleaned === "filepath" || cleaned === "file" || cleaned.includes("filedata")) {
+			// Infer media type from label/parameter name when possible
+			const l = (labelHint ?? "").toLowerCase();
+			if (/audio|wav|mp3|voice|sound|speech|tts|asr/.test(l)) return "audio";
+			if (/image|img|photo|picture|pic\b/.test(l)) return "image";
+			if (/video|mp4|movie|clip/.test(l)) return "video";
+			if (/model3d|mesh|glb|gltf|obj\b/.test(l)) return "model3d";
+			return "file";
+		}
+		if (cleaned.includes("dict") || cleaned.includes("list") || cleaned.includes("any"))
+			return "json";
+	}
 
 	// Fallback: check the type field from the API
 	if (type) {
@@ -85,11 +113,18 @@ const FILE_COMPONENTS = new Set([
 	"model3d"
 ]);
 
-function outputScore(ep: any): number {
-	return (ep.returns ?? []).reduce((s: number, r: any) => {
+function endpointScore(ep: any): number {
+	const outputScore = (ep.returns ?? []).reduce((s: number, r: any) => {
 		const comp = (r.component ?? "").toLowerCase();
 		return s + (FILE_COMPONENTS.has(comp) ? 10 : 1);
 	}, 0);
+	// Prefer endpoints that accept rich media inputs (image, audio, video, file)
+	// — this biases toward the main generation endpoint over post-processing ones
+	const inputScore = (ep.parameters ?? []).reduce((s: number, p: any) => {
+		const comp = (p.component ?? "").toLowerCase();
+		return s + (FILE_COMPONENTS.has(comp) ? 8 : 0);
+	}, 0);
+	return outputScore + inputScore;
 }
 
 function pickBestEndpoint(endpoints: Record<string, any>): string {
@@ -109,7 +144,7 @@ function pickBestEndpoint(endpoints: Record<string, any>): string {
 	// Pick the endpoint with the richest outputs (file outputs >> scalar outputs)
 	return pool
 		.slice()
-		.sort((a, b) => outputScore(endpoints[b]) - outputScore(endpoints[a]))[0];
+		.sort((a, b) => endpointScore(endpoints[b]) - endpointScore(endpoints[a]))[0];
 }
 
 export interface SpaceApiInfo {
@@ -196,19 +231,27 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 		throw new Error("No suitable endpoint found");
 	}
 
+	// Auto-generated ordinal labels from gr.api ("1st", "2nd", ...) — prefer parameter_name when matched
+	const ORDINAL_LABEL = /^\d+(st|nd|rd|th)$/i;
+
 	const inputs = (ep.parameters ?? [])
 		.map((p: any, i: number) => {
+			const isApi = (p.component ?? "").toLowerCase() === "api";
+			const pyType = p.python_type?.type;
+			const labelHint = p.parameter_name || p.label || "";
 			const portType = componentToPortType(
 				p.component ?? "",
-				typeof p.type === "string" ? p.type : ""
+				typeof p.type === "string" ? p.type : "",
+				pyType,
+				labelHint
 			);
 			if (portType === "__skip__") return null;
-			// Use parameter_has_default from API, not the default value itself
-			// (dict format returns default=None even for optional params with defaults)
 			const hasDefault = p.parameter_has_default === true;
+			const useParamName = (isApi || ORDINAL_LABEL.test(p.label ?? "")) && p.parameter_name;
+			const rawLabel = useParamName ? p.parameter_name : p.label || p.parameter_name || `Input ${i}`;
 			return {
 				id: `in_${i}`,
-				label: p.label || p.parameter_name || `Input ${i}`,
+				label: rawLabel,
 				type: portType,
 				required: !hasDefault,
 				default_value:
@@ -219,14 +262,24 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 
 	const outputs = (ep.returns ?? [])
 		.map((r: any, i: number) => {
+			const isApi = (r.component ?? "").toLowerCase() === "api";
+			const pyType = r.python_type?.type;
+			// For Api outputs the label is ordinal ("1st") — append endpoint name so the media hint regex can match it
+			const labelHint = isApi
+				? `${r.parameter_name ?? ""} ${epName ?? ""}`.trim()
+				: r.parameter_name || r.label || "";
 			const portType = componentToPortType(
 				r.component ?? "",
-				typeof r.type === "string" ? r.type : ""
+				typeof r.type === "string" ? r.type : "",
+				pyType,
+				labelHint
 			);
 			if (portType === "__skip__") return null;
+			const useParamName = (isApi || ORDINAL_LABEL.test(r.label ?? "")) && r.parameter_name;
+			const rawLabel = useParamName ? r.parameter_name : r.label || `Output ${i}`;
 			return {
 				id: `out_${i}`,
-				label: r.label || `Output ${i}`,
+				label: rawLabel,
 				type: portType
 			};
 		})
@@ -249,4 +302,38 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 	const result = { endpoint: epName, inputs, outputs, width };
 	spaceApiCache.set(spaceId, result);
 	return result;
+}
+
+/**
+ * Clamp inferred port types so a fallback `any` or `file` becomes the
+ * modality's canonical type when the modality is known. Models picked via
+ * `pipeline_tag` and Spaces picked via the modality picker carry that hint;
+ * passing it lets us avoid surfacing generic `any`/`file` ports in the UI.
+ *
+ * If `modality` is null (e.g. unknown), ports are returned unchanged.
+ */
+export function normalizeOperatorPorts(
+	modality: ModalityConfig | null,
+	ports: Port[]
+): Port[] {
+	if (!modality?.port_type) return ports;
+	const canonical = modality.port_type;
+	return ports.map((p) => {
+		if (p.type === "any" || p.type === "file") {
+			return { ...p, type: canonical };
+		}
+		return p;
+	});
+}
+
+/**
+ * Canonicalize a single port type using the modality registry. Used by
+ * schema lookups (TASK_SCHEMAS) to clamp legacy `any`/`file` entries.
+ * Pass-through for already-specific types.
+ */
+export function canonicalizePort(type: PortType, hint?: PortType): PortType {
+	if (type !== "any" && type !== "file") return type;
+	if (!hint) return type;
+	const modality = modalityForPort(hint);
+	return modality?.port_type ?? type;
 }

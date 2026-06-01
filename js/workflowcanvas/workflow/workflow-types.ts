@@ -1,3 +1,10 @@
+/**
+ * Port types. The first nine are user-facing and have entries in
+ * `PORT_REGISTRY` (workflow-modalities.ts). `file` and `any` are
+ * inference-only fallbacks emitted by schema introspection when a more
+ * specific type can't be determined — they are never offered as
+ * reference / subject templates and should not appear in pickers.
+ */
 export type PortType =
 	| "image"
 	| "text"
@@ -40,6 +47,7 @@ export interface WFNode {
 	dataset_config?: string;
 	dataset_split?: string;
 	pipeline_tag?: string;
+	provider?: string;
 	endpoint?: string;
 	fn?: string;
 	inputs: Port[];
@@ -60,11 +68,97 @@ export interface WFEdge {
 	type: PortType;
 }
 
+/**
+ * Legacy v1 workflow shape. Stays here only to make the migration code
+ * (workflow-migration.ts) type-checkable; the live store is v2.
+ */
+export interface WorkflowV1 {
+	version?: "1";
+	name?: string;
+	nodes?: WFNode[];
+	edges?: WFEdge[];
+}
+
+// ─── v2 schema ──────────────────────────────────────────────────────────────
+//
+// The graph is split into three role-collections at the JSON level:
+//   references — inputs you bring in (uploaded files, prompts, literals)
+//   operators  — transformations (spaces / models / datasets / Python fns)
+//   subjects   — the things being created (typed output tiles)
+//
+// All three share BaseNode. The role tag drives visual presentation
+// (studio view) and authoring intent; the data structure stays uniform
+// enough that the executor and canvas can treat them as peer nodes.
+
+export type NodeRole = "reference" | "operator" | "subject";
+
+export type OperatorKind = "space" | "model" | "dataset" | "fn";
+
+export type Runtime = "client" | "server" | "job";
+
+export interface BaseNode {
+	id: string;
+	label: string;
+	inputs: Port[];
+	outputs: Port[];
+	data: NodeData;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+export interface ReferenceNode extends BaseNode {
+	role: "reference";
+	asset_type: PortType;
+	/** Inline literal value, or in a later iteration an `hf://...` URI. */
+	value?: NodeDataValue;
+}
+
+export interface OperatorNode extends BaseNode {
+	role: "operator";
+	kind: OperatorKind;
+	/** Canonical hub-native identifier when available (hf://...) or fn name. */
+	source?: string;
+	space_id?: string;
+	model_id?: string;
+	dataset_id?: string;
+	dataset_config?: string;
+	dataset_split?: string;
+	endpoint?: string;
+	pipeline_tag?: string;
+	fn?: string;
+	/** HF Inference provider override (e.g. "hf-inference", "together", "replicate"). Defaults to "auto" — let HF route. */
+	provider?: string;
+	/** Where this operator executes. Default inherited from workflow.runtime.default. */
+	runtime?: Runtime;
+}
+
+export interface SubjectNode extends BaseNode {
+	role: "subject";
+	asset_type: PortType;
+}
+
+export type AnyNode = ReferenceNode | OperatorNode | SubjectNode;
+
 export interface Workflow {
-	version: "1";
+	schema_version: "2";
+	/** Optional hub repo identifier, e.g. "username/my-workflow". */
+	id?: string;
 	name: string;
-	nodes: WFNode[];
+	description?: string;
+	/** Lineage hook — set when a workflow was forked from another. */
+	parent?: string;
+	runtime?: {
+		default: Runtime;
+	};
+	references: ReferenceNode[];
+	operators: OperatorNode[];
+	subjects: SubjectNode[];
 	edges: WFEdge[];
+	view?: {
+		default?: "studio" | "canvas";
+	};
 }
 
 export const PORT_COLOR: Record<PortType, string> = {
