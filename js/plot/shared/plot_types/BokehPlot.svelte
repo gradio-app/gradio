@@ -7,6 +7,16 @@
 	const div_id = `bokehDiv-${Math.random().toString(5).substring(2)}`;
 	$: plot = value?.plot;
 
+	function static_base(version: string): string {
+		const root =
+			(typeof window !== "undefined" && window.gradio_config?.root) || "";
+		return `${root}/static/bokeh/${version}`;
+	}
+
+	function bokeh_script_url(version: string, filename: string): string {
+		return `${static_base(version)}/${filename}`;
+	}
+
 	async function embed_bokeh(_plot: Record<string, any>): void {
 		if (document) {
 			if (document.getElementById(div_id)) {
@@ -22,14 +32,18 @@
 
 	$: loaded && embed_bokeh(plot);
 
-	const main_src = `https://cdn.bokeh.org/bokeh/release/bokeh-${bokeh_version}.min.js`;
+	$: main_src = bokeh_version
+		? bokeh_script_url(bokeh_version, `bokeh-${bokeh_version}.min.js`)
+		: null;
 
-	const plugins_src = [
-		`https://cdn.pydata.org/bokeh/release/bokeh-widgets-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-tables-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-gl-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
-	];
+	$: plugins_src = bokeh_version
+		? [
+				bokeh_script_url(bokeh_version, `bokeh-widgets-${bokeh_version}.min.js`),
+				bokeh_script_url(bokeh_version, `bokeh-tables-${bokeh_version}.min.js`),
+				bokeh_script_url(bokeh_version, `bokeh-gl-${bokeh_version}.min.js`),
+				bokeh_script_url(bokeh_version, `bokeh-api-${bokeh_version}.min.js`)
+			]
+		: [];
 
 	let loaded = false;
 	async function load_plugins(): HTMLScriptElement[] {
@@ -38,6 +52,7 @@
 				return new Promise((resolve) => {
 					const script = document.createElement("script");
 					script.onload = resolve;
+					script.onerror = resolve;
 					script.src = src;
 					document.head.appendChild(script);
 					return script;
@@ -57,6 +72,7 @@
 	function load_bokeh(): HTMLScriptElement {
 		const script = document.createElement("script");
 		script.onload = handle_bokeh_loaded;
+		script.onerror = handle_bokeh_loaded;
 		script.src = main_src;
 		const is_bokeh_script_present = document.head.querySelector(
 			`script[src="${main_src}"]`

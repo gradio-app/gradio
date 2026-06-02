@@ -17,13 +17,13 @@ class Cyberpunk(Base):
         radius_size: sizes.Size | str = sizes.radius_sm,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Chakra Petch"),
+            fonts.LocalFont("Chakra Petch"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Share Tech Mono"),
+            fonts.LocalFont("Share Tech Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",

@@ -56,10 +56,34 @@ _MCP_LANDING_PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gradio MCP Server</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="/static/fonts/SourceSans3/SourceSans3-Regular.woff2" rel="preload" as="font" type="font/woff2" crossorigin />
+<link href="/static/fonts/SourceSans3/SourceSans3-SemiBold.woff2" rel="preload" as="font" type="font/woff2" crossorigin />
+<link href="/static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2" rel="preload" as="font" type="font/woff2" crossorigin />
 <style>
+  @font-face {
+    font-family: 'Source Sans 3';
+    src: url('/static/fonts/SourceSans3/SourceSans3-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Source Sans 3';
+    src: url('/static/fonts/SourceSans3/SourceSans3-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'IBM Plex Mono';
+    src: url('/static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'IBM Plex Mono';
+    src: url('/static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+  }
   :root {
     --primary: #ff7c00;
     --primary-soft: #fff2e5;

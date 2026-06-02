@@ -12,7 +12,7 @@ from gradio.themes.origin import Origin
 from gradio.themes.soft import Soft
 from gradio.themes.utils import colors, sizes
 from gradio.themes.utils.colors import Color
-from gradio.themes.utils.fonts import Font, GoogleFont
+from gradio.themes.utils.fonts import Font, GoogleFont, LocalFont
 from gradio.themes.utils.sizes import Size
 
 __all__ = [
@@ -23,6 +23,7 @@ __all__ = [
     "Font",
     "Glass",
     "GoogleFont",
+    "LocalFont",
     "Cyberpunk",
     "Monochrome",
     "Neon",

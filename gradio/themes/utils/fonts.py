@@ -3,6 +3,37 @@ from __future__ import annotations
 import json
 import textwrap
 from collections.abc import Iterable
+from pathlib import Path
+
+STATIC_FONTS_DIR = (
+    Path(__file__).resolve().parents[2] / "templates" / "frontend" / "static" / "fonts"
+)
+
+WEIGHT_TO_FILENAME = {
+    100: "Thin",
+    200: "ExtraLight",
+    300: "Light",
+    400: "Regular",
+    500: "Medium",
+    600: "SemiBold",
+    700: "Bold",
+    800: "ExtraBold",
+    900: "Black",
+}
+
+
+def font_dir_name(name: str) -> str:
+    return name.replace(" ", "")
+
+
+def font_file_path(name: str, weight: int) -> Path:
+    file_name = font_dir_name(name)
+    file_weight = WEIGHT_TO_FILENAME.get(weight, str(weight))
+    return STATIC_FONTS_DIR / file_name / f"{file_name}-{file_weight}.woff2"
+
+
+def local_font_available(name: str, weights: Iterable[int]) -> bool:
+    return all(font_file_path(name, weight).exists() for weight in weights)
 
 
 class FontEncoder(json.JSONEncoder):
@@ -20,7 +51,6 @@ class FontEncoder(json.JSONEncoder):
                 if isinstance(obj, (GoogleFont, LocalFont))
                 else None,
             }
-        # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
 
@@ -70,9 +100,11 @@ class Font:
 class GoogleFont(Font):
     def __init__(self, name: str, weights: Iterable[int] = (400, 600)):
         self.name = name
-        self.weights = weights
+        self.weights = tuple(weights)
 
     def stylesheet(self) -> dict:
+        if local_font_available(self.name, self.weights):
+            return LocalFont(self.name, weights=self.weights).stylesheet()
         url = f"https://fonts.googleapis.com/css2?family={self.name.replace(' ', '+')}:wght@{';'.join(str(weight) for weight in self.weights)}&display=swap"
         return {"url": url, "css": None}
 
@@ -80,26 +112,25 @@ class GoogleFont(Font):
 class LocalFont(Font):
     def __init__(self, name: str, weights: Iterable[int] = (400, 700)):
         super().__init__(name)
-        self.weights = weights
+        self.weights = tuple(weights)
 
     def stylesheet(self) -> dict:
         css_template = textwrap.dedent("""
             @font-face {{
                 font-family: '{name}';
-                src: url('static/fonts/{file_name}/{file_name}-{file_weight}.woff2') format('woff2');
+                src: url('static/fonts/{dir_name}/{file_name}-{file_weight}.woff2') format('woff2');
                 font-weight: {css_weight};
                 font-style: normal;
             }}
             """)
         css_rules = []
         for weight in self.weights:
-            file_weight = (
-                "Regular" if weight == 400 else "Bold" if weight == 700 else str(weight)
-            )
+            file_weight = WEIGHT_TO_FILENAME.get(weight, str(weight))
             css_rules.append(
                 css_template.format(
                     name=self.name,
-                    file_name=self.name.replace(" ", ""),
+                    dir_name=font_dir_name(self.name),
+                    file_name=font_dir_name(self.name),
                     file_weight=file_weight,
                     css_weight=weight,
                 )
