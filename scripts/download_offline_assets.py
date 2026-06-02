@@ -44,6 +44,11 @@ THEME_FONTS: dict[str, list[int]] = {
     "Press Start 2P": [400],
 }
 
+# A baseline set of common Bokeh versions to bundle. The version that gradio's
+# Plot component actually requests at runtime is `bokeh.__version__` of the
+# installed package, so `bokeh_versions()` always adds that too -- otherwise the
+# frontend 404s on /static/bokeh/{installed_version}/ and falls back to the CDN
+# (which defeats offline support).
 BOKEH_VERSIONS = ["3.4.1", "3.6.2", "3.7.0"]
 BOKEH_FILES = [
     "bokeh-{version}.min.js",
@@ -149,8 +154,20 @@ def download_iframe_resizer() -> None:
     print(f"  iframe-resizer: {dest.relative_to(ROOT)}")
 
 
+def bokeh_versions() -> list[str]:
+    versions = list(BOKEH_VERSIONS)
+    try:
+        import bokeh  # type: ignore
+
+        if bokeh.__version__ not in versions:
+            versions.append(bokeh.__version__)
+    except ImportError:
+        pass
+    return versions
+
+
 def download_bokeh() -> None:
-    for version in BOKEH_VERSIONS:
+    for version in bokeh_versions():
         version_dir = STATIC / "bokeh" / version
         version_dir.mkdir(parents=True, exist_ok=True)
         for pattern in BOKEH_FILES:
