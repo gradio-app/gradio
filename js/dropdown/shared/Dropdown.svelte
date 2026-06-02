@@ -62,16 +62,19 @@
 	let choices_values = $derived(choices.map((c) => c[1]));
 	let input_text = $state("");
 	let selected_index: number | null = $state(null);
-
-	function is_focused(): boolean {
-		return is_browser && filter_input === document.activeElement;
-	}
+	// Use last_typed_value to track when the user has typed
+	// on_blur we only want to update value if the user has typed
+	let last_typed_value = input_text;
+	// Reactive focus flag so that losing focus re-runs the sync effect below.
+	// A DOM check (document.activeElement) is not reactive, so blur would never
+	// re-trigger the effect to reconcile a value the parent changed while focused.
+	let focused = $state(false);
 
 	$effect(() => {
 		const current_value = value;
 		const values = choices_values;
 		const names = choices_names;
-		if (is_focused()) {
+		if (focused) {
 			return;
 		}
 		if (
@@ -91,10 +94,8 @@
 			input_text = "";
 			selected_index = null;
 		}
+		last_typed_value = input_text;
 	});
-	// Use last_typed_value to track when the user has typed
-	// on_blur we only want to update value if the user has typed
-	let last_typed_value = input_text;
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
 
@@ -134,6 +135,7 @@
 	}
 
 	function handle_focus(e: FocusEvent): void {
+		focused = true;
 		filtered_indices = choices.map((_, i) => i);
 		active_index = selected_index;
 		show_options = true;
@@ -144,11 +146,14 @@
 		if (!allow_custom_value) {
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
-		} else {
+		} else if (input_text !== last_typed_value) {
+			// Only commit on blur when the user actually typed. Otherwise the
+			// input_text may be stale (e.g. the parent changed value while the
+			// input was focused) and committing it would revert that update.
 			if (choices_names.includes(input_text)) {
 				selected_index = choices_names.indexOf(input_text);
 				value = choices_values[selected_index];
-			} else if (input_text !== last_typed_value) {
+			} else {
 				value = input_text;
 				selected_index = null;
 			}
@@ -156,6 +161,7 @@
 		show_options = false;
 		active_index = null;
 		filtered_indices = choices.map((_, i) => i);
+		focused = false;
 		on_blur?.();
 		on_input?.();
 	}
@@ -170,7 +176,10 @@
 		if (!is_navigation_key) {
 			filtered_indices = handle_filter(choices, input_text);
 			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
-		} else if (active_index !== null && !filtered_indices.includes(active_index)) {
+		} else if (
+			active_index !== null &&
+			!filtered_indices.includes(active_index)
+		) {
 			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 		}
 		[show_options, active_index] = handle_shared_keys(

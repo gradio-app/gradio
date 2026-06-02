@@ -840,6 +840,68 @@ describe("Single-select: Dynamic choices", () => {
 	});
 });
 
+describe("Single-select: Parent value update while focused", () => {
+	afterEach(() => cleanup());
+
+	test("re-syncs the selected option after the parent updates value while focused", async () => {
+		const { getByLabelText, getAllByTestId, set_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: "apple"
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-selected", "false");
+		expect(options[2]).toHaveAttribute("aria-selected", "true");
+	});
+
+	test("arrow navigation starts from the parent-updated value after focus", async () => {
+		const { getByLabelText, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: "apple"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+		await input.focus();
+
+		await event.keyboard("{ArrowDown}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("apple");
+	});
+
+	test("does not revert the parent value on blur with allow_custom_value", async () => {
+		const { getByLabelText, get_data, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: "apple",
+			allow_custom_value: true
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+
+		const data = await get_data();
+		expect(data.value).toBe("cherry");
+		expect(input.value).toBe("cherry");
+	});
+});
+
 describe("Multiselect: Rendering", () => {
 	afterEach(() => cleanup());
 
