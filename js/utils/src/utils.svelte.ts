@@ -362,8 +362,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	// the locale changes. Kept off `props`/`$state` so it isn't proxied or
 	// serialized. See Blocks.svelte where this is set.
 	// NOTE: the underlying duplicate-svelte-i18n issue is also addressed by the
-	// workspace resolving to a single Svelte version; this injection remains as
-	// defense-in-depth.
+	// workspace resolving to a single Svelte version (pinned to 5.48.0, since
+	// 5.56 regressed lazy-rendering); this injection remains as defense-in-depth.
 	i18n_store: Readable<unknown> | undefined;
 	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;
