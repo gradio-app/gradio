@@ -5,9 +5,9 @@
 "@gradio/file": minor
 "@gradio/fileexplorer": minor
 "@gradio/markdown-code": minor
+"@gradio/nativeplot": minor
 "@gradio/paramviewer": minor
 "@gradio/preview": minor
-"@gradio/tabitem": minor
 "@gradio/tabs": minor
 "@gradio/theme": minor
 "@gradio/utils": minor
