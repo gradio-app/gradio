@@ -304,7 +304,7 @@ describe("get_data / set_data", () => {
 describe("Edge cases", () => {
 	afterEach(() => cleanup());
 
-	test("regression #13414: no change event fires on mount when value is truthy", async () => {
+	test("no change event fires on mount when value is truthy", async () => {
 		const { listen } = await render(Markdown, {
 			...default_props,
 			value: "Initial"

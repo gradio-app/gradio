@@ -162,16 +162,15 @@
 
 	async function handle_key_down(e: KeyboardEvent): Promise<void> {
 		await tick();
-		filtered_indices = handle_filter(choices, input_text);
 		const is_navigation_key =
 			e.key === "ArrowUp" ||
 			e.key === "ArrowDown" ||
 			e.key === "Enter" ||
 			e.key === "Escape";
-		if (
-			!is_navigation_key ||
-			(active_index !== null && !filtered_indices.includes(active_index))
-		) {
+		if (!is_navigation_key) {
+			filtered_indices = handle_filter(choices, input_text);
+			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
+		} else if (active_index !== null && !filtered_indices.includes(active_index)) {
 			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 		}
 		[show_options, active_index] = handle_shared_keys(

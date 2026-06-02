@@ -749,7 +749,7 @@ describe("Single-select: get_data / set_data", () => {
 	});
 });
 
-describe("Single-select: Accessibility (#13197)", () => {
+describe("Single-select: Accessibility", () => {
 	afterEach(() => cleanup());
 
 	test("input exposes the combobox role", async () => {
@@ -759,8 +759,11 @@ describe("Single-select: Accessibility (#13197)", () => {
 		expect(input).toHaveAttribute("role", "combobox");
 	});
 
-	test("aria-controls points at the rendered listbox", async () => {
-		const { getByLabelText } = await render(Dropdown, single_select_props);
+	test("aria-controls points at the listbox and active option is linked via aria-activedescendant", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: null
+		});
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
 		const controls = input.getAttribute("aria-controls");
@@ -771,16 +774,7 @@ describe("Single-select: Accessibility (#13197)", () => {
 		const listbox = document.getElementById(controls as string);
 		expect(listbox).toBeTruthy();
 		expect(listbox).toHaveAttribute("role", "listbox");
-	});
 
-	test("active option is linked via aria-activedescendant", async () => {
-		const { getByLabelText } = await render(Dropdown, {
-			...single_select_props,
-			value: null
-		});
-
-		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		await input.focus();
 		await event.keyboard("{ArrowDown}");
 
 		const active = input.getAttribute("aria-activedescendant");
@@ -791,7 +785,7 @@ describe("Single-select: Accessibility (#13197)", () => {
 	});
 });
 
-describe("Single-select: Dynamic choices (#13127)", () => {
+describe("Single-select: Dynamic choices", () => {
 	afterEach(() => cleanup());
 
 	test("updating choices while typing does not clear the typed text", async () => {
