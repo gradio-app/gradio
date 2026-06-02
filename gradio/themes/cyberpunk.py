@@ -23,7 +23,7 @@ class Cyberpunk(Base):
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.LocalFont("Share Tech Mono"),
+            fonts.LocalFont("Share Tech Mono", weights=(400,)),
             "ui-monospace",
             "Consolas",
             "monospace",

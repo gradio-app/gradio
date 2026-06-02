@@ -13,8 +13,39 @@
 		return `${root}/static/bokeh/${version}`;
 	}
 
-	function bokeh_script_url(version: string, filename: string): string {
+	function bokeh_local_url(version: string, filename: string): string {
 		return `${static_base(version)}/${filename}`;
+	}
+
+	function bokeh_cdn_url(version: string, filename: string): string {
+		if (filename === `bokeh-${version}.min.js`) {
+			return `https://cdn.bokeh.org/bokeh/release/${filename}`;
+		}
+		return `https://cdn.pydata.org/bokeh/release/${filename}`;
+	}
+
+	function load_script(src: string, fallback?: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const script = document.createElement("script");
+			script.onload = () => resolve();
+			script.onerror = () => {
+				if (fallback) {
+					const fallback_script = document.createElement("script");
+					fallback_script.onload = () => resolve();
+					fallback_script.onerror = () => {
+						console.error(`Failed to load Bokeh script: ${src}`);
+						reject(new Error(`Failed to load ${src}`));
+					};
+					fallback_script.src = fallback;
+					document.head.appendChild(fallback_script);
+				} else {
+					console.error(`Failed to load Bokeh script: ${src}`);
+					reject(new Error(`Failed to load ${src}`));
+				}
+			};
+			script.src = src;
+			document.head.appendChild(script);
+		});
 	}
 
 	async function embed_bokeh(_plot: Record<string, any>): void {
@@ -33,31 +64,35 @@
 	$: loaded && embed_bokeh(plot);
 
 	$: main_src = bokeh_version
-		? bokeh_script_url(bokeh_version, `bokeh-${bokeh_version}.min.js`)
+		? bokeh_local_url(bokeh_version, `bokeh-${bokeh_version}.min.js`)
+		: null;
+
+	$: main_fallback = bokeh_version
+		? bokeh_cdn_url(bokeh_version, `bokeh-${bokeh_version}.min.js`)
 		: null;
 
 	$: plugins_src = bokeh_version
 		? [
-				bokeh_script_url(bokeh_version, `bokeh-widgets-${bokeh_version}.min.js`),
-				bokeh_script_url(bokeh_version, `bokeh-tables-${bokeh_version}.min.js`),
-				bokeh_script_url(bokeh_version, `bokeh-gl-${bokeh_version}.min.js`),
-				bokeh_script_url(bokeh_version, `bokeh-api-${bokeh_version}.min.js`)
+				bokeh_local_url(bokeh_version, `bokeh-widgets-${bokeh_version}.min.js`),
+				bokeh_local_url(bokeh_version, `bokeh-tables-${bokeh_version}.min.js`),
+				bokeh_local_url(bokeh_version, `bokeh-gl-${bokeh_version}.min.js`),
+				bokeh_local_url(bokeh_version, `bokeh-api-${bokeh_version}.min.js`)
+			]
+		: [];
+
+	$: plugins_fallback = bokeh_version
+		? [
+				bokeh_cdn_url(bokeh_version, `bokeh-widgets-${bokeh_version}.min.js`),
+				bokeh_cdn_url(bokeh_version, `bokeh-tables-${bokeh_version}.min.js`),
+				bokeh_cdn_url(bokeh_version, `bokeh-gl-${bokeh_version}.min.js`),
+				bokeh_cdn_url(bokeh_version, `bokeh-api-${bokeh_version}.min.js`)
 			]
 		: [];
 
 	let loaded = false;
 	async function load_plugins(): HTMLScriptElement[] {
 		await Promise.all(
-			plugins_src.map((src, i) => {
-				return new Promise((resolve) => {
-					const script = document.createElement("script");
-					script.onload = resolve;
-					script.onerror = resolve;
-					script.src = src;
-					document.head.appendChild(script);
-					return script;
-				});
-			})
+			plugins_src.map((src, i) => load_script(src, plugins_fallback[i]))
 		);
 
 		loaded = true;
@@ -72,7 +107,13 @@
 	function load_bokeh(): HTMLScriptElement {
 		const script = document.createElement("script");
 		script.onload = handle_bokeh_loaded;
-		script.onerror = handle_bokeh_loaded;
+		script.onerror = () => {
+			if (main_fallback) {
+				load_script(main_fallback)
+					.then(handle_bokeh_loaded)
+					.catch(() => {});
+			}
+		};
 		script.src = main_src;
 		const is_bokeh_script_present = document.head.querySelector(
 			`script[src="${main_src}"]`

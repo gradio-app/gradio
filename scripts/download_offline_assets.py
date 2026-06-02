@@ -5,8 +5,6 @@ from __future__ import annotations
 
 import re
 import shutil
-import ssl
-import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -62,15 +60,8 @@ USER_AGENT = (
 
 def fetch(url: str) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(request, timeout=60) as response:
-            return response.read()
-    except urllib.error.URLError:
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        with urllib.request.urlopen(request, timeout=60, context=ctx) as response:
-            return response.read()
+    with urllib.request.urlopen(request, timeout=60) as response:
+        return response.read()
 
 
 LEGACY_FONT_DIRS = {
@@ -154,7 +145,7 @@ def download_bokeh() -> None:
             dest = version_dir / filename
             if dest.exists():
                 continue
-            if filename.startswith("bokeh-"):
+            if filename == f"bokeh-{version}.min.js":
                 base = "https://cdn.bokeh.org/bokeh/release"
             else:
                 base = "https://cdn.pydata.org/bokeh/release"
@@ -175,7 +166,7 @@ def download_ffmpeg() -> None:
             shutil.copy2(src, dest)
             print(f"  ffmpeg: {dest.relative_to(ROOT)}")
         elif not dest.exists():
-            base = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm"
+            base = "https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm"
             dest.write_bytes(fetch(f"{base}/{name}"))
             print(f"  ffmpeg: {dest.relative_to(ROOT)}")
 

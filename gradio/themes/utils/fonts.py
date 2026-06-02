@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import importlib.resources
 import json
 import textwrap
 from collections.abc import Iterable
 from pathlib import Path
 
-STATIC_FONTS_DIR = (
-    Path(__file__).resolve().parents[2] / "templates" / "frontend" / "static" / "fonts"
+STATIC_FONTS_DIR = Path(
+    importlib.resources.files("gradio")
+    .joinpath("templates/frontend/static/fonts")
+    .as_posix()
 )
 
 WEIGHT_TO_FILENAME = {
@@ -110,7 +113,7 @@ class GoogleFont(Font):
 
 
 class LocalFont(Font):
-    def __init__(self, name: str, weights: Iterable[int] = (400, 700)):
+    def __init__(self, name: str, weights: Iterable[int] = (400, 600)):
         super().__init__(name)
         self.weights = tuple(weights)
 
