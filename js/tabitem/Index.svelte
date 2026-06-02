@@ -10,8 +10,6 @@
 	let props = $props();
 
 	const gradio = new Gradio<TabItemEvents, TabItemProps>(props);
-
-	$inspect(gradio.props);
 </script>
 
 <TabItem

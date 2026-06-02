@@ -1,4 +1,4 @@
-Tables,
+table,
 tr,
 td,
 th {
@@ -6,22 +6,6 @@ th {
 	margin-bottom: var(--spacing-sm);
 	padding: var(--spacing-xl);
 }
-
-/* .message-wrap :global(pre[class*="language-"]),
-	.message-wrap :global(pre) {
-		border: none;
-		background: none;
-		position: relative;
-		direction: ltr;
-		white-space: no-wrap;
-		overflow-x: auto;
-	}
-	.message-wrap :global(code) {
-	} */
-
-/* .message-wrap :global(div[class*="code_wrap"]) {
-
-	} */
 
 .md code,
 .md pre {
@@ -38,12 +22,6 @@ th {
 	tab-size: 2;
 
 	hyphens: none;
-}
-
-.md pre[class*="language-"]::-moz-selection,
-.md pre[class*="language-"] ::-moz-selection,
-.md code[class*="language-"]::-moz-selection,
-.md code[class*="language-"] ::-moz-selection {
 }
 
 .md pre[class*="language-"]::selection,
@@ -78,11 +56,6 @@ th {
 	white-space: nowrap;
 	display: block;
 	white-space: pre;
-}
-
-.prose code {
-}
-.prose pre > code {
 }
 
 /* Inline code */

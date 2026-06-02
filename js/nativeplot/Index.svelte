@@ -783,7 +783,6 @@
 		} as Spec;
 	}
 	/* eslint-enable complexity */
-	$inspect("visible", gradio.shared.visible);
 </script>
 
 <Block

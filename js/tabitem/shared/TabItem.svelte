@@ -41,14 +41,7 @@
 	onMount(() => {
 		return (): void => unregister_tab({ label, id, elem_id }, order);
 	});
-	$: console.log(
-		"[TabItem]",
-		id,
-		"visible=",
-		visible,
-		"interactive=",
-		interactive
-	);
+
 	$: $selected_tab_index === tab_index &&
 		tick().then(() => dispatch("select", { value: label, index: tab_index }));
 </script>

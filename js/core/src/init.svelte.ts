@@ -608,7 +608,6 @@ export class AppTree {
 				? (node.original_visibility as boolean)
 				: (node.props.shared_props.visible as boolean);
 
-		console.log("make_visible_if_not_rendered", node.id, node.type, visible);
 		initial_tabs[tab_index] = {
 			label: i18n ? i18n(raw_label) : raw_label,
 			id: node.props.props.id as string,
