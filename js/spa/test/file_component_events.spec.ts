@@ -83,13 +83,6 @@ test("File component properly handles invalid file_types.", async ({
 });
 
 test("Delete event is fired correctly", async ({ page }) => {
-	// Skipped under SSR: dynamic content added after an interaction isn't
-	// re-rendered into the hydrated DOM. Pre-existing SSR-mode bug, tracked for
-	// follow-up.
-	test.skip(
-		process.env.GRADIO_SSR_MODE === "true",
-		"Pre-existing SSR-mode lazy-render/hydration bug — tracked for follow-up"
-	);
 	const locator = page.locator("input[type=file]").nth(5);
 	await drag_and_drop_file(
 		page,
