@@ -362,8 +362,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	// the locale changes. Kept off `props`/`$state` so it isn't proxied or
 	// serialized. See Blocks.svelte where this is set.
 	// NOTE: the underlying duplicate-svelte-i18n issue is also addressed by
-	// pinning Svelte to a single version (pnpm.overrides); this injection
-	// remains as defense-in-depth.
+	// pinning Svelte to a single version (pnpm.overrides → svelte 5.48.0); this
+	// injection remains as defense-in-depth.
 	i18n_store: Readable<unknown> | undefined;
 	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;

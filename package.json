@@ -178,7 +178,7 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"svelte": "5.56.0"
+			"svelte": "5.48.0"
 		}
 	}
 }
