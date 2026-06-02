@@ -1,5 +1,6 @@
 import type { StorybookConfig } from "@storybook/svelte-vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { svelte, vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import { sveltePreprocess } from "svelte-preprocess";
 
 const config: StorybookConfig = {
 	stories: [
@@ -33,7 +34,17 @@ const config: StorybookConfig = {
 		config.plugins.unshift(
 			svelte({
 				configFile: false,
-				prebundleSvelteLibraries: true,
+				// configFile:false means the project's svelte.config.js (and its
+				// preprocessing) isn't loaded, so enable TS preprocessing here —
+				// matching the main app's config. Without it, Svelte's built-in
+				// parser chokes on TS generics in a class `extends` clause
+				// (e.g. `extends Gradio<A, B>`).
+				preprocess: [vitePreprocess(), sveltePreprocess()],
+				// Disabled so workspace @gradio/* .svelte sources go through this
+				// (preprocessed) plugin rather than being esbuild-prebundled without
+				// preprocessing — the prebundle path can't strip TS generics in a
+				// class `extends` clause and fails to parse on Svelte 5.48.
+				prebundleSvelteLibraries: false,
 				dynamicCompileOptions({ filename }) {
 					// Process @storybook/svelte files from node_modules
 					if (filename.includes("node_modules/@storybook/svelte")) {
