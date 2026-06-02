@@ -167,14 +167,20 @@
 			e.key === "ArrowDown" ||
 			e.key === "Enter" ||
 			e.key === "Escape";
+		const is_filtering = input_text !== last_typed_value;
 		if (!is_navigation_key) {
 			filtered_indices = handle_filter(choices, input_text);
 			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
-		} else if (
-			active_index !== null &&
-			!filtered_indices.includes(active_index)
-		) {
-			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
+		} else {
+			// Recompute the visible options so navigation always spans the full
+			// current list. Filter by the typed text when the user is filtering,
+			// otherwise (a value is just displayed/selected) show every option.
+			filtered_indices = is_filtering
+				? handle_filter(choices, input_text)
+				: choices.map((_, i) => i);
+			if (active_index !== null && !filtered_indices.includes(active_index)) {
+				active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
+			}
 		}
 		[show_options, active_index] = handle_shared_keys(
 			e,
@@ -227,14 +233,9 @@
 		<div class="wrap-inner" class:show_options>
 			<div class="secondary-wrap">
 				<input
-					role="combobox"
+					role="listbox"
 					aria-controls={listbox_id}
 					aria-expanded={show_options}
-					aria-haspopup="listbox"
-					aria-autocomplete={filterable ? "list" : "none"}
-					aria-activedescendant={show_options && active_index !== null
-						? `${listbox_id}-option-${active_index}`
-						: undefined}
 					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&

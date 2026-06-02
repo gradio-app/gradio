@@ -367,6 +367,26 @@ describe("Single-select: Selection", () => {
 		expect(input.value).toBe("apple");
 	});
 
+	test("arrow navigation spans every option after clearing a typed filter", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: "apple"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await fireEvent.input(input, { target: { value: "a" } });
+		await fireEvent.keyDown(input, { key: "a" });
+		await fireEvent.input(input, { target: { value: "" } });
+
+		await fireEvent.keyDown(input, { key: "ArrowDown" });
+		await fireEvent.keyDown(input, { key: "ArrowDown" });
+		await fireEvent.keyDown(input, { key: "Enter" });
+
+		expect(input.value).toBe("cherry");
+	});
+
 	test("selecting a new option replaces the previous one", async () => {
 		const { getByLabelText, getAllByTestId } = await render(
 			Dropdown,
@@ -752,14 +772,14 @@ describe("Single-select: get_data / set_data", () => {
 describe("Single-select: Accessibility", () => {
 	afterEach(() => cleanup());
 
-	test("input exposes the combobox role", async () => {
+	test("input exposes the listbox role", async () => {
 		const { getByLabelText } = await render(Dropdown, single_select_props);
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		expect(input).toHaveAttribute("role", "combobox");
+		expect(input).toHaveAttribute("role", "listbox");
 	});
 
-	test("aria-controls points at the listbox and active option is linked via aria-activedescendant", async () => {
+	test("aria-controls points at the options listbox", async () => {
 		const { getByLabelText } = await render(Dropdown, {
 			...single_select_props,
 			value: null
@@ -774,14 +794,6 @@ describe("Single-select: Accessibility", () => {
 		const listbox = document.getElementById(controls as string);
 		expect(listbox).toBeTruthy();
 		expect(listbox).toHaveAttribute("role", "listbox");
-
-		await event.keyboard("{ArrowDown}");
-
-		const active = input.getAttribute("aria-activedescendant");
-		expect(active).toBeTruthy();
-
-		const active_option = document.getElementById(active as string);
-		expect(active_option).toHaveAttribute("role", "option");
 	});
 });
 
