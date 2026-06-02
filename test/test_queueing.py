@@ -217,6 +217,13 @@ def test_heartbeat_task_cancelled_after_stream_completes():
         assert got_completed
 
     assert len(heartbeat_tasks) > 0, "No heartbeat tasks were created"
+    # Cancellation propagates asynchronously after the stream closes; on slower
+    # (e.g. Windows) CI runners the tasks may not be settled the instant the
+    # response loop returns, so poll briefly before asserting.
+    for _ in range(50):
+        if all(task.cancelled() or task.done() for task in heartbeat_tasks):
+            break
+        time.sleep(0.1)
     for task in heartbeat_tasks:
         assert task.cancelled() or task.done(), (
             "Heartbeat task was not cancelled after stream completed"
@@ -259,7 +266,14 @@ def test_cancel_removes_pending_event_from_queue():
         second_event_id = second.json()["event_id"]
         third_event_id = third.json()["event_id"]
 
-        # First event gets picked up by the worker; second and third are queued
+        # First event gets picked up by the worker; second and third are queued.
+        # The worker dequeues asynchronously, so wait for it to settle before
+        # asserting (avoids a race on slower CI runners where all three are
+        # momentarily still in the queue).
+        for _ in range(50):
+            if len(demo._queue) == 2:
+                break
+            time.sleep(0.1)
         assert len(demo._queue) == 2
         assert second_event_id in demo._queue.event_ids_to_events
         assert second_event_id in demo._queue.pending_event_ids_session["sess1"]
