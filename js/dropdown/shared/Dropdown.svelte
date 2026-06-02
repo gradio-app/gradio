@@ -65,9 +65,6 @@
 	// Use last_typed_value to track when the user has typed
 	// on_blur we only want to update value if the user has typed
 	let last_typed_value = input_text;
-	// Reactive focus flag so that losing focus re-runs the sync effect below.
-	// A DOM check (document.activeElement) is not reactive, so blur would never
-	// re-trigger the effect to reconcile a value the parent changed while focused.
 	let focused = $state(false);
 
 	$effect(() => {
@@ -147,9 +144,6 @@
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
 		} else if (input_text !== last_typed_value) {
-			// Only commit on blur when the user actually typed. Otherwise the
-			// input_text may be stale (e.g. the parent changed value while the
-			// input was focused) and committing it would revert that update.
 			if (choices_names.includes(input_text)) {
 				selected_index = choices_names.indexOf(input_text);
 				value = choices_values[selected_index];
