@@ -63,15 +63,19 @@
 
 	$: loaded && embed_bokeh(plot);
 
-	$: main_src = bokeh_version
+	// `bokeh_version` is a prop fixed at component creation, so these are plain
+	// consts rather than reactive (`$:`) declarations. They are consumed
+	// synchronously by `load_bokeh()` during init; reactive statements would not
+	// have run yet at that point, which would set `script.src` to `undefined`.
+	const main_src = bokeh_version
 		? bokeh_local_url(bokeh_version, `bokeh-${bokeh_version}.min.js`)
 		: null;
 
-	$: main_fallback = bokeh_version
+	const main_fallback = bokeh_version
 		? bokeh_cdn_url(bokeh_version, `bokeh-${bokeh_version}.min.js`)
 		: null;
 
-	$: plugins_src = bokeh_version
+	const plugins_src = bokeh_version
 		? [
 				bokeh_local_url(bokeh_version, `bokeh-widgets-${bokeh_version}.min.js`),
 				bokeh_local_url(bokeh_version, `bokeh-tables-${bokeh_version}.min.js`),
@@ -80,7 +84,7 @@
 			]
 		: [];
 
-	$: plugins_fallback = bokeh_version
+	const plugins_fallback = bokeh_version
 		? [
 				bokeh_cdn_url(bokeh_version, `bokeh-widgets-${bokeh_version}.min.js`),
 				bokeh_cdn_url(bokeh_version, `bokeh-tables-${bokeh_version}.min.js`),
