@@ -15,7 +15,7 @@ client = OpenAI(
 
 def predict(message, history):
     history.append({"role": "user", "content": message})
-    stream = client.chat.completions.create(messages=history, model="MiniMax-M2.7", stream=True)
+    stream = client.chat.completions.create(messages=history, model="MiniMax-M3", stream=True)
     chunks = []
     for chunk in stream:
         chunks.append(chunk.choices[0].delta.content or "")
