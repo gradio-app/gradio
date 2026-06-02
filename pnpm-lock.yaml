@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  svelte: 5.56.0
-
 patchedDependencies:
   '@sveltejs/package':
     hash: 4bf60d897bf9a1418645763e4338b3223b9458b10046bd6cde08601581f05183
@@ -155,7 +152,7 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       svelte-check:
         specifier: ^4.3.2
@@ -546,7 +543,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -574,7 +571,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -642,7 +639,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/audio:
@@ -681,7 +678,7 @@ importers:
         specifier: 1.5.1
         version: 1.5.1
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       svelte-range-slider-pips:
         specifier: 4.1.0
@@ -700,7 +697,7 @@ importers:
         specifier: workspace:^
         version: link:../atoms
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/browserstate:
@@ -715,7 +712,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@types/crypto-js':
@@ -731,7 +728,7 @@ importers:
         specifier: ^0.25.10
         version: 0.25.12
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       svelte-i18n:
         specifier: ^4.0.1
@@ -752,7 +749,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -801,7 +798,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/audio':
@@ -829,7 +826,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -851,7 +848,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -936,7 +933,7 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -961,7 +958,7 @@ importers:
         specifier: ^1.4.6
         version: 1.4.6
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       tinycolor2:
         specifier: ^1.6.0
@@ -974,7 +971,7 @@ importers:
   js/column:
     dependencies:
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1009,7 +1006,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       svelte-i18n:
         specifier: ^4.0.1
@@ -1241,7 +1238,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1266,7 +1263,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1288,7 +1285,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1316,7 +1313,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1335,7 +1332,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1345,7 +1342,7 @@ importers:
   js/draggable:
     dependencies:
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1373,7 +1370,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1395,7 +1392,7 @@ importers:
         specifier: ^1.0.11
         version: 1.0.11(svelte@5.56.0(@typescript-eslint/types@8.53.1))
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1423,7 +1420,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1460,7 +1457,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1479,7 +1476,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1519,7 +1516,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1532,7 +1529,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1557,7 +1554,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1585,7 +1582,7 @@ importers:
         specifier: ^4.7.9
         version: 4.7.9
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1595,7 +1592,7 @@ importers:
   js/icons:
     dependencies:
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/image:
@@ -1628,7 +1625,7 @@ importers:
         specifier: ^1.5.1
         version: 1.5.1
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1668,7 +1665,7 @@ importers:
         specifier: ^8.14.0
         version: 8.15.0
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       tinycolor2:
         specifier: ^1.6.0
@@ -1711,7 +1708,7 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1733,7 +1730,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1755,7 +1752,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1780,7 +1777,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1820,7 +1817,7 @@ importers:
         specifier: ^1.30.0
         version: 1.30.0
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1866,7 +1863,7 @@ importers:
         specifier: ^1.2.9
         version: 1.2.9
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1903,7 +1900,7 @@ importers:
         specifier: workspace:^
         version: link:../video
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1928,7 +1925,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       vega:
         specifier: ^6.2.0
@@ -1959,7 +1956,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -1978,7 +1975,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2000,7 +1997,7 @@ importers:
         specifier: ^1.30.0
         version: 1.30.0
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2034,7 +2031,7 @@ importers:
         specifier: ^3.1.1
         version: 3.3.1
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
       vega:
         specifier: ^5.23.0
@@ -2085,7 +2082,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2095,7 +2092,7 @@ importers:
   js/row:
     dependencies:
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2136,7 +2133,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2158,7 +2155,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2195,7 +2192,7 @@ importers:
         specifier: ^1.5.1
         version: 1.5.1
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2217,7 +2214,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2236,7 +2233,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2273,7 +2270,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/statustracker:
@@ -2291,7 +2288,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2316,7 +2313,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2329,7 +2326,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2351,7 +2348,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2361,7 +2358,7 @@ importers:
   js/theme:
     dependencies:
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/timer:
@@ -2370,7 +2367,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2380,7 +2377,7 @@ importers:
   js/tooltip:
     dependencies:
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/tootils:
@@ -2392,7 +2389,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/upload:
@@ -2410,7 +2407,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
 
   js/uploadbutton:
@@ -2428,7 +2425,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2456,7 +2453,7 @@ importers:
         specifier: workspace:^
         version: link:../utils
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -2499,7 +2496,7 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       svelte:
-        specifier: 5.56.0
+        specifier: ^5.48.0
         version: 5.56.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
@@ -4863,7 +4860,7 @@ packages:
       '@storybook/svelte': ^0.0.0-0 || ^8.2.0 || ^9.0.0 || ^9.1.0-0 || ^10.0.0-0
       '@sveltejs/vite-plugin-svelte': ^4.0.0 || ^5.0.0 || ^6.0.0
       storybook: ^0.0.0-0 || ^8.2.0 || ^9.0.0 || ^9.1.0-0 || ^10.0.0-0
-      svelte: 5.56.0
+      svelte: ^5.0.0
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0
 
   '@storybook/addon-vitest@10.1.11':
@@ -4960,14 +4957,14 @@ packages:
     peerDependencies:
       '@sveltejs/vite-plugin-svelte': ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
       storybook: ^10.1.11
-      svelte: 5.56.0
+      svelte: ^5.0.0
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0
 
   '@storybook/svelte@10.1.11':
     resolution: {integrity: sha512-G2ASV/Q16YkJf/3+4NXX1MdxFTO5qztePwGR12U8yKyyV2NjKtgnCA3jkvSakBLhRbO1nbD8+H13FgQrRfxdbQ==}
     peerDependencies:
       storybook: ^10.1.11
-      svelte: 5.56.0
+      svelte: ^5.0.0
 
   '@storybook/theming@8.6.14':
     resolution: {integrity: sha512-r4y+LsiB37V5hzpQo+BM10PaCsp7YlZ0YcZzQP1OCkPlYXmUAFy2VvDKaFRpD8IeNPKug2u4iFm/laDEbs03dg==}
@@ -5016,7 +5013,7 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.0.0
       '@sveltejs/vite-plugin-svelte': ^3.0.0 || ^4.0.0-next.1 || ^5.0.0 || ^6.0.0-next.0
-      svelte: 5.56.0
+      svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: ^5.3.3
       vite: ^5.0.3 || ^6.0.0 || ^7.0.0-beta.0
     peerDependenciesMeta:
@@ -5030,14 +5027,14 @@ packages:
     engines: {node: ^16.14 || >=18}
     hasBin: true
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^3.44.0 || ^4.0.0 || ^5.0.0-next.1
 
   '@sveltejs/vite-plugin-svelte-inspector@4.0.1':
     resolution: {integrity: sha512-J/Nmb2Q2y7mck2hyCX4ckVHcR5tu2J+MtBEQqpDrrgELZ2uvraQcK/ioCV61AqkdXFgriksOKIceDcQmqnGhVw==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
       '@sveltejs/vite-plugin-svelte': ^5.0.0
-      svelte: 5.56.0
+      svelte: ^5.0.0
       vite: ^6.0.0
 
   '@sveltejs/vite-plugin-svelte-inspector@5.0.2':
@@ -5045,21 +5042,21 @@ packages:
     engines: {node: ^20.19 || ^22.12 || >=24}
     peerDependencies:
       '@sveltejs/vite-plugin-svelte': ^6.0.0-next.0
-      svelte: 5.56.0
+      svelte: ^5.0.0
       vite: ^6.3.0 || ^7.0.0
 
   '@sveltejs/vite-plugin-svelte@5.1.1':
     resolution: {integrity: sha512-Y1Cs7hhTc+a5E9Va/xwKlAJoariQyHY+5zBgCZg4PFWNYQ1nMN9sjK1zhw1gK69DuqVP++sht/1GZg1aRwmAXQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^5.0.0
       vite: ^6.0.0
 
   '@sveltejs/vite-plugin-svelte@6.2.4':
     resolution: {integrity: sha512-ou/d51QSdTyN26D7h6dSpusAKaZkAiGM55/AKYi+9AGZw7q85hElbjK3kEyzXHhLSnRISHOYzVge6x0jRZ7DXA==}
     engines: {node: ^20.19 || ^22.12 || >=24}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^5.0.0
       vite: ^6.3.0 || ^7.0.0
 
   '@tailwindcss/forms@0.5.11':
@@ -5464,7 +5461,7 @@ packages:
   '@zerodevx/svelte-json-view@1.0.11':
     resolution: {integrity: sha512-mIjj0H1al/P4FPlbeDoiey93lNEUqBEAe5LIdD5GttZfEYt3awexD2lHwKNfUeY4jHizOJkoWTPN/2iO0GBqpw==}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^3.57.0 || ^4.0.0 || ^5.0.0
 
   abbrev@3.0.1:
     resolution: {integrity: sha512-AO2ac6pjRB3SJmGJo+v5/aK6Omggp6fsLrs6wN9bd35ulu4cCwaAU9+7ZhXjeqHVkaHThLuzH0nZr0YpCDhygg==}
@@ -6315,7 +6312,7 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.1 || ^9.0.0
-      svelte: 5.56.0
+      svelte: ^3.37.0 || ^4.0.0 || ^5.0.0
     peerDependenciesMeta:
       svelte:
         optional: true
@@ -7132,7 +7129,7 @@ packages:
   mdsvex@0.12.6:
     resolution: {integrity: sha512-pupx2gzWh3hDtm/iDW4WuCpljmyHbHi34r7ktOqpPGvyiM4MyfNgdJ3qMizXdgCErmvYC9Nn/qyjePy+4ss9Wg==}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^3.56.0 || ^4.0.0 || ^5.0.0-next.120
 
   media-encoder-host-broker@7.1.0:
     resolution: {integrity: sha512-Emu3f45Wbf6AoRJxfvZ8e5nh8fRVviBfkABgYNvVUsVBgJ7+l137gn324g/JmNVQhhVQ89fjmGT1kHIJ9JG5Nw==}
@@ -7624,7 +7621,7 @@ packages:
     resolution: {integrity: sha512-xL49LCloMoZRvSwa6IEdN2GV6cq2IqpYGstYtMT+5wmml1/dClEoI0MZR78MiVPpu6BdQFfN0/y73yO6+br5Pg==}
     peerDependencies:
       prettier: ^3.0.0
-      svelte: 5.56.0
+      svelte: ^3.2.0 || ^4.0.0-next.0 || ^5.0.0-next.0
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
@@ -8057,21 +8054,21 @@ packages:
     resolution: {integrity: sha512-hRHHufbJoArFmDYQKCpCvc0xUuIEfwYksvyLYEQyH+1xb5LD5sM/IthfooCdXZQtOIqXz6xm7NmaqdfwG4kh6w==}
     engines: {node: '>=18'}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^5.0.0
 
   svelte-check@4.3.5:
     resolution: {integrity: sha512-e4VWZETyXaKGhpkxOXP+B/d0Fp/zKViZoJmneZWe/05Y2aqSKj3YN2nLfYPJBQ87WEiY4BQCQ9hWGu9mPT1a1Q==}
     engines: {node: '>= 18.0.0'}
     hasBin: true
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
 
   svelte-eslint-parser@1.4.1:
     resolution: {integrity: sha512-1eqkfQ93goAhjAXxZiu1SaKI9+0/sxp4JIWQwUpsz7ybehRE5L8dNuz7Iry7K22R47p5/+s9EM+38nHV2OlgXA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0, pnpm: 10.24.0}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^3.37.0 || ^4.0.0 || ^5.0.0
     peerDependenciesMeta:
       svelte:
         optional: true
@@ -8081,7 +8078,7 @@ packages:
     engines: {node: '>= 16'}
     hasBin: true
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^3 || ^4 || ^5
 
   svelte-preprocess@6.0.3:
     resolution: {integrity: sha512-PLG2k05qHdhmRG7zR/dyo5qKvakhm8IJ+hD2eFRQmMLHp7X3eJnjeupUtvuRpbNiF31RjVw45W+abDwHEmP5OA==}
@@ -8096,7 +8093,7 @@ packages:
       sass: ^1.26.8
       stylus: '>=0.55'
       sugarss: ^2.0.0 || ^3.0.0 || ^4.0.0
-      svelte: 5.56.0
+      svelte: ^4.0.0 || ^5.0.0-next.100 || ^5.0.0
       typescript: ^5.0.0
     peerDependenciesMeta:
       '@babel/core':
@@ -8123,12 +8120,12 @@ packages:
   svelte-range-slider-pips@4.1.0:
     resolution: {integrity: sha512-2Zw7MngIuPeqdyJ3ueEp7jPSx0hce+Sx8r1eteCeUPxEWlNavKhBtqJyuoAdpvh5csPPFVZJ4TJ4MX9s4G70uw==}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^4.2.7 || ^5.0.0
 
   svelte2tsx@0.7.46:
     resolution: {integrity: sha512-S++Vw3w47a8rBuhbz4JK0fcGea8tOoX1boT53Aib8+oUO2EKeOG+geXprJVTDfBlvR+IJdf3jIpR2RGwT6paQA==}
     peerDependencies:
-      svelte: 5.56.0
+      svelte: ^3.55 || ^4.0.0-next.0 || ^4.0 || ^5.0.0-next.0
       typescript: ^4.9.4 || ^5.0.0
 
   svelte@5.56.0:
@@ -8750,7 +8747,7 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       '@vitest/browser': ^2.1.0 || ^3.0.0-0
-      svelte: 5.56.0
+      svelte: '>3.0.0'
       vitest: ^2.1.0 || ^3.0.0-0
 
   vitest@4.0.18:
@@ -13273,7 +13270,7 @@ snapshots:
 
   is-reference@1.2.1:
     dependencies:
-      '@types/estree': 1.0.8
+      '@types/estree': 1.0.9
 
   is-reference@3.0.3:
     dependencies:
@@ -13697,7 +13694,7 @@ snapshots:
 
   mlly@1.8.0:
     dependencies:
-      acorn: 8.15.0
+      acorn: 8.16.0
       pathe: 2.0.3
       pkg-types: 1.3.1
       ufo: 1.6.3

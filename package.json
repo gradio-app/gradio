@@ -175,10 +175,5 @@
 		"extends": [
 			"plugin:storybook/recommended"
 		]
-	},
-	"pnpm": {
-		"overrides": {
-			"svelte": "5.56.0"
-		}
 	}
 }
