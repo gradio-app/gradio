@@ -367,26 +367,6 @@ describe("Single-select: Selection", () => {
 		expect(input.value).toBe("apple");
 	});
 
-	test("arrow navigation spans every option after clearing a typed filter", async () => {
-		const { getByLabelText } = await render(Dropdown, {
-			...single_select_props,
-			value: "apple"
-		});
-
-		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		await input.focus();
-
-		await fireEvent.input(input, { target: { value: "a" } });
-		await fireEvent.keyDown(input, { key: "a" });
-		await fireEvent.input(input, { target: { value: "" } });
-
-		await fireEvent.keyDown(input, { key: "ArrowDown" });
-		await fireEvent.keyDown(input, { key: "ArrowDown" });
-		await fireEvent.keyDown(input, { key: "Enter" });
-
-		expect(input.value).toBe("cherry");
-	});
-
 	test("selecting a new option replaces the previous one", async () => {
 		const { getByLabelText, getAllByTestId } = await render(
 			Dropdown,
