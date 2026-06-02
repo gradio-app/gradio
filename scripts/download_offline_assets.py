@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import ssl
 import urllib.request
 from pathlib import Path
 
@@ -58,9 +59,21 @@ USER_AGENT = (
 )
 
 
+def _ssl_context() -> ssl.SSLContext:
+    # python.org Python on macOS ships without a usable system CA bundle, so the
+    # default context can't verify TLS. Prefer certifi's bundle when available
+    # (it's a transitive Gradio dependency). This still performs full
+    # certificate verification -- it does not disable it.
+    try:
+        import certifi
+    except ImportError:
+        return ssl.create_default_context()
+    return ssl.create_default_context(cafile=certifi.where())
+
+
 def fetch(url: str) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=60) as response:
+    with urllib.request.urlopen(request, timeout=60, context=_ssl_context()) as response:
         return response.read()
 
 
