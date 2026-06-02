@@ -361,6 +361,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	// instance). Used purely as a reactivity trigger to re-translate props when
 	// the locale changes. Kept off `props`/`$state` so it isn't proxied or
 	// serialized. See Blocks.svelte where this is set.
+	// NOTE: the underlying duplicate-svelte-i18n issue is also addressed by
+	// pinning Svelte to a single version (pnpm.overrides); this injection
+	// remains as defense-in-depth.
 	i18n_store: Readable<unknown> | undefined;
 	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;
