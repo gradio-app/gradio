@@ -62,7 +62,7 @@ class Markdown(Component):
         Parameters:
             value: Value to show in Markdown component. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             label: This parameter has no effect
-            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: This parameter has no effect.
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.

@@ -276,7 +276,7 @@ def _modify_js_deps(
     gradio_dir: Path,
 ):
     for dep in package_json.get(key, []):
-        # if curent working directory is the gradio repo, use the local version of the dependency'
+        # if current working directory is the gradio repo, use the local version of the dependency'
         if not _in_test_dir() and dep.startswith("@gradio/"):
             package_json[key][dep] = _get_js_dependency_version(
                 dep, gradio_dir / "_frontend_code" / gradio.__version__
