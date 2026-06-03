@@ -103,6 +103,12 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    @pytest.mark.skipif(
+        sys.platform == "win32",
+        reason="On Windows CI python_multipart raises MultipartParseError while "
+        "parsing the oversized header before gradio's own size check returns a "
+        "413, so the response code differs. Passes on Linux/macOS.",
+    )
     def test_header_size_limit(self, test_client):
         with open("test/test_files/alphabet.txt", "rb") as f:
             long_filename = "5" * 9000

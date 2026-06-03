@@ -1,4 +1,4 @@
-"""gr.Audio() component."""
+"""The core gr.Audio() component."""
 
 from __future__ import annotations
 
