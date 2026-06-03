@@ -24,7 +24,7 @@
 		updateNodeData,
 		removeNode,
 		replaceNodeSource,
-		sanitizeForSave
+		sanitize_for_save
 	} from "./workflow-store";
 	import { migrateToV2, toLegacyShape } from "./workflow-migration";
 	import { PORT_COLOR } from "./workflow-types";
@@ -36,7 +36,7 @@
 		NodeRole
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
-	import { streamTextGeneration } from "./inference-stream";
+	import { stream_text_generation } from "./inference-stream";
 	import {
 		findFreeSpot as findFreeSpotImpl,
 		topoSort,
@@ -46,6 +46,7 @@
 	} from "./workflow-graph";
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
+	import CheckIcon from "./icons/CheckIcon.svelte";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -86,9 +87,10 @@
 	$effect(() => {
 		const wf = $workflow;
 		if (!server?.save_workflow) return;
-		const payload = JSON.stringify(sanitizeForSave(wf));
 		const timer = setTimeout(() => {
-			server.save_workflow([payload]).catch(() => {});
+			server.save_workflow([JSON.stringify(sanitize_for_save(wf))]).catch(
+				() => {}
+			);
 		}, 500);
 		return () => clearTimeout(timer);
 	});
@@ -118,7 +120,46 @@
 	});
 
 	// ─── Canvas state ───────────────────────────────────────────────────────────
-	let viewport = $state({ x: 0, y: 0, zoom: 1 });
+	function viewport_storage_key(name: string): string {
+		return `gradio_workflow_viewport:${name}`;
+	}
+	function load_viewport(name: string): { x: number; y: number; zoom: number } {
+		if (typeof localStorage === "undefined") return { x: 0, y: 0, zoom: 1 };
+		try {
+			const raw = localStorage.getItem(viewport_storage_key(name));
+			if (!raw) return { x: 0, y: 0, zoom: 1 };
+			const v = JSON.parse(raw);
+			if (
+				typeof v?.x === "number" &&
+				typeof v?.y === "number" &&
+				typeof v?.zoom === "number"
+			) {
+				return { x: v.x, y: v.y, zoom: v.zoom };
+			}
+		} catch {}
+		return { x: 0, y: 0, zoom: 1 };
+	}
+	let viewport = $state(load_viewport($workflow.name));
+
+	let lastViewportName = $state($workflow.name);
+	$effect(() => {
+		if ($workflow.name !== lastViewportName) {
+			lastViewportName = $workflow.name;
+			viewport = load_viewport($workflow.name);
+		}
+	});
+
+	$effect(() => {
+		if (typeof localStorage === "undefined") return;
+		const name = $workflow.name;
+		const v = viewport;
+		const timer = setTimeout(() => {
+			try {
+				localStorage.setItem(viewport_storage_key(name), JSON.stringify(v));
+			} catch {}
+		}, 250);
+		return () => clearTimeout(timer);
+	});
 
 	// Pointer interaction state: track which kind of drag is happening so
 	// pointermove/up know what to do. Mutually exclusive — at most one mode.
@@ -824,11 +865,18 @@
 		input.style.display = "none";
 		document.body.appendChild(input);
 		const cleanup = (): void => {
-			try { document.body.removeChild(input); } catch { /* noop */ }
+			try {
+				document.body.removeChild(input);
+			} catch {
+				/* noop */
+			}
 		};
 		input.onchange = () => {
 			const file = input.files?.[0];
-			if (!file) { cleanup(); return; }
+			if (!file) {
+				cleanup();
+				return;
+			}
 			let portType: PortType = "file";
 			if (file.type.startsWith("image/")) portType = "image";
 			else if (file.type.startsWith("audio/")) portType = "audio";
@@ -1157,7 +1205,7 @@
 			fetchDatasetWithToken,
 			callFnWithToken,
 			(modelId, prompt, provider, signal, onChunk) =>
-				streamTextGeneration({
+				stream_text_generation({
 					modelId,
 					prompt,
 					provider,
@@ -1264,11 +1312,6 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent): void {
-		if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
-			exportWorkflow();
-			return;
-		}
 		if (
 			e.key === "Enter" &&
 			(e.metaKey || e.ctrlKey) &&
@@ -1398,7 +1441,9 @@
 		"video",
 		"text",
 		"file",
-		"gallery"
+		"gallery",
+		"boolean",
+		"number"
 	]);
 
 	async function handlePickerCreate(template: any): Promise<void> {
@@ -1545,8 +1590,12 @@
 	 */
 	function addFnNode(tmpl: BoundFnTemplate): void {
 		const half = 110;
-		const { x, y } = findFreeSpot(canvasCenter().x - half, canvasCenter().y - 45);
-		const height = 80 + Math.max(tmpl.inputs.length, tmpl.outputs.length, 1) * 36;
+		const { x, y } = findFreeSpot(
+			canvasCenter().x - half,
+			canvasCenter().y - 45
+		);
+		const height =
+			80 + Math.max(tmpl.inputs.length, tmpl.outputs.length, 1) * 36;
 		addNode(
 			"operator",
 			{
@@ -1562,37 +1611,6 @@
 			x,
 			y
 		);
-	}
-
-	function exportWorkflow(): void {
-		const json = JSON.stringify($workflow, null, 2);
-		const blob = new Blob([json], { type: "application/json" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `${$workflow.name.replace(/[^a-zA-Z0-9_-]/g, "_")}.workflow.json`;
-		a.click();
-		URL.revokeObjectURL(url);
-		showToast("Exported workflow.json");
-	}
-
-	function importWorkflow(): void {
-		const input = document.createElement("input");
-		input.type = "file";
-		input.accept = ".json";
-		input.onchange = async () => {
-			const file = input.files?.[0];
-			if (!file) return;
-			try {
-				const text = await file.text();
-				const parsed = JSON.parse(text);
-				revokeAllBlobUrls(legacyView.nodes);
-				// Accept both v1 (legacy export) and v2 files transparently.
-				workflow.set(migrateToV2(parsed));
-				showToast("Imported workflow");
-			} catch {}
-		};
-		input.click();
 	}
 
 	function setName(value: string): void {
@@ -1634,20 +1652,20 @@
 		</div>
 		<div class="toolbar-right">
 			{#if !auth.isCheckingLogin}
-				{#if auth.isHFSpace}
-					{#if auth.loggedInUser}
-						<span class="toolbar-user-info"
-							>Logged in as <strong>{auth.loggedInUser}</strong></span
-						>
+				{#if auth.loggedInUser}
+					<span class="toolbar-user-info"
+						>Logged in as <strong>{auth.loggedInUser}</strong></span
+					>
+					{#if auth.isHFSpace}
 						<button
 							class="toolbar-login-btn logged-in"
 							onclick={auth.handleLogout}>Log out</button
 						>
-					{:else}
-						<button class="toolbar-login-btn" onclick={auth.handleLogin}
-							>Sign in with 🤗</button
-						>
 					{/if}
+				{:else if auth.isHFSpace}
+					<button class="toolbar-login-btn" onclick={auth.handleLogin}
+						>Sign in with 🤗</button
+					>
 				{:else}
 					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
 						<input
@@ -1665,21 +1683,7 @@
 								class="toolbar-token-status valid"
 								title={`Signed in as ${auth.tokenUser}`}
 							>
-								<svg
-									width="11"
-									height="11"
-									viewBox="0 0 11 11"
-									fill="none"
-									aria-hidden="true"
-								>
-									<path
-										d="M2 5.5L4.5 8L9 3"
-										stroke="currentColor"
-										stroke-width="1.6"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									/>
-								</svg>
+								<CheckIcon />
 								{auth.tokenUser}
 							</span>
 						{:else if auth.tokenStatus === "validating"}
@@ -1690,17 +1694,6 @@
 					</form>
 				{/if}
 			{/if}
-			<button
-				class="tool-btn"
-				onclick={exportWorkflow}
-				title="Export workflow.json (Cmd+S)">Export</button
-			>
-			<button
-				class="tool-btn"
-				onclick={importWorkflow}
-				title="Import workflow.json">Import</button
-			>
-			<div class="toolbar-divider"></div>
 			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
 				>Layout</button
 			>
@@ -1894,9 +1887,6 @@
 					<kbd>Cmd+Enter</kbd> <span>Run workflow</span>
 				</div>
 				<div class="shortcut-row">
-					<kbd>Cmd+S</kbd> <span>Export JSON</span>
-				</div>
-				<div class="shortcut-row">
 					<kbd>Cmd+D</kbd> <span>Duplicate node</span>
 				</div>
 				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
@@ -1916,7 +1906,7 @@
 		<WorkflowBottomBar
 			{running}
 			{hasTransforms}
-			boundFns={boundFns}
+			{boundFns}
 			onopenpicker={openPicker}
 			onaddinput={addInputNode}
 			onaddfn={addFnNode}
@@ -1955,7 +1945,17 @@
 	{#if toasts.length > 0}
 		<div class="wf-toast-stack">
 			{#each toasts as t (t.id)}
-				<div class="wf-toast wf-toast-{t.type}">{t.message}</div>
+				<div class="wf-toast wf-toast-{t.type}">
+					<span class="wf-toast-msg">{t.message}</span>
+					<button
+						class="wf-toast-close"
+						aria-label="Dismiss"
+						title="Dismiss"
+						onclick={() => (toasts = toasts.filter((x) => x.id !== t.id))}
+					>
+						×
+					</button>
+				</div>
 			{/each}
 		</div>
 	{/if}

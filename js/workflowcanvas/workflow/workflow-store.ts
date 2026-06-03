@@ -61,8 +61,10 @@ export { allNodes, findNode, isV2, migrateToV2 };
  * so we drop the field entirely and let the user re-upload on refresh.
  * Other data (text, numbers, server-served file paths) passes through.
  */
-export function sanitizeForSave(wf: Workflow): Workflow {
-	const stripBlobs = <T extends { data?: Record<string, unknown> }>(n: T): T => {
+export function sanitize_for_save(wf: Workflow): Workflow {
+	const stripBlobs = <T extends { data?: Record<string, unknown> }>(
+		n: T
+	): T => {
 		if (!n.data) return n;
 		const cleaned: Record<string, unknown> = {};
 		for (const [k, v] of Object.entries(n.data)) {
@@ -99,7 +101,14 @@ export function addReference(
 			data[port.id] = port.default_value as NodeDataValue;
 		}
 	}
-	const node: ReferenceNode = { ...template, role: "reference", id, x, y, data };
+	const node: ReferenceNode = {
+		...template,
+		role: "reference",
+		id,
+		x,
+		y,
+		data
+	};
 	workflow.update((wf) => ({ ...wf, references: [...wf.references, node] }));
 	return id;
 }
@@ -127,7 +136,14 @@ export function addSubject(
 	y: number
 ): string {
 	const id = uuid();
-	const node: SubjectNode = { ...template, role: "subject", id, x, y, data: {} };
+	const node: SubjectNode = {
+		...template,
+		role: "subject",
+		id,
+		x,
+		y,
+		data: {}
+	};
 	workflow.update((wf) => ({ ...wf, subjects: [...wf.subjects, node] }));
 	return id;
 }
@@ -171,9 +187,9 @@ export function addNode(
 			template.source === "fn"
 				? template.source
 				: template.kind === "space" ||
-					template.kind === "model" ||
-					template.kind === "dataset" ||
-					template.kind === "fn"
+					  template.kind === "model" ||
+					  template.kind === "dataset" ||
+					  template.kind === "fn"
 					? template.kind
 					: template.space_id
 						? "space"
@@ -186,10 +202,12 @@ export function addNode(
 			{
 				...baseFields,
 				kind: opKind,
-				source: template.source && typeof template.source === "string" &&
+				source:
+					template.source &&
+					typeof template.source === "string" &&
 					template.source.startsWith("hf://")
-					? template.source
-					: undefined,
+						? template.source
+						: undefined,
 				space_id: template.space_id,
 				model_id: template.model_id,
 				dataset_id: template.dataset_id,
@@ -215,10 +233,7 @@ export function addNode(
 	return addSubject({ ...baseFields, asset_type }, x, y);
 }
 
-function mapAllRoles(
-	wf: Workflow,
-	fn: (node: AnyNode) => AnyNode
-): Workflow {
+function mapAllRoles(wf: Workflow, fn: (node: AnyNode) => AnyNode): Workflow {
 	return {
 		...wf,
 		references: wf.references.map((n) => fn(n) as ReferenceNode),
@@ -251,13 +266,16 @@ export function updateNodeData(
 	);
 }
 
-
 export function removeNode(id: string): void {
 	workflow.update((wf) => {
 		const node = findNode(wf, id);
 		if (node) {
 			Object.values(node.data ?? {}).forEach((v) => {
-				if (v && typeof v === "object" && (v as { url?: string }).url?.startsWith?.("blob:")) {
+				if (
+					v &&
+					typeof v === "object" &&
+					(v as { url?: string }).url?.startsWith?.("blob:")
+				) {
 					URL.revokeObjectURL((v as { url: string }).url);
 				}
 			});
@@ -275,11 +293,17 @@ export function removeNode(id: string): void {
 }
 
 export function addEdge(e: Omit<WFEdge, "id">): void {
-	workflow.update((wf) => ({ ...wf, edges: [...wf.edges, { ...e, id: uuid() }] }));
+	workflow.update((wf) => ({
+		...wf,
+		edges: [...wf.edges, { ...e, id: uuid() }]
+	}));
 }
 
 export function removeEdge(id: string): void {
-	workflow.update((wf) => ({ ...wf, edges: wf.edges.filter((e) => e.id !== id) }));
+	workflow.update((wf) => ({
+		...wf,
+		edges: wf.edges.filter((e) => e.id !== id)
+	}));
 }
 
 /**
@@ -353,7 +377,10 @@ export function replaceNodeSource(
  * topology changes a component's role. Kept as an explicit action rather than
  * derived so the studio view can render the change instantly.
  */
-export function switchNodeRole(nodeId: string, to: "reference" | "subject"): void {
+export function switchNodeRole(
+	nodeId: string,
+	to: "reference" | "subject"
+): void {
 	workflow.update((wf) => {
 		const fromRefs = wf.references.find((n) => n.id === nodeId);
 		const fromSubs = wf.subjects.find((n) => n.id === nodeId);
