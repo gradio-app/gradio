@@ -155,7 +155,7 @@ def is_llm_request(request: fastapi.Request) -> bool:
     header, which a coding agent or LLM client sends to opt in. We deliberately
     avoid User-Agent sniffing: it requires constant maintenance and would serve
     API docs to general-purpose crawlers that want the app's content instead.
-    """
+    accept = request.headers.get("accept", "").lower()
     accept = request.headers.get("accept", "")
     return "text/markdown" in accept
 
