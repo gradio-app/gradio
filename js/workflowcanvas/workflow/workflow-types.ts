@@ -189,9 +189,3 @@ export const PORT_COLOR_DIM: Record<PortType, string> = {
 	any: "rgba(107, 110, 120, 0.10)"
 };
 
-export const KIND_LABEL: Record<string, string> = {
-	input: "IN",
-	transform: "FN",
-	output: "OUT",
-	component: "IO"
-};

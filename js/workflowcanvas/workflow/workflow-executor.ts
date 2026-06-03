@@ -7,6 +7,7 @@ import type {
 	FileValue
 } from "./workflow-types";
 import { toLegacyShape } from "./workflow-migration";
+import { topoSort } from "./workflow-graph";
 
 type StatusCallback = (
 	nodeId: string,
@@ -50,27 +51,6 @@ type StreamTextFn = (
 	signal: AbortSignal | undefined,
 	onChunk: (delta: string, accumulated: string) => void
 ) => Promise<string>;
-
-function topoSort(nodes: WFNode[], edges: WFEdge[]): WFNode[] {
-	const deg = new Map(nodes.map((n) => [n.id, 0]));
-	for (const e of edges) {
-		deg.set(e.to_node_id, (deg.get(e.to_node_id) ?? 0) + 1);
-	}
-	const q = nodes.filter((n) => deg.get(n.id) === 0);
-	const out: WFNode[] = [];
-	while (q.length) {
-		const n = q.shift()!;
-		out.push(n);
-		for (const e of edges.filter((e) => e.from_node_id === n.id)) {
-			const d = (deg.get(e.to_node_id) ?? 1) - 1;
-			deg.set(e.to_node_id, d);
-			if (d === 0) {
-				q.push(nodes.find((nd) => nd.id === e.to_node_id)!);
-			}
-		}
-	}
-	return out;
-}
 
 function resolveInputs(
 	node: WFNode,

@@ -60,10 +60,6 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 
 	async function checkLoginStatus(): Promise<void> {
 		isHFSpace = window.location.hostname.endsWith(".hf.space");
-		if (!isHFSpace) {
-			isCheckingLogin = false;
-			return;
-		}
 		const token = await getOAuthToken();
 		if (!token) {
 			loggedInUser = "";

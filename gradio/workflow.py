@@ -13,6 +13,8 @@ import urllib.request
 from collections.abc import Callable
 from typing import Optional
 
+import requests
+
 from gradio.oauth import OAuthToken
 
 logger = logging.getLogger(__name__)
@@ -609,12 +611,10 @@ class Workflow:
                     r = client.visual_question_answering(_img_url(a0), a1)
                     return json.dumps([r[0].answer if r else ""])
                 if task == "depth-estimation":
-                    import requests as _requests
-
                     headers = (
                         {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
                     )
-                    resp = _requests.post(
+                    resp = requests.post(
                         f"https://api-inference.huggingface.co/models/{model_id}",
                         headers=headers,
                         json={"inputs": _img_url(a0)},
@@ -641,12 +641,10 @@ class Workflow:
                     return json.dumps([r.choices[0].message.content])
                 except Exception:
                     pass
-                import requests as _requests
-
                 headers = (
                     {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
                 )
-                fallback_resp = _requests.post(
+                fallback_resp = requests.post(
                     f"https://api-inference.huggingface.co/models/{model_id}",
                     headers=headers,
                     json={"inputs": a0 if not a1 else [a0, a1]},
