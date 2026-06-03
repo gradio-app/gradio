@@ -36,10 +36,7 @@ function ref(
 	};
 }
 
-function op(
-	id: string,
-	overrides: Partial<OperatorNode> = {}
-): OperatorNode {
+function op(id: string, overrides: Partial<OperatorNode> = {}): OperatorNode {
 	return {
 		id,
 		role: "operator",
@@ -287,12 +284,7 @@ describe("buildUpstreamSubgraph", () => {
 				references: [a],
 				operators: [b, c],
 				subjects: [d, e],
-				edges: [
-					edge("a", "b"),
-					edge("b", "c"),
-					edge("c", "d"),
-					edge("a", "e")
-				]
+				edges: [edge("a", "b"), edge("b", "c"), edge("c", "d"), edge("a", "e")]
 			}),
 			"d"
 		);

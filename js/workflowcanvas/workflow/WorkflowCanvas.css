@@ -370,7 +370,7 @@
 	font-family: "JetBrains Mono", monospace;
 	font-size: 11px;
 	font-weight: 600;
-	padding: 8px 16px;
+	padding: 8px 12px 8px 16px;
 	border-radius: 8px;
 	background: #1a1b25;
 	color: #c8c9d2;
@@ -382,6 +382,29 @@
 	word-break: break-word;
 	text-align: center;
 	animation: wf-toast-in 0.2s ease-out;
+	pointer-events: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wf-toast-msg {
+	flex: 1;
+}
+
+.wf-toast-close {
+	background: none;
+	border: none;
+	color: inherit;
+	font-size: 16px;
+	line-height: 1;
+	padding: 0 4px;
+	cursor: pointer;
+	opacity: 0.6;
+}
+
+.wf-toast-close:hover {
+	opacity: 1;
 }
 
 .wf-toast.wf-toast-error {
@@ -470,7 +493,10 @@
 	background: transparent;
 	color: #8b8d98;
 	cursor: pointer;
-	transition: background 0.1s, color 0.1s, border-color 0.1s;
+	transition:
+		background 0.1s,
+		color 0.1s,
+		border-color 0.1s;
 }
 
 .wf-modal-btn:hover {
@@ -554,7 +580,9 @@
 	font-weight: 500;
 	cursor: pointer;
 	text-align: left;
-	transition: background 0.1s, color 0.1s;
+	transition:
+		background 0.1s,
+		color 0.1s;
 	white-space: nowrap;
 }
 
@@ -617,7 +645,10 @@
 	font-weight: 600;
 	cursor: pointer;
 	text-align: center;
-	transition: background 0.1s, color 0.1s, border-color 0.1s;
+	transition:
+		background 0.1s,
+		color 0.1s,
+		border-color 0.1s;
 	white-space: nowrap;
 }
 
@@ -671,4 +702,3 @@
 	z-index: 20;
 	white-space: nowrap;
 }
-

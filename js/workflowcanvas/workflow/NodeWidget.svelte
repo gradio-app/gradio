@@ -7,6 +7,7 @@
 	} from "./workflow-types";
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
+	import DownloadIcon from "./icons/DownloadIcon.svelte";
 
 	interface Props {
 		node: WFNode;
@@ -103,7 +104,8 @@
 			v.url.startsWith("blob:") ||
 			v.url.startsWith("data:") ||
 			(v.url.startsWith("http") &&
-				new URL(v.url, window.location.origin).origin === window.location.origin) ||
+				new URL(v.url, window.location.origin).origin ===
+					window.location.origin) ||
 			!v.url.startsWith("http");
 		try {
 			const url = sameOrigin
@@ -140,7 +142,12 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="widget-zone nodrag nopan" class:text-full={widgetType === "text" || widgetType === "json"} onmousedown={(e) => e.stopPropagation()} onpointerdown={(e) => e.stopPropagation()}>
+<div
+	class="widget-zone nodrag nopan"
+	class:text-full={widgetType === "text" || widgetType === "json"}
+	onmousedown={(e) => e.stopPropagation()}
+	onpointerdown={(e) => e.stopPropagation()}
+>
 	{#if widgetType === "text" || widgetType === "json"}
 		<div class="widget-text-wrap">
 			<div class="widget-gradio-wrap">
@@ -227,13 +234,15 @@
 						title="Download {fileVal.name}"
 						aria-label="Download"
 					>
-						<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-							<path d="M6 1.5v6.5M6 8L3 5M6 8l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M2 9.5v.5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-						</svg>
+						<DownloadIcon />
 					</button>
 					{#if !isReadonly}
-						<button class="widget-action widget-clear" onclick={clearFile} title="Clear" aria-label="Clear">&times;</button>
+						<button
+							class="widget-action widget-clear"
+							onclick={clearFile}
+							title="Clear"
+							aria-label="Clear">&times;</button
+						>
 					{/if}
 				</div>
 			</div>
@@ -246,10 +255,15 @@
 				role="button"
 				tabindex="0"
 				onclick={() => fileInputEl?.click()}
-				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputEl?.click(); }}
+				onkeydown={(e) => {
+					if (e.key === "Enter" || e.key === " ") fileInputEl?.click();
+				}}
 				onmousedown={(e) => e.stopPropagation()}
 				onpointerdown={(e) => e.stopPropagation()}
-				ondragover={(e) => { e.preventDefault(); e.stopPropagation(); }}
+				ondragover={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+				}}
 				ondrop={handleFileDrop}
 			>
 				<input
@@ -588,7 +602,9 @@
 		align-items: center;
 		justify-content: center;
 		padding: 0;
-		transition: background 0.15s, color 0.15s;
+		transition:
+			background 0.15s,
+			color 0.15s;
 	}
 
 	.widget-action:hover {

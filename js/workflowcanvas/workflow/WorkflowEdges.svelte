@@ -39,9 +39,10 @@
 		if (dotEl && transformEl) {
 			const dotRect = dotEl.getBoundingClientRect();
 			const transformRect = transformEl.getBoundingClientRect();
-			const edgeX = side === "output"
-				? dotRect.right - transformRect.left
-				: dotRect.left - transformRect.left;
+			const edgeX =
+				side === "output"
+					? dotRect.right - transformRect.left
+					: dotRect.left - transformRect.left;
 			return {
 				x: edgeX / zoom,
 				y: (dotRect.top + dotRect.height / 2 - transformRect.top) / zoom
@@ -55,7 +56,10 @@
 		const idx = ports.findIndex((p) => p.id === portId);
 		const portIndex = idx >= 0 ? idx : 0;
 		const DOT_OUTSET = 24;
-		const x = side === "output" ? node.x + node.width + DOT_OUTSET : node.x - DOT_OUTSET;
+		const x =
+			side === "output"
+				? node.x + node.width + DOT_OUTSET
+				: node.x - DOT_OUTSET;
 		const headerH = node.source === "space" && node.space_id ? 60 : 44;
 		if (side === "input") {
 			return { x, y: node.y + headerH + portIndex * 26 };

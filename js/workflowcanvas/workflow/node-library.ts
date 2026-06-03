@@ -202,7 +202,9 @@ export const LIBRARY: Record<string, NodeTemplate[]> = {
 export function getComponentForPortType(type: string): NodeTemplate | null {
 	// `any`/`file` are inference-only fallbacks — default them to Image so
 	// the user gets a usable picker entry rather than nothing.
-	const lookup = (type === "any" || type === "file" ? "image" : type) as PortType;
+	const lookup = (
+		type === "any" || type === "file" ? "image" : type
+	) as PortType;
 	return LIBRARY.components.find((c) => c.outputs[0]?.type === lookup) ?? null;
 }
 

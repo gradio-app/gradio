@@ -2,8 +2,15 @@
 	import { getContext } from "svelte";
 	import { resizeNode, workflow } from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
+	import PlayIcon from "./icons/PlayIcon.svelte";
+	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 	import { PORT_COLOR, PORT_COLOR_DIM } from "./workflow-types";
-	import type { WFNode, PortType, NodeDataValue, NodeStatus } from "./workflow-types";
+	import type {
+		WFNode,
+		PortType,
+		NodeDataValue,
+		NodeStatus
+	} from "./workflow-types";
 
 	interface Props {
 		id: string;
@@ -24,7 +31,11 @@
 		nodeErrors: Record<string, string>;
 		staleNodes: Set<string>;
 		connectedPorts: Set<string>;
-		ondatachange: (nodeId: string, portId: string, value: NodeDataValue) => void;
+		ondatachange: (
+			nodeId: string,
+			portId: string,
+			value: NodeDataValue
+		) => void;
 		onremove: (id: string) => void;
 		onopenpicker: (id: string) => void;
 		onrunnode: (id: string) => void;
@@ -62,13 +73,17 @@
 		if (trimmed && trimmed !== node.label) {
 			workflow.update((wf) => ({
 				...wf,
-				nodes: wf.nodes.map((n) => (n.id === node.id ? { ...n, label: trimmed } : n))
+				nodes: wf.nodes.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				)
 			}));
 		}
 		editingLabel = false;
 	}
 
-	const primaryType = $derived<PortType>(node.outputs[0]?.type ?? node.inputs[0]?.type ?? "any");
+	const primaryType = $derived<PortType>(
+		node.outputs[0]?.type ?? node.inputs[0]?.type ?? "any"
+	);
 	const accentColor = $derived(PORT_COLOR[primaryType]);
 	const accentDim = $derived(PORT_COLOR_DIM[primaryType]);
 
@@ -185,20 +200,24 @@
 					class:node-run-stale={isStale}
 					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => { e.stopPropagation(); ctx.onrunnode(node.id); }}
+					onclick={(e) => {
+						e.stopPropagation();
+						ctx.onrunnode(node.id);
+					}}
 					title={isStale ? "Run this node (inputs changed)" : "Run this node"}
 					aria-label="Run this node"
 				>
-					<svg width="9" height="10" viewBox="0 0 9 10" fill="currentColor" aria-hidden="true">
-						<path d="M0 0l9 5-9 5V0z"/>
-					</svg>
+					<PlayIcon />
 				</button>
 			{/if}
 			<button
 				class="node-delete"
 				onpointerdown={(e) => e.stopPropagation()}
 				onmousedown={(e) => e.stopPropagation()}
-				onclick={(e) => { e.stopPropagation(); ctx.onremove(node.id); }}
+				onclick={(e) => {
+					e.stopPropagation();
+					ctx.onremove(node.id);
+				}}
 				title="Delete node">&times;</button
 			>
 		</div>
@@ -215,23 +234,23 @@
 					title="Click to change source"
 					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => { e.stopPropagation(); ctx.onopenpicker(node.id); }}
-				>{itemId.split("/").pop() ?? itemId}</button>
+					onclick={(e) => {
+						e.stopPropagation();
+						ctx.onopenpicker(node.id);
+					}}>{itemId.split("/").pop() ?? itemId}</button
+				>
 				<a
 					class="node-outside-link"
 					href={sourceHFUrl(node)}
 					target="_blank"
 					rel="noopener noreferrer"
 					title="Open on HuggingFace"
+					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => e.stopPropagation()}
 					aria-label="Open on HuggingFace"
 				>
-					<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-						<path d="M5 2H3.5A1.5 1.5 0 0 0 2 3.5v5A1.5 1.5 0 0 0 3.5 10h5A1.5 1.5 0 0 0 10 8.5V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-						<path d="M7 2h3v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-						<path d="M10 2L5.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-					</svg>
+					<OpenLinkIcon />
 				</a>
 			</div>
 		{:else if node.fn}
@@ -239,15 +258,19 @@
 			     name. Show that above the card; no picker swap because
 			     fn nodes can't be replaced by a Space/Model in place. -->
 			<div class="node-outside-label-wrap">
-				<span class="node-outside-label node-outside-label-fn">{node.fn}()</span>
+				<span class="node-outside-label node-outside-label-fn">{node.fn}()</span
+				>
 			</div>
 		{:else}
 			<button
 				class="node-outside-label node-outside-label-empty"
 				onpointerdown={(e) => e.stopPropagation()}
 				onmousedown={(e) => e.stopPropagation()}
-				onclick={(e) => { e.stopPropagation(); ctx.onopenpicker(node.id); }}
-			>+ source</button>
+				onclick={(e) => {
+					e.stopPropagation();
+					ctx.onopenpicker(node.id);
+				}}>+ source</button
+			>
 		{/if}
 	{/if}
 
@@ -256,25 +279,33 @@
 		{@const collapsible = node.inputs.length > INPUT_COLLAPSE_THRESHOLD}
 		<div class="ports" class:widget-ports={hasWidget}>
 			{#each node.inputs as port, i}
-				{@const portConnected = connectedPorts.has(`${node.id}:${port.id}:input`)}
-				{@const visible = showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
+				{@const portConnected = connectedPorts.has(
+					`${node.id}:${port.id}:input`
+				)}
+				{@const visible =
+					showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
 				{#if visible}
 					<div class="port-row input-row" class:widget-port={hasWidget}>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="port-handle-sf input-handle-sf"
 							class:connected={portConnected}
-							class:incompatible={pending !== null && !compatible(pending.type, port.type)}
-							class:pulse={pending !== null && compatible(pending.type, port.type)}
+							class:incompatible={pending !== null &&
+								!compatible(pending.type, port.type)}
+							class:pulse={pending !== null &&
+								compatible(pending.type, port.type)}
 							data-node-id={node.id}
 							data-port-id={port.id}
 							data-port-type={port.type}
 							data-port-direction="input"
 							style="--port-color: {PORT_COLOR[port.type]}"
-							onpointerdown={(e) => ctx.onportpointerdown(e, node.id, port.id, port.type, true)}
+							onpointerdown={(e) =>
+								ctx.onportpointerdown(e, node.id, port.id, port.type, true)}
 						></div>
 						{#if !hasWidget}
-							<span class="port-label" class:port-label-optional={port.required === false}
+							<span
+								class="port-label"
+								class:port-label-optional={port.required === false}
 								>{port.label}</span
 							>
 							<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
@@ -283,23 +314,37 @@
 						{/if}
 					</div>
 					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
-						<div class="port-inline-config" onmousedown={(e) => e.stopPropagation()}>
+						<div
+							class="port-inline-config"
+							onmousedown={(e) => e.stopPropagation()}
+						>
 							{#if port.type === "number"}
 								<input
 									class="inline-input inline-number"
 									type="number"
 									step="any"
-									placeholder={port.default_value != null ? String(port.default_value) : "0"}
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: "0"}
 									value={node.data?.[port.id] ?? ""}
 									oninput={(e) =>
-										ctx.ondatachange(node.id, port.id, parseFloat(e.currentTarget.value) || 0)}
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											parseFloat(e.currentTarget.value) || 0
+										)}
 								/>
 							{:else if port.type === "boolean"}
 								<label class="inline-checkbox">
 									<input
 										type="checkbox"
 										checked={!!node.data?.[port.id]}
-										onchange={(e) => ctx.ondatachange(node.id, port.id, e.currentTarget.checked)}
+										onchange={(e) =>
+											ctx.ondatachange(
+												node.id,
+												port.id,
+												e.currentTarget.checked
+											)}
 									/>
 									<span>{node.data?.[port.id] ? "On" : "Off"}</span>
 								</label>
@@ -307,9 +352,14 @@
 								<input
 									class="inline-input"
 									type="text"
-									placeholder={port.default_value != null ? String(port.default_value) : port.label}
-									value={typeof node.data?.[port.id] === "string" ? node.data[port.id] as string : ""}
-									oninput={(e) => ctx.ondatachange(node.id, port.id, e.currentTarget.value)}
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: port.label}
+									value={typeof node.data?.[port.id] === "string"
+										? (node.data[port.id] as string)
+										: ""}
+									oninput={(e) =>
+										ctx.ondatachange(node.id, port.id, e.currentTarget.value)}
 								/>
 							{/if}
 						</div>
@@ -322,7 +372,8 @@
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={() => (showAllInputs = !showAllInputs)}
 				>
-					{#if showAllInputs}▴ show less{:else}▾ {node.inputs.length - INPUT_COLLAPSE_THRESHOLD} more params{/if}
+					{#if showAllInputs}▴ show less{:else}▾ {node.inputs.length -
+							INPUT_COLLAPSE_THRESHOLD} more params{/if}
 				</button>
 			{/if}
 		</div>
@@ -330,17 +381,27 @@
 
 	<!-- Widget zone -->
 	{#if hasWidget && widgetPortId && widgetType}
-		<NodeWidget {node} {widgetPortId} {widgetType} {isReadonly} ondatachange={ctx.ondatachange} />
+		<NodeWidget
+			{node}
+			{widgetPortId}
+			{widgetType}
+			{isReadonly}
+			ondatachange={ctx.ondatachange}
+		/>
 	{/if}
 
 	<!-- Output ports -->
 	{#if node.outputs.length > 0}
 		<div class="ports" class:widget-ports={hasWidget}>
 			{#each node.outputs as port}
-				{@const portConnected = connectedPorts.has(`${node.id}:${port.id}:output`)}
+				{@const portConnected = connectedPorts.has(
+					`${node.id}:${port.id}:output`
+				)}
 				<div class="port-row output-row" class:widget-port={hasWidget}>
 					{#if !hasWidget}
-						<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}">{port.type}</span>
+						<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
+							>{port.type}</span
+						>
 						<span class="port-label">{port.label}</span>
 					{/if}
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -352,7 +413,8 @@
 						data-port-type={port.type}
 						data-port-direction="output"
 						style="--port-color: {PORT_COLOR[port.type]}"
-						onpointerdown={(e) => ctx.onportpointerdown(e, node.id, port.id, port.type, false)}
+						onpointerdown={(e) =>
+							ctx.onportpointerdown(e, node.id, port.id, port.type, false)}
 					></div>
 				</div>
 			{/each}
@@ -447,7 +509,9 @@
 	}
 
 	@keyframes node-spin {
-		to { transform: rotate(360deg); }
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.node-header {
@@ -482,8 +546,16 @@
 		border: 1px solid transparent;
 		border-radius: 4px;
 		box-sizing: border-box;
-		mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
-		-webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+		mask-image: linear-gradient(
+			to right,
+			black calc(100% - 24px),
+			transparent 100%
+		);
+		-webkit-mask-image: linear-gradient(
+			to right,
+			black calc(100% - 24px),
+			transparent 100%
+		);
 	}
 
 	.node-label-input {
@@ -550,7 +622,10 @@
 		opacity: 0;
 		text-decoration: none;
 		border-radius: 3px;
-		transition: opacity 0.15s, color 0.15s, background 0.15s;
+		transition:
+			opacity 0.15s,
+			color 0.15s,
+			background 0.15s;
 		flex-shrink: 0;
 	}
 
@@ -646,8 +721,13 @@
 	}
 
 	@keyframes node-run-pulse {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.55; }
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.55;
+		}
 	}
 
 	.ports {
@@ -709,7 +789,11 @@
 		background: #0c0d10;
 		cursor: crosshair;
 		opacity: 0.5;
-		transition: opacity 0.15s, transform 0.15s, background 0.15s, box-shadow 0.15s;
+		transition:
+			opacity 0.15s,
+			transform 0.15s,
+			background 0.15s,
+			box-shadow 0.15s;
 		position: absolute;
 		top: 50%;
 		transform: translateY(-50%);
@@ -760,8 +844,14 @@
 	}
 
 	@keyframes port-pulse {
-		0%, 100% { box-shadow: 0 0 0 0 transparent; }
-		50% { box-shadow: 0 0 0 4px var(--port-color); opacity: 0.3; }
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 transparent;
+		}
+		50% {
+			box-shadow: 0 0 0 4px var(--port-color);
+			opacity: 0.3;
+		}
 	}
 
 	.node-error-banner {

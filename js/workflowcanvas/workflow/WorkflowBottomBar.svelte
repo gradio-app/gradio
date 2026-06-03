@@ -1,6 +1,16 @@
 <script lang="ts">
 	import { MODALITIES, DATASET_MODALITY } from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
+	import ImageIcon from "./icons/ImageIcon.svelte";
+	import AudioIcon from "./icons/AudioIcon.svelte";
+	import VideoIcon from "./icons/VideoIcon.svelte";
+	import Model3DIcon from "./icons/Model3DIcon.svelte";
+	import TextIcon from "./icons/TextIcon.svelte";
+	import DatasetIcon from "./icons/DatasetIcon.svelte";
+	import PlusIcon from "./icons/PlusIcon.svelte";
+	import FunctionIcon from "./icons/FunctionIcon.svelte";
+	import StopIcon from "./icons/StopIcon.svelte";
+	import PlayIcon from "./icons/PlayIcon.svelte";
 
 	export interface BoundFnTemplate {
 		fn: string;
@@ -74,46 +84,36 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="bottom-bar" onclick={(e) => { e.stopPropagation(); closeMenus(); }}>
+<div
+	class="bottom-bar"
+	onclick={(e) => {
+		e.stopPropagation();
+		closeMenus();
+	}}
+>
 	<div class="bb-group">
 		{#each MODALITIES as m}
 			<div class="bb-modality-wrap">
 				<button
 					class="bb-btn"
-					onclick={(e) => { e.stopPropagation(); closeMenus(); onopenpicker(m); }}
+					onclick={(e) => {
+						e.stopPropagation();
+						closeMenus();
+						onopenpicker(m);
+					}}
 					title="Add {m.label} node"
 				>
 					<span class="bb-icon">
 						{#if m.key === "image"}
-							<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-								<rect x="1.5" y="2" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
-								<circle cx="5" cy="5.5" r="1.1" stroke="currentColor" stroke-width="1.2"/>
-								<path d="M2 10l3-3 3 3 2-2 2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-							</svg>
+							<ImageIcon />
 						{:else if m.key === "audio"}
-							<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
-								<path d="M2.5 6v2"/>
-								<path d="M5 4v6"/>
-								<path d="M7.5 2.5v9"/>
-								<path d="M10 4.5v5"/>
-								<path d="M12.5 6v2"/>
-							</svg>
+							<AudioIcon />
 						{:else if m.key === "video"}
-							<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-								<rect x="1.5" y="3.5" width="8.5" height="7" rx="1.4" stroke="currentColor" stroke-width="1.4"/>
-								<path d="M10 6l2.5-1.5v5L10 8V6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
-							</svg>
+							<VideoIcon />
 						{:else if m.key === "3d"}
-							<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-								<path d="M7 1.6L12 4.3v5.4L7 12.4 2 9.7V4.3L7 1.6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-								<path d="M2 4.3L7 7l5-2.7" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-								<path d="M7 7v5.4" stroke="currentColor" stroke-width="1.2"/>
-							</svg>
+							<Model3DIcon />
 						{:else if m.key === "text"}
-							<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-								<path d="M3 3h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-								<path d="M7 3v8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-							</svg>
+							<TextIcon />
 						{/if}
 					</span>
 					<span class="bb-label">{m.label}</span>
@@ -131,11 +131,7 @@
 		title="Add dataset node"
 	>
 		<span class="bb-icon">
-			<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-				<ellipse cx="7" cy="3.5" rx="5" ry="2" stroke="currentColor" stroke-width="1.5"/>
-				<path d="M2 3.5v3c0 1.1 2.24 2 5 2s5-.9 5-2v-3" stroke="currentColor" stroke-width="1.5"/>
-				<path d="M2 6.5v3c0 1.1 2.24 2 5 2s5-.9 5-2v-3" stroke="currentColor" stroke-width="1.5"/>
-			</svg>
+			<DatasetIcon />
 		</span>
 		<span class="bb-label">Data</span>
 	</button>
@@ -143,17 +139,20 @@
 	<div class="bb-divider"></div>
 
 	<div class="bb-input-wrap">
-		<button class="bb-input-btn" onclick={toggleInputMenu} title="Add input node">
-			<svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-				<path d="M5.5 1v9M1 5.5h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-			</svg>
+		<button
+			class="bb-input-btn"
+			onclick={toggleInputMenu}
+			title="Add input node"
+		>
+			<PlusIcon />
 			Input
 		</button>
 		{#if showInputMenu}
 			<div class="input-type-menu">
 				{#each INPUT_TYPES as t}
-					<button class="input-type-opt" onclick={(e) => handleInputType(t.key, e)}
-						>{t.label}</button
+					<button
+						class="input-type-opt"
+						onclick={(e) => handleInputType(t.key, e)}>{t.label}</button
 					>
 				{/each}
 			</div>
@@ -162,17 +161,22 @@
 
 	{#if boundFns.length > 0}
 		<div class="bb-input-wrap">
-			<button class="bb-input-btn" onclick={toggleFnMenu} title="Add Python function node">
-				<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-					<path d="M2 3h2.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-					<path d="M10 3H7.5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-				</svg>
+			<button
+				class="bb-input-btn"
+				onclick={toggleFnMenu}
+				title="Add Python function node"
+			>
+				<FunctionIcon />
 				Function
 			</button>
 			{#if showFnMenu}
 				<div class="input-type-menu fn-menu">
 					{#each boundFns as t}
-						<button class="input-type-opt" onclick={(e) => handleFnClick(t, e)} title={t.fn}>
+						<button
+							class="input-type-opt"
+							onclick={(e) => handleFnClick(t, e)}
+							title={t.fn}
+						>
 							{t.label}
 						</button>
 					{/each}
@@ -185,16 +189,12 @@
 
 	{#if running}
 		<button class="bb-run-btn stop" onclick={onstop}>
-			<svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
-				<rect width="9" height="9" rx="1.5"/>
-			</svg>
+			<StopIcon />
 			Stop
 		</button>
 	{:else}
 		<button class="bb-run-btn" onclick={onrun} disabled={!hasTransforms}>
-			<svg width="9" height="10" viewBox="0 0 9 10" fill="currentColor">
-				<path d="M0 0l9 5-9 5V0z"/>
-			</svg>
+			<PlayIcon />
 			Run
 		</button>
 	{/if}
@@ -256,7 +256,7 @@
 		position: relative;
 	}
 
-.bb-icon {
+	.bb-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;

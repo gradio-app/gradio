@@ -2,6 +2,30 @@ import type { PortType, Port } from "./workflow-types";
 import { modalityForPort } from "./workflow-modalities";
 import type { ModalityConfig } from "./workflow-modalities";
 
+export function normalize_space_id(raw: string): string | null {
+	const trimmed = raw.trim().replace(/\/+$/, "");
+	if (!trimmed) return null;
+
+	if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(trimmed)) {
+		return trimmed;
+	}
+
+	const pageMatch = trimmed.match(
+		/^https?:\/\/(?:www\.)?huggingface\.co\/spaces\/([^/\s?#]+)\/([^/\s?#]+)/i
+	);
+	if (pageMatch) return `${pageMatch[1]}/${pageMatch[2]}`;
+
+	const sub = trimmed.match(/^https?:\/\/([^/]+)\.hf\.space/i);
+	if (sub) {
+		const parts = sub[1].split("-");
+		if (parts.length >= 2) {
+			return `${parts[0]}/${parts.slice(1).join("-")}`;
+		}
+	}
+
+	return null;
+}
+
 /** Map Gradio component types to our port types */
 export function componentToPortType(
 	component: string,
@@ -46,10 +70,19 @@ export function componentToPortType(
 			.replace(/\s*\|\s*none$/, "")
 			.trim();
 		if (cleaned === "str" || cleaned === "string") return "text";
-		if (cleaned === "int" || cleaned === "integer" || cleaned === "float" || cleaned === "number")
+		if (
+			cleaned === "int" ||
+			cleaned === "integer" ||
+			cleaned === "float" ||
+			cleaned === "number"
+		)
 			return "number";
 		if (cleaned === "bool" || cleaned === "boolean") return "boolean";
-		if (cleaned === "filepath" || cleaned === "file" || cleaned.includes("filedata")) {
+		if (
+			cleaned === "filepath" ||
+			cleaned === "file" ||
+			cleaned.includes("filedata")
+		) {
 			// Infer media type from label/parameter name when possible
 			const l = (labelHint ?? "").toLowerCase();
 			if (/audio|wav|mp3|voice|sound|speech|tts|asr/.test(l)) return "audio";
@@ -58,7 +91,11 @@ export function componentToPortType(
 			if (/model3d|mesh|glb|gltf|obj\b/.test(l)) return "model3d";
 			return "file";
 		}
-		if (cleaned.includes("dict") || cleaned.includes("list") || cleaned.includes("any"))
+		if (
+			cleaned.includes("dict") ||
+			cleaned.includes("list") ||
+			cleaned.includes("any")
+		)
 			return "json";
 	}
 
@@ -144,7 +181,9 @@ function pickBestEndpoint(endpoints: Record<string, any>): string {
 	// Pick the endpoint with the richest outputs (file outputs >> scalar outputs)
 	return pool
 		.slice()
-		.sort((a, b) => endpointScore(endpoints[b]) - endpointScore(endpoints[a]))[0];
+		.sort(
+			(a, b) => endpointScore(endpoints[b]) - endpointScore(endpoints[a])
+		)[0];
 }
 
 export interface SpaceApiInfo {
@@ -247,8 +286,11 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 			);
 			if (portType === "__skip__") return null;
 			const hasDefault = p.parameter_has_default === true;
-			const useParamName = (isApi || ORDINAL_LABEL.test(p.label ?? "")) && p.parameter_name;
-			const rawLabel = useParamName ? p.parameter_name : p.label || p.parameter_name || `Input ${i}`;
+			const useParamName =
+				(isApi || ORDINAL_LABEL.test(p.label ?? "")) && p.parameter_name;
+			const rawLabel = useParamName
+				? p.parameter_name
+				: p.label || p.parameter_name || `Input ${i}`;
 			return {
 				id: `in_${i}`,
 				label: rawLabel,
@@ -275,8 +317,11 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 				labelHint
 			);
 			if (portType === "__skip__") return null;
-			const useParamName = (isApi || ORDINAL_LABEL.test(r.label ?? "")) && r.parameter_name;
-			const rawLabel = useParamName ? r.parameter_name : r.label || `Output ${i}`;
+			const useParamName =
+				(isApi || ORDINAL_LABEL.test(r.label ?? "")) && r.parameter_name;
+			const rawLabel = useParamName
+				? r.parameter_name
+				: r.label || `Output ${i}`;
 			return {
 				id: `out_${i}`,
 				label: rawLabel,

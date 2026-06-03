@@ -71,9 +71,9 @@ describe("isV2", () => {
 	});
 
 	test("rejects v2 missing required arrays", () => {
-		expect(
-			isV2({ schema_version: "2", references: [], operators: [] })
-		).toBe(false);
+		expect(isV2({ schema_version: "2", references: [], operators: [] })).toBe(
+			false
+		);
 	});
 });
 
@@ -179,7 +179,6 @@ describe("migrateToV2 — v1 → v2 promotion", () => {
 		expect(result.schema_version).toBe("2");
 		expect(result.operators).toHaveLength(1);
 	});
-
 });
 
 describe("toLegacyShape", () => {

@@ -75,8 +75,12 @@ describe("TASK_SCHEMAS", () => {
 	test("no schema port uses inference-only fallback types", () => {
 		for (const [tag, schema] of Object.entries(TASK_SCHEMAS)) {
 			for (const p of [...schema.inputs, ...schema.outputs]) {
-				expect(p.type, `${tag}:${p.id} uses fallback type ${p.type}`).not.toBe("any");
-				expect(p.type, `${tag}:${p.id} uses fallback type ${p.type}`).not.toBe("file");
+				expect(p.type, `${tag}:${p.id} uses fallback type ${p.type}`).not.toBe(
+					"any"
+				);
+				expect(p.type, `${tag}:${p.id} uses fallback type ${p.type}`).not.toBe(
+					"file"
+				);
 			}
 		}
 	});
@@ -95,7 +99,9 @@ describe("TASK_SCHEMAS", () => {
 	});
 
 	test("known modality alignment: automatic-speech-recognition outputs text", () => {
-		expect(TASK_SCHEMAS["automatic-speech-recognition"].outputs[0]?.type).toBe("text");
+		expect(TASK_SCHEMAS["automatic-speech-recognition"].outputs[0]?.type).toBe(
+			"text"
+		);
 	});
 
 	test("known modality alignment: text-to-speech outputs audio", () => {

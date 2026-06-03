@@ -31,7 +31,7 @@ export interface StreamTextOptions {
  * Throws if the request fails or the stream cannot be opened — the caller
  * is expected to surface the error (toast / node status).
  */
-export async function streamTextGeneration(
+export async function stream_text_generation(
 	opts: StreamTextOptions
 ): Promise<string> {
 	const headers: Record<string, string> = {
@@ -98,7 +98,11 @@ export async function streamTextGeneration(
 			}
 		}
 	} finally {
-		try { reader.releaseLock(); } catch { /* noop */ }
+		try {
+			reader.releaseLock();
+		} catch {
+			/* noop */
+		}
 	}
 
 	return accumulated;
@@ -110,7 +114,7 @@ export async function streamTextGeneration(
  * single-shot in nature, so the streaming router endpoint adds no value
  * and would in fact be incorrect (it's a chat-completions API).
  */
-export function isStreamableTextTask(pipelineTag: string | undefined): boolean {
+export function is_streamable_text_task(pipelineTag: string | undefined): boolean {
 	if (!pipelineTag) return false;
 	return (
 		pipelineTag === "text-generation" ||

@@ -347,7 +347,9 @@ describe("executeWorkflow — model operator routing", () => {
 			.mockResolvedValue(JSON.stringify(["fake-output"]));
 
 		await executeWorkflow(
-			emptyV2([modelOp("m1", { provider: "together", pipeline_tag: "summarization" })]),
+			emptyV2([
+				modelOp("m1", { provider: "together", pipeline_tag: "summarization" })
+			]),
 			() => {},
 			() => {},
 			undefined,
@@ -365,9 +367,7 @@ describe("executeWorkflow — model operator routing", () => {
 	});
 
 	test("provider stays undefined when the node doesn't declare one", async () => {
-		const callModel = vi
-			.fn()
-			.mockResolvedValue(JSON.stringify(["fake"]));
+		const callModel = vi.fn().mockResolvedValue(JSON.stringify(["fake"]));
 
 		await executeWorkflow(
 			emptyV2([modelOp("m1", { pipeline_tag: "summarization" })]),
@@ -383,14 +383,16 @@ describe("executeWorkflow — model operator routing", () => {
 		expect(callModel.mock.calls[0][3]).toBeUndefined();
 	});
 
-	test("text-generation routes through streamTextGeneration when provided", async () => {
-		const streamFn = vi.fn().mockImplementation(
-			async (_modelId, _prompt, _provider, _signal, onChunk) => {
-				onChunk("hel", "hel");
-				onChunk("lo", "hello");
-				return "hello";
-			}
-		);
+	test("text-generation routes through stream_text_generation when provided", async () => {
+		const streamFn = vi
+			.fn()
+			.mockImplementation(
+				async (_modelId, _prompt, _provider, _signal, onChunk) => {
+					onChunk("hel", "hel");
+					onChunk("lo", "hello");
+					return "hello";
+				}
+			);
 		const callModel = vi.fn();
 		const onOutput = vi.fn();
 
@@ -415,9 +417,7 @@ describe("executeWorkflow — model operator routing", () => {
 
 	test("non-streamable text tasks still use serverCallModel even when stream fn is provided", async () => {
 		const streamFn = vi.fn();
-		const callModel = vi
-			.fn()
-			.mockResolvedValue(JSON.stringify(["summary"]));
+		const callModel = vi.fn().mockResolvedValue(JSON.stringify(["summary"]));
 
 		await executeWorkflow(
 			emptyV2([modelOp("m1", { pipeline_tag: "summarization" })]),

@@ -8,7 +8,9 @@
 	} from "./node-library";
 	import { PORT_COLOR } from "./workflow-types";
 	import type { PortType } from "./workflow-types";
-	import { fetchSpaceApi } from "./space-api";
+	import { fetchSpaceApi, normalize_space_id } from "./space-api";
+	import ChevronLeftIcon from "./icons/ChevronLeftIcon.svelte";
+	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
 
 	interface TrendingSpace {
 		id: string;
@@ -177,8 +179,7 @@
 			return;
 		}
 
-		// If it looks like an exact space ID, don't search
-		if (query.includes("/") && !query.endsWith("/")) {
+		if (normalize_space_id(query)) {
 			searchResults = [];
 			return;
 		}
@@ -229,8 +230,11 @@
 	}
 
 	async function addCustomSpace() {
-		const spaceId = customSpaceInput.trim();
-		if (!spaceId || !spaceId.includes("/")) return;
+		const spaceId = normalize_space_id(customSpaceInput);
+		if (!spaceId) {
+			spaceError = "Enter owner/repo or paste a Space URL";
+			return;
+		}
 		if (customSpaces.some((s) => s.space_id === spaceId)) {
 			customSpaceInput = "";
 			return;
@@ -561,18 +565,7 @@
 			class:collapsed
 			onclick={() => (collapsed = !collapsed)}
 		>
-			<svg
-				viewBox="0 0 24 24"
-				width="16"
-				height="16"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<polyline points="15 18 9 12 15 6"></polyline>
-			</svg>
+			<ChevronLeftIcon />
 		</button>
 	</div>
 
@@ -593,20 +586,12 @@
 								? datasetsAdded
 								: section.items.length}</span
 				>
-				<svg
+				<span
 					class="section-chevron"
 					class:expanded={expandedSection === section.key}
-					viewBox="0 0 24 24"
-					width="16"
-					height="16"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
 				>
-					<polyline points="6 9 12 15 18 9"></polyline>
-				</svg>
+					<ChevronDownIcon />
+				</span>
 			</button>
 
 			{#if expandedSection === section.key}
@@ -1123,6 +1108,7 @@
 	}
 
 	.section-chevron {
+		display: inline-flex;
 		color: #5c5e6a;
 		flex-shrink: 0;
 		transition: transform 0.2s ease;

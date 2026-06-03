@@ -39,9 +39,7 @@ describe("canonicalizePort", () => {
 
 describe("normalizeOperatorPorts", () => {
 	test("returns the same ports when modality is null", () => {
-		const ports: Port[] = [
-			{ id: "in", label: "Input", type: "any" }
-		];
+		const ports: Port[] = [{ id: "in", label: "Input", type: "any" }];
 		expect(normalizeOperatorPorts(null, ports)).toEqual(ports);
 	});
 

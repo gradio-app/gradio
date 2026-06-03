@@ -6,7 +6,7 @@ import {
 	addOperator,
 	replaceNodeSource,
 	removeNode,
-	sanitizeForSave
+	sanitize_for_save
 } from "./workflow-store";
 import type { OperatorNode, ReferenceNode, Workflow } from "./workflow-types";
 
@@ -107,7 +107,7 @@ describe("removeNode", () => {
 	});
 });
 
-describe("sanitizeForSave", () => {
+describe("sanitize_for_save", () => {
 	function wf(refs: ReferenceNode[] = []): Workflow {
 		return {
 			schema_version: "2",
@@ -143,22 +143,30 @@ describe("sanitizeForSave", () => {
 				in: { name: "img.png", url: "blob:http://x/abc", mime: "image/png" }
 			})
 		]);
-		expect(sanitizeForSave(w).references[0].data).toEqual({});
+		expect(sanitize_for_save(w).references[0].data).toEqual({});
 	});
 
 	test("strips data: URLs from node data", () => {
 		const w = wf([
 			refNode("a", {
-				in: { name: "img.png", url: "data:image/png;base64,iVBOR", mime: "image/png" }
+				in: {
+					name: "img.png",
+					url: "data:image/png;base64,iVBOR",
+					mime: "image/png"
+				}
 			})
 		]);
-		expect(sanitizeForSave(w).references[0].data).toEqual({});
+		expect(sanitize_for_save(w).references[0].data).toEqual({});
 	});
 
 	test("preserves server-served file URLs (http / file paths)", () => {
-		const fileVal = { name: "out.png", url: "/file=/tmp/out.png", mime: "image/png" };
+		const fileVal = {
+			name: "out.png",
+			url: "/file=/tmp/out.png",
+			mime: "image/png"
+		};
 		const w = wf([refNode("a", { in: fileVal })]);
-		expect(sanitizeForSave(w).references[0].data).toEqual({ in: fileVal });
+		expect(sanitize_for_save(w).references[0].data).toEqual({ in: fileVal });
 	});
 
 	test("preserves non-file primitive data (text, numbers, booleans)", () => {
@@ -167,7 +175,7 @@ describe("sanitizeForSave", () => {
 			refNode("b", { in: 42 }),
 			refNode("c", { in: true })
 		]);
-		const result = sanitizeForSave(w);
+		const result = sanitize_for_save(w);
 		expect(result.references[0].data).toEqual({ in: "hello world" });
 		expect(result.references[1].data).toEqual({ in: 42 });
 		expect(result.references[2].data).toEqual({ in: true });
@@ -178,7 +186,7 @@ describe("sanitizeForSave", () => {
 			refNode("a", { in: { name: "x", url: "blob:nope" } })
 		]);
 		const snapshot = JSON.stringify(original);
-		sanitizeForSave(original);
+		sanitize_for_save(original);
 		expect(JSON.stringify(original)).toBe(snapshot);
 	});
 });

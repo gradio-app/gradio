@@ -1,8 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-	isStreamableTextTask,
-	streamTextGeneration
-} from "./inference-stream";
+import { is_streamable_text_task, stream_text_generation } from "./inference-stream";
 
 /**
  * Build a mock `Response` whose `body.getReader()` yields the given UTF-8
@@ -36,32 +33,34 @@ afterEach(() => {
 	globalThis.fetch = origFetch;
 });
 
-describe("isStreamableTextTask", () => {
+describe("is_streamable_text_task", () => {
 	test("accepts known text-generation tags", () => {
-		expect(isStreamableTextTask("text-generation")).toBe(true);
-		expect(isStreamableTextTask("text2text-generation")).toBe(true);
-		expect(isStreamableTextTask("conversational")).toBe(true);
+		expect(is_streamable_text_task("text-generation")).toBe(true);
+		expect(is_streamable_text_task("text2text-generation")).toBe(true);
+		expect(is_streamable_text_task("conversational")).toBe(true);
 	});
 
 	test("rejects other modalities", () => {
-		expect(isStreamableTextTask("text-to-image")).toBe(false);
-		expect(isStreamableTextTask("automatic-speech-recognition")).toBe(false);
-		expect(isStreamableTextTask("summarization")).toBe(false);
+		expect(is_streamable_text_task("text-to-image")).toBe(false);
+		expect(is_streamable_text_task("automatic-speech-recognition")).toBe(false);
+		expect(is_streamable_text_task("summarization")).toBe(false);
 	});
 
 	test("rejects empty / undefined", () => {
-		expect(isStreamableTextTask(undefined)).toBe(false);
-		expect(isStreamableTextTask("")).toBe(false);
+		expect(is_streamable_text_task(undefined)).toBe(false);
+		expect(is_streamable_text_task("")).toBe(false);
 	});
 });
 
-describe("streamTextGeneration — request", () => {
+describe("stream_text_generation — request", () => {
 	beforeEach(() => {
-		globalThis.fetch = vi.fn().mockResolvedValue(sseResponse(["data: [DONE]\n"]));
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(sseResponse(["data: [DONE]\n"]));
 	});
 
 	test("hits the HF unified router endpoint", async () => {
-		await streamTextGeneration({
+		await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk: () => {}
@@ -72,7 +71,7 @@ describe("streamTextGeneration — request", () => {
 	});
 
 	test("sends the Authorization header when hfToken is provided", async () => {
-		await streamTextGeneration({
+		await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			hfToken: "hf_secret",
@@ -83,7 +82,7 @@ describe("streamTextGeneration — request", () => {
 	});
 
 	test("omits Authorization header when no token", async () => {
-		await streamTextGeneration({
+		await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk: () => {}
@@ -93,7 +92,7 @@ describe("streamTextGeneration — request", () => {
 	});
 
 	test("sends model unqualified when provider is undefined or 'auto'", async () => {
-		await streamTextGeneration({
+		await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			provider: "auto",
@@ -104,7 +103,7 @@ describe("streamTextGeneration — request", () => {
 	});
 
 	test("appends provider suffix when set to a specific provider", async () => {
-		await streamTextGeneration({
+		await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			provider: "together",
@@ -115,7 +114,7 @@ describe("streamTextGeneration — request", () => {
 	});
 
 	test("requests streaming with max_tokens", async () => {
-		await streamTextGeneration({
+		await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			maxTokens: 100,
@@ -130,18 +129,20 @@ describe("streamTextGeneration — request", () => {
 	});
 });
 
-describe("streamTextGeneration — SSE parsing", () => {
+describe("stream_text_generation — SSE parsing", () => {
 	test("accumulates content deltas across frames", async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue(
-			sseResponse([
-				'data: {"choices":[{"delta":{"content":"Hel"}}]}\n',
-				'data: {"choices":[{"delta":{"content":"lo "}}]}\n',
-				'data: {"choices":[{"delta":{"content":"world"}}]}\n',
-				"data: [DONE]\n"
-			])
-		);
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				sseResponse([
+					'data: {"choices":[{"delta":{"content":"Hel"}}]}\n',
+					'data: {"choices":[{"delta":{"content":"lo "}}]}\n',
+					'data: {"choices":[{"delta":{"content":"world"}}]}\n',
+					"data: [DONE]\n"
+				])
+			);
 		const seen: string[] = [];
-		const final = await streamTextGeneration({
+		const final = await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk: (_delta, accumulated) => seen.push(accumulated)
@@ -151,15 +152,17 @@ describe("streamTextGeneration — SSE parsing", () => {
 	});
 
 	test("each onChunk call also receives the new delta", async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue(
-			sseResponse([
-				'data: {"choices":[{"delta":{"content":"A"}}]}\n',
-				'data: {"choices":[{"delta":{"content":"B"}}]}\n',
-				"data: [DONE]\n"
-			])
-		);
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				sseResponse([
+					'data: {"choices":[{"delta":{"content":"A"}}]}\n',
+					'data: {"choices":[{"delta":{"content":"B"}}]}\n',
+					"data: [DONE]\n"
+				])
+			);
 		const deltas: string[] = [];
-		await streamTextGeneration({
+		await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk: (delta) => deltas.push(delta)
@@ -168,15 +171,17 @@ describe("streamTextGeneration — SSE parsing", () => {
 	});
 
 	test("ignores frames with no content delta", async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue(
-			sseResponse([
-				'data: {"choices":[{"delta":{}}]}\n',
-				'data: {"choices":[{"delta":{"content":"only this"}}]}\n',
-				"data: [DONE]\n"
-			])
-		);
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				sseResponse([
+					'data: {"choices":[{"delta":{}}]}\n',
+					'data: {"choices":[{"delta":{"content":"only this"}}]}\n',
+					"data: [DONE]\n"
+				])
+			);
 		const onChunk = vi.fn();
-		const final = await streamTextGeneration({
+		const final = await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk
@@ -186,15 +191,17 @@ describe("streamTextGeneration — SSE parsing", () => {
 	});
 
 	test("skips malformed JSON frames without aborting", async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue(
-			sseResponse([
-				'data: {"choices":[{"delta":{"content":"good"}}]}\n',
-				"data: {not json\n",
-				'data: {"choices":[{"delta":{"content":"!"}}]}\n',
-				"data: [DONE]\n"
-			])
-		);
-		const final = await streamTextGeneration({
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				sseResponse([
+					'data: {"choices":[{"delta":{"content":"good"}}]}\n',
+					"data: {not json\n",
+					'data: {"choices":[{"delta":{"content":"!"}}]}\n',
+					"data: [DONE]\n"
+				])
+			);
+		const final = await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk: () => {}
@@ -205,14 +212,16 @@ describe("streamTextGeneration — SSE parsing", () => {
 	test("handles content split across reader chunks (partial line buffer)", async () => {
 		// Single SSE frame arrives as two TCP chunks — the parser must
 		// hold the partial line until the newline arrives.
-		globalThis.fetch = vi.fn().mockResolvedValue(
-			sseResponse([
-				'data: {"choices":[{"delta":{"con',
-				'tent":"split"}}]}\n',
-				"data: [DONE]\n"
-			])
-		);
-		const final = await streamTextGeneration({
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				sseResponse([
+					'data: {"choices":[{"delta":{"con',
+					'tent":"split"}}]}\n',
+					"data: [DONE]\n"
+				])
+			);
+		const final = await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk: () => {}
@@ -221,9 +230,11 @@ describe("streamTextGeneration — SSE parsing", () => {
 	});
 
 	test("returns immediately on [DONE] without emitting", async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue(sseResponse(["data: [DONE]\n"]));
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(sseResponse(["data: [DONE]\n"]));
 		const onChunk = vi.fn();
-		const final = await streamTextGeneration({
+		const final = await stream_text_generation({
 			modelId: "user/m",
 			prompt: "hi",
 			onChunk
@@ -233,7 +244,7 @@ describe("streamTextGeneration — SSE parsing", () => {
 	});
 });
 
-describe("streamTextGeneration — errors", () => {
+describe("stream_text_generation — errors", () => {
 	test("throws when the router returns a non-OK status", async () => {
 		globalThis.fetch = vi.fn().mockResolvedValue({
 			ok: false,
@@ -242,7 +253,7 @@ describe("streamTextGeneration — errors", () => {
 			text: async () => "Not Found"
 		} as unknown as Response);
 		await expect(
-			streamTextGeneration({
+			stream_text_generation({
 				modelId: "user/m",
 				prompt: "hi",
 				onChunk: () => {}
@@ -258,7 +269,7 @@ describe("streamTextGeneration — errors", () => {
 			text: async () => ""
 		} as unknown as Response);
 		await expect(
-			streamTextGeneration({
+			stream_text_generation({
 				modelId: "user/m",
 				prompt: "hi",
 				onChunk: () => {}

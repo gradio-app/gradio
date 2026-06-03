@@ -91,8 +91,9 @@ export function migrateToV2(raw: unknown): Workflow {
 
 		// Everything else (component / input / output / unknown) maps to either
 		// reference or subject based on edge topology.
-		const assetType: PortType =
-			(n.outputs?.[0]?.type ?? n.inputs?.[0]?.type ?? "any") as PortType;
+		const assetType: PortType = (n.outputs?.[0]?.type ??
+			n.inputs?.[0]?.type ??
+			"any") as PortType;
 
 		if (hasIncoming.has(n.id)) {
 			subjects.push({ ...base, role: "subject", asset_type: assetType });
@@ -123,7 +124,8 @@ function inferOperatorKind(n: WFNode): OperatorKind {
 function deriveSourceUri(n: WFNode, kind: OperatorKind): string | undefined {
 	if (kind === "space" && n.space_id) return `hf://spaces/${n.space_id}`;
 	if (kind === "model" && n.model_id) return `hf://${n.model_id}`;
-	if (kind === "dataset" && n.dataset_id) return `hf://datasets/${n.dataset_id}`;
+	if (kind === "dataset" && n.dataset_id)
+		return `hf://datasets/${n.dataset_id}`;
 	if (kind === "fn") return n.fn ?? undefined;
 	return undefined;
 }

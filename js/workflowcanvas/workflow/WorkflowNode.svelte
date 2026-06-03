@@ -148,7 +148,7 @@
 		return a === "any" || b === "any" || a === b;
 	}
 
-	function firstCompatibleInput(): typeof node.inputs[0] | null {
+	function firstCompatibleInput(): (typeof node.inputs)[0] | null {
 		if (!pending || pending.from_node_id === node.id) return null;
 		return (
 			node.inputs.find(
@@ -207,7 +207,6 @@
 		--accent-dim: {accentDim};
 	"
 >
-
 	<div
 		class="node-header"
 		role="button"
@@ -218,7 +217,7 @@
 			{#if status === "running"}
 				<span class="node-status-spinner"></span>
 			{/if}
-{#if editingLabel}
+			{#if editingLabel}
 				<input
 					bind:this={labelInput}
 					class="node-label-input"
@@ -305,28 +304,33 @@
 							role="button"
 							tabindex="-1"
 							onmousedown={(e) => {
-							if (!pending) {
-								e.stopPropagation();
-								const sx = e.clientX, sy = e.clientY;
-								let fired = false;
-								function onMove(mv: MouseEvent) {
-									if (!fired && (Math.abs(mv.clientX - sx) > 4 || Math.abs(mv.clientY - sy) > 4)) {
-										fired = true;
-										onstartconnection(node.id, port.id, port.type, mv, true);
+								if (!pending) {
+									e.stopPropagation();
+									const sx = e.clientX,
+										sy = e.clientY;
+									let fired = false;
+									function onMove(mv: MouseEvent) {
+										if (
+											!fired &&
+											(Math.abs(mv.clientX - sx) > 4 ||
+												Math.abs(mv.clientY - sy) > 4)
+										) {
+											fired = true;
+											onstartconnection(node.id, port.id, port.type, mv, true);
+										}
 									}
+									function onUp() {
+										window.removeEventListener("mousemove", onMove);
+										window.removeEventListener("mouseup", onUp);
+									}
+									window.addEventListener("mousemove", onMove);
+									window.addEventListener("mouseup", onUp);
 								}
-								function onUp() {
-									window.removeEventListener("mousemove", onMove);
-									window.removeEventListener("mouseup", onUp);
-								}
-								window.addEventListener("mousemove", onMove);
-								window.addEventListener("mouseup", onUp);
-							}
-						}}
-						onmouseup={(e) => {
-							e.stopPropagation();
-							oncompleteconnection(node.id, port.id, port.type);
-						}}
+							}}
+							onmouseup={(e) => {
+								e.stopPropagation();
+								oncompleteconnection(node.id, port.id, port.type);
+							}}
 						></span>
 						{#if !hasWidget}
 							<span
@@ -554,7 +558,7 @@
 		gap: 7px;
 	}
 
-.node-label {
+	.node-label {
 		font-size: 12.5px;
 		font-weight: 600;
 		color: #d5d6de;
@@ -656,7 +660,6 @@
 		color: #f97316;
 		background: rgba(249, 115, 22, 0.06);
 	}
-
 
 	.node-delete {
 		display: none;

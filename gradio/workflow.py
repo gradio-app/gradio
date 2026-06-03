@@ -9,11 +9,11 @@ import os
 import re
 import tempfile
 import urllib.parse
-import urllib.request
 from collections.abc import Callable
 from typing import Optional
 
 import requests
+from huggingface_hub import get_token as _hf_get_token
 
 from gradio.oauth import OAuthToken
 
@@ -129,17 +129,47 @@ def _workflow_from_bind(
     )
 
 
+def _local_hf_token() -> str | None:
+    try:
+        return _hf_get_token()
+    except Exception:
+        return None
+
+
 def _resolve_token(data: list, idx: int, token) -> str | None:
     manual = data[idx] if len(data) > idx else None
-    return manual or (token.token if token else None)
+    if manual:
+        return manual
+    if token:
+        return token.token
+    return _local_hf_token()
 
 
 def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
-    req = urllib.request.Request(url)
-    if hf_token:
-        req.add_header("Authorization", f"Bearer {hf_token}")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return resp.read().decode()
+    headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+    resp = requests.get(url, headers=headers, timeout=timeout)
+    resp.raise_for_status()
+    return resp.text
+
+
+def _normalize_space_result(s: dict, pipeline_tag: str) -> dict:
+    effective_tag = pipeline_tag or s.get("ai_category")
+    return {
+        "id": s.get("id"),
+        "likes": s.get("likes", 0),
+        "trendingScore": s.get("trendingScore", 0),
+        "runtime": s.get("runtime"),
+        "pipeline_tag": effective_tag,
+        "cardData": {
+            "title": s.get("title"),
+            "short_description": (
+                s.get("shortDescription") or s.get("ai_short_description")
+            ),
+            "pipeline_tag": effective_tag,
+            "tags": s.get("tags", []),
+            "sdk": s.get("sdk"),
+        },
+    }
 
 
 def _save_tmp(result, ext: str) -> dict:
@@ -273,10 +303,10 @@ class Workflow:
         def summarize(text: str) -> str:
             return text[:200]
 
-        Workflow(file="workflow.json", bind={"summarize": summarize}).launch()
+        Workflow(graph="workflow.json", bind={"summarize": summarize}).launch()
         ```
 
-    The workflow.json file defines nodes and edges:
+    The graph file defines nodes and edges:
         ```json
         {
           "nodes": [
@@ -292,23 +322,25 @@ class Workflow:
 
     def __init__(
         self,
-        file: str | None = None,
+        graph: str | None = None,
         *,
         bind: dict[str, Callable] | list[Callable] | None = None,
         edges: list[tuple[str, str]] | None = None,
     ):
         """
         Parameters:
-            file: Path to the workflow JSON file. Defaults to `workflow.json` in the
-                same directory as the calling script.
+            graph: Path to the workflow JSON file describing the canvas graph
+                (nodes + edges). Defaults to `workflow.json` in the same
+                directory as the calling script. The file is created on first
+                save if it doesn't exist.
             bind: Functions callable from the canvas frontend via the `call_fn` server
                 function. Pass a list of callables (keys default to ``fn.__name__``) or
                 a dict mapping explicit names to callables.
             edges: List of ``(from_endpoint, to_endpoint)`` tuples that wire nodes
                 together when generating a workflow from ``bind`` (ignored when an
-                existing ``file`` is loaded). Each endpoint is either ``"fn_name"``
-                (uses the first available port) or ``"fn_name.port_label"`` to target
-                a specific port.
+                existing ``graph`` file is loaded). Each endpoint is either
+                ``"fn_name"`` (uses the first available port) or
+                ``"fn_name.port_label"`` to target a specific port.
 
                 Example::
 
@@ -317,17 +349,17 @@ class Workflow:
                         ("clean.output", "tag.text"), # by port label
                     ]
         """
-        if file is None:
+        if graph is None:
             frame = inspect.stack()[1]
             caller_dir = os.path.dirname(os.path.abspath(frame.filename))
-            file = os.path.join(caller_dir, "workflow.json")
+            graph = os.path.join(caller_dir, "workflow.json")
 
         if isinstance(bind, list):
             bind = {getattr(fn, "__name__", repr(fn)): fn for fn in bind}
 
-        self._workflow_file = file
+        self._workflow_file = graph
         self._workflow_name = (
-            os.path.splitext(os.path.basename(file))[0]
+            os.path.splitext(os.path.basename(graph))[0]
             .replace("_", " ")
             .replace("-", " ")
             .title()
@@ -368,7 +400,9 @@ class Workflow:
         bound = self._bound
 
         def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
-            return token.token if token else ""
+            if token:
+                return token.token
+            return _local_hf_token() or ""
 
         def call_space(data, token: Optional[OAuthToken] = None) -> str:
             space_id = data[0] if data else ""
@@ -741,6 +775,20 @@ class Workflow:
                     pipeline_tag = ""
                 hf_token = _resolve_token(data, 3, token)
 
+                def _fallback_search(q: str) -> list:
+                    if not q:
+                        return []
+                    fb_url = (
+                        f"https://huggingface.co/api/spaces?filter=gradio"
+                        f"&search={urllib.parse.quote(q)}"
+                        f"&limit=24"
+                        f"&expand[]=likes&expand[]=cardData&expand[]=runtime"
+                    )
+                    try:
+                        return json.loads(_hf_request(fb_url, hf_token))
+                    except Exception:
+                        return []
+
                 # When a category OR query is set, use the semantic-search
                 # endpoint. It expands category slugs across multiple
                 # related tags (`image-upscaling` → upscaler /
@@ -768,6 +816,12 @@ class Workflow:
                     parsed = json.loads(raw)
                     if not isinstance(parsed, list):
                         return raw  # surface the API's error blob as-is
+
+                    if kind == "search" and query and len(parsed) < 6:
+                        for fb in _fallback_search(query):
+                            if not any(p.get("id") == fb.get("id") for p in parsed):
+                                parsed.append(fb)
+
                     if kind == "new":
                         parsed.sort(
                             key=lambda s: s.get("createdAt") or "",
@@ -778,31 +832,9 @@ class Workflow:
                             key=lambda s: s.get("trendingScore") or 0,
                             reverse=True,
                         )
-                    # Reshape so the frontend's parseResults (which reads
-                    # cardData.* and pipeline_tag) keeps working.
-                    normalized = []
-                    for s in parsed[:48]:
-                        normalized.append(
-                            {
-                                "id": s.get("id"),
-                                "likes": s.get("likes", 0),
-                                "trendingScore": s.get("trendingScore", 0),
-                                "runtime": s.get("runtime"),
-                                "pipeline_tag": pipeline_tag or s.get("ai_category"),
-                                "cardData": {
-                                    "title": s.get("title"),
-                                    "short_description": (
-                                        s.get("shortDescription")
-                                        or s.get("ai_short_description")
-                                    ),
-                                    "pipeline_tag": pipeline_tag
-                                    or s.get("ai_category"),
-                                    "tags": s.get("tags", []),
-                                    "sdk": s.get("sdk"),
-                                },
-                            }
-                        )
-                    return json.dumps(normalized)
+                    return json.dumps(
+                        [_normalize_space_result(s, pipeline_tag) for s in parsed[:48]]
+                    )
 
                 # No category, no query — browse mode.
                 base_expand = "&expand[]=likes&expand[]=cardData&expand[]=runtime"

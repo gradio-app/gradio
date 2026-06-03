@@ -48,14 +48,42 @@ export const MODEL_MODALITY: ModalityConfig = {
 	port_type: null,
 	subtabs: [
 		{ key: "all", label: "All", pipelineTags: [] },
-		{ key: "text-to-image", label: "Text→Image", pipelineTags: ["text-to-image"] },
-		{ key: "text-generation", label: "Text Gen", pipelineTags: ["text-generation"] },
-		{ key: "image-to-text", label: "Image→Text", pipelineTags: ["image-to-text"] },
-		{ key: "asr", label: "ASR", pipelineTags: ["automatic-speech-recognition"] },
+		{
+			key: "text-to-image",
+			label: "Text→Image",
+			pipelineTags: ["text-to-image"]
+		},
+		{
+			key: "text-generation",
+			label: "Text Gen",
+			pipelineTags: ["text-generation"]
+		},
+		{
+			key: "image-to-text",
+			label: "Image→Text",
+			pipelineTags: ["image-to-text"]
+		},
+		{
+			key: "asr",
+			label: "ASR",
+			pipelineTags: ["automatic-speech-recognition"]
+		},
 		{ key: "tts", label: "TTS", pipelineTags: ["text-to-speech"] },
-		{ key: "text-to-video", label: "Text→Video", pipelineTags: ["text-to-video"] },
-		{ key: "image-to-image", label: "Image→Image", pipelineTags: ["image-to-image"] },
-		{ key: "image-to-video", label: "Image→Video", pipelineTags: ["image-to-video"] }
+		{
+			key: "text-to-video",
+			label: "Text→Video",
+			pipelineTags: ["text-to-video"]
+		},
+		{
+			key: "image-to-image",
+			label: "Image→Image",
+			pipelineTags: ["image-to-image"]
+		},
+		{
+			key: "image-to-video",
+			label: "Image→Video",
+			pipelineTags: ["image-to-video"]
+		}
 	]
 };
 

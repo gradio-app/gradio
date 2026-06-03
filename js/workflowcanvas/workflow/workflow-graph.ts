@@ -33,7 +33,8 @@ export function findFreeSpot(
  */
 export function topoSort(nodes: WFNode[], edges: WFEdge[]): WFNode[] {
 	const deg = new Map(nodes.map((n) => [n.id, 0]));
-	for (const e of edges) deg.set(e.to_node_id, (deg.get(e.to_node_id) ?? 0) + 1);
+	for (const e of edges)
+		deg.set(e.to_node_id, (deg.get(e.to_node_id) ?? 0) + 1);
 	const q = nodes.filter((n) => deg.get(n.id) === 0);
 	const out: WFNode[] = [];
 	while (q.length) {

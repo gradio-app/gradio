@@ -3,6 +3,9 @@
 	import { fetchSpaceApi, normalizeOperatorPorts } from "./space-api";
 	import { FEATURED_SPACES, FEATURED_MODELS } from "./featured";
 	import type { ModalityConfig, SubTab } from "./workflow-modalities";
+	import SearchIcon from "./icons/SearchIcon.svelte";
+	import CloseIcon from "./icons/CloseIcon.svelte";
+	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 
 	interface SpaceResult {
 		id: string;
@@ -93,14 +96,23 @@
 		}
 	}
 
-	const AVATAR_COLORS = ['#f97316','#8b5cf6','#3b82f6','#10b981','#ec4899','#f59e0b','#06b6d4','#84cc16'];
+	const AVATAR_COLORS = [
+		"#f97316",
+		"#8b5cf6",
+		"#3b82f6",
+		"#10b981",
+		"#ec4899",
+		"#f59e0b",
+		"#06b6d4",
+		"#84cc16"
+	];
 	function avatarColor(id: string): string {
 		let h = 5381;
 		for (let i = 0; i < id.length; i++) h = ((h << 5) + h) ^ id.charCodeAt(i);
 		return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 	}
 	function avatarInitial(id: string): string {
-		return (id.split('/').pop() || id)[0].toUpperCase();
+		return (id.split("/").pop() || id)[0].toUpperCase();
 	}
 
 	type ContentTab = "featured" | "trending" | "new" | "search";
@@ -164,23 +176,23 @@
 
 	function parseResults(raw: any): SpaceResult[] {
 		if (!Array.isArray(raw)) return [];
-		return raw
-			.map((s: any) => {
-				const desc = s.cardData?.short_description || s.ai_short_description || "";
-				return {
-					id: s.id,
-					title: s.cardData?.title || s.title || s.id.split("/").pop() || s.id,
-					description: desc,
-					likes: s.likes ?? 0,
-					running: s.runtime?.stage === "RUNNING",
-					category: categorizeSpace(
-						s.cardData?.pipeline_tag || s.pipeline_tag,
-						s.cardData?.tags,
-						desc,
-						s.id
-					),
-					pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined
-				};
+		return raw.map((s: any) => {
+			const desc =
+				s.cardData?.short_description || s.ai_short_description || "";
+			return {
+				id: s.id,
+				title: s.cardData?.title || s.title || s.id.split("/").pop() || s.id,
+				description: desc,
+				likes: s.likes ?? 0,
+				running: s.runtime?.stage === "RUNNING",
+				category: categorizeSpace(
+					s.cardData?.pipeline_tag || s.pipeline_tag,
+					s.cardData?.tags,
+					desc,
+					s.id
+				),
+				pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined
+			};
 		});
 	}
 
@@ -259,7 +271,10 @@
 		try {
 			const raw = await server.search_datasets([query]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			if (!Array.isArray(data)) { results = []; return; }
+			if (!Array.isArray(data)) {
+				results = [];
+				return;
+			}
 			results = data.slice(0, 20).map((d: any) => ({
 				id: d.id,
 				title: d.id.split("/").pop() || d.id,
@@ -277,7 +292,11 @@
 	}
 
 	async function fetchModels(q: string) {
-		if (!server?.search_models) { results = []; loading = false; return; }
+		if (!server?.search_models) {
+			results = [];
+			loading = false;
+			return;
+		}
 		loading = true;
 		results = [];
 		try {
@@ -296,7 +315,10 @@
 			}
 			const raw = await server.search_models([kind, q, pipelineTag, ""]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			if (!Array.isArray(data)) { results = []; return; }
+			if (!Array.isArray(data)) {
+				results = [];
+				return;
+			}
 			results = data
 				.filter((m: any) => m.pipeline_tag && TASK_SCHEMAS[m.pipeline_tag])
 				.slice(0, 24)
@@ -342,7 +364,10 @@
 			return;
 		}
 		if (isModel) {
-			if (searchQuery.length < 2) { if (activeContentTab === "search") results = []; return; }
+			if (searchQuery.length < 2) {
+				if (activeContentTab === "search") results = [];
+				return;
+			}
 			activeContentTab = "search";
 			loading = true;
 			searchTimeout = setTimeout(() => void fetchModels(searchQuery), 300);
@@ -417,10 +442,12 @@
 		if (t._type === "Audio" || t.dtype === "audio") return "audio";
 		if (t._type === "Video" || t.dtype === "video") return "video";
 		if (t._type === "ClassLabel") return "text";
-		if (t._type === "Translation" || t._type === "TranslationVariableLanguages") return "text";
+		if (t._type === "Translation" || t._type === "TranslationVariableLanguages")
+			return "text";
 		if (t._type === "Value") {
 			if (t.dtype === "string") return "text";
-			if (t.dtype?.includes("int") || t.dtype?.includes("float")) return "number";
+			if (t.dtype?.includes("int") || t.dtype?.includes("float"))
+				return "number";
 			if (t.dtype === "bool") return "boolean";
 		}
 		return "json";
@@ -437,7 +464,11 @@
 			if (server?.get_dataset_schema) {
 				const raw = await server.get_dataset_schema([dataset.id]);
 				const schema = typeof raw === "string" ? JSON.parse(raw) : raw;
-				if (!schema.error && Array.isArray(schema.features) && schema.features.length > 0) {
+				if (
+					!schema.error &&
+					Array.isArray(schema.features) &&
+					schema.features.length > 0
+				) {
 					config = schema.config ?? "default";
 					split = schema.split ?? "train";
 					const ports = schema.features.map((f: any, i: number) => ({
@@ -506,7 +537,9 @@
 	<div
 		class="picker-panel"
 		class:picker-panel-anchored={anchorX !== undefined}
-		style={anchorX !== undefined ? `left:${anchorX}px; top:${anchorY ?? 0}px;` : ''}
+		style={anchorX !== undefined
+			? `left:${anchorX}px; top:${anchorY ?? 0}px;`
+			: ""}
 		onclick={(e) => e.stopPropagation()}
 		onwheel={(e) => e.stopPropagation()}
 	>
@@ -515,10 +548,9 @@
 		     with the modality categories (Generate / Edit / …). -->
 		<div class="picker-search-row">
 			<div class="picker-search-wrap">
-				<svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-					<circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
-					<path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-				</svg>
+				<span class="search-icon">
+					<SearchIcon />
+				</span>
 				<input
 					class="picker-search"
 					type="text"
@@ -527,10 +559,12 @@
 					oninput={handleSearchInput}
 					autofocus
 				/>
-				<button class="picker-close-inline" onclick={onclose} aria-label="Close">
-					<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-						<path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-					</svg>
+				<button
+					class="picker-close-inline"
+					onclick={onclose}
+					aria-label="Close"
+				>
+					<CloseIcon />
 				</button>
 			</div>
 		</div>
@@ -589,8 +623,8 @@
 						onclick={() => {
 							activeContentTab = "featured";
 							searchQuery = "";
-						}}
-					>Featured</button>
+						}}>Featured</button
+					>
 				{/if}
 				{#if trendingEmpty !== true}
 					<button
@@ -599,8 +633,8 @@
 						onclick={() => {
 							activeContentTab = "trending";
 							searchQuery = "";
-						}}
-					>Trending</button>
+						}}>Trending</button
+					>
 				{/if}
 				{#if newEmpty !== true}
 					<button
@@ -609,12 +643,11 @@
 						onclick={() => {
 							activeContentTab = "new";
 							searchQuery = "";
-						}}
-					>New ✦</button>
+						}}>New ✦</button
+					>
 				{/if}
 			</div>
 		{/if}
-
 
 		<!-- Results -->
 		<div class="picker-results">
@@ -640,10 +673,20 @@
 						role="button"
 						tabindex="0"
 					>
-						<div class="space-avatar" style="background:linear-gradient(135deg, {avatarColor(space.id)}, {avatarColor(space.id + '_2')})">{avatarInitial(space.id)}</div>
+						<div
+							class="space-avatar"
+							style="background:linear-gradient(135deg, {avatarColor(
+								space.id
+							)}, {avatarColor(space.id + '_2')})"
+						>
+							{avatarInitial(space.id)}
+						</div>
 						<div class="space-row-left">
 							<div class="space-name-row">
-								<span class="space-name">{space.title || (space.id.split('/').pop() ?? space.id)}</span>
+								<span class="space-name"
+									>{space.title ||
+										(space.id.split("/").pop() ?? space.id)}</span
+								>
 								{#if activeContentTab === "featured"}
 									<span class="space-badge space-badge-featured">Featured</span>
 								{/if}
@@ -671,11 +714,7 @@
 								onclick={(e) => e.stopPropagation()}
 								onmousedown={(e) => e.stopPropagation()}
 							>
-								<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-									<path d="M5 2H3.5A1.5 1.5 0 0 0 2 3.5v5A1.5 1.5 0 0 0 3.5 10h5A1.5 1.5 0 0 0 10 8.5V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-									<path d="M7 2h3v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-									<path d="M10 2L5.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-								</svg>
+								<OpenLinkIcon />
 							</a>
 						</div>
 					</div>
@@ -688,8 +727,14 @@
 <style>
 	/* Reuse toast-in animation from WorkflowCanvas.css */
 	@keyframes wf-toast-in {
-		from { opacity: 0; transform: translateY(6px); }
-		to { opacity: 1; transform: translateY(0); }
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 	.picker-overlay {
 		position: absolute;
@@ -751,7 +796,9 @@
 		justify-content: center;
 		flex-shrink: 0;
 		padding: 0;
-		transition: background 0.15s, color 0.15s;
+		transition:
+			background 0.15s,
+			color 0.15s;
 	}
 
 	.picker-close-inline:hover {
@@ -807,7 +854,9 @@
 		font-size: 11px;
 		font-weight: 500;
 		cursor: pointer;
-		transition: background 0.1s, color 0.1s;
+		transition:
+			background 0.1s,
+			color 0.1s;
 	}
 
 	.picker-mode-btn:hover {
@@ -841,8 +890,7 @@
 	.search-icon {
 		position: absolute;
 		left: 13px;
-		width: 16px;
-		height: 16px;
+		display: inline-flex;
 		color: #4a4d57;
 		pointer-events: none;
 		flex-shrink: 0;
@@ -891,7 +939,10 @@
 		font-size: 11.5px;
 		font-weight: 600;
 		cursor: pointer;
-		transition: background 0.15s, color 0.15s, border-color 0.15s;
+		transition:
+			background 0.15s,
+			color 0.15s,
+			border-color 0.15s;
 	}
 
 	.picker-source-btn:hover {
@@ -1121,7 +1172,10 @@
 		color: #4a4d57;
 		text-decoration: none;
 		opacity: 0;
-		transition: opacity 0.15s, color 0.15s, background 0.15s;
+		transition:
+			opacity 0.15s,
+			color 0.15s,
+			background 0.15s;
 	}
 
 	.space-row:hover .space-row-link,

@@ -161,7 +161,7 @@ export async function executeWorkflow(
 	serverCallModel?: ServerCallModelFn,
 	serverFetchDataset?: ServerFetchDatasetFn,
 	serverCallFn?: ServerCallPyFn,
-	streamTextGeneration?: StreamTextFn
+	stream_text_generation?: StreamTextFn
 ): Promise<void> {
 	// Executor still reasons in v1 vocabulary (kind / source). Project the v2
 	// workflow into a v1 view; the underlying ids are identical so edges still
@@ -354,11 +354,12 @@ export async function executeWorkflow(
 						(tag === "text-generation" ||
 							tag === "text2text-generation" ||
 							tag === "conversational") &&
-						!!streamTextGeneration;
+						!!stream_text_generation;
 					if (streamable) {
-						const prompt = typeof args[0] === "string" ? args[0] : String(args[0] ?? "");
+						const prompt =
+							typeof args[0] === "string" ? args[0] : String(args[0] ?? "");
 						const outputPort = node.outputs[0];
-						const final = await streamTextGeneration!(
+						const final = await stream_text_generation!(
 							node.model_id,
 							prompt,
 							node.provider,
@@ -379,7 +380,9 @@ export async function executeWorkflow(
 							new Promise<never>((_, reject) =>
 								setTimeout(
 									() =>
-										reject(new Error("Request timed out — model may be loading")),
+										reject(
+											new Error("Request timed out — model may be loading")
+										),
 									300000
 								)
 							)

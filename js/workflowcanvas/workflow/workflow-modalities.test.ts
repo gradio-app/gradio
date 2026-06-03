@@ -12,7 +12,10 @@ import {
 describe("ModalityConfig.port_type", () => {
 	test("every picker modality declares a canonical port type", () => {
 		for (const m of MODALITIES) {
-			expect(m.port_type, `modality ${m.key} missing port_type`).not.toBeUndefined();
+			expect(
+				m.port_type,
+				`modality ${m.key} missing port_type`
+			).not.toBeUndefined();
 		}
 	});
 
@@ -20,7 +23,10 @@ describe("ModalityConfig.port_type", () => {
 		for (const m of MODALITIES) {
 			if (!m.port_type) continue;
 			const reverse = modalityForPort(m.port_type);
-			expect(reverse?.key, `port ${m.port_type} did not resolve back to ${m.key}`).toBe(m.key);
+			expect(
+				reverse?.key,
+				`port ${m.port_type} did not resolve back to ${m.key}`
+			).toBe(m.key);
 		}
 	});
 
@@ -30,7 +36,9 @@ describe("ModalityConfig.port_type", () => {
 	});
 
 	test("known modality → port_type mapping", () => {
-		const byKey = Object.fromEntries(MODALITIES.map((m) => [m.key, m.port_type]));
+		const byKey = Object.fromEntries(
+			MODALITIES.map((m) => [m.key, m.port_type])
+		);
 		expect(byKey.image).toBe("image");
 		expect(byKey.audio).toBe("audio");
 		expect(byKey.video).toBe("video");
@@ -67,7 +75,9 @@ describe("PORT_REGISTRY", () => {
 
 	test("every entry has a non-empty label", () => {
 		for (const p of PORT_REGISTRY) {
-			expect(p.label.length, `${p.port_type} has empty label`).toBeGreaterThan(0);
+			expect(p.label.length, `${p.port_type} has empty label`).toBeGreaterThan(
+				0
+			);
 		}
 	});
 
