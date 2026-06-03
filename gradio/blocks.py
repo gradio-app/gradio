@@ -155,7 +155,7 @@ class Block:
         )
         self.mcp_server_obj = None
 
-        # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
+        # Keep tracks of files that should not be deleted when the delete_cache parameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
         self.has_launched = False
@@ -608,6 +608,22 @@ def convert_component_dict_to_list(
             "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
         )
     return predictions
+
+
+def _find_free_port(host: str, start: int, try_count: int = 100) -> int:
+    """Find an available port by scanning from *start*."""
+    import socket
+
+    for port in range(start, start + try_count):
+        try:
+            s = socket.socket()
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind((host if host != "0.0.0.0" else "127.0.0.1", port))
+            s.close()
+            return port
+        except OSError:
+            continue
+    raise OSError(f"Cannot find empty port in range: {start}-{start + try_count - 1}.")
 
 
 class BlocksConfig:
@@ -2544,6 +2560,7 @@ Received inputs:
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
         mcp_server: bool | None = None,
+        num_workers: int | None = None,
         _app: App | None = None,
         _frontend: bool = True,
         i18n: I18n | None = None,
@@ -2594,6 +2611,7 @@ Received inputs:
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
             mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled.
+            num_workers: Number of background workers to launch in the background to serve file I/O and static assets. This offloads traffic from the main server and reduces latency. Only has an effect if ssr mode is set.
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
@@ -2726,15 +2744,91 @@ Received inputs:
         self.config = self.get_config_file()
 
         self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
+
+        # Resolve num_workers early so we can pre-compute worker ports
+        # and pass them to the Node proxy at startup.
+        resolved_num_workers = num_workers
+        if resolved_num_workers is None:
+            env_val = os.environ.get("GRADIO_NUM_WORKERS")
+            if env_val is not None:
+                resolved_num_workers = int(env_val)
+
+        self._node_is_proxy = False
+        static_worker_ports: list[int] = []
+        # Stashed kwargs for the deferred production Node proxy start.
+        # When set, the user-facing Node front proxy is started after
+        # Python (and any static workers) are listening — see the
+        # `if _pending_node_proxy_kwargs is not None:` block further
+        # down for the rationale.
+        _pending_node_proxy_kwargs: dict | None = None
+
         if self.ssr_mode:
             self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
-            self.node_server_name, self.node_process, self.node_port = (
-                start_node_server(
-                    server_name=node_server_name,
-                    server_port=node_port,
-                    node_path=self.node_path,
+            is_dev_mode = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None
+
+            if is_dev_mode:
+                # Dev mode: vite dev server on 9876, Python is the front.
+                # Keep the old architecture (Python proxies to vite).
+                self.node_server_name, self.node_process, self.node_port = (
+                    start_node_server(
+                        server_name=node_server_name,
+                        server_port=node_port,
+                        node_path=self.node_path,
+                        debug=debug,
+                    )
                 )
-            )
+            elif self.node_path:
+                # Production: Node will be the front proxy on the user-facing
+                # port and Python will be on an internal port behind it.
+                # We DEFER actually starting Node until after Python (and any
+                # static workers) are listening — otherwise the user-facing
+                # port opens before the proxy's targets exist, and any
+                # traffic that arrives during the startup window receives a
+                # 502 from the proxy (observed on HF Spaces after #13366).
+                from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
+
+                user_port = server_port or int(
+                    os.getenv("GRADIO_SERVER_PORT", str(INITIAL_PORT_VALUE))
+                )
+                python_host = server_name or os.getenv(
+                    "GRADIO_SERVER_NAME", "127.0.0.1"
+                )
+
+                # Reserve a free internal port for Python; Node will proxy
+                # non-static traffic here once it starts.
+                python_internal_port = _find_free_port(
+                    python_host, start=user_port + 1, try_count=TRY_NUM_PORTS
+                )
+
+                if resolved_num_workers is not None and resolved_num_workers >= 1:
+                    worker_start = python_internal_port + 1
+                    static_worker_ports = [
+                        worker_start + i for i in range(resolved_num_workers)
+                    ]
+
+                # Commit Python to the internal port now (so it can bind
+                # without contending with the user-facing port) and stash
+                # the Node start kwargs for later. We also commit to proxy
+                # mode here; if Node ultimately fails to start, Python is
+                # left listening on the internal port — a degraded but
+                # working state we surface via a warning below.
+                server_port = python_internal_port
+                _pending_node_proxy_kwargs = {
+                    "server_name": node_server_name or python_host,
+                    "server_port": node_port or user_port,
+                    "node_path": self.node_path,
+                    "python_port": python_internal_port,
+                    "python_host": python_host,
+                    "static_worker_ports": static_worker_ports,
+                    "debug": debug,
+                }
+                self.node_server_name = self.node_port = self.node_process = None
+            else:
+                # SSR was requested but Node isn't available; fall through to
+                # the Python-only path (matches the original behaviour when
+                # start_node_server returned None).
+                static_worker_ports = []
+                self.node_server_name = self.node_port = self.node_process = None
         else:
             self.node_server_name = self.node_port = self.node_process = None
 
@@ -2749,7 +2843,6 @@ Received inputs:
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,
-            ssr_mode=self.ssr_mode,
             mcp_server=mcp_server,
             debug=debug,
         )
@@ -2801,15 +2894,89 @@ Received inputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not self.is_colab and not quiet:
-                s = (
-                    "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr_mode=False` in `launch()`)"
-                    if self.ssr_mode
-                    else "* Running on local URL:  {}://{}:{}"
-                )
-                print(s.format(self.protocol, self.server_name, self.server_port))
 
             self._queue.set_server_app(self.server_app)
+
+            # Static worker pool for offloading file serving / uploads
+            if resolved_num_workers is not None and resolved_num_workers >= 1:
+                from gradio.routes import (
+                    BUILD_PATH_LIB,
+                    STATIC_PATH_LIB,
+                )
+                from gradio.static_server import StaticServerConfig, StaticWorkerPool
+
+                static_config = StaticServerConfig(
+                    build_path=str(BUILD_PATH_LIB),
+                    static_path=str(STATIC_PATH_LIB),
+                    uploaded_file_dir=self.server_app.uploaded_file_dir,
+                    allowed_paths=self.allowed_paths,
+                    blocked_paths=self.blocked_paths,
+                    max_file_size=self.max_file_size,
+                    favicon_path=str(self.favicon_path) if self.favicon_path else None,
+                )
+                # When Node is the front proxy, worker ports were pre-computed above.
+                # Otherwise, compute them here.
+                if self._node_is_proxy and static_worker_ports:
+                    worker_ports = static_worker_ports
+                else:
+                    worker_start = self.server_port + 1
+                    if self.node_port is not None:
+                        worker_start = max(worker_start, self.node_port + 1)
+                    worker_ports = [
+                        worker_start + i for i in range(resolved_num_workers)
+                    ]
+                self._static_worker_pool = StaticWorkerPool(
+                    num_workers=resolved_num_workers,
+                    config=static_config,
+                    ports=worker_ports,
+                )
+                self._static_worker_pool.start()
+
+                if not quiet:
+                    print(
+                        f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"
+                    )
+
+            # Now that Python (and any static workers) are listening,
+            # start the Node front proxy. Opening the user-facing port
+            # here — rather than before Python is up — closes the race
+            # window in which the proxy port was reachable but every
+            # request resolved to a 502 from an unreachable upstream.
+            if _pending_node_proxy_kwargs is not None:
+                self.node_server_name, self.node_process, self.node_port = (
+                    start_node_server(**_pending_node_proxy_kwargs)
+                )
+                if self.node_process is not None and self.node_port is not None:
+                    self._node_is_proxy = True
+                    url_host = (
+                        "localhost"
+                        if self.server_name == "0.0.0.0"
+                        else self.server_name
+                    )
+                    self.local_url = f"http://{url_host}:{self.node_port}/"
+                    self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
+                    if self.mcp_server_obj:
+                        self.mcp_server_obj._local_url = self.local_url
+                elif not quiet:
+                    warnings.warn(
+                        "Failed to start Node front proxy for SSR; Gradio is "
+                        f"reachable directly on the internal Python port "
+                        f":{self.server_port}. Check the Node installation "
+                        "or set GRADIO_NODE_PATH."
+                    )
+
+            if not self.is_colab and not quiet:
+                if self._node_is_proxy and self.node_port is not None:
+                    print(
+                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.node_port}, with SSR ⚡ (Node proxy -> Python :{self.server_port})"
+                    )
+                elif self.ssr_mode:
+                    print(
+                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.server_port}, with SSR ⚡ (dev mode)"
+                    )
+                else:
+                    s = "* Running on local URL:  {}://{}:{}"
+                    print(s.format(self.protocol, self.server_name, self.server_port))
 
             resp = httpx.get(
                 f"{self.local_api_url}startup-events",
@@ -2884,7 +3051,7 @@ Received inputs:
                 print(f"* Running on public URL: {self.share_url}")
                 if not (quiet):
                     print(
-                        "\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+                        "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
                     )
             except Exception as e:
                 if self.analytics_enabled:
@@ -3086,6 +3253,12 @@ Received inputs:
             return
 
         try:
+            if (
+                hasattr(self, "_static_worker_pool")
+                and self._static_worker_pool is not None
+            ):
+                self._static_worker_pool.shutdown()
+                self._static_worker_pool = None
             self._queue.close()
             # set this before closing server to shut down heartbeats
             self.is_running = False

@@ -93,6 +93,11 @@
 		if (!comp.props.i18n) {
 			comp.props.i18n = $reactive_formatter;
 		}
+		// Inject the live formatter store so components can re-translate their
+		// props when the locale changes at runtime. This must come from core,
+		// which owns the canonical svelte-i18n instance — @gradio/utils resolves
+		// its own duplicate copy whose locale store is never updated.
+		comp.props.i18n_store = reactive_formatter;
 	});
 
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);

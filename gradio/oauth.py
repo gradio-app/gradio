@@ -222,7 +222,12 @@ def _redirect_to_target(
     target = request.query_params.get("_target_url", default_target)
     # Prevent open redirect by stripping scheme/host and only using the path.
     parsed = urllib.parse.urlparse(target)
-    safe_target = parsed.path or "/"
+    # Collapse any leading slashes/backslashes so the result is always a
+    # single-slash local path. urlparse leaves 4+ leading slashes in `.path`
+    # (e.g. "////evil.com" -> "//evil.com"), which browsers resolve as a
+    # scheme-relative URL to an external host — restoring the CVE-2026-28415
+    # open redirect (GHSA-vwgg-rgg9-xx9q).
+    safe_target = "/" + (parsed.path or "").lstrip("/\\")
     if parsed.query:
         safe_target += "?" + parsed.query
     if parsed.fragment:

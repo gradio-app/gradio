@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.23.2",
+	"version": "0.23.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -39,7 +39,7 @@
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
-		"svelte": ">=5.0.0"
+		"svelte": "^5.48.0"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

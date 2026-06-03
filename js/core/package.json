@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -100,6 +100,7 @@
 		"directory": "js/core"
 	},
 	"dependencies": {
-		"dequal": "^2.0.3"
+		"dequal": "^2.0.3",
+		"svelte-i18n": "^4.0.1"
 	}
 }
