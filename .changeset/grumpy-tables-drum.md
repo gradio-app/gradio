@@ -6,4 +6,4 @@
 "gradio": patch
 ---
 
-fix:Self-host frontend assets for offline Gradio usage
+fix:Self-host frontend assets so that Gradio works offline!
