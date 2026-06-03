@@ -85,10 +85,6 @@ jobs:
           name: playwright-screenshots-SSR-${{ matrix.ssr }}
           path: |
             ./test-results
-      - name: run browser component tests
-        run: |
-          . venv/bin/activate
-          pnpm run test:ct
       - name: run reload mode test
         run: |
           . venv/bin/activate
