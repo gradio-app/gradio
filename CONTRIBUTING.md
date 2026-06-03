@@ -3,32 +3,46 @@
 ![GitHub issues by-label](https://img.shields.io/github/issues/gradio-app/gradio/good%20first%20issue?color=fe7c01&link=https%3A%2F%2Fgithub.com%2Fgradio-app%2Fgradio%2Fissues%3Fq%3Dis%253Aopen%2Bis%253Aissue%2Blabel%253A%2522good%2Bfirst%2Bissue%2522)
 
 
-More than 300 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like to be the next contributor! 
+More than 300 awesome developers have contributed to the `gradio` library, and the best way to help us today is by **opening a detailed issue** rather than a pull request. 🙏
 
-**Prerequisites**:
+## 📝 The best way to contribute: open a great issue
 
-- [Python 3.10+](https://www.python.org/downloads/)
-- [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
-- [pnpm 9.x](https://pnpm.io/9.x/installation) (only needed if you are making changes to the frontend)
+We have **paused accepting pull requests from outside the Gradio maintainer team.** This is a deliberate change, and it isn't because we don't value the community — it's the opposite. As AI coding agents have become widespread, the volume of community PRs has grown to the point where reviewing them carefully takes more maintainer time than the alternative: pointing our own coding agents at a well-described issue and solving it ourselves.
 
-**Steps to Contribute**:
+So the single most valuable thing you can do is **file a clear, detailed, reproducible issue.** A great issue lets us (and our agents) understand and fix the problem quickly, and it helps us prioritize what to work on next for Gradio.
 
-Generally speaking, contributing to Gradio involves four steps:
+> If you are a member of the Gradio maintainer team, the local setup, testing, and PR sections further down still apply to you.
 
-1. Identify a good issue to contribute to (such as any of the issues [tagged with "good first issue"]())
-2. Setup Gradio locally
-3. Understand the structure of the codebase & make the changes to the codebase locally
-4. Open a pull request (PR) to upstream your changes to the Gradio repository
+### 🐛 Reporting a bug
 
-**Note:** We welcome meaningful contributions that solve real issues and improve the codebase. Please avoid opening PRs with content generated primarily by AI language models. All contributions should demonstrate clear understanding of the problem being solved and be consistent with the relevant sections of the Gradio codebase. When opening a PR, please do not modify or replace the pull request template.
+Please [open an issue](https://github.com/gradio-app/gradio/issues/new/choose) and include:
 
-You can watch this short video walkthrough of how to contribute, or keep reading below:
+1. **A clear, descriptive title** that summarizes the problem.
+2. **What you expected to happen** vs. **what actually happened.**
+3. **Step-by-step instructions to reproduce the bug**, numbered and as specific as possible (which component, which event, what input, etc.).
+4. **A minimal reproduction.** This is the most important part. Please include the smallest self-contained Gradio app that triggers the bug, for example:
+   - a short code snippet (ideally runnable as-is), and/or
+   - a link to a minimal hosted demo on [Hugging Face Spaces](https://huggingface.co/spaces) or a small repo that reproduces the issue.
+5. **Your environment**: Gradio version (`gradio --version` or `gr.__version__`), Python version, operating system, and browser (for frontend issues).
+6. **Screenshots, screen recordings, or error tracebacks** where relevant.
 
-<a href="https://www.youtube.com/watch?v=YTjwTe5Yurs&ab_channel=HuggingFace" target="_blank">
-<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/contributing-video-screenshot.png" style="width:100%">
-</a>
+The smaller and more self-contained the reproduction, the faster we can fix it.
+
+### ✨ Requesting a feature
+
+Please [open an issue](https://github.com/gradio-app/gradio/issues/new/choose) and include:
+
+1. **A clear, descriptive title.**
+2. **The problem or use case** you're trying to solve — what are you trying to build, and where does Gradio fall short today?
+3. **A detailed description of the feature** you'd like, including a proposed API or example of how you imagine it would be used in code.
+4. **A demo or mockup** where possible — a link to a small repro/demo, a sketch, or a screenshot of a similar feature elsewhere helps us understand the request quickly.
+5. **Alternatives you've considered**, including any workarounds you're currently using.
+
+Detailed feature requests directly shape our roadmap and help us prioritize what to build next.
 
 ## 🏡 Setup Gradio locally
+
+> The following sections (local setup, structure, testing, and submitting PRs) are primarily for the Gradio maintainer team. If you're an outside contributor, the most helpful thing you can do is [open a detailed issue](#-the-best-way-to-contribute-open-a-great-issue) — but you're also welcome to run Gradio locally to build a clean reproduction for your issue.
 
 There are a few ways to install and run Gradio.
 
@@ -439,11 +453,11 @@ scripts\format_frontend.bat
 Thank you for taking the time to contribute to Gradio! 
 
 
-## ❓ Need help getting started?
+## ❓ Need help or have questions?
 
-- Browse [issues](https://github.com/gradio-app/gradio/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) with the "good first issue" label. These are issues we think are good for newcomers.
-- Ask the Gradio community in our [Discord](https://discord.com/invite/feTf9x3ZSB)
-- Raise an issue for a feature or a bug you want to tackle
+- [Open a detailed issue](https://github.com/gradio-app/gradio/issues/new/choose) for a bug or feature request — see the [guidelines above](#-the-best-way-to-contribute-open-a-great-issue).
+- Ask the Gradio community in our [Discord](https://discord.com/invite/feTf9x3ZSB).
+- Browse existing [issues](https://github.com/gradio-app/gradio/issues) to see if your problem has already been reported (and add a 👍 or extra reproduction details if so).
 
 ## 🚧 Troubleshooting
 `ERROR: Error loading ASGI app. Could not import module "<filename>"`
