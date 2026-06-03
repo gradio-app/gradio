@@ -17,8 +17,9 @@ from typing import Annotated, cast
 
 import typer
 from gradio_client import Client
-from gradio_client.snippet import generate_code_snippets
 from huggingface_hub import HfApi
+
+from gradio.skill_utils import render_api_endpoints_md
 
 SKILL_ID = "gradio"
 HF_SKILL_ID = "hf-gradio"
@@ -140,69 +141,6 @@ def _space_id_to_skill_id(space_id: str) -> str:
     return space_id.replace("/", "-")
 
 
-def _render_endpoint_section(
-    api_name: str, endpoint_info: dict, space_id: str, src_url: str
-) -> str:
-    params = endpoint_info.get("parameters", [])
-    returns = endpoint_info.get("returns", [])
-
-    lines: list[str] = []
-    lines.append(f"### `{api_name}`\n")
-
-    if params:
-        lines.append("**Parameters:**\n")
-        for p in params:
-            ptype = p.get("python_type", {})
-            type_str = (
-                ptype.get("type", "Any") if isinstance(ptype, dict) else str(ptype)
-            )
-            name = p.get("parameter_name") or p.get("label", "input")
-            component = p.get("component", "")
-            default_info = ""
-            if p.get("parameter_has_default"):
-                default_info = f", default: `{p.get('parameter_default')}`"
-            required = (
-                " (required)" if not p.get("parameter_has_default", False) else ""
-            )
-            lines.append(
-                f"- `{name}` [{component}]: `{type_str}`{required}{default_info}"
-            )
-        lines.append("")
-
-    if returns:
-        lines.append("**Returns:**\n")
-        for r in returns:
-            rtype = r.get("python_type", {})
-            type_str = (
-                rtype.get("type", "Any") if isinstance(rtype, dict) else str(rtype)
-            )
-            label = r.get("label", "output")
-            component = r.get("component", "")
-            lines.append(f"- `{label}` [{component}]: `{type_str}`")
-        lines.append("")
-
-    snippets = generate_code_snippets(
-        api_name, endpoint_info, src_url, space_id=space_id
-    )
-
-    lines.append("**Python:**\n")
-    lines.append("```python")
-    lines.append(snippets["python"])
-    lines.append("```\n")
-
-    lines.append("**JavaScript:**\n")
-    lines.append("```javascript")
-    lines.append(snippets["javascript"])
-    lines.append("```\n")
-
-    lines.append("**cURL:**\n")
-    lines.append("```bash")
-    lines.append(snippets["bash"])
-    lines.append("```\n")
-
-    return "\n".join(lines)
-
-
 def _get_space_description(space_id: str) -> str | None:
     try:
         info = HfApi().space_info(space_id)
@@ -244,24 +182,9 @@ def _generate_space_skill(space_id: str) -> tuple[str, str]:
         f"Gradio Space programmatically.\n"
     )
 
-    named = api_info.get("named_endpoints", {})
-    unnamed = api_info.get("unnamed_endpoints", {})
-
-    if named:
-        lines.append("## API Endpoints\n")
-        for api_name, endpoint_info in named.items():
-            lines.append(
-                _render_endpoint_section(api_name, endpoint_info, space_id, src_url)
-            )
-
-    if not named and unnamed:
-        lines.append("## API Endpoints\n")
-        for fn_index, endpoint_info in unnamed.items():
-            lines.append(
-                _render_endpoint_section(
-                    f"fn_index={fn_index}", endpoint_info, space_id, src_url
-                )
-            )
+    endpoints_md = render_api_endpoints_md(api_info, src_url, space_id=space_id)
+    if endpoints_md:
+        lines.append(endpoints_md)
 
     return skill_id, "\n".join(lines) + "\n"
 
