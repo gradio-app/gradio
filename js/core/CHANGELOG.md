@@ -1,5 +1,17 @@
 # @gradio/core
 
+## 1.5.1
+
+### Fixes
+
+- [#13390](https://github.com/gradio-app/gradio/pull/13390) [`d86903e`](https://github.com/gradio-app/gradio/commit/d86903eaa5628ca0b30f27b87ec1d7e194b3eff6) - Add Estonian language support and translation.  Thanks @paulpall!
+
+### Dependency updates
+
+- @gradio/html@0.12.4
+- @gradio/client@2.2.1
+- @gradio/upload@0.17.10
+
 ## 1.5.0
 
 ### Features

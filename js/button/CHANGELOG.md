@@ -4,6 +4,13 @@
 
 ### Dependency updates
 
+- @gradio/client@2.2.1
+- @gradio/upload@0.17.10
+
+## 0.6.6
+
+### Dependency updates
+
 - @gradio/upload@0.17.9
 - @gradio/image@0.26.3
 

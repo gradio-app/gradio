@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/markdown",
-	"version": "0.13.33",
+	"version": "0.13.35",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

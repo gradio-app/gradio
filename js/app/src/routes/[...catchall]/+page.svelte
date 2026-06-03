@@ -262,6 +262,9 @@
 	}
 
 	onMount(async () => {
+		window.addEventListener("beforeunload", () => {
+			app?.close();
+		});
 		//@ts-ignore
 		config = data.config;
 		window.gradio_config = data.config;

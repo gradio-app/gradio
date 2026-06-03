@@ -10,6 +10,7 @@
 		remember_scroll = false,
 		offset_from_top = 0,
 		from_top = false,
+		listbox_id = undefined,
 		onchange,
 		onload
 	}: {
@@ -22,6 +23,7 @@
 		remember_scroll?: boolean;
 		offset_from_top?: number;
 		from_top?: boolean;
+		listbox_id?: string;
 		onchange?: (index: any) => void;
 		onload?: () => void;
 	} = $props();
@@ -119,6 +121,7 @@
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
 		style:width={input_width + "px"}
 		bind:this={listElement}
+		id={listbox_id}
 		role="listbox"
 	>
 		{#each filtered_indices as index}
@@ -130,6 +133,7 @@
 				class:dark:bg-gray-600={index === active_index}
 				style:width={input_width + "px"}
 				data-index={index}
+				id={listbox_id ? `${listbox_id}-option-${index}` : undefined}
 				aria-label={choices[index][0]}
 				data-testid="dropdown-option"
 				role="option"

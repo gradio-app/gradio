@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 2.2.1
+
+### Fixes
+
+- [#13403](https://github.com/gradio-app/gradio/pull/13403) [`df56862`](https://github.com/gradio-app/gradio/commit/df56862a1531fc372a3248716dc4bd07e6db1c52) - [js-client] close submit iterator on next/close race.  Thanks @hysts!
+
 ## 2.2.0
 
 ### Features

@@ -18,6 +18,7 @@ import type {
 import { type SharedProps } from "@gradio/utils";
 import { allowed_shared_props } from "@gradio/utils";
 import { Client } from "@gradio/client";
+import { reactive_formatter as reactive_formatter_store } from "./gradio_helper";
 
 type client_return = Awaited<ReturnType<typeof Client.connect>>;
 
@@ -356,6 +357,9 @@ export class AppTree {
 		}
 		if (reactive_formatter) {
 			component.props.i18n = reactive_formatter;
+			// Inject the live formatter store so dynamically rendered components
+			// (gr.render / reload) also re-translate their props on locale change.
+			component.props.i18n_store = reactive_formatter_store;
 		}
 
 		const processed_props = gather_props(

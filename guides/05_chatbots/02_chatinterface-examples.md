@@ -13,6 +13,7 @@ We will cover the following libraries and API providers:
 * [SambaNova](#samba-nova)
 * [Hyperbolic](#hyperbolic)
 * [Anthropic's Claude](#anthropics-claude)
+* [MiniMax](#minimax)
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
@@ -66,4 +67,10 @@ Anthropic's Claude model can also be used via API. Here's a simple 20 questions-
 
 $code_llm_claude
 
+
+## MiniMax
+
+The MiniMax API exposes the M-series models through an OpenAI-compatible endpoint, so the standard `openai` client works out of the box. Here's an example of how to build a Gradio app around MiniMax:
+
+$code_llm_minimax
 

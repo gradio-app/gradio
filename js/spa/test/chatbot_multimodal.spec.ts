@@ -118,8 +118,11 @@ test(`markdown input by a user should be correctly formatted: bold, italics, lin
 		.getByRole("paragraph")
 		.textContent();
 	await expect(user_message).toContain(
-		'This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href="https://gradio.app"'
+		"This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a "
 	);
+	await expect(user_message).toContain('href="https://gradio.app"');
+	await expect(user_message).toContain('target="_blank"');
+	await expect(user_message).toContain('rel="noopener noreferrer"');
 	await expect(bot_message).toBeTruthy();
 });
 
