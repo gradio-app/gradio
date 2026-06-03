@@ -88,9 +88,9 @@
 		const wf = $workflow;
 		if (!server?.save_workflow) return;
 		const timer = setTimeout(() => {
-			server.save_workflow([JSON.stringify(sanitize_for_save(wf))]).catch(
-				() => {}
-			);
+			server
+				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
+				.catch(() => {});
 		}, 500);
 		return () => clearTimeout(timer);
 	});

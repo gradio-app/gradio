@@ -114,7 +114,9 @@ export async function stream_text_generation(
  * single-shot in nature, so the streaming router endpoint adds no value
  * and would in fact be incorrect (it's a chat-completions API).
  */
-export function is_streamable_text_task(pipelineTag: string | undefined): boolean {
+export function is_streamable_text_task(
+	pipelineTag: string | undefined
+): boolean {
 	if (!pipelineTag) return false;
 	return (
 		pipelineTag === "text-generation" ||

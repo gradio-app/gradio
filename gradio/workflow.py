@@ -289,6 +289,582 @@ def _format_error(e: Exception) -> str:
     return json.dumps(err)
 
 
+VALID_SPACE_CATEGORIES = {
+    "image-generation", "video-generation", "text-generation",
+    "language-translation", "speech-synthesis", "voice-cloning",
+    "face-recognition", "object-detection", "pose-estimation",
+    "text-analysis", "sentiment-analysis", "question-answering",
+    "code-generation", "data-visualization", "3d-modeling",
+    "image-editing", "background-removal", "image-upscaling",
+    "ocr", "document-analysis", "visual-qa", "image-captioning",
+    "chatbots", "text-summarization", "music-generation",
+    "medical-imaging", "financial-analysis", "game-ai",
+    "model-benchmarking", "fine-tuning-tools", "dataset-creation",
+    "anomaly-detection", "recommendation-systems",
+    "character-animation", "style-transfer", "agent-environment",
+    "image", "other",
+}
+
+
+def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
+    if token:
+        return token.token
+    return _local_hf_token() or ""
+
+
+def call_space(data, token: Optional[OAuthToken] = None) -> str:
+    space_id = data[0] if data else ""
+    try:
+        from gradio_client import Client, handle_file
+
+        endpoint = data[1] if len(data) > 1 else None
+        args_json = data[2] if len(data) > 2 else "[]"
+        hf_token = _resolve_token(data, 3, token)
+        if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+", space_id or ""):
+            return json.dumps(
+                {
+                    "error": "Invalid Space ID",
+                    "error_type": "not_found",
+                    "suggestion": "Space ID must be in owner/repo format",
+                }
+            )
+        client = Client(space_id, token=hf_token)
+        args = json.loads(args_json)
+        if not endpoint or endpoint == "/predict":
+            api_info = client.view_api(return_format="dict")
+            named = list(
+                (
+                    api_info.get("named_endpoints", {})
+                    if isinstance(api_info, dict)
+                    else {}
+                ).keys()
+            )
+            endpoint = (
+                endpoint
+                if endpoint in named
+                else (named[0] if named else "/predict")
+            )
+        processed = []
+        for arg in args:
+            if isinstance(arg, dict) and ("url" in arg or "path" in arg):
+                url = arg.get("url") or arg.get("path", "")
+                processed.append(handle_file(url) if url else None)
+            else:
+                processed.append(arg)
+        while processed and processed[-1] is None:
+            processed.pop()
+        result = client.predict(*processed, api_name=endpoint)
+        result = list(result) if isinstance(result, (list, tuple)) else [result]
+
+        _tmpdir = os.path.realpath(tempfile.gettempdir())
+
+        def process_item(item):
+            if isinstance(item, dict):
+                path = item.get("path") or item.get("value")
+                if (
+                    isinstance(path, str)
+                    and os.path.realpath(path).startswith(_tmpdir)
+                    and os.path.exists(path)
+                ):
+                    return {
+                        "path": path,
+                        "url": f"/gradio_api/file={path}",
+                        "is_file": True,
+                    }
+                return item
+            if (
+                isinstance(item, str)
+                and os.path.realpath(item).startswith(_tmpdir)
+                and os.path.exists(item)
+            ):
+                return {
+                    "path": item,
+                    "url": f"/gradio_api/file={item}",
+                    "is_file": True,
+                }
+            if isinstance(item, (list, tuple)):
+                return [process_item(s) for s in item]
+            return item
+
+        return json.dumps([process_item(i) for i in result])
+    except Exception as e:
+        logger.error("call_space failed for %s: %s", space_id, e, exc_info=True)
+        return _format_error(e)
+
+
+def call_model(data, token: Optional[OAuthToken] = None) -> str:
+    model_id = data[0] if data else ""
+    task = ""
+    try:
+        from huggingface_hub import InferenceClient
+
+        pipeline_tag = data[1] if len(data) > 1 else None
+        args_json = data[2] if len(data) > 2 else "[]"
+        hf_token = _resolve_token(data, 3, token)
+        # data[4] is an optional provider override. Default "auto"
+        # lets HF route to whichever provider serves the model
+        # (hf-inference, together, replicate, ...) — far more
+        # reliable than pinning to "hf-inference" which 404s for
+        # models not hosted there.
+        provider = (
+            data[4] if len(data) > 4 and data[4] else "auto"
+        )
+        client = InferenceClient(
+            model=model_id, token=hf_token, provider=provider
+        )
+        args = json.loads(args_json)
+        task = pipeline_tag or "text-generation"
+        a0 = args[0] if args else ""
+        a1 = args[1] if len(args) > 1 else ""
+
+        if task in (
+            "text-generation",
+            "text2text-generation",
+            "conversational",
+        ):
+            try:
+                result = client.text_generation(a0, max_new_tokens=512)
+            except Exception as inner:
+                msg = str(inner).lower()
+                if "not supported" in msg and "conversational" in msg:
+                    r = client.chat_completion(
+                        [{"role": "user", "content": a0}], max_tokens=512
+                    )
+                    result = r.choices[0].message.content
+                else:
+                    raise
+            return json.dumps([result])
+        if task == "summarization":
+            return json.dumps([client.summarization(a0).summary_text])
+        if task == "translation":
+            return json.dumps([client.translation(a0).translation_text])
+        if task in ("text-classification", "zero-shot-classification"):
+            return json.dumps(
+                [
+                    [
+                        {"label": r.label, "score": r.score}
+                        for r in client.text_classification(a0)
+                    ]
+                ]
+            )
+        if task == "token-classification":
+            return json.dumps(
+                [
+                    [
+                        {
+                            "entity_group": r.entity_group,
+                            "word": r.word,
+                            "score": r.score,
+                        }
+                        for r in client.token_classification(a0)
+                    ]
+                ]
+            )
+        if task == "fill-mask":
+            return json.dumps(
+                [
+                    [
+                        {
+                            "token_str": r.token_str,
+                            "score": r.score,
+                            "sequence": r.sequence,
+                        }
+                        for r in client.fill_mask(a0)
+                    ]
+                ]
+            )
+        if task == "question-answering":
+            qa_result = client.question_answering(question=a0, context=a1)
+            qa_answer = (
+                qa_result[0].answer
+                if isinstance(qa_result, list)
+                else qa_result.answer
+            )  # type: ignore[union-attr]
+            return json.dumps([qa_answer])
+        if task == "feature-extraction":
+            r = client.feature_extraction(a0)
+            return json.dumps([r.tolist() if hasattr(r, "tolist") else r])
+        if task == "sentence-similarity":
+            return json.dumps(
+                [client.sentence_similarity(a0, a1.split("\n") if a1 else [])]
+            )
+        if task == "text-to-image":
+            return json.dumps([_save_tmp(client.text_to_image(a0), "png")])
+        if task in ("text-to-speech", "text-to-audio"):
+            return json.dumps([_save_tmp(client.text_to_speech(a0), "wav")])
+        if task == "text-to-video":
+            return json.dumps([_save_tmp(client.text_to_video(a0), "mp4")])
+        if task == "image-classification":
+            return json.dumps(
+                [
+                    [
+                        {"label": r.label, "score": r.score}
+                        for r in client.image_classification(_img_url(a0))
+                    ]
+                ]
+            )
+        if task == "object-detection":
+            return json.dumps(
+                [
+                    [
+                        {"label": r.label, "score": r.score, "box": r.box}
+                        for r in client.object_detection(_img_url(a0))
+                    ]
+                ]
+            )
+        if task == "image-segmentation":
+            return json.dumps(
+                [
+                    [
+                        {"label": r.label, "score": r.score}
+                        for r in client.image_segmentation(_img_url(a0))
+                    ]
+                ]
+            )
+        if task == "image-to-text":
+            r = client.image_to_text(_img_url(a0))
+            return json.dumps(
+                [r.generated_text if hasattr(r, "generated_text") else str(r)]
+            )
+        if task == "image-to-image":
+            return json.dumps(
+                [
+                    _save_tmp(
+                        client.image_to_image(_img_url(a0), prompt=a1), "png"
+                    )
+                ]
+            )
+        if task == "automatic-speech-recognition":
+            r = client.automatic_speech_recognition(_img_url(a0))
+            return json.dumps([r.text if hasattr(r, "text") else str(r)])
+        if task == "audio-classification":
+            return json.dumps(
+                [
+                    [
+                        {"label": r.label, "score": r.score}
+                        for r in client.audio_classification(_img_url(a0))
+                    ]
+                ]
+            )
+        if task in (
+            "visual-question-answering",
+            "document-question-answering",
+            "image-text-to-text",
+        ):
+            r = client.visual_question_answering(_img_url(a0), a1)
+            return json.dumps([r[0].answer if r else ""])
+        if task == "depth-estimation":
+            headers = (
+                {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+            )
+            resp = requests.post(
+                f"https://api-inference.huggingface.co/models/{model_id}",
+                headers=headers,
+                json={"inputs": _img_url(a0)},
+                timeout=60,
+            )
+            resp.raise_for_status()
+            import io as _io
+
+            from PIL import Image as _Image
+
+            depth_img = _Image.open(_io.BytesIO(resp.content))
+            return json.dumps([_save_tmp(depth_img, "png")])
+
+        # Generic fallback for tasks not handled above. Tries
+        # `client.chat_completion` (OpenAI-style endpoint, supported
+        # by most text models across providers), then a raw POST to
+        # the HF Inference API as a last resort. This covers newer
+        # or less common pipeline_tags without requiring a code
+        # change per task. Errors bubble up to the outer except.
+        try:
+            r = client.chat_completion(
+                [{"role": "user", "content": a0}], max_tokens=512
+            )
+            return json.dumps([r.choices[0].message.content])
+        except Exception:
+            pass
+        headers = (
+            {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+        )
+        fallback_resp = requests.post(
+            f"https://api-inference.huggingface.co/models/{model_id}",
+            headers=headers,
+            json={"inputs": a0 if not a1 else [a0, a1]},
+            timeout=60,
+        )
+        fallback_resp.raise_for_status()
+        try:
+            parsed = fallback_resp.json()
+        except Exception:
+            parsed = fallback_resp.text
+        return json.dumps([parsed])
+    except Exception as e:
+        logger.error(
+            "call_model failed for %s (task=%s): %s",
+            model_id,
+            task,
+            e,
+            exc_info=True,
+        )
+        return _format_error(e)
+
+
+def fetch_dataset(data, token: Optional[OAuthToken] = None) -> str:
+    try:
+        dataset_id = data[0]
+        config = data[1] if len(data) > 1 and data[1] else "default"
+        split = data[2] if len(data) > 2 and data[2] else "train"
+        offset = int(data[3]) if len(data) > 3 and data[3] else 0
+        length = int(data[4]) if len(data) > 4 and data[4] else 10
+        hf_token = _resolve_token(data, 5, token)
+        params = urllib.parse.urlencode(
+            {
+                "dataset": dataset_id,
+                "config": config,
+                "split": split,
+                "offset": offset,
+                "length": min(length, 100),
+            }
+        )
+        result = json.loads(
+            _hf_request(
+                f"https://datasets-server.huggingface.co/rows?{params}",
+                hf_token,
+                timeout=30,
+            )
+        )
+        return json.dumps(
+            {
+                "features": result.get("features", []),
+                "rows": [r.get("row", {}) for r in result.get("rows", [])],
+                "num_rows_total": result.get("num_rows_total", 0),
+            }
+        )
+    except Exception as e:
+        logger.error(
+            "fetch_dataset failed for %s: %s",
+            data[0] if data else "",
+            e,
+            exc_info=True,
+        )
+        return json.dumps(
+            {"error": str(e), "error_type": "unknown", "suggestion": ""}
+        )
+
+
+def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
+    kind = data[0] if data else "trending"
+    try:
+        query = data[1] if len(data) > 1 and data[1] else ""
+        pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
+        # If the supplied tag isn't a valid Space category, drop it
+        # so semantic-search doesn't reject the whole request.
+        # The frontend's pipelineTags often carry model-pipeline
+        # values (`summarization`, `image-to-video`, …) that
+        # don't exist as Space categories.
+        if pipeline_tag and pipeline_tag not in VALID_SPACE_CATEGORIES:
+            pipeline_tag = ""
+        hf_token = _resolve_token(data, 3, token)
+        zero_gpu_only = bool(data[4]) if len(data) > 4 else False
+
+        def _has_zero_gpu(s: dict) -> bool:
+            tags = s.get("tags") or []
+            if "zero-gpu" in tags or "zerogpu" in tags:
+                return True
+            hw = (s.get("runtime") or {}).get("hardware") or ""
+            return "zero" in hw.lower()
+
+        def _fallback_search(q: str) -> list:
+            if not q:
+                return []
+            fb_url = (
+                f"https://huggingface.co/api/spaces?filter=gradio"
+                f"&search={urllib.parse.quote(q)}"
+                f"&limit=24"
+                f"&expand[]=likes&expand[]=cardData&expand[]=runtime"
+            )
+            if zero_gpu_only:
+                fb_url += "&filter=zero-gpu"
+            try:
+                return json.loads(_hf_request(fb_url, hf_token))
+            except Exception:
+                return []
+
+        # When a category OR query is set, use the semantic-search
+        # endpoint. It expands category slugs across multiple
+        # related tags (`image-upscaling` → upscaler /
+        # super-resolution / image-restoration / …), which the
+        # plain `/api/spaces?filter=` endpoint doesn't do.
+        #
+        # When neither is set ("All" subtab, no search), fall back
+        # to `/api/spaces?filter=gradio` since semantic-search
+        # rejects calls with no category and no query.
+        if pipeline_tag or query:
+            params = ["sdk=gradio", "includeNonRunning=false"]
+            if pipeline_tag:
+                params.append(f"category={urllib.parse.quote(pipeline_tag)}")
+            # Only send q= when there's no category; otherwise the
+            # AND-filter narrows results unnecessarily (within a
+            # precise category like background-removal, the
+            # query phrase drops valid hits).
+            elif query:
+                params.append(f"q={urllib.parse.quote(query)}")
+            url = (
+                "https://huggingface.co/api/spaces/semantic-search?"
+                + "&".join(params)
+            )
+            raw = _hf_request(url, hf_token)
+            parsed = json.loads(raw)
+            if not isinstance(parsed, list):
+                return raw  # surface the API's error blob as-is
+
+            if kind == "search" and query and len(parsed) < 6:
+                for fb in _fallback_search(query):
+                    if not any(p.get("id") == fb.get("id") for p in parsed):
+                        parsed.append(fb)
+
+            # semantic-search doesn't honour `filter=zero-gpu`, so
+            # post-filter on the expanded `tags` / `runtime.hardware`.
+            if zero_gpu_only:
+                parsed = [s for s in parsed if _has_zero_gpu(s)]
+
+            if kind == "new":
+                parsed.sort(
+                    key=lambda s: s.get("createdAt") or "",
+                    reverse=True,
+                )
+            elif kind != "search":
+                parsed.sort(
+                    key=lambda s: s.get("trendingScore") or 0,
+                    reverse=True,
+                )
+            return json.dumps(
+                [_normalize_space_result(s, pipeline_tag) for s in parsed[:48]]
+            )
+
+        # No category, no query — browse mode.
+        base_expand = "&expand[]=likes&expand[]=cardData&expand[]=runtime"
+        zero_filter = "&filter=zero-gpu" if zero_gpu_only else ""
+        if kind == "new":
+            url = (
+                f"https://huggingface.co/api/spaces?filter=gradio"
+                f"{zero_filter}"
+                f"&limit=24&sort=createdAt&direction=-1{base_expand}"
+            )
+        else:
+            url = (
+                f"https://huggingface.co/api/spaces?filter=gradio"
+                f"{zero_filter}"
+                f"&limit=48&sort=trendingScore&direction=-1{base_expand}"
+            )
+        return _hf_request(url, hf_token)
+    except Exception as e:
+        logger.error(
+            "search_spaces failed (kind=%s): %s", kind, e, exc_info=True
+        )
+        return json.dumps({"error": str(e)})
+
+
+def search_models(data, token: Optional[OAuthToken] = None) -> str:
+    kind = data[0] if data else "trending"
+    try:
+        query = data[1] if len(data) > 1 and data[1] else ""
+        pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
+        hf_token = _resolve_token(data, 3, token)
+        # Always apply pipeline_tag when set — the frontend further
+        # filters to models with a TASK_SCHEMAS entry, so the
+        # unfiltered list ends up tiny. Higher limits give the
+        # client-side filter more to work with.
+        if kind == "search":
+            sort = "likes&direction=-1"
+        elif kind == "new":
+            sort = "createdAt&direction=-1"
+        else:
+            sort = "trendingScore&direction=-1"
+        url = (
+            f"https://huggingface.co/api/models?sort={sort}&limit=60"
+            f"&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
+        )
+        if query:
+            url += f"&search={urllib.parse.quote(query)}"
+        if pipeline_tag:
+            url += f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}"
+        return _hf_request(url, hf_token)
+    except Exception as e:
+        logger.error(
+            "search_models failed (kind=%s): %s", kind, e, exc_info=True
+        )
+        return json.dumps({"error": str(e)})
+
+
+def search_datasets(data, token: Optional[OAuthToken] = None) -> str:
+    query = data[0] if data else ""
+    try:
+        hf_token = _resolve_token(data, 1, token)
+        search_param = f"search={urllib.parse.quote(query)}&" if query else ""
+        url = f"https://huggingface.co/api/datasets?{search_param}sort=likes&direction=-1&limit=20"
+        return _hf_request(url, hf_token)
+    except Exception as e:
+        logger.error(
+            "search_datasets failed (query=%s): %s", query, e, exc_info=True
+        )
+        return json.dumps({"error": str(e)})
+
+
+def get_dataset_schema(data, token: Optional[OAuthToken] = None) -> str:
+    dataset_id = data[0] if data else ""
+    try:
+        hf_token = _resolve_token(data, 1, token)
+        try:
+            splits_data = json.loads(
+                _hf_request(
+                    f"https://datasets-server.huggingface.co/splits?dataset={urllib.parse.quote(dataset_id)}",
+                    hf_token,
+                    timeout=30,
+                )
+            )
+        except Exception as exc:
+            raise Exception(
+                "Could not load dataset — it may not be viewer-compatible"
+            ) from exc
+        splits = splits_data.get("splits", [])
+        if not splits:
+            raise Exception("No available splits found for this dataset")
+        picked = next((s for s in splits if s["split"] == "train"), splits[0])
+        try:
+            rows_data = json.loads(
+                _hf_request(
+                    "https://datasets-server.huggingface.co/first-rows?"
+                    + urllib.parse.urlencode(
+                        {
+                            "dataset": dataset_id,
+                            "config": picked["config"],
+                            "split": picked["split"],
+                        }
+                    ),
+                    hf_token,
+                    timeout=30,
+                )
+            )
+        except Exception as exc:
+            raise Exception(
+                "Could not load dataset — it may not be viewer-compatible"
+            ) from exc
+        return json.dumps(
+            {
+                "config": picked["config"],
+                "split": picked["split"],
+                "features": rows_data.get("features", []),
+            }
+        )
+    except Exception as e:
+        logger.error(
+            "get_dataset_schema failed for %s: %s", dataset_id, e, exc_info=True
+        )
+        return json.dumps({"error": str(e)})
+
+
 class Workflow:
     """
     Build and launch a visual AI workflow as a Gradio app.
@@ -398,558 +974,6 @@ class Workflow:
                 return None
 
         bound = self._bound
-
-        def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
-            if token:
-                return token.token
-            return _local_hf_token() or ""
-
-        def call_space(data, token: Optional[OAuthToken] = None) -> str:
-            space_id = data[0] if data else ""
-            try:
-                from gradio_client import Client, handle_file
-
-                endpoint = data[1] if len(data) > 1 else None
-                args_json = data[2] if len(data) > 2 else "[]"
-                hf_token = _resolve_token(data, 3, token)
-                if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+", space_id or ""):
-                    return json.dumps(
-                        {
-                            "error": "Invalid Space ID",
-                            "error_type": "not_found",
-                            "suggestion": "Space ID must be in owner/repo format",
-                        }
-                    )
-                client = Client(space_id, token=hf_token)
-                args = json.loads(args_json)
-                if not endpoint or endpoint == "/predict":
-                    api_info = client.view_api(return_format="dict")
-                    named = list(
-                        (
-                            api_info.get("named_endpoints", {})
-                            if isinstance(api_info, dict)
-                            else {}
-                        ).keys()
-                    )
-                    endpoint = (
-                        endpoint
-                        if endpoint in named
-                        else (named[0] if named else "/predict")
-                    )
-                processed = []
-                for arg in args:
-                    if isinstance(arg, dict) and ("url" in arg or "path" in arg):
-                        url = arg.get("url") or arg.get("path", "")
-                        processed.append(handle_file(url) if url else None)
-                    else:
-                        processed.append(arg)
-                while processed and processed[-1] is None:
-                    processed.pop()
-                result = client.predict(*processed, api_name=endpoint)
-                result = list(result) if isinstance(result, (list, tuple)) else [result]
-
-                _tmpdir = os.path.realpath(tempfile.gettempdir())
-
-                def process_item(item):
-                    if isinstance(item, dict):
-                        path = item.get("path") or item.get("value")
-                        if (
-                            isinstance(path, str)
-                            and os.path.realpath(path).startswith(_tmpdir)
-                            and os.path.exists(path)
-                        ):
-                            return {
-                                "path": path,
-                                "url": f"/gradio_api/file={path}",
-                                "is_file": True,
-                            }
-                        return item
-                    if (
-                        isinstance(item, str)
-                        and os.path.realpath(item).startswith(_tmpdir)
-                        and os.path.exists(item)
-                    ):
-                        return {
-                            "path": item,
-                            "url": f"/gradio_api/file={item}",
-                            "is_file": True,
-                        }
-                    if isinstance(item, (list, tuple)):
-                        return [process_item(s) for s in item]
-                    return item
-
-                return json.dumps([process_item(i) for i in result])
-            except Exception as e:
-                logger.error("call_space failed for %s: %s", space_id, e, exc_info=True)
-                return _format_error(e)
-
-        def call_model(data, token: Optional[OAuthToken] = None) -> str:
-            model_id = data[0] if data else ""
-            task = ""
-            try:
-                from huggingface_hub import InferenceClient
-
-                pipeline_tag = data[1] if len(data) > 1 else None
-                args_json = data[2] if len(data) > 2 else "[]"
-                hf_token = _resolve_token(data, 3, token)
-                # data[4] is an optional provider override. Default "auto"
-                # lets HF route to whichever provider serves the model
-                # (hf-inference, together, replicate, ...) — far more
-                # reliable than pinning to "hf-inference" which 404s for
-                # models not hosted there.
-                provider = (
-                    data[4] if len(data) > 4 and data[4] else "auto"
-                )
-                client = InferenceClient(
-                    model=model_id, token=hf_token, provider=provider
-                )
-                args = json.loads(args_json)
-                task = pipeline_tag or "text-generation"
-                a0 = args[0] if args else ""
-                a1 = args[1] if len(args) > 1 else ""
-
-                if task in (
-                    "text-generation",
-                    "text2text-generation",
-                    "conversational",
-                ):
-                    try:
-                        result = client.text_generation(a0, max_new_tokens=512)
-                    except Exception as inner:
-                        msg = str(inner).lower()
-                        if "not supported" in msg and "conversational" in msg:
-                            r = client.chat_completion(
-                                [{"role": "user", "content": a0}], max_tokens=512
-                            )
-                            result = r.choices[0].message.content
-                        else:
-                            raise
-                    return json.dumps([result])
-                if task == "summarization":
-                    return json.dumps([client.summarization(a0).summary_text])
-                if task == "translation":
-                    return json.dumps([client.translation(a0).translation_text])
-                if task in ("text-classification", "zero-shot-classification"):
-                    return json.dumps(
-                        [
-                            [
-                                {"label": r.label, "score": r.score}
-                                for r in client.text_classification(a0)
-                            ]
-                        ]
-                    )
-                if task == "token-classification":
-                    return json.dumps(
-                        [
-                            [
-                                {
-                                    "entity_group": r.entity_group,
-                                    "word": r.word,
-                                    "score": r.score,
-                                }
-                                for r in client.token_classification(a0)
-                            ]
-                        ]
-                    )
-                if task == "fill-mask":
-                    return json.dumps(
-                        [
-                            [
-                                {
-                                    "token_str": r.token_str,
-                                    "score": r.score,
-                                    "sequence": r.sequence,
-                                }
-                                for r in client.fill_mask(a0)
-                            ]
-                        ]
-                    )
-                if task == "question-answering":
-                    qa_result = client.question_answering(question=a0, context=a1)
-                    qa_answer = (
-                        qa_result[0].answer
-                        if isinstance(qa_result, list)
-                        else qa_result.answer
-                    )  # type: ignore[union-attr]
-                    return json.dumps([qa_answer])
-                if task == "feature-extraction":
-                    r = client.feature_extraction(a0)
-                    return json.dumps([r.tolist() if hasattr(r, "tolist") else r])
-                if task == "sentence-similarity":
-                    return json.dumps(
-                        [client.sentence_similarity(a0, a1.split("\n") if a1 else [])]
-                    )
-                if task == "text-to-image":
-                    return json.dumps([_save_tmp(client.text_to_image(a0), "png")])
-                if task in ("text-to-speech", "text-to-audio"):
-                    return json.dumps([_save_tmp(client.text_to_speech(a0), "wav")])
-                if task == "text-to-video":
-                    return json.dumps([_save_tmp(client.text_to_video(a0), "mp4")])
-                if task == "image-classification":
-                    return json.dumps(
-                        [
-                            [
-                                {"label": r.label, "score": r.score}
-                                for r in client.image_classification(_img_url(a0))
-                            ]
-                        ]
-                    )
-                if task == "object-detection":
-                    return json.dumps(
-                        [
-                            [
-                                {"label": r.label, "score": r.score, "box": r.box}
-                                for r in client.object_detection(_img_url(a0))
-                            ]
-                        ]
-                    )
-                if task == "image-segmentation":
-                    return json.dumps(
-                        [
-                            [
-                                {"label": r.label, "score": r.score}
-                                for r in client.image_segmentation(_img_url(a0))
-                            ]
-                        ]
-                    )
-                if task == "image-to-text":
-                    r = client.image_to_text(_img_url(a0))
-                    return json.dumps(
-                        [r.generated_text if hasattr(r, "generated_text") else str(r)]
-                    )
-                if task == "image-to-image":
-                    return json.dumps(
-                        [
-                            _save_tmp(
-                                client.image_to_image(_img_url(a0), prompt=a1), "png"
-                            )
-                        ]
-                    )
-                if task == "automatic-speech-recognition":
-                    r = client.automatic_speech_recognition(_img_url(a0))
-                    return json.dumps([r.text if hasattr(r, "text") else str(r)])
-                if task == "audio-classification":
-                    return json.dumps(
-                        [
-                            [
-                                {"label": r.label, "score": r.score}
-                                for r in client.audio_classification(_img_url(a0))
-                            ]
-                        ]
-                    )
-                if task in (
-                    "visual-question-answering",
-                    "document-question-answering",
-                    "image-text-to-text",
-                ):
-                    r = client.visual_question_answering(_img_url(a0), a1)
-                    return json.dumps([r[0].answer if r else ""])
-                if task == "depth-estimation":
-                    headers = (
-                        {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-                    )
-                    resp = requests.post(
-                        f"https://api-inference.huggingface.co/models/{model_id}",
-                        headers=headers,
-                        json={"inputs": _img_url(a0)},
-                        timeout=60,
-                    )
-                    resp.raise_for_status()
-                    import io as _io
-
-                    from PIL import Image as _Image
-
-                    depth_img = _Image.open(_io.BytesIO(resp.content))
-                    return json.dumps([_save_tmp(depth_img, "png")])
-
-                # Generic fallback for tasks not handled above. Tries
-                # `client.chat_completion` (OpenAI-style endpoint, supported
-                # by most text models across providers), then a raw POST to
-                # the HF Inference API as a last resort. This covers newer
-                # or less common pipeline_tags without requiring a code
-                # change per task. Errors bubble up to the outer except.
-                try:
-                    r = client.chat_completion(
-                        [{"role": "user", "content": a0}], max_tokens=512
-                    )
-                    return json.dumps([r.choices[0].message.content])
-                except Exception:
-                    pass
-                headers = (
-                    {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-                )
-                fallback_resp = requests.post(
-                    f"https://api-inference.huggingface.co/models/{model_id}",
-                    headers=headers,
-                    json={"inputs": a0 if not a1 else [a0, a1]},
-                    timeout=60,
-                )
-                fallback_resp.raise_for_status()
-                try:
-                    parsed = fallback_resp.json()
-                except Exception:
-                    parsed = fallback_resp.text
-                return json.dumps([parsed])
-            except Exception as e:
-                logger.error(
-                    "call_model failed for %s (task=%s): %s",
-                    model_id,
-                    task,
-                    e,
-                    exc_info=True,
-                )
-                return _format_error(e)
-
-        def fetch_dataset(data, token: Optional[OAuthToken] = None) -> str:
-            try:
-                dataset_id = data[0]
-                config = data[1] if len(data) > 1 and data[1] else "default"
-                split = data[2] if len(data) > 2 and data[2] else "train"
-                offset = int(data[3]) if len(data) > 3 and data[3] else 0
-                length = int(data[4]) if len(data) > 4 and data[4] else 10
-                hf_token = _resolve_token(data, 5, token)
-                params = urllib.parse.urlencode(
-                    {
-                        "dataset": dataset_id,
-                        "config": config,
-                        "split": split,
-                        "offset": offset,
-                        "length": min(length, 100),
-                    }
-                )
-                result = json.loads(
-                    _hf_request(
-                        f"https://datasets-server.huggingface.co/rows?{params}",
-                        hf_token,
-                        timeout=30,
-                    )
-                )
-                return json.dumps(
-                    {
-                        "features": result.get("features", []),
-                        "rows": [r.get("row", {}) for r in result.get("rows", [])],
-                        "num_rows_total": result.get("num_rows_total", 0),
-                    }
-                )
-            except Exception as e:
-                logger.error(
-                    "fetch_dataset failed for %s: %s",
-                    data[0] if data else "",
-                    e,
-                    exc_info=True,
-                )
-                return json.dumps(
-                    {"error": str(e), "error_type": "unknown", "suggestion": ""}
-                )
-
-        # Categories accepted by /api/spaces/semantic-search. Anything outside
-        # this list returns a 400 from the endpoint, so the picker drops the
-        # category and falls back to the broader query / unfiltered path.
-        VALID_SPACE_CATEGORIES = {
-            "image-generation", "video-generation", "text-generation",
-            "language-translation", "speech-synthesis", "voice-cloning",
-            "face-recognition", "object-detection", "pose-estimation",
-            "text-analysis", "sentiment-analysis", "question-answering",
-            "code-generation", "data-visualization", "3d-modeling",
-            "image-editing", "background-removal", "image-upscaling",
-            "ocr", "document-analysis", "visual-qa", "image-captioning",
-            "chatbots", "text-summarization", "music-generation",
-            "medical-imaging", "financial-analysis", "game-ai",
-            "model-benchmarking", "fine-tuning-tools", "dataset-creation",
-            "anomaly-detection", "recommendation-systems",
-            "character-animation", "style-transfer", "agent-environment",
-            "image", "other",
-        }
-
-        def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
-            kind = data[0] if data else "trending"
-            try:
-                query = data[1] if len(data) > 1 and data[1] else ""
-                pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
-                # If the supplied tag isn't a valid Space category, drop it
-                # so semantic-search doesn't reject the whole request.
-                # The frontend's pipelineTags often carry model-pipeline
-                # values (`summarization`, `image-to-video`, …) that
-                # don't exist as Space categories.
-                if pipeline_tag and pipeline_tag not in VALID_SPACE_CATEGORIES:
-                    pipeline_tag = ""
-                hf_token = _resolve_token(data, 3, token)
-
-                def _fallback_search(q: str) -> list:
-                    if not q:
-                        return []
-                    fb_url = (
-                        f"https://huggingface.co/api/spaces?filter=gradio"
-                        f"&search={urllib.parse.quote(q)}"
-                        f"&limit=24"
-                        f"&expand[]=likes&expand[]=cardData&expand[]=runtime"
-                    )
-                    try:
-                        return json.loads(_hf_request(fb_url, hf_token))
-                    except Exception:
-                        return []
-
-                # When a category OR query is set, use the semantic-search
-                # endpoint. It expands category slugs across multiple
-                # related tags (`image-upscaling` → upscaler /
-                # super-resolution / image-restoration / …), which the
-                # plain `/api/spaces?filter=` endpoint doesn't do.
-                #
-                # When neither is set ("All" subtab, no search), fall back
-                # to `/api/spaces?filter=gradio` since semantic-search
-                # rejects calls with no category and no query.
-                if pipeline_tag or query:
-                    params = ["sdk=gradio", "includeNonRunning=false"]
-                    if pipeline_tag:
-                        params.append(f"category={urllib.parse.quote(pipeline_tag)}")
-                    # Only send q= when there's no category; otherwise the
-                    # AND-filter narrows results unnecessarily (within a
-                    # precise category like background-removal, the
-                    # query phrase drops valid hits).
-                    elif query:
-                        params.append(f"q={urllib.parse.quote(query)}")
-                    url = (
-                        "https://huggingface.co/api/spaces/semantic-search?"
-                        + "&".join(params)
-                    )
-                    raw = _hf_request(url, hf_token)
-                    parsed = json.loads(raw)
-                    if not isinstance(parsed, list):
-                        return raw  # surface the API's error blob as-is
-
-                    if kind == "search" and query and len(parsed) < 6:
-                        for fb in _fallback_search(query):
-                            if not any(p.get("id") == fb.get("id") for p in parsed):
-                                parsed.append(fb)
-
-                    if kind == "new":
-                        parsed.sort(
-                            key=lambda s: s.get("createdAt") or "",
-                            reverse=True,
-                        )
-                    elif kind != "search":
-                        parsed.sort(
-                            key=lambda s: s.get("trendingScore") or 0,
-                            reverse=True,
-                        )
-                    return json.dumps(
-                        [_normalize_space_result(s, pipeline_tag) for s in parsed[:48]]
-                    )
-
-                # No category, no query — browse mode.
-                base_expand = "&expand[]=likes&expand[]=cardData&expand[]=runtime"
-                if kind == "new":
-                    url = (
-                        f"https://huggingface.co/api/spaces?filter=gradio"
-                        f"&limit=24&sort=createdAt&direction=-1{base_expand}"
-                    )
-                else:
-                    url = (
-                        f"https://huggingface.co/api/spaces?filter=gradio"
-                        f"&limit=48&sort=trendingScore&direction=-1{base_expand}"
-                    )
-                return _hf_request(url, hf_token)
-            except Exception as e:
-                logger.error(
-                    "search_spaces failed (kind=%s): %s", kind, e, exc_info=True
-                )
-                return json.dumps({"error": str(e)})
-
-        def search_models(data, token: Optional[OAuthToken] = None) -> str:
-            kind = data[0] if data else "trending"
-            try:
-                query = data[1] if len(data) > 1 and data[1] else ""
-                pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
-                hf_token = _resolve_token(data, 3, token)
-                # Always apply pipeline_tag when set — the frontend further
-                # filters to models with a TASK_SCHEMAS entry, so the
-                # unfiltered list ends up tiny. Higher limits give the
-                # client-side filter more to work with.
-                if kind == "search":
-                    sort = "likes&direction=-1"
-                elif kind == "new":
-                    sort = "createdAt&direction=-1"
-                else:
-                    sort = "trendingScore&direction=-1"
-                url = (
-                    f"https://huggingface.co/api/models?sort={sort}&limit=60"
-                    f"&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
-                )
-                if query:
-                    url += f"&search={urllib.parse.quote(query)}"
-                if pipeline_tag:
-                    url += f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}"
-                return _hf_request(url, hf_token)
-            except Exception as e:
-                logger.error(
-                    "search_models failed (kind=%s): %s", kind, e, exc_info=True
-                )
-                return json.dumps({"error": str(e)})
-
-        def search_datasets(data, token: Optional[OAuthToken] = None) -> str:
-            query = data[0] if data else ""
-            try:
-                hf_token = _resolve_token(data, 1, token)
-                search_param = f"search={urllib.parse.quote(query)}&" if query else ""
-                url = f"https://huggingface.co/api/datasets?{search_param}sort=likes&direction=-1&limit=20"
-                return _hf_request(url, hf_token)
-            except Exception as e:
-                logger.error(
-                    "search_datasets failed (query=%s): %s", query, e, exc_info=True
-                )
-                return json.dumps({"error": str(e)})
-
-        def get_dataset_schema(data, token: Optional[OAuthToken] = None) -> str:
-            dataset_id = data[0] if data else ""
-            try:
-                hf_token = _resolve_token(data, 1, token)
-                try:
-                    splits_data = json.loads(
-                        _hf_request(
-                            f"https://datasets-server.huggingface.co/splits?dataset={urllib.parse.quote(dataset_id)}",
-                            hf_token,
-                            timeout=30,
-                        )
-                    )
-                except Exception as exc:
-                    raise Exception(
-                        "Could not load dataset — it may not be viewer-compatible"
-                    ) from exc
-                splits = splits_data.get("splits", [])
-                if not splits:
-                    raise Exception("No available splits found for this dataset")
-                picked = next((s for s in splits if s["split"] == "train"), splits[0])
-                try:
-                    rows_data = json.loads(
-                        _hf_request(
-                            "https://datasets-server.huggingface.co/first-rows?"
-                            + urllib.parse.urlencode(
-                                {
-                                    "dataset": dataset_id,
-                                    "config": picked["config"],
-                                    "split": picked["split"],
-                                }
-                            ),
-                            hf_token,
-                            timeout=30,
-                        )
-                    )
-                except Exception as exc:
-                    raise Exception(
-                        "Could not load dataset — it may not be viewer-compatible"
-                    ) from exc
-                return json.dumps(
-                    {
-                        "config": picked["config"],
-                        "split": picked["split"],
-                        "features": rows_data.get("features", []),
-                    }
-                )
-            except Exception as e:
-                logger.error(
-                    "get_dataset_schema failed for %s: %s", dataset_id, e, exc_info=True
-                )
-                return json.dumps({"error": str(e)})
 
         def call_fn(data, _token: Optional[OAuthToken] = None) -> str:
             fn_name = data[0] if data else ""

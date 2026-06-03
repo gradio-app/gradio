@@ -54,12 +54,13 @@
 	let source = $state<Source>(
 		initialSource ?? (modality.key === "data" ? "datasets" : "spaces")
 	);
-	const isDataset = $derived(source === "datasets");
-	const isModel = $derived(source === "models");
-	const showSourceToggle = $derived(modality.key !== "data");
+	const is_dataset = $derived(source === "datasets");
+	const is_model = $derived(source === "models");
+	const is_spaces = $derived(source === "spaces");
+	const show_source_toggle = $derived(modality.key !== "data");
 
-	const searchPlaceholder = $derived.by(() => {
-		const kind = isDataset ? "datasets" : isModel ? "models" : "spaces";
+	const search_placeholder = $derived.by(() => {
+		const kind = is_dataset ? "datasets" : is_model ? "models" : "spaces";
 		// Data modality is its own thing — no per-modality qualifier needed.
 		if (modality.key === "data") return `Search ${kind}...`;
 		return `Search ${modality.label.toLowerCase()} ${kind}...`;
@@ -68,31 +69,31 @@
 	// In "models" mode the HF API can only filter by pipeline_tag, so subtabs
 	// whose only constraint is a free-text query (e.g. Enhance, Remove BG) are
 	// hidden — they wouldn't return anything meaningful from the models API.
-	const visibleSubtabs = $derived(
-		isModel
+	const visible_subtabs = $derived(
+		is_model
 			? modality.subtabs.filter((st) => {
 					if (st.key === "all") return true;
-					const modelTagList = st.modelTags ?? st.pipelineTags;
-					return modelTagList.length > 0;
+					const model_tag_list = st.modelTags ?? st.pipelineTags;
+					return model_tag_list.length > 0;
 				})
 			: modality.subtabs
 	);
 
-	function setSource(next: Source): void {
+	function set_source(next: Source): void {
 		if (next === source) return;
 		// Reset emptiness flags up front so the auto-switch effect can't
 		// fire on a stale value mid-source-change (same race as the
 		// subtab onclick).
-		trendingEmpty = null;
-		newEmpty = null;
+		trending_empty = null;
+		new_empty = null;
 		source = next;
 		// If the active subtab disappears in the new source, fall back to "all"
-		if (!visibleSubtabs.some((st) => st.key === activeSubtab.key)) {
-			activeSubtab = visibleSubtabs[0] ?? modality.subtabs[0];
+		if (!visible_subtabs.some((st) => st.key === active_subtab.key)) {
+			active_subtab = visible_subtabs[0] ?? modality.subtabs[0];
 		}
-		if (activeContentTab === "search") {
-			searchQuery = "";
-			activeContentTab = "trending";
+		if (active_content_tab === "search") {
+			search_query = "";
+			active_content_tab = "trending";
 		}
 	}
 
@@ -106,29 +107,30 @@
 		"#06b6d4",
 		"#84cc16"
 	];
-	function avatarColor(id: string): string {
+	function avatar_color(id: string): string {
 		let h = 5381;
 		for (let i = 0; i < id.length; i++) h = ((h << 5) + h) ^ id.charCodeAt(i);
 		return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 	}
-	function avatarInitial(id: string): string {
+	function avatar_initial(id: string): string {
 		return (id.split("/").pop() || id)[0].toUpperCase();
 	}
 
 	type ContentTab = "featured" | "trending" | "new" | "search";
 
-	let activeSubtab = $state<SubTab>(
+	let active_subtab = $state<SubTab>(
 		(initialSubtab && modality.subtabs.find((s) => s.key === initialSubtab)) ||
 			modality.subtabs[0]
 	);
-	let activeContentTab = $state<ContentTab>(
+	let active_content_tab = $state<ContentTab>(
 		// Datasets API doesn't have a featured list, jump straight to search/trending.
 		// When entering with a specific subtab, Featured ignores subtab filters, so
 		// go to trending so the subtab actually narrows results.
 		modality.key === "data" || initialSubtab ? "trending" : "featured"
 	);
+	let zero_gpu_only = $state(false);
 
-	const featuredResults = $derived.by(() => {
+	const featured_results = $derived.by(() => {
 		if (source === "datasets") return [];
 		const list = source === "models" ? FEATURED_MODELS : FEATURED_SPACES;
 		const cats = modality.acceptedCategories ?? [modality.category];
@@ -149,32 +151,32 @@
 	// one so the panel never sits on a blank tab. Cascade: featured →
 	// trending → new → search.
 	$effect(() => {
-		if (activeContentTab === "featured" && featuredResults.length === 0) {
-			activeContentTab = "trending";
-		} else if (activeContentTab === "trending" && trendingEmpty === true) {
-			activeContentTab = newEmpty === true ? "search" : "new";
-		} else if (activeContentTab === "new" && newEmpty === true) {
-			activeContentTab = trendingEmpty === true ? "search" : "trending";
+		if (active_content_tab === "featured" && featured_results.length === 0) {
+			active_content_tab = "trending";
+		} else if (active_content_tab === "trending" && trending_empty === true) {
+			active_content_tab = new_empty === true ? "search" : "new";
+		} else if (active_content_tab === "new" && new_empty === true) {
+			active_content_tab = trending_empty === true ? "search" : "trending";
 		}
 	});
-	let searchQuery = $state("");
+	let search_query = $state("");
 	let results = $state<SpaceResult[]>([]);
 	let loading = $state(false);
-	let loadingSpaceId = $state<string | null>(null);
+	let loading_space_id = $state<string | null>(null);
 
 	// Track per-tab emptiness so we can hide Trending / New when a fetch
 	// confirms there are no matching results. Reset to null (unknown) when
 	// any filter changes that affects the fetch, so the next fetch can
-	// re-evaluate. Featured tabs are handled separately via featuredResults.
-	let trendingEmpty = $state<boolean | null>(null);
-	let newEmpty = $state<boolean | null>(null);
+	// re-evaluate. Featured tabs are handled separately via featured_results.
+	let trending_empty = $state<boolean | null>(null);
+	let new_empty = $state<boolean | null>(null);
 
-	const displayResults = $derived(
-		activeContentTab === "featured" ? featuredResults : results
+	const display_results = $derived(
+		active_content_tab === "featured" ? featured_results : results
 	);
-	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+	let search_timeout: ReturnType<typeof setTimeout> | null = null;
 
-	function parseResults(raw: any): SpaceResult[] {
+	function parse_results(raw: any): SpaceResult[] {
 		if (!Array.isArray(raw)) return [];
 		return raw.map((s: any) => {
 			const desc =
@@ -196,13 +198,13 @@
 		});
 	}
 
-	async function fetchResults() {
-		if (isDataset) {
-			await fetchDatasets(searchQuery);
+	async function fetch_results() {
+		if (is_dataset) {
+			await fetch_datasets(search_query);
 			return;
 		}
-		if (isModel) {
-			await fetchModels(searchQuery);
+		if (is_model) {
+			await fetch_models(search_query);
 			return;
 		}
 		if (!server?.search_spaces) {
@@ -216,30 +218,37 @@
 			// (category names like "image-editing") and fall back to
 			// `pipelineTags` for subtabs where the model pipeline tag
 			// works as a Space category too (e.g. text-to-image).
-			const spaceTagList = activeSubtab.spaceTags ?? activeSubtab.pipelineTags;
-			const spaceTag = spaceTagList.length > 0 ? spaceTagList[0] : "";
+			const space_tag_list =
+				active_subtab.spaceTags ?? active_subtab.pipelineTags;
+			const space_tag = space_tag_list.length > 0 ? space_tag_list[0] : "";
 
 			let kind: string;
 			let query: string;
 
-			if (activeContentTab === "search") {
+			if (active_content_tab === "search") {
 				kind = "search";
-				query = searchQuery;
-			} else if (activeSubtab.query) {
+				query = search_query;
+			} else if (active_subtab.query) {
 				// Always forward the subtab's freeform query alongside the
 				// category. The server prefers `category=` when valid and
 				// falls back to `q=` when the category isn't a real HF
 				// Space category (e.g. `automatic-speech-recognition`).
-				kind = activeContentTab === "new" ? "new" : "trending";
-				query = activeSubtab.query;
+				kind = active_content_tab === "new" ? "new" : "trending";
+				query = active_subtab.query;
 			} else {
-				kind = activeContentTab === "new" ? "new" : "trending";
+				kind = active_content_tab === "new" ? "new" : "trending";
 				query = "";
 			}
 
-			const raw = await server.search_spaces([kind, query, spaceTag]);
+			const raw = await server.search_spaces([
+				kind,
+				query,
+				space_tag,
+				"",
+				zero_gpu_only
+			]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			let parsed = parseResults(data);
+			let parsed = parse_results(data);
 
 			// Filter by modality category only when the server didn't already
 			// narrow by tag. Keep results that EITHER match the modality
@@ -247,7 +256,7 @@
 			// pipeline_tag on their card, so dropping uncategorised ones
 			// hides the bulk of legitimate results. We only exclude things
 			// confidently categorised to a different modality.
-			if (activeContentTab !== "search" && !spaceTag) {
+			if (active_content_tab !== "search" && !space_tag) {
 				const cats = modality.acceptedCategories ?? [modality.category];
 				parsed = parsed.filter((s) => !s.category || cats.includes(s.category));
 			}
@@ -260,7 +269,7 @@
 		}
 	}
 
-	async function fetchDatasets(query: string) {
+	async function fetch_datasets(query: string) {
 		if (!server?.search_datasets) {
 			results = [];
 			loading = false;
@@ -291,7 +300,7 @@
 		}
 	}
 
-	async function fetchModels(q: string) {
+	async function fetch_models(q: string) {
 		if (!server?.search_models) {
 			results = [];
 			loading = false;
@@ -304,16 +313,17 @@
 			// and fall back to `pipelineTags`. `spaceTags` is ignored here
 			// because Space category names (e.g. "image-editing") aren't
 			// valid model pipeline tags.
-			const modelTagList = activeSubtab.modelTags ?? activeSubtab.pipelineTags;
-			const pipelineTag = modelTagList[0] ?? "";
+			const model_tag_list =
+				active_subtab.modelTags ?? active_subtab.pipelineTags;
+			const pipeline_tag = model_tag_list[0] ?? "";
 			let kind: string;
-			if (activeContentTab === "search") {
+			if (active_content_tab === "search") {
 				kind = "search";
 			} else {
-				kind = activeContentTab === "new" ? "new" : "trending";
+				kind = active_content_tab === "new" ? "new" : "trending";
 				q = "";
 			}
-			const raw = await server.search_models([kind, q, pipelineTag, ""]);
+			const raw = await server.search_models([kind, q, pipeline_tag, ""]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			if (!Array.isArray(data)) {
 				results = [];
@@ -342,47 +352,50 @@
 	// After each fetch, record whether the active tab came back empty so we
 	// can hide it from the tab strip.
 	$effect(() => {
-		activeSubtab;
-		activeContentTab;
-		isDataset;
-		isModel;
-		if (activeContentTab !== "search" && activeContentTab !== "featured") {
-			const captured = activeContentTab;
-			void fetchResults().then(() => {
-				if (captured === "trending") trendingEmpty = results.length === 0;
-				else if (captured === "new") newEmpty = results.length === 0;
+		active_subtab;
+		active_content_tab;
+		is_dataset;
+		is_model;
+		zero_gpu_only;
+		if (active_content_tab !== "search" && active_content_tab !== "featured") {
+			const captured = active_content_tab;
+			void fetch_results().then(() => {
+				if (captured === "trending") trending_empty = results.length === 0;
+				else if (captured === "new") new_empty = results.length === 0;
 			});
+		} else if (active_content_tab === "search" && search_query.length >= 2) {
+			void fetch_results();
 		}
 	});
 
-	function handleSearchInput(e: Event) {
-		searchQuery = (e.currentTarget as HTMLInputElement).value;
-		if (searchTimeout) clearTimeout(searchTimeout);
-		if (isDataset) {
+	function handle_search_input(e: Event) {
+		search_query = (e.currentTarget as HTMLInputElement).value;
+		if (search_timeout) clearTimeout(search_timeout);
+		if (is_dataset) {
 			loading = true;
-			searchTimeout = setTimeout(() => void fetchDatasets(searchQuery), 300);
+			search_timeout = setTimeout(() => void fetch_datasets(search_query), 300);
 			return;
 		}
-		if (isModel) {
-			if (searchQuery.length < 2) {
-				if (activeContentTab === "search") results = [];
+		if (is_model) {
+			if (search_query.length < 2) {
+				if (active_content_tab === "search") results = [];
 				return;
 			}
-			activeContentTab = "search";
+			active_content_tab = "search";
 			loading = true;
-			searchTimeout = setTimeout(() => void fetchModels(searchQuery), 300);
+			search_timeout = setTimeout(() => void fetch_models(search_query), 300);
 			return;
 		}
-		if (searchQuery.length < 2) {
-			if (activeContentTab === "search") results = [];
+		if (search_query.length < 2) {
+			if (active_content_tab === "search") results = [];
 			return;
 		}
-		activeContentTab = "search";
+		active_content_tab = "search";
 		loading = true;
-		searchTimeout = setTimeout(() => void fetchResults(), 300);
+		search_timeout = setTimeout(() => void fetch_results(), 300);
 	}
 
-	function selectModel(item: SpaceResult) {
+	function select_model(item: SpaceResult) {
 		if (!item.pipeline_tag) return;
 		const schema = TASK_SCHEMAS[item.pipeline_tag];
 		const template = {
@@ -404,21 +417,21 @@
 		onclose();
 	}
 
-	async function selectSpace(space: SpaceResult) {
-		if (loadingSpaceId) return;
-		loadingSpaceId = space.id;
+	async function select_space(space: SpaceResult) {
+		if (loading_space_id) return;
+		loading_space_id = space.id;
 		try {
-			const apiInfo = await fetchSpaceApi(space.id);
+			const api_info = await fetchSpaceApi(space.id);
 			const template = {
 				label: space.title || space.id.split("/").pop() || space.id,
 				kind: "transform" as const,
 				source: "space" as const,
 				space_id: space.id,
 				pipeline_tag: space.pipeline_tag,
-				endpoint: apiInfo.endpoint,
-				inputs: normalizeOperatorPorts(modality, apiInfo.inputs),
-				outputs: normalizeOperatorPorts(modality, apiInfo.outputs),
-				width: apiInfo.width,
+				endpoint: api_info.endpoint,
+				inputs: normalizeOperatorPorts(modality, api_info.inputs),
+				outputs: normalizeOperatorPorts(modality, api_info.outputs),
+				width: api_info.width,
 				height: 90
 			};
 			if (mode === "update" && nodeId) {
@@ -428,14 +441,14 @@
 			}
 			onclose();
 		} catch (err) {
-			loadingSpaceId = null;
+			loading_space_id = null;
 			const msg = err instanceof Error ? err.message : "Couldn't load space";
 			const label = space.title || space.id;
 			onerror?.(`${label}: ${msg}`);
 		}
 	}
 
-	function featureToPortType(feature: any): string {
+	function feature_to_port_type(feature: any): string {
 		const t = feature?.type;
 		if (!t) return "json";
 		if (t._type === "Image" || t.dtype === "image") return "image";
@@ -453,8 +466,8 @@
 		return "json";
 	}
 
-	async function selectDataset(dataset: SpaceResult) {
-		loadingSpaceId = dataset.id;
+	async function select_dataset(dataset: SpaceResult) {
+		loading_space_id = dataset.id;
 		let outputs: Array<{ id: string; label: string; type: string }> = [
 			{ id: "out_0", label: "Data", type: "json" }
 		];
@@ -474,7 +487,7 @@
 					const ports = schema.features.map((f: any, i: number) => ({
 						id: `out_${i}`,
 						label: f.name,
-						type: featureToPortType(f)
+						type: feature_to_port_type(f)
 					}));
 					if (ports.length > 0) outputs = ports;
 				}
@@ -482,7 +495,7 @@
 		} catch {
 			// fall through to defaults
 		} finally {
-			loadingSpaceId = null;
+			loading_space_id = null;
 		}
 		oncreate({
 			label: dataset.title || dataset.id.split("/").pop() || dataset.id,
@@ -509,23 +522,23 @@
 		onclose();
 	}
 
-	function hubUrl(id: string): string {
-		if (isDataset) return `https://huggingface.co/datasets/${id}`;
-		if (isModel) return `https://huggingface.co/${id}`;
+	function hub_url(id: string): string {
+		if (is_dataset) return `https://huggingface.co/datasets/${id}`;
+		if (is_model) return `https://huggingface.co/${id}`;
 		return `https://huggingface.co/spaces/${id}`;
 	}
 
-	function handleRowClick(item: SpaceResult) {
-		if (isDataset) {
-			void selectDataset(item);
-		} else if (isModel) {
-			selectModel(item);
+	function handle_row_click(item: SpaceResult) {
+		if (is_dataset) {
+			void select_dataset(item);
+		} else if (is_model) {
+			select_model(item);
 		} else {
-			selectSpace(item);
+			select_space(item);
 		}
 	}
 
-	function formatLikes(n: number): string {
+	function format_likes(n: number): string {
 		if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
 		return String(n);
 	}
@@ -554,9 +567,9 @@
 				<input
 					class="picker-search"
 					type="text"
-					placeholder={searchPlaceholder}
-					value={searchQuery}
-					oninput={handleSearchInput}
+					placeholder={search_placeholder}
+					value={search_query}
+					oninput={handle_search_input}
 					autofocus
 				/>
 				<button
@@ -570,38 +583,39 @@
 		</div>
 
 		<!-- Source toggle (Spaces / Models) — hidden for datasets -->
-		{#if showSourceToggle}
+		{#if show_source_toggle}
 			<div class="picker-source-row">
 				<button
 					class="picker-source-btn"
 					class:active={source === "spaces"}
-					onclick={() => setSource("spaces")}>Spaces</button
+					onclick={() => set_source("spaces")}>Spaces</button
 				>
 				<button
 					class="picker-source-btn"
 					class:active={source === "models"}
-					onclick={() => setSource("models")}>Models</button
+					onclick={() => set_source("models")}>Models</button
 				>
 			</div>
 		{/if}
 
 		<!-- Modality subtabs: which kind of Space (Generate / Edit / …). -->
-		{#if !isDataset && visibleSubtabs.length > 1}
+		{#if !is_dataset && visible_subtabs.length > 1}
 			<div class="picker-subtabs">
-				{#each visibleSubtabs as st}
+				{#each visible_subtabs as st}
 					<button
 						class="picker-subtab"
-						class:active={activeSubtab.key === st.key}
+						class:active={active_subtab.key === st.key}
 						onclick={() => {
-							// Reset emptiness flags BEFORE writing activeSubtab /
-							// activeContentTab. Otherwise the auto-switch effect
-							// can fire first and read a stale `trendingEmpty=true`
-							// from the previous subtab, bumping activeContentTab
+							// Reset emptiness flags BEFORE writing active_subtab /
+							// active_content_tab. Otherwise the auto-switch effect
+							// can fire first and read a stale `trending_empty=true`
+							// from the previous subtab, bumping active_content_tab
 							// to "search" — which then fetches the wrong list.
-							trendingEmpty = null;
-							newEmpty = null;
-							activeSubtab = st;
-							if (activeContentTab !== "search") activeContentTab = "trending";
+							trending_empty = null;
+							new_empty = null;
+							active_subtab = st;
+							if (active_content_tab !== "search")
+								active_content_tab = "trending";
 						}}
 					>
 						{st.label}
@@ -613,73 +627,82 @@
 		<!-- Content modes: how the list is sorted (Featured / Trending / New).
 		     Smaller and lighter than the category subtabs so they read as
 		     a secondary sort control, not a competing category. -->
-		{#if !isDataset}
+		{#if !is_dataset}
 			<div class="picker-mode-row">
 				<span class="picker-mode-label">Sort:</span>
-				{#if featuredResults.length > 0}
+				{#if featured_results.length > 0}
 					<button
 						class="picker-mode-btn"
-						class:active={activeContentTab === "featured"}
+						class:active={active_content_tab === "featured"}
 						onclick={() => {
-							activeContentTab = "featured";
-							searchQuery = "";
+							active_content_tab = "featured";
+							search_query = "";
 						}}>Featured</button
 					>
 				{/if}
-				{#if trendingEmpty !== true}
+				{#if trending_empty !== true}
 					<button
 						class="picker-mode-btn"
-						class:active={activeContentTab === "trending"}
+						class:active={active_content_tab === "trending"}
 						onclick={() => {
-							activeContentTab = "trending";
-							searchQuery = "";
+							active_content_tab = "trending";
+							search_query = "";
 						}}>Trending</button
 					>
 				{/if}
-				{#if newEmpty !== true}
+				{#if new_empty !== true}
 					<button
 						class="picker-mode-btn"
-						class:active={activeContentTab === "new"}
+						class:active={active_content_tab === "new"}
 						onclick={() => {
-							activeContentTab = "new";
-							searchQuery = "";
+							active_content_tab = "new";
+							search_query = "";
 						}}>New ✦</button
 					>
+				{/if}
+				{#if is_spaces}
+					<label
+						class="picker-zerogpu-toggle"
+						title="Show only ZeroGPU Spaces — these scale with your HF credits and rarely hit quota"
+					>
+						<input type="checkbox" bind:checked={zero_gpu_only} />
+						<span>ZeroGPU only</span>
+					</label>
 				{/if}
 			</div>
 		{/if}
 
 		<!-- Results -->
 		<div class="picker-results">
-			{#if loading && activeContentTab !== "featured"}
+			{#if loading && active_content_tab !== "featured"}
 				<div class="picker-loading">
 					<span class="spinner"></span>
 				</div>
-			{:else if displayResults.length === 0}
+			{:else if display_results.length === 0}
 				<div class="picker-empty">
-					{activeContentTab === "search"
+					{active_content_tab === "search"
 						? "Nothing found"
-						: activeContentTab === "featured"
+						: active_content_tab === "featured"
 							? `No featured ${source} for ${modality.label.toLowerCase()} yet`
 							: `No ${modality.label.toLowerCase()} ${source} found`}
 				</div>
 			{:else}
-				{#each displayResults as space (space.id)}
+				{#each display_results as space (space.id)}
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
 						class="space-row"
-						class:loading={loadingSpaceId === space.id}
-						onclick={() => handleRowClick(space)}
+						class:loading={loading_space_id === space.id}
+						onclick={() => handle_row_click(space)}
 						role="button"
 						tabindex="0"
 					>
 						<div
 							class="space-avatar"
-							style="background:linear-gradient(135deg, {avatarColor(
+							style="background:linear-gradient(135deg, {avatar_color(
 								space.id
-							)}, {avatarColor(space.id + '_2')})"
+							)}, {avatar_color(space.id + '_2')})"
 						>
-							{avatarInitial(space.id)}
+							{avatar_initial(space.id)}
 						</div>
 						<div class="space-row-left">
 							<div class="space-name-row">
@@ -687,7 +710,7 @@
 									>{space.title ||
 										(space.id.split("/").pop() ?? space.id)}</span
 								>
-								{#if activeContentTab === "featured"}
+								{#if active_content_tab === "featured"}
 									<span class="space-badge space-badge-featured">Featured</span>
 								{/if}
 								{#if space.pipeline_tag}
@@ -699,14 +722,14 @@
 							{/if}
 						</div>
 						<div class="space-row-right">
-							{#if loadingSpaceId === space.id}
+							{#if loading_space_id === space.id}
 								<span class="spinner small"></span>
 							{:else if space.likes > 0}
-								<span class="space-likes">♥ {formatLikes(space.likes)}</span>
+								<span class="space-likes">♥ {format_likes(space.likes)}</span>
 							{/if}
 							<a
 								class="space-row-link"
-								href={hubUrl(space.id)}
+								href={hub_url(space.id)}
 								target="_blank"
 								rel="noopener noreferrer"
 								title="Open on HuggingFace"
@@ -867,6 +890,35 @@
 	.picker-mode-btn.active {
 		color: #f97316;
 		background: rgba(249, 115, 22, 0.08);
+	}
+
+	.picker-zerogpu-toggle {
+		margin-left: auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 10.5px;
+		color: #6b6e78;
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.picker-zerogpu-toggle input {
+		accent-color: #f97316;
+		cursor: pointer;
+		margin: 0;
+	}
+
+	.picker-zerogpu-toggle:hover {
+		color: #a0a2ae;
+	}
+
+	:global(body:not(.dark)) .picker-zerogpu-toggle {
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .picker-zerogpu-toggle:hover {
+		color: #3e4050;
 	}
 
 	:global(body:not(.dark)) .picker-mode-label {

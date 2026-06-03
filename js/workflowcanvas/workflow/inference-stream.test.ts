@@ -1,5 +1,8 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { is_streamable_text_task, stream_text_generation } from "./inference-stream";
+import {
+	is_streamable_text_task,
+	stream_text_generation
+} from "./inference-stream";
 
 /**
  * Build a mock `Response` whose `body.getReader()` yields the given UTF-8
