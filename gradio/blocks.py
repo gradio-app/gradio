@@ -155,7 +155,7 @@ class Block:
         )
         self.mcp_server_obj = None
 
-        # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
+        # Keep tracks of files that should not be deleted when the delete_cache parameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
         self.has_launched = False
@@ -3051,7 +3051,7 @@ Received inputs:
                 print(f"* Running on public URL: {self.share_url}")
                 if not (quiet):
                     print(
-                        "\nThis share link expires in 1 week. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+                        "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
                     )
             except Exception as e:
                 if self.analytics_enabled:

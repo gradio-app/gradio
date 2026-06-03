@@ -141,7 +141,7 @@ from gradio.themes import Base as Theme
 from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
 from gradio.workflow import Workflow
 
-# this is the verion:
+# this is the version:
 __version__ = get_package_version()
 
 __all__ = [
