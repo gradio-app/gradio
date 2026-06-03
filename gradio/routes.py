@@ -669,6 +669,8 @@ class App(FastAPI):
                 title = getattr(blocks, "title", None) or "Gradio App"
                 skill_md = generate_app_skill_md(title, str(root), info)
                 return PlainTextResponse(skill_md, media_type="text/markdown")
+
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 deep_link_state = "none"
                 components = [
