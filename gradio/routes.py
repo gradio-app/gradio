@@ -147,6 +147,7 @@ import tempfile
 
 mimetypes.init()
 
+
 def is_llm_request(request: fastapi.Request) -> bool:
     """Return True if the request opts in to the markdown API description.
 
