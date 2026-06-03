@@ -48,8 +48,10 @@
 	let copied = $state(false);
 	let timer: NodeJS.Timeout;
 
+	let old_value = $state(value);
 	$effect(() => {
-		if (value) {
+		if (value !== old_value) {
+			old_value = value;
 			onchange();
 		}
 	});

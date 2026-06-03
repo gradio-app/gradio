@@ -15,7 +15,7 @@ runs:
       with:
         path: |
           gradio/templates/**
-        key: gradio-lib-main-front-end-${{ hashFiles('js/**', 'client/js/**')}}
+        key: gradio-lib-main-front-end-${{ hashFiles('js/**', 'client/js/**', 'pnpm-lock.yaml')}}
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
       with:
