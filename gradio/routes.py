@@ -127,6 +127,7 @@ from gradio.server_messages import (
     ProcessGeneratingMessage,
     UnexpectedErrorMessage,
 )
+from gradio.skill_utils import render_api_endpoints_md
 from gradio.state_holder import StateHolder
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import (
@@ -146,104 +147,16 @@ import tempfile
 
 mimetypes.init()
 
-_LLM_UA_PATTERNS: list[re.Pattern] = [
-    re.compile(r"\bgptbot\b", re.IGNORECASE),
-    re.compile(r"\bchatgpt-user\b", re.IGNORECASE),
-    re.compile(r"\bclaudebot\b", re.IGNORECASE),
-    re.compile(r"\bclaude-web\b", re.IGNORECASE),
-    re.compile(r"\bclaude-user\b", re.IGNORECASE),
-    re.compile(r"\banthropic\b", re.IGNORECASE),
-    re.compile(r"\bperplexitybot\b", re.IGNORECASE),
-    re.compile(r"\bmeta-external(?:fetcher|agent)\b", re.IGNORECASE),
-    re.compile(r"\bfacebookbot\b", re.IGNORECASE),
-    re.compile(r"\bamazonbot\b", re.IGNORECASE),
-    re.compile(r"\bapplebot\b", re.IGNORECASE),
-    re.compile(r"\bbytespider\b", re.IGNORECASE),
-    re.compile(r"\bccbot\b", re.IGNORECASE),
-    re.compile(r"\bcohere\b", re.IGNORECASE),
-    re.compile(r"\bgoogle-extended\b", re.IGNORECASE),
-]
-
-
 def is_llm_request(request: fastapi.Request) -> bool:
-    """Return True if the request appears to come from a coding agent or LLM.
+    """Return True if the request opts in to the markdown API description.
 
-    Detection is based on:
-    - ``Accept: text/markdown`` request header
-    - A User-Agent matching a known AI-agent pattern
+    Detection is based solely on an explicit ``Accept: text/markdown`` request
+    header, which a coding agent or LLM client sends to opt in. We deliberately
+    avoid User-Agent sniffing: it requires constant maintenance and would serve
+    API docs to general-purpose crawlers that want the app's content instead.
     """
     accept = request.headers.get("accept", "")
-    if "text/markdown" in accept:
-        return True
-    ua = request.headers.get("user-agent", "")
-    return any(p.search(ua) for p in _LLM_UA_PATTERNS)
-
-
-def _render_endpoint_skill_section(
-    api_name: str, endpoint_info: dict, src_url: str
-) -> str:
-    """Render a single endpoint as a markdown section for the app skill."""
-    params = endpoint_info.get("parameters", [])
-    returns = endpoint_info.get("returns", [])
-
-    lines: list[str] = []
-    lines.append(f"### `{api_name}`\n")
-
-    if params:
-        lines.append("**Parameters:**\n")
-        for p in params:
-            ptype = p.get("python_type", {})
-            type_str = (
-                ptype.get("type", "Any") if isinstance(ptype, dict) else str(ptype)
-            )
-            name = p.get("parameter_name") or p.get("label", "input")
-            component = p.get("component", "")
-            default_info = ""
-            if p.get("parameter_has_default"):
-                default_val = (
-                    str(p.get("parameter_default", ""))
-                    .replace("\\", "\\\\")
-                    .replace("`", "\\`")
-                )
-                default_info = f", default: `{default_val}`"
-            required = (
-                " (required)" if not p.get("parameter_has_default", False) else ""
-            )
-            lines.append(
-                f"- `{name}` [{component}]: `{type_str}`{required}{default_info}"
-            )
-        lines.append("")
-
-    if returns:
-        lines.append("**Returns:**\n")
-        for r in returns:
-            rtype = r.get("python_type", {})
-            type_str = (
-                rtype.get("type", "Any") if isinstance(rtype, dict) else str(rtype)
-            )
-            label = r.get("label", "output")
-            component = r.get("component", "")
-            lines.append(f"- `{label}` [{component}]: `{type_str}`")
-        lines.append("")
-
-    snippets = generate_code_snippets(api_name, endpoint_info, src_url)
-
-    lines.append("**Python:**\n")
-    lines.append("```python")
-    lines.append(snippets["python"])
-    lines.append("```\n")
-
-    lines.append("**JavaScript:**\n")
-    lines.append("```javascript")
-    lines.append(snippets["javascript"])
-    lines.append("```\n")
-
-    lines.append("**cURL:**\n")
-    lines.append("```bash")
-    lines.append(snippets["bash"])
-    lines.append("```\n")
-
-    return "\n".join(lines)
+    return "text/markdown" in accept
 
 
 def generate_app_skill_md(app_title: str, src_url: str, info: dict) -> str:
@@ -262,33 +175,16 @@ def generate_app_skill_md(app_title: str, src_url: str, info: dict) -> str:
         "programmatically via its API.\n"
     )
     lines.append(
-        "> **Note for coding agents:** This markdown was served automatically "
-        "because your request included an `Accept: text/markdown` header or a "
-        "recognized AI User-Agent. To receive the normal HTML page instead, "
-        "send a request without those headers (e.g. use `Accept: text/html`).\n"
+        "> **Note for coding agents:** This markdown was served because your "
+        "request included an `Accept: text/markdown` header. To receive the "
+        "normal HTML page instead, send `Accept: text/html`.\n"
     )
 
-    named = info.get("named_endpoints", {})
-    unnamed = info.get("unnamed_endpoints", {})
-
-    if named:
-        lines.append("## API Endpoints\n")
-        for api_name, endpoint_info in named.items():
-            lines.append(
-                _render_endpoint_skill_section(api_name, endpoint_info, src_url)
-            )
-    elif unnamed:
-        lines.append("## API Endpoints\n")
-        for fn_index, endpoint_info in unnamed.items():
-            lines.append(
-                _render_endpoint_skill_section(
-                    f"fn_index={fn_index}", endpoint_info, src_url
-                )
-            )
+    endpoints_md = render_api_endpoints_md(info, src_url)
+    if endpoints_md:
+        lines.append(endpoints_md)
     else:
-        lines.append(
-            "_No public API endpoints are exposed by this app._\n"
-        )
+        lines.append("_No public API endpoints are exposed by this app._\n")
 
     return "\n".join(lines)
 
