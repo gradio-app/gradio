@@ -52,6 +52,9 @@
 
 	let filter_input: HTMLElement;
 
+	const uid = $props.id();
+	const listbox_id = `${uid}-options`;
+
 	let show_options = $derived.by(() => {
 		return is_browser && filter_input === document.activeElement;
 	});
@@ -59,30 +62,37 @@
 	let choices_values = $derived(choices.map((c) => c[1]));
 	let input_text = $state("");
 	let selected_index: number | null = $state(null);
+	// Use last_typed_value to track when the user has typed
+	// on_blur we only want to update value if the user has typed
+	let last_typed_value = input_text;
+	let focused = $state(false);
 
 	$effect(() => {
+		const current_value = value;
+		const values = choices_values;
+		const names = choices_names;
+		if (focused) {
+			return;
+		}
 		if (
-			value === undefined ||
-			value === null ||
-			(Array.isArray(value) && value.length === 0)
+			current_value === undefined ||
+			current_value === null ||
+			(Array.isArray(current_value) && current_value.length === 0)
 		) {
 			input_text = "";
 			selected_index = null;
-		} else if (choices_values.includes(value as string | number)) {
-			input_text =
-				choices_names[choices_values.indexOf(value as string | number)];
-			selected_index = choices_values.indexOf(value as string | number);
+		} else if (values.includes(current_value as string | number)) {
+			input_text = names[values.indexOf(current_value as string | number)];
+			selected_index = values.indexOf(current_value as string | number);
 		} else if (allow_custom_value) {
-			input_text = value as string;
+			input_text = current_value as string;
 			selected_index = null;
 		} else {
 			input_text = "";
 			selected_index = null;
 		}
+		last_typed_value = input_text;
 	});
-	// Use last_typed_value to track when the user has typed
-	// on_blur we only want to update value if the user has typed
-	let last_typed_value = input_text;
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
 
@@ -92,6 +102,11 @@
 	let selected_indices = $derived(
 		selected_index === null ? [] : [selected_index]
 	);
+
+	$effect(() => {
+		choices;
+		filtered_indices = choices.map((_, i) => i);
+	});
 
 	function handle_option_selected(index: any): void {
 		selected_index = parseInt(index);
@@ -117,7 +132,9 @@
 	}
 
 	function handle_focus(e: FocusEvent): void {
+		focused = true;
 		filtered_indices = choices.map((_, i) => i);
+		active_index = selected_index;
 		show_options = true;
 		on_focus?.();
 	}
@@ -126,11 +143,11 @@
 		if (!allow_custom_value) {
 			input_text =
 				choices_names[choices_values.indexOf(value as string | number)];
-		} else {
+		} else if (input_text !== last_typed_value) {
 			if (choices_names.includes(input_text)) {
 				selected_index = choices_names.indexOf(input_text);
 				value = choices_values[selected_index];
-			} else if (input_text !== last_typed_value) {
+			} else {
 				value = input_text;
 				selected_index = null;
 			}
@@ -138,14 +155,33 @@
 		show_options = false;
 		active_index = null;
 		filtered_indices = choices.map((_, i) => i);
+		focused = false;
 		on_blur?.();
 		on_input?.();
 	}
 
 	async function handle_key_down(e: KeyboardEvent): Promise<void> {
 		await tick();
-		filtered_indices = handle_filter(choices, input_text);
-		active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
+		const is_navigation_key =
+			e.key === "ArrowUp" ||
+			e.key === "ArrowDown" ||
+			e.key === "Enter" ||
+			e.key === "Escape";
+		const is_filtering = input_text !== last_typed_value;
+		if (!is_navigation_key) {
+			filtered_indices = handle_filter(choices, input_text);
+			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
+		} else {
+			// Recompute the visible options so navigation always spans the full
+			// current list. Filter by the typed text when the user is filtering,
+			// otherwise (a value is just displayed/selected) show every option.
+			filtered_indices = is_filtering
+				? handle_filter(choices, input_text)
+				: choices.map((_, i) => i);
+			if (active_index !== null && !filtered_indices.includes(active_index)) {
+				active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
+			}
+		}
 		[show_options, active_index] = handle_shared_keys(
 			e,
 			active_index,
@@ -198,7 +234,7 @@
 			<div class="secondary-wrap">
 				<input
 					role="listbox"
-					aria-controls="dropdown-options"
+					aria-controls={listbox_id}
 					aria-expanded={show_options}
 					aria-label={label}
 					class="border-none"
@@ -233,6 +269,7 @@
 			{disabled}
 			{selected_indices}
 			{active_index}
+			{listbox_id}
 			onchange={handle_option_selected}
 			onload={() => (initialized = true)}
 		/>
