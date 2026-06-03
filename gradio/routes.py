@@ -164,8 +164,8 @@ def generate_app_skill_md(app_title: str, src_url: str, info: dict) -> str:
     """Generate a skill markdown document for a running Gradio app.
 
     The document describes the app's API endpoints with Python, JavaScript,
-    and cURL usage examples.  It is returned to coding-agent HTTP clients
-    (those that send ``Accept: text/markdown`` or a known AI User-Agent).
+    and cURL usage examples. It is returned to HTTP clients that explicitly
+    opt in by sending an ``Accept: text/markdown`` header.
     """
     lines: list[str] = []
     # Escape newlines in the title to avoid breaking the H1 heading
