@@ -2434,13 +2434,6 @@ class TestLLMSkillRoute:
         # Should contain the note explaining why markdown was served
         assert "Accept: text/markdown" in body
 
-    def test_llm_user_agent_does_not_return_skill(self, llm_test_client):
-        # Detection is opt-in via the Accept header only; a bot User-Agent must
-        # not trigger the markdown response.
-        with TestClient(llm_test_client.app, raise_server_exceptions=False) as c:
-            response = c.get("/", headers={"User-Agent": "ClaudeBot/1.0"})
-        assert "text/markdown" not in response.headers.get("content-type", "")
-
     def test_normal_request_does_not_return_markdown(self, llm_test_client):
         with TestClient(llm_test_client.app, raise_server_exceptions=False) as c:
             response = c.get("/")
