@@ -101,6 +101,7 @@
 		"directory": "js/core"
 	},
 	"dependencies": {
-		"dequal": "^2.0.3"
+		"dequal": "^2.0.3",
+		"svelte-i18n": "^4.0.1"
 	}
 }
