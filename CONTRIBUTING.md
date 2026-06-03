@@ -3,11 +3,11 @@
 ![GitHub issues by-label](https://img.shields.io/github/issues/gradio-app/gradio/good%20first%20issue?color=fe7c01&link=https%3A%2F%2Fgithub.com%2Fgradio-app%2Fgradio%2Fissues%3Fq%3Dis%253Aopen%2Bis%253Aissue%2Blabel%253A%2522good%2Bfirst%2Bissue%2522)
 
 
-More than 300 awesome developers have contributed to the `gradio` library, and the best way to help us today is by **opening a detailed issue** rather than a pull request. 🙏
+More than 300 awesome developers have contributed to the `gradio` library, and the best way to help us today is by **opening a detailed issue** rather than a pull request.
 
 ## 📝 The best way to contribute: open a great issue
 
-We have **paused accepting pull requests from outside the Gradio maintainer team.** This is a deliberate change, and it isn't because we don't value the community — it's the opposite. As AI coding agents have become widespread, the volume of community PRs has grown to the point where reviewing them carefully takes more maintainer time than the alternative: pointing our own coding agents at a well-described issue and solving it ourselves.
+We have **paused accepting pull requests from outside the Gradio maintainer team.** As AI coding agents have become widespread, the volume of community PRs has grown to the point where reviewing them carefully takes more maintainer time than the alternative: pointing our own coding agents at a well-described issue and solving it ourselves.
 
 So the single most valuable thing you can do is **file a clear, detailed, reproducible issue.** A great issue lets us (and our agents) understand and fix the problem quickly, and it helps us prioritize what to work on next for Gradio.
 
