@@ -107,6 +107,13 @@ def download_fonts() -> None:
         dir_name = family.replace(" ", "")
         family_dir = FONTS_DIR / dir_name
         family_dir.mkdir(parents=True, exist_ok=True)
+        # Skip the network round-trip entirely when every weight is already on
+        # disk, so cached/air-gapped rebuilds don't need to reach Google Fonts.
+        if all(
+            (family_dir / f"{dir_name}-{WEIGHT_TO_FILENAME.get(w, str(w))}.woff2").exists()
+            for w in weights
+        ):
+            continue
         weight_spec = ";".join(str(w) for w in weights)
         css_url = (
             f"https://fonts.googleapis.com/css2?family="
