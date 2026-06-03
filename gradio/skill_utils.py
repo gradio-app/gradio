@@ -101,5 +101,7 @@ def render_api_endpoints_md(
         return ""
     lines: list[str] = ["## API Endpoints\n"]
     for api_name, endpoint_info in named.items():
-        lines.append(render_endpoint_section(api_name, endpoint_info, src_url, space_id))
+        lines.append(
+            render_endpoint_section(api_name, endpoint_info, src_url, space_id)
+        )
     return "\n".join(lines)
