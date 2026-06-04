@@ -1786,19 +1786,20 @@ Received inputs:
         stage = "preprocess" if is_input else "postprocess"
         verb = "passed to" if is_input else "returned from"
 
-        method = block.preprocess if is_input else block.postprocess
+        method = getattr(block, "preprocess" if is_input else "postprocess", None)
         expected_type = None
-        try:
-            params = list(inspect.signature(method).parameters.values())
-            if params and params[0].annotation is not inspect.Parameter.empty:
-                annotation = params[0].annotation
-                expected_type = (
-                    annotation
-                    if isinstance(annotation, str)
-                    else getattr(annotation, "__name__", str(annotation))
-                )
-        except (ValueError, TypeError):
-            expected_type = None
+        if method is not None:
+            try:
+                params = list(inspect.signature(method).parameters.values())
+                if params and params[0].annotation is not inspect.Parameter.empty:
+                    annotation = params[0].annotation
+                    expected_type = (
+                        annotation
+                        if isinstance(annotation, str)
+                        else getattr(annotation, "__name__", str(annotation))
+                    )
+            except (ValueError, TypeError):
+                expected_type = None
 
         expected_clause = (
             f"Expected a `{expected_type}`, but the" if expected_type else "The"
