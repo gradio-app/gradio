@@ -305,7 +305,7 @@
 
 	.input-type-menu {
 		position: absolute;
-		bottom: calc(100% + 8px);
+		bottom: calc(100% + 16px);
 		left: 50%;
 		transform: translateX(-50%);
 		background: #16171f;

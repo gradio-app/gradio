@@ -15,7 +15,9 @@ from typing import Optional
 import requests
 from huggingface_hub import get_token as _hf_get_token
 
+from gradio.blocks import Blocks
 from gradio.oauth import OAuthToken
+from gradio.utils import get_space
 
 logger = logging.getLogger(__name__)
 
@@ -865,7 +867,7 @@ def get_dataset_schema(data, token: Optional[OAuthToken] = None) -> str:
         return json.dumps({"error": str(e)})
 
 
-class Workflow:
+class Workflow(Blocks):
     """
     Build and launch a visual AI workflow as a Gradio app.
 
@@ -942,7 +944,9 @@ class Workflow:
         )
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
-        self._demo = self._build()
+
+        super().__init__()
+        self._build()
 
     def _build(self):
         import gradio as gr
@@ -1074,23 +1078,21 @@ class Workflow:
             save_workflow,
         ]
 
-        with gr.Blocks() as demo:
-            gr.LoginButton(visible=False)
+        with self:
+            if get_space() is not None and os.getenv("OAUTH_CLIENT_ID"):
+                gr.LoginButton(visible=False)
             WorkflowCanvas(
                 value=_load_initial,
                 server_functions=server_functions,
             )
 
-        return demo
-
-    def queue(self, **kwargs):
-        """Configure the event queue. Accepts the same arguments as `gr.Blocks.queue()`."""
-        self._demo.queue(**kwargs)
-        return self
-
-    def launch(self, **kwargs):
-        """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`."""
-        return self._demo.launch(
-            allowed_paths=[tempfile.gettempdir()],
-            **kwargs,
-        )
+    def launch(self, *args, **kwargs):  # type: ignore[override]
+        """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
+        `call_space` / `_save_tmp` write inference outputs to the system tempdir
+        and serve them back as `/gradio_api/file=…` URLs; the tempdir is added
+        to `allowed_paths` so those URLs resolve."""
+        kwargs["allowed_paths"] = [
+            tempfile.gettempdir(),
+            *(kwargs.get("allowed_paths") or []),
+        ]
+        return super().launch(*args, **kwargs)
