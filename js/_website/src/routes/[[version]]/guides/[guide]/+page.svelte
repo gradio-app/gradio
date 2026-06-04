@@ -392,3 +392,13 @@
 </div>
 
 <svelte:window bind:scrollY={y} />
+
+<style>
+	/* Offset in-page anchor jumps (e.g. clicking a link in the table of
+	   contents) so the sticky site header doesn't cover the target heading.
+	   See https://github.com/gradio-app/gradio/issues/12977. The offset matches
+	   the ~100px threshold used above when highlighting the active heading. */
+	.prose :global(:is(h1, h2, h3, h4, h5, h6)) {
+		scroll-margin-top: 6rem;
+	}
+</style>
