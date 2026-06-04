@@ -34,6 +34,17 @@ export function componentToPortType(
 	labelHint?: string
 ): PortType {
 	const c = component.toLowerCase();
+	if (pythonType) {
+		const cleaned = pythonType
+			.toLowerCase()
+			.replace(/^none\s*\|\s*/, "")
+			.replace(/\s*\|\s*none$/, "")
+			.trim();
+		if (cleaned === "str" || cleaned === "string") return "text";
+		if (cleaned === "int" || cleaned === "integer" || cleaned === "float")
+			return "number";
+		if (cleaned === "bool" || cleaned === "boolean") return "boolean";
+	}
 	if (c === "image" || c === "imageeditor" || c === "imageslider")
 		return "image";
 	if (c === "gallery") return "gallery";
@@ -62,28 +73,19 @@ export function componentToPortType(
 	)
 		return "text";
 
-	// gr.api endpoints use component="Api" with python_type containing the real hint
+	// gr.api endpoints use component="Api" with python_type carrying the
+	// real hint — primitives already handled at the top of the function.
 	if (pythonType) {
 		const cleaned = pythonType
 			.toLowerCase()
 			.replace(/^none\s*\|\s*/, "")
 			.replace(/\s*\|\s*none$/, "")
 			.trim();
-		if (cleaned === "str" || cleaned === "string") return "text";
-		if (
-			cleaned === "int" ||
-			cleaned === "integer" ||
-			cleaned === "float" ||
-			cleaned === "number"
-		)
-			return "number";
-		if (cleaned === "bool" || cleaned === "boolean") return "boolean";
 		if (
 			cleaned === "filepath" ||
 			cleaned === "file" ||
 			cleaned.includes("filedata")
 		) {
-			// Infer media type from label/parameter name when possible
 			const l = (labelHint ?? "").toLowerCase();
 			if (/audio|wav|mp3|voice|sound|speech|tts|asr/.test(l)) return "audio";
 			if (/image|img|photo|picture|pic\b/.test(l)) return "image";
@@ -116,16 +118,6 @@ export function componentToPortType(
 	return "any";
 }
 
-/** Preferred endpoint names in priority order */
-const PREFERRED_ENDPOINTS = [
-	"/predict",
-	"/infer",
-	"/generate",
-	"/run",
-	"/process",
-	"/translate"
-];
-
 /** Prefixes that indicate utility/event-handler endpoints — skip these */
 const UTILITY_PREFIXES = [
 	"/on_",
@@ -137,60 +129,86 @@ const UTILITY_PREFIXES = [
 	"/reset_"
 ];
 
-/** File-like components score much higher than scalar outputs */
-const FILE_COMPONENTS = new Set([
-	"video",
-	"image",
-	"imageeditor",
-	"imageslider",
-	"audio",
-	"file",
-	"uploadbutton",
-	"gallery",
-	"model3d"
-]);
-
-function endpointScore(ep: any): number {
-	const outputScore = (ep.returns ?? []).reduce((s: number, r: any) => {
-		const comp = (r.component ?? "").toLowerCase();
-		return s + (FILE_COMPONENTS.has(comp) ? 10 : 1);
-	}, 0);
-	// Prefer endpoints that accept rich media inputs (image, audio, video, file)
-	// — this biases toward the main generation endpoint over post-processing ones
-	const inputScore = (ep.parameters ?? []).reduce((s: number, p: any) => {
-		const comp = (p.component ?? "").toLowerCase();
-		return s + (FILE_COMPONENTS.has(comp) ? 8 : 0);
-	}, 0);
-	return outputScore + inputScore;
-}
-
-function pickBestEndpoint(endpoints: Record<string, any>): string {
-	const names = Object.keys(endpoints);
-
-	// Filter out event-handler / utility endpoints
-	const candidates = names.filter(
-		(n) => !UTILITY_PREFIXES.some((p) => n.startsWith(p))
-	);
-	const pool = candidates.length > 0 ? candidates : names;
-
-	// Prefer well-known names first
-	for (const pref of PREFERRED_ENDPOINTS) {
-		if (pool.includes(pref)) return pref;
-	}
-
-	// Pick the endpoint with the richest outputs (file outputs >> scalar outputs)
-	return pool
-		.slice()
-		.sort(
-			(a, b) => endpointScore(endpoints[b]) - endpointScore(endpoints[a])
-		)[0];
+export interface EndpointSig {
+	name: string;
+	inputs: Port[];
+	outputs: Port[];
 }
 
 export interface SpaceApiInfo {
 	endpoint: string;
-	inputs: any[];
-	outputs: any[];
+	inputs: Port[];
+	outputs: Port[];
 	width: number;
+	endpoints: EndpointSig[];
+}
+
+const ORDINAL_LABEL = /^\d+(st|nd|rd|th)$/i;
+
+function parse_endpoint_sig(name: string, ep: any): EndpointSig {
+	const inputs = (ep.parameters ?? [])
+		.map((p: any, i: number) => {
+			const isApi = (p.component ?? "").toLowerCase() === "api";
+			const pyType = p.python_type?.type;
+			const labelHint = p.parameter_name || p.label || "";
+			const portType = componentToPortType(
+				p.component ?? "",
+				typeof p.type === "string" ? p.type : "",
+				pyType,
+				labelHint
+			);
+			if (portType === "__skip__") return null;
+			const hasDefault = p.parameter_has_default === true;
+			const useParamName =
+				(isApi || ORDINAL_LABEL.test(p.label ?? "")) && p.parameter_name;
+			const rawLabel = useParamName
+				? p.parameter_name
+				: p.label || p.parameter_name || `Input ${i}`;
+			return {
+				id: `in_${i}`,
+				label: rawLabel,
+				type: portType,
+				required: !hasDefault,
+				default_value:
+					hasDefault && p.default !== undefined ? p.default : undefined
+			};
+		})
+		.filter(Boolean) as Port[];
+
+	const outputs = (ep.returns ?? [])
+		.map((r: any, i: number) => {
+			const isApi = (r.component ?? "").toLowerCase() === "api";
+			const pyType = r.python_type?.type;
+			const labelHint = isApi
+				? `${r.parameter_name ?? ""} ${name ?? ""}`.trim()
+				: r.parameter_name || r.label || "";
+			const portType = componentToPortType(
+				r.component ?? "",
+				typeof r.type === "string" ? r.type : "",
+				pyType,
+				labelHint
+			);
+			if (portType === "__skip__") return null;
+			const useParamName =
+				(isApi || ORDINAL_LABEL.test(r.label ?? "")) && r.parameter_name;
+			const rawLabel = useParamName
+				? r.parameter_name
+				: r.label || `Output ${i}`;
+			return {
+				id: `out_${i}`,
+				label: rawLabel,
+				type: portType,
+				output_index: i
+			};
+		})
+		.filter(Boolean) as Port[];
+
+	if (inputs.length === 0)
+		inputs.push({ id: "in", label: "Input", type: "any" as PortType });
+	if (outputs.length === 0)
+		outputs.push({ id: "out", label: "Output", type: "any" as PortType });
+
+	return { name, inputs, outputs };
 }
 
 /** Cache for fetched API info */
@@ -235,107 +253,29 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 	const named = api.named_endpoints ?? {};
 	const unnamed = api.unnamed_endpoints ?? {};
 
-	if (Object.keys(named).length === 0 && Object.keys(unnamed).length === 0) {
-		throw new Error("No API endpoints found");
+	const all_endpoints: Array<[string, any]> = [
+		...Object.entries(named),
+		...Object.entries(unnamed)
+	].filter(([n]) => !UTILITY_PREFIXES.some((p) => n.startsWith(p)));
+
+	if (all_endpoints.length === 0) {
+		throw new Error("No suitable endpoints found");
 	}
 
-	// Use the same endpoint the Space UI uses by default:
-	// 1. Apply heuristic to named endpoints (filters utility, prefers rich outputs)
-	// 2. Check unnamed[0] as fallback, but validate it's not a utility endpoint
-	// 3. Fallback to /predict if it exists
-	let epName: string;
-	let ep: any;
+	// Default to /predict if present (most common Gradio convention), else
+	// the first non-utility endpoint. Users can switch via the node dropdown.
+	const default_index = Math.max(
+		0,
+		all_endpoints.findIndex(([n]) => n === "/predict")
+	);
+	const [epName, ep] = all_endpoints[default_index];
+	const endpoints: EndpointSig[] = all_endpoints.map(([n, e]) =>
+		parse_endpoint_sig(n, e)
+	);
 
-	// Try heuristic on named endpoints first (catches event handlers)
-	const namedEndpoint =
-		Object.keys(named).length > 0 ? pickBestEndpoint(named) : null;
-	if (
-		namedEndpoint &&
-		!UTILITY_PREFIXES.some((p) => namedEndpoint.startsWith(p))
-	) {
-		epName = namedEndpoint;
-		ep = named[epName];
-	} else if (unnamed["0"]) {
-		// unnamed[0] is the Submit button, but still apply validation
-		epName = "0";
-		ep = unnamed["0"];
-	} else if (named["/predict"]) {
-		epName = "/predict";
-		ep = named["/predict"];
-	} else if (namedEndpoint) {
-		// Fallback even if it's a utility endpoint (better than nothing)
-		epName = namedEndpoint;
-		ep = named[epName];
-	} else {
-		throw new Error("No suitable endpoint found");
-	}
-
-	// Auto-generated ordinal labels from gr.api ("1st", "2nd", ...) — prefer parameter_name when matched
-	const ORDINAL_LABEL = /^\d+(st|nd|rd|th)$/i;
-
-	const inputs = (ep.parameters ?? [])
-		.map((p: any, i: number) => {
-			const isApi = (p.component ?? "").toLowerCase() === "api";
-			const pyType = p.python_type?.type;
-			const labelHint = p.parameter_name || p.label || "";
-			const portType = componentToPortType(
-				p.component ?? "",
-				typeof p.type === "string" ? p.type : "",
-				pyType,
-				labelHint
-			);
-			if (portType === "__skip__") return null;
-			const hasDefault = p.parameter_has_default === true;
-			const useParamName =
-				(isApi || ORDINAL_LABEL.test(p.label ?? "")) && p.parameter_name;
-			const rawLabel = useParamName
-				? p.parameter_name
-				: p.label || p.parameter_name || `Input ${i}`;
-			return {
-				id: `in_${i}`,
-				label: rawLabel,
-				type: portType,
-				required: !hasDefault,
-				default_value:
-					hasDefault && p.default !== undefined ? p.default : undefined
-			};
-		})
-		.filter(Boolean);
-
-	const outputs = (ep.returns ?? [])
-		.map((r: any, i: number) => {
-			const isApi = (r.component ?? "").toLowerCase() === "api";
-			const pyType = r.python_type?.type;
-			// For Api outputs the label is ordinal ("1st") — append endpoint name so the media hint regex can match it
-			const labelHint = isApi
-				? `${r.parameter_name ?? ""} ${epName ?? ""}`.trim()
-				: r.parameter_name || r.label || "";
-			const portType = componentToPortType(
-				r.component ?? "",
-				typeof r.type === "string" ? r.type : "",
-				pyType,
-				labelHint
-			);
-			if (portType === "__skip__") return null;
-			const useParamName =
-				(isApi || ORDINAL_LABEL.test(r.label ?? "")) && r.parameter_name;
-			const rawLabel = useParamName
-				? r.parameter_name
-				: r.label || `Output ${i}`;
-			return {
-				id: `out_${i}`,
-				label: rawLabel,
-				type: portType,
-				output_index: i
-			};
-		})
-		.filter(Boolean);
-
-	// Fallback if introspection returns empty
-	if (inputs.length === 0)
-		inputs.push({ id: "in", label: "Input", type: "any" as PortType });
-	if (outputs.length === 0)
-		outputs.push({ id: "out", label: "Output", type: "any" as PortType });
+	const picked = parse_endpoint_sig(epName, ep);
+	const inputs = picked.inputs;
+	const outputs = picked.outputs;
 
 	const label = spaceId.split("/").pop() ?? spaceId;
 	const maxPortLen = Math.max(
@@ -345,7 +285,7 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 	);
 	const width = Math.max(280, Math.min(400, maxPortLen * 9 + 100));
 
-	const result = { endpoint: epName, inputs, outputs, width };
+	const result = { endpoint: epName, inputs, outputs, width, endpoints };
 	spaceApiCache.set(spaceId, result);
 	return result;
 }

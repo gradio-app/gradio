@@ -425,6 +425,7 @@
 				space_id: space.id,
 				pipeline_tag: space.pipeline_tag,
 				endpoint: api_info.endpoint,
+				endpoints: api_info.endpoints,
 				inputs: normalizeOperatorPorts(modality, api_info.inputs),
 				outputs: normalizeOperatorPorts(modality, api_info.outputs),
 				width: api_info.width,

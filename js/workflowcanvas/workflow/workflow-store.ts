@@ -12,6 +12,7 @@ import type {
 	WFEdge,
 	Workflow
 } from "./workflow-types";
+import { ports_compatible } from "./workflow-types";
 import { allNodes, findNode, isV2, migrateToV2 } from "./workflow-migration";
 
 function uuid(): string {
@@ -214,6 +215,7 @@ export function addNode(
 				dataset_config: template.dataset_config,
 				dataset_split: template.dataset_split,
 				endpoint: template.endpoint,
+				endpoints: template.endpoints,
 				pipeline_tag: template.pipeline_tag,
 				provider: template.provider,
 				fn: template.fn,
@@ -304,6 +306,58 @@ export function removeEdge(id: string): void {
 		...wf,
 		edges: wf.edges.filter((e) => e.id !== id)
 	}));
+}
+
+export function hydrateEndpoints(
+	nodeId: string,
+	endpoints: { name: string; inputs: Port[]; outputs: Port[] }[]
+): void {
+	workflow.update((wf) => ({
+		...wf,
+		operators: wf.operators.map((n) =>
+			n.id === nodeId ? { ...n, endpoints } : n
+		)
+	}));
+}
+
+export function switchEndpoint(nodeId: string, endpointName: string): void {
+	workflow.update((wf) => {
+		const node = wf.operators.find((n) => n.id === nodeId);
+		if (!node || !node.endpoints) return wf;
+		const sig = node.endpoints.find((e) => e.name === endpointName);
+		if (!sig || sig.name === node.endpoint) return wf;
+
+		const inputByID = new Map(sig.inputs.map((p) => [p.id, p]));
+		const outputByID = new Map(sig.outputs.map((p) => [p.id, p]));
+
+		return {
+			...wf,
+			operators: wf.operators.map((n) =>
+				n.id === nodeId
+					? {
+							...n,
+							endpoint: sig.name,
+							inputs: sig.inputs,
+							outputs: sig.outputs,
+							data: {}
+						}
+					: n
+			),
+			edges: wf.edges.filter((e) => {
+				if (e.from_node_id === nodeId) {
+					const newPort = outputByID.get(e.from_port_id);
+					if (!newPort) return false;
+					if (!ports_compatible(newPort.type, e.type)) return false;
+				}
+				if (e.to_node_id === nodeId) {
+					const newPort = inputByID.get(e.to_port_id);
+					if (!newPort) return false;
+					if (!ports_compatible(newPort.type, e.type)) return false;
+				}
+				return true;
+			})
+		};
+	});
 }
 
 /**

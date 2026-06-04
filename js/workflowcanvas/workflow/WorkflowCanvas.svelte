@@ -24,10 +24,12 @@
 		updateNodeData,
 		removeNode,
 		replaceNodeSource,
+		switchEndpoint,
+		hydrateEndpoints,
 		sanitize_for_save
 	} from "./workflow-store";
 	import { migrateToV2, toLegacyShape } from "./workflow-migration";
-	import { PORT_COLOR } from "./workflow-types";
+	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
 		WFNode,
@@ -307,6 +309,27 @@
 		ondatachange: updateNodeData,
 		onremove: (id: string) => removeNode(id),
 		onopenpicker: (id: string) => openPickerForNode(id),
+		onswitchendpoint: (id: string, endpointName: string) =>
+			switchEndpoint(id, endpointName),
+		onhydratendpoints: async (id: string, spaceId: string) => {
+			try {
+				const info = await fetchSpaceApi(spaceId);
+				if (!info.endpoints || info.endpoints.length === 0) {
+					showToast(`${spaceId} has no usable endpoints`, 4000, "warning");
+					return;
+				}
+				hydrateEndpoints(id, info.endpoints);
+				if (info.endpoints.length === 1) {
+					showToast(`${spaceId} only exposes one endpoint`, 3000);
+				}
+			} catch (err) {
+				showToast(
+					err instanceof Error ? err.message : "Failed to load endpoints",
+					4000,
+					"error"
+				);
+			}
+		},
 		onrunnode: (id: string) => void runNode(id),
 		onselect: (id: string) => selectNode(id),
 		onnodepointerdown: (e: PointerEvent, id: string) => startNodeDrag(e, id),
@@ -337,12 +360,6 @@
 	});
 
 	// ─── Custom canvas event handlers ───────────────────────────────────────────
-	// v1 port compatibility policy: exact-match or `any` wildcard. No subtyping
-	// (e.g. gallery ↔ image) — that's a v2 extension layered on top of this
-	// single predicate. If you change this rule, change it here only.
-	function compatible(a: PortType, b: PortType): boolean {
-		return a === "any" || b === "any" || a === b;
-	}
 
 	function clientToCanvas(
 		clientX: number,
@@ -567,12 +584,12 @@
 		const target = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!target) return null;
 		if (reversed) {
-			const out = target.outputs.find((p) => compatible(p.type, type));
+			const out = target.outputs.find((p) => ports_compatible(p.type, type));
 			return out ? { id: out.id, direction: "output" } : null;
 		}
 		const inPort = target.inputs.find(
 			(p) =>
-				compatible(type, p.type) &&
+				ports_compatible(type, p.type) &&
 				!$workflow.edges.some(
 					(e) => e.to_node_id === nodeId && e.to_port_id === p.id
 				)
@@ -695,7 +712,8 @@
 		if (!sourceNode || !targetNode) return;
 		const outPort = sourceNode.outputs.find((p) => p.id === sourcePort);
 		const inPort = targetNode.inputs.find((p) => p.id === targetPort);
-		if (!outPort || !inPort || !compatible(outPort.type, inPort.type)) return;
+		if (!outPort || !inPort || !ports_compatible(outPort.type, inPort.type))
+			return;
 		addEdge({
 			from_node_id: sourceId,
 			from_port_id: sourcePort,
@@ -758,7 +776,7 @@
 		const newNode = legacyView.nodes.find((n) => n.id === newId);
 		if (drop.reversed) {
 			const outputPort = newNode?.outputs.find((p: any) =>
-				compatible(p.type, drop.type)
+				ports_compatible(p.type, drop.type)
 			);
 			if (outputPort) {
 				addEdge({
@@ -771,7 +789,7 @@
 			}
 		} else {
 			const inputPort = newNode?.inputs.find((p: any) =>
-				compatible(drop.type, p.type)
+				ports_compatible(drop.type, p.type)
 			);
 			if (inputPort) {
 				addEdge({
@@ -1496,7 +1514,7 @@
 			const newNode = legacyView.nodes.find((n) => n.id === newId);
 			if (drop.reversed) {
 				const outputPort = newNode?.outputs.find((p: any) =>
-					compatible(p.type, drop.type)
+					ports_compatible(p.type, drop.type)
 				);
 				if (outputPort) {
 					addEdge({
@@ -1509,7 +1527,7 @@
 				}
 			} else {
 				const inputPort = newNode?.inputs.find((p: any) =>
-					compatible(drop.type, p.type)
+					ports_compatible(drop.type, p.type)
 				);
 				if (inputPort) {
 					addEdge({
@@ -1729,6 +1747,7 @@
 			{#each legacyView.nodes as n (n.id)}
 				<div
 					class="node-pos-wrap"
+					class:node-pos-selected={selectedNodeId === n.id}
 					data-node-id={n.id}
 					style="left: {n.x}px; top: {n.y}px; width: {n.width}px;"
 					onpointerdown={(e) => startNodeDrag(e, n.id)}
@@ -2016,6 +2035,11 @@
 	.node-pos-wrap {
 		position: absolute;
 		touch-action: none;
+		z-index: 1;
+	}
+
+	.node-pos-wrap.node-pos-selected {
+		z-index: 2;
 	}
 
 	:global(body:not(.dark)) .canvas-bg {

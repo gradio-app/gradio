@@ -5,7 +5,11 @@
 		NodeDataValue,
 		NodeStatus
 	} from "./workflow-types";
-	import { PORT_COLOR, PORT_COLOR_DIM } from "./workflow-types";
+	import {
+		PORT_COLOR,
+		PORT_COLOR_DIM,
+		ports_compatible
+	} from "./workflow-types";
 	import { resizeNode, workflow } from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 
@@ -144,16 +148,12 @@
 		window.addEventListener("mouseup", onUp);
 	}
 
-	function compatible(a: PortType, b: PortType): boolean {
-		return a === "any" || b === "any" || a === b;
-	}
-
 	function firstCompatibleInput(): (typeof node.inputs)[0] | null {
 		if (!pending || pending.from_node_id === node.id) return null;
 		return (
 			node.inputs.find(
 				(p) =>
-					compatible(pending.type, p.type) &&
+					ports_compatible(pending.type, p.type) &&
 					!connectedPorts.has(`${node.id}:${p.id}:input`)
 			) ?? null
 		);
@@ -164,7 +164,7 @@
 			pending.from_node_id !== node.id &&
 			node.inputs.some(
 				(p) =>
-					compatible(pending.type, p.type) &&
+					ports_compatible(pending.type, p.type) &&
 					!connectedPorts.has(`${node.id}:${p.id}:input`)
 			)
 	);
@@ -296,9 +296,9 @@
 							class:port-optional={port.required === false}
 							class:port-filled={port.required !== false}
 							class:incompatible={pending !== null &&
-								!compatible(pending.type, port.type)}
+								!ports_compatible(pending.type, port.type)}
 							class:pulse={pending !== null &&
-								compatible(pending.type, port.type)}
+								ports_compatible(pending.type, port.type)}
 							style="--port-color: {PORT_COLOR[port.type]}"
 							data-port-id="{node.id}:{port.id}:input"
 							role="button"

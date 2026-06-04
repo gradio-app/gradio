@@ -619,9 +619,7 @@ describe("executeWorkflow — space multi-output mapping", () => {
 
 	test("stale output_index recovers via shape match (Space API drifted)", async () => {
 		const node = spaceOp("s1", {
-			outputs: [
-				{ id: "out_0", label: "Image", type: "image", output_index: 0 }
-			]
+			outputs: [{ id: "out_0", label: "Image", type: "image", output_index: 0 }]
 		});
 		const response = JSON.stringify([
 			1686841721,
@@ -651,12 +649,82 @@ describe("executeWorkflow — space multi-output mapping", () => {
 
 	test("nothing matches and primary is junk → falls back gracefully", async () => {
 		const node = spaceOp("s1", {
-			outputs: [
-				{ id: "out_0", label: "Image", type: "image", output_index: 0 }
-			]
+			outputs: [{ id: "out_0", label: "Image", type: "image", output_index: 0 }]
 		});
 		const response = JSON.stringify(["unhelpful", 42]);
 		const outputs = await run(node, response);
 		expect(outputs.out_0).toBeDefined();
+	});
+});
+
+describe("executeWorkflow — cascading failure messages", () => {
+	test("downstream node's missing-input error names the failed upstream", async () => {
+		const failingFn = "boom";
+		const downstreamFn = "consumer";
+		const callFn = vi.fn().mockImplementation(async (name: string) => {
+			if (name === failingFn) {
+				return JSON.stringify({
+					error: "Upstream raised",
+					error_type: "unknown",
+					suggestion: ""
+				});
+			}
+			return JSON.stringify(["ok"]);
+		});
+
+		const upstream: OperatorNode = {
+			id: "u",
+			role: "operator",
+			kind: "fn",
+			label: "moondream2",
+			fn: failingFn,
+			inputs: [],
+			outputs: [{ id: "out", label: "Text", type: "text" }],
+			data: {},
+			x: 0,
+			y: 0,
+			width: 200,
+			height: 80,
+			runtime: "client"
+		};
+		const downstream: OperatorNode = {
+			id: "d",
+			role: "operator",
+			kind: "fn",
+			label: "FLUX",
+			fn: downstreamFn,
+			inputs: [{ id: "in", label: "Prompt", type: "text", required: true }],
+			outputs: [{ id: "out", label: "Image", type: "image" }],
+			data: {},
+			x: 0,
+			y: 0,
+			width: 200,
+			height: 80,
+			runtime: "client"
+		};
+		const edge: WFEdge = {
+			id: "e1",
+			from_node_id: "u",
+			from_port_id: "out",
+			to_node_id: "d",
+			to_port_id: "in",
+			type: "text"
+		};
+
+		const { onStatus, errors } = statusBag();
+		await executeWorkflow(
+			emptyV2([upstream, downstream], [], [edge]),
+			onStatus,
+			() => {},
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			callFn as unknown as Parameters<typeof executeWorkflow>[7],
+			undefined
+		);
+
+		expect(errors.d).toContain('"Prompt" is missing');
+		expect(errors.d).toContain("moondream2");
 	});
 });

@@ -7,7 +7,8 @@ import {
 	replaceNodeSource,
 	removeNode,
 	removeEdge,
-	sanitize_for_save
+	sanitize_for_save,
+	switchEndpoint
 } from "./workflow-store";
 import type { OperatorNode, ReferenceNode, Workflow } from "./workflow-types";
 
@@ -242,6 +243,178 @@ describe("removeEdge", () => {
 		const edgeId = get(workflow).edges[0].id;
 		removeEdge(edgeId);
 		expect(get(workflow).operators).toHaveLength(2);
+	});
+});
+
+describe("switchEndpoint", () => {
+	beforeEach(resetWorkflow);
+
+	function _spaceOp(): string {
+		return addOperator(
+			{
+				kind: "space",
+				label: "moondream2",
+				space_id: "user/moondream2",
+				endpoint: "/process_answer",
+				endpoints: [
+					{
+						name: "/answer_question",
+						inputs: [
+							{ id: "in_0", label: "img", type: "image" },
+							{ id: "in_1", label: "prompt", type: "text" }
+						],
+						outputs: [
+							{
+								id: "out_0",
+								label: "Response",
+								type: "text",
+								output_index: 0
+							}
+						]
+					},
+					{
+						name: "/process_answer",
+						inputs: [
+							{ id: "in_0", label: "img", type: "image" },
+							{ id: "in_1", label: "answer", type: "text" }
+						],
+						outputs: [
+							{
+								id: "out_0",
+								label: "Annotated",
+								type: "image",
+								output_index: 0
+							}
+						]
+					}
+				],
+				inputs: [
+					{ id: "in_0", label: "img", type: "image" },
+					{ id: "in_1", label: "answer", type: "text" }
+				],
+				outputs: [
+					{ id: "out_0", label: "Annotated", type: "image", output_index: 0 }
+				],
+				width: 280,
+				height: 90
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+	}
+
+	test("switches inputs and outputs to the new endpoint signature", () => {
+		const id = _spaceOp();
+		switchEndpoint(id, "/answer_question");
+		const op = get(workflow).operators.find((o) => o.id === id);
+		expect(op?.endpoint).toBe("/answer_question");
+		expect(op?.outputs[0].type).toBe("text");
+		expect(op?.outputs[0].label).toBe("Response");
+	});
+
+	test("no-op when switching to the current endpoint", () => {
+		const id = _spaceOp();
+		const before = get(workflow);
+		switchEndpoint(id, "/process_answer");
+		expect(get(workflow)).toBe(before);
+	});
+
+	test("no-op for unknown endpoint name", () => {
+		const id = _spaceOp();
+		const before = get(workflow);
+		switchEndpoint(id, "/nonexistent");
+		expect(get(workflow)).toBe(before);
+	});
+
+	test("drops edges to removed input ports", () => {
+		const id = _spaceOp();
+		const upstream = addOperator(
+			{
+				kind: "fn",
+				label: "src",
+				fn: "src",
+				inputs: [],
+				outputs: [{ id: "out", label: "y", type: "image" }],
+				width: 200,
+				height: 80
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+		addEdge({
+			from_node_id: upstream,
+			from_port_id: "out",
+			to_node_id: id,
+			to_port_id: "in_0",
+			type: "image"
+		});
+		switchEndpoint(id, "/answer_question");
+		expect(get(workflow).edges).toHaveLength(1);
+	});
+
+	test("drops edges that become type-incompatible after the switch", () => {
+		const id = _spaceOp();
+		const downstream = addOperator(
+			{
+				kind: "fn",
+				label: "sink",
+				fn: "sink",
+				inputs: [{ id: "in", label: "x", type: "image" }],
+				outputs: [],
+				width: 200,
+				height: 80
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+		addEdge({
+			from_node_id: id,
+			from_port_id: "out_0",
+			to_node_id: downstream,
+			to_port_id: "in",
+			type: "image"
+		});
+		switchEndpoint(id, "/answer_question");
+		expect(get(workflow).edges).toHaveLength(0);
+	});
+
+	test("preserves edges when the port type matches the new endpoint's port", () => {
+		const id = _spaceOp();
+		const upstream = addOperator(
+			{
+				kind: "fn",
+				label: "src",
+				fn: "src",
+				inputs: [],
+				outputs: [{ id: "out", label: "y", type: "text" }],
+				width: 200,
+				height: 80
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+		addEdge({
+			from_node_id: upstream,
+			from_port_id: "out",
+			to_node_id: id,
+			to_port_id: "in_1",
+			type: "text"
+		});
+		switchEndpoint(id, "/answer_question");
+		expect(get(workflow).edges).toHaveLength(1);
+	});
+
+	test("clears node.data so stale values don't bleed into new ports", () => {
+		const id = _spaceOp();
+		workflow.update((wf) => ({
+			...wf,
+			operators: wf.operators.map((o) =>
+				o.id === id ? { ...o, data: { in_1: "stale value" } } : o
+			)
+		}));
+		switchEndpoint(id, "/answer_question");
+		const op = get(workflow).operators.find((o) => o.id === id);
+		expect(op?.data).toEqual({});
 	});
 });
 

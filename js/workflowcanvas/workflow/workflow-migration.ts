@@ -192,6 +192,7 @@ export function toLegacyShape(wf: Workflow): {
 			dataset_config: n.dataset_config,
 			dataset_split: n.dataset_split,
 			endpoint: n.endpoint,
+			endpoints: n.endpoints,
 			pipeline_tag: n.pipeline_tag,
 			provider: n.provider,
 			fn: n.fn,

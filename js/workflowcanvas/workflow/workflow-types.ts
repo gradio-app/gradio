@@ -18,6 +18,10 @@ export type PortType =
 	| "model3d"
 	| "any";
 
+export function ports_compatible(a: PortType, b: PortType): boolean {
+	return a === "any" || b === "any" || a === b;
+}
+
 export interface Port {
 	id: string;
 	label: string;
@@ -50,6 +54,7 @@ export interface WFNode {
 	pipeline_tag?: string;
 	provider?: string;
 	endpoint?: string;
+	endpoints?: EndpointChoice[];
 	fn?: string;
 	inputs: Port[];
 	outputs: Port[];
@@ -116,6 +121,12 @@ export interface ReferenceNode extends BaseNode {
 	value?: NodeDataValue;
 }
 
+export interface EndpointChoice {
+	name: string;
+	inputs: Port[];
+	outputs: Port[];
+}
+
 export interface OperatorNode extends BaseNode {
 	role: "operator";
 	kind: OperatorKind;
@@ -127,6 +138,7 @@ export interface OperatorNode extends BaseNode {
 	dataset_config?: string;
 	dataset_split?: string;
 	endpoint?: string;
+	endpoints?: EndpointChoice[];
 	pipeline_tag?: string;
 	fn?: string;
 	/** HF Inference provider override (e.g. "hf-inference", "together", "replicate"). Defaults to "auto" — let HF route. */

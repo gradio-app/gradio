@@ -232,6 +232,20 @@ export async function executeWorkflow(
 	// around role-based dispatch.
 	const { nodes, edges } = toLegacyShape(workflow);
 	const dataMap: Record<string, Record<string, NodeDataValue>> = {};
+	const failedNodes = new Map<string, string>();
+
+	function missing_input_message(node: WFNode, port: Port): string {
+		const edge = edges.find(
+			(e) => e.to_node_id === node.id && e.to_port_id === port.id
+		);
+		if (edge) {
+			const upstream = nodes.find((n) => n.id === edge.from_node_id);
+			if (upstream && failedNodes.has(upstream.id)) {
+				return `"${port.label}" is missing — upstream node "${upstream.label}" failed`;
+			}
+		}
+		return `"${port.label}" is missing — an upstream node may have failed`;
+	}
 
 	// Seed input nodes (including component nodes with no incoming edges)
 	for (const node of nodes.filter((n) => {
@@ -310,6 +324,7 @@ export async function executeWorkflow(
 			} catch (err) {
 				const msg = err instanceof Error ? err.message : String(err);
 				onStatus(node.id, "error", msg);
+				failedNodes.set(node.id, node.label);
 				dataMap[node.id] = {};
 				node.outputs.forEach((port) => {
 					dataMap[node.id][port.id] = null;
@@ -351,9 +366,7 @@ export async function executeWorkflow(
 				const inputs = resolveInputs(node, edges, dataMap);
 				for (const port of node.inputs) {
 					if (port.required && inputs[port.id] === null) {
-						throw new Error(
-							`"${port.label}" is missing — an upstream node may have failed`
-						);
+						throw new Error(missing_input_message(node, port));
 					}
 				}
 				const args = node.inputs.map((port) => inputs[port.id]);
@@ -379,6 +392,7 @@ export async function executeWorkflow(
 			} catch (err) {
 				const msg = err instanceof Error ? err.message : String(err);
 				onStatus(node.id, "error", msg);
+				failedNodes.set(node.id, node.label);
 				dataMap[node.id] = {};
 				node.outputs.forEach((port) => {
 					dataMap[node.id][port.id] = null;
@@ -394,9 +408,7 @@ export async function executeWorkflow(
 				const inputs = resolveInputs(node, edges, dataMap);
 				for (const port of node.inputs) {
 					if (port.required && inputs[port.id] === null) {
-						throw new Error(
-							`"${port.label}" is missing — an upstream node may have failed`
-						);
+						throw new Error(missing_input_message(node, port));
 					}
 				}
 				const args = await Promise.all(
@@ -511,6 +523,7 @@ export async function executeWorkflow(
 				const msg = err instanceof Error ? err.message : String(err);
 				const errorType = (err as any)?.errorType;
 				onStatus(node.id, "error", msg, errorType);
+				failedNodes.set(node.id, node.label);
 				dataMap[node.id] = {};
 				node.outputs.forEach((port) => {
 					dataMap[node.id][port.id] = null;

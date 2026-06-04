@@ -4,7 +4,11 @@
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
-	import { PORT_COLOR, PORT_COLOR_DIM } from "./workflow-types";
+	import {
+		PORT_COLOR,
+		PORT_COLOR_DIM,
+		ports_compatible
+	} from "./workflow-types";
 	import type {
 		WFNode,
 		PortType,
@@ -38,6 +42,8 @@
 		) => void;
 		onremove: (id: string) => void;
 		onopenpicker: (id: string) => void;
+		onswitchendpoint: (id: string, endpointName: string) => void;
+		onhydratendpoints: (id: string, spaceId: string) => void;
 		onrunnode: (id: string) => void;
 		onselect: (id: string) => void;
 		onnodepointerdown: (e: PointerEvent, id: string) => void;
@@ -114,10 +120,6 @@
 	);
 	const isReadonly = $derived(mode === "output");
 
-	function compatible(a: PortType, b: PortType): boolean {
-		return a === "any" || b === "any" || a === b;
-	}
-
 	function sourceHFUrl(n: WFNode): string {
 		if (n.space_id) return `https://huggingface.co/spaces/${n.space_id}`;
 		if (n.model_id) return `https://huggingface.co/${n.model_id}`;
@@ -130,7 +132,7 @@
 			pending.from_node_id !== node.id &&
 			node.inputs.some(
 				(p) =>
-					compatible(pending.type, p.type) &&
+					ports_compatible(pending.type, p.type) &&
 					!connectedPorts.has(`${node.id}:${p.id}:input`)
 			)
 	);
@@ -274,6 +276,48 @@
 		{/if}
 	{/if}
 
+	{#if node.space_id}
+		<div
+			class="node-endpoint-row"
+			onpointerdown={(e) => e.stopPropagation()}
+			onmousedown={(e) => e.stopPropagation()}
+		>
+			{#if node.endpoints && node.endpoints.length > 1}
+				<select
+					class="node-endpoint-select"
+					value={node.endpoint ?? ""}
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+					onclick={(e) => e.stopPropagation()}
+					onchange={(e) => {
+						e.stopPropagation();
+						ctx.onswitchendpoint(
+							node.id,
+							(e.currentTarget as HTMLSelectElement).value
+						);
+					}}
+				>
+					{#each node.endpoints as ep}
+						<option value={ep.name}>{ep.name}</option>
+					{/each}
+				</select>
+			{:else if !node.endpoints}
+				<button
+					class="node-endpoint-load"
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+					onclick={(e) => {
+						e.stopPropagation();
+						ctx.onhydratendpoints(node.id, node.space_id ?? "");
+					}}
+					title="Discover this Space's other endpoints"
+				>
+					{node.endpoint ?? "/predict"} ▾
+				</button>
+			{/if}
+		</div>
+	{/if}
+
 	<!-- Input ports -->
 	{#if node.inputs.length > 0}
 		{@const collapsible = node.inputs.length > INPUT_COLLAPSE_THRESHOLD}
@@ -291,9 +335,9 @@
 							class="port-handle-sf input-handle-sf"
 							class:connected={portConnected}
 							class:incompatible={pending !== null &&
-								!compatible(pending.type, port.type)}
+								!ports_compatible(pending.type, port.type)}
 							class:pulse={pending !== null &&
-								compatible(pending.type, port.type)}
+								ports_compatible(pending.type, port.type)}
 							data-node-id={node.id}
 							data-port-id={port.id}
 							data-port-type={port.type}
@@ -993,5 +1037,52 @@
 
 	:global(body:not(.dark)) .inline-checkbox {
 		color: #6b6e78;
+	}
+
+	.node-endpoint-row {
+		padding: 2px 12px 0 0;
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.node-endpoint-select,
+	.node-endpoint-load {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9.5px;
+		padding: 1px 0 1px 4px;
+		border: none;
+		background: transparent;
+		color: #5c5e6a;
+		cursor: pointer;
+		outline: none;
+		opacity: 0.6;
+		transition:
+			opacity 0.15s,
+			color 0.15s;
+		-webkit-appearance: none;
+		appearance: none;
+		text-align: right;
+		text-align-last: right;
+	}
+
+	.node-endpoint-select:hover,
+	.node-endpoint-load:hover {
+		opacity: 1;
+		color: #a0a2ae;
+	}
+
+	.wf-node:hover .node-endpoint-select,
+	.wf-node:hover .node-endpoint-load {
+		opacity: 1;
+	}
+
+	:global(body:not(.dark)) .node-endpoint-select,
+	:global(body:not(.dark)) .node-endpoint-load {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .node-endpoint-select:hover,
+	:global(body:not(.dark)) .node-endpoint-load:hover {
+		color: #3e4050;
 	}
 </style>
