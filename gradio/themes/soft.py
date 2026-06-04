@@ -17,7 +17,7 @@ class Soft(Base):
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.LocalFont("Montserrat"),
+            fonts.LocalFont("Montserrat", weights=(400, 700)),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",

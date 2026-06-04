@@ -11,6 +11,7 @@ GRADIO_VERSION=$new_version
 rm -rf gradio/templates/frontend
 pnpm i --frozen-lockfile --ignore-scripts
 GRADIO_VERSION=$new_version pnpm build
+python3 scripts/download_offline_assets.py
 aws s3 cp gradio/templates/frontend "s3://gradio/${new_version}/" --recursive --region us-west-2
 
 rm -rf dist/*
