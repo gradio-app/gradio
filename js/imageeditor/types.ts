@@ -44,6 +44,7 @@ export interface ImageEditorProps {
 	};
 	canvas_size?: [number, number];
 	fixed_canvas?: boolean;
+	brush_antialias?: boolean;
 	full_history?: CommandNode | null;
 }
 

@@ -51,6 +51,7 @@
 
 	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
+	export let brush_antialias = true;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let is_dragging: boolean;
@@ -229,6 +230,7 @@
 	brush_options={brush}
 	eraser_options={eraser}
 	{fixed_canvas}
+	{brush_antialias}
 	{border_region}
 	{layer_options}
 	{i18n}

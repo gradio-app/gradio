@@ -47,13 +47,15 @@ export class LayerManager {
 	private dark: boolean;
 	private border_region: number;
 	private layer_options: LayerOptions;
+	private antialias: boolean;
 	constructor(
 		image_container: Container,
 		app: Application,
 		fixed_canvas: boolean,
 		dark: boolean,
 		border_region: number,
-		layer_options: LayerOptions
+		layer_options: LayerOptions,
+		antialias = true
 	) {
 		this.image_container = image_container;
 		this.app = app;
@@ -61,6 +63,11 @@ export class LayerManager {
 		this.dark = dark;
 		this.border_region = border_region;
 		this.layer_options = layer_options;
+		this.antialias = antialias;
+	}
+
+	get is_antialiased(): boolean {
+		return this.antialias;
 	}
 
 	toggle_layer_visibility(id: string): void {
@@ -88,7 +95,7 @@ export class LayerManager {
 			width,
 			height,
 			resolution: window.devicePixelRatio,
-			antialias: true,
+			antialias: this.antialias,
 			scaleMode: SCALE_MODES.NEAREST
 		});
 
@@ -252,7 +259,7 @@ export class LayerManager {
 			width,
 			height,
 			resolution: window.devicePixelRatio,
-			antialias: true,
+			antialias: this.antialias,
 			scaleMode: SCALE_MODES.NEAREST
 		});
 
@@ -949,7 +956,8 @@ export class RemoveLayerCommand implements Command {
 			const texture_copy = RenderTexture.create({
 				width: original_texture.width,
 				height: original_texture.height,
-				resolution: window.devicePixelRatio || 1
+				resolution: window.devicePixelRatio || 1,
+				antialias: this.context.layer_manager.is_antialiased
 			});
 
 			const sprite = new Sprite(original_texture);

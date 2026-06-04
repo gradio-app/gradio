@@ -50,6 +50,7 @@
 	export let brush_options: Brush;
 	export let eraser_options: Eraser;
 	export let fixed_canvas = false;
+	export let brush_antialias = true;
 	export let root: string;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
@@ -319,7 +320,7 @@
 	export let can_undo = false;
 	let can_redo = false;
 	async function init_image_editor(): Promise<void> {
-		brush = new BrushTool();
+		brush = new BrushTool({ antialias: brush_antialias });
 		zoom = new ZoomTool();
 		editor = new ImageEditor({
 			target_element: pixi_target,
@@ -327,6 +328,7 @@
 			height: canvas_size[1],
 			tools: ["image", zoom, new ResizeTool(), brush],
 			fixed_canvas,
+			antialias: brush_antialias,
 			border_region,
 			layer_options,
 			theme_mode

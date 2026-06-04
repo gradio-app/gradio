@@ -81,6 +81,11 @@ export class BrushTool implements Tool {
 	 */
 	private brush_cursor: BrushCursor | null = null;
 	private brush_textures: BrushTextures | null = null;
+	private antialias: boolean;
+
+	constructor(options: { antialias?: boolean } = {}) {
+		this.antialias = options.antialias ?? true;
+	}
 
 	/**
 	 * Sets up the brush tool with the given context, tool, and subtool.
@@ -123,7 +128,8 @@ export class BrushTool implements Tool {
 
 		this.brush_textures = new BrushTextures(
 			this.image_editor_context,
-			context.app
+			context.app,
+			this.antialias
 		);
 		this.brush_textures.initialize_textures();
 
