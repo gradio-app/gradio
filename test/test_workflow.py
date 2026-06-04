@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 
 import gradio as gr
+from gradio.oauth import OAuthToken
 from gradio.workflow import (
     Workflow,
     _local_hf_token,
@@ -13,6 +14,14 @@ from gradio.workflow import (
     _resolve_token,
     _workflow_from_bind,
 )
+
+
+def _make_oauth(token: str) -> OAuthToken:
+    obj = OAuthToken.__new__(OAuthToken)
+    obj.token = token
+    obj.scope = "openid"
+    obj.expires_at = 0
+    return obj
 
 
 def _shout(text: str) -> str:
@@ -135,21 +144,16 @@ class TestLaunchAllowedPaths:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class _FakeOAuth:
-    def __init__(self, token: str):
-        self.token = token
-
-
 class TestResolveToken:
     def test_explicit_data_wins(self):
         assert (
-            _resolve_token(["x", "y", "z", "manual"], 3, _FakeOAuth("oauth"))
+            _resolve_token(["x", "y", "z", "manual"], 3, _make_oauth("oauth"))
             == "manual"
         )
 
     def test_oauth_used_when_no_manual(self):
         with patch("gradio.workflow._local_hf_token", return_value="local"):
-            assert _resolve_token([], 3, _FakeOAuth("oauth-tok")) == "oauth-tok"
+            assert _resolve_token([], 3, _make_oauth("oauth-tok")) == "oauth-tok"
 
     def test_local_token_used_when_no_oauth(self):
         with patch("gradio.workflow._local_hf_token", return_value="local"):
@@ -290,7 +294,7 @@ class TestServerFunctions:
     def test_get_token_returns_oauth_when_present(self):
         from gradio.workflow import get_token
 
-        assert get_token(None, _FakeOAuth("oauth-tok")) == "oauth-tok"
+        assert get_token(None, _make_oauth("oauth-tok")) == "oauth-tok"
 
     def test_get_token_falls_back_to_local(self):
         from gradio.workflow import get_token
