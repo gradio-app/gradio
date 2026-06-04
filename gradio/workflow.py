@@ -12,7 +12,7 @@ import urllib.parse
 from collections.abc import Callable
 from typing import Optional
 
-import requests
+import httpx
 from huggingface_hub import get_token as _hf_get_token
 
 from gradio.blocks import Blocks
@@ -149,7 +149,7 @@ def _resolve_token(data: list, idx: int, token) -> str | None:
 
 def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
     headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-    resp = requests.get(url, headers=headers, timeout=timeout)
+    resp = httpx.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     return resp.text
 
@@ -570,7 +570,7 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
             return json.dumps([r[0].answer if r else ""])
         if task == "depth-estimation":
             headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-            resp = requests.post(
+            resp = httpx.post(
                 f"https://api-inference.huggingface.co/models/{model_id}",
                 headers=headers,
                 json={"inputs": _img_url(a0)},
@@ -598,7 +598,7 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
         except Exception:
             pass
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-        fallback_resp = requests.post(
+        fallback_resp = httpx.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
             json={"inputs": a0 if not a1 else [a0, a1]},
