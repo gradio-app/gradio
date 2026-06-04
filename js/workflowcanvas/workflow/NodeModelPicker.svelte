@@ -175,6 +175,7 @@
 		active_content_tab === "featured" ? featured_results : results
 	);
 	let search_timeout: ReturnType<typeof setTimeout> | null = null;
+	let fetch_token = 0;
 
 	function parse_results(raw: any): SpaceResult[] {
 		if (!Array.isArray(raw)) return [];
@@ -211,8 +212,8 @@
 			results = [];
 			return;
 		}
+		const token = ++fetch_token;
 		loading = true;
-		results = [];
 		try {
 			// Spaces use the per-subtab `spaceTags` override when present
 			// (category names like "image-editing") and fall back to
@@ -257,11 +258,12 @@
 				parsed = parsed.filter((s) => !s.category || cats.includes(s.category));
 			}
 
+			if (token !== fetch_token) return;
 			results = parsed.slice(0, 20);
 		} catch {
-			results = [];
+			if (token === fetch_token) results = [];
 		} finally {
-			loading = false;
+			if (token === fetch_token) loading = false;
 		}
 	}
 
@@ -271,10 +273,11 @@
 			loading = false;
 			return;
 		}
+		const token = ++fetch_token;
 		loading = true;
-		results = [];
 		try {
 			const raw = await server.search_datasets([query]);
+			if (token !== fetch_token) return;
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			if (!Array.isArray(data)) {
 				results = [];
@@ -290,9 +293,9 @@
 				pipeline_tag: undefined
 			}));
 		} catch {
-			results = [];
+			if (token === fetch_token) results = [];
 		} finally {
-			loading = false;
+			if (token === fetch_token) loading = false;
 		}
 	}
 
@@ -302,8 +305,8 @@
 			loading = false;
 			return;
 		}
+		const token = ++fetch_token;
 		loading = true;
-		results = [];
 		try {
 			// Models use the per-subtab `modelTags` override when present
 			// and fall back to `pipelineTags`. `spaceTags` is ignored here
@@ -320,6 +323,7 @@
 				q = "";
 			}
 			const raw = await server.search_models([kind, q, pipeline_tag, ""]);
+			if (token !== fetch_token) return;
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			if (!Array.isArray(data)) {
 				results = [];
@@ -338,9 +342,9 @@
 					pipeline_tag: m.pipeline_tag
 				}));
 		} catch {
-			results = [];
+			if (token === fetch_token) results = [];
 		} finally {
-			loading = false;
+			if (token === fetch_token) loading = false;
 		}
 	}
 
@@ -369,7 +373,7 @@
 		if (search_timeout) clearTimeout(search_timeout);
 		if (is_dataset) {
 			loading = true;
-			search_timeout = setTimeout(() => void fetch_datasets(search_query), 300);
+			search_timeout = setTimeout(() => void fetch_datasets(search_query), 150);
 			return;
 		}
 		if (is_model) {
@@ -379,7 +383,7 @@
 			}
 			active_content_tab = "search";
 			loading = true;
-			search_timeout = setTimeout(() => void fetch_models(search_query), 300);
+			search_timeout = setTimeout(() => void fetch_models(search_query), 150);
 			return;
 		}
 		if (search_query.length < 2) {
@@ -388,7 +392,7 @@
 		}
 		active_content_tab = "search";
 		loading = true;
-		search_timeout = setTimeout(() => void fetch_results(), 300);
+		search_timeout = setTimeout(() => void fetch_results(), 150);
 	}
 
 	function select_model(item: SpaceResult) {
@@ -669,8 +673,8 @@
 		{/if}
 
 		<!-- Results -->
-		<div class="picker-results">
-			{#if loading && active_content_tab !== "featured"}
+		<div class="picker-results" class:picker-results-stale={loading}>
+			{#if loading && display_results.length === 0 && active_content_tab !== "featured"}
 				<div class="picker-loading">
 					<span class="spinner"></span>
 				</div>
@@ -1094,6 +1098,11 @@
 		padding: 6px 8px 10px;
 		scrollbar-width: thin;
 		scrollbar-color: #2a2b36 transparent;
+		transition: opacity 0.12s ease;
+	}
+
+	.picker-results-stale {
+		opacity: 0.55;
 	}
 
 	.picker-loading {
