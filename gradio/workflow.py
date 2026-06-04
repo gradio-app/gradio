@@ -292,19 +292,44 @@ def _format_error(e: Exception) -> str:
 
 
 VALID_SPACE_CATEGORIES = {
-    "image-generation", "video-generation", "text-generation",
-    "language-translation", "speech-synthesis", "voice-cloning",
-    "face-recognition", "object-detection", "pose-estimation",
-    "text-analysis", "sentiment-analysis", "question-answering",
-    "code-generation", "data-visualization", "3d-modeling",
-    "image-editing", "background-removal", "image-upscaling",
-    "ocr", "document-analysis", "visual-qa", "image-captioning",
-    "chatbots", "text-summarization", "music-generation",
-    "medical-imaging", "financial-analysis", "game-ai",
-    "model-benchmarking", "fine-tuning-tools", "dataset-creation",
-    "anomaly-detection", "recommendation-systems",
-    "character-animation", "style-transfer", "agent-environment",
-    "image", "other",
+    "image-generation",
+    "video-generation",
+    "text-generation",
+    "language-translation",
+    "speech-synthesis",
+    "voice-cloning",
+    "face-recognition",
+    "object-detection",
+    "pose-estimation",
+    "text-analysis",
+    "sentiment-analysis",
+    "question-answering",
+    "code-generation",
+    "data-visualization",
+    "3d-modeling",
+    "image-editing",
+    "background-removal",
+    "image-upscaling",
+    "ocr",
+    "document-analysis",
+    "visual-qa",
+    "image-captioning",
+    "chatbots",
+    "text-summarization",
+    "music-generation",
+    "medical-imaging",
+    "financial-analysis",
+    "game-ai",
+    "model-benchmarking",
+    "fine-tuning-tools",
+    "dataset-creation",
+    "anomaly-detection",
+    "recommendation-systems",
+    "character-animation",
+    "style-transfer",
+    "agent-environment",
+    "image",
+    "other",
 }
 
 
@@ -342,9 +367,7 @@ def call_space(data, token: Optional[OAuthToken] = None) -> str:
                 ).keys()
             )
             endpoint = (
-                endpoint
-                if endpoint in named
-                else (named[0] if named else "/predict")
+                endpoint if endpoint in named else (named[0] if named else "/predict")
             )
         processed = []
         for arg in args:
@@ -408,12 +431,8 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
         # (hf-inference, together, replicate, ...) — far more
         # reliable than pinning to "hf-inference" which 404s for
         # models not hosted there.
-        provider = (
-            data[4] if len(data) > 4 and data[4] else "auto"
-        )
-        client = InferenceClient(
-            model=model_id, token=hf_token, provider=provider
-        )
+        provider = data[4] if len(data) > 4 and data[4] else "auto"
+        client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
         task = pipeline_tag or "text-generation"
         a0 = args[0] if args else ""
@@ -478,9 +497,7 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
         if task == "question-answering":
             qa_result = client.question_answering(question=a0, context=a1)
             qa_answer = (
-                qa_result[0].answer
-                if isinstance(qa_result, list)
-                else qa_result.answer
+                qa_result[0].answer if isinstance(qa_result, list) else qa_result.answer
             )  # type: ignore[union-attr]
             return json.dumps([qa_answer])
         if task == "feature-extraction":
@@ -530,11 +547,7 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
             )
         if task == "image-to-image":
             return json.dumps(
-                [
-                    _save_tmp(
-                        client.image_to_image(_img_url(a0), prompt=a1), "png"
-                    )
-                ]
+                [_save_tmp(client.image_to_image(_img_url(a0), prompt=a1), "png")]
             )
         if task == "automatic-speech-recognition":
             r = client.automatic_speech_recognition(_img_url(a0))
@@ -556,9 +569,7 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
             r = client.visual_question_answering(_img_url(a0), a1)
             return json.dumps([r[0].answer if r else ""])
         if task == "depth-estimation":
-            headers = (
-                {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-            )
+            headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
             resp = requests.post(
                 f"https://api-inference.huggingface.co/models/{model_id}",
                 headers=headers,
@@ -586,9 +597,7 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
             return json.dumps([r.choices[0].message.content])
         except Exception:
             pass
-        headers = (
-            {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-        )
+        headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
         fallback_resp = requests.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
@@ -650,9 +659,7 @@ def fetch_dataset(data, token: Optional[OAuthToken] = None) -> str:
             e,
             exc_info=True,
         )
-        return json.dumps(
-            {"error": str(e), "error_type": "unknown", "suggestion": ""}
-        )
+        return json.dumps({"error": str(e), "error_type": "unknown", "suggestion": ""})
 
 
 def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
@@ -712,9 +719,8 @@ def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
             # query phrase drops valid hits).
             elif query:
                 params.append(f"q={urllib.parse.quote(query)}")
-            url = (
-                "https://huggingface.co/api/spaces/semantic-search?"
-                + "&".join(params)
+            url = "https://huggingface.co/api/spaces/semantic-search?" + "&".join(
+                params
             )
             raw = _hf_request(url, hf_token)
             parsed = json.loads(raw)
@@ -762,9 +768,7 @@ def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
             )
         return _hf_request(url, hf_token)
     except Exception as e:
-        logger.error(
-            "search_spaces failed (kind=%s): %s", kind, e, exc_info=True
-        )
+        logger.error("search_spaces failed (kind=%s): %s", kind, e, exc_info=True)
         return json.dumps({"error": str(e)})
 
 
@@ -794,9 +798,7 @@ def search_models(data, token: Optional[OAuthToken] = None) -> str:
             url += f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}"
         return _hf_request(url, hf_token)
     except Exception as e:
-        logger.error(
-            "search_models failed (kind=%s): %s", kind, e, exc_info=True
-        )
+        logger.error("search_models failed (kind=%s): %s", kind, e, exc_info=True)
         return json.dumps({"error": str(e)})
 
 
@@ -808,9 +810,7 @@ def search_datasets(data, token: Optional[OAuthToken] = None) -> str:
         url = f"https://huggingface.co/api/datasets?{search_param}sort=likes&direction=-1&limit=20"
         return _hf_request(url, hf_token)
     except Exception as e:
-        logger.error(
-            "search_datasets failed (query=%s): %s", query, e, exc_info=True
-        )
+        logger.error("search_datasets failed (query=%s): %s", query, e, exc_info=True)
         return json.dumps({"error": str(e)})
 
 
