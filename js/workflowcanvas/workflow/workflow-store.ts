@@ -1,6 +1,7 @@
 import { writable } from "svelte/store";
 import type {
 	AnyNode,
+	NodeData,
 	NodeDataValue,
 	NodeRole,
 	OperatorKind,
@@ -62,30 +63,34 @@ export { allNodes, findNode, isV2, migrateToV2 };
  * so we drop the field entirely and let the user re-upload on refresh.
  * Other data (text, numbers, server-served file paths) passes through.
  */
+function is_session_url(v: unknown): boolean {
+	const url = (v as { url?: string } | null)?.url;
+	return (
+		typeof url === "string" &&
+		(url.startsWith("blob:") || url.startsWith("data:"))
+	);
+}
+
+export function revoke_blob_urls(
+	data: Record<string, unknown> | undefined
+): void {
+	for (const v of Object.values(data ?? {})) {
+		const url = (v as { url?: string } | null)?.url;
+		if (typeof url === "string" && url.startsWith("blob:")) {
+			URL.revokeObjectURL(url);
+		}
+	}
+}
+
 export function sanitize_for_save(wf: Workflow): Workflow {
-	const stripBlobs = <T extends { data?: Record<string, unknown> }>(
-		n: T
-	): T => {
+	return mapAllRoles(wf, (n) => {
 		if (!n.data) return n;
-		const cleaned: Record<string, unknown> = {};
+		const cleaned: NodeData = {};
 		for (const [k, v] of Object.entries(n.data)) {
-			const url = (v as { url?: string } | null)?.url;
-			if (
-				typeof url === "string" &&
-				(url.startsWith("blob:") || url.startsWith("data:"))
-			) {
-				continue;
-			}
-			cleaned[k] = v;
+			if (!is_session_url(v)) cleaned[k] = v as NodeDataValue;
 		}
 		return { ...n, data: cleaned };
-	};
-	return {
-		...wf,
-		references: wf.references.map(stripBlobs),
-		operators: wf.operators.map(stripBlobs),
-		subjects: wf.subjects.map(stripBlobs)
-	};
+	});
 }
 
 // ─── Actions ────────────────────────────────────────────────────────────────
@@ -271,17 +276,7 @@ export function updateNodeData(
 export function removeNode(id: string): void {
 	workflow.update((wf) => {
 		const node = findNode(wf, id);
-		if (node) {
-			Object.values(node.data ?? {}).forEach((v) => {
-				if (
-					v &&
-					typeof v === "object" &&
-					(v as { url?: string }).url?.startsWith?.("blob:")
-				) {
-					URL.revokeObjectURL((v as { url: string }).url);
-				}
-			});
-		}
+		if (node) revoke_blob_urls(node.data);
 		return {
 			...wf,
 			references: wf.references.filter((n) => n.id !== id),
@@ -308,7 +303,7 @@ export function removeEdge(id: string): void {
 	}));
 }
 
-export function hydrateEndpoints(
+export function hydrate_endpoints(
 	nodeId: string,
 	endpoints: { name: string; inputs: Port[]; outputs: Port[] }[]
 ): void {
@@ -320,15 +315,15 @@ export function hydrateEndpoints(
 	}));
 }
 
-export function switchEndpoint(nodeId: string, endpointName: string): void {
+export function switch_endpoint(nodeId: string, endpointName: string): void {
 	workflow.update((wf) => {
 		const node = wf.operators.find((n) => n.id === nodeId);
 		if (!node || !node.endpoints) return wf;
 		const sig = node.endpoints.find((e) => e.name === endpointName);
 		if (!sig || sig.name === node.endpoint) return wf;
 
-		const inputByID = new Map(sig.inputs.map((p) => [p.id, p]));
-		const outputByID = new Map(sig.outputs.map((p) => [p.id, p]));
+		const input_by_id = new Map(sig.inputs.map((p) => [p.id, p]));
+		const output_by_id = new Map(sig.outputs.map((p) => [p.id, p]));
 
 		return {
 			...wf,
@@ -345,14 +340,14 @@ export function switchEndpoint(nodeId: string, endpointName: string): void {
 			),
 			edges: wf.edges.filter((e) => {
 				if (e.from_node_id === nodeId) {
-					const newPort = outputByID.get(e.from_port_id);
-					if (!newPort) return false;
-					if (!ports_compatible(newPort.type, e.type)) return false;
+					const new_port = output_by_id.get(e.from_port_id);
+					if (!new_port) return false;
+					if (!ports_compatible(new_port.type, e.type)) return false;
 				}
 				if (e.to_node_id === nodeId) {
-					const newPort = inputByID.get(e.to_port_id);
-					if (!newPort) return false;
-					if (!ports_compatible(newPort.type, e.type)) return false;
+					const new_port = input_by_id.get(e.to_port_id);
+					if (!new_port) return false;
+					if (!ports_compatible(new_port.type, e.type)) return false;
 				}
 				return true;
 			})

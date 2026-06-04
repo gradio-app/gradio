@@ -56,36 +56,34 @@
 		ondatachange(node.id, widgetPortId, target.checked);
 	}
 
-	function handleFileSelect(e: Event) {
-		const input = e.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
-		if (!file) return;
+	function revoke_old_blob(): void {
 		const old = getFileValue();
 		if (old?.url?.startsWith("blob:")) URL.revokeObjectURL(old.url);
+	}
+
+	function adopt_file(file: File): void {
+		revoke_old_blob();
 		ondatachange(node.id, widgetPortId, {
 			name: file.name,
 			url: URL.createObjectURL(file),
 			mime: file.type
 		});
+	}
+
+	function handleFileSelect(e: Event) {
+		const file = (e.currentTarget as HTMLInputElement).files?.[0];
+		if (file) adopt_file(file);
 	}
 
 	function handleFileDrop(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
 		const file = e.dataTransfer?.files?.[0];
-		if (!file) return;
-		const old = getFileValue();
-		if (old?.url?.startsWith("blob:")) URL.revokeObjectURL(old.url);
-		ondatachange(node.id, widgetPortId, {
-			name: file.name,
-			url: URL.createObjectURL(file),
-			mime: file.type
-		});
+		if (file) adopt_file(file);
 	}
 
 	function clearFile() {
-		const old = getFileValue();
-		if (old?.url?.startsWith("blob:")) URL.revokeObjectURL(old.url);
+		revoke_old_blob();
 		ondatachange(node.id, widgetPortId, null);
 	}
 

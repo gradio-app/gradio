@@ -226,13 +226,18 @@ export async function executeWorkflow(
 	serverCallFn?: ServerCallPyFn,
 	stream_text_generation?: StreamTextFn
 ): Promise<void> {
-	// Executor still reasons in v1 vocabulary (kind / source). Project the v2
-	// workflow into a v1 view; the underlying ids are identical so edges still
-	// resolve correctly. This adapter goes away when the executor is rewritten
-	// around role-based dispatch.
 	const { nodes, edges } = toLegacyShape(workflow);
 	const dataMap: Record<string, Record<string, NodeDataValue>> = {};
-	const failedNodes = new Map<string, string>();
+	const failed_nodes = new Map<string, string>();
+
+	function mark_node_failed(node: WFNode, err: unknown): void {
+		const msg = err instanceof Error ? err.message : String(err);
+		const errorType = (err as { errorType?: string })?.errorType;
+		onStatus(node.id, "error", msg, errorType);
+		failed_nodes.set(node.id, node.label);
+		dataMap[node.id] = {};
+		for (const port of node.outputs) dataMap[node.id][port.id] = null;
+	}
 
 	function missing_input_message(node: WFNode, port: Port): string {
 		const edge = edges.find(
@@ -240,7 +245,7 @@ export async function executeWorkflow(
 		);
 		if (edge) {
 			const upstream = nodes.find((n) => n.id === edge.from_node_id);
-			if (upstream && failedNodes.has(upstream.id)) {
+			if (upstream && failed_nodes.has(upstream.id)) {
 				return `"${port.label}" is missing — upstream node "${upstream.label}" failed`;
 			}
 		}
@@ -322,13 +327,7 @@ export async function executeWorkflow(
 				}
 				onStatus(node.id, "done");
 			} catch (err) {
-				const msg = err instanceof Error ? err.message : String(err);
-				onStatus(node.id, "error", msg);
-				failedNodes.set(node.id, node.label);
-				dataMap[node.id] = {};
-				node.outputs.forEach((port) => {
-					dataMap[node.id][port.id] = null;
-				});
+				mark_node_failed(node, err);
 			}
 			return;
 		}
@@ -390,13 +389,7 @@ export async function executeWorkflow(
 				});
 				onStatus(node.id, "done");
 			} catch (err) {
-				const msg = err instanceof Error ? err.message : String(err);
-				onStatus(node.id, "error", msg);
-				failedNodes.set(node.id, node.label);
-				dataMap[node.id] = {};
-				node.outputs.forEach((port) => {
-					dataMap[node.id][port.id] = null;
-				});
+				mark_node_failed(node, err);
 			}
 			return;
 		}
@@ -520,14 +513,7 @@ export async function executeWorkflow(
 
 				onStatus(node.id, "done");
 			} catch (err) {
-				const msg = err instanceof Error ? err.message : String(err);
-				const errorType = (err as any)?.errorType;
-				onStatus(node.id, "error", msg, errorType);
-				failedNodes.set(node.id, node.label);
-				dataMap[node.id] = {};
-				node.outputs.forEach((port) => {
-					dataMap[node.id][port.id] = null;
-				});
+				mark_node_failed(node, err);
 			}
 		}
 	}

@@ -8,7 +8,7 @@ import {
 	removeNode,
 	removeEdge,
 	sanitize_for_save,
-	switchEndpoint
+	switch_endpoint
 } from "./workflow-store";
 import type { OperatorNode, ReferenceNode, Workflow } from "./workflow-types";
 
@@ -246,7 +246,7 @@ describe("removeEdge", () => {
 	});
 });
 
-describe("switchEndpoint", () => {
+describe("switch_endpoint", () => {
 	beforeEach(resetWorkflow);
 
 	function _spaceOp(): string {
@@ -305,7 +305,7 @@ describe("switchEndpoint", () => {
 
 	test("switches inputs and outputs to the new endpoint signature", () => {
 		const id = _spaceOp();
-		switchEndpoint(id, "/answer_question");
+		switch_endpoint(id, "/answer_question");
 		const op = get(workflow).operators.find((o) => o.id === id);
 		expect(op?.endpoint).toBe("/answer_question");
 		expect(op?.outputs[0].type).toBe("text");
@@ -315,14 +315,14 @@ describe("switchEndpoint", () => {
 	test("no-op when switching to the current endpoint", () => {
 		const id = _spaceOp();
 		const before = get(workflow);
-		switchEndpoint(id, "/process_answer");
+		switch_endpoint(id, "/process_answer");
 		expect(get(workflow)).toBe(before);
 	});
 
 	test("no-op for unknown endpoint name", () => {
 		const id = _spaceOp();
 		const before = get(workflow);
-		switchEndpoint(id, "/nonexistent");
+		switch_endpoint(id, "/nonexistent");
 		expect(get(workflow)).toBe(before);
 	});
 
@@ -348,7 +348,7 @@ describe("switchEndpoint", () => {
 			to_port_id: "in_0",
 			type: "image"
 		});
-		switchEndpoint(id, "/answer_question");
+		switch_endpoint(id, "/answer_question");
 		expect(get(workflow).edges).toHaveLength(1);
 	});
 
@@ -374,7 +374,7 @@ describe("switchEndpoint", () => {
 			to_port_id: "in",
 			type: "image"
 		});
-		switchEndpoint(id, "/answer_question");
+		switch_endpoint(id, "/answer_question");
 		expect(get(workflow).edges).toHaveLength(0);
 	});
 
@@ -400,7 +400,7 @@ describe("switchEndpoint", () => {
 			to_port_id: "in_1",
 			type: "text"
 		});
-		switchEndpoint(id, "/answer_question");
+		switch_endpoint(id, "/answer_question");
 		expect(get(workflow).edges).toHaveLength(1);
 	});
 
@@ -412,7 +412,7 @@ describe("switchEndpoint", () => {
 				o.id === id ? { ...o, data: { in_1: "stale value" } } : o
 			)
 		}));
-		switchEndpoint(id, "/answer_question");
+		switch_endpoint(id, "/answer_question");
 		const op = get(workflow).operators.find((o) => o.id === id);
 		expect(op?.data).toEqual({});
 	});

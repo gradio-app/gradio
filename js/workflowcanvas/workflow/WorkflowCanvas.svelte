@@ -24,9 +24,10 @@
 		updateNodeData,
 		removeNode,
 		replaceNodeSource,
-		switchEndpoint,
-		hydrateEndpoints,
-		sanitize_for_save
+		switch_endpoint,
+		hydrate_endpoints,
+		sanitize_for_save,
+		revoke_blob_urls
 	} from "./workflow-store";
 	import { migrateToV2, toLegacyShape } from "./workflow-migration";
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
@@ -310,7 +311,7 @@
 		onremove: (id: string) => removeNode(id),
 		onopenpicker: (id: string) => openPickerForNode(id),
 		onswitchendpoint: (id: string, endpointName: string) =>
-			switchEndpoint(id, endpointName),
+			switch_endpoint(id, endpointName),
 		onhydratendpoints: async (id: string, spaceId: string) => {
 			try {
 				const info = await fetchSpaceApi(spaceId);
@@ -318,7 +319,7 @@
 					showToast(`${spaceId} has no usable endpoints`, 4000, "warning");
 					return;
 				}
-				hydrateEndpoints(id, info.endpoints);
+				hydrate_endpoints(id, info.endpoints);
 				if (info.endpoints.length === 1) {
 					showToast(`${spaceId} only exposes one endpoint`, 3000);
 				}
@@ -995,18 +996,7 @@
 	}
 
 	function revokeAllBlobUrls(nodes: WFNode[]): void {
-		for (const node of nodes) {
-			for (const v of Object.values(node.data ?? {})) {
-				if (
-					v &&
-					typeof v === "object" &&
-					"url" in v &&
-					v.url?.startsWith("blob:")
-				) {
-					URL.revokeObjectURL(v.url);
-				}
-			}
-		}
+		for (const node of nodes) revoke_blob_urls(node.data);
 	}
 
 	let clearConfirm = $state(false);
