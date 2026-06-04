@@ -2527,8 +2527,8 @@ importers:
         specifier: ^1.0.0
         version: 1.1.2
       svelte:
-        specifier: ^5.48.0
-        version: 5.48.0
+        specifier: 5.48.0
+        version: 5.48.0(@typescript-eslint/types@8.53.1)
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
