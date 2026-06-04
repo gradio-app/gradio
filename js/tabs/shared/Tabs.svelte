@@ -142,6 +142,8 @@
 		await tick();
 		await new Promise((r) => requestAnimationFrame(r));
 
+		if (!tab_nav_el) return;
+
 		const available = tab_nav_el.clientWidth;
 
 		let cumulative = 0;
