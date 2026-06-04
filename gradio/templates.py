@@ -142,6 +142,7 @@ class Sketchpad(components.ImageEditor):
         format: str = "webp",
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
+        brush_antialias: bool = True,
         layers: LayerOptions | bool = True,
     ):
         if not brush:
@@ -178,6 +179,7 @@ class Sketchpad(components.ImageEditor):
             layers=layers,
             canvas_size=canvas_size,
             fixed_canvas=fixed_canvas,
+            brush_antialias=brush_antialias,
         )
 
 
@@ -228,6 +230,7 @@ class Paint(components.ImageEditor):
         layers: LayerOptions | bool = True,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
+        brush_antialias: bool = True,
         placeholder: str | None = None,
     ):
         super().__init__(
@@ -262,6 +265,7 @@ class Paint(components.ImageEditor):
             canvas_size=canvas_size,
             placeholder=placeholder,
             fixed_canvas=fixed_canvas,
+            brush_antialias=brush_antialias,
         )
 
 
@@ -316,6 +320,7 @@ class ImageMask(components.ImageEditor):
         layers: LayerOptions | bool = False,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
+        brush_antialias: bool = True,
         webcam_options: WebcamOptions | None = None,
     ):
         if not brush:
@@ -352,6 +357,7 @@ class ImageMask(components.ImageEditor):
             layers=layers,
             canvas_size=canvas_size,
             fixed_canvas=fixed_canvas,
+            brush_antialias=brush_antialias,
         )
 
 

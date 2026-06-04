@@ -75,6 +75,7 @@ class TestImageEditor:
             "placeholder": None,
             "buttons": None,
             "fixed_canvas": False,
+            "brush_antialias": True,
         }
 
     def test_brush_false_eraser_false_config(self):

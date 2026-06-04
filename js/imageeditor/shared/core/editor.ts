@@ -46,6 +46,7 @@ interface ImageEditorOptions {
 	layer_options?: LayerOptions;
 	pad_bottom?: number;
 	theme_mode?: "dark" | "light";
+	antialias?: boolean;
 }
 
 const core_tool_map = {
@@ -204,10 +205,12 @@ export class ImageEditor {
 	private overlay_graphics!: Graphics;
 	private pad_bottom: number;
 	private theme_mode: "dark" | "light";
+	private antialias: boolean;
 	constructor(options: ImageEditorOptions) {
 		this.pad_bottom = options.pad_bottom || 0;
 		this.dark = options.dark || false;
 		this.theme_mode = options.theme_mode || "dark";
+		this.antialias = options.antialias ?? true;
 		this.target_element = options.target_element;
 		this.width = options.width;
 		this.height = options.height;
@@ -305,7 +308,7 @@ export class ImageEditor {
 			backgroundColor: this.theme_mode === "dark" ? "#27272a" : "#ffffff",
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
-			antialias: true,
+			antialias: this.antialias,
 			powerPreference: "high-performance"
 		});
 
@@ -523,7 +526,8 @@ export class ImageEditor {
 			this.fixed_canvas,
 			this.dark,
 			this.border_region,
-			this.layer_options
+			this.layer_options,
+			this.antialias
 		);
 		this.layers = this.layer_manager.layer_store;
 	}

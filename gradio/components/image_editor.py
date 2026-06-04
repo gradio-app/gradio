@@ -256,6 +256,7 @@ class ImageEditor(Component):
         layers: bool | LayerOptions = True,
         canvas_size: tuple[int, int] = (800, 800),
         fixed_canvas: bool = False,
+        brush_antialias: bool = True,
         webcam_options: WebcamOptions | None = None,
     ):
         """
@@ -289,6 +290,7 @@ class ImageEditor(Component):
             layers: The options for the layer tool in the image editor. Can be a boolean     or an instance of the `gr.LayerOptions` class. If True, will allow users to add layers to the image. If False, the layers option will be hidden. If an instance of `gr.LayerOptions`, it will be used to configure the layer tool. [See `gr.LayerOptions` docs](#layer-options).
             canvas_size: The initial size of the canvas in pixels. The first value is the width and the second value is the height. If `fixed_canvas` is `True`, uploaded images will be rescaled to fit the canvas size while preserving the aspect ratio. Otherwise, the canvas size will change to match the size of an uploaded image.
             fixed_canvas: If True, the canvas size will not change based on the size of the background image and the image will be rescaled to fit (while preserving the aspect ratio) and placed in the center of the canvas.
+            brush_antialias: If True, brush and eraser strokes will be drawn with antialiasing. If False, strokes will be drawn without antialiasing, which is useful for pixel-perfect segmentation masks.
             webcam_options: The options for the webcam tool in the image editor. Can be an instance of the `gr.WebcamOptions` class, or None to use the default settings. [See `gr.WebcamOptions` docs](#webcam-options).
         """
         self._selectable = _selectable
@@ -334,6 +336,7 @@ class ImageEditor(Component):
         )
         self.canvas_size = canvas_size
         self.fixed_canvas = fixed_canvas
+        self.brush_antialias = brush_antialias
         self.placeholder = placeholder
         super().__init__(
             label=label,

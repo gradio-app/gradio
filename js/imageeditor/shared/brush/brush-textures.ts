@@ -4,10 +4,72 @@ import {
 	Sprite,
 	Graphics,
 	Application,
-	Texture
+	Texture,
 } from "pixi.js";
 import { type ImageEditorContext } from "../core/editor";
 import { type Command } from "../core/commands";
+
+function parse_color(color: string): [number, number, number] {
+	if (!color.startsWith("#")) {
+		return [255, 255, 255];
+	}
+
+	const value = parseInt(color.slice(1), 16);
+	return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+}
+
+function create_hard_stamp_sprite(
+	x: number,
+	y: number,
+	size: number,
+	color: string,
+): Sprite {
+	const min_x = Math.floor(x - size);
+	const max_x = Math.ceil(x + size);
+	const min_y = Math.floor(y - size);
+	const max_y = Math.ceil(y + size);
+	const width = max_x - min_x + 1;
+	const height = max_y - min_y + 1;
+	const canvas = document.createElement("canvas");
+	canvas.width = width;
+	canvas.height = height;
+
+	const context = canvas.getContext("2d");
+	if (!context) {
+		return new Sprite(Texture.EMPTY);
+	}
+
+	const [r, g, b] = parse_color(color);
+	const image_data = context.createImageData(width, height);
+	const size_squared = size * size;
+
+	for (let py = min_y; py <= max_y; py++) {
+		for (let px = min_x; px <= max_x; px++) {
+			const dx = px + 0.5 - x;
+			const dy = py + 0.5 - y;
+			if (dx * dx + dy * dy <= size_squared) {
+				const index = ((py - min_y) * width + (px - min_x)) * 4;
+				image_data.data[index] = r;
+				image_data.data[index + 1] = g;
+				image_data.data[index + 2] = b;
+				image_data.data[index + 3] = 255;
+			}
+		}
+	}
+
+	context.putImageData(image_data, 0, 0);
+
+	const texture = Texture.from(
+		{
+			resource: canvas,
+			scaleMode: "nearest",
+		},
+		true,
+	);
+	const sprite = new Sprite({ texture, roundPixels: true });
+	sprite.position.set(min_x, min_y);
+	return sprite;
+}
 
 /**
  * Represents a single drawing segment with all its parameters
@@ -21,6 +83,7 @@ interface BrushSegment {
 	color: string;
 	opacity: number;
 	mode: "draw" | "erase";
+	antialias: boolean;
 }
 
 /**
@@ -41,7 +104,7 @@ export class BrushCommand implements Command {
 	constructor(
 		context: ImageEditorContext,
 		stroke_data: BrushStroke,
-		original_texture?: Texture
+		original_texture?: Texture,
 	) {
 		this.name = "Draw";
 		this.stroke_data = stroke_data;
@@ -58,7 +121,8 @@ export class BrushCommand implements Command {
 		const texture = RenderTexture.create({
 			width: source.width,
 			height: source.height,
-			resolution: window.devicePixelRatio || 1
+			resolution: window.devicePixelRatio || 1,
+			antialias: this.stroke_data.segments[0]?.antialias ?? true,
 		});
 
 		const sprite = new Sprite(source);
@@ -66,7 +130,7 @@ export class BrushCommand implements Command {
 		container.addChild(sprite);
 
 		this.context.app.renderer.render(container, {
-			renderTexture: texture
+			renderTexture: texture,
 		});
 
 		container.destroy({ children: true });
@@ -79,11 +143,11 @@ export class BrushCommand implements Command {
 	 */
 	private render_stroke_from_data(
 		stroke_data: BrushStroke,
-		target_texture: RenderTexture
+		target_texture: RenderTexture,
 	): void {
 		const draw_segments = stroke_data.segments.filter((s) => s.mode === "draw");
 		const erase_segments = stroke_data.segments.filter(
-			(s) => s.mode === "erase"
+			(s) => s.mode === "erase",
 		);
 
 		if (draw_segments.length > 0) {
@@ -103,10 +167,10 @@ export class BrushCommand implements Command {
 
 				graphics.setFillStyle({
 					color: colorValue,
-					alpha: 1
+					alpha: 1,
 				});
 
-				this.render_segment_to_graphics(graphics, segment);
+				this.render_segment(container, graphics, segment, segment.color);
 			}
 
 			// we need a sprite in order to set the alpha and for that we need a texture
@@ -114,13 +178,14 @@ export class BrushCommand implements Command {
 			const alpha_sprite_texture = RenderTexture.create({
 				width: target_texture.width,
 				height: target_texture.height,
-				resolution: window.devicePixelRatio || 1
+				resolution: window.devicePixelRatio || 1,
+				antialias: draw_segments[0]?.antialias ?? true,
 			});
 
 			const alpha_sprite = new Sprite(alpha_sprite_texture);
 			this.context.app.renderer.render({
 				container: container,
-				target: alpha_sprite_texture
+				target: alpha_sprite_texture,
 			});
 
 			alpha_sprite.alpha = alpha;
@@ -128,7 +193,7 @@ export class BrushCommand implements Command {
 			this.context.app.renderer.render({
 				container: alpha_sprite,
 				target: target_texture,
-				clear: false
+				clear: false,
 			});
 
 			container.destroy({ children: true });
@@ -141,7 +206,8 @@ export class BrushCommand implements Command {
 			const temp_content_texture = RenderTexture.create({
 				width: target_texture.width,
 				height: target_texture.height,
-				resolution: window.devicePixelRatio || 1
+				resolution: window.devicePixelRatio || 1,
+				antialias: erase_segments[0]?.antialias ?? true,
 			});
 
 			const copy_sprite = new Sprite(target_texture);
@@ -151,7 +217,7 @@ export class BrushCommand implements Command {
 			this.context.app.renderer.render({
 				container: copy_container,
 				target: temp_content_texture,
-				clear: true
+				clear: true,
 			});
 
 			// create a graphics object to draw the erase segments
@@ -161,24 +227,30 @@ export class BrushCommand implements Command {
 
 			erase_graphics.setFillStyle({
 				color: 0xffffff,
-				alpha: 1.0
+				alpha: 1.0,
 			});
 
 			for (const segment of erase_segments) {
-				this.render_segment_to_graphics(erase_graphics, segment);
+				this.render_segment(
+					erase_container,
+					erase_graphics,
+					segment,
+					"#ffffff",
+				);
 			}
 
 			// create a separate texture to hold the mask
 			const mask_texture = RenderTexture.create({
 				width: target_texture.width,
 				height: target_texture.height,
-				resolution: window.devicePixelRatio || 1
+				resolution: window.devicePixelRatio || 1,
+				antialias: erase_segments[0]?.antialias ?? true,
 			});
 
 			this.context.app.renderer.render({
 				container: erase_container,
 				target: mask_texture,
-				clear: true
+				clear: true,
 			});
 
 			const content_sprite = new Sprite(temp_content_texture);
@@ -193,7 +265,7 @@ export class BrushCommand implements Command {
 			this.context.app.renderer.render({
 				container: masked_container,
 				target: target_texture,
-				clear: true
+				clear: true,
 			});
 
 			copy_container.destroy({ children: true });
@@ -205,19 +277,29 @@ export class BrushCommand implements Command {
 	}
 
 	/**
-	 * Renders a segment to a graphics object (extracted from renderSegment)
+	 * Renders a segment to a container.
 	 */
-	private render_segment_to_graphics(
+	private render_segment(
+		container: Container,
 		graphics: Graphics,
-		segment: BrushSegment
+		segment: BrushSegment,
+		color: string,
 	): void {
 		const distance = Math.sqrt(
 			Math.pow(segment.to_x - segment.from_x, 2) +
-				Math.pow(segment.to_y - segment.from_y, 2)
+				Math.pow(segment.to_y - segment.from_y, 2),
 		);
 
 		if (distance < 0.1) {
-			graphics.circle(segment.from_x, segment.from_y, segment.size).fill();
+			this.render_stamp(
+				container,
+				graphics,
+				segment.from_x,
+				segment.from_y,
+				segment.size,
+				color,
+				segment.antialias,
+			);
 		} else {
 			const spacing = Math.max(segment.size / 3, 2);
 			const steps = Math.max(Math.ceil(distance / spacing), 2);
@@ -227,9 +309,34 @@ export class BrushCommand implements Command {
 				const x = segment.from_x + (segment.to_x - segment.from_x) * t;
 				const y = segment.from_y + (segment.to_y - segment.from_y) * t;
 
-				graphics.circle(x, y, segment.size).fill();
+				this.render_stamp(
+					container,
+					graphics,
+					x,
+					y,
+					segment.size,
+					color,
+					segment.antialias,
+				);
 			}
 		}
+	}
+
+	private render_stamp(
+		container: Container,
+		graphics: Graphics,
+		x: number,
+		y: number,
+		size: number,
+		color: string,
+		antialias: boolean,
+	): void {
+		if (antialias) {
+			graphics.circle(x, y, size).fill();
+			return;
+		}
+
+		container.addChild(create_hard_stamp_sprite(x, y, size, color));
 	}
 
 	async execute(context: ImageEditorContext): Promise<void> {
@@ -238,14 +345,14 @@ export class BrushCommand implements Command {
 		}
 
 		let layer_textures = this.context.layer_manager.get_layer_textures(
-			this.stroke_data.layer_id
+			this.stroke_data.layer_id,
 		);
 
 		if (!layer_textures) {
 			const all_layers = this.context.layer_manager.get_layers();
 			const top_layer = all_layers[all_layers.length - 1];
 			layer_textures = this.context.layer_manager.get_layer_textures(
-				top_layer.id
+				top_layer.id,
 			);
 		}
 
@@ -255,7 +362,8 @@ export class BrushCommand implements Command {
 		const temp_texture = RenderTexture.create({
 			width: layer_textures.draw.width,
 			height: layer_textures.draw.height,
-			resolution: window.devicePixelRatio || 1
+			resolution: window.devicePixelRatio || 1,
+			antialias: this.stroke_data.segments[0]?.antialias ?? true,
 		});
 
 		// copy current layer content to temp texture
@@ -266,7 +374,7 @@ export class BrushCommand implements Command {
 		this.context.app.renderer.render({
 			container: temp_container,
 			target: temp_texture,
-			clear: true
+			clear: true,
 		});
 
 		temp_container.destroy({ children: true });
@@ -281,7 +389,7 @@ export class BrushCommand implements Command {
 		this.context.app.renderer.render({
 			container: final_container,
 			target: layer_textures.draw,
-			clear: true
+			clear: true,
 		});
 
 		final_container.destroy({ children: true });
@@ -292,7 +400,7 @@ export class BrushCommand implements Command {
 		if (!this.original_texture) return;
 
 		const layer_textures = this.context.layer_manager.get_layer_textures(
-			this.stroke_data.layer_id
+			this.stroke_data.layer_id,
 		);
 		if (!layer_textures) return;
 
@@ -303,7 +411,7 @@ export class BrushCommand implements Command {
 		this.context.app.renderer.render({
 			container: temp_container,
 			target: layer_textures.draw,
-			clear: true
+			clear: true,
 		});
 
 		temp_container.destroy({ children: true });
@@ -325,20 +433,27 @@ export class BrushTextures {
 	private dimensions: { width: number; height: number };
 	private image_editor_context: ImageEditorContext;
 	private app: Application;
+	private antialias: boolean;
 	private is_new_stroke = true;
 
 	private current_opacity = 1.0;
 	private original_layer_texture: Texture | null = null;
 	private active_layer_id: string | null = null;
 	private current_stroke_segments: BrushSegment[] = [];
+	private hard_stamp_sprites: Sprite[] = [];
 
-	constructor(image_editor_context: ImageEditorContext, app: Application) {
+	constructor(
+		image_editor_context: ImageEditorContext,
+		app: Application,
+		antialias = true,
+	) {
 		this.image_editor_context = image_editor_context;
 		this.app = app;
+		this.antialias = antialias;
 
 		this.dimensions = {
 			width: this.image_editor_context.image_container.width,
-			height: this.image_editor_context.image_container.height
+			height: this.image_editor_context.image_container.height,
 		};
 	}
 
@@ -353,19 +468,21 @@ export class BrushTextures {
 
 		this.dimensions = {
 			width: local_bounds.width,
-			height: local_bounds.height
+			height: local_bounds.height,
 		};
 
 		this.stroke_texture = RenderTexture.create({
 			width: this.dimensions.width,
 			height: this.dimensions.height,
-			resolution: window.devicePixelRatio || 1
+			resolution: window.devicePixelRatio || 1,
+			antialias: this.antialias,
 		});
 
 		this.erase_texture = RenderTexture.create({
 			width: this.dimensions.width,
 			height: this.dimensions.height,
-			resolution: window.devicePixelRatio || 1
+			resolution: window.devicePixelRatio || 1,
+			antialias: this.antialias,
 		});
 
 		this.display_container = new Container();
@@ -384,10 +501,10 @@ export class BrushTextures {
 
 		const clear_container = new Container();
 		this.app.renderer.render(clear_container, {
-			renderTexture: this.stroke_texture
+			renderTexture: this.stroke_texture,
 		});
 		this.app.renderer.render(clear_container, {
-			renderTexture: this.erase_texture
+			renderTexture: this.erase_texture,
 		});
 		clear_container.destroy();
 
@@ -413,6 +530,8 @@ export class BrushTextures {
 	 * Cleans up texture resources.
 	 */
 	cleanup_textures(): void {
+		this.clear_hard_stamp_sprites();
+
 		if (this.stroke_texture) {
 			this.stroke_texture.destroy();
 			this.stroke_texture = null;
@@ -441,6 +560,17 @@ export class BrushTextures {
 		this.preview_sprite = null;
 		this.erase_graphics = null;
 		this.active_layer_id = null;
+		this.hard_stamp_sprites = [];
+	}
+
+	private clear_hard_stamp_sprites(): void {
+		for (const sprite of this.hard_stamp_sprites) {
+			if (sprite.parent) {
+				sprite.parent.removeChild(sprite);
+			}
+			sprite.destroy({ texture: true, textureSource: true });
+		}
+		this.hard_stamp_sprites = [];
 	}
 
 	/**
@@ -468,7 +598,8 @@ export class BrushTextures {
 		this.original_layer_texture = RenderTexture.create({
 			width: this.dimensions.width,
 			height: this.dimensions.height,
-			resolution: window.devicePixelRatio || 1
+			resolution: window.devicePixelRatio || 1,
+			antialias: this.antialias,
 		});
 
 		const temp_sprite = new Sprite(layer_textures.draw);
@@ -476,7 +607,7 @@ export class BrushTextures {
 		temp_container.addChild(temp_sprite);
 
 		this.app.renderer.render(temp_container, {
-			renderTexture: this.original_layer_texture
+			renderTexture: this.original_layer_texture,
 		});
 
 		temp_container.destroy({ children: true });
@@ -498,7 +629,7 @@ export class BrushTextures {
 		this.erase_graphics.endFill();
 
 		this.app.renderer.render(this.erase_graphics, {
-			renderTexture: this.erase_texture
+			renderTexture: this.erase_texture,
 		});
 	}
 
@@ -534,21 +665,22 @@ export class BrushTextures {
 
 		const stroke_data: BrushStroke = {
 			segments: [...this.current_stroke_segments],
-			layer_id: this.active_layer_id
+			layer_id: this.active_layer_id,
 		};
 
 		const brush_command = new BrushCommand(
 			this.image_editor_context,
 			stroke_data,
-			this.original_layer_texture
+			this.original_layer_texture,
 		);
 
 		if (this.stroke_graphics) {
 			this.stroke_graphics.clear();
 		}
+		this.clear_hard_stamp_sprites();
 		const clear_container = new Container();
 		this.app.renderer.render(clear_container, {
-			renderTexture: this.stroke_texture
+			renderTexture: this.stroke_texture,
 		});
 		clear_container.destroy();
 
@@ -559,7 +691,7 @@ export class BrushTextures {
 
 		this.image_editor_context.command_manager.execute(
 			brush_command,
-			this.image_editor_context
+			this.image_editor_context,
 		);
 	}
 
@@ -570,7 +702,7 @@ export class BrushTextures {
 		x1: number,
 		y1: number,
 		x2: number,
-		y2: number
+		y2: number,
 	): number {
 		return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 	}
@@ -586,7 +718,7 @@ export class BrushTextures {
 		size: number,
 		color: string,
 		opacity: number,
-		mode: "draw" | "erase"
+		mode: "draw" | "erase",
 	): void {
 		if (
 			!this.stroke_graphics ||
@@ -607,11 +739,12 @@ export class BrushTextures {
 
 		if (this.is_new_stroke) {
 			this.stroke_graphics.clear();
+			this.clear_hard_stamp_sprites();
 			this.current_stroke_segments = [];
 
 			const clear_container = new Container();
 			this.app.renderer.render(clear_container, {
-				renderTexture: this.stroke_texture
+				renderTexture: this.stroke_texture,
 			});
 			clear_container.destroy();
 
@@ -626,7 +759,8 @@ export class BrushTextures {
 			size: scaled_size,
 			color,
 			opacity: this.current_opacity,
-			mode
+			mode,
+			antialias: this.antialias,
 		});
 
 		if (mode === "draw") {
@@ -640,19 +774,26 @@ export class BrushTextures {
 			}
 			this.stroke_graphics.setFillStyle({
 				color: colorValue,
-				alpha: 1.0
+				alpha: 1.0,
 			});
 		} else {
 			this.stroke_graphics.setFillStyle({
 				color: 0xffffff,
-				alpha: 1.0
+				alpha: 1.0,
 			});
 		}
 
 		const distance = this.calculate_distance(from_x, from_y, to_x, to_y);
+		const stamp_color = mode === "draw" ? color : "#ffffff";
 
 		if (distance < 0.1) {
-			this.stroke_graphics.circle(from_x, from_y, scaled_size).fill();
+			this.render_stamp_to_graphics(
+				this.stroke_graphics,
+				from_x,
+				from_y,
+				scaled_size,
+				stamp_color,
+			);
 		} else {
 			const spacing = Math.max(scaled_size / 3, 2);
 			const steps = Math.max(Math.ceil(distance / spacing), 2);
@@ -662,14 +803,20 @@ export class BrushTextures {
 				const x = from_x + (to_x - from_x) * t;
 				const y = from_y + (to_y - from_y) * t;
 
-				this.stroke_graphics.circle(x, y, scaled_size).fill();
+				this.render_stamp_to_graphics(
+					this.stroke_graphics,
+					x,
+					y,
+					scaled_size,
+					stamp_color,
+				);
 			}
 		}
 
 		this.stroke_graphics.endFill();
 
 		this.app.renderer.render(this.stroke_container, {
-			renderTexture: this.stroke_texture
+			renderTexture: this.stroke_texture,
 		});
 
 		if (mode === "draw") {
@@ -693,14 +840,15 @@ export class BrushTextures {
 			const preview_texture = RenderTexture.create({
 				width: this.dimensions.width,
 				height: this.dimensions.height,
-				resolution: window.devicePixelRatio || 1
+				resolution: window.devicePixelRatio || 1,
+				antialias: this.antialias,
 			});
 
 			const base_container = new Container();
 			const content_sprite = new Sprite(layer_textures.draw);
 			base_container.addChild(content_sprite);
 			this.app.renderer.render(base_container, {
-				renderTexture: preview_texture
+				renderTexture: preview_texture,
 			});
 			base_container.destroy({ children: true });
 
@@ -717,7 +865,7 @@ export class BrushTextures {
 			preview_container.addChild(overlay);
 
 			this.app.renderer.render(preview_container, {
-				renderTexture: preview_texture
+				renderTexture: preview_texture,
 			});
 
 			this.preview_sprite.texture = preview_texture;
@@ -728,6 +876,23 @@ export class BrushTextures {
 		}
 
 		this.preview_sprite.visible = true;
+	}
+
+	private render_stamp_to_graphics(
+		graphics: Graphics,
+		x: number,
+		y: number,
+		size: number,
+		color: string,
+	): void {
+		if (this.antialias) {
+			graphics.circle(x, y, size).fill();
+			return;
+		}
+
+		const sprite = create_hard_stamp_sprite(x, y, size, color);
+		this.hard_stamp_sprites.push(sprite);
+		this.stroke_container?.addChild(sprite);
 	}
 
 	/**
