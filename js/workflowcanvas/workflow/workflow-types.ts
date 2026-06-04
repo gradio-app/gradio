@@ -24,6 +24,7 @@ export interface Port {
 	type: PortType;
 	required?: boolean;
 	default_value?: unknown;
+	output_index?: number;
 }
 
 export interface FileValue {

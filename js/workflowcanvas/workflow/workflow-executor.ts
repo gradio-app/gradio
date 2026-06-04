@@ -108,9 +108,72 @@ async function toGradioArg(value: NodeDataValue): Promise<unknown> {
 	return { url: fileVal.url };
 }
 
+const MEDIA_PORT_TYPES = new Set([
+	"image",
+	"audio",
+	"video",
+	"file",
+	"gallery",
+	"model3d"
+]);
+
+function output_matches_port_type(item: unknown, portType: string): boolean {
+	if (item === null || item === undefined) return false;
+	if (MEDIA_PORT_TYPES.has(portType)) {
+		if (typeof item === "string") {
+			return /^(https?:|blob:|data:|\/)/.test(item);
+		}
+		return (
+			typeof item === "object" &&
+			("path" in (item as object) || "url" in (item as object))
+		);
+	}
+	if (portType === "text") return typeof item === "string";
+	if (portType === "number") return typeof item === "number";
+	if (portType === "boolean") return typeof item === "boolean";
+	if (portType === "json")
+		return typeof item === "object" || Array.isArray(item);
+	return true;
+}
+
+function pick_response_item(
+	port: { type: string; output_index?: number },
+	port_index: number,
+	output_data: unknown[],
+	total_ports: number
+): unknown {
+	const primary =
+		typeof port.output_index === "number"
+			? output_data[port.output_index]
+			: total_ports === 1 && output_data.length > 1
+				? null
+				: output_data[port_index];
+
+	if (primary != null && output_matches_port_type(primary, port.type)) {
+		return primary;
+	}
+
+	const shape_match = output_data.find((item) =>
+		output_matches_port_type(item, port.type)
+	);
+	if (shape_match !== undefined) return shape_match;
+
+	return primary ?? output_data[0] ?? null;
+}
+
 function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 	if (result === null || result === undefined) return null;
-	// Unwrap arrays (e.g. ImageSlider returns [before, after])
+	if (
+		typeof result === "object" &&
+		!Array.isArray(result) &&
+		(result as Record<string, unknown>).__type__ === "update" &&
+		"value" in (result as Record<string, unknown>)
+	) {
+		return fromGradioOutput(
+			(result as Record<string, unknown>).value,
+			portType
+		);
+	}
 	if (Array.isArray(result)) {
 		if (result.length === 0) return null;
 		return fromGradioOutput(result[result.length - 1], portType);
@@ -431,21 +494,17 @@ export async function executeWorkflow(
 				const outputData = Array.isArray(resultData)
 					? resultData
 					: [resultData];
-				if (node.outputs.length === 1 && outputData.length > 1) {
-					// Space returns multiple outputs but node has single output — use the last one
-					const value = fromGradioOutput(
-						outputData[outputData.length - 1],
-						node.outputs[0].type
+				node.outputs.forEach((port, i) => {
+					const raw = pick_response_item(
+						port,
+						i,
+						outputData,
+						node.outputs.length
 					);
-					dataMap[node.id][node.outputs[0].id] = value;
-					onOutput(node.id, node.outputs[0].id, value);
-				} else {
-					node.outputs.forEach((port, i) => {
-						const value = fromGradioOutput(outputData[i] ?? null, port.type);
-						dataMap[node.id][port.id] = value;
-						onOutput(node.id, port.id, value);
-					});
-				}
+					const value = fromGradioOutput(raw, port.type);
+					dataMap[node.id][port.id] = value;
+					onOutput(node.id, port.id, value);
+				});
 
 				onStatus(node.id, "done");
 			} catch (err) {

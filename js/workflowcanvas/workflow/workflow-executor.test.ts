@@ -482,3 +482,181 @@ describe("executeWorkflow — model operator routing", () => {
 		expect(provider).toBe("together");
 	});
 });
+
+describe("executeWorkflow — space multi-output mapping", () => {
+	function spaceOp(
+		id: string,
+		overrides: Partial<OperatorNode> = {}
+	): OperatorNode {
+		return {
+			id,
+			role: "operator",
+			kind: "space",
+			label: "s",
+			space_id: "user/s",
+			endpoint: "/predict",
+			inputs: [
+				{
+					id: "in_0",
+					label: "Prompt",
+					type: "text",
+					default_value: "hello"
+				}
+			],
+			outputs: [{ id: "out_0", label: "Image", type: "image" }],
+			data: {},
+			x: 0,
+			y: 0,
+			width: 280,
+			height: 90,
+			runtime: "client",
+			...overrides
+		};
+	}
+
+	async function run(
+		node: OperatorNode,
+		responseJson: string
+	): Promise<Record<string, NodeDataValue>> {
+		const callSpace = vi.fn().mockResolvedValue(responseJson);
+		const outputs: Record<string, NodeDataValue> = {};
+		await executeWorkflow(
+			emptyV2([node]),
+			() => {},
+			(_id, portId, value) => {
+				outputs[portId] = value;
+			},
+			undefined,
+			callSpace as unknown as Parameters<typeof executeWorkflow>[4],
+			undefined,
+			undefined,
+			undefined,
+			undefined
+		);
+		return outputs;
+	}
+
+	test("explicit output_index picks the right item over a trailing seed", async () => {
+		const node = spaceOp("s1", {
+			outputs: [
+				{
+					id: "out_0",
+					label: "Image",
+					type: "image",
+					output_index: 0
+				}
+			]
+		});
+		const response = JSON.stringify([
+			{ path: "/tmp/img.webp", url: "/file=/tmp/img.webp", is_file: true },
+			1686841721
+		]);
+		const outputs = await run(node, response);
+		expect((outputs.out_0 as { url: string }).url).toContain("img.webp");
+	});
+
+	test("output_index of a later position routes that item to the port", async () => {
+		const node = spaceOp("s1", {
+			outputs: [
+				{
+					id: "out_0",
+					label: "Image",
+					type: "image",
+					output_index: 1
+				}
+			]
+		});
+		const response = JSON.stringify([
+			1686841721,
+			{ path: "/tmp/img.webp", url: "/file=/tmp/img.webp", is_file: true }
+		]);
+		const outputs = await run(node, response);
+		expect((outputs.out_0 as { url: string }).url).toContain("img.webp");
+	});
+
+	test("legacy node (no output_index) shape-matches: picks image dict over trailing seed", async () => {
+		const node = spaceOp("s1");
+		const response = JSON.stringify([
+			{ path: "/tmp/img.webp", url: "/file=/tmp/img.webp", is_file: true },
+			1686841721
+		]);
+		const outputs = await run(node, response);
+		expect((outputs.out_0 as { url: string }).url).toContain("img.webp");
+	});
+
+	test("legacy node shape-matches: picks image when image is at index 1", async () => {
+		const node = spaceOp("s1");
+		const response = JSON.stringify([
+			1686841721,
+			{ path: "/tmp/img.webp", url: "/file=/tmp/img.webp", is_file: true }
+		]);
+		const outputs = await run(node, response);
+		expect((outputs.out_0 as { url: string }).url).toContain("img.webp");
+	});
+
+	test("legacy node falls back to first item when nothing matches port type", async () => {
+		const node = spaceOp("s1");
+		const response = JSON.stringify(["just a string", 42]);
+		const outputs = await run(node, response);
+		expect(outputs.out_0).toBeDefined();
+	});
+
+	test("two-port node maps response items by position", async () => {
+		const node = spaceOp("s1", {
+			outputs: [
+				{ id: "img", label: "Image", type: "image", output_index: 0 },
+				{ id: "seed", label: "Seed", type: "number", output_index: 1 }
+			]
+		});
+		const response = JSON.stringify([
+			{ path: "/tmp/img.webp", url: "/file=/tmp/img.webp", is_file: true },
+			1686841721
+		]);
+		const outputs = await run(node, response);
+		expect((outputs.img as { url: string }).url).toContain("img.webp");
+		expect(outputs.seed).toBe(1686841721);
+	});
+
+	test("stale output_index recovers via shape match (Space API drifted)", async () => {
+		const node = spaceOp("s1", {
+			outputs: [
+				{ id: "out_0", label: "Image", type: "image", output_index: 0 }
+			]
+		});
+		const response = JSON.stringify([
+			1686841721,
+			{ path: "/tmp/img.webp", url: "/file=/tmp/img.webp", is_file: true }
+		]);
+		const outputs = await run(node, response);
+		expect((outputs.out_0 as { url: string }).url).toContain("img.webp");
+	});
+
+	test("unwraps gr.update() wrapper objects", async () => {
+		const node = spaceOp("s1");
+		const response = JSON.stringify([
+			{
+				__type__: "update",
+				value: {
+					path: "/tmp/img.webp",
+					url: "/file=/tmp/img.webp",
+					is_file: true
+				},
+				visible: true
+			},
+			1686841721
+		]);
+		const outputs = await run(node, response);
+		expect((outputs.out_0 as { url: string }).url).toContain("img.webp");
+	});
+
+	test("nothing matches and primary is junk → falls back gracefully", async () => {
+		const node = spaceOp("s1", {
+			outputs: [
+				{ id: "out_0", label: "Image", type: "image", output_index: 0 }
+			]
+		});
+		const response = JSON.stringify(["unhelpful", 42]);
+		const outputs = await run(node, response);
+		expect(outputs.out_0).toBeDefined();
+	});
+});

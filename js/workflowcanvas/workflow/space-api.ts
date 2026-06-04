@@ -325,7 +325,8 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 			return {
 				id: `out_${i}`,
 				label: rawLabel,
-				type: portType
+				type: portType,
+				output_index: i
 			};
 		})
 		.filter(Boolean);
