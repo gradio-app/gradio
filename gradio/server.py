@@ -281,7 +281,7 @@ class Server(App):
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
 
-        with Blocks() as blocks:
+        with Blocks(mode="server") as blocks:
             for fn, api_kwargs in self._deferred_apis:
                 gr_api(fn=fn, **api_kwargs)
 
