@@ -250,12 +250,8 @@
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			let parsed = parse_results(data);
 
-			// Filter by modality category only when the server didn't already
-			// narrow by tag. Keep results that EITHER match the modality
-			// OR couldn't be categorised — most Gradio Spaces lack a
-			// pipeline_tag on their card, so dropping uncategorised ones
-			// hides the bulk of legitimate results. We only exclude things
-			// confidently categorised to a different modality.
+			// Keep results that match the modality OR are uncategorised
+			// (most Gradio Spaces lack a pipeline_tag on their card).
 			if (active_content_tab !== "search" && !space_tag) {
 				const cats = modality.acceptedCategories ?? [modality.category];
 				parsed = parsed.filter((s) => !s.category || cats.includes(s.category));
@@ -493,7 +489,6 @@
 				}
 			}
 		} catch {
-			// fall through to defaults
 		} finally {
 			loading_space_id = null;
 		}

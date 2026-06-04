@@ -1,5 +1,9 @@
 import { describe, test, expect } from "vitest";
-import { canonicalizePort, normalizeOperatorPorts } from "./space-api";
+import {
+	canonicalizePort,
+	normalizeOperatorPorts,
+	normalize_space_id
+} from "./space-api";
 import { MODALITIES } from "./workflow-modalities";
 import type { Port } from "./workflow-types";
 
@@ -94,5 +98,79 @@ describe("normalizeOperatorPorts", () => {
 		const result = normalizeOperatorPorts(imageModality, ports);
 		expect(result).not.toBe(ports);
 		expect(ports[0].type).toBe("any");
+	});
+});
+
+describe("normalize_space_id", () => {
+	test("passes through bare owner/repo", () => {
+		expect(normalize_space_id("owner/repo")).toBe("owner/repo");
+	});
+
+	test("accepts owner/repo with hyphens, dots, underscores", () => {
+		expect(normalize_space_id("JacobLinCool/audio-super-resolution")).toBe(
+			"JacobLinCool/audio-super-resolution"
+		);
+		expect(normalize_space_id("gradio_app/v1.2-test")).toBe(
+			"gradio_app/v1.2-test"
+		);
+	});
+
+	test("parses huggingface.co/spaces/ URLs", () => {
+		expect(normalize_space_id("https://huggingface.co/spaces/owner/repo")).toBe(
+			"owner/repo"
+		);
+	});
+
+	test("parses URLs with trailing paths", () => {
+		expect(
+			normalize_space_id(
+				"https://huggingface.co/spaces/owner/repo/discussions/3"
+			)
+		).toBe("owner/repo");
+	});
+
+	test("parses URLs with www subdomain", () => {
+		expect(
+			normalize_space_id("https://www.huggingface.co/spaces/owner/repo")
+		).toBe("owner/repo");
+	});
+
+	test("parses *.hf.space subdomains", () => {
+		expect(normalize_space_id("https://owner-repo.hf.space")).toBe(
+			"owner/repo"
+		);
+	});
+
+	test("hf.space subdomain with multi-hyphen repo names", () => {
+		// Heuristic: first hyphen splits owner/repo. Imperfect but matches HF's actual subdomain format.
+		expect(normalize_space_id("https://owner-some-repo-name.hf.space")).toBe(
+			"owner/some-repo-name"
+		);
+	});
+
+	test("trims trailing slashes", () => {
+		expect(
+			normalize_space_id("https://huggingface.co/spaces/owner/repo/")
+		).toBe("owner/repo");
+		expect(normalize_space_id("owner/repo/")).toBe("owner/repo");
+	});
+
+	test("trims whitespace", () => {
+		expect(normalize_space_id("  owner/repo  ")).toBe("owner/repo");
+	});
+
+	test("returns null for empty input", () => {
+		expect(normalize_space_id("")).toBeNull();
+		expect(normalize_space_id("   ")).toBeNull();
+	});
+
+	test("returns null for unrecognisable input", () => {
+		expect(normalize_space_id("just-a-name")).toBeNull();
+		expect(normalize_space_id("https://example.com/foo")).toBeNull();
+	});
+
+	test("returns null for too-many-slashes plain input", () => {
+		// A plain "a/b/c" isn't an HF Space ID (HF Spaces are owner/repo only).
+		expect(normalize_space_id("a/b/c")).toBeNull();
 	});
 });

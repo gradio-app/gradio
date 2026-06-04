@@ -21,6 +21,8 @@ from gradio.utils import get_space
 
 logger = logging.getLogger(__name__)
 
+# Scalar-only — everything else (str, list, dict, custom classes) falls through
+# to the default "text" port type, which round-trips as JSON.
 _PY_TO_PORT = {int: "number", float: "number", bool: "boolean"}
 
 
@@ -167,7 +169,6 @@ def _normalize_space_result(s: dict, pipeline_tag: str) -> dict:
             "short_description": (
                 s.get("shortDescription") or s.get("ai_short_description")
             ),
-            "pipeline_tag": effective_tag,
             "tags": s.get("tags", []),
             "sdk": s.get("sdk"),
         },
@@ -426,11 +427,8 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
         pipeline_tag = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
         hf_token = _resolve_token(data, 3, token)
-        # data[4] is an optional provider override. Default "auto"
-        # lets HF route to whichever provider serves the model
-        # (hf-inference, together, replicate, ...) — far more
-        # reliable than pinning to "hf-inference" which 404s for
-        # models not hosted there.
+        # "auto" lets HF route to whichever provider serves the model; pinning
+        # "hf-inference" 404s for models not hosted there.
         provider = data[4] if len(data) > 4 and data[4] else "auto"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
@@ -584,12 +582,8 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
             depth_img = _Image.open(_io.BytesIO(resp.content))
             return json.dumps([_save_tmp(depth_img, "png")])
 
-        # Generic fallback for tasks not handled above. Tries
-        # `client.chat_completion` (OpenAI-style endpoint, supported
-        # by most text models across providers), then a raw POST to
-        # the HF Inference API as a last resort. This covers newer
-        # or less common pipeline_tags without requiring a code
-        # change per task. Errors bubble up to the outer except.
+        # Fallback for tasks not handled above: chat_completion (works for most
+        # text models across providers), then a raw POST as last resort.
         try:
             r = client.chat_completion(
                 [{"role": "user", "content": a0}], max_tokens=512
@@ -778,10 +772,7 @@ def search_models(data, token: Optional[OAuthToken] = None) -> str:
         query = data[1] if len(data) > 1 and data[1] else ""
         pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
         hf_token = _resolve_token(data, 3, token)
-        # Always apply pipeline_tag when set — the frontend further
-        # filters to models with a TASK_SCHEMAS entry, so the
-        # unfiltered list ends up tiny. Higher limits give the
-        # client-side filter more to work with.
+        # Wide net — frontend filters to TASK_SCHEMAS-supported models.
         if kind == "search":
             sort = "likes&direction=-1"
         elif kind == "new":
@@ -952,8 +943,6 @@ class Workflow(Blocks):
         import gradio as gr
         from gradio.components.workflowcanvas import WorkflowCanvas
 
-        # Log the "edges= ignored because file exists" warning once at
-        # construction time, mirroring the previous behaviour.
         if self._edges and os.path.exists(self._workflow_file):
             logger.warning(
                 "Workflow: edges= is ignored because '%s' already exists. "
@@ -961,11 +950,8 @@ class Workflow(Blocks):
                 self._workflow_file,
             )
 
-        # Initial workflow is read on every browser session, not just once at
-        # construction. This way edits made via `save_workflow` (which writes
-        # `workflow.json` as the user works) survive a page refresh — without
-        # the callable, the captured-at-startup string would always win and
-        # cleared canvases would respawn the old nodes.
+        # Callable so each browser session re-reads `workflow.json`, picking up
+        # writes from `save_workflow` instead of the construction-time snapshot.
         def _load_initial() -> str | None:
             try:
                 with open(self._workflow_file, encoding="utf-8") as f:

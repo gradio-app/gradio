@@ -118,7 +118,7 @@
 						likes: s.likes ?? 0,
 						running: s.runtime?.stage === "RUNNING",
 						category: categorizeSpace(
-							s.cardData?.pipeline_tag,
+							s.cardData?.pipeline_tag || s.pipeline_tag,
 							s.cardData?.tags,
 							desc,
 							s.id

@@ -46,6 +46,7 @@
 	} from "./workflow-graph";
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
+	import { load_viewport, save_viewport } from "./viewport-persistence";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 
 	/**
@@ -120,25 +121,6 @@
 	});
 
 	// ─── Canvas state ───────────────────────────────────────────────────────────
-	function viewport_storage_key(name: string): string {
-		return `gradio_workflow_viewport:${name}`;
-	}
-	function load_viewport(name: string): { x: number; y: number; zoom: number } {
-		if (typeof localStorage === "undefined") return { x: 0, y: 0, zoom: 1 };
-		try {
-			const raw = localStorage.getItem(viewport_storage_key(name));
-			if (!raw) return { x: 0, y: 0, zoom: 1 };
-			const v = JSON.parse(raw);
-			if (
-				typeof v?.x === "number" &&
-				typeof v?.y === "number" &&
-				typeof v?.zoom === "number"
-			) {
-				return { x: v.x, y: v.y, zoom: v.zoom };
-			}
-		} catch {}
-		return { x: 0, y: 0, zoom: 1 };
-	}
 	let viewport = $state(load_viewport($workflow.name));
 
 	let lastViewportName = $state($workflow.name);
@@ -150,14 +132,9 @@
 	});
 
 	$effect(() => {
-		if (typeof localStorage === "undefined") return;
 		const name = $workflow.name;
 		const v = viewport;
-		const timer = setTimeout(() => {
-			try {
-				localStorage.setItem(viewport_storage_key(name), JSON.stringify(v));
-			} catch {}
-		}, 250);
+		const timer = setTimeout(() => save_viewport(name, v), 250);
 		return () => clearTimeout(timer);
 	});
 
@@ -237,10 +214,7 @@
 			}, ms);
 	}
 
-	// v1-shaped projection of the v2 store for reads only. The executor + most
-	// of this file's read paths still speak v1; writes go through the v2 store
-	// actions directly. When studio view lands, those reads can switch to the
-	// role-aware v2 arrays.
+	// v1 shape for read paths; writes go through v2 store actions.
 	const legacyView = $derived(toLegacyShape($workflow));
 
 	const gridTile = $derived.by(() => {
@@ -593,11 +567,9 @@
 		const target = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!target) return null;
 		if (reversed) {
-			// Looking for an OUTPUT on the target
 			const out = target.outputs.find((p) => compatible(p.type, type));
 			return out ? { id: out.id, direction: "output" } : null;
 		}
-		// Looking for an unconnected INPUT on the target
 		const inPort = target.inputs.find(
 			(p) =>
 				compatible(type, p.type) &&
@@ -1478,7 +1450,6 @@
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
 
-				// Input components — stacked left of the space node
 				const inTotal = inputPorts.length * (compH + compGap) - compGap;
 				const inStartY = y + (spaceNode.height ?? 90) / 2 - inTotal / 2;
 				inputPorts.forEach((port, i) => {
@@ -1498,7 +1469,6 @@
 					});
 				});
 
-				// Output components — stacked right of the space node (rendered as subjects)
 				const outTotal = outputPorts.length * (compH + compGap) - compGap;
 				const outStartY = y + (spaceNode.height ?? 90) / 2 - outTotal / 2;
 				outputPorts.forEach((port, i) => {

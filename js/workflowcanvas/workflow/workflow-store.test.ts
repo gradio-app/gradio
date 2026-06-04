@@ -2,10 +2,11 @@ import { describe, test, expect, beforeEach } from "vitest";
 import { get } from "svelte/store";
 import {
 	workflow,
-	addNode,
 	addOperator,
+	addEdge,
 	replaceNodeSource,
 	removeNode,
+	removeEdge,
 	sanitize_for_save
 } from "./workflow-store";
 import type { OperatorNode, ReferenceNode, Workflow } from "./workflow-types";
@@ -87,14 +88,14 @@ describe("replaceNodeSource — dataset transitions", () => {
 describe("removeNode", () => {
 	beforeEach(resetWorkflow);
 
-	test("removes an operator and any edges touching it", () => {
-		const id = addOperator(
+	function _makeOp(label: string): string {
+		return addOperator(
 			{
 				kind: "dataset",
-				label: "ds",
-				dataset_id: "user/ds",
-				inputs: [],
-				outputs: [],
+				label,
+				dataset_id: `user/${label}`,
+				inputs: [{ id: "in", label: "x", type: "text" }],
+				outputs: [{ id: "out", label: "y", type: "text" }],
 				width: 240,
 				height: 90,
 				runtime: "client"
@@ -102,8 +103,145 @@ describe("removeNode", () => {
 			0,
 			0
 		);
+	}
+
+	test("removes an operator from the store", () => {
+		const id = _makeOp("a");
 		removeNode(id);
 		expect(get(workflow).operators.find((o) => o.id === id)).toBeUndefined();
+	});
+
+	test("strips edges where removed node is the source", () => {
+		const a = _makeOp("a");
+		const b = _makeOp("b");
+		addEdge({
+			from_node_id: a,
+			from_port_id: "out",
+			to_node_id: b,
+			to_port_id: "in",
+			type: "text"
+		});
+		removeNode(a);
+		expect(get(workflow).edges).toEqual([]);
+	});
+
+	test("strips edges where removed node is the target", () => {
+		const a = _makeOp("a");
+		const b = _makeOp("b");
+		addEdge({
+			from_node_id: a,
+			from_port_id: "out",
+			to_node_id: b,
+			to_port_id: "in",
+			type: "text"
+		});
+		removeNode(b);
+		expect(get(workflow).edges).toEqual([]);
+	});
+
+	test("preserves edges between other nodes", () => {
+		const a = _makeOp("a");
+		const b = _makeOp("b");
+		const c = _makeOp("c");
+		addEdge({
+			from_node_id: a,
+			from_port_id: "out",
+			to_node_id: b,
+			to_port_id: "in",
+			type: "text"
+		});
+		addEdge({
+			from_node_id: b,
+			from_port_id: "out",
+			to_node_id: c,
+			to_port_id: "in",
+			type: "text"
+		});
+		removeNode(a);
+		const edges = get(workflow).edges;
+		expect(edges).toHaveLength(1);
+		expect(edges[0].from_node_id).toBe(b);
+		expect(edges[0].to_node_id).toBe(c);
+	});
+
+	test("no-op when id doesn't exist", () => {
+		const a = _makeOp("a");
+		removeNode("nonexistent");
+		expect(get(workflow).operators.find((o) => o.id === a)).toBeDefined();
+	});
+});
+
+describe("removeEdge", () => {
+	beforeEach(resetWorkflow);
+
+	function _makeOp(label: string): string {
+		return addOperator(
+			{
+				kind: "fn",
+				label,
+				fn: label,
+				inputs: [{ id: "in", label: "x", type: "text" }],
+				outputs: [{ id: "out", label: "y", type: "text" }],
+				width: 200,
+				height: 80
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+	}
+
+	test("removes only the targeted edge", () => {
+		const a = _makeOp("a");
+		const b = _makeOp("b");
+		const c = _makeOp("c");
+		addEdge({
+			from_node_id: a,
+			from_port_id: "out",
+			to_node_id: b,
+			to_port_id: "in",
+			type: "text"
+		});
+		addEdge({
+			from_node_id: b,
+			from_port_id: "out",
+			to_node_id: c,
+			to_port_id: "in",
+			type: "text"
+		});
+		const firstEdgeId = get(workflow).edges[0].id;
+		removeEdge(firstEdgeId);
+		const edges = get(workflow).edges;
+		expect(edges).toHaveLength(1);
+		expect(edges[0].from_node_id).toBe(b);
+	});
+
+	test("no-op when id doesn't exist", () => {
+		const a = _makeOp("a");
+		const b = _makeOp("b");
+		addEdge({
+			from_node_id: a,
+			from_port_id: "out",
+			to_node_id: b,
+			to_port_id: "in",
+			type: "text"
+		});
+		removeEdge("nonexistent");
+		expect(get(workflow).edges).toHaveLength(1);
+	});
+
+	test("does not touch nodes", () => {
+		const a = _makeOp("a");
+		const b = _makeOp("b");
+		addEdge({
+			from_node_id: a,
+			from_port_id: "out",
+			to_node_id: b,
+			to_port_id: "in",
+			type: "text"
+		});
+		const edgeId = get(workflow).edges[0].id;
+		removeEdge(edgeId);
+		expect(get(workflow).operators).toHaveLength(2);
 	});
 });
 
