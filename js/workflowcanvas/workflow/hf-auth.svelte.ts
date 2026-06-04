@@ -1,3 +1,22 @@
+async function fetch_username(token: string): Promise<string | null> {
+	try {
+		const res = await fetch("https://huggingface.co/api/whoami-v2", {
+			headers: { Authorization: `Bearer ${token}` }
+		});
+		if (!res.ok) return null;
+		return (await res.json()).name || "User";
+	} catch {
+		return null;
+	}
+}
+
+function redirect_to(path: string): void {
+	const target = encodeURIComponent(
+		window.location.pathname + window.location.search
+	);
+	window.location.assign(`${path}?_target_url=${target}`);
+}
+
 export function createHFAuth(getServer: () => Record<string, any>) {
 	let loggedInUser = $state("");
 	let isHFSpace = $state(false);
@@ -17,19 +36,11 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			return;
 		}
 		tokenStatus = "validating";
-		try {
-			const res = await fetch("https://huggingface.co/api/whoami-v2", {
-				headers: { Authorization: `Bearer ${token}` }
-			});
-			if (res.ok) {
-				const data = await res.json();
-				tokenUser = data.name || "User";
-				tokenStatus = "idle";
-			} else {
-				tokenUser = "";
-				tokenStatus = "invalid";
-			}
-		} catch {
+		const name = await fetch_username(token);
+		if (name) {
+			tokenUser = name;
+			tokenStatus = "idle";
+		} else {
 			tokenUser = "";
 			tokenStatus = "invalid";
 		}
@@ -66,30 +77,16 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			isCheckingLogin = false;
 			return;
 		}
-		try {
-			const res = await fetch("https://huggingface.co/api/whoami-v2", {
-				headers: { Authorization: `Bearer ${token}` }
-			});
-			loggedInUser = res.ok ? (await res.json()).name || "User" : "";
-		} catch {
-			loggedInUser = "User";
-		} finally {
-			isCheckingLogin = false;
-		}
+		loggedInUser = (await fetch_username(token)) ?? "";
+		isCheckingLogin = false;
 	}
 
 	function handleLogin(): void {
-		const target = encodeURIComponent(
-			window.location.pathname + window.location.search
-		);
-		window.location.assign(`/login/huggingface?_target_url=${target}`);
+		redirect_to("/login/huggingface");
 	}
 
 	function handleLogout(): void {
-		const target = encodeURIComponent(
-			window.location.pathname + window.location.search
-		);
-		window.location.assign(`/logout?_target_url=${target}`);
+		redirect_to("/logout");
 	}
 
 	return {

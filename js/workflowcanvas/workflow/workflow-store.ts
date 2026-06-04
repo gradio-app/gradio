@@ -95,7 +95,7 @@ export function sanitize_for_save(wf: Workflow): Workflow {
 
 // ─── Actions ────────────────────────────────────────────────────────────────
 
-export function addReference(
+function addReference(
 	template: Omit<ReferenceNode, "id" | "role" | "x" | "y" | "data">,
 	x: number,
 	y: number
@@ -136,7 +136,7 @@ export function addOperator(
 	return id;
 }
 
-export function addSubject(
+function addSubject(
 	template: Omit<SubjectNode, "id" | "role" | "x" | "y" | "data">,
 	x: number,
 	y: number
@@ -420,43 +420,3 @@ export function replaceNodeSource(
 	}));
 }
 
-/**
- * Promote a reference into a subject (it now receives data from somewhere) or
- * demote a subject back into a reference. Used when edges are added/removed and
- * topology changes a component's role. Kept as an explicit action rather than
- * derived so the studio view can render the change instantly.
- */
-export function switchNodeRole(
-	nodeId: string,
-	to: "reference" | "subject"
-): void {
-	workflow.update((wf) => {
-		const fromRefs = wf.references.find((n) => n.id === nodeId);
-		const fromSubs = wf.subjects.find((n) => n.id === nodeId);
-		if (to === "subject" && fromRefs) {
-			const promoted: SubjectNode = {
-				...fromRefs,
-				role: "subject",
-				asset_type: fromRefs.asset_type
-			};
-			return {
-				...wf,
-				references: wf.references.filter((n) => n.id !== nodeId),
-				subjects: [...wf.subjects, promoted]
-			};
-		}
-		if (to === "reference" && fromSubs) {
-			const demoted: ReferenceNode = {
-				...fromSubs,
-				role: "reference",
-				asset_type: fromSubs.asset_type
-			};
-			return {
-				...wf,
-				subjects: wf.subjects.filter((n) => n.id !== nodeId),
-				references: [...wf.references, demoted]
-			};
-		}
-		return wf;
-	});
-}
