@@ -298,19 +298,3 @@ describe("Edge cases", () => {
 		expect(change).toHaveBeenCalled();
 	});
 });
-
-test.todo(
-	"VISUAL: caption text is displayed beneath the plot — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: theme_mode='dark' applies dark styling to the rendered plot — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: x_lim constrains the x-axis range of the rendered plot — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: plotly, bokeh and altair value types each render their respective plot — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"select event fires when a region of a selectable altair/plotly plot is brushed — needs a real interactive plot harness"
-);

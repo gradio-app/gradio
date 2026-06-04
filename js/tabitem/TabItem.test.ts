@@ -73,7 +73,3 @@ describe("Events: select", () => {
 		expect(on_tab_select).not.toHaveBeenCalled();
 	});
 });
-
-test.todo(
-	"VISUAL: scale >= 1 makes the tab content grow to fill available space — needs Playwright visual regression screenshot comparison"
-);

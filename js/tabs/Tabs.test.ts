@@ -267,13 +267,3 @@ describe("Edge cases", () => {
 		expect(change).not.toHaveBeenCalled();
 	});
 });
-
-test.todo(
-	"VISUAL: tabs that exceed the container width collapse into an overflow menu — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: the selected tab renders an accent-coloured underline indicator — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: scale controls the flex-grow of the active tab's content area — needs Playwright visual regression screenshot comparison"
-);
