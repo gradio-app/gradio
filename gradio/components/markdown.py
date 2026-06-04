@@ -40,6 +40,8 @@ class Markdown(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
+        scale: int | None = None,
+        min_width: int | None = None,
         rtl: bool = False,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         visible: bool | Literal["hidden"] = True,
@@ -65,6 +67,8 @@ class Markdown(Component):
             every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: This parameter has no effect.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
+            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             visible: If False, component will be hidden. If "hidden", component will be visually hidden and not take up space in the layout but still exist in the DOM
@@ -109,6 +113,8 @@ class Markdown(Component):
             preserved_by_key=preserved_by_key,
             value=value,
             container=container,
+            scale=scale,
+            min_width=min_width,
         )
 
     def preprocess(self, payload: str | None) -> str | None:
