@@ -155,6 +155,7 @@ class TestHTML:
             "likeable": False,
             "max_height": None,
             "min_height": None,
+            "min_width": None,
             "name": "html",
             "padding": False,
             "preserved_by_key": [
@@ -162,12 +163,20 @@ class TestHTML:
             ],
             "props": {},
             "proxy_url": None,
+            "scale": None,
             "show_label": False,
             "streamable": False,
             "value": "#Welcome onboard",
             "visible": True,
             "buttons": [],
         }
+
+    def test_layout_parameters(self):
+        html_component = gr.HTML(
+            "<strong>Welcome onboard</strong>", scale=2, min_width=120
+        )
+        assert html_component.get_config()["scale"] == 2
+        assert html_component.get_config()["min_width"] == 120
 
     def test_in_interface(self):
         """
