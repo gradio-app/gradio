@@ -59,10 +59,25 @@ test("Dataframe shows visible focus on the keyboard-focusable grid", async ({
 }) => {
 	const grid = page.locator("#dataframe .table-wrap").first();
 
-	await grid.focus();
+	for (let i = 0; i < 20; i++) {
+		await page.keyboard.press("Tab");
+		if (await grid.evaluate((element) => element === document.activeElement)) {
+			break;
+		}
+	}
 
 	await expect(grid).toBeFocused();
+	await expect
+		.poll(() => grid.evaluate((element) => element.matches(":focus-visible")))
+		.toBe(true);
 	await expect(grid).toHaveCSS("outline-style", "solid");
+	await expect
+		.poll(() =>
+			grid.evaluate((element) =>
+				parseFloat(getComputedStyle(element).outlineWidth)
+			)
+		)
+		.toBeGreaterThan(0);
 	await expect(grid).not.toHaveCSS("outline-color", "rgba(0, 0, 0, 0)");
 });
 

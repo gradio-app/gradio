@@ -1290,7 +1290,7 @@
 	}
 
 	.table-wrap:focus-visible {
-		outline: var(--input-border-width) solid var(--input-border-color-focus);
+		outline: 1px solid var(--input-border-color-focus, var(--color-accent));
 		outline-offset: var(--size-1);
 		box-shadow: var(--input-shadow-focus);
 	}
