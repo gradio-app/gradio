@@ -86,12 +86,12 @@ class Mario(Base):
         radius_size: sizes.Size | str = sizes.radius_sm,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Press Start 2P"),
+            fonts.LocalFont("Press Start 2P", weights=(400,)),
             "ui-monospace",
             "monospace",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Press Start 2P"),
+            fonts.LocalFont("Press Start 2P", weights=(400,)),
             "ui-monospace",
             "Consolas",
             "monospace",

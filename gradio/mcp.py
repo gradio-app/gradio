@@ -11,7 +11,7 @@ from collections.abc import AsyncIterator, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, cast
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
 import gradio_client.utils as client_utils
 import httpx
@@ -56,10 +56,34 @@ _MCP_LANDING_PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gradio MCP Server</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="__STATIC_PREFIX__/fonts/SourceSans3/SourceSans3-Regular.woff2" rel="preload" as="font" type="font/woff2" crossorigin />
+<link href="__STATIC_PREFIX__/fonts/SourceSans3/SourceSans3-SemiBold.woff2" rel="preload" as="font" type="font/woff2" crossorigin />
+<link href="__STATIC_PREFIX__/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2" rel="preload" as="font" type="font/woff2" crossorigin />
 <style>
+  @font-face {
+    font-family: 'Source Sans 3';
+    src: url('__STATIC_PREFIX__/fonts/SourceSans3/SourceSans3-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Source Sans 3';
+    src: url('__STATIC_PREFIX__/fonts/SourceSans3/SourceSans3-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'IBM Plex Mono';
+    src: url('__STATIC_PREFIX__/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'IBM Plex Mono';
+    src: url('__STATIC_PREFIX__/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+  }
   :root {
     --primary: #ff7c00;
     --primary-soft: #fff2e5;
@@ -465,13 +489,20 @@ class GradioMCPServer:
         to paste configuration snippets for popular MCP clients.
         """
         docs_url = "https://www.gradio.app/guides/building-mcp-server-with-gradio"
-        # JSON-encode for safe interpolation into the inline <script> below.
         server_url_js = json.dumps(server_url)
         docs_url_js = json.dumps(docs_url)
+        parsed = urlparse(server_url)
+        path = parsed.path
+        if "/gradio_api/mcp" in path:
+            root_path = path.split("/gradio_api/mcp")[0]
+        else:
+            root_path = path.rstrip("/")
+        static_prefix = f"{root_path}/static"
         return (
             _MCP_LANDING_PAGE_TEMPLATE.replace("__SERVER_URL__", server_url_js)
             .replace("__DOCS_URL__", docs_url_js)
             .replace("__SERVER_URL_TEXT__", html.escape(server_url))
+            .replace("__STATIC_PREFIX__", static_prefix)
         )
 
     def get_route_path(self, request: Request) -> str:  # type: ignore

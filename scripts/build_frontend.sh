@@ -10,3 +10,5 @@ python scripts/generate_theme.py
 echo "Building the frontend..."
 pnpm i --frozen-lockfile --ignore-scripts
 pnpm build
+
+python scripts/download_offline_assets.py

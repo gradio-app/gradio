@@ -15,7 +15,7 @@ runs:
       with:
         path: |
           gradio/templates/**
-        key: gradio-lib-main-front-end-${{ hashFiles('js/**', 'client/js/**', 'pnpm-lock.yaml')}}
+        key: gradio-lib-main-front-end-${{ hashFiles('js/**', 'client/js/**', 'pnpm-lock.yaml', 'scripts/download_offline_assets.py')}}
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
       with:
@@ -35,3 +35,11 @@ runs:
       if: inputs.skip_build == 'false' && steps.frontend-core-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
+    - name: Download offline assets
+      # Bundles the self-hosted fonts/Bokeh/FFmpeg/iframe-resizer into
+      # gradio/templates/frontend/static so Gradio works offline. Must run after
+      # `pnpm build` (which empties the output dir) and before the wheel is built.
+      # Skipped on a cache hit because the cached templates already include them.
+      if: inputs.skip_build == 'false' && steps.frontend-core-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: python3 scripts/download_offline_assets.py

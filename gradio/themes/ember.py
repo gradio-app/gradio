@@ -17,13 +17,13 @@ class Ember(Base):
         radius_size: sizes.Size | str = sizes.radius_lg,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Source Sans 3"),
+            fonts.LocalFont("Source Sans 3"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Source Code Pro"),
+            fonts.LocalFont("Source Code Pro"),
             "ui-monospace",
             "Consolas",
             "monospace",
