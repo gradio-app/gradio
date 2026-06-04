@@ -28,6 +28,8 @@ Please [open an issue](https://github.com/gradio-app/gradio/issues/new/choose) a
 
 The smaller and more self-contained the reproduction, the faster we can fix it.
 
+[#10568](https://github.com/gradio-app/gradio/issues/10568) is a good example of a bug report to follow.
+
 ### ✨ Requesting a feature
 
 Please [open an issue](https://github.com/gradio-app/gradio/issues/new/choose) and include:
@@ -39,6 +41,8 @@ Please [open an issue](https://github.com/gradio-app/gradio/issues/new/choose) a
 5. **Alternatives you've considered**, including any workarounds you're currently using.
 
 Detailed feature requests directly shape our roadmap and help us prioritize what to build next.
+
+[#12519](https://github.com/gradio-app/gradio/issues/12519) is a good example of a feature request issue to follow.
 
 ## 🏡 Setup Gradio locally
 
