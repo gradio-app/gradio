@@ -80,6 +80,7 @@ class TestConstruction:
 # ZeroGPU detection
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestHasZeroGpu:
     def test_detects_via_tag(self):
         assert _has_zero_gpu({"tags": ["zero-gpu", "gradio"]}) is True
