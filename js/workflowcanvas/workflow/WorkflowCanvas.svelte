@@ -1451,9 +1451,12 @@
 			if (spaceNode) {
 				const compGap = 24;
 				const compH = 180;
-				const inputPorts = spaceNode.inputs.filter((p) =>
+				const typedInputs = spaceNode.inputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
+				const requiredInputs = typedInputs.filter((p) => p.required !== false);
+				const inputPorts =
+					requiredInputs.length > 0 ? requiredInputs : typedInputs;
 				const outputPorts = spaceNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
