@@ -1,5 +1,11 @@
 # @self/spa
 
+## 1.4.2
+
+### Fixes
+
+- [#13450](https://github.com/gradio-app/gradio/pull/13450) [`dba4a16`](https://github.com/gradio-app/gradio/commit/dba4a168ce00c15497fd2b99a3364ebbb4842b72) - preserve head script execution order.  Thanks @hysts!
+
 ## 1.4.1
 
 ### Fixes

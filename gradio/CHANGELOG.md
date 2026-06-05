@@ -1,5 +1,13 @@
 # gradio
 
+## 6.17.1
+
+### Fixes
+
+- [#13487](https://github.com/gradio-app/gradio/pull/13487) [`61b9715`](https://github.com/gradio-app/gradio/commit/61b9715739936a73c03408eb8b435bf7833f524f) - workflow: tweak zerogpu toggle UX.  Thanks @hannahblair!
+- [#13450](https://github.com/gradio-app/gradio/pull/13450) [`dba4a16`](https://github.com/gradio-app/gradio/commit/dba4a168ce00c15497fd2b99a3364ebbb4842b72) - preserve head script execution order.  Thanks @hysts!
+- [#13486](https://github.com/gradio-app/gradio/pull/13486) [`4294f18`](https://github.com/gradio-app/gradio/commit/4294f18ac688203d5b1566b75f161a3feff74e8c) - workflow: convert `runtime.hardware` to str.  Thanks @hannahblair!
+
 ## 6.17.0
 
 ### Features
