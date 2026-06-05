@@ -1907,7 +1907,6 @@
 					initialSource={activePicker.initialSource}
 					initialSubtab={activePicker.initialSubtab}
 					{server}
-					hfToken={auth.hfToken}
 					anchorX={activePicker.anchorX}
 					anchorY={activePicker.anchorY}
 					oncreate={handlePickerCreate}

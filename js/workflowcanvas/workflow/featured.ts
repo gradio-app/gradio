@@ -14,6 +14,7 @@ export interface FeaturedItem {
 	modality: string;
 	pipeline_tag?: string;
 	likes?: number;
+	zero_gpu?: boolean;
 }
 
 export const FEATURED_SPACES: FeaturedItem[] = [
@@ -22,34 +23,39 @@ export const FEATURED_SPACES: FeaturedItem[] = [
 		title: "FLUX.1 schnell",
 		description: "Fast, high-quality text-to-image",
 		modality: "image",
-		pipeline_tag: "text-to-image"
+		pipeline_tag: "text-to-image",
+		zero_gpu: true
 	},
 	{
 		id: "stabilityai/stable-diffusion-3.5-large",
 		title: "Stable Diffusion 3.5 Large",
 		description: "High-fidelity text-to-image",
 		modality: "image",
-		pipeline_tag: "text-to-image"
+		pipeline_tag: "text-to-image",
+		zero_gpu: true
 	},
 	{
 		id: "briaai/BRIA-RMBG-2.0",
 		title: "BRIA Background Removal",
 		description: "Remove image backgrounds",
-		modality: "image"
+		modality: "image",
+		zero_gpu: true
 	},
 	{
 		id: "hf-audio/whisper-large-v3-turbo",
 		title: "Whisper Large v3 Turbo",
 		description: "Fast speech-to-text",
 		modality: "audio",
-		pipeline_tag: "automatic-speech-recognition"
+		pipeline_tag: "automatic-speech-recognition",
+		zero_gpu: true
 	},
 	{
 		id: "coqui/xtts",
 		title: "Coqui XTTS",
 		description: "Multilingual text-to-speech with voice cloning",
 		modality: "audio",
-		pipeline_tag: "text-to-speech"
+		pipeline_tag: "text-to-speech",
+		zero_gpu: true
 	}
 ];
 
