@@ -322,8 +322,13 @@
 			if (el.tagName === "SCRIPT") {
 				const src = (el as HTMLScriptElement).src;
 				if (src) {
-					if (document.querySelector(`script[src="${src}"]`)) continue;
+					// selector-free dedupe: author-provided src may contain `]` etc.
+					// that would break a querySelector string.
+					if (Array.from(document.scripts).some((s) => s.src === src)) continue;
 					const script = document.createElement("script");
+					// Created scripts default to force-async; copy the author's intent
+					// so a plain <script src> keeps document order.
+					script.async = (el as HTMLScriptElement).async;
 					script.src = src;
 					promises.push(
 						new Promise<void>((resolve, reject) => {
@@ -339,12 +344,13 @@
 					document.head.appendChild(script);
 				}
 			} else {
-				const existing =
-					el.tagName === "LINK" && (el as HTMLLinkElement).href
-						? document.querySelector(
-								`link[href="${(el as HTMLLinkElement).href}"]`
-							)
-						: null;
+				// selector-free dedupe, same reason as the script[src] check above.
+				const href = el.tagName === "LINK" ? (el as HTMLLinkElement).href : "";
+				const existing = href
+					? Array.from(document.querySelectorAll("link")).some(
+							(l) => (l as HTMLLinkElement).href === href
+						)
+					: false;
 				if (!existing) {
 					document.head.appendChild(el.cloneNode(true));
 				}

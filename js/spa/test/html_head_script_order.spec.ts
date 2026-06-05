@@ -1,0 +1,50 @@
+import { test, expect } from "@self/tootils";
+
+// "plugin" depends on a global set by "core". core is delayed, so the buggy
+// force-async path would run plugin first and miss it; document order must win.
+const CORE = `
+window.__SCRIPT_ORDER = window.__SCRIPT_ORDER || [];
+window.__SCRIPT_ORDER.push("core");
+window.__CORE_READY = true;
+`;
+
+const PLUGIN = `
+window.__SCRIPT_ORDER = window.__SCRIPT_ORDER || [];
+window.__SCRIPT_ORDER.push("plugin");
+window.__PLUGIN_SAW_CORE = window.__CORE_READY === true;
+var result = document.getElementById("order-result");
+if (result) {
+	result.textContent =
+		window.__SCRIPT_ORDER.join(",") + " saw_core=" + window.__PLUGIN_SAW_CORE;
+}
+`;
+
+test("head scripts execute in document order", async ({ page }) => {
+	await page.route("**/__head_order__/core.js", async (route) => {
+		// Delay core so the smaller plugin wins the download race.
+		await new Promise((resolve) => setTimeout(resolve, 800));
+		await route.fulfill({
+			contentType: "application/javascript",
+			body: CORE
+		});
+	});
+	await page.route("**/__head_order__/plugin.js", async (route) => {
+		await route.fulfill({
+			contentType: "application/javascript",
+			body: PLUGIN
+		});
+	});
+
+	// Reload so loadHead re-runs with the routes above now active.
+	await page.reload();
+	await page.waitForLoadState("load");
+
+	await expect
+		.poll(async () => page.evaluate(() => (window as any).__SCRIPT_ORDER), {
+			timeout: 10000
+		})
+		.toEqual(["core", "plugin"]);
+
+	const saw_core = await page.evaluate(() => (window as any).__PLUGIN_SAW_CORE);
+	expect(saw_core).toBe(true);
+});
