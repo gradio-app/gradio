@@ -128,7 +128,7 @@
 		// go to trending so the subtab actually narrows results.
 		modality.key === "data" || initialSubtab ? "trending" : "featured"
 	);
-	let zero_gpu_only = $state(false);
+	let zero_gpu_only = $state(true);
 
 	const featured_results = $derived.by(() => {
 		if (source === "datasets") return [];
