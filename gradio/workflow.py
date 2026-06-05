@@ -9,6 +9,7 @@ import os
 import re
 import tempfile
 import urllib.parse
+import warnings
 from collections.abc import Callable
 from typing import Optional
 
@@ -936,7 +937,12 @@ class Workflow(Blocks):
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
 
-        super().__init__()
+        warnings.warn(
+            "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
+            UserWarning,
+        )
+
+        super().__init__(mode="workflow")
         self._build()
 
     def _build(self):
