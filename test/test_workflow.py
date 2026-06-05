@@ -9,7 +9,6 @@ import gradio as gr
 from gradio.oauth import OAuthToken
 from gradio.workflow import (
     Workflow,
-    _has_zero_gpu,
     _local_hf_token,
     _normalize_space_result,
     _resolve_token,
@@ -74,33 +73,6 @@ class TestConstruction:
     def test_workflow_name_derived_from_filename(self, tmp_path):
         wf = Workflow(graph=str(tmp_path / "marketing_image_creator.json"))
         assert wf._workflow_name == "Marketing Image Creator"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# ZeroGPU detection
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class TestHasZeroGpu:
-    def test_detects_via_tag(self):
-        assert _has_zero_gpu({"tags": ["zero-gpu", "gradio"]}) is True
-        assert _has_zero_gpu({"tags": ["zerogpu"]}) is True
-
-    def test_detects_via_string_hardware(self):
-        assert _has_zero_gpu({"runtime": {"hardware": "zero-a10g"}}) is True
-
-    def test_detects_via_dict_hardware(self):
-        assert (
-            _has_zero_gpu(
-                {"runtime": {"hardware": {"current": "zero-a10g", "requested": None}}}
-            )
-            is True
-        )
-
-    def test_returns_false_for_non_zero_hardware(self):
-        assert _has_zero_gpu({"runtime": {"hardware": "cpu-basic"}}) is False
-        assert _has_zero_gpu({}) is False
-        assert _has_zero_gpu({"runtime": {"hardware": None}}) is False
 
 
 # ─────────────────────────────────────────────────────────────────────────────
