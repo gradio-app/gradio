@@ -33,7 +33,7 @@
 
 	function getFileValue(): FileValue | null {
 		const v = node.data?.[widgetPortId];
-		return v && typeof v === "object" ? v : null;
+		return v && typeof v === "object" && !Array.isArray(v) ? v : null;
 	}
 
 	function getNumberValue(): number {
@@ -207,7 +207,8 @@
 								url: fileVal.url,
 								orig_name: fileVal.name,
 								path: fileVal.url,
-								mime_type: fileVal.mime
+								mime_type: fileVal.mime,
+								meta: { _type: "gradio.FileData" }
 							}}
 							show_label={false}
 							{i18n}

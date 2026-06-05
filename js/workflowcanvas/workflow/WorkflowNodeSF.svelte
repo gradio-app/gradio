@@ -79,7 +79,13 @@
 		if (trimmed && trimmed !== node.label) {
 			workflow.update((wf) => ({
 				...wf,
-				nodes: wf.nodes.map((n) =>
+				references: wf.references.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				),
+				operators: wf.operators.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				),
+				subjects: wf.subjects.map((n) =>
 					n.id === node.id ? { ...n, label: trimmed } : n
 				)
 			}));
@@ -362,7 +368,48 @@
 							class="port-inline-config"
 							onmousedown={(e) => e.stopPropagation()}
 						>
-							{#if port.type === "number"}
+							{#if port.choices && port.choices.length > 0 && port.multiselect}
+								{@const selected = Array.isArray(node.data?.[port.id])
+									? (node.data[port.id] as string[])
+									: []}
+								<div class="inline-choices">
+									{#each port.choices as choice}
+										<label class="inline-checkbox">
+											<input
+												type="checkbox"
+												checked={selected.includes(choice)}
+												onchange={(e) => {
+													const next = e.currentTarget.checked
+														? [...selected, choice]
+														: selected.filter((c) => c !== choice);
+													ctx.ondatachange(node.id, port.id, next);
+												}}
+											/>
+											<span>{choice}</span>
+										</label>
+									{/each}
+								</div>
+							{:else if port.choices && port.choices.length > 0}
+								{@const current =
+									typeof node.data?.[port.id] === "string"
+										? (node.data[port.id] as string)
+										: port.default_value != null
+											? String(port.default_value)
+											: ""}
+								<select
+									class="inline-input inline-select"
+									value={current}
+									onchange={(e) =>
+										ctx.ondatachange(node.id, port.id, e.currentTarget.value)}
+								>
+									{#if !port.choices.includes(current)}
+										<option value="" disabled>Select {port.label}</option>
+									{/if}
+									{#each port.choices as choice}
+										<option value={choice}>{choice}</option>
+									{/each}
+								</select>
+							{:else if port.type === "number"}
 								<input
 									class="inline-input inline-number"
 									type="number"
@@ -970,6 +1017,18 @@
 		font-size: 10px;
 		color: #8b8d98;
 		cursor: pointer;
+	}
+
+	.inline-select {
+		cursor: pointer;
+	}
+
+	.inline-choices {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		max-height: 120px;
+		overflow-y: auto;
 	}
 
 	/* Light mode */

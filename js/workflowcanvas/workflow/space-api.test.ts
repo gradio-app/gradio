@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 import {
 	canonicalizePort,
+	extract_choices,
 	normalizeOperatorPorts,
 	normalize_space_id
 } from "./space-api";
@@ -172,5 +173,50 @@ describe("normalize_space_id", () => {
 	test("returns null for too-many-slashes plain input", () => {
 		// A plain "a/b/c" isn't an HF Space ID (HF Spaces are owner/repo only).
 		expect(normalize_space_id("a/b/c")).toBeNull();
+	});
+});
+
+describe("extract_choices", () => {
+	test("pulls single-select enum from a Dropdown / Radio schema", () => {
+		expect(extract_choices({ type: "string", enum: ["a", "b", "c"] })).toEqual({
+			choices: ["a", "b", "c"],
+			multiselect: false
+		});
+	});
+
+	test("pulls multiselect enum from a CheckboxGroup schema", () => {
+		expect(
+			extract_choices({
+				type: "array",
+				items: { type: "string", enum: ["x", "y"] }
+			})
+		).toEqual({ choices: ["x", "y"], multiselect: true });
+	});
+
+	test("coerces non-string enum values to strings", () => {
+		expect(extract_choices({ type: "number", enum: [1, 2, 3] })).toEqual({
+			choices: ["1", "2", "3"],
+			multiselect: false
+		});
+	});
+
+	test("returns null for a plain string schema (no enum)", () => {
+		expect(extract_choices({ type: "string" })).toBeNull();
+	});
+
+	test("returns null for an array schema whose items lack enum", () => {
+		expect(
+			extract_choices({ type: "array", items: { type: "string" } })
+		).toBeNull();
+	});
+
+	test("returns null for an empty enum array", () => {
+		expect(extract_choices({ type: "string", enum: [] })).toBeNull();
+	});
+
+	test("returns null for missing / non-object inputs", () => {
+		expect(extract_choices(undefined)).toBeNull();
+		expect(extract_choices(null)).toBeNull();
+		expect(extract_choices("string")).toBeNull();
 	});
 });
