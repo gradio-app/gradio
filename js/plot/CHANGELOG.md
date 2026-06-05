@@ -1,5 +1,11 @@
 # @gradio/plot
 
+## 0.10.10
+
+### Fixes
+
+- [#13463](https://github.com/gradio-app/gradio/pull/13463) [`58088ad`](https://github.com/gradio-app/gradio/commit/58088ad1d75eee0f93ba1c02f427ee04f60847b4) - Self-host frontend assets so that Gradio works offline!.  Thanks @abidlabs!
+
 ## 0.10.9
 
 ### Dependency updates

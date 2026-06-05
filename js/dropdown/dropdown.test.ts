@@ -337,6 +337,36 @@ describe("Single-select: Selection", () => {
 		expect(input.value).toBe("apple");
 	});
 
+	test("arrow down from a selected option moves to the next option", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: "banana"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await event.keyboard("{ArrowDown}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("cherry");
+	});
+
+	test("arrow up from a selected option moves to the previous option", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: "banana"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await event.keyboard("{ArrowUp}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("apple");
+	});
+
 	test("selecting a new option replaces the previous one", async () => {
 		const { getByLabelText, getAllByTestId } = await render(
 			Dropdown,
@@ -716,6 +746,151 @@ describe("Single-select: get_data / set_data", () => {
 
 		const data = await get_data();
 		expect(data.value).toBe("cherry");
+	});
+});
+
+describe("Single-select: Accessibility", () => {
+	afterEach(() => cleanup());
+
+	test("input exposes the listbox role", async () => {
+		const { getByLabelText } = await render(Dropdown, single_select_props);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input).toHaveAttribute("role", "listbox");
+	});
+
+	test("aria-controls points at the options listbox", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		const controls = input.getAttribute("aria-controls");
+		expect(controls).toBeTruthy();
+
+		await input.focus();
+
+		const listbox = document.getElementById(controls as string);
+		expect(listbox).toBeTruthy();
+		expect(listbox).toHaveAttribute("role", "listbox");
+	});
+});
+
+describe("Single-select: Dynamic choices", () => {
+	afterEach(() => cleanup());
+
+	test("updating choices while typing does not clear the typed text", async () => {
+		const { getByLabelText, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: null,
+			allow_custom_value: true,
+			choices: [] as [string, string | number][]
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("ap");
+		expect(input.value).toBe("ap");
+
+		await set_data({
+			choices: [
+				["ap item 1", "ap item 1"],
+				["ap item 2", "ap item 2"]
+			] as [string, string | number][]
+		});
+
+		expect(input.value).toBe("ap");
+	});
+
+	test("choices returned while open surface as new options", async () => {
+		const { getByLabelText, getAllByTestId, set_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: null,
+				allow_custom_value: true,
+				choices: [["old", "old"]] as [string, string | number][]
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("new");
+
+		await set_data({
+			choices: [
+				["new item 1", "a"],
+				["new item 2", "b"],
+				["new item 3", "c"]
+			] as [string, string | number][]
+		});
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(3);
+		expect(options[0]).toHaveAttribute("aria-label", "new item 1");
+	});
+});
+
+describe("Single-select: Parent value update while focused", () => {
+	afterEach(() => cleanup());
+
+	test("re-syncs the selected option after the parent updates value while focused", async () => {
+		const { getByLabelText, getAllByTestId, set_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: "apple"
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-selected", "false");
+		expect(options[2]).toHaveAttribute("aria-selected", "true");
+	});
+
+	test("arrow navigation starts from the parent-updated value after focus", async () => {
+		const { getByLabelText, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: "apple"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+		await input.focus();
+
+		await event.keyboard("{ArrowDown}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("apple");
+	});
+
+	test("does not revert the parent value on blur with allow_custom_value", async () => {
+		const { getByLabelText, get_data, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: "apple",
+			allow_custom_value: true
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+
+		const data = await get_data();
+		expect(data.value).toBe("cherry");
+		expect(input.value).toBe("cherry");
 	});
 });
 

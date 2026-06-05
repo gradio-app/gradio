@@ -1,0 +1,34 @@
+{
+	"name": "@gradio/workflowcanvas",
+	"version": "0.2.0",
+	"description": "Gradio Workflow Canvas component",
+	"type": "module",
+	"author": "",
+	"license": "Apache-2.0",
+	"private": false,
+	"main_changeset": true,
+	"main": "Index.svelte",
+	"exports": {
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts",
+			"default": "./dist/Index.svelte"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@huggingface/hub": "^1.0.0",
+		"svelte": "^5.48.0"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^5.48.0"
+	}
+}
