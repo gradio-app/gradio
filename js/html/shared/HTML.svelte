@@ -322,19 +322,12 @@
 			if (el.tagName === "SCRIPT") {
 				const src = (el as HTMLScriptElement).src;
 				if (src) {
-					// `head` is author-provided, so `src` can contain characters that
-					// break a CSS attribute selector (e.g. a `]` in the path), which
-					// would make querySelector throw and abort loadHead. Compare the
-					// resolved URLs directly instead of building a selector string.
+					// selector-free dedupe: author-provided src may contain `]` etc.
+					// that would break a querySelector string.
 					if (Array.from(document.scripts).some((s) => s.src === src)) continue;
 					const script = document.createElement("script");
-					// Dynamically created scripts are "force async" by default, so
-					// they execute in download-completion order. Copy the author's
-					// async intent instead: an explicit `async` stays async, while a
-					// plain `<script src>` falls back to async=false and executes in
-					// document order (matching literal <script src> semantics), so
-					// dependent libraries load in the order they are written. The
-					// parallel download is preserved either way.
+					// Created scripts default to force-async; copy the author's intent
+					// so a plain <script src> keeps document order.
 					script.async = (el as HTMLScriptElement).async;
 					script.src = src;
 					promises.push(
@@ -351,8 +344,7 @@
 					document.head.appendChild(script);
 				}
 			} else {
-				// Same selector-injection concern as the script[src] check above:
-				// compare resolved hrefs directly rather than via a selector string.
+				// selector-free dedupe, same reason as the script[src] check above.
 				const href = el.tagName === "LINK" ? (el as HTMLLinkElement).href : "";
 				const existing = href
 					? Array.from(document.querySelectorAll("link")).some(

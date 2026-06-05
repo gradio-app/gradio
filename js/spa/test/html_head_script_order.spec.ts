@@ -1,9 +1,7 @@
 import { test, expect } from "@self/tootils";
 
-// Two head scripts where "plugin" depends on a global set by "core". The core
-// request is delayed, so a force-async plugin (the bug) would download and run
-// first and miss the global. With in-order execution the browser must run core
-// before plugin regardless of which finishes downloading first.
+// "plugin" depends on a global set by "core". core is delayed, so the buggy
+// force-async path would run plugin first and miss it; document order must win.
 const CORE = `
 window.__SCRIPT_ORDER = window.__SCRIPT_ORDER || [];
 window.__SCRIPT_ORDER.push("core");
@@ -37,8 +35,7 @@ test("head scripts execute in document order", async ({ page }) => {
 		});
 	});
 
-	// The fixture navigated once before these routes existed, so the first
-	// mount missed them. Reload to re-run loadHead with the routes active.
+	// Reload so loadHead re-runs with the routes above now active.
 	await page.reload();
 	await page.waitForLoadState("load");
 

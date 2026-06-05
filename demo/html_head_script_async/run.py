@@ -1,10 +1,7 @@
 import gradio as gr
 
-# Fixture for the "explicit async is honored" test. Both head scripts are
-# marked `async`, so the author opted into download-completion order rather
-# than document order. The e2e test delays the first script, so the faster
-# second script runs first, proving the async intent is preserved (not forced
-# back into document order by the ordering fix).
+# Fixture for the "explicit async is honored" test: both scripts are `async`,
+# so download-completion order applies (delayed first runs after fast second).
 
 with gr.Blocks() as demo:
     gr.HTML(

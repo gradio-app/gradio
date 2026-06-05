@@ -1,9 +1,7 @@
 import { test, expect } from "@self/tootils";
 
-// Both head scripts are marked `async`, so the author opted into
-// download-completion order. The first script is delayed, so the faster
-// second script must run first. This proves an explicit `async` is honored
-// and not forced into document order by the ordering fix.
+// Both scripts are explicitly `async`, so download-completion order applies:
+// the delayed "first" must run after the fast "second".
 const FIRST = `
 window.__ASYNC_ORDER = window.__ASYNC_ORDER || [];
 window.__ASYNC_ORDER.push("first");
@@ -30,13 +28,10 @@ test("explicit async on head scripts is honored", async ({ page }) => {
 		});
 	});
 
-	// The fixture navigated once before these routes existed, so the first
-	// mount missed them. Reload to re-run loadHead with the routes active.
+	// Reload so loadHead re-runs with the routes above now active.
 	await page.reload();
 	await page.waitForLoadState("load");
 
-	// async scripts execute in download-completion order, so the delayed
-	// "first" runs after the fast "second".
 	await expect
 		.poll(async () => page.evaluate(() => (window as any).__ASYNC_ORDER), {
 			timeout: 10000

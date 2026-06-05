@@ -1,13 +1,7 @@
 import gradio as gr
 
-# Minimal fixture for the head-script execution-order test.
-#
-# `head` loads two scripts where the second ("plugin") depends on a global
-# defined by the first ("core"). Literal `<script src>` tags execute in
-# document order, so the plugin must run after core. Each script records its
-# execution into window globals; the e2e test intercepts both requests and
-# delays core so that, without the ordering fix, the faster plugin would run
-# first and fail to see core.
+# Fixture for the head-script order test: "plugin" depends on a global set by
+# "core", so it must run after core (document order).
 
 with gr.Blocks() as demo:
     gr.HTML(
