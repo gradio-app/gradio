@@ -1,5 +1,16 @@
 # website
 
+## 0.77.1
+
+### Fixes
+
+- [#13460](https://github.com/gradio-app/gradio/pull/13460) [`980db6c`](https://github.com/gradio-app/gradio/commit/980db6cc29b5e26a5f90334b0f4fd000b7443edc) - Offset guide heading anchors so the sticky header no longer covers the section title when clicking a table-of-contents link.  Thanks @ShirGanon!
+
+### Dependency updates
+
+- @gradio/tabs@0.6.0
+- @gradio/tabitem@0.7.0
+
 ## 0.77.0
 
 ### Features
