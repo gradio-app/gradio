@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { categorizeSpace, TASK_SCHEMAS } from "./node-library";
-	import { fetchSpaceApi, normalizeOperatorPorts } from "./space-api";
+	import {
+		fetchSpaceApi,
+		is_zero_gpu_space,
+		normalizeOperatorPorts
+	} from "./space-api";
 	import { FEATURED_SPACES, FEATURED_MODELS } from "./featured";
 	import type { ModalityConfig, SubTab } from "./workflow-modalities";
 	import SearchIcon from "./icons/SearchIcon.svelte";
@@ -15,6 +19,7 @@
 		running: boolean;
 		category: string | null;
 		pipeline_tag?: string;
+		zero_gpu?: boolean;
 	}
 
 	type Source = "spaces" | "models" | "datasets";
@@ -24,7 +29,6 @@
 		modality: ModalityConfig;
 		nodeId?: string;
 		server?: Record<string, any>;
-		hfToken?: string;
 		anchorX?: number;
 		anchorY?: number;
 		initialSource?: Source;
@@ -40,7 +44,6 @@
 		modality,
 		nodeId,
 		server = {},
-		hfToken = "",
 		anchorX = undefined,
 		anchorY = undefined,
 		initialSource = undefined,
@@ -128,7 +131,7 @@
 		// go to trending so the subtab actually narrows results.
 		modality.key === "data" || initialSubtab ? "trending" : "featured"
 	);
-	let zero_gpu_only = $state(false);
+	let zero_gpu_only = $state(true);
 
 	const featured_results = $derived.by(() => {
 		if (source === "datasets") return [];
@@ -143,7 +146,8 @@
 				likes: item.likes ?? 0,
 				running: true,
 				category: item.modality,
-				pipeline_tag: item.pipeline_tag
+				pipeline_tag: item.pipeline_tag,
+				zero_gpu: item.zero_gpu
 			}));
 	});
 
@@ -194,7 +198,8 @@
 					desc,
 					s.id
 				),
-				pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined
+				pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined,
+				zero_gpu: is_zero_gpu_space(s)
 			};
 		});
 	}
@@ -634,6 +639,7 @@
 					<button
 						class="picker-mode-btn"
 						class:active={active_content_tab === "featured"}
+						title={is_spaces ? "Curated ZeroGPU Spaces" : "Curated picks"}
 						onclick={() => {
 							active_content_tab = "featured";
 							search_query = "";
@@ -663,7 +669,8 @@
 				{#if is_spaces}
 					<label
 						class="picker-zerogpu-toggle"
-						title="Show only ZeroGPU Spaces — these scale with your HF credits and rarely hit quota"
+						class:active={zero_gpu_only}
+						title="Show only ZeroGPU Spaces — they scale with your HF credits, give consistent ETAs, and have the clearest billing story"
 					>
 						<input type="checkbox" bind:checked={zero_gpu_only} />
 						<span>ZeroGPU only</span>
@@ -710,8 +717,8 @@
 									>{space.title ||
 										(space.id.split("/").pop() ?? space.id)}</span
 								>
-								{#if active_content_tab === "featured"}
-									<span class="space-badge space-badge-featured">Featured</span>
+								{#if is_spaces && space.zero_gpu}
+									<span class="space-badge space-badge-zerogpu">ZeroGPU</span>
 								{/if}
 								{#if space.pipeline_tag}
 									<span class="space-badge">{space.pipeline_tag}</span>
@@ -855,6 +862,8 @@
 		gap: 4px;
 		padding: 6px 16px 0;
 		flex-shrink: 0;
+		flex-wrap: wrap;
+		row-gap: 6px;
 	}
 
 	.picker-mode-label {
@@ -894,31 +903,57 @@
 
 	.picker-zerogpu-toggle {
 		margin-left: auto;
+		position: relative;
 		display: inline-flex;
 		align-items: center;
-		gap: 5px;
-		font-size: 10.5px;
-		color: #6b6e78;
+		padding: 3px 10px;
+		border-radius: 14px;
+		border: 1px solid #2a2b36;
+		font-family: "Manrope", sans-serif;
+		font-size: 11px;
+		font-weight: 600;
+		color: #8b8d98;
 		cursor: pointer;
 		user-select: none;
+		transition:
+			background 0.12s,
+			border-color 0.12s,
+			color 0.12s;
 	}
 
 	.picker-zerogpu-toggle input {
-		accent-color: #f97316;
-		cursor: pointer;
-		margin: 0;
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+		pointer-events: none;
 	}
 
 	.picker-zerogpu-toggle:hover {
-		color: #a0a2ae;
+		color: #d5d6de;
+		border-color: #3a3b48;
+	}
+
+	.picker-zerogpu-toggle.active {
+		background: rgba(249, 115, 22, 0.12);
+		border-color: rgba(249, 115, 22, 0.35);
+		color: #f97316;
 	}
 
 	:global(body:not(.dark)) .picker-zerogpu-toggle {
+		border-color: #e2e4ea;
 		color: #6b6e78;
 	}
 
 	:global(body:not(.dark)) .picker-zerogpu-toggle:hover {
-		color: #3e4050;
+		color: #1a1b25;
+		border-color: #cdd0d8;
+	}
+
+	:global(body:not(.dark)) .picker-zerogpu-toggle.active {
+		background: rgba(249, 115, 22, 0.1);
+		border-color: rgba(249, 115, 22, 0.35);
+		color: #d65500;
 	}
 
 	:global(body:not(.dark)) .picker-mode-label {
@@ -1059,39 +1094,6 @@
 		color: #f97316;
 	}
 
-	.picker-tabs {
-		display: flex;
-		gap: 0;
-		padding: 8px 10px 0;
-		border-bottom: 1px solid #1e1f2a;
-		flex-shrink: 0;
-	}
-
-	.picker-tab {
-		padding: 6px 14px;
-		border: none;
-		border-bottom: 2px solid transparent;
-		background: transparent;
-		color: #5c5e6a;
-		font-family: "Manrope", sans-serif;
-		font-size: 12px;
-		font-weight: 600;
-		cursor: pointer;
-		margin-bottom: -1px;
-		transition:
-			color 0.15s,
-			border-color 0.15s;
-	}
-
-	.picker-tab:hover {
-		color: #a0a2ae;
-	}
-
-	.picker-tab.active {
-		color: #d5d6de;
-		border-bottom-color: #f97316;
-	}
-
 	.picker-results {
 		flex: 1;
 		overflow-y: auto;
@@ -1189,7 +1191,7 @@
 		flex-shrink: 0;
 	}
 
-	.space-badge-featured {
+	.space-badge-zerogpu {
 		background: rgba(249, 115, 22, 0.14);
 		color: #f97316;
 	}
@@ -1290,18 +1292,6 @@
 		background: #ffffff;
 	}
 
-	:global(body:not(.dark)) .picker-tabs {
-		border-bottom-color: #e2e4ea;
-	}
-
-	:global(body:not(.dark)) .picker-tab {
-		color: #8b8d98;
-	}
-
-	:global(body:not(.dark)) .picker-tab.active {
-		color: #1a1b25;
-	}
-
 	:global(body:not(.dark)) .space-row:hover {
 		background: #f4f5f8;
 	}
@@ -1319,7 +1309,7 @@
 		color: #6b6e78;
 	}
 
-	:global(body:not(.dark)) .space-badge-featured {
+	:global(body:not(.dark)) .space-badge-zerogpu {
 		background: rgba(249, 115, 22, 0.12);
 		color: #c84a00;
 	}
