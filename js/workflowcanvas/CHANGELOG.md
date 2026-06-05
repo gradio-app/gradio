@@ -1,5 +1,11 @@
 # @gradio/workflowcanvas
 
+## 0.2.1
+
+### Fixes
+
+- [#13487](https://github.com/gradio-app/gradio/pull/13487) [`61b9715`](https://github.com/gradio-app/gradio/commit/61b9715739936a73c03408eb8b435bf7833f524f) - workflow: tweak zerogpu toggle UX.  Thanks @hannahblair!
+
 ## 0.2.0
 
 ### Features
