@@ -676,7 +676,7 @@ def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
             if "zero-gpu" in tags or "zerogpu" in tags:
                 return True
             hw = (s.get("runtime") or {}).get("hardware") or ""
-            return "zero" in hw.lower()
+            return "zero" in str(hw).lower()
 
         def _fallback_search(q: str) -> list:
             if not q:
