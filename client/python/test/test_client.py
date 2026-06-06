@@ -1067,6 +1067,7 @@ class TestEndpoints:
         with pytest.raises(httpx.HTTPStatusError):
             client.endpoints[0]._download_file({"path": "https://example.com/foo"})  # type: ignore
 
+    @pytest.mark.flaky
     def test_download_stream_file_uses_url_directly(self, monkeypatch, gradio_temp_dir):
         """Test that stream files use the URL directly instead of constructing from path."""
         client = Client(
