@@ -624,6 +624,7 @@ class TestBrowserStatePydanticNoFileCaching:
         assert cached == result
 
 
+@pytest.mark.flaky
 def test_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
     file = processing_utils.ssrf_protected_download(
@@ -634,6 +635,7 @@ def test_public_request_pass():
 
 
 @pytest.mark.asyncio
+@pytest.mark.flaky
 async def test_async_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
     file = await processing_utils.async_ssrf_protected_download(
