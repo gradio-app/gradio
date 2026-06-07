@@ -1,5 +1,11 @@
 # gradio
 
+## 6.17.2
+
+### Features
+
+- [#13491](https://github.com/gradio-app/gradio/pull/13491) [`fcf1133`](https://github.com/gradio-app/gradio/commit/fcf11335b9bbdc6cf066423e8c46d974ae006016) - Track Workflow telemetry mode and beta status.  Thanks @abidlabs!
+
 ## 6.17.1
 
 ### Fixes
