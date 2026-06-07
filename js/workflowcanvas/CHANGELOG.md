@@ -1,5 +1,11 @@
 # @gradio/workflowcanvas
 
+## 0.2.2
+
+### Features
+
+- [#13497](https://github.com/gradio-app/gradio/pull/13497) [`c26e797`](https://github.com/gradio-app/gradio/commit/c26e7975ede55b4c27d22379255de0b4e69ba3c6) - fix workflow canvas repo.url.  Thanks @pngwn!
+
 ## 0.2.1
 
 ### Fixes
