@@ -89,4 +89,48 @@ describe("submit iterator", () => {
 		expect(types).toContain("data");
 		expect(types).toContain("status");
 	});
+
+	test("for-await loop terminates when the server raises an error mid-stream", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			events: ["data", "status"]
+		});
+		app.stream_status.open = true;
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = await iterator.wait_for_id();
+		expect(event_id).toBeTruthy();
+
+		const callback = app.event_callbacks[event_id as string];
+		expect(callback).toBeDefined();
+
+		const events: { type: string; stage?: string }[] = [];
+		const consumer = (async () => {
+			for await (const event of iterator) {
+				events.push(event as { type: string; stage?: string });
+			}
+		})();
+
+		await new Promise((r) => setTimeout(r, 0));
+
+		// A server-side exception arrives as process_completed with success:false
+		// and an `error` field in the output. This must fire an "error" status and
+		// terminate the iterator rather than hang the consumer.
+		await callback({
+			msg: "process_completed",
+			output: { error: "boom before any output" },
+			success: false,
+			title: "Error"
+		});
+
+		await race_with_timeout(
+			consumer,
+			1000,
+			"submit iterator did not terminate after a server-side error"
+		);
+
+		const error_event = events.find(
+			(e) => e.type === "status" && e.stage === "error"
+		);
+		expect(error_event).toBeDefined();
+	});
 });

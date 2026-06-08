@@ -452,6 +452,7 @@ export function submit(
 							time: new Date(),
 							visible: true
 						});
+						close();
 					} else if (status === 422) {
 						fire_event({
 							type: "status",
@@ -481,6 +482,7 @@ export function submit(
 							time: new Date(),
 							visible: true
 						});
+						close();
 					} else {
 						event_id = response.event_id as string;
 						event_id_final = event_id;
@@ -592,6 +594,9 @@ export function submit(
 									}
 									if (event_id! in pending_diff_streams) {
 										delete pending_diff_streams[event_id!];
+									}
+									if (status?.stage === "error") {
+										close();
 									}
 								}
 							} catch (e) {
