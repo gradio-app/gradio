@@ -33,10 +33,10 @@ export async function load({ params, url }) {
 	if (params?.version === VERSION) {
 		throw redirect(302, url.href.replace(`/${params.version}`, ""));
 	}
-	let docs_json =
-		params?.version === "main" || !params?.version
-			? await load_main_docs()
-			: await load_release_docs(params.version);
+	let on_main = params.version === "main" || !params.version;
+	let docs_json = on_main
+		? await load_main_docs()
+		: await load_release_docs(params.version);
 	await load_main_docs();
 
 	let docs: { [key: string]: any } = docs_json.docs;
@@ -46,10 +46,9 @@ export async function load({ params, url }) {
 			components_to_document.includes(p)
 		) || [];
 	let js_client = docs_json.js_client;
-	let on_main = params.version === "main";
 	let pages: any = docs_json.pages;
 
-	let url_version = params?.version || VERSION;
+	let url_version = on_main ? "main" : params.version;
 
 	return {
 		docs,

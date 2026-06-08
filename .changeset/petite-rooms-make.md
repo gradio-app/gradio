@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fix website build checks
+feat: Fix website build checks
