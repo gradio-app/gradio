@@ -26,7 +26,7 @@ class DownloadButton(Component):
     Demos: upload_and_download
     """
 
-    EVENTS = [Events.click]
+    EVENTS = [Events.change, Events.click]
 
     def __init__(
         self,

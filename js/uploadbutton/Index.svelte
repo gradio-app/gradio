@@ -10,6 +10,7 @@
 
 	const props = $props();
 	const gradio = new Gradio<UploadButtonEvents, UploadButtonProps>(props);
+	gradio.watch_for_change();
 
 	let value = $derived(gradio.props.value);
 
