@@ -603,8 +603,7 @@
 					class="picker-source-btn"
 					class:active={source === "models"}
 					title="Served via HF Inference Providers — faster, no GPU quota."
-					onclick={() => set_source("models")}
-					>Models <span class="picker-source-hint">⚡</span></button
+					onclick={() => set_source("models")}>Models</button
 				>
 			</div>
 		{/if}
@@ -1054,12 +1053,6 @@
 		background: rgba(249, 115, 22, 0.12);
 		border-color: rgba(249, 115, 22, 0.35);
 		color: #f97316;
-	}
-
-	.picker-source-hint {
-		font-size: 10px;
-		margin-left: 4px;
-		opacity: 0.85;
 	}
 
 	:global(body:not(.dark)) .picker-source-btn {
