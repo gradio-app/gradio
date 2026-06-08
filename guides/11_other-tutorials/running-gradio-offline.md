@@ -65,4 +65,4 @@ Console errors for blocked Google Fonts or CDN requests indicate a component sti
 ## Related
 
 - [Issue #1450](https://github.com/gradio-app/gradio/issues/1450) — original offline support request
-- [Theming guide](./theming-guide.md) — fonts and themes
+- [Theming guide](/guides/theming-guide) — fonts and themes

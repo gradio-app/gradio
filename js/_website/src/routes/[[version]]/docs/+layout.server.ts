@@ -34,9 +34,9 @@ export async function load({ params, url }) {
 		throw redirect(302, url.href.replace(`/${params.version}`, ""));
 	}
 	let docs_json =
-		params?.version === "main"
+		params?.version === "main" || !params?.version
 			? await load_main_docs()
-			: await load_release_docs(params.version || VERSION);
+			: await load_release_docs(params.version);
 	await load_main_docs();
 
 	let docs: { [key: string]: any } = docs_json.docs;
