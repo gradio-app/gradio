@@ -35,15 +35,15 @@ component.event_name(
 
 ## Supported Events by Component
 
-- **AnnotatedImage**: select
+- **AnnotatedImage**: change, select
 
 - **Audio**: stream, change, clear, play, pause, stop, pause, start_recording, pause_recording, stop_recording, upload, input
 
-- **BarPlot**: select, double_click
+- **BarPlot**: change, select, double_click
 
 - **BrowserState**: change
 
-- **Button**: click
+- **Button**: change, click
 
 - **Chatbot**: change, select, like, retry, undo, example_select, option_select, clear, copy, edit
 
@@ -51,7 +51,7 @@ component.event_name(
 
 - **CheckboxGroup**: change, input, select
 
-- **ClearButton**: click
+- **ClearButton**: change, click
 
 - **Code**: change, input, focus, blur
 
@@ -59,19 +59,19 @@ component.event_name(
 
 - **Dataframe**: change, input, select, edit
 
-- **Dataset**: click, select
+- **Dataset**: change, click, select
 
 - **DateTime**: change, submit
 
-- **DeepLinkButton**: click
+- **DeepLinkButton**: change, click
 
 - **Dialogue**: change, input, submit
 
-- **DownloadButton**: click
+- **DownloadButton**: change, click
 
 - **Dropdown**: change, input, select, focus, blur, key_up
 
-- **DuplicateButton**: click
+- **DuplicateButton**: change, click
 
 - **File**: change, select, clear, upload, delete, download
 
@@ -93,9 +93,9 @@ component.event_name(
 
 - **Label**: change, select
 
-- **LinePlot**: select, double_click
+- **LinePlot**: change, select, double_click
 
-- **LoginButton**: click
+- **LoginButton**: change, click
 
 - **Markdown**: change, copy
 
@@ -113,7 +113,7 @@ component.event_name(
 
 - **Radio**: select, change, input
 
-- **ScatterPlot**: select, double_click
+- **ScatterPlot**: change, select, double_click
 
 - **SimpleImage**: clear, change, upload
 
@@ -123,8 +123,10 @@ component.event_name(
 
 - **Textbox**: change, input, select, submit, focus, blur, stop, copy
 
-- **Timer**: tick
+- **Timer**: change, tick
 
-- **UploadButton**: click, upload
+- **UploadButton**: change, click, upload
 
 - **Video**: change, clear, start_recording, stop_recording, stop, play, pause, end, upload, input
+
+- **WorkflowCanvas**: change
