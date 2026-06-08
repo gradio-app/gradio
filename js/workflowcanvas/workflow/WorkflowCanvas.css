@@ -407,6 +407,25 @@
 	opacity: 1;
 }
 
+.wf-toast-action {
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 6px;
+	border: 1px solid currentColor;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.wf-toast-action:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
+
 .wf-toast.wf-toast-error {
 	border-color: #f87171;
 	color: #fca5a5;

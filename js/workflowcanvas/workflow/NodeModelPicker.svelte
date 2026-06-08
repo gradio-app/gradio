@@ -20,6 +20,7 @@
 		category: string | null;
 		pipeline_tag?: string;
 		zero_gpu?: boolean;
+		inference_providers?: boolean;
 	}
 
 	type Source = "spaces" | "models" | "datasets";
@@ -147,7 +148,8 @@
 				running: true,
 				category: item.modality,
 				pipeline_tag: item.pipeline_tag,
-				zero_gpu: item.zero_gpu
+				zero_gpu: item.zero_gpu,
+				inference_providers: item.inference_providers
 			}));
 	});
 
@@ -344,7 +346,8 @@
 					likes: m.likes ?? 0,
 					running: true,
 					category: "model",
-					pipeline_tag: m.pipeline_tag
+					pipeline_tag: m.pipeline_tag,
+					inference_providers: (m.inferenceProviderMapping?.length ?? 0) > 0
 				}));
 		} catch {
 			if (token === fetch_token) results = [];
@@ -593,12 +596,15 @@
 				<button
 					class="picker-source-btn"
 					class:active={source === "spaces"}
+					title="Full Gradio apps. ZeroGPU Spaces share a per-user GPU quota."
 					onclick={() => set_source("spaces")}>Spaces</button
 				>
 				<button
 					class="picker-source-btn"
 					class:active={source === "models"}
-					onclick={() => set_source("models")}>Models</button
+					title="Served via HF Inference Providers — faster, no GPU quota."
+					onclick={() => set_source("models")}
+					>Models <span class="picker-source-hint">⚡</span></button
 				>
 			</div>
 		{/if}
@@ -719,6 +725,13 @@
 								>
 								{#if is_spaces && space.zero_gpu}
 									<span class="space-badge space-badge-zerogpu">ZeroGPU</span>
+								{/if}
+								{#if is_model && space.inference_providers}
+									<span
+										class="space-badge space-badge-providers"
+										title="Served by HF Inference Providers — no GPU quota limits"
+										>Inference Providers</span
+									>
 								{/if}
 								{#if space.pipeline_tag}
 									<span class="space-badge">{space.pipeline_tag}</span>
@@ -1043,6 +1056,12 @@
 		color: #f97316;
 	}
 
+	.picker-source-hint {
+		font-size: 10px;
+		margin-left: 4px;
+		opacity: 0.85;
+	}
+
 	:global(body:not(.dark)) .picker-source-btn {
 		border-color: #e2e4ea;
 		color: #6b6e78;
@@ -1196,6 +1215,11 @@
 		color: #f97316;
 	}
 
+	.space-badge-providers {
+		background: rgba(56, 189, 248, 0.14);
+		color: #38bdf8;
+	}
+
 	.space-desc {
 		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
@@ -1312,6 +1336,11 @@
 	:global(body:not(.dark)) .space-badge-zerogpu {
 		background: rgba(249, 115, 22, 0.12);
 		color: #c84a00;
+	}
+
+	:global(body:not(.dark)) .space-badge-providers {
+		background: rgba(56, 189, 248, 0.14);
+		color: #0369a1;
 	}
 
 	:global(body:not(.dark)) .space-likes {

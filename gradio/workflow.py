@@ -211,10 +211,7 @@ def _classify_error(e: Exception) -> dict:
             "suggestion": "Space not found — it may have been deleted or renamed",
         }
     if http_status == 429:
-        return {
-            "error_type": "quota",
-            "suggestion": "GPU quota exceeded — log in with your HF account for more compute",
-        }
+        return {"error_type": "quota"}
 
     type_name = type(e).__name__
     if type_name in (
@@ -237,15 +234,9 @@ def _classify_error(e: Exception) -> dict:
     full = f"{title} {message}".lower()
 
     if "zerogpu" in full or ("gpu" in full and "worker" in full):
-        return {
-            "error_type": "gpu",
-            "suggestion": "GPU unavailable — try again or log in with your HF account",
-        }
+        return {"error_type": "gpu"}
     if "quota" in full or "rate limit" in full or "rate_limit" in full:
-        return {
-            "error_type": "quota",
-            "suggestion": "GPU quota exceeded — log in with your HF account for more compute",
-        }
+        return {"error_type": "quota"}
     if "sleeping" in full or "paused" in full:
         return {
             "error_type": "sleeping",
@@ -783,6 +774,7 @@ def search_models(data, token: Optional[OAuthToken] = None) -> str:
         url = (
             f"https://huggingface.co/api/models?sort={sort}&limit=60"
             f"&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
+            f"&expand[]=inferenceProviderMapping"
         )
         if query:
             url += f"&search={urllib.parse.quote(query)}"

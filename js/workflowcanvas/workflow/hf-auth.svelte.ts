@@ -1,10 +1,16 @@
-async function fetch_username(token: string): Promise<string | null> {
+interface WhoAmI {
+	name: string;
+	isPro: boolean;
+}
+
+async function fetch_whoami(token: string): Promise<WhoAmI | null> {
 	try {
 		const res = await fetch("https://huggingface.co/api/whoami-v2", {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		if (!res.ok) return null;
-		return (await res.json()).name || "User";
+		const body = await res.json();
+		return { name: body.name || "User", isPro: body.isPro === true };
 	} catch {
 		return null;
 	}
@@ -19,6 +25,7 @@ function redirect_to(path: string): void {
 
 export function createHFAuth(getServer: () => Record<string, any>) {
 	let loggedInUser = $state("");
+	let isPro = $state(false);
 	let isHFSpace = $state(false);
 	let isCheckingLogin = $state(true);
 	let hfToken = $state(
@@ -33,15 +40,18 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		if (!token) {
 			tokenUser = "";
 			tokenStatus = "idle";
+			isPro = false;
 			return;
 		}
 		tokenStatus = "validating";
-		const name = await fetch_username(token);
-		if (name) {
-			tokenUser = name;
+		const who = await fetch_whoami(token);
+		if (who) {
+			tokenUser = who.name;
+			isPro = who.isPro;
 			tokenStatus = "idle";
 		} else {
 			tokenUser = "";
+			isPro = false;
 			tokenStatus = "invalid";
 		}
 	}
@@ -74,10 +84,13 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		const token = await getOAuthToken();
 		if (!token) {
 			loggedInUser = "";
+			isPro = false;
 			isCheckingLogin = false;
 			return;
 		}
-		loggedInUser = (await fetch_username(token)) ?? "";
+		const who = await fetch_whoami(token);
+		loggedInUser = who?.name ?? "";
+		isPro = who?.isPro ?? false;
 		isCheckingLogin = false;
 	}
 
@@ -89,9 +102,40 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		redirect_to("/logout");
 	}
 
+	function getQuotaCTA(): {
+		suffix: string;
+		action: { label: string; href?: string; onClick?: () => void };
+	} {
+		if (!loggedInUser && !tokenUser) {
+			return {
+				suffix: "Sign in with HuggingFace for your own GPU credits.",
+				action: { label: "Sign in", onClick: handleLogin }
+			};
+		}
+		if (!isPro) {
+			return {
+				suffix: "Upgrade to PRO for higher ZeroGPU quota.",
+				action: {
+					label: "Upgrade to PRO",
+					href: "https://huggingface.co/subscribe/pro"
+				}
+			};
+		}
+		return {
+			suffix: "Manage your ZeroGPU credits in account settings.",
+			action: {
+				label: "Manage credits",
+				href: "https://huggingface.co/settings/billing"
+			}
+		};
+	}
+
 	return {
 		get loggedInUser() {
 			return loggedInUser;
+		},
+		get isPro() {
+			return isPro;
 		},
 		get isHFSpace() {
 			return isHFSpace;
@@ -112,6 +156,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		handleLogin,
 		handleLogout,
 		getOAuthToken,
-		checkLoginStatus
+		checkLoginStatus,
+		getQuotaCTA
 	};
 }

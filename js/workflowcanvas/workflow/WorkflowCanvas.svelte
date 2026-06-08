@@ -200,6 +200,7 @@
 		id: number;
 		message: string;
 		type: "info" | "warning" | "error" | "success";
+		action?: { label: string; href?: string; onClick?: () => void };
 	}
 	let toasts: WfToast[] = $state([]);
 	let toastCounter = 0;
@@ -207,14 +208,16 @@
 	function showToast(
 		msg: string,
 		ms = 3000,
-		type: "info" | "warning" | "error" | "success" = "info"
+		type: "info" | "warning" | "error" | "success" = "info",
+		action?: WfToast["action"]
 	): void {
 		const id = ++toastCounter;
-		toasts = [...toasts, { id, message: msg, type }].slice(-3);
-		if (ms > 0)
-			setTimeout(() => {
-				toasts = toasts.filter((t) => t.id !== id);
-			}, ms);
+		toasts = [...toasts, { id, message: msg, type, action }].slice(-3);
+		if (ms > 0) setTimeout(() => dismissToast(id), ms);
+	}
+
+	function dismissToast(id: number): void {
+		toasts = toasts.filter((t) => t.id !== id);
 	}
 
 	// v1 shape for read paths; writes go through v2 store actions.
@@ -1169,11 +1172,16 @@
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const label =
 						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
-					showToast(
-						`${label}: ${error}`,
-						errorType === "quota" || errorType === "gpu" ? 0 : 5000,
-						"error"
-					);
+					if (errorType === "quota" || errorType === "gpu") {
+						const headline =
+							errorType === "quota"
+								? `${label}: GPU quota exceeded`
+								: `${label}: GPU unavailable — try again in a minute`;
+						const cta = auth.getQuotaCTA();
+						showToast(`${headline}. ${cta.suffix}`, 0, "error", cta.action);
+					} else {
+						showToast(`${label}: ${error}`, 5000, "error");
+					}
 				}
 			},
 			(nodeId, portId, value) => {
@@ -1925,11 +1933,31 @@
 			{#each toasts as t (t.id)}
 				<div class="wf-toast wf-toast-{t.type}">
 					<span class="wf-toast-msg">{t.message}</span>
+					{#if t.action?.href}
+						<a
+							class="wf-toast-action"
+							href={t.action.href}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							{t.action.label}
+						</a>
+					{:else if t.action?.onClick}
+						<button
+							class="wf-toast-action"
+							onclick={() => {
+								t.action?.onClick?.();
+								dismissToast(t.id);
+							}}
+						>
+							{t.action.label}
+						</button>
+					{/if}
 					<button
 						class="wf-toast-close"
 						aria-label="Dismiss"
 						title="Dismiss"
-						onclick={() => (toasts = toasts.filter((x) => x.id !== t.id))}
+						onclick={() => dismissToast(t.id)}
 					>
 						×
 					</button>
