@@ -112,12 +112,21 @@ describe("submit iterator", () => {
 
 		await new Promise((r) => setTimeout(r, 0));
 
-		// A server-side exception arrives as process_completed with success:false
-		// and an `error` field in the output. This must fire an "error" status and
-		// terminate the iterator rather than hang the consumer.
+		// Stream a partial result first, so the error below genuinely arrives
+		// mid-stream rather than as the very first message.
+		await callback({
+			msg: "process_generating",
+			output: { data: ["partial"] },
+			success: true
+		});
+
+		// A server-side exception then arrives as process_completed with
+		// success:false and an `error` field in the output. This must fire an
+		// "error" status and terminate the iterator rather than hang the
+		// consumer.
 		await callback({
 			msg: "process_completed",
-			output: { error: "boom before any output" },
+			output: { error: "boom mid-stream" },
 			success: false,
 			title: "Error"
 		});
@@ -127,6 +136,9 @@ describe("submit iterator", () => {
 			1000,
 			"submit iterator did not terminate after a server-side error"
 		);
+
+		// The partial result should have been delivered before the error.
+		expect(events.some((e) => e.type === "data")).toBe(true);
 
 		const error_event = events.find(
 			(e) => e.type === "status" && e.stage === "error"
