@@ -123,12 +123,17 @@ describe("submit iterator", () => {
 		// A server-side exception then arrives as process_completed with
 		// success:false and an `error` field in the output. This must fire an
 		// "error" status and terminate the iterator rather than hang the
-		// consumer.
+		// consumer. handle_message() reads title/visible/duration from
+		// `output`, so mirror a real payload's shape here.
 		await callback({
 			msg: "process_completed",
-			output: { error: "boom mid-stream" },
-			success: false,
-			title: "Error"
+			output: {
+				error: "boom mid-stream",
+				title: "Error",
+				visible: true,
+				duration: 0
+			},
+			success: false
 		});
 
 		await race_with_timeout(
