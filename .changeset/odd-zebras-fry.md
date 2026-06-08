@@ -2,6 +2,7 @@
 "@gradio/button": minor
 "@gradio/dataset": minor
 "@gradio/downloadbutton": minor
+"@gradio/fallback": minor
 "@gradio/nativeplot": minor
 "@gradio/timer": minor
 "@gradio/uploadbutton": minor

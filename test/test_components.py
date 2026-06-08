@@ -164,3 +164,34 @@ def test_all_io_components_are_pickleable(io_components):
         pickled = pickle.dumps(c)
         unpickled = pickle.loads(pickled)
         assert c.get_config() == unpickled.get_config()
+
+
+def test_all_components_have_change_event():
+    """
+    Every component has a `value` that can be set programmatically (e.g. a
+    Button's value is its label), so every component should expose a `.change()`
+    event listener that can be wired up without erroring.
+    See https://github.com/gradio-app/gradio/issues/5309.
+    """
+    import gradio.utils
+
+    components = [
+        c
+        for c in gradio.utils.core_gradio_components()
+        if issubclass(c, Component)
+        and c not in (Component, gr.components.FormComponent)
+    ]
+    # Sanity check that we are actually iterating over the components.
+    assert len(components) > 40
+
+    for component in components:
+        assert component.has_event("change"), (
+            f"{component.__name__} is missing a `change` event"
+        )
+        with gr.Blocks():
+            instance = component()
+            assert callable(instance.change), (
+                f"{component.__name__} does not expose a callable `.change()`"
+            )
+            # Wiring up the event listener should not raise.
+            instance.change(lambda: None)
