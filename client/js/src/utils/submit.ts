@@ -595,9 +595,7 @@ export function submit(
 									if (event_id! in pending_diff_streams) {
 										delete pending_diff_streams[event_id!];
 									}
-									if (status?.stage === "error") {
-										close();
-									}
+									close();
 								}
 							} catch (e) {
 								console.error("Unexpected client exception", e);
