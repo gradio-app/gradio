@@ -4,7 +4,8 @@ import type {
 	WFEdge,
 	NodeDataValue,
 	NodeStatus,
-	FileValue
+	FileValue,
+	Port
 } from "./workflow-types";
 import { toLegacyShape } from "./workflow-migration";
 import { topoSort } from "./workflow-graph";
@@ -78,6 +79,7 @@ async function toGradioArg(value: NodeDataValue): Promise<unknown> {
 	if (typeof value === "string") return value;
 	if (typeof value === "number") return value;
 	if (typeof value === "boolean") return value;
+	if (Array.isArray(value)) return value;
 	const fileVal = value as FileValue;
 	// Blob URLs need to be uploaded to our Gradio server first
 	if (fileVal.url.startsWith("blob:") || fileVal.url.startsWith("data:")) {

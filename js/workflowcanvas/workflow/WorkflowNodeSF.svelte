@@ -74,12 +74,30 @@
 
 	const INPUT_COLLAPSE_THRESHOLD = 3;
 
+	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
+		if (portType === "number") {
+			const n = Number(v);
+			return Number.isNaN(n) ? v : n;
+		}
+		if (portType === "boolean") {
+			if (v === "true") return true;
+			if (v === "false") return false;
+		}
+		return v;
+	}
+
 	function renameNode(newLabel: string): void {
 		const trimmed = newLabel.trim();
 		if (trimmed && trimmed !== node.label) {
 			workflow.update((wf) => ({
 				...wf,
-				nodes: wf.nodes.map((n) =>
+				references: wf.references.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				),
+				operators: wf.operators.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				),
+				subjects: wf.subjects.map((n) =>
 					n.id === node.id ? { ...n, label: trimmed } : n
 				)
 			}));
@@ -362,7 +380,52 @@
 							class="port-inline-config"
 							onmousedown={(e) => e.stopPropagation()}
 						>
-							{#if port.type === "number"}
+							{#if port.choices && port.choices.length > 0 && port.multiselect}
+								{@const selected = Array.isArray(node.data?.[port.id])
+									? (node.data[port.id] as string[])
+									: []}
+								<div class="inline-choices">
+									{#each port.choices as choice}
+										<label class="inline-checkbox">
+											<input
+												type="checkbox"
+												checked={selected.includes(choice)}
+												onchange={(e) => {
+													const next = e.currentTarget.checked
+														? [...selected, choice]
+														: selected.filter((c) => c !== choice);
+													ctx.ondatachange(node.id, port.id, next);
+												}}
+											/>
+											<span>{choice}</span>
+										</label>
+									{/each}
+								</div>
+							{:else if port.choices && port.choices.length > 0}
+								{@const raw = node.data?.[port.id] ?? port.default_value}
+								{@const current = raw != null ? String(raw) : ""}
+								{@const hasCurrent = port.choices.includes(current)}
+								<select
+									class="inline-input inline-select"
+									value={hasCurrent ? current : ""}
+									onchange={(e) => {
+										const v = e.currentTarget.value;
+										if (v === "") return;
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											castChoiceValue(v, port.type)
+										);
+									}}
+								>
+									{#if !hasCurrent}
+										<option value="" disabled>Select {port.label}</option>
+									{/if}
+									{#each port.choices as choice}
+										<option value={choice}>{choice}</option>
+									{/each}
+								</select>
+							{:else if port.type === "number"}
 								<input
 									class="inline-input inline-number"
 									type="number"
@@ -413,8 +476,12 @@
 			{#if collapsible}
 				<button
 					class="ports-toggle"
+					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
-					onclick={() => (showAllInputs = !showAllInputs)}
+					onclick={(e) => {
+						e.stopPropagation();
+						showAllInputs = !showAllInputs;
+					}}
 				>
 					{#if showAllInputs}▴ show less{:else}▾ {node.inputs.length -
 							INPUT_COLLAPSE_THRESHOLD} more params{/if}
@@ -970,6 +1037,27 @@
 		font-size: 10px;
 		color: #8b8d98;
 		cursor: pointer;
+	}
+
+	.inline-select {
+		cursor: pointer;
+	}
+
+	.inline-choices {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		max-height: 120px;
+		overflow-y: auto;
+	}
+
+	.inline-choices input[type="checkbox"] {
+		width: 14px;
+		height: 14px;
+		accent-color: var(--accent);
+		cursor: pointer;
+		appearance: auto;
+		-webkit-appearance: checkbox;
 	}
 
 	/* Light mode */
