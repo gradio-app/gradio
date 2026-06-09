@@ -671,8 +671,53 @@ class EventListener(str):
             """
 
             if fn == "decorator":
+                root_block = get_blocks_context()
+                js_only_dep: Dependency | None = None
+                created_fn_ids: set[int] = set()
+                prior_fn_id = post_fn_id = 0
+                if isinstance(js, str) and root_block is not None:
+                    # A js string can run entirely in the frontend without a backend
+                    # fn, so register the event immediately with fn=None in case this
+                    # call is not being used as a decorator, e.g. `btn.click(js=...)`.
+                    # If it is used as a decorator after all, `wrapper` removes this
+                    # js-only event before registering the decorated function.
+                    prior_fn_ids = set(root_block.fns)
+                    prior_fn_id = root_block.fn_id
+                    js_only_dep = event_trigger(
+                        block=block,
+                        fn=None,
+                        inputs=inputs,
+                        outputs=outputs,
+                        api_name=api_name,
+                        api_description=api_description,
+                        scroll_to_output=scroll_to_output,
+                        show_progress=show_progress,
+                        show_progress_on=show_progress_on,
+                        queue=queue,
+                        batch=batch,
+                        max_batch_size=max_batch_size,
+                        preprocess=preprocess,
+                        postprocess=postprocess,
+                        cancels=cancels,
+                        trigger_mode=trigger_mode,
+                        js=js,
+                        concurrency_limit=concurrency_limit,
+                        concurrency_id=concurrency_id,
+                        api_visibility=api_visibility,
+                        time_limit=time_limit,
+                        stream_every=stream_every,
+                        key=key,
+                        validator=validator,
+                    )
+                    created_fn_ids = set(root_block.fns) - prior_fn_ids
+                    post_fn_id = root_block.fn_id
 
                 def wrapper(func):
+                    if js_only_dep is not None and root_block is not None:
+                        for fn_id in created_fn_ids:
+                            root_block.fns.pop(fn_id, None)
+                        if root_block.fn_id == post_fn_id:
+                            root_block.fn_id = prior_fn_id
                     event_trigger(
                         block=block,
                         fn=func,
@@ -703,6 +748,9 @@ class EventListener(str):
 
                     return inner
 
+                if js_only_dep is not None:
+                    js_only_dep.fn = wrapper
+                    return js_only_dep
                 return Dependency(None, {}, None, wrapper)
 
             from gradio.components.base import StreamingInput
@@ -872,8 +920,53 @@ def on(
         inputs = [inputs]  # type: ignore
 
     if fn == "decorator":
+        root_block = get_blocks_context()
+        js_only_dep: Dependency | None = None
+        created_fn_ids: set[int] = set()
+        prior_fn_id = post_fn_id = 0
+        if isinstance(js, str) and root_block is not None:
+            # A js string can run entirely in the frontend without a backend fn, so
+            # register the event immediately with fn=None in case this call is not
+            # being used as a decorator, e.g. `gr.on(triggers, js=...)`. If it is
+            # used as a decorator after all, `wrapper` removes this js-only event
+            # before registering the decorated function.
+            prior_fn_ids = set(root_block.fns)
+            prior_fn_id = root_block.fn_id
+            js_only_dep = on(
+                triggers,
+                fn=None,
+                inputs=inputs,
+                outputs=outputs,
+                api_name=api_name,
+                api_description=api_description,
+                scroll_to_output=scroll_to_output,
+                show_progress=show_progress,
+                show_progress_on=show_progress_on,
+                queue=queue,
+                batch=batch,
+                max_batch_size=max_batch_size,
+                preprocess=preprocess,
+                postprocess=postprocess,
+                cancels=cancels,
+                js=js,
+                concurrency_limit=concurrency_limit,
+                concurrency_id=concurrency_id,
+                api_visibility=api_visibility,
+                trigger_mode=trigger_mode,
+                time_limit=time_limit,
+                stream_every=stream_every,
+                key=key,
+                validator=validator,
+            )
+            created_fn_ids = set(root_block.fns) - prior_fn_ids
+            post_fn_id = root_block.fn_id
 
         def wrapper(func):
+            if js_only_dep is not None and root_block is not None:
+                for fn_id in created_fn_ids:
+                    root_block.fns.pop(fn_id, None)
+                if root_block.fn_id == post_fn_id:
+                    root_block.fn_id = prior_fn_id
             on(
                 triggers,
                 fn=func,
@@ -906,6 +999,9 @@ def on(
 
             return inner
 
+        if js_only_dep is not None:
+            js_only_dep.fn = wrapper
+            return js_only_dep
         return Dependency(None, {}, None, wrapper)
 
     root_block = get_blocks_context()
