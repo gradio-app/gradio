@@ -476,8 +476,12 @@
 			{#if collapsible}
 				<button
 					class="ports-toggle"
+					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
-					onclick={() => (showAllInputs = !showAllInputs)}
+					onclick={(e) => {
+						e.stopPropagation();
+						showAllInputs = !showAllInputs;
+					}}
 				>
 					{#if showAllInputs}▴ show less{:else}▾ {node.inputs.length -
 							INPUT_COLLAPSE_THRESHOLD} more params{/if}
@@ -1045,6 +1049,15 @@
 		gap: 4px;
 		max-height: 120px;
 		overflow-y: auto;
+	}
+
+	.inline-choices input[type="checkbox"] {
+		width: 14px;
+		height: 14px;
+		accent-color: var(--accent);
+		cursor: pointer;
+		appearance: auto;
+		-webkit-appearance: checkbox;
 	}
 
 	/* Light mode */

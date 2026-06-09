@@ -24,6 +24,14 @@
 	let { node, widgetPortId, widgetType, isReadonly, ondatachange }: Props =
 		$props();
 
+	const widgetPort = $derived(
+		node.outputs.find((p) => p.id === widgetPortId) ??
+			node.inputs.find((p) => p.id === widgetPortId)
+	);
+	const choices = $derived(widgetPort?.choices ?? null);
+	const hasChoices = $derived(!!choices?.length);
+	const multiselect = $derived(!!widgetPort?.multiselect);
+
 	let fileInputEl: HTMLInputElement | undefined = $state();
 
 	function getTextValue(): string {
@@ -142,11 +150,50 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="widget-zone nodrag nopan"
-	class:text-full={widgetType === "text" || widgetType === "json"}
+	class:text-full={(widgetType === "text" || widgetType === "json") &&
+		!hasChoices}
 	onmousedown={(e) => e.stopPropagation()}
 	onpointerdown={(e) => e.stopPropagation()}
 >
-	{#if widgetType === "text" || widgetType === "json"}
+	{#if hasChoices && choices}
+		{@const rawValue = node.data?.[widgetPortId]}
+		{@const selected = multiselect && Array.isArray(rawValue) ? rawValue : []}
+		{@const current =
+			!multiselect && typeof rawValue === "string" ? rawValue : ""}
+		<div class="widget-choices">
+			{#each choices as choice}
+				<label class="widget-choice-row">
+					{#if multiselect}
+						<input
+							type="checkbox"
+							class="widget-checkbox widget-checkbox-choice"
+							checked={selected.includes(choice)}
+							disabled={isReadonly}
+							onchange={(e) =>
+								ondatachange(
+									node.id,
+									widgetPortId,
+									e.currentTarget.checked
+										? [...selected, choice]
+										: selected.filter((c) => c !== choice)
+								)}
+						/>
+					{:else}
+						<input
+							type="radio"
+							class="widget-radio"
+							name="{node.id}-{widgetPortId}"
+							value={choice}
+							checked={current === choice}
+							disabled={isReadonly}
+							onchange={() => ondatachange(node.id, widgetPortId, choice)}
+						/>
+					{/if}
+					<span class="widget-checkbox-label">{choice}</span>
+				</label>
+			{/each}
+		</div>
+	{:else if widgetType === "text" || widgetType === "json"}
 		<div class="widget-text-wrap">
 			<div class="widget-gradio-wrap">
 				<BaseTextbox
@@ -483,6 +530,39 @@
 		gap: 8px;
 		padding: 6px 0;
 		cursor: pointer;
+	}
+
+	.widget-choices {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 8px 12px 10px;
+	}
+
+	.widget-choice-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+	}
+
+	.widget-radio {
+		width: 14px;
+		height: 14px;
+		accent-color: var(--accent);
+		cursor: pointer;
+		border-radius: 50%;
+		appearance: auto;
+		-webkit-appearance: radio;
+	}
+
+	.widget-checkbox-choice {
+		width: 14px;
+		height: 14px;
+		accent-color: var(--accent);
+		cursor: pointer;
+		appearance: auto;
+		-webkit-appearance: checkbox;
 	}
 
 	.widget-checkbox {
