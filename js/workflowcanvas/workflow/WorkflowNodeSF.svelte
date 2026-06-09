@@ -338,8 +338,7 @@
 	{#if node.inputs.length > 0}
 		{@const hiddenCount = node.inputs.filter(
 			(p) =>
-				p.required === false &&
-				!connectedPorts.has(`${node.id}:${p.id}:input`)
+				p.required === false && !connectedPorts.has(`${node.id}:${p.id}:input`)
 		).length}
 		{@const collapsible = hiddenCount > 0}
 		<div class="ports" class:widget-ports={hasWidget}>
