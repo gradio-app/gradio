@@ -1642,12 +1642,10 @@
 					<span class="toolbar-user-info"
 						>Logged in as <strong>{auth.loggedInUser}</strong></span
 					>
-					{#if auth.isHFSpace}
-						<button
-							class="toolbar-login-btn logged-in"
-							onclick={auth.handleLogout}>Log out</button
-						>
-					{/if}
+					<button
+						class="toolbar-login-btn logged-in"
+						onclick={auth.handleLogout}>Log out</button
+					>
 				{:else if auth.isHFSpace}
 					<button class="toolbar-login-btn" onclick={auth.handleLogin}
 						>Sign in with 🤗</button

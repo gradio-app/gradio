@@ -99,7 +99,13 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	}
 
 	function handleLogout(): void {
-		redirect_to("/logout");
+		if (isHFSpace) {
+			redirect_to("/logout");
+			return;
+		}
+		saveToken("");
+		loggedInUser = "";
+		isPro = false;
 	}
 
 	function getQuotaCTA(): {
