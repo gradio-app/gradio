@@ -15,6 +15,7 @@ export interface DatasetProps {
 }
 
 export interface DatasetEvents {
+	change: never;
 	click: never;
 	select: SelectData;
 }
