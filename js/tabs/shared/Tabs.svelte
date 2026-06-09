@@ -13,7 +13,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, tick } from "svelte";
+	import { setContext, tick, untrack } from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
@@ -45,16 +45,19 @@
 	let mounted_tab_orders = new Set<number>();
 
 	$effect(() => {
-		_sync_tabs(initial_tabs);
+		const new_tabs = initial_tabs;
+		untrack(() => _sync_tabs(new_tabs));
 	});
 
 	function _sync_tabs(new_tabs: Tab[]): void {
 		tick().then(() => {
-			for (let i = 0; i < new_tabs.length; i++) {
-				if (new_tabs[i] && !mounted_tab_orders.has(i)) {
-					tabs[i] = new_tabs[i];
+			untrack(() => {
+				for (let i = 0; i < new_tabs.length; i++) {
+					if (new_tabs[i] && !mounted_tab_orders.has(i)) {
+						tabs[i] = new_tabs[i];
+					}
 				}
-			}
+			});
 		});
 	}
 
@@ -73,17 +76,8 @@
 	let overflow_has_selected_tab = $state(false);
 	let tab_els: Record<string | number, HTMLElement> = $state({});
 
-	$effect(() => {
-		if (!tab_nav_el) return;
-		const ro = new ResizeObserver(() => {
-			handle_menu_overflow();
-		});
-		ro.observe(tab_nav_el);
-		return () => ro.disconnect();
-	});
-
-	function update_tab_lists(tab: Tab, order: number): void {
-		tabs = tabs.map((t, i) => (i === order ? tab : t));
+	function sync_tab_entry(tab: Tab, order: number): void {
+		tabs[order] = tab;
 		visible_tabs = visible_tabs.map((t) => (t?.id === tab.id ? tab : t));
 		overflow_tabs = overflow_tabs.map((t) => (t?.id === tab.id ? tab : t));
 	}
@@ -91,12 +85,15 @@
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
 			mounted_tab_orders.add(order);
-			update_tab_lists(tab, order);
+			sync_tab_entry(tab, order);
 
 			if ($selected_tab === false && tab.visible !== false && tab.interactive) {
 				$selected_tab = tab.id;
 				$selected_tab_index = order;
+			} else if ($selected_tab === tab.id) {
+				$selected_tab_index = order;
 			}
+			handle_menu_overflow();
 			return order;
 		},
 		unregister_tab: (tab: Tab, order: number) => {
@@ -104,9 +101,10 @@
 			if ($selected_tab === tab.id) {
 				$selected_tab = tabs[0]?.id || false;
 			}
-			tabs = tabs.map((t, i) => (i === order ? null : t));
+			tabs[order] = null;
 			visible_tabs = visible_tabs.filter((t) => t?.id !== tab.id);
 			overflow_tabs = overflow_tabs.filter((t) => t?.id !== tab.id);
+			handle_menu_overflow();
 		},
 		selected_tab,
 		selected_tab_index
@@ -130,15 +128,17 @@
 	}
 
 	$effect(() => {
-		tabs;
 		if (selected !== null) change_tab(selected);
 	});
 
 	$effect(() => {
-		tabs;
-		tab_nav_el;
-		tab_els;
+		if (!tab_nav_el) return;
 		handle_menu_overflow();
+		const ro = new ResizeObserver(() => {
+			handle_menu_overflow();
+		});
+		ro.observe(tab_nav_el);
+		return () => ro.disconnect();
 	});
 
 	function handle_outside_click(event: MouseEvent): void {
