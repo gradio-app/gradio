@@ -8,6 +8,7 @@
 
 	const props = $props();
 	const gradio = new Gradio<FallbackEvents, FallbackProps>(props);
+	gradio.watch_for_change();
 
 	const container = true;
 </script>

@@ -4,6 +4,7 @@ export interface TimerProps {
 }
 
 export interface TimerEvents {
+	change: never;
 	tick: never;
 	clear_status: never;
 }

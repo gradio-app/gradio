@@ -8,5 +8,6 @@ export interface DownloadButtonProps {
 }
 
 export interface DownloadButtonEvents {
+	change: never;
 	click: never;
 }

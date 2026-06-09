@@ -5,9 +5,10 @@
 	import { workflow, sanitize_for_save } from "./workflow/workflow-store";
 
 	let _props = $props();
-	const gradio = new Gradio<Record<string, never>, { value: string | null }>(
+	const gradio = new Gradio<{ change: never }, { value: string | null }>(
 		_props
 	);
+	gradio.watch_for_change();
 
 	let serverObj = $derived(gradio.shared?.server ?? {});
 	let initialValue = $derived(gradio.props.value ?? null);
