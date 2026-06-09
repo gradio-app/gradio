@@ -9,64 +9,110 @@
 	import ButtonPanel from "./ButtonPanel.svelte";
 	import MessageContent from "./MessageContent.svelte";
 	import Thought from "./Thought.svelte";
+	import type { CopyData, SelectData } from "@gradio/utils";
 
-	export let value: NormalisedMessage[];
-	export let avatar_img: FileData | null;
-	export let opposite_avatar_img: FileData | null = null;
-	export let role = "user";
-	export let messages: NormalisedMessage[] = [];
-	export let layout: "bubble" | "panel";
-	export let render_markdown: boolean;
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let sanitize_html: boolean;
-	export let selectable: boolean;
-	export let _fetch: typeof fetch;
-	export let rtl: boolean;
-	export let dispatch: any;
-	export let i18n: I18nFormatter;
-	export let line_breaks: boolean;
-	export let upload: Client["upload"];
-	export let target: HTMLElement | null;
-	export let theme_mode: "light" | "dark" | "system";
-	export let _components: Record<string, ComponentType<SvelteComponent>>;
-	export let i: number;
-	export let show_copy_button: boolean;
-	export let generating: boolean;
-	export let feedback_options: string[];
-	export let show_like: boolean;
-	export let show_edit: boolean;
-	export let show_retry: boolean;
-	export let show_undo: boolean;
-	export let handle_action: (selected: string | null) => void;
-	export let scroll: () => void;
-	export let allow_file_downloads: boolean;
-	export let in_edit_mode: boolean;
-	export let edit_messages: string[];
-	export let display_consecutive_in_same_bubble: boolean;
-	export let current_feedback: string | null = null;
-	export let allow_tags: string[] | boolean = false;
-	export let watermark: string | null = null;
+	let {
+		value,
+		avatar_img,
+		opposite_avatar_img = null,
+		role = "user",
+		messages = [],
+		layout,
+		render_markdown,
+		latex_delimiters,
+		sanitize_html,
+		selectable,
+		_fetch,
+		rtl,
+		onselect,
+		i18n,
+		line_breaks,
+		upload,
+		target,
+		theme_mode,
+		_components,
+		i,
+		show_copy_button,
+		generating,
+		feedback_options,
+		show_like,
+		show_edit,
+		show_retry,
+		show_undo,
+		handle_action,
+		scroll,
+		allow_file_downloads,
+		in_edit_mode,
+		edit_messages = $bindable([]),
+		display_consecutive_in_same_bubble,
+		current_feedback = null,
+		allow_tags = false,
+		watermark = null,
+		oncopy
+	}: {
+		value: NormalisedMessage[];
+		avatar_img: FileData | null;
+		opposite_avatar_img?: FileData | null;
+		role?: string;
+		messages?: NormalisedMessage[];
+		layout: "bubble" | "panel";
+		render_markdown: boolean;
+		latex_delimiters: {
+			left: string;
+			right: string;
+			display: boolean;
+		}[];
+		sanitize_html: boolean;
+		selectable: boolean;
+		_fetch: typeof fetch;
+		rtl: boolean;
+		onselect?: (data: SelectData) => void;
+		i18n: I18nFormatter;
+		line_breaks: boolean;
+		upload: Client["upload"];
+		target: HTMLElement | null;
+		theme_mode: "light" | "dark" | "system";
+		_components: Record<string, ComponentType<SvelteComponent>>;
+		i: number;
+		show_copy_button: boolean;
+		generating: boolean;
+		feedback_options: string[];
+		show_like: boolean;
+		show_edit: boolean;
+		show_retry: boolean;
+		show_undo: boolean;
+		handle_action: (selected: string | null) => void;
+		scroll: () => void;
+		allow_file_downloads: boolean;
+		in_edit_mode: boolean;
+		edit_messages?: string[];
+		display_consecutive_in_same_bubble: boolean;
+		current_feedback?: string | null;
+		allow_tags?: string[] | boolean;
+		watermark?: string | null;
+		oncopy?: (data: CopyData) => void;
+	} = $props();
+
 	let messageElements: HTMLDivElement[] = [];
-	let previous_edit_mode = false;
-	let message_widths: number[] = Array(messages.length).fill(160);
-	let message_heights: number[] = Array(messages.length).fill(0);
+	let previous_edit_mode = $state(false);
+	let message_widths: number[] = $state(Array(messages.length).fill(160));
+	let message_heights: number[] = $state(Array(messages.length).fill(0));
 
-	$: if (in_edit_mode && !previous_edit_mode) {
-		const offset = messageElements.length - messages.length;
-		for (let idx = offset; idx < messageElements.length; idx++) {
-			if (idx >= 0) {
-				message_widths[idx - offset] = messageElements[idx]?.clientWidth;
-				message_heights[idx - offset] = messageElements[idx]?.clientHeight;
+	$effect(() => {
+		if (in_edit_mode && !previous_edit_mode) {
+			const offset = messageElements.length - messages.length;
+			for (let idx = offset; idx < messageElements.length; idx++) {
+				if (idx >= 0) {
+					message_widths[idx - offset] = messageElements[idx]?.clientWidth;
+					message_heights[idx - offset] = messageElements[idx]?.clientHeight;
+				}
 			}
 		}
-	}
+		previous_edit_mode = in_edit_mode;
+	});
 
 	function handle_select(i: number, message: NormalisedMessage): void {
-		dispatch("select", {
+		onselect?.({
 			index: message.index,
 			value: message.content
 		});
@@ -106,30 +152,7 @@
 		return null;
 	}
 
-	type ButtonPanelProps = {
-		handle_action: (selected: string | null) => void;
-		likeable: boolean;
-		feedback_options: string[];
-		show_retry: boolean;
-		show_undo: boolean;
-		show_edit: boolean;
-		in_edit_mode: boolean;
-		generating: boolean;
-		show_copy_button: boolean;
-		message: NormalisedMessage[] | NormalisedMessage;
-		position: "left" | "right";
-		layout: "bubble" | "panel";
-		avatar: FileData | null;
-		dispatch: any;
-		current_feedback: string | null;
-		watermark: string | null;
-		file: FileData | null;
-		show_download_button: boolean;
-		show_share_button: boolean;
-	};
-
-	let button_panel_props: ButtonPanelProps;
-	$: button_panel_props = {
+	let button_panel_props = $derived({
 		handle_action,
 		likeable: show_like,
 		feedback_options,
@@ -140,16 +163,16 @@
 		generating,
 		show_copy_button,
 		message: messages,
-		position: role === "user" ? "right" : "left",
+		position: (role === "user" ? "right" : "left") as "left" | "right",
 		avatar: avatar_img,
 		layout,
-		dispatch,
 		current_feedback,
 		watermark,
 		file: get_file(messages),
 		show_download_button: allow_file_downloads,
-		show_share_button: true
-	};
+		show_share_button: true,
+		oncopy
+	});
 </script>
 
 <div
@@ -182,7 +205,7 @@
 					class:thought={thought_index > 0}
 				>
 					{#if in_edit_mode && message.type === "text"}
-						<!-- svelte-ignore a11y-autofocus -->
+						<!-- svelte-ignore a11y_autofocus -->
 						<textarea
 							class="edit-textarea"
 							style:width={`max(${message_widths[thought_index]}px, 160px)`}
@@ -191,7 +214,7 @@
 							bind:value={edit_messages[thought_index]}
 						/>
 					{:else}
-						<!-- svelte-ignore a11y-no-static-element-interactions -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							data-testid={role}
 							class:latest={i === value.length - 1}
@@ -201,8 +224,8 @@
 							style:cursor={selectable ? "pointer" : "auto"}
 							style:text-align={rtl ? "right" : "left"}
 							bind:this={messageElements[thought_index]}
-							on:click={() => handle_select(i, message)}
-							on:keydown={(e) => {
+							onclick={() => handle_select(i, message)}
+							onkeydown={(e) => {
 								if (e.key === "Enter") {
 									handle_select(i, message);
 								}
@@ -261,7 +284,6 @@
 						{...button_panel_props}
 						{current_feedback}
 						{watermark}
-						on:copy={(e) => dispatch("copy", e.detail)}
 						{i18n}
 					/>
 				{/if}

@@ -28,7 +28,7 @@
 	interactive={true}
 	scale={0}
 	component_id={1}
-	on:select={(e) => cfg.on_tab_select?.(e.detail)}
+	onselect={(data) => cfg.on_tab_select?.(data)}
 >
 	<div data-testid="tab-content">tab panel content</div>
 </BaseTabItem>

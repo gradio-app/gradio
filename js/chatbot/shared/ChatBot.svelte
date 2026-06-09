@@ -14,13 +14,7 @@
 	import Message from "./Message.svelte";
 
 	import { dequal } from "dequal/lite";
-	import {
-		createEventDispatcher,
-		type SvelteComponent,
-		type ComponentType,
-		tick,
-		onMount
-	} from "svelte";
+	import { type SvelteComponent, type ComponentType, tick } from "svelte";
 
 	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
@@ -34,18 +28,114 @@
 	import { Gradio } from "@gradio/utils";
 
 	import Examples from "./Examples.svelte";
-
-	export let value: NormalisedMessage[] | null = [];
-	let old_value: NormalisedMessage[] | null = null;
-
 	import CopyAll from "./CopyAll.svelte";
 
-	export let _fetch: typeof fetch;
-	export let load_component: Gradio["load_component"];
-	export let allow_file_downloads: boolean;
-	export let display_consecutive_in_same_bubble: boolean;
+	let {
+		value = null,
+		_fetch,
+		load_component,
+		allow_file_downloads,
+		display_consecutive_in_same_bubble,
+		latex_delimiters,
+		pending_message = false,
+		generating = false,
+		selectable = false,
+		likeable = false,
+		feedback_options,
+		feedback_value = null,
+		editable = null,
+		show_share_button = false,
+		show_copy_all_button = false,
+		rtl = false,
+		show_copy_button = false,
+		buttons = null,
+		on_custom_button_click = null,
+		avatar_images = [null, null] as [FileData | null, FileData | null],
+		sanitize_html = true,
+		render_markdown = true,
+		line_breaks = true,
+		autoscroll = true,
+		theme_mode,
+		i18n,
+		layout = "bubble",
+		placeholder = null,
+		upload,
+		examples = null,
+		_retryable = false,
+		_undoable = false,
+		like_user_message = false,
+		allow_tags = false,
+		watermark = null,
+		show_progress = "full",
+		onchange,
+		onselect,
+		onlike,
+		onedit,
+		onundo,
+		onretry,
+		onclear,
+		onshare,
+		onerror,
+		onexampleselect,
+		onoptionselect,
+		oncopy
+	}: {
+		value?: NormalisedMessage[] | null;
+		_fetch: typeof fetch;
+		load_component: Gradio["load_component"];
+		allow_file_downloads: boolean;
+		display_consecutive_in_same_bubble: boolean;
+		latex_delimiters: {
+			left: string;
+			right: string;
+			display: boolean;
+		}[];
+		pending_message?: boolean;
+		generating?: boolean;
+		selectable?: boolean;
+		likeable?: boolean;
+		feedback_options: string[];
+		feedback_value?: (string | null)[] | null;
+		editable?: "user" | "all" | null;
+		show_share_button?: boolean;
+		show_copy_all_button?: boolean;
+		rtl?: boolean;
+		show_copy_button?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+		avatar_images?: [FileData | null, FileData | null];
+		sanitize_html?: boolean;
+		render_markdown?: boolean;
+		line_breaks?: boolean;
+		autoscroll?: boolean;
+		theme_mode: "system" | "light" | "dark";
+		i18n: I18nFormatter;
+		layout?: "bubble" | "panel";
+		placeholder?: string | null;
+		upload: Client["upload"];
+		examples?: ExampleMessage[] | null;
+		_retryable?: boolean;
+		_undoable?: boolean;
+		like_user_message?: boolean;
+		allow_tags?: string[] | boolean;
+		watermark?: string | null;
+		show_progress?: "full" | "minimal" | "hidden";
+		onchange?: () => void;
+		onselect?: (data: SelectData) => void;
+		onlike?: (data: LikeData) => void;
+		onedit?: (data: EditData) => void;
+		onundo?: (data: UndoRetryData) => void;
+		onretry?: (data: UndoRetryData) => void;
+		onclear?: () => void;
+		onshare?: (data: any) => void;
+		onerror?: (message: string) => void;
+		onexampleselect?: (data: SelectData) => void;
+		onoptionselect?: (data: SelectData) => void;
+		oncopy?: (data: CopyData) => void;
+	} = $props();
 
-	let _components: Record<string, ComponentType<SvelteComponent>> = {};
+	let old_value: NormalisedMessage[] | null = $state(null);
+	let _components: Record<string, ComponentType<SvelteComponent>> = $state({});
 
 	const is_browser = typeof window !== "undefined";
 
@@ -57,72 +147,21 @@
 		);
 	}
 
-	$: component_names = get_components_from_messages(value).sort().join(", ");
+	$effect(() => {
+		get_components_from_messages(value);
+		update_components();
+	});
 
-	$: (component_names, update_components());
+	let target: HTMLElement | null = $state(null);
+	let edit_index: number | null = $state(null);
+	let edit_messages: string[] = $state([]);
 
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let pending_message = false;
-	export let generating = false;
-	export let selectable = false;
-	export let likeable = false;
-	export let feedback_options: string[];
-	export let feedback_value: (string | null)[] | null = null;
-	export let editable: "user" | "all" | null = null;
-	export let show_share_button = false;
-	export let show_copy_all_button = false;
-	export let rtl = false;
-	export let show_copy_button = false;
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
-	export let avatar_images: [FileData | null, FileData | null] = [null, null];
-	export let sanitize_html = true;
-	export let render_markdown = true;
-	export let line_breaks = true;
-	export let autoscroll = true;
-	export let theme_mode: "system" | "light" | "dark";
-	export let i18n: I18nFormatter;
-	export let layout: "bubble" | "panel" = "bubble";
-	export let placeholder: string | null = null;
-	export let upload: Client["upload"];
-	export let examples: ExampleMessage[] | null = null;
-	export let _retryable = false;
-	export let _undoable = false;
-	export let like_user_message = false;
-	export let allow_tags: string[] | boolean = false;
-	export let watermark: string | null = null;
-	export let show_progress: "full" | "minimal" | "hidden" = "full";
-
-	let target: HTMLElement | null = null;
-	let edit_index: number | null = null;
-	let edit_messages: string[] = [];
-
-	onMount(() => {
+	$effect(() => {
 		target = document.querySelector("div.gradio-container");
 	});
 
 	let div: HTMLDivElement;
-
-	let show_scroll_button = false;
-
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		select: SelectData;
-		like: LikeData;
-		edit: EditData;
-		undo: UndoRetryData;
-		retry: UndoRetryData;
-		clear: undefined;
-		share: any;
-		error: string;
-		example_select: SelectData;
-		option_select: SelectData;
-		copy: CopyData;
-	}>();
+	let show_scroll_button = $state(false);
 
 	function is_at_bottom(): boolean {
 		return div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
@@ -134,30 +173,30 @@
 		show_scroll_button = false;
 	}
 
-	let scroll_after_component_load = false;
+	let scroll_after_component_load = $state(false);
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
 		if (is_at_bottom()) {
-			// Child components may be loaded asynchronously,
-			// so trigger the scroll again after they load.
 			scroll_after_component_load = true;
-			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+			await tick();
 			await new Promise((resolve) => setTimeout(resolve, 300));
 			scroll_to_bottom();
 		}
 	}
-	onMount(() => {
-		if (autoscroll) {
+
+	$effect(() => {
+		if (autoscroll && div) {
 			scroll_to_bottom();
 		}
+		value;
+		pending_message;
+		_components;
 		scroll_on_value_update();
 	});
-	$: if (value || pending_message || _components) {
-		scroll_on_value_update();
-	}
 
-	onMount(() => {
+	$effect(() => {
+		if (!div) return;
 		function handle_scroll(): void {
 			if (is_at_bottom()) {
 				show_scroll_button = false;
@@ -167,21 +206,30 @@
 			}
 		}
 
-		div?.addEventListener("scroll", handle_scroll);
+		div.addEventListener("scroll", handle_scroll);
 		return () => {
-			div?.removeEventListener("scroll", handle_scroll);
+			div.removeEventListener("scroll", handle_scroll);
 		};
 	});
 
-	$: {
+	$effect(() => {
 		if (!dequal(value, old_value)) {
 			old_value = value;
-			dispatch("change");
+			onchange?.();
 		}
-	}
-	$: groupedMessages =
-		value && group_messages(value, display_consecutive_in_same_bubble);
-	$: options = value && get_last_bot_options();
+	});
+
+	let groupedMessages = $derived(
+		value ? group_messages(value, display_consecutive_in_same_bubble) : null
+	);
+
+	let options = $derived.by(() => {
+		if (!value || !groupedMessages || groupedMessages.length === 0)
+			return undefined;
+		const last_group = groupedMessages[groupedMessages.length - 1];
+		if (last_group[0].role !== "assistant") return undefined;
+		return last_group[last_group.length - 1].options;
+	});
 
 	function handle_action(
 		i: number,
@@ -190,13 +238,12 @@
 	): void {
 		if (selected === "undo" || selected === "retry") {
 			const val_ = value as NormalisedMessage[];
-			// iterate through messages until we find the last user message
-			// the index of this message is where the user needs to edit the chat history
 			let last_index = val_.length - 1;
 			while (val_[last_index].role === "assistant") {
 				last_index--;
 			}
-			dispatch(selected, {
+			const handler = selected === "undo" ? onundo : onretry;
+			handler?.({
 				index: val_[last_index].index,
 				value: val_[last_index].content
 			});
@@ -207,7 +254,7 @@
 			edit_index = null;
 		} else if (selected == "edit_submit") {
 			edit_index = null;
-			dispatch("edit", {
+			onedit?.({
 				index: message.index,
 				_dispatch_value: [{ type: "text", text: edit_messages[i].slice() }],
 				value: edit_messages[i].slice(),
@@ -223,25 +270,14 @@
 			if (!groupedMessages) return;
 
 			const message_group = groupedMessages[i];
-			const [first, last] = [
-				message_group[0],
-				message_group[message_group.length - 1]
-			];
+			const [first] = [message_group[0], message_group[message_group.length - 1]];
 
-			dispatch("like", {
+			onlike?.({
 				index: first.index as number,
 				value: message_group.map((m) => m.content),
 				liked: feedback
 			});
 		}
-	}
-
-	function get_last_bot_options(): Option[] | undefined {
-		if (!value || !groupedMessages || groupedMessages.length === 0)
-			return undefined;
-		const last_group = groupedMessages[groupedMessages.length - 1];
-		if (last_group[0].role !== "assistant") return undefined;
-		return last_group[last_group.length - 1].options;
 	}
 </script>
 
@@ -254,20 +290,20 @@
 					try {
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
-						dispatch("share", {
+						onshare?.({
 							description: formatted
 						});
 					} catch (e) {
 						console.error(e);
 						let message = e instanceof ShareError ? e.message : "Share failed.";
-						dispatch("error", message);
+						onerror?.(message);
 					}
 				}}
 			/>
 		{/if}
 		<IconButton
 			Icon={Trash}
-			onclick={() => dispatch("clear")}
+			onclick={() => onclear?.()}
 			label={i18n("chatbot.clear")}
 		/>
 		{#if show_copy_all_button}
@@ -303,7 +339,7 @@
 					{avatar_img}
 					{role}
 					{layout}
-					{dispatch}
+					{onselect}
 					{i18n}
 					{_fetch}
 					{line_breaks}
@@ -346,9 +382,9 @@
 							handle_action(i, messages[0], selected);
 						}
 					}}
-					scroll={is_browser ? scroll : () => {}}
+					scroll={is_browser ? scroll_to_bottom : () => {}}
 					{allow_file_downloads}
-					on:copy={(e) => dispatch("copy", e.detail)}
+					{oncopy}
 				/>
 				{#if show_progress !== "hidden" && generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}
 					<Pending {layout} {avatar_images} />
@@ -361,8 +397,8 @@
 					{#each options as option, index}
 						<button
 							class="option"
-							on:click={() =>
-								dispatch("option_select", {
+							onclick={() =>
+								onoptionselect?.({
 									index: index,
 									value: option.value
 								})}
@@ -378,7 +414,7 @@
 			{examples}
 			{placeholder}
 			{latex_delimiters}
-			on:example_select={(e) => dispatch("example_select", e.detail)}
+			{onexampleselect}
 		/>
 	{/if}
 </div>
