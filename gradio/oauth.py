@@ -235,6 +235,21 @@ def _redirect_to_target(
     return RedirectResponse(safe_target)
 
 
+def _get_valid_oauth_info_from_session(
+    session: typing.MutableMapping[str, typing.Any],
+) -> dict[str, typing.Any] | None:
+    oauth_info = session.get("oauth_info")
+    if oauth_info is None:
+        return None
+
+    expires_at = oauth_info.get("expires_at")
+    if expires_at is not None and expires_at < time.time():
+        session.pop("oauth_info", None)
+        return None
+
+    return oauth_info
+
+
 @dataclass
 class OAuthProfile(typing.Dict):  # inherit from Dict for backward compatibility
     """
