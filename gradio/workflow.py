@@ -9,6 +9,7 @@ import os
 import re
 import tempfile
 import urllib.parse
+import warnings
 from collections.abc import Callable
 from typing import Optional
 
@@ -676,7 +677,7 @@ def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
             if "zero-gpu" in tags or "zerogpu" in tags:
                 return True
             hw = (s.get("runtime") or {}).get("hardware") or ""
-            return "zero" in hw.lower()
+            return "zero" in str(hw).lower()
 
         def _fallback_search(q: str) -> list:
             if not q:
@@ -936,7 +937,12 @@ class Workflow(Blocks):
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
 
-        super().__init__()
+        warnings.warn(
+            "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
+            UserWarning,
+        )
+
+        super().__init__(mode="workflow")
         self._build()
 
     def _build(self):

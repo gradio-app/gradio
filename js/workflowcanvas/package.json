@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/workflowcanvas",
-	"version": "0.2.0",
+	"version": "0.2.2",
 	"description": "Gradio Workflow Canvas component",
 	"type": "module",
 	"author": "",
@@ -30,5 +30,10 @@
 	},
 	"peerDependencies": {
 		"svelte": "^5.48.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/workflowcanvas"
 	}
 }
