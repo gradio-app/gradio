@@ -1,4 +1,19 @@
+import warnings
+
+import pytest
+
 import gradio as gr
+
+
+class TestScriptTagWarning:
+    def test_warns_on_script_in_value(self):
+        with pytest.warns(UserWarning, match="<script>"):
+            gr.HTML('<script src="https://3Dmol.org/build/3Dmol-min.js"></script>')
+
+    def test_no_warning_for_plain_html(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            gr.HTML("<h2>Hello</h2>")
 
 
 class TestToPublishFormat:

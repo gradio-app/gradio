@@ -5,6 +5,7 @@
 
 	const props = $props();
 	const gradio = new Gradio<TimerEvents, TimerProps>(props);
+	gradio.watch_for_change();
 
 	let interval: NodeJS.Timeout | undefined = undefined;
 
