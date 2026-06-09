@@ -2,6 +2,14 @@ import type { PortType, Port } from "./workflow-types";
 import { modalityForPort } from "./workflow-modalities";
 import type { ModalityConfig } from "./workflow-modalities";
 
+export function is_zero_gpu_space(s: any): boolean {
+	const tags: string[] = s?.cardData?.tags || s?.tags || [];
+	if (tags.includes("zero-gpu") || tags.includes("zerogpu")) return true;
+	const hw: string =
+		s?.runtime?.hardware || s?.runtime?.requestedHardware || "";
+	return hw.toLowerCase().startsWith("zero");
+}
+
 export function normalize_space_id(raw: string): string | null {
 	const trimmed = raw.trim().replace(/\/+$/, "");
 	if (!trimmed) return null;

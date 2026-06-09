@@ -89,4 +89,65 @@ describe("submit iterator", () => {
 		expect(types).toContain("data");
 		expect(types).toContain("status");
 	});
+
+	test("for-await loop terminates when the server raises an error mid-stream", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			events: ["data", "status"]
+		});
+		app.stream_status.open = true;
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = await iterator.wait_for_id();
+		expect(event_id).toBeTruthy();
+
+		const callback = app.event_callbacks[event_id as string];
+		expect(callback).toBeDefined();
+
+		const events: { type: string; stage?: string }[] = [];
+		const consumer = (async () => {
+			for await (const event of iterator) {
+				events.push(event as { type: string; stage?: string });
+			}
+		})();
+
+		await new Promise((r) => setTimeout(r, 0));
+
+		// Stream a partial result first, so the error below genuinely arrives
+		// mid-stream rather than as the very first message.
+		await callback({
+			msg: "process_generating",
+			output: { data: ["partial"] },
+			success: true
+		});
+
+		// A server-side exception then arrives as process_completed with
+		// success:false and an `error` field in the output. This must fire an
+		// "error" status and terminate the iterator rather than hang the
+		// consumer. handle_message() reads title/visible/duration from
+		// `output`, so mirror a real payload's shape here.
+		await callback({
+			msg: "process_completed",
+			output: {
+				error: "boom mid-stream",
+				title: "Error",
+				visible: true,
+				duration: 0
+			},
+			success: false
+		});
+
+		await race_with_timeout(
+			consumer,
+			1000,
+			"submit iterator did not terminate after a server-side error"
+		);
+
+		// The partial result should have been delivered before the error.
+		expect(events.some((e) => e.type === "data")).toBe(true);
+
+		const error_event = events.find(
+			(e) => e.type === "status" && e.stage === "error"
+		);
+		expect(error_event).toBeDefined();
+	});
 });
