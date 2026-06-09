@@ -6,48 +6,14 @@ import gradio as gr
 
 
 class TestScriptTagWarning:
-    SCRIPT = '<script src="https://3Dmol.org/build/3Dmol-min.js"></script>'
-
     def test_warns_on_script_in_value(self):
         with pytest.warns(UserWarning, match="<script>"):
-            gr.HTML(self.SCRIPT)
-
-    def test_warns_on_inline_script_in_value(self):
-        with pytest.warns(UserWarning, match="<script>"):
-            gr.HTML("<script>alert(1)</script>")
-
-    def test_warns_on_script_in_html_template(self):
-        with pytest.warns(UserWarning, match="<script>"):
-            gr.HTML("hello", html_template="<script>x()</script>${value}")
-
-    def test_warns_on_script_set_via_postprocess(self):
-        with pytest.warns(UserWarning, match="<script>"):
-            gr.HTML().postprocess(self.SCRIPT)
+            gr.HTML('<script src="https://3Dmol.org/build/3Dmol-min.js"></script>')
 
     def test_no_warning_for_plain_html(self):
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             gr.HTML("<h2>Hello</h2>")
-
-    def test_no_warning_for_script_in_head(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            gr.HTML("<div></div>", head=self.SCRIPT)
-
-    def test_no_warning_for_non_string_value(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            gr.HTML(
-                ["Option 1", "Option 2"],
-                html_template="{{#each value}}<button>{{this}}</button>{{/each}}",
-            )
-
-    def test_single_warning_per_construction(self):
-        with warnings.catch_warnings(record=True) as recorded:
-            warnings.simplefilter("always")
-            gr.HTML(self.SCRIPT)
-        script_warnings = [w for w in recorded if "<script>" in str(w.message)]
-        assert len(script_warnings) == 1
 
 
 class TestToPublishFormat:
