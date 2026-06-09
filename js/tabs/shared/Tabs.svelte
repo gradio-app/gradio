@@ -82,10 +82,16 @@
 		return () => ro.disconnect();
 	});
 
+	function update_tab_lists(tab: Tab, order: number): void {
+		tabs = tabs.map((t, i) => (i === order ? tab : t));
+		visible_tabs = visible_tabs.map((t) => (t?.id === tab.id ? tab : t));
+		overflow_tabs = overflow_tabs.map((t) => (t?.id === tab.id ? tab : t));
+	}
+
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
 			mounted_tab_orders.add(order);
-			tabs[order] = tab;
+			update_tab_lists(tab, order);
 
 			if ($selected_tab === false && tab.visible !== false && tab.interactive) {
 				$selected_tab = tab.id;
@@ -98,7 +104,9 @@
 			if ($selected_tab === tab.id) {
 				$selected_tab = tabs[0]?.id || false;
 			}
-			tabs[order] = null;
+			tabs = tabs.map((t, i) => (i === order ? null : t));
+			visible_tabs = visible_tabs.filter((t) => t?.id !== tab.id);
+			overflow_tabs = overflow_tabs.filter((t) => t?.id !== tab.id);
 		},
 		selected_tab,
 		selected_tab_index

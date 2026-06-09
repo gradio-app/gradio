@@ -31,7 +31,7 @@
 	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
 		getContext(TABS) as any;
 
-	let tab_index: number;
+	let tab_index = $state<number | undefined>(undefined);
 
 	function _register_tab(obj: string, order: number): number {
 		obj = JSON.parse(obj);
@@ -50,7 +50,7 @@
 		})
 	);
 
-	$effect(() => {
+	$effect.pre(() => {
 		tab_index = _register_tab(props_json, order);
 	});
 
@@ -59,7 +59,7 @@
 	});
 
 	$effect(() => {
-		if ($selected_tab_index === tab_index) {
+		if (tab_index !== undefined && $selected_tab_index === tab_index) {
 			tick().then(() => onselect?.({ value: label, index: tab_index }));
 		}
 	});

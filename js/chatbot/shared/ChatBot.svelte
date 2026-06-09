@@ -270,7 +270,10 @@
 			if (!groupedMessages) return;
 
 			const message_group = groupedMessages[i];
-			const [first] = [message_group[0], message_group[message_group.length - 1]];
+			const [first] = [
+				message_group[0],
+				message_group[message_group.length - 1]
+			];
 
 			onlike?.({
 				index: first.index as number,
@@ -410,12 +413,7 @@
 			{/if}
 		</div>
 	{:else}
-		<Examples
-			{examples}
-			{placeholder}
-			{latex_delimiters}
-			{onexampleselect}
-		/>
+		<Examples {examples} {placeholder} {latex_delimiters} {onexampleselect} />
 	{/if}
 </div>
 

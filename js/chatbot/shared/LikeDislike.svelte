@@ -27,7 +27,9 @@
 	});
 
 	let extra_feedback = $derived(
-		feedback_options.filter((option) => option !== "Like" && option !== "Dislike")
+		feedback_options.filter(
+			(option) => option !== "Like" && option !== "Dislike"
+		)
 	);
 
 	function toggleSelection(newSelection: string): void {

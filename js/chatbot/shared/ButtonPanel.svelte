@@ -88,12 +88,7 @@
 				/>
 			{:else}
 				{#if show_copy}
-					<Copy
-						value={message_text}
-						{oncopy}
-						{watermark}
-						{i18n}
-					/>
+					<Copy value={message_text} {oncopy} {watermark} {i18n} />
 				{/if}
 				{#if show_download_button && file?.url}
 					<DownloadLink
