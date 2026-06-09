@@ -11,6 +11,7 @@ import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from threading import Thread
+from typing import Any, cast
 
 import gradio_client as grc
 import httpx
@@ -1346,6 +1347,32 @@ def test_api_name_set_for_all_events(connect):
         assert client.predict("freddy", api_name="/goodbye") == "Goodbye freddy"
         assert client.predict("freddy", api_name="/greet_me") == "Hello"
         assert client.predict("freddy", api_name="/Say__goodbye") == "Goodbye"
+
+
+def test_api_name_false_is_private_in_api_info():
+    with gr.Blocks() as demo:
+        text = gr.Textbox(value="hello")
+        output = gr.Textbox()
+        button = gr.Button()
+        button.click(lambda x: x, text, output, api_name=cast(Any, False))
+
+    app = routes.App.create_app(demo)
+    client = TestClient(app)
+
+    with client:
+        response = client.get(f"{API_PREFIX}/info")
+        assert response.status_code == 200
+        assert response.json()["named_endpoints"] == {}
+
+        response = client.post(
+            f"{API_PREFIX}/run/predict",
+            json={"data": ["hello"], "fn_index": 0, "session_hash": "test"},
+        )
+        assert response.status_code == 200
+
+        response = client.get(f"{API_PREFIX}/info")
+        assert response.status_code == 200
+        assert response.json()["named_endpoints"] == {}
 
 
 def test_component_server_endpoints(connect):

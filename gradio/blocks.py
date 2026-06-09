@@ -793,6 +793,8 @@ class BlocksConfig:
             else:
                 api_name = "unnamed"
                 api_visibility = "private"
+        elif api_name is False:
+            api_visibility = "private"
 
         api_name = utils.append_unique_suffix(
             api_name,
