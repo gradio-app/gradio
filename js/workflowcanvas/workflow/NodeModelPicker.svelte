@@ -1,28 +1,31 @@
 <script lang="ts">
-	import { categorizeSpace, TASK_SCHEMAS } from "./node-library";
+	import { TASK_SCHEMAS } from "./node-library";
 	import {
 		fetchSpaceApi,
 		is_zero_gpu_space,
 		normalizeOperatorPorts
 	} from "./space-api";
-	import { FEATURED_SPACES, FEATURED_MODELS } from "./featured";
 	import type { ModalityConfig, SubTab } from "./workflow-modalities";
 	import SearchIcon from "./icons/SearchIcon.svelte";
 	import CloseIcon from "./icons/CloseIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
+
+	type ResultType = "space" | "model" | "dataset";
 
 	interface SpaceResult {
 		id: string;
 		title: string;
 		description: string;
 		likes: number;
+		trendingScore?: number;
 		running: boolean;
-		category: string | null;
+		type: ResultType;
 		pipeline_tag?: string;
 		zero_gpu?: boolean;
+		fallback?: boolean;
+		curated?: boolean;
+		featured?: boolean;
 	}
-
-	type Source = "spaces" | "models" | "datasets";
 
 	interface Props {
 		mode: "create" | "update";
@@ -31,7 +34,6 @@
 		server?: Record<string, any>;
 		anchorX?: number;
 		anchorY?: number;
-		initialSource?: Source;
 		initialSubtab?: string;
 		oncreate: (template: any) => void;
 		onupdate: (nodeId: string, template: any) => void;
@@ -46,7 +48,6 @@
 		server = {},
 		anchorX = undefined,
 		anchorY = undefined,
-		initialSource = undefined,
 		initialSubtab = undefined,
 		oncreate,
 		onupdate,
@@ -54,51 +55,14 @@
 		onerror
 	}: Props = $props();
 
-	let source = $state<Source>(
-		initialSource ?? (modality.key === "data" ? "datasets" : "spaces")
-	);
-	const is_dataset = $derived(source === "datasets");
-	const is_model = $derived(source === "models");
-	const is_spaces = $derived(source === "spaces");
-	const show_source_toggle = $derived(modality.key !== "data");
+	const is_dataset = $derived(modality.key === "data");
 
 	const search_placeholder = $derived.by(() => {
-		const kind = is_dataset ? "datasets" : is_model ? "models" : "spaces";
-		// Data modality is its own thing — no per-modality qualifier needed.
-		if (modality.key === "data") return `Search ${kind}...`;
-		return `Search ${modality.label.toLowerCase()} ${kind}...`;
+		if (is_dataset) return "Search datasets, paste a Hub URL...";
+		return `Search ${modality.label.toLowerCase()} spaces & models, paste a Hub URL...`;
 	});
 
-	// In "models" mode the HF API can only filter by pipeline_tag, so subtabs
-	// whose only constraint is a free-text query (e.g. Enhance, Remove BG) are
-	// hidden — they wouldn't return anything meaningful from the models API.
-	const visible_subtabs = $derived(
-		is_model
-			? modality.subtabs.filter((st) => {
-					if (st.key === "all") return true;
-					const model_tag_list = st.modelTags ?? st.pipelineTags;
-					return model_tag_list.length > 0;
-				})
-			: modality.subtabs
-	);
-
-	function set_source(next: Source): void {
-		if (next === source) return;
-		// Reset emptiness flags up front so the auto-switch effect can't
-		// fire on a stale value mid-source-change (same race as the
-		// subtab onclick).
-		trending_empty = null;
-		new_empty = null;
-		source = next;
-		// If the active subtab disappears in the new source, fall back to "all"
-		if (!visible_subtabs.some((st) => st.key === active_subtab.key)) {
-			active_subtab = visible_subtabs[0] ?? modality.subtabs[0];
-		}
-		if (active_content_tab === "search") {
-			search_query = "";
-			active_content_tab = "trending";
-		}
-	}
+	const visible_subtabs = $derived(modality.subtabs);
 
 	const AVATAR_COLORS = [
 		"#f97316",
@@ -126,54 +90,26 @@
 			modality.subtabs[0]
 	);
 	let active_content_tab = $state<ContentTab>(
-		// Datasets API doesn't have a featured list, jump straight to search/trending.
-		// When entering with a specific subtab, Featured ignores subtab filters, so
-		// go to trending so the subtab actually narrows results.
 		modality.key === "data" || initialSubtab ? "trending" : "featured"
 	);
 	let zero_gpu_only = $state(true);
-
-	const featured_results = $derived.by(() => {
-		if (source === "datasets") return [];
-		const list = source === "models" ? FEATURED_MODELS : FEATURED_SPACES;
-		const cats = modality.acceptedCategories ?? [modality.category];
-		return list
-			.filter((item) => cats.includes(item.modality))
-			.map((item) => ({
-				id: item.id,
-				title: item.title,
-				description: item.description,
-				likes: item.likes ?? 0,
-				running: true,
-				category: item.modality,
-				pipeline_tag: item.pipeline_tag,
-				zero_gpu: item.zero_gpu
-			}));
-	});
-
-	// If the active tab is known-empty, fall through to the next available
-	// one so the panel never sits on a blank tab. Cascade: featured →
-	// trending → new → search.
-	$effect(() => {
-		if (active_content_tab === "featured" && featured_results.length === 0) {
-			active_content_tab = "trending";
-		} else if (active_content_tab === "trending" && trending_empty === true) {
-			active_content_tab = new_empty === true ? "search" : "new";
-		} else if (active_content_tab === "new" && new_empty === true) {
-			active_content_tab = trending_empty === true ? "search" : "trending";
-		}
-	});
 	let search_query = $state("");
 	let results = $state<SpaceResult[]>([]);
 	let loading = $state(false);
 	let loading_space_id = $state<string | null>(null);
 
-	// Track per-tab emptiness so we can hide Trending / New when a fetch
-	// confirms there are no matching results. Reset to null (unknown) when
-	// any filter changes that affects the fetch, so the next fetch can
-	// re-evaluate. Featured tabs are handled separately via featured_results.
 	let trending_empty = $state<boolean | null>(null);
 	let new_empty = $state<boolean | null>(null);
+
+	const featured_results = $derived<SpaceResult[]>(
+		results.filter((r) => r.featured)
+	);
+
+	$effect(() => {
+		if (active_content_tab === "featured" && featured_results.length === 0) {
+			active_content_tab = "trending";
+		}
+	});
 
 	const display_results = $derived(
 		active_content_tab === "featured" ? featured_results : results
@@ -181,27 +117,42 @@
 	let search_timeout: ReturnType<typeof setTimeout> | null = null;
 	let fetch_token = 0;
 
-	function parse_results(raw: any): SpaceResult[] {
-		if (!Array.isArray(raw)) return [];
-		return raw.map((s: any) => {
-			const desc =
-				s.cardData?.short_description || s.ai_short_description || "";
-			return {
-				id: s.id,
-				title: s.cardData?.title || s.title || s.id.split("/").pop() || s.id,
-				description: desc,
-				likes: s.likes ?? 0,
-				running: s.runtime?.stage === "RUNNING",
-				category: categorizeSpace(
-					s.cardData?.pipeline_tag || s.pipeline_tag,
-					s.cardData?.tags,
-					desc,
-					s.id
-				),
-				pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined,
-				zero_gpu: is_zero_gpu_space(s)
-			};
-		});
+	function parse_space(s: any): SpaceResult {
+		const desc = s.cardData?.short_description || s.ai_short_description || "";
+		return {
+			id: s.id,
+			title: s.cardData?.title || s.title || s.id.split("/").pop() || s.id,
+			description: desc,
+			likes: s.likes ?? 0,
+			trendingScore: s.trendingScore ?? undefined,
+			running: s.runtime?.stage === "RUNNING",
+			type: "space",
+			pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined,
+			zero_gpu: is_zero_gpu_space(s),
+			fallback: s._fallback === true,
+			curated: s._curated === true,
+			featured: s._featured === true
+		};
+	}
+
+	function parse_model(m: any): SpaceResult {
+		return {
+			id: m.id,
+			title: m.id.split("/").pop() || m.id,
+			description: m.pipeline_tag || "",
+			likes: m.likes ?? 0,
+			trendingScore: m.trendingScore ?? undefined,
+			running: true,
+			type: "model",
+			pipeline_tag: m.pipeline_tag,
+			curated: m._curated === true,
+			featured: m._featured === true
+		};
+	}
+
+	function rank(s: SpaceResult): number {
+		const base = s.trendingScore ?? (s.likes || 0) / 100;
+		return s.fallback ? base - 1e6 : base;
 	}
 
 	async function fetch_results() {
@@ -209,62 +160,54 @@
 			await fetch_datasets(search_query);
 			return;
 		}
-		if (is_model) {
-			await fetch_models(search_query);
-			return;
-		}
-		if (!server?.search_spaces) {
-			results = [];
-			return;
-		}
 		const token = ++fetch_token;
 		loading = true;
 		try {
-			// Spaces use the per-subtab `spaceTags` override when present
-			// (category names like "image-editing") and fall back to
-			// `pipelineTags` for subtabs where the model pipeline tag
-			// works as a Space category too (e.g. text-to-image).
-			const space_tag_list =
-				active_subtab.spaceTags ?? active_subtab.pipelineTags;
-			const space_tag = space_tag_list.length > 0 ? space_tag_list[0] : "";
+			const space_tag =
+				active_subtab.spaceCategory ?? active_subtab.pipelineTag;
+			const model_tag = active_subtab.pipelineTag;
+			const kind =
+				active_content_tab === "search"
+					? "search"
+					: active_content_tab === "new"
+						? "new"
+						: "trending";
+			const query = active_content_tab === "search" ? search_query : "";
 
-			let kind: string;
-			let query: string;
-
-			if (active_content_tab === "search") {
-				kind = "search";
-				query = search_query;
-			} else if (active_subtab.query) {
-				// Always forward the subtab's freeform query alongside the
-				// category. The server prefers `category=` when valid and
-				// falls back to `q=` when the category isn't a real HF
-				// Space category (e.g. `automatic-speech-recognition`).
-				kind = active_content_tab === "new" ? "new" : "trending";
-				query = active_subtab.query;
+			const calls: Promise<any>[] = [];
+			if (server?.search_spaces) {
+				calls.push(
+					server.search_spaces([kind, query, space_tag, "", zero_gpu_only])
+				);
 			} else {
-				kind = active_content_tab === "new" ? "new" : "trending";
-				query = "";
+				calls.push(Promise.resolve("[]"));
+			}
+			if (server?.search_models) {
+				calls.push(server.search_models([kind, query, model_tag, ""]));
+			} else {
+				calls.push(Promise.resolve("[]"));
 			}
 
-			const raw = await server.search_spaces([
-				kind,
-				query,
-				space_tag,
-				"",
-				zero_gpu_only
-			]);
-			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			let parsed = parse_results(data);
-
-			// Keep results that match the modality OR are uncategorised
-			// (most Gradio Spaces lack a pipeline_tag on their card).
-			if (active_content_tab !== "search" && !space_tag) {
-				const cats = modality.acceptedCategories ?? [modality.category];
-				parsed = parsed.filter((s) => !s.category || cats.includes(s.category));
-			}
-
+			const [rawSpaces, rawModels] = await Promise.all(calls);
 			if (token !== fetch_token) return;
-			results = parsed.slice(0, 20);
+
+			const spaceData =
+				typeof rawSpaces === "string" ? JSON.parse(rawSpaces) : rawSpaces;
+			const modelData =
+				typeof rawModels === "string" ? JSON.parse(rawModels) : rawModels;
+
+			const spaces = Array.isArray(spaceData) ? spaceData.map(parse_space) : [];
+			const models = Array.isArray(modelData)
+				? modelData
+						.filter(
+							(m: any) => m.pipeline_tag && TASK_SCHEMAS[m.pipeline_tag]
+						)
+						.map(parse_model)
+				: [];
+
+			const merged = [...spaces, ...models].sort((a, b) => rank(b) - rank(a));
+			if (token !== fetch_token) return;
+			results = merged.slice(0, 30);
 		} catch {
 			if (token === fetch_token) results = [];
 		} finally {
@@ -294,7 +237,7 @@
 				description: d.description || d.cardData?.summary || "",
 				likes: d.likes ?? 0,
 				running: true,
-				category: "data",
+				type: "dataset" as const,
 				pipeline_tag: undefined
 			}));
 		} catch {
@@ -304,91 +247,37 @@
 		}
 	}
 
-	async function fetch_models(q: string) {
-		if (!server?.search_models) {
-			results = [];
-			loading = false;
-			return;
-		}
-		const token = ++fetch_token;
-		loading = true;
-		try {
-			// Models use the per-subtab `modelTags` override when present
-			// and fall back to `pipelineTags`. `spaceTags` is ignored here
-			// because Space category names (e.g. "image-editing") aren't
-			// valid model pipeline tags.
-			const model_tag_list =
-				active_subtab.modelTags ?? active_subtab.pipelineTags;
-			const pipeline_tag = model_tag_list[0] ?? "";
-			let kind: string;
-			if (active_content_tab === "search") {
-				kind = "search";
-			} else {
-				kind = active_content_tab === "new" ? "new" : "trending";
-				q = "";
-			}
-			const raw = await server.search_models([kind, q, pipeline_tag, ""]);
-			if (token !== fetch_token) return;
-			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			if (!Array.isArray(data)) {
-				results = [];
-				return;
-			}
-			results = data
-				.filter((m: any) => m.pipeline_tag && TASK_SCHEMAS[m.pipeline_tag])
-				.slice(0, 24)
-				.map((m: any) => ({
-					id: m.id,
-					title: m.id.split("/").pop() || m.id,
-					description: m.pipeline_tag || "",
-					likes: m.likes ?? 0,
-					running: true,
-					category: "model",
-					pipeline_tag: m.pipeline_tag
-				}));
-		} catch {
-			if (token === fetch_token) results = [];
-		} finally {
-			if (token === fetch_token) loading = false;
-		}
-	}
-
-	// Fetch when tab/subtab/mode changes (Featured is static, no API call).
-	// After each fetch, record whether the active tab came back empty so we
-	// can hide it from the tab strip.
 	$effect(() => {
 		active_subtab;
 		active_content_tab;
 		is_dataset;
-		is_model;
 		zero_gpu_only;
-		if (active_content_tab !== "search" && active_content_tab !== "featured") {
-			const captured = active_content_tab;
-			void fetch_results().then(() => {
-				if (captured === "trending") trending_empty = results.length === 0;
-				else if (captured === "new") new_empty = results.length === 0;
-			});
-		} else if (active_content_tab === "search" && search_query.length >= 2) {
-			void fetch_results();
+		if (active_content_tab === "search" && search_query.length < 2) {
+			return;
 		}
+		const captured = active_content_tab;
+		void fetch_results().then(() => {
+			if (captured === "trending") trending_empty = results.length === 0;
+			else if (captured === "new") new_empty = results.length === 0;
+		});
 	});
 
 	function handle_search_input(e: Event) {
 		search_query = (e.currentTarget as HTMLInputElement).value;
 		if (search_timeout) clearTimeout(search_timeout);
+
+		if (!is_dataset && looks_like_repo(search_query)) {
+			search_timeout = setTimeout(() => void resolve_pinned(search_query), 120);
+		} else {
+			pinned_result = null;
+			pinned_error = null;
+			pinned_loading = false;
+			pinned_token++;
+		}
+
 		if (is_dataset) {
 			loading = true;
 			search_timeout = setTimeout(() => void fetch_datasets(search_query), 150);
-			return;
-		}
-		if (is_model) {
-			if (search_query.length < 2) {
-				if (active_content_tab === "search") results = [];
-				return;
-			}
-			active_content_tab = "search";
-			loading = true;
-			search_timeout = setTimeout(() => void fetch_models(search_query), 150);
 			return;
 		}
 		if (search_query.length < 2) {
@@ -403,14 +292,24 @@
 	function select_model(item: SpaceResult) {
 		if (!item.pipeline_tag) return;
 		const schema = TASK_SCHEMAS[item.pipeline_tag];
+		const inputHints = active_subtab.inputs;
+		const outputHints = active_subtab.outputs;
 		const template = {
 			label: item.id.split("/").pop() || item.id,
 			kind: "transform" as const,
 			source: "model" as const,
 			model_id: item.id,
 			pipeline_tag: item.pipeline_tag,
-			inputs: normalizeOperatorPorts(modality, schema?.inputs ?? []),
-			outputs: normalizeOperatorPorts(modality, schema?.outputs ?? []),
+			inputs: normalizeOperatorPorts(
+				modality,
+				schema?.inputs ?? [],
+				inputHints
+			),
+			outputs: normalizeOperatorPorts(
+				modality,
+				schema?.outputs ?? [],
+				outputHints
+			),
 			width: 280,
 			height: 90
 		};
@@ -427,6 +326,8 @@
 		loading_space_id = space.id;
 		try {
 			const api_info = await fetchSpaceApi(space.id);
+			const inputHints = active_subtab.inputs;
+			const outputHints = active_subtab.outputs;
 			const template = {
 				label: space.title || space.id.split("/").pop() || space.id,
 				kind: "transform" as const,
@@ -435,8 +336,12 @@
 				pipeline_tag: space.pipeline_tag,
 				endpoint: api_info.endpoint,
 				endpoints: api_info.endpoints,
-				inputs: normalizeOperatorPorts(modality, api_info.inputs),
-				outputs: normalizeOperatorPorts(modality, api_info.outputs),
+				inputs: normalizeOperatorPorts(modality, api_info.inputs, inputHints),
+				outputs: normalizeOperatorPorts(
+					modality,
+					api_info.outputs,
+					outputHints
+				),
 				width: api_info.width,
 				height: 90
 			};
@@ -527,19 +432,86 @@
 		onclose();
 	}
 
-	function hub_url(id: string): string {
-		if (is_dataset) return `https://huggingface.co/datasets/${id}`;
-		if (is_model) return `https://huggingface.co/${id}`;
-		return `https://huggingface.co/spaces/${id}`;
+	function hub_url(item: SpaceResult): string {
+		if (item.type === "dataset")
+			return `https://huggingface.co/datasets/${item.id}`;
+		if (item.type === "model") return `https://huggingface.co/${item.id}`;
+		return `https://huggingface.co/spaces/${item.id}`;
 	}
 
 	function handle_row_click(item: SpaceResult) {
-		if (is_dataset) {
+		if (item.type === "dataset") {
 			void select_dataset(item);
-		} else if (is_model) {
+		} else if (item.type === "model") {
 			select_model(item);
 		} else {
 			select_space(item);
+		}
+	}
+
+	let pinned_result = $state<SpaceResult | null>(null);
+	let pinned_loading = $state(false);
+	let pinned_error = $state<string | null>(null);
+	let pinned_token = 0;
+
+	const REPO_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
+	const HUB_URL_RE = /(?:^|\b)(?:https?:\/\/)?(?:www\.)?(?:huggingface\.co|hf\.co)\//i;
+	const HF_SPACE_SUB_RE = /^(?:https?:\/\/)?[a-z0-9-]+\.hf\.space/i;
+
+	function looks_like_repo(input: string): boolean {
+		const s = input.trim();
+		if (!s) return false;
+		return REPO_ID_RE.test(s) || HUB_URL_RE.test(s) || HF_SPACE_SUB_RE.test(s);
+	}
+
+	async function resolve_pinned(input: string) {
+		if (!server?.resolve_repo) return;
+		const myToken = ++pinned_token;
+		pinned_loading = true;
+		pinned_error = null;
+		pinned_result = null;
+		try {
+			const raw = await server.resolve_repo([input]);
+			if (myToken !== pinned_token) return;
+			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+			if (data?.error) {
+				pinned_error = data.error === "not_found" ? "Not found" : null;
+				return;
+			}
+			const kind: ResultType = data.kind === "model" ? "model" : "space";
+			const rec = data.record ?? {};
+			const desc =
+				rec.cardData?.short_description || rec.ai_short_description || "";
+
+			let curated = false;
+			if (server?.is_curated) {
+				try {
+					const cRaw = await server.is_curated([data.id, kind]);
+					const cData = typeof cRaw === "string" ? JSON.parse(cRaw) : cRaw;
+					curated = cData?.curated === true && cData?.status === "ok";
+				} catch {
+					/* noop */
+				}
+				if (myToken !== pinned_token) return;
+			}
+
+			pinned_result = {
+				id: data.id,
+				title:
+					rec.cardData?.title || rec.title || data.id.split("/").pop() || data.id,
+				description: desc,
+				likes: rec.likes ?? 0,
+				running: rec.runtime?.stage === "RUNNING",
+				type: kind,
+				pipeline_tag:
+					rec.cardData?.pipeline_tag || rec.pipeline_tag || undefined,
+				zero_gpu: kind === "space" ? is_zero_gpu_space(rec) : undefined,
+				curated
+			};
+		} catch {
+			if (myToken === pinned_token) pinned_error = null;
+		} finally {
+			if (myToken === pinned_token) pinned_loading = false;
 		}
 	}
 
@@ -587,23 +559,6 @@
 			</div>
 		</div>
 
-		<!-- Source toggle (Spaces / Models) — hidden for datasets -->
-		{#if show_source_toggle}
-			<div class="picker-source-row">
-				<button
-					class="picker-source-btn"
-					class:active={source === "spaces"}
-					onclick={() => set_source("spaces")}>Spaces</button
-				>
-				<button
-					class="picker-source-btn"
-					class:active={source === "models"}
-					onclick={() => set_source("models")}>Models</button
-				>
-			</div>
-		{/if}
-
-		<!-- Modality subtabs: which kind of Space (Generate / Edit / …). -->
 		{#if !is_dataset && visible_subtabs.length > 1}
 			<div class="picker-subtabs">
 				{#each visible_subtabs as st}
@@ -611,15 +566,10 @@
 						class="picker-subtab"
 						class:active={active_subtab.key === st.key}
 						onclick={() => {
-							// Reset emptiness flags BEFORE writing active_subtab /
-							// active_content_tab. Otherwise the auto-switch effect
-							// can fire first and read a stale `trending_empty=true`
-							// from the previous subtab, bumping active_content_tab
-							// to "search" — which then fetches the wrong list.
 							trending_empty = null;
 							new_empty = null;
 							active_subtab = st;
-							if (active_content_tab !== "search")
+							if (active_content_tab !== "search" || search_query.length < 2)
 								active_content_tab = "trending";
 						}}
 					>
@@ -629,9 +579,6 @@
 			</div>
 		{/if}
 
-		<!-- Content modes: how the list is sorted (Featured / Trending / New).
-		     Smaller and lighter than the category subtabs so they read as
-		     a secondary sort control, not a competing category. -->
 		{#if !is_dataset}
 			<div class="picker-mode-row">
 				<span class="picker-mode-label">Sort:</span>
@@ -639,7 +586,7 @@
 					<button
 						class="picker-mode-btn"
 						class:active={active_content_tab === "featured"}
-						title={is_spaces ? "Curated ZeroGPU Spaces" : "Curated picks"}
+						title="Curated picks"
 						onclick={() => {
 							active_content_tab = "featured";
 							search_query = "";
@@ -666,39 +613,125 @@
 						}}>New ✦</button
 					>
 				{/if}
-				{#if is_spaces}
-					<label
-						class="picker-zerogpu-toggle"
-						class:active={zero_gpu_only}
-						title="Show only ZeroGPU Spaces — they scale with your HF credits, give consistent ETAs, and have the clearest billing story"
-					>
-						<input type="checkbox" bind:checked={zero_gpu_only} />
-						<span>ZeroGPU only</span>
-					</label>
-				{/if}
+				<label
+					class="picker-zerogpu-toggle"
+					class:active={zero_gpu_only}
+					title="Show only ZeroGPU Spaces — they scale with your HF credits, give consistent ETAs, and have the clearest billing story"
+				>
+					<input type="checkbox" bind:checked={zero_gpu_only} />
+					<span>ZeroGPU only</span>
+				</label>
 			</div>
 		{/if}
 
-		<!-- Results -->
 		<div class="picker-results" class:picker-results-stale={loading}>
+			{#if pinned_loading}
+				<div class="picker-pinned picker-pinned-loading">
+					<span class="spinner small"></span>
+					<span>Resolving repo…</span>
+				</div>
+			{:else if pinned_error}
+				<div class="picker-pinned picker-pinned-error">{pinned_error}</div>
+			{:else if pinned_result}
+				{@const pinned = pinned_result}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class="space-row pinned"
+					class:loading={loading_space_id === pinned.id}
+					class:uncurated={!pinned.curated}
+					onclick={() => handle_row_click(pinned)}
+					role="button"
+					tabindex="0"
+					title={pinned.curated
+						? `Use this exact ${pinned.type}`
+						: `Use this exact ${pinned.type} — not in our verified catalog`}
+				>
+					<div
+						class="space-avatar"
+						style="background:linear-gradient(135deg, {avatar_color(
+							pinned.id
+						)}, {avatar_color(pinned.id + '_2')})"
+					>
+						{avatar_initial(pinned.id)}
+					</div>
+					<div class="space-row-left">
+						<div class="space-name-row">
+							<span class="space-name"
+								>{pinned.title ||
+									(pinned.id.split("/").pop() ?? pinned.id)}</span
+							>
+							<span class="type-chip type-chip-{pinned.type}"
+								>{pinned.type === "model" ? "Model" : "Space"}</span
+							>
+							{#if pinned.curated}
+								<span
+									class="verified-chip"
+									title="Verified by the workflow team — checked daily"
+									>✓ Verified</span
+								>
+							{:else}
+								<span
+									class="uncurated-chip"
+									title="Not in our verified catalog — may not work or may be down"
+									>Unverified</span
+								>
+							{/if}
+							{#if pinned.type === "space" && pinned.zero_gpu}
+								<span class="space-badge space-badge-zerogpu">ZeroGPU</span>
+							{/if}
+							{#if pinned.pipeline_tag}
+								<span class="space-badge">{pinned.pipeline_tag}</span>
+							{/if}
+						</div>
+						<div class="space-desc">
+							{#if pinned.curated}
+								Use this exact {pinned.type}
+								{#if pinned.description} — {pinned.description}{/if}
+							{:else}
+								Not in our verified catalog — may not work. {pinned.description ||
+									""}
+							{/if}
+						</div>
+					</div>
+					<div class="space-row-right">
+						{#if loading_space_id === pinned.id}
+							<span class="spinner small"></span>
+						{/if}
+						<a
+							class="space-row-link"
+							href={hub_url(pinned)}
+							target="_blank"
+							rel="noopener noreferrer"
+							title="Open on HuggingFace"
+							aria-label="Open on HuggingFace"
+							onclick={(e) => e.stopPropagation()}
+							onmousedown={(e) => e.stopPropagation()}
+						>
+							<OpenLinkIcon />
+						</a>
+					</div>
+				</div>
+			{/if}
+
 			{#if loading && display_results.length === 0 && active_content_tab !== "featured"}
 				<div class="picker-loading">
 					<span class="spinner"></span>
 				</div>
-			{:else if display_results.length === 0}
+			{:else if display_results.length === 0 && !pinned_result}
 				<div class="picker-empty">
 					{active_content_tab === "search"
 						? "Nothing found"
 						: active_content_tab === "featured"
-							? `No featured ${source} for ${modality.label.toLowerCase()} yet`
-							: `No ${modality.label.toLowerCase()} ${source} found`}
+							? `No featured items for ${modality.label.toLowerCase()} yet`
+							: `No ${modality.label.toLowerCase()} results found`}
 				</div>
 			{:else}
-				{#each display_results as space (space.id)}
+				{#each display_results as space (space.type + "/" + space.id)}
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
 						class="space-row"
 						class:loading={loading_space_id === space.id}
+						class:fallback={space.fallback}
 						onclick={() => handle_row_click(space)}
 						role="button"
 						tabindex="0"
@@ -717,7 +750,19 @@
 									>{space.title ||
 										(space.id.split("/").pop() ?? space.id)}</span
 								>
-								{#if is_spaces && space.zero_gpu}
+								{#if !is_dataset}
+									<span class="type-chip type-chip-{space.type}"
+										>{space.type === "model" ? "Model" : "Space"}</span
+									>
+								{/if}
+								{#if space.curated}
+									<span
+										class="verified-chip"
+										title="Verified by the workflow team — checked daily"
+										>✓</span
+									>
+								{/if}
+								{#if space.type === "space" && space.zero_gpu}
 									<span class="space-badge space-badge-zerogpu">ZeroGPU</span>
 								{/if}
 								{#if space.pipeline_tag}
@@ -736,7 +781,7 @@
 							{/if}
 							<a
 								class="space-row-link"
-								href={hub_url(space.id)}
+								href={hub_url(space)}
 								target="_blank"
 								rel="noopener noreferrer"
 								title="Open on HuggingFace"
@@ -1008,55 +1053,94 @@
 		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 	}
 
-	.picker-source-row {
-		display: flex;
-		gap: 4px;
-		padding: 8px 10px 0;
+	.type-chip {
+		font-family: "Manrope", sans-serif;
+		font-size: 9px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		padding: 1px 6px;
+		border-radius: 8px;
 		flex-shrink: 0;
 	}
-
-	.picker-source-btn {
-		flex: 1;
-		padding: 6px 10px;
-		border: 1px solid #1e1f2a;
-		border-radius: 6px;
-		background: transparent;
-		color: #6b6e78;
-		font-family: "Manrope", sans-serif;
-		font-size: 11.5px;
-		font-weight: 600;
-		cursor: pointer;
-		transition:
-			background 0.15s,
-			color 0.15s,
-			border-color 0.15s;
-	}
-
-	.picker-source-btn:hover {
-		background: rgba(255, 255, 255, 0.04);
-		color: #c8c9d2;
-	}
-
-	.picker-source-btn.active {
+	.type-chip-space {
 		background: rgba(249, 115, 22, 0.12);
-		border-color: rgba(249, 115, 22, 0.35);
 		color: #f97316;
 	}
-
-	:global(body:not(.dark)) .picker-source-btn {
-		border-color: #e2e4ea;
-		color: #6b6e78;
+	.type-chip-model {
+		background: rgba(139, 92, 246, 0.14);
+		color: #8b5cf6;
 	}
-
-	:global(body:not(.dark)) .picker-source-btn:hover {
-		background: #f0f1f5;
-		color: #1a1b25;
-	}
-
-	:global(body:not(.dark)) .picker-source-btn.active {
-		background: rgba(249, 115, 22, 0.1);
-		border-color: rgba(249, 115, 22, 0.35);
+	:global(body:not(.dark)) .type-chip-space {
+		background: rgba(234, 88, 12, 0.1);
 		color: #d65500;
+	}
+	:global(body:not(.dark)) .type-chip-model {
+		background: rgba(124, 58, 237, 0.1);
+		color: #7c3aed;
+	}
+
+	.verified-chip {
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		color: #10b981;
+		flex-shrink: 0;
+	}
+	:global(body:not(.dark)) .verified-chip {
+		color: #059669;
+	}
+
+	.uncurated-chip {
+		font-family: "Manrope", sans-serif;
+		font-size: 9px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		padding: 1px 6px;
+		border-radius: 8px;
+		background: rgba(245, 158, 11, 0.14);
+		color: #f59e0b;
+		flex-shrink: 0;
+	}
+	:global(body:not(.dark)) .uncurated-chip {
+		background: rgba(217, 119, 6, 0.1);
+		color: #b45309;
+	}
+
+	.space-row.pinned.uncurated {
+		background: rgba(245, 158, 11, 0.05);
+		border-left-color: #f59e0b;
+	}
+	:global(body:not(.dark)) .space-row.pinned.uncurated {
+		background: rgba(245, 158, 11, 0.04);
+	}
+
+	.picker-pinned {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 10px 14px;
+		font-family: "Manrope", sans-serif;
+		font-size: 12px;
+		color: #8b8d98;
+	}
+	.picker-pinned-error {
+		color: #ef4444;
+	}
+	.space-row.pinned {
+		background: rgba(249, 115, 22, 0.06);
+		border-left: 3px solid #f97316;
+	}
+	:global(body:not(.dark)) .space-row.pinned {
+		background: rgba(249, 115, 22, 0.05);
+	}
+
+	.space-row.fallback {
+		opacity: 0.65;
+	}
+	.space-row.fallback:hover {
+		opacity: 1;
 	}
 
 	.picker-subtabs {
