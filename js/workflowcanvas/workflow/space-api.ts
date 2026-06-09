@@ -152,7 +152,12 @@ export function extract_choices(
 	if (Array.isArray(t.enum) && t.enum.length > 0) {
 		return { choices: t.enum.map(String), multiselect: false };
 	}
-	if (t.type === "array" && t.items && Array.isArray(t.items.enum)) {
+	if (
+		t.type === "array" &&
+		t.items &&
+		Array.isArray(t.items.enum) &&
+		t.items.enum.length > 0
+	) {
 		return { choices: t.items.enum.map(String), multiselect: true };
 	}
 	return null;

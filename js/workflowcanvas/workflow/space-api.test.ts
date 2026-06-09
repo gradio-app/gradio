@@ -214,6 +214,12 @@ describe("extract_choices", () => {
 		expect(extract_choices({ type: "string", enum: [] })).toBeNull();
 	});
 
+	test("returns null for an array schema with empty items.enum", () => {
+		expect(
+			extract_choices({ type: "array", items: { type: "string", enum: [] } })
+		).toBeNull();
+	});
+
 	test("returns null for missing / non-object inputs", () => {
 		expect(extract_choices(undefined)).toBeNull();
 		expect(extract_choices(null)).toBeNull();

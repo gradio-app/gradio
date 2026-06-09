@@ -74,6 +74,18 @@
 
 	const INPUT_COLLAPSE_THRESHOLD = 3;
 
+	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
+		if (portType === "number") {
+			const n = Number(v);
+			return Number.isNaN(n) ? v : n;
+		}
+		if (portType === "boolean") {
+			if (v === "true") return true;
+			if (v === "false") return false;
+		}
+		return v;
+	}
+
 	function renameNode(newLabel: string): void {
 		const trimmed = newLabel.trim();
 		if (trimmed && trimmed !== node.label) {
@@ -390,19 +402,23 @@
 									{/each}
 								</div>
 							{:else if port.choices && port.choices.length > 0}
-								{@const current =
-									typeof node.data?.[port.id] === "string"
-										? (node.data[port.id] as string)
-										: port.default_value != null
-											? String(port.default_value)
-											: ""}
+								{@const raw = node.data?.[port.id] ?? port.default_value}
+								{@const current = raw != null ? String(raw) : ""}
+								{@const hasCurrent = port.choices.includes(current)}
 								<select
 									class="inline-input inline-select"
-									value={current}
-									onchange={(e) =>
-										ctx.ondatachange(node.id, port.id, e.currentTarget.value)}
+									value={hasCurrent ? current : ""}
+									onchange={(e) => {
+										const v = e.currentTarget.value;
+										if (v === "") return;
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											castChoiceValue(v, port.type)
+										);
+									}}
 								>
-									{#if !port.choices.includes(current)}
+									{#if !hasCurrent}
 										<option value="" disabled>Select {port.label}</option>
 									{/if}
 									{#each port.choices as choice}

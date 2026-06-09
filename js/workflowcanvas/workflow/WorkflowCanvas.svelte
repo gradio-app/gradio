@@ -1451,8 +1451,13 @@
 			if (spaceNode) {
 				const compGap = 24;
 				const compH = 180;
-				const inputPorts = spaceNode.inputs.filter((p) =>
-					SUBGRAPH_PORT_TYPES.has(p.type)
+				// Skip ports with `choices` — they render an inline dropdown in
+				// the node body, so an auto-wired reference would be redundant
+				// (and worse, the reference is a plain textbox).
+				const inputPorts = spaceNode.inputs.filter(
+					(p) =>
+						SUBGRAPH_PORT_TYPES.has(p.type) &&
+						!(p.choices && p.choices.length > 0)
 				);
 				const outputPorts = spaceNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
