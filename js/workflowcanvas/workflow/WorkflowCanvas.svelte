@@ -245,7 +245,6 @@
 		nodeId?: string;
 		anchorX?: number;
 		anchorY?: number;
-		initialSource?: "spaces" | "models" | "datasets";
 		initialSubtab?: string;
 	}
 	let activePicker: ActivePicker | null = $state(null);
@@ -1350,16 +1349,13 @@
 		if (node.kind !== "transform") return;
 
 		let modality: ModalityConfig;
-		let initialSource: "spaces" | "models" | "datasets" = "spaces";
 		if (node.dataset_id) {
 			modality = DATASET_MODALITY;
-			initialSource = "datasets";
 		} else {
 			const cat = node.pipeline_tag
 				? getModalityForPipelineTag(node.pipeline_tag)
 				: "image";
 			modality = MODALITIES.find((m) => m.category === cat) ?? MODALITIES[0];
-			initialSource = node.model_id ? "models" : "spaces";
 		}
 
 		let anchorX: number | undefined;
@@ -1392,8 +1388,7 @@
 			modality,
 			nodeId,
 			anchorX,
-			anchorY,
-			initialSource
+			anchorY
 		};
 	}
 
@@ -1904,7 +1899,6 @@
 					mode={activePicker.mode}
 					modality={activePicker.modality}
 					nodeId={activePicker.nodeId}
-					initialSource={activePicker.initialSource}
 					initialSubtab={activePicker.initialSubtab}
 					{server}
 					anchorX={activePicker.anchorX}
