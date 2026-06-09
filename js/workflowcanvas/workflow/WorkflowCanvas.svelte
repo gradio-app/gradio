@@ -33,6 +33,7 @@
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
+		Port,
 		WFNode,
 		WFEdge,
 		NodeStatus,
@@ -552,11 +553,19 @@
 					y: mode.cursorCanvasY,
 					reversed: mode.reversed
 				};
+				const srcPort = findSourcePort(
+					mode.fromNodeId,
+					mode.fromPortId,
+					mode.reversed
+				);
+				const hasChoices = !!(srcPort?.choices && srcPort.choices.length > 0);
 				const choice: DropChoice = {
 					clientX: e.clientX - r.left,
 					clientY: e.clientY - r.top,
-					modelOptions: buildModelOptions(mode.type),
-					componentOptions: buildComponentOptions(mode.type, mode.reversed),
+					modelOptions: hasChoices ? [] : buildModelOptions(mode.type),
+					componentOptions: hasChoices
+						? [{ kind: "component", label: srcPort!.label }]
+						: buildComponentOptions(mode.type, mode.reversed),
 					reversed: mode.reversed
 				};
 				setTimeout(() => {
@@ -724,6 +733,17 @@
 		});
 	}
 
+	function findSourcePort(
+		nodeId: string,
+		portId: string,
+		reversed: boolean
+	): Port | undefined {
+		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		return reversed
+			? node?.inputs.find((p) => p.id === portId)
+			: node?.outputs.find((p) => p.id === portId);
+	}
+
 	function buildModelOptions(type: PortType): DropOption[] {
 		const modality = modalityForPort(type);
 		if (!modality) return [];
@@ -762,7 +782,27 @@
 		for (const c of LIBRARY.components) {
 			typedComponents[c.outputs[0]?.type ?? "any"] = c;
 		}
-		const template = typedComponents[drop.type] ?? LIBRARY.components[0];
+		const base = typedComponents[drop.type] ?? LIBRARY.components[0];
+		const sourcePort = findSourcePort(
+			drop.from_node_id,
+			drop.from_port_id,
+			drop.reversed
+		);
+		const choiceInfo =
+			sourcePort?.choices && sourcePort.choices.length > 0
+				? {
+						choices: sourcePort.choices,
+						multiselect: !!sourcePort.multiselect
+					}
+				: null;
+		const template = choiceInfo
+			? {
+					...base,
+					label: sourcePort?.label || base.label,
+					inputs: base.inputs.map((p: Port) => ({ ...p, ...choiceInfo })),
+					outputs: base.outputs.map((p: Port) => ({ ...p, ...choiceInfo }))
+				}
+			: base;
 		const rawX = drop.reversed
 			? drop.x - (template.width ?? 200) - 80
 			: drop.x - (template.width ?? 200) / 2;
@@ -1451,8 +1491,13 @@
 			if (spaceNode) {
 				const compGap = 24;
 				const compH = 180;
-				const inputPorts = spaceNode.inputs.filter((p) =>
-					SUBGRAPH_PORT_TYPES.has(p.type)
+				// Skip ports with `choices` — they render an inline dropdown in
+				// the node body, so an auto-wired reference would be redundant
+				// (and worse, the reference is a plain textbox).
+				const inputPorts = spaceNode.inputs.filter(
+					(p) =>
+						SUBGRAPH_PORT_TYPES.has(p.type) &&
+						!(p.choices && p.choices.length > 0)
 				);
 				const outputPorts = spaceNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
