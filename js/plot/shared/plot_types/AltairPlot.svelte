@@ -1,10 +1,10 @@
 <script lang="ts">
 	//@ts-nocheck
 	import { set_config } from "./altair_utils";
-	import { onMount, onDestroy, untrack } from "svelte";
+	import { untrack } from "svelte";
 	import type { TopLevelSpec as Spec } from "vega-lite";
 	import vegaEmbed from "vega-embed";
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import type { View } from "vega";
 
 	let {
@@ -12,17 +12,15 @@
 		colors = [],
 		caption,
 		show_actions_button,
-		gradio,
-		_selectable
+		_selectable,
+		onselect
 	}: {
 		value: any;
 		colors?: string[];
 		caption: string;
 		show_actions_button: boolean;
-		gradio: Gradio<{
-			select: SelectData;
-		}>;
 		_selectable: boolean;
+		onselect?: (data: SelectData) => void;
 	} = $props();
 
 	let element: HTMLElement;
@@ -39,7 +37,6 @@
 		if (!plot) return null;
 		let parsed_spec = JSON.parse(plot) as Spec;
 
-		// Filter out brush param if not selectable
 		if (parsed_spec && parsed_spec.params && !_selectable) {
 			parsed_spec.params = parsed_spec.params.filter(
 				(param) => param.name !== "brush"
@@ -96,7 +93,7 @@
 					const brushValue = view.signal("brush");
 					if (brushValue) {
 						if (Object.keys(brushValue).length === 0) {
-							gradio.dispatch("select", {
+							onselect?.({
 								value: null,
 								index: null,
 								selected: false
@@ -106,7 +103,7 @@
 							let range: [number, number] = brushValue[key].map(
 								(x) => x / 1000
 							);
-							gradio.dispatch("select", {
+							onselect?.({
 								value: brushValue,
 								index: range,
 								selected: true
@@ -119,17 +116,22 @@
 			}
 		);
 	};
-	let resizeObserver = new ResizeObserver(() => {
+
+	const resizeObserver = new ResizeObserver(() => {
 		if (fit_width_to_parent && spec.width !== parent_element.offsetWidth) {
 			resize_callback();
 		}
 	});
-	onMount(() => {
+
+	$effect(() => {
+		if (!element || !parent_element || !spec) return;
+
 		renderPlot();
 		resizeObserver.observe(parent_element);
-	});
-	onDestroy(() => {
-		resizeObserver.disconnect();
+
+		return () => {
+			resizeObserver.disconnect();
+		};
 	});
 </script>
 

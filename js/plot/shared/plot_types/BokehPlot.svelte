@@ -1,11 +1,10 @@
 <script lang="ts">
 	//@ts-nocheck
-	import { onDestroy } from "svelte";
+	let { value, bokeh_version }: { value: any; bokeh_version: string | null } =
+		$props();
 
-	export let value;
-	export let bokeh_version: string | null;
 	const div_id = `bokehDiv-${Math.random().toString(5).substring(2)}`;
-	$: plot = value?.plot;
+	let plot = $derived(value?.plot);
 
 	function static_base(version: string): string {
 		const root =
@@ -48,10 +47,11 @@
 		});
 	}
 
-	async function embed_bokeh(_plot: Record<string, any>): void {
+	async function embed_bokeh(_plot: Record<string, any>): Promise<void> {
 		if (document) {
-			if (document.getElementById(div_id)) {
-				document.getElementById(div_id).innerHTML = "";
+			const el = document.getElementById(div_id);
+			if (el) {
+				el.innerHTML = "";
 			}
 		}
 		if (window.Bokeh) {
@@ -61,12 +61,6 @@
 		}
 	}
 
-	$: loaded && embed_bokeh(plot);
-
-	// `bokeh_version` is a prop fixed at component creation, so these are plain
-	// consts rather than reactive (`$:`) declarations. They are consumed
-	// synchronously by `load_bokeh()` during init; reactive statements would not
-	// have run yet at that point, which would set `script.src` to `undefined`.
 	const main_src = bokeh_version
 		? bokeh_local_url(bokeh_version, `bokeh-${bokeh_version}.min.js`)
 		: null;
@@ -93,8 +87,10 @@
 			]
 		: [];
 
-	let loaded = false;
-	async function load_plugins(): HTMLScriptElement[] {
+	let loaded = $state(false);
+	let plugin_scripts: HTMLScriptElement[] = $state([]);
+
+	async function load_plugins(): Promise<void> {
 		await Promise.all(
 			plugins_src.map((src, i) => load_script(src, plugins_fallback[i]))
 		);
@@ -102,10 +98,8 @@
 		loaded = true;
 	}
 
-	let plugin_scripts = [];
-
 	function handle_bokeh_loaded(): void {
-		plugin_scripts = load_plugins();
+		load_plugins();
 	}
 
 	function load_bokeh(): HTMLScriptElement {
@@ -132,11 +126,23 @@
 
 	const main_script = bokeh_version ? load_bokeh() : null;
 
-	onDestroy(() => {
-		if (main_script in document.children) {
-			document.removeChild(main_script);
-			plugin_scripts.forEach((child) => document.removeChild(child));
+	$effect(() => {
+		if (loaded && plot) {
+			embed_bokeh(plot);
 		}
+	});
+
+	$effect(() => {
+		return () => {
+			if (main_script && document.head.contains(main_script)) {
+				document.head.removeChild(main_script);
+				plugin_scripts.forEach((child) => {
+					if (document.head.contains(child)) {
+						document.head.removeChild(child);
+					}
+				});
+			}
+		};
 	});
 </script>
 
