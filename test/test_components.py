@@ -164,3 +164,15 @@ def test_all_io_components_are_pickleable(io_components):
         pickled = pickle.dumps(c)
         unpickled = pickle.loads(pickled)
         assert c.get_config() == unpickled.get_config()
+
+
+def test_all_components_have_change_event(io_components):
+    """
+    Every component has a `value` that can be set programmatically (e.g. a
+    Button's value is its label), so every component should expose a `.change()`
+    event listener that can be wired up without erroring.
+    See https://github.com/gradio-app/gradio/issues/5309.
+    """
+    for component in io_components:
+        with gr.Blocks():
+            component().change(lambda: None)

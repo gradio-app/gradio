@@ -45,6 +45,7 @@ export interface NativePlotProps {
 }
 
 export interface NativePlotEvents {
+	change: never;
 	select: SelectData;
 	double_click: undefined;
 	clear_status: LoadingStatus;

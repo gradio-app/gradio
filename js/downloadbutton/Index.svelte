@@ -9,6 +9,7 @@
 
 	const props = $props();
 	const gradio = new Gradio<DownloadButtonEvents, DownloadButtonProps>(props);
+	gradio.watch_for_change();
 </script>
 
 <DownloadButton

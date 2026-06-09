@@ -9,6 +9,7 @@ from gradio_client.documentation import document
 
 from gradio.blocks import BlockContext
 from gradio.components.base import Component, server
+from gradio.events import Events
 from gradio.i18n import I18nData
 
 if TYPE_CHECKING:
@@ -33,7 +34,7 @@ class WorkflowCanvas(BlockContext, Component):
         ```
     """
 
-    EVENTS = []
+    EVENTS = [Events.change]
 
     def __init__(
         self,

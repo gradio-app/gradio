@@ -19,6 +19,7 @@
 
 	let props = $props();
 	const gradio = new Gradio<NativePlotEvents, NativePlotProps>(props);
+	gradio.watch_for_change();
 
 	let unique_colors = $derived.by(() => {
 		if (

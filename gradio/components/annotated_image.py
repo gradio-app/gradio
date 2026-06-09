@@ -44,7 +44,7 @@ class AnnotatedImage(Component):
     Demos: image_segmentation
     """
 
-    EVENTS = [Events.select]
+    EVENTS = [Events.change, Events.select]
 
     data_model = AnnotatedImageData
 

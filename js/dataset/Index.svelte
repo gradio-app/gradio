@@ -9,6 +9,7 @@
 	let props = $props();
 
 	const gradio = new Gradio<DatasetEvents, DatasetProps>(props);
+	gradio.watch_for_change();
 
 	// Need to mark samples as state, otherwise get_component_meta constantly triggers
 	let samples = $derived(gradio.props.samples ?? []);

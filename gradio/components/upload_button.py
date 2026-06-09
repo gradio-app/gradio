@@ -32,7 +32,7 @@ class UploadButton(Component):
     Demos: upload_and_download, upload_button
     """
 
-    EVENTS = [Events.click, Events.upload]
+    EVENTS = [Events.change, Events.click, Events.upload]
 
     def __init__(
         self,
