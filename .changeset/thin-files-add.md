@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Expire OAuth sessions before injecting tokens
+feat:Treat expired OAuth sessions as logged out users
