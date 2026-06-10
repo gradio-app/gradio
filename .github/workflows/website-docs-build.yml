@@ -64,3 +64,24 @@ jobs:
         with:
           name: website-templates
           path: js/_website/src/lib/templates
+  website-build:
+    permissions:
+      contents: read
+    name: "website-build"
+    runs-on: ubuntu-22.04
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true' || (endsWith(needs.changes.outputs.source_branch, 'main') && github.repository == 'gradio-app/gradio')
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          python_version: "3.10"
+          skip_build: true
+          test: true
+      - name: build client
+        run: pnpm --filter @gradio/client build
+      - name: build packages
+        run: pnpm package
+      - name: build website
+        run: VERCEL=1 pnpm --filter website build

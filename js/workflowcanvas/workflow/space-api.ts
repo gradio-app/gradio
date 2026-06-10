@@ -34,13 +34,12 @@ export function normalize_space_id(raw: string): string | null {
 	return null;
 }
 
-/** Map Gradio component types to our port types */
 export function componentToPortType(
 	component: string,
 	type?: string,
 	pythonType?: string,
 	labelHint?: string
-): PortType {
+): PortType | "__skip__" {
 	const c = component.toLowerCase();
 	if (pythonType) {
 		const cleaned = pythonType
@@ -64,7 +63,7 @@ export function componentToPortType(
 		return "file";
 	if (c === "model3d") return "model3d";
 	if (c === "json" || c === "dataframe") return "json";
-	if (c === "state") return "__skip__" as PortType; // internal, not user I/O
+	if (c === "state") return "__skip__";
 	if (
 		c === "textbox" ||
 		c === "text" ||
@@ -153,6 +152,25 @@ export interface SpaceApiInfo {
 
 const ORDINAL_LABEL = /^\d+(st|nd|rd|th)$/i;
 
+export function extract_choices(
+	type: unknown
+): { choices: string[]; multiselect: boolean } | null {
+	if (!type || typeof type !== "object") return null;
+	const t = type as { type?: string; enum?: unknown[]; items?: any };
+	if (Array.isArray(t.enum) && t.enum.length > 0) {
+		return { choices: t.enum.map(String), multiselect: false };
+	}
+	if (
+		t.type === "array" &&
+		t.items &&
+		Array.isArray(t.items.enum) &&
+		t.items.enum.length > 0
+	) {
+		return { choices: t.items.enum.map(String), multiselect: true };
+	}
+	return null;
+}
+
 function parse_endpoint_sig(name: string, ep: any): EndpointSig {
 	const inputs = (ep.parameters ?? [])
 		.map((p: any, i: number) => {
@@ -172,13 +190,15 @@ function parse_endpoint_sig(name: string, ep: any): EndpointSig {
 			const rawLabel = useParamName
 				? p.parameter_name
 				: p.label || p.parameter_name || `Input ${i}`;
+			const choiceInfo = extract_choices(p.type);
 			return {
 				id: `in_${i}`,
 				label: rawLabel,
 				type: portType,
 				required: !hasDefault,
 				default_value:
-					hasDefault && p.default !== undefined ? p.default : undefined
+					hasDefault && p.default !== undefined ? p.default : undefined,
+				...(choiceInfo ?? {})
 			};
 		})
 		.filter(Boolean) as Port[];
