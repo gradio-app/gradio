@@ -72,8 +72,6 @@
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
 
-	const INPUT_COLLAPSE_THRESHOLD = 3;
-
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
 			const n = Number(v);
@@ -338,14 +336,18 @@
 
 	<!-- Input ports -->
 	{#if node.inputs.length > 0}
-		{@const collapsible = node.inputs.length > INPUT_COLLAPSE_THRESHOLD}
+		{@const hiddenCount = node.inputs.filter(
+			(p) =>
+				p.required === false && !connectedPorts.has(`${node.id}:${p.id}:input`)
+		).length}
+		{@const collapsible = hiddenCount > 0}
 		<div class="ports" class:widget-ports={hasWidget}>
-			{#each node.inputs as port, i}
+			{#each node.inputs as port}
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
 				{@const visible =
-					showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
+					showAllInputs || portConnected || port.required !== false}
 				{#if visible}
 					<div class="port-row input-row" class:widget-port={hasWidget}>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -483,8 +485,10 @@
 						showAllInputs = !showAllInputs;
 					}}
 				>
-					{#if showAllInputs}▴ show less{:else}▾ {node.inputs.length -
-							INPUT_COLLAPSE_THRESHOLD} more params{/if}
+					{#if showAllInputs}▴ show less{:else}▾ {hiddenCount} optional param{hiddenCount ===
+						1
+							? ""
+							: "s"}{/if}
 				</button>
 			{/if}
 		</div>
