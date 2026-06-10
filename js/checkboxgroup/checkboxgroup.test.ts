@@ -476,13 +476,13 @@ describe("Edge cases", () => {
 
 describe("CheckboxGroup: i18n choices", () => {
 	beforeAll(async () => {
-		await setupi18n({ en: { bold_label: "Bold", italic_label: "Italic" } });
+		await setupi18n();
 	});
 	afterEach(() => cleanup());
 
 	const i18n_choices: [string, string][] = [
-		[marker("bold_label"), "bold"],
-		[marker("italic_label"), "italic"]
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
 	];
 
 	test("translates choice display values through the i18n formatter", async () => {
@@ -492,8 +492,8 @@ describe("CheckboxGroup: i18n choices", () => {
 			choices: i18n_choices
 		});
 
-		expect(getByLabelText("Bold")).toBeTruthy();
-		expect(getByLabelText("Italic")).toBeTruthy();
+		expect(getByLabelText("Clear")).toBeTruthy();
+		expect(getByLabelText("Remove")).toBeTruthy();
 	});
 
 	test("internal value is unaffected by translation", async () => {
@@ -504,7 +504,7 @@ describe("CheckboxGroup: i18n choices", () => {
 			value: ["bold"]
 		});
 
-		expect(getByLabelText("Bold")).toBeChecked();
+		expect(getByLabelText("Clear")).toBeChecked();
 
 		const data = await get_data();
 		expect(data.value).toEqual(["bold"]);

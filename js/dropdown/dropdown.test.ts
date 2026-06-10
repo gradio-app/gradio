@@ -1610,13 +1610,13 @@ describe("handle_filter", () => {
 
 describe("i18n choices", () => {
 	beforeAll(async () => {
-		await setupi18n({ en: { bold_label: "Bold", italic_label: "Italic" } });
+		await setupi18n();
 	});
 	afterEach(() => cleanup());
 
 	const i18n_choices: [string, string][] = [
-		[marker("bold_label"), "bold"],
-		[marker("italic_label"), "italic"]
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
 	];
 
 	test("single-select shows translated display name for the selected value", async () => {
@@ -1628,7 +1628,7 @@ describe("i18n choices", () => {
 		});
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		expect(input.value).toBe("Bold");
+		expect(input.value).toBe("Clear");
 	});
 
 	test("single-select translates option display names", async () => {
@@ -1643,8 +1643,8 @@ describe("i18n choices", () => {
 		await input.focus();
 
 		const options = getAllByTestId("dropdown-option");
-		expect(options[0]).toHaveAttribute("aria-label", "Bold");
-		expect(options[1]).toHaveAttribute("aria-label", "Italic");
+		expect(options[0]).toHaveAttribute("aria-label", "Clear");
+		expect(options[1]).toHaveAttribute("aria-label", "Remove");
 	});
 
 	test("single-select internal value is unaffected by translation", async () => {
@@ -1667,9 +1667,9 @@ describe("i18n choices", () => {
 			value: ["bold", "italic"]
 		});
 
-		expect(getByText("Bold")).toBeTruthy();
-		expect(getByText("Italic")).toBeTruthy();
-		expect(queryByText("__i18n__bold")).toBeNull();
+		expect(getByText("Clear")).toBeTruthy();
+		expect(getByText("Remove")).toBeTruthy();
+		expect(queryByText(marker("common.clear"))).toBeNull();
 	});
 
 	test("multiselect translates option display names", async () => {
@@ -1683,8 +1683,8 @@ describe("i18n choices", () => {
 		await input.focus();
 
 		const options = getAllByTestId("dropdown-option");
-		expect(options[0]).toHaveAttribute("aria-label", "Bold");
-		expect(options[1]).toHaveAttribute("aria-label", "Italic");
+		expect(options[0]).toHaveAttribute("aria-label", "Clear");
+		expect(options[1]).toHaveAttribute("aria-label", "Remove");
 	});
 
 	test("multiselect internal value is unaffected by translation", async () => {

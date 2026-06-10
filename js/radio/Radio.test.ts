@@ -147,12 +147,12 @@ describe("Props: choices", () => {
 
 describe("Props: i18n choices", () => {
 	beforeAll(async () => {
-		await setupi18n({ en: { bold_label: "Bold", italic_label: "Italic" } });
+		await setupi18n();
 	});
 
 	const i18n_choices: [string, string][] = [
-		[marker("bold_label"), "bold"],
-		[marker("italic_label"), "italic"]
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
 	];
 
 	test("translates choice display values through the i18n formatter", async () => {
@@ -163,8 +163,8 @@ describe("Props: i18n choices", () => {
 			value: "bold"
 		});
 
-		expect(getByText("Bold")).toBeVisible();
-		expect(getByText("Italic")).toBeVisible();
+		expect(getByText("Clear")).toBeVisible();
+		expect(getByText("Remove")).toBeVisible();
 	});
 
 	test("internal value is unaffected by translation", async () => {

@@ -46,13 +46,13 @@ describe("SimpleDropdown", () => {
 
 describe("SimpleDropdown: i18n choices", () => {
 	beforeAll(async () => {
-		await setupi18n({ en: { bold_label: "Bold", italic_label: "Italic" } });
+		await setupi18n();
 	});
 	afterEach(() => cleanup());
 
 	const i18n_choices: [string, string][] = [
-		[marker("bold_label"), "bold"],
-		[marker("italic_label"), "italic"]
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
 	];
 
 	test("translates option display names through the i18n formatter", async () => {
@@ -65,7 +65,7 @@ describe("SimpleDropdown: i18n choices", () => {
 
 		const options = container.querySelectorAll("option");
 		const labels = Array.from(options).map((o) => o.textContent?.trim());
-		expect(labels).toEqual(["Bold", "Italic"]);
+		expect(labels).toEqual(["Clear", "Remove"]);
 	});
 
 	test("selecting a translated option maps back to the internal value", async () => {
@@ -77,7 +77,7 @@ describe("SimpleDropdown: i18n choices", () => {
 		});
 
 		const select = container.querySelector("select") as HTMLSelectElement;
-		await event.selectOptions(select, "Italic");
+		await event.selectOptions(select, "Remove");
 
 		const data = await get_data();
 		expect(data.value).toBe("italic");
