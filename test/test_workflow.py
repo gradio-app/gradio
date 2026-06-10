@@ -5,12 +5,15 @@ import tempfile
 import pytest
 
 import gradio as gr
+import gradio.workflow as workflow_module
 from gradio.oauth import OAuthToken
 from gradio.workflow import (
     Workflow,
+    _get_locally_saved_hf_token,
     _normalize_space_result,
     _resolve_token,
     _workflow_from_bind,
+    get_token,
 )
 
 
@@ -143,17 +146,62 @@ class TestLaunchAllowedPaths:
 
 
 class TestResolveToken:
-    def test_explicit_data_wins(self):
+    def test_explicit_data_wins(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module, "_get_locally_saved_hf_token", lambda: None
+        )
         assert (
             _resolve_token(["x", "y", "z", "manual"], 3, _make_oauth("oauth"))
             == "manual"
         )
 
-    def test_oauth_used_when_no_manual(self):
+    def test_oauth_used_when_no_manual(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module, "_get_locally_saved_hf_token", lambda: None
+        )
         assert _resolve_token([], 3, _make_oauth("oauth-tok")) == "oauth-tok"
 
-    def test_none_when_no_source(self):
+    def test_local_token_used_when_no_manual_or_oauth(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module,
+            "_get_locally_saved_hf_token",
+            lambda: "local-tok",
+        )
+        assert _resolve_token([], 3, None) == "local-tok"
+
+    def test_none_when_no_source(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module, "_get_locally_saved_hf_token", lambda: None
+        )
         assert _resolve_token([], 3, None) is None
+
+
+class TestGetToken:
+    def test_oauth_token_wins(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module,
+            "_get_locally_saved_hf_token",
+            lambda: "local-tok",
+        )
+        assert get_token(token=_make_oauth("oauth-tok")) == "oauth-tok"
+
+    def test_uses_local_hf_token(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module,
+            "_get_locally_saved_hf_token",
+            lambda: "local-tok",
+        )
+        assert get_token() == "local-tok"
+
+    def test_no_local_hf_token_returns_empty_string(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module, "_get_locally_saved_hf_token", lambda: None
+        )
+        assert get_token() == ""
+
+    def test_local_hf_token_is_disabled_on_spaces(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        assert _get_locally_saved_hf_token() is None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -270,12 +318,22 @@ class TestNormalizeSpaceResult:
 
 
 class TestServerFunctions:
-    def test_get_token_returns_oauth_when_present(self):
+    def test_get_token_returns_oauth_when_present(self, monkeypatch):
         from gradio.workflow import get_token
 
+        monkeypatch.setattr(
+            workflow_module,
+            "_get_locally_saved_hf_token",
+            lambda: "local-tok",
+        )
         assert get_token(None, _make_oauth("oauth-tok")) == "oauth-tok"
 
-    def test_get_token_empty_string_when_no_oauth(self):
+    def test_get_token_returns_local_hf_token_without_oauth(self, monkeypatch):
         from gradio.workflow import get_token
 
-        assert get_token(None, None) == ""
+        monkeypatch.setattr(
+            workflow_module,
+            "_get_locally_saved_hf_token",
+            lambda: "local-tok",
+        )
+        assert get_token(None, None) == "local-tok"

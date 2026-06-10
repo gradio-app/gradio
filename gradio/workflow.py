@@ -134,13 +134,30 @@ def _workflow_from_bind(
     )
 
 
+def _get_locally_saved_hf_token() -> str | None:
+    """Return the local Hugging Face token when running outside Spaces.
+
+    Avoid reading a Space's token/secret here: `get_token` is exposed to the
+    browser so the workflow canvas can authenticate local apps with the user's
+    `huggingface_hub login` token.
+    """
+    if get_space() is not None:
+        return None
+    try:
+        from huggingface_hub import get_token as hf_get_token
+
+        return hf_get_token()
+    except Exception:
+        return None
+
+
 def _resolve_token(data: list, idx: int, token) -> str | None:
     manual = data[idx] if len(data) > idx else None
     if manual:
         return manual
     if token:
         return token.token
-    return None
+    return _get_locally_saved_hf_token()
 
 
 def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
@@ -322,7 +339,7 @@ VALID_SPACE_CATEGORIES = {
 def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
     if token:
         return token.token
-    return ""
+    return _get_locally_saved_hf_token() or ""
 
 
 def call_space(data, token: Optional[OAuthToken] = None) -> str:
