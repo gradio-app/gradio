@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Treat api_name=False events as private in API info
+fix: Treat api_name=False events as private in API info
