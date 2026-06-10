@@ -246,8 +246,7 @@
 			color 0.15s;
 	}
 
-	.bb-btn:hover,
-	.bb-btn-active {
+	.bb-btn:hover {
 		background: rgba(255, 255, 255, 0.06);
 		color: #d5d6de;
 	}
@@ -435,10 +434,5 @@
 	:global(body:not(.dark)) .input-type-opt:hover {
 		background: #f0f1f5;
 		color: #1a1b25;
-	}
-
-	:global(body:not(.dark)) .bb-models-btn-active {
-		color: #ea580c;
-		background: rgba(234, 88, 12, 0.08);
 	}
 </style>
