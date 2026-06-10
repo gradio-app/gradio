@@ -485,7 +485,10 @@
 						showAllInputs = !showAllInputs;
 					}}
 				>
-					{#if showAllInputs}▴ show less{:else}▾ {hiddenCount} optional param{hiddenCount === 1 ? "" : "s"}{/if}
+					{#if showAllInputs}▴ show less{:else}▾ {hiddenCount} optional param{hiddenCount ===
+						1
+							? ""
+							: "s"}{/if}
 				</button>
 			{/if}
 		</div>
