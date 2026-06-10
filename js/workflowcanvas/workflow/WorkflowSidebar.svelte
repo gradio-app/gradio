@@ -1350,17 +1350,6 @@
 		background: rgba(239, 68, 68, 0.15);
 	}
 
-	.chip-badge {
-		font-family: "JetBrains Mono", monospace;
-		font-size: 9px;
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		padding: 1px 5px;
-		border-radius: 3px;
-		background: #1e1f2a;
-		color: #5c5e6a;
-	}
-
 	.add-space {
 		display: flex;
 		gap: 4px;

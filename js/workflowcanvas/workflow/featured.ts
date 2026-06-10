@@ -15,6 +15,7 @@ export interface FeaturedItem {
 	pipeline_tag?: string;
 	likes?: number;
 	zero_gpu?: boolean;
+	inference_providers?: boolean;
 }
 
 export const FEATURED_SPACES: FeaturedItem[] = [
@@ -65,41 +66,47 @@ export const FEATURED_MODELS: FeaturedItem[] = [
 		title: "FLUX.1 schnell",
 		description: "Text-to-image",
 		modality: "image",
-		pipeline_tag: "text-to-image"
+		pipeline_tag: "text-to-image",
+		inference_providers: true
 	},
 	{
 		id: "stabilityai/stable-diffusion-3.5-large-turbo",
 		title: "SD 3.5 Large Turbo",
 		description: "Fast text-to-image",
 		modality: "image",
-		pipeline_tag: "text-to-image"
+		pipeline_tag: "text-to-image",
+		inference_providers: true
 	},
 	{
 		id: "Qwen/Qwen2.5-VL-7B-Instruct",
 		title: "Qwen2.5-VL 7B",
 		description: "Image understanding & captioning",
 		modality: "image",
-		pipeline_tag: "image-to-text"
+		pipeline_tag: "image-to-text",
+		inference_providers: true
 	},
 	{
 		id: "openai/whisper-large-v3-turbo",
 		title: "Whisper Large v3 Turbo",
 		description: "Speech-to-text",
 		modality: "audio",
-		pipeline_tag: "automatic-speech-recognition"
+		pipeline_tag: "automatic-speech-recognition",
+		inference_providers: true
 	},
 	{
 		id: "meta-llama/Llama-3.2-3B-Instruct",
 		title: "Llama 3.2 3B Instruct",
 		description: "Open-weights text generation",
 		modality: "text",
-		pipeline_tag: "text-generation"
+		pipeline_tag: "text-generation",
+		inference_providers: true
 	},
 	{
 		id: "Qwen/Qwen2.5-7B-Instruct",
 		title: "Qwen 2.5 7B",
 		description: "Multilingual text generation",
 		modality: "text",
-		pipeline_tag: "text-generation"
+		pipeline_tag: "text-generation",
+		inference_providers: true
 	}
 ];

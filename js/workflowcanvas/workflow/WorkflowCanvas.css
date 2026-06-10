@@ -407,6 +407,25 @@
 	opacity: 1;
 }
 
+.wf-toast-action {
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 6px;
+	border: 1px solid currentColor;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.wf-toast-action:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
+
 .wf-toast.wf-toast-error {
 	border-color: #f87171;
 	color: #fca5a5;
@@ -420,6 +439,28 @@
 .wf-toast.wf-toast-success {
 	border-color: #34d399;
 	color: #6ee7b7;
+}
+
+.wf-toast.wf-toast-pro {
+	border-color: #2a2b36;
+	color: #c8c9d2;
+}
+
+.wf-toast.wf-toast-pro .wf-toast-action {
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 4px 10px;
+	border-radius: 6px;
+	border: 1px solid rgba(139, 92, 246, 0.5);
+	background: rgba(139, 92, 246, 0.1);
+	color: #c4b5fd;
+}
+
+.wf-toast.wf-toast-pro .wf-toast-action:hover {
+	background: rgba(139, 92, 246, 0.18);
+	border-color: rgba(139, 92, 246, 0.7);
+	color: #ddd6fe;
 }
 
 @keyframes wf-toast-in {

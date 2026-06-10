@@ -1,10 +1,16 @@
-async function fetch_username(token: string): Promise<string | null> {
+interface WhoAmI {
+	name: string;
+	isPro: boolean;
+}
+
+async function fetch_whoami(token: string): Promise<WhoAmI | null> {
 	try {
 		const res = await fetch("https://huggingface.co/api/whoami-v2", {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		if (!res.ok) return null;
-		return (await res.json()).name || "User";
+		const body = await res.json();
+		return { name: body.name || "User", isPro: body.isPro === true };
 	} catch {
 		return null;
 	}
@@ -17,49 +23,64 @@ function redirect_to(path: string): void {
 	window.location.assign(`${path}?_target_url=${target}`);
 }
 
-export function createHFAuth(getServer: () => Record<string, any>) {
-	let loggedInUser = $state("");
-	let isHFSpace = $state(false);
-	let isCheckingLogin = $state(true);
-	let hfToken = $state(
-		typeof localStorage !== "undefined"
-			? (localStorage.getItem("hf_token") ?? "")
-			: ""
-	);
-	let tokenUser = $state("");
-	let tokenStatus = $state<"idle" | "validating" | "invalid">("idle");
+type AuthSource = "" | "oauth" | "pat";
+type AuthStatus = "checking" | "ready" | "validating" | "invalid";
 
-	async function validateToken(token: string): Promise<void> {
-		if (!token) {
-			tokenUser = "";
-			tokenStatus = "idle";
+export function createHFAuth(getServer: () => Record<string, any>) {
+	let user = $state("");
+	let isPro = $state(false);
+	let token = $state("");
+	let source = $state<AuthSource>("");
+	let status = $state<AuthStatus>("checking");
+	let isHFSpace = $state(false);
+
+	function clearIdentity(): void {
+		user = "";
+		isPro = false;
+		token = "";
+		source = "";
+	}
+
+	function applyIdentity(t: string, who: WhoAmI, src: AuthSource): void {
+		token = t;
+		user = who.name;
+		isPro = who.isPro;
+		source = src;
+	}
+
+	async function init(): Promise<void> {
+		isHFSpace = window.location.hostname.endsWith(".hf.space");
+
+		const oauth = await readOAuthToken();
+		if (oauth) {
+			const who = await fetch_whoami(oauth);
+			if (who) {
+				applyIdentity(oauth, who, "oauth");
+				status = "ready";
+				return;
+			}
+		}
+
+		const pat =
+			typeof localStorage !== "undefined"
+				? (localStorage.getItem("hf_token") ?? "")
+				: "";
+		if (pat) {
+			status = "validating";
+			const who = await fetch_whoami(pat);
+			if (who) {
+				applyIdentity(pat, who, "pat");
+				status = "ready";
+				return;
+			}
+			status = "invalid";
 			return;
 		}
-		tokenStatus = "validating";
-		const name = await fetch_username(token);
-		if (name) {
-			tokenUser = name;
-			tokenStatus = "idle";
-		} else {
-			tokenUser = "";
-			tokenStatus = "invalid";
-		}
+
+		status = "ready";
 	}
 
-	function saveToken(token: string): void {
-		hfToken = token.trim();
-		if (typeof localStorage !== "undefined") {
-			if (hfToken) localStorage.setItem("hf_token", hfToken);
-			else localStorage.removeItem("hf_token");
-		}
-		void validateToken(hfToken);
-	}
-
-	// Validate any token loaded from localStorage on init so the user
-	// sees the "Signed in as …" badge without needing to re-paste.
-	if (hfToken) void validateToken(hfToken);
-
-	async function getOAuthToken(): Promise<string> {
+	async function readOAuthToken(): Promise<string> {
 		const s = getServer();
 		if (!s?.get_token) return "";
 		try {
@@ -69,49 +90,92 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		}
 	}
 
-	async function checkLoginStatus(): Promise<void> {
-		isHFSpace = window.location.hostname.endsWith(".hf.space");
-		const token = await getOAuthToken();
-		if (!token) {
-			loggedInUser = "";
-			isCheckingLogin = false;
+	async function setPAT(input: string): Promise<void> {
+		const next = input.trim();
+		if (typeof localStorage !== "undefined") {
+			if (next) localStorage.setItem("hf_token", next);
+			else localStorage.removeItem("hf_token");
+		}
+		if (!next) {
+			clearIdentity();
+			status = "ready";
 			return;
 		}
-		loggedInUser = (await fetch_username(token)) ?? "";
-		isCheckingLogin = false;
+		status = "validating";
+		const who = await fetch_whoami(next);
+		if (who) {
+			applyIdentity(next, who, "pat");
+			status = "ready";
+		} else {
+			clearIdentity();
+			status = "invalid";
+		}
 	}
 
-	function handleLogin(): void {
+	function signIn(): void {
 		redirect_to("/login/huggingface");
 	}
 
-	function handleLogout(): void {
-		redirect_to("/logout");
+	function signOut(): void {
+		if (typeof localStorage !== "undefined") {
+			localStorage.removeItem("hf_token");
+		}
+		clearIdentity();
+		status = "ready";
+		if (isHFSpace) redirect_to("/logout");
+	}
+
+	function getQuotaCTA(): {
+		suffix: string;
+		action: { label: string; href?: string; onClick?: () => void };
+	} {
+		if (!user) {
+			return {
+				suffix: "Sign in with HuggingFace for your own GPU credits.",
+				action: { label: "Sign in", onClick: signIn }
+			};
+		}
+		if (!isPro) {
+			return {
+				suffix: "Upgrade to PRO for higher ZeroGPU quota.",
+				action: {
+					label: "Upgrade to PRO",
+					href: "https://huggingface.co/subscribe/pro"
+				}
+			};
+		}
+		return {
+			suffix: "Manage your ZeroGPU credits in account settings.",
+			action: {
+				label: "Manage credits",
+				href: "https://huggingface.co/settings/billing"
+			}
+		};
 	}
 
 	return {
-		get loggedInUser() {
-			return loggedInUser;
+		get user() {
+			return user;
+		},
+		get isPro() {
+			return isPro;
+		},
+		get token() {
+			return token;
+		},
+		get source() {
+			return source;
+		},
+		get status() {
+			return status;
 		},
 		get isHFSpace() {
 			return isHFSpace;
 		},
-		get isCheckingLogin() {
-			return isCheckingLogin;
-		},
-		get hfToken() {
-			return hfToken;
-		},
-		get tokenUser() {
-			return tokenUser;
-		},
-		get tokenStatus() {
-			return tokenStatus;
-		},
-		saveToken,
-		handleLogin,
-		handleLogout,
-		getOAuthToken,
-		checkLoginStatus
+		init,
+		setPAT,
+		signIn,
+		signOut,
+		getQuotaCTA
 	};
 }

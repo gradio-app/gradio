@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import sys
 import tempfile
 import urllib.parse
 import warnings
@@ -14,7 +15,6 @@ from collections.abc import Callable
 from typing import Optional
 
 import httpx
-from huggingface_hub import get_token as _hf_get_token
 
 from gradio.blocks import Blocks
 from gradio.oauth import OAuthToken
@@ -134,20 +134,13 @@ def _workflow_from_bind(
     )
 
 
-def _local_hf_token() -> str | None:
-    try:
-        return _hf_get_token()
-    except Exception:
-        return None
-
-
 def _resolve_token(data: list, idx: int, token) -> str | None:
     manual = data[idx] if len(data) > idx else None
     if manual:
         return manual
     if token:
         return token.token
-    return _local_hf_token()
+    return None
 
 
 def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
@@ -211,10 +204,7 @@ def _classify_error(e: Exception) -> dict:
             "suggestion": "Space not found — it may have been deleted or renamed",
         }
     if http_status == 429:
-        return {
-            "error_type": "quota",
-            "suggestion": "GPU quota exceeded — log in with your HF account for more compute",
-        }
+        return {"error_type": "quota"}
 
     type_name = type(e).__name__
     if type_name in (
@@ -237,15 +227,9 @@ def _classify_error(e: Exception) -> dict:
     full = f"{title} {message}".lower()
 
     if "zerogpu" in full or ("gpu" in full and "worker" in full):
-        return {
-            "error_type": "gpu",
-            "suggestion": "GPU unavailable — try again or log in with your HF account",
-        }
+        return {"error_type": "gpu"}
     if "quota" in full or "rate limit" in full or "rate_limit" in full:
-        return {
-            "error_type": "quota",
-            "suggestion": "GPU quota exceeded — log in with your HF account for more compute",
-        }
+        return {"error_type": "quota"}
     if "sleeping" in full or "paused" in full:
         return {
             "error_type": "sleeping",
@@ -338,7 +322,7 @@ VALID_SPACE_CATEGORIES = {
 def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
     if token:
         return token.token
-    return _local_hf_token() or ""
+    return ""
 
 
 def call_space(data, token: Optional[OAuthToken] = None) -> str:
@@ -783,6 +767,7 @@ def search_models(data, token: Optional[OAuthToken] = None) -> str:
         url = (
             f"https://huggingface.co/api/models?sort={sort}&limit=60"
             f"&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
+            f"&expand[]=inferenceProviderMapping"
         )
         if query:
             url += f"&search={urllib.parse.quote(query)}"
@@ -920,8 +905,8 @@ class Workflow(Blocks):
                     ]
         """
         if graph is None:
-            frame = inspect.stack()[1]
-            caller_dir = os.path.dirname(os.path.abspath(frame.filename))
+            caller_filename = sys._getframe(1).f_code.co_filename
+            caller_dir = os.path.dirname(os.path.abspath(caller_filename))
             graph = os.path.join(caller_dir, "workflow.json")
 
         if isinstance(bind, list):
