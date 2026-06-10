@@ -200,7 +200,7 @@
 	interface WfToast {
 		id: number;
 		message: string;
-		type: "info" | "warning" | "error" | "success";
+		type: "info" | "warning" | "error" | "success" | "pro";
 		action?: { label: string; href?: string; onClick?: () => void };
 	}
 	let toasts: WfToast[] = $state([]);
@@ -209,7 +209,7 @@
 	function showToast(
 		msg: string,
 		ms = 3000,
-		type: "info" | "warning" | "error" | "success" = "info",
+		type: "info" | "warning" | "error" | "success" | "pro" = "info",
 		action?: WfToast["action"]
 	): void {
 		const id = ++toastCounter;
@@ -1221,7 +1221,7 @@
 						showToast(
 							`${label}: ${headline}. ${cta.suffix}`,
 							0,
-							"error",
+							"pro",
 							cta.action
 						);
 					} else {

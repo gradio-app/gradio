@@ -441,6 +441,23 @@
 	color: #6ee7b7;
 }
 
+.wf-toast.wf-toast-pro {
+	border-color: #2a2b36;
+	color: #c8c9d2;
+}
+
+.wf-toast.wf-toast-pro .wf-toast-action {
+	border: none;
+	background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+	color: #ffffff;
+	box-shadow: 0 1px 2px rgba(79, 70, 229, 0.35);
+}
+
+.wf-toast.wf-toast-pro .wf-toast-action:hover {
+	background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+	box-shadow: 0 2px 6px rgba(79, 70, 229, 0.5);
+}
+
 @keyframes wf-toast-in {
 	from {
 		opacity: 0;
