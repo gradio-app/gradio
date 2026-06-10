@@ -184,10 +184,7 @@
 		  };
 	let dragMode = $state<DragMode | null>(null);
 	let spaceHeld = $state(false);
-	// When a node drag ends with movement, the synthetic click that follows
-	// pointerup would otherwise collapse a multi-selection down to one node.
-	// This timestamp tells onselect to ignore the next click.
-	let suppress_node_click_until = 0;
+	let last_node_drag_moved = false;
 
 	// ─── App state ──────────────────────────────────────────────────────────────
 	let canvasEl: HTMLDivElement;
@@ -406,10 +403,8 @@
 	}
 
 	function onCanvasPointerDown(e: PointerEvent): void {
-		// Middle button or button 0 only; right-click ignored.
 		if (e.button !== 0 && e.button !== 1) return;
 		const target = e.target as HTMLElement;
-		// Only react to truly-empty canvas — not nodes, edges, ports, UI
 		if (
 			target.closest(
 				".node-pos-wrap, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar"
@@ -429,8 +424,6 @@
 			canvasEl.setPointerCapture(e.pointerId);
 			return;
 		}
-		// Empty-canvas left-click drag = marquee selection. Shift extends the
-		// existing selection; plain drag replaces it on commit.
 		const { x, y } = clientToCanvas(e.clientX, e.clientY);
 		dragMode = {
 			kind: "marquee",
@@ -465,19 +458,17 @@
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
-		// If the dragged node is part of the current selection, move the whole
-		// group; otherwise drag just this node. Selection itself is updated on
-		// click (pointerup with no movement) so users can grab without losing
-		// their existing multi-selection.
-		const inSelection = selectedNodeIds.has(nodeId);
-		const groupIds =
-			inSelection && selectedNodeIds.size > 1
-				? selectedNodeIds
-				: new Set<string>([nodeId]);
+		const drag_whole_group =
+			selectedNodeIds.has(nodeId) && selectedNodeIds.size > 1;
 		const groupStart = new Map<string, { x: number; y: number }>();
-		for (const id of groupIds) {
-			const n = legacyView.nodes.find((nn) => nn.id === id);
-			if (n) groupStart.set(id, { x: n.x, y: n.y });
+		if (drag_whole_group) {
+			for (const n of legacyView.nodes) {
+				if (selectedNodeIds.has(n.id)) {
+					groupStart.set(n.id, { x: n.x, y: n.y });
+				}
+			}
+		} else {
+			groupStart.set(nodeId, { x: node.x, y: node.y });
 		}
 		dragMode = {
 			kind: "node",
@@ -532,8 +523,6 @@
 			const dx = (e.clientX - dragMode.startClientX) / viewport.zoom;
 			const dy = (e.clientY - dragMode.startClientY) / viewport.zoom;
 			if (Math.abs(dx) > 0 || Math.abs(dy) > 0) dragMode.moved = true;
-			// If the node being dragged is part of a multi-selection, move all
-			// selected nodes together; otherwise just move the one node.
 			if (dragMode.groupStart.size > 1) {
 				for (const [id, start] of dragMode.groupStart) {
 					moveNode(id, start.x + dx, start.y + dy);
@@ -587,7 +576,6 @@
 					selectedEdgeIds = hit_edges;
 				}
 			} else if (!mode.additive) {
-				// Click on empty canvas without drag — clear selection.
 				clear_selection();
 			}
 			dragMode = null;
@@ -690,9 +678,8 @@
 			}
 		}
 		if (mode.kind === "node" && mode.moved) {
-			// Suppress the click that browsers fire after a drag, so the
-			// trailing click doesn't collapse a multi-selection to one node.
-			suppress_node_click_until = Date.now() + 250;
+			last_node_drag_moved = true;
+			setTimeout(() => (last_node_drag_moved = false), 0);
 		}
 		dragMode = null;
 		try {
@@ -1436,21 +1423,23 @@
 	}
 
 	function selectNode(id: string, additive = false): void {
-		if (Date.now() < suppress_node_click_until) return;
-		if (additive) {
-			const next = new Set(selectedNodeIds);
-			if (next.has(id)) next.delete(id);
-			else next.add(id);
-			selectedNodeIds = next;
-		} else {
-			selectedNodeIds = new Set([id]);
-		}
+		if (last_node_drag_moved) return;
+		selectedNodeIds = additive
+			? toggle_set(selectedNodeIds, id)
+			: new Set([id]);
 		selectedEdgeIds = new Set();
 	}
 
 	function clear_selection(): void {
 		selectedNodeIds = new Set();
 		selectedEdgeIds = new Set();
+	}
+
+	function toggle_set<T>(set: Set<T>, value: T): Set<T> {
+		const next = new Set(set);
+		if (next.has(value)) next.delete(value);
+		else next.add(value);
+		return next;
 	}
 
 	function rects_intersect(
@@ -1466,13 +1455,12 @@
 		return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 	}
 
-	/**
-	 * Find nodes/edges intersecting a canvas-space rect. For edges, hit-test
-	 * the sampled bezier path against the rect (approximated by sampling 12
-	 * points along the curve and checking each against the rect). Cheap and
-	 * close-enough for marquee selection.
-	 */
-	function nodes_in_rect(x1: number, y1: number, x2: number, y2: number): Set<string> {
+	function nodes_in_rect(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number
+	): Set<string> {
 		const rx = Math.min(x1, x2);
 		const ry = Math.min(y1, y2);
 		const rw = Math.abs(x2 - x1);
@@ -1486,13 +1474,18 @@
 		return out;
 	}
 
-	function edges_in_rect(x1: number, y1: number, x2: number, y2: number): Set<string> {
+	function edges_in_rect(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number
+	): Set<string> {
 		const rx = Math.min(x1, x2);
 		const ry = Math.min(y1, y2);
 		const rw = Math.abs(x2 - x1);
 		const rh = Math.abs(y2 - y1);
 		const out = new Set<string>();
-		const pointIn = (px: number, py: number): boolean =>
+		const point_in = (px: number, py: number): boolean =>
 			px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
 		for (const e of $workflow.edges) {
 			const a = portPos(e.from_node_id, e.from_port_id, "output");
@@ -1517,7 +1510,7 @@
 					3 * mt * mt * t * c1y +
 					3 * mt * t * t * c2y +
 					t * t * t * b.y;
-				if (pointIn(px, py)) {
+				if (point_in(px, py)) {
 					hit = true;
 					break;
 				}
@@ -1995,14 +1988,9 @@
 								viewport.zoom}
 							fill="none"
 							onclick={(e) => {
-								if (e.shiftKey) {
-									const next = new Set(selectedEdgeIds);
-									if (next.has(edge.id)) next.delete(edge.id);
-									else next.add(edge.id);
-									selectedEdgeIds = next;
-								} else {
-									removeEdge(edge.id);
-								}
+								if (e.shiftKey)
+									selectedEdgeIds = toggle_set(selectedEdgeIds, edge.id);
+								else removeEdge(edge.id);
 							}}
 						/>
 					{/if}
