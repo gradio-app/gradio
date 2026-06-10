@@ -37,7 +37,8 @@
 		WFNode,
 		WFEdge,
 		NodeStatus,
-		NodeRole
+		NodeRole,
+		Workflow
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
 	import { stream_text_generation } from "./inference-stream";
@@ -786,7 +787,7 @@
 		const sourcePort = findSourcePort(
 			drop.from_node_id,
 			drop.from_port_id,
-			drop.reversed
+			drop.reversed ?? false
 		);
 		const choiceInfo =
 			sourcePort?.choices && sourcePort.choices.length > 0

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { workflow } from "./workflow-store";
 	import { PORT_COLOR } from "./workflow-types";
-	import type { PortType, WFNode } from "./workflow-types";
+	import type { PortType } from "./workflow-types";
 
 	interface Props {
 		pending: {
@@ -26,47 +26,25 @@
 	}
 
 	function getPortPos(
-		nodes: WFNode[],
 		nodeId: string,
 		portId: string,
 		side: "output" | "input"
 	): { x: number; y: number } {
-		// DOM measurement — always accurate regardless of layout
 		const dotEl = document.querySelector(
 			`[data-port-id="${nodeId}:${portId}:${side}"]`
 		);
 		const transformEl = document.querySelector(".canvas-transform");
-		if (dotEl && transformEl) {
-			const dotRect = dotEl.getBoundingClientRect();
-			const transformRect = transformEl.getBoundingClientRect();
-			const edgeX =
-				side === "output"
-					? dotRect.right - transformRect.left
-					: dotRect.left - transformRect.left;
-			return {
-				x: edgeX / zoom,
-				y: (dotRect.top + dotRect.height / 2 - transformRect.top) / zoom
-			};
-		}
-
-		// Fallback
-		const node = nodes.find((n) => n.id === nodeId);
-		if (!node) return { x: 0, y: 0 };
-		const ports = side === "output" ? node.outputs : node.inputs;
-		const idx = ports.findIndex((p) => p.id === portId);
-		const portIndex = idx >= 0 ? idx : 0;
-		const DOT_OUTSET = 24;
-		const x =
+		if (!dotEl || !transformEl) return { x: 0, y: 0 };
+		const dotRect = dotEl.getBoundingClientRect();
+		const transformRect = transformEl.getBoundingClientRect();
+		const edgeX =
 			side === "output"
-				? node.x + node.width + DOT_OUTSET
-				: node.x - DOT_OUTSET;
-		const headerH = node.source === "space" && node.space_id ? 60 : 44;
-		if (side === "input") {
-			return { x, y: node.y + headerH + portIndex * 26 };
-		} else {
-			const portsBlockH = ports.length * 26;
-			return { x, y: node.y + node.height - portsBlockH + portIndex * 26 - 2 };
-		}
+				? dotRect.right - transformRect.left
+				: dotRect.left - transformRect.left;
+		return {
+			x: edgeX / zoom,
+			y: (dotRect.top + dotRect.height / 2 - transformRect.top) / zoom
+		};
 	}
 </script>
 
@@ -89,18 +67,8 @@
 	</defs>
 
 	{#each $workflow.edges as edge (edge.id)}
-		{@const from = getPortPos(
-			$workflow.nodes,
-			edge.from_node_id,
-			edge.from_port_id,
-			"output"
-		)}
-		{@const to = getPortPos(
-			$workflow.nodes,
-			edge.to_node_id,
-			edge.to_port_id,
-			"input"
-		)}
+		{@const from = getPortPos(edge.from_node_id, edge.from_port_id, "output")}
+		{@const to = getPortPos(edge.to_node_id, edge.to_port_id, "input")}
 		<!-- glow -->
 		<path
 			d={bez(from.x, from.y, to.x, to.y)}
@@ -145,7 +113,6 @@
 
 	{#if pending}
 		{@const anchor = getPortPos(
-			$workflow.nodes,
 			pending.from_node_id,
 			pending.from_port_id,
 			pending.reversed ? "input" : "output"
