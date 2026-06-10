@@ -441,16 +441,24 @@
 	function onWheel(e: WheelEvent): void {
 		if (!canvasEl) return;
 		e.preventDefault();
-		const r = canvasEl.getBoundingClientRect();
-		const cx = e.clientX - r.left;
-		const cy = e.clientY - r.top;
-		const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-		const oldZoom = viewport.zoom;
-		const newZoom = Math.max(0.15, Math.min(4, oldZoom * factor));
+		if (e.ctrlKey || e.metaKey) {
+			const r = canvasEl.getBoundingClientRect();
+			const cx = e.clientX - r.left;
+			const cy = e.clientY - r.top;
+			const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+			const oldZoom = viewport.zoom;
+			const newZoom = Math.max(0.15, Math.min(4, oldZoom * factor));
+			viewport = {
+				x: cx - (cx - viewport.x) * (newZoom / oldZoom),
+				y: cy - (cy - viewport.y) * (newZoom / oldZoom),
+				zoom: newZoom
+			};
+			return;
+		}
 		viewport = {
-			x: cx - (cx - viewport.x) * (newZoom / oldZoom),
-			y: cy - (cy - viewport.y) * (newZoom / oldZoom),
-			zoom: newZoom
+			...viewport,
+			x: viewport.x - e.deltaX,
+			y: viewport.y - e.deltaY
 		};
 	}
 
@@ -2167,7 +2175,10 @@
 					<kbd>Cmd+A</kbd> <span>Select all</span>
 				</div>
 				<div class="shortcut-row"><kbd>Escape</kbd> <span>Deselect</span></div>
-				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Zoom</span></div>
+				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Pan</span></div>
+			<div class="shortcut-row">
+				<kbd>Cmd+Scroll</kbd> <span>Zoom</span>
+			</div>
 				<div class="shortcut-row">
 					<kbd>Drag canvas</kbd> <span>Marquee select</span>
 				</div>
