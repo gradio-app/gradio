@@ -1,10 +1,16 @@
-import { test, describe, afterEach, expect, vi } from "vitest";
+import { test, describe, afterEach, expect, vi, beforeAll } from "vitest";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
+import { setupi18n } from "../core/src/i18n";
+import { formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
 import { handle_filter } from "./shared/utils";
+
+// Build a real i18n marker the way the backend's I18nData does.
+const marker = (key: string): string =>
+	`__i18n__${JSON.stringify({ __type__: "translation_metadata", key })}`;
 
 const single_select_props = {
 	label: "Dropdown",
@@ -1599,6 +1605,98 @@ describe("handle_filter", () => {
 
 	test("matches substring anywhere in display name", () => {
 		expect(handle_filter(choices, "an")).toEqual([1]);
+	});
+});
+
+describe("i18n choices", () => {
+	beforeAll(async () => {
+		await setupi18n({ en: { bold_label: "Bold", italic_label: "Italic" } });
+	});
+	afterEach(() => cleanup());
+
+	const i18n_choices: [string, string][] = [
+		[marker("bold_label"), "bold"],
+		[marker("italic_label"), "italic"]
+	];
+
+	test("single-select shows translated display name for the selected value", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input.value).toBe("Bold");
+	});
+
+	test("single-select translates option display names", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Bold");
+		expect(options[1]).toHaveAttribute("aria-label", "Italic");
+	});
+
+	test("single-select internal value is unaffected by translation", async () => {
+		const { get_data } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const data = await get_data();
+		expect(data.value).toBe("bold");
+	});
+
+	test("multiselect renders translated display names in tokens", async () => {
+		const { getByText, queryByText } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["bold", "italic"]
+		});
+
+		expect(getByText("Bold")).toBeTruthy();
+		expect(getByText("Italic")).toBeTruthy();
+		expect(queryByText("__i18n__bold")).toBeNull();
+	});
+
+	test("multiselect translates option display names", async () => {
+		const { container, getAllByTestId } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices
+		});
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Bold");
+		expect(options[1]).toHaveAttribute("aria-label", "Italic");
+	});
+
+	test("multiselect internal value is unaffected by translation", async () => {
+		const { get_data } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["italic"]
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["italic"]);
 	});
 });
 

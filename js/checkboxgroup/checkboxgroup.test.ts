@@ -1,9 +1,15 @@
-import { test, describe, expect, afterEach } from "vitest";
+import { test, describe, expect, afterEach, beforeAll } from "vitest";
 import { cleanup, render, fireEvent } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
+import { setupi18n } from "../core/src/i18n";
+import { formatter } from "../core/src/gradio_helper";
 
 import CheckboxGroup from "./Index.svelte";
+
+// Build a real i18n marker the way the backend's I18nData does.
+const marker = (key: string): string =>
+	`__i18n__${JSON.stringify({ __type__: "translation_metadata", key })}`;
 
 const default_props = {
 	label: "Options",
@@ -465,5 +471,42 @@ describe("Edge cases", () => {
 
 		const data = await get_data();
 		expect(data.value).toEqual(["internal_val"]);
+	});
+});
+
+describe("CheckboxGroup: i18n choices", () => {
+	beforeAll(async () => {
+		await setupi18n({ en: { bold_label: "Bold", italic_label: "Italic" } });
+	});
+	afterEach(() => cleanup());
+
+	const i18n_choices: [string, string][] = [
+		[marker("bold_label"), "bold"],
+		[marker("italic_label"), "italic"]
+	];
+
+	test("translates choice display values through the i18n formatter", async () => {
+		const { getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			i18n: formatter,
+			choices: i18n_choices
+		});
+
+		expect(getByLabelText("Bold")).toBeTruthy();
+		expect(getByLabelText("Italic")).toBeTruthy();
+	});
+
+	test("internal value is unaffected by translation", async () => {
+		const { getByLabelText, get_data } = await render(CheckboxGroup, {
+			...default_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["bold"]
+		});
+
+		expect(getByLabelText("Bold")).toBeChecked();
+
+		const data = await get_data();
+		expect(data.value).toEqual(["bold"]);
 	});
 });
