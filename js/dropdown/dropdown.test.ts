@@ -1610,7 +1610,7 @@ describe("handle_filter", () => {
 
 describe("i18n choices", () => {
 	beforeAll(async () => {
-		await setupi18n();
+		await setupi18n(undefined, "en");
 	});
 	afterEach(() => cleanup());
 

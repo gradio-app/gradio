@@ -147,7 +147,7 @@ describe("Props: choices", () => {
 
 describe("Props: i18n choices", () => {
 	beforeAll(async () => {
-		await setupi18n();
+		await setupi18n(undefined, "en");
 	});
 
 	const i18n_choices: [string, string][] = [
