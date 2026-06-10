@@ -121,8 +121,16 @@
 
 	$effect(() => {
 		window.addEventListener("keydown", handleKeydown);
-		return () => window.removeEventListener("keydown", handleKeydown);
+		window.addEventListener("keyup", handle_keyup);
+		return () => {
+			window.removeEventListener("keydown", handleKeydown);
+			window.removeEventListener("keyup", handle_keyup);
+		};
 	});
+
+	function handle_keyup(e: KeyboardEvent): void {
+		if (e.code === "Space") spaceHeld = false;
+	}
 
 	// ─── Canvas state ───────────────────────────────────────────────────────────
 	let viewport = $state(load_viewport($workflow.name));
@@ -153,6 +161,8 @@
 				startClientY: number;
 				startNodeX: number;
 				startNodeY: number;
+				moved: boolean;
+				groupStart: Map<string, { x: number; y: number }>;
 		  }
 		| {
 				kind: "connection";
@@ -162,8 +172,22 @@
 				reversed: boolean;
 				cursorCanvasX: number;
 				cursorCanvasY: number;
+		  }
+		| {
+				kind: "marquee";
+				startCanvasX: number;
+				startCanvasY: number;
+				endCanvasX: number;
+				endCanvasY: number;
+				additive: boolean;
+				moved: boolean;
 		  };
 	let dragMode = $state<DragMode | null>(null);
+	let spaceHeld = $state(false);
+	// When a node drag ends with movement, the synthetic click that follows
+	// pointerup would otherwise collapse a multi-selection down to one node.
+	// This timestamp tells onselect to ignore the next click.
+	let suppress_node_click_until = 0;
 
 	// ─── App state ──────────────────────────────────────────────────────────────
 	let canvasEl: HTMLDivElement;
@@ -185,7 +209,13 @@
 	 */
 	let nodeInputSnapshots: Record<string, string> = $state({});
 	let editingName = $state(false);
-	let selectedNodeId: string | null = $state(null);
+	let selectedNodeIds = $state<Set<string>>(new Set());
+	let selectedEdgeIds = $state<Set<string>>(new Set());
+	const selectedNodeId = $derived(
+		selectedNodeIds.size === 1
+			? (selectedNodeIds.values().next().value ?? null)
+			: null
+	);
 	let showShortcuts = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
 
@@ -333,7 +363,7 @@
 			}
 		},
 		onrunnode: (id: string) => void runNode(id),
-		onselect: (id: string) => selectNode(id),
+		onselect: (id: string, additive = false) => selectNode(id, additive),
 		onnodepointerdown: (e: PointerEvent, id: string) => startNodeDrag(e, id),
 		onportpointerdown: (
 			e: PointerEvent,
@@ -376,9 +406,10 @@
 	}
 
 	function onCanvasPointerDown(e: PointerEvent): void {
-		if (e.button !== 0) return;
+		// Middle button or button 0 only; right-click ignored.
+		if (e.button !== 0 && e.button !== 1) return;
 		const target = e.target as HTMLElement;
-		// Only start pan when clicking truly empty canvas — not nodes, edges, ports, UI
+		// Only react to truly-empty canvas — not nodes, edges, ports, UI
 		if (
 			target.closest(
 				".node-pos-wrap, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar"
@@ -386,12 +417,29 @@
 		) {
 			return;
 		}
+		const pan_requested = e.button === 1 || spaceHeld;
+		if (pan_requested) {
+			dragMode = {
+				kind: "pan",
+				startX: e.clientX,
+				startY: e.clientY,
+				vx: viewport.x,
+				vy: viewport.y
+			};
+			canvasEl.setPointerCapture(e.pointerId);
+			return;
+		}
+		// Empty-canvas left-click drag = marquee selection. Shift extends the
+		// existing selection; plain drag replaces it on commit.
+		const { x, y } = clientToCanvas(e.clientX, e.clientY);
 		dragMode = {
-			kind: "pan",
-			startX: e.clientX,
-			startY: e.clientY,
-			vx: viewport.x,
-			vy: viewport.y
+			kind: "marquee",
+			startCanvasX: x,
+			startCanvasY: y,
+			endCanvasX: x,
+			endCanvasY: y,
+			additive: e.shiftKey,
+			moved: false
 		};
 		canvasEl.setPointerCapture(e.pointerId);
 	}
@@ -417,13 +465,29 @@
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
+		// If the dragged node is part of the current selection, move the whole
+		// group; otherwise drag just this node. Selection itself is updated on
+		// click (pointerup with no movement) so users can grab without losing
+		// their existing multi-selection.
+		const inSelection = selectedNodeIds.has(nodeId);
+		const groupIds =
+			inSelection && selectedNodeIds.size > 1
+				? selectedNodeIds
+				: new Set<string>([nodeId]);
+		const groupStart = new Map<string, { x: number; y: number }>();
+		for (const id of groupIds) {
+			const n = legacyView.nodes.find((nn) => nn.id === id);
+			if (n) groupStart.set(id, { x: n.x, y: n.y });
+		}
 		dragMode = {
 			kind: "node",
 			nodeId,
 			startClientX: e.clientX,
 			startClientY: e.clientY,
 			startNodeX: node.x,
-			startNodeY: node.y
+			startNodeY: node.y,
+			moved: false,
+			groupStart
 		};
 		canvasEl?.setPointerCapture(e.pointerId);
 	}
@@ -467,20 +531,71 @@
 		} else if (dragMode.kind === "node") {
 			const dx = (e.clientX - dragMode.startClientX) / viewport.zoom;
 			const dy = (e.clientY - dragMode.startClientY) / viewport.zoom;
-			moveNode(
-				dragMode.nodeId,
-				dragMode.startNodeX + dx,
-				dragMode.startNodeY + dy
-			);
+			if (Math.abs(dx) > 0 || Math.abs(dy) > 0) dragMode.moved = true;
+			// If the node being dragged is part of a multi-selection, move all
+			// selected nodes together; otherwise just move the one node.
+			if (dragMode.groupStart.size > 1) {
+				for (const [id, start] of dragMode.groupStart) {
+					moveNode(id, start.x + dx, start.y + dy);
+				}
+			} else {
+				moveNode(
+					dragMode.nodeId,
+					dragMode.startNodeX + dx,
+					dragMode.startNodeY + dy
+				);
+			}
 		} else if (dragMode.kind === "connection") {
 			const { x, y } = clientToCanvas(e.clientX, e.clientY);
 			dragMode = { ...dragMode, cursorCanvasX: x, cursorCanvasY: y };
+		} else if (dragMode.kind === "marquee") {
+			const { x, y } = clientToCanvas(e.clientX, e.clientY);
+			const moved =
+				dragMode.moved ||
+				Math.abs(x - dragMode.startCanvasX) > 2 ||
+				Math.abs(y - dragMode.startCanvasY) > 2;
+			dragMode = { ...dragMode, endCanvasX: x, endCanvasY: y, moved };
 		}
 	}
 
 	function onCanvasPointerUp(e: PointerEvent): void {
 		if (!dragMode) return;
 		const mode = dragMode;
+		if (mode.kind === "marquee") {
+			if (mode.moved) {
+				const hit_nodes = nodes_in_rect(
+					mode.startCanvasX,
+					mode.startCanvasY,
+					mode.endCanvasX,
+					mode.endCanvasY
+				);
+				const hit_edges = edges_in_rect(
+					mode.startCanvasX,
+					mode.startCanvasY,
+					mode.endCanvasX,
+					mode.endCanvasY
+				);
+				if (mode.additive) {
+					const next_nodes = new Set(selectedNodeIds);
+					for (const id of hit_nodes) next_nodes.add(id);
+					const next_edges = new Set(selectedEdgeIds);
+					for (const id of hit_edges) next_edges.add(id);
+					selectedNodeIds = next_nodes;
+					selectedEdgeIds = next_edges;
+				} else {
+					selectedNodeIds = hit_nodes;
+					selectedEdgeIds = hit_edges;
+				}
+			} else if (!mode.additive) {
+				// Click on empty canvas without drag — clear selection.
+				clear_selection();
+			}
+			dragMode = null;
+			try {
+				canvasEl?.releasePointerCapture(e.pointerId);
+			} catch {}
+			return;
+		}
 		if (mode.kind === "connection") {
 			activeConnection = null;
 			const targetEl = document.elementFromPoint(
@@ -573,6 +688,11 @@
 					dropChoice = choice;
 				}, 0);
 			}
+		}
+		if (mode.kind === "node" && mode.moved) {
+			// Suppress the click that browsers fire after a drag, so the
+			// trailing click doesn't collapse a multi-selection to one node.
+			suppress_node_click_until = Date.now() + 250;
 		}
 		dragMode = null;
 		try {
@@ -1315,20 +1435,110 @@
 		};
 	}
 
-	function selectNode(id: string): void {
-		selectedNodeId = id;
+	function selectNode(id: string, additive = false): void {
+		if (Date.now() < suppress_node_click_until) return;
+		if (additive) {
+			const next = new Set(selectedNodeIds);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			selectedNodeIds = next;
+		} else {
+			selectedNodeIds = new Set([id]);
+		}
+		selectedEdgeIds = new Set();
+	}
+
+	function clear_selection(): void {
+		selectedNodeIds = new Set();
+		selectedEdgeIds = new Set();
+	}
+
+	function rects_intersect(
+		ax: number,
+		ay: number,
+		aw: number,
+		ah: number,
+		bx: number,
+		by: number,
+		bw: number,
+		bh: number
+	): boolean {
+		return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+	}
+
+	/**
+	 * Find nodes/edges intersecting a canvas-space rect. For edges, hit-test
+	 * the sampled bezier path against the rect (approximated by sampling 12
+	 * points along the curve and checking each against the rect). Cheap and
+	 * close-enough for marquee selection.
+	 */
+	function nodes_in_rect(x1: number, y1: number, x2: number, y2: number): Set<string> {
+		const rx = Math.min(x1, x2);
+		const ry = Math.min(y1, y2);
+		const rw = Math.abs(x2 - x1);
+		const rh = Math.abs(y2 - y1);
+		const out = new Set<string>();
+		for (const n of legacyView.nodes) {
+			if (rects_intersect(n.x, n.y, n.width, n.height, rx, ry, rw, rh)) {
+				out.add(n.id);
+			}
+		}
+		return out;
+	}
+
+	function edges_in_rect(x1: number, y1: number, x2: number, y2: number): Set<string> {
+		const rx = Math.min(x1, x2);
+		const ry = Math.min(y1, y2);
+		const rw = Math.abs(x2 - x1);
+		const rh = Math.abs(y2 - y1);
+		const out = new Set<string>();
+		const pointIn = (px: number, py: number): boolean =>
+			px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+		for (const e of $workflow.edges) {
+			const a = portPos(e.from_node_id, e.from_port_id, "output");
+			const b = portPos(e.to_node_id, e.to_port_id, "input");
+			if (!a || !b) continue;
+			const dx = Math.max(40, Math.abs(b.x - a.x) * 0.5);
+			const c1x = a.x + dx;
+			const c1y = a.y;
+			const c2x = b.x - dx;
+			const c2y = b.y;
+			let hit = false;
+			for (let i = 0; i <= 12; i++) {
+				const t = i / 12;
+				const mt = 1 - t;
+				const px =
+					mt * mt * mt * a.x +
+					3 * mt * mt * t * c1x +
+					3 * mt * t * t * c2x +
+					t * t * t * b.x;
+				const py =
+					mt * mt * mt * a.y +
+					3 * mt * mt * t * c1y +
+					3 * mt * t * t * c2y +
+					t * t * t * b.y;
+				if (pointIn(px, py)) {
+					hit = true;
+					break;
+				}
+			}
+			if (hit) out.add(e.id);
+		}
+		return out;
 	}
 
 	function duplicateNode(id: string): void {
 		const node = legacyView.nodes.find((n) => n.id === id);
 		if (!node) return;
 		const { id: _, data: __, ...template } = node;
-		selectedNodeId = addNode(
+		const new_id = addNode(
 			templateRole(template),
 			template,
 			node.x + 40,
 			node.y + 40
 		);
+		selectedNodeIds = new Set([new_id]);
+		selectedEdgeIds = new Set();
 	}
 
 	function handleKeydown(e: KeyboardEvent): void {
@@ -1344,11 +1554,23 @@
 		}
 		const tag = (e.target as HTMLElement)?.tagName;
 		if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-		if ((e.key === "Delete" || e.key === "Backspace") && selectedNodeId) {
+		if (e.code === "Space") {
+			spaceHeld = true;
 			e.preventDefault();
-			const id = selectedNodeId;
-			selectedNodeId = null;
-			requestAnimationFrame(() => removeNode(id));
+		}
+		if (
+			(e.key === "Delete" || e.key === "Backspace") &&
+			(selectedNodeIds.size > 0 || selectedEdgeIds.size > 0)
+		) {
+			e.preventDefault();
+			const node_ids = [...selectedNodeIds];
+			const edge_ids = [...selectedEdgeIds];
+			selectedNodeIds = new Set();
+			selectedEdgeIds = new Set();
+			requestAnimationFrame(() => {
+				for (const id of node_ids) removeNode(id);
+				for (const id of edge_ids) removeEdge(id);
+			});
 		}
 		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
 			e.preventDefault();
@@ -1358,12 +1580,21 @@
 			e.preventDefault();
 			zoomToFit();
 		}
+		if (
+			e.key === "a" &&
+			(e.metaKey || e.ctrlKey) &&
+			legacyView.nodes.length > 0
+		) {
+			e.preventDefault();
+			selectedNodeIds = new Set(legacyView.nodes.map((n) => n.id));
+			selectedEdgeIds = new Set($workflow.edges.map((edge) => edge.id));
+		}
 		if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			viewport = { x: 0, y: 0, zoom: 1 };
 		}
 		if (e.key === "Escape") {
-			selectedNodeId = null;
+			clear_selection();
 			activeConnection = null;
 			activePicker = null;
 			pendingDrop = null;
@@ -1728,6 +1959,8 @@
 	<div
 		class="editor"
 		class:editor-panning={dragMode?.kind === "pan"}
+		class:editor-pan-ready={spaceHeld && !dragMode}
+		class:editor-marquee={dragMode?.kind === "marquee"}
 		bind:this={canvasEl}
 		ondragover={(e) => e.preventDefault()}
 		ondrop={handleDrop}
@@ -1755,11 +1988,22 @@
 					{#if path}
 						<path
 							class="edge-path"
+							class:edge-selected={selectedEdgeIds.has(edge.id)}
 							d={path}
 							stroke={PORT_COLOR[edge.type] ?? "#6b6e78"}
-							stroke-width={2 / viewport.zoom}
+							stroke-width={(selectedEdgeIds.has(edge.id) ? 3 : 2) /
+								viewport.zoom}
 							fill="none"
-							onclick={() => removeEdge(edge.id)}
+							onclick={(e) => {
+								if (e.shiftKey) {
+									const next = new Set(selectedEdgeIds);
+									if (next.has(edge.id)) next.delete(edge.id);
+									else next.add(edge.id);
+									selectedEdgeIds = next;
+								} else {
+									removeEdge(edge.id);
+								}
+							}}
 						/>
 					{/if}
 				{/each}
@@ -1782,7 +2026,7 @@
 			{#each legacyView.nodes as n (n.id)}
 				<div
 					class="node-pos-wrap"
-					class:node-pos-selected={selectedNodeId === n.id}
+					class:node-pos-selected={selectedNodeIds.has(n.id)}
 					data-node-id={n.id}
 					style="left: {n.x}px; top: {n.y}px; width: {n.width}px;"
 					onpointerdown={(e) => startNodeDrag(e, n.id)}
@@ -1790,10 +2034,22 @@
 					<WorkflowNodeSF
 						id={n.id}
 						data={n}
-						selected={selectedNodeId === n.id}
+						selected={selectedNodeIds.has(n.id)}
 					/>
 				</div>
 			{/each}
+
+			{#if dragMode?.kind === "marquee" && dragMode.moved}
+				{@const mx = Math.min(dragMode.startCanvasX, dragMode.endCanvasX)}
+				{@const my = Math.min(dragMode.startCanvasY, dragMode.endCanvasY)}
+				{@const mw = Math.abs(dragMode.endCanvasX - dragMode.startCanvasX)}
+				{@const mh = Math.abs(dragMode.endCanvasY - dragMode.startCanvasY)}
+				<div
+					class="marquee-rect"
+					style="left: {mx}px; top: {my}px; width: {mw}px; height: {mh}px; border-width: {1 /
+						viewport.zoom}px;"
+				></div>
+			{/if}
 		</div>
 
 		{#if nodeCount === 0}
@@ -1916,11 +2172,22 @@
 				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
 				<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>
 				<div class="shortcut-row">
-					<kbd>Delete</kbd> <span>Remove node</span>
+					<kbd>Delete</kbd> <span>Remove selection</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Cmd+A</kbd> <span>Select all</span>
 				</div>
 				<div class="shortcut-row"><kbd>Escape</kbd> <span>Deselect</span></div>
 				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Zoom</span></div>
-				<div class="shortcut-row"><kbd>Drag canvas</kbd> <span>Pan</span></div>
+				<div class="shortcut-row">
+					<kbd>Drag canvas</kbd> <span>Marquee select</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Shift+Drag</kbd> <span>Add to selection</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Space+Drag</kbd> <span>Pan</span>
+				</div>
 				<div class="shortcut-row">
 					<kbd>Double-click</kbd> <span>Rename node</span>
 				</div>
@@ -2020,11 +2287,19 @@
 
 	/* ─── Custom canvas ─────────────────────────────────────────────────────── */
 	.editor {
+		cursor: default;
+	}
+
+	.editor.editor-pan-ready {
 		cursor: grab;
 	}
 
 	.editor.editor-panning {
 		cursor: grabbing;
+	}
+
+	.editor.editor-marquee {
+		cursor: crosshair;
 	}
 
 	.canvas-bg {
@@ -2074,6 +2349,18 @@
 
 	.node-pos-wrap.node-pos-selected {
 		z-index: 2;
+	}
+
+	.marquee-rect {
+		position: absolute;
+		border: 1px dashed #4f8cff;
+		background: rgba(79, 140, 255, 0.08);
+		pointer-events: none;
+		z-index: 3;
+	}
+
+	.edges-layer .edge-path.edge-selected {
+		filter: drop-shadow(0 0 4px #4f8cff);
 	}
 
 	:global(body:not(.dark)) .canvas-bg {

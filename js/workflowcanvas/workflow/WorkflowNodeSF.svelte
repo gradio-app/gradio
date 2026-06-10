@@ -45,7 +45,7 @@
 		onswitchendpoint: (id: string, endpointName: string) => void;
 		onhydratendpoints: (id: string, spaceId: string) => void;
 		onrunnode: (id: string) => void;
-		onselect: (id: string) => void;
+		onselect: (id: string, additive?: boolean) => void;
 		onnodepointerdown: (e: PointerEvent, id: string) => void;
 		onportpointerdown: (
 			e: PointerEvent,
@@ -179,7 +179,7 @@
 	class:node-droptarget={isDropTarget}
 	class:has-pending={pending !== null}
 	bind:this={nodeEl}
-	onclick={() => ctx.onselect(node.id)}
+	onclick={(e) => ctx.onselect(node.id, e.shiftKey)}
 	style="
 		width: {node.width}px;
 		--accent: {accentColor};
