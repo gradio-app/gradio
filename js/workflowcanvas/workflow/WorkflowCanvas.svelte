@@ -2176,9 +2176,9 @@
 				</div>
 				<div class="shortcut-row"><kbd>Escape</kbd> <span>Deselect</span></div>
 				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Pan</span></div>
-			<div class="shortcut-row">
-				<kbd>Cmd+Scroll</kbd> <span>Zoom</span>
-			</div>
+				<div class="shortcut-row">
+					<kbd>Cmd+Scroll</kbd> <span>Zoom</span>
+				</div>
 				<div class="shortcut-row">
 					<kbd>Drag canvas</kbd> <span>Marquee select</span>
 				</div>
