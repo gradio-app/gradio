@@ -1315,6 +1315,15 @@ class App(FastAPI):
                 )
             return ORJSONResponse(output)
 
+        def prepare_simple_api_data(body: PredictBody, fn: Any) -> None:
+            if len(body.data) == len(fn.inputs):
+                return
+            non_stateful_inputs = [block for block in fn.inputs if not block.stateful]
+            if len(body.data) != len(non_stateful_inputs):
+                return
+            data = iter(body.data)
+            body.data = [None if block.stateful else next(data) for block in fn.inputs]
+
         @router.post("/call/v2/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/v2/{api_name}/", dependencies=[Depends(login_check)])
         async def _(
@@ -1336,6 +1345,7 @@ class App(FastAPI):
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
+            prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
             return await queue_join_helper(full_body, request, username)
 
@@ -1351,6 +1361,7 @@ class App(FastAPI):
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
+            prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
             return await queue_join_helper(full_body, request, username)
 
@@ -1458,7 +1469,9 @@ class App(FastAPI):
                     return None
                 return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
-            return await queue_data_helper(request, event_id, process_msg)
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            session_hash = event.session_hash if event else event_id
+            return await queue_data_helper(request, session_hash, process_msg)
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(
