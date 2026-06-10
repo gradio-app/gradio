@@ -1,7 +1,7 @@
 import { test, describe, expect, afterEach, beforeAll } from "vitest";
 import { cleanup, render } from "@self/tootils/render";
 import event from "@testing-library/user-event";
-import { setupi18n } from "../core/src/i18n";
+import { setupi18n, changeLocale } from "../core/src/i18n";
 import { formatter } from "../core/src/gradio_helper";
 
 import SimpleDropdown from "./Index.svelte";
@@ -47,6 +47,7 @@ describe("SimpleDropdown", () => {
 describe("SimpleDropdown: i18n choices", () => {
 	beforeAll(async () => {
 		await setupi18n(undefined, "en");
+		changeLocale("en");
 	});
 	afterEach(() => cleanup());
 

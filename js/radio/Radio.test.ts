@@ -2,7 +2,7 @@ import { test, describe, expect, afterEach, beforeAll } from "vitest";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
-import { setupi18n } from "../core/src/i18n";
+import { setupi18n, changeLocale } from "../core/src/i18n";
 import { formatter } from "../core/src/gradio_helper";
 
 import Radio from "./Index.svelte";
@@ -148,6 +148,7 @@ describe("Props: choices", () => {
 describe("Props: i18n choices", () => {
 	beforeAll(async () => {
 		await setupi18n(undefined, "en");
+		changeLocale("en");
 	});
 
 	const i18n_choices: [string, string][] = [

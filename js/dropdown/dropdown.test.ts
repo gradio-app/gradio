@@ -2,7 +2,7 @@ import { test, describe, afterEach, expect, vi, beforeAll } from "vitest";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
-import { setupi18n } from "../core/src/i18n";
+import { setupi18n, changeLocale } from "../core/src/i18n";
 import { formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
@@ -1611,6 +1611,7 @@ describe("handle_filter", () => {
 describe("i18n choices", () => {
 	beforeAll(async () => {
 		await setupi18n(undefined, "en");
+		changeLocale("en");
 	});
 	afterEach(() => cleanup());
 
