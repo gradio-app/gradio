@@ -33,10 +33,12 @@
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
+		Port,
 		WFNode,
 		WFEdge,
 		NodeStatus,
-		NodeRole
+		NodeRole,
+		Workflow
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
 	import { stream_text_generation } from "./inference-stream";
@@ -50,7 +52,6 @@
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
-	import CheckIcon from "./icons/CheckIcon.svelte";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -73,9 +74,7 @@
 	const auth = createHFAuth(() => server);
 
 	$effect(() => {
-		if (server?.get_token) {
-			void auth.checkLoginStatus();
-		}
+		void auth.init();
 	});
 
 	$effect(() => {
@@ -199,7 +198,8 @@
 	interface WfToast {
 		id: number;
 		message: string;
-		type: "info" | "warning" | "error" | "success";
+		type: "info" | "warning" | "error" | "success" | "pro";
+		action?: { label: string; href?: string; onClick?: () => void };
 	}
 	let toasts: WfToast[] = $state([]);
 	let toastCounter = 0;
@@ -207,14 +207,16 @@
 	function showToast(
 		msg: string,
 		ms = 3000,
-		type: "info" | "warning" | "error" | "success" = "info"
+		type: "info" | "warning" | "error" | "success" | "pro" = "info",
+		action?: WfToast["action"]
 	): void {
 		const id = ++toastCounter;
-		toasts = [...toasts, { id, message: msg, type }].slice(-3);
-		if (ms > 0)
-			setTimeout(() => {
-				toasts = toasts.filter((t) => t.id !== id);
-			}, ms);
+		toasts = [...toasts, { id, message: msg, type, action }].slice(-3);
+		if (ms > 0) setTimeout(() => dismissToast(id), ms);
+	}
+
+	function dismissToast(id: number): void {
+		toasts = toasts.filter((t) => t.id !== id);
 	}
 
 	// v1 shape for read paths; writes go through v2 store actions.
@@ -552,11 +554,19 @@
 					y: mode.cursorCanvasY,
 					reversed: mode.reversed
 				};
+				const srcPort = findSourcePort(
+					mode.fromNodeId,
+					mode.fromPortId,
+					mode.reversed
+				);
+				const hasChoices = !!(srcPort?.choices && srcPort.choices.length > 0);
 				const choice: DropChoice = {
 					clientX: e.clientX - r.left,
 					clientY: e.clientY - r.top,
-					modelOptions: buildModelOptions(mode.type),
-					componentOptions: buildComponentOptions(mode.type, mode.reversed),
+					modelOptions: hasChoices ? [] : buildModelOptions(mode.type),
+					componentOptions: hasChoices
+						? [{ kind: "component", label: srcPort!.label }]
+						: buildComponentOptions(mode.type, mode.reversed),
 					reversed: mode.reversed
 				};
 				setTimeout(() => {
@@ -724,6 +734,17 @@
 		});
 	}
 
+	function findSourcePort(
+		nodeId: string,
+		portId: string,
+		reversed: boolean
+	): Port | undefined {
+		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		return reversed
+			? node?.inputs.find((p) => p.id === portId)
+			: node?.outputs.find((p) => p.id === portId);
+	}
+
 	function buildModelOptions(type: PortType): DropOption[] {
 		const modality = modalityForPort(type);
 		if (!modality) return [];
@@ -762,7 +783,27 @@
 		for (const c of LIBRARY.components) {
 			typedComponents[c.outputs[0]?.type ?? "any"] = c;
 		}
-		const template = typedComponents[drop.type] ?? LIBRARY.components[0];
+		const base = typedComponents[drop.type] ?? LIBRARY.components[0];
+		const sourcePort = findSourcePort(
+			drop.from_node_id,
+			drop.from_port_id,
+			drop.reversed ?? false
+		);
+		const choiceInfo =
+			sourcePort?.choices && sourcePort.choices.length > 0
+				? {
+						choices: sourcePort.choices,
+						multiselect: !!sourcePort.multiselect
+					}
+				: null;
+		const template = choiceInfo
+			? {
+					...base,
+					label: sourcePort?.label || base.label,
+					inputs: base.inputs.map((p: Port) => ({ ...p, ...choiceInfo })),
+					outputs: base.outputs.map((p: Port) => ({ ...p, ...choiceInfo }))
+				}
+			: base;
 		const rawX = drop.reversed
 			? drop.x - (template.width ?? 200) - 80
 			: drop.x - (template.width ?? 200) / 2;
@@ -1094,11 +1135,9 @@
 		);
 		abortController = new AbortController();
 
-		const oauthToken = await auth.getOAuthToken();
-		const hasAuth = !!oauthToken || !!auth.hfToken;
 		if (
 			legacyView.nodes.some((n) => n.source === "space" && n.space_id) &&
-			!hasAuth
+			!auth.token
 		) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
@@ -1109,7 +1148,7 @@
 
 		const callSpaceWithToken = server?.call_space
 			? async (spaceId: string, endpoint: string, argsJson: string) =>
-					server.call_space([spaceId, endpoint, argsJson, auth.hfToken || ""])
+					server.call_space([spaceId, endpoint, argsJson, auth.token])
 			: undefined;
 
 		const callModelWithToken = server?.call_model
@@ -1123,7 +1162,7 @@
 						modelId,
 						pipelineTag,
 						argsJson,
-						auth.hfToken || "",
+						auth.token,
 						provider ?? ""
 					])
 			: undefined;
@@ -1142,7 +1181,7 @@
 						split,
 						offset,
 						length,
-						auth.hfToken || ""
+						auth.token
 					])
 			: undefined;
 
@@ -1165,15 +1204,26 @@
 					}
 				}
 				if (error) {
-					nodeErrors = { ...nodeErrors, [nodeId]: error };
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const label =
 						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
-					showToast(
-						`${label}: ${error}`,
-						errorType === "quota" || errorType === "gpu" ? 0 : 5000,
-						"error"
-					);
+					if (errorType === "quota" || errorType === "gpu") {
+						const headline =
+							errorType === "quota"
+								? "GPU quota exceeded"
+								: "GPU unavailable — try again in a minute";
+						nodeErrors = { ...nodeErrors, [nodeId]: headline };
+						const cta = auth.getQuotaCTA();
+						showToast(
+							`${label}: ${headline}. ${cta.suffix}`,
+							0,
+							"pro",
+							cta.action
+						);
+					} else {
+						nodeErrors = { ...nodeErrors, [nodeId]: error };
+						showToast(`${label}: ${error}`, 5000, "error");
+					}
 				}
 			},
 			(nodeId, portId, value) => {
@@ -1189,7 +1239,7 @@
 					modelId,
 					prompt,
 					provider,
-					hfToken: auth.hfToken || undefined,
+					hfToken: auth.token || undefined,
 					signal: signal ?? undefined,
 					onChunk
 				})
@@ -1451,9 +1501,17 @@
 			if (spaceNode) {
 				const compGap = 24;
 				const compH = 180;
-				const inputPorts = spaceNode.inputs.filter((p) =>
-					SUBGRAPH_PORT_TYPES.has(p.type)
+				// Skip ports with `choices` — they render an inline dropdown in
+				// the node body, so an auto-wired reference would be redundant
+				// (and worse, the reference is a plain textbox).
+				const typedInputs = spaceNode.inputs.filter(
+					(p) =>
+						SUBGRAPH_PORT_TYPES.has(p.type) &&
+						!(p.choices && p.choices.length > 0)
 				);
+				const requiredInputs = typedInputs.filter((p) => p.required !== false);
+				const inputPorts =
+					requiredInputs.length > 0 ? requiredInputs : typedInputs;
 				const outputPorts = spaceNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
@@ -1629,44 +1687,32 @@
 			>
 		</div>
 		<div class="toolbar-right">
-			{#if !auth.isCheckingLogin}
-				{#if auth.loggedInUser}
+			{#if auth.status !== "checking"}
+				{#if auth.user}
 					<span class="toolbar-user-info"
-						>Logged in as <strong>{auth.loggedInUser}</strong></span
+						>Logged in as <strong>{auth.user}</strong></span
 					>
-					{#if auth.isHFSpace}
-						<button
-							class="toolbar-login-btn logged-in"
-							onclick={auth.handleLogout}>Log out</button
-						>
-					{/if}
+					<button class="toolbar-login-btn logged-in" onclick={auth.signOut}
+						>Log out</button
+					>
 				{:else if auth.isHFSpace}
-					<button class="toolbar-login-btn" onclick={auth.handleLogin}
+					<button class="toolbar-login-btn" onclick={auth.signIn}
 						>Sign in with 🤗</button
 					>
 				{:else}
 					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
 						<input
 							class="toolbar-token-input"
-							class:has-user={!!auth.tokenUser}
-							class:invalid={auth.tokenStatus === "invalid"}
+							class:invalid={auth.status === "invalid"}
 							type="password"
 							placeholder="Paste HF token (hf_...)"
-							value={auth.hfToken}
-							onchange={(e) => auth.saveToken(e.currentTarget.value)}
+							value={auth.token}
+							onchange={(e) => auth.setPAT(e.currentTarget.value)}
 							title="HuggingFace token for GPU access"
 						/>
-						{#if auth.tokenUser}
-							<span
-								class="toolbar-token-status valid"
-								title={`Signed in as ${auth.tokenUser}`}
-							>
-								<CheckIcon />
-								{auth.tokenUser}
-							</span>
-						{:else if auth.tokenStatus === "validating"}
+						{#if auth.status === "validating"}
 							<span class="toolbar-token-status validating">checking…</span>
-						{:else if auth.tokenStatus === "invalid"}
+						{:else if auth.status === "invalid"}
 							<span class="toolbar-token-status invalid">invalid</span>
 						{/if}
 					</form>
@@ -1925,11 +1971,32 @@
 			{#each toasts as t (t.id)}
 				<div class="wf-toast wf-toast-{t.type}">
 					<span class="wf-toast-msg">{t.message}</span>
+					{#if t.action?.href}
+						<a
+							class="wf-toast-action"
+							href={t.action.href}
+							target="_blank"
+							rel="noopener noreferrer"
+							onclick={() => dismissToast(t.id)}
+						>
+							{t.action.label}
+						</a>
+					{:else if t.action?.onClick}
+						<button
+							class="wf-toast-action"
+							onclick={() => {
+								t.action?.onClick?.();
+								dismissToast(t.id);
+							}}
+						>
+							{t.action.label}
+						</button>
+					{/if}
 					<button
 						class="wf-toast-close"
 						aria-label="Dismiss"
 						title="Dismiss"
-						onclick={() => (toasts = toasts.filter((x) => x.id !== t.id))}
+						onclick={() => dismissToast(t.id)}
 					>
 						×
 					</button>
