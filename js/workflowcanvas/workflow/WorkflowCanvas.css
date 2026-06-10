@@ -447,15 +447,20 @@
 }
 
 .wf-toast.wf-toast-pro .wf-toast-action {
-	border: none;
-	background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-	color: #ffffff;
-	box-shadow: 0 1px 2px rgba(79, 70, 229, 0.35);
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 4px 10px;
+	border-radius: 6px;
+	border: 1px solid rgba(139, 92, 246, 0.5);
+	background: rgba(139, 92, 246, 0.1);
+	color: #c4b5fd;
 }
 
 .wf-toast.wf-toast-pro .wf-toast-action:hover {
-	background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-	box-shadow: 0 2px 6px rgba(79, 70, 229, 0.5);
+	background: rgba(139, 92, 246, 0.18);
+	border-color: rgba(139, 92, 246, 0.7);
+	color: #ddd6fe;
 }
 
 @keyframes wf-toast-in {

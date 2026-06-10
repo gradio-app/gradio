@@ -15,7 +15,6 @@ from collections.abc import Callable
 from typing import Optional
 
 import httpx
-from huggingface_hub import get_token as _hf_get_token
 
 from gradio.blocks import Blocks
 from gradio.oauth import OAuthToken
@@ -135,20 +134,13 @@ def _workflow_from_bind(
     )
 
 
-def _local_hf_token() -> str | None:
-    try:
-        return _hf_get_token()
-    except Exception:
-        return None
-
-
 def _resolve_token(data: list, idx: int, token) -> str | None:
     manual = data[idx] if len(data) > idx else None
     if manual:
         return manual
     if token:
         return token.token
-    return _local_hf_token()
+    return None
 
 
 def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
@@ -330,7 +322,7 @@ VALID_SPACE_CATEGORIES = {
 def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
     if token:
         return token.token
-    return _local_hf_token() or ""
+    return ""
 
 
 def call_space(data, token: Optional[OAuthToken] = None) -> str:

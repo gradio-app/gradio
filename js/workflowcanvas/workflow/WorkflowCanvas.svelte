@@ -51,7 +51,6 @@
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
-	import CheckIcon from "./icons/CheckIcon.svelte";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -74,9 +73,7 @@
 	const auth = createHFAuth(() => server);
 
 	$effect(() => {
-		if (server?.get_token) {
-			void auth.checkLoginStatus();
-		}
+		void auth.init();
 	});
 
 	$effect(() => {
@@ -1137,11 +1134,9 @@
 		);
 		abortController = new AbortController();
 
-		const oauthToken = await auth.getOAuthToken();
-		const hasAuth = !!oauthToken || !!auth.hfToken;
 		if (
 			legacyView.nodes.some((n) => n.source === "space" && n.space_id) &&
-			!hasAuth
+			!auth.token
 		) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
@@ -1152,7 +1147,7 @@
 
 		const callSpaceWithToken = server?.call_space
 			? async (spaceId: string, endpoint: string, argsJson: string) =>
-					server.call_space([spaceId, endpoint, argsJson, auth.hfToken || ""])
+					server.call_space([spaceId, endpoint, argsJson, auth.token])
 			: undefined;
 
 		const callModelWithToken = server?.call_model
@@ -1166,7 +1161,7 @@
 						modelId,
 						pipelineTag,
 						argsJson,
-						auth.hfToken || "",
+						auth.token,
 						provider ?? ""
 					])
 			: undefined;
@@ -1185,7 +1180,7 @@
 						split,
 						offset,
 						length,
-						auth.hfToken || ""
+						auth.token
 					])
 			: undefined;
 
@@ -1243,7 +1238,7 @@
 					modelId,
 					prompt,
 					provider,
-					hfToken: auth.hfToken || undefined,
+					hfToken: auth.token || undefined,
 					signal: signal ?? undefined,
 					onChunk
 				})
@@ -1688,42 +1683,32 @@
 			>
 		</div>
 		<div class="toolbar-right">
-			{#if !auth.isCheckingLogin}
-				{#if auth.loggedInUser}
+			{#if auth.status !== "checking"}
+				{#if auth.user}
 					<span class="toolbar-user-info"
-						>Logged in as <strong>{auth.loggedInUser}</strong></span
+						>Logged in as <strong>{auth.user}</strong></span
 					>
-					<button
-						class="toolbar-login-btn logged-in"
-						onclick={auth.handleLogout}>Log out</button
+					<button class="toolbar-login-btn logged-in" onclick={auth.signOut}
+						>Log out</button
 					>
 				{:else if auth.isHFSpace}
-					<button class="toolbar-login-btn" onclick={auth.handleLogin}
+					<button class="toolbar-login-btn" onclick={auth.signIn}
 						>Sign in with 🤗</button
 					>
 				{:else}
 					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
 						<input
 							class="toolbar-token-input"
-							class:has-user={!!auth.tokenUser}
-							class:invalid={auth.tokenStatus === "invalid"}
+							class:invalid={auth.status === "invalid"}
 							type="password"
 							placeholder="Paste HF token (hf_...)"
-							value={auth.hfToken}
-							onchange={(e) => auth.saveToken(e.currentTarget.value)}
+							value={auth.token}
+							onchange={(e) => auth.setPAT(e.currentTarget.value)}
 							title="HuggingFace token for GPU access"
 						/>
-						{#if auth.tokenUser}
-							<span
-								class="toolbar-token-status valid"
-								title={`Signed in as ${auth.tokenUser}`}
-							>
-								<CheckIcon />
-								{auth.tokenUser}
-							</span>
-						{:else if auth.tokenStatus === "validating"}
+						{#if auth.status === "validating"}
 							<span class="toolbar-token-status validating">checking…</span>
-						{:else if auth.tokenStatus === "invalid"}
+						{:else if auth.status === "invalid"}
 							<span class="toolbar-token-status invalid">invalid</span>
 						{/if}
 					</form>

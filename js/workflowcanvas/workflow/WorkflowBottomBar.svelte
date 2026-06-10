@@ -435,5 +435,4 @@
 		background: #f0f1f5;
 		color: #1a1b25;
 	}
-
 </style>
