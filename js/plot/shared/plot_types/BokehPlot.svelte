@@ -23,14 +23,17 @@
 		return `https://cdn.pydata.org/bokeh/release/${filename}`;
 	}
 
-	function load_script(src: string, fallback?: string): Promise<void> {
+	function load_script(
+		src: string,
+		fallback?: string
+	): Promise<HTMLScriptElement> {
 		return new Promise((resolve, reject) => {
 			const script = document.createElement("script");
-			script.onload = () => resolve();
+			script.onload = () => resolve(script);
 			script.onerror = () => {
 				if (fallback) {
 					const fallback_script = document.createElement("script");
-					fallback_script.onload = () => resolve();
+					fallback_script.onload = () => resolve(fallback_script);
 					fallback_script.onerror = () => {
 						console.error(`Failed to load Bokeh script: ${src}`);
 						reject(new Error(`Failed to load ${src}`));
@@ -47,7 +50,7 @@
 		});
 	}
 
-	async function embed_bokeh(_plot: Record<string, any>): Promise<void> {
+	async function embed_bokeh(_plot: string): Promise<void> {
 		if (document) {
 			const el = document.getElementById(div_id);
 			if (el) {
@@ -91,7 +94,7 @@
 	let plugin_scripts: HTMLScriptElement[] = $state([]);
 
 	async function load_plugins(): Promise<void> {
-		await Promise.all(
+		plugin_scripts = await Promise.all(
 			plugins_src.map((src, i) => load_script(src, plugins_fallback[i]))
 		);
 
@@ -102,7 +105,9 @@
 		load_plugins();
 	}
 
-	function load_bokeh(): HTMLScriptElement {
+	let added_main_script = false;
+
+	function load_bokeh(): HTMLScriptElement | null {
 		const script = document.createElement("script");
 		script.onload = handle_bokeh_loaded;
 		script.onerror = () => {
@@ -118,10 +123,11 @@
 		);
 		if (!is_bokeh_script_present) {
 			document.head.appendChild(script);
-		} else {
-			handle_bokeh_loaded();
+			added_main_script = true;
+			return script;
 		}
-		return script;
+		handle_bokeh_loaded();
+		return null;
 	}
 
 	const main_script = bokeh_version ? load_bokeh() : null;
@@ -134,14 +140,18 @@
 
 	$effect(() => {
 		return () => {
-			if (main_script && document.head.contains(main_script)) {
+			if (
+				added_main_script &&
+				main_script &&
+				document.head.contains(main_script)
+			) {
 				document.head.removeChild(main_script);
-				plugin_scripts.forEach((child) => {
-					if (document.head.contains(child)) {
-						document.head.removeChild(child);
-					}
-				});
 			}
+			plugin_scripts.forEach((child) => {
+				if (document.head.contains(child)) {
+					document.head.removeChild(child);
+				}
+			});
 		};
 	});
 </script>

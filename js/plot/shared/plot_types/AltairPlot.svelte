@@ -25,7 +25,7 @@
 
 	let element: HTMLElement;
 	let parent_element: HTMLElement;
-	let view: View;
+	let view: View | undefined;
 
 	let computed_style = window.getComputedStyle(document.body);
 
@@ -78,6 +78,10 @@
 	};
 	let resize_callback = (): void => {};
 	const renderPlot = (): void => {
+		if (view) {
+			view.finalize();
+			view = undefined;
+		}
 		if (fit_width_to_parent) {
 			spec.width = get_width();
 		}
@@ -130,6 +134,10 @@
 		resizeObserver.observe(parent_element);
 
 		return () => {
+			if (view) {
+				view.finalize();
+				view = undefined;
+			}
 			resizeObserver.disconnect();
 		};
 	});
