@@ -1494,11 +1494,14 @@
 				// Skip ports with `choices` — they render an inline dropdown in
 				// the node body, so an auto-wired reference would be redundant
 				// (and worse, the reference is a plain textbox).
-				const inputPorts = spaceNode.inputs.filter(
+				const typedInputs = spaceNode.inputs.filter(
 					(p) =>
 						SUBGRAPH_PORT_TYPES.has(p.type) &&
 						!(p.choices && p.choices.length > 0)
 				);
+				const requiredInputs = typedInputs.filter((p) => p.required !== false);
+				const inputPorts =
+					requiredInputs.length > 0 ? requiredInputs : typedInputs;
 				const outputPorts = spaceNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
