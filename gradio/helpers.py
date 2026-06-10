@@ -991,6 +991,10 @@ def special_args(
                     else:
                         raise e
 
+                # `session` is usually a copy of the underlying session (gr.Request
+                # converts it to an `Obj`), so expiry means "treat as logged out"
+                # here; the session entry itself is only removed on the next
+                # LoginButton page-load check, which operates on the raw session.
                 oauth_info = oauth._get_valid_oauth_info_from_session(session)
 
                 # Inject user profile

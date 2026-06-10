@@ -179,7 +179,12 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        request.session["oauth_info"] = mocked_oauth_info
+        # `mocked_oauth_info` is computed once at startup, so its `expires_at` would
+        # eventually be in the past and every login would be treated as expired.
+        request.session["oauth_info"] = {
+            **mocked_oauth_info,
+            "expires_at": int(time.time()) + 8 * 60 * 60,  # 8 hours
+        }
         return _redirect_to_target(request)
 
     @app.get("/logout")

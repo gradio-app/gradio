@@ -14,7 +14,7 @@ from starlette.testclient import TestClient
 from tqdm import tqdm
 
 import gradio as gr
-from gradio import helpers, routes, utils
+from gradio import helpers, oauth, routes, utils
 from gradio.media import get_audio, get_image
 from gradio.route_utils import API_PREFIX
 
@@ -964,7 +964,6 @@ def test_expired_oauth_token_is_not_injected():
     inputs, *_ = helpers.special_args(foo, inputs=[], request=_oauth_request(session))
 
     assert inputs == [None]
-    assert "oauth_info" not in session
 
 
 def test_expired_required_oauth_profile_raises():
@@ -975,7 +974,6 @@ def test_expired_required_oauth_profile_raises():
 
     with pytest.raises(gr.Error, match="requires a logged in user"):
         helpers.special_args(foo, inputs=[], request=_oauth_request(session))
-    assert "oauth_info" not in session
 
 
 def test_valid_oauth_session_is_injected():
@@ -989,6 +987,16 @@ def test_valid_oauth_session_is_injected():
     assert inputs[0].username == "test-user"
     assert inputs[1].token == "test-token"
     assert "oauth_info" in session
+
+
+def test_get_valid_oauth_info_removes_expired_session_entry():
+    expired = {"oauth_info": _oauth_info(expires_at=time.time() - 60)}
+    assert oauth._get_valid_oauth_info_from_session(expired) is None
+    assert "oauth_info" not in expired
+
+    valid = {"oauth_info": _oauth_info(expires_at=time.time() + 60)}
+    assert oauth._get_valid_oauth_info_from_session(valid) is not None
+    assert "oauth_info" in valid
 
 
 class _OAuthRequest:
