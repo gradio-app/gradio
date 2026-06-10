@@ -991,12 +991,16 @@ def special_args(
                     else:
                         raise e
 
+                # `session` is usually a copy of the underlying session (gr.Request
+                # converts it to an `Obj`), so expiry means "treat as logged out"
+                # here; the session entry itself is only removed on the next
+                # LoginButton page-load check, which operates on the raw session.
+                oauth_info = oauth._get_valid_oauth_info_from_session(session)
+
                 # Inject user profile
                 if type_hint in (Optional[oauth.OAuthProfile], oauth.OAuthProfile):
                     oauth_profile = (
-                        session["oauth_info"]["userinfo"]
-                        if "oauth_info" in session
-                        else None
+                        oauth_info["userinfo"] if oauth_info is not None else None
                     )
                     if oauth_profile is not None:
                         oauth_profile = oauth.OAuthProfile(oauth_profile)
@@ -1008,7 +1012,6 @@ def special_args(
 
                 # Inject user token
                 elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
-                    oauth_info = session.get("oauth_info")
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
