@@ -45,7 +45,7 @@
 		onswitchendpoint: (id: string, endpointName: string) => void;
 		onhydratendpoints: (id: string, spaceId: string) => void;
 		onrunnode: (id: string) => void;
-		onselect: (id: string) => void;
+		onselect: (id: string, additive?: boolean) => void;
 		onnodepointerdown: (e: PointerEvent, id: string) => void;
 		onportpointerdown: (
 			e: PointerEvent,
@@ -72,14 +72,30 @@
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
 
-	const INPUT_COLLAPSE_THRESHOLD = 3;
+	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
+		if (portType === "number") {
+			const n = Number(v);
+			return Number.isNaN(n) ? v : n;
+		}
+		if (portType === "boolean") {
+			if (v === "true") return true;
+			if (v === "false") return false;
+		}
+		return v;
+	}
 
 	function renameNode(newLabel: string): void {
 		const trimmed = newLabel.trim();
 		if (trimmed && trimmed !== node.label) {
 			workflow.update((wf) => ({
 				...wf,
-				nodes: wf.nodes.map((n) =>
+				references: wf.references.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				),
+				operators: wf.operators.map((n) =>
+					n.id === node.id ? { ...n, label: trimmed } : n
+				),
+				subjects: wf.subjects.map((n) =>
 					n.id === node.id ? { ...n, label: trimmed } : n
 				)
 			}));
@@ -161,7 +177,7 @@
 	class:node-droptarget={isDropTarget}
 	class:has-pending={pending !== null}
 	bind:this={nodeEl}
-	onclick={() => ctx.onselect(node.id)}
+	onclick={(e) => ctx.onselect(node.id, e.shiftKey)}
 	style="
 		width: {node.width}px;
 		--accent: {accentColor};
@@ -320,14 +336,18 @@
 
 	<!-- Input ports -->
 	{#if node.inputs.length > 0}
-		{@const collapsible = node.inputs.length > INPUT_COLLAPSE_THRESHOLD}
+		{@const hiddenCount = node.inputs.filter(
+			(p) =>
+				p.required === false && !connectedPorts.has(`${node.id}:${p.id}:input`)
+		).length}
+		{@const collapsible = hiddenCount > 0}
 		<div class="ports" class:widget-ports={hasWidget}>
-			{#each node.inputs as port, i}
+			{#each node.inputs as port}
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
 				{@const visible =
-					showAllInputs || i < INPUT_COLLAPSE_THRESHOLD || portConnected}
+					showAllInputs || portConnected || port.required !== false}
 				{#if visible}
 					<div class="port-row input-row" class:widget-port={hasWidget}>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -362,7 +382,52 @@
 							class="port-inline-config"
 							onmousedown={(e) => e.stopPropagation()}
 						>
-							{#if port.type === "number"}
+							{#if port.choices && port.choices.length > 0 && port.multiselect}
+								{@const selected = Array.isArray(node.data?.[port.id])
+									? (node.data[port.id] as string[])
+									: []}
+								<div class="inline-choices">
+									{#each port.choices as choice}
+										<label class="inline-checkbox">
+											<input
+												type="checkbox"
+												checked={selected.includes(choice)}
+												onchange={(e) => {
+													const next = e.currentTarget.checked
+														? [...selected, choice]
+														: selected.filter((c) => c !== choice);
+													ctx.ondatachange(node.id, port.id, next);
+												}}
+											/>
+											<span>{choice}</span>
+										</label>
+									{/each}
+								</div>
+							{:else if port.choices && port.choices.length > 0}
+								{@const raw = node.data?.[port.id] ?? port.default_value}
+								{@const current = raw != null ? String(raw) : ""}
+								{@const hasCurrent = port.choices.includes(current)}
+								<select
+									class="inline-input inline-select"
+									value={hasCurrent ? current : ""}
+									onchange={(e) => {
+										const v = e.currentTarget.value;
+										if (v === "") return;
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											castChoiceValue(v, port.type)
+										);
+									}}
+								>
+									{#if !hasCurrent}
+										<option value="" disabled>Select {port.label}</option>
+									{/if}
+									{#each port.choices as choice}
+										<option value={choice}>{choice}</option>
+									{/each}
+								</select>
+							{:else if port.type === "number"}
 								<input
 									class="inline-input inline-number"
 									type="number"
@@ -413,11 +478,17 @@
 			{#if collapsible}
 				<button
 					class="ports-toggle"
+					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
-					onclick={() => (showAllInputs = !showAllInputs)}
+					onclick={(e) => {
+						e.stopPropagation();
+						showAllInputs = !showAllInputs;
+					}}
 				>
-					{#if showAllInputs}▴ show less{:else}▾ {node.inputs.length -
-							INPUT_COLLAPSE_THRESHOLD} more params{/if}
+					{#if showAllInputs}▴ show less{:else}▾ {hiddenCount} optional param{hiddenCount ===
+						1
+							? ""
+							: "s"}{/if}
 				</button>
 			{/if}
 		</div>
@@ -970,6 +1041,27 @@
 		font-size: 10px;
 		color: #8b8d98;
 		cursor: pointer;
+	}
+
+	.inline-select {
+		cursor: pointer;
+	}
+
+	.inline-choices {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		max-height: 120px;
+		overflow-y: auto;
+	}
+
+	.inline-choices input[type="checkbox"] {
+		width: 14px;
+		height: 14px;
+		accent-color: var(--accent);
+		cursor: pointer;
+		appearance: auto;
+		-webkit-appearance: checkbox;
 	}
 
 	/* Light mode */

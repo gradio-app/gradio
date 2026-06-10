@@ -67,17 +67,14 @@ export async function load({ params, url }) {
 		throw redirect(302, url.href.replace(`/${params.version}`, ""));
 	}
 	let guide_names_json =
-		params?.version === "main"
+		params?.version === "main" || !params?.version
 			? await load_main_guide_names()
-			: await load_release_guide_names(params.version || VERSION);
+			: await load_release_guide_names(params.version);
 
 	let guides =
-		params?.version === "main"
+		params?.version === "main" || !params?.version
 			? await load_main_guides(guide_names_json.guide_urls)
-			: await load_release_guides(
-					params.version || VERSION,
-					guide_names_json.guide_urls
-				);
+			: await load_release_guides(params.version, guide_names_json.guide_urls);
 	return {
 		guide_names_json,
 		guides

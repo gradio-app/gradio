@@ -29,6 +29,8 @@ export interface Port {
 	required?: boolean;
 	default_value?: unknown;
 	output_index?: number;
+	choices?: string[];
+	multiselect?: boolean;
 }
 
 export interface FileValue {
@@ -37,7 +39,13 @@ export interface FileValue {
 	mime: string;
 }
 
-export type NodeDataValue = string | number | boolean | FileValue | null;
+export type NodeDataValue =
+	| string
+	| number
+	| boolean
+	| string[]
+	| FileValue
+	| null;
 export type NodeData = Record<string, NodeDataValue>;
 export type NodeStatus = "idle" | "running" | "done" | "error";
 

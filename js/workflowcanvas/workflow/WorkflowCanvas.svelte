@@ -33,10 +33,12 @@
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
+		Port,
 		WFNode,
 		WFEdge,
 		NodeStatus,
-		NodeRole
+		NodeRole,
+		Workflow
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
 	import { stream_text_generation } from "./inference-stream";
@@ -50,7 +52,6 @@
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
-	import CheckIcon from "./icons/CheckIcon.svelte";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -73,9 +74,7 @@
 	const auth = createHFAuth(() => server);
 
 	$effect(() => {
-		if (server?.get_token) {
-			void auth.checkLoginStatus();
-		}
+		void auth.init();
 	});
 
 	$effect(() => {
@@ -120,8 +119,16 @@
 
 	$effect(() => {
 		window.addEventListener("keydown", handleKeydown);
-		return () => window.removeEventListener("keydown", handleKeydown);
+		window.addEventListener("keyup", handle_keyup);
+		return () => {
+			window.removeEventListener("keydown", handleKeydown);
+			window.removeEventListener("keyup", handle_keyup);
+		};
 	});
+
+	function handle_keyup(e: KeyboardEvent): void {
+		if (e.code === "Space") spaceHeld = false;
+	}
 
 	// ─── Canvas state ───────────────────────────────────────────────────────────
 	let viewport = $state(load_viewport($workflow.name));
@@ -152,6 +159,8 @@
 				startClientY: number;
 				startNodeX: number;
 				startNodeY: number;
+				moved: boolean;
+				groupStart: Map<string, { x: number; y: number }>;
 		  }
 		| {
 				kind: "connection";
@@ -161,8 +170,19 @@
 				reversed: boolean;
 				cursorCanvasX: number;
 				cursorCanvasY: number;
+		  }
+		| {
+				kind: "marquee";
+				startCanvasX: number;
+				startCanvasY: number;
+				endCanvasX: number;
+				endCanvasY: number;
+				additive: boolean;
+				moved: boolean;
 		  };
 	let dragMode = $state<DragMode | null>(null);
+	let spaceHeld = $state(false);
+	let last_node_drag_moved = false;
 
 	// ─── App state ──────────────────────────────────────────────────────────────
 	let canvasEl: HTMLDivElement;
@@ -184,7 +204,13 @@
 	 */
 	let nodeInputSnapshots: Record<string, string> = $state({});
 	let editingName = $state(false);
-	let selectedNodeId: string | null = $state(null);
+	let selectedNodeIds = $state<Set<string>>(new Set());
+	let selectedEdgeIds = $state<Set<string>>(new Set());
+	const selectedNodeId = $derived(
+		selectedNodeIds.size === 1
+			? (selectedNodeIds.values().next().value ?? null)
+			: null
+	);
 	let showShortcuts = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
 
@@ -199,7 +225,8 @@
 	interface WfToast {
 		id: number;
 		message: string;
-		type: "info" | "warning" | "error" | "success";
+		type: "info" | "warning" | "error" | "success" | "pro";
+		action?: { label: string; href?: string; onClick?: () => void };
 	}
 	let toasts: WfToast[] = $state([]);
 	let toastCounter = 0;
@@ -207,14 +234,16 @@
 	function showToast(
 		msg: string,
 		ms = 3000,
-		type: "info" | "warning" | "error" | "success" = "info"
+		type: "info" | "warning" | "error" | "success" | "pro" = "info",
+		action?: WfToast["action"]
 	): void {
 		const id = ++toastCounter;
-		toasts = [...toasts, { id, message: msg, type }].slice(-3);
-		if (ms > 0)
-			setTimeout(() => {
-				toasts = toasts.filter((t) => t.id !== id);
-			}, ms);
+		toasts = [...toasts, { id, message: msg, type, action }].slice(-3);
+		if (ms > 0) setTimeout(() => dismissToast(id), ms);
+	}
+
+	function dismissToast(id: number): void {
+		toasts = toasts.filter((t) => t.id !== id);
 	}
 
 	// v1 shape for read paths; writes go through v2 store actions.
@@ -332,7 +361,7 @@
 			}
 		},
 		onrunnode: (id: string) => void runNode(id),
-		onselect: (id: string) => selectNode(id),
+		onselect: (id: string, additive = false) => selectNode(id, additive),
 		onnodepointerdown: (e: PointerEvent, id: string) => startNodeDrag(e, id),
 		onportpointerdown: (
 			e: PointerEvent,
@@ -375,9 +404,8 @@
 	}
 
 	function onCanvasPointerDown(e: PointerEvent): void {
-		if (e.button !== 0) return;
+		if (e.button !== 0 && e.button !== 1) return;
 		const target = e.target as HTMLElement;
-		// Only start pan when clicking truly empty canvas — not nodes, edges, ports, UI
 		if (
 			target.closest(
 				".node-pos-wrap, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar"
@@ -385,12 +413,27 @@
 		) {
 			return;
 		}
+		const pan_requested = e.button === 1 || spaceHeld;
+		if (pan_requested) {
+			dragMode = {
+				kind: "pan",
+				startX: e.clientX,
+				startY: e.clientY,
+				vx: viewport.x,
+				vy: viewport.y
+			};
+			canvasEl.setPointerCapture(e.pointerId);
+			return;
+		}
+		const { x, y } = clientToCanvas(e.clientX, e.clientY);
 		dragMode = {
-			kind: "pan",
-			startX: e.clientX,
-			startY: e.clientY,
-			vx: viewport.x,
-			vy: viewport.y
+			kind: "marquee",
+			startCanvasX: x,
+			startCanvasY: y,
+			endCanvasX: x,
+			endCanvasY: y,
+			additive: e.shiftKey,
+			moved: false
 		};
 		canvasEl.setPointerCapture(e.pointerId);
 	}
@@ -398,16 +441,24 @@
 	function onWheel(e: WheelEvent): void {
 		if (!canvasEl) return;
 		e.preventDefault();
-		const r = canvasEl.getBoundingClientRect();
-		const cx = e.clientX - r.left;
-		const cy = e.clientY - r.top;
-		const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-		const oldZoom = viewport.zoom;
-		const newZoom = Math.max(0.15, Math.min(4, oldZoom * factor));
+		if (e.ctrlKey || e.metaKey) {
+			const r = canvasEl.getBoundingClientRect();
+			const cx = e.clientX - r.left;
+			const cy = e.clientY - r.top;
+			const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+			const oldZoom = viewport.zoom;
+			const newZoom = Math.max(0.15, Math.min(4, oldZoom * factor));
+			viewport = {
+				x: cx - (cx - viewport.x) * (newZoom / oldZoom),
+				y: cy - (cy - viewport.y) * (newZoom / oldZoom),
+				zoom: newZoom
+			};
+			return;
+		}
 		viewport = {
-			x: cx - (cx - viewport.x) * (newZoom / oldZoom),
-			y: cy - (cy - viewport.y) * (newZoom / oldZoom),
-			zoom: newZoom
+			...viewport,
+			x: viewport.x - e.deltaX,
+			y: viewport.y - e.deltaY
 		};
 	}
 
@@ -416,13 +467,27 @@
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
+		const drag_whole_group =
+			selectedNodeIds.has(nodeId) && selectedNodeIds.size > 1;
+		const groupStart = new Map<string, { x: number; y: number }>();
+		if (drag_whole_group) {
+			for (const n of legacyView.nodes) {
+				if (selectedNodeIds.has(n.id)) {
+					groupStart.set(n.id, { x: n.x, y: n.y });
+				}
+			}
+		} else {
+			groupStart.set(nodeId, { x: node.x, y: node.y });
+		}
 		dragMode = {
 			kind: "node",
 			nodeId,
 			startClientX: e.clientX,
 			startClientY: e.clientY,
 			startNodeX: node.x,
-			startNodeY: node.y
+			startNodeY: node.y,
+			moved: false,
+			groupStart
 		};
 		canvasEl?.setPointerCapture(e.pointerId);
 	}
@@ -466,20 +531,68 @@
 		} else if (dragMode.kind === "node") {
 			const dx = (e.clientX - dragMode.startClientX) / viewport.zoom;
 			const dy = (e.clientY - dragMode.startClientY) / viewport.zoom;
-			moveNode(
-				dragMode.nodeId,
-				dragMode.startNodeX + dx,
-				dragMode.startNodeY + dy
-			);
+			if (Math.abs(dx) > 0 || Math.abs(dy) > 0) dragMode.moved = true;
+			if (dragMode.groupStart.size > 1) {
+				for (const [id, start] of dragMode.groupStart) {
+					moveNode(id, start.x + dx, start.y + dy);
+				}
+			} else {
+				moveNode(
+					dragMode.nodeId,
+					dragMode.startNodeX + dx,
+					dragMode.startNodeY + dy
+				);
+			}
 		} else if (dragMode.kind === "connection") {
 			const { x, y } = clientToCanvas(e.clientX, e.clientY);
 			dragMode = { ...dragMode, cursorCanvasX: x, cursorCanvasY: y };
+		} else if (dragMode.kind === "marquee") {
+			const { x, y } = clientToCanvas(e.clientX, e.clientY);
+			const moved =
+				dragMode.moved ||
+				Math.abs(x - dragMode.startCanvasX) > 2 ||
+				Math.abs(y - dragMode.startCanvasY) > 2;
+			dragMode = { ...dragMode, endCanvasX: x, endCanvasY: y, moved };
 		}
 	}
 
 	function onCanvasPointerUp(e: PointerEvent): void {
 		if (!dragMode) return;
 		const mode = dragMode;
+		if (mode.kind === "marquee") {
+			if (mode.moved) {
+				const hit_nodes = nodes_in_rect(
+					mode.startCanvasX,
+					mode.startCanvasY,
+					mode.endCanvasX,
+					mode.endCanvasY
+				);
+				const hit_edges = edges_in_rect(
+					mode.startCanvasX,
+					mode.startCanvasY,
+					mode.endCanvasX,
+					mode.endCanvasY
+				);
+				if (mode.additive) {
+					const next_nodes = new Set(selectedNodeIds);
+					for (const id of hit_nodes) next_nodes.add(id);
+					const next_edges = new Set(selectedEdgeIds);
+					for (const id of hit_edges) next_edges.add(id);
+					selectedNodeIds = next_nodes;
+					selectedEdgeIds = next_edges;
+				} else {
+					selectedNodeIds = hit_nodes;
+					selectedEdgeIds = hit_edges;
+				}
+			} else if (!mode.additive) {
+				clear_selection();
+			}
+			dragMode = null;
+			try {
+				canvasEl?.releasePointerCapture(e.pointerId);
+			} catch {}
+			return;
+		}
 		if (mode.kind === "connection") {
 			activeConnection = null;
 			const targetEl = document.elementFromPoint(
@@ -552,11 +665,19 @@
 					y: mode.cursorCanvasY,
 					reversed: mode.reversed
 				};
+				const srcPort = findSourcePort(
+					mode.fromNodeId,
+					mode.fromPortId,
+					mode.reversed
+				);
+				const hasChoices = !!(srcPort?.choices && srcPort.choices.length > 0);
 				const choice: DropChoice = {
 					clientX: e.clientX - r.left,
 					clientY: e.clientY - r.top,
-					modelOptions: buildModelOptions(mode.type),
-					componentOptions: buildComponentOptions(mode.type, mode.reversed),
+					modelOptions: hasChoices ? [] : buildModelOptions(mode.type),
+					componentOptions: hasChoices
+						? [{ kind: "component", label: srcPort!.label }]
+						: buildComponentOptions(mode.type, mode.reversed),
 					reversed: mode.reversed
 				};
 				setTimeout(() => {
@@ -564,6 +685,10 @@
 					dropChoice = choice;
 				}, 0);
 			}
+		}
+		if (mode.kind === "node" && mode.moved) {
+			last_node_drag_moved = true;
+			setTimeout(() => (last_node_drag_moved = false), 0);
 		}
 		dragMode = null;
 		try {
@@ -724,6 +849,17 @@
 		});
 	}
 
+	function findSourcePort(
+		nodeId: string,
+		portId: string,
+		reversed: boolean
+	): Port | undefined {
+		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		return reversed
+			? node?.inputs.find((p) => p.id === portId)
+			: node?.outputs.find((p) => p.id === portId);
+	}
+
 	function buildModelOptions(type: PortType): DropOption[] {
 		const modality = modalityForPort(type);
 		if (!modality) return [];
@@ -762,7 +898,27 @@
 		for (const c of LIBRARY.components) {
 			typedComponents[c.outputs[0]?.type ?? "any"] = c;
 		}
-		const template = typedComponents[drop.type] ?? LIBRARY.components[0];
+		const base = typedComponents[drop.type] ?? LIBRARY.components[0];
+		const sourcePort = findSourcePort(
+			drop.from_node_id,
+			drop.from_port_id,
+			drop.reversed ?? false
+		);
+		const choiceInfo =
+			sourcePort?.choices && sourcePort.choices.length > 0
+				? {
+						choices: sourcePort.choices,
+						multiselect: !!sourcePort.multiselect
+					}
+				: null;
+		const template = choiceInfo
+			? {
+					...base,
+					label: sourcePort?.label || base.label,
+					inputs: base.inputs.map((p: Port) => ({ ...p, ...choiceInfo })),
+					outputs: base.outputs.map((p: Port) => ({ ...p, ...choiceInfo }))
+				}
+			: base;
 		const rawX = drop.reversed
 			? drop.x - (template.width ?? 200) - 80
 			: drop.x - (template.width ?? 200) / 2;
@@ -1094,11 +1250,9 @@
 		);
 		abortController = new AbortController();
 
-		const oauthToken = await auth.getOAuthToken();
-		const hasAuth = !!oauthToken || !!auth.hfToken;
 		if (
 			legacyView.nodes.some((n) => n.source === "space" && n.space_id) &&
-			!hasAuth
+			!auth.token
 		) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
@@ -1109,7 +1263,7 @@
 
 		const callSpaceWithToken = server?.call_space
 			? async (spaceId: string, endpoint: string, argsJson: string) =>
-					server.call_space([spaceId, endpoint, argsJson, auth.hfToken || ""])
+					server.call_space([spaceId, endpoint, argsJson, auth.token])
 			: undefined;
 
 		const callModelWithToken = server?.call_model
@@ -1123,7 +1277,7 @@
 						modelId,
 						pipelineTag,
 						argsJson,
-						auth.hfToken || "",
+						auth.token,
 						provider ?? ""
 					])
 			: undefined;
@@ -1142,7 +1296,7 @@
 						split,
 						offset,
 						length,
-						auth.hfToken || ""
+						auth.token
 					])
 			: undefined;
 
@@ -1165,15 +1319,26 @@
 					}
 				}
 				if (error) {
-					nodeErrors = { ...nodeErrors, [nodeId]: error };
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const label =
 						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
-					showToast(
-						`${label}: ${error}`,
-						errorType === "quota" || errorType === "gpu" ? 0 : 5000,
-						"error"
-					);
+					if (errorType === "quota" || errorType === "gpu") {
+						const headline =
+							errorType === "quota"
+								? "GPU quota exceeded"
+								: "GPU unavailable — try again in a minute";
+						nodeErrors = { ...nodeErrors, [nodeId]: headline };
+						const cta = auth.getQuotaCTA();
+						showToast(
+							`${label}: ${headline}. ${cta.suffix}`,
+							0,
+							"pro",
+							cta.action
+						);
+					} else {
+						nodeErrors = { ...nodeErrors, [nodeId]: error };
+						showToast(`${label}: ${error}`, 5000, "error");
+					}
 				}
 			},
 			(nodeId, portId, value) => {
@@ -1189,7 +1354,7 @@
 					modelId,
 					prompt,
 					provider,
-					hfToken: auth.hfToken || undefined,
+					hfToken: auth.token || undefined,
 					signal: signal ?? undefined,
 					onChunk
 				})
@@ -1275,20 +1440,116 @@
 		};
 	}
 
-	function selectNode(id: string): void {
-		selectedNodeId = id;
+	function selectNode(id: string, additive = false): void {
+		if (last_node_drag_moved) return;
+		selectedNodeIds = additive
+			? toggle_set(selectedNodeIds, id)
+			: new Set([id]);
+		selectedEdgeIds = new Set();
+	}
+
+	function clear_selection(): void {
+		selectedNodeIds = new Set();
+		selectedEdgeIds = new Set();
+	}
+
+	function toggle_set<T>(set: Set<T>, value: T): Set<T> {
+		const next = new Set(set);
+		if (next.has(value)) next.delete(value);
+		else next.add(value);
+		return next;
+	}
+
+	function rects_intersect(
+		ax: number,
+		ay: number,
+		aw: number,
+		ah: number,
+		bx: number,
+		by: number,
+		bw: number,
+		bh: number
+	): boolean {
+		return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+	}
+
+	function nodes_in_rect(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number
+	): Set<string> {
+		const rx = Math.min(x1, x2);
+		const ry = Math.min(y1, y2);
+		const rw = Math.abs(x2 - x1);
+		const rh = Math.abs(y2 - y1);
+		const out = new Set<string>();
+		for (const n of legacyView.nodes) {
+			if (rects_intersect(n.x, n.y, n.width, n.height, rx, ry, rw, rh)) {
+				out.add(n.id);
+			}
+		}
+		return out;
+	}
+
+	function edges_in_rect(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number
+	): Set<string> {
+		const rx = Math.min(x1, x2);
+		const ry = Math.min(y1, y2);
+		const rw = Math.abs(x2 - x1);
+		const rh = Math.abs(y2 - y1);
+		const out = new Set<string>();
+		const point_in = (px: number, py: number): boolean =>
+			px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+		for (const e of $workflow.edges) {
+			const a = portPos(e.from_node_id, e.from_port_id, "output");
+			const b = portPos(e.to_node_id, e.to_port_id, "input");
+			if (!a || !b) continue;
+			const dx = Math.max(40, Math.abs(b.x - a.x) * 0.5);
+			const c1x = a.x + dx;
+			const c1y = a.y;
+			const c2x = b.x - dx;
+			const c2y = b.y;
+			let hit = false;
+			for (let i = 0; i <= 12; i++) {
+				const t = i / 12;
+				const mt = 1 - t;
+				const px =
+					mt * mt * mt * a.x +
+					3 * mt * mt * t * c1x +
+					3 * mt * t * t * c2x +
+					t * t * t * b.x;
+				const py =
+					mt * mt * mt * a.y +
+					3 * mt * mt * t * c1y +
+					3 * mt * t * t * c2y +
+					t * t * t * b.y;
+				if (point_in(px, py)) {
+					hit = true;
+					break;
+				}
+			}
+			if (hit) out.add(e.id);
+		}
+		return out;
 	}
 
 	function duplicateNode(id: string): void {
 		const node = legacyView.nodes.find((n) => n.id === id);
 		if (!node) return;
 		const { id: _, data: __, ...template } = node;
-		selectedNodeId = addNode(
+		const new_id = addNode(
 			templateRole(template),
 			template,
 			node.x + 40,
 			node.y + 40
 		);
+		selectedNodeIds = new Set([new_id]);
+		selectedEdgeIds = new Set();
 	}
 
 	function handleKeydown(e: KeyboardEvent): void {
@@ -1304,11 +1565,23 @@
 		}
 		const tag = (e.target as HTMLElement)?.tagName;
 		if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-		if ((e.key === "Delete" || e.key === "Backspace") && selectedNodeId) {
+		if (e.code === "Space") {
+			spaceHeld = true;
 			e.preventDefault();
-			const id = selectedNodeId;
-			selectedNodeId = null;
-			requestAnimationFrame(() => removeNode(id));
+		}
+		if (
+			(e.key === "Delete" || e.key === "Backspace") &&
+			(selectedNodeIds.size > 0 || selectedEdgeIds.size > 0)
+		) {
+			e.preventDefault();
+			const node_ids = [...selectedNodeIds];
+			const edge_ids = [...selectedEdgeIds];
+			selectedNodeIds = new Set();
+			selectedEdgeIds = new Set();
+			requestAnimationFrame(() => {
+				for (const id of node_ids) removeNode(id);
+				for (const id of edge_ids) removeEdge(id);
+			});
 		}
 		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
 			e.preventDefault();
@@ -1318,12 +1591,21 @@
 			e.preventDefault();
 			zoomToFit();
 		}
+		if (
+			e.key === "a" &&
+			(e.metaKey || e.ctrlKey) &&
+			legacyView.nodes.length > 0
+		) {
+			e.preventDefault();
+			selectedNodeIds = new Set(legacyView.nodes.map((n) => n.id));
+			selectedEdgeIds = new Set($workflow.edges.map((edge) => edge.id));
+		}
 		if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			viewport = { x: 0, y: 0, zoom: 1 };
 		}
 		if (e.key === "Escape") {
-			selectedNodeId = null;
+			clear_selection();
 			activeConnection = null;
 			activePicker = null;
 			pendingDrop = null;
@@ -1451,9 +1733,17 @@
 			if (spaceNode) {
 				const compGap = 24;
 				const compH = 180;
-				const inputPorts = spaceNode.inputs.filter((p) =>
-					SUBGRAPH_PORT_TYPES.has(p.type)
+				// Skip ports with `choices` — they render an inline dropdown in
+				// the node body, so an auto-wired reference would be redundant
+				// (and worse, the reference is a plain textbox).
+				const typedInputs = spaceNode.inputs.filter(
+					(p) =>
+						SUBGRAPH_PORT_TYPES.has(p.type) &&
+						!(p.choices && p.choices.length > 0)
 				);
+				const requiredInputs = typedInputs.filter((p) => p.required !== false);
+				const inputPorts =
+					requiredInputs.length > 0 ? requiredInputs : typedInputs;
 				const outputPorts = spaceNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
@@ -1629,44 +1919,32 @@
 			>
 		</div>
 		<div class="toolbar-right">
-			{#if !auth.isCheckingLogin}
-				{#if auth.loggedInUser}
+			{#if auth.status !== "checking"}
+				{#if auth.user}
 					<span class="toolbar-user-info"
-						>Logged in as <strong>{auth.loggedInUser}</strong></span
+						>Logged in as <strong>{auth.user}</strong></span
 					>
-					{#if auth.isHFSpace}
-						<button
-							class="toolbar-login-btn logged-in"
-							onclick={auth.handleLogout}>Log out</button
-						>
-					{/if}
+					<button class="toolbar-login-btn logged-in" onclick={auth.signOut}
+						>Log out</button
+					>
 				{:else if auth.isHFSpace}
-					<button class="toolbar-login-btn" onclick={auth.handleLogin}
+					<button class="toolbar-login-btn" onclick={auth.signIn}
 						>Sign in with 🤗</button
 					>
 				{:else}
 					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
 						<input
 							class="toolbar-token-input"
-							class:has-user={!!auth.tokenUser}
-							class:invalid={auth.tokenStatus === "invalid"}
+							class:invalid={auth.status === "invalid"}
 							type="password"
 							placeholder="Paste HF token (hf_...)"
-							value={auth.hfToken}
-							onchange={(e) => auth.saveToken(e.currentTarget.value)}
+							value={auth.token}
+							onchange={(e) => auth.setPAT(e.currentTarget.value)}
 							title="HuggingFace token for GPU access"
 						/>
-						{#if auth.tokenUser}
-							<span
-								class="toolbar-token-status valid"
-								title={`Signed in as ${auth.tokenUser}`}
-							>
-								<CheckIcon />
-								{auth.tokenUser}
-							</span>
-						{:else if auth.tokenStatus === "validating"}
+						{#if auth.status === "validating"}
 							<span class="toolbar-token-status validating">checking…</span>
-						{:else if auth.tokenStatus === "invalid"}
+						{:else if auth.status === "invalid"}
 							<span class="toolbar-token-status invalid">invalid</span>
 						{/if}
 					</form>
@@ -1683,6 +1961,8 @@
 	<div
 		class="editor"
 		class:editor-panning={dragMode?.kind === "pan"}
+		class:editor-pan-ready={spaceHeld && !dragMode}
+		class:editor-marquee={dragMode?.kind === "marquee"}
 		bind:this={canvasEl}
 		ondragover={(e) => e.preventDefault()}
 		ondrop={handleDrop}
@@ -1710,11 +1990,17 @@
 					{#if path}
 						<path
 							class="edge-path"
+							class:edge-selected={selectedEdgeIds.has(edge.id)}
 							d={path}
 							stroke={PORT_COLOR[edge.type] ?? "#6b6e78"}
-							stroke-width={2 / viewport.zoom}
+							stroke-width={(selectedEdgeIds.has(edge.id) ? 3 : 2) /
+								viewport.zoom}
 							fill="none"
-							onclick={() => removeEdge(edge.id)}
+							onclick={(e) => {
+								if (e.shiftKey)
+									selectedEdgeIds = toggle_set(selectedEdgeIds, edge.id);
+								else removeEdge(edge.id);
+							}}
 						/>
 					{/if}
 				{/each}
@@ -1737,7 +2023,7 @@
 			{#each legacyView.nodes as n (n.id)}
 				<div
 					class="node-pos-wrap"
-					class:node-pos-selected={selectedNodeId === n.id}
+					class:node-pos-selected={selectedNodeIds.has(n.id)}
 					data-node-id={n.id}
 					style="left: {n.x}px; top: {n.y}px; width: {n.width}px;"
 					onpointerdown={(e) => startNodeDrag(e, n.id)}
@@ -1745,10 +2031,22 @@
 					<WorkflowNodeSF
 						id={n.id}
 						data={n}
-						selected={selectedNodeId === n.id}
+						selected={selectedNodeIds.has(n.id)}
 					/>
 				</div>
 			{/each}
+
+			{#if dragMode?.kind === "marquee" && dragMode.moved}
+				{@const mx = Math.min(dragMode.startCanvasX, dragMode.endCanvasX)}
+				{@const my = Math.min(dragMode.startCanvasY, dragMode.endCanvasY)}
+				{@const mw = Math.abs(dragMode.endCanvasX - dragMode.startCanvasX)}
+				{@const mh = Math.abs(dragMode.endCanvasY - dragMode.startCanvasY)}
+				<div
+					class="marquee-rect"
+					style="left: {mx}px; top: {my}px; width: {mw}px; height: {mh}px; border-width: {1 /
+						viewport.zoom}px;"
+				></div>
+			{/if}
 		</div>
 
 		{#if nodeCount === 0}
@@ -1871,11 +2169,25 @@
 				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
 				<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>
 				<div class="shortcut-row">
-					<kbd>Delete</kbd> <span>Remove node</span>
+					<kbd>Delete</kbd> <span>Remove selection</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Cmd+A</kbd> <span>Select all</span>
 				</div>
 				<div class="shortcut-row"><kbd>Escape</kbd> <span>Deselect</span></div>
-				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Zoom</span></div>
-				<div class="shortcut-row"><kbd>Drag canvas</kbd> <span>Pan</span></div>
+				<div class="shortcut-row"><kbd>Scroll</kbd> <span>Pan</span></div>
+				<div class="shortcut-row">
+					<kbd>Cmd+Scroll</kbd> <span>Zoom</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Drag canvas</kbd> <span>Marquee select</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Shift+Drag</kbd> <span>Add to selection</span>
+				</div>
+				<div class="shortcut-row">
+					<kbd>Space+Drag</kbd> <span>Pan</span>
+				</div>
 				<div class="shortcut-row">
 					<kbd>Double-click</kbd> <span>Rename node</span>
 				</div>
@@ -1925,11 +2237,32 @@
 			{#each toasts as t (t.id)}
 				<div class="wf-toast wf-toast-{t.type}">
 					<span class="wf-toast-msg">{t.message}</span>
+					{#if t.action?.href}
+						<a
+							class="wf-toast-action"
+							href={t.action.href}
+							target="_blank"
+							rel="noopener noreferrer"
+							onclick={() => dismissToast(t.id)}
+						>
+							{t.action.label}
+						</a>
+					{:else if t.action?.onClick}
+						<button
+							class="wf-toast-action"
+							onclick={() => {
+								t.action?.onClick?.();
+								dismissToast(t.id);
+							}}
+						>
+							{t.action.label}
+						</button>
+					{/if}
 					<button
 						class="wf-toast-close"
 						aria-label="Dismiss"
 						title="Dismiss"
-						onclick={() => (toasts = toasts.filter((x) => x.id !== t.id))}
+						onclick={() => dismissToast(t.id)}
 					>
 						×
 					</button>
@@ -1975,11 +2308,19 @@
 
 	/* ─── Custom canvas ─────────────────────────────────────────────────────── */
 	.editor {
+		cursor: default;
+	}
+
+	.editor.editor-pan-ready {
 		cursor: grab;
 	}
 
 	.editor.editor-panning {
 		cursor: grabbing;
+	}
+
+	.editor.editor-marquee {
+		cursor: crosshair;
 	}
 
 	.canvas-bg {
@@ -2029,6 +2370,18 @@
 
 	.node-pos-wrap.node-pos-selected {
 		z-index: 2;
+	}
+
+	.marquee-rect {
+		position: absolute;
+		border: 1px dashed #4f8cff;
+		background: rgba(79, 140, 255, 0.08);
+		pointer-events: none;
+		z-index: 3;
+	}
+
+	.edges-layer .edge-path.edge-selected {
+		filter: drop-shadow(0 0 4px #4f8cff);
 	}
 
 	:global(body:not(.dark)) .canvas-bg {
