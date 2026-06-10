@@ -1,7 +1,6 @@
 import json
 import os
 import tempfile
-from unittest.mock import patch
 
 import pytest
 
@@ -9,7 +8,6 @@ import gradio as gr
 from gradio.oauth import OAuthToken
 from gradio.workflow import (
     Workflow,
-    _local_hf_token,
     _normalize_space_result,
     _resolve_token,
     _workflow_from_bind,
@@ -152,29 +150,10 @@ class TestResolveToken:
         )
 
     def test_oauth_used_when_no_manual(self):
-        with patch("gradio.workflow._local_hf_token", return_value="local"):
-            assert _resolve_token([], 3, _make_oauth("oauth-tok")) == "oauth-tok"
-
-    def test_local_token_used_when_no_oauth(self):
-        with patch("gradio.workflow._local_hf_token", return_value="local"):
-            assert _resolve_token([], 3, None) == "local"
+        assert _resolve_token([], 3, _make_oauth("oauth-tok")) == "oauth-tok"
 
     def test_none_when_no_source(self):
-        with patch("gradio.workflow._local_hf_token", return_value=None):
-            assert _resolve_token([], 3, None) is None
-
-    def test_local_hf_token_handles_missing_creds(self):
-        # _hf_get_token returns None when ~/.cache/huggingface/token isn't set;
-        # _local_hf_token must surface that as None, not raise.
-        with patch("gradio.workflow._hf_get_token", return_value=None):
-            assert _local_hf_token() is None
-
-    def test_local_hf_token_swallows_exceptions(self):
-        with patch(
-            "gradio.workflow._hf_get_token",
-            side_effect=OSError("filesystem error"),
-        ):
-            assert _local_hf_token() is None
+        assert _resolve_token([], 3, None) is None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -296,14 +275,7 @@ class TestServerFunctions:
 
         assert get_token(None, _make_oauth("oauth-tok")) == "oauth-tok"
 
-    def test_get_token_falls_back_to_local(self):
+    def test_get_token_empty_string_when_no_oauth(self):
         from gradio.workflow import get_token
 
-        with patch("gradio.workflow._local_hf_token", return_value="local"):
-            assert get_token(None, None) == "local"
-
-    def test_get_token_empty_string_when_no_source(self):
-        from gradio.workflow import get_token
-
-        with patch("gradio.workflow._local_hf_token", return_value=None):
-            assert get_token(None, None) == ""
+        assert get_token(None, None) == ""
