@@ -1208,18 +1208,24 @@
 					}
 				}
 				if (error) {
-					nodeErrors = { ...nodeErrors, [nodeId]: error };
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const label =
 						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
 					if (errorType === "quota" || errorType === "gpu") {
 						const headline =
 							errorType === "quota"
-								? `${label}: GPU quota exceeded`
-								: `${label}: GPU unavailable — try again in a minute`;
+								? "GPU quota exceeded"
+								: "GPU unavailable — try again in a minute";
+						nodeErrors = { ...nodeErrors, [nodeId]: headline };
 						const cta = auth.getQuotaCTA();
-						showToast(`${headline}. ${cta.suffix}`, 0, "error", cta.action);
+						showToast(
+							`${label}: ${headline}. ${cta.suffix}`,
+							0,
+							"error",
+							cta.action
+						);
 					} else {
+						nodeErrors = { ...nodeErrors, [nodeId]: error };
 						showToast(`${label}: ${error}`, 5000, "error");
 					}
 				}
@@ -1982,6 +1988,7 @@
 							href={t.action.href}
 							target="_blank"
 							rel="noopener noreferrer"
+							onclick={() => dismissToast(t.id)}
 						>
 							{t.action.label}
 						</a>
