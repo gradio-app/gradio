@@ -39,6 +39,22 @@ describe("TabItem", () => {
 
 		expect(getByTestId("tab-content")).not.toBeVisible();
 	});
+
+	test("uses a stable internal id when no explicit id is provided", async () => {
+		const on_register = vi.fn();
+		const { getByTestId } = await render(TabItemHarness, {
+			omit_id: true,
+			tab_selected: 1,
+			on_register
+		});
+
+		expect(getByTestId("tab-content")).toBeVisible();
+		await waitFor(() => {
+			expect(on_register).toHaveBeenCalledWith(
+				expect.objectContaining({ id: 1 })
+			);
+		});
+	});
 });
 
 describe("Events: select", () => {

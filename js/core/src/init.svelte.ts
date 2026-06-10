@@ -893,7 +893,7 @@ function _gather_initial_tabs(
 		if (!(parent_tab_id in initial_tabs)) {
 			initial_tabs[parent_tab_id] = [];
 		}
-		if (!("id" in node.props.props)) {
+		if (node.props.props.id == null) {
 			node.props.props.id = node.id;
 		}
 		const i18n = node.props.props.i18n as ((str: string) => string) | undefined;

@@ -1,4 +1,6 @@
 <script context="module" lang="ts">
+	import type { SelectData } from "@gradio/utils";
+
 	export const TABS = {};
 
 	export interface Tab {
@@ -10,13 +12,17 @@
 		scale: number | null;
 		component_id: number;
 	}
+
+	export type TabSelectData = SelectData & {
+		id: string | number;
+		component_id: string | number;
+	};
 </script>
 
 <script lang="ts">
 	import { setContext, tick, untrack } from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
-	import type { SelectData } from "@gradio/utils";
 
 	let {
 		visible = true,
@@ -33,7 +39,7 @@
 		selected: number | string;
 		initial_tabs: Tab[];
 		onchange?: () => void;
-		onselect?: (data: SelectData) => void;
+		onselect?: (data: TabSelectData) => void;
 	} = $props();
 
 	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
@@ -57,6 +63,7 @@
 						tabs[i] = new_tabs[i];
 					}
 				}
+				handle_menu_overflow();
 			});
 		});
 	}

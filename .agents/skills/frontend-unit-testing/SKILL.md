@@ -163,6 +163,8 @@ pnpm exec playwright install chromium --only-shell
 
 After writing or modifying tests, always run them to verify they pass.
 
+**Do NOT run browser tests automatically on branch checkout or `git pull`.** Only run tests when the user explicitly asks, or immediately after writing/modifying a test file. Branch operations are routine and should not trigger test runs.
+
 ## Test File Structure
 
 ```ts

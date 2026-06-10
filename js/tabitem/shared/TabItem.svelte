@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, tick } from "svelte";
+	import { getContext, tick, untrack } from "svelte";
 	import { TABS } from "@gradio/tabs";
 	import { BaseColumn } from "@gradio/column";
 	import type { SelectData } from "@gradio/utils";
@@ -8,7 +8,7 @@
 		elem_id = "",
 		elem_classes = [],
 		label,
-		id = {},
+		id,
 		visible,
 		interactive,
 		order,
@@ -19,7 +19,7 @@
 		elem_id?: string;
 		elem_classes?: string[];
 		label: string;
-		id?: string | number | object;
+		id?: string | number | null;
 		visible: boolean | "hidden";
 		interactive: boolean;
 		order: number;
@@ -38,10 +38,12 @@
 		return register_tab(obj, order);
 	}
 
+	let tab_id = $derived(id ?? component_id);
+
 	let props_json = $derived(
 		JSON.stringify({
 			label,
-			id,
+			id: tab_id,
 			elem_id,
 			visible,
 			interactive,
@@ -50,17 +52,19 @@
 		})
 	);
 
-	$effect.pre(() => {
-		tab_index = _register_tab(props_json, order);
+	$effect(() => {
+		const tab_props = props_json;
+		tab_index = untrack(() => _register_tab(tab_props, order));
 	});
 
 	$effect(() => {
-		return (): void => unregister_tab({ label, id, elem_id }, order);
+		return (): void => unregister_tab({ label, id: tab_id, elem_id }, order);
 	});
 
 	$effect(() => {
-		if (tab_index !== undefined && $selected_tab_index === tab_index) {
-			tick().then(() => onselect?.({ value: label, index: tab_index }));
+		const index = tab_index;
+		if (index !== undefined && $selected_tab_index === index) {
+			tick().then(() => onselect?.({ value: label, index }));
 		}
 	});
 </script>
@@ -69,7 +73,9 @@
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
 	class:grow-children={scale >= 1}
-	style:display={$selected_tab === id && visible !== false ? "flex" : "none"}
+	style:display={$selected_tab === tab_id && visible !== false
+		? "flex"
+		: "none"}
 	style:flex-grow={scale}
 	role="tabpanel"
 >

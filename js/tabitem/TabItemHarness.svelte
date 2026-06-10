@@ -13,7 +13,10 @@
 	const selected_tab_index = writable<number>(cfg.tab_selected_index ?? 0);
 
 	setContext(TABS, {
-		register_tab: (_tab: any, order: number) => order,
+		register_tab: (tab: any, order: number) => {
+			cfg.on_register?.(tab);
+			return order;
+		},
 		unregister_tab: () => {},
 		selected_tab,
 		selected_tab_index
@@ -22,7 +25,7 @@
 
 <BaseTabItem
 	label="First Tab"
-	id="t1"
+	id={cfg.omit_id ? undefined : (cfg.id ?? "t1")}
 	order={0}
 	visible={cfg.tab_visible ?? true}
 	interactive={true}
