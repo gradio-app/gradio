@@ -116,6 +116,60 @@ class TestEvent:
             (0, "load"),
         ]
 
+    def test_js_only_event_without_explicit_fn_none(self):
+        js = "() => { alert('hi'); }"
+
+        with gr.Blocks() as demo:
+            b1 = gr.Button("explicit fn=None")
+            b2 = gr.Button("no fn")
+            b3 = gr.Button("gr.on no fn")
+
+            b1.click(js=js, fn=None)
+            b2.click(js=js)
+            gr.on(triggers=[b3.click], js=js)
+
+        dependencies = demo.config["dependencies"]
+        assert len(dependencies) == 3
+        for button in (b1, b2, b3):
+            deps = [
+                dep
+                for dep in dependencies
+                if (button._id, "click") in [tuple(t) for t in dep["targets"]]
+            ]
+            assert len(deps) == 1
+            assert deps[0]["js"] == js
+            assert demo.fns[deps[0]["id"]].fn is None
+
+    def test_decorator_with_js_registers_single_event(self):
+        js = "() => { alert('hi'); }"
+
+        with gr.Blocks() as demo:
+            textbox = gr.Textbox()
+            button = gr.Button("decorated")
+            on_button = gr.Button("gr.on decorated")
+
+            @button.click(inputs=textbox, outputs=textbox, js=js)
+            def greet(value):
+                return value + "!"
+
+            @gr.on(triggers=[on_button.click], inputs=textbox, outputs=textbox, js=js)
+            def on_greet(value):
+                return value + "?"
+
+        dependencies = demo.config["dependencies"]
+        assert len(dependencies) == 2
+        for component in (button, on_button):
+            deps = [
+                dep
+                for dep in dependencies
+                if (component._id, "click") in [tuple(t) for t in dep["targets"]]
+            ]
+            assert len(deps) == 1
+            assert deps[0]["js"] == js
+            assert demo.fns[deps[0]["id"]].fn is not None
+        assert greet("a") == "a!"
+        assert on_greet("a") == "a?"
+
     def test_load_chaining(self):
         calls = 0
 
