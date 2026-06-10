@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import sys
 import tempfile
 import urllib.parse
 import warnings
@@ -912,8 +913,8 @@ class Workflow(Blocks):
                     ]
         """
         if graph is None:
-            frame = inspect.stack()[1]
-            caller_dir = os.path.dirname(os.path.abspath(frame.filename))
+            caller_filename = sys._getframe(1).f_code.co_filename
+            caller_dir = os.path.dirname(os.path.abspath(caller_filename))
             graph = os.path.join(caller_dir, "workflow.json")
 
         if isinstance(bind, list):
