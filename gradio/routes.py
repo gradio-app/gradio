@@ -1318,11 +1318,11 @@ class App(FastAPI):
         def prepare_simple_api_data(body: PredictBody, fn: Any) -> None:
             if len(body.data) == len(fn.inputs):
                 return
-            non_stateful_inputs = [block for block in fn.inputs if not block.stateful]
-            if len(body.data) != len(non_stateful_inputs):
+            api_inputs = [block for block in fn.inputs if not block.skip_api]
+            if len(body.data) != len(api_inputs):
                 return
             data = iter(body.data)
-            body.data = [None if block.stateful else next(data) for block in fn.inputs]
+            body.data = [None if block.skip_api else next(data) for block in fn.inputs]
 
         @router.post("/call/v2/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/v2/{api_name}/", dependencies=[Depends(login_check)])

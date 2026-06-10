@@ -1979,22 +1979,28 @@ def test_bash_api_multiple_inputs_outputs():
 
 
 def test_bash_api_uses_session_hash_for_stateful_calls():
-    def increment(message, count):
+    def increment(message, button_value, count):
         count = (count or 0) + 1
-        return f"{message}:{count}", count
+        return f"{message}:{button_value}:{count}", count
 
     with gr.Blocks() as demo:
         textbox = gr.Textbox()
+        button = gr.Button("Go")
         state = gr.State(0)
         output = gr.Textbox()
-        textbox.submit(increment, [textbox, state], [output, state], api_name="predict")
+        textbox.submit(
+            increment, [textbox, button, state], [output, state], api_name="predict"
+        )
 
     app, _, _ = demo.queue().launch(prevent_thread_lock=True, _frontend=False)
     test_client = TestClient(app)
 
     try:
         with test_client:
-            for message, expected in [("first", "first:1"), ("second", "second:2")]:
+            for message, expected in [
+                ("first", "first:None:1"),
+                ("second", "second:None:2"),
+            ]:
                 submit = test_client.post(
                     f"{API_PREFIX}/call/predict",
                     json={"data": [message], "session_hash": "stateful-session"},
