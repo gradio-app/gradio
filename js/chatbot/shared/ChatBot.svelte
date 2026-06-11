@@ -346,7 +346,7 @@
 							handle_action(i, messages[0], selected);
 						}
 					}}
-					scroll={is_browser ? scroll : () => {}}
+					scroll={is_browser ? scroll_to_bottom : () => {}}
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
