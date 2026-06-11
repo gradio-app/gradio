@@ -656,13 +656,16 @@
 						color: gradio.props.color
 							? {
 									field: escape_field_name(gradio.props.color),
-									legend: {
-										orient: "bottom",
-										title: gradio.props.color_title,
-										values: gradio.props.colors_in_legend
-											? [...gradio.props.colors_in_legend]
-											: undefined
-									},
+									legend:
+										gradio.props.colors_in_legend?.length === 0
+											? null
+											: {
+													orient: "bottom",
+													title: gradio.props.color_title,
+													values: gradio.props.colors_in_legend
+														? [...gradio.props.colors_in_legend]
+														: undefined
+												},
 									scale:
 										gradio.props.value!.datatypes[gradio.props.color] ===
 										"nominal"

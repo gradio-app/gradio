@@ -81,6 +81,7 @@ describe("Props: colors_in_legend", () => {
 
 		expect(container).not.toHaveTextContent("alpha");
 		expect(container).not.toHaveTextContent("beta");
+		expect(container).not.toHaveTextContent("series");
 	});
 
 	test("colors_in_legend limits visible color legend entries", async () => {
