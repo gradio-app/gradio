@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from collections.abc import Sequence
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Literal
@@ -142,13 +143,16 @@ class Plot(Component):
             return value
         if isinstance(value, ModuleType) or "matplotlib" in value.__module__:
             dtype = "matplotlib"
-            out_y = processing_utils.encode_plot_to_base64(value, self.format)
-            from matplotlib.figure import Figure
+            try:
+                out_y = processing_utils.encode_plot_to_base64(value, self.format)
+            finally:
+                # A figure can only be in pyplot's registry if pyplot is
+                # already imported, so don't import it just to close.
+                plt = sys.modules.get("matplotlib.pyplot")
+                from matplotlib.figure import Figure
 
-            if isinstance(value, Figure):
-                import matplotlib.pyplot as plt
-
-                plt.close(value)
+                if plt is not None and isinstance(value, Figure):
+                    plt.close(value)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
             from bokeh.embed import json_item  # type: ignore
