@@ -1,4 +1,6 @@
 <script context="module" lang="ts">
+	import type { SelectData } from "@gradio/utils";
+
 	export const TABS = {};
 
 	export interface Tab {
@@ -10,94 +12,113 @@
 		scale: number | null;
 		component_id: number;
 	}
+
+	export type TabSelectData = SelectData & {
+		id: string | number;
+		component_id: string | number;
+	};
+
+	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {
+		return !!tab && tab.visible !== false && tab.visible !== "hidden";
+	}
+
+	function find_tab_index(tabs: (Tab | null)[], id: string | number): number {
+		const index = tabs.findIndex((t) => t?.id === id);
+		return index === -1 ? 0 : index;
+	}
 </script>
 
 <script lang="ts">
-	import { setContext, createEventDispatcher, tick, onMount } from "svelte";
+	import { setContext, tick, untrack } from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
-	import type { SelectData } from "@gradio/utils";
 
-	export let visible: boolean | "hidden" = true;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let selected: number | string;
-	export let initial_tabs: Tab[];
+	let {
+		visible = true,
+		elem_id = "",
+		elem_classes = [],
+		selected = $bindable(),
+		initial_tabs,
+		onchange,
+		onselect
+	}: {
+		visible?: boolean | "hidden";
+		elem_id?: string;
+		elem_classes?: string[];
+		selected: number | string;
+		initial_tabs: Tab[];
+		onchange?: () => void;
+		onselect?: (data: TabSelectData) => void;
+	} = $props();
 
-	let tabs: (Tab | null)[] = [...initial_tabs];
-	let visible_tabs: (Tab | null)[] = [...initial_tabs];
-	let overflow_tabs: (Tab | null)[] = [];
-	let overflow_menu_open = false;
+	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
+	let visible_tabs = $state<(Tab | null)[]>([...initial_tabs]);
+	let overflow_tabs = $state<(Tab | null)[]>([]);
+	let overflow_menu_open = $state(false);
 	let overflow_menu: HTMLElement;
 
-	// Track which tab orders have been registered by mounted TabItem components.
-	// Once a TabItem mounts and calls register_tab, it manages its own tab entry
-	// via _set_data -> register_tab, so _sync_tabs should not overwrite it.
-	let mounted_tab_orders: Set<number> = new Set();
+	let mounted_tab_orders = new Set<number>();
 
-	// When initial_tabs changes (e.g. a non-mounted tab's props were updated),
-	// sync the internal tabs array so the tab buttons reflect the new state.
-	// The tabs mutation is deferred via tick() because in Svelte 5 legacy mode
-	// $: effects track all reads inside called functions — writing tabs[i]
-	// through the $state proxy would track `tabs` as a dependency, creating
-	// an infinite self-triggering loop.
-	$: _sync_tabs(initial_tabs);
+	$effect(() => {
+		const new_tabs = initial_tabs;
+		untrack(() => _sync_tabs(new_tabs));
+	});
 
 	function _sync_tabs(new_tabs: Tab[]): void {
 		tick().then(() => {
-			for (let i = 0; i < new_tabs.length; i++) {
-				if (new_tabs[i] && !mounted_tab_orders.has(i)) {
-					tabs[i] = new_tabs[i];
+			untrack(() => {
+				for (let i = 0; i < new_tabs.length; i++) {
+					if (new_tabs[i] && !mounted_tab_orders.has(i)) {
+						tabs[i] = new_tabs[i];
+					}
 				}
-			}
+				handle_menu_overflow();
+			});
 		});
 	}
 
-	$: has_tabs = tabs.length > 0;
+	let has_tabs = $derived(tabs.length > 0);
 
 	let tab_nav_el: HTMLDivElement;
 
 	const selected_tab = writable<false | number | string>(
-		selected || tabs[0]?.id || false
+		selected ?? tabs[0]?.id ?? false
 	);
-	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t?.id === selected) || 0
-	);
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		select: SelectData;
-	}>();
+	const selected_tab_index = writable<number>(find_tab_index(tabs, selected));
 
-	let is_overflowing = false;
-	let overflow_has_selected_tab = false;
-	let tab_els: Record<string | number, HTMLElement> = {};
+	let is_overflowing = $state(false);
+	let overflow_has_selected_tab = $state(false);
+	let tab_els: Record<string | number, HTMLElement> = $state({});
 
-	onMount(() => {
-		if (!tab_nav_el) return;
-		const ro = new ResizeObserver(() => {
-			handle_menu_overflow();
-		});
-		ro.observe(tab_nav_el);
-		return () => ro.disconnect();
-	});
+	function sync_tab_entry(tab: Tab, order: number): void {
+		tabs[order] = tab;
+		visible_tabs = visible_tabs.map((t) => (t?.id === tab.id ? tab : t));
+		overflow_tabs = overflow_tabs.map((t) => (t?.id === tab.id ? tab : t));
+	}
 
 	setContext(TABS, {
 		register_tab: (tab: Tab, order: number) => {
 			mounted_tab_orders.add(order);
-			tabs[order] = tab;
+			sync_tab_entry(tab, order);
 
-			if ($selected_tab === false && tab.visible !== false && tab.interactive) {
+			if ($selected_tab === false && is_visible_tab(tab) && tab.interactive) {
 				$selected_tab = tab.id;
 				$selected_tab_index = order;
+			} else if ($selected_tab === tab.id) {
+				$selected_tab_index = order;
 			}
+			handle_menu_overflow();
 			return order;
 		},
 		unregister_tab: (tab: Tab, order: number) => {
 			mounted_tab_orders.delete(order);
 			if ($selected_tab === tab.id) {
-				$selected_tab = tabs[0]?.id || false;
+				$selected_tab = tabs[0]?.id ?? false;
 			}
 			tabs[order] = null;
+			visible_tabs = visible_tabs.filter((t) => t?.id !== tab.id);
+			overflow_tabs = overflow_tabs.filter((t) => t?.id !== tab.id);
+			handle_menu_overflow();
 		},
 		selected_tab,
 		selected_tab_index
@@ -109,19 +130,30 @@
 			id !== undefined &&
 			tab_to_activate &&
 			tab_to_activate.interactive &&
-			tab_to_activate.visible !== false &&
+			is_visible_tab(tab_to_activate) &&
 			$selected_tab !== tab_to_activate.id
 		) {
 			selected = id;
 			$selected_tab = id;
 			$selected_tab_index = tabs.findIndex((t) => t?.id === id);
-			dispatch("change");
+			onchange?.();
 			overflow_menu_open = false;
 		}
 	}
 
-	$: (tabs, selected !== null && change_tab(selected));
-	$: (tabs, tab_nav_el, tab_els, handle_menu_overflow());
+	$effect(() => {
+		if (selected !== null) change_tab(selected);
+	});
+
+	$effect(() => {
+		if (!tab_nav_el) return;
+		handle_menu_overflow();
+		const ro = new ResizeObserver(() => {
+			handle_menu_overflow();
+		});
+		ro.observe(tab_nav_el);
+		return () => ro.disconnect();
+	});
 
 	function handle_outside_click(event: MouseEvent): void {
 		if (
@@ -133,7 +165,6 @@
 		}
 	}
 
-	// approximate width of the "..." overflow button including margin
 	const OVERFLOW_BTN_RESERVE = 48;
 
 	async function handle_menu_overflow(): Promise<void> {
@@ -151,13 +182,11 @@
 
 		for (let i = 0; i < tabs.length; i++) {
 			const tab = tabs[i];
-			if (!tab || tab.visible === false || tab.visible === "hidden") continue;
+			if (!is_visible_tab(tab)) continue;
 			const el = tab_els[tab.id];
 			if (!el) continue;
 			cumulative += el.getBoundingClientRect().width;
-			const has_more = tabs
-				.slice(i + 1)
-				.some((t) => t && t.visible !== false && t.visible !== "hidden");
+			const has_more = tabs.slice(i + 1).some((t) => is_visible_tab(t));
 			const limit = has_more ? available - OVERFLOW_BTN_RESERVE : available;
 			if (cumulative > limit) {
 				split_index = i;
@@ -169,28 +198,26 @@
 		overflow_tabs = tabs.slice(split_index);
 
 		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
-		is_overflowing =
-			overflow_tabs.filter((t) => t && t.visible !== false).length > 0;
+		is_overflowing = overflow_tabs.filter((t) => is_visible_tab(t)).length > 0;
 	}
 
-	$: overflow_has_selected_tab =
-		handle_overflow_has_selected_tab($selected_tab);
+	$effect(() => {
+		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
+	});
 
 	function handle_overflow_has_selected_tab(
-		selected_tab: number | string | false
+		selected_tab_value: number | string | false
 	): boolean {
-		if (selected_tab === false) return false;
-		return overflow_tabs.some((t) => t?.id === selected_tab);
+		if (selected_tab_value === false) return false;
+		return overflow_tabs.some((t) => t?.id === selected_tab_value);
 	}
 
-	$: tab_scale =
-		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale;
+	let tab_scale = $derived(
+		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale
+	);
 </script>
 
-<svelte:window
-	on:resize={handle_menu_overflow}
-	on:click={handle_outside_click}
-/>
+<svelte:window onresize={handle_menu_overflow} onclick={handle_outside_click} />
 
 <div
 	class="tabs {elem_classes.join(' ')}"
@@ -203,7 +230,7 @@
 		<div class="tab-wrapper">
 			<div class="tab-container visually-hidden" aria-hidden="true">
 				{#each tabs as t, i}
-					{#if t && t?.visible !== false && t?.visible !== "hidden"}
+					{#if is_visible_tab(t)}
 						<button bind:this={tab_els[t.id]}>
 							{t?.label}
 						</button>
@@ -212,7 +239,7 @@
 			</div>
 			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
 				{#each visible_tabs as t, i}
-					{#if t && t?.visible !== false}
+					{#if is_visible_tab(t)}
 						<button
 							role="tab"
 							class:selected={t.id === $selected_tab}
@@ -222,10 +249,10 @@
 							aria-disabled={!t.interactive}
 							id={t.elem_id ? t.elem_id + "-button" : null}
 							data-tab-id={t.id}
-							on:click={() => {
+							onclick={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
-									dispatch("select", {
+									onselect?.({
 										value: t.label,
 										index: i,
 										id: t.id,
@@ -242,23 +269,25 @@
 			<span
 				class="overflow-menu"
 				class:hide={!is_overflowing ||
-					!overflow_tabs.some((t) => t?.visible !== false)}
+					!overflow_tabs.some((t) => is_visible_tab(t))}
 				bind:this={overflow_menu}
 			>
 				<button
-					on:click|stopPropagation={() =>
-						(overflow_menu_open = !overflow_menu_open)}
+					onclick={(e) => {
+						e.stopPropagation();
+						overflow_menu_open = !overflow_menu_open;
+					}}
 					class:overflow-item-selected={overflow_has_selected_tab}
 				>
 					<OverflowIcon />
 				</button>
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
 					{#each overflow_tabs as t, i}
-						{#if t?.visible !== false}
+						{#if is_visible_tab(t)}
 							<button
-								on:click={() => {
+								onclick={() => {
 									change_tab(t?.id);
-									dispatch("select", {
+									onselect?.({
 										value: t.label,
 										index: i,
 										id: t.id,
