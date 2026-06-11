@@ -78,7 +78,7 @@ class TestPlot:
         with utils.MatplotlibBackendMananger():
             import matplotlib.pyplot as plt
 
-            component = gr.Plot()
+            component = gr.Plot(format="png")
             fig = plt.figure()
             plt.plot([1, 2, 3], [1, 2, 3])
             first = component.postprocess(fig)

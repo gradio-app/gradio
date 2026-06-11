@@ -143,7 +143,9 @@ class Plot(Component):
         if isinstance(value, ModuleType) or "matplotlib" in value.__module__:
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(value, self.format)
-            if not isinstance(value, ModuleType):
+            from matplotlib.figure import Figure
+
+            if isinstance(value, Figure):
                 import matplotlib.pyplot as plt
 
                 plt.close(value)
