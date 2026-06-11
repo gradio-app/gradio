@@ -1,6 +1,7 @@
 ---
 "@gradio/chatbot": minor
 "@gradio/core": minor
+"@gradio/multimodaltextbox": minor
 "@gradio/tabitem": minor
 "@gradio/tabs": minor
 "gradio": minor
