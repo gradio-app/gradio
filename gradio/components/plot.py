@@ -149,10 +149,11 @@ class Plot(Component):
                 # A figure can only be in pyplot's registry if pyplot is
                 # already imported, so don't import it just to close.
                 plt = sys.modules.get("matplotlib.pyplot")
-                from matplotlib.figure import Figure
+                if plt is not None:
+                    from matplotlib.figure import Figure
 
-                if plt is not None and isinstance(value, Figure):
-                    plt.close(value)
+                    if isinstance(value, Figure):
+                        plt.close(value)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
             from bokeh.embed import json_item  # type: ignore
