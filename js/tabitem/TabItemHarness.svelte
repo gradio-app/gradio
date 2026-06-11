@@ -25,7 +25,7 @@
 
 <BaseTabItem
 	label="First Tab"
-	id={cfg.omit_id ? undefined : (cfg.id ?? "t1")}
+	id={cfg.omit_id ? undefined : (cfg.tab_id ?? "t1")}
 	order={0}
 	visible={cfg.tab_visible ?? true}
 	interactive={true}

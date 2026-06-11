@@ -113,7 +113,7 @@
 		unregister_tab: (tab: Tab, order: number) => {
 			mounted_tab_orders.delete(order);
 			if ($selected_tab === tab.id) {
-				$selected_tab = tabs[0]?.id || false;
+				$selected_tab = tabs[0]?.id ?? false;
 			}
 			tabs[order] = null;
 			visible_tabs = visible_tabs.filter((t) => t?.id !== tab.id);

@@ -55,6 +55,38 @@ describe("TabItem", () => {
 			);
 		});
 	});
+
+	test("keeps 0 as an explicit id", async () => {
+		const on_register = vi.fn();
+		const { getByTestId } = await render(TabItemHarness, {
+			tab_id: 0,
+			tab_selected: 0,
+			on_register
+		});
+
+		expect(getByTestId("tab-content")).toBeVisible();
+		await waitFor(() => {
+			expect(on_register).toHaveBeenCalledWith(
+				expect.objectContaining({ id: 0 })
+			);
+		});
+	});
+
+	test("keeps an empty string as an explicit id", async () => {
+		const on_register = vi.fn();
+		const { getByTestId } = await render(TabItemHarness, {
+			tab_id: "",
+			tab_selected: "",
+			on_register
+		});
+
+		expect(getByTestId("tab-content")).toBeVisible();
+		await waitFor(() => {
+			expect(on_register).toHaveBeenCalledWith(
+				expect.objectContaining({ id: "" })
+			);
+		});
+	});
 });
 
 describe("Events: select", () => {

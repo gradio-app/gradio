@@ -242,6 +242,40 @@ describe("get_data / set_data", () => {
 		const data = await get_data();
 		expect(data.selected).toBe("t2");
 	});
+
+	test("keeps 0 as an explicit tab id", async () => {
+		const { get_data, getByRole } = await render(Tabs, {
+			...default_props,
+			selected: 0,
+			initial_tabs: [
+				make_tab({ label: "First", id: "first", component_id: 1 }),
+				make_tab({ label: "Zero", id: 0, component_id: 2 })
+			]
+		});
+
+		expect(getByRole("tab", { name: "Zero" })).toHaveAttribute(
+			"aria-selected",
+			"true"
+		);
+		expect((await get_data()).selected).toBe(0);
+	});
+
+	test("keeps an empty string as an explicit tab id", async () => {
+		const { get_data, getByRole } = await render(Tabs, {
+			...default_props,
+			selected: "",
+			initial_tabs: [
+				make_tab({ label: "First", id: "first", component_id: 1 }),
+				make_tab({ label: "Empty", id: "", component_id: 2 })
+			]
+		});
+
+		expect(getByRole("tab", { name: "Empty" })).toHaveAttribute(
+			"aria-selected",
+			"true"
+		);
+		expect((await get_data()).selected).toBe("");
+	});
 });
 
 describe("Children / slot", () => {

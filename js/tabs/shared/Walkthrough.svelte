@@ -129,7 +129,7 @@
 		},
 		unregister_tab: (tab: Tab, order: number) => {
 			if ($selected_tab === tab.id) {
-				$selected_tab = tabs[0]?.id || false;
+				$selected_tab = tabs[0]?.id ?? false;
 			}
 			tabs[order] = null;
 		},

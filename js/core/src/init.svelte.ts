@@ -854,7 +854,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 				child.type === "tabitem" &&
 				child.props.props.id !==
 					//@ts-ignore
-					(node.props.props.selected || node.props.props.initial_tabs[0].id)
+					(node.props.props.selected ?? node.props.props.initial_tabs[0].id)
 			) {
 				_untrack(child, components_to_register);
 				mark_component_invisible_if_visible(child, hidden_on_startup);
