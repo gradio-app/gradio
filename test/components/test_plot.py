@@ -58,6 +58,33 @@ class TestPlot:
         assert isinstance(out["plot"], str)
         assert out["plot"] == chart.to_json()
 
+    def test_postprocess_closes_matplotlib_figure(self):
+        """
+        postprocess
+        """
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            component = gr.Plot()
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
+            component.postprocess(fig)
+            assert not plt.fignum_exists(fig.number)
+
+    def test_postprocess_accepts_closed_figure(self):
+        """
+        postprocess
+        """
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            component = gr.Plot()
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
+            first = component.postprocess(fig)
+            second = component.postprocess(fig)
+            assert first and second and first.plot == second.plot
+
     def test_plot_format_parameter(self):
         """
         postprocess
