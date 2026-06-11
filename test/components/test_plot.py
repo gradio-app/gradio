@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import pytest
 
 import gradio as gr
@@ -63,8 +64,6 @@ class TestPlot:
         postprocess
         """
         with utils.MatplotlibBackendMananger():
-            import matplotlib.pyplot as plt
-
             plt.close("all")
             component = gr.Plot()
             fig = plt.figure()
@@ -77,8 +76,6 @@ class TestPlot:
         postprocess
         """
         with utils.MatplotlibBackendMananger():
-            import matplotlib.pyplot as plt
-
             component = gr.Plot(format="png")
             fig = plt.figure()
             plt.plot([1, 2, 3], [1, 2, 3])

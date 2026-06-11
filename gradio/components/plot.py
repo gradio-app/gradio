@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from collections.abc import Sequence
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Literal
@@ -146,12 +145,12 @@ class Plot(Component):
             try:
                 out_y = processing_utils.encode_plot_to_base64(value, self.format)
             finally:
-                # A figure can only be in pyplot's registry if pyplot is
-                # already imported, so don't import it just to close.
-                plt = sys.modules.get("matplotlib.pyplot")
-                if plt is not None:
+                try:
+                    import matplotlib.pyplot as plt
                     from matplotlib.figure import Figure
-
+                except ImportError:
+                    pass
+                else:
                     if isinstance(value, Figure):
                         plt.close(value)
         elif "bokeh" in value.__module__:
