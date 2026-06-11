@@ -73,6 +73,14 @@
 
 	const auth = createHFAuth(() => server);
 
+	// Sessions without the write token (share-link visitors, tunnelled
+	// requests) get a view-only canvas: they can run the workflow and fill in
+	// input values, but not change its structure or persist anything. The
+	// server independently rejects unauthorized saves — this is UX, not the
+	// security boundary. Stays editable until the server answers so the owner
+	// doesn't see controls flash out and back in.
+	const readOnly = $derived(auth.writeAccessKnown && !auth.canWrite);
+
 	$effect(() => {
 		void auth.init();
 	});
@@ -89,7 +97,7 @@
 
 	$effect(() => {
 		const wf = $workflow;
-		if (!server?.save_workflow) return;
+		if (!server?.save_workflow || readOnly) return;
 		const timer = setTimeout(() => {
 			server
 				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
@@ -336,11 +344,17 @@
 		nodeErrors: {} as Record<string, string>,
 		staleNodes: new Set<string>(),
 		connectedPorts: new Set<string>(),
+		readOnly: false,
 		ondatachange: updateNodeData,
-		onremove: (id: string) => removeNode(id),
-		onopenpicker: (id: string) => openPickerForNode(id),
-		onswitchendpoint: (id: string, endpointName: string) =>
-			switch_endpoint(id, endpointName),
+		onremove: (id: string) => {
+			if (!readOnly) removeNode(id);
+		},
+		onopenpicker: (id: string) => {
+			if (!readOnly) openPickerForNode(id);
+		},
+		onswitchendpoint: (id: string, endpointName: string) => {
+			if (!readOnly) switch_endpoint(id, endpointName);
+		},
 		onhydratendpoints: async (id: string, spaceId: string) => {
 			try {
 				const info = await fetchSpaceApi(spaceId);
@@ -387,6 +401,9 @@
 	});
 	$effect(() => {
 		wfCtx.connectedPorts = connectedPortsSet();
+	});
+	$effect(() => {
+		wfCtx.readOnly = readOnly;
 	});
 
 	// ─── Custom canvas event handlers ───────────────────────────────────────────
@@ -463,7 +480,7 @@
 	}
 
 	function startNodeDrag(e: PointerEvent, nodeId: string): void {
-		if (e.button !== 0) return;
+		if (e.button !== 0 || readOnly) return;
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
@@ -499,7 +516,7 @@
 		type: PortType,
 		isInput: boolean
 	): void {
-		if (e.button !== 0) return;
+		if (e.button !== 0 || readOnly) return;
 		e.stopPropagation();
 		const { x, y } = clientToCanvas(e.clientX, e.clientY);
 		dragMode = {
@@ -961,6 +978,7 @@
 	}
 
 	function handleCanvasDoubleClick(e: MouseEvent): void {
+		if (readOnly) return;
 		const target = e.target as HTMLElement;
 		if (
 			target.closest(".node-pos-wrap") ||
@@ -1108,6 +1126,7 @@
 		x?: number,
 		y?: number
 	): Promise<string | null> {
+		if (readOnly) return null;
 		if (
 			template.source === "space" &&
 			template.space_id &&
@@ -1142,6 +1161,7 @@
 
 	async function handleDrop(e: DragEvent): Promise<void> {
 		e.preventDefault();
+		if (readOnly) return;
 		const raw = e.dataTransfer?.getData("node-template");
 		if (!raw) return;
 		const template = JSON.parse(raw);
@@ -1158,12 +1178,13 @@
 	let clearConfirm = $state(false);
 
 	function clearWorkflow(): void {
-		if (legacyView.nodes.length === 0) return;
+		if (legacyView.nodes.length === 0 || readOnly) return;
 		clearConfirm = true;
 	}
 
 	function confirmClearWorkflow(): void {
 		clearConfirm = false;
+		if (readOnly) return;
 		revokeAllBlobUrls(legacyView.nodes);
 		workflow.set({
 			schema_version: "2",
@@ -1571,6 +1592,7 @@
 		}
 		if (
 			(e.key === "Delete" || e.key === "Backspace") &&
+			!readOnly &&
 			(selectedNodeIds.size > 0 || selectedEdgeIds.size > 0)
 		) {
 			e.preventDefault();
@@ -1585,7 +1607,7 @@
 		}
 		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
 			e.preventDefault();
-			duplicateNode(selectedNodeId);
+			if (!readOnly) duplicateNode(selectedNodeId);
 		}
 		if (e.key === "f" && !e.metaKey && !e.ctrlKey) {
 			e.preventDefault();
@@ -1613,7 +1635,7 @@
 			doubleClickMenu = null;
 			clearConfirm = false;
 		}
-		if (e.key === "Enter" && clearConfirm) {
+		if (e.key === "Enter" && clearConfirm && !readOnly) {
 			e.preventDefault();
 			confirmClearWorkflow();
 		}
@@ -1823,11 +1845,12 @@
 	}
 
 	function handlePickerUpdate(nodeId: string, template: any): void {
-		replaceNodeSource(nodeId, template);
+		if (!readOnly) replaceNodeSource(nodeId, template);
 		activePicker = null;
 	}
 
 	function addInputNode(portType: string, cx?: number, cy?: number): void {
+		if (readOnly) return;
 		let pos: { x: number; y: number };
 		if (cx !== undefined && cy !== undefined) {
 			const r = canvasEl?.getBoundingClientRect();
@@ -1857,6 +1880,7 @@
 	 * already on the canvas.
 	 */
 	function addFnNode(tmpl: BoundFnTemplate): void {
+		if (readOnly) return;
 		const half = 110;
 		const { x, y } = findFreeSpot(
 			canvasCenter().x - half,
@@ -1882,7 +1906,7 @@
 	}
 
 	function setName(value: string): void {
-		workflow.update((wf) => ({ ...wf, name: value }));
+		if (!readOnly) workflow.update((wf) => ({ ...wf, name: value }));
 		editingName = false;
 	}
 </script>
@@ -1891,7 +1915,12 @@
 <div class="workflow-root" onclick={handleGlobalClick}>
 	<div class="toolbar">
 		<div class="toolbar-left">
-			{#if editingName}
+			{#if readOnly}
+				<span class="name-text name-readonly">{$workflow.name}</span>
+				<span class="readonly-badge" title="Open the edit link to make changes"
+					>View only</span
+				>
+			{:else if editingName}
 				<input
 					bind:this={nameInput}
 					class="name-input"
@@ -1950,10 +1979,12 @@
 					</form>
 				{/if}
 			{/if}
-			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
-				>Layout</button
-			>
-			<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
+			{#if !readOnly}
+				<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
+					>Layout</button
+				>
+				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
+			{/if}
 		</div>
 	</div>
 
@@ -1999,7 +2030,7 @@
 							onclick={(e) => {
 								if (e.shiftKey)
 									selectedEdgeIds = toggle_set(selectedEdgeIds, edge.id);
-								else removeEdge(edge.id);
+								else if (!readOnly) removeEdge(edge.id);
 							}}
 						/>
 					{/if}
@@ -2198,6 +2229,7 @@
 			{running}
 			{hasTransforms}
 			{boundFns}
+			{readOnly}
 			onopenpicker={openPicker}
 			onaddinput={addInputNode}
 			onaddfn={addFnNode}

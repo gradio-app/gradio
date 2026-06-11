@@ -60,6 +60,23 @@
 	color: #3e3f4d;
 }
 
+.name-readonly {
+	padding: 4px 8px;
+}
+
+.readonly-badge {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #9a9cab;
+	background: #1a1b25;
+	border: 1px solid #2a2b38;
+	border-radius: 999px;
+	padding: 2px 8px;
+}
+
 .name-input {
 	font-family: "Manrope", sans-serif;
 	font-size: 14px;

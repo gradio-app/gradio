@@ -26,6 +26,34 @@ function redirect_to(path: string): void {
 type AuthSource = "" | "oauth" | "pat";
 type AuthStatus = "checking" | "ready" | "validating" | "invalid";
 
+const WRITE_TOKEN_COOKIE_PREFIX = "gradio_workflow_write_token";
+
+/**
+ * Move a `?write_token=…` query param (from the edit link printed at launch)
+ * into a cookie so subsequent /component_server calls carry it, then strip it
+ * from the URL. The cookie name is suffixed with the port because cookies are
+ * shared across ports on the same host — two local apps would otherwise
+ * clobber each other (the server prefix-matches the name).
+ */
+function applyWriteTokenFromUrl(): void {
+	if (typeof window === "undefined") return;
+	const params = new URLSearchParams(window.location.search);
+	const wt = params.get("write_token");
+	if (!wt) return;
+	const port =
+		window.location.port ||
+		(window.location.protocol === "https:" ? "443" : "80");
+	const maxAge = 60 * 60 * 24 * 7;
+	document.cookie = `${WRITE_TOKEN_COOKIE_PREFIX}_${port}=${encodeURIComponent(wt)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+	params.delete("write_token");
+	const q = params.toString();
+	window.history.replaceState(
+		{},
+		"",
+		window.location.pathname + (q ? `?${q}` : "") + window.location.hash
+	);
+}
+
 export function createHFAuth(getServer: () => Record<string, any>) {
 	let user = $state("");
 	let isPro = $state(false);
@@ -33,6 +61,11 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	let source = $state<AuthSource>("");
 	let status = $state<AuthStatus>("checking");
 	let isHFSpace = $state(false);
+	// Optimistic until the server answers, so the owner (the common case)
+	// doesn't see edit controls flash out and back in. The server rejects
+	// unauthorized saves regardless of what the UI shows.
+	let canWrite = $state(true);
+	let writeAccessKnown = $state(false);
 
 	function clearIdentity(): void {
 		user = "";
@@ -48,8 +81,27 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		source = src;
 	}
 
+	async function refreshWriteAccess(): Promise<void> {
+		const s = getServer();
+		if (!s?.get_write_access) {
+			// Older backends without write-token support stay fully editable.
+			canWrite = true;
+			writeAccessKnown = true;
+			return;
+		}
+		try {
+			canWrite = (await s.get_write_access()) === "true";
+		} catch {
+			canWrite = false;
+		}
+		writeAccessKnown = true;
+	}
+
 	async function init(): Promise<void> {
 		isHFSpace = window.location.hostname.endsWith(".hf.space");
+
+		applyWriteTokenFromUrl();
+		void refreshWriteAccess();
 
 		const oauth = await readOAuthToken();
 		if (oauth) {
@@ -171,6 +223,12 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		},
 		get isHFSpace() {
 			return isHFSpace;
+		},
+		get canWrite() {
+			return canWrite;
+		},
+		get writeAccessKnown() {
+			return writeAccessKnown;
 		},
 		init,
 		setPAT,
