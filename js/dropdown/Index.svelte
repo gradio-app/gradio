@@ -15,6 +15,14 @@
 
 	let props = $props();
 	const gradio = new Gradio<DropdownEvents, DropdownProps>(props);
+
+	// Translate the display side only; values stay raw for event payloads.
+	let translated_choices = $derived(
+		gradio.props.choices.map(
+			([display, value]) =>
+				[gradio.i18n(display), value] as [string, string | number]
+		)
+	);
 </script>
 
 <Block
@@ -40,7 +48,7 @@
 			label={gradio.shared.label}
 			info={gradio.props.info}
 			bind:value={gradio.props.value}
-			choices={gradio.props.choices}
+			choices={translated_choices}
 			interactive={gradio.shared.interactive}
 			show_label={gradio.shared.show_label}
 			container={gradio.shared.container}
