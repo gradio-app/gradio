@@ -65,11 +65,12 @@ class TestPlot:
         with utils.MatplotlibBackendMananger():
             import matplotlib.pyplot as plt
 
+            plt.close("all")
             component = gr.Plot()
             fig = plt.figure()
             plt.plot([1, 2, 3], [1, 2, 3])
             component.postprocess(fig)
-            assert not plt.fignum_exists(fig.number)
+            assert not plt.get_fignums()
 
     def test_postprocess_accepts_closed_figure(self):
         """
