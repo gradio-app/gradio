@@ -1,5 +1,17 @@
 # website
 
+## 0.78.0
+
+### Features
+
+- [#13504](https://github.com/gradio-app/gradio/pull/13504) [`a6141ee`](https://github.com/gradio-app/gradio/commit/a6141ee3ce8260a249a6230e18b14fcaa9b2ac4c) - Fix website build checks.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/tabs@0.7.0
+- @gradio/button@0.7.0
+- @gradio/tabitem@0.8.0
+
 ## 0.77.1
 
 ### Fixes
