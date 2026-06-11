@@ -132,10 +132,22 @@
 		// editable window would otherwise fire saves the backend rejects.
 		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
 			return;
+		const serialized = JSON.stringify(sanitize_for_save(wf));
+		if (lastSavedSerialized === null) {
+			// No persisted baseline yet (e.g. a brand-new workflow with no saved
+			// file): adopt the current state instead of saving it on load.
+			lastSavedSerialized = serialized;
+			return;
+		}
+		// Nothing changed since the last save/load — don't re-save or flash.
+		if (serialized === lastSavedSerialized) return;
 		const timer = setTimeout(() => {
 			server
-				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
-				.then(() => flashSaved())
+				.save_workflow([serialized])
+				.then(() => {
+					lastSavedSerialized = serialized;
+					flashSaved();
+				})
 				.catch(() => {});
 		}, 500);
 		return () => clearTimeout(timer);
