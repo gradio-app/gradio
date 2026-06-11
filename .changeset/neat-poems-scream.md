@@ -22,6 +22,7 @@
 "@gradio/label": minor
 "@gradio/markdown": minor
 "@gradio/markdown-code": minor
+"@gradio/model3d": minor
 "@gradio/multimodaltextbox": minor
 "@gradio/nativeplot": minor
 "@gradio/navbar": minor
