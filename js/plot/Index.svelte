@@ -49,8 +49,8 @@
 			{#if gradio.props.show_fullscreen_button}
 				<FullscreenButton
 					{fullscreen}
-					on:fullscreen={({ detail }) => {
-						fullscreen = detail;
+					onclick={(value) => {
+						fullscreen = value;
 					}}
 				/>
 			{/if}
@@ -74,5 +74,6 @@
 		x_lim={gradio.props.x_lim}
 		show_fullscreen_button={gradio.props.show_fullscreen_button}
 		on_change={() => gradio.dispatch("change")}
+		onselect={(data) => gradio.dispatch("select", data)}
 	/>
 </Block>

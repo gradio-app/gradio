@@ -445,12 +445,15 @@ export class AppTree {
 		let already_updated_visibility = false;
 		if (check_visibility && !node?.component) {
 			await tick();
-			this.root = this.traverse(this.root!, [
-				//@ts-ignore
-				(n) => set_visibility_for_updated_node(n, id, new_state.visible),
-				//@ts-ignore
-				(n) => handle_visibility(n, this.#config.api_url)
-			]);
+			// Update the node in place. Rebuilding the tree with traverse() here
+			// replaces every node's children array, and two rebuilds racing in one
+			// event (two outputs made visible together) freeze Svelte's reactivity.
+			const updated_node = find_node_by_id(this.root!, id);
+			if (updated_node && "visible" in new_state) {
+				updated_node.props.shared_props.visible =
+					new_state.visible as SharedProps["visible"];
+			}
+			load_components(this.root!, this.#config.api_url);
 			await tick();
 			already_updated_visibility = true;
 		}
@@ -656,7 +659,9 @@ function has_hidden_descendants(
 
 function load_components(node: ProcessedComponentMeta, api_url: string): void {
 	if (node.props.shared_props.visible && !node.component) {
-		node.component = get_component(node.type, node.component_class_id, api_url);
+		const loaded = get_component(node.type, node.component_class_id, api_url);
+		node.component = loaded.component;
+		node.runtime = loaded.runtime;
 	}
 	node.children.forEach((child) => load_components(child, api_url));
 }
@@ -791,17 +796,6 @@ function handle_visibility(
 	} else {
 		return node;
 	}
-}
-
-function set_visibility_for_updated_node(
-	node: ProcessedComponentMeta,
-	id: number,
-	visible: boolean
-): ProcessedComponentMeta {
-	if (node.id == id) {
-		node.props.shared_props.visible = visible;
-	}
-	return node;
 }
 
 function _untrack(
