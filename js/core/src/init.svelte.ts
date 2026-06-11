@@ -659,11 +659,9 @@ function has_hidden_descendants(
 
 function load_components(node: ProcessedComponentMeta, api_url: string): void {
 	if (node.props.shared_props.visible && !node.component) {
-		node.component = get_component(
-			node.type,
-			node.component_class_id,
-			api_url
-		).component;
+		const loaded = get_component(node.type, node.component_class_id, api_url);
+		node.component = loaded.component;
+		node.runtime = loaded.runtime;
 	}
 	node.children.forEach((child) => load_components(child, api_url));
 }
