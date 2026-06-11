@@ -27,17 +27,17 @@
 	const gradio = new AccordionGradio(props);
 
 	let label = $derived(gradio.shared.label || "");
+	let elem_classes = $derived([
+		...(gradio.shared.elem_classes || []),
+		"gr-accordion"
+	]);
 
 	let visibility: boolean | "hidden" = $derived(
 		gradio.shared.visible === true ? true : "hidden"
 	);
 </script>
 
-<Block
-	elem_id={gradio.shared.elem_id}
-	elem_classes={gradio.shared.elem_classes}
-	visible={visibility}
->
+<Block elem_id={gradio.shared.elem_id} {elem_classes} visible={visibility}>
 	{#if gradio.shared.loading_status}
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
