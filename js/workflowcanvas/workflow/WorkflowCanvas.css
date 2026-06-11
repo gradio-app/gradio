@@ -89,6 +89,59 @@
 	border: 1px solid rgba(79, 209, 165, 0.3);
 }
 
+.access-info-wrap {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+}
+
+/* The read-only badge is a button so it can be clicked to explain why editing
+   is disabled (and, on a Space with no OAuth, how to enable it). */
+button.access-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	cursor: pointer;
+	transition:
+		color 0.15s,
+		border-color 0.15s;
+}
+
+/* The (i) hints that the badge is clickable for an explanation. */
+.access-info-icon {
+	display: inline-flex;
+	align-items: center;
+	opacity: 0.75;
+}
+
+button.access-badge.access-readonly:hover,
+button.access-badge.access-readonly.open {
+	color: #c7c9d6;
+	border-color: #3a3b48;
+}
+
+.access-info-popover {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	width: 264px;
+	background: #16171f;
+	border: 1px solid #2a2b36;
+	border-radius: 10px;
+	padding: 12px;
+	font-family: "Manrope", sans-serif;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.5;
+	letter-spacing: normal;
+	text-transform: none;
+	color: #a0a2ae;
+	box-shadow:
+		0 8px 24px rgba(0, 0, 0, 0.45),
+		0 0 0 1px rgba(255, 255, 255, 0.03);
+	z-index: 40;
+}
+
 .save-indicator {
 	display: inline-flex;
 	align-items: center;

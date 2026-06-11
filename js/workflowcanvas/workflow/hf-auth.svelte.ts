@@ -71,6 +71,24 @@ function applyWriteTokenFromUrl(): void {
 	);
 }
 
+/**
+ * Delete this port's write-token cookie if present. The token is regenerated
+ * each server restart but the cookie lives for 7 days, so a cookie left over
+ * from a previous process is stale — the server already rejects it, but we
+ * clear it here once the server confirms no write access so it doesn't linger.
+ */
+function clearStaleWriteTokenCookie(): void {
+	if (typeof window === "undefined") return;
+	const port =
+		window.location.port ||
+		(window.location.protocol === "https:" ? "443" : "80");
+	const name = `${WRITE_TOKEN_COOKIE_PREFIX}_${port}`;
+	if (!document.cookie.split(";").some((c) => c.trim().startsWith(`${name}=`)))
+		return;
+	const secure = window.location.protocol === "https:" ? "; Secure" : "";
+	document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax${secure}`;
+}
+
 export function createHFAuth(getServer: () => Record<string, any>) {
 	let user = $state("");
 	let isPro = $state(false);
@@ -84,6 +102,10 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	// unauthorized saves regardless of what the UI shows.
 	let canWrite = $state(true);
 	let writeAccessKnown = $state(false);
+	// Whether OAuth sign-in is actually available (a Space with `hf_oauth: true`).
+	// Defaults to false so a broken "Sign in" button never flashes before the
+	// server confirms it — only shown once known to work.
+	let oauthAvailable = $state(false);
 
 	function clearIdentity(): void {
 		user = "";
@@ -114,7 +136,23 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		} catch {
 			canWrite = false;
 		}
+		// No write access: drop any stale write-token cookie left from a prior
+		// server process so it doesn't sit unused for the cookie's 7-day lifetime.
+		if (!canWrite) clearStaleWriteTokenCookie();
 		writeAccessKnown = true;
+	}
+
+	async function refreshOAuthAvailable(): Promise<void> {
+		const s = getServer();
+		if (!s?.get_oauth_available) {
+			oauthAvailable = false;
+			return;
+		}
+		try {
+			oauthAvailable = (await s.get_oauth_available()) === "true";
+		} catch {
+			oauthAvailable = false;
+		}
 	}
 
 	async function init(): Promise<void> {
@@ -122,6 +160,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 
 		applyWriteTokenFromUrl();
 		void refreshWriteAccess();
+		void refreshOAuthAvailable();
 
 		// The server's get_token returns the OAuth user's token on a Space, but
 		// the host's locally saved `huggingface-cli login` token when running
@@ -258,6 +297,9 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		},
 		get writeAccessKnown() {
 			return writeAccessKnown;
+		},
+		get oauthAvailable() {
+			return oauthAvailable;
 		},
 		init,
 		setPAT,

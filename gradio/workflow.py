@@ -441,6 +441,20 @@ def get_write_access(
     return "true" if has_write_access(request, token) else "false"
 
 
+def get_oauth_available(_data=None) -> str:
+    """Whether OAuth sign-in is actually wired up. On a Space this requires
+    `hf_oauth: true` in the README metadata, which provisions OAUTH_CLIENT_ID
+    and causes the `/login/huggingface` route to be mounted (mirrors the gate
+    that adds the LoginButton in `__init__`). Without it, sign-in would 404, so
+    the frontend hides the login button and explains the fix on the read-only
+    badge. OAuth is not used locally (the write-token model is used instead)."""
+    return (
+        "true"
+        if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
+        else "false"
+    )
+
+
 def call_space(
     data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
 ) -> str:
@@ -1187,6 +1201,7 @@ class Workflow(Blocks):
         server_functions = [
             get_token,
             get_write_access,
+            get_oauth_available,
             call_space,
             call_model,
             fetch_dataset,

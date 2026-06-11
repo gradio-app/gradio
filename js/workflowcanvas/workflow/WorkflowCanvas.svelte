@@ -9,6 +9,7 @@
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
+	import InfoIcon from "./icons/InfoIcon.svelte";
 
 	import {
 		MODALITIES,
@@ -84,12 +85,16 @@
 	// doesn't see controls flash out and back in.
 	const readOnly = $derived(auth.writeAccessKnown && !auth.canWrite);
 
-	// Why this session can't edit — surfaced on hover over the "Run only" badge.
-	// Differs by deployment: locally the fix is opening the write-token edit
-	// link; on a Space it's signing in with an account that owns the Space.
+	// Why this session can't edit — surfaced on the "Run only" badge (hover and
+	// click). Differs by deployment: locally the fix is opening the write-token
+	// edit link; on a Space it's signing in as an account that owns the Space —
+	// unless the Space has no OAuth enabled, in which case no one can sign in to
+	// edit and the developer must enable it.
 	const readOnlyReason = $derived(
 		auth.isHFSpace
-			? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that has write access to this Space to make changes."
+			? auth.oauthAvailable
+				? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that owns this Space (or has write access to it) to make changes. Alternatively, duplicate this Space under your own account to edit your own copy."
+				: "Run-only: editing is disabled because this Space doesn't have OAuth enabled, so the owner can't sign in to authenticate. To allow editing, add `hf_oauth: true` to the Space's README metadata and redeploy. Alternatively, duplicate this Space under your own account to edit your own copy."
 			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes."
 	);
 
@@ -268,6 +273,9 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	// Popover shown when the "Run only" badge is clicked, explaining why editing
+	// is disabled and how to enable it.
+	let showAccessInfo = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
 
 	// Human-readable explanation of how the current user is authenticated,
@@ -1495,6 +1503,9 @@
 		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
 			showUserMenu = false;
 		}
+		if (showAccessInfo && !target?.closest(".access-info-wrap")) {
+			showAccessInfo = false;
+		}
 	}
 
 	function zoomToFit(): void {
@@ -2061,7 +2072,7 @@
 							</div>
 						{/if}
 					</div>
-				{:else if auth.isHFSpace}
+				{:else if auth.isHFSpace && auth.oauthAvailable}
 					<button class="toolbar-login-btn" onclick={auth.signIn}
 						>Sign in with 🤗</button
 					>
@@ -2094,9 +2105,22 @@
 					>
 				{/if}
 			{:else}
-				<span class="access-badge access-readonly" title={readOnlyReason}
-					>Run only</span
-				>
+				<div class="access-info-wrap">
+					<button
+						class="access-badge access-readonly"
+						class:open={showAccessInfo}
+						title={readOnlyReason}
+						aria-label="Why is this read-only?"
+						onclick={(e) => {
+							e.stopPropagation();
+							showAccessInfo = !showAccessInfo;
+						}}
+						>Run only<span class="access-info-icon"><InfoIcon /></span></button
+					>
+					{#if showAccessInfo}
+						<div class="access-info-popover">{readOnlyReason}</div>
+					{/if}
+				</div>
 			{/if}
 		</div>
 	</div>
@@ -2649,6 +2673,17 @@
 		color: #0f9d76;
 		background: rgba(15, 157, 118, 0.08);
 		border-color: rgba(15, 157, 118, 0.25);
+	}
+	:global(body:not(.dark) button.access-badge.access-readonly:hover),
+	:global(body:not(.dark) button.access-badge.access-readonly.open) {
+		color: #3e4050;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .access-info-popover) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+		color: #6b6e78;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 	}
 	:global(body:not(.dark) .save-indicator) {
 		color: #0f9d76;

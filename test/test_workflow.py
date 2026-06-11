@@ -16,6 +16,7 @@ from gradio.workflow import (
     _request_has_write_token,
     _resolve_token,
     _workflow_from_bind,
+    get_oauth_available,
     get_token,
     has_write_access,
 )
@@ -249,6 +250,24 @@ class TestGetToken:
     def test_local_hf_token_is_disabled_on_spaces(self, monkeypatch):
         monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
         assert _get_locally_saved_hf_token() is None
+
+
+class TestOAuthAvailable:
+    # Drives whether the frontend shows the "Sign in" button: OAuth is only
+    # wired up on a Space with hf_oauth enabled (OAUTH_CLIENT_ID provisioned).
+    def test_false_locally(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: None)
+        assert get_oauth_available() == "false"
+
+    def test_false_on_space_without_oauth(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
+        assert get_oauth_available() == "false"
+
+    def test_true_on_space_with_oauth(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.setenv("OAUTH_CLIENT_ID", "client-id")
+        assert get_oauth_available() == "true"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
