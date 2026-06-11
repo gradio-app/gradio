@@ -98,6 +98,10 @@
 	// lingering checkmark rather than flickering.
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
+	// Serialized form of what's currently persisted on the server. Autosave
+	// compares against this so loading the workflow into the store on page load
+	// (and any no-op change) doesn't trigger a redundant save + "Saved" flash.
+	let lastSavedSerialized: string | null = null;
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -117,6 +121,8 @@
 			// Migration handles both v1 (legacy workflow.json files) and v2.
 			const v2 = migrateToV2(parsed);
 			workflow.set(v2);
+			// Baseline the persisted state so the load itself isn't autosaved.
+			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
 		} catch {}
 	});
 
