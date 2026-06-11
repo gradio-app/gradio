@@ -143,6 +143,13 @@ class Plot(Component):
         if isinstance(value, ModuleType) or "matplotlib" in value.__module__:
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(value, self.format)
+            try:
+                import matplotlib.pyplot as plt
+                from matplotlib.figure import Figure
+            except ImportError:
+                return PlotData(type=dtype, plot=out_y)
+            if isinstance(value, Figure):
+                plt.close(value)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
             from bokeh.embed import json_item  # type: ignore
