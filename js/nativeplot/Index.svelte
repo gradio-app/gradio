@@ -659,7 +659,7 @@
 									legend: {
 										orient: "bottom",
 										title: gradio.props.color_title,
-										values: gradio.props.colors_in_legend?.length
+										values: gradio.props.colors_in_legend
 											? [...gradio.props.colors_in_legend]
 											: undefined
 									},
