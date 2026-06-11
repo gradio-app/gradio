@@ -1,5 +1,15 @@
 # @gradio/tabitem
 
+## 0.8.0
+
+### Features
+
+- [#13509](https://github.com/gradio-app/gradio/pull/13509) [`dcd072c`](https://github.com/gradio-app/gradio/commit/dcd072cd57f09ffd2dc5f97ae6afc505894824a6) - Migrate Chatbot, Tabs, TabItem to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/tabs@0.7.0
+
 ## 0.7.0
 
 ### Features
