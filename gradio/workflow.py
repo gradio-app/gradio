@@ -7,17 +7,22 @@ import json
 import logging
 import os
 import re
+import secrets
 import sys
 import tempfile
 import urllib.parse
 import warnings
+import webbrowser
 from collections.abc import Callable
 from typing import Optional
 
 import httpx
+from huggingface_hub import HfApi
+from huggingface_hub import get_token as hf_get_token
 
 from gradio.blocks import Blocks
 from gradio.oauth import OAuthToken
+from gradio.route_utils import Request
 from gradio.utils import get_space
 
 logger = logging.getLogger(__name__)
@@ -134,12 +139,106 @@ def _workflow_from_bind(
     )
 
 
-def _resolve_token(data: list, idx: int, token) -> str | None:
+def _get_locally_saved_hf_token() -> str | None:
+    """Return the local Hugging Face token when running outside Spaces.
+
+    Avoid reading a Space's token/secret here: `get_token` is exposed to the
+    browser so the workflow canvas can authenticate local apps with the user's
+    `huggingface_hub login` token.
+    """
+    if get_space() is not None:
+        return None
+    return hf_get_token()
+
+
+# Per-process secret granting write access to local Workflow apps, in the same
+# spirit as Jupyter notebook tokens. The full URL (printed at launch) carries it
+# as a query parameter; the frontend then persists it as a cookie. Share-link
+# visitors and tunnelled requests never see it, so they get read-only access
+# and no access to the host's local HF token.
+WRITE_TOKEN = secrets.token_urlsafe(32)
+
+_WRITE_TOKEN_COOKIE_PREFIX = "gradio_workflow_write_token"
+_WRITE_TOKEN_HEADER = "x-gradio-workflow-write-token"
+
+
+def _request_has_write_token(request: Request | None) -> bool:
+    """True when the request carries the per-process write token, checked in
+    header → cookie → query-param order (mirrors trackio's scheme). The cookie
+    name is prefix-matched because the frontend suffixes it with the port —
+    cookies are shared across ports on the same host, so two local apps would
+    otherwise clobber each other."""
+    if request is None:
+        return False
+    try:
+        headers = {k.lower(): v for k, v in dict(request.headers or {}).items()}
+    except Exception:
+        return False
+    header_value = headers.get(_WRITE_TOKEN_HEADER)
+    if header_value:
+        return secrets.compare_digest(header_value, WRITE_TOKEN)
+    for cookie in headers.get("cookie", "").split(";"):
+        name, _, value = cookie.strip().partition("=")
+        if (
+            name.startswith(_WRITE_TOKEN_COOKIE_PREFIX)
+            and value
+            and secrets.compare_digest(urllib.parse.unquote(value), WRITE_TOKEN)
+        ):
+            return True
+    try:
+        query_value = request.query_params.get("write_token")
+    except Exception:
+        query_value = None
+    if query_value:
+        return secrets.compare_digest(query_value, WRITE_TOKEN)
+    return False
+
+
+# Shared instance: whoami(cache=True) caches per token on the HfApi instance,
+# which matters because whoami-v2 is heavily rate-limited.
+_hf_api = HfApi()
+
+
+def _oauth_token_has_space_write_access(oauth_token: str | None) -> bool:
+    """On Spaces, write access belongs to the Space owner: the OAuth user must
+    be the owning user, or an admin/write member of the owning org."""
+    space_id = get_space()
+    if not space_id or not oauth_token:
+        return False
+    try:
+        who = _hf_api.whoami(token=oauth_token, cache=True)
+    except Exception:
+        return False
+    owner = os.getenv("SPACE_AUTHOR_NAME") or space_id.split("/")[0]
+    if who.get("name") == owner:
+        return True
+    return any(
+        org.get("name") == owner and org.get("roleInOrg") in ("admin", "write")
+        for org in who.get("orgs", [])
+    )
+
+
+def has_write_access(
+    request: Request | None = None, token: OAuthToken | None = None
+) -> bool:
+    """Whether this request may modify the workflow (and, locally, use the
+    host's saved HF token). Locally: requires the launch-time write token.
+    On Spaces: requires the OAuth user to own the Space (or have org write)."""
+    if get_space() is not None:
+        return _oauth_token_has_space_write_access(token.token if token else None)
+    return _request_has_write_token(request)
+
+
+def _resolve_token(
+    data: list, idx: int, token, request: Request | None = None
+) -> str | None:
     manual = data[idx] if len(data) > idx else None
     if manual:
         return manual
     if token:
         return token.token
+    if _request_has_write_token(request):
+        return _get_locally_saved_hf_token()
     return None
 
 
@@ -319,20 +418,53 @@ VALID_SPACE_CATEGORIES = {
 }
 
 
-def get_token(_data=None, token: Optional[OAuthToken] = None) -> str:
+def get_token(
+    _data=None,
+    request: Optional[Request] = None,
+    token: Optional[OAuthToken] = None,
+) -> str:
+    """Return the HF token for this browser session. The host's locally saved
+    token is only revealed to sessions holding the write token — share-link
+    visitors and other remote clients get "" (logged-out experience)."""
     if token:
         return token.token
+    if _request_has_write_token(request):
+        return _get_locally_saved_hf_token() or ""
     return ""
 
 
-def call_space(data, token: Optional[OAuthToken] = None) -> str:
+def get_write_access(
+    _data=None,
+    request: Optional[Request] = None,
+    token: Optional[OAuthToken] = None,
+) -> str:
+    return "true" if has_write_access(request, token) else "false"
+
+
+def get_oauth_available(_data=None) -> str:
+    """Whether OAuth sign-in is actually wired up. On a Space this requires
+    `hf_oauth: true` in the README metadata, which provisions OAUTH_CLIENT_ID
+    and causes the `/login/huggingface` route to be mounted (mirrors the gate
+    that adds the LoginButton in `__init__`). Without it, sign-in would 404, so
+    the frontend hides the login button and explains the fix on the read-only
+    badge. OAuth is not used locally (the write-token model is used instead)."""
+    return (
+        "true"
+        if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
+        else "false"
+    )
+
+
+def call_space(
+    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     space_id = data[0] if data else ""
     try:
         from gradio_client import Client, handle_file
 
         endpoint = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
-        hf_token = _resolve_token(data, 3, token)
+        hf_token = _resolve_token(data, 3, token, request)
         if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+", space_id or ""):
             return json.dumps(
                 {
@@ -403,7 +535,9 @@ def call_space(data, token: Optional[OAuthToken] = None) -> str:
         return _format_error(e)
 
 
-def call_model(data, token: Optional[OAuthToken] = None) -> str:
+def call_model(
+    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     model_id = data[0] if data else ""
     task = ""
     try:
@@ -411,7 +545,7 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
 
         pipeline_tag = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
-        hf_token = _resolve_token(data, 3, token)
+        hf_token = _resolve_token(data, 3, token, request)
         # "auto" lets HF route to whichever provider serves the model; pinning
         # "hf-inference" 404s for models not hosted there.
         provider = data[4] if len(data) > 4 and data[4] else "auto"
@@ -600,14 +734,16 @@ def call_model(data, token: Optional[OAuthToken] = None) -> str:
         return _format_error(e)
 
 
-def fetch_dataset(data, token: Optional[OAuthToken] = None) -> str:
+def fetch_dataset(
+    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     try:
         dataset_id = data[0]
         config = data[1] if len(data) > 1 and data[1] else "default"
         split = data[2] if len(data) > 2 and data[2] else "train"
         offset = int(data[3]) if len(data) > 3 and data[3] else 0
         length = int(data[4]) if len(data) > 4 and data[4] else 10
-        hf_token = _resolve_token(data, 5, token)
+        hf_token = _resolve_token(data, 5, token, request)
         params = urllib.parse.urlencode(
             {
                 "dataset": dataset_id,
@@ -641,7 +777,9 @@ def fetch_dataset(data, token: Optional[OAuthToken] = None) -> str:
         return json.dumps({"error": str(e), "error_type": "unknown", "suggestion": ""})
 
 
-def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
+def search_spaces(
+    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     kind = data[0] if data else "trending"
     try:
         query = data[1] if len(data) > 1 and data[1] else ""
@@ -653,7 +791,7 @@ def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
         # don't exist as Space categories.
         if pipeline_tag and pipeline_tag not in VALID_SPACE_CATEGORIES:
             pipeline_tag = ""
-        hf_token = _resolve_token(data, 3, token)
+        hf_token = _resolve_token(data, 3, token, request)
         zero_gpu_only = bool(data[4]) if len(data) > 4 else False
 
         def _has_zero_gpu(s: dict) -> bool:
@@ -751,12 +889,14 @@ def search_spaces(data, token: Optional[OAuthToken] = None) -> str:
         return json.dumps({"error": str(e)})
 
 
-def search_models(data, token: Optional[OAuthToken] = None) -> str:
+def search_models(
+    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     kind = data[0] if data else "trending"
     try:
         query = data[1] if len(data) > 1 and data[1] else ""
         pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
-        hf_token = _resolve_token(data, 3, token)
+        hf_token = _resolve_token(data, 3, token, request)
         # Wide net — frontend filters to TASK_SCHEMAS-supported models.
         if kind == "search":
             sort = "likes&direction=-1"
@@ -779,10 +919,12 @@ def search_models(data, token: Optional[OAuthToken] = None) -> str:
         return json.dumps({"error": str(e)})
 
 
-def search_datasets(data, token: Optional[OAuthToken] = None) -> str:
+def search_datasets(
+    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     query = data[0] if data else ""
     try:
-        hf_token = _resolve_token(data, 1, token)
+        hf_token = _resolve_token(data, 1, token, request)
         search_param = f"search={urllib.parse.quote(query)}&" if query else ""
         url = f"https://huggingface.co/api/datasets?{search_param}sort=likes&direction=-1&limit=20"
         return _hf_request(url, hf_token)
@@ -791,10 +933,12 @@ def search_datasets(data, token: Optional[OAuthToken] = None) -> str:
         return json.dumps({"error": str(e)})
 
 
-def get_dataset_schema(data, token: Optional[OAuthToken] = None) -> str:
+def get_dataset_schema(
+    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     dataset_id = data[0] if data else ""
     try:
-        hf_token = _resolve_token(data, 1, token)
+        hf_token = _resolve_token(data, 1, token, request)
         try:
             splits_data = json.loads(
                 _hf_request(
@@ -1025,7 +1169,20 @@ class Workflow(Blocks):
                 )
             return json.dumps(templates)
 
-        def save_workflow(data, _token: Optional[OAuthToken] = None) -> str:
+        def save_workflow(
+            data,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,
+        ) -> str:
+            if not has_write_access(request, token):
+                return json.dumps(
+                    {
+                        "error": "Write access required to save this workflow",
+                        "error_type": "auth",
+                        "suggestion": "Open the app via the write-access link "
+                        "printed at launch (or sign in as the Space owner)",
+                    }
+                )
             try:
                 payload = data[0] if isinstance(data, list) and data else str(data)
                 if len(payload.encode()) > _max_workflow_bytes:
@@ -1043,6 +1200,8 @@ class Workflow(Blocks):
 
         server_functions = [
             get_token,
+            get_write_access,
+            get_oauth_available,
             call_space,
             call_model,
             fetch_dataset,
@@ -1067,9 +1226,56 @@ class Workflow(Blocks):
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
         `call_space` / `_save_tmp` write inference outputs to the system tempdir
         and serve them back as `/gradio_api/file=…` URLs; the tempdir is added
-        to `allowed_paths` so those URLs resolve."""
+        to `allowed_paths` so those URLs resolve.
+
+        Locally, editing requires the write token: the full edit link is printed
+        after the standard launch output (and used for `inbrowser`). Plain
+        local/share URLs open the app read-only."""
+        if args:
+            names = list(inspect.signature(super().launch).parameters)
+            kwargs.update(dict(zip(names, args)))
         kwargs["allowed_paths"] = [
             tempfile.gettempdir(),
             *(kwargs.get("allowed_paths") or []),
         ]
-        return super().launch(*args, **kwargs)
+        # We need the edit link to print (and the browser to open to it) before
+        # the main thread is blocked, which means super().launch() must return
+        # first. Rather than forcing `debug=False` — which would also strip
+        # `debug` from `create_app()` (FastAPI error display) and the Colab
+        # error-printing messages — we pass `debug` through unchanged and simply
+        # neutralize `block_thread` for the duration of the inner launch, then
+        # replicate Blocks.launch()'s blocking behavior ourselves below.
+        prevent_thread_lock = bool(kwargs.get("prevent_thread_lock", False))
+        debug = bool(kwargs.get("debug", False))
+        inbrowser = bool(kwargs.get("inbrowser", False))
+        kwargs["inbrowser"] = False
+
+        real_block_thread = self.block_thread
+        self.block_thread = lambda: None  # type: ignore[method-assign]
+        try:
+            launch_result = super().launch(**kwargs)
+        finally:
+            self.block_thread = real_block_thread  # type: ignore[method-assign]
+        _, local_url, share_url = launch_result
+
+        write_url = None
+        if get_space() is None and local_url:
+            sep = "&" if "?" in local_url else "?"
+            write_url = f"{local_url}{sep}write_token={WRITE_TOKEN}"
+            if not kwargs.get("quiet", False):
+                print(
+                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see): {write_url}"
+                )
+        if inbrowser:
+            webbrowser.open(
+                write_url or (share_url if self.share and share_url else local_url)
+            )
+
+        is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
+        if (
+            debug
+            or int(os.getenv("GRADIO_DEBUG", "0")) == 1
+            or (not prevent_thread_lock and not is_in_interactive_mode)
+        ):
+            self.block_thread()
+        return launch_result
