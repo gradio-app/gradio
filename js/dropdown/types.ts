@@ -1,3 +1,4 @@
+import type { LoadingStatus } from "@gradio/statustracker";
 import type { KeyUpData, SelectData, CustomButton } from "@gradio/utils";
 
 export type Item = string | number;
@@ -20,5 +21,6 @@ export interface DropdownEvents {
 	focus: never;
 	blur: never;
 	key_up: KeyUpData;
+	clear_status: LoadingStatus;
 	custom_button_click: { id: number };
 }

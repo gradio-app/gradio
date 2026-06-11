@@ -551,15 +551,20 @@ export class AppTree {
 		const raw_label = node.props.shared_props.label as string;
 		// Use original_visibility since the node's visible may have been
 		// set to false by the startup optimization for non-selected tabs.
+		const original_visibility = (
+			node as ProcessedComponentMeta & {
+				original_visibility?: boolean | "hidden";
+			}
+		).original_visibility;
 		const visible =
-			"original_visibility" in node
-				? (node.original_visibility as boolean)
+			original_visibility !== undefined
+				? original_visibility
 				: (node.props.shared_props.visible as boolean);
 		initial_tabs[tab_index] = {
 			label: i18n ? i18n(raw_label) : raw_label,
 			id: node.props.props.id as string,
 			elem_id: node.props.shared_props.elem_id,
-			visible,
+			visible: visible === "hidden" ? false : visible,
 			interactive: node.props.shared_props.interactive,
 			scale: node.props.shared_props.scale || null,
 			component_id: node.id
@@ -623,8 +628,8 @@ function make_visible_if_not_rendered(
 		: node.props.shared_props.visible;
 
 	if (node.type === "tabs") {
-		const selectedId =
-			node.props.props.selected ?? node.props.props.initial_tabs?.[0]?.id;
+		const initial_tabs = node.props.props.initial_tabs as Tab[] | undefined;
+		const selectedId = node.props.props.selected ?? initial_tabs?.[0]?.id;
 		node.children.forEach((child) => {
 			if (
 				child.type === "tabitem" &&

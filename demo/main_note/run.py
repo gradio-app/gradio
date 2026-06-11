@@ -1,7 +1,7 @@
 from math import log2, pow
 
 import numpy as np
-from scipy.fftpack import fft
+from scipy.fftpack import fft  # ty: ignore[unresolved-import]
 
 import gradio as gr
 from gradio.media import get_audio

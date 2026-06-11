@@ -84,7 +84,7 @@
 					>{(file.orig_name || file.path || "")
 						.split(".")
 						.pop()
-						.toUpperCase()}</span
+						?.toUpperCase() ?? "FILE"}</span
 				>
 			</div>
 		</div>

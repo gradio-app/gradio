@@ -30,7 +30,7 @@
 	}
 
 	const props = $props();
-	const gradio = new GalleryGradio<GalleryEvents, GalleryProps>(props, {
+	const gradio = new GalleryGradio(props, {
 		selected_index: null,
 		file_types: ["image", "video"]
 	});
@@ -192,7 +192,7 @@
 					gradio.dispatch("upload", gradio.props.value);
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				onerror={({ detail }) => {
+				onerror={(detail) => {
 					gradio.shared.loading_status = gradio.shared.loading_status || {};
 					gradio.shared.loading_status.status = "error";
 					gradio.dispatch("error", detail);
@@ -206,6 +206,7 @@
 				root={gradio.shared.root}
 				value={null}
 				on:capture={async (e) => {
+					if (!(e.detail instanceof Blob)) return;
 					const f = await handle_save(
 						e.detail,
 						(f) => gradio.shared.client.upload(f, gradio.shared.root),
@@ -231,7 +232,8 @@
 				root={gradio.shared.root}
 				value={null}
 				on:capture={async (e) => {
-					const f = { ...e.detail };
+					if (!e.detail) return;
+					const f = { ...(e.detail as FileData) };
 					f.mime_type = "video/webm";
 					const processed_files = await process_upload_files([f]);
 					gradio.props.value?.push(...processed_files);
@@ -254,7 +256,7 @@
 				{sources}
 				bind:active_source
 				handle_clear={() => gradio.dispatch("clear")}
-				handle_select={handle_select_source}
+				handle_select={(source) => handle_select_source(source as any)}
 			/>
 		{/if}
 	{:else}
@@ -282,7 +284,7 @@
 				gradio.dispatch("change", gradio.props.value);
 			}}
 			{sources}
-			{onsource_change}
+			onsource_change={(source) => onsource_change(source as any)}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			columns={gradio.props.columns}

@@ -12,8 +12,8 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from gradio_client.exceptions import AppError
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings  # ty: ignore[unresolved-import]
+from hypothesis import strategies as st  # ty: ignore[unresolved-import]
 
 import gradio as gr
 from gradio import EventData, Request

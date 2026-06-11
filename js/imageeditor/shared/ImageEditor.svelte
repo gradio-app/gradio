@@ -47,8 +47,8 @@
 	export let canvas_size: [number, number];
 	export let is_dragging = false;
 	export let background_image = false;
-	export let brush_options: Brush;
-	export let eraser_options: Eraser;
+	export let brush_options: Brush | false;
+	export let eraser_options: Eraser | false;
 	export let fixed_canvas = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
@@ -517,10 +517,12 @@
 	}
 
 	function update_brush_options(): void {
+		if (!brush_options) return;
+		const options = brush_options;
 		const default_color =
-			brush_options.default_color === "auto"
-				? brush_options.colors[0]
-				: brush_options.default_color;
+			options.default_color === "auto"
+				? options.colors[0]
+				: options.default_color;
 
 		// color is already a tuple [color, opacity]
 		if (Array.isArray(default_color)) {
@@ -539,14 +541,14 @@
 		}
 
 		selected_size =
-			typeof brush_options.default_size === "number"
-				? brush_options.default_size
-				: 25;
+			typeof options.default_size === "number" ? options.default_size : 25;
 	}
 
 	function update_eraser_options(): void {
+		if (!eraser_options) return;
+		const options = eraser_options;
 		selected_eraser_size =
-			eraser_options.default_size === "auto" ? 25 : eraser_options.default_size;
+			options.default_size === "auto" ? 25 : options.default_size;
 	}
 
 	let brush_size_visible = false;
@@ -557,12 +559,14 @@
 		(() => {
 			let color_value;
 			if (selected_color === "auto") {
+				if (!brush_options) return "black";
+				const options = brush_options;
 				const default_color =
-					brush_options.colors.find((color) =>
+					options.colors.find((color) =>
 						Array.isArray(color)
-							? color[0] === brush_options.default_color
-							: color === brush_options.default_color
-					) || brush_options.colors[0];
+							? color[0] === options.default_color
+							: color === options.default_color
+					) || options.colors[0];
 
 				color_value = Array.isArray(default_color)
 					? default_color[0]

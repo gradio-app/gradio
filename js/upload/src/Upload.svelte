@@ -49,8 +49,8 @@
 		icon_upload?: boolean;
 		height?: number | string | undefined;
 		aria_label?: string | undefined;
-		upload_promise?: Promise<(FileData | null)[]>;
-		onload?: (data: FileData | FileData[] | Blob | File) => void;
+		upload_promise?: Promise<(FileData | null)[]> | null;
+		onload?: (data: any) => void;
 		onerror?: (error: string) => void;
 		children?: import("svelte").Snippet;
 	} = $props();
@@ -141,14 +141,19 @@
 		uploading = true;
 		upload_promise = new Promise(async (resolve) => {
 			try {
-				const _file_data = await upload(
-					file_data,
-					root,
-					upload_id,
-					max_file_size ?? Infinity
-				);
-				onload?.(file_count === "single" ? _file_data?.[0] : _file_data);
-				resolve(_file_data || []);
+				const _file_data =
+					(await upload(
+						file_data,
+						root,
+						upload_id,
+						max_file_size ?? Infinity
+					)) || [];
+				if (file_count === "single") {
+					if (_file_data[0] !== undefined) onload?.(_file_data[0]);
+				} else {
+					onload?.(_file_data);
+				}
+				resolve(_file_data);
 				uploading = false;
 			} catch (e) {
 				onerror?.((e as Error).message);

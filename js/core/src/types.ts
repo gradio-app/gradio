@@ -13,9 +13,17 @@ export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
 export interface ComponentMeta {
 	type: string;
 	id: number;
-	props: SharedProps & Record<string, unknown>;
+	props: any;
 	documentation?: Documentation;
 	value?: any;
+	children?: any[];
+	parent?: any;
+	instance?: any;
+	component?: any;
+	has_modes?: boolean;
+	modify_stream_state?: any;
+	get_stream_state?: any;
+	set_time_limit?: any;
 	component_class_id: string;
 	key: string | number | null;
 	rendered_in?: number;
@@ -68,6 +76,8 @@ export interface Dependency {
 	cancels: number[];
 	types: DependencyTypes;
 	collects_event_data: boolean;
+	frontend_fn?: ((...args: unknown[]) => Promise<unknown[]>) | null;
+	api_visibility?: "public" | "private" | "undocumented";
 	//pending_request?: boolean; // added, not received from backend, unneeded
 	trigger_after?: number; // then events
 	trigger_only_on_success?: boolean; // success events

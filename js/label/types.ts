@@ -1,4 +1,5 @@
-import type { SelectData, LoadingStatus, CustomButton } from "@gradio/utils";
+import type { LoadingStatus } from "@gradio/statustracker";
+import type { SelectData, CustomButton } from "@gradio/utils";
 
 export interface LabelProps {
 	value: {

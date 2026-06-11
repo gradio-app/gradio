@@ -39,8 +39,8 @@
 		bind:selected={gradio.props.selected}
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
-			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
+			gradio.dispatch("select", e.detail as any);
+			gradio.dispatch("gradio_tab_select", e.detail as any);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
@@ -54,8 +54,8 @@
 		bind:selected={gradio.props.selected}
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
-			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
+			gradio.dispatch("select", e.detail as any);
+			gradio.dispatch("gradio_tab_select", e.detail as any);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>

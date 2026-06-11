@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick, onMount, setContext, settled, untrack } from "svelte";
+	import type { Component } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 	import { writable } from "svelte/store";
@@ -18,10 +19,6 @@
 	import { prefix_css } from "./css";
 	import { reactive_formatter } from "./gradio_helper";
 
-	import type ApiDocsInterface from "./api_docs/ApiDocs.svelte";
-	import type ApiRecorderInterface from "./api_docs/ApiRecorder.svelte";
-	import type SettingsInterface from "./api_docs/Settings.svelte";
-
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
@@ -31,6 +28,15 @@
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
+	type AddNewMessage = (
+		title: string,
+		message: string,
+		fn_index: number,
+		type: ToastMessage["type"],
+		duration?: number | null,
+		visible?: boolean
+	) => void;
+
 	let {
 		root,
 		components,
@@ -55,7 +61,7 @@
 		css,
 		vibe_mode,
 		search_params,
-		render_complete = false,
+		render_complete = $bindable(false),
 		ready = $bindable(false),
 		reload_count = $bindable(0),
 		add_new_message = $bindable()
@@ -86,7 +92,7 @@
 		render_complete: boolean;
 		ready: boolean;
 		reload_count: number;
-		add_new_message: (title: string, message: string, type: string) => void;
+		add_new_message: AddNewMessage;
 	} = $props();
 
 	components.forEach((comp) => {
@@ -276,9 +282,9 @@
 	let allow_video_trim = true;
 
 	// Lazy component loading state
-	let ApiDocs: ComponentType<ApiDocsInterface> | null = null;
-	let ApiRecorder: ComponentType<ApiRecorderInterface> | null = null;
-	let Settings: ComponentType<SettingsInterface> | null = null;
+	let ApiDocs: Component<any> | null = null;
+	let ApiRecorder: Component<any> | null = null;
+	let Settings: Component<any> | null = null;
 	let VibeEditor: any = $state(null);
 
 	async function loadApiDocs(): Promise<void> {

@@ -14,13 +14,16 @@ import type {
 } from "@testing-library/dom";
 import { vi, type Mock } from "vitest";
 import { GRADIO_ROOT, allowed_shared_props } from "@gradio/utils";
-import type { LoadingStatus, ILoadingStatus } from "@gradio/statustracker";
+import type { LoadingStatus } from "@gradio/statustracker";
 import { _ } from "svelte-i18n";
 
 const containerCache = new Map();
 const componentCache = new Set();
 
-type ComponentType<T extends SvelteComponent, Props> = Component<Props>;
+type ComponentType<
+	T extends SvelteComponent,
+	Props extends Record<string, any>
+> = Component<Props>;
 
 export type RenderResult<
 	C extends SvelteComponent,
@@ -209,7 +212,7 @@ export async function render<
 	const component = mount(ComponentConstructor, {
 		target,
 		props: componentProps
-	}) as T;
+	} as any) as T;
 
 	containerCache.set(container, { target, component });
 	componentCache.add(component);

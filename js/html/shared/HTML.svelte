@@ -25,6 +25,7 @@
 		html_template: string;
 		css_template: string;
 		js_on_load: string | null;
+		head?: string | null;
 		visible: boolean;
 		autoscroll: boolean;
 		apply_default_css: boolean;

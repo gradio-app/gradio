@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { type ComponentType } from "svelte";
+	import { type Component } from "svelte";
 	import type { ColorInput } from "tinycolor2";
-	export let Icon: ComponentType;
+	export let Icon: Component<any>;
 	export let label = "";
 	export let show_label = false;
 	export let pending = false;
