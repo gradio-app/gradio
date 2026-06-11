@@ -10,7 +10,6 @@ import re
 import secrets
 import sys
 import tempfile
-import time
 import urllib.parse
 import warnings
 import webbrowser
@@ -18,6 +17,8 @@ from collections.abc import Callable
 from typing import Optional
 
 import httpx
+from huggingface_hub import HfApi
+from huggingface_hub import get_token as hf_get_token
 
 from gradio.blocks import Blocks
 from gradio.oauth import OAuthToken
@@ -147,20 +148,15 @@ def _get_locally_saved_hf_token() -> str | None:
     """
     if get_space() is not None:
         return None
-    try:
-        from huggingface_hub import get_token as hf_get_token
-
-        return hf_get_token()
-    except Exception:
-        return None
+    return hf_get_token()
 
 
 # Per-process secret granting write access to local Workflow apps, in the same
 # spirit as Jupyter notebook tokens. The full URL (printed at launch) carries it
 # as a query parameter; the frontend then persists it as a cookie. Share-link
 # visitors and tunnelled requests never see it, so they get read-only access
-# and no access to the host's local HF token. Overridable for tests/automation.
-WRITE_TOKEN = os.getenv("GRADIO_WORKFLOW_WRITE_TOKEN") or secrets.token_urlsafe(32)
+# and no access to the host's local HF token.
+WRITE_TOKEN = secrets.token_urlsafe(32)
 
 _WRITE_TOKEN_COOKIE_PREFIX = "gradio_workflow_write_token"
 _WRITE_TOKEN_HEADER = "x-gradio-workflow-write-token"
@@ -198,39 +194,28 @@ def _request_has_write_token(request: Request | None) -> bool:
     return False
 
 
-_space_write_cache: dict[str, tuple[bool, float]] = {}
-_SPACE_WRITE_CACHE_TTL = 300
+# Shared instance: whoami(cache=True) caches per token on the HfApi instance,
+# which matters because whoami-v2 is heavily rate-limited.
+_hf_api = HfApi()
 
 
 def _oauth_token_has_space_write_access(oauth_token: str | None) -> bool:
     """On Spaces, write access belongs to the Space owner: the OAuth user must
-    be the owning user, or an admin/write member of the owning org. Results are
-    cached per token because whoami-v2 is heavily rate-limited."""
+    be the owning user, or an admin/write member of the owning org."""
     space_id = get_space()
     if not space_id or not oauth_token:
         return False
-    now = time.monotonic()
-    cached = _space_write_cache.get(oauth_token)
-    if cached is not None and now - cached[1] < _SPACE_WRITE_CACHE_TTL:
-        return cached[0]
-    allowed = False
     try:
-        from huggingface_hub import HfApi
-
-        who = HfApi().whoami(token=oauth_token)
-        owner = os.getenv("SPACE_AUTHOR_NAME") or space_id.split("/")[0]
-        if who.get("name") == owner:
-            allowed = True
-        else:
-            allowed = any(
-                org.get("name") == owner and org.get("roleInOrg") in ("admin", "write")
-                for org in who.get("orgs", [])
-            )
+        who = _hf_api.whoami(token=oauth_token, cache=True)
     except Exception:
-        logger.warning("Could not verify Space write access", exc_info=True)
-        allowed = False
-    _space_write_cache[oauth_token] = (allowed, now)
-    return allowed
+        return False
+    owner = os.getenv("SPACE_AUTHOR_NAME") or space_id.split("/")[0]
+    if who.get("name") == owner:
+        return True
+    return any(
+        org.get("name") == owner and org.get("roleInOrg") in ("admin", "write")
+        for org in who.get("orgs", [])
+    )
 
 
 def has_write_access(

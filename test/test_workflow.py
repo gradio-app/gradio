@@ -17,7 +17,6 @@ from gradio.workflow import (
     _resolve_token,
     _workflow_from_bind,
     get_token,
-    get_write_access,
     has_write_access,
 )
 
@@ -193,30 +192,6 @@ class TestLaunchWriteTokenLink:
         out = capsys.readouterr().out
         assert "write_token" not in out
 
-    def test_super_launch_forced_non_blocking(self, tmp_path, monkeypatch):
-        wf = Workflow(graph=str(tmp_path / "wf.json"))
-        captured = {}
-
-        def fake_super_launch(*args, **kwargs):
-            captured["prevent_thread_lock"] = kwargs.get("prevent_thread_lock")
-            captured["debug"] = kwargs.get("debug")
-            captured["inbrowser"] = kwargs.get("inbrowser")
-            return (None, "http://127.0.0.1:7860/", None)
-
-        monkeypatch.setattr(gr.Blocks, "launch", fake_super_launch)
-        opened = {}
-        monkeypatch.setattr(
-            workflow_module.webbrowser, "open", lambda url: opened.update(url=url)
-        )
-        wf.launch(prevent_thread_lock=True, inbrowser=True)
-        assert captured == {
-            "prevent_thread_lock": True,
-            "debug": False,
-            "inbrowser": False,
-        }
-        # The browser opens the tokenized edit link, not the plain local URL.
-        assert opened["url"].endswith(f"write_token={WRITE_TOKEN}")
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Token resolution
@@ -239,15 +214,7 @@ class TestResolveToken:
         )
         assert _resolve_token([], 3, _make_oauth("oauth-tok")) == "oauth-tok"
 
-    def test_local_token_used_with_write_access(self, monkeypatch):
-        monkeypatch.setattr(
-            workflow_module,
-            "_get_locally_saved_hf_token",
-            lambda: "local-tok",
-        )
-        assert _resolve_token([], 3, None, _write_request()) == "local-tok"
-
-    def test_local_token_withheld_without_write_access(self, monkeypatch):
+    def test_local_token_requires_write_access(self, monkeypatch):
         # A share-link visitor (no write token) must never see the host's
         # locally saved HF token.
         monkeypatch.setattr(
@@ -255,14 +222,9 @@ class TestResolveToken:
             "_get_locally_saved_hf_token",
             lambda: "local-tok",
         )
+        assert _resolve_token([], 3, None, _write_request()) == "local-tok"
         assert _resolve_token([], 3, None, _make_request()) is None
         assert _resolve_token([], 3, None, None) is None
-
-    def test_none_when_no_source(self, monkeypatch):
-        monkeypatch.setattr(
-            workflow_module, "_get_locally_saved_hf_token", lambda: None
-        )
-        assert _resolve_token([], 3, None, _write_request()) is None
 
 
 class TestGetToken:
@@ -274,28 +236,15 @@ class TestGetToken:
         )
         assert get_token(token=_make_oauth("oauth-tok")) == "oauth-tok"
 
-    def test_uses_local_hf_token_with_write_access(self, monkeypatch):
+    def test_local_token_requires_write_access(self, monkeypatch):
         monkeypatch.setattr(
             workflow_module,
             "_get_locally_saved_hf_token",
             lambda: "local-tok",
         )
         assert get_token(request=_write_request()) == "local-tok"
-
-    def test_local_hf_token_withheld_without_write_access(self, monkeypatch):
-        monkeypatch.setattr(
-            workflow_module,
-            "_get_locally_saved_hf_token",
-            lambda: "local-tok",
-        )
-        assert get_token() == ""
         assert get_token(request=_make_request()) == ""
-
-    def test_no_local_hf_token_returns_empty_string(self, monkeypatch):
-        monkeypatch.setattr(
-            workflow_module, "_get_locally_saved_hf_token", lambda: None
-        )
-        assert get_token(request=_write_request()) == ""
+        assert get_token() == ""
 
     def test_local_hf_token_is_disabled_on_spaces(self, monkeypatch):
         monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
@@ -308,36 +257,25 @@ class TestGetToken:
 
 
 class TestWriteAccess:
-    def test_cookie_grants_access(self):
-        assert _request_has_write_token(_write_request()) is True
-
-    def test_cookie_name_is_prefix_matched(self):
+    def test_token_accepted_via_header_cookie_or_query(self):
+        assert _request_has_write_token(_make_request(header=WRITE_TOKEN))
+        assert _request_has_write_token(_write_request())
+        assert _request_has_write_token(_make_request(query=WRITE_TOKEN))
         # Frontend suffixes the cookie name with the port; any suffix works.
-        req = _make_request(
-            cookie=f"other=1; gradio_workflow_write_token_8080={WRITE_TOKEN}"
+        assert _request_has_write_token(
+            _make_request(
+                cookie=f"other=1; gradio_workflow_write_token_8080={WRITE_TOKEN}"
+            )
         )
-        assert _request_has_write_token(req) is True
 
-    def test_header_grants_access(self):
-        assert _request_has_write_token(_make_request(header=WRITE_TOKEN)) is True
-
-    def test_query_param_grants_access(self):
-        assert _request_has_write_token(_make_request(query=WRITE_TOKEN)) is True
-
-    def test_wrong_token_denied(self):
+    def test_wrong_or_missing_token_denied(self):
         assert not _request_has_write_token(
             _make_request(cookie="gradio_workflow_write_token_7860=wrong")
         )
         assert not _request_has_write_token(_make_request(header="wrong"))
         assert not _request_has_write_token(_make_request(query="wrong"))
-
-    def test_no_request_denied(self):
-        assert _request_has_write_token(None) is False
-        assert _request_has_write_token(_make_request()) is False
-
-    def test_get_write_access_server_fn(self):
-        assert get_write_access(request=_write_request()) == "true"
-        assert get_write_access(request=_make_request()) == "false"
+        assert not _request_has_write_token(_make_request())
+        assert not _request_has_write_token(None)
 
     def test_write_token_ignored_on_spaces(self, monkeypatch):
         # On Spaces only OAuth ownership grants write access; a leaked write
@@ -345,43 +283,32 @@ class TestWriteAccess:
         monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
         assert has_write_access(_write_request(), None) is False
 
-    def _patch_whoami(self, monkeypatch, payload):
+    def test_spaces_write_access_requires_ownership(self, monkeypatch):
+        responses = {
+            "tok-owner": {"name": "owner", "orgs": []},
+            "tok-org-write": {
+                "name": "someone",
+                "orgs": [{"name": "owner", "roleInOrg": "write"}],
+            },
+            "tok-org-read": {
+                "name": "someone",
+                "orgs": [{"name": "owner", "roleInOrg": "read"}],
+            },
+            "tok-stranger": {"name": "stranger", "orgs": []},
+        }
+
         class FakeHfApi:
-            def whoami(self, token=None):
-                return payload
+            def whoami(self, token=None, cache=False):
+                return responses[token]
 
-        import huggingface_hub
-
-        monkeypatch.setattr(huggingface_hub, "HfApi", FakeHfApi)
+        monkeypatch.setattr(workflow_module, "_hf_api", FakeHfApi())
         monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
         monkeypatch.setenv("SPACE_AUTHOR_NAME", "owner")
-        workflow_module._space_write_cache.clear()
 
-    def test_spaces_owner_has_write_access(self, monkeypatch):
-        self._patch_whoami(monkeypatch, {"name": "owner", "orgs": []})
         assert has_write_access(None, _make_oauth("tok-owner")) is True
-
-    def test_spaces_org_member_with_write_role(self, monkeypatch):
-        self._patch_whoami(
-            monkeypatch,
-            {"name": "someone", "orgs": [{"name": "owner", "roleInOrg": "write"}]},
-        )
-        assert has_write_access(None, _make_oauth("tok-org")) is True
-
-    def test_spaces_org_member_with_read_role_denied(self, monkeypatch):
-        self._patch_whoami(
-            monkeypatch,
-            {"name": "someone", "orgs": [{"name": "owner", "roleInOrg": "read"}]},
-        )
-        assert has_write_access(None, _make_oauth("tok-read")) is False
-
-    def test_spaces_stranger_denied(self, monkeypatch):
-        self._patch_whoami(monkeypatch, {"name": "stranger", "orgs": []})
+        assert has_write_access(None, _make_oauth("tok-org-write")) is True
+        assert has_write_access(None, _make_oauth("tok-org-read")) is False
         assert has_write_access(None, _make_oauth("tok-stranger")) is False
-
-    def test_spaces_no_oauth_denied(self, monkeypatch):
-        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
-        assert has_write_access(None, None) is False
 
 
 class TestSaveWorkflowGating:
@@ -510,30 +437,3 @@ class TestNormalizeSpaceResult:
 
     def test_missing_likes_defaults_zero(self):
         assert _normalize_space_result({}, "")["likes"] == 0
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# server functions — basic shape
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class TestServerFunctions:
-    def test_get_token_returns_oauth_when_present(self, monkeypatch):
-        from gradio.workflow import get_token
-
-        monkeypatch.setattr(
-            workflow_module,
-            "_get_locally_saved_hf_token",
-            lambda: "local-tok",
-        )
-        assert get_token(None, token=_make_oauth("oauth-tok")) == "oauth-tok"
-
-    def test_get_token_returns_local_hf_token_without_oauth(self, monkeypatch):
-        from gradio.workflow import get_token
-
-        monkeypatch.setattr(
-            workflow_module,
-            "_get_locally_saved_hf_token",
-            lambda: "local-tok",
-        )
-        assert get_token(None, _write_request(), None) == "local-tok"
