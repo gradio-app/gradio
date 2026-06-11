@@ -14,7 +14,12 @@
 	import Message from "./Message.svelte";
 
 	import { dequal } from "dequal/lite";
-	import { type SvelteComponent, type ComponentType, tick } from "svelte";
+	import {
+		type SvelteComponent,
+		type ComponentType,
+		tick,
+		untrack
+	} from "svelte";
 
 	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
@@ -136,21 +141,24 @@
 
 	let old_value: NormalisedMessage[] | null = $state(null);
 	let _components: Record<string, ComponentType<SvelteComponent>> = $state({});
+	let component_names = $derived(
+		get_components_from_messages(value).sort().join(",")
+	);
 
-	const is_browser = typeof window !== "undefined";
-
-	async function update_components(): Promise<void> {
+	async function update_components(component_names: string): Promise<void> {
 		_components = await load_components(
-			get_components_from_messages(value),
+			component_names ? component_names.split(",") : [],
 			_components,
 			load_component
 		);
 	}
 
 	$effect(() => {
-		get_components_from_messages(value);
-		update_components();
+		const names = component_names;
+		untrack(() => update_components(names));
 	});
+
+	const is_browser = typeof window !== "undefined";
 
 	let target: HTMLElement | null = $state(null);
 	let edit_index: number | null = $state(null);
@@ -174,6 +182,7 @@
 	}
 
 	let scroll_after_component_load = $state(false);
+	let has_scrolled_on_mount = false;
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
@@ -186,12 +195,17 @@
 	}
 
 	$effect(() => {
-		if (autoscroll && div) {
-			scroll_to_bottom();
-		}
 		value;
 		pending_message;
 		_components;
+
+		if (!has_scrolled_on_mount) {
+			has_scrolled_on_mount = true;
+			if (autoscroll && div) {
+				scroll_to_bottom();
+			}
+		}
+
 		scroll_on_value_update();
 	});
 
