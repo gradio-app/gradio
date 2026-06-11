@@ -64,17 +64,40 @@
 	padding: 4px 8px;
 }
 
-.readonly-badge {
+.access-badge {
 	font-family: "JetBrains Mono", monospace;
 	font-size: 10px;
 	font-weight: 600;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
+	border-radius: 999px;
+	padding: 2px 8px;
+	cursor: default;
+}
+
+/* Neutral/muted: you can run but not edit. */
+.access-badge.access-readonly {
 	color: #9a9cab;
 	background: #1a1b25;
 	border: 1px solid #2a2b38;
-	border-radius: 999px;
-	padding: 2px 8px;
+}
+
+/* Accent (green): you hold the write token / own the Space — more permissions. */
+.access-badge.access-write {
+	color: #4fd1a5;
+	background: rgba(79, 209, 165, 0.1);
+	border: 1px solid rgba(79, 209, 165, 0.3);
+}
+
+.save-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-family: "Manrope", sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	color: #4fd1a5;
+	letter-spacing: 0.01em;
 }
 
 .name-input {
@@ -144,19 +167,109 @@
 	border-color: #2a2b36;
 }
 
-.toolbar-login-btn.logged-in {
-	color: #6b6e78;
-	font-size: 11px;
+.toolbar-user-wrap {
+	position: relative;
+	display: flex;
+	align-items: center;
 }
 
-.toolbar-user-info {
+.toolbar-user-chip {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 3px 10px 3px 3px;
+	border: 1px solid #1e1f2a;
+	border-radius: 999px;
+	background: transparent;
+	color: #a0a2ae;
+	font-family: "Manrope", sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		color 0.15s,
+		border-color 0.15s;
+}
+
+.toolbar-user-chip:hover,
+.toolbar-user-chip.open {
+	background: #16171f;
+	color: #e0e1e6;
+	border-color: #2a2b36;
+}
+
+.toolbar-user-avatar {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	object-fit: cover;
+	flex-shrink: 0;
+	background: #1e1f2a;
+}
+
+.toolbar-user-avatar-fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	font-family: "Manrope", sans-serif;
 	font-size: 11px;
-	color: #6b6e78;
+	font-weight: 700;
+	color: #a0a2ae;
 }
 
-.toolbar-user-info strong {
+.toolbar-user-name {
+	letter-spacing: -0.01em;
+	max-width: 140px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.toolbar-user-menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	width: 256px;
+	background: #16171f;
+	border: 1px solid #2a2b36;
+	border-radius: 10px;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	box-shadow:
+		0 8px 24px rgba(0, 0, 0, 0.45),
+		0 0 0 1px rgba(255, 255, 255, 0.03);
+	z-index: 40;
+}
+
+.toolbar-user-menu-msg {
+	font-family: "Manrope", sans-serif;
+	font-size: 12px;
+	line-height: 1.5;
 	color: #a0a2ae;
+}
+
+.toolbar-user-menu-btn {
+	align-self: flex-start;
+	font-family: "Manrope", sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 5px 12px;
+	border: 1px solid #2a2b36;
+	border-radius: 6px;
+	background: transparent;
+	color: #e0e1e6;
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		border-color 0.15s;
+}
+
+.toolbar-user-menu-btn:hover {
+	background: #1e1f2a;
+	border-color: #3a3b48;
 }
 
 .toolbar-token-input {
@@ -302,6 +415,14 @@
 .zoom-ctrl-btn:hover {
 	background: #1e1f2a;
 	color: #a0a2ae;
+}
+
+.zoom-ctrl-divider {
+	width: 1px;
+	height: 18px;
+	margin: 0 2px;
+	background: #1e1f2a;
+	flex-shrink: 0;
 }
 
 .zoom-btn {

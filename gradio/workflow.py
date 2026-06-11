@@ -1223,17 +1223,24 @@ class Workflow(Blocks):
             tempfile.gettempdir(),
             *(kwargs.get("allowed_paths") or []),
         ]
-        # Run super().launch() non-blocking so the edit link prints before the
-        # server blocks the main thread, then replicate Blocks.launch()'s
-        # blocking behavior below.
+        # We need the edit link to print (and the browser to open to it) before
+        # the main thread is blocked, which means super().launch() must return
+        # first. Rather than forcing `debug=False` — which would also strip
+        # `debug` from `create_app()` (FastAPI error display) and the Colab
+        # error-printing messages — we pass `debug` through unchanged and simply
+        # neutralize `block_thread` for the duration of the inner launch, then
+        # replicate Blocks.launch()'s blocking behavior ourselves below.
         prevent_thread_lock = bool(kwargs.get("prevent_thread_lock", False))
         debug = bool(kwargs.get("debug", False))
         inbrowser = bool(kwargs.get("inbrowser", False))
-        kwargs["prevent_thread_lock"] = True
-        kwargs["debug"] = False
         kwargs["inbrowser"] = False
 
-        launch_result = super().launch(**kwargs)
+        real_block_thread = self.block_thread
+        self.block_thread = lambda: None  # type: ignore[method-assign]
+        try:
+            launch_result = super().launch(**kwargs)
+        finally:
+            self.block_thread = real_block_thread  # type: ignore[method-assign]
         _, local_url, share_url = launch_result
 
         write_url = None

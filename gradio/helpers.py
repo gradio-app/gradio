@@ -915,6 +915,14 @@ def create_tracker(fn, track_tqdm):
     )
 
 
+# Emitted at most once per process: when a handler requests an OAuthToken /
+# OAuthProfile but no SessionMiddleware is installed. Python's built-in
+# once-per-location dedup is unreliable here because `warnings.catch_warnings()`
+# usage elsewhere in gradio mutates the global filter state and re-arms the
+# warning, so we guard it explicitly.
+_empty_session_warned = False
+
+
 def special_args(
     fn: Callable,
     inputs: list[Any] | None = None,
@@ -983,10 +991,13 @@ def special_args(
                         "SessionMiddleware must be installed to access request.session"
                         in str(e)
                     ):
-                        warnings.warn(
-                            "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
-                            UserWarning,
-                        )
+                        global _empty_session_warned
+                        if not _empty_session_warned:
+                            _empty_session_warned = True
+                            warnings.warn(
+                                "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
+                                UserWarning,
+                            )
                         session = {}
                     else:
                         raise e

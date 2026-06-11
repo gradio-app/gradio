@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { setContext } from "svelte";
+	import { fade } from "svelte/transition";
 
 	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
 	import WorkflowBottomBar from "./WorkflowBottomBar.svelte";
 	import type { BoundFnTemplate } from "./WorkflowBottomBar.svelte";
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
+	import CheckIcon from "./icons/CheckIcon.svelte";
+	import LayoutIcon from "./icons/LayoutIcon.svelte";
 
 	import {
 		MODALITIES,
@@ -81,6 +84,28 @@
 	// doesn't see controls flash out and back in.
 	const readOnly = $derived(auth.writeAccessKnown && !auth.canWrite);
 
+	// Why this session can't edit — surfaced on hover over the "Run only" badge.
+	// Differs by deployment: locally the fix is opening the write-token edit
+	// link; on a Space it's signing in with an account that owns the Space.
+	const readOnlyReason = $derived(
+		auth.isHFSpace
+			? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that has write access to this Space to make changes."
+			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes."
+	);
+
+	// Flash a brief "Saved" confirmation after each successful autosave. The
+	// timer is cleared on each new save so rapid edits coalesce into a single
+	// lingering checkmark rather than flickering.
+	let saveIndicator = $state(false);
+	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
+	function flashSaved(): void {
+		saveIndicator = true;
+		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
+		saveIndicatorTimer = setTimeout(() => {
+			saveIndicator = false;
+		}, 1400);
+	}
+
 	$effect(() => {
 		void auth.init();
 	});
@@ -104,6 +129,7 @@
 		const timer = setTimeout(() => {
 			server
 				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
+				.then(() => flashSaved())
 				.catch(() => {});
 		}, 500);
 		return () => clearTimeout(timer);
@@ -223,7 +249,22 @@
 			: null
 	);
 	let showShortcuts = $state(false);
+	let showUserMenu = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
+
+	// Human-readable explanation of how the current user is authenticated,
+	// shown in the popover when they click their avatar. The "local" case also
+	// tells them logout happens from the CLI, since the UI can't clear a token
+	// it never stored (it's the host's `huggingface-cli login` token).
+	const authExplanation = $derived.by(() => {
+		if (auth.source === "local")
+			return "Signed in with the Hugging Face token saved on this machine (via `huggingface-cli login`). To sign out, run `huggingface-cli logout` in your terminal.";
+		if (auth.source === "oauth")
+			return "Signed in with your Hugging Face account.";
+		if (auth.source === "pat")
+			return "Signed in with a Hugging Face token you provided.";
+		return "";
+	});
 
 	type Pending = {
 		from_node_id: string;
@@ -1433,6 +1474,9 @@
 		if (activePicker && !target?.closest(".picker-panel")) {
 			activePicker = null;
 		}
+		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
+			showUserMenu = false;
+		}
 	}
 
 	function zoomToFit(): void {
@@ -1920,9 +1964,6 @@
 		<div class="toolbar-left">
 			{#if readOnly}
 				<span class="name-text name-readonly">{$workflow.name}</span>
-				<span class="readonly-badge" title="Open the edit link to make changes"
-					>View only</span
-				>
 			{:else if editingName}
 				<input
 					bind:this={nameInput}
@@ -1949,16 +1990,59 @@
 			<span class="toolbar-stat"
 				>{nodeCount} nodes &middot; {edgeCount} edges</span
 			>
+			{#if saveIndicator}
+				<span
+					class="save-indicator"
+					in:fade={{ duration: 120 }}
+					out:fade={{ duration: 400 }}
+				>
+					<CheckIcon />
+					Saved
+				</span>
+			{/if}
 		</div>
 		<div class="toolbar-right">
 			{#if auth.status !== "checking"}
 				{#if auth.user}
-					<span class="toolbar-user-info"
-						>Logged in as <strong>{auth.user}</strong></span
-					>
-					<button class="toolbar-login-btn logged-in" onclick={auth.signOut}
-						>Log out</button
-					>
+					<div class="toolbar-user-wrap">
+						<button
+							class="toolbar-user-chip"
+							class:open={showUserMenu}
+							onclick={(e) => {
+								e.stopPropagation();
+								showUserMenu = !showUserMenu;
+							}}
+							title="Account"
+						>
+							{#if auth.avatarUrl}
+								<img
+									class="toolbar-user-avatar"
+									src={auth.avatarUrl}
+									alt=""
+									referrerpolicy="no-referrer"
+								/>
+							{:else}
+								<span class="toolbar-user-avatar toolbar-user-avatar-fallback"
+									>{auth.user.charAt(0).toUpperCase()}</span
+								>
+							{/if}
+							<span class="toolbar-user-name">{auth.user}</span>
+						</button>
+						{#if showUserMenu}
+							<div class="toolbar-user-menu">
+								<div class="toolbar-user-menu-msg">{authExplanation}</div>
+								{#if auth.source !== "local"}
+									<button
+										class="toolbar-user-menu-btn"
+										onclick={() => {
+											showUserMenu = false;
+											auth.signOut();
+										}}>Log out</button
+									>
+								{/if}
+							</div>
+						{/if}
+					</div>
 				{:else if auth.isHFSpace}
 					<button class="toolbar-login-btn" onclick={auth.signIn}
 						>Sign in with 🤗</button
@@ -1983,10 +2067,18 @@
 				{/if}
 			{/if}
 			{#if !readOnly}
-				<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
-					>Layout</button
-				>
 				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
+				{#if auth.writeAccessKnown}
+					<span
+						class="access-badge access-write"
+						title="You have write access — changes you make are saved automatically."
+						>Write access</span
+					>
+				{/if}
+			{:else}
+				<span class="access-badge access-readonly" title={readOnlyReason}
+					>Run only</span
+				>
 			{/if}
 		</div>
 	</div>
@@ -2163,6 +2255,17 @@
 		{/if}
 
 		<div class="zoom-controls">
+			{#if !readOnly}
+				<button
+					class="zoom-ctrl-btn"
+					onclick={autoLayout}
+					title="Auto-arrange nodes"
+					aria-label="Auto-arrange nodes"
+				>
+					<LayoutIcon />
+				</button>
+				<div class="zoom-ctrl-divider"></div>
+			{/if}
 			<button
 				class="zoom-ctrl-btn"
 				onclick={() => (showShortcuts = !showShortcuts)}
@@ -2472,14 +2575,37 @@
 		color: #1a1b25;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-login-btn.logged-in) {
-		color: #8b8d98;
-	}
-	:global(body:not(.dark) .toolbar-user-info) {
-		color: #8b8d98;
-	}
-	:global(body:not(.dark) .toolbar-user-info strong) {
+	:global(body:not(.dark) .toolbar-user-chip) {
+		border-color: #e2e4ea;
 		color: #3e4050;
+	}
+	:global(body:not(.dark) .toolbar-user-chip:hover),
+	:global(body:not(.dark) .toolbar-user-chip.open) {
+		background: #f0f1f5;
+		color: #1a1b25;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .toolbar-user-avatar) {
+		background: #e2e4ea;
+	}
+	:global(body:not(.dark) .toolbar-user-avatar-fallback) {
+		color: #6b6e78;
+	}
+	:global(body:not(.dark) .toolbar-user-menu) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	}
+	:global(body:not(.dark) .toolbar-user-menu-msg) {
+		color: #6b6e78;
+	}
+	:global(body:not(.dark) .toolbar-user-menu-btn) {
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .toolbar-user-menu-btn:hover) {
+		background: #f0f1f5;
+		border-color: #d0d2dc;
 	}
 	:global(body:not(.dark) .toolbar-token-input) {
 		background: #ffffff;
@@ -2494,6 +2620,22 @@
 		color: #3e4050;
 	}
 	:global(body:not(.dark) .toolbar-divider) {
+		background: #e2e4ea;
+	}
+	:global(body:not(.dark) .access-badge.access-readonly) {
+		color: #6b6e78;
+		background: #f0f1f5;
+		border-color: #e2e4ea;
+	}
+	:global(body:not(.dark) .access-badge.access-write) {
+		color: #0f9d76;
+		background: rgba(15, 157, 118, 0.08);
+		border-color: rgba(15, 157, 118, 0.25);
+	}
+	:global(body:not(.dark) .save-indicator) {
+		color: #0f9d76;
+	}
+	:global(body:not(.dark) .zoom-ctrl-divider) {
 		background: #e2e4ea;
 	}
 	:global(body:not(.dark) .zoom-controls) {

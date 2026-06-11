@@ -1,6 +1,18 @@
 interface WhoAmI {
 	name: string;
 	isPro: boolean;
+	avatarUrl: string;
+}
+
+/**
+ * Normalize the avatar URL returned by whoami-v2. The API sometimes returns a
+ * site-relative path (`/avatars/…`) rather than an absolute URL, so resolve
+ * those against huggingface.co; leave absolute (`https://…`) URLs untouched.
+ */
+function normalize_avatar_url(raw: unknown): string {
+	if (typeof raw !== "string" || !raw) return "";
+	if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+	return `https://huggingface.co${raw.startsWith("/") ? "" : "/"}${raw}`;
 }
 
 async function fetch_whoami(token: string): Promise<WhoAmI | null> {
@@ -10,7 +22,11 @@ async function fetch_whoami(token: string): Promise<WhoAmI | null> {
 		});
 		if (!res.ok) return null;
 		const body = await res.json();
-		return { name: body.name || "User", isPro: body.isPro === true };
+		return {
+			name: body.name || "User",
+			isPro: body.isPro === true,
+			avatarUrl: normalize_avatar_url(body.avatarUrl)
+		};
 	} catch {
 		return null;
 	}
@@ -23,7 +39,7 @@ function redirect_to(path: string): void {
 	window.location.assign(`${path}?_target_url=${target}`);
 }
 
-type AuthSource = "" | "oauth" | "pat";
+type AuthSource = "" | "oauth" | "local" | "pat";
 type AuthStatus = "checking" | "ready" | "validating" | "invalid";
 
 const WRITE_TOKEN_COOKIE_PREFIX = "gradio_workflow_write_token";
@@ -58,6 +74,7 @@ function applyWriteTokenFromUrl(): void {
 export function createHFAuth(getServer: () => Record<string, any>) {
 	let user = $state("");
 	let isPro = $state(false);
+	let avatarUrl = $state("");
 	let token = $state("");
 	let source = $state<AuthSource>("");
 	let status = $state<AuthStatus>("checking");
@@ -71,6 +88,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	function clearIdentity(): void {
 		user = "";
 		isPro = false;
+		avatarUrl = "";
 		token = "";
 		source = "";
 	}
@@ -79,6 +97,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		token = t;
 		user = who.name;
 		isPro = who.isPro;
+		avatarUrl = who.avatarUrl;
 		source = src;
 	}
 
@@ -104,11 +123,17 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		applyWriteTokenFromUrl();
 		void refreshWriteAccess();
 
-		const oauth = await readOAuthToken();
-		if (oauth) {
-			const who = await fetch_whoami(oauth);
+		// The server's get_token returns the OAuth user's token on a Space, but
+		// the host's locally saved `huggingface-cli login` token when running
+		// locally (and only to sessions holding the write token). Label the
+		// source accordingly so the UI can explain how the user is signed in —
+		// and, for the local token, point them at logging out from the CLI
+		// rather than offering a UI button that can't actually clear it.
+		const serverToken = await readOAuthToken();
+		if (serverToken) {
+			const who = await fetch_whoami(serverToken);
 			if (who) {
-				applyIdentity(oauth, who, "oauth");
+				applyIdentity(serverToken, who, isHFSpace ? "oauth" : "local");
 				status = "ready";
 				return;
 			}
@@ -212,6 +237,9 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		},
 		get isPro() {
 			return isPro;
+		},
+		get avatarUrl() {
+			return avatarUrl;
 		},
 		get token() {
 			return token;

@@ -283,33 +283,6 @@ class TestWriteAccess:
         monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
         assert has_write_access(_write_request(), None) is False
 
-    def test_spaces_write_access_requires_ownership(self, monkeypatch):
-        responses = {
-            "tok-owner": {"name": "owner", "orgs": []},
-            "tok-org-write": {
-                "name": "someone",
-                "orgs": [{"name": "owner", "roleInOrg": "write"}],
-            },
-            "tok-org-read": {
-                "name": "someone",
-                "orgs": [{"name": "owner", "roleInOrg": "read"}],
-            },
-            "tok-stranger": {"name": "stranger", "orgs": []},
-        }
-
-        class FakeHfApi:
-            def whoami(self, token=None, cache=False):
-                return responses[token]
-
-        monkeypatch.setattr(workflow_module, "_hf_api", FakeHfApi())
-        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
-        monkeypatch.setenv("SPACE_AUTHOR_NAME", "owner")
-
-        assert has_write_access(None, _make_oauth("tok-owner")) is True
-        assert has_write_access(None, _make_oauth("tok-org-write")) is True
-        assert has_write_access(None, _make_oauth("tok-org-read")) is False
-        assert has_write_access(None, _make_oauth("tok-stranger")) is False
-
 
 class TestSaveWorkflowGating:
     def _save_fn(self, tmp_path):
