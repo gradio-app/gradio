@@ -1240,7 +1240,8 @@ class Workflow(Blocks):
         if get_space() is None and local_url:
             sep = "&" if "?" in local_url else "?"
             write_url = f"{local_url}{sep}write_token={WRITE_TOKEN}"
-            print(f"* Workflow edit link (keep private): {write_url}")
+            if not kwargs.get("quiet", False):
+                print(f"* Workflow edit link (keep private): {write_url}")
         if inbrowser:
             webbrowser.open(
                 write_url or (share_url if self.share and share_url else local_url)

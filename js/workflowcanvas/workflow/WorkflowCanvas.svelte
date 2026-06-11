@@ -97,7 +97,10 @@
 
 	$effect(() => {
 		const wf = $workflow;
-		if (!server?.save_workflow || readOnly) return;
+		// Wait for the write-access answer before autosaving — the optimistic
+		// editable window would otherwise fire saves the backend rejects.
+		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
+			return;
 		const timer = setTimeout(() => {
 			server
 				.save_workflow([JSON.stringify(sanitize_for_save(wf))])

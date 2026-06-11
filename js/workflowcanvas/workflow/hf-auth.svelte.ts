@@ -44,7 +44,8 @@ function applyWriteTokenFromUrl(): void {
 		window.location.port ||
 		(window.location.protocol === "https:" ? "443" : "80");
 	const maxAge = 60 * 60 * 24 * 7;
-	document.cookie = `${WRITE_TOKEN_COOKIE_PREFIX}_${port}=${encodeURIComponent(wt)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+	const secure = window.location.protocol === "https:" ? "; Secure" : "";
+	document.cookie = `${WRITE_TOKEN_COOKIE_PREFIX}_${port}=${encodeURIComponent(wt)}; path=/; max-age=${maxAge}; SameSite=Lax${secure}`;
 	params.delete("write_token");
 	const q = params.toString();
 	window.history.replaceState(
