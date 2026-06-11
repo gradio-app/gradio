@@ -255,19 +255,20 @@
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
 					{#each overflow_tabs as t, i}
 						{#if t?.visible !== false}
+							{@const tab = t as Tab}
 							<button
 								on:click={() => {
-									change_tab(t?.id);
+									change_tab(tab.id);
 									dispatch("select", {
-										value: t.label,
+										value: tab.label,
 										index: i,
-										id: t.id,
-										component_id: t.component_id
+										id: tab.id,
+										component_id: tab.component_id
 									});
 								}}
-								class:selected={t?.id === $selected_tab}
+								class:selected={tab.id === $selected_tab}
 							>
-								{t?.label}
+								{tab.label}
 							</button>
 						{/if}
 					{/each}

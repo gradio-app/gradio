@@ -1,4 +1,5 @@
-import type { SelectData, LoadingStatus } from "@gradio/utils";
+import type { LoadingStatus } from "@gradio/statustracker";
+import type { SelectData } from "@gradio/utils";
 
 export interface FallbackProps {
 	value: unknown;

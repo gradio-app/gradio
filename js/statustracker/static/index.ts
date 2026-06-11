@@ -4,6 +4,8 @@ export { default as Loader } from "./Loader.svelte";
 export { default as StreamingBar } from "./StreamingBar.svelte";
 export type {
 	ILoadingStatus,
+	LoadingStatus,
+	LoadingStatusCollection,
 	LoadingStatusArgs,
 	GroupedToastMessage,
 	ToastMessage

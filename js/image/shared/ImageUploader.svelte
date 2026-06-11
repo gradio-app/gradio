@@ -184,7 +184,7 @@
 	<IconButtonWrapper>
 		{#if value?.url && !active_streaming}
 			{#if show_fullscreen_button}
-				<FullscreenButton {fullscreen} on:fullscreen />
+				<FullscreenButton {fullscreen} onclick={(fs) => (fullscreen = fs)} />
 			{/if}
 			<IconButton
 				Icon={Clear}
@@ -257,7 +257,7 @@
 			{sources}
 			bind:active_source
 			{handle_clear}
-			handle_select={handle_select_source}
+			handle_select={(source) => handle_select_source(source as source_type)}
 		/>
 	{/if}
 </div>

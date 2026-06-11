@@ -3,7 +3,7 @@
 	import WaveSurfer from "wavesurfer.js";
 
 	let {
-		currentVolume = $bindable(),
+		currentVolume = $bindable(1),
 		show_volume_slider = $bindable(),
 		waveform
 	}: {

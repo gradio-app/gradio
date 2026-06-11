@@ -85,7 +85,7 @@
 		autoscroll: boolean;
 		validation_error?: string | null;
 		show_validation_error?: boolean;
-		type?: "input" | "output" | null;
+		type?: "input" | "output" | "skip" | null;
 		on_clear_status?: () => void;
 		used_cache?: "full" | "partial" | null;
 		cache_duration?: number | null;
@@ -440,7 +440,7 @@
 				Icon={Clear}
 				label={i18n("common.clear")}
 				disabled={false}
-				on:click={() => {
+				onclick={() => {
 					on_clear_status?.();
 				}}
 			/>

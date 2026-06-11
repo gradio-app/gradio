@@ -1,5 +1,5 @@
 import { uploadToHuggingFace } from "@gradio/utils";
-import { FileData, Client } from "@gradio/client";
+import { FileData, type Client } from "@gradio/client";
 
 export async function format_gallery_for_sharing(
 	value: [FileData, string | null][] | null
@@ -34,5 +34,7 @@ export async function handle_save(
 			is_stream: false
 		})
 	];
-	return (await upload(...files)) as FileData[];
+	return ((await upload(files, "", undefined)) ?? []).filter(
+		(file): file is FileData => file !== null
+	);
 }

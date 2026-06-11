@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from . import utils
 
+spaces: Any = None
 try:
-    import spaces  # type: ignore
+    import spaces as spaces_module  # type: ignore
 except Exception:
-    spaces = None
+    pass
+else:
+    spaces = spaces_module
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).

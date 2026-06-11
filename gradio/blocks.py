@@ -97,10 +97,13 @@ from gradio.utils import (
     get_upload_folder,
 )
 
+spaces: Any = None
 try:
-    import spaces  # type: ignore
+    import spaces as spaces_module  # type: ignore
 except Exception:
-    spaces = None
+    pass
+else:
+    spaces = spaces_module
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).

@@ -366,7 +366,7 @@
 					old_width = el[0].target.offsetWidth;
 					old_height = el[0].target.offsetHeight;
 					load_chart();
-				} else {
+				} else if (view) {
 					view.signal("width", el[0].target.offsetWidth).run();
 					if (fullscreen) {
 						view.signal("height", el[0].target.offsetHeight).run();
@@ -441,18 +441,19 @@
 
 	function export_chart(): void {
 		if (!view || !computed_style) return;
+		const current_view = view;
 
 		const block_background = computed_style.getPropertyValue(
 			"--block-background-fill"
 		);
 		const export_background = block_background || "white";
 
-		view.background(export_background).run();
+		current_view.background(export_background).run();
 
-		view
+		current_view
 			.toImageURL("png", 2)
 			.then(function (url) {
-				view.background("transparent").run();
+				current_view.background("transparent").run();
 
 				const link = document.createElement("a");
 				link.setAttribute("href", url);
@@ -464,7 +465,7 @@
 			})
 			.catch(function (err) {
 				console.error("Export failed:", err);
-				view.background("transparent").run();
+				current_view.background("transparent").run();
 			});
 	}
 
@@ -553,7 +554,7 @@
 					labelFontWeight: "normal",
 					domain: false,
 					labelAngle: 0,
-					titleLimit: chart_element.offsetHeight * 0.8
+					titleLimit: (chart_element?.offsetHeight ?? 0) * 0.8
 				},
 				legend: {
 					labelColor: body_text_color,
@@ -714,7 +715,7 @@
 											: []),
 										...(gradio.props.tooltip === "axis"
 											? []
-											: gradio.props.value?.columns
+											: (gradio.props.value?.columns ?? [])
 													.filter(
 														(col) =>
 															col !== gradio.props.x &&
@@ -732,7 +733,7 @@
 					strokeDash: {},
 					mark: {
 						clip: true,
-						type: mode === "hover" ? "point" : gradio.props.value.mark
+						type: mode === "hover" ? "point" : gradio.props.value!.mark
 					},
 					name: mode
 				};
@@ -818,12 +819,7 @@
 				<IconButton Icon={Download} label="Export" onclick={export_chart} />
 			{/if}
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "fullscreen")}
-				<FullscreenButton
-					{fullscreen}
-					on:fullscreen={({ detail }) => {
-						fullscreen = detail;
-					}}
-				/>
+				<FullscreenButton {fullscreen} onclick={(fs) => (fullscreen = fs)} />
 			{/if}
 		</IconButtonWrapper>
 	{/if}

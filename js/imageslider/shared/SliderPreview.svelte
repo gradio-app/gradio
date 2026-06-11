@@ -144,7 +144,7 @@
 				onclick={() => zoomable_image?.reset_zoom()}
 			/>
 			{#if show_fullscreen_button}
-				<FullscreenButton {fullscreen} on:fullscreen />
+				<FullscreenButton {fullscreen} onclick={(fs) => (fullscreen = fs)} />
 			{/if}
 
 			{#if show_download_button}

@@ -1,4 +1,8 @@
 import { type Writable, writable, get } from "svelte/store";
+import type {
+	LoadingStatus,
+	LoadingStatusCollection
+} from "@gradio/statustracker";
 
 // export interface LoadingStatus {
 // 	eta: number | null;
@@ -142,7 +146,9 @@ export function create_loading_status_store(): LoadingStatusStore {
 						message: message,
 						progress,
 						status,
-						fn_index
+						fn_index,
+						type: "output",
+						stream_state: null
 					};
 				}
 			);

@@ -25,7 +25,7 @@
 		mode = $bindable(),
 		loop,
 		handle_reset_value = () => {},
-		playback_position = $bindable(),
+		playback_position = $bindable(0),
 		onstop,
 		onplay,
 		onpause,
