@@ -4,7 +4,7 @@ export interface TabItemProps {
 	elem_id: string;
 	elem_classes: string[];
 	label: string;
-	id: string | number;
+	id?: string | number | null;
 	visible: boolean | "hidden";
 	interactive: boolean;
 	order: number;

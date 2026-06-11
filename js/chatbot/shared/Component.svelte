@@ -1,25 +1,45 @@
 <script lang="ts">
-	export let type:
-		| "gallery"
-		| "plot"
-		| "audio"
-		| "video"
-		| "image"
-		| "dataframe"
-		| "model3d"
-		| string;
-	export let components;
-	export let value;
-	export let target;
-	export let theme_mode;
-	export let props;
-	export let i18n;
-	export let upload;
-	export let _fetch;
-	export let allow_file_downloads: boolean;
-	export let display_icon_button_wrapper_top_corner = false;
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
+	import type { Client } from "@gradio/client";
+	import type { ComponentType, SvelteComponent } from "svelte";
 
-	let image_fullscreen = false;
+	let {
+		type,
+		components,
+		value,
+		target,
+		theme_mode,
+		props,
+		i18n,
+		upload,
+		_fetch,
+		allow_file_downloads,
+		display_icon_button_wrapper_top_corner = false,
+		onload
+	}: {
+		type:
+			| "gallery"
+			| "plot"
+			| "audio"
+			| "video"
+			| "image"
+			| "dataframe"
+			| "model3d"
+			| string;
+		components: Record<string, ComponentType<SvelteComponent>>;
+		value: any;
+		target: HTMLElement | null;
+		theme_mode: "light" | "dark" | "system";
+		props: any;
+		i18n: I18nFormatter;
+		upload: Client["upload"];
+		_fetch: typeof fetch;
+		allow_file_downloads: boolean;
+		display_icon_button_wrapper_top_corner?: boolean;
+		onload?: () => void;
+	} = $props();
+
+	let image_fullscreen = $state(false);
 	let image_container: HTMLElement;
 
 	function handle_fullscreen(event: CustomEvent<boolean>): void {
@@ -45,7 +65,7 @@
 		interactive={false}
 		mode="minimal"
 		fixed_height={1}
-		on:load
+		on:load={onload}
 	/>
 {:else if type === "dataframe"}
 	<svelte:component
@@ -63,7 +83,7 @@
 		latex_delimiters={props.latex_delimiters}
 		col_count={props.col_count}
 		row_count={props.row_count}
-		on:load
+		on:load={onload}
 	/>
 {:else if type === "plot"}
 	<svelte:component
@@ -76,7 +96,7 @@
 		bokeh_version={props.bokeh_version}
 		caption={props.caption || ""}
 		show_actions_button={true}
-		on:load
+		on:load={onload}
 	/>
 {:else if type === "audio"}
 	<svelte:component
@@ -93,7 +113,7 @@
 		show_download_button={false}
 		display_icon_button_wrapper_top_corner={false}
 		minimal={true}
-		on:load
+		on:load={onload}
 	/>
 {:else if type === "video"}
 	<svelte:component
@@ -107,7 +127,7 @@
 		{upload}
 		display_icon_button_wrapper_top_corner={false}
 		show_download_button={false}
-		on:load
+		on:load={onload}
 	>
 		<track kind="captions" />
 	</svelte:component>
@@ -123,7 +143,7 @@
 			fullscreen={image_fullscreen}
 			show_button_background={false}
 			on:fullscreen={handle_fullscreen}
-			on:load
+			on:load={onload}
 			{i18n}
 		/>
 	</div>
@@ -132,7 +152,7 @@
 		this={components[type]}
 		{...props}
 		props={{ value }}
-		on:load
+		on:load={onload}
 	/>
 {:else if type === "model3d"}
 	<svelte:component
@@ -152,7 +172,7 @@
 		interactive={false}
 		show_share_button={false}
 		gradio={{ dispatch: () => {}, i18n }}
-		on:load
+		on:load={onload}
 		{i18n}
 	/>
 {/if}

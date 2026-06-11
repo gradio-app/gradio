@@ -3,21 +3,23 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import { File, Music, Video } from "@gradio/icons";
 	import type { ExampleMessage } from "../types";
-	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
-	import type { FileData } from "@gradio/client";
 
-	export let examples: ExampleMessage[] | null = null;
-	export let placeholder: string | null = null;
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-
-	const dispatch = createEventDispatcher<{
-		example_select: SelectData;
-	}>();
+	let {
+		examples = null,
+		placeholder = null,
+		latex_delimiters,
+		onexampleselect
+	}: {
+		examples?: ExampleMessage[] | null;
+		placeholder?: string | null;
+		latex_delimiters: {
+			left: string;
+			right: string;
+			display: boolean;
+		}[];
+		onexampleselect?: (data: SelectData) => void;
+	} = $props();
 
 	function handle_example_select(
 		i: number,
@@ -25,7 +27,7 @@
 	): void {
 		const example_obj =
 			typeof example === "string" ? { text: example } : example;
-		dispatch("example_select", {
+		onexampleselect?.({
 			index: i,
 			value: { text: example_obj.text, files: example_obj.files }
 		});
@@ -43,7 +45,7 @@
 			{#each examples as example, i}
 				<button
 					class="example"
-					on:click={() =>
+					onclick={() =>
 						handle_example_select(
 							i,
 							typeof example === "string" ? { text: example } : example
