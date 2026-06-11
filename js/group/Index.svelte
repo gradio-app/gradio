@@ -44,6 +44,9 @@
 		border: none;
 		border-radius: 0;
 	}
+	div > :global(.gr-accordion:not(.absolute)) {
+		border: none !important;
+	}
 	.hide {
 		display: none;
 	}
