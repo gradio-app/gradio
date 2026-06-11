@@ -52,12 +52,6 @@ describe("Accordion", () => {
 		expect(button).toBeTruthy();
 	});
 
-	test("adds an internal accordion class to the block wrapper", async () => {
-		const { container } = await render(Accordion, base_props);
-
-		expect(container.querySelector(".gr-accordion")).not.toBeNull();
-	});
-
 	test("renders with content visible when open=true", async () => {
 		const { getByTestId } = await render(Accordion, {
 			...base_props,

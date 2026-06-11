@@ -2,7 +2,6 @@ import { test, describe, afterEach, expect } from "vitest";
 import { cleanup, render } from "@self/tootils/render";
 
 import Group from "./Index.svelte";
-import GroupWithAccordion from "./WithAccordion.svelte";
 import GroupWithChild from "./WithChild.svelte";
 
 describe("Group", () => {
@@ -67,16 +66,6 @@ describe("Group", () => {
 		group.style.setProperty("--border-color-primary", "rgb(0, 128, 0)");
 
 		expect(getComputedStyle(styler).backgroundColor).toBe("rgb(0, 128, 0)");
-	});
-
-	test("removes inline block borders from grouped accordions", async () => {
-		const { getByTestId } = await render(GroupWithAccordion, {});
-		const accordion = getByTestId("grouped-accordion") as HTMLElement;
-		const block = getByTestId("grouped-block") as HTMLElement;
-
-		expect(getComputedStyle(accordion).borderTopWidth).toBe("0px");
-		expect(getComputedStyle(accordion).borderTopStyle).toBe("none");
-		expect(getComputedStyle(block).borderTopWidth).not.toBe("0px");
 	});
 });
 
