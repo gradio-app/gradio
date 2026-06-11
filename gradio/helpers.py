@@ -11,7 +11,7 @@ import inspect
 import os
 import shutil
 import warnings
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
@@ -915,12 +915,24 @@ def create_tracker(fn, track_tqdm):
     )
 
 
-# Emitted at most once per process: when a handler requests an OAuthToken /
-# OAuthProfile but no SessionMiddleware is installed. Python's built-in
-# once-per-location dedup is unreliable here because `warnings.catch_warnings()`
-# usage elsewhere in gradio mutates the global filter state and re-arms the
-# warning, so we guard it explicitly.
-_empty_session_warned = False
+def _session_from_request(request: Any) -> MutableMapping[str, Any]:
+    """Return the request's session, or an empty mapping if there is no session
+    to read (the normal case for apps without OAuth / SessionMiddleware).
+
+    For a real Starlette/fastapi request the session lives in `scope["session"]`;
+    touching `.session` directly would raise Starlette's "SessionMiddleware must
+    be installed" assertion when it's absent, so we gate on `scope` membership
+    instead. A `gr.Request` exposes the fastapi request as `.request`; objects
+    without a Starlette `scope` (a queued `gr.Request` rebuilt from kwargs) may
+    still carry a plain `.session`.
+    """
+    if request is None:
+        return {}
+    underlying = getattr(request, "request", None) or request
+    scope = getattr(underlying, "scope", None)
+    if isinstance(scope, dict):
+        return scope.get("session", {})
+    return getattr(underlying, "session", None) or {}
 
 
 def special_args(
@@ -977,35 +989,14 @@ def special_args(
             oauth.OAuthToken,
         ):
             if inputs is not None:
-                # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
-                try:
-                    session = (
-                        # request.session (if fastapi.Request obj i.e. direct call)
-                        getattr(request, "session", {})
-                        or
-                        # or request.request.session (if gr.Request obj i.e. websocket call)
-                        getattr(getattr(request, "request", None), "session", {})
-                    )
-                except AssertionError as e:
-                    if (
-                        "SessionMiddleware must be installed to access request.session"
-                        in str(e)
-                    ):
-                        global _empty_session_warned
-                        if not _empty_session_warned:
-                            _empty_session_warned = True
-                            warnings.warn(
-                                "Empty session being created. Install gradio[oauth] and add a gr.LoginButton to your app to enable OAuth login.",
-                                UserWarning,
-                            )
-                        session = {}
-                    else:
-                        raise e
+                # Read the session if a SessionMiddleware is installed (i.e. the
+                # user may be logged in); otherwise treat as logged out. Required
+                # OAuth params still raise an explicit error below.
+                session = _session_from_request(request)
 
-                # `session` is usually a copy of the underlying session (gr.Request
-                # converts it to an `Obj`), so expiry means "treat as logged out"
-                # here; the session entry itself is only removed on the next
-                # LoginButton page-load check, which operates on the raw session.
+                # Expiry means "treat as logged out" here; the session entry
+                # itself is only removed on the next LoginButton page-load check,
+                # which operates on the raw session.
                 oauth_info = oauth._get_valid_oauth_info_from_session(session)
 
                 # Inject user profile
