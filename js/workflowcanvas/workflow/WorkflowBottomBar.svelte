@@ -23,6 +23,7 @@
 		running: boolean;
 		hasTransforms: boolean;
 		boundFns: BoundFnTemplate[];
+		readOnly?: boolean;
 		onopenpicker: (modality: ModalityConfig) => void;
 		onaddinput: (portType: string) => void;
 		onaddfn: (template: BoundFnTemplate) => void;
@@ -34,6 +35,7 @@
 		running,
 		hasTransforms,
 		boundFns,
+		readOnly = false,
 		onopenpicker,
 		onaddinput,
 		onaddfn,
@@ -91,101 +93,103 @@
 		closeMenus();
 	}}
 >
-	<div class="bb-group">
-		{#each MODALITIES as m}
-			<div class="bb-modality-wrap">
-				<button
-					class="bb-btn"
-					onclick={(e) => {
-						e.stopPropagation();
-						closeMenus();
-						onopenpicker(m);
-					}}
-					title="Add {m.label} node"
-				>
-					<span class="bb-icon">
-						{#if m.key === "image"}
-							<ImageIcon />
-						{:else if m.key === "audio"}
-							<AudioIcon />
-						{:else if m.key === "video"}
-							<VideoIcon />
-						{:else if m.key === "3d"}
-							<Model3DIcon />
-						{:else if m.key === "text"}
-							<TextIcon />
-						{/if}
-					</span>
-					<span class="bb-label">{m.label}</span>
-				</button>
-			</div>
-		{/each}
-	</div>
-
-	<button
-		class="bb-btn"
-		onclick={(e) => {
-			e.stopPropagation();
-			onopenpicker(DATASET_MODALITY);
-		}}
-		title="Add dataset node"
-	>
-		<span class="bb-icon">
-			<DatasetIcon />
-		</span>
-		<span class="bb-label">Data</span>
-	</button>
-
-	<div class="bb-divider"></div>
-
-	<div class="bb-input-wrap">
-		<button
-			class="bb-input-btn"
-			onclick={toggleInputMenu}
-			title="Add input node"
-		>
-			<PlusIcon />
-			Input
-		</button>
-		{#if showInputMenu}
-			<div class="input-type-menu">
-				{#each INPUT_TYPES as t}
+	{#if !readOnly}
+		<div class="bb-group">
+			{#each MODALITIES as m}
+				<div class="bb-modality-wrap">
 					<button
-						class="input-type-opt"
-						onclick={(e) => handleInputType(t.key, e)}>{t.label}</button
+						class="bb-btn"
+						onclick={(e) => {
+							e.stopPropagation();
+							closeMenus();
+							onopenpicker(m);
+						}}
+						title="Add {m.label} node"
 					>
-				{/each}
-			</div>
-		{/if}
-	</div>
+						<span class="bb-icon">
+							{#if m.key === "image"}
+								<ImageIcon />
+							{:else if m.key === "audio"}
+								<AudioIcon />
+							{:else if m.key === "video"}
+								<VideoIcon />
+							{:else if m.key === "3d"}
+								<Model3DIcon />
+							{:else if m.key === "text"}
+								<TextIcon />
+							{/if}
+						</span>
+						<span class="bb-label">{m.label}</span>
+					</button>
+				</div>
+			{/each}
+		</div>
 
-	{#if boundFns.length > 0}
+		<button
+			class="bb-btn"
+			onclick={(e) => {
+				e.stopPropagation();
+				onopenpicker(DATASET_MODALITY);
+			}}
+			title="Add dataset node"
+		>
+			<span class="bb-icon">
+				<DatasetIcon />
+			</span>
+			<span class="bb-label">Data</span>
+		</button>
+
+		<div class="bb-divider"></div>
+
 		<div class="bb-input-wrap">
 			<button
 				class="bb-input-btn"
-				onclick={toggleFnMenu}
-				title="Add Python function node"
+				onclick={toggleInputMenu}
+				title="Add input node"
 			>
-				<FunctionIcon />
-				Function
+				<PlusIcon />
+				Input
 			</button>
-			{#if showFnMenu}
-				<div class="input-type-menu fn-menu">
-					{#each boundFns as t}
+			{#if showInputMenu}
+				<div class="input-type-menu">
+					{#each INPUT_TYPES as t}
 						<button
 							class="input-type-opt"
-							onclick={(e) => handleFnClick(t, e)}
-							title={t.fn}
+							onclick={(e) => handleInputType(t.key, e)}>{t.label}</button
 						>
-							{t.label}
-						</button>
 					{/each}
 				</div>
 			{/if}
 		</div>
-	{/if}
 
-	<div class="bb-divider"></div>
+		{#if boundFns.length > 0}
+			<div class="bb-input-wrap">
+				<button
+					class="bb-input-btn"
+					onclick={toggleFnMenu}
+					title="Add Python function node"
+				>
+					<FunctionIcon />
+					Function
+				</button>
+				{#if showFnMenu}
+					<div class="input-type-menu fn-menu">
+						{#each boundFns as t}
+							<button
+								class="input-type-opt"
+								onclick={(e) => handleFnClick(t, e)}
+								title={t.fn}
+							>
+								{t.label}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+		<div class="bb-divider"></div>
+	{/if}
 
 	{#if running}
 		<button class="bb-run-btn stop" onclick={onstop}>

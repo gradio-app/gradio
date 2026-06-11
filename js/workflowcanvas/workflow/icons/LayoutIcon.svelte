@@ -1,0 +1,35 @@
+<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+	<rect
+		x="0.75"
+		y="4"
+		width="3.5"
+		height="4"
+		rx="1"
+		stroke="currentColor"
+		stroke-width="1.2"
+	/>
+	<rect
+		x="7.75"
+		y="0.75"
+		width="3.5"
+		height="3.5"
+		rx="1"
+		stroke="currentColor"
+		stroke-width="1.2"
+	/>
+	<rect
+		x="7.75"
+		y="7.75"
+		width="3.5"
+		height="3.5"
+		rx="1"
+		stroke="currentColor"
+		stroke-width="1.2"
+	/>
+	<path
+		d="M4.25 6h1.5a1 1 0 0 1 1 1v1.5M4.25 6h1.5a1 1 0 0 0 1-1V3.5"
+		stroke="currentColor"
+		stroke-width="1.2"
+		stroke-linecap="round"
+	/>
+</svg>
