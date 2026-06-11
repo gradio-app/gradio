@@ -72,13 +72,20 @@ test("Making accordion visible does not show all children automatically", async 
 	await expect(page.locator("#hidden-number")).toHaveCount(0);
 });
 
-test("case two_sliders: making two components of the same type visible in one event does not freeze the page", async ({
+test("Making two components of the same type visible in one event does not freeze the page", async ({
 	page
 }) => {
-	await page.click('text="Show"');
+	await page.getByRole("tab", { name: "Sliders Tab" }).click();
+
+	await page.click('text="Show Sliders"');
 
 	await expect(page.locator("#slider-1")).toBeVisible();
 	await expect(page.locator("#slider-2")).toBeVisible();
+
+	await page.click('text="Hide Sliders"');
+
+	await expect(page.locator("#slider-1")).not.toBeVisible();
+	await expect(page.locator("#slider-2")).not.toBeVisible();
 });
 
 test("Hiding accordion retains textbox value when accordion is shown again", async ({
