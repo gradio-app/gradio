@@ -1,4 +1,5 @@
 ---
+"@gradio/accordion": patch
 "@gradio/group": patch
 "@gradio/nativeplot": patch
 "gradio": patch
