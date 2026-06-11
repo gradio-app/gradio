@@ -1,5 +1,14 @@
 <script context="module" lang="ts">
 	import { TABS, type Tab } from "./Tabs.svelte";
+
+	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {
+		return !!tab && tab.visible !== false && tab.visible !== "hidden";
+	}
+
+	function find_tab_index(tabs: (Tab | null)[], id: string | number): number {
+		const index = tabs.findIndex((t) => t?.id === id);
+		return index === -1 ? 0 : index;
+	}
 </script>
 
 <script lang="ts">
@@ -38,11 +47,9 @@
 	let has_tabs = $derived(tabs.length > 0);
 
 	const selected_tab = writable<false | number | string>(
-		selected || tabs[0]?.id || false
+		selected ?? tabs[0]?.id ?? false
 	);
-	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t?.id === selected) || 0
-	);
+	const selected_tab_index = writable<number>(find_tab_index(tabs, selected));
 
 	async function check_overflow(): Promise<void> {
 		if (!stepper_container || !measurement_container || !recompute_overflow)
@@ -114,7 +121,7 @@
 		register_tab: (tab: Tab, order: number) => {
 			tabs[order] = tab;
 
-			if ($selected_tab === false && tab.visible && tab.interactive) {
+			if ($selected_tab === false && is_visible_tab(tab) && tab.interactive) {
 				$selected_tab = tab.id;
 				$selected_tab_index = order;
 			}
@@ -136,7 +143,7 @@
 			id !== undefined &&
 			tab_to_activate &&
 			tab_to_activate.interactive &&
-			tab_to_activate.visible &&
+			is_visible_tab(tab_to_activate) &&
 			$selected_tab !== tab_to_activate.id
 		) {
 			selected = id;
@@ -175,7 +182,8 @@
 
 <div
 	class="stepper {elem_classes.join(' ')}"
-	class:hide={!visible}
+	class:hide={visible === false}
+	class:hidden={visible === "hidden"}
 	id={elem_id}
 	style:flex-grow={tab_scale}
 	class:compact
@@ -198,7 +206,7 @@
 				role="tablist"
 			>
 				{#each tabs as t, i}
-					{#if t?.visible}
+					{#if is_visible_tab(t)}
 						<div class="step-item">
 							<button
 								bind:this={step_buttons[i]}
@@ -281,6 +289,10 @@
 
 	.hide {
 		display: none;
+	}
+
+	.hidden {
+		display: none !important;
 	}
 
 	.stepper-wrapper {

@@ -387,6 +387,8 @@
 					}}
 					scroll={is_browser ? scroll_to_bottom : () => {}}
 					{allow_file_downloads}
+					{onerror}
+					{onshare}
 					{oncopy}
 				/>
 				{#if show_progress !== "hidden" && generating && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].metadata?.status === "done"}

@@ -48,6 +48,8 @@
 		current_feedback = null,
 		allow_tags = false,
 		watermark = null,
+		onerror,
+		onshare,
 		oncopy
 	}: {
 		value: NormalisedMessage[];
@@ -90,6 +92,8 @@
 		current_feedback?: string | null;
 		allow_tags?: string[] | boolean;
 		watermark?: string | null;
+		onerror?: (message: string) => void;
+		onshare?: (data: any) => void;
 		oncopy?: (data: CopyData) => void;
 	} = $props();
 
@@ -284,6 +288,8 @@
 						{...button_panel_props}
 						{current_feedback}
 						{watermark}
+						{onerror}
+						{onshare}
 						{i18n}
 					/>
 				{/if}
@@ -293,7 +299,7 @@
 </div>
 
 {#if layout === "bubble"}
-	<ButtonPanel {...button_panel_props} {i18n} />
+	<ButtonPanel {...button_panel_props} {onerror} {onshare} {i18n} />
 {/if}
 
 <style>

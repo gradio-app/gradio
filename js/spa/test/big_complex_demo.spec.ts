@@ -32,6 +32,25 @@ async function gotoApp(page: Page, url: string): Promise<void> {
 	await page.goto(url, { waitUntil: "load" });
 }
 
+async function waitForAppReady(page: Page): Promise<void> {
+	await page.waitForFunction(
+		() => {
+			const trackers = document.querySelectorAll(
+				'[data-testid="status-tracker"]'
+			);
+			return (
+				trackers.length === 0 ||
+				Array.from(trackers).every(
+					(t) =>
+						t.classList.contains("hide") ||
+						getComputedStyle(t).display === "none"
+				)
+			);
+		},
+		{ timeout: 15_000 }
+	);
+}
+
 async function collectMetrics(
 	page: Page,
 	url: string
@@ -86,6 +105,7 @@ async function collectMetrics(
 	page.on("response", responseHandler);
 	try {
 		await gotoApp(page, url);
+		await waitForAppReady(page);
 	} finally {
 		page.removeListener("response", responseHandler);
 	}
@@ -126,22 +146,7 @@ async function collectMetrics(
 		pageLoadValues.push(timings.pageLoad);
 		lcpValues.push(timings.lcp);
 
-		await page.waitForFunction(
-			() => {
-				const trackers = document.querySelectorAll(
-					'[data-testid="status-tracker"]'
-				);
-				return (
-					trackers.length === 0 ||
-					Array.from(trackers).every(
-						(t) =>
-							t.classList.contains("hide") ||
-							getComputedStyle(t).display === "none"
-					)
-				);
-			},
-			{ timeout: 15_000 }
-		);
+		await waitForAppReady(page);
 
 		const navDuration = await page.evaluate(() => {
 			const start = performance.now();

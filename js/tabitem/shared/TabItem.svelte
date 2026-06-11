@@ -52,6 +52,8 @@
 		})
 	);
 
+	let is_visible = $derived(visible !== false && visible !== "hidden");
+
 	$effect(() => {
 		const tab_props = props_json;
 		tab_index = untrack(() => _register_tab(tab_props, order));
@@ -73,9 +75,7 @@
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
 	class:grow-children={scale >= 1}
-	style:display={$selected_tab === tab_id && visible !== false
-		? "flex"
-		: "none"}
+	style:display={$selected_tab === tab_id && is_visible ? "flex" : "none"}
 	style:flex-grow={scale}
 	role="tabpanel"
 >

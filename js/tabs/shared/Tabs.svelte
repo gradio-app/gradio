@@ -17,6 +17,15 @@
 		id: string | number;
 		component_id: string | number;
 	};
+
+	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {
+		return !!tab && tab.visible !== false && tab.visible !== "hidden";
+	}
+
+	function find_tab_index(tabs: (Tab | null)[], id: string | number): number {
+		const index = tabs.findIndex((t) => t?.id === id);
+		return index === -1 ? 0 : index;
+	}
 </script>
 
 <script lang="ts">
@@ -73,11 +82,9 @@
 	let tab_nav_el: HTMLDivElement;
 
 	const selected_tab = writable<false | number | string>(
-		selected || tabs[0]?.id || false
+		selected ?? tabs[0]?.id ?? false
 	);
-	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t?.id === selected) || 0
-	);
+	const selected_tab_index = writable<number>(find_tab_index(tabs, selected));
 
 	let is_overflowing = $state(false);
 	let overflow_has_selected_tab = $state(false);
@@ -94,7 +101,7 @@
 			mounted_tab_orders.add(order);
 			sync_tab_entry(tab, order);
 
-			if ($selected_tab === false && tab.visible !== false && tab.interactive) {
+			if ($selected_tab === false && is_visible_tab(tab) && tab.interactive) {
 				$selected_tab = tab.id;
 				$selected_tab_index = order;
 			} else if ($selected_tab === tab.id) {
@@ -123,7 +130,7 @@
 			id !== undefined &&
 			tab_to_activate &&
 			tab_to_activate.interactive &&
-			tab_to_activate.visible !== false &&
+			is_visible_tab(tab_to_activate) &&
 			$selected_tab !== tab_to_activate.id
 		) {
 			selected = id;
@@ -175,13 +182,11 @@
 
 		for (let i = 0; i < tabs.length; i++) {
 			const tab = tabs[i];
-			if (!tab || tab.visible === false || tab.visible === "hidden") continue;
+			if (!is_visible_tab(tab)) continue;
 			const el = tab_els[tab.id];
 			if (!el) continue;
 			cumulative += el.getBoundingClientRect().width;
-			const has_more = tabs
-				.slice(i + 1)
-				.some((t) => t && t.visible !== false && t.visible !== "hidden");
+			const has_more = tabs.slice(i + 1).some((t) => is_visible_tab(t));
 			const limit = has_more ? available - OVERFLOW_BTN_RESERVE : available;
 			if (cumulative > limit) {
 				split_index = i;
@@ -193,8 +198,7 @@
 		overflow_tabs = tabs.slice(split_index);
 
 		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
-		is_overflowing =
-			overflow_tabs.filter((t) => t && t.visible !== false).length > 0;
+		is_overflowing = overflow_tabs.filter((t) => is_visible_tab(t)).length > 0;
 	}
 
 	$effect(() => {
@@ -226,7 +230,7 @@
 		<div class="tab-wrapper">
 			<div class="tab-container visually-hidden" aria-hidden="true">
 				{#each tabs as t, i}
-					{#if t && t?.visible !== false && t?.visible !== "hidden"}
+					{#if is_visible_tab(t)}
 						<button bind:this={tab_els[t.id]}>
 							{t?.label}
 						</button>
@@ -235,7 +239,7 @@
 			</div>
 			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
 				{#each visible_tabs as t, i}
-					{#if t && t?.visible !== false}
+					{#if is_visible_tab(t)}
 						<button
 							role="tab"
 							class:selected={t.id === $selected_tab}
@@ -265,7 +269,7 @@
 			<span
 				class="overflow-menu"
 				class:hide={!is_overflowing ||
-					!overflow_tabs.some((t) => t?.visible !== false)}
+					!overflow_tabs.some((t) => is_visible_tab(t))}
 				bind:this={overflow_menu}
 			>
 				<button
@@ -279,7 +283,7 @@
 				</button>
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
 					{#each overflow_tabs as t, i}
-						{#if t?.visible !== false}
+						{#if is_visible_tab(t)}
 							<button
 								onclick={() => {
 									change_tab(t?.id);
