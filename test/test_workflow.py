@@ -1,13 +1,13 @@
 import json
 import os
 import tempfile
-from types import SimpleNamespace
 
 import pytest
 
 import gradio as gr
 import gradio.workflow as workflow_module
 from gradio.oauth import OAuthToken
+from gradio.route_utils import Request
 from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
@@ -33,19 +33,19 @@ def _make_request(
     cookie: str | None = None,
     header: str | None = None,
     query: str | None = None,
-) -> SimpleNamespace:
+) -> Request:
     headers = {}
     if cookie is not None:
         headers["cookie"] = cookie
     if header is not None:
         headers["x-gradio-workflow-write-token"] = header
-    return SimpleNamespace(
+    return Request(
         headers=headers,
         query_params={"write_token": query} if query is not None else {},
     )
 
 
-def _write_request() -> SimpleNamespace:
+def _write_request() -> Request:
     """A request that carries the process write token (cookie flavor)."""
     return _make_request(cookie=f"gradio_workflow_write_token_7860={WRITE_TOKEN}")
 
