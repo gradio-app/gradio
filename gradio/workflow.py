@@ -14,7 +14,7 @@ import urllib.parse
 import warnings
 import webbrowser
 from collections.abc import Callable
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import httpx
 from huggingface_hub import HfApi
@@ -24,6 +24,9 @@ from gradio.blocks import Blocks
 from gradio.oauth import OAuthToken
 from gradio.route_utils import Request
 from gradio.utils import get_space
+
+if TYPE_CHECKING:
+    from gradio.workflow_api import WorkflowEndpointManager
 
 logger = logging.getLogger(__name__)
 
@@ -1080,7 +1083,7 @@ class Workflow(Blocks):
 
         # Set once the API endpoints are registered (post UI build); save_workflow
         # re-syncs it so /info + /call track edits to the graph.
-        self._api_endpoints = None
+        self._api_endpoints: WorkflowEndpointManager | None = None
 
         if self._edges and os.path.exists(self._workflow_file):
             logger.warning(
@@ -1209,7 +1212,7 @@ class Workflow(Blocks):
                     f.write(payload)
                 # Re-derive API endpoints so /info + /call track the saved graph
                 # (outputs added / removed / renamed / retyped).
-                if getattr(self, "_api_endpoints", None) is not None:
+                if self._api_endpoints is not None:
                     try:
                         self._api_endpoints.sync()
                     except Exception:
