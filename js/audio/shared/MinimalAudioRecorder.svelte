@@ -103,7 +103,7 @@
 
 					if (audio_buffer) {
 						const audio = await process_audio(audio_buffer);
-						const audio_blob = new File([audio], "audio.wav", {
+						const audio_blob = new File([new Uint8Array(audio)], "audio.wav", {
 							type: "audio/wav"
 						});
 

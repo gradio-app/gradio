@@ -1,4 +1,4 @@
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
 import type { CustomButton } from "@gradio/utils";
 

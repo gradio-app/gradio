@@ -50,6 +50,10 @@
 			document.exitFullscreen?.();
 		}
 	}
+
+	function handle_load(): void {
+		onload?.();
+	}
 </script>
 
 {#if type === "gallery"}
@@ -65,7 +69,7 @@
 		interactive={false}
 		mode="minimal"
 		fixed_height={1}
-		on:load={onload}
+		on:load={handle_load}
 	/>
 {:else if type === "dataframe"}
 	<svelte:component
@@ -83,7 +87,7 @@
 		latex_delimiters={props.latex_delimiters}
 		col_count={props.col_count}
 		row_count={props.row_count}
-		on:load={onload}
+		on:load={handle_load}
 	/>
 {:else if type === "plot"}
 	<svelte:component
@@ -96,7 +100,7 @@
 		bokeh_version={props.bokeh_version}
 		caption={props.caption || ""}
 		show_actions_button={true}
-		on:load={onload}
+		on:load={handle_load}
 	/>
 {:else if type === "audio"}
 	<svelte:component
@@ -113,7 +117,7 @@
 		show_download_button={false}
 		display_icon_button_wrapper_top_corner={false}
 		minimal={true}
-		on:load={onload}
+		on:load={handle_load}
 	/>
 {:else if type === "video"}
 	<svelte:component
@@ -127,7 +131,7 @@
 		{upload}
 		display_icon_button_wrapper_top_corner={false}
 		show_download_button={false}
-		on:load={onload}
+		on:load={handle_load}
 	>
 		<track kind="captions" />
 	</svelte:component>
@@ -143,7 +147,7 @@
 			fullscreen={image_fullscreen}
 			show_button_background={false}
 			on:fullscreen={handle_fullscreen}
-			on:load={onload}
+			on:load={handle_load}
 			{i18n}
 		/>
 	</div>
@@ -152,7 +156,7 @@
 		this={components[type]}
 		{...props}
 		props={{ value }}
-		on:load={onload}
+		on:load={handle_load}
 	/>
 {:else if type === "model3d"}
 	<svelte:component
@@ -172,7 +176,7 @@
 		interactive={false}
 		show_share_button={false}
 		gradio={{ dispatch: () => {}, i18n }}
-		on:load={onload}
+		on:load={handle_load}
 		{i18n}
 	/>
 {/if}

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import signal
+from scipy import signal  # ty: ignore[unresolved-import]
 
 import gradio as gr
 

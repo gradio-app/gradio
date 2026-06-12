@@ -12,7 +12,7 @@ from gradio.pipelines_utils import (
 )
 
 if TYPE_CHECKING:
-    import diffusers
+    import diffusers  # ty: ignore[unresolved-import]
     import transformers
 
 

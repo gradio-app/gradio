@@ -130,7 +130,9 @@
 			css_template={gradio.props.css_template}
 			js_on_load={gradio.props.js_on_load}
 			elem_classes={gradio.shared.elem_classes}
-			visible={gradio.shared.visible}
+			visible={gradio.shared.visible === "hidden"
+				? false
+				: gradio.shared.visible}
 			autoscroll={gradio.shared.autoscroll}
 			apply_default_css={gradio.props.apply_default_css}
 			head={gradio.props.head}

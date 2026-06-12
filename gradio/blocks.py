@@ -100,7 +100,7 @@ from gradio.utils import (
 try:
     import spaces  # type: ignore
 except Exception:
-    spaces = None
+    spaces = None  # type: ignore[assignment]
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).

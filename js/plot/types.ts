@@ -1,5 +1,5 @@
 import type { SelectData, CustomButton } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 export type ThemeMode = "system" | "light" | "dark";
 

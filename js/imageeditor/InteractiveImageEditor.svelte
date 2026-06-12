@@ -31,8 +31,8 @@
 		type WebcamOptions
 	} from "./shared/types";
 
-	export let brush: IBrush;
-	export let eraser: Eraser;
+	export let brush: IBrush | false;
+	export let eraser: Eraser | false;
 	export let sources: Source[];
 	export let i18n: I18nFormatter;
 	export let root: string;
@@ -45,19 +45,23 @@
 	export let composite: FileData | null;
 	export let background: FileData | null;
 
-	export let layer_options: LayerOptions;
+	export let layer_options: LayerOptions = {
+		allow_additional_layers: true,
+		layers: [],
+		disabled: false
+	};
 	export let transforms: Transform[];
 	export let accept_blobs: (a: any) => void;
 
 	export let canvas_size: [number, number];
 	export let fixed_canvas = false;
-	export let realtime: boolean;
+	export let realtime = false;
 	export let upload: Client["upload"];
 	export let is_dragging: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let border_region: number;
 	export let full_history: CommandNode | null = null;
-	export let webcam_options: WebcamOptions;
+	export let webcam_options: WebcamOptions = { mirror: true, constraints: {} };
 	export let show_download_button = false;
 
 	const dispatch = createEventDispatcher<{

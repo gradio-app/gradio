@@ -8,7 +8,7 @@
 	}
 
 	let { component, runtime, ...rest }: Props = $props();
-	let el: HTMLElement = $state(null);
+	let el: HTMLElement | null = $state(null);
 
 	$effect(() => {
 		if (!el || !component) return;

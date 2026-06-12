@@ -198,7 +198,7 @@ def handle_transformers_pipeline(pipeline: Any) -> dict[str, Any] | None:
 
 def handle_diffusers_pipeline(pipeline: Any) -> dict[str, Any] | None:
     try:
-        import diffusers
+        import diffusers  # ty: ignore[unresolved-import]
     except ImportError as ie:
         raise ImportError(
             "diffusers not installed. Please try `pip install diffusers`"

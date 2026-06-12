@@ -8,7 +8,7 @@
 			unmount: typeof import("svelte").unmount;
 		}
 	);
-	let el: HTMLElement = $state(null);
+	let el: HTMLElement | null = $state(null);
 
 	$effect(() => {
 		if (!el || !runtime || !component) return;

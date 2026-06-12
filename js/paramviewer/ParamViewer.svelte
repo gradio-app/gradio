@@ -30,7 +30,7 @@
 
 	let component_root: HTMLElement;
 	let all_open = $state(false);
-	let lang: string = "python";
+	let lang: "python" | "typescript" = "python";
 
 	let _docs = $derived(highlight_code(docs, lang));
 

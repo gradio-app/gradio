@@ -1,9 +1,13 @@
 try:
-    from IPython.core.magic import (
+    from IPython.core.magic import (  # ty: ignore[unresolved-import]
         needs_local_scope,
         register_cell_magic,
     )
-    from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
+    from IPython.core.magic_arguments import (  # ty: ignore[unresolved-import]
+        argument,
+        magic_arguments,
+        parse_argstring,
+    )
 except ImportError:
     pass
 

@@ -46,9 +46,9 @@
 	container={gradio.shared.container}
 	allow_overflow={true}
 	overflow_behavior="auto"
-	height={gradio.props.height}
-	min_height={gradio.props.min_height}
-	max_height={gradio.props.max_height}
+	height={gradio.props.height ?? undefined}
+	min_height={gradio.props.min_height ?? undefined}
+	max_height={gradio.props.max_height ?? undefined}
 	rtl={gradio.props.rtl}
 >
 	<StatusTracker
@@ -72,7 +72,7 @@
 			visible={gradio.shared.visible}
 			rtl={gradio.props.rtl}
 			onchange={() => gradio.dispatch("change")}
-			oncopy={(e) => gradio.dispatch("copy", e.detail)}
+			oncopy={(e) => gradio.dispatch("copy", e)}
 			latex_delimiters={gradio.props.latex_delimiters}
 			sanitize_html={gradio.props.sanitize_html}
 			line_breaks={gradio.props.line_breaks}

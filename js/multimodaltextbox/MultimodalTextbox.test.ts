@@ -3,7 +3,7 @@ import { cleanup, render } from "@self/tootils/render";
 import event from "@testing-library/user-event";
 
 import MultimodalTextbox from "./Index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

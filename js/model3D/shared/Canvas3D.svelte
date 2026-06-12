@@ -29,9 +29,11 @@
 	let mounted = $state(false);
 
 	onMount(() => {
+		let active = true;
+
 		const initViewer = async (): Promise<void> => {
 			BABYLON_VIEWER = await import("@babylonjs/viewer");
-			BABYLON_VIEWER.CreateViewerForCanvas(canvas, {
+			const promiseViewer = await BABYLON_VIEWER.CreateViewerForCanvas(canvas, {
 				clearColor: clear_color,
 				useRightHandedSystem: true,
 				animationAutoPlay: true,
@@ -39,22 +41,30 @@
 				onInitialized: (details: any) => {
 					viewerDetails = details;
 				}
-			}).then((promiseViewer: any) => {
-				viewer = promiseViewer;
-				mounted = true;
 			});
+
+			if (!active) {
+				promiseViewer.dispose();
+				return;
+			}
+
+			viewer = promiseViewer;
+			mounted = true;
 		};
 
-		initViewer();
+		void initViewer();
 
 		return () => {
+			active = false;
+			mounted = false;
 			viewer?.dispose();
+			viewer = undefined;
 		};
 	});
 
 	$effect(() => {
 		if (mounted) {
-			load_model(url);
+			void load_model(url);
 		}
 	});
 
@@ -64,29 +74,37 @@
 		viewerDetails.scene.forceWireframe = wireframe;
 	}
 
-	function load_model(url: string | undefined): void {
-		if (viewer) {
-			if (url) {
-				viewer
-					.loadModel(url, {
-						pluginOptions: {
-							obj: {
-								importVertexColors: true
-							}
+	async function load_model(url: string | undefined): Promise<void> {
+		const currentViewer = viewer;
+		if (!currentViewer) return;
+
+		if (url) {
+			try {
+				await currentViewer.loadModel(url, {
+					pluginOptions: {
+						obj: {
+							importVertexColors: true
 						}
-					})
-					.then(() => {
-						if (display_mode === "point_cloud") {
-							setRenderingMode(true, false);
-						} else if (display_mode === "wireframe") {
-							setRenderingMode(false, true);
-						} else {
-							update_camera(camera_position, zoom_speed, pan_speed);
-						}
-					});
-			} else {
-				viewer.resetModel();
+					}
+				});
+			} catch (error) {
+				if (mounted && currentViewer === viewer) {
+					console.error(error);
+				}
+				return;
 			}
+
+			if (!mounted || currentViewer !== viewer) return;
+
+			if (display_mode === "point_cloud") {
+				setRenderingMode(true, false);
+			} else if (display_mode === "wireframe") {
+				setRenderingMode(false, true);
+			} else {
+				update_camera(camera_position, zoom_speed, pan_speed);
+			}
+		} else {
+			currentViewer.resetModel();
 		}
 	}
 

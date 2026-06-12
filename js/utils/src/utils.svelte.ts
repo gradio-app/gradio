@@ -66,6 +66,8 @@ export interface ValueData {
 }
 
 export interface SelectData {
+	id?: string | number;
+	component_id?: string | number;
 	row_value?: any[];
 	col_value?: any[];
 	index: number | [number, number];
@@ -371,7 +373,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
-	mounted: boolean = false;
+	mounted = false;
 	old_value: any;
 	register_component!: (
 		id: number,
@@ -524,7 +526,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.dispatcher(this.shared.id, event_name, data);
 	}
 
-	async get_data() {
+	async get_data(): Promise<any> {
 		return $state.snapshot(this.props);
 	}
 

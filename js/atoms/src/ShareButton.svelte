@@ -14,6 +14,8 @@
 	export let formatter: (arg0: any) => Promise<string>;
 	export let value: any;
 	export let i18n: I18nFormatter;
+	export let onerror: ((message: string) => void) | undefined = undefined;
+	export let onshare: ((data: ShareData) => void) | undefined = undefined;
 	let pending = false;
 </script>
 
@@ -25,13 +27,16 @@
 		try {
 			pending = true;
 			const formatted = await formatter(value);
-			dispatch("share", {
+			const data = {
 				description: formatted
-			});
+			};
+			dispatch("share", data);
+			onshare?.(data);
 		} catch (e) {
 			console.error(e);
 			let message = e instanceof ShareError ? e.message : "Share failed.";
 			dispatch("error", message);
+			onerror?.(message);
 		} finally {
 			pending = false;
 		}
