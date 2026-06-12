@@ -41,4 +41,4 @@
 "gradio": minor
 ---
 
-feat:Fix format diagnostics
+feat:Run `pnpm lint` and `pnpm ts:check` on CI
