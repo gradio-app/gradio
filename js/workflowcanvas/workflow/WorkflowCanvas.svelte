@@ -49,6 +49,7 @@
 	import { stream_text_generation } from "./inference-stream";
 	import {
 		findFreeSpot as findFreeSpotImpl,
+		countSubgraphs,
 		topoSort,
 		resolveCurrentInputs as resolveCurrentInputsImpl,
 		computeStaleNodes,
@@ -338,6 +339,9 @@
 	const nodeCount = $derived(legacyView.nodes.length);
 	const hasTransforms = $derived($workflow.operators.length > 0);
 	const edgeCount = $derived($workflow.edges.length);
+	const subgraphCount = $derived(
+		countSubgraphs(legacyView.nodes, $workflow.edges)
+	);
 
 	const connectedPortsSet = $derived(() => {
 		const set = new Set<string>();
@@ -2019,8 +2023,17 @@
 				</button>
 			{/if}
 			<span class="toolbar-stat"
-				>{nodeCount} nodes &middot; {edgeCount} edges</span
+				>{subgraphCount}
+				{subgraphCount === 1 ? "subgraph" : "subgraphs"}</span
 			>
+			<button
+				class="tool-btn api-btn"
+				onclick={() => (showApiPanel = true)}
+				title="View the API for this workflow"
+			>
+				<span class="api-btn-glyph">&lt;/&gt;</span>
+				View API
+			</button>
 			{#if saveIndicator}
 				<span
 					class="save-indicator"
@@ -2033,14 +2046,6 @@
 			{/if}
 		</div>
 		<div class="toolbar-right">
-			<button
-				class="tool-btn api-btn"
-				onclick={() => (showApiPanel = true)}
-				title="View the API for this workflow"
-			>
-				<span class="api-btn-glyph">&lt;/&gt;</span>
-				View API
-			</button>
 			{#if auth.status !== "checking"}
 				{#if auth.user}
 					<div class="toolbar-user-wrap">
