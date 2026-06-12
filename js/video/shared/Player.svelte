@@ -51,7 +51,7 @@
 		handle_change = () => {},
 		handle_reset_value = () => {},
 		upload,
-		is_stream = undefined,
+		is_stream = false,
 		i18n,
 		show_download_button = false,
 		value = null,
@@ -189,7 +189,11 @@
 	});
 
 	$effect(() => {
-		if (playback_position !== time && video) {
+		if (
+			playback_position !== undefined &&
+			playback_position !== time &&
+			video
+		) {
 			video.currentTime = playback_position;
 		}
 	});

@@ -640,7 +640,7 @@
 							gradio.props.tags.indexOf(s)
 						)[selectedOptionIndex]}
 						show_options={true}
-						on:change={(e) => insert_tag(e)}
+						onchange={(index) => insert_tag(index)}
 					/>
 				</div>
 			{/if}

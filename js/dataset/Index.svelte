@@ -48,13 +48,13 @@
 
 	<Dataset
 		onclick={(d) => (
-			(gradio.props.value = d.index),
-			gradio.dispatch("click", gradio.props.value)
+			(gradio.props.value = Array.isArray(d.index) ? d.index[0] : d.index),
+			gradio.dispatch("click")
 		)}
 		onselect={(data) => gradio.dispatch("select", data)}
 		load_component={gradio.shared.load_component}
-		{samples}
 		{...gradio.props}
+		{samples}
 	/>
 </Block>
 
