@@ -71,8 +71,8 @@
 	/>
 	{#if !gradio.shared.interactive}
 		<File
-			on_select={({ detail }) => gradio.dispatch("select", detail)}
-			on_download={({ detail }) => gradio.dispatch("download", detail)}
+			on_select={(detail) => gradio.dispatch("select", detail)}
+			on_download={(file) => gradio.dispatch("download", file)}
 			selectable={gradio.props._selectable}
 			value={gradio.props.value}
 			label={gradio.shared.label}
@@ -80,7 +80,7 @@
 			height={gradio.props.height}
 			i18n={gradio.i18n}
 			buttons={gradio.props.buttons}
-			on_custom_button_click={(id) => {
+			on_custom_button_click={(id: number) => {
 				gradio.dispatch("custom_button_click", { id });
 			}}
 		/>

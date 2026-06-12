@@ -281,7 +281,7 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 	const named = api.named_endpoints ?? {};
 	const unnamed = api.unnamed_endpoints ?? {};
 
-	const all_endpoints: Array<[string, any]> = [
+	const all_endpoints: [string, any][] = [
 		...Object.entries(named),
 		...Object.entries(unnamed)
 	].filter(([n]) => !UTILITY_PREFIXES.some((p) => n.startsWith(p)));

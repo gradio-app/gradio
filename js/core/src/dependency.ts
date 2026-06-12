@@ -7,7 +7,10 @@ import type {
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
 import { Client, type client_return } from "@gradio/client";
-import { LoadingStatus, type LoadingStatusArgs } from "@gradio/statustracker";
+import {
+	LoadingStatusState,
+	type LoadingStatusArgs
+} from "@gradio/statustracker";
 import type { ToastMessage } from "@gradio/statustracker";
 import type {
 	StatusMessage,
@@ -207,7 +210,7 @@ export class DependencyManager {
 	log_cb: LogCallback;
 	on_connection_lost_cb: () => void;
 
-	loading_stati = new LoadingStatus();
+	loading_stati = new LoadingStatusState();
 	connection_lost = false;
 
 	constructor(

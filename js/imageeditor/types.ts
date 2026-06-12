@@ -1,5 +1,5 @@
 import type { SelectData, ShareData } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { CommandNode } from "./shared/core/commands";
 import type {
 	LayerOptions,
