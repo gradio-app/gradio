@@ -5,6 +5,7 @@ export const loading = {
 	de: "Laden",
 	en: "Loading",
 	es: "Cargando",
+	et: "Laen",
 	eu: "Kargatzen",
 	fa: "در حال بارگذاری",
 	fi: "Ladataan",

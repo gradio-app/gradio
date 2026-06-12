@@ -23,6 +23,7 @@ const BCP47_codes = [
 	"es-ES",
 	"es-MX",
 	"es-US",
+	"et-EE",
 	"fi-FI",
 	"fr-BE",
 	"fr-CA",

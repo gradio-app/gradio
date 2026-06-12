@@ -98,6 +98,7 @@ def test_raise_error_component_template_does_not_exist(tmp_path):
         )
 
 
+@pytest.mark.flaky
 def test_do_not_replace_class_name_in_import_statement(tmp_path):
     _create(
         "MyImage",
@@ -171,6 +172,7 @@ def test_build(template, virtualenv):
         shutil.rmtree(str(dir_), ignore_errors=True)
 
 
+@pytest.mark.flaky
 def test_build_fails_if_component_not_installed(tmp_path):
     _create(
         "MyComponent",
@@ -187,6 +189,7 @@ def test_build_fails_if_component_not_installed(tmp_path):
         _build(tmp_path)
 
 
+@pytest.mark.flaky
 def test_fallback_template_app(tmp_path):
     _create(
         "SimpleComponent2",

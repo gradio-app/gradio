@@ -1,9 +1,15 @@
-import { test, describe, expect, afterEach } from "vitest";
+import { test, describe, expect, afterEach, beforeAll } from "vitest";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
+import { setupi18n, changeLocale } from "../core/src/i18n";
+import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import Radio from "./Index.svelte";
+
+// Build a real i18n marker the way the backend's I18nData does.
+const marker = (key: string): string =>
+	`__i18n__${JSON.stringify({ __type__: "translation_metadata", key })}`;
 
 afterEach(cleanup);
 
@@ -136,6 +142,81 @@ describe("Props: choices", () => {
 		});
 
 		expect(queryAllByRole("radio")).toHaveLength(0);
+	});
+});
+
+describe("Props: i18n choices", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+
+	const i18n_choices: [string, string][] = [
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
+	];
+
+	test("translates choice display values through the i18n formatter", async () => {
+		const { getByText } = await render(Radio, {
+			...default_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		expect(getByText("Clear")).toBeVisible();
+		expect(getByText("Remove")).toBeVisible();
+	});
+
+	test("internal value is unaffected by translation", async () => {
+		const { getAllByRole, get_data } = await render(Radio, {
+			...default_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "italic"
+		});
+
+		const radios = getAllByRole("radio") as HTMLInputElement[];
+		expect(radios[1]).toBeChecked();
+
+		const data = await get_data();
+		expect(data.value).toBe("italic");
+	});
+});
+
+describe("Radio: runtime locale switching", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => {
+		changeLocale("en");
+		cleanup();
+	});
+
+	test("re-translates choice display values when the locale changes", async () => {
+		const { getByText, get_data } = await render(Radio, {
+			...default_props,
+			i18n: formatter,
+			i18n_store: reactive_formatter,
+			choices: [
+				[marker("common.clear"), "bold"],
+				[marker("common.remove"), "italic"]
+			],
+			value: "bold"
+		});
+
+		expect(getByText("Clear")).toBeVisible();
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(getByText("Limpiar")).toBeVisible();
+			expect(getByText("Eliminar")).toBeVisible();
+		});
+
+		const data = await get_data();
+		expect(data.value).toBe("bold");
 	});
 });
 

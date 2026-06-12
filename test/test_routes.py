@@ -103,6 +103,12 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    @pytest.mark.skipif(
+        sys.platform == "win32",
+        reason="On Windows CI python_multipart raises MultipartParseError while "
+        "parsing the oversized header before gradio's own size check returns a "
+        "413, so the response code differs. Passes on Linux/macOS.",
+    )
     def test_header_size_limit(self, test_client):
         with open("test/test_files/alphabet.txt", "rb") as f:
             long_filename = "5" * 9000
@@ -654,10 +660,10 @@ class TestRoutes:
             "https://google.com",
         }
         app.configure_app(interface)
-        r = app.build_proxy_request(
+        url, headers = app.build_proxy_request(
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
-        assert "authorization" in dict(r.headers)
+        assert "Authorization" in dict(headers)
         with pytest.raises(PermissionError):
             app.build_proxy_request("https://google.com")
 
@@ -1972,6 +1978,42 @@ def test_bash_api_multiple_inputs_outputs():
         assert json.dumps([123, "abc"]) in response.text
 
 
+def test_bash_api_uses_session_hash_for_stateful_calls():
+    def increment(message, button_value, count):
+        count = (count or 0) + 1
+        return f"{message}:{button_value}:{count}", count
+
+    with gr.Blocks() as demo:
+        textbox = gr.Textbox()
+        button = gr.Button("Go")
+        state = gr.State(0)
+        output = gr.Textbox()
+        textbox.submit(
+            increment, [textbox, button, state], [output, state], api_name="predict"
+        )
+
+    app, _, _ = demo.queue().launch(prevent_thread_lock=True, _frontend=False)
+    test_client = TestClient(app)
+
+    try:
+        with test_client:
+            for message, expected in [
+                ("first", "first:None:1"),
+                ("second", "second:None:2"),
+            ]:
+                submit = test_client.post(
+                    f"{API_PREFIX}/call/predict",
+                    json={"data": [message], "session_hash": "stateful-session"},
+                )
+                event_id = submit.json()["event_id"]
+                response = test_client.get(f"{API_PREFIX}/call/predict/{event_id}")
+                assert response.status_code == 200
+                assert "event: complete\ndata:" in response.text
+                assert json.dumps([expected, None]) in response.text
+    finally:
+        demo.close()
+
+
 def test_attacker_cannot_change_root_in_config(
     attacker_threads=1, victim_threads=10, max_attempts=30
 ):
@@ -2087,6 +2129,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "max_threads",
         "i18n",
         "_app",
+        "num_workers",
     }
 
     missing_params = []
@@ -2359,6 +2402,30 @@ class TestOAuthSecurity:
         request = Request(scope)
         response = _redirect_to_target(request)
         assert response.headers["location"] == "/"
+
+    def test_redirect_to_target_blocks_multi_slash_bypass(self):
+        """Regression for GHSA-vwgg-rgg9-xx9q: urlparse keeps 4+ leading
+        slashes in `.path`, so `////evil.com` must not be echoed as the
+        scheme-relative `//evil.com` (which browsers resolve to an external
+        host), bypassing the CVE-2026-28415 fix. Backslashes are treated the
+        same way by browsers and must also be collapsed."""
+        from gradio.oauth import _redirect_to_target
+
+        scope = {"type": "http", "method": "GET", "headers": []}
+
+        # Each hostile target must resolve to a same-origin path: a single
+        # leading slash, never "//host" or "/\host".
+        hostile_to_expected = {
+            b"_target_url=////evil.com/foo": "/evil.com/foo",
+            b"_target_url=//////evil.com/foo": "/evil.com/foo",
+            b"_target_url=/%5Cevil.com": "/evil.com",  # /\evil.com
+        }
+        for query_string, expected in hostile_to_expected.items():
+            scope["query_string"] = query_string
+            location = _redirect_to_target(Request(scope)).headers["location"]
+            assert location == expected
+            assert location.startswith("/")
+            assert not location.startswith(("//", "/\\"))
 
     def test_mocked_oauth_does_not_leak_real_token(self):
         """_get_mocked_oauth_info should return a dummy token, not the real HF token."""

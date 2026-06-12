@@ -1,7 +1,10 @@
 from gradio.components.base import Component
+from gradio.events import Events
 
 
 class Fallback(Component):
+    EVENTS = [Events.change]
+
     def preprocess(self, payload):
         """
         This docstring is used to generate the docs for this custom component.

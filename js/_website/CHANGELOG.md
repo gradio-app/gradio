@@ -1,5 +1,39 @@
 # website
 
+## 0.78.0
+
+### Features
+
+- [#13504](https://github.com/gradio-app/gradio/pull/13504) [`a6141ee`](https://github.com/gradio-app/gradio/commit/a6141ee3ce8260a249a6230e18b14fcaa9b2ac4c) - Fix website build checks.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/tabs@0.7.0
+- @gradio/button@0.7.0
+- @gradio/tabitem@0.8.0
+
+## 0.77.1
+
+### Fixes
+
+- [#13460](https://github.com/gradio-app/gradio/pull/13460) [`980db6c`](https://github.com/gradio-app/gradio/commit/980db6cc29b5e26a5f90334b0f4fd000b7443edc) - Offset guide heading anchors so the sticky header no longer covers the section title when clicking a table-of-contents link.  Thanks @ShirGanon!
+
+### Dependency updates
+
+- @gradio/tabs@0.6.0
+- @gradio/tabitem@0.7.0
+
+## 0.77.0
+
+### Features
+
+- [#13411](https://github.com/gradio-app/gradio/pull/13411) [`51497ae`](https://github.com/gradio-app/gradio/commit/51497ae8e5bab0ff5731d16df4148a024224cdf1) - add MiniMax ChatInterface example to the LLM providers guide.  Thanks @octo-patch!
+- [#13368](https://github.com/gradio-app/gradio/pull/13368) [`da45b72`](https://github.com/gradio-app/gradio/commit/da45b72da424ad77e55a2ca99375dbda9eb1c5b3) - add embedded workflow to docs.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/html@0.12.4
+
 ## 0.76.0
 
 ### Features

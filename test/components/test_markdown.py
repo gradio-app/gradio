@@ -19,3 +19,10 @@ class TestMarkdown:
     def test_show_copy_button(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", buttons=["copy"])
         assert markdown_component.get_config()["buttons"] == ["copy"]
+
+    def test_layout_parameters(self):
+        markdown_component = gr.Markdown(
+            "# Let's learn about $x$", scale=2, min_width=120
+        )
+        assert markdown_component.get_config()["scale"] == 2
+        assert markdown_component.get_config()["min_width"] == 120

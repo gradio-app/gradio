@@ -1,5 +1,17 @@
 # @gradio/plot
 
+## 0.11.0
+
+### Features
+
+- [#13510](https://github.com/gradio-app/gradio/pull/13510) [`75c684e`](https://github.com/gradio-app/gradio/commit/75c684efb87624bee2fb63b08122564e6538509e) - Migrate Plot to Svelte 5.  Thanks @dawoodkhan82!
+
+## 0.10.10
+
+### Fixes
+
+- [#13463](https://github.com/gradio-app/gradio/pull/13463) [`58088ad`](https://github.com/gradio-app/gradio/commit/58088ad1d75eee0f93ba1c02f427ee04f60847b4) - Self-host frontend assets so that Gradio works offline!.  Thanks @abidlabs!
+
 ## 0.10.9
 
 ### Dependency updates

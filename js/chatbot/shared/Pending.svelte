@@ -2,8 +2,13 @@
 	import { Image } from "@gradio/image/shared";
 	import type { FileData } from "@gradio/client";
 
-	export let layout = "bubble";
-	export let avatar_images: [FileData | null, FileData | null] = [null, null];
+	let {
+		layout = "bubble",
+		avatar_images = [null, null] as [FileData | null, FileData | null]
+	}: {
+		layout?: "bubble" | "panel";
+		avatar_images?: [FileData | null, FileData | null];
+	} = $props();
 </script>
 
 <div class="container">

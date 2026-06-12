@@ -2,8 +2,8 @@
 	//@ts-nocheck
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
-	import type { Gradio } from "@gradio/utils";
-	import type { PlotEvents, PlotProps } from "../types";
+	import type { SelectData } from "@gradio/utils";
+	import type { ThemeMode } from "../types";
 	import { untrack } from "svelte";
 
 	let {
@@ -16,7 +16,8 @@
 		x_lim,
 		show_fullscreen_button,
 		show_label,
-		on_change
+		on_change,
+		onselect
 	}: {
 		value: null | string;
 		theme_mode: ThemeMode;
@@ -28,6 +29,7 @@
 		show_fullscreen_button: boolean;
 		show_label: boolean;
 		on_change: () => void;
+		onselect?: (data: SelectData) => void;
 	} = $props();
 
 	let PlotComponent: any = $state(null);
@@ -41,7 +43,7 @@
 		altair: () => import("./plot_types/AltairPlot.svelte")
 	};
 
-	let loadedPlotTypeMapping = {};
+	let loadedPlotTypeMapping: Record<string, any> = {};
 
 	const is_browser = typeof window !== "undefined";
 	let _type = $state(null);
@@ -82,7 +84,7 @@
 			{_selectable}
 			{x_lim}
 			bind:loaded_plotly_css
-			on:select
+			{onselect}
 		/>
 	{/key}
 {:else}

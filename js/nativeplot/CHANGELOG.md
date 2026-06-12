@@ -1,5 +1,15 @@
 # @gradio/nativeplot
 
+## 0.11.0
+
+### Features
+
+- [#13502](https://github.com/gradio-app/gradio/pull/13502) [`429faeb`](https://github.com/gradio-app/gradio/commit/429faeb643fb1afc1722c0f63fafa11603f2c87f) - Ensure every component dispatches a `change` event when its value changes.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13523](https://github.com/gradio-app/gradio/pull/13523) [`1b611f8`](https://github.com/gradio-app/gradio/commit/1b611f89fb85016a7879020098bd0faedf80ae5e) - Fixes grouped accordion borders and empty plot legends.  Thanks @dawoodkhan82!
+
 ## 0.10.7
 
 ### Dependency updates

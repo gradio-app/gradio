@@ -1,5 +1,11 @@
 # @gradio/accordion
 
+## 0.5.37
+
+### Fixes
+
+- [#13523](https://github.com/gradio-app/gradio/pull/13523) [`1b611f8`](https://github.com/gradio-app/gradio/commit/1b611f89fb85016a7879020098bd0faedf80ae5e) - Fixes grouped accordion borders and empty plot legends.  Thanks @dawoodkhan82!
+
 ## 0.5.36
 
 ### Dependency updates

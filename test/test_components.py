@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from gradio_client import utils as client_utils
-from gradio_pdf import PDF
 
 import gradio as gr
 from gradio import processing_utils
@@ -122,9 +121,7 @@ def test_template_component_configs(io_components):
 
 def test_component_example_values(io_components):
     for component in io_components:
-        if component == PDF:
-            continue
-        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+        if component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
             c: Component = component(x="x", y="y")
         else:
             c: Component = component()
@@ -133,9 +130,7 @@ def test_component_example_values(io_components):
 
 def test_component_example_payloads(io_components):
     for component in io_components:
-        if component == PDF:
-            continue
-        elif issubclass(component, gr.components.NativePlot):
+        if issubclass(component, gr.components.NativePlot):
             c: Component = component(x="x", y="y")
         elif component == gr.FileExplorer:
             c: Component = component(root_dir="gradio")
@@ -160,9 +155,7 @@ def test_all_io_components_are_pickleable(io_components):
     import pickle
 
     for component in io_components:
-        if component == PDF:
-            continue
-        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+        if component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
             c: Component = component(x="x", y="y")
         elif component == gr.FileExplorer:
             c: Component = component(root_dir="gradio")
@@ -171,3 +164,15 @@ def test_all_io_components_are_pickleable(io_components):
         pickled = pickle.dumps(c)
         unpickled = pickle.loads(pickled)
         assert c.get_config() == unpickled.get_config()
+
+
+def test_all_components_have_change_event(io_components):
+    """
+    Every component has a `value` that can be set programmatically (e.g. a
+    Button's value is its label), so every component should expose a `.change()`
+    event listener that can be wired up without erroring.
+    See https://github.com/gradio-app/gradio/issues/5309.
+    """
+    for component in io_components:
+        with gr.Blocks():
+            component().change(lambda: None)

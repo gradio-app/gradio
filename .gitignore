@@ -107,3 +107,4 @@ CLAUDE.md
 # docs upload
 scripts/docs.json
 tmp_input
+.claude/scheduled_tasks.lock

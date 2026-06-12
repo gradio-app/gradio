@@ -24,7 +24,7 @@ class Dataset(Component):
     However, it can also be used directly to display a dataset and let users select examples.
     """
 
-    EVENTS = [Events.click, Events.select]
+    EVENTS = [Events.change, Events.click, Events.select]
 
     def __init__(
         self,

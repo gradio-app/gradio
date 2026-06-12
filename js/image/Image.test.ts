@@ -326,6 +326,25 @@ describe("Props: buttons (static mode)", () => {
 		expect(getByLabelText("Fullscreen")).toBeTruthy();
 	});
 
+	test("clicking the fullscreen button toggles fullscreen in interactive mode", async () => {
+		const { getByLabelText } = await render(Image, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			buttons: ["fullscreen"]
+		});
+
+		await fireEvent.click(getByLabelText("Fullscreen"));
+		await waitFor(() => {
+			expect(getByLabelText("Exit fullscreen mode")).toBeVisible();
+		});
+
+		await fireEvent.click(getByLabelText("Exit fullscreen mode"));
+		await waitFor(() => {
+			expect(getByLabelText("Fullscreen")).toBeVisible();
+		});
+	});
+
 	test("empty buttons array shows no action buttons", async () => {
 		const { queryByLabelText } = await render(Image, {
 			...default_props,
@@ -633,6 +652,52 @@ describe("get_coordinates_of_clicked_image", () => {
 
 		const result = get_coordinates_of_clicked_image(evt);
 		expect(result).toEqual([100, 200]);
+	});
+
+	test("handles image shown at natural size with empty space on both axes", () => {
+		// `object-fit: scale-down` never upscales: a 100x100 natural image in
+		// a 400x300 box is drawn at natural size, centered at offset (150, 100).
+		// Click at (150, 100) = top-left corner of the drawn image.
+		const evt = make_mock_event(
+			150,
+			100,
+			{
+				naturalWidth: 100,
+				naturalHeight: 100
+			},
+			{
+				left: 0,
+				top: 0,
+				width: 400,
+				height: 300
+			}
+		);
+
+		const result = get_coordinates_of_clicked_image(evt);
+		expect(result).toEqual([0, 0]);
+	});
+
+	test("returns null when click is in the empty space around a natural-size image", () => {
+		// 100x100 natural image in a 1920x1080 box: drawn at natural size,
+		// centered at offset (910, 490). A click at (500, 540) is inside the
+		// box but left of the drawn image, so no image pixel is under it.
+		const evt = make_mock_event(
+			500,
+			540,
+			{
+				naturalWidth: 100,
+				naturalHeight: 100
+			},
+			{
+				left: 0,
+				top: 0,
+				width: 1920,
+				height: 1080
+			}
+		);
+
+		const result = get_coordinates_of_clicked_image(evt);
+		expect(result).toBeNull();
 	});
 
 	test("returns [NaN, NaN] when currentTarget is not an Element", () => {

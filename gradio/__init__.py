@@ -67,6 +67,7 @@ from gradio.components import (
     Timer,
     UploadButton,
     Video,
+    WorkflowCanvas,
     component,
 )
 from gradio.components.audio import WaveformOptions
@@ -138,8 +139,9 @@ from gradio.templates import (
 )
 from gradio.themes import Base as Theme
 from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
+from gradio.workflow import Workflow
 
-# this is the verion:
+# this is the version:
 __version__ = get_package_version()
 
 __all__ = [
@@ -283,4 +285,6 @@ __all__ = [
     "get_model3d",
     "get_file",
     "validators",
+    "Workflow",
+    "WorkflowCanvas",
 ]

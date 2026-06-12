@@ -1,9 +1,15 @@
-import { test, describe, expect, afterEach } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { test, describe, expect, afterEach, beforeAll } from "vitest";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
+import { setupi18n, changeLocale } from "../core/src/i18n";
+import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import CheckboxGroup from "./Index.svelte";
+
+// Build a real i18n marker the way the backend's I18nData does.
+const marker = (key: string): string =>
+	`__i18n__${JSON.stringify({ __type__: "translation_metadata", key })}`;
 
 const default_props = {
 	label: "Options",
@@ -465,5 +471,79 @@ describe("Edge cases", () => {
 
 		const data = await get_data();
 		expect(data.value).toEqual(["internal_val"]);
+	});
+});
+
+describe("CheckboxGroup: i18n choices", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => cleanup());
+
+	const i18n_choices: [string, string][] = [
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
+	];
+
+	test("translates choice display values through the i18n formatter", async () => {
+		const { getByLabelText } = await render(CheckboxGroup, {
+			...default_props,
+			i18n: formatter,
+			choices: i18n_choices
+		});
+
+		expect(getByLabelText("Clear")).toBeTruthy();
+		expect(getByLabelText("Remove")).toBeTruthy();
+	});
+
+	test("internal value is unaffected by translation", async () => {
+		const { getByLabelText, get_data } = await render(CheckboxGroup, {
+			...default_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["bold"]
+		});
+
+		expect(getByLabelText("Clear")).toBeChecked();
+
+		const data = await get_data();
+		expect(data.value).toEqual(["bold"]);
+	});
+});
+
+describe("CheckboxGroup: runtime locale switching", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => {
+		changeLocale("en");
+		cleanup();
+	});
+
+	test("re-translates choice display values when the locale changes", async () => {
+		const { getByLabelText, get_data } = await render(CheckboxGroup, {
+			...default_props,
+			i18n: formatter,
+			i18n_store: reactive_formatter,
+			choices: [
+				[marker("common.clear"), "bold"],
+				[marker("common.remove"), "italic"]
+			],
+			value: ["bold"]
+		});
+
+		expect(getByLabelText("Clear")).toBeChecked();
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(getByLabelText("Limpiar")).toBeChecked();
+			expect(getByLabelText("Eliminar")).not.toBeChecked();
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["bold"]);
 	});
 });

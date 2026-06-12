@@ -22,6 +22,7 @@ class Timer(Component):
     """
 
     EVENTS = [
+        Events.change,
         Events.tick,
     ]
 

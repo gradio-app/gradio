@@ -250,10 +250,7 @@ XRAY_CONFIG = {
     "show_error": True,
     "show_in_view_api": True,
     "is_colab": False,
-    "stylesheets": [
-        "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
-        "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
-    ],
+    "stylesheets": [],
     "theme": "default",
     "layout": {
         "id": 30,
@@ -601,10 +598,7 @@ XRAY_CONFIG_DIFF_IDS = {
     "show_error": True,
     "show_in_view_api": True,
     "is_colab": False,
-    "stylesheets": [
-        "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
-        "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
-    ],
+    "stylesheets": [],
     "theme": "default",
     "layout": {
         "id": 0,

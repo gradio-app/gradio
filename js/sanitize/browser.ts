@@ -1,29 +1,24 @@
 import Amuchina from "amuchina";
 
-const is_external_url = (
-	link: string | null,
-	root = location.href
-): boolean => {
-	try {
-		return !!link && new URL(link).origin !== new URL(root).origin;
-	} catch (e) {
-		return false;
-	}
+const should_open_link_in_new_tab = (link: string | null): boolean => {
+	const href = link?.trim();
+	return !!href && !href.startsWith("#");
 };
 
 export function sanitize(source: string): string {
 	const amuchina = new Amuchina();
 	const node = new DOMParser().parseFromString(source, "text/html");
-	walk_nodes(node.body, "A", (node) => {
+	const sanitized_node = amuchina.sanitize(node);
+	walk_nodes(sanitized_node.body, "A", (node) => {
 		if (node instanceof HTMLElement && "target" in node) {
-			if (is_external_url(node.getAttribute("href"), location.href)) {
+			if (should_open_link_in_new_tab(node.getAttribute("href"))) {
 				node.setAttribute("target", "_blank");
 				node.setAttribute("rel", "noopener noreferrer");
 			}
 		}
 	});
 
-	return amuchina.sanitize(node).body.innerHTML;
+	return sanitized_node.body.innerHTML;
 }
 
 function walk_nodes(

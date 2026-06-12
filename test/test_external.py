@@ -351,18 +351,6 @@ def test_use_api_name_in_call_method():
     # assert app(4, api_name="double") == 8
 
 
-def test_load_custom_component():
-    pytest.skip("Custom components not supported yet")
-
-    from gradio_pdf import PDF  # noqa
-
-    demo = gr.load("spaces/freddyaboulton/gradiopdf")
-    output = demo(
-        "test/test_files/sample_file.pdf", "What does this say?", api_name="predict"
-    )
-    assert isinstance(output, str)
-
-
 def test_load_inside_blocks():
     demo = gr.load("spaces/abidlabs/en2fr")
     output = demo("Hello", api_name="predict")

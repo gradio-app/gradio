@@ -1,5 +1,38 @@
 # @self/app
 
+## 2.2.2
+
+### Dependency updates
+
+- @gradio/client@2.2.2
+
+## 2.2.2
+
+### Fixes
+
+- [#13450](https://github.com/gradio-app/gradio/pull/13450) [`dba4a16`](https://github.com/gradio-app/gradio/commit/dba4a168ce00c15497fd2b99a3364ebbb4842b72) - preserve head script execution order.  Thanks @hysts!
+
+## 2.2.1
+
+### Fixes
+
+- [#13463](https://github.com/gradio-app/gradio/pull/13463) [`58088ad`](https://github.com/gradio-app/gradio/commit/58088ad1d75eee0f93ba1c02f427ee04f60847b4) - Self-host frontend assets so that Gradio works offline!.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/core@1.6.0
+
+## 2.2.0
+
+### Features
+
+- [#13366](https://github.com/gradio-app/gradio/pull/13366) [`10f43e0`](https://github.com/gradio-app/gradio/commit/10f43e0fe187aac9594f3a9765f8addc81b63ad1) - Offload traffic to static workers and use node as the proxy.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.2.1
+- @gradio/core@1.5.1
+
 ## 2.1.1
 
 ### Dependency updates

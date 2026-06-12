@@ -16,8 +16,15 @@
 	let label = $derived(gradio.shared.label || "Multiselect");
 	let buttons = $derived(gradio.props.buttons);
 
+	// Translate the display side only; values stay raw for event payloads.
+	let translated_choices: [string, string | number][] = $derived.by(() => {
+		return gradio.props.choices.map(
+			([display, value]) =>
+				[gradio.live_i18n(display), value] as [string, string | number]
+		);
+	});
 	let choices_names: string[] = $derived.by(() => {
-		return gradio.props.choices.map((c) => c[0]);
+		return translated_choices.map((c) => c[0]);
 	});
 	let choices_values: (string | number)[] = $derived.by(() => {
 		return gradio.props.choices.map((c) => c[1]);
@@ -29,7 +36,7 @@
 
 	// All of these are indices with respect to the choices array
 	let [filtered_indices, active_index] = $derived.by(() => {
-		const filtered = handle_filter(gradio.props.choices, input_text);
+		const filtered = handle_filter(translated_choices, input_text);
 		return [
 			filtered,
 			filtered.length > 0 && !gradio.props.allow_custom_value
@@ -278,7 +285,7 @@
 		</div>
 		<DropdownOptions
 			{show_options}
-			choices={gradio.props.choices}
+			choices={translated_choices}
 			{filtered_indices}
 			{disabled}
 			{selected_indices}

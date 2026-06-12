@@ -1,5 +1,52 @@
 # @gradio/core
 
+## 1.7.0
+
+### Features
+
+- [#13509](https://github.com/gradio-app/gradio/pull/13509) [`dcd072c`](https://github.com/gradio-app/gradio/commit/dcd072cd57f09ffd2dc5f97ae6afc505894824a6) - Migrate Chatbot, Tabs, TabItem to Svelte 5.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#13521](https://github.com/gradio-app/gradio/pull/13521) [`be20ce8`](https://github.com/gradio-app/gradio/commit/be20ce8e9dd39487a2b24a28cf0aa2bf93f6bd5d) - Fix UI freeze when one event makes multiple components of the same type visible.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.2.2
+- @gradio/plot@0.11.0
+- @gradio/audio@0.23.4
+- @gradio/tabs@0.7.0
+- @gradio/button@0.7.0
+- @gradio/tabitem@0.8.0
+- @gradio/dropdown@0.13.0
+
+## 1.6.0
+
+### Features
+
+- [#13417](https://github.com/gradio-app/gradio/pull/13417) [`127400b`](https://github.com/gradio-app/gradio/commit/127400b01538faa0cf9d8a1ea7984c5ee05e66a0) - Add `gr.Workflow` and `gr.WorkflowCanvas` for building AI pipelines visually. `gr.Workflow` accepts `graph`, `bind`, and `edges` parameters to wire Python functions into a canvas, with automatic persistence to the graph JSON file.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13429](https://github.com/gradio-app/gradio/pull/13429) [`e94331c`](https://github.com/gradio-app/gradio/commit/e94331c85284f746fd03cca3fb8b90e9b2869b74) - stale loading_status overwrites completed status on component mount (hidden → visible).  Thanks @Jefsky!
+
+### Dependency updates
+
+- @gradio/tabs@0.6.0
+- @gradio/tabitem@0.7.0
+
+## 1.5.1
+
+### Fixes
+
+- [#13390](https://github.com/gradio-app/gradio/pull/13390) [`d86903e`](https://github.com/gradio-app/gradio/commit/d86903eaa5628ca0b30f27b87ec1d7e194b3eff6) - Add Estonian language support and translation.  Thanks @paulpall!
+
+### Dependency updates
+
+- @gradio/html@0.12.4
+- @gradio/client@2.2.1
+- @gradio/upload@0.17.10
+
 ## 1.5.0
 
 ### Features

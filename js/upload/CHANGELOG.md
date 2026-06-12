@@ -1,5 +1,21 @@
 # @gradio/upload
 
+## 0.17.10
+
+### Dependency updates
+
+- @gradio/client@2.2.2
+
+## 0.17.10
+
+### Fixes
+
+- [#13336](https://github.com/gradio-app/gradio/pull/13336) [`14c8870`](https://github.com/gradio-app/gradio/commit/14c88701756c5fa57e8eaeac4df1385b9601da45) - Add UploadButton unit tests.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.2.1
+
 ## 0.17.9
 
 ### Dependency updates

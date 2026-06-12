@@ -44,19 +44,13 @@ This allows us to create highly customizable and complex interactions!
 
 ## Closer Look at `keys=` parameter
 
-The `key=` argument is used to let Gradio know that the same component is being generated when your render function re-runs. This does two things:
+The `key=` argument tells Gradio that a component being created in a render function corresponds to the same logical component as in the previous render.
 
-1. The same element in the browser is re-used from the previous render for this Component. This gives browser performance gains - as there's no need to destroy and rebuild a component on a render - and preserves any browser attributes that the Component may have had. If your Component is nested within layout items like `gr.Row`, make sure they are keyed as well because the keys of the parents must also match.
-2. Properties that may be changed by the user or by other event listeners are preserved. By default, only the "value" of Component is preserved, but you can specify any list of properties to preserve using the `preserved_by_key=` kwarg.
+This allows Gradio to reuse the existing browser element instead of destroying and recreating it on every render. It also preserves the user's entered value across re-renders when the same keyed component is recreated.
 
-See the example below:
+If your component is nested inside layout items like `gr.Row`, make sure those containers are keyed consistently as well, because parent keys must also match.
 
-$code_render_preserve_key
-$demo_render_preserve_key
-
-You'll see in this example, when you change the `number_of_boxes` slider, there's a new re-render to update the number of box rows. If you click the "Change Label" buttons, they change the `label` and `info` properties of the corresponding textbox. You can also enter text in any textbox to change its value. If you change number of boxes after this, the re-renders "reset" the `info`, but the `label` and any entered `value` is still preserved.
-
-Note you can also key any event listener, e.g. `button.click(key=...)` if the same listener is being recreated with the same inputs and outputs across renders. This gives performance benefits, and also prevents errors from occurring if an event was triggered in a previous render, then a re-render occurs, and then the previous event finishes processing. By keying your listener, Gradio knows where to send the data properly. 
+You can also key event listeners, for example `button.click(key=...)`, when the same listener is recreated with the same inputs and outputs across renders. This helps Gradio keep the listener associated with the correct component instances and can prevent issues when events finish processing after a re-render.
 
 ## Putting it Together
 

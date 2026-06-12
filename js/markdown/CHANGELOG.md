@@ -1,5 +1,17 @@
 # @gradio/markdown
 
+## 0.13.35
+
+### Fixes
+
+- [#13451](https://github.com/gradio-app/gradio/pull/13451) [`29bd7a0`](https://github.com/gradio-app/gradio/commit/29bd7a00fc087df5f8d9780b5e1082729fc5ffb0) - `gr.Dropdown()` Fixes.  Thanks @dawoodkhan82!
+
+## 0.13.34
+
+### Dependency updates
+
+- @gradio/markdown-code@0.8.0
+
 ## 0.13.33
 
 ### Fixes

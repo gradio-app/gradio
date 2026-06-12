@@ -41,7 +41,9 @@ export function loaded(
 
 export default async function loadFfmpeg(): Promise<FFmpeg> {
 	const ffmpeg = new FFmpeg();
-	const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm";
+	const root =
+		(typeof window !== "undefined" && window.gradio_config?.root) || "";
+	const baseURL = `${root}/static/ffmpeg`;
 
 	await ffmpeg.load({
 		coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),

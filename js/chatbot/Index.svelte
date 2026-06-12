@@ -7,7 +7,7 @@
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Chat } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { Message, ExampleMessage, NormalisedMessage } from "./types";
+	import type { Message, NormalisedMessage } from "./types";
 	import type { ChatbotProps, ChatbotEvents } from "./types";
 	import { normalise_messages } from "./shared/utils";
 	import { Gradio } from "@gradio/utils";
@@ -96,31 +96,31 @@
 			}}
 			like_user_message={gradio.props.like_user_message}
 			show_progress={gradio.shared.loading_status?.show_progress || "full"}
-			on:change={() => (
-				(gradio.props.value = gradio.props.value),
-				gradio.dispatch("change", gradio.props.value)
-			)}
-			on:select={(e) => gradio.dispatch("select", e.detail)}
-			on:like={(e) => gradio.dispatch("like", e.detail)}
-			on:share={(e) => gradio.dispatch("share", e.detail)}
-			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:example_select={(e) => gradio.dispatch("example_select", e.detail)}
-			on:option_select={(e) => gradio.dispatch("option_select", e.detail)}
-			on:retry={(e) => gradio.dispatch("retry", e.detail)}
-			on:undo={(e) => gradio.dispatch("undo", e.detail)}
-			on:clear={() => {
+			onchange={() => {
+				gradio.props.value = gradio.props.value;
+				gradio.dispatch("change", gradio.props.value);
+			}}
+			onselect={(data) => gradio.dispatch("select", data)}
+			onlike={(data) => gradio.dispatch("like", data)}
+			onshare={(data) => gradio.dispatch("share", data)}
+			onerror={(message) => gradio.dispatch("error", message)}
+			onexampleselect={(data) => gradio.dispatch("example_select", data)}
+			onoptionselect={(data) => gradio.dispatch("option_select", data)}
+			onretry={(data) => gradio.dispatch("retry", data)}
+			onundo={(data) => gradio.dispatch("undo", data)}
+			onclear={() => {
 				gradio.props.value = [];
 				gradio.dispatch("clear");
 			}}
-			on:copy={(e) => gradio.dispatch("copy", e.detail)}
-			on:edit={(e) => {
+			oncopy={(data) => gradio.dispatch("copy", data)}
+			onedit={(data) => {
 				if (gradio.props.value === null || gradio.props.value.length === 0)
 					return;
 				//@ts-ignore
-				gradio.props.value[e.detail.index].content = [
-					{ text: e.detail.value, type: "text" }
+				gradio.props.value[data.index].content = [
+					{ text: data.value, type: "text" }
 				];
-				gradio.dispatch("edit", e.detail);
+				gradio.dispatch("edit", data);
 			}}
 			avatar_images={gradio.props.avatar_images}
 			sanitize_html={gradio.props.sanitize_html}

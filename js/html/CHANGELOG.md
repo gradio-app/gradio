@@ -1,5 +1,27 @@
 # @gradio/html
 
+## 0.12.5
+
+### Dependency updates
+
+- @gradio/client@2.2.2
+
+## 0.12.5
+
+### Fixes
+
+- [#13450](https://github.com/gradio-app/gradio/pull/13450) [`dba4a16`](https://github.com/gradio-app/gradio/commit/dba4a168ce00c15497fd2b99a3364ebbb4842b72) - preserve head script execution order.  Thanks @hysts!
+
+## 0.12.4
+
+### Features
+
+- [#13367](https://github.com/gradio-app/gradio/pull/13367) [`5d9c9fe`](https://github.com/gradio-app/gradio/commit/5d9c9fe5ff32951309765d37da610a4833b4b694) - fix: upgrade handlebars to 4.7.9 (CVE-2026-33937).  Thanks @orbisai0security!
+
+### Dependency updates
+
+- @gradio/client@2.2.1
+
 ## 0.12.3
 
 ### Dependency updates

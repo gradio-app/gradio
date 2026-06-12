@@ -10,6 +10,7 @@
 	const raf = is_browser
 		? window.requestAnimationFrame
 		: (cb: (...args: any[]) => void) => {};
+	const shown_cache_indicator_keys = new Set<string>();
 
 	async function scroll_into_view(
 		el: HTMLDivElement,
@@ -62,6 +63,8 @@
 		eta?: number | null;
 		queue_position: number | null;
 		queue_size: number | null;
+		component_id?: number | null;
+		fn_index?: number | null;
 		status:
 			| "complete"
 			| "pending"
@@ -87,6 +90,7 @@
 		used_cache?: "full" | "partial" | null;
 		cache_duration?: number | null;
 		avg_time?: number | null;
+		cache_event_id?: number | null;
 	}
 
 	interface ProgressLevel {
@@ -100,6 +104,8 @@
 		eta = null,
 		queue_position,
 		queue_size,
+		component_id = null,
+		fn_index = null,
 		status,
 		scroll_to_output = false,
 		timer = true,
@@ -118,7 +124,8 @@
 		on_clear_status,
 		used_cache = null,
 		cache_duration = null,
-		avg_time = null
+		avg_time = null,
+		cache_event_id = null
 	}: Props = $props();
 
 	let el: HTMLDivElement;
@@ -138,6 +145,16 @@
 	let show_cache_avg = $state(false);
 	let cache_timeout: ReturnType<typeof setTimeout> | null = null;
 	let cache_fade_timeout: ReturnType<typeof setTimeout> | null = null;
+	let last_cache_indicator_key: string | null = null;
+
+	function hide_cache_indicator(): void {
+		if (cache_timeout) clearTimeout(cache_timeout);
+		if (cache_fade_timeout) clearTimeout(cache_fade_timeout);
+		cache_timeout = null;
+		cache_fade_timeout = null;
+		show_cache_indicator = false;
+		cache_indicator_fading = false;
+	}
 
 	const should_hide = $derived(
 		!(show_validation_error && validation_error) &&
@@ -272,6 +289,21 @@
 			used_cache &&
 			cache_duration != null
 		) {
+			const cache_indicator_key =
+				cache_event_id == null
+					? null
+					: `${component_id ?? fn_index ?? "unknown"}:${fn_index ?? "unknown"}:${cache_event_id}`;
+			if (
+				cache_indicator_key === last_cache_indicator_key ||
+				(cache_indicator_key != null &&
+					shown_cache_indicator_keys.has(cache_indicator_key))
+			) {
+				return;
+			}
+			last_cache_indicator_key = cache_indicator_key;
+			if (cache_indicator_key != null) {
+				shown_cache_indicator_keys.add(cache_indicator_key);
+			}
 			cache_display_time = cache_duration.toFixed(1);
 			cache_indicator_label =
 				used_cache === "full" ? "from cache" : "used cache";
@@ -290,6 +322,8 @@
 					cache_indicator_fading = false;
 				}, 500);
 			}, 1750);
+		} else if (type === "output" && !used_cache) {
+			hide_cache_indicator();
 		}
 	});
 </script>

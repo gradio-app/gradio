@@ -52,7 +52,6 @@ jobs:
     environment: deploy_spaces
     outputs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
-      js_tarball_url: ${{ steps.upload_js_tarball.outputs.js_tarball_url }}
     needs: changes
     if: ${{ (github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.should_run == 'true') || github.event.workflow_run.event == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
@@ -79,21 +78,16 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.PYPI_PREVIEWS_TOKEN }}
 
-      - name: Set tarball name
-        id: set_tarball_name
+      - name: Upload JS client dist to HF
         run: |
-          tar_gz_file=$(find ./js-client-tarball -maxdepth 1 -type f -name "*.tgz" -print -quit)
-          echo "tarball_path=$tar_gz_file" >> $GITHUB_OUTPUT
-          echo "tarball_name=$(basename $tar_gz_file)" >> $GITHUB_OUTPUT
-      - name: Upload JS Client Tarball to S3
-        id: upload_js_tarball
-        continue-on-error: true
-        run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.NPM_PREVIEWS_AWS_S3_ACCESS_KEY }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.NPM_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
-          export AWS_DEFAULT_REGION=us-east-1
-          aws s3 cp ${{ steps.set_tarball_name.outputs.tarball_path }} s3://gradio-npm-previews/${{ needs.changes.outputs.sha }}/
-          echo "js_tarball_url=https://gradio-npm-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/${{ steps.set_tarball_name.outputs.tarball_name }}" >> $GITHUB_OUTPUT
+          if [ -d ./js-client-dist ]; then
+            hf buckets sync ./js-client-dist hf://buckets/gradio/npm-previews/${{ needs.changes.outputs.sha }}
+          else
+            echo "Skipping JS client dist upload: ./js-client-dist not found."
+          fi
+        env:
+          HF_TOKEN: ${{ secrets.PYPI_PREVIEWS_TOKEN }}
+
       - name: Install Hub Client Library
         run: |
           python3 -m venv venv
@@ -147,9 +141,9 @@ jobs:
         pip install "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
         ```
 
-        **Install Gradio JS Client from this PR**
-        ```bash
-        npm install ${{ needs.deploy.outputs.js_tarball_url }}
+        **Import Gradio JS Client from this PR via CDN**
+        ```js
+        import { Client } from "https://huggingface.co/buckets/gradio/npm-previews/resolve/${{ needs.changes.outputs.sha }}/browser.js";
         ```
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"

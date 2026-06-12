@@ -1,4 +1,19 @@
+import warnings
+
+import pytest
+
 import gradio as gr
+
+
+class TestScriptTagWarning:
+    def test_warns_on_script_in_value(self):
+        with pytest.warns(UserWarning, match="<script>"):
+            gr.HTML('<script src="https://3Dmol.org/build/3Dmol-min.js"></script>')
+
+    def test_no_warning_for_plain_html(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            gr.HTML("<h2>Hello</h2>")
 
 
 class TestToPublishFormat:
@@ -155,6 +170,7 @@ class TestHTML:
             "likeable": False,
             "max_height": None,
             "min_height": None,
+            "min_width": None,
             "name": "html",
             "padding": False,
             "preserved_by_key": [
@@ -162,12 +178,20 @@ class TestHTML:
             ],
             "props": {},
             "proxy_url": None,
+            "scale": None,
             "show_label": False,
             "streamable": False,
             "value": "#Welcome onboard",
             "visible": True,
             "buttons": [],
         }
+
+    def test_layout_parameters(self):
+        html_component = gr.HTML(
+            "<strong>Welcome onboard</strong>", scale=2, min_width=120
+        )
+        assert html_component.get_config()["scale"] == 2
+        assert html_component.get_config()["min_width"] == 120
 
     def test_in_interface(self):
         """

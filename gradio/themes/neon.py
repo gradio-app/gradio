@@ -17,13 +17,13 @@ class Neon(Base):
         radius_size: sizes.Size | str = sizes.radius_xxl,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Lexend"),
+            fonts.LocalFont("Lexend"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Space Mono"),
+            fonts.LocalFont("Space Mono", weights=(400,)),
             "ui-monospace",
             "Consolas",
             "monospace",

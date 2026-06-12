@@ -64,7 +64,8 @@ const mock_translations: Record<string, string> = {
 
 vi.mock("svelte/store", () => ({
 	get: vi.fn(() => (key: string) => mock_translations[key] ?? key),
-	derived: vi.fn()
+	derived: vi.fn(),
+	fromStore: vi.fn()
 }));
 
 import { locale, init, addMessages } from "svelte-i18n";
