@@ -205,9 +205,9 @@ describe("countSubgraphs", () => {
 		const b = asLegacy(sub("b"));
 		const c = asLegacy(ref("c"));
 		const d = asLegacy(sub("d"));
-		expect(
-			countSubgraphs([a, b, c, d], [edge("a", "b"), edge("c", "d")])
-		).toBe(2);
+		expect(countSubgraphs([a, b, c, d], [edge("a", "b"), edge("c", "d")])).toBe(
+			2
+		);
 	});
 
 	test("treats edges as undirected when merging components", () => {
