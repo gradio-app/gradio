@@ -862,7 +862,6 @@
 
 	function measure_row(node: HTMLElement, _row?: unknown) {
 		tick().then(() => {
-			console.log("measuring");
 			virtualizer.instance.measureElement(node as any);
 		});
 

@@ -76,7 +76,10 @@ export interface Dependency {
 	cancels: number[];
 	types: DependencyTypes;
 	collects_event_data: boolean;
-	frontend_fn?: ((...args: unknown[]) => Promise<unknown[]>) | null;
+	// `process_frontend_fn` only re-wraps scalar results into an array when
+	// `wrap` is true, so the resolved value can be a non-array. Keep the return
+	// type wide so callers don't assume an array unconditionally.
+	frontend_fn?: ((...args: unknown[]) => Promise<unknown[] | unknown>) | null;
 	api_visibility?: "public" | "private" | "undocumented";
 	//pending_request?: boolean; // added, not received from backend, unneeded
 	trigger_after?: number; // then events

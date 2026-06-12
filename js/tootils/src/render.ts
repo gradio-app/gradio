@@ -34,30 +34,7 @@ export type RenderResult<
 	debug: (el?: HTMLElement | DocumentFragment) => void;
 	unmount: () => void;
 } & { [P in keyof Q]: BoundFunction<Q[P]> };
-export interface ILoadingStatus {
-	eta: number | null;
-	status: "pending" | "error" | "complete" | "generating" | "streaming";
-	queue: boolean;
-	queue_position: number | null;
-	queue_size?: number;
-	fn_index: number;
-	message?: string | null;
-	scroll_to_output?: boolean;
-	show_progress?: "full" | "minimal" | "hidden";
-	time_limit?: number | null | undefined;
-	progress?: {
-		progress: number | null;
-		index: number | null;
-		length: number | null;
-		unit: string | null;
-		desc: string | null;
-	}[];
-	validation_error?: string | null;
-	type: "input" | "output";
-	stream_state: "open" | "closed" | "waiting" | null;
-}
-
-const loading_status: ILoadingStatus = {
+const loading_status: LoadingStatus = {
 	eta: 0,
 	queue_position: 1,
 	queue_size: 1,
@@ -68,10 +45,10 @@ const loading_status: ILoadingStatus = {
 	validation_error: null,
 	type: "output",
 	stream_state: null,
-	status: "complete" as ILoadingStatus["status"],
+	status: "complete" as LoadingStatus["status"],
 	scroll_to_output: false,
 	fn_index: 0,
-	show_progress: "full" as ILoadingStatus["show_progress"]
+	show_progress: "full" as LoadingStatus["show_progress"]
 };
 
 export interface RenderOptions<Q extends Queries = typeof queries> {
