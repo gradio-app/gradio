@@ -1,39 +1,55 @@
 <script context="module" lang="ts">
 	import { TABS, type Tab } from "./Tabs.svelte";
+
+	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {
+		return !!tab && tab.visible !== false && tab.visible !== "hidden";
+	}
+
+	function find_tab_index(tabs: (Tab | null)[], id: string | number): number {
+		const index = tabs.findIndex((t) => t?.id === id);
+		return index === -1 ? 0 : index;
+	}
 </script>
 
 <script lang="ts">
-	import { setContext, createEventDispatcher, tick, onMount } from "svelte";
+	import { setContext, tick } from "svelte";
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
 
-	export let visible: boolean | "hidden" = true;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let selected: number | string;
-	export let initial_tabs: Tab[];
+	let {
+		visible = true,
+		elem_id = "",
+		elem_classes = [],
+		selected = $bindable(),
+		initial_tabs,
+		onchange,
+		onselect
+	}: {
+		visible?: boolean | "hidden";
+		elem_id?: string;
+		elem_classes?: string[];
+		selected: number | string;
+		initial_tabs: Tab[];
+		onchange?: () => void;
+		onselect?: (data: SelectData) => void;
+	} = $props();
 
-	let tabs: (Tab | null)[] = [...initial_tabs];
+	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
 	let stepper_container: HTMLDivElement;
-	let show_labels_for_all = true;
+	let show_labels_for_all = $state(true);
 	let measurement_container: HTMLDivElement;
-	let step_buttons: HTMLButtonElement[] = [];
-	let step_labels: HTMLSpanElement[] = [];
-	let label_height = 0;
-	let compact = false;
-	let recompute_overflow = true;
-	$: has_tabs = tabs.length > 0;
+	let step_buttons: HTMLButtonElement[] = $state([]);
+	let step_labels: HTMLSpanElement[] = $state([]);
+	let label_height = $state(0);
+	let compact = $state(false);
+	let recompute_overflow = $state(true);
+
+	let has_tabs = $derived(tabs.length > 0);
 
 	const selected_tab = writable<false | number | string>(
-		selected || tabs[0]?.id || false
+		selected ?? tabs[0]?.id ?? false
 	);
-	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t?.id === selected) || 0
-	);
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		select: SelectData;
-	}>();
+	const selected_tab_index = writable<number>(find_tab_index(tabs, selected));
 
 	async function check_overflow(): Promise<void> {
 		if (!stepper_container || !measurement_container || !recompute_overflow)
@@ -41,7 +57,6 @@
 		recompute_overflow = false;
 		await tick();
 
-		// First, show all labels to measure
 		show_labels_for_all = true;
 		await tick();
 
@@ -82,7 +97,7 @@
 
 	let last_width = 0;
 
-	onMount(() => {
+	$effect(() => {
 		check_overflow();
 
 		const observer = new ResizeObserver((entries) => {
@@ -106,7 +121,7 @@
 		register_tab: (tab: Tab, order: number) => {
 			tabs[order] = tab;
 
-			if ($selected_tab === false && tab.visible && tab.interactive) {
+			if ($selected_tab === false && is_visible_tab(tab) && tab.interactive) {
 				$selected_tab = tab.id;
 				$selected_tab_index = order;
 			}
@@ -114,7 +129,7 @@
 		},
 		unregister_tab: (tab: Tab, order: number) => {
 			if ($selected_tab === tab.id) {
-				$selected_tab = tabs[0]?.id || false;
+				$selected_tab = tabs[0]?.id ?? false;
 			}
 			tabs[order] = null;
 		},
@@ -128,34 +143,47 @@
 			id !== undefined &&
 			tab_to_activate &&
 			tab_to_activate.interactive &&
-			tab_to_activate.visible &&
+			is_visible_tab(tab_to_activate) &&
 			$selected_tab !== tab_to_activate.id
 		) {
 			selected = id;
 			$selected_tab = id;
 			$selected_tab_index = tabs.findIndex((t) => t?.id === id);
-			dispatch("change");
+			onchange?.();
 		}
 	}
 
-	$: (tabs,
-		selected !== null &&
+	$effect(() => {
+		tabs;
+		if (selected !== null) {
 			change_tab(
 				selected,
 				tabs.findIndex((t) => t?.id === selected)
-			));
-	$: (tabs, check_overflow());
-	$: ($selected_tab_index, check_overflow());
+			);
+		}
+	});
 
-	$: tab_scale =
-		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale;
+	$effect(() => {
+		tabs;
+		check_overflow();
+	});
+
+	$effect(() => {
+		$selected_tab_index;
+		check_overflow();
+	});
+
+	let tab_scale = $derived(
+		tabs[$selected_tab_index >= 0 ? $selected_tab_index : 0]?.scale
+	);
 </script>
 
-<svelte:window on:resize={check_overflow} />
+<svelte:window onresize={check_overflow} />
 
 <div
 	class="stepper {elem_classes.join(' ')}"
-	class:hide={!visible}
+	class:hide={visible === false}
+	class:hidden={visible === "hidden"}
 	id={elem_id}
 	style:flex-grow={tab_scale}
 	class:compact
@@ -178,7 +206,7 @@
 				role="tablist"
 			>
 				{#each tabs as t, i}
-					{#if t?.visible}
+					{#if is_visible_tab(t)}
 						<div class="step-item">
 							<button
 								bind:this={step_buttons[i]}
@@ -193,10 +221,10 @@
 								aria-disabled={!t.interactive || i > $selected_tab_index}
 								id={t.elem_id ? t.elem_id + "-button" : null}
 								data-tab-id={t.id}
-								on:click={() => {
+								onclick={() => {
 									if (i <= $selected_tab_index && t.id !== $selected_tab) {
 										change_tab(t.id, i);
-										dispatch("select", { value: t.label, index: i });
+										onselect?.({ value: t.label, index: i });
 									}
 								}}
 							>
@@ -261,6 +289,10 @@
 
 	.hide {
 		display: none;
+	}
+
+	.hidden {
+		display: none !important;
 	}
 
 	.stepper-wrapper {

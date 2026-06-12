@@ -1,19 +1,22 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { onDestroy } from "svelte";
 	import { Copy, Check } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import type { CopyData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
-	const dispatch = createEventDispatcher<{
-		change: undefined;
-		copy: CopyData;
-	}>();
 
-	let copied = false;
-	export let value: string;
-	export let watermark: string | null = null;
-	export let i18n: I18nFormatter;
+	let {
+		value,
+		watermark = null,
+		i18n,
+		oncopy
+	}: {
+		value: string;
+		watermark?: string | null;
+		i18n: I18nFormatter;
+		oncopy?: (data: CopyData) => void;
+	} = $props();
+
+	let copied = $state(false);
 	let timer: NodeJS.Timeout;
 
 	function copy_feedback(): void {
@@ -26,7 +29,7 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			dispatch("copy", { value: value });
+			oncopy?.({ value: value });
 			const text_to_copy = watermark ? `${value}\n\n${watermark}` : value;
 			await navigator.clipboard.writeText(text_to_copy);
 			copy_feedback();
@@ -52,8 +55,10 @@
 		}
 	}
 
-	onDestroy(() => {
-		if (timer) clearTimeout(timer);
+	$effect(() => {
+		return () => {
+			if (timer) clearTimeout(timer);
+		};
 	});
 </script>
 

@@ -37,6 +37,20 @@ export async function resize(
 	}
 
 	target.style.height = `${scroll_height}px`;
+	update_scrollbar_visibility(target);
+}
+
+function update_scrollbar_visibility(
+	textarea: HTMLTextAreaElement | HTMLInputElement
+): void {
+	const content_height = textarea.scrollHeight;
+	const visible_height = textarea.clientHeight;
+	const line_height = parseFloat(window.getComputedStyle(textarea).lineHeight);
+	if (content_height > visible_height + line_height) {
+		textarea.style.overflowY = "scroll";
+	} else {
+		textarea.style.overflowY = "hidden";
+	}
 }
 
 export function text_area_resize(
@@ -44,7 +58,7 @@ export function text_area_resize(
 	_value: Value
 ): any | undefined {
 	if (_value.lines === _value.max_lines) return;
-	_el.style.overflowY = "scroll";
+	update_scrollbar_visibility(_el);
 
 	function handle_input(event: Event): void {
 		resize(event.target as HTMLTextAreaElement, _value.lines, _value.max_lines);
