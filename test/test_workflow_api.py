@@ -8,6 +8,7 @@ from gradio.workflow_api import (
     WorkflowExecutionError,
     WorkflowExecutor,
     WorkflowGraph,
+    describe_workflow_api,
     free_inputs,
     topo_sort,
     upstream_node_ids,
@@ -44,6 +45,14 @@ class TestGraphParsing:
         assert WorkflowGraph.from_json(json.dumps({"nodes": []})) is None
         assert WorkflowGraph.from_json("not json") is None
         assert WorkflowGraph.from_json(None) is None
+
+    def test_malformed_v2_returns_none(self):
+        assert (
+            WorkflowGraph.from_json(
+                json.dumps({"schema_version": "2", "subjects": [{"label": "Out"}]})
+            )
+            is None
+        )
 
 
 class TestTopoSort:
@@ -206,6 +215,22 @@ class TestEndpointRegistration:
         assert out == "/tmp/out.png"
         assert seen_token["token"] == "MY_TOKEN"
 
+    def test_describe_parameter_names_match_info(self, tmp_path):
+        import gradio as gr
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_with_subjects(1))
+        wf = gr.Workflow(graph=str(path))
+        graph = WorkflowGraph.from_json(path.read_text())
+        assert graph is not None
+
+        described = describe_workflow_api(graph)[0]
+        info_param = wf.get_api_info()["named_endpoints"]["/out0"]["parameters"][0]
+        assert described["parameters"][0]["parameter_name"] == "in_0"
+        assert (
+            described["parameters"][0]["parameter_name"] == info_param["parameter_name"]
+        )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Live schema updates — endpoint set re-derives on save (Option 2)
@@ -324,6 +349,29 @@ class TestLiveSchemaUpdate:
         result = canvas.save_workflow([_graph_with_subjects(2)], write_req, None)
         assert result == "ok"
         assert _endpoint_names(wf) == {"/out0", "/out1"}
+
+    def test_save_workflow_rejects_malformed_schema(self, tmp_path):
+        import gradio as gr
+        from gradio.route_utils import Request
+        from gradio.workflow import WRITE_TOKEN
+
+        path = tmp_path / "wf.json"
+        original = _graph_with_subjects(1)
+        path.write_text(original)
+        wf = gr.Workflow(graph=str(path))
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+        write_req = Request(
+            headers={"cookie": f"gradio_workflow_write_token_7860={WRITE_TOKEN}"},
+            query_params={},
+        )
+        bad = json.dumps({"schema_version": "2", "subjects": [{"label": "Out"}]})
+        result = canvas.save_workflow([bad], write_req, None)
+
+        assert json.loads(result)["error"].startswith("Invalid workflow schema")
+        assert path.read_text() == original
+        assert _endpoint_names(wf) == {"/out0"}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
