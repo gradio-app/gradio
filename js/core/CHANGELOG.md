@@ -1,5 +1,35 @@
 # @gradio/core
 
+## 1.8.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.25.0
+- @gradio/client@2.3.0
+- @gradio/statustracker@0.15.0
+- @gradio/upload@0.18.0
+- @gradio/utils@0.13.0
+- @gradio/button@0.8.0
+- @gradio/image@0.27.0
+- @gradio/gallery@0.18.0
+- @gradio/plot@0.12.0
+- @gradio/checkbox@0.8.0
+- @gradio/textbox@0.14.0
+- @gradio/dropdown@0.14.0
+- @gradio/file@0.15.0
+- @gradio/video@0.21.0
+- @gradio/audio@0.24.0
+- @gradio/column@0.4.0
+- @gradio/code@0.18.0
+- @gradio/html@0.13.0
+- @gradio/paramviewer@0.10.0
+- @gradio/tabs@0.8.0
+- @gradio/tabitem@0.8.1
+
 ## 1.7.0
 
 ### Features
