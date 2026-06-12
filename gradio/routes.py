@@ -135,6 +135,7 @@ from gradio.utils import (
     get_upload_folder,
     safe_aclose_iterator,
 )
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -2606,6 +2607,7 @@ def mount_gradio_app(
     app.router.lifespan_context = new_lifespan  # type: ignore
 
     app.mount(path, gradio_app)
+    maybe_setup_zerogpu_middleware(app)
     return app
 
 
