@@ -20,7 +20,7 @@
 	let translated_choices = $derived(
 		gradio.props.choices.map(
 			([display, value]) =>
-				[gradio.i18n(display), value] as [string, string | number]
+				[gradio.live_i18n(display), value] as [string, string | number]
 		)
 	);
 </script>
