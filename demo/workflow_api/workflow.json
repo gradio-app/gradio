@@ -1,0 +1,48 @@
+{
+  "schema_version": "2",
+  "name": "Text Tools",
+  "runtime": { "default": "client" },
+  "references": [
+    {
+      "id": "ref_text", "label": "Text", "role": "reference", "asset_type": "text",
+      "inputs": [{ "id": "in", "label": "Text", "type": "text" }],
+      "outputs": [{ "id": "out", "label": "Text", "type": "text" }],
+      "x": 80, "y": 120, "width": 220, "height": 120, "data": {}
+    }
+  ],
+  "operators": [
+    {
+      "id": "op_loud", "label": "shout", "role": "operator", "kind": "fn", "fn": "shout",
+      "inputs": [{ "id": "in_text", "label": "text", "type": "text", "required": true }],
+      "outputs": [{ "id": "out_0", "label": "output", "type": "text", "output_index": 0 }],
+      "x": 380, "y": 40, "width": 220, "height": 120, "data": {}
+    },
+    {
+      "id": "op_rev", "label": "reverse", "role": "operator", "kind": "fn", "fn": "reverse",
+      "inputs": [{ "id": "in_text", "label": "text", "type": "text", "required": true }],
+      "outputs": [{ "id": "out_0", "label": "output", "type": "text", "output_index": 0 }],
+      "x": 380, "y": 240, "width": 220, "height": 120, "data": {}
+    }
+  ],
+  "subjects": [
+    {
+      "id": "sub_loud", "label": "Loud", "role": "subject", "asset_type": "text",
+      "inputs": [{ "id": "in", "label": "Text", "type": "text" }],
+      "outputs": [{ "id": "out", "label": "Text", "type": "text" }],
+      "x": 700, "y": 40, "width": 220, "height": 107, "data": {}
+    },
+    {
+      "id": "sub_rev", "label": "Reversed", "role": "subject", "asset_type": "text",
+      "inputs": [{ "id": "in", "label": "Text", "type": "text" }],
+      "outputs": [{ "id": "out", "label": "Text", "type": "text" }],
+      "x": 700, "y": 240, "width": 220, "height": 107, "data": {}
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from_node_id": "ref_text", "from_port_id": "out", "to_node_id": "op_loud", "to_port_id": "in_text", "type": "text" },
+    { "id": "e2", "from_node_id": "ref_text", "from_port_id": "out", "to_node_id": "op_rev", "to_port_id": "in_text", "type": "text" },
+    { "id": "e3", "from_node_id": "op_loud", "from_port_id": "out_0", "to_node_id": "sub_loud", "to_port_id": "in", "type": "text" },
+    { "id": "e4", "from_node_id": "op_rev", "from_port_id": "out_0", "to_node_id": "sub_rev", "to_port_id": "in", "type": "text" }
+  ],
+  "view": { "default": "canvas" }
+}
