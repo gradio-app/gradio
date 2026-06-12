@@ -1107,7 +1107,11 @@ class Workflow(Blocks):
 
         bound = self._bound
 
-        def call_fn(data, _token: Optional[OAuthToken] = None) -> str:
+        def call_fn(
+            data,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
             fn_name = data[0] if data else ""
             try:
                 args_json = data[1] if len(data) > 1 else "[]"
