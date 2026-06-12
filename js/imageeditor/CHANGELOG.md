@@ -2,6 +2,12 @@
 
 ## 0.18.12
 
+### Dependency updates
+
+- @gradio/client@2.2.2
+
+## 0.18.12
+
 ### Fixes
 
 - [#13379](https://github.com/gradio-app/gradio/pull/13379) [`b8e8745`](https://github.com/gradio-app/gradio/commit/b8e8745d2f4fb156dd12d57a3f4eb2e165f20216) - fix default tool logic in gr.ImageEditor.  Thanks @hannahblair!

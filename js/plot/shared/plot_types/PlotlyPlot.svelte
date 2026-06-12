@@ -1,16 +1,21 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
-	import { afterUpdate } from "svelte";
 
-	export let value;
-	export let show_label: boolean;
-	export let loaded_plotly_css = false;
+	let {
+		value,
+		show_label,
+		loaded_plotly_css = $bindable(false)
+	}: {
+		value: any;
+		show_label: boolean;
+		loaded_plotly_css?: boolean;
+	} = $props();
 
-	$: plot = value?.plot;
+	let plot = $derived(value?.plot);
 
-	let plot_div;
-	let plotly_global_style;
+	let plot_div: HTMLDivElement;
+	let plotly_global_style: HTMLElement;
 
 	function load_plotly_css(): void {
 		if (!loaded_plotly_css) {
@@ -24,12 +29,13 @@
 		}
 	}
 
-	afterUpdate(async () => {
+	$effect(() => {
+		if (!plot_div || !plot) return;
+
 		load_plotly_css();
 
 		let plotObj = JSON.parse(plot);
 
-		// the docs aren't very good but this works
 		plotObj.config = plotObj.config || {};
 		plotObj.config.responsive = true;
 		plotObj.responsive = true;
@@ -39,7 +45,6 @@
 			plotObj.layout.margin = {};
 		}
 		if (plotObj.layout.title && show_label) {
-			// so title does not get cut off by label
 			plotObj.layout.margin.t = Math.max(100, plotObj.layout.margin.t || 0);
 		}
 		plotObj.layout.margin.autoexpand = true;

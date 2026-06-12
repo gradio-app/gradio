@@ -1,56 +1,81 @@
 <script lang="ts">
-	import { getContext, onMount, createEventDispatcher, tick } from "svelte";
+	import { getContext, tick, untrack } from "svelte";
 	import { TABS } from "@gradio/tabs";
 	import { BaseColumn } from "@gradio/column";
 	import type { SelectData } from "@gradio/utils";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let label: string;
-	export let id: string | number | object = {};
-	export let visible: boolean | "hidden";
-	export let interactive: boolean;
-	export let order: number;
-	export let scale: number;
-	export let component_id: number;
-
-	const dispatch = createEventDispatcher<{ select: SelectData }>();
+	let {
+		elem_id = "",
+		elem_classes = [],
+		label,
+		id,
+		visible,
+		interactive,
+		order,
+		scale,
+		component_id,
+		onselect
+	}: {
+		elem_id?: string;
+		elem_classes?: string[];
+		label: string;
+		id?: string | number | null;
+		visible: boolean | "hidden";
+		interactive: boolean;
+		order: number;
+		scale: number;
+		component_id: number;
+		onselect?: (data: SelectData) => void;
+	} = $props();
 
 	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
 		getContext(TABS) as any;
 
-	let tab_index: number;
+	let tab_index = $state<number | undefined>(undefined);
 
 	function _register_tab(obj: string, order: number): number {
 		obj = JSON.parse(obj);
 		return register_tab(obj, order);
 	}
 
-	$: props_json = JSON.stringify({
-		label,
-		id,
-		elem_id,
-		visible,
-		interactive,
-		scale,
-		component_id
+	let tab_id = $derived(id ?? component_id);
+
+	let props_json = $derived(
+		JSON.stringify({
+			label,
+			id: tab_id,
+			elem_id,
+			visible,
+			interactive,
+			scale,
+			component_id
+		})
+	);
+
+	let is_visible = $derived(visible !== false && visible !== "hidden");
+
+	$effect(() => {
+		const tab_props = props_json;
+		tab_index = untrack(() => _register_tab(tab_props, order));
 	});
 
-	$: tab_index = _register_tab(props_json, order);
-
-	onMount(() => {
-		return (): void => unregister_tab({ label, id, elem_id }, order);
+	$effect(() => {
+		return (): void => unregister_tab({ label, id: tab_id, elem_id }, order);
 	});
 
-	$: $selected_tab_index === tab_index &&
-		tick().then(() => dispatch("select", { value: label, index: tab_index }));
+	$effect(() => {
+		const index = tab_index;
+		if (index !== undefined && $selected_tab_index === index) {
+			tick().then(() => onselect?.({ value: label, index }));
+		}
+	});
 </script>
 
 <div
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
 	class:grow-children={scale >= 1}
-	style:display={$selected_tab === id && visible !== false ? "flex" : "none"}
+	style:display={$selected_tab === tab_id && is_visible ? "flex" : "none"}
 	style:flex-grow={scale}
 	role="tabpanel"
 >

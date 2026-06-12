@@ -3,6 +3,7 @@ import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 import { tick, untrack } from "svelte";
 import type { Component } from "svelte";
+import { fromStore } from "svelte/store";
 import type { Readable } from "svelte/store";
 
 export const I18N_MARKER = "__i18n__";
@@ -365,6 +366,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	// workspace resolving to a single Svelte version (pinned to 5.48.0, since
 	// 5.56 regressed lazy-rendering); this injection remains as defense-in-depth.
 	i18n_store: Readable<unknown> | undefined;
+	_i18n_from_store: { readonly current: unknown } | undefined;
 	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
@@ -404,6 +406,9 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.i18n = this.props.i18n ?? ((v: string) => v);
 		// @ts-ignore - read the raw store reference before it's wrapped in $state
 		this.i18n_store = _props.props.i18n_store;
+		this._i18n_from_store = this.i18n_store
+			? fromStore(this.i18n_store)
+			: undefined;
 
 		for (const key of TRANSLATABLE_PROPS) {
 			// @ts-ignore
@@ -504,6 +509,16 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		}
 		return translated;
 	}
+
+	// Reactive variant of `i18n`. Reading it inside a derived or template
+	// subscribes to the live locale store (via Svelte's createSubscriber), so
+	// the caller re-runs when the locale changes at runtime. The store is only
+	// the reactivity trigger; translation always goes through `this.i18n` so a
+	// custom formatter passed via props keeps taking effect.
+	live_i18n = (value: string): string => {
+		void this._i18n_from_store?.current;
+		return this.i18n(value);
+	};
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
 		this.dispatcher(this.shared.id, event_name, data);

@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 2.2.2
+
+### Fixes
+
+- [#13500](https://github.com/gradio-app/gradio/pull/13500) [`751a397`](https://github.com/gradio-app/gradio/commit/751a397ce519732526863ee84e311f7f64195f9d) - Close iterator on terminal error in JS client.  Thanks @hysts!
+
 ## 2.2.1
 
 ### Fixes

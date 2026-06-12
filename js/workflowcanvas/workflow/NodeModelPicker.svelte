@@ -30,6 +30,7 @@
 		zero_gpu?: boolean;
 		curated?: boolean;
 		thumbnail?: string;
+		inference_providers?: boolean;
 	}
 
 	interface Props {
@@ -1718,6 +1719,11 @@
 		color: #f97316;
 	}
 
+	.space-badge-providers {
+		background: rgba(56, 189, 248, 0.14);
+		color: #38bdf8;
+	}
+
 	.space-desc {
 		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
@@ -1836,6 +1842,11 @@
 	:global(body:not(.dark)) .space-badge-zerogpu {
 		background: rgba(249, 115, 22, 0.12);
 		color: #c84a00;
+	}
+
+	:global(body:not(.dark)) .space-badge-providers {
+		background: rgba(56, 189, 248, 0.14);
+		color: #0369a1;
 	}
 
 	:global(body:not(.dark)) .space-likes {

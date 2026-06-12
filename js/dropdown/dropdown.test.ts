@@ -1,10 +1,16 @@
-import { test, describe, afterEach, expect, vi } from "vitest";
+import { test, describe, afterEach, expect, vi, beforeAll } from "vitest";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
+import { setupi18n, changeLocale } from "../core/src/i18n";
+import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
 import { handle_filter } from "./shared/utils";
+
+// Build a real i18n marker the way the backend's I18nData does.
+const marker = (key: string): string =>
+	`__i18n__${JSON.stringify({ __type__: "translation_metadata", key })}`;
 
 const single_select_props = {
 	label: "Dropdown",
@@ -1599,6 +1605,168 @@ describe("handle_filter", () => {
 
 	test("matches substring anywhere in display name", () => {
 		expect(handle_filter(choices, "an")).toEqual([1]);
+	});
+});
+
+describe("i18n choices", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => cleanup());
+
+	const i18n_choices: [string, string][] = [
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
+	];
+
+	test("single-select shows translated display name for the selected value", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input.value).toBe("Clear");
+	});
+
+	test("single-select translates option display names", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Clear");
+		expect(options[1]).toHaveAttribute("aria-label", "Remove");
+	});
+
+	test("single-select internal value is unaffected by translation", async () => {
+		const { get_data } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const data = await get_data();
+		expect(data.value).toBe("bold");
+	});
+
+	test("multiselect renders translated display names in tokens", async () => {
+		const { getByText, queryByText } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["bold", "italic"]
+		});
+
+		expect(getByText("Clear")).toBeTruthy();
+		expect(getByText("Remove")).toBeTruthy();
+		expect(queryByText(marker("common.clear"))).toBeNull();
+	});
+
+	test("multiselect translates option display names", async () => {
+		const { container, getAllByTestId } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices
+		});
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Clear");
+		expect(options[1]).toHaveAttribute("aria-label", "Remove");
+	});
+
+	test("multiselect internal value is unaffected by translation", async () => {
+		const { get_data } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["italic"]
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["italic"]);
+	});
+});
+
+describe("runtime locale switching", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => {
+		changeLocale("en");
+		cleanup();
+	});
+
+	const i18n_choices: [string, string][] = [
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
+	];
+
+	test("single-select re-translates the selected display name and options", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				i18n: formatter,
+				i18n_store: reactive_formatter,
+				choices: i18n_choices,
+				value: "bold"
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input.value).toBe("Clear");
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(input.value).toBe("Limpiar");
+		});
+
+		await input.focus();
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Limpiar");
+		expect(options[1]).toHaveAttribute("aria-label", "Eliminar");
+
+		const data = await get_data();
+		expect(data.value).toBe("bold");
+	});
+
+	test("multiselect re-translates selected tokens when the locale changes", async () => {
+		const { getByText, get_data } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			i18n_store: reactive_formatter,
+			choices: i18n_choices,
+			value: ["bold", "italic"]
+		});
+
+		expect(getByText("Clear")).toBeVisible();
+		expect(getByText("Remove")).toBeVisible();
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(getByText("Limpiar")).toBeVisible();
+			expect(getByText("Eliminar")).toBeVisible();
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["bold", "italic"]);
 	});
 });
 

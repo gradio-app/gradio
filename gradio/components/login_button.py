@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-import time
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
-from gradio import utils
+from gradio import oauth, utils
 from gradio.components import Button, Component
 from gradio.context import get_blocks_context
 from gradio.routes import Request
@@ -104,15 +103,13 @@ class LoginButton(Button):
             request.request, "session", None
         )
 
-        if session is None or "oauth_info" not in session:
+        if session is None:
             # Cookie set but user not logged in
             return LoginButton(self.value, interactive=True)
 
-        oauth_info = session["oauth_info"]
-        expires_at = oauth_info.get("expires_at")
-        if expires_at is not None and expires_at < time.time():
-            # User is logged in but token has expired => logout
-            session.pop("oauth_info", None)
+        oauth_info = oauth._get_valid_oauth_info_from_session(session)
+        if oauth_info is None:
+            # Cookie set but user not logged in
             return LoginButton(self.value, interactive=True)
 
         # User is correctly logged in

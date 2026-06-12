@@ -1,5 +1,11 @@
 # @gradio/fallback
 
+## 0.5.0
+
+### Features
+
+- [#13502](https://github.com/gradio-app/gradio/pull/13502) [`429faeb`](https://github.com/gradio-app/gradio/commit/429faeb643fb1afc1722c0f63fafa11603f2c87f) - Ensure every component dispatches a `change` event when its value changes.  Thanks @abidlabs!
+
 ## 0.4.39
 
 ### Dependency updates
