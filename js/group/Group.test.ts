@@ -56,6 +56,17 @@ describe("Group", () => {
 		expect(el).not.toBeNull();
 		expect(el).toBeVisible();
 	});
+
+	test("uses border-color-primary for grouped child separators", async () => {
+		const { container } = await render(Group, {});
+		const group = container.querySelector(".gr-group") as HTMLElement;
+		const styler = container.querySelector(".styler") as HTMLElement;
+
+		group.style.setProperty("--block-border-color", "rgb(255, 0, 0)");
+		group.style.setProperty("--border-color-primary", "rgb(0, 128, 0)");
+
+		expect(getComputedStyle(styler).backgroundColor).toBe("rgb(0, 128, 0)");
+	});
 });
 
 describe("Children / slot", () => {

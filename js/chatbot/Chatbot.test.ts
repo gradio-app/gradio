@@ -1,5 +1,5 @@
 import { test, describe, expect, afterEach, vi } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Chatbot from "./Index.svelte";
 import {
@@ -405,6 +405,44 @@ describe("Props: allow_tags", () => {
 
 		const bot = getAllByTestId("bot")[0];
 		expect(bot.textContent).toContain("deep thought");
+	});
+});
+
+describe("Props: autoscroll", () => {
+	afterEach(() => cleanup());
+
+	test("does not force-scroll to the bottom when the user has scrolled up", async () => {
+		const messages = Array.from({ length: 20 }, (_, index) =>
+			text_msg(
+				index % 2 === 0 ? "user" : "assistant",
+				`message ${index}`,
+				index
+			)
+		);
+		const { getByRole, set_data } = await render(Chatbot, {
+			...default_props,
+			autoscroll: true,
+			height: 180,
+			value: messages
+		});
+		const log = getByRole("log") as HTMLDivElement;
+
+		await waitFor(() =>
+			expect(log.scrollHeight).toBeGreaterThan(log.clientHeight)
+		);
+		await waitFor(() => expect(log.scrollTop).toBeGreaterThan(0));
+
+		log.scrollTop = 0;
+		await fireEvent.scroll(log);
+
+		await set_data({
+			value: [
+				...messages,
+				text_msg("assistant", "streamed token", messages.length)
+			]
+		});
+
+		expect(log.scrollTop).toBe(0);
 	});
 });
 
