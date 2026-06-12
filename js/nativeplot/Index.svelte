@@ -378,6 +378,7 @@
 		if (!vegaEmbed) {
 			vegaEmbed = (await import("vega-embed")).default;
 		}
+		if (!chart_element) return;
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
 			resizeObserver!.observe(chart_element!);
@@ -823,8 +824,8 @@
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton
 					{fullscreen}
-					on:fullscreen={({ detail }) => {
-						fullscreen = detail;
+					onclick={(value) => {
+						fullscreen = value;
 					}}
 				/>
 			{/if}
