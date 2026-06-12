@@ -378,50 +378,52 @@
 		if (!vegaEmbed) {
 			vegaEmbed = (await import("vega-embed")).default;
 		}
-		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
-			view = result.view;
-			resizeObserver!.observe(chart_element!);
-			var debounceTimeout: NodeJS.Timeout;
-			var lastSelectTime = 0;
-			view.addEventListener("dblclick", () => {
-				gradio.dispatch("double_click");
-			});
-			// prevent double-clicks from highlighting text
-			chart_element!.addEventListener(
-				"mousedown",
-				function (e) {
-					if (e.detail > 1) {
-						e.preventDefault();
-					}
-				},
-				false
-			);
-			if (gradio.props._selectable) {
-				view.addSignalListener("brush", function (_, value) {
-					if (Date.now() - lastSelectTime < 1000) return;
-					mouse_down_on_chart = true;
-					if (Object.keys(value).length === 0) return;
-					clearTimeout(debounceTimeout);
-					let range: [number, number] = value[Object.keys(value)[0]];
-					if (x_temporal) {
-						range = [range[0] / 1000, range[1] / 1000];
-					}
-					debounceTimeout = setTimeout(function () {
-						mouse_down_on_chart = false;
-						lastSelectTime = Date.now();
-						gradio.dispatch("select", {
-							value: range,
-							index: range,
-							selected: true
-						});
-						if (refresh_pending) {
-							refresh_pending = false;
-							load_chart();
-						}
-					}, 250);
+		vegaEmbed(chart_element, spec, { actions: false, renderer: "svg" }).then(
+			function (result) {
+				view = result.view;
+				resizeObserver!.observe(chart_element!);
+				var debounceTimeout: NodeJS.Timeout;
+				var lastSelectTime = 0;
+				view.addEventListener("dblclick", () => {
+					gradio.dispatch("double_click");
 				});
+				// prevent double-clicks from highlighting text
+				chart_element!.addEventListener(
+					"mousedown",
+					function (e) {
+						if (e.detail > 1) {
+							e.preventDefault();
+						}
+					},
+					false
+				);
+				if (gradio.props._selectable) {
+					view.addSignalListener("brush", function (_, value) {
+						if (Date.now() - lastSelectTime < 1000) return;
+						mouse_down_on_chart = true;
+						if (Object.keys(value).length === 0) return;
+						clearTimeout(debounceTimeout);
+						let range: [number, number] = value[Object.keys(value)[0]];
+						if (x_temporal) {
+							range = [range[0] / 1000, range[1] / 1000];
+						}
+						debounceTimeout = setTimeout(function () {
+							mouse_down_on_chart = false;
+							lastSelectTime = Date.now();
+							gradio.dispatch("select", {
+								value: range,
+								index: range,
+								selected: true
+							});
+							if (refresh_pending) {
+								refresh_pending = false;
+								load_chart();
+							}
+						}, 250);
+					});
+				}
 			}
-		});
+		);
 	}
 
 	let refresh_pending = $state(false);
