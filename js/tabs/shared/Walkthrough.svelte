@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import { TABS, type Tab } from "./Tabs.svelte";
+	import { TABS, type Tab, type TabSelectData } from "./Tabs.svelte";
 
 	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {
 		return !!tab && tab.visible !== false && tab.visible !== "hidden";
@@ -14,7 +14,6 @@
 <script lang="ts">
 	import { setContext, tick } from "svelte";
 	import { writable } from "svelte/store";
-	import type { SelectData } from "@gradio/utils";
 
 	let {
 		visible = true,
@@ -31,7 +30,7 @@
 		selected: number | string;
 		initial_tabs: Tab[];
 		onchange?: () => void;
-		onselect?: (data: SelectData) => void;
+		onselect?: (data: TabSelectData) => void;
 	} = $props();
 
 	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
@@ -224,7 +223,12 @@
 								onclick={() => {
 									if (i <= $selected_tab_index && t.id !== $selected_tab) {
 										change_tab(t.id, i);
-										onselect?.({ value: t.label, index: i });
+										onselect?.({
+											value: t.label,
+											index: i,
+											id: t.id,
+											component_id: t.component_id
+										});
 									}
 								}}
 							>

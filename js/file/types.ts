@@ -1,5 +1,5 @@
 import type { FileData } from "@gradio/client";
-import type { LoadingStatus } from "js/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "js/statustracker";
 import type { SelectData, CustomButton } from "@gradio/utils";
 
 export interface FileProps {
@@ -15,7 +15,7 @@ export interface FileProps {
 
 export interface FileEvents {
 	upload: FileData | FileData[];
-	download: void;
+	download: FileData;
 	error: string;
 	clear_status: LoadingStatus;
 	clear: void;

@@ -1,4 +1,3 @@
-// eslint-disable-next-line complexity
 export function represent_value(
 	value: string,
 	type: string | undefined,

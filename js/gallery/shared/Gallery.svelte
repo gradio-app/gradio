@@ -112,7 +112,7 @@
 	} = $props();
 
 	let upload_promise: Promise<any> | null = null;
-	let mode: "normal" | "minimal" = "normal";
+	let mode = $state<"normal" | "minimal">("normal");
 	let display_icon_button_wrapper_top_corner = false;
 	let is_full_screen = false;
 	let image_container: HTMLElement;

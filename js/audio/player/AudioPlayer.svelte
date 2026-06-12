@@ -87,6 +87,7 @@
 	$effect(() => {
 		if (
 			waveform_ready &&
+			playback_position !== undefined &&
 			old_playback_position !== playback_position &&
 			audio_duration
 		) {

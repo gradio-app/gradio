@@ -366,7 +366,7 @@
 					old_width = el[0].target.offsetWidth;
 					old_height = el[0].target.offsetHeight;
 					load_chart();
-				} else {
+				} else if (view) {
 					view.signal("width", el[0].target.offsetWidth).run();
 					if (fullscreen) {
 						view.signal("height", el[0].target.offsetHeight).run();
@@ -379,50 +379,52 @@
 			vegaEmbed = (await import("vega-embed")).default;
 		}
 		if (!chart_element) return;
-		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
-			view = result.view;
-			resizeObserver!.observe(chart_element!);
-			var debounceTimeout: NodeJS.Timeout;
-			var lastSelectTime = 0;
-			view.addEventListener("dblclick", () => {
-				gradio.dispatch("double_click");
-			});
-			// prevent double-clicks from highlighting text
-			chart_element!.addEventListener(
-				"mousedown",
-				function (e) {
-					if (e.detail > 1) {
-						e.preventDefault();
-					}
-				},
-				false
-			);
-			if (gradio.props._selectable) {
-				view.addSignalListener("brush", function (_, value) {
-					if (Date.now() - lastSelectTime < 1000) return;
-					mouse_down_on_chart = true;
-					if (Object.keys(value).length === 0) return;
-					clearTimeout(debounceTimeout);
-					let range: [number, number] = value[Object.keys(value)[0]];
-					if (x_temporal) {
-						range = [range[0] / 1000, range[1] / 1000];
-					}
-					debounceTimeout = setTimeout(function () {
-						mouse_down_on_chart = false;
-						lastSelectTime = Date.now();
-						gradio.dispatch("select", {
-							value: range,
-							index: range,
-							selected: true
-						});
-						if (refresh_pending) {
-							refresh_pending = false;
-							load_chart();
-						}
-					}, 250);
+		vegaEmbed(chart_element, spec, { actions: false, renderer: "svg" }).then(
+			function (result) {
+				view = result.view;
+				resizeObserver!.observe(chart_element!);
+				var debounceTimeout: NodeJS.Timeout;
+				var lastSelectTime = 0;
+				view.addEventListener("dblclick", () => {
+					gradio.dispatch("double_click");
 				});
+				// prevent double-clicks from highlighting text
+				chart_element!.addEventListener(
+					"mousedown",
+					function (e) {
+						if (e.detail > 1) {
+							e.preventDefault();
+						}
+					},
+					false
+				);
+				if (gradio.props._selectable) {
+					view.addSignalListener("brush", function (_, value) {
+						if (Date.now() - lastSelectTime < 1000) return;
+						mouse_down_on_chart = true;
+						if (Object.keys(value).length === 0) return;
+						clearTimeout(debounceTimeout);
+						let range: [number, number] = value[Object.keys(value)[0]];
+						if (x_temporal) {
+							range = [range[0] / 1000, range[1] / 1000];
+						}
+						debounceTimeout = setTimeout(function () {
+							mouse_down_on_chart = false;
+							lastSelectTime = Date.now();
+							gradio.dispatch("select", {
+								value: range,
+								index: range,
+								selected: true
+							});
+							if (refresh_pending) {
+								refresh_pending = false;
+								load_chart();
+							}
+						}, 250);
+					});
+				}
 			}
-		});
+		);
 	}
 
 	let refresh_pending = $state(false);
@@ -442,18 +444,19 @@
 
 	function export_chart(): void {
 		if (!view || !computed_style) return;
+		const current_view = view;
 
 		const block_background = computed_style.getPropertyValue(
 			"--block-background-fill"
 		);
 		const export_background = block_background || "white";
 
-		view.background(export_background).run();
+		current_view.background(export_background).run();
 
-		view
+		current_view
 			.toImageURL("png", 2)
 			.then(function (url) {
-				view.background("transparent").run();
+				current_view.background("transparent").run();
 
 				const link = document.createElement("a");
 				link.setAttribute("href", url);
@@ -465,7 +468,7 @@
 			})
 			.catch(function (err) {
 				console.error("Export failed:", err);
-				view.background("transparent").run();
+				current_view.background("transparent").run();
 			});
 	}
 
@@ -534,7 +537,6 @@
 			computed_style.getPropertyValue("--text-sm")
 		);
 
-		/* eslint-disable complexity */
 		return {
 			$schema: "https://vega.github.io/schema/vega-lite/v5.17.0.json",
 			background: "transparent",
@@ -554,7 +556,7 @@
 					labelFontWeight: "normal",
 					domain: false,
 					labelAngle: 0,
-					titleLimit: chart_element.offsetHeight * 0.8
+					titleLimit: (chart_element?.offsetHeight ?? 0) * 0.8
 				},
 				legend: {
 					labelColor: body_text_color,
@@ -718,7 +720,7 @@
 											: []),
 										...(gradio.props.tooltip === "axis"
 											? []
-											: gradio.props.value?.columns
+											: (gradio.props.value?.columns ?? [])
 													.filter(
 														(col) =>
 															col !== gradio.props.x &&
@@ -736,7 +738,7 @@
 					strokeDash: {},
 					mark: {
 						clip: true,
-						type: mode === "hover" ? "point" : gradio.props.value.mark
+						type: mode === "hover" ? "point" : gradio.props.value!.mark
 					},
 					name: mode
 				};
@@ -787,7 +789,7 @@
 			title: gradio.props.title || undefined
 		} as Spec;
 	}
-	/* eslint-enable complexity */
+
 </script>
 
 <Block
@@ -821,12 +823,7 @@
 				<IconButton Icon={Download} label="Export" onclick={export_chart} />
 			{/if}
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "fullscreen")}
-				<FullscreenButton
-					{fullscreen}
-					onclick={(value) => {
-						fullscreen = value;
-					}}
-				/>
+				<FullscreenButton {fullscreen} onclick={(fs) => (fullscreen = fs)} />
 			{/if}
 		</IconButtonWrapper>
 	{/if}
