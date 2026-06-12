@@ -1,5 +1,17 @@
 # gradio
 
+## 6.19.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+- [#13534](https://github.com/gradio-app/gradio/pull/13534) [`a11c728`](https://github.com/gradio-app/gradio/commit/a11c7282461ccef90f24a031d77a597ac9ae3d0e) - Re-translate i18n choices display names when the language is switched at runtime.  Thanks @hysts!
+
+### Fixes
+
+- [#13532](https://github.com/gradio-app/gradio/pull/13532) [`0a933b4`](https://github.com/gradio-app/gradio/commit/0a933b428f5b2158cb8c764f38abf0da2312d58a) - Fix `gr.SelectData` coordinates when the image in `gr.Image` does not fill its container.  Thanks @hysts!
+- [#13533](https://github.com/gradio-app/gradio/pull/13533) [`e5ec1ca`](https://github.com/gradio-app/gradio/commit/e5ec1ca66c45e7e3a057b75ac2b8b86660b2827b) - Fix fullscreen button not working in ImageSlider, interactive Image, native plots, and AnnotatedImage.  Thanks @hysts!
+
 ## 6.18.0
 
 ### Features
