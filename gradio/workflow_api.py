@@ -1,0 +1,589 @@
+"""Server-side execution of `gr.Workflow` graphs, for exposing each workflow
+subject (output node) as a regular Gradio API endpoint.
+
+The canvas executes a workflow client-side (see
+`js/workflowcanvas/workflow/workflow-executor.ts`). This module ports that
+orchestration to Python so a workflow can be run headlessly — once per subject's
+upstream sub-DAG — and wired into Gradio's normal `/info` + `/call` machinery.
+
+Pure graph helpers (parsing, topo-sort, subgraph extraction, free-input
+detection) have no Gradio/network dependencies and are unit-tested directly. The
+executor calls back into the workflow server-functions (`call_space`,
+`call_model`, `call_fn`, `fetch_dataset`) which are injected so they can be
+mocked in tests.
+"""
+
+from __future__ import annotations
+
+import inspect
+import json
+import logging
+import re
+from collections import deque
+from collections.abc import Callable
+from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
+
+# Port types the canvas treats as files/media (mirrors MEDIA_PORT_TYPES in
+# workflow-executor.ts). Values for these ports travel as `{path|url}` dicts
+# rather than scalars.
+MEDIA_PORT_TYPES = {"image", "audio", "video", "file", "gallery", "model3d"}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Graph model
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class WorkflowGraph:
+    """Parsed, indexed view of a schema-v2 workflow dict.
+
+    Holds the three role collections (references / operators / subjects) plus a
+    flat id index and edge adjacency, so the executor and endpoint registration
+    don't re-scan lists repeatedly.
+    """
+
+    def __init__(self, data: dict[str, Any]):
+        if not isinstance(data, dict):
+            raise ValueError("Workflow graph must be a JSON object")
+        self.raw = data
+        self.name: str = data.get("name") or "Workflow"
+        self.references: list[dict] = list(data.get("references") or [])
+        self.operators: list[dict] = list(data.get("operators") or [])
+        self.subjects: list[dict] = list(data.get("subjects") or [])
+        self.edges: list[dict] = list(data.get("edges") or [])
+
+        self.node_by_id: dict[str, dict] = {}
+        self.role_by_id: dict[str, str] = {}
+        for n in self.references:
+            self.node_by_id[n["id"]] = n
+            self.role_by_id[n["id"]] = "reference"
+        for n in self.operators:
+            self.node_by_id[n["id"]] = n
+            self.role_by_id[n["id"]] = "operator"
+        for n in self.subjects:
+            self.node_by_id[n["id"]] = n
+            self.role_by_id[n["id"]] = "subject"
+
+    @classmethod
+    def from_json(cls, text: str | None) -> WorkflowGraph | None:
+        if not text:
+            return None
+        try:
+            data = json.loads(text)
+        except (json.JSONDecodeError, TypeError):
+            return None
+        if data.get("schema_version") != "2":
+            # Only the current schema is executable server-side; the frontend
+            # migrates v1→v2 on load, so saved files are v2.
+            return None
+        return cls(data)
+
+    def has_incoming(self, node_id: str) -> bool:
+        return any(e.get("to_node_id") == node_id for e in self.edges)
+
+    def incoming_edge(self, node_id: str, port_id: str) -> dict | None:
+        for e in self.edges:
+            if e.get("to_node_id") == node_id and e.get("to_port_id") == port_id:
+                return e
+        return None
+
+
+def topo_sort(node_ids: list[str], edges: list[dict]) -> list[str]:
+    """Kahn's algorithm over the given node ids (edges referencing nodes outside
+    the set are ignored). Mirrors `topoSort` in workflow-graph.ts."""
+    ids = set(node_ids)
+    indeg = dict.fromkeys(node_ids, 0)
+    adj: dict[str, list[str]] = {nid: [] for nid in node_ids}
+    for e in edges:
+        a, b = e.get("from_node_id"), e.get("to_node_id")
+        if a in ids and b in ids:
+            indeg[b] += 1
+            adj[a].append(b)
+    queue = deque([nid for nid in node_ids if indeg[nid] == 0])
+    out: list[str] = []
+    while queue:
+        n = queue.popleft()
+        out.append(n)
+        for m in adj[n]:
+            indeg[m] -= 1
+            if indeg[m] == 0:
+                queue.append(m)
+    if len(out) != len(node_ids):
+        # A cycle leaves nodes with residual in-degree; surface it rather than
+        # silently dropping them (the canvas can't create cycles, but a
+        # hand-edited file could).
+        raise ValueError("Workflow contains a cycle and cannot be executed")
+    return out
+
+
+def upstream_node_ids(graph: WorkflowGraph, target_id: str) -> set[str]:
+    """All nodes transitively feeding `target_id` (inclusive). Mirrors
+    `buildUpstreamSubgraph` in workflow-graph.ts."""
+    include = {target_id}
+    queue = deque([target_id])
+    while queue:
+        cur = queue.popleft()
+        for e in graph.edges:
+            if e.get("to_node_id") == cur and e.get("from_node_id") not in include:
+                include.add(e["from_node_id"])
+                queue.append(e["from_node_id"])
+    return include
+
+
+def free_inputs(graph: WorkflowGraph, subgraph_ids: set[str]) -> list[dict]:
+    """The reference nodes in the subgraph that the caller must supply (no
+    incoming edge → user-provided input). Returned in a stable order (graph
+    declaration order) so endpoint parameters are deterministic.
+
+    Each entry: `{"node": <reference dict>, "port": <output port dict>,
+    "type": <port type>, "label": <node label>}`.
+    """
+    result = []
+    for ref in graph.references:
+        if ref["id"] not in subgraph_ids:
+            continue
+        if graph.has_incoming(ref["id"]):
+            continue  # computed relay, not a free input
+        outputs = ref.get("outputs") or []
+        port = outputs[0] if outputs else None
+        port_type = (
+            (port or {}).get("type")
+            or ref.get("asset_type")
+            or "text"
+        )
+        result.append(
+            {"node": ref, "port": port, "type": port_type, "label": ref.get("label", "")}
+        )
+    return result
+
+
+def subject_output_type(subject: dict) -> str:
+    inputs = subject.get("inputs") or []
+    if inputs:
+        return inputs[0].get("type") or subject.get("asset_type") or "text"
+    return subject.get("asset_type") or "text"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Value marshalling (port of toGradioArg / fromGradioOutput / pick_response_item)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _to_arg(value: Any, port_type: str) -> Any:
+    """Convert an endpoint input value into the shape the workflow server
+    functions expect. Media ports arrive as a local filepath (from the output
+    component) or a FileData-like dict; wrap a bare path as `{"path": ...}` so
+    `call_space` runs it through `handle_file`. Scalars pass through."""
+    if value is None:
+        return None
+    if port_type in MEDIA_PORT_TYPES:
+        if isinstance(value, dict):
+            return value  # already {path|url|...}
+        if isinstance(value, str):
+            return {"path": value}
+        return value
+    return value
+
+
+def _output_matches_port_type(item: Any, port_type: str) -> bool:
+    if item is None:
+        return False
+    if port_type in MEDIA_PORT_TYPES:
+        if isinstance(item, str):
+            return item.startswith(("http://", "https://", "blob:", "data:", "/"))
+        return isinstance(item, dict) and ("path" in item or "url" in item)
+    if port_type == "text":
+        return isinstance(item, str)
+    if port_type == "number":
+        return isinstance(item, (int, float)) and not isinstance(item, bool)
+    if port_type == "boolean":
+        return isinstance(item, bool)
+    if port_type == "json":
+        return isinstance(item, (dict, list))
+    return True
+
+
+def _pick_response_item(
+    port: dict, port_index: int, output_data: list, total_ports: int
+) -> Any:
+    """Select which element of a multi-output response feeds a given output
+    port. Mirrors `pick_response_item` in workflow-executor.ts: honor an
+    explicit `output_index`, else position, else shape-match by port type."""
+    output_index = port.get("output_index")
+    if isinstance(output_index, int):
+        primary = output_data[output_index] if output_index < len(output_data) else None
+    elif total_ports == 1 and len(output_data) > 1:
+        primary = None
+    else:
+        primary = output_data[port_index] if port_index < len(output_data) else None
+
+    if primary is not None and _output_matches_port_type(primary, port.get("type", "")):
+        return primary
+
+    for item in output_data:
+        if _output_matches_port_type(item, port.get("type", "")):
+            return item
+
+    if primary is not None:
+        return primary
+    return output_data[0] if output_data else None
+
+
+def _from_output(value: Any) -> Any:
+    """Normalize a value coming out of the executor for the endpoint's output
+    component. File dicts → local path (preferred) or url; scalars pass
+    through. The internal `{path,url,is_file}` shape (from `call_space`) is
+    consumable by downstream operators as-is, so this only runs for the final
+    subject value handed to the output component."""
+    if isinstance(value, dict):
+        return value.get("path") or value.get("url") or value
+    return value
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Executor
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class WorkflowExecutionError(Exception):
+    """Raised when a node in the workflow fails; the message is suitable for
+    surfacing to an API caller."""
+
+
+class WorkflowExecutor:
+    """Runs a subject's upstream sub-DAG server-side.
+
+    `callers` maps operator kinds to the workflow server-functions, each with
+    the signature `(data: list, request, token) -> str` (a JSON string, either
+    a list of outputs or an `{"error": ...}` dict) — exactly the existing
+    `call_space` / `call_model` / `call_fn` / `fetch_dataset`.
+    """
+
+    def __init__(self, graph: WorkflowGraph, callers: dict[str, Callable]):
+        self.graph = graph
+        self.callers = callers
+
+    def run(
+        self,
+        subject_id: str,
+        inputs: dict[str, Any],
+        request: Any = None,
+        token: Any = None,
+    ) -> Any:
+        """Execute the subgraph feeding `subject_id`. `inputs` maps free-input
+        reference node id → value. Returns the subject's output value."""
+        graph = self.graph
+        subject = graph.node_by_id.get(subject_id)
+        if subject is None or graph.role_by_id.get(subject_id) != "subject":
+            raise WorkflowExecutionError(f"No such workflow output: {subject_id}")
+
+        sub_ids = upstream_node_ids(graph, subject_id)
+        order = topo_sort(list(sub_ids), graph.edges)
+        data_map: dict[str, dict[str, Any]] = {}
+
+        self._request = request
+        self._token = token
+
+        for node_id in order:
+            self._execute_node(node_id, data_map, inputs)
+
+        in_ports = subject.get("inputs") or []
+        if not in_ports:
+            return None
+        value = data_map.get(subject_id, {}).get(in_ports[0]["id"])
+        return _from_output(value)
+
+    # -- internals ----------------------------------------------------------
+
+    def _resolve_inputs(
+        self, node: dict, data_map: dict[str, dict[str, Any]]
+    ) -> dict[str, Any]:
+        graph = self.graph
+        resolved: dict[str, Any] = {}
+        for port in node.get("inputs") or []:
+            edge = graph.incoming_edge(node["id"], port["id"])
+            if edge:
+                resolved[port["id"]] = data_map.get(edge["from_node_id"], {}).get(
+                    edge["from_port_id"]
+                )
+            else:
+                data = node.get("data") or {}
+                resolved[port["id"]] = data.get(port["id"], port.get("default_value"))
+        return resolved
+
+    def _execute_node(
+        self,
+        node_id: str,
+        data_map: dict[str, dict[str, Any]],
+        inputs: dict[str, Any],
+    ) -> None:
+        graph = self.graph
+        node = graph.node_by_id[node_id]
+        role = graph.role_by_id[node_id]
+
+        if role == "reference":
+            if graph.has_incoming(node_id):
+                self._relay(node, data_map)  # computed reference (relay)
+            else:
+                self._seed_input(node, data_map, inputs)  # free input
+            return
+
+        if role == "subject":
+            self._relay(node, data_map)
+            return
+
+        # operator
+        kind = node.get("kind")
+        if kind == "fn":
+            self._run_fn(node, data_map)
+        elif kind == "model":
+            self._run_model(node, data_map)
+        elif kind == "dataset":
+            self._run_dataset(node, data_map)
+        else:  # "space" (default)
+            self._run_space(node, data_map)
+
+    def _seed_input(
+        self, node: dict, data_map: dict[str, dict[str, Any]], inputs: dict[str, Any]
+    ) -> None:
+        value = inputs.get(node["id"])
+        bucket: dict[str, Any] = {}
+        for port in node.get("outputs") or []:
+            bucket[port["id"]] = _to_arg(value, port.get("type", "text"))
+        data_map[node["id"]] = bucket
+
+    def _relay(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
+        resolved = self._resolve_inputs(node, data_map)
+        in_ports = node.get("inputs") or []
+        bucket: dict[str, Any] = {}
+        if in_ports:
+            value = resolved[in_ports[0]["id"]]
+            bucket[in_ports[0]["id"]] = value
+            for port in node.get("outputs") or []:
+                bucket[port["id"]] = value
+        data_map[node["id"]] = bucket
+
+    def _require(self, node: dict, resolved: dict[str, Any]) -> None:
+        for port in node.get("inputs") or []:
+            if port.get("required") and resolved.get(port["id"]) is None:
+                raise WorkflowExecutionError(
+                    f'"{port.get("label", port["id"])}" is required by '
+                    f'"{node.get("label", node["id"])}" but was not provided'
+                )
+
+    def _call(self, kind: str, data: list) -> list:
+        caller = self.callers.get(kind)
+        if caller is None:
+            raise WorkflowExecutionError(f"No executor available for '{kind}' nodes")
+        result_json = caller(data, self._request, self._token)
+        parsed = json.loads(result_json)
+        if isinstance(parsed, dict) and "error" in parsed:
+            msg = parsed.get("suggestion") or parsed.get("error") or "Workflow node failed"
+            raise WorkflowExecutionError(msg)
+        return parsed if isinstance(parsed, list) else [parsed]
+
+    def _map_outputs(
+        self, node: dict, output_data: list, data_map: dict[str, dict[str, Any]]
+    ) -> None:
+        bucket: dict[str, Any] = {}
+        out_ports = node.get("outputs") or []
+        for i, port in enumerate(out_ports):
+            bucket[port["id"]] = _pick_response_item(port, i, output_data, len(out_ports))
+        data_map[node["id"]] = bucket
+
+    def _run_space(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
+        resolved = self._resolve_inputs(node, data_map)
+        self._require(node, resolved)
+        args = [resolved[p["id"]] for p in node.get("inputs") or []]
+        endpoint = node.get("endpoint") or "/predict"
+        output_data = self._call(
+            "space", [node.get("space_id"), endpoint, json.dumps(args)]
+        )
+        self._map_outputs(node, output_data, data_map)
+
+    def _run_model(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
+        resolved = self._resolve_inputs(node, data_map)
+        self._require(node, resolved)
+        args = [resolved[p["id"]] for p in node.get("inputs") or []]
+        tag = node.get("pipeline_tag") or "text-generation"
+        provider = node.get("provider") or "auto"
+        output_data = self._call(
+            "model", [node.get("model_id"), tag, json.dumps(args), None, provider]
+        )
+        self._map_outputs(node, output_data, data_map)
+
+    def _run_fn(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
+        resolved = self._resolve_inputs(node, data_map)
+        self._require(node, resolved)
+        args = [resolved[p["id"]] for p in node.get("inputs") or []]
+        output_data = self._call("fn", [node.get("fn"), json.dumps(args)])
+        self._map_outputs(node, output_data, data_map)
+
+    def _run_dataset(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
+        resolved = self._resolve_inputs(node, data_map)
+        raw = resolved.get("row_index") or 0
+        try:
+            offset = max(0, int(raw))
+        except (TypeError, ValueError):
+            offset = 0
+        output_data = self._call(
+            "dataset",
+            [
+                node.get("dataset_id"),
+                node.get("dataset_config") or "default",
+                node.get("dataset_split") or "train",
+                str(offset),
+                "1",
+            ],
+        )
+        # fetch_dataset returns {config, split, features} or rows; map first row
+        # onto output ports by label (mirrors the dataset branch in the TS
+        # executor). Kept lenient — dataset operators are rarely terminal.
+        result = output_data[0] if output_data else {}
+        rows = result.get("rows") if isinstance(result, dict) else None
+        row = (rows[0] if rows else {}) if isinstance(rows, list) else {}
+        bucket: dict[str, Any] = {}
+        for port in node.get("outputs") or []:
+            bucket[port["id"]] = row.get(port.get("label"))
+        data_map[node["id"]] = bucket
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endpoint registration (B2: explicit, hidden components reusing /info + /call)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _slugify(label: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "_", (label or "").strip().lower()).strip("_")
+    return slug or "endpoint"
+
+
+def port_to_component(port_type: str, label: str):
+    """Map a workflow port type to a Gradio component for the API schema. Real
+    components are used (not `gr.api` type hints) so multimodal I/O round-trips
+    via their proven `api_info` / `FileData` handling. Created unrendered; the
+    caller renders them inside a hidden container so they reach `/info`."""
+    import gradio as gr
+
+    label = label or port_type
+    if port_type == "image":
+        return gr.Image(label=label, type="filepath", render=False)
+    if port_type == "audio":
+        return gr.Audio(label=label, type="filepath", render=False)
+    if port_type == "video":
+        return gr.Video(label=label, render=False)
+    if port_type in ("model3d", "3d"):
+        return gr.Model3D(label=label, render=False)
+    if port_type == "number":
+        return gr.Number(label=label, render=False)
+    if port_type == "boolean":
+        return gr.Checkbox(label=label, render=False)
+    if port_type == "dataframe":
+        return gr.Dataframe(label=label, render=False)
+    if port_type == "gallery":
+        return gr.Gallery(label=label, render=False)
+    if port_type == "json":
+        return gr.JSON(label=label, render=False)
+    return gr.Textbox(label=label, render=False)
+
+
+def _build_endpoint_fn(
+    get_graph: Callable[[], Optional[WorkflowGraph]],
+    subject_id: str,
+    free_ids: list[str],
+    callers: dict[str, Callable],
+):
+    """Build the callable backing one subject endpoint.
+
+    Execution re-reads the *current* graph via `get_graph()` so operator and
+    wiring edits take effect without a restart. The advertised signature
+    (positional input per free reference, plus `request`/`token`) is synthesized
+    so Gradio's `special_args` injects the request and OAuth token, letting the
+    executor reuse the workflow's token resolution for downstream calls.
+    """
+    from gradio.oauth import OAuthToken
+    from gradio.route_utils import Request
+
+    def endpoint(*args):
+        *input_values, request, token = args
+        graph = get_graph()
+        if graph is None:
+            raise WorkflowExecutionError("Workflow graph is unavailable")
+        inputs = dict(zip(free_ids, input_values))
+        return WorkflowExecutor(graph, callers).run(subject_id, inputs, request, token)
+
+    params = [
+        inspect.Parameter(f"in_{i}", inspect.Parameter.POSITIONAL_OR_KEYWORD)
+        for i in range(len(free_ids))
+    ]
+    params.append(
+        inspect.Parameter(
+            "request",
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            default=None,
+            annotation=Optional[Request],
+        )
+    )
+    params.append(
+        inspect.Parameter(
+            "token",
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            default=None,
+            annotation=Optional[OAuthToken],
+        )
+    )
+    endpoint.__signature__ = inspect.Signature(params)  # type: ignore[attr-defined]
+    endpoint.__annotations__ = {
+        "request": Optional[Request],
+        "token": Optional[OAuthToken],
+    }
+    return endpoint
+
+
+def register_workflow_endpoints(
+    blocks,
+    snapshot: WorkflowGraph,
+    get_graph: Callable[[], Optional[WorkflowGraph]],
+    callers: dict[str, Callable],
+) -> list[str]:
+    """Register one API endpoint per subject of `snapshot` on `blocks`, reusing
+    the normal `/info` + `/call` machinery. Components are created inside a
+    hidden container so they don't appear in the canvas UI but still populate
+    the API schema. Returns the list of registered `api_name`s."""
+    import gradio as gr
+
+    used: set[str] = set()
+    names: list[str] = []
+    with blocks, gr.Column(visible=False):
+        for subject in snapshot.subjects:
+            sub_ids = upstream_node_ids(snapshot, subject["id"])
+            frees = free_inputs(snapshot, sub_ids)
+            input_components = [
+                port_to_component(f["type"], f["label"]) for f in frees
+            ]
+            for c in input_components:
+                c.render()
+            output_component = port_to_component(
+                subject_output_type(subject), subject.get("label", "output")
+            )
+            output_component.render()
+
+            api_name = _slugify(subject.get("label", "output"))
+            while api_name in used:
+                api_name = f"{api_name}_"
+            used.add(api_name)
+
+            fn = _build_endpoint_fn(
+                get_graph, subject["id"], [f["node"]["id"] for f in frees], callers
+            )
+            trigger = gr.Button(visible=False)
+            trigger.click(
+                fn,
+                inputs=input_components,
+                outputs=output_component,
+                api_name=api_name,
+            )
+            names.append(api_name)
+    return names

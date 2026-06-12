@@ -1214,6 +1214,21 @@ class Workflow(Blocks):
             save_workflow,
         ]
 
+        from gradio.workflow_api import WorkflowGraph, register_workflow_endpoints
+
+        # Operator-kind → server-function used to execute that node. The same
+        # functions back the canvas's client-side run; the API executor reuses
+        # them (with request/token threaded for token resolution).
+        callers = {
+            "space": call_space,
+            "model": call_model,
+            "fn": call_fn,
+            "dataset": fetch_dataset,
+        }
+
+        def _current_graph() -> WorkflowGraph | None:
+            return WorkflowGraph.from_json(_load_initial())
+
         with self:
             if get_space() is not None and os.getenv("OAUTH_CLIENT_ID"):
                 gr.LoginButton(visible=False)
@@ -1221,6 +1236,14 @@ class Workflow(Blocks):
                 value=_load_initial,
                 server_functions=server_functions,
             )
+
+        # Expose each subject (output) as a named API endpoint reusing
+        # /info + /call. Schema is a snapshot of the graph at launch; execution
+        # re-reads the current file so wiring/operator edits are live.
+        # (Adding/removing whole outputs needs a restart for now.)
+        snapshot = _current_graph()
+        if snapshot is not None and snapshot.subjects:
+            register_workflow_endpoints(self, snapshot, _current_graph, callers)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
