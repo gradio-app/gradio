@@ -29,6 +29,7 @@
 		pipeline_tag?: string;
 		zero_gpu?: boolean;
 		curated?: boolean;
+		thumbnail?: string;
 	}
 
 	interface Props {
@@ -184,7 +185,8 @@
 			type: "space",
 			pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined,
 			zero_gpu: is_zero_gpu_space(s),
-			curated: s._curated === true
+			curated: s._curated === true,
+			thumbnail: s._thumbnail || undefined
 		};
 	}
 
@@ -196,7 +198,8 @@
 			likes: m.likes ?? 0,
 			type: "model",
 			pipeline_tag: m.pipeline_tag,
-			curated: m._curated === true
+			curated: m._curated === true,
+			thumbnail: m._thumbnail || undefined
 		};
 	}
 
@@ -874,9 +877,9 @@
 									title={space.title || space.id}
 								>
 									<div class="space-card-thumb">
-										{#if SPACE_IMAGES[space.id]}
+										{#if space.thumbnail || SPACE_IMAGES[space.id]}
 											<img
-												src={SPACE_IMAGES[space.id]}
+												src={space.thumbnail || SPACE_IMAGES[space.id]}
 												alt={space.title || space.id}
 												loading="lazy"
 											/>
@@ -935,9 +938,9 @@
 									title={model.id}
 								>
 									<div class="space-card-thumb">
-										{#if SPACE_IMAGES[model.id]}
+										{#if model.thumbnail || SPACE_IMAGES[model.id]}
 											<img
-												src={SPACE_IMAGES[model.id]}
+												src={model.thumbnail || SPACE_IMAGES[model.id]}
 												alt={model.title || model.id}
 												loading="lazy"
 											/>
