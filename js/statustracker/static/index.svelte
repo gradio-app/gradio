@@ -52,7 +52,7 @@
 
 <script lang="ts">
 	import Loader from "./Loader.svelte";
-	import type { LoadingStatus } from "./types";
+	import type { ILoadingStatus as LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	import { IconButton } from "@gradio/atoms";

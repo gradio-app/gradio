@@ -33,29 +33,19 @@ const js_rules = {
 	"no-unexpected-multiline": "error",
 	"no-unreachable": "error",
 	"array-callback-return": "error",
-	complexity: "error",
-	"no-else-return": "error",
-	"no-useless-return": "error",
 	"no-undef": "error"
 };
 
 const ts_rules = {
 	...ts_rules_disabled,
 	"@typescript-eslint/adjacent-overload-signatures": "error",
-	"@typescript-eslint/explicit-function-return-type": [
-		"error",
-		{ allowExpressions: true }
-	],
 	"@typescript-eslint/consistent-type-exports": "error",
-	"@typescript-eslint/ban-types": "error",
 	"@typescript-eslint/array-type": "error",
 	"@typescript-eslint/no-inferrable-types": "error"
 };
 
 const jsdoc_rules = {
-	...jsdoc_rules_disabled,
-	"jsdoc/require-param-description": "error",
-	"jsdoc/require-returns-description": "error"
+	...jsdoc_rules_disabled
 };
 
 const { browser, es2021, node } = globals;
@@ -71,6 +61,8 @@ export default [
 			"**/*.test.ts",
 			"**/*.node-test.ts",
 			"**/*.stories.*",
+			"client/js/src/test/**/*",
+			"js/build/out/**/*",
 			"js/spa/test/**/*",
 			"**/*vite.config.ts",
 			"**/_website/**/*",

@@ -203,7 +203,6 @@
 		}
 	}
 
-	// eslint-disable-next-line complexity
 	function updateNode(oldNode: Node, newNode: Node): void {
 		if (
 			oldNode.nodeType === Node.TEXT_NODE &&

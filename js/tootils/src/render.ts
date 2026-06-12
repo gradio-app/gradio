@@ -14,7 +14,7 @@ import type {
 } from "@testing-library/dom";
 import { vi, type Mock } from "vitest";
 import { GRADIO_ROOT, allowed_shared_props } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { _ } from "svelte-i18n";
 
 const containerCache = new Map();
@@ -127,7 +127,7 @@ export async function render<
 	};
 
 	const event_listeners = new Map<string, Set<(data: any) => void>>();
-	const event_buffer: Array<{ event: string; data: any }> = [];
+	const event_buffer: { event: string; data: any }[] = [];
 
 	function notify_listeners(event: string, data: any): void {
 		const listeners = event_listeners.get(event);

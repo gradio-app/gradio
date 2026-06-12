@@ -72,7 +72,7 @@
 	{#if !gradio.shared.interactive}
 		<File
 			on_select={(detail) => gradio.dispatch("select", detail)}
-			on_download={() => gradio.dispatch("download")}
+			on_download={(file) => gradio.dispatch("download", file)}
 			selectable={gradio.props._selectable}
 			value={gradio.props.value}
 			label={gradio.shared.label}

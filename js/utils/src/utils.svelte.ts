@@ -371,7 +371,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
 	shared_props: (keyof SharedProps)[] = allowed_shared_props;
-	mounted: boolean = false;
+	mounted = false;
 	old_value: any;
 	register_component!: (
 		id: number,

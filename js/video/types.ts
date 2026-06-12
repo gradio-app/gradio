@@ -1,5 +1,5 @@
 import type { FileData } from "@gradio/client";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { CustomButton } from "@gradio/utils";
 import type { WebcamOptions } from "./shared/utils";
 

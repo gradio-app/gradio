@@ -59,7 +59,7 @@
 		_open_file_upload();
 	}
 
-	let upload_id: string = "";
+	let upload_id = "";
 	let file_data: FileData[];
 	let accept_file_types: string | null = $state(null);
 	let use_post_upload_validation: boolean | null = null;

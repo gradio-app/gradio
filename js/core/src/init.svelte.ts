@@ -78,7 +78,7 @@ export class AppTree {
 	#output_ids: Set<number> = new Set();
 
 	/** A list of components that are currently loading */
-	#pending_components: Array<LoadingComponent> = [];
+	#pending_components: LoadingComponent[] = [];
 
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
@@ -90,7 +90,7 @@ export class AppTree {
 	components_to_register: Set<number> = new Set();
 	ready: Promise<void>;
 	ready_resolve!: () => void;
-	resolved: boolean = false;
+	resolved = false;
 	#hidden_on_startup: Set<number> = new Set();
 
 	constructor(
@@ -439,7 +439,7 @@ export class AppTree {
 	async update_state(
 		id: number,
 		new_state: Partial<SharedProps> & Record<string, unknown>,
-		check_visibility: boolean = true
+		check_visibility = true
 	) {
 		const node = find_node_by_id(this.root!, id);
 		let already_updated_visibility = false;

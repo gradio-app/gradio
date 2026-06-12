@@ -1,5 +1,4 @@
 <script lang="ts">
-	/* eslint-disable */
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../types";
 	import NoApi from "./NoApi.svelte";

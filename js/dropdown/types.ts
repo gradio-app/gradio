@@ -1,4 +1,4 @@
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { KeyUpData, SelectData, CustomButton } from "@gradio/utils";
 
 export type Item = string | number;

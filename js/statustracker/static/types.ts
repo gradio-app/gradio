@@ -26,8 +26,7 @@ export interface ILoadingStatus {
 	cache_event_id?: number | null;
 }
 
-export type LoadingStatus = ILoadingStatus;
-export type LoadingStatusCollection = Record<number, LoadingStatus>;
+export type LoadingStatusCollection = Record<number, ILoadingStatus>;
 
 export interface LoadingStatusArgs {
 	fn_index: ILoadingStatus["fn_index"];

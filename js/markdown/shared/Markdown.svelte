@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { copy, css_units } from "@gradio/utils";
 	import { Copy, Check } from "@gradio/icons";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { ThemeMode } from "@gradio/core";
 

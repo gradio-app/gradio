@@ -1,5 +1,4 @@
 <script lang="ts">
-	/* eslint-disable */
 	import { onMount } from "svelte";
 	import SettingsBanner from "./SettingsBanner.svelte";
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";

@@ -310,7 +310,7 @@
 		pending_deep_link_error = false;
 	}
 
-	let reload_count: number = 0;
+	let reload_count = 0;
 
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);

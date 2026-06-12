@@ -536,7 +536,6 @@
 			computed_style.getPropertyValue("--text-sm")
 		);
 
-		/* eslint-disable complexity */
 		return {
 			$schema: "https://vega.github.io/schema/vega-lite/v5.17.0.json",
 			background: "transparent",
@@ -789,7 +788,7 @@
 			title: gradio.props.title || undefined
 		} as Spec;
 	}
-	/* eslint-enable complexity */
+
 	$inspect("visible", gradio.shared.visible);
 </script>
 

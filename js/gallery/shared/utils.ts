@@ -20,7 +20,7 @@ export async function format_gallery_for_sharing(
 export async function handle_save(
 	img_blob: Blob,
 	upload: Client["upload"],
-	filename: string = "uploaded_file"
+	filename = "uploaded_file"
 ): Promise<FileData[]> {
 	const ext = img_blob.type.split("/")[1] || "png";
 	const f_ = new File([img_blob], `${filename}.${ext}`);

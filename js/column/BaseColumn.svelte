@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 	type Props = {
 		scale?: number | null;

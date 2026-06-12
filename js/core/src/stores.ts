@@ -1,6 +1,6 @@
 import { type Writable, writable, get } from "svelte/store";
 import type {
-	LoadingStatus,
+	ILoadingStatus as LoadingStatus,
 	LoadingStatusCollection
 } from "@gradio/statustracker";
 
