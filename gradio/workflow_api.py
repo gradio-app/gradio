@@ -45,6 +45,7 @@ def _active_blocks(blocks):
         Context.root_block = prev_root
         Context.block = prev_block
 
+
 # Port types the canvas treats as files/media (mirrors MEDIA_PORT_TYPES in
 # workflow-executor.ts). Values for these ports travel as `{path|url}` dicts
 # rather than scalars.
@@ -168,13 +169,14 @@ def free_inputs(graph: WorkflowGraph, subgraph_ids: set[str]) -> list[dict]:
             continue  # computed relay, not a free input
         outputs = ref.get("outputs") or []
         port = outputs[0] if outputs else None
-        port_type = (
-            (port or {}).get("type")
-            or ref.get("asset_type")
-            or "text"
-        )
+        port_type = (port or {}).get("type") or ref.get("asset_type") or "text"
         result.append(
-            {"node": ref, "port": port, "type": port_type, "label": ref.get("label", "")}
+            {
+                "node": ref,
+                "port": port,
+                "type": port_type,
+                "label": ref.get("label", ""),
+            }
         )
     return result
 
@@ -400,7 +402,11 @@ class WorkflowExecutor:
         result_json = caller(data, self._request, self._token)
         parsed = json.loads(result_json)
         if isinstance(parsed, dict) and "error" in parsed:
-            msg = parsed.get("suggestion") or parsed.get("error") or "Workflow node failed"
+            msg = (
+                parsed.get("suggestion")
+                or parsed.get("error")
+                or "Workflow node failed"
+            )
             raise WorkflowExecutionError(msg)
         return parsed if isinstance(parsed, list) else [parsed]
 
@@ -410,7 +416,9 @@ class WorkflowExecutor:
         bucket: dict[str, Any] = {}
         out_ports = node.get("outputs") or []
         for i, port in enumerate(out_ports):
-            bucket[port["id"]] = _pick_response_item(port, i, output_data, len(out_ports))
+            bucket[port["id"]] = _pick_response_item(
+                port, i, output_data, len(out_ports)
+            )
         data_map[node["id"]] = bucket
 
     def _run_space(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:

@@ -132,8 +132,11 @@ class TestExecutor:
 
         def failing_space(data, request=None, token=None):
             return json.dumps(
-                {"error": "Space is sleeping", "error_type": "sleeping",
-                 "suggestion": "try again in a minute"}
+                {
+                    "error": "Space is sleeping",
+                    "error_type": "sleeping",
+                    "suggestion": "try again in a minute",
+                }
             )
 
         executor = WorkflowExecutor(g, {"space": failing_space})
@@ -181,8 +184,14 @@ class TestEndpointRegistration:
             if data[0] == "ovi054/image-to-prompt":
                 return json.dumps(["a prompt"])
             return json.dumps(
-                [{"path": "/tmp/out.png", "url": "/gradio_api/file=/tmp/out.png",
-                  "is_file": True}, 7]
+                [
+                    {
+                        "path": "/tmp/out.png",
+                        "url": "/gradio_api/file=/tmp/out.png",
+                        "is_file": True,
+                    },
+                    7,
+                ]
             )
 
         fn = _build_endpoint_fn(
@@ -211,30 +220,44 @@ def _graph_with_subjects(n: int) -> str:
         rid, sid = f"ref{i}", f"sub{i}"
         refs.append(
             {
-                "id": rid, "label": f"In{i}", "role": "reference",
+                "id": rid,
+                "label": f"In{i}",
+                "role": "reference",
                 "asset_type": "text",
                 "inputs": [{"id": "in", "type": "text"}],
-                "outputs": [{"id": "out", "type": "text"}], "data": {},
+                "outputs": [{"id": "out", "type": "text"}],
+                "data": {},
             }
         )
         subs.append(
             {
-                "id": sid, "label": f"Out{i}", "role": "subject",
+                "id": sid,
+                "label": f"Out{i}",
+                "role": "subject",
                 "asset_type": "text",
                 "inputs": [{"id": "in", "type": "text"}],
-                "outputs": [{"id": "out", "type": "text"}], "data": {},
+                "outputs": [{"id": "out", "type": "text"}],
+                "data": {},
             }
         )
         edges.append(
             {
-                "id": f"e{i}", "from_node_id": rid, "from_port_id": "out",
-                "to_node_id": sid, "to_port_id": "in", "type": "text",
+                "id": f"e{i}",
+                "from_node_id": rid,
+                "from_port_id": "out",
+                "to_node_id": sid,
+                "to_port_id": "in",
+                "type": "text",
             }
         )
     return json.dumps(
         {
-            "schema_version": "2", "name": "T", "references": refs,
-            "operators": [], "subjects": subs, "edges": edges,
+            "schema_version": "2",
+            "name": "T",
+            "references": refs,
+            "operators": [],
+            "subjects": subs,
+            "edges": edges,
         }
     )
 
@@ -338,9 +361,7 @@ class TestEndToEndClient:
         def reverse(text: str) -> str:
             return (text or "")[::-1]
 
-        demo = gr.Workflow(
-            graph=DEMO_API, bind={"shout": shout, "reverse": reverse}
-        )
+        demo = gr.Workflow(graph=DEMO_API, bind={"shout": shout, "reverse": reverse})
         _, local_url, _ = demo.launch(prevent_thread_lock=True, quiet=True)
         try:
             client = Client(local_url, verbose=False)
@@ -366,9 +387,7 @@ class TestEndToEndClient:
         def reverse(text: str) -> str:
             return (text or "")[::-1]
 
-        demo = gr.Workflow(
-            graph=DEMO_API, bind={"shout": shout, "reverse": reverse}
-        )
+        demo = gr.Workflow(graph=DEMO_API, bind={"shout": shout, "reverse": reverse})
         client = TestClient(demo.app)
         resp = client.get("/gradio_api/info")
         assert resp.status_code == 200

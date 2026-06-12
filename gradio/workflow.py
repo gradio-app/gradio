@@ -1264,9 +1264,7 @@ class Workflow(Blocks):
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
-        self._api_endpoints = register_workflow_endpoints(
-            self, _current_graph, callers
-        )
+        self._api_endpoints = register_workflow_endpoints(self, _current_graph, callers)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
