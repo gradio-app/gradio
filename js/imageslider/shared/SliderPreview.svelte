@@ -34,7 +34,10 @@
 	export let el_width = 0;
 	export let max_height: number;
 	export let interactive = true;
-	const dispatch = createEventDispatcher<{ clear: void }>();
+	const dispatch = createEventDispatcher<{
+		clear: void;
+		fullscreen: boolean;
+	}>();
 
 	let img: HTMLImageElement;
 	let slider_wrap: HTMLDivElement;
@@ -144,7 +147,13 @@
 				onclick={() => zoomable_image?.reset_zoom()}
 			/>
 			{#if show_fullscreen_button}
-				<FullscreenButton {fullscreen} on:fullscreen />
+				<FullscreenButton
+					{fullscreen}
+					onclick={(is_fullscreen) => {
+						fullscreen = is_fullscreen;
+						dispatch("fullscreen", is_fullscreen);
+					}}
+				/>
 			{/if}
 
 			{#if show_download_button}
