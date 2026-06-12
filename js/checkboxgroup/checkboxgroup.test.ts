@@ -1,9 +1,9 @@
 import { test, describe, expect, afterEach, beforeAll } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 import { setupi18n, changeLocale } from "../core/src/i18n";
-import { formatter } from "../core/src/gradio_helper";
+import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import CheckboxGroup from "./Index.svelte";
 
@@ -506,6 +506,42 @@ describe("CheckboxGroup: i18n choices", () => {
 		});
 
 		expect(getByLabelText("Clear")).toBeChecked();
+
+		const data = await get_data();
+		expect(data.value).toEqual(["bold"]);
+	});
+});
+
+describe("CheckboxGroup: runtime locale switching", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => {
+		changeLocale("en");
+		cleanup();
+	});
+
+	test("re-translates choice display values when the locale changes", async () => {
+		const { getByLabelText, get_data } = await render(CheckboxGroup, {
+			...default_props,
+			i18n: formatter,
+			i18n_store: reactive_formatter,
+			choices: [
+				[marker("common.clear"), "bold"],
+				[marker("common.remove"), "italic"]
+			],
+			value: ["bold"]
+		});
+
+		expect(getByLabelText("Clear")).toBeChecked();
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(getByLabelText("Limpiar")).toBeChecked();
+			expect(getByLabelText("Eliminar")).not.toBeChecked();
+		});
 
 		const data = await get_data();
 		expect(data.value).toEqual(["bold"]);
