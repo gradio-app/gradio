@@ -196,3 +196,105 @@ class TestEndpointRegistration:
         out = fn("/tmp/in.png", None, "MY_TOKEN")
         assert out == "/tmp/out.png"
         assert seen_token["token"] == "MY_TOKEN"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Live schema updates — endpoint set re-derives on save (Option 2)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _graph_with_subjects(n: int) -> str:
+    """A minimal v2 graph with `n` text input→output passthroughs (one free
+    reference feeding one subject each)."""
+    refs, subs, edges = [], [], []
+    for i in range(n):
+        rid, sid = f"ref{i}", f"sub{i}"
+        refs.append(
+            {
+                "id": rid, "label": f"In{i}", "role": "reference",
+                "asset_type": "text",
+                "inputs": [{"id": "in", "type": "text"}],
+                "outputs": [{"id": "out", "type": "text"}], "data": {},
+            }
+        )
+        subs.append(
+            {
+                "id": sid, "label": f"Out{i}", "role": "subject",
+                "asset_type": "text",
+                "inputs": [{"id": "in", "type": "text"}],
+                "outputs": [{"id": "out", "type": "text"}], "data": {},
+            }
+        )
+        edges.append(
+            {
+                "id": f"e{i}", "from_node_id": rid, "from_port_id": "out",
+                "to_node_id": sid, "to_port_id": "in", "type": "text",
+            }
+        )
+    return json.dumps(
+        {
+            "schema_version": "2", "name": "T", "references": refs,
+            "operators": [], "subjects": subs, "edges": edges,
+        }
+    )
+
+
+def _endpoint_names(wf) -> set:
+    # Exclude the canvas's own initial-value loader (value=_load_initial), which
+    # is registered as a load event independent of the workflow API endpoints.
+    return set(wf.get_api_info()["named_endpoints"].keys()) - {"/_load_initial"}
+
+
+class TestLiveSchemaUpdate:
+    def test_sync_adds_and_removes_endpoints(self, tmp_path):
+        import gradio as gr
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_with_subjects(1))
+        wf = gr.Workflow(graph=str(path))
+        assert _endpoint_names(wf) == {"/out0"}
+        fns_after_one = len(wf.fns)
+
+        # Add a second output → endpoint appears after sync.
+        path.write_text(_graph_with_subjects(2))
+        wf._api_endpoints.sync()
+        assert _endpoint_names(wf) == {"/out0", "/out1"}
+
+        # Remove it again → endpoint disappears and the fn is not leaked.
+        path.write_text(_graph_with_subjects(1))
+        wf._api_endpoints.sync()
+        assert _endpoint_names(wf) == {"/out0"}
+        assert len(wf.fns) == fns_after_one
+
+    def test_rename_changes_api_name(self, tmp_path):
+        import gradio as gr
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_with_subjects(1))
+        wf = gr.Workflow(graph=str(path))
+        assert _endpoint_names(wf) == {"/out0"}
+
+        renamed = json.loads(_graph_with_subjects(1))
+        renamed["subjects"][0]["label"] = "Final Image"
+        path.write_text(json.dumps(renamed))
+        wf._api_endpoints.sync()
+        assert _endpoint_names(wf) == {"/final_image"}
+
+    def test_save_workflow_resyncs_endpoints(self, tmp_path):
+        import gradio as gr
+        from gradio.route_utils import Request
+        from gradio.workflow import WRITE_TOKEN
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_with_subjects(1))
+        wf = gr.Workflow(graph=str(path))
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+        write_req = Request(
+            headers={"cookie": f"gradio_workflow_write_token_7860={WRITE_TOKEN}"},
+            query_params={},
+        )
+        result = canvas.save_workflow([_graph_with_subjects(2)], write_req, None)
+        assert result == "ok"
+        assert _endpoint_names(wf) == {"/out0", "/out1"}

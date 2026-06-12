@@ -1078,6 +1078,10 @@ class Workflow(Blocks):
         import gradio as gr
         from gradio.components.workflowcanvas import WorkflowCanvas
 
+        # Set once the API endpoints are registered (post UI build); save_workflow
+        # re-syncs it so /info + /call track edits to the graph.
+        self._api_endpoints = None
+
         if self._edges and os.path.exists(self._workflow_file):
             logger.warning(
                 "Workflow: edges= is ignored because '%s' already exists. "
@@ -1193,6 +1197,15 @@ class Workflow(Blocks):
                     return json.dumps({"error": f"Invalid workflow JSON: {exc}"})
                 with open(workflow_file, "w", encoding="utf-8") as f:
                     f.write(payload)
+                # Re-derive API endpoints so /info + /call track the saved graph
+                # (outputs added / removed / renamed / retyped).
+                if getattr(self, "_api_endpoints", None) is not None:
+                    try:
+                        self._api_endpoints.sync()
+                    except Exception:
+                        logger.error(
+                            "Workflow: endpoint sync after save failed", exc_info=True
+                        )
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
@@ -1237,13 +1250,12 @@ class Workflow(Blocks):
                 server_functions=server_functions,
             )
 
-        # Expose each subject (output) as a named API endpoint reusing
-        # /info + /call. Schema is a snapshot of the graph at launch; execution
-        # re-reads the current file so wiring/operator edits are live.
-        # (Adding/removing whole outputs needs a restart for now.)
-        snapshot = _current_graph()
-        if snapshot is not None and snapshot.subjects:
-            register_workflow_endpoints(self, snapshot, _current_graph, callers)
+        # Expose each subject (output) as a named API endpoint reusing /info +
+        # /call. The manager re-syncs on every save_workflow, so adding,
+        # removing, renaming, or retyping an output updates the live API.
+        self._api_endpoints = register_workflow_endpoints(
+            self, _current_graph, callers
+        )
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.

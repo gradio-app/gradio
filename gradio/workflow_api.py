@@ -15,6 +15,7 @@ mocked in tests.
 
 from __future__ import annotations
 
+import contextlib
 import inspect
 import json
 import logging
@@ -24,6 +25,25 @@ from collections.abc import Callable
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
+
+
+@contextlib.contextmanager
+def _active_blocks(blocks):
+    """Make `blocks` the active render target so components/events register into
+    it, without entering `Blocks.__exit__` — which would re-run
+    `attach_load_events` (duplicating the canvas's callable-`value` load event)
+    and recreate the running `App`. We only need the render-context primitives,
+    restored afterward."""
+    from gradio.context import Context
+
+    prev_root, prev_block = Context.root_block, Context.block
+    Context.root_block = blocks
+    Context.block = blocks
+    try:
+        yield
+    finally:
+        Context.root_block = prev_root
+        Context.block = prev_block
 
 # Port types the canvas treats as files/media (mirrors MEDIA_PORT_TYPES in
 # workflow-executor.ts). Values for these ports travel as `{path|url}` dicts
@@ -542,48 +562,128 @@ def _build_endpoint_fn(
     return endpoint
 
 
+class WorkflowEndpointManager:
+    """Owns the lifecycle of the per-subject API endpoints and keeps them in
+    sync with the workflow graph.
+
+    Each `sync()` tears down the previously-registered endpoints (their
+    components via `unrender()` and their event triggers from `blocks.fns`) and
+    rebuilds from the current graph, then refreshes the cached `/config` and
+    invalidates the `/info` cache so a running server reflects the change. This
+    lets the API track live edits: adding, removing, renaming, or retyping a
+    subject all re-derive the endpoint set on the next save.
+    """
+
+    def __init__(
+        self,
+        blocks,
+        get_graph: Callable[[], Optional[WorkflowGraph]],
+        callers: dict[str, Callable],
+    ):
+        self.blocks = blocks
+        self.get_graph = get_graph
+        self.callers = callers
+        self._blocks_created: list = []
+        self._fn_ids: list[int] = []
+        self.api_names: list[str] = []
+
+    def sync(self) -> list[str]:
+        """Re-derive endpoints from the current graph. Safe to call repeatedly;
+        the first call registers, later calls reconcile."""
+        self._teardown()
+        graph = self.get_graph()
+        if graph is not None and graph.subjects:
+            self._register(graph)
+        self._refresh_app()
+        return list(self.api_names)
+
+    # -- internals ----------------------------------------------------------
+
+    def _teardown(self) -> None:
+        if self._blocks_created:
+            # unrender() needs the Blocks as the active context to remove blocks
+            # from its layout + id map.
+            with _active_blocks(self.blocks):
+                for block in self._blocks_created:
+                    block.unrender()
+        for fn_id in self._fn_ids:
+            self.blocks.fns.pop(fn_id, None)
+        self._blocks_created = []
+        self._fn_ids = []
+        self.api_names = []
+
+    def _register(self, graph: WorkflowGraph) -> None:
+        import gradio as gr
+
+        before = set(self.blocks.fns.keys())
+        used: set[str] = set()
+        with _active_blocks(self.blocks), gr.Column(visible=False) as col:
+            self._blocks_created.append(col)
+            for subject in graph.subjects:
+                sub_ids = upstream_node_ids(graph, subject["id"])
+                frees = free_inputs(graph, sub_ids)
+                input_components = [
+                    port_to_component(f["type"], f["label"]) for f in frees
+                ]
+                for c in input_components:
+                    c.render()
+                    self._blocks_created.append(c)
+                output_component = port_to_component(
+                    subject_output_type(subject), subject.get("label", "output")
+                )
+                output_component.render()
+                self._blocks_created.append(output_component)
+
+                api_name = _slugify(subject.get("label", "output"))
+                while api_name in used:
+                    api_name = f"{api_name}_"
+                used.add(api_name)
+
+                fn = _build_endpoint_fn(
+                    self.get_graph,
+                    subject["id"],
+                    [f["node"]["id"] for f in frees],
+                    self.callers,
+                )
+                trigger = gr.Button(visible=False)
+                self._blocks_created.append(trigger)
+                trigger.click(
+                    fn,
+                    inputs=input_components,
+                    outputs=output_component,
+                    api_name=api_name,
+                )
+                self.api_names.append(api_name)
+        # New event triggers added during registration (the order of insertion
+        # into the fns dict is the set difference from the pre-register snapshot).
+        self._fn_ids = [fid for fid in self.blocks.fns if fid not in before]
+
+    def _refresh_app(self) -> None:
+        """After the endpoint set changes, refresh the cached config and (if
+        running) invalidate the `/info` cache.
+
+        `get_api_info` reads `self.config`, and `/config` serves a copy of it to
+        new page loads / `gradio_client` connections — so it must be regenerated
+        whenever the components or dependencies change. (The normal
+        `Blocks.__exit__` does this; our manual render context does not.)"""
+        try:
+            self.blocks.config = self.blocks.get_config_file()
+        except Exception:
+            logger.debug("Workflow: failed to refresh config", exc_info=True)
+        app = getattr(self.blocks, "server_app", None)
+        if app is not None:
+            app.api_info = None
+            app.all_app_info = None
+
+
 def register_workflow_endpoints(
     blocks,
-    snapshot: WorkflowGraph,
     get_graph: Callable[[], Optional[WorkflowGraph]],
     callers: dict[str, Callable],
-) -> list[str]:
-    """Register one API endpoint per subject of `snapshot` on `blocks`, reusing
-    the normal `/info` + `/call` machinery. Components are created inside a
-    hidden container so they don't appear in the canvas UI but still populate
-    the API schema. Returns the list of registered `api_name`s."""
-    import gradio as gr
-
-    used: set[str] = set()
-    names: list[str] = []
-    with blocks, gr.Column(visible=False):
-        for subject in snapshot.subjects:
-            sub_ids = upstream_node_ids(snapshot, subject["id"])
-            frees = free_inputs(snapshot, sub_ids)
-            input_components = [
-                port_to_component(f["type"], f["label"]) for f in frees
-            ]
-            for c in input_components:
-                c.render()
-            output_component = port_to_component(
-                subject_output_type(subject), subject.get("label", "output")
-            )
-            output_component.render()
-
-            api_name = _slugify(subject.get("label", "output"))
-            while api_name in used:
-                api_name = f"{api_name}_"
-            used.add(api_name)
-
-            fn = _build_endpoint_fn(
-                get_graph, subject["id"], [f["node"]["id"] for f in frees], callers
-            )
-            trigger = gr.Button(visible=False)
-            trigger.click(
-                fn,
-                inputs=input_components,
-                outputs=output_component,
-                api_name=api_name,
-            )
-            names.append(api_name)
-    return names
+) -> WorkflowEndpointManager:
+    """Create a `WorkflowEndpointManager` and register the initial endpoint set
+    from the current graph. Returns the manager so the caller can `.sync()` it
+    again whenever the graph is saved."""
+    manager = WorkflowEndpointManager(blocks, get_graph, callers)
+    manager.sync()
+    return manager
