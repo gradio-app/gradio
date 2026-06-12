@@ -789,7 +789,6 @@
 			title: gradio.props.title || undefined
 		} as Spec;
 	}
-
 </script>
 
 <Block
