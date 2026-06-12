@@ -458,15 +458,19 @@ class WorkflowExecutor:
                 "1",
             ],
         )
-        # fetch_dataset returns {config, split, features} or rows; map first row
-        # onto output ports by label (mirrors the dataset branch in the TS
-        # executor). Kept lenient — dataset operators are rarely terminal.
+        # fetch_dataset returns {config, split, features, rows}; map the first
+        # row onto output ports by label (mirrors the dataset branch in the TS
+        # executor). Media cells arrive as `{src: url}` → normalize to a file
+        # value. Kept lenient — dataset operators are rarely terminal.
         result = output_data[0] if output_data else {}
         rows = result.get("rows") if isinstance(result, dict) else None
         row = (rows[0] if rows else {}) if isinstance(rows, list) else {}
         bucket: dict[str, Any] = {}
         for port in node.get("outputs") or []:
-            bucket[port["id"]] = row.get(port.get("label"))
+            value = row.get(port.get("label"))
+            if isinstance(value, dict) and "src" in value:
+                value = {"url": value["src"]}
+            bucket[port["id"]] = value
         data_map[node["id"]] = bucket
 
 

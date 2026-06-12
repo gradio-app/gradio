@@ -298,3 +298,80 @@ class TestLiveSchemaUpdate:
         result = canvas.save_workflow([_graph_with_subjects(2)], write_req, None)
         assert result == "ok"
         assert _endpoint_names(wf) == {"/out0", "/out1"}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# End-to-end through real /info + /call via gradio_client
+# ─────────────────────────────────────────────────────────────────────────────
+
+DEMO_API = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "demo",
+    "workflow_api",
+    "workflow.json",
+)
+
+
+def _frontend_built() -> bool:
+    import gradio as gr
+
+    return os.path.exists(
+        os.path.join(
+            os.path.dirname(gr.__file__), "templates", "frontend", "index.html"
+        )
+    )
+
+
+class TestEndToEndClient:
+    @pytest.mark.skipif(
+        not _frontend_built(),
+        reason="frontend build required (gradio_client fetches the root page)",
+    )
+    def test_two_subjects_callable_via_gradio_client(self):
+        from gradio_client import Client
+
+        import gradio as gr
+
+        def shout(text: str) -> str:
+            return (text or "").upper()
+
+        def reverse(text: str) -> str:
+            return (text or "")[::-1]
+
+        demo = gr.Workflow(
+            graph=DEMO_API, bind={"shout": shout, "reverse": reverse}
+        )
+        _, local_url, _ = demo.launch(prevent_thread_lock=True, quiet=True)
+        try:
+            client = Client(local_url, verbose=False)
+            api = client.view_api(return_format="dict")
+            named = api["named_endpoints"]
+            assert "/loud" in named and "/reversed" in named
+
+            assert client.predict("hello", api_name="/loud") == "HELLO"
+            assert client.predict("hello", api_name="/reversed") == "olleh"
+        finally:
+            demo.close()
+
+    def test_info_route_lists_endpoints(self):
+        """The HTTP /info route serves the workflow endpoints (no frontend build
+        needed — this is the discovery half; gradio_client covers /call in CI)."""
+        from fastapi.testclient import TestClient
+
+        import gradio as gr
+
+        def shout(text: str) -> str:
+            return (text or "").upper()
+
+        def reverse(text: str) -> str:
+            return (text or "")[::-1]
+
+        demo = gr.Workflow(
+            graph=DEMO_API, bind={"shout": shout, "reverse": reverse}
+        )
+        client = TestClient(demo.app)
+        resp = client.get("/gradio_api/info")
+        assert resp.status_code == 200
+        named = resp.json()["named_endpoints"]
+        assert "/loud" in named and "/reversed" in named
+        assert len(named["/loud"]["parameters"]) == 1
