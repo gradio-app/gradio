@@ -484,6 +484,69 @@ def _slugify(label: str) -> str:
     return slug or "endpoint"
 
 
+# Workflow port type → the Python type a gradio_client caller passes/receives,
+# for display in the "View API" panel and generated snippets.
+_PY_TYPE = {
+    "text": "str",
+    "number": "float",
+    "boolean": "bool",
+    "image": "filepath",
+    "audio": "filepath",
+    "video": "filepath",
+    "model3d": "filepath",
+    "3d": "filepath",
+    "file": "filepath",
+    "gallery": "list[filepath]",
+    "dataframe": "list[list]",
+    "json": "dict",
+}
+
+
+def _slug_iter(subjects: list[dict]):
+    """Yield (subject, api_name) with the same dedup as registration, so the
+    described endpoints line up with the ones actually registered."""
+    used: set[str] = set()
+    for subject in subjects:
+        api_name = _slugify(subject.get("label", "output"))
+        while api_name in used:
+            api_name = f"{api_name}_"
+        used.add(api_name)
+        yield subject, api_name
+
+
+def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
+    """Describe each subject endpoint for the frontend "View API" panel:
+    `api_name`, label, parameters (free inputs), and the return type. Mirrors
+    the schema that `register_workflow_endpoints` exposes via `/info`."""
+    endpoints = []
+    for subject, api_name in _slug_iter(graph.subjects):
+        sub_ids = upstream_node_ids(graph, subject["id"])
+        frees = free_inputs(graph, sub_ids)
+        out_type = subject_output_type(subject)
+        endpoints.append(
+            {
+                "api_name": "/" + api_name,
+                "label": subject.get("label", "output"),
+                "parameters": [
+                    {
+                        "label": f["label"],
+                        "type": f["type"],
+                        "python_type": _PY_TYPE.get(f["type"], "str"),
+                    }
+                    for f in frees
+                ],
+                "returns": [
+                    {
+                        "label": subject.get("label", "output"),
+                        "type": out_type,
+                        "python_type": _PY_TYPE.get(out_type, "str"),
+                    }
+                ],
+            }
+        )
+    return endpoints
+
+
 def port_to_component(port_type: str, label: str):
     """Map a workflow port type to a Gradio component for the API schema. Real
     components are used (not `gr.api` type hints) so multimodal I/O round-trips
@@ -620,10 +683,9 @@ class WorkflowEndpointManager:
         import gradio as gr
 
         before = set(self.blocks.fns.keys())
-        used: set[str] = set()
         with _active_blocks(self.blocks), gr.Column(visible=False) as col:
             self._blocks_created.append(col)
-            for subject in graph.subjects:
+            for subject, api_name in _slug_iter(graph.subjects):
                 sub_ids = upstream_node_ids(graph, subject["id"])
                 frees = free_inputs(graph, sub_ids)
                 input_components = [
@@ -637,11 +699,6 @@ class WorkflowEndpointManager:
                 )
                 output_component.render()
                 self._blocks_created.append(output_component)
-
-                api_name = _slugify(subject.get("label", "output"))
-                while api_name in used:
-                    api_name = f"{api_name}_"
-                used.add(api_name)
 
                 fn = _build_endpoint_fn(
                     self.get_graph,
