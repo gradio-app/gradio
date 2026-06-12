@@ -1,5 +1,17 @@
 # @gradio/dropdown
 
+## 0.13.0
+
+### Features
+
+- [#13516](https://github.com/gradio-app/gradio/pull/13516) [`8ec4cbc`](https://github.com/gradio-app/gradio/commit/8ec4cbc8de3bbc1d8ecb660ad8dd22ad35500e1c) - Translate i18n `choices` display names in choice-based components.  Thanks @hysts!
+
+## 0.12.1
+
+### Fixes
+
+- [#13451](https://github.com/gradio-app/gradio/pull/13451) [`29bd7a0`](https://github.com/gradio-app/gradio/commit/29bd7a00fc087df5f8d9780b5e1082729fc5ffb0) - `gr.Dropdown()` Fixes.  Thanks @dawoodkhan82!
+
 ## 0.12.0
 
 ### Features

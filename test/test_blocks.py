@@ -29,7 +29,7 @@ from gradio import blocks, helpers
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
-from gradio.exceptions import DuplicateBlockError
+from gradio.exceptions import ComponentProcessingError, DuplicateBlockError
 from gradio.route_utils import API_PREFIX
 from gradio.utils import assert_configs_are_equivalent_besides_ids, cancel_tasks
 
@@ -894,6 +894,49 @@ class TestBlocksPostprocessing:
             ValueError,
         ):
             await demo.postprocess_data(demo.fns[0], predictions=[1, 2], state=None)
+
+    @pytest.mark.asyncio
+    async def test_helpful_error_when_output_is_mistyped(self):
+        def process_images(n, t):
+            return n, t
+
+        with gr.Blocks() as demo:
+            number = gr.Number(precision=0)
+            textbox = gr.Textbox()
+            btn = gr.Button()
+            btn.click(process_images, [number, textbox], [number, textbox])
+
+        with pytest.raises(ComponentProcessingError) as exc_info:
+            await demo.postprocess_data(
+                demo.fns[0], predictions=[{"foo": "bar"}, "a"], state=None
+            )
+        message = str(exc_info.value)
+        assert "index 0" in message
+        assert "number" in message
+        assert "process_images" in message
+        assert "{'foo': 'bar'}" in message
+        assert isinstance(exc_info.value.__cause__, TypeError)
+
+    @pytest.mark.asyncio
+    async def test_helpful_error_when_input_is_mistyped(self):
+        def process_images(n, s):
+            return n, s
+
+        with gr.Blocks() as demo:
+            number = gr.Number()
+            slider = gr.Slider()
+            btn = gr.Button()
+            btn.click(process_images, [number, slider], [number, slider])
+
+        with pytest.raises(ComponentProcessingError) as exc_info:
+            await demo.preprocess_data(
+                demo.fns[0], inputs=[1, {"foo": "bar"}], state=None
+            )
+        message = str(exc_info.value)
+        assert "index 1" in message
+        assert "slider" in message
+        assert "process_images" in message
+        assert isinstance(exc_info.value.__cause__, TypeError)
 
     @pytest.mark.asyncio
     async def test_dataset_is_updated(self):

@@ -326,6 +326,25 @@ describe("Props: buttons (static mode)", () => {
 		expect(getByLabelText("Fullscreen")).toBeTruthy();
 	});
 
+	test("clicking the fullscreen button toggles fullscreen in interactive mode", async () => {
+		const { getByLabelText } = await render(Image, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			buttons: ["fullscreen"]
+		});
+
+		await fireEvent.click(getByLabelText("Fullscreen"));
+		await waitFor(() => {
+			expect(getByLabelText("Exit fullscreen mode")).toBeVisible();
+		});
+
+		await fireEvent.click(getByLabelText("Exit fullscreen mode"));
+		await waitFor(() => {
+			expect(getByLabelText("Fullscreen")).toBeVisible();
+		});
+	});
+
 	test("empty buttons array shows no action buttons", async () => {
 		const { queryByLabelText } = await render(Image, {
 			...default_props,

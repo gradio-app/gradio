@@ -75,14 +75,8 @@
 
 		%gradio_config%%gradio_api_info%
 
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link
-			rel="preconnect"
-			href="https://fonts.gstatic.com"
-			crossorigin="anonymous"
-		/>
 		<script
-			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"
+			src="{{ config.get('root', '') }}/static/js/iframeResizer.contentWindow.min.js"
 			async
 		></script>
 		<script data-gradio-mode>

@@ -1,10 +1,16 @@
-import { test, describe, afterEach, expect, vi } from "vitest";
+import { test, describe, afterEach, expect, vi, beforeAll } from "vitest";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
+import { setupi18n, changeLocale } from "../core/src/i18n";
+import { formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
 import { handle_filter } from "./shared/utils";
+
+// Build a real i18n marker the way the backend's I18nData does.
+const marker = (key: string): string =>
+	`__i18n__${JSON.stringify({ __type__: "translation_metadata", key })}`;
 
 const single_select_props = {
 	label: "Dropdown",
@@ -332,6 +338,36 @@ describe("Single-select: Selection", () => {
 		await input.focus();
 
 		await event.keyboard("{ArrowDown}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("apple");
+	});
+
+	test("arrow down from a selected option moves to the next option", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: "banana"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await event.keyboard("{ArrowDown}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("cherry");
+	});
+
+	test("arrow up from a selected option moves to the previous option", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: "banana"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await event.keyboard("{ArrowUp}");
 		await event.keyboard("{Enter}");
 
 		expect(input.value).toBe("apple");
@@ -716,6 +752,151 @@ describe("Single-select: get_data / set_data", () => {
 
 		const data = await get_data();
 		expect(data.value).toBe("cherry");
+	});
+});
+
+describe("Single-select: Accessibility", () => {
+	afterEach(() => cleanup());
+
+	test("input exposes the listbox role", async () => {
+		const { getByLabelText } = await render(Dropdown, single_select_props);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input).toHaveAttribute("role", "listbox");
+	});
+
+	test("aria-controls points at the options listbox", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		const controls = input.getAttribute("aria-controls");
+		expect(controls).toBeTruthy();
+
+		await input.focus();
+
+		const listbox = document.getElementById(controls as string);
+		expect(listbox).toBeTruthy();
+		expect(listbox).toHaveAttribute("role", "listbox");
+	});
+});
+
+describe("Single-select: Dynamic choices", () => {
+	afterEach(() => cleanup());
+
+	test("updating choices while typing does not clear the typed text", async () => {
+		const { getByLabelText, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: null,
+			allow_custom_value: true,
+			choices: [] as [string, string | number][]
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("ap");
+		expect(input.value).toBe("ap");
+
+		await set_data({
+			choices: [
+				["ap item 1", "ap item 1"],
+				["ap item 2", "ap item 2"]
+			] as [string, string | number][]
+		});
+
+		expect(input.value).toBe("ap");
+	});
+
+	test("choices returned while open surface as new options", async () => {
+		const { getByLabelText, getAllByTestId, set_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: null,
+				allow_custom_value: true,
+				choices: [["old", "old"]] as [string, string | number][]
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("new");
+
+		await set_data({
+			choices: [
+				["new item 1", "a"],
+				["new item 2", "b"],
+				["new item 3", "c"]
+			] as [string, string | number][]
+		});
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(3);
+		expect(options[0]).toHaveAttribute("aria-label", "new item 1");
+	});
+});
+
+describe("Single-select: Parent value update while focused", () => {
+	afterEach(() => cleanup());
+
+	test("re-syncs the selected option after the parent updates value while focused", async () => {
+		const { getByLabelText, getAllByTestId, set_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: "apple"
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-selected", "false");
+		expect(options[2]).toHaveAttribute("aria-selected", "true");
+	});
+
+	test("arrow navigation starts from the parent-updated value after focus", async () => {
+		const { getByLabelText, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: "apple"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+		await input.focus();
+
+		await event.keyboard("{ArrowDown}");
+		await event.keyboard("{Enter}");
+
+		expect(input.value).toBe("apple");
+	});
+
+	test("does not revert the parent value on blur with allow_custom_value", async () => {
+		const { getByLabelText, get_data, set_data } = await render(Dropdown, {
+			...single_select_props,
+			value: "apple",
+			allow_custom_value: true
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		await set_data({ value: "cherry" });
+		await input.blur();
+
+		const data = await get_data();
+		expect(data.value).toBe("cherry");
+		expect(input.value).toBe("cherry");
 	});
 });
 
@@ -1424,6 +1605,99 @@ describe("handle_filter", () => {
 
 	test("matches substring anywhere in display name", () => {
 		expect(handle_filter(choices, "an")).toEqual([1]);
+	});
+});
+
+describe("i18n choices", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => cleanup());
+
+	const i18n_choices: [string, string][] = [
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
+	];
+
+	test("single-select shows translated display name for the selected value", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input.value).toBe("Clear");
+	});
+
+	test("single-select translates option display names", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Clear");
+		expect(options[1]).toHaveAttribute("aria-label", "Remove");
+	});
+
+	test("single-select internal value is unaffected by translation", async () => {
+		const { get_data } = await render(Dropdown, {
+			...single_select_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: "bold"
+		});
+
+		const data = await get_data();
+		expect(data.value).toBe("bold");
+	});
+
+	test("multiselect renders translated display names in tokens", async () => {
+		const { getByText, queryByText } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["bold", "italic"]
+		});
+
+		expect(getByText("Clear")).toBeTruthy();
+		expect(getByText("Remove")).toBeTruthy();
+		expect(queryByText(marker("common.clear"))).toBeNull();
+	});
+
+	test("multiselect translates option display names", async () => {
+		const { container, getAllByTestId } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices
+		});
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Clear");
+		expect(options[1]).toHaveAttribute("aria-label", "Remove");
+	});
+
+	test("multiselect internal value is unaffected by translation", async () => {
+		const { get_data } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			choices: i18n_choices,
+			value: ["italic"]
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["italic"]);
 	});
 });
 

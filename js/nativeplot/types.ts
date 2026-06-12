@@ -3,7 +3,7 @@ import type { LoadingStatus } from "@gradio/statustracker";
 
 export interface PlotData {
 	columns: string[];
-	data: [string | number][];
+	data: (string | number)[][];
 	datatypes: Record<string, "quantitative" | "temporal" | "nominal">;
 	mark: "line" | "point" | "bar";
 }
@@ -45,6 +45,7 @@ export interface NativePlotProps {
 }
 
 export interface NativePlotEvents {
+	change: never;
 	select: SelectData;
 	double_click: undefined;
 	clear_status: LoadingStatus;

@@ -22,7 +22,7 @@ class Button(Component):
     Creates a button that can be assigned arbitrary .click() events. The value (label) of the button can be used as an input to the function (rarely used) or set via the output of a function.
     """
 
-    EVENTS = [Events.click]
+    EVENTS = [Events.change, Events.click]
 
     def __init__(
         self,

@@ -37,10 +37,10 @@
 		elem_id={gradio.shared.elem_id}
 		elem_classes={gradio.shared.elem_classes}
 		bind:selected={gradio.props.selected}
-		on:change={() => gradio.dispatch("change")}
-		on:select={(e) => {
-			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
+		onchange={() => gradio.dispatch("change")}
+		onselect={(data) => {
+			gradio.dispatch("select", data);
+			gradio.dispatch("gradio_tab_select", data);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>
@@ -52,10 +52,10 @@
 		elem_id={gradio.shared.elem_id}
 		elem_classes={gradio.shared.elem_classes}
 		bind:selected={gradio.props.selected}
-		on:change={() => gradio.dispatch("change")}
-		on:select={(e) => {
-			gradio.dispatch("select", e.detail);
-			gradio.dispatch("gradio_tab_select", e.detail);
+		onchange={() => gradio.dispatch("change")}
+		onselect={(data) => {
+			gradio.dispatch("select", data);
+			gradio.dispatch("gradio_tab_select", data);
 		}}
 		initial_tabs={gradio.props.initial_tabs}
 	>

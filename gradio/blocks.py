@@ -66,7 +66,9 @@ from gradio.events import (
 )
 from gradio.exceptions import (
     ChecksumMismatchError,
+    ComponentProcessingError,
     DuplicateBlockError,
+    Error,
     InvalidApiNameError,
     InvalidComponentError,
     ShareCertificateWriteError,
@@ -791,6 +793,9 @@ class BlocksConfig:
             else:
                 api_name = "unnamed"
                 api_visibility = "private"
+        elif api_name is False:
+            api_name = "false"
+            api_visibility = "private"
 
         api_name = utils.append_unique_suffix(
             api_name,
@@ -1759,6 +1764,58 @@ Received inputs:
     [{received}]"""
             )
 
+    @staticmethod
+    def _format_processing_error(
+        block_fn: BlockFunction,
+        index: int,
+        block: Block,
+        value: Any,
+        is_input: bool,
+        original_error: Exception,
+    ) -> str:
+        name = (
+            f' (named "{block_fn.name}")'
+            if block_fn.name and block_fn.name != "<lambda>"
+            else ""
+        )
+        blocks = block_fn.inputs if is_input else block_fn.outputs
+        components_list = ", ".join(b.get_block_name() for b in blocks)
+
+        value_repr = repr(value)
+        if len(value_repr) > 200:
+            value_repr = value_repr[:200] + "..."
+
+        kind = "input" if is_input else "output"
+        stage = "preprocess" if is_input else "postprocess"
+        verb = "passed to" if is_input else "returned from"
+
+        method = getattr(block, "preprocess" if is_input else "postprocess", None)
+        expected_type = None
+        if method is not None:
+            try:
+                params = list(inspect.signature(method).parameters.values())
+                if params and params[0].annotation is not inspect.Parameter.empty:
+                    annotation = params[0].annotation
+                    expected_type = (
+                        annotation
+                        if isinstance(annotation, str)
+                        else getattr(annotation, "__name__", str(annotation))
+                    )
+            except (ValueError, TypeError):
+                expected_type = None
+
+        expected_clause = (
+            f"Expected a `{expected_type}`, but the" if expected_type else "The"
+        )
+        return (
+            f"Could not {stage} {kind} component at index {index} "
+            f"(a `{block.get_block_name()}` component) of the event handler{name} "
+            f"with {kind} components: [{components_list}].\n\n"
+            f"{expected_clause} value {verb} the event handler was: {value_repr} "
+            f"(of type `{type(value).__name__}`).\n\n"
+            f"Original error: {type(original_error).__name__}: {original_error}"
+        )
+
     async def preprocess_data(
         self,
         block_fn: BlockFunction,
@@ -1814,9 +1871,23 @@ Received inputs:
                 state._update_value_in_config(block._id, inputs_serialized)
 
                 if block_fn.preprocess:
-                    processed_value = await anyio.to_thread.run_sync(
-                        block.preprocess, inputs_cached, limiter=self.limiter
-                    )
+                    try:
+                        processed_value = await anyio.to_thread.run_sync(
+                            block.preprocess, inputs_cached, limiter=self.limiter
+                        )
+                    except Error:
+                        raise
+                    except Exception as err:
+                        raise ComponentProcessingError(
+                            self._format_processing_error(
+                                block_fn,
+                                i,
+                                block,
+                                value_to_process,
+                                is_input=True,
+                                original_error=err,
+                            )
+                        ) from err
                 else:
                     processed_value = inputs_serialized
 
@@ -1968,9 +2039,23 @@ Received inputs:
                         )
                     if block._id in state:
                         block = state[block._id]
-                    prediction_value = await anyio.to_thread.run_sync(
-                        block.postprocess, prediction_value, limiter=self.limiter
-                    )
+                    try:
+                        prediction_value = await anyio.to_thread.run_sync(
+                            block.postprocess, prediction_value, limiter=self.limiter
+                        )
+                    except Error:
+                        raise
+                    except Exception as err:
+                        raise ComponentProcessingError(
+                            self._format_processing_error(
+                                block_fn,
+                                i,
+                                block,
+                                predictions[i],
+                                is_input=False,
+                                original_error=err,
+                            )
+                        ) from err
                     if isinstance(prediction_value, (GradioModel, GradioRootModel)):
                         prediction_value_serialized = prediction_value.model_dump()
                     else:

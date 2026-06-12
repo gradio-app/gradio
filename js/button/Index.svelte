@@ -20,7 +20,10 @@
 	}
 
 	let _props: { shared_props: SharedProps; props: ButtonProps } = $props();
-	const gradio = new Gradio<never, ButtonProps>(_props);
+	const gradio = new Gradio<{ change: never; click: never }, ButtonProps>(
+		_props
+	);
+	gradio.watch_for_change();
 
 	function handle_click() {
 		gradio.dispatch("click");

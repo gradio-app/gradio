@@ -103,6 +103,12 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    @pytest.mark.skipif(
+        sys.platform == "win32",
+        reason="On Windows CI python_multipart raises MultipartParseError while "
+        "parsing the oversized header before gradio's own size check returns a "
+        "413, so the response code differs. Passes on Linux/macOS.",
+    )
     def test_header_size_limit(self, test_client):
         with open("test/test_files/alphabet.txt", "rb") as f:
             long_filename = "5" * 9000
@@ -1970,6 +1976,42 @@ def test_bash_api_multiple_inputs_outputs():
         assert response.status_code == 200
         assert "event: complete\ndata:" in response.text
         assert json.dumps([123, "abc"]) in response.text
+
+
+def test_bash_api_uses_session_hash_for_stateful_calls():
+    def increment(message, button_value, count):
+        count = (count or 0) + 1
+        return f"{message}:{button_value}:{count}", count
+
+    with gr.Blocks() as demo:
+        textbox = gr.Textbox()
+        button = gr.Button("Go")
+        state = gr.State(0)
+        output = gr.Textbox()
+        textbox.submit(
+            increment, [textbox, button, state], [output, state], api_name="predict"
+        )
+
+    app, _, _ = demo.queue().launch(prevent_thread_lock=True, _frontend=False)
+    test_client = TestClient(app)
+
+    try:
+        with test_client:
+            for message, expected in [
+                ("first", "first:None:1"),
+                ("second", "second:None:2"),
+            ]:
+                submit = test_client.post(
+                    f"{API_PREFIX}/call/predict",
+                    json={"data": [message], "session_hash": "stateful-session"},
+                )
+                event_id = submit.json()["event_id"]
+                response = test_client.get(f"{API_PREFIX}/call/predict/{event_id}")
+                assert response.status_code == 200
+                assert "event: complete\ndata:" in response.text
+                assert json.dumps([expected, None]) in response.text
+    finally:
+        demo.close()
 
 
 def test_attacker_cannot_change_root_in_config(

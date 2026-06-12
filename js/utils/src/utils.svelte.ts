@@ -3,7 +3,7 @@ import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 import { tick, untrack } from "svelte";
 import type { Component } from "svelte";
-import { locale } from "svelte-i18n";
+import type { Readable } from "svelte/store";
 
 export const I18N_MARKER = "__i18n__";
 const TRANSLATABLE_PROPS = [
@@ -362,6 +362,14 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 	shared: SharedProps = $state<SharedProps>({} as SharedProps) as SharedProps;
 	props = $state<U>({} as U) as U;
 	i18n: I18nFormatter = $state<any>((v: string) => v) as any;
+	// Live formatter store injected by @gradio/core (its canonical svelte-i18n
+	// instance). Used purely as a reactivity trigger to re-translate props when
+	// the locale changes. Kept off `props`/`$state` so it isn't proxied or
+	// serialized. See Blocks.svelte where this is set.
+	// NOTE: the underlying duplicate-svelte-i18n issue is also addressed by the
+	// workspace resolving to a single Svelte version (pinned to 5.48.0, since
+	// 5.56 regressed lazy-rendering); this injection remains as defense-in-depth.
+	i18n_store: Readable<unknown> | undefined;
 	translatable_props: Record<string, string> = {};
 	dispatcher!: Function;
 	last_update: ReturnType<typeof tick> | null = null;
@@ -392,6 +400,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			this.shared[key] = _props.shared_props[key];
 		}
 		for (const key in _props.props) {
+			// i18n_store is a store reference kept off `props`/`$state` (see below)
+			if (key === "i18n_store") continue;
 			// @ts-ignore same here
 			this.props[key] = _props.props[key];
 		}
@@ -407,6 +417,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 		// @ts-ignore same here
 		this.i18n = this.props.i18n ?? ((v: string) => v);
+		// @ts-ignore - read the raw store reference before it's wrapped in $state
+		this.i18n_store = _props.props.i18n_store;
 
 		for (const key of TRANSLATABLE_PROPS) {
 			// @ts-ignore
@@ -461,6 +473,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			}
 			if (this.last_props !== _props.props) {
 				for (const key in _props.props) {
+					// i18n_store is a store reference kept off `props`/`$state`
+					if (key === "i18n_store") continue;
 					const value = _props.props[key];
 					if (value === undefined) continue;
 					if (this._is_i18n_managed(`props.${key}`, value)) continue;
@@ -492,9 +506,12 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 			};
 		});
 
-		// retranslate props when locale changes
-		if (Object.keys(this.translatable_props).length > 0) {
-			locale.subscribe(() => {
+		// Re-translate props when the locale changes at runtime. The store is
+		// injected by @gradio/core so we subscribe to the same svelte-i18n
+		// instance that actually receives locale updates.
+		$effect(() => {
+			if (!this.i18n_store) return;
+			const unsubscribe = this.i18n_store.subscribe(() => {
 				for (const [full_key, original] of Object.entries(
 					this.translatable_props
 				)) {
@@ -506,7 +523,8 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 					else this.props[key] = translated;
 				}
 			});
-		}
+			return unsubscribe;
+		});
 	}
 
 	// check if props are translatable
