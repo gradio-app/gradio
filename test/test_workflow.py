@@ -215,6 +215,15 @@ class TestResolveToken:
         )
         assert _resolve_token([], 3, _make_oauth("oauth-tok")) == "oauth-tok"
 
+    def test_empty_manual_slot_falls_back_to_oauth(self, monkeypatch):
+        monkeypatch.setattr(
+            workflow_module, "_get_locally_saved_hf_token", lambda: None
+        )
+        assert (
+            _resolve_token(["m", "tag", "[]", ""], 3, _make_oauth("oauth-tok"))
+            == "oauth-tok"
+        )
+
     def test_local_token_requires_write_access(self, monkeypatch):
         # A share-link visitor (no write token) must never see the host's
         # locally saved HF token.
@@ -224,6 +233,10 @@ class TestResolveToken:
             lambda: "local-tok",
         )
         assert _resolve_token([], 3, None, _write_request()) == "local-tok"
+        assert (
+            _resolve_token(["m", "tag", "[]", ""], 3, None, _write_request())
+            == "local-tok"
+        )
         assert _resolve_token([], 3, None, _make_request()) is None
         assert _resolve_token([], 3, None, None) is None
 

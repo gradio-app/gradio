@@ -1446,15 +1446,17 @@
 			callModelWithToken,
 			fetchDatasetWithToken,
 			callFnWithToken,
-			(modelId, prompt, provider, signal, onChunk) =>
-				stream_text_generation({
-					modelId,
-					prompt,
-					provider,
-					hfToken: auth.token || undefined,
-					signal: signal ?? undefined,
-					onChunk
-				})
+			auth.token
+				? (modelId, prompt, provider, signal, onChunk) =>
+						stream_text_generation({
+							modelId,
+							prompt,
+							provider,
+							hfToken: auth.token,
+							signal: signal ?? undefined,
+							onChunk
+						})
+				: undefined
 		);
 
 		running = false;
