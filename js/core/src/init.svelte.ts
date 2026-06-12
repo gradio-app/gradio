@@ -859,7 +859,7 @@ function untrack_children_of_closed_accordions_or_inactive_tabs(
 				child.type === "tabitem" &&
 				child.props.props.id !==
 					//@ts-ignore
-					(node.props.props.selected || node.props.props.initial_tabs[0].id)
+					(node.props.props.selected ?? node.props.props.initial_tabs[0].id)
 			) {
 				_untrack(child, components_to_register);
 				mark_component_invisible_if_visible(child, hidden_on_startup);
@@ -892,7 +892,7 @@ function _gather_initial_tabs(
 		if (!(parent_tab_id in initial_tabs)) {
 			initial_tabs[parent_tab_id] = [];
 		}
-		if (!("id" in node.props.props)) {
+		if (node.props.props.id == null) {
 			node.props.props.id = node.id;
 		}
 		const i18n = node.props.props.i18n as ((str: string) => string) | undefined;

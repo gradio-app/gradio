@@ -35,6 +35,7 @@
 		nodeErrors: Record<string, string>;
 		staleNodes: Set<string>;
 		connectedPorts: Set<string>;
+		readOnly: boolean;
 		ondatachange: (
 			nodeId: string,
 			portId: string,
@@ -59,6 +60,7 @@
 	const ctx = getContext<WfCtx>("wf");
 
 	const pending = $derived(ctx.pending);
+	const readOnly = $derived(ctx.readOnly);
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
 	const error = $derived(ctx.nodeErrors[id] ?? "");
 	const isStale = $derived(ctx.staleNodes.has(id));
@@ -86,7 +88,7 @@
 
 	function renameNode(newLabel: string): void {
 		const trimmed = newLabel.trim();
-		if (trimmed && trimmed !== node.label) {
+		if (!readOnly && trimmed && trimmed !== node.label) {
 			workflow.update((wf) => ({
 				...wf,
 				references: wf.references.map((n) =>
@@ -207,6 +209,7 @@
 					class="node-label"
 					ondblclick={(e) => {
 						e.stopPropagation();
+						if (readOnly) return;
 						editingLabel = true;
 						requestAnimationFrame(() => labelInput?.select());
 					}}>{node.label}</span
@@ -228,16 +231,18 @@
 					<PlayIcon />
 				</button>
 			{/if}
-			<button
-				class="node-delete"
-				onpointerdown={(e) => e.stopPropagation()}
-				onmousedown={(e) => e.stopPropagation()}
-				onclick={(e) => {
-					e.stopPropagation();
-					ctx.onremove(node.id);
-				}}
-				title="Delete node">&times;</button
-			>
+			{#if !readOnly}
+				<button
+					class="node-delete"
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+					onclick={(e) => {
+						e.stopPropagation();
+						ctx.onremove(node.id);
+					}}
+					title="Delete node">&times;</button
+				>
+			{/if}
 		</div>
 	</div>
 
@@ -247,16 +252,22 @@
 		{#if node.space_id || node.model_id || node.dataset_id}
 			{@const itemId = node.space_id ?? node.model_id ?? node.dataset_id ?? ""}
 			<div class="node-outside-label-wrap">
-				<button
-					class="node-outside-label"
-					title="Click to change source"
-					onpointerdown={(e) => e.stopPropagation()}
-					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => {
-						e.stopPropagation();
-						ctx.onopenpicker(node.id);
-					}}>{itemId.split("/").pop() ?? itemId}</button
-				>
+				{#if readOnly}
+					<span class="node-outside-label"
+						>{itemId.split("/").pop() ?? itemId}</span
+					>
+				{:else}
+					<button
+						class="node-outside-label"
+						title="Click to change source"
+						onpointerdown={(e) => e.stopPropagation()}
+						onmousedown={(e) => e.stopPropagation()}
+						onclick={(e) => {
+							e.stopPropagation();
+							ctx.onopenpicker(node.id);
+						}}>{itemId.split("/").pop() ?? itemId}</button
+					>
+				{/if}
 				<a
 					class="node-outside-link"
 					href={sourceHFUrl(node)}
@@ -279,7 +290,7 @@
 				<span class="node-outside-label node-outside-label-fn">{node.fn}()</span
 				>
 			</div>
-		{:else}
+		{:else if !readOnly}
 			<button
 				class="node-outside-label node-outside-label-empty"
 				onpointerdown={(e) => e.stopPropagation()}
@@ -301,6 +312,7 @@
 			{#if node.endpoints && node.endpoints.length > 1}
 				<select
 					class="node-endpoint-select"
+					disabled={readOnly}
 					value={node.endpoint ?? ""}
 					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}

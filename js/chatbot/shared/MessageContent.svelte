@@ -7,27 +7,45 @@
 	import type { Client, FileData } from "@gradio/client";
 	import type { ComponentType, SvelteComponent } from "svelte";
 
-	export let latex_delimiters: {
-		left: string;
-		right: string;
-		display: boolean;
-	}[];
-	export let sanitize_html: boolean;
-	export let _fetch: typeof fetch;
-	export let i18n: I18nFormatter;
-	export let line_breaks: boolean;
-	export let upload: Client["upload"];
-	export let target: HTMLElement | null;
-	export let theme_mode: "light" | "dark" | "system";
-	export let _components: Record<string, ComponentType<SvelteComponent>>;
-	export let render_markdown: boolean;
-	export let scroll: () => void;
-	export let allow_file_downloads: boolean;
-	export let display_consecutive_in_same_bubble: boolean;
-	export let thought_index: number;
-	export let allow_tags: string[] | boolean = false;
-
-	export let message: NormalisedMessage;
+	let {
+		latex_delimiters,
+		sanitize_html,
+		_fetch,
+		i18n,
+		line_breaks,
+		upload,
+		target,
+		theme_mode,
+		_components,
+		render_markdown,
+		scroll,
+		allow_file_downloads,
+		display_consecutive_in_same_bubble,
+		thought_index,
+		allow_tags = false,
+		message
+	}: {
+		latex_delimiters: {
+			left: string;
+			right: string;
+			display: boolean;
+		}[];
+		sanitize_html: boolean;
+		_fetch: typeof fetch;
+		i18n: I18nFormatter;
+		line_breaks: boolean;
+		upload: Client["upload"];
+		target: HTMLElement | null;
+		theme_mode: "light" | "dark" | "system";
+		_components: Record<string, ComponentType<SvelteComponent>>;
+		render_markdown: boolean;
+		scroll: () => void;
+		allow_file_downloads: boolean;
+		display_consecutive_in_same_bubble: boolean;
+		thought_index: number;
+		allow_tags?: string[] | boolean;
+		message: NormalisedMessage;
+	} = $props();
 </script>
 
 {#if message.type === "text"}
@@ -56,7 +74,7 @@
 		{i18n}
 		{upload}
 		{_fetch}
-		on:load={() => scroll()}
+		onload={scroll}
 		{allow_file_downloads}
 	/>
 {:else if message.type === "component" && message.content.component === "file"}

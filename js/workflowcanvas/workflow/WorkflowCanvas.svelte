@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { setContext } from "svelte";
+	import { fade } from "svelte/transition";
 
 	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
 	import WorkflowBottomBar from "./WorkflowBottomBar.svelte";
 	import type { BoundFnTemplate } from "./WorkflowBottomBar.svelte";
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
+	import CheckIcon from "./icons/CheckIcon.svelte";
+	import LayoutIcon from "./icons/LayoutIcon.svelte";
+	import InfoIcon from "./icons/InfoIcon.svelte";
 
 	import {
 		MODALITIES,
@@ -73,6 +77,44 @@
 
 	const auth = createHFAuth(() => server);
 
+	// Sessions without the write token (share-link visitors, tunnelled
+	// requests) get a view-only canvas: they can run the workflow and fill in
+	// input values, but not change its structure or persist anything. The
+	// server independently rejects unauthorized saves — this is UX, not the
+	// security boundary. Stays editable until the server answers so the owner
+	// doesn't see controls flash out and back in.
+	const readOnly = $derived(auth.writeAccessKnown && !auth.canWrite);
+
+	// Why this session can't edit — surfaced on the "Run only" badge (hover and
+	// click). Differs by deployment: locally the fix is opening the write-token
+	// edit link; on a Space it's signing in as an account that owns the Space —
+	// unless the Space has no OAuth enabled, in which case no one can sign in to
+	// edit and the developer must enable it.
+	const readOnlyReason = $derived(
+		auth.isHFSpace
+			? auth.oauthAvailable
+				? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that owns this Space (or has write access to it) to make changes. Alternatively, duplicate this Space under your own account to edit your own copy."
+				: "Run-only: editing is disabled because this Space doesn't have OAuth enabled, so the owner can't sign in to authenticate. To allow editing, add `hf_oauth: true` to the Space's README metadata and redeploy. Alternatively, duplicate this Space under your own account to edit your own copy."
+			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes."
+	);
+
+	// Flash a brief "Saved" confirmation after each successful autosave. The
+	// timer is cleared on each new save so rapid edits coalesce into a single
+	// lingering checkmark rather than flickering.
+	let saveIndicator = $state(false);
+	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
+	// Serialized form of what's currently persisted on the server. Autosave
+	// compares against this so loading the workflow into the store on page load
+	// (and any no-op change) doesn't trigger a redundant save + "Saved" flash.
+	let lastSavedSerialized: string | null = null;
+	function flashSaved(): void {
+		saveIndicator = true;
+		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
+		saveIndicatorTimer = setTimeout(() => {
+			saveIndicator = false;
+		}, 1400);
+	}
+
 	$effect(() => {
 		void auth.init();
 	});
@@ -84,15 +126,33 @@
 			// Migration handles both v1 (legacy workflow.json files) and v2.
 			const v2 = migrateToV2(parsed);
 			workflow.set(v2);
+			// Baseline the persisted state so the load itself isn't autosaved.
+			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
 		} catch {}
 	});
 
 	$effect(() => {
 		const wf = $workflow;
-		if (!server?.save_workflow) return;
+		// Wait for the write-access answer before autosaving — the optimistic
+		// editable window would otherwise fire saves the backend rejects.
+		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
+			return;
+		const serialized = JSON.stringify(sanitize_for_save(wf));
+		if (lastSavedSerialized === null) {
+			// No persisted baseline yet (e.g. a brand-new workflow with no saved
+			// file): adopt the current state instead of saving it on load.
+			lastSavedSerialized = serialized;
+			return;
+		}
+		// Nothing changed since the last save/load — don't re-save or flash.
+		if (serialized === lastSavedSerialized) return;
 		const timer = setTimeout(() => {
 			server
-				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
+				.save_workflow([serialized])
+				.then(() => {
+					lastSavedSerialized = serialized;
+					flashSaved();
+				})
 				.catch(() => {});
 		}, 500);
 		return () => clearTimeout(timer);
@@ -212,7 +272,25 @@
 			: null
 	);
 	let showShortcuts = $state(false);
+	let showUserMenu = $state(false);
+	// Popover shown when the "Run only" badge is clicked, explaining why editing
+	// is disabled and how to enable it.
+	let showAccessInfo = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
+
+	// Human-readable explanation of how the current user is authenticated,
+	// shown in the popover when they click their avatar. The "local" case also
+	// tells them logout happens from the CLI, since the UI can't clear a token
+	// it never stored (it's the host's `huggingface-cli login` token).
+	const authExplanation = $derived.by(() => {
+		if (auth.source === "local")
+			return "Signed in with the Hugging Face token saved on this machine (via `huggingface-cli login`). To sign out, run `huggingface-cli logout` in your terminal.";
+		if (auth.source === "oauth")
+			return "Signed in with your Hugging Face account.";
+		if (auth.source === "pat")
+			return "Signed in with a Hugging Face token you provided.";
+		return "";
+	});
 
 	type Pending = {
 		from_node_id: string;
@@ -336,11 +414,17 @@
 		nodeErrors: {} as Record<string, string>,
 		staleNodes: new Set<string>(),
 		connectedPorts: new Set<string>(),
+		readOnly: false,
 		ondatachange: updateNodeData,
-		onremove: (id: string) => removeNode(id),
-		onopenpicker: (id: string) => openPickerForNode(id),
-		onswitchendpoint: (id: string, endpointName: string) =>
-			switch_endpoint(id, endpointName),
+		onremove: (id: string) => {
+			if (!readOnly) removeNode(id);
+		},
+		onopenpicker: (id: string) => {
+			if (!readOnly) openPickerForNode(id);
+		},
+		onswitchendpoint: (id: string, endpointName: string) => {
+			if (!readOnly) switch_endpoint(id, endpointName);
+		},
 		onhydratendpoints: async (id: string, spaceId: string) => {
 			try {
 				const info = await fetchSpaceApi(spaceId);
@@ -387,6 +471,9 @@
 	});
 	$effect(() => {
 		wfCtx.connectedPorts = connectedPortsSet();
+	});
+	$effect(() => {
+		wfCtx.readOnly = readOnly;
 	});
 
 	// ─── Custom canvas event handlers ───────────────────────────────────────────
@@ -463,7 +550,7 @@
 	}
 
 	function startNodeDrag(e: PointerEvent, nodeId: string): void {
-		if (e.button !== 0) return;
+		if (e.button !== 0 || readOnly) return;
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
@@ -499,7 +586,7 @@
 		type: PortType,
 		isInput: boolean
 	): void {
-		if (e.button !== 0) return;
+		if (e.button !== 0 || readOnly) return;
 		e.stopPropagation();
 		const { x, y } = clientToCanvas(e.clientX, e.clientY);
 		dragMode = {
@@ -961,6 +1048,7 @@
 	}
 
 	function handleCanvasDoubleClick(e: MouseEvent): void {
+		if (readOnly) return;
 		const target = e.target as HTMLElement;
 		if (
 			target.closest(".node-pos-wrap") ||
@@ -1108,6 +1196,7 @@
 		x?: number,
 		y?: number
 	): Promise<string | null> {
+		if (readOnly) return null;
 		if (
 			template.source === "space" &&
 			template.space_id &&
@@ -1142,6 +1231,7 @@
 
 	async function handleDrop(e: DragEvent): Promise<void> {
 		e.preventDefault();
+		if (readOnly) return;
 		const raw = e.dataTransfer?.getData("node-template");
 		if (!raw) return;
 		const template = JSON.parse(raw);
@@ -1158,12 +1248,13 @@
 	let clearConfirm = $state(false);
 
 	function clearWorkflow(): void {
-		if (legacyView.nodes.length === 0) return;
+		if (legacyView.nodes.length === 0 || readOnly) return;
 		clearConfirm = true;
 	}
 
 	function confirmClearWorkflow(): void {
 		clearConfirm = false;
+		if (readOnly) return;
 		revokeAllBlobUrls(legacyView.nodes);
 		workflow.set({
 			schema_version: "2",
@@ -1409,6 +1500,12 @@
 		if (activePicker && !target?.closest(".picker-panel")) {
 			activePicker = null;
 		}
+		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
+			showUserMenu = false;
+		}
+		if (showAccessInfo && !target?.closest(".access-info-wrap")) {
+			showAccessInfo = false;
+		}
 	}
 
 	function zoomToFit(): void {
@@ -1571,6 +1668,7 @@
 		}
 		if (
 			(e.key === "Delete" || e.key === "Backspace") &&
+			!readOnly &&
 			(selectedNodeIds.size > 0 || selectedEdgeIds.size > 0)
 		) {
 			e.preventDefault();
@@ -1585,7 +1683,7 @@
 		}
 		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
 			e.preventDefault();
-			duplicateNode(selectedNodeId);
+			if (!readOnly) duplicateNode(selectedNodeId);
 		}
 		if (e.key === "f" && !e.metaKey && !e.ctrlKey) {
 			e.preventDefault();
@@ -1613,7 +1711,7 @@
 			doubleClickMenu = null;
 			clearConfirm = false;
 		}
-		if (e.key === "Enter" && clearConfirm) {
+		if (e.key === "Enter" && clearConfirm && !readOnly) {
 			e.preventDefault();
 			confirmClearWorkflow();
 		}
@@ -1823,11 +1921,12 @@
 	}
 
 	function handlePickerUpdate(nodeId: string, template: any): void {
-		replaceNodeSource(nodeId, template);
+		if (!readOnly) replaceNodeSource(nodeId, template);
 		activePicker = null;
 	}
 
 	function addInputNode(portType: string, cx?: number, cy?: number): void {
+		if (readOnly) return;
 		let pos: { x: number; y: number };
 		if (cx !== undefined && cy !== undefined) {
 			const r = canvasEl?.getBoundingClientRect();
@@ -1857,6 +1956,7 @@
 	 * already on the canvas.
 	 */
 	function addFnNode(tmpl: BoundFnTemplate): void {
+		if (readOnly) return;
 		const half = 110;
 		const { x, y } = findFreeSpot(
 			canvasCenter().x - half,
@@ -1882,7 +1982,7 @@
 	}
 
 	function setName(value: string): void {
-		workflow.update((wf) => ({ ...wf, name: value }));
+		if (!readOnly) workflow.update((wf) => ({ ...wf, name: value }));
 		editingName = false;
 	}
 </script>
@@ -1891,7 +1991,9 @@
 <div class="workflow-root" onclick={handleGlobalClick}>
 	<div class="toolbar">
 		<div class="toolbar-left">
-			{#if editingName}
+			{#if readOnly}
+				<span class="name-text name-readonly">{$workflow.name}</span>
+			{:else if editingName}
 				<input
 					bind:this={nameInput}
 					class="name-input"
@@ -1917,17 +2019,60 @@
 			<span class="toolbar-stat"
 				>{nodeCount} nodes &middot; {edgeCount} edges</span
 			>
+			{#if saveIndicator}
+				<span
+					class="save-indicator"
+					in:fade={{ duration: 120 }}
+					out:fade={{ duration: 400 }}
+				>
+					<CheckIcon />
+					Saved
+				</span>
+			{/if}
 		</div>
 		<div class="toolbar-right">
 			{#if auth.status !== "checking"}
 				{#if auth.user}
-					<span class="toolbar-user-info"
-						>Logged in as <strong>{auth.user}</strong></span
-					>
-					<button class="toolbar-login-btn logged-in" onclick={auth.signOut}
-						>Log out</button
-					>
-				{:else if auth.isHFSpace}
+					<div class="toolbar-user-wrap">
+						<button
+							class="toolbar-user-chip"
+							class:open={showUserMenu}
+							onclick={(e) => {
+								e.stopPropagation();
+								showUserMenu = !showUserMenu;
+							}}
+							title="Account"
+						>
+							{#if auth.avatarUrl}
+								<img
+									class="toolbar-user-avatar"
+									src={auth.avatarUrl}
+									alt=""
+									referrerpolicy="no-referrer"
+								/>
+							{:else}
+								<span class="toolbar-user-avatar toolbar-user-avatar-fallback"
+									>{auth.user.charAt(0).toUpperCase()}</span
+								>
+							{/if}
+							<span class="toolbar-user-name">{auth.user}</span>
+						</button>
+						{#if showUserMenu}
+							<div class="toolbar-user-menu">
+								<div class="toolbar-user-menu-msg">{authExplanation}</div>
+								{#if auth.source !== "local"}
+									<button
+										class="toolbar-user-menu-btn"
+										onclick={() => {
+											showUserMenu = false;
+											auth.signOut();
+										}}>Log out</button
+									>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{:else if auth.isHFSpace && auth.oauthAvailable}
 					<button class="toolbar-login-btn" onclick={auth.signIn}
 						>Sign in with 🤗</button
 					>
@@ -1950,10 +2095,33 @@
 					</form>
 				{/if}
 			{/if}
-			<button class="tool-btn" onclick={autoLayout} title="Auto-arrange nodes"
-				>Layout</button
-			>
-			<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
+			{#if !readOnly}
+				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
+				{#if auth.writeAccessKnown}
+					<span
+						class="access-badge access-write"
+						title="You have write access — changes you make are saved automatically."
+						>Write access</span
+					>
+				{/if}
+			{:else}
+				<div class="access-info-wrap">
+					<button
+						class="access-badge access-readonly"
+						class:open={showAccessInfo}
+						title={readOnlyReason}
+						aria-label="Why is this read-only?"
+						onclick={(e) => {
+							e.stopPropagation();
+							showAccessInfo = !showAccessInfo;
+						}}
+						>Run only<span class="access-info-icon"><InfoIcon /></span></button
+					>
+					{#if showAccessInfo}
+						<div class="access-info-popover">{readOnlyReason}</div>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	</div>
 
@@ -1999,7 +2167,7 @@
 							onclick={(e) => {
 								if (e.shiftKey)
 									selectedEdgeIds = toggle_set(selectedEdgeIds, edge.id);
-								else removeEdge(edge.id);
+								else if (!readOnly) removeEdge(edge.id);
 							}}
 						/>
 					{/if}
@@ -2129,6 +2297,17 @@
 		{/if}
 
 		<div class="zoom-controls">
+			{#if !readOnly}
+				<button
+					class="zoom-ctrl-btn"
+					onclick={autoLayout}
+					title="Auto-arrange nodes"
+					aria-label="Auto-arrange nodes"
+				>
+					<LayoutIcon />
+				</button>
+				<div class="zoom-ctrl-divider"></div>
+			{/if}
 			<button
 				class="zoom-ctrl-btn"
 				onclick={() => (showShortcuts = !showShortcuts)}
@@ -2198,6 +2377,7 @@
 			{running}
 			{hasTransforms}
 			{boundFns}
+			{readOnly}
 			onopenpicker={openPicker}
 			onaddinput={addInputNode}
 			onaddfn={addFnNode}
@@ -2437,14 +2617,37 @@
 		color: #1a1b25;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-login-btn.logged-in) {
-		color: #8b8d98;
-	}
-	:global(body:not(.dark) .toolbar-user-info) {
-		color: #8b8d98;
-	}
-	:global(body:not(.dark) .toolbar-user-info strong) {
+	:global(body:not(.dark) .toolbar-user-chip) {
+		border-color: #e2e4ea;
 		color: #3e4050;
+	}
+	:global(body:not(.dark) .toolbar-user-chip:hover),
+	:global(body:not(.dark) .toolbar-user-chip.open) {
+		background: #f0f1f5;
+		color: #1a1b25;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .toolbar-user-avatar) {
+		background: #e2e4ea;
+	}
+	:global(body:not(.dark) .toolbar-user-avatar-fallback) {
+		color: #6b6e78;
+	}
+	:global(body:not(.dark) .toolbar-user-menu) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	}
+	:global(body:not(.dark) .toolbar-user-menu-msg) {
+		color: #6b6e78;
+	}
+	:global(body:not(.dark) .toolbar-user-menu-btn) {
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .toolbar-user-menu-btn:hover) {
+		background: #f0f1f5;
+		border-color: #d0d2dc;
 	}
 	:global(body:not(.dark) .toolbar-token-input) {
 		background: #ffffff;
@@ -2459,6 +2662,33 @@
 		color: #3e4050;
 	}
 	:global(body:not(.dark) .toolbar-divider) {
+		background: #e2e4ea;
+	}
+	:global(body:not(.dark) .access-badge.access-readonly) {
+		color: #6b6e78;
+		background: #f0f1f5;
+		border-color: #e2e4ea;
+	}
+	:global(body:not(.dark) .access-badge.access-write) {
+		color: #0f9d76;
+		background: rgba(15, 157, 118, 0.08);
+		border-color: rgba(15, 157, 118, 0.25);
+	}
+	:global(body:not(.dark) button.access-badge.access-readonly:hover),
+	:global(body:not(.dark) button.access-badge.access-readonly.open) {
+		color: #3e4050;
+		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .access-info-popover) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+		color: #6b6e78;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	}
+	:global(body:not(.dark) .save-indicator) {
+		color: #0f9d76;
+	}
+	:global(body:not(.dark) .zoom-ctrl-divider) {
 		background: #e2e4ea;
 	}
 	:global(body:not(.dark) .zoom-controls) {

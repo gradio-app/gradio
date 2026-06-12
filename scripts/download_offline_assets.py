@@ -44,12 +44,12 @@ THEME_FONTS: dict[str, list[int]] = {
     "Press Start 2P": [400],
 }
 
-# A baseline set of common Bokeh versions to bundle. The version that gradio's
-# Plot component actually requests at runtime is `bokeh.__version__` of the
-# installed package, so `bokeh_versions()` always adds that too -- otherwise the
-# frontend 404s on /static/bokeh/{installed_version}/ and falls back to the CDN
-# (which defeats offline support).
-BOKEH_VERSIONS = ["3.4.1", "3.6.2", "3.7.0"]
+# Baseline Bokeh version to bundle. The version that gradio's Plot component
+# actually requests at runtime is `bokeh.__version__` of the installed package,
+# so `bokeh_versions()` always adds that too -- otherwise the frontend 404s on
+# /static/bokeh/{installed_version}/ and falls back to the CDN (which defeats
+# offline support).
+BOKEH_VERSIONS = ["3.8.1"]
 BOKEH_FILES = [
     "bokeh-{version}.min.js",
     "bokeh-widgets-{version}.min.js",

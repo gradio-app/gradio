@@ -176,6 +176,7 @@
 	});
 
 	$effect(() => {
+		value?.text;
 		if (el && lines !== max_lines) {
 			resize(el, lines, max_lines);
 		}
