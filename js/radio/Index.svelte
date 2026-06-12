@@ -58,7 +58,7 @@
 	<div class="wrap">
 		{#each gradio.props.choices as [display_value, internal_value], i (i)}
 			<BaseRadio
-				display_value={gradio.i18n(display_value)}
+				display_value={gradio.live_i18n(display_value)}
 				{internal_value}
 				bind:selected={gradio.props.value}
 				{disabled}

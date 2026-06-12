@@ -134,7 +134,7 @@
 					name={internal_value?.toString()}
 					title={internal_value?.toString()}
 				/>
-				<span class="ml-2">{gradio.i18n(display_value)}</span>
+				<span class="ml-2">{gradio.live_i18n(display_value)}</span>
 			</label>
 		{/each}
 	</div>

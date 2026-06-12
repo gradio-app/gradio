@@ -100,7 +100,7 @@
 		width={gradio.props.width}
 		allow_overflow={false}
 		container={gradio.shared.container}
-		scale{gradio.shared.scale}
+		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
 		bind:fullscreen
 	>

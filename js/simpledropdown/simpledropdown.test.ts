@@ -1,8 +1,8 @@
 import { test, describe, expect, afterEach, beforeAll } from "vitest";
-import { cleanup, render } from "@self/tootils/render";
+import { cleanup, render, waitFor } from "@self/tootils/render";
 import event from "@testing-library/user-event";
 import { setupi18n, changeLocale } from "../core/src/i18n";
-import { formatter } from "../core/src/gradio_helper";
+import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import SimpleDropdown from "./Index.svelte";
 
@@ -82,5 +82,46 @@ describe("SimpleDropdown: i18n choices", () => {
 
 		const data = await get_data();
 		expect(data.value).toBe("italic");
+	});
+});
+
+describe("SimpleDropdown: runtime locale switching", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => {
+		changeLocale("en");
+		cleanup();
+	});
+
+	test("re-translates options and keeps the selection when the locale changes", async () => {
+		const { getByRole, getAllByRole, get_data } = await render(SimpleDropdown, {
+			...default_props,
+			i18n: formatter,
+			i18n_store: reactive_formatter,
+			choices: [
+				[marker("common.clear"), "bold"],
+				[marker("common.remove"), "italic"]
+			],
+			value: ""
+		});
+
+		const select = getByRole("combobox") as HTMLSelectElement;
+		await event.selectOptions(select, "Clear");
+
+		let data = await get_data();
+		expect(data.value).toBe("bold");
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			const labels = getAllByRole("option").map((o) => o.textContent?.trim());
+			expect(labels).toEqual(["Limpiar", "Eliminar"]);
+			expect(select).toHaveValue("Limpiar");
+		});
+
+		data = await get_data();
+		expect(data.value).toBe("bold");
 	});
 });

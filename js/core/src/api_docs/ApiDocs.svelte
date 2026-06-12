@@ -1,5 +1,4 @@
 <script lang="ts">
-	/* eslint-disable */
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../types";
 	import NoApi from "./NoApi.svelte";
@@ -281,10 +280,12 @@
 		const out: Record<string, Record<string, string>> = {};
 		if (!info?.named_endpoints) return out;
 		for (const dep of dependencies) {
-			const ep = info.named_endpoints["/" + dep.api_name];
+			const api_name = dep.api_name;
+			if (!api_name) continue;
+			const ep = info.named_endpoints["/" + api_name];
 			if (!ep?.code_snippets) continue;
 			const snippets = ep.code_snippets;
-			out[dep.api_name] = {
+			out[api_name] = {
 				python: snippets.python || "",
 				javascript: snippets.javascript || "",
 				bash: snippets.bash || "",
@@ -521,7 +522,7 @@
 							<Button
 								size="sm"
 								variant="secondary"
-								on:click={() =>
+								onclick={() =>
 									dispatch("close", { api_recorder_visible: true })}
 							>
 								<div class="loading-dot"></div>

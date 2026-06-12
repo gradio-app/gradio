@@ -4,8 +4,10 @@ import { get } from "svelte/store";
 /**
  * Helper to wrap props in the format Gradio components expect.
  * Provides mock shared_props and formats component props for Storybook stories.
+ * @param {Record<string, any>} componentProps
  */
 export function wrapProps(componentProps) {
+	/** @param {string} s */
 	const i18nFormatter = (s) => {
 		if (!s) return "";
 		const formatFn = get(format);
@@ -19,7 +21,7 @@ export function wrapProps(componentProps) {
 			formatter: i18nFormatter,
 			client: {
 				upload: () => Promise.resolve([]),
-				fetch: (...args) => fetch(...args)
+				fetch
 			},
 			load_component: () => Promise.resolve({ default: {} }),
 			show_progress: "full",

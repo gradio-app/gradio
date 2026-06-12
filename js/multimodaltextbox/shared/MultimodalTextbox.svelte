@@ -26,7 +26,10 @@
 	import type { InputHTMLAttributes } from "./types";
 
 	let {
-		value = $bindable(),
+		value = $bindable<{ text: string; files: FileData[] }>({
+			text: "",
+			files: []
+		}),
 		value_is_output = false,
 		lines = 1,
 		i18n: _i18n,

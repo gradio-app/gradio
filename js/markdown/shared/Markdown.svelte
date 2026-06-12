@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { copy, css_units } from "@gradio/utils";
 	import { Copy, Check } from "@gradio/icons";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { ThemeMode } from "@gradio/core";
 
@@ -24,25 +24,25 @@
 		onchange = () => {},
 		oncopy = (val) => {}
 	}: {
-		elem_classes: string[];
-		visible: boolean | "hidden";
+		elem_classes?: string[];
+		visible?: boolean | "hidden";
 		value: string;
-		min_height: number | string | undefined;
-		rtl: boolean;
-		sanitize_html: boolean;
-		line_breaks: boolean;
-		latex_delimiters: {
+		min_height?: number | string | undefined;
+		rtl?: boolean;
+		sanitize_html?: boolean;
+		line_breaks?: boolean;
+		latex_delimiters?: {
 			left: string;
 			right: string;
 			display: boolean;
 		}[];
-		header_links: boolean;
-		height: number | string | undefined;
-		show_copy_button: boolean | undefined;
-		loading_status: LoadingStatus | undefined;
-		theme_mode: ThemeMode;
-		onchange: () => void;
-		oncopy: (val: any) => void;
+		header_links?: boolean;
+		height?: number | string | undefined;
+		show_copy_button?: boolean | undefined;
+		loading_status?: LoadingStatus | undefined;
+		theme_mode?: ThemeMode;
+		onchange?: () => void;
+		oncopy?: (val: any) => void;
 	} = $props();
 
 	let copied = $state(false);

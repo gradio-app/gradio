@@ -7,7 +7,7 @@ import type {
 	CopyData,
 	CustomButton
 } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 export type MessageRole = "system" | "user" | "assistant";
 

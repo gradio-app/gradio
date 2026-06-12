@@ -1,5 +1,5 @@
 import type { SelectData, CustomButton } from "@gradio/utils";
-import type { LoadingStatus } from "js/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "js/statustracker";
 
 export interface HighlightedToken {
 	token: string;

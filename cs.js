@@ -3,12 +3,20 @@ import path from "path";
 import { execSync } from "child_process";
 import { getPackages } from "@manypkg/get-packages";
 
+/**
+ * @typedef {"patch" | "minor" | "major"} VersionBump
+ * @typedef {{ feat: string; fix: string; highlight: string; [key: string]: string }} ReadmeContent
+ * @typedef {{ version: VersionBump; reamde_content: ReadmeContent }} ChangedPackage
+ * @typedef {{ name: string; dir: string; version: string; packge_json: Record<string, any>; changelog: string }} PackageToWrite
+ */
+
 const changsetsFolder = path.join(process.cwd(), ".changeset");
 const files = readdirSync(changsetsFolder);
 const mdFiles = files.filter(
 	(file) => file.endsWith(".md") && !file.startsWith("README.md")
 );
 
+/** @param {string} filePath */
 const getGitInfo = (filePath) => {
 	const gitInfo = execSync(
 		`git log -n 1 --pretty=format:"%H -bingboong- %s" --  ${filePath}`,
@@ -48,10 +56,11 @@ const changedPackages = changsets.reduce(
 			if (packages) {
 				packages.forEach((_package) => {
 					const [name, version] = _package.split(":");
+					if (!name || !version || !pr) return;
 
 					if (!acc[name]) {
 						acc[name] = {
-							version: version.trim(),
+							version: /** @type {VersionBump} */ (version.trim()),
 							reamde_content: {
 								feat: "",
 								fix: "",
@@ -61,7 +70,7 @@ const changedPackages = changsets.reduce(
 						};
 					} else {
 						acc[name].version = getMaximumBump(
-							version.trim(),
+							/** @type {VersionBump} */ (version.trim()),
 							acc[name].version
 						);
 						acc[name].reamde_content[type] += `\n${format_readme_content(
@@ -76,17 +85,30 @@ const changedPackages = changsets.reduce(
 		}
 		return acc;
 	},
-	{}
+	/** @type {Record<string, ChangedPackage>} */ ({})
 );
 
+/**
+ * @param {VersionBump} newVersion
+ * @param {VersionBump} oldVersion
+ * @returns {VersionBump}
+ */
 function getMaximumBump(newVersion, oldVersion) {
 	const versionOrder = ["patch", "minor", "major"];
 	const newVersionIndex = versionOrder.indexOf(newVersion);
 	const oldVersionIndex = versionOrder.indexOf(oldVersion);
 
-	return versionOrder[Math.max(newVersionIndex, oldVersionIndex)];
+	return /** @type {VersionBump} */ (
+		versionOrder[Math.max(newVersionIndex, oldVersionIndex)]
+	);
 }
 
+/**
+ * @param {string} pr
+ * @param {string} short_sha
+ * @param {string} sha
+ * @param {string} _content
+ */
 function format_readme_content(pr, short_sha, sha, _content) {
 	return `- [${pr}](https://github.com/gradio-app/gradio/pull/${pr.replace(
 		"#",
@@ -96,6 +118,7 @@ function format_readme_content(pr, short_sha, sha, _content) {
 
 const { packages } = await getPackages(process.cwd());
 
+/** @type {PackageToWrite[]} */
 const packages_to_write = [];
 
 for (const pkg of packages) {
@@ -109,6 +132,7 @@ for (const pkg of packages) {
 			version: new_version
 		};
 
+		/** @type {[string, string][]} */
 		let deps_updated = [];
 		for (const dep in new_package_json.dependencies) {
 			if (`"${dep}"` in changedPackages) {
@@ -123,7 +147,10 @@ for (const pkg of packages) {
 
 				deps_updated.push([
 					dep,
-					get_new_version(dep_version, changedPackages[`"${dep}"`].version)
+					get_new_version(
+						dep_version ?? "0.0.0",
+						changedPackages[`"${dep}"`].version
+					)
 				]);
 			}
 		}
@@ -171,6 +198,12 @@ for (const pkg of packages) {
 	}
 }
 
+/**
+ * @param {string} name
+ * @param {string} version
+ * @param {ReadmeContent} changes
+ * @param {[string, string][]} deps_updated
+ */
 function make_changelog(name, version, changes, deps_updated) {
 	const { feat, fix, highlight } = changes;
 	let changelog = `# ${name}
@@ -194,6 +227,10 @@ function make_changelog(name, version, changes, deps_updated) {
 	return changelog;
 }
 
+/**
+ * @param {string} version
+ * @param {VersionBump | string} bump
+ */
 function get_new_version(version, bump) {
 	const [_major, _minor, _patch, prerelease] = version.split(".");
 

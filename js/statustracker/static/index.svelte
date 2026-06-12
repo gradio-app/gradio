@@ -52,7 +52,7 @@
 
 <script lang="ts">
 	import Loader from "./Loader.svelte";
-	import type { LoadingStatus } from "./types";
+	import type { ILoadingStatus as LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	import { IconButton } from "@gradio/atoms";
@@ -85,7 +85,7 @@
 		autoscroll: boolean;
 		validation_error?: string | null;
 		show_validation_error?: boolean;
-		type?: "input" | "output" | null;
+		type?: "input" | "output" | "skip" | null;
 		on_clear_status?: () => void;
 		used_cache?: "full" | "partial" | null;
 		cache_duration?: number | null;
@@ -440,7 +440,7 @@
 				Icon={Clear}
 				label={i18n("common.clear")}
 				disabled={false}
-				on:click={() => {
+				onclick={() => {
 					on_clear_status?.();
 				}}
 			/>

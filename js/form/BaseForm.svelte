@@ -1,13 +1,13 @@
 <script lang="ts">
 	let {
-		visible,
-		scale,
-		min_width,
+		visible = true,
+		scale = null,
+		min_width = 0,
 		label = undefined
 	}: {
-		visible: boolean | "hidden";
-		scale: number | null;
-		min_width: number;
+		visible?: boolean | "hidden";
+		scale?: number | null;
+		min_width?: number;
 		label?: string;
 	} = $props();
 </script>

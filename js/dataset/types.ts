@@ -1,7 +1,7 @@
 import type { SelectData } from "@gradio/utils";
 
 export interface DatasetProps {
-	components: string[];
+	components: { name: string; class_id: string }[];
 	component_props: Record<string, any>[];
 	headers: string[];
 	samples: any[][] | null;

@@ -6,32 +6,32 @@
 	let {
 		elem_id,
 		elem_classes = [],
-		visible,
-		variant,
-		size,
-		value,
+		visible = true,
+		variant = "secondary",
+		size = "md",
+		value = null,
 		link,
-		link_target,
+		link_target = "_self",
 		icon,
-		disabled,
-		scale,
+		disabled = false,
+		scale = null,
 		min_width,
 		onclick = () => {},
 		children
 	}: {
-		elem_id: string | null;
-		elem_classes: string[] | null;
-		visible: boolean | "hidden";
-		variant: "primary" | "secondary" | "stop" | "huggingface";
-		size: "sm" | "md" | "lg";
-		value: string | null;
-		link: string | null;
-		link_target: "_self" | "_blank" | "_parent" | "_top";
-		icon: FileData | null;
-		disabled: boolean;
-		scale: number | null;
-		min_width: number | undefined;
-		onclick: () => void;
+		elem_id?: string | null;
+		elem_classes?: string[] | null;
+		visible?: boolean | "hidden";
+		variant?: "primary" | "secondary" | "stop" | "huggingface";
+		size?: "sm" | "md" | "lg";
+		value?: string | null;
+		link?: string | null;
+		link_target?: "_self" | "_blank" | "_parent" | "_top";
+		icon?: FileData | null;
+		disabled?: boolean;
+		scale?: number | null;
+		min_width?: number | null | undefined;
+		onclick?: () => void;
 		children?: Snippet;
 	} = $props();
 </script>
@@ -44,7 +44,7 @@
 		class:hidden={visible === false || visible === "hidden"}
 		class:disabled
 		aria-disabled={disabled}
-		class="{size} {variant} {elem_classes.join(' ')}"
+		class="{size} {variant} {(elem_classes ?? []).join(' ')}"
 		style:flex-grow={scale}
 		style:pointer-events={disabled ? "none" : null}
 		style:width={scale === 0 ? "fit-content" : null}
@@ -55,7 +55,7 @@
 	>
 		{#if icon}
 			<Image
-				src={icon.url}
+				src={icon.url ?? ""}
 				restProps={{ alt: `${value} icon`, class: "button-icon" }}
 			/>
 		{/if}
@@ -67,7 +67,7 @@
 	<button
 		{onclick}
 		class:hidden={visible === false || visible === "hidden"}
-		class="{size} {variant} {elem_classes.join(' ')}"
+		class="{size} {variant} {(elem_classes ?? []).join(' ')}"
 		style:flex-grow={scale}
 		style:width={scale === 0 ? "fit-content" : null}
 		style:min-width={typeof min_width === "number"
@@ -80,7 +80,7 @@
 			<Image
 				restProps={{ alt: `${value} icon` }}
 				class_names={[`button-icon ${value ? "right-padded" : ""}`]}
-				src={icon.url}
+				src={icon.url ?? ""}
 			/>
 		{/if}
 		{#if children}

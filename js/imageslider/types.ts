@@ -4,7 +4,7 @@ import type {
 	ShareData,
 	CustomButton
 } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
 
 export interface ImageSliderEvents {

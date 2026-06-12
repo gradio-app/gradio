@@ -20,7 +20,7 @@
 	let translated_choices = $derived(
 		gradio.props.choices.map(
 			([display, value]) =>
-				[gradio.i18n(display), value] as [string, string | number]
+				[gradio.live_i18n(display), value] as [string, string | number]
 		)
 	);
 </script>
@@ -38,7 +38,8 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-		on_clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		on_clear_status={() =>
+			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
 	{#if gradio.props.multiselect}
@@ -47,7 +48,7 @@
 		<Dropdown
 			label={gradio.shared.label}
 			info={gradio.props.info}
-			bind:value={gradio.props.value}
+			bind:value={gradio.props.value as string | number | null}
 			choices={translated_choices}
 			interactive={gradio.shared.interactive}
 			show_label={gradio.shared.show_label}

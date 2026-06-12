@@ -64,6 +64,27 @@ test("changing language via settings updates UI and persists selection", async (
 	await expect(languageInputGerman).toHaveValue("Deutsch");
 });
 
+test("choice display names re-translate when the language is switched at runtime", async ({
+	page
+}) => {
+	await expect(page.getByRole("radio", { name: "Bold" })).toBeChecked();
+	await expect(page.getByRole("radio", { name: "Italic" })).toBeVisible();
+
+	await page.locator("footer").getByText("Settings").click();
+	await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+
+	const languageInput = page.locator('input[aria-label="Language"]');
+	await languageInput.click();
+	await languageInput.clear();
+	await languageInput.pressSequentially("Esp");
+	await page.keyboard.press("ArrowDown");
+	await page.keyboard.press("Enter");
+	await page.locator(".backdrop").click();
+
+	await expect(page.getByRole("radio", { name: "Negrita" })).toBeChecked();
+	await expect(page.getByRole("radio", { name: "Cursiva" })).toBeVisible();
+});
+
 test.describe("i18n with Spanish locale", () => {
 	test.use({ locale: "es" });
 

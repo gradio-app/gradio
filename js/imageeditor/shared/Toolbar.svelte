@@ -43,7 +43,7 @@
 		brush_options && typeof brush_options.default_size === "number"
 			? brush_options.default_size
 			: 25;
-	export let eraser_options: EraserType;
+	export let eraser_options: EraserType | false;
 	export let selected_eraser_size =
 		eraser_options && typeof eraser_options.default_size === "number"
 			? eraser_options.default_size

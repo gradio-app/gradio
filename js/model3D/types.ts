@@ -1,5 +1,5 @@
 import type { FileData } from "@gradio/client";
-import type { LoadingStatus } from "js/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "js/statustracker";
 import type { CustomButton } from "@gradio/utils";
 
 export interface Model3DProps {

@@ -74,9 +74,7 @@
 					{#if (gradio.props.buttons || []).some((btn) => typeof btn === "string" && btn === "fullscreen")}
 						<FullscreenButton
 							{fullscreen}
-							on:fullscreen={({ detail }) => {
-								fullscreen = detail;
-							}}
+							onclick={(fs) => (fullscreen = fs)}
 						/>
 					{/if}
 				</IconButtonWrapper>

@@ -82,7 +82,7 @@
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 			bind:value={gradio.props.value}
-			root={gradio.root}
+			root={gradio.shared.root}
 			on:clear={() => gradio.dispatch("clear")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}

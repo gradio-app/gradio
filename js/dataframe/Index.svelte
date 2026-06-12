@@ -100,7 +100,7 @@
 		label={gradio.shared.label}
 		show_label={gradio.shared.show_label}
 		wrap={gradio.props.wrap}
-		datatype={aligned_datatype}
+		datatype={aligned_datatype as any}
 		latex_delimiters={gradio.props.latex_delimiters}
 		max_height={gradio.props.max_height}
 		editable={gradio.shared.interactive ?? true}

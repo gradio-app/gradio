@@ -11,10 +11,10 @@ from transformers import (
     FillMaskPipeline,
     ImageClassificationPipeline,
     ObjectDetectionPipeline,
-    QuestionAnsweringPipeline,
+    QuestionAnsweringPipeline,  # ty: ignore[unresolved-import]
     TextClassificationPipeline,
     TextGenerationPipeline,
-    VisualQuestionAnsweringPipeline,
+    VisualQuestionAnsweringPipeline,  # ty: ignore[unresolved-import]
     ZeroShotClassificationPipeline,
 )
 

@@ -15,9 +15,9 @@
 	let is_selected = $derived(selected === internal_value);
 
 	async function handle_input(
-		e: Event & { target: EventTarget & HTMLInputElement }
+		e: Event & { currentTarget: EventTarget & HTMLInputElement }
 	): Promise<void> {
-		is_selected = e.target.checked;
+		is_selected = e.currentTarget.checked;
 		if (is_selected) {
 			await tick();
 			on_input();

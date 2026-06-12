@@ -1,5 +1,5 @@
-import type { FileData, SelectData } from "@gradio/client";
-import type { CustomButton } from "@gradio/utils";
+import type { FileData } from "@gradio/client";
+import type { CustomButton, SelectData } from "@gradio/utils";
 
 export interface GalleryImage {
 	image: FileData;
@@ -36,6 +36,7 @@ export interface GalleryEvents {
 	delete: { file: FileData; index: number };
 	preview_open: never;
 	preview_close: never;
+	clear: never;
 	clear_status: any;
 	share: any;
 	error: any;

@@ -11,7 +11,8 @@
 
 	let navbar_props = $derived.by(() => {
 		return {
-			visible: gradio.shared.visible,
+			visible:
+				gradio.shared.visible === "hidden" ? false : gradio.shared.visible,
 			main_page_name: gradio.props.main_page_name ?? "Home",
 			value: gradio.props.value
 		};
