@@ -378,6 +378,7 @@
 		if (!vegaEmbed) {
 			vegaEmbed = (await import("vega-embed")).default;
 		}
+		if (!chart_element) return;
 		vegaEmbed(chart_element, spec, { actions: false, renderer: "svg" }).then(
 			function (result) {
 				view = result.view;

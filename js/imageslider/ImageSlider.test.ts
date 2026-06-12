@@ -345,6 +345,23 @@ describe("Props: buttons", () => {
 		expect(getByLabelText("Fullscreen")).toBeVisible();
 	});
 
+	test("clicking the fullscreen button toggles fullscreen mode", async () => {
+		const { getByLabelText } = await render(ImageSlider, {
+			...preview_props,
+			buttons: ["fullscreen"]
+		});
+
+		await fireEvent.click(getByLabelText("Fullscreen"));
+		await waitFor(() => {
+			expect(getByLabelText("Exit fullscreen mode")).toBeVisible();
+		});
+
+		await fireEvent.click(getByLabelText("Exit fullscreen mode"));
+		await waitFor(() => {
+			expect(getByLabelText("Fullscreen")).toBeVisible();
+		});
+	});
+
 	test("interactive: true with both images shows Remove Image button", async () => {
 		const { getByLabelText } = await render(ImageSlider, {
 			...default_props,
