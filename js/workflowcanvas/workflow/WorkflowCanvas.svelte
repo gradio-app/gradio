@@ -7,6 +7,7 @@
 	import type { BoundFnTemplate } from "./WorkflowBottomBar.svelte";
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
+	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -273,6 +274,7 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	let showApiPanel = $state(false);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -2031,6 +2033,14 @@
 			{/if}
 		</div>
 		<div class="toolbar-right">
+			<button
+				class="tool-btn api-btn"
+				onclick={() => (showApiPanel = true)}
+				title="View the API for this workflow"
+			>
+				<span class="api-btn-glyph">&lt;/&gt;</span>
+				View API
+			</button>
 			{#if auth.status !== "checking"}
 				{#if auth.user}
 					<div class="toolbar-user-wrap">
@@ -2480,6 +2490,14 @@
 				</div>
 			</div>
 		</div>
+	{/if}
+
+	{#if showApiPanel}
+		<WorkflowApiPanel
+			{server}
+			workflowName={$workflow.name}
+			onClose={() => (showApiPanel = false)}
+		/>
 	{/if}
 </div>
 
