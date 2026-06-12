@@ -12,22 +12,28 @@
 	let props = $props();
 	const gradio = new Gradio<TabsEvents, TabsProps>(props);
 
-	$effect(() => {
-		if (gradio.props.selected) {
-			const selected = gradio.props.selected;
-			const initial_tabs = untrack(() => gradio.props.initial_tabs);
-			tick().then(() => {
-				const i = initial_tabs.findIndex((t) => t.id === selected);
-				if (i === -1) return;
+	let old_selected = gradio.props.selected;
 
-				gradio.dispatch("gradio_tab_select", {
-					value: initial_tabs[i].label,
-					index: i,
-					id: initial_tabs[i].id,
-					component_id: initial_tabs[i].component_id
-				});
+	$effect(() => {
+		const selected = gradio.props.selected;
+		// Only dispatch on an actual change; otherwise a single set_data can
+		// re-run this effect and fire gradio_tab_select more than once (and we
+		// don't want a select event on initial mount).
+		if (old_selected === selected) return;
+		old_selected = selected;
+
+		const initial_tabs = untrack(() => gradio.props.initial_tabs);
+		tick().then(() => {
+			const i = initial_tabs.findIndex((t) => t.id === selected);
+			if (i === -1) return;
+
+			gradio.dispatch("gradio_tab_select", {
+				value: initial_tabs[i].label,
+				index: i,
+				id: initial_tabs[i].id,
+				component_id: initial_tabs[i].component_id
 			});
-		}
+		});
 	});
 </script>
 
