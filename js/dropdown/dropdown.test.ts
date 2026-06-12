@@ -3,7 +3,7 @@ import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 import { setupi18n, changeLocale } from "../core/src/i18n";
-import { formatter } from "../core/src/gradio_helper";
+import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
 import { handle_filter } from "./shared/utils";
@@ -1698,6 +1698,75 @@ describe("i18n choices", () => {
 
 		const data = await get_data();
 		expect(data.value).toEqual(["italic"]);
+	});
+});
+
+describe("runtime locale switching", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => {
+		changeLocale("en");
+		cleanup();
+	});
+
+	const i18n_choices: [string, string][] = [
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
+	];
+
+	test("single-select re-translates the selected display name and options", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				i18n: formatter,
+				i18n_store: reactive_formatter,
+				choices: i18n_choices,
+				value: "bold"
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input.value).toBe("Clear");
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(input.value).toBe("Limpiar");
+		});
+
+		await input.focus();
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Limpiar");
+		expect(options[1]).toHaveAttribute("aria-label", "Eliminar");
+
+		const data = await get_data();
+		expect(data.value).toBe("bold");
+	});
+
+	test("multiselect re-translates selected tokens when the locale changes", async () => {
+		const { getByText, get_data } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			i18n_store: reactive_formatter,
+			choices: i18n_choices,
+			value: ["bold", "italic"]
+		});
+
+		expect(getByText("Clear")).toBeVisible();
+		expect(getByText("Remove")).toBeVisible();
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(getByText("Limpiar")).toBeVisible();
+			expect(getByText("Eliminar")).toBeVisible();
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["bold", "italic"]);
 	});
 });
 
