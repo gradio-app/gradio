@@ -685,6 +685,7 @@ def _curated_entry_to_space_result(entry: dict) -> dict:
         },
         "_curated": True,
         "_featured": bool(entry.get("featured")),
+        "_thumbnail": entry.get("thumbnail"),
     }
 
 
@@ -696,6 +697,7 @@ def _curated_entry_to_model_result(entry: dict) -> dict:
         "pipeline_tag": entry.get("task"),
         "_curated": True,
         "_featured": bool(entry.get("featured")),
+        "_thumbnail": entry.get("thumbnail"),
     }
 
 
