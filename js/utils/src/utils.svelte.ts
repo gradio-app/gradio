@@ -512,13 +512,11 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 
 	// Reactive variant of `i18n`. Reading it inside a derived or template
 	// subscribes to the live locale store (via Svelte's createSubscriber), so
-	// the caller re-runs when the locale changes at runtime. Falls back to the
-	// construction-time formatter when no store was injected (e.g. unit tests).
+	// the caller re-runs when the locale changes at runtime. The store is only
+	// the reactivity trigger; translation always goes through `this.i18n` so a
+	// custom formatter passed via props keeps taking effect.
 	live_i18n = (value: string): string => {
-		const live_formatter = this._i18n_from_store?.current;
-		if (typeof live_formatter === "function") {
-			return (live_formatter as I18nFormatter)(value);
-		}
+		void this._i18n_from_store?.current;
 		return this.i18n(value);
 	};
 

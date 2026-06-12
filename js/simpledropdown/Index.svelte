@@ -27,8 +27,10 @@
 				(choice) => choice[0] === display_value
 			);
 			if (candidate.length) {
-				gradio.props.value = candidate[0][1];
-				gradio.dispatch("input");
+				if (gradio.props.value !== candidate[0][1]) {
+					gradio.props.value = candidate[0][1];
+					gradio.dispatch("input");
+				}
 			} else {
 				const current = translated_choices.find(
 					(choice) => choice[1] === gradio.props.value
