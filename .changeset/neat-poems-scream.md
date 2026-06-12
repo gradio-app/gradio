@@ -2,6 +2,7 @@
 "@gradio/annotatedimage": minor
 "@gradio/atoms": minor
 "@gradio/audio": minor
+"@gradio/browserstate": minor
 "@gradio/button": minor
 "@gradio/chatbot": minor
 "@gradio/code": minor
