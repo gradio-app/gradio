@@ -5,10 +5,18 @@
 		is_zero_gpu_space,
 		normalizeOperatorPorts
 	} from "./space-api";
+	import { MODALITIES } from "./workflow-modalities";
 	import type { ModalityConfig, SubTab } from "./workflow-modalities";
 	import SearchIcon from "./icons/SearchIcon.svelte";
 	import CloseIcon from "./icons/CloseIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
+	import ImageIcon from "./icons/ImageIcon.svelte";
+	import AudioIcon from "./icons/AudioIcon.svelte";
+	import VideoIcon from "./icons/VideoIcon.svelte";
+	import Model3DIcon from "./icons/Model3DIcon.svelte";
+	import TextIcon from "./icons/TextIcon.svelte";
+	import DatasetIcon from "./icons/DatasetIcon.svelte";
+	import TaskIcon from "./icons/tasks/TaskIcon.svelte";
 
 	type ResultType = "space" | "model" | "dataset";
 
@@ -17,14 +25,10 @@
 		title: string;
 		description: string;
 		likes: number;
-		trendingScore?: number;
-		running: boolean;
 		type: ResultType;
 		pipeline_tag?: string;
 		zero_gpu?: boolean;
-		fallback?: boolean;
 		curated?: boolean;
-		featured?: boolean;
 	}
 
 	interface Props {
@@ -38,6 +42,7 @@
 		oncreate: (template: any) => void;
 		onupdate: (nodeId: string, template: any) => void;
 		onclose: () => void;
+		oncleared?: () => void;
 		onerror?: (message: string) => void;
 	}
 
@@ -52,17 +57,84 @@
 		oncreate,
 		onupdate,
 		onclose,
+		oncleared,
 		onerror
 	}: Props = $props();
+
+	const is_all = $derived(modality.key === "all");
 
 	const is_dataset = $derived(modality.key === "data");
 
 	const search_placeholder = $derived.by(() => {
 		if (is_dataset) return "Search datasets, paste a Hub URL...";
+		if (is_all) return "Search spaces & models, paste a Hub URL...";
 		return `Search ${modality.label.toLowerCase()} spaces & models, paste a Hub URL...`;
 	});
 
-	const visible_subtabs = $derived(modality.subtabs);
+	let available_tasks = $state<Set<string> | null>(null);
+
+	$effect(() => {
+		const m = modality.key;
+		available_tasks = null;
+		if (m === "data") return;
+		if (!server?.curated_modality_tasks) return;
+		void server
+			.curated_modality_tasks([m === "all" ? "" : m])
+			.then((raw: any) => {
+				try {
+					const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+					available_tasks = new Set(Array.isArray(parsed) ? parsed : []);
+				} catch {
+					available_tasks = new Set();
+				}
+			});
+	});
+
+	function subtab_available(st: SubTab): boolean {
+		if (available_tasks === null) return true;
+		if (st.key === "all") return true;
+		if (st.pipelineTag && available_tasks.has(st.pipelineTag)) return true;
+		if (st.spaceCategory && available_tasks.has(st.spaceCategory)) return true;
+		return false;
+	}
+
+	const sidebar_groups = $derived.by(() => {
+		if (is_dataset) return [];
+		available_tasks;
+		const mods = is_all ? MODALITIES : [modality];
+		return mods
+			.map((m) => ({
+				modality: m,
+				subtabs: m.subtabs.filter(
+					(st) => (!is_all || st.key !== "all") && subtab_available(st)
+				)
+			}))
+			.filter((g) => g.subtabs.length > 0);
+	});
+
+	const all_visible_subtabs = $derived.by(() => {
+		const flat = sidebar_groups.flatMap((g) => g.subtabs);
+		return is_all ? [modality.subtabs[0], ...flat] : flat;
+	});
+
+	let active_subtab = $state<SubTab>(
+		(initialSubtab && modality.subtabs.find((s) => s.key === initialSubtab)) ||
+			modality.subtabs[0]
+	);
+	let active_task_modality = $state<string | null>(null);
+
+	$effect(() => {
+		if (all_visible_subtabs.length === 0) return;
+		if (!all_visible_subtabs.some((st) => st.key === active_subtab.key)) {
+			active_subtab = all_visible_subtabs[0];
+			active_task_modality = null;
+		}
+	});
+
+	function select_task(st: SubTab, mod_key: string | null): void {
+		active_subtab = st;
+		active_task_modality = mod_key;
+	}
 
 	const AVATAR_COLORS = [
 		"#f97316",
@@ -83,38 +155,23 @@
 		return (id.split("/").pop() || id)[0].toUpperCase();
 	}
 
-	type ContentTab = "featured" | "trending" | "new" | "search";
+	const SPACE_IMAGES: Record<string, string> = {};
 
-	let active_subtab = $state<SubTab>(
-		(initialSubtab && modality.subtabs.find((s) => s.key === initialSubtab)) ||
-			modality.subtabs[0]
-	);
-	let active_content_tab = $state<ContentTab>(
-		modality.key === "data" || initialSubtab ? "trending" : "featured"
-	);
-	let zero_gpu_only = $state(true);
 	let search_query = $state("");
-	let results = $state<SpaceResult[]>([]);
+	let space_results = $state<SpaceResult[]>([]);
+	let model_results = $state<SpaceResult[]>([]);
+	let dataset_results = $state<SpaceResult[]>([]);
 	let loading = $state(false);
 	let loading_space_id = $state<string | null>(null);
 
-	let trending_empty = $state<boolean | null>(null);
-	let new_empty = $state<boolean | null>(null);
-
-	const featured_results = $derived<SpaceResult[]>(
-		results.filter((r) => r.featured)
+	const has_results = $derived(
+		is_dataset
+			? dataset_results.length > 0
+			: space_results.length + model_results.length > 0
 	);
 
-	$effect(() => {
-		if (active_content_tab === "featured" && featured_results.length === 0) {
-			active_content_tab = "trending";
-		}
-	});
-
-	const display_results = $derived(
-		active_content_tab === "featured" ? featured_results : results
-	);
 	let search_timeout: ReturnType<typeof setTimeout> | null = null;
+	let resolve_timeout: ReturnType<typeof setTimeout> | null = null;
 	let fetch_token = 0;
 
 	function parse_space(s: any): SpaceResult {
@@ -124,14 +181,10 @@
 			title: s.cardData?.title || s.title || s.id.split("/").pop() || s.id,
 			description: desc,
 			likes: s.likes ?? 0,
-			trendingScore: s.trendingScore ?? undefined,
-			running: s.runtime?.stage === "RUNNING",
 			type: "space",
 			pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined,
 			zero_gpu: is_zero_gpu_space(s),
-			fallback: s._fallback === true,
-			curated: s._curated === true,
-			featured: s._featured === true
+			curated: s._curated === true
 		};
 	}
 
@@ -141,18 +194,10 @@
 			title: m.id.split("/").pop() || m.id,
 			description: m.pipeline_tag || "",
 			likes: m.likes ?? 0,
-			trendingScore: m.trendingScore ?? undefined,
-			running: true,
 			type: "model",
 			pipeline_tag: m.pipeline_tag,
-			curated: m._curated === true,
-			featured: m._featured === true
+			curated: m._curated === true
 		};
-	}
-
-	function rank(s: SpaceResult): number {
-		const base = s.trendingScore ?? (s.likes || 0) / 100;
-		return s.fallback ? base - 1e6 : base;
 	}
 
 	async function fetch_results() {
@@ -166,24 +211,30 @@
 			const space_tag =
 				active_subtab.spaceCategory ?? active_subtab.pipelineTag;
 			const model_tag = active_subtab.pipelineTag;
-			const kind =
-				active_content_tab === "search"
-					? "search"
-					: active_content_tab === "new"
-						? "new"
-						: "trending";
-			const query = active_content_tab === "search" ? search_query : "";
+			const kind = search_query.length >= 2 ? "search" : "trending";
+			const query = search_query.length >= 2 ? search_query : "";
 
+			const backend_modality = is_all
+				? (active_task_modality ?? "")
+				: modality.key;
 			const calls: Promise<any>[] = [];
 			if (server?.search_spaces) {
 				calls.push(
-					server.search_spaces([kind, query, space_tag, "", zero_gpu_only])
+					server.search_spaces([
+						kind,
+						query,
+						space_tag,
+						backend_modality,
+						false
+					])
 				);
 			} else {
 				calls.push(Promise.resolve("[]"));
 			}
 			if (server?.search_models) {
-				calls.push(server.search_models([kind, query, model_tag, ""]));
+				calls.push(
+					server.search_models([kind, query, model_tag, backend_modality])
+				);
 			} else {
 				calls.push(Promise.resolve("[]"));
 			}
@@ -205,11 +256,14 @@
 						.map(parse_model)
 				: [];
 
-			const merged = [...spaces, ...models].sort((a, b) => rank(b) - rank(a));
 			if (token !== fetch_token) return;
-			results = merged.slice(0, 30);
+			space_results = spaces.slice(0, 24);
+			model_results = models.slice(0, 20);
 		} catch {
-			if (token === fetch_token) results = [];
+			if (token === fetch_token) {
+				space_results = [];
+				model_results = [];
+			}
 		} finally {
 			if (token === fetch_token) loading = false;
 		}
@@ -217,7 +271,7 @@
 
 	async function fetch_datasets(query: string) {
 		if (!server?.search_datasets) {
-			results = [];
+			dataset_results = [];
 			loading = false;
 			return;
 		}
@@ -228,20 +282,19 @@
 			if (token !== fetch_token) return;
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			if (!Array.isArray(data)) {
-				results = [];
+				dataset_results = [];
 				return;
 			}
-			results = data.slice(0, 20).map((d: any) => ({
+			dataset_results = data.slice(0, 20).map((d: any) => ({
 				id: d.id,
 				title: d.id.split("/").pop() || d.id,
 				description: d.description || d.cardData?.summary || "",
 				likes: d.likes ?? 0,
-				running: true,
 				type: "dataset" as const,
 				pipeline_tag: undefined
 			}));
 		} catch {
-			if (token === fetch_token) results = [];
+			if (token === fetch_token) dataset_results = [];
 		} finally {
 			if (token === fetch_token) loading = false;
 		}
@@ -249,25 +302,19 @@
 
 	$effect(() => {
 		active_subtab;
-		active_content_tab;
+		active_task_modality;
 		is_dataset;
-		zero_gpu_only;
-		if (active_content_tab === "search" && search_query.length < 2) {
-			return;
-		}
-		const captured = active_content_tab;
-		void fetch_results().then(() => {
-			if (captured === "trending") trending_empty = results.length === 0;
-			else if (captured === "new") new_empty = results.length === 0;
-		});
+		modality.key;
+		void fetch_results();
 	});
 
 	function handle_search_input(e: Event) {
 		search_query = (e.currentTarget as HTMLInputElement).value;
 		if (search_timeout) clearTimeout(search_timeout);
+		if (resolve_timeout) clearTimeout(resolve_timeout);
 
 		if (!is_dataset && looks_like_repo(search_query)) {
-			search_timeout = setTimeout(() => void resolve_pinned(search_query), 120);
+			resolve_timeout = setTimeout(() => void resolve_pinned(search_query), 120);
 		} else {
 			pinned_result = null;
 			pinned_error = null;
@@ -275,18 +322,11 @@
 			pinned_token++;
 		}
 
-		if (is_dataset) {
-			loading = true;
-			search_timeout = setTimeout(() => void fetch_datasets(search_query), 150);
-			return;
-		}
-		if (search_query.length < 2) {
-			if (active_content_tab === "search") results = [];
-			return;
-		}
-		active_content_tab = "search";
 		loading = true;
-		search_timeout = setTimeout(() => void fetch_results(), 150);
+		const fetcher = is_dataset
+			? () => fetch_datasets(search_query)
+			: () => fetch_results();
+		search_timeout = setTimeout(() => void fetcher(), 150);
 	}
 
 	function select_model(item: SpaceResult) {
@@ -478,7 +518,12 @@
 				pinned_error = data.error === "not_found" ? "Not found" : null;
 				return;
 			}
-			const kind: ResultType = data.kind === "model" ? "model" : "space";
+			const kind: ResultType =
+				data.kind === "model"
+					? "model"
+					: data.kind === "dataset"
+						? "dataset"
+						: "space";
 			const rec = data.record ?? {};
 			const desc =
 				rec.cardData?.short_description || rec.ai_short_description || "";
@@ -501,7 +546,6 @@
 					rec.cardData?.title || rec.title || data.id.split("/").pop() || data.id,
 				description: desc,
 				likes: rec.likes ?? 0,
-				running: rec.runtime?.stage === "RUNNING",
 				type: kind,
 				pipeline_tag:
 					rec.cardData?.pipeline_tag || rec.pipeline_tag || undefined,
@@ -521,6 +565,22 @@
 	}
 </script>
 
+{#snippet modality_icon(key: string)}
+	{#if key === "image"}
+		<ImageIcon />
+	{:else if key === "audio"}
+		<AudioIcon />
+	{:else if key === "video"}
+		<VideoIcon />
+	{:else if key === "3d"}
+		<Model3DIcon />
+	{:else if key === "text"}
+		<TextIcon />
+	{:else if key === "data"}
+		<DatasetIcon />
+	{/if}
+{/snippet}
+
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="picker-overlay" onclick={onclose}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -533,9 +593,26 @@
 		onclick={(e) => e.stopPropagation()}
 		onwheel={(e) => e.stopPropagation()}
 	>
-		<!-- Search row — input only. Mode tabs (Featured / Trending / New)
-		     live in the subtab strip below so they share visual weight
-		     with the modality categories (Generate / Edit / …). -->
+		{#if is_dataset}
+			<div class="picker-filter-pill" role="status">
+				<span class="picker-filter-label">Filter</span>
+				<span class="picker-filter-modality">
+					<span class="picker-filter-icon">
+						<DatasetIcon />
+					</span>
+					{modality.label}
+				</span>
+				<button
+					class="picker-filter-close"
+					onclick={() => (oncleared ? oncleared() : onclose())}
+					aria-label="Clear modality filter"
+					title="Clear filter — show all spaces & models"
+				>
+					<CloseIcon />
+				</button>
+			</div>
+		{/if}
+
 		<div class="picker-search-row">
 			<div class="picker-search-wrap">
 				<span class="search-icon">
@@ -552,236 +629,159 @@
 				<button
 					class="picker-close-inline"
 					onclick={onclose}
-					aria-label="Close"
+					aria-label="Close picker"
+					title="Close"
 				>
 					<CloseIcon />
 				</button>
 			</div>
 		</div>
 
-		{#if !is_dataset && visible_subtabs.length > 1}
-			<div class="picker-subtabs">
-				{#each visible_subtabs as st}
-					<button
-						class="picker-subtab"
-						class:active={active_subtab.key === st.key}
-						onclick={() => {
-							trending_empty = null;
-							new_empty = null;
-							active_subtab = st;
-							if (active_content_tab !== "search" || search_query.length < 2)
-								active_content_tab = "trending";
-						}}
-					>
-						{st.label}
-					</button>
-				{/each}
-			</div>
-		{/if}
-
-		{#if !is_dataset}
-			<div class="picker-mode-row">
-				<span class="picker-mode-label">Sort:</span>
-				{#if featured_results.length > 0}
-					<button
-						class="picker-mode-btn"
-						class:active={active_content_tab === "featured"}
-						title="Curated picks"
-						onclick={() => {
-							active_content_tab = "featured";
-							search_query = "";
-						}}>Featured</button
-					>
-				{/if}
-				{#if trending_empty !== true}
-					<button
-						class="picker-mode-btn"
-						class:active={active_content_tab === "trending"}
-						onclick={() => {
-							active_content_tab = "trending";
-							search_query = "";
-						}}>Trending</button
-					>
-				{/if}
-				{#if new_empty !== true}
-					<button
-						class="picker-mode-btn"
-						class:active={active_content_tab === "new"}
-						onclick={() => {
-							active_content_tab = "new";
-							search_query = "";
-						}}>New ✦</button
-					>
-				{/if}
-				<label
-					class="picker-zerogpu-toggle"
-					class:active={zero_gpu_only}
-					title="Show only ZeroGPU Spaces — they scale with your HF credits, give consistent ETAs, and have the clearest billing story"
-				>
-					<input type="checkbox" bind:checked={zero_gpu_only} />
-					<span>ZeroGPU only</span>
-				</label>
-			</div>
-		{/if}
-
-		<div class="picker-results" class:picker-results-stale={loading}>
-			{#if pinned_loading}
-				<div class="picker-pinned picker-pinned-loading">
-					<span class="spinner small"></span>
-					<span>Resolving repo…</span>
-				</div>
-			{:else if pinned_error}
-				<div class="picker-pinned picker-pinned-error">{pinned_error}</div>
-			{:else if pinned_result}
-				{@const pinned = pinned_result}
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div
-					class="space-row pinned"
-					class:loading={loading_space_id === pinned.id}
-					class:uncurated={!pinned.curated}
-					onclick={() => handle_row_click(pinned)}
-					role="button"
-					tabindex="0"
-					title={pinned.curated
-						? `Use this exact ${pinned.type}`
-						: `Use this exact ${pinned.type} — not in our verified catalog`}
-				>
-					<div
-						class="space-avatar"
-						style="background:linear-gradient(135deg, {avatar_color(
-							pinned.id
-						)}, {avatar_color(pinned.id + '_2')})"
-					>
-						{avatar_initial(pinned.id)}
-					</div>
-					<div class="space-row-left">
-						<div class="space-name-row">
-							<span class="space-name"
-								>{pinned.title ||
-									(pinned.id.split("/").pop() ?? pinned.id)}</span
-							>
-							<span class="type-chip type-chip-{pinned.type}"
-								>{pinned.type === "model" ? "Model" : "Space"}</span
-							>
-							{#if pinned.curated}
-								<span
-									class="verified-chip"
-									title="Verified by the workflow team — checked daily"
-									>✓ Verified</span
-								>
-							{:else}
-								<span
-									class="uncurated-chip"
-									title="Not in our verified catalog — may not work or may be down"
-									>Unverified</span
-								>
-							{/if}
-							{#if pinned.type === "space" && pinned.zero_gpu}
-								<span class="space-badge space-badge-zerogpu">ZeroGPU</span>
-							{/if}
-							{#if pinned.pipeline_tag}
-								<span class="space-badge">{pinned.pipeline_tag}</span>
-							{/if}
+		<div class="picker-body">
+			{#if !is_dataset}
+				<div class="picker-sidebar">
+					{#if is_all}
+						<div class="picker-sidebar-heading">
+							<span>All tasks</span>
 						</div>
-						<div class="space-desc">
-							{#if pinned.curated}
-								Use this exact {pinned.type}
-								{#if pinned.description} — {pinned.description}{/if}
-							{:else}
-								Not in our verified catalog — may not work. {pinned.description ||
-									""}
-							{/if}
-						</div>
-					</div>
-					<div class="space-row-right">
-						{#if loading_space_id === pinned.id}
-							<span class="spinner small"></span>
-						{/if}
-						<a
-							class="space-row-link"
-							href={hub_url(pinned)}
-							target="_blank"
-							rel="noopener noreferrer"
-							title="Open on HuggingFace"
-							aria-label="Open on HuggingFace"
-							onclick={(e) => e.stopPropagation()}
-							onmousedown={(e) => e.stopPropagation()}
+						<button
+							class="picker-task-item"
+							class:active={active_subtab.key === "all"}
+							onclick={() => select_task(modality.subtabs[0], null)}
 						>
-							<OpenLinkIcon />
-						</a>
-					</div>
+							<span class="picker-task-icon">
+								<TaskIcon pipeline="all" />
+							</span>
+							<span class="picker-task-label">All</span>
+						</button>
+						{#each sidebar_groups as group (group.modality.key)}
+							<div class="picker-sidebar-group-heading">
+								<span class="picker-sidebar-icon">
+									{@render modality_icon(group.modality.key)}
+								</span>
+								<span>{group.modality.label}</span>
+							</div>
+							{#each group.subtabs as st (st.key)}
+								<button
+									class="picker-task-item"
+									class:active={active_subtab.key === st.key}
+									onclick={() => select_task(st, group.modality.key)}
+								>
+									<span class="picker-task-icon">
+										<TaskIcon pipeline={st.pipelineTag || st.key} />
+									</span>
+									<span class="picker-task-label">{st.label}</span>
+								</button>
+							{/each}
+						{/each}
+					{:else}
+						<div class="picker-sidebar-heading">
+							<span class="picker-sidebar-icon">
+								{@render modality_icon(modality.key)}
+							</span>
+							<span>{modality.label} tasks</span>
+						</div>
+						<button
+							class="picker-sidebar-clear"
+							onclick={() => (oncleared ? oncleared() : onclose())}
+							aria-label="Clear modality filter"
+							title="Show all spaces & models"
+						>
+							← All tasks
+						</button>
+						{#each sidebar_groups[0]?.subtabs ?? [] as st (st.key)}
+							<button
+								class="picker-task-item"
+								class:active={active_subtab.key === st.key}
+								onclick={() => select_task(st, null)}
+							>
+								<span class="picker-task-icon">
+									<TaskIcon pipeline={st.pipelineTag || st.key} />
+								</span>
+								<span class="picker-task-label">{st.label}</span>
+							</button>
+						{/each}
+					{/if}
 				</div>
 			{/if}
 
-			{#if loading && display_results.length === 0 && active_content_tab !== "featured"}
-				<div class="picker-loading">
-					<span class="spinner"></span>
-				</div>
-			{:else if display_results.length === 0 && !pinned_result}
-				<div class="picker-empty">
-					{active_content_tab === "search"
-						? "Nothing found"
-						: active_content_tab === "featured"
-							? `No featured items for ${modality.label.toLowerCase()} yet`
-							: `No ${modality.label.toLowerCase()} results found`}
-				</div>
-			{:else}
-				{#each display_results as space (space.type + "/" + space.id)}
+			<div class="picker-results" class:picker-results-stale={loading}>
+				{#if pinned_loading}
+					<div class="picker-pinned picker-pinned-loading">
+						<span class="spinner small"></span>
+						<span>Resolving repo…</span>
+					</div>
+				{:else if pinned_error}
+					<div class="picker-pinned picker-pinned-error">{pinned_error}</div>
+				{:else if pinned_result}
+					{@const pinned = pinned_result}
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
-						class="space-row"
-						class:loading={loading_space_id === space.id}
-						class:fallback={space.fallback}
-						onclick={() => handle_row_click(space)}
+						class="space-row pinned"
+						class:loading={loading_space_id === pinned.id}
+						class:uncurated={!pinned.curated}
+						onclick={() => handle_row_click(pinned)}
 						role="button"
 						tabindex="0"
+						title={pinned.curated
+							? `Use this exact ${pinned.type}`
+							: `Use this exact ${pinned.type} — not in our verified catalog`}
 					>
 						<div
 							class="space-avatar"
 							style="background:linear-gradient(135deg, {avatar_color(
-								space.id
-							)}, {avatar_color(space.id + '_2')})"
+								pinned.id
+							)}, {avatar_color(pinned.id + '_2')})"
 						>
-							{avatar_initial(space.id)}
+							{avatar_initial(pinned.id)}
 						</div>
 						<div class="space-row-left">
 							<div class="space-name-row">
 								<span class="space-name"
-									>{space.title ||
-										(space.id.split("/").pop() ?? space.id)}</span
+									>{pinned.title ||
+										(pinned.id.split("/").pop() ?? pinned.id)}</span
 								>
-								{#if !is_dataset}
-									<span class="type-chip type-chip-{space.type}"
-										>{space.type === "model" ? "Model" : "Space"}</span
-									>
-								{/if}
-								{#if space.curated}
+								<span class="type-chip type-chip-{pinned.type}"
+									>{pinned.type === "model" ? "Model" : "Space"}</span
+								>
+								{#if pinned.curated}
 									<span
 										class="verified-chip"
 										title="Verified by the workflow team — checked daily"
-										>✓</span
+										>✓ Verified</span
+									>
+								{:else}
+									<span
+										class="uncurated-chip"
+										title="Not in our verified catalog — may not work or may be down"
+										>Unverified</span
 									>
 								{/if}
-								{#if space.type === "space" && space.zero_gpu}
-									<span class="space-badge space-badge-zerogpu">ZeroGPU</span>
+								{#if pinned.type === "space" && pinned.zero_gpu}
+									<span class="space-badge space-badge-zerogpu">⚡ ZeroGPU</span
+									>
 								{/if}
-								{#if space.pipeline_tag}
-									<span class="space-badge">{space.pipeline_tag}</span>
+								{#if pinned.pipeline_tag}
+									<span class="space-badge">{pinned.pipeline_tag}</span>
 								{/if}
 							</div>
-							{#if space.description}
-								<div class="space-desc">{space.description}</div>
-							{/if}
+							<div class="space-desc">
+								{#if pinned.curated}
+									Use this exact {pinned.type}
+									{#if pinned.description} — {pinned.description}{/if}
+								{:else}
+									Not in our verified catalog — may not work. {pinned.description ||
+										""}
+								{/if}
+							</div>
 						</div>
 						<div class="space-row-right">
-							{#if loading_space_id === space.id}
+							{#if loading_space_id === pinned.id}
 								<span class="spinner small"></span>
-							{:else if space.likes > 0}
-								<span class="space-likes">♥ {format_likes(space.likes)}</span>
 							{/if}
 							<a
 								class="space-row-link"
-								href={hub_url(space)}
+								href={hub_url(pinned)}
 								target="_blank"
 								rel="noopener noreferrer"
 								title="Open on HuggingFace"
@@ -793,8 +793,189 @@
 							</a>
 						</div>
 					</div>
-				{/each}
-			{/if}
+				{/if}
+
+				{#if loading && !has_results}
+					<div class="picker-loading">
+						<span class="spinner"></span>
+					</div>
+				{:else if !has_results && !pinned_result}
+					<div class="picker-empty">
+						{search_query.length >= 2
+							? "Nothing found"
+							: is_all
+								? "No results found"
+								: `No ${modality.label.toLowerCase()} results found`}
+					</div>
+				{:else if is_dataset}
+					{#each dataset_results as dataset (dataset.id)}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							class="space-row"
+							class:loading={loading_space_id === dataset.id}
+							onclick={() => handle_row_click(dataset)}
+							role="button"
+							tabindex="0"
+						>
+							<div
+								class="space-avatar"
+								style="background:linear-gradient(135deg, {avatar_color(
+									dataset.id
+								)}, {avatar_color(dataset.id + '_2')})"
+							>
+								{avatar_initial(dataset.id)}
+							</div>
+							<div class="space-row-left">
+								<div class="space-name-row">
+									<span class="space-name"
+										>{dataset.title ||
+											(dataset.id.split("/").pop() ?? dataset.id)}</span
+									>
+								</div>
+								{#if dataset.description}
+									<div class="space-desc">{dataset.description}</div>
+								{/if}
+							</div>
+							<div class="space-row-right">
+								{#if loading_space_id === dataset.id}
+									<span class="spinner small"></span>
+								{:else if dataset.likes > 0}
+									<span class="space-likes"
+										>♥ {format_likes(dataset.likes)}</span
+									>
+								{/if}
+								<a
+									class="space-row-link"
+									href={hub_url(dataset)}
+									target="_blank"
+									rel="noopener noreferrer"
+									title="Open on HuggingFace"
+									aria-label="Open on HuggingFace"
+									onclick={(e) => e.stopPropagation()}
+									onmousedown={(e) => e.stopPropagation()}
+								>
+									<OpenLinkIcon />
+								</a>
+							</div>
+						</div>
+					{/each}
+				{:else}
+					{#if space_results.length > 0}
+						<div class="picker-section-header">Spaces</div>
+						<div class="picker-space-grid">
+							{#each space_results as space (space.id)}
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<div
+									class="space-card"
+									class:loading={loading_space_id === space.id}
+									onclick={() => handle_row_click(space)}
+									role="button"
+									tabindex="0"
+									title={space.title || space.id}
+								>
+									<div class="space-card-thumb">
+										{#if SPACE_IMAGES[space.id]}
+											<img
+												src={SPACE_IMAGES[space.id]}
+												alt={space.title || space.id}
+												loading="lazy"
+											/>
+										{:else}
+											<div
+												class="space-card-avatar"
+												style="background:linear-gradient(135deg, {avatar_color(
+													space.id
+												)}, {avatar_color(space.id + '_2')})"
+											>
+												{avatar_initial(space.id)}
+											</div>
+										{/if}
+										{#if space.zero_gpu}
+											<span
+												class="space-card-zerogpu"
+												title="ZeroGPU — always running">⚡ ZeroGPU</span
+											>
+										{/if}
+										{#if loading_space_id === space.id}
+											<div class="space-card-loading">
+												<span class="spinner"></span>
+											</div>
+										{/if}
+									</div>
+									<div class="space-card-body">
+										<div class="space-card-title">
+											{space.title || (space.id.split("/").pop() ?? space.id)}
+										</div>
+										<div class="space-card-meta">
+											{#if space.likes > 0}
+												<span class="space-likes"
+													>♥ {format_likes(space.likes)}</span
+												>
+											{/if}
+											{#if space.pipeline_tag}
+												<span class="space-card-tag">{space.pipeline_tag}</span>
+											{/if}
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+
+					{#if model_results.length > 0}
+						<div class="picker-section-header">Models</div>
+						<div class="picker-space-grid">
+							{#each model_results as model (model.id)}
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<div
+									class="space-card"
+									onclick={() => handle_row_click(model)}
+									role="button"
+									tabindex="0"
+									title={model.id}
+								>
+									<div class="space-card-thumb">
+										{#if SPACE_IMAGES[model.id]}
+											<img
+												src={SPACE_IMAGES[model.id]}
+												alt={model.title || model.id}
+												loading="lazy"
+											/>
+										{:else}
+											<div
+												class="space-card-avatar"
+												style="background:linear-gradient(135deg, {avatar_color(
+													model.id
+												)}, {avatar_color(model.id + '_2')})"
+											>
+												{avatar_initial(model.id)}
+											</div>
+										{/if}
+									</div>
+									<div class="space-card-body">
+										<div class="space-card-title">
+											{model.title || (model.id.split("/").pop() ?? model.id)}
+										</div>
+										<div class="space-card-meta">
+											<span class="space-card-owner"
+												>{model.id.split("/")[0]}</span
+											>
+											{#if model.likes > 0}
+												<span class="space-likes"
+													>♥ {format_likes(model.likes)}</span
+												>
+											{/if}
+											{#if model.pipeline_tag}
+												<span class="space-card-tag">{model.pipeline_tag}</span>
+											{/if}
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				{/if}
+			</div>
 		</div>
 	</div>
 </div>
@@ -830,12 +1011,12 @@
 
 	.picker-panel {
 		pointer-events: auto;
-		width: 520px;
-		/* Lock the panel to a fixed height so switching tabs (Featured /
-		 * Trending / New) doesn't make the modal jump up and down. The
-		 * results list scrolls inside; on short viewports we cap to leave
-		 * room for the toolbar and bottom bar. */
-		height: min(620px, calc(100vh - 160px));
+		width: min(940px, calc(100vw - 64px));
+		/* Lock the panel to a fixed height so switching tasks doesn't make
+		 * the modal jump up and down. The results list scrolls inside; on
+		 * short viewports we cap to leave room for the toolbar and bottom
+		 * bar. */
+		height: min(720px, calc(100vh - 160px));
 		background: #13141c;
 		border: 1px solid #2a2b36;
 		border-radius: 16px;
@@ -890,8 +1071,88 @@
 		color: #3e4050;
 	}
 
+	.picker-filter-pill {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 12px 14px 0;
+		padding: 6px 8px 6px 12px;
+		border-radius: 28px;
+		background: rgba(249, 115, 22, 0.12);
+		box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.32);
+		font-family: "Manrope", sans-serif;
+		flex-shrink: 0;
+	}
+
+	.picker-filter-label {
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #f97316;
+		opacity: 0.75;
+	}
+
+	.picker-filter-modality {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		font-weight: 700;
+		color: #f97316;
+		letter-spacing: -0.01em;
+	}
+
+	.picker-filter-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 16px;
+		height: 16px;
+	}
+
+	.picker-filter-close {
+		margin-left: auto;
+		width: 22px;
+		height: 22px;
+		border: none;
+		border-radius: 50%;
+		background: transparent;
+		color: rgba(249, 115, 22, 0.7);
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		transition: background 0.12s, color 0.12s;
+	}
+
+	.picker-filter-close:hover {
+		background: rgba(249, 115, 22, 0.18);
+		color: #f97316;
+	}
+
+	:global(body:not(.dark)) .picker-filter-pill {
+		background: rgba(249, 115, 22, 0.1);
+		box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.3);
+	}
+
+	:global(body:not(.dark)) .picker-filter-label,
+	:global(body:not(.dark)) .picker-filter-modality {
+		color: #d65500;
+	}
+
+	:global(body:not(.dark)) .picker-filter-close {
+		color: rgba(214, 85, 0, 0.7);
+	}
+
+	:global(body:not(.dark)) .picker-filter-close:hover {
+		background: rgba(214, 85, 0, 0.14);
+		color: #d65500;
+	}
+
 	.picker-search-row {
-		padding: 14px 16px 0;
+		padding: 14px 16px 10px;
 		flex-shrink: 0;
 	}
 
@@ -899,124 +1160,6 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-	}
-
-	.picker-mode-row {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		padding: 6px 16px 0;
-		flex-shrink: 0;
-		flex-wrap: wrap;
-		row-gap: 6px;
-	}
-
-	.picker-mode-label {
-		font-family: "Manrope", sans-serif;
-		font-size: 10px;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		color: #4a4d57;
-		margin-right: 4px;
-	}
-
-	.picker-mode-btn {
-		padding: 3px 8px;
-		border: none;
-		border-radius: 14px;
-		background: transparent;
-		color: #6b6e78;
-		font-family: "Manrope", sans-serif;
-		font-size: 11px;
-		font-weight: 500;
-		cursor: pointer;
-		transition:
-			background 0.1s,
-			color 0.1s;
-	}
-
-	.picker-mode-btn:hover {
-		color: #c8c9d2;
-		background: rgba(255, 255, 255, 0.04);
-	}
-
-	.picker-mode-btn.active {
-		color: #f97316;
-		background: rgba(249, 115, 22, 0.08);
-	}
-
-	.picker-zerogpu-toggle {
-		margin-left: auto;
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		padding: 3px 10px;
-		border-radius: 14px;
-		border: 1px solid #2a2b36;
-		font-family: "Manrope", sans-serif;
-		font-size: 11px;
-		font-weight: 600;
-		color: #8b8d98;
-		cursor: pointer;
-		user-select: none;
-		transition:
-			background 0.12s,
-			border-color 0.12s,
-			color 0.12s;
-	}
-
-	.picker-zerogpu-toggle input {
-		position: absolute;
-		opacity: 0;
-		width: 0;
-		height: 0;
-		pointer-events: none;
-	}
-
-	.picker-zerogpu-toggle:hover {
-		color: #d5d6de;
-		border-color: #3a3b48;
-	}
-
-	.picker-zerogpu-toggle.active {
-		background: rgba(249, 115, 22, 0.12);
-		border-color: rgba(249, 115, 22, 0.35);
-		color: #f97316;
-	}
-
-	:global(body:not(.dark)) .picker-zerogpu-toggle {
-		border-color: #e2e4ea;
-		color: #6b6e78;
-	}
-
-	:global(body:not(.dark)) .picker-zerogpu-toggle:hover {
-		color: #1a1b25;
-		border-color: #cdd0d8;
-	}
-
-	:global(body:not(.dark)) .picker-zerogpu-toggle.active {
-		background: rgba(249, 115, 22, 0.1);
-		border-color: rgba(249, 115, 22, 0.35);
-		color: #d65500;
-	}
-
-	:global(body:not(.dark)) .picker-mode-label {
-		color: #8b8d98;
-	}
-
-	:global(body:not(.dark)) .picker-mode-btn {
-		color: #8b8d98;
-	}
-
-	:global(body:not(.dark)) .picker-mode-btn:hover {
-		color: #3e4050;
-		background: rgba(0, 0, 0, 0.04);
-	}
-
-	:global(body:not(.dark)) .picker-mode-btn.active {
-		color: #ea580c;
-		background: rgba(249, 115, 22, 0.1);
 	}
 
 	.search-icon {
@@ -1051,6 +1194,161 @@
 	.picker-search:focus {
 		border-color: #f97316;
 		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+	}
+
+	.picker-body {
+		display: flex;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.picker-sidebar {
+		width: 200px;
+		flex-shrink: 0;
+		overflow-y: auto;
+		border-right: 1px solid #2a2b36;
+		padding: 4px 8px 14px;
+		scrollbar-width: thin;
+		scrollbar-color: #2a2b36 transparent;
+	}
+
+	.picker-sidebar-heading,
+	.picker-sidebar-group-heading {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 8px 6px;
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #4a4d57;
+	}
+
+	.picker-sidebar-group-heading {
+		margin-top: 14px;
+	}
+
+	.picker-sidebar-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 14px;
+		height: 14px;
+	}
+
+	.picker-sidebar-clear {
+		display: block;
+		width: calc(100% - 16px);
+		margin: 2px 8px 8px;
+		padding: 6px 10px;
+		border: 1px solid #2a2b36;
+		border-radius: 8px;
+		background: transparent;
+		color: #8b8d98;
+		font-family: "Manrope", sans-serif;
+		font-size: 11px;
+		font-weight: 600;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			background 0.12s,
+			border-color 0.12s,
+			color 0.12s;
+	}
+
+	.picker-sidebar-clear:hover {
+		background: rgba(255, 255, 255, 0.04);
+		border-color: #3a3b48;
+		color: #d5d6de;
+	}
+
+	.picker-task-item {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 7px 10px;
+		border: none;
+		border-radius: 8px;
+		background: transparent;
+		color: #8b8d98;
+		font-family: "Manrope", sans-serif;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			background 0.12s,
+			color 0.12s;
+	}
+
+	.picker-task-item:hover {
+		background: rgba(255, 255, 255, 0.04);
+		color: #e8e9f0;
+	}
+
+	.picker-task-item.active {
+		background: rgba(249, 115, 22, 0.08);
+		color: #f97316;
+	}
+
+	.picker-task-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 16px;
+		line-height: 1;
+		opacity: 0.85;
+		flex-shrink: 0;
+	}
+
+	.picker-task-item:hover .picker-task-icon,
+	.picker-task-item.active .picker-task-icon {
+		opacity: 1;
+	}
+
+	.picker-task-label {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	:global(body:not(.dark)) .picker-sidebar {
+		border-right-color: #e2e4ea;
+		scrollbar-color: #e2e4ea transparent;
+	}
+
+	:global(body:not(.dark)) .picker-sidebar-heading,
+	:global(body:not(.dark)) .picker-sidebar-group-heading {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .picker-sidebar-clear {
+		border-color: #e2e4ea;
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .picker-sidebar-clear:hover {
+		background: rgba(0, 0, 0, 0.04);
+		border-color: #cdd0d8;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .picker-task-item {
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .picker-task-item:hover {
+		background: rgba(0, 0, 0, 0.04);
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .picker-task-item.active {
+		background: rgba(249, 115, 22, 0.1);
+		color: #d65500;
 	}
 
 	.type-chip {
@@ -1136,52 +1434,12 @@
 		background: rgba(249, 115, 22, 0.05);
 	}
 
-	.space-row.fallback {
-		opacity: 0.65;
-	}
-	.space-row.fallback:hover {
-		opacity: 1;
-	}
-
-	.picker-subtabs {
-		display: flex;
-		gap: 2px;
-		padding: 8px 10px 0;
-		flex-shrink: 0;
-		flex-wrap: wrap;
-	}
-
-	.picker-subtab {
-		padding: 4px 10px;
-		border: 1px solid transparent;
-		border-radius: 20px;
-		background: transparent;
-		color: #5c5e6a;
-		font-family: "Manrope", sans-serif;
-		font-size: 11px;
-		font-weight: 600;
-		cursor: pointer;
-		transition:
-			background 0.15s,
-			color 0.15s,
-			border-color 0.15s;
-	}
-
-	.picker-subtab:hover {
-		background: rgba(255, 255, 255, 0.05);
-		color: #a0a2ae;
-	}
-
-	.picker-subtab.active {
-		background: rgba(249, 115, 22, 0.12);
-		border-color: rgba(249, 115, 22, 0.3);
-		color: #f97316;
-	}
-
 	.picker-results {
+		position: relative;
 		flex: 1;
+		min-width: 0;
 		overflow-y: auto;
-		padding: 6px 8px 10px;
+		padding: 6px 10px 12px;
 		scrollbar-width: thin;
 		scrollbar-color: #2a2b36 transparent;
 		transition: opacity 0.12s ease;
@@ -1191,10 +1449,187 @@
 		opacity: 0.55;
 	}
 
-	.picker-loading {
+	.picker-section-header {
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #4a4d57;
+		padding: 10px 6px 6px;
+	}
+
+	:global(body:not(.dark)) .picker-section-header {
+		color: #8b8d98;
+	}
+
+	.picker-space-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 12px;
+		padding: 2px 4px 8px;
+	}
+
+	.space-card {
+		display: block;
+		min-height: 180px;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.025);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		cursor: pointer;
+		overflow: hidden;
+		transition:
+			background 0.12s,
+			border-color 0.12s,
+			transform 0.12s;
+	}
+
+	.space-card:hover {
+		background: rgba(255, 255, 255, 0.05);
+		border-color: rgba(249, 115, 22, 0.35);
+		transform: translateY(-1px);
+	}
+
+	.space-card.loading {
+		opacity: 0.6;
+		pointer-events: none;
+	}
+
+	.space-card-thumb {
+		position: relative;
+		display: block;
+		width: 100%;
+		height: 120px;
+		min-height: 120px;
+		max-height: 120px;
+		overflow: hidden;
+		background: #0c0d10;
+		flex-shrink: 0;
+	}
+
+	.space-card-thumb img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.space-card-avatar {
+		position: absolute;
+		inset: 0;
 		display: flex;
+		align-items: center;
 		justify-content: center;
-		padding: 60px;
+		font-family: "Manrope", sans-serif;
+		font-size: 48px;
+		font-weight: 800;
+		color: rgba(0, 0, 0, 0.55);
+		text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
+	}
+
+	.space-card-zerogpu {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		font-family: "Manrope", sans-serif;
+		font-size: 9px;
+		font-weight: 700;
+		padding: 2px 6px;
+		border-radius: 6px;
+		background: rgba(249, 115, 22, 0.85);
+		color: #fff;
+		letter-spacing: 0.02em;
+	}
+
+	.space-card-loading {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(12, 13, 16, 0.55);
+	}
+
+	.space-card-body {
+		padding: 8px 10px 10px;
+		min-width: 0;
+	}
+
+	.space-card-title {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-family: "Manrope", sans-serif;
+		font-size: 13px;
+		font-weight: 700;
+		color: #e8e9f0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.space-card-meta {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 3px;
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		color: #6b6e78;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	.space-card-tag {
+		color: #8b8d98;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+
+	:global(body:not(.dark)) .space-card {
+		background: #fafbfc;
+		border-color: #e8eaef;
+	}
+
+	:global(body:not(.dark)) .space-card:hover {
+		background: #f4f5f8;
+		border-color: rgba(249, 115, 22, 0.35);
+	}
+
+	:global(body:not(.dark)) .space-card-thumb {
+		background: #f0f1f5;
+	}
+
+	:global(body:not(.dark)) .space-card-title {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .space-card-meta {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .space-card-tag {
+		color: #6b6e78;
+	}
+
+	.space-card-owner {
+		color: #6b6e78;
+		flex-shrink: 0;
+	}
+
+	:global(body:not(.dark)) .space-card-owner {
+		color: #8b8d98;
+	}
+
+	.picker-loading {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
 	}
 
 	.picker-empty {
@@ -1303,6 +1738,7 @@
 		font-size: 11px;
 		font-weight: 600;
 		color: #4a4d57;
+		flex-shrink: 0;
 	}
 
 	.space-row-link {
@@ -1315,6 +1751,7 @@
 		color: #4a4d57;
 		text-decoration: none;
 		opacity: 0;
+		flex-shrink: 0;
 		transition:
 			opacity 0.15s,
 			color 0.15s,

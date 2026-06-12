@@ -10,6 +10,7 @@
 	import {
 		MODALITIES,
 		DATASET_MODALITY,
+		ALL_MODALITY,
 		portMeta,
 		modalityForPort
 	} from "./workflow-modalities";
@@ -1362,8 +1363,8 @@
 		let anchorY: number | undefined;
 		if (canvasEl) {
 			const r = canvasEl.getBoundingClientRect();
-			const panelWidth = 536;
-			const panelHeight = 620;
+			const panelWidth = 940;
+			const panelHeight = 720;
 			const nodeScreenRight =
 				node.x * viewport.zoom + viewport.x + node.width * viewport.zoom;
 			anchorX = nodeScreenRight + 12;
@@ -1881,6 +1882,8 @@
 			{running}
 			{hasTransforms}
 			{boundFns}
+			{server}
+			activeModalityKey={activePicker?.modality.key ?? null}
 			onopenpicker={openPicker}
 			onaddinput={addInputNode}
 			onaddfn={addFnNode}
@@ -1907,6 +1910,10 @@
 					onupdate={handlePickerUpdate}
 					onclose={() => {
 						activePicker = null;
+					}}
+					oncleared={() => {
+						if (activePicker)
+							activePicker = { ...activePicker, modality: ALL_MODALITY };
 					}}
 					onerror={(msg) => showToast(msg, 5000, "error")}
 				/>
