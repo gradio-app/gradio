@@ -278,6 +278,8 @@ class TestLiveSchemaUpdate:
         assert _endpoint_names(wf) == {"/out0"}
         fns_after_one = len(wf.fns)
 
+        assert wf._api_endpoints is not None
+
         # Add a second output → endpoint appears after sync.
         path.write_text(_graph_with_subjects(2))
         wf._api_endpoints.sync()
@@ -300,6 +302,7 @@ class TestLiveSchemaUpdate:
         renamed = json.loads(_graph_with_subjects(1))
         renamed["subjects"][0]["label"] = "Final Image"
         path.write_text(json.dumps(renamed))
+        assert wf._api_endpoints is not None
         wf._api_endpoints.sync()
         assert _endpoint_names(wf) == {"/final_image"}
 
@@ -340,7 +343,10 @@ def _frontend_built() -> bool:
 
     return os.path.exists(
         os.path.join(
-            os.path.dirname(gr.__file__), "templates", "frontend", "index.html"
+            os.path.dirname(gr.__file__ or ""),
+            "templates",
+            "frontend",
+            "index.html",
         )
     )
 
@@ -366,6 +372,7 @@ class TestEndToEndClient:
         try:
             client = Client(local_url, verbose=False)
             api = client.view_api(return_format="dict")
+            assert isinstance(api, dict)
             named = api["named_endpoints"]
             assert "/loud" in named and "/reversed" in named
 
