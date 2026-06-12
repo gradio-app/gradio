@@ -1209,9 +1209,19 @@ class Workflow(Blocks):
                 if len(payload.encode()) > _max_workflow_bytes:
                     return json.dumps({"error": "Workflow payload exceeds 5 MB limit"})
                 try:
-                    json.loads(payload)
+                    parsed = json.loads(payload)
                 except json.JSONDecodeError as exc:
                     return json.dumps({"error": f"Invalid workflow JSON: {exc}"})
+                if not isinstance(parsed, dict) or parsed.get("schema_version") != "2":
+                    return json.dumps(
+                        {"error": "Workflow payload must use schema_version 2"}
+                    )
+                try:
+                    from gradio.workflow_api import WorkflowGraph
+
+                    WorkflowGraph(parsed)
+                except ValueError as exc:
+                    return json.dumps({"error": f"Invalid workflow schema: {exc}"})
                 with open(workflow_file, "w", encoding="utf-8") as f:
                     f.write(payload)
                 # Re-derive API endpoints so /info + /call track the saved graph

@@ -3,6 +3,7 @@
 
 	interface ApiParam {
 		label: string;
+		parameter_name?: string;
 		type: string;
 		python_type: string;
 	}
@@ -80,9 +81,7 @@
 		const imports = needsHandleFile
 			? "from gradio_client import Client, handle_file"
 			: "from gradio_client import Client";
-		const args = ep.parameters.map(
-			(p) => `\t\t${argName(p.label)}=${example(p)},`
-		);
+		const args = ep.parameters.map((p) => `\t\t${paramName(p)}=${example(p)},`);
 		return [
 			imports,
 			"",
@@ -97,7 +96,7 @@
 
 	function jsSnippet(ep: ApiEndpoint): string {
 		const args = ep.parameters
-			.map((p) => `\t${argName(p.label)}: ${example(p)}`)
+			.map((p) => `\t${paramName(p)}: ${example(p)}`)
 			.join(",\n");
 		return [
 			'import { Client } from "@gradio/client";',
@@ -129,6 +128,10 @@
 				.replace(/[^a-z0-9]+/g, "_")
 				.replace(/^_+|_+$/g, "") || "value"
 		);
+	}
+
+	function paramName(param: ApiParam): string {
+		return param.parameter_name || argName(param.label);
 	}
 
 	function snippet(ep: ApiEndpoint): string {
@@ -207,7 +210,7 @@
 								</div>
 								{#each ep.parameters as p}
 									<div class="api-port">
-										<span class="api-port-name">{argName(p.label)}</span>
+										<span class="api-port-name">{paramName(p)}</span>
 										<span class="api-port-type">{p.python_type}</span>
 									</div>
 								{:else}
@@ -218,7 +221,7 @@
 								<div class="api-io-label">Returns</div>
 								{#each ep.returns as r}
 									<div class="api-port">
-										<span class="api-port-name">{argName(r.label)}</span>
+										<span class="api-port-name">{paramName(r)}</span>
 										<span class="api-port-type">{r.python_type}</span>
 									</div>
 								{/each}

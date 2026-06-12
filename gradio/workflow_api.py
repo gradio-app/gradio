@@ -70,22 +70,42 @@ class WorkflowGraph:
             raise ValueError("Workflow graph must be a JSON object")
         self.raw = data
         self.name: str = data.get("name") or "Workflow"
-        self.references: list[dict] = list(data.get("references") or [])
-        self.operators: list[dict] = list(data.get("operators") or [])
-        self.subjects: list[dict] = list(data.get("subjects") or [])
-        self.edges: list[dict] = list(data.get("edges") or [])
+        self.references: list[dict] = self._list_field(data, "references")
+        self.operators: list[dict] = self._list_field(data, "operators")
+        self.subjects: list[dict] = self._list_field(data, "subjects")
+        self.edges: list[dict] = self._list_field(data, "edges")
 
         self.node_by_id: dict[str, dict] = {}
         self.role_by_id: dict[str, str] = {}
-        for n in self.references:
-            self.node_by_id[n["id"]] = n
-            self.role_by_id[n["id"]] = "reference"
-        for n in self.operators:
-            self.node_by_id[n["id"]] = n
-            self.role_by_id[n["id"]] = "operator"
-        for n in self.subjects:
-            self.node_by_id[n["id"]] = n
-            self.role_by_id[n["id"]] = "subject"
+        for role, nodes in (
+            ("reference", self.references),
+            ("operator", self.operators),
+            ("subject", self.subjects),
+        ):
+            for i, n in enumerate(nodes):
+                if not isinstance(n, dict):
+                    raise ValueError(f"Workflow {role} at index {i} must be an object")
+                node_id = n.get("id")
+                if not isinstance(node_id, str) or not node_id:
+                    raise ValueError(f"Workflow {role} at index {i} is missing an id")
+                if node_id in self.node_by_id:
+                    raise ValueError(f"Workflow contains duplicate node id: {node_id}")
+                self.node_by_id[node_id] = n
+                self.role_by_id[node_id] = role
+
+        for i, e in enumerate(self.edges):
+            if not isinstance(e, dict):
+                raise ValueError(f"Workflow edge at index {i} must be an object")
+            for key in ("from_node_id", "from_port_id", "to_node_id", "to_port_id"):
+                if not isinstance(e.get(key), str) or not e.get(key):
+                    raise ValueError(f"Workflow edge at index {i} is missing {key}")
+
+    @staticmethod
+    def _list_field(data: dict[str, Any], key: str) -> list[dict]:
+        value = data.get(key) or []
+        if not isinstance(value, list):
+            raise ValueError(f"Workflow field '{key}' must be a list")
+        return list(value)
 
     @classmethod
     def from_json(cls, text: str | None) -> WorkflowGraph | None:
@@ -95,11 +115,16 @@ class WorkflowGraph:
             data = json.loads(text)
         except (json.JSONDecodeError, TypeError):
             return None
+        if not isinstance(data, dict):
+            return None
         if data.get("schema_version") != "2":
             # Only the current schema is executable server-side; the frontend
             # migrates v1→v2 on load, so saved files are v2.
             return None
-        return cls(data)
+        try:
+            return cls(data)
+        except ValueError:
+            return None
 
     def has_incoming(self, node_id: str) -> bool:
         return any(e.get("to_node_id") == node_id for e in self.edges)
@@ -538,10 +563,11 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
                 "parameters": [
                     {
                         "label": f["label"],
+                        "parameter_name": f"in_{i}",
                         "type": f["type"],
                         "python_type": _PY_TYPE.get(f["type"], "str"),
                     }
-                    for f in frees
+                    for i, f in enumerate(frees)
                 ],
                 "returns": [
                     {
