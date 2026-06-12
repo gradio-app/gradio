@@ -131,26 +131,39 @@ await event.clear(el);
 
 **Always use `pnpm test:run`.** Never use `pnpm test` — it starts in watch mode and never exits.
 
+**Always prefix test commands with `CI=1`** so Vitest runs Playwright in headless mode (`headless: !!process.env.CI` in `js/spa/vite.config.ts`). This prevents a visible Chromium window from opening on the developer's desktop during agent verification runs.
+
 All commands are run from the repo root.
 
 ```bash
-# Run all unit tests
-pnpm test:run
+# Run all unit tests (headless)
+CI=1 pnpm test:run
 
 # Run a specific test file (match by filename)
-pnpm test:run Textbox.test.ts
+CI=1 pnpm test:run Textbox.test.ts
 
 # Run all tests within a folder (match by path segment)
-pnpm test:run dataframe
+CI=1 pnpm test:run dataframe
 
 # Filter by test name with -t
-pnpm test:run -t elem_id
+CI=1 pnpm test:run -t elem_id
 
 # Combine file/folder filter with test name filter
-pnpm test:run accordion -t elem_id
+CI=1 pnpm test:run accordion -t elem_id
+
+# Single file via vitest directly
+CI=1 npx vitest run --config .config/vitest.config.ts js/<pkg>/<Test>.test.ts
+```
+
+If tests fail with a missing `chrome-headless-shell` executable, install it once:
+
+```bash
+pnpm exec playwright install chromium --only-shell
 ```
 
 After writing or modifying tests, always run them to verify they pass.
+
+**Do NOT run browser tests automatically on branch checkout or `git pull`.** Only run tests when the user explicitly asks, or immediately after writing/modifying a test file. Branch operations are routine and should not trigger test runs.
 
 ## Test File Structure
 

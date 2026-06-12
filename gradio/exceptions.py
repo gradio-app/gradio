@@ -54,6 +54,14 @@ class GradioVersionIncompatibleError(Exception):
     pass
 
 
+class ComponentProcessingError(ValueError):
+    """Raised when a component fails to pre/postprocess a value passed to or
+    returned from an event handler. Wraps the original exception with information
+    identifying which component/argument was at fault."""
+
+    pass
+
+
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 

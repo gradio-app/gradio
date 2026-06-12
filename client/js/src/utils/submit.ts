@@ -452,6 +452,7 @@ export function submit(
 							time: new Date(),
 							visible: true
 						});
+						close();
 					} else if (status === 422) {
 						fire_event({
 							type: "status",
@@ -481,6 +482,7 @@ export function submit(
 							time: new Date(),
 							visible: true
 						});
+						close();
 					} else {
 						event_id = response.event_id as string;
 						event_id_final = event_id;
@@ -593,6 +595,7 @@ export function submit(
 									if (event_id! in pending_diff_streams) {
 										delete pending_diff_streams[event_id!];
 									}
+									close();
 								}
 							} catch (e) {
 								console.error("Unexpected client exception", e);
@@ -665,6 +668,9 @@ export function submit(
 		function next(): Promise<IteratorResult<GradioEvent, unknown>> {
 			if (values.length > 0) {
 				return Promise.resolve(values.shift() as (typeof values)[0]);
+			}
+			if (done) {
+				return Promise.resolve({ value: undefined, done: true });
 			}
 			return new Promise((resolve) => resolvers.push(resolve));
 		}

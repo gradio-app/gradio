@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "1.5.0",
+	"version": "1.7.0",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -61,7 +61,8 @@
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/vibeeditor": "workspace:^",
-		"@gradio/video": "workspace:^"
+		"@gradio/video": "workspace:^",
+		"@gradio/workflowcanvas": "workspace:^"
 	},
 	"msw": {
 		"workerDirectory": "public"
@@ -100,6 +101,7 @@
 		"directory": "js/core"
 	},
 	"dependencies": {
-		"dequal": "^2.0.3"
+		"dequal": "^2.0.3",
+		"svelte-i18n": "^4.0.1"
 	}
 }

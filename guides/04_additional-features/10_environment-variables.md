@@ -225,8 +225,24 @@ Environment variables in Gradio provide a way to customize your applications and
   ```
 
 
+### 24. `GRADIO_NUM_WORKERS`
 
+- **Description**: Number of multiple workers to launch in the background to offload traffic for file I/O and static assets from the main Gradio server. Only works when SSR mode is set.
+- **Default**: not set.
+- **Options**: Any positive integer.
+- **Example**:
+  ```sh
+  export GRADIO_NUM_WORKERS=4
+  ```
 
+### 25. `GRADIO_HEARTBEAT_INTERVAL`
+
+- **Description**: Sets the interval, in seconds, between heartbeats that keep a client session alive. When a client disconnects, this heartbeat is used to trigger `unload` events and clean up session state. Lowering this value can help detect disconnections faster in environments such as Kubernetes, where the default interval can delay session cleanup.
+- **Default**: `15`
+- **Example**:
+  ```sh
+  export GRADIO_HEARTBEAT_INTERVAL=5
+  ```
 
 ## How to Set Environment Variables
 

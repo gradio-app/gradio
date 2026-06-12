@@ -11,7 +11,7 @@
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
 		"ts:check": "svelte-check --tsconfig tsconfig.json --threshold error",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
-		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
+		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts && node --test js/app/proxy_routes.test.js",
 		"test:client": "pnpm --filter=@gradio/client test",
 		"test:browser": "pnpm --filter @self/spa test:browser",
 		"test:browser:reload": "CUSTOM_TEST=1 pnpm --filter @self/spa test:browser:reload",
@@ -22,7 +22,6 @@
 		"build-storybook": "storybook build",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
 		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
-		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
 		"website": "pnpm --filter @gradio/website build",
 		"package": "pnpm --filter @gradio/* --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --tsconfig=../../tsconfig.json",
 		"spaces:dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spaces-test dev"
@@ -38,8 +37,7 @@
 		"@csstools/postcss-global-data": "^3.1.0",
 		"@gradio/client": "workspace:^",
 		"@manypkg/get-packages": "^3.1.0",
-		"@playwright/experimental-ct-svelte": "^1.56.0",
-		"@playwright/test": "^1.56.0",
+		"@playwright/test": "^1.60.0",
 		"@self/build": "workspace:^",
 		"@self/tootils": "workspace:^",
 		"@sveltejs/package": "^2.5.7",
@@ -58,13 +56,14 @@
 		"eslint": "^9.37.0",
 		"eslint-plugin-svelte": "^3.12.4",
 		"globals": "^16.4.0",
+		"handlebars": "4.7.9",
 		"happy-dom": "^19.0.2",
 		"jsdom": "^27.0.0",
 		"kleur": "^4.1.5",
 		"msw": "^2.11.3",
 		"node-html-parser": "^7.0.1",
 		"npm-run-all2": "^8.0.4",
-		"playwright": "^1.56.0",
+		"playwright": "^1.60.0",
 		"plotly.js-dist-min": "^3.1.1",
 		"polka": "1.0.0-next.25",
 		"pollen-css": "^5.0.2",
@@ -151,6 +150,7 @@
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/vibeeditor": "workspace:^",
 		"@gradio/video": "workspace:^",
+		"@gradio/workflowcanvas": "workspace:^",
 		"@storybook/addon-a11y": "^10.1.11",
 		"@storybook/addon-docs": "^10.1.11",
 		"@storybook/addon-svelte-csf": "^5.0.10",
@@ -174,5 +174,10 @@
 		"extends": [
 			"plugin:storybook/recommended"
 		]
+	},
+	"pnpm": {
+		"overrides": {
+			"svelte": "5.48.0"
+		}
 	}
 }

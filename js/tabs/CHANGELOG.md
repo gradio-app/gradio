@@ -1,5 +1,23 @@
 # @gradio/tabs
 
+## 0.7.0
+
+### Features
+
+- [#13509](https://github.com/gradio-app/gradio/pull/13509) [`dcd072c`](https://github.com/gradio-app/gradio/commit/dcd072cd57f09ffd2dc5f97ae6afc505894824a6) - Migrate Chatbot, Tabs, TabItem to Svelte 5.  Thanks @dawoodkhan82!
+
+## 0.6.0
+
+### Features
+
+- [#13467](https://github.com/gradio-app/gradio/pull/13467) [`feba2e1`](https://github.com/gradio-app/gradio/commit/feba2e1e41c68f4bbdacf4c963d8d9689d4b3346) - `Tab`, `TabItem`, `Plot` Unit tests.  Thanks @dawoodkhan82!
+
+## 0.5.11
+
+### Fixes
+
+- [#13240](https://github.com/gradio-app/gradio/pull/13240) [`0d670ad`](https://github.com/gradio-app/gradio/commit/0d670adf41a0b510f7fd745495dce1664d38f0e5) - Fix browser freeze when a dataframe's value is set (e.g. via a tab select event), and only dispatch the tabs select event when the selected tab actually changes.  Thanks @freddyaboulton!
+
 ## 0.5.10
 
 ### Fixes

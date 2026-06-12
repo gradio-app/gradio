@@ -2,6 +2,19 @@
 
 ## 0.5.0
 
+### Dependency updates
+
+- @gradio/client@2.2.2
+
+## 0.5.0
+
+### Dependency updates
+
+- @gradio/client@2.2.1
+- @gradio/upload@0.17.10
+
+## 0.5.0
+
 ### Features
 
 - [#13252](https://github.com/gradio-app/gradio/pull/13252) [`e39f028`](https://github.com/gradio-app/gradio/commit/e39f0284582bbac93fd01b2a5eae4ecae219f252) - Add ImageSlider unit tests.  Thanks @pngwn!

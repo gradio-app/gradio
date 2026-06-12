@@ -179,7 +179,12 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        request.session["oauth_info"] = mocked_oauth_info
+        # `mocked_oauth_info` is computed once at startup, so its `expires_at` would
+        # eventually be in the past and every login would be treated as expired.
+        request.session["oauth_info"] = {
+            **mocked_oauth_info,
+            "expires_at": int(time.time()) + 8 * 60 * 60,  # 8 hours
+        }
         return _redirect_to_target(request)
 
     @app.get("/logout")
@@ -222,12 +227,32 @@ def _redirect_to_target(
     target = request.query_params.get("_target_url", default_target)
     # Prevent open redirect by stripping scheme/host and only using the path.
     parsed = urllib.parse.urlparse(target)
-    safe_target = parsed.path or "/"
+    # Collapse any leading slashes/backslashes so the result is always a
+    # single-slash local path. urlparse leaves 4+ leading slashes in `.path`
+    # (e.g. "////evil.com" -> "//evil.com"), which browsers resolve as a
+    # scheme-relative URL to an external host — restoring the CVE-2026-28415
+    # open redirect (GHSA-vwgg-rgg9-xx9q).
+    safe_target = "/" + (parsed.path or "").lstrip("/\\")
     if parsed.query:
         safe_target += "?" + parsed.query
     if parsed.fragment:
         safe_target += "#" + parsed.fragment
     return RedirectResponse(safe_target)
+
+
+def _get_valid_oauth_info_from_session(
+    session: typing.MutableMapping[str, typing.Any],
+) -> dict[str, typing.Any] | None:
+    oauth_info = session.get("oauth_info")
+    if oauth_info is None:
+        return None
+
+    expires_at = oauth_info.get("expires_at")
+    if expires_at is not None and expires_at < time.time():
+        session.pop("oauth_info", None)
+        return None
+
+    return oauth_info
 
 
 @dataclass

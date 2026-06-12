@@ -17,13 +17,13 @@ class Origin(Base):
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Source Sans Pro"),
+            fonts.LocalFont("Source Sans Pro", weights=(400, 600)),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.LocalFont("IBM Plex Mono"),
+            fonts.LocalFont("IBM Plex Mono", weights=(400, 600)),
             "ui-monospace",
             "Consolas",
             "monospace",

@@ -121,6 +121,7 @@
 		upload?: never;
 		select: SelectData;
 		end_stream: never;
+		fullscreen: boolean;
 	}>();
 
 	export let dragging = false;
@@ -184,7 +185,13 @@
 	<IconButtonWrapper>
 		{#if value?.url && !active_streaming}
 			{#if show_fullscreen_button}
-				<FullscreenButton {fullscreen} on:fullscreen />
+				<FullscreenButton
+					{fullscreen}
+					onclick={(is_fullscreen) => {
+						fullscreen = is_fullscreen;
+						dispatch("fullscreen", is_fullscreen);
+					}}
+				/>
 			{/if}
 			<IconButton
 				Icon={Clear}

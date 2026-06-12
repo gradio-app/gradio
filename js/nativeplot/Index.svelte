@@ -19,6 +19,7 @@
 
 	let props = $props();
 	const gradio = new Gradio<NativePlotEvents, NativePlotProps>(props);
+	gradio.watch_for_change();
 
 	let unique_colors = $derived.by(() => {
 		if (
@@ -377,6 +378,7 @@
 		if (!vegaEmbed) {
 			vegaEmbed = (await import("vega-embed")).default;
 		}
+		if (!chart_element) return;
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
 			resizeObserver!.observe(chart_element!);
@@ -655,13 +657,16 @@
 						color: gradio.props.color
 							? {
 									field: escape_field_name(gradio.props.color),
-									legend: {
-										orient: "bottom",
-										title: gradio.props.color_title,
-										values: gradio.props.colors_in_legend?.length
-											? [...gradio.props.colors_in_legend]
-											: undefined
-									},
+									legend:
+										gradio.props.colors_in_legend?.length === 0
+											? null
+											: {
+													orient: "bottom",
+													title: gradio.props.color_title,
+													values: gradio.props.colors_in_legend
+														? [...gradio.props.colors_in_legend]
+														: undefined
+												},
 									scale:
 										gradio.props.value!.datatypes[gradio.props.color] ===
 										"nominal"
@@ -819,8 +824,8 @@
 			{#if gradio.props.buttons?.some((btn) => typeof btn === "string" && btn === "fullscreen")}
 				<FullscreenButton
 					{fullscreen}
-					on:fullscreen={({ detail }) => {
-						fullscreen = detail;
+					onclick={(value) => {
+						fullscreen = value;
 					}}
 				/>
 			{/if}

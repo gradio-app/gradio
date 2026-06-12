@@ -69,7 +69,7 @@ class Plot(Component):
             value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure, or a callable. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             format: File format in which to send matplotlib plots to the front end, such as 'jpg' or 'png'.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -143,6 +143,13 @@ class Plot(Component):
         if isinstance(value, ModuleType) or "matplotlib" in value.__module__:
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(value, self.format)
+            try:
+                import matplotlib.pyplot as plt
+                from matplotlib.figure import Figure
+            except ImportError:
+                return PlotData(type=dtype, plot=out_y)
+            if isinstance(value, Figure):
+                plt.close(value)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
             from bokeh.embed import json_item  # type: ignore

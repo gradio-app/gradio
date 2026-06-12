@@ -1,5 +1,27 @@
 # @gradio/uploadbutton
 
+## 0.10.0
+
+### Features
+
+- [#13502](https://github.com/gradio-app/gradio/pull/13502) [`429faeb`](https://github.com/gradio-app/gradio/commit/429faeb643fb1afc1722c0f63fafa11603f2c87f) - Ensure every component dispatches a `change` event when its value changes.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.2.2
+- @gradio/button@0.7.0
+
+## 0.9.19
+
+### Fixes
+
+- [#13336](https://github.com/gradio-app/gradio/pull/13336) [`14c8870`](https://github.com/gradio-app/gradio/commit/14c88701756c5fa57e8eaeac4df1385b9601da45) - Add UploadButton unit tests.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/client@2.2.1
+- @gradio/upload@0.17.10
+
 ## 0.9.18
 
 ### Dependency updates

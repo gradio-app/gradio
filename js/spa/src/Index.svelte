@@ -181,6 +181,11 @@
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
 					let newElement = document.createElement(head_element.tagName);
+					if (newElement.tagName === "SCRIPT") {
+						// Created scripts default to force-async; restore document order
+						// (an explicit `async` attribute is re-applied just below).
+						(newElement as HTMLScriptElement).async = false;
+					}
 					Array.from(head_element.attributes).forEach((attr) => {
 						newElement.setAttribute(attr.name, attr.value);
 					});

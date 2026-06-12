@@ -13,13 +13,38 @@
 
 	const container = true;
 
+	// Translate the display side only; values stay raw for selection matching.
+	let translated_choices = $derived(
+		gradio.props.choices.map(
+			([display, value]) =>
+				[gradio.live_i18n(display), value] as [string, string | number]
+		)
+	);
+
 	$effect(() => {
 		if (display_value) {
-			candidate = gradio.props.choices.filter(
+			candidate = translated_choices.filter(
 				(choice) => choice[0] === display_value
 			);
-			gradio.props.value = candidate.length ? candidate[0][1] : "";
-			gradio.dispatch("input");
+			if (candidate.length) {
+				if (gradio.props.value !== candidate[0][1]) {
+					gradio.props.value = candidate[0][1];
+					gradio.dispatch("input");
+				}
+			} else {
+				const current = translated_choices.find(
+					(choice) => choice[1] === gradio.props.value
+				);
+				if (current) {
+					// The display strings changed under us (e.g. a runtime locale
+					// switch): refresh the displayed string from the still-valid
+					// internal value instead of clearing the selection.
+					display_value = current[0];
+				} else {
+					gradio.props.value = "";
+					gradio.dispatch("input");
+				}
+			}
 		}
 		if (old_value != gradio.props.value) {
 			old_value = gradio.props.value;
@@ -52,7 +77,7 @@
 			>{gradio.shared.label}</BlockTitle
 		>
 		<select disabled={!gradio.shared.interactive} bind:value={display_value}>
-			{#each gradio.props.choices as choice}
+			{#each translated_choices as choice}
 				<option>{choice[0]}</option>
 			{/each}
 		</select>
