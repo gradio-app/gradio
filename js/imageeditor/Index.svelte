@@ -116,7 +116,7 @@
 			value={gradio.props.value?.composite || null}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
-			buttons={gradio.props.buttons}
+			buttons={gradio.props.buttons ?? []}
 			selectable={gradio.props._selectable}
 			i18n={gradio.i18n}
 		/>
@@ -146,16 +146,16 @@
 		/>
 
 		<InteractiveImageEditor
-			border_region={gradio.props.border_region}
+			border_region={gradio.props.border_region ?? 0}
 			bind:is_dragging
-			canvas_size={gradio.props.canvas_size}
+			canvas_size={gradio.props.canvas_size ?? [800, 800]}
 			bind:image_id
 			layers={normalised_layers}
 			composite={normalised_composite}
 			background={normalised_background}
 			bind:this={editor_instance}
 			root={gradio.shared.root}
-			sources={gradio.props.sources}
+			sources={gradio.props.sources ?? ["upload", "webcam", "clipboard"]}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			fixed_canvas={gradio.props.fixed_canvas}
@@ -191,13 +191,13 @@
 				}
 			}}
 			on:error
-			brush={gradio.props.brush}
-			eraser={gradio.props.eraser}
-			changeable={gradio.shared.attached_events.includes("apply")}
-			realtime={gradio.shared.attached_events.includes("change") ||
-				gradio.shared.attached_events.includes("input")}
+			brush={gradio.props.brush ?? false}
+			eraser={gradio.props.eraser ?? false}
+			changeable={gradio.shared.attached_events?.includes("apply") ?? false}
+			realtime={gradio.shared.attached_events?.includes("change") ||
+				gradio.shared.attached_events?.includes("input")}
 			i18n={gradio.i18n}
-			transforms={gradio.props.transforms}
+			transforms={gradio.props.transforms ?? []}
 			accept_blobs={gradio.shared.server.accept_blobs}
 			layer_options={gradio.props.layers}
 			upload={(...args) => gradio.shared.client.upload(...args)}
@@ -205,8 +205,8 @@
 			webcam_options={gradio.props.webcam_options}
 			show_download_button={gradio.props.buttons === null
 				? true
-				: gradio.props.buttons.includes("download")}
-			theme_mode={gradio.shared.theme_mode}
+				: (gradio.props.buttons ?? []).includes("download")}
+			theme_mode={gradio.shared.theme_mode === "dark" ? "dark" : "light"}
 			on:download_error={(e) => gradio.dispatch("error", e.detail)}
 		></InteractiveImageEditor>
 	</Block>

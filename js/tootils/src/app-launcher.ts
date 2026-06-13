@@ -102,7 +102,7 @@ function isPortFree(port: number): Promise<boolean> {
  */
 async function waitForServerReady(
 	port: number,
-	timeoutMs: number = 15000
+	timeoutMs = 15000
 ): Promise<void> {
 	const start = Date.now();
 	const pollInterval = 200;
@@ -171,8 +171,8 @@ function getDemoFilePath(demoName: string, testcaseName?: string): string {
 
 export async function launchGradioApp(
 	demoName: string,
-	workerIndex: number = 0,
-	timeout: number = 60000,
+	workerIndex = 0,
+	timeout = 60000,
 	testcaseName?: string
 ): Promise<GradioApp> {
 	// Sweep orphaned demo apps from previous (crashed) worker generations

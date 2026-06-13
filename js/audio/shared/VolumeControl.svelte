@@ -23,8 +23,8 @@
 		if (!slider) return;
 
 		slider.style.background = `linear-gradient(to right, var(--color-accent) ${
-			currentVolume * 100
-		}%, var(--neutral-400) ${currentVolume * 100}%)`;
+			(currentVolume ?? 1) * 100
+		}%, var(--neutral-400) ${(currentVolume ?? 1) * 100}%)`;
 	};
 
 	$effect(() => {
@@ -41,7 +41,7 @@
 	min="0"
 	max="1"
 	step="0.01"
-	value={currentVolume}
+	value={currentVolume ?? 1}
 	onfocusout={() => (show_volume_slider = false)}
 	oninput={(e) => {
 		if (e.target instanceof HTMLInputElement) {

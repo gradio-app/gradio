@@ -184,6 +184,12 @@
 	let scroll_after_component_load = $state(false);
 	let has_scrolled_on_mount = false;
 
+	function scroll_to_bottom_after_component_load(): void {
+		if (scroll_after_component_load) {
+			scroll_to_bottom();
+		}
+	}
+
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
 		if (is_at_bottom()) {
@@ -399,7 +405,7 @@
 							handle_action(i, messages[0], selected);
 						}
 					}}
-					scroll={is_browser ? scroll_to_bottom : () => {}}
+					scroll={is_browser ? scroll_to_bottom_after_component_load : () => {}}
 					{allow_file_downloads}
 					{onerror}
 					{onshare}

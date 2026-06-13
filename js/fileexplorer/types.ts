@@ -1,4 +1,4 @@
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { SelectData, CustomButton } from "@gradio/utils";
 import type { FileNode } from "./shared/types";
 

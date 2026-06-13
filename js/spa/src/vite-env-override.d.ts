@@ -19,3 +19,5 @@ declare module "virtual:component-loader" {
 		runtime: false | typeof import("svelte");
 	};
 }
+
+declare module "virtual:cc-init";

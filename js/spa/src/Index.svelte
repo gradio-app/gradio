@@ -294,14 +294,23 @@
 
 	let pending_deep_link_error = false;
 
-	let new_message_fn: (title: string, message: string, type: string) => void;
+	type AddNewMessage = (
+		title: string,
+		message: string,
+		fn_index: number,
+		type: "info" | "error" | "success" | "warning",
+		duration?: number | null,
+		visible?: boolean
+	) => void;
+
+	let new_message_fn: AddNewMessage;
 
 	$: if (new_message_fn && pending_deep_link_error) {
 		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
 		pending_deep_link_error = false;
 	}
 
-	let reload_count: number = 0;
+	let reload_count = 0;
 
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
@@ -339,7 +348,7 @@
 			throw new Error("Could not resolve app config");
 		}
 
-		config = app.get_url_config();
+		config = app.get_url_config() as unknown as Config;
 		window.__gradio_space__ = config.space_id;
 
 		if (app.config?.i18n_translations) {
@@ -413,7 +422,7 @@
 						throw new Error("Could not resolve app config");
 					}
 
-					config = app.get_url_config();
+					config = app.get_url_config() as unknown as Config;
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
 					await add_custom_html_head(config.head);
@@ -597,7 +606,7 @@
 				{app}
 				{...config}
 				bind:ready
-				fill_height={!is_embed && config.fill_height}
+				fill_height={!is_embed && !!config.fill_height}
 				theme_mode={active_theme_mode}
 				{control_page_title}
 				target={wrapper}
@@ -606,6 +615,7 @@
 				bind:add_new_message={new_message_fn}
 				footer_links={is_embed ? [] : config.footer_links}
 				{app_mode}
+				vibe_mode={false}
 				{version}
 				api_prefix={config.api_prefix || ""}
 				max_file_size={config.max_file_size}

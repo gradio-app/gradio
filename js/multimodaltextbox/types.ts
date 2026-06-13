@@ -1,6 +1,6 @@
 import type { FileData } from "@gradio/client";
 import type { SelectData } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { InputHTMLAttributes } from "./shared/types";
 import type { WaveformOptions } from "js/audio/shared/types";
 

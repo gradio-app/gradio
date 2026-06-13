@@ -1,5 +1,5 @@
 import { test, describe, afterEach, expect } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import AnnotatedImage from "./Index.svelte";
@@ -231,6 +231,24 @@ describe("Props: buttons", () => {
 
 		expect(getByLabelText("Fullscreen")).toBeTruthy();
 		expect(getByLabelText("Fullscreen")).toBeVisible();
+	});
+
+	test("clicking the fullscreen button toggles fullscreen mode", async () => {
+		const { getByLabelText } = await render(AnnotatedImage, {
+			...default_props,
+			value: fake_value,
+			buttons: ["fullscreen"]
+		});
+
+		await fireEvent.click(getByLabelText("Fullscreen"));
+		await waitFor(() => {
+			expect(getByLabelText("Exit fullscreen mode")).toBeVisible();
+		});
+
+		await fireEvent.click(getByLabelText("Exit fullscreen mode"));
+		await waitFor(() => {
+			expect(getByLabelText("Fullscreen")).toBeVisible();
+		});
 	});
 
 	test("empty buttons array shows no fullscreen button", async () => {

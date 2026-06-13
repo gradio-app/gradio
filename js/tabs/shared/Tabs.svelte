@@ -13,7 +13,8 @@
 		component_id: number;
 	}
 
-	export type TabSelectData = SelectData & {
+	export type TabSelectData = Omit<SelectData, "index"> & {
+		index: number;
 		id: string | number;
 		component_id: string | number;
 	};

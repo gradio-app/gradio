@@ -5,7 +5,7 @@
 	import type { Gradio } from "@gradio/utils";
 	import { Block, Info } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id = "";
