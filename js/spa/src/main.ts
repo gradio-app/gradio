@@ -12,6 +12,10 @@ import { mount, unmount } from "svelte";
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
 
+declare global {
+	var __MODE__: "_NORMAL_" | "_CC_" | undefined;
+}
+
 const ENTRY_CSS = "__ENTRY_CSS__";
 
 let FONTS: string | [];

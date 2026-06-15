@@ -68,7 +68,7 @@
 			coords: [number, number];
 		}) => void;
 		onkeydown?: (event: KeyboardEvent) => void;
-		pad_left: boolean;
+		pad_left?: boolean;
 	} = $props();
 
 	function truncate_text(

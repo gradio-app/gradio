@@ -31,16 +31,16 @@
 		on_blur,
 		on_key_up
 	}: {
-		label: string;
+		label?: string;
 		info?: string;
-		value: string | number | null;
-		choices: [string, string | number][];
-		interactive: boolean;
-		show_label: boolean;
-		container: boolean;
-		allow_custom_value: boolean;
-		filterable: boolean;
-		buttons: (string | CustomButtonType)[] | null;
+		value?: string | number | null;
+		choices?: [string, string | number][];
+		interactive?: boolean;
+		show_label?: boolean;
+		container?: boolean;
+		allow_custom_value?: boolean;
+		filterable?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
 		oncustom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
 		on_input?: () => void;

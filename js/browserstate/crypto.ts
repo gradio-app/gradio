@@ -17,6 +17,8 @@ export function encrypt(data: string, key: string): string {
 export function decrypt(encryptedData: string, key: string): string {
 	const hashedKey = CryptoJS.SHA256(key).toString();
 	const [ivString, cipherString] = encryptedData.split(":");
+	if (!ivString || !cipherString) return "";
+
 	const iv = CryptoJS.enc.Base64.parse(ivString);
 	const decrypted = CryptoJS.AES.decrypt(cipherString, hashedKey, {
 		iv: iv,
@@ -24,5 +26,9 @@ export function decrypt(encryptedData: string, key: string): string {
 		padding: CryptoJS.pad.Pkcs7
 	});
 
-	return decrypted.toString(CryptoJS.enc.Utf8);
+	try {
+		return decrypted.toString(CryptoJS.enc.Utf8);
+	} catch {
+		return "";
+	}
 }

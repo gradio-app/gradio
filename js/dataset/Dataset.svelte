@@ -9,7 +9,7 @@
 	import MountExample from "./MountExample.svelte";
 
 	interface Props {
-		components: string[];
+		components: { name: string; class_id: string }[];
 		component_props: Record<string, any>[];
 		load_component: load_component_type;
 		headers: string[];
@@ -245,7 +245,7 @@
 							onmouseleave={() => handle_mouseleave()}
 						>
 							{#each sample_row as { value, component, runtime }, j (j)}
-								{@const component_name = components[j]}
+								{@const component_name = components[j]?.name}
 
 								{#if component_name !== undefined}
 									<td

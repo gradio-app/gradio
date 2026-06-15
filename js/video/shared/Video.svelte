@@ -33,6 +33,7 @@
 		onloadedmetadata?: () => void;
 		"data-testid"?: string;
 		children?: Snippet;
+		[key: string]: any;
 	}
 
 	let {

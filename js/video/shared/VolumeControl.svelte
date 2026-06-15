@@ -7,7 +7,7 @@
 	}
 
 	let {
-		current_volume = $bindable(1),
+		current_volume = $bindable(),
 		show_volume_slider = $bindable(false)
 	}: Props = $props();
 
@@ -22,8 +22,8 @@
 		if (!slider) return;
 
 		slider.style.background = `linear-gradient(to right, white ${
-			current_volume * 100
-		}%, rgba(255, 255, 255, 0.3) ${current_volume * 100}%)`;
+			(current_volume ?? 1) * 100
+		}%, rgba(255, 255, 255, 0.3) ${(current_volume ?? 1) * 100}%)`;
 	};
 
 	$effect(() => {
@@ -40,7 +40,7 @@
 	min="0"
 	max="1"
 	step="0.01"
-	value={current_volume}
+	value={current_volume ?? 1}
 	onfocusout={() => (show_volume_slider = false)}
 	oninput={(e) => {
 		if (e.target instanceof HTMLInputElement) {

@@ -422,7 +422,7 @@
 
 	async function select_dataset(dataset: SpaceResult) {
 		loading_space_id = dataset.id;
-		let outputs: Array<{ id: string; label: string; type: string }> = [
+		let outputs: { id: string; label: string; type: string }[] = [
 			{ id: "out_0", label: "Data", type: "json" }
 		];
 		let config = "default";

@@ -1,5 +1,5 @@
 import type { SelectData } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { DataframeValue, Datatype, EditData } from "./shared/utils/utils";
 
 export interface DataframeEvents {

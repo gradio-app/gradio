@@ -1,5 +1,5 @@
 import { uploadToHuggingFace } from "@gradio/utils";
-import { FileData, Client } from "@gradio/client";
+import { FileData } from "@gradio/client";
 
 export async function format_gallery_for_sharing(
 	value: [FileData, string | null][] | null
@@ -19,8 +19,8 @@ export async function format_gallery_for_sharing(
 
 export async function handle_save(
 	img_blob: Blob,
-	upload: Client["upload"],
-	filename: string = "uploaded_file"
+	upload: (files: FileData[]) => Promise<(FileData | null)[] | null>,
+	filename = "uploaded_file"
 ): Promise<FileData[]> {
 	const ext = img_blob.type.split("/")[1] || "png";
 	const f_ = new File([img_blob], `${filename}.${ext}`);
@@ -34,5 +34,7 @@ export async function handle_save(
 			is_stream: false
 		})
 	];
-	return (await upload(...files)) as FileData[];
+	return ((await upload(files)) ?? []).filter(
+		(file): file is FileData => file !== null
+	);
 }
