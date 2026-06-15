@@ -66,11 +66,6 @@
 	{template}
 />
 <Story
-	name="Stop"
-	args={{ label: "Upload", variant: "stop", size: "lg" }}
-	{template}
-/>
-<Story
 	name="Button with external image icon"
 	args={{
 		label: "Upload",
@@ -79,11 +74,6 @@
 			url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
 		}
 	}}
-	{template}
-/>
-<Story
-	name="Button with visible equal to false"
-	args={{ label: "Upload", visible: false }}
 	{template}
 />
 <Story

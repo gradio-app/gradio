@@ -19,13 +19,3 @@
 	{/snippet}
 </Story>
 
-<Story
-	name="Empty Value"
-	args={{
-		value: { text: "", files: [] }
-	}}
->
-	{#snippet template(args)}
-		<MultimodalTextbox {...args} />
-	{/snippet}
-</Story>

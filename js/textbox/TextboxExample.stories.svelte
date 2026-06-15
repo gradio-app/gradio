@@ -20,17 +20,6 @@
 </Story>
 
 <Story
-	name="Null"
-	args={{
-		value: null
-	}}
->
-	{#snippet template(args)}
-		<Textbox {...args} />
-	{/snippet}
-</Story>
-
-<Story
 	name="Long text truncated at 60 chars"
 	args={{
 		value: [

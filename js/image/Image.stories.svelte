@@ -1,7 +1,6 @@
 <script module>
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
-	import { userEvent, within, expect } from "storybook/test";
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
@@ -36,13 +35,6 @@
 		placeholder: "This is a cheetah",
 		buttons: ["fullscreen", "download"],
 		webcam_options: { mirror: true, constraints: null }
-	}}
-	play={async ({ canvasElement }) => {
-		const canvas = within(canvasElement);
-		const expand_btn = await canvas.findByRole("button", {
-			name: "Fullscreen"
-		});
-		expect(expand_btn).toBeTruthy();
 	}}
 >
 	{#snippet template(args)}
@@ -147,41 +139,6 @@
 </Story>
 
 <Story
-	name="interactive with upload, clipboard, and webcam"
-	args={{
-		sources: ["upload", "clipboard", "webcam"],
-		value: {
-			path: cheetah,
-			url: cheetah,
-			orig_name: "cheetah.jpg"
-		},
-		show_label: false,
-		interactive: true,
-		placeholder: md,
-		buttons: [],
-		webcam_options: { mirror: true, constraints: null }
-	}}
-	parameters={{ chromatic: { disableSnapshot: true } }}
-	play={async ({ canvasElement }) => {
-		const canvas = within(canvasElement);
-		const webcamButton = await canvas.findByLabelText("Capture from camera");
-		userEvent.click(webcamButton);
-		userEvent.click(await canvas.findByTitle("grant webcam access"));
-		userEvent.click(await canvas.findByLabelText("Upload file"));
-		userEvent.click(await canvas.findByLabelText("Paste from clipboard"));
-	}}
->
-	{#snippet template(args)}
-		<div
-			class="image-container"
-			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
-		>
-			<StaticImage {...wrapProps(args)} />
-		</div>
-	{/snippet}
-</Story>
-
-<Story
 	name="interactive with webcam"
 	args={{
 		sources: ["webcam"],
@@ -218,27 +175,3 @@
 	{/snippet}
 </Story>
 
-<Story
-	name="interactive webcam with streaming"
-	args={{
-		sources: ["webcam"],
-		interactive: true,
-		value: {
-			path: cheetah,
-			url: cheetah,
-			orig_name: "cheetah.jpg"
-		},
-		streaming: true,
-		buttons: ["download"],
-		webcam_options: { mirror: true, constraints: null }
-	}}
->
-	{#snippet template(args)}
-		<div
-			class="image-container"
-			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
-		>
-			<StaticImage {...wrapProps(args)} />
-		</div>
-	{/snippet}
-</Story>

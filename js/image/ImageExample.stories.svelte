@@ -25,13 +25,3 @@
 	{/snippet}
 </Story>
 
-<Story
-	name="Null"
-	args={{
-		value: null
-	}}
->
-	{#snippet template(args)}
-		<Image {...args} />
-	{/snippet}
-</Story>

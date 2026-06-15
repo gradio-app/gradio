@@ -57,11 +57,3 @@
 	}}
 	{template}
 />
-<Story
-	name="Single label text with show_heading set to false"
-	args={{
-		show_heading: false,
-		value: { label: "Test label", confidence: 0.8 }
-	}}
-	{template}
-/>

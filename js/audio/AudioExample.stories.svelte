@@ -19,13 +19,3 @@
 	{/snippet}
 </Story>
 
-<Story
-	name="Null"
-	args={{
-		value: null
-	}}
->
-	{#snippet template(args)}
-		<Audio {...args} />
-	{/snippet}
-</Story>

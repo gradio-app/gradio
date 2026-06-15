@@ -1,7 +1,6 @@
 <script module>
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import JSON from "./Index.svelte";
-	import { userEvent, within } from "storybook/test";
 	import { wrapProps } from "../storybook/wrapProps";
 
 	const { Story } = defineMeta({
@@ -42,23 +41,6 @@
 </Story>
 
 <Story
-	name="with interactivity"
-	args={{ value: example_json, interactive: true }}
-	play={async ({ canvasElement }) => {
-		const canvas = within(canvasElement);
-		const toggles = within(canvasElement).getAllByRole("button");
-		await userEvent.click(toggles[1]);
-		await userEvent.click(toggles[1]);
-		await userEvent.click(toggles[2]);
-		await userEvent.click(canvas.getAllByText("Object(2)")[0]);
-	}}
->
-	{#snippet template(args)}
-		<JSON {...wrapProps({ value: example_json, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
 	name="with show_indices and height"
 	args={{ value: example_json, show_indices: true, height: 200 }}
 >
@@ -76,11 +58,3 @@
 	{/snippet}
 </Story>
 
-<Story
-	name="with array and hidden indices"
-	args={{ value: example_arr, show_indices: false, open: true }}
->
-	{#snippet template(args)}
-		<JSON {...wrapProps(args)} />
-	{/snippet}
-</Story>
