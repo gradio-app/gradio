@@ -19,15 +19,6 @@
 	});
 </script>
 
-<Story name="Row Layout">
-	{#snippet template(args)}
-		<Row {...wrapProps(args)}>
-			<Button elem_id="btn" size="lg">test</Button>
-			<Button elem_id="btn" size="lg">test</Button>
-		</Row>
-	{/snippet}
-</Story>
-
 <Story name="Row with multiple items">
 	{#snippet template(args)}
 		<Row {...wrapProps(args)}>

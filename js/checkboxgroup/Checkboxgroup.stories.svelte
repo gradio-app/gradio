@@ -104,21 +104,6 @@
 	{template}
 />
 <Story
-	name="CheckboxGroup without label"
-	args={{
-		value: ["swim", "run"],
-		choices: [
-			["Run", "run"],
-			["Swim", "swim"],
-			["Jump", "jump"]
-		],
-		label: "Select your activities",
-		interactive: true,
-		show_label: false
-	}}
-	{template}
-/>
-<Story
 	name="CheckboxGroup disabled"
 	args={{
 		value: ["swim", "run"],
@@ -149,23 +134,6 @@
 		],
 		label: "Select programming languages",
 		info: "Select all languages you're familiar with",
-		interactive: true,
-		show_label: true
-	}}
-	{template}
-/>
-<Story
-	name="CheckboxGroup with different display and internal values"
-	args={{
-		value: ["jump", "jump_again"],
-		choices: [
-			["Running (Cardio)", "run"],
-			["Swimming (Full Body)", "swim"],
-			["Jumping (Beginner)", "jump"],
-			["Jumping (Advanced)", "jump_again"]
-		],
-		label: "Exercise Selection",
-		info: "Internal values differ from display text",
 		interactive: true,
 		show_label: true
 	}}

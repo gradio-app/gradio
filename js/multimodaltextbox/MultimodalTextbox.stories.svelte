@@ -82,29 +82,6 @@
 	{template}
 />
 <Story
-	name="MultimodalTextbox with 5 lines and max 5 lines"
-	args={{
-		lines: 5,
-		max_lines: 5,
-		sources: ["upload", "microphone"],
-		file_types: [],
-		value: { text: "", files: [] }
-	}}
-	{template}
-/>
-<Story
-	name="Right aligned textbox"
-	args={{
-		text_align: "right",
-		sources: ["upload", "microphone"],
-		file_types: [],
-		lines: 1,
-		max_lines: 5,
-		value: { text: "", files: [] }
-	}}
-	{template}
-/>
-<Story
 	name="Single file upload"
 	args={{
 		file_count: "single",

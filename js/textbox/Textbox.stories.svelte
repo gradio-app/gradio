@@ -78,11 +78,6 @@
 	{template}
 />
 <Story
-	name="Right aligned textbox"
-	args={{ text_align: "right", value: "hello world", interactive: true }}
-	{template}
-/>
-<Story
 	name="RTL textbox"
 	args={{ rtl: true, value: "hello world", interactive: true }}
 	{template}

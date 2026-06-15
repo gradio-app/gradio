@@ -57,24 +57,6 @@
 	{template}
 />
 <Story
-	name="Static video with vertical video"
-	args={{
-		value: {
-			path: video_sample,
-			url: video_sample,
-			orig_name: "video_sample.mp4"
-		},
-		label: "world video",
-		show_label: true,
-		buttons: [],
-		interactive: false,
-		height: 200,
-		width: 400,
-		webcam_options: { mirror: true, constraints: null }
-	}}
-	{template}
-/>
-<Story
 	name="Upload video"
 	args={{
 		label: "world video",
@@ -84,25 +66,6 @@
 		width: 400,
 		height: 400,
 		value: null,
-		webcam_options: { mirror: true, constraints: null }
-	}}
-	{template}
-/>
-<Story
-	name="Upload video with download button"
-	args={{
-		label: "world video",
-		show_label: true,
-		interactive: true,
-		sources: ["upload", "webcam"],
-		buttons: ["download"],
-		width: 400,
-		height: 400,
-		value: {
-			path: video_sample,
-			url: video_sample,
-			orig_name: "video_sample.mp4"
-		},
 		webcam_options: { mirror: true, constraints: null }
 	}}
 	{template}

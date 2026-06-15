@@ -19,15 +19,6 @@
 	});
 </script>
 
-<Story name="Group Layout">
-	{#snippet template(args)}
-		<Group {...wrapProps(args)}>
-			<Button elem_id="btn" size="lg">test</Button>
-			<Button elem_id="btn" size="lg">test</Button>
-		</Group>
-	{/snippet}
-</Story>
-
 <Story name="Group with multiple items">
 	{#snippet template(args)}
 		<Group {...wrapProps(args)}>

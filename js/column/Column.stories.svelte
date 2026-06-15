@@ -19,15 +19,6 @@
 	});
 </script>
 
-<Story name="Column Layout">
-	{#snippet template(args)}
-		<Column {...wrapProps(args)}>
-			<Button elem_id="btn" size="lg">test</Button>
-			<Button elem_id="btn" size="lg">test</Button>
-		</Column>
-	{/snippet}
-</Story>
-
 <Story name="Column with multiple items">
 	{#snippet template(args)}
 		<Column {...wrapProps(args)}>

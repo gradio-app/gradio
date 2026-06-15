@@ -121,15 +121,6 @@
 />
 
 <Story
-	name="Custom Main Page Name"
-	args={{
-		visible: true,
-		main_page_name: "Dashboard",
-		value: null
-	}}
-/>
-
-<Story
 	name="Additional Pages"
 	args={{
 		visible: true,
@@ -138,14 +129,5 @@
 			["Analytics", "analytics"],
 			["Twitter", "https://twitter.com/abidlabs"]
 		]
-	}}
-/>
-
-<Story
-	name="Hidden Navbar"
-	args={{
-		visible: false,
-		main_page_name: "Home",
-		value: null
 	}}
 />

@@ -49,40 +49,10 @@
 	{template}
 />
 <Story
-	name="Audio Player without recording waveform"
-	args={{
-		value: {
-			path: audio_sample,
-			url: audio_sample,
-			orig_name: "audio_sample.mp3"
-		},
-		waveform_options: { show_recording_waveform: false },
-		label: "Audio Player",
-		sources: ["upload", "microphone"]
-	}}
-	{template}
-/>
-<Story
 	name="Audio Recorder"
 	args={{
 		value: null,
 		interactive: true,
-		sources: ["microphone"],
-		label: "Audio Recorder",
-		waveform_options: { show_recording_waveform: true }
-	}}
-	{template}
-/>
-<Story
-	name="Audio Recorder with download button"
-	args={{
-		value: {
-			path: audio_sample,
-			url: audio_sample,
-			orig_name: "audio_sample.mp3"
-		},
-		interactive: true,
-		buttons: ["download"],
 		sources: ["microphone"],
 		label: "Audio Recorder",
 		waveform_options: { show_recording_waveform: true }
@@ -117,22 +87,6 @@
 	{template}
 />
 <Story
-	name="With autoplay"
-	args={{
-		value: {
-			path: audio_sample,
-			url: audio_sample,
-			orig_name: "audio_sample.mp3"
-		},
-		interactive: true,
-		sources: ["microphone", "upload"],
-		label: "Audio Upload",
-		autoplay: true,
-		waveform_options: { show_recording_waveform: true }
-	}}
-	{template}
-/>
-<Story
 	name="Upload with disabled editing"
 	args={{
 		value: {
@@ -145,17 +99,6 @@
 		label: "Audio Upload",
 		editable: false,
 		waveform_options: { show_recording_waveform: true }
-	}}
-	{template}
-/>
-<Story
-	name="With hidden recording waveform"
-	args={{
-		value: null,
-		interactive: true,
-		sources: ["microphone"],
-		waveform_options: { show_recording_waveform: false },
-		label: "Audio Recorder"
 	}}
 	{template}
 />

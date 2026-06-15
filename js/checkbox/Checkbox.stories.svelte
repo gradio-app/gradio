@@ -53,36 +53,6 @@
 {/snippet}
 
 <Story
-	name="Checkbox with label"
-	args={{
-		value: false,
-		interactive: true,
-		label: "Accept terms and conditions",
-		show_label: true
-	}}
-	{template}
-/>
-<Story
-	name="Checkbox with info"
-	args={{
-		value: false,
-		interactive: true,
-		info: "You must accept to continue",
-		show_label: false
-	}}
-	{template}
-/>
-<Story
-	name="Checkbox without label or info"
-	args={{
-		value: false,
-		interactive: true,
-		label: "Hidden label",
-		show_label: false
-	}}
-	{template}
-/>
-<Story
 	name="Checkbox with label and info"
 	args={{
 		value: false,
