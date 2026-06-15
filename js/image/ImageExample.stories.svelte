@@ -24,4 +24,3 @@
 		<Image {...args} />
 	{/snippet}
 </Story>
-

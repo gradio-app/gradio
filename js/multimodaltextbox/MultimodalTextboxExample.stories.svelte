@@ -18,4 +18,3 @@
 		<MultimodalTextbox {...args} />
 	{/snippet}
 </Story>
-

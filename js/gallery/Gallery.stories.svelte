@@ -248,4 +248,3 @@
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
 	{/snippet}
 </Story>
-

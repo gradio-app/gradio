@@ -18,4 +18,3 @@
 		<ColorPicker {...args} />
 	{/snippet}
 </Story>
-
