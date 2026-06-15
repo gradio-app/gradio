@@ -1,6 +1,6 @@
 ---
-"@gradio/workflowcanvas": minor
-"gradio": minor
+"@gradio/workflowcanvas": patch
+"gradio": patch
 ---
 
-feat:refactor space and model discovery modal
+fix:refactor space and model discovery modal
