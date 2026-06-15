@@ -62,6 +62,11 @@
 	{template}
 />
 <Story
+	name="Textbox with 5 lines and max 5 lines"
+	args={{ lines: 5, max_lines: 5, value: "hello world", interactive: true }}
+	{template}
+/>
+<Story
 	name="Password input"
 	args={{
 		type: "password",
