@@ -30,7 +30,6 @@
 		zero_gpu?: boolean;
 		curated?: boolean;
 		thumbnail?: string;
-		inference_providers?: boolean;
 	}
 
 	interface Props {

@@ -430,48 +430,6 @@ def _format_error(e: Exception) -> str:
     return json.dumps(err)
 
 
-VALID_SPACE_CATEGORIES = {
-    "image-generation",
-    "video-generation",
-    "text-generation",
-    "language-translation",
-    "speech-synthesis",
-    "voice-cloning",
-    "face-recognition",
-    "object-detection",
-    "pose-estimation",
-    "text-analysis",
-    "sentiment-analysis",
-    "question-answering",
-    "code-generation",
-    "data-visualization",
-    "3d-modeling",
-    "image-editing",
-    "background-removal",
-    "image-upscaling",
-    "ocr",
-    "document-analysis",
-    "visual-qa",
-    "image-captioning",
-    "chatbots",
-    "text-summarization",
-    "music-generation",
-    "medical-imaging",
-    "financial-analysis",
-    "game-ai",
-    "model-benchmarking",
-    "fine-tuning-tools",
-    "dataset-creation",
-    "anomaly-detection",
-    "recommendation-systems",
-    "character-animation",
-    "style-transfer",
-    "agent-environment",
-    "image",
-    "other",
-}
-
-
 def get_token(
     _data=None,
     request: Optional[Request] = None,
