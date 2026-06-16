@@ -103,9 +103,15 @@ export const MODALITIES: ModalityConfig[] = [
 			task("image-segmentation", "image-segmentation", ["image"], ["json"], {
 				label: "Image Segmentation"
 			}),
-			task("image-classification", "image-classification", ["image"], ["json"], {
-				label: "Image Classification"
-			}),
+			task(
+				"image-classification",
+				"image-classification",
+				["image"],
+				["json"],
+				{
+					label: "Image Classification"
+				}
+			),
 			task(
 				"zero-shot-image-classification",
 				"zero-shot-image-classification",
@@ -171,9 +177,15 @@ export const MODALITIES: ModalityConfig[] = [
 				label: "Music Generation",
 				spaceCategory: "music-generation"
 			}),
-			task("audio-classification", "audio-classification", ["audio"], ["json"], {
-				label: "Audio Classification"
-			})
+			task(
+				"audio-classification",
+				"audio-classification",
+				["audio"],
+				["json"],
+				{
+					label: "Audio Classification"
+				}
+			)
 		]
 	},
 	{
@@ -191,9 +203,15 @@ export const MODALITIES: ModalityConfig[] = [
 				label: "Character Animation",
 				spaceCategory: "character-animation"
 			}),
-			task("video-classification", "video-classification", ["video"], ["json"], {
-				label: "Video Classification"
-			})
+			task(
+				"video-classification",
+				"video-classification",
+				["video"],
+				["json"],
+				{
+					label: "Video Classification"
+				}
+			)
 		]
 	},
 	{

@@ -163,7 +163,7 @@
 				</div>
 			</div>
 		{/if}
-	
+
 		<button
 			class="bb-btn"
 			onclick={(e) => {
@@ -177,9 +177,9 @@
 			</span>
 			<span class="bb-label">Data</span>
 		</button>
-	
+
 		<div class="bb-divider"></div>
-	
+
 		<div class="bb-input-wrap">
 			<button
 				class="bb-input-btn"

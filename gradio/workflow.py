@@ -98,6 +98,7 @@ def _load_curated() -> list[dict]:
             items = _CURATED_CACHE["items"]  # type: ignore[assignment]
     return items
 
+
 logger = logging.getLogger(__name__)
 
 # Scalar-only — everything else (str, list, dict, custom classes) falls through
@@ -874,6 +875,7 @@ def search_spaces(
         if kind == "new":
             items.sort(key=lambda e: e.get("added_at") or "", reverse=True)
         else:
+
             def _rank(e: dict) -> tuple:
                 v = e.get("validation") or {}
                 return (
@@ -1091,7 +1093,9 @@ def resolve_repo(data, token: Optional[OAuthToken] = None) -> str:
             return json.dumps({"error": "not_a_repo"})
 
         repo_types: list[str] = (
-            [kind_hint] if kind_hint in ("space", "model", "dataset") else ["space", "model"]
+            [kind_hint]
+            if kind_hint in ("space", "model", "dataset")
+            else ["space", "model"]
         )
         for repo_type in repo_types:
             rec = _try(repo_id, repo_type)

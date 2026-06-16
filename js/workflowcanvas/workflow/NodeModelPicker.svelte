@@ -255,9 +255,7 @@
 			const spaces = Array.isArray(spaceData) ? spaceData.map(parse_space) : [];
 			const models = Array.isArray(modelData)
 				? modelData
-						.filter(
-							(m: any) => m.pipeline_tag && TASK_SCHEMAS[m.pipeline_tag]
-						)
+						.filter((m: any) => m.pipeline_tag && TASK_SCHEMAS[m.pipeline_tag])
 						.map(parse_model)
 				: [];
 
@@ -320,7 +318,10 @@
 		if (resolve_timeout) clearTimeout(resolve_timeout);
 
 		if (!is_dataset && looks_like_repo(search_query)) {
-			resolve_timeout = setTimeout(() => void resolve_pinned(search_query), 120);
+			resolve_timeout = setTimeout(
+				() => void resolve_pinned(search_query),
+				120
+			);
 		} else {
 			pinned_result = null;
 			pinned_error = null;
@@ -543,7 +544,10 @@
 			pinned_result = {
 				id: data.id,
 				title:
-					rec.cardData?.title || rec.title || data.id.split("/").pop() || data.id,
+					rec.cardData?.title ||
+					rec.title ||
+					data.id.split("/").pop() ||
+					data.id,
 				description: desc,
 				likes: rec.likes ?? 0,
 				type: kind,
@@ -781,7 +785,8 @@
 							<div class="space-desc">
 								{#if pinned.curated}
 									Use this exact {pinned.type}
-									{#if pinned.description} — {pinned.description}{/if}
+									{#if pinned.description}
+										— {pinned.description}{/if}
 								{:else}
 									Not in our verified catalog — may not work. {pinned.description ||
 										""}
@@ -1172,7 +1177,9 @@
 		align-items: center;
 		justify-content: center;
 		padding: 0;
-		transition: background 0.12s, color 0.12s;
+		transition:
+			background 0.12s,
+			color 0.12s;
 	}
 
 	.picker-filter-close:hover {

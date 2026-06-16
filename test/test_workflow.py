@@ -391,5 +391,3 @@ class TestWorkflowFromBind:
         result = json.loads(_workflow_from_bind({"noargs": noargs}))
         node = result["nodes"][0]
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
-
-
