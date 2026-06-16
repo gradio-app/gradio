@@ -841,9 +841,8 @@ def _filter_curated(
         if task:
             if entry.get("task") != task and entry.get("space_category") != task:
                 continue
-        elif modality:
-            if entry.get("modality") != modality:
-                continue
+        elif modality and entry.get("modality") != modality:
+            continue
         if q:
             haystack = " ".join(
                 [
@@ -859,7 +858,7 @@ def _filter_curated(
 
 
 def search_spaces(
-    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+    data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
     kind = data[0] if data else "trending"
     try:
@@ -895,7 +894,7 @@ def search_spaces(
 
 
 def search_models(
-    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+    data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
     kind = data[0] if data else "trending"
     try:
@@ -919,7 +918,7 @@ def search_models(
         return json.dumps({"error": str(e)})
 
 
-def curated_modalities(_data=None, token: Optional[OAuthToken] = None) -> str:
+def curated_modalities(_data=None, _token: Optional[OAuthToken] = None) -> str:
     try:
         items = _load_curated()
         mods: set[str] = set()
@@ -936,7 +935,7 @@ def curated_modalities(_data=None, token: Optional[OAuthToken] = None) -> str:
         return json.dumps({"error": str(e)})
 
 
-def curated_modality_tasks(data, token: Optional[OAuthToken] = None) -> str:
+def curated_modality_tasks(data, _token: Optional[OAuthToken] = None) -> str:
     try:
         modality = (data[0] if data else "") or ""
         items = _load_curated()
@@ -959,7 +958,7 @@ def curated_modality_tasks(data, token: Optional[OAuthToken] = None) -> str:
         return json.dumps({"error": str(e)})
 
 
-def is_curated(data, token: Optional[OAuthToken] = None) -> str:
+def is_curated(data, _token: Optional[OAuthToken] = None) -> str:
     try:
         repo_id = (data[0] if data else "") or ""
         kind = (data[1] if len(data) > 1 else "") or ""
