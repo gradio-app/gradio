@@ -192,6 +192,13 @@
 </span>
 
 <style>
+	span {
+		/* `anywhere`, not `break-word`: it also lowers min-content width, so
+		   markdown in a table/flex container shrinks to fit instead of forcing
+		   the container to overflow. */
+		overflow-wrap: anywhere;
+	}
+
 	span :global(div[class*="code_wrap"]) {
 		position: relative;
 	}

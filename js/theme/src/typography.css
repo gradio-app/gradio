@@ -53,10 +53,10 @@
 /* lists
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .prose ul {
-	list-style: circle inside;
+	list-style: circle outside;
 }
 .prose ol {
-	list-style: decimal inside;
+	list-style: decimal outside;
 }
 
 .prose ul > p,
@@ -66,7 +66,9 @@
 .prose ol,
 .prose ul {
 	margin-top: 0;
-	padding-left: 0;
+	/* `outside` markers need this gutter; `inside` pushes the marker onto its
+	   own line when a long unbreakable item wraps. */
+	padding-inline-start: 1.5em;
 }
 .prose ul ul,
 .prose ul ol,
