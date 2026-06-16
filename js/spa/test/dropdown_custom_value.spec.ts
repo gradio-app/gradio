@@ -4,7 +4,7 @@ test.describe("Dropdown with allow_custom_value=True", () => {
 	test("selecting an option updates the textbox with the value, not the name", async ({
 		page
 	}) => {
-		const dropdown = page.getByRole("listbox", { name: "Dropdown" });
+		const dropdown = page.getByRole("combobox", { name: "Dropdown" });
 		const output = page.getByLabel("Output");
 
 		await dropdown.click();
@@ -16,7 +16,7 @@ test.describe("Dropdown with allow_custom_value=True", () => {
 	test("blurring dropdown after selecting an option does not change the value", async ({
 		page
 	}) => {
-		const dropdown = page.getByRole("listbox", { name: "Dropdown" });
+		const dropdown = page.getByRole("combobox", { name: "Dropdown" });
 		const output = page.getByLabel("Output");
 
 		await dropdown.click();
@@ -33,7 +33,7 @@ test.describe("Dropdown with allow_custom_value=True", () => {
 	test("typing a custom value and pressing Enter updates the textbox", async ({
 		page
 	}) => {
-		const dropdown = page.getByRole("listbox", { name: "Dropdown" });
+		const dropdown = page.getByRole("combobox", { name: "Dropdown" });
 		const output = page.getByLabel("Output");
 
 		// Focus the dropdown and type a custom value
@@ -48,7 +48,7 @@ test.describe("Dropdown with allow_custom_value=True", () => {
 	test("typing a custom value and blurring updates the textbox", async ({
 		page
 	}) => {
-		const dropdown = page.getByRole("listbox", { name: "Dropdown" });
+		const dropdown = page.getByRole("combobox", { name: "Dropdown" });
 		const output = page.getByLabel("Output");
 
 		await dropdown.click();
@@ -61,7 +61,7 @@ test.describe("Dropdown with allow_custom_value=True", () => {
 	test("selecting an option after typing a custom value works correctly", async ({
 		page
 	}) => {
-		const dropdown = page.getByRole("listbox", { name: "Dropdown" });
+		const dropdown = page.getByRole("combobox", { name: "Dropdown" });
 		const output = page.getByLabel("Output");
 
 		await dropdown.click();
