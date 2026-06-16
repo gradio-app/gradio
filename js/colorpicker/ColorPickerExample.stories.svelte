@@ -18,14 +18,3 @@
 		<ColorPicker {...args} />
 	{/snippet}
 </Story>
-
-<Story
-	name="Null"
-	args={{
-		value: null
-	}}
->
-	{#snippet template(args)}
-		<ColorPicker {...args} />
-	{/snippet}
-</Story>

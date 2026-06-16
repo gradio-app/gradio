@@ -23,18 +23,6 @@
 	`;
 </script>
 
-<Story name="Simple HTML (No Label)" args={{}}>
-	{#snippet template(args)}
-		<HTML
-			{...wrapProps({
-				value: simpleValue,
-				show_label: false,
-				...args
-			})}
-		/>
-	{/snippet}
-</Story>
-
 <Story name="Simple HTML (With Label)" args={{}}>
 	{#snippet template(args)}
 		<HTML
@@ -42,23 +30,6 @@
 				value: simpleValue,
 				show_label: true,
 				label: "HTML Output",
-				...args
-			})}
-		/>
-	{/snippet}
-</Story>
-
-<Story
-	name="Long Content (No Label)"
-	args={{
-		max_height: "200px"
-	}}
->
-	{#snippet template(args)}
-		<HTML
-			{...wrapProps({
-				value: longValue,
-				show_label: false,
 				...args
 			})}
 		/>
@@ -86,23 +57,6 @@
 <Story
 	name="HTML with no padding and a label"
 	args={{
-		value: `<div style="background: red;">${simpleValue}</div>`,
-		padding: false
-	}}
->
-	{#snippet template(args)}
-		<HTML
-			{...wrapProps({
-				...args
-			})}
-		/>
-	{/snippet}
-</Story>
-
-<Story
-	name="HTML with no padding, no label"
-	args={{
-		show_label: false,
 		value: `<div style="background: red;">${simpleValue}</div>`,
 		padding: false
 	}}
