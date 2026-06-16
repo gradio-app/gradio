@@ -233,9 +233,13 @@
 		<div class="wrap-inner" class:show_options>
 			<div class="secondary-wrap">
 				<input
-					role="listbox"
+					role="combobox"
 					aria-controls={listbox_id}
 					aria-expanded={show_options}
+					aria-activedescendant={show_options && active_index !== null
+						? `${listbox_id}-option-${active_index}`
+						: undefined}
+					aria-autocomplete={filterable ? "list" : "none"}
 					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
