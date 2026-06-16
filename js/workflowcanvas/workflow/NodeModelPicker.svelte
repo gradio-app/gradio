@@ -3,6 +3,7 @@
 	import {
 		fetchSpaceApi,
 		is_zero_gpu_space,
+		normalize_space_id,
 		normalizeOperatorPorts
 	} from "./space-api";
 	import { MODALITIES } from "./workflow-modalities";
@@ -163,6 +164,7 @@
 	let model_results = $state<SpaceResult[]>([]);
 	let dataset_results = $state<SpaceResult[]>([]);
 	let loading = $state(false);
+	let zero_gpu_only = $state(false);
 	let loading_space_id = $state<string | null>(null);
 
 	const has_results = $derived(
@@ -228,7 +230,7 @@
 						query,
 						space_tag,
 						backend_modality,
-						false
+						zero_gpu_only
 					])
 				);
 			} else {
@@ -308,6 +310,7 @@
 		active_task_modality;
 		is_dataset;
 		modality.key;
+		zero_gpu_only;
 		void fetch_results();
 	});
 
@@ -497,14 +500,8 @@
 	let pinned_error = $state<string | null>(null);
 	let pinned_token = 0;
 
-	const REPO_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
-	const HUB_URL_RE = /(?:^|\b)(?:https?:\/\/)?(?:www\.)?(?:huggingface\.co|hf\.co)\//i;
-	const HF_SPACE_SUB_RE = /^(?:https?:\/\/)?[a-z0-9-]+\.hf\.space/i;
-
 	function looks_like_repo(input: string): boolean {
-		const s = input.trim();
-		if (!s) return false;
-		return REPO_ID_RE.test(s) || HUB_URL_RE.test(s) || HF_SPACE_SUB_RE.test(s);
+		return normalize_space_id(input) !== null;
 	}
 
 	async function resolve_pinned(input: string) {
@@ -629,6 +626,19 @@
 					oninput={handle_search_input}
 					autofocus
 				/>
+				{#if !is_dataset}
+					<button
+						class="picker-zerogpu-toggle"
+						class:active={zero_gpu_only}
+						onclick={() => (zero_gpu_only = !zero_gpu_only)}
+						aria-pressed={zero_gpu_only}
+						title={zero_gpu_only
+							? "Showing only ZeroGPU spaces"
+							: "Show only ZeroGPU spaces"}
+					>
+						⚡ ZeroGPU
+					</button>
+				{/if}
 				<button
 					class="picker-close-inline"
 					onclick={onclose}
@@ -864,7 +874,7 @@
 					{/each}
 				{:else}
 					{#if space_results.length > 0}
-						<div class="picker-section-header">Spaces</div>
+						<div class="picker-section-header">Curated Spaces</div>
 						<div class="picker-space-grid">
 							{#each space_results as space (space.id)}
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -926,7 +936,7 @@
 					{/if}
 
 					{#if model_results.length > 0}
-						<div class="picker-section-header">Models</div>
+						<div class="picker-section-header">Curated Models</div>
 						<div class="picker-space-grid">
 							{#each model_results as model (model.id)}
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -1074,6 +1084,41 @@
 		color: #3e4050;
 	}
 
+	.picker-zerogpu-toggle {
+		position: absolute;
+		right: 38px;
+		top: 50%;
+		transform: translateY(-50%);
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		height: 22px;
+		padding: 0 8px;
+		border: 1px solid rgba(249, 115, 22, 0.4);
+		border-radius: 11px;
+		background: transparent;
+		color: rgba(249, 115, 22, 0.85);
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		cursor: pointer;
+		transition:
+			background 0.15s,
+			color 0.15s,
+			border-color 0.15s;
+	}
+
+	.picker-zerogpu-toggle:hover {
+		background: rgba(249, 115, 22, 0.12);
+	}
+
+	.picker-zerogpu-toggle.active {
+		background: rgba(249, 115, 22, 0.85);
+		border-color: rgba(249, 115, 22, 0.85);
+		color: #fff;
+	}
+
 	.picker-filter-pill {
 		display: flex;
 		align-items: center;
@@ -1177,7 +1222,7 @@
 	.picker-search {
 		flex: 1;
 		min-width: 0;
-		padding: 11px 40px 11px 36px;
+		padding: 11px 130px 11px 36px;
 		background: #0c0d10;
 		border: 1px solid #2a2b36;
 		border-radius: 10px;

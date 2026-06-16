@@ -1056,11 +1056,6 @@ def _parse_repo_input(raw: str) -> tuple[str, Optional[str]]:
         if section == "datasets":
             return f"{org}/{name}", "dataset"
         return f"{org}/{name}", "model" if section else None
-    sub = re.match(r"^(?:https?://)?([^/]+)\.hf\.space", raw.strip(), re.IGNORECASE)
-    if sub:
-        parts = sub.group(1).split("-")
-        if len(parts) >= 2:
-            return f"{parts[0]}/{'-'.join(parts[1:])}", "space"
     return "", None
 
 
@@ -1069,24 +1064,37 @@ def resolve_repo(data, token: Optional[OAuthToken] = None) -> str:
     try:
         hf_token = _resolve_token(data, 1, token)
         repo_id, kind_hint = _parse_repo_input(raw)
-        if not repo_id:
-            return json.dumps({"error": "not_a_repo"})
 
-        def _try(repo_type: str) -> Optional[dict]:
+        def _try(rid: str, repo_type: str) -> Optional[dict]:
             try:
                 url = (
                     f"https://huggingface.co/api/{repo_type}s/"
-                    f"{urllib.parse.quote(repo_id, safe='/')}"
+                    f"{urllib.parse.quote(rid, safe='/')}"
                 )
                 return json.loads(_hf_request(url, hf_token))
             except Exception:
                 return None
 
-        candidates: list[str] = (
+        if not repo_id:
+            sub = re.match(
+                r"^(?:https?://)?([^/]+)\.hf\.space", raw.strip(), re.IGNORECASE
+            )
+            if sub:
+                parts = sub.group(1).split("-")
+                for i in range(1, len(parts)):
+                    candidate = f"{'-'.join(parts[:i])}/{'-'.join(parts[i:])}"
+                    rec = _try(candidate, "space")
+                    if rec and rec.get("id"):
+                        return json.dumps(
+                            {"kind": "space", "id": rec["id"], "record": rec}
+                        )
+            return json.dumps({"error": "not_a_repo"})
+
+        repo_types: list[str] = (
             [kind_hint] if kind_hint in ("space", "model", "dataset") else ["space", "model"]
         )
-        for repo_type in candidates:
-            rec = _try(repo_type)
+        for repo_type in repo_types:
+            rec = _try(repo_id, repo_type)
             if rec and rec.get("id"):
                 return json.dumps({"kind": repo_type, "id": rec["id"], "record": rec})
         return json.dumps({"error": "not_found", "id": repo_id})

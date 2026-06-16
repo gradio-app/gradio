@@ -198,7 +198,6 @@
 					return;
 				}
 				searchResults = data
-					.filter((s: any) => s.sdk === "gradio")
 					.slice(0, 6)
 					.map((s: any) => ({
 						id: s.id,

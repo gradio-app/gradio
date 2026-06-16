@@ -57,7 +57,11 @@
 		void server.curated_modalities([]).then((raw: any) => {
 			try {
 				const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-				available_modalities = new Set(Array.isArray(parsed) ? parsed : []);
+				available_modalities = new Set(
+					Array.isArray(parsed) && parsed.length > 0
+						? parsed
+						: MODALITIES.map((m) => m.key)
+				);
 			} catch {
 				available_modalities = new Set(MODALITIES.map((m) => m.key));
 			}
@@ -65,8 +69,8 @@
 	});
 
 	const visible_modalities = $derived.by(() => {
-		if (available_modalities === null) return [];
-		return MODALITIES.filter((m) => available_modalities!.has(m.key));
+		const mods = available_modalities ?? new Set(MODALITIES.map((m) => m.key));
+		return MODALITIES.filter((m) => mods.has(m.key));
 	});
 
 	const INPUT_TYPES = [
