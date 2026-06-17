@@ -171,11 +171,3 @@ client.view_api()  # lists available endpoints and their parameters
 
 result = client.predict("a sunset over mountains", api_name="/output_image")
 ```
-
-## `gr.Workflow` parameters
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `graph` | `str \| None` | `"workflow.json"` | Path to the workflow JSON file |
-| `bind` | `list \| dict \| None` | `None` | Python functions to expose as callable nodes |
-| `edges` | `list[tuple] \| None` | `None` | Edges to auto-wire when generating from `bind=` |
