@@ -1385,7 +1385,7 @@ class Workflow(Blocks):
             return json.dumps(templates)
 
         def get_workflow_api(_data=None, _request: Optional[Request] = None) -> str:
-            """Describe the workflow's API endpoints (one per output) for the
+            """Describe the workflow's API endpoints (one per subgraph) for the
             frontend "View API" panel. Re-reads the current graph so it tracks
             live edits, same as the registered endpoints."""
             from gradio.workflow_api import WorkflowGraph, describe_workflow_api
