@@ -673,6 +673,8 @@ def port_to_component(port_type: str, label: str):
         return gr.Video(label=label, render=False)
     if port_type in ("model3d", "3d"):
         return gr.Model3D(label=label, render=False)
+    if port_type == "file":
+        return gr.File(label=label, type="filepath", render=False)
     if port_type == "number":
         return gr.Number(label=label, render=False)
     if port_type == "boolean":
@@ -681,8 +683,6 @@ def port_to_component(port_type: str, label: str):
         return gr.Dataframe(label=label, render=False)
     if port_type == "gallery":
         return gr.Gallery(label=label, render=False)
-    if port_type == "file":
-        return gr.File(label=label, type="filepath", render=False)
     if port_type == "json":
         return gr.JSON(label=label, render=False)
     return gr.Textbox(label=label, render=False)

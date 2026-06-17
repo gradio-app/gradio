@@ -615,3 +615,15 @@ class TestMultiOutputSubgraph:
         assert out == ["/tmp/a.png", "/tmp/b.png"]
         # The operator feeding both outputs is executed exactly once.
         assert calls == ["owner/repo"]
+
+
+class TestPortComponents:
+    def test_file_port_maps_to_file_component(self):
+        import gradio as gr
+        from gradio.workflow_api import port_to_component
+
+        # "file" is a media port type (advertised as filepath); it must map to a
+        # File component, not fall through to the Textbox default.
+        c = port_to_component("file", "Document")
+        assert isinstance(c, gr.File)
+        assert c.type == "filepath"
