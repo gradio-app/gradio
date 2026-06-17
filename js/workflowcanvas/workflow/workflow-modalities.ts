@@ -3,88 +3,77 @@ import type { PortType } from "./workflow-types";
 export interface SubTab {
 	key: string;
 	label: string;
-	/**
-	 * Used as `pipeline_tag=` on the models API AND as `filter=` on the
-	 * spaces API. For subtabs where Spaces have a category that differs
-	 * from the model pipeline tag (e.g. Edit → `image-editing` Space
-	 * category vs `image-to-image` model pipeline tag), use
-	 * `spaceTags` / `modelTags` to override.
-	 */
-	pipelineTags: string[];
-	/** Override for the spaces API. Falls back to `pipelineTags` when unset. */
-	spaceTags?: string[];
-	/** Override for the models API. Falls back to `pipelineTags` when unset. */
-	modelTags?: string[];
-	/** Freetext query fallback (used when no API tag exists, e.g. Enhance for models). */
-	query?: string;
+	pipelineTag: string;
+	spaceCategory?: string;
+	inputs: PortType[];
+	outputs: PortType[];
 }
 
 export interface ModalityConfig {
 	key: string;
 	label: string;
 	category: string;
-	/**
-	 * Canonical port type produced by operators in this modality. Reference and
-	 * subject templates derived from this modality use this type for their port.
-	 * `null` for datasets (outputs are per-feature, no single canonical type).
-	 */
 	port_type: PortType | null;
-	acceptedCategories?: string[];
 	subtabs: SubTab[];
 }
+
+const ALL: SubTab = {
+	key: "all",
+	label: "All",
+	pipelineTag: "",
+	inputs: [],
+	outputs: []
+};
+
+function task(
+	key: string,
+	pipelineTag: string,
+	inputs: PortType[],
+	outputs: PortType[],
+	opts?: { label?: string; spaceCategory?: string }
+): SubTab {
+	const arrow = opts?.label ?? `${typeLabel(inputs)} → ${typeLabel(outputs)}`;
+	return {
+		key,
+		label: arrow,
+		pipelineTag,
+		spaceCategory: opts?.spaceCategory,
+		inputs,
+		outputs
+	};
+}
+
+function typeLabel(types: PortType[]): string {
+	if (types.length === 0) return "Any";
+	return types.map((t) => PORT_LABELS[t] ?? t).join(" + ");
+}
+
+const PORT_LABELS: Partial<Record<PortType, string>> = {
+	image: "Image",
+	audio: "Audio",
+	video: "Video",
+	text: "Text",
+	model3d: "3D",
+	number: "Number",
+	boolean: "Toggle",
+	json: "Data",
+	gallery: "Gallery"
+};
 
 export const DATASET_MODALITY: ModalityConfig = {
 	key: "data",
 	label: "Data",
 	category: "data",
 	port_type: null,
-	subtabs: [{ key: "all", label: "All", pipelineTags: [] }]
+	subtabs: [ALL]
 };
 
-export const MODEL_MODALITY: ModalityConfig = {
-	key: "model",
-	label: "Models",
-	category: "model",
+export const ALL_MODALITY: ModalityConfig = {
+	key: "all",
+	label: "All",
+	category: "all",
 	port_type: null,
-	subtabs: [
-		{ key: "all", label: "All", pipelineTags: [] },
-		{
-			key: "text-to-image",
-			label: "Text→Image",
-			pipelineTags: ["text-to-image"]
-		},
-		{
-			key: "text-generation",
-			label: "Text Gen",
-			pipelineTags: ["text-generation"]
-		},
-		{
-			key: "image-to-text",
-			label: "Image→Text",
-			pipelineTags: ["image-to-text"]
-		},
-		{
-			key: "asr",
-			label: "ASR",
-			pipelineTags: ["automatic-speech-recognition"]
-		},
-		{ key: "tts", label: "TTS", pipelineTags: ["text-to-speech"] },
-		{
-			key: "text-to-video",
-			label: "Text→Video",
-			pipelineTags: ["text-to-video"]
-		},
-		{
-			key: "image-to-image",
-			label: "Image→Image",
-			pipelineTags: ["image-to-image"]
-		},
-		{
-			key: "image-to-video",
-			label: "Image→Video",
-			pipelineTags: ["image-to-video"]
-		}
-	]
+	subtabs: [ALL]
 };
 
 export const MODALITIES: ModalityConfig[] = [
@@ -94,38 +83,72 @@ export const MODALITIES: ModalityConfig[] = [
 		category: "image",
 		port_type: "image",
 		subtabs: [
-			{ key: "all", label: "All", pipelineTags: [] },
-			{
-				key: "generate",
-				label: "Generate",
-				pipelineTags: ["text-to-image"],
-				spaceTags: ["image-generation"]
-			},
-			{
-				key: "edit",
-				label: "Edit",
-				pipelineTags: ["image-to-image"],
-				spaceTags: ["image-editing"]
-			},
-			{
-				key: "enhance",
-				label: "Enhance",
-				pipelineTags: [],
-				spaceTags: ["image-upscaling"],
-				query: "upscale super resolution restore enhance denoise"
-			},
-			{
-				key: "detect",
-				label: "Detect",
-				pipelineTags: ["object-detection", "image-segmentation"]
-			},
-			{
-				key: "removebg",
-				label: "Remove Background",
-				pipelineTags: [],
-				spaceTags: ["background-removal"],
-				query: "background removal remove background matting"
-			}
+			ALL,
+			task("text-to-image", "text-to-image", ["text"], ["image"], {
+				label: "Image Generation",
+				spaceCategory: "image-generation"
+			}),
+			task("image-to-image", "image-to-image", ["image"], ["image"], {
+				label: "Image Editing",
+				spaceCategory: "image-editing"
+			}),
+			task("image-to-text", "image-to-text", ["image"], ["text"], {
+				label: "Image Captioning",
+				spaceCategory: "image-captioning"
+			}),
+			task("object-detection", "object-detection", ["image"], ["json"], {
+				label: "Object Detection",
+				spaceCategory: "object-detection"
+			}),
+			task("image-segmentation", "image-segmentation", ["image"], ["json"], {
+				label: "Image Segmentation"
+			}),
+			task(
+				"image-classification",
+				"image-classification",
+				["image"],
+				["json"],
+				{
+					label: "Image Classification"
+				}
+			),
+			task(
+				"zero-shot-image-classification",
+				"zero-shot-image-classification",
+				["image", "text"],
+				["json"],
+				{ label: "Zero-Shot Classification" }
+			),
+			task(
+				"zero-shot-object-detection",
+				"zero-shot-object-detection",
+				["image", "text"],
+				["json"],
+				{ label: "Zero-Shot Detection" }
+			),
+			task("mask-generation", "mask-generation", ["image"], ["image"], {
+				label: "Mask Generation"
+			}),
+			task("keypoint-detection", "keypoint-detection", ["image"], ["json"], {
+				label: "Keypoint Detection"
+			}),
+			task(
+				"visual-question-answering",
+				"visual-question-answering",
+				["image", "text"],
+				["text"],
+				{ label: "Visual Q&A" }
+			),
+			task(
+				"document-question-answering",
+				"document-question-answering",
+				["image", "text"],
+				["text"],
+				{ label: "Document Q&A" }
+			),
+			task("depth-estimation", "depth-estimation", ["image"], ["image"], {
+				label: "Depth Estimation"
+			})
 		]
 	},
 	{
@@ -134,35 +157,35 @@ export const MODALITIES: ModalityConfig[] = [
 		category: "audio",
 		port_type: "audio",
 		subtabs: [
-			{ key: "all", label: "All", pipelineTags: [] },
-			{
-				key: "speech",
-				label: "Speech",
-				pipelineTags: ["text-to-speech"],
-				spaceTags: ["speech-synthesis"]
-			},
-			{
-				key: "music",
-				label: "Music",
-				pipelineTags: ["text-to-audio"],
-				spaceTags: ["music-generation"],
-				query: "music generation"
-			},
-			{
-				key: "transcribe",
-				label: "Transcribe",
-				pipelineTags: ["automatic-speech-recognition"],
-				// No matching HF Space category for ASR; freeform query
-				// catches the major transcription Spaces.
-				query: "speech recognition transcription whisper subtitle"
-			},
-			{
-				key: "clone",
-				label: "Clone Voice",
-				pipelineTags: [],
-				spaceTags: ["voice-cloning"],
-				query: "voice clone"
-			}
+			ALL,
+			task("text-to-speech", "text-to-speech", ["text"], ["audio"], {
+				label: "Speech Synthesis",
+				spaceCategory: "speech-synthesis"
+			}),
+			task(
+				"automatic-speech-recognition",
+				"automatic-speech-recognition",
+				["audio"],
+				["text"],
+				{ label: "Speech Recognition" }
+			),
+			task("audio-to-audio", "audio-to-audio", ["audio"], ["audio"], {
+				label: "Voice Cloning",
+				spaceCategory: "voice-cloning"
+			}),
+			task("text-to-audio", "text-to-audio", ["text"], ["audio"], {
+				label: "Music Generation",
+				spaceCategory: "music-generation"
+			}),
+			task(
+				"audio-classification",
+				"audio-classification",
+				["audio"],
+				["json"],
+				{
+					label: "Audio Classification"
+				}
+			)
 		]
 	},
 	{
@@ -171,19 +194,60 @@ export const MODALITIES: ModalityConfig[] = [
 		category: "video",
 		port_type: "video",
 		subtabs: [
-			{ key: "all", label: "All", pipelineTags: [] },
-			{
-				key: "generate",
-				label: "Generate",
-				pipelineTags: ["text-to-video"],
-				spaceTags: ["video-generation"]
-			},
-			{
-				key: "animate",
-				label: "Animate",
-				pipelineTags: ["image-to-video"],
-				spaceTags: ["character-animation"]
-			}
+			ALL,
+			task("text-to-video", "text-to-video", ["text"], ["video"], {
+				label: "Video Generation",
+				spaceCategory: "video-generation"
+			}),
+			task("image-to-video", "image-to-video", ["image"], ["video"], {
+				label: "Character Animation",
+				spaceCategory: "character-animation"
+			}),
+			task(
+				"video-classification",
+				"video-classification",
+				["video"],
+				["json"],
+				{
+					label: "Video Classification"
+				}
+			)
+		]
+	},
+	{
+		key: "text",
+		label: "Text",
+		category: "text",
+		port_type: "text",
+		subtabs: [
+			ALL,
+			task("text-generation", "text-generation", ["text"], ["text"], {
+				label: "Text Generation",
+				spaceCategory: "text-generation"
+			}),
+			task("summarization", "summarization", ["text"], ["text"], {
+				label: "Text Summarization",
+				spaceCategory: "text-summarization"
+			}),
+			task("translation", "translation", ["text"], ["text"], {
+				label: "Language Translation",
+				spaceCategory: "language-translation"
+			}),
+			task("text-classification", "text-classification", ["text"], ["json"], {
+				label: "Text Analysis",
+				spaceCategory: "text-analysis"
+			}),
+			task(
+				"zero-shot-classification",
+				"zero-shot-classification",
+				["text"],
+				["json"],
+				{ label: "Zero-Shot Classification" }
+			),
+			task("question-answering", "question-answering", ["text"], ["text"], {
+				label: "Question Answering",
+				spaceCategory: "question-answering"
+			})
 		]
 	},
 	{
@@ -192,70 +256,22 @@ export const MODALITIES: ModalityConfig[] = [
 		category: "3d",
 		port_type: "model3d",
 		subtabs: [
-			{ key: "all", label: "All", pipelineTags: [] },
-			{
-				key: "from-text",
-				label: "From Text",
-				pipelineTags: ["text-to-3d"],
-				spaceTags: ["3d-modeling"]
-			},
-			{
-				key: "from-image",
-				label: "From Image",
-				pipelineTags: ["image-to-3d"],
-				spaceTags: ["3d-modeling"]
-			}
-		]
-	},
-	{
-		key: "text",
-		label: "Text",
-		category: "text",
-		port_type: "text",
-		acceptedCategories: ["text", "chat"],
-		subtabs: [
-			{ key: "all", label: "All", pipelineTags: [] },
-			{
-				key: "generate",
-				label: "Generate",
-				pipelineTags: ["text-generation"],
-				spaceTags: ["text-generation"]
-			},
-			{
-				key: "summarize",
-				label: "Summarize",
-				pipelineTags: ["summarization"],
-				spaceTags: ["text-summarization"]
-			},
-			{
-				key: "translate",
-				label: "Translate",
-				pipelineTags: ["translation"],
-				spaceTags: ["language-translation"]
-			},
-			{
-				key: "code",
-				label: "Code",
-				pipelineTags: [],
-				spaceTags: ["code-generation"],
-				query: "code generation programming copilot"
-			}
+			ALL,
+			task("text-to-3d", "text-to-3d", ["text"], ["model3d"], {
+				label: "3D from Text",
+				spaceCategory: "3d-modeling"
+			}),
+			task("image-to-3d", "image-to-3d", ["image"], ["model3d"], {
+				label: "3D from Image",
+				spaceCategory: "3d-modeling"
+			})
 		]
 	}
 ];
 
-/**
- * Port registry — single source of truth for every user-facing port type.
- * Drives reference/subject template generation, port labels in the UI, and
- * modality routing for the compatible-nodes popup. `any` and `file` are
- * deliberately omitted: they exist only as schema-inference fallbacks and
- * never appear as user-selectable reference / subject options.
- */
 export interface PortMeta {
 	port_type: PortType;
-	/** Human label used for reference / subject templates and popup options. */
 	label: string;
-	/** MODALITIES key this port routes to in the picker, if any. */
 	modality_key?: string;
 }
 

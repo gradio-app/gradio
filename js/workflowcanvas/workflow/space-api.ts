@@ -5,9 +5,12 @@ import type { ModalityConfig } from "./workflow-modalities";
 export function is_zero_gpu_space(s: any): boolean {
 	const tags: string[] = s?.cardData?.tags || s?.tags || [];
 	if (tags.includes("zero-gpu") || tags.includes("zerogpu")) return true;
-	const hw: string =
-		s?.runtime?.hardware || s?.runtime?.requestedHardware || "";
-	return hw.toLowerCase().startsWith("zero");
+	const hwRaw = s?.runtime?.hardware ?? s?.runtime?.requestedHardware ?? "";
+	const hw =
+		typeof hwRaw === "string"
+			? hwRaw
+			: (hwRaw?.current ?? hwRaw?.requested ?? "");
+	return typeof hw === "string" && hw.toLowerCase().startsWith("zero");
 }
 
 export function normalize_space_id(raw: string): string | null {
@@ -318,25 +321,18 @@ export async function fetchSpaceApi(spaceId: string): Promise<SpaceApiInfo> {
 	return result;
 }
 
-/**
- * Clamp inferred port types so a fallback `any` or `file` becomes the
- * modality's canonical type when the modality is known. Models picked via
- * `pipeline_tag` and Spaces picked via the modality picker carry that hint;
- * passing it lets us avoid surfacing generic `any`/`file` ports in the UI.
- *
- * If `modality` is null (e.g. unknown), ports are returned unchanged.
- */
 export function normalizeOperatorPorts(
 	modality: ModalityConfig | null,
-	ports: Port[]
+	ports: Port[],
+	types?: PortType[]
 ): Port[] {
-	if (!modality?.port_type) return ports;
-	const canonical = modality.port_type;
-	return ports.map((p) => {
-		if (p.type === "any" || p.type === "file") {
-			return { ...p, type: canonical };
-		}
-		return p;
+	const fallback = modality?.port_type ?? null;
+	if (!fallback && (!types || types.length === 0)) return ports;
+	return ports.map((p, i) => {
+		if (p.type !== "any" && p.type !== "file") return p;
+		const hint = types?.[i] ?? fallback;
+		if (!hint) return p;
+		return { ...p, type: hint };
 	});
 }
 

@@ -23,6 +23,8 @@
 		running: boolean;
 		hasTransforms: boolean;
 		boundFns: BoundFnTemplate[];
+		activeModalityKey?: string | null;
+		server?: Record<string, any>;
 		readOnly?: boolean;
 		onopenpicker: (modality: ModalityConfig) => void;
 		onaddinput: (portType: string) => void;
@@ -35,6 +37,8 @@
 		running,
 		hasTransforms,
 		boundFns,
+		activeModalityKey = null,
+		server = {},
 		readOnly = false,
 		onopenpicker,
 		onaddinput,
@@ -42,6 +46,32 @@
 		onrun,
 		onstop
 	}: Props = $props();
+
+	let available_modalities = $state<Set<string> | null>(null);
+
+	$effect(() => {
+		if (!server?.curated_modalities) {
+			available_modalities = new Set(MODALITIES.map((m) => m.key));
+			return;
+		}
+		void server.curated_modalities([]).then((raw: any) => {
+			try {
+				const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+				available_modalities = new Set(
+					Array.isArray(parsed) && parsed.length > 0
+						? parsed
+						: MODALITIES.map((m) => m.key)
+				);
+			} catch {
+				available_modalities = new Set(MODALITIES.map((m) => m.key));
+			}
+		});
+	});
+
+	const visible_modalities = $derived.by(() => {
+		const mods = available_modalities ?? new Set(MODALITIES.map((m) => m.key));
+		return MODALITIES.filter((m) => mods.has(m.key));
+	});
 
 	const INPUT_TYPES = [
 		{ key: "image", label: "Image" },
@@ -94,36 +124,45 @@
 	}}
 >
 	{#if !readOnly}
-		<div class="bb-group">
-			{#each MODALITIES as m}
-				<div class="bb-modality-wrap">
-					<button
-						class="bb-btn"
-						onclick={(e) => {
-							e.stopPropagation();
-							closeMenus();
-							onopenpicker(m);
-						}}
-						title="Add {m.label} node"
-					>
-						<span class="bb-icon">
-							{#if m.key === "image"}
-								<ImageIcon />
-							{:else if m.key === "audio"}
-								<AudioIcon />
-							{:else if m.key === "video"}
-								<VideoIcon />
-							{:else if m.key === "3d"}
-								<Model3DIcon />
-							{:else if m.key === "text"}
-								<TextIcon />
-							{/if}
-						</span>
-						<span class="bb-label">{m.label}</span>
-					</button>
+		{#if visible_modalities.length > 0}
+			<div class="bb-modality-group">
+				<span class="bb-group-label">Add a node:</span>
+				<div class="bb-group">
+					{#each visible_modalities as m}
+						<div class="bb-modality-wrap">
+							<button
+								class="bb-btn bb-modality-btn"
+								class:bb-modality-active={activeModalityKey === m.key}
+								onclick={(e) => {
+									e.stopPropagation();
+									closeMenus();
+									onopenpicker(m);
+								}}
+								title="Add {m.label} node"
+							>
+								<span class="bb-icon">
+									{#if m.key === "image"}
+										<ImageIcon />
+									{:else if m.key === "audio"}
+										<AudioIcon />
+									{:else if m.key === "video"}
+										<VideoIcon />
+									{:else if m.key === "3d"}
+										<Model3DIcon />
+									{:else if m.key === "text"}
+										<TextIcon />
+									{/if}
+								</span>
+								<span class="bb-label">{m.label}</span>
+								{#if activeModalityKey === m.key}
+									<span class="bb-active-caret" aria-hidden="true"></span>
+								{/if}
+							</button>
+						</div>
+					{/each}
 				</div>
-			{/each}
-		</div>
+			</div>
+		{/if}
 
 		<button
 			class="bb-btn"
@@ -230,6 +269,69 @@
 		display: flex;
 		align-items: center;
 		gap: 2px;
+	}
+
+	.bb-modality-group {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 2px 8px 2px 10px;
+		border-radius: 32px;
+		background: rgba(255, 255, 255, 0.025);
+	}
+
+	.bb-group-label {
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #4a4d57;
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	:global(body:not(.dark)) .bb-modality-group {
+		background: rgba(0, 0, 0, 0.03);
+	}
+
+	:global(body:not(.dark)) .bb-group-label {
+		color: #8b8d98;
+	}
+
+	.bb-modality-active {
+		background: rgba(249, 115, 22, 0.14);
+		color: #f97316;
+		box-shadow: inset 0 0 0 1.5px rgba(249, 115, 22, 0.5);
+	}
+
+	.bb-modality-active:hover {
+		background: rgba(249, 115, 22, 0.18);
+		color: #f97316;
+	}
+
+	:global(body:not(.dark)) .bb-modality-active {
+		background: rgba(249, 115, 22, 0.12);
+		color: #d65500;
+		box-shadow: inset 0 0 0 1.5px rgba(249, 115, 22, 0.45);
+	}
+
+	:global(body:not(.dark)) .bb-modality-active:hover {
+		background: rgba(249, 115, 22, 0.18);
+		color: #d65500;
+	}
+
+	.bb-active-caret {
+		position: absolute;
+		top: -6px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 0;
+		height: 0;
+		border-left: 5px solid transparent;
+		border-right: 5px solid transparent;
+		border-bottom: 6px solid #f97316;
+		pointer-events: none;
 	}
 
 	.bb-btn {

@@ -1,0 +1,383 @@
+{
+  "snapshot_version": 1,
+  "fetched_at": "2026-06-09T00:00:00Z",
+  "items": [
+    {
+      "kind": "space",
+      "id": "black-forest-labs/FLUX.1-schnell",
+      "task": "text-to-image",
+      "space_category": "image-generation",
+      "modality": "image",
+      "title": "FLUX.1 schnell",
+      "description": "Fast, high-quality text-to-image",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "zero_gpu": true,
+      "smoke_inputs": { "prompt": "a small red square" },
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 1800,
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "stabilityai/stable-diffusion-3.5-large",
+      "task": "text-to-image",
+      "space_category": "image-generation",
+      "modality": "image",
+      "title": "Stable Diffusion 3.5 Large",
+      "description": "High-fidelity text-to-image",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "zero_gpu": true,
+      "smoke_inputs": { "prompt": "a small red square" },
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 3200,
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "briaai/BRIA-RMBG-2.0",
+      "task": "image-to-image",
+      "space_category": "image-editing",
+      "modality": "image",
+      "title": "BRIA Background Removal",
+      "description": "Remove image backgrounds",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "zero_gpu": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 1100,
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "multimodalart/face-to-all",
+      "task": "image-to-image",
+      "space_category": "image-editing",
+      "modality": "image",
+      "title": "Face to All",
+      "description": "Stylize a face photo into many art styles",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": false,
+      "zero_gpu": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 2400,
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "Salesforce/blip-image-captioning-large",
+      "task": "image-to-text",
+      "modality": "image",
+      "title": "BLIP Image Captioning",
+      "description": "Generate captions from images",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": false,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "facebook/detr-resnet-50",
+      "task": "object-detection",
+      "modality": "image",
+      "title": "DETR ResNet-50",
+      "description": "Open-vocabulary object detection",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "facebook/sam-vit-base",
+      "task": "image-segmentation",
+      "modality": "image",
+      "title": "Segment Anything (SAM)",
+      "description": "Segment any region of an image",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "google/vit-base-patch16-224",
+      "task": "image-classification",
+      "modality": "image",
+      "title": "ViT Base",
+      "description": "Image classification (ImageNet)",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": false,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "depth-anything/Depth-Anything-V2-Small-hf",
+      "task": "depth-estimation",
+      "modality": "image",
+      "title": "Depth Anything V2",
+      "description": "Monocular depth estimation",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "facebook/MusicGen",
+      "task": "text-to-audio",
+      "space_category": "music-generation",
+      "modality": "audio",
+      "title": "MusicGen",
+      "description": "Generate music from a text prompt",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": false,
+      "zero_gpu": true,
+      "smoke_inputs": { "prompt": "calm piano" },
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 4200,
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "facebook/bart-large-cnn",
+      "task": "summarization",
+      "modality": "text",
+      "title": "BART CNN Summarizer",
+      "description": "News-style text summarization",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": false,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "Helsinki-NLP/opus-mt-en-fr",
+      "task": "translation",
+      "modality": "text",
+      "title": "Opus EN→FR",
+      "description": "English-to-French translation",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": false,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "deepset/roberta-base-squad2",
+      "task": "question-answering",
+      "modality": "text",
+      "title": "RoBERTa QA",
+      "description": "Extractive question answering",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": false,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "tencent/Hunyuan3D-2",
+      "task": "image-to-3d",
+      "space_category": "3d-modeling",
+      "modality": "3d",
+      "title": "Hunyuan3D 2",
+      "description": "Generate 3D meshes from a single image",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": true,
+      "zero_gpu": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 5200,
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "Wan-AI/Wan2.2-TI2V-5B",
+      "task": "text-to-video",
+      "space_category": "video-generation",
+      "modality": "video",
+      "title": "Wan 2.2 TI2V 5B",
+      "description": "Text-to-video generation",
+      "added_at": "2026-04-02T00:00:00Z",
+      "featured": true,
+      "zero_gpu": true,
+      "smoke_inputs": { "prompt": "a flower opening" },
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 8800,
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "hf-audio/whisper-large-v3-turbo",
+      "task": "automatic-speech-recognition",
+      "space_category": "automatic-speech-recognition",
+      "modality": "audio",
+      "title": "Whisper Large v3 Turbo",
+      "description": "Fast speech-to-text",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "zero_gpu": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 900,
+        "error": null
+      }
+    },
+    {
+      "kind": "space",
+      "id": "coqui/xtts",
+      "task": "text-to-speech",
+      "space_category": "speech-synthesis",
+      "modality": "audio",
+      "title": "Coqui XTTS",
+      "description": "Multilingual text-to-speech with voice cloning",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "zero_gpu": true,
+      "smoke_inputs": { "text": "hello" },
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "latency_ms": 2100,
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "black-forest-labs/FLUX.1-schnell",
+      "task": "text-to-image",
+      "modality": "image",
+      "title": "FLUX.1 schnell",
+      "description": "Text-to-image",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "stabilityai/stable-diffusion-3.5-large-turbo",
+      "task": "text-to-image",
+      "modality": "image",
+      "title": "SD 3.5 Large Turbo",
+      "description": "Fast text-to-image",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "task": "image-to-text",
+      "modality": "image",
+      "title": "Qwen2.5-VL 7B",
+      "description": "Image understanding & captioning",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": false,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "openai/whisper-large-v3-turbo",
+      "task": "automatic-speech-recognition",
+      "modality": "audio",
+      "title": "Whisper Large v3 Turbo",
+      "description": "Speech-to-text",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "meta-llama/Llama-3.2-3B-Instruct",
+      "task": "text-generation",
+      "modality": "text",
+      "title": "Llama 3.2 3B Instruct",
+      "description": "Open-weights text generation",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": true,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "kind": "model",
+      "id": "Qwen/Qwen2.5-7B-Instruct",
+      "task": "text-generation",
+      "modality": "text",
+      "title": "Qwen 2.5 7B",
+      "description": "Multilingual text generation",
+      "added_at": "2026-04-01T00:00:00Z",
+      "featured": false,
+      "validation": {
+        "last_checked": "2026-06-08T03:14:00Z",
+        "status": "ok",
+        "error": null
+      }
+    }
+  ]
+}

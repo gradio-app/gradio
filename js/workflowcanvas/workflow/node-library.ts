@@ -172,6 +172,28 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 			{ id: "in_1", label: "Question", type: "text" }
 		],
 		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
+	},
+	"zero-shot-image-classification": {
+		inputs: [
+			{ id: "in_0", label: "Image", type: "image" },
+			{ id: "in_1", label: "Labels", type: "text" }
+		],
+		outputs: [{ id: "out_0", label: "Scores", type: "json" }]
+	},
+	"zero-shot-object-detection": {
+		inputs: [
+			{ id: "in_0", label: "Image", type: "image" },
+			{ id: "in_1", label: "Labels", type: "text" }
+		],
+		outputs: [{ id: "out_0", label: "Detections", type: "json" }]
+	},
+	"mask-generation": {
+		inputs: [{ id: "in_0", label: "Image", type: "image" }],
+		outputs: [{ id: "out_0", label: "Mask", type: "image" }]
+	},
+	"keypoint-detection": {
+		inputs: [{ id: "in_0", label: "Image", type: "image" }],
+		outputs: [{ id: "out_0", label: "Keypoints", type: "json" }]
 	}
 };
 
@@ -207,8 +229,6 @@ export function getComponentForPortType(type: string): NodeTemplate | null {
 	) as PortType;
 	return LIBRARY.components.find((c) => c.outputs[0]?.type === lookup) ?? null;
 }
-
-/* ── Expanded categories & pipeline-tag mapping ── */
 
 export const SPACE_CATEGORIES = [
 	{ key: "image", label: "Image" },
