@@ -198,6 +198,12 @@ button.access-badge.access-readonly.open {
 	border-color: #2a2b36;
 }
 
+.api-btn-glyph {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 11px;
+	color: var(--color-accent, #f97316);
+}
+
 .toolbar-login-btn {
 	font-family: "Manrope", sans-serif;
 	font-size: 12px;

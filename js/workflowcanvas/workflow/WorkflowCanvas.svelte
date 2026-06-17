@@ -7,6 +7,7 @@
 	import type { BoundFnTemplate } from "./WorkflowBottomBar.svelte";
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
+	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -49,6 +50,7 @@
 	import { stream_text_generation } from "./inference-stream";
 	import {
 		findFreeSpot as findFreeSpotImpl,
+		countSubgraphs,
 		topoSort,
 		resolveCurrentInputs as resolveCurrentInputsImpl,
 		computeStaleNodes,
@@ -274,6 +276,7 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	let showApiPanel = $state(false);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -337,6 +340,9 @@
 	const nodeCount = $derived(legacyView.nodes.length);
 	const hasTransforms = $derived($workflow.operators.length > 0);
 	const edgeCount = $derived($workflow.edges.length);
+	const subgraphCount = $derived(
+		countSubgraphs(legacyView.nodes, $workflow.edges)
+	);
 
 	const connectedPortsSet = $derived(() => {
 		const set = new Set<string>();
@@ -1440,15 +1446,17 @@
 			callModelWithToken,
 			fetchDatasetWithToken,
 			callFnWithToken,
-			(modelId, prompt, provider, signal, onChunk) =>
-				stream_text_generation({
-					modelId,
-					prompt,
-					provider,
-					hfToken: auth.token || undefined,
-					signal: signal ?? undefined,
-					onChunk
-				})
+			auth.token
+				? (modelId, prompt, provider, signal, onChunk) =>
+						stream_text_generation({
+							modelId,
+							prompt,
+							provider,
+							hfToken: auth.token,
+							signal: signal ?? undefined,
+							onChunk
+						})
+				: undefined
 		);
 
 		running = false;
@@ -2013,8 +2021,17 @@
 				</button>
 			{/if}
 			<span class="toolbar-stat"
-				>{nodeCount} nodes &middot; {edgeCount} edges</span
+				>{subgraphCount}
+				{subgraphCount === 1 ? "subgraph" : "subgraphs"}</span
 			>
+			<button
+				class="tool-btn api-btn"
+				onclick={() => (showApiPanel = true)}
+				title="View the API for this workflow"
+			>
+				<span class="api-btn-glyph">&lt;/&gt;</span>
+				View API
+			</button>
 			{#if saveIndicator}
 				<span
 					class="save-indicator"
@@ -2481,6 +2498,14 @@
 				</div>
 			</div>
 		</div>
+	{/if}
+
+	{#if showApiPanel}
+		<WorkflowApiPanel
+			{server}
+			workflowName={$workflow.name}
+			onClose={() => (showApiPanel = false)}
+		/>
 	{/if}
 </div>
 

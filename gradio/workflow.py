@@ -15,7 +15,7 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict
 
 import httpx
 from huggingface_hub import HfApi
@@ -25,6 +25,9 @@ from gradio.blocks import Blocks
 from gradio.oauth import OAuthToken
 from gradio.route_utils import Request
 from gradio.utils import get_space
+
+if TYPE_CHECKING:
+    from gradio.workflow_api import WorkflowEndpointManager
 
 _HF_CLIENT = httpx.Client(
     base_url="https://huggingface.co",
@@ -997,14 +1000,18 @@ _QUICKSEARCH_CACHE: dict[str, tuple[float, str]] = {}
 _QUICKSEARCH_TTL = 30.0
 
 
-def search_quick(data, token: Optional[OAuthToken] = None) -> str:
+def search_quick(
+    data,
+    request: Request | None = None,
+    token: Optional[OAuthToken] = None,
+) -> str:
     import time
 
     query = data[0] if data and data[0] else ""
     if not query or len(query) < 2:
         return json.dumps({"spaces": [], "models": []})
     try:
-        hf_token = _resolve_token(data, 1, token)
+        hf_token = _resolve_token(data, 1, token, request)
 
         cache_key = query.lower().strip()
         now = time.monotonic()
@@ -1069,10 +1076,14 @@ def _parse_repo_input(raw: str) -> tuple[str, Optional[str]]:
     return "", None
 
 
-def resolve_repo(data, token: Optional[OAuthToken] = None) -> str:
+def resolve_repo(
+    data,
+    request: Request | None = None,
+    token: Optional[OAuthToken] = None,
+) -> str:
     raw = data[0] if data else ""
     try:
-        hf_token = _resolve_token(data, 1, token)
+        hf_token = _resolve_token(data, 1, token, request)
         repo_id, kind_hint = _parse_repo_input(raw)
 
         def _try(rid: str, repo_type: str) -> Optional[dict]:
@@ -1274,6 +1285,10 @@ class Workflow(Blocks):
         import gradio as gr
         from gradio.components.workflowcanvas import WorkflowCanvas
 
+        # Set once the API endpoints are registered (post UI build); save_workflow
+        # re-syncs it so /info + /call track edits to the graph.
+        self._api_endpoints: WorkflowEndpointManager | None = None
+
         if self._edges and os.path.exists(self._workflow_file):
             logger.warning(
                 "Workflow: edges= is ignored because '%s' already exists. "
@@ -1296,7 +1311,11 @@ class Workflow(Blocks):
 
         bound = self._bound
 
-        def call_fn(data, _token: Optional[OAuthToken] = None) -> str:
+        def call_fn(
+            data,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
             fn_name = data[0] if data else ""
             try:
                 args_json = data[1] if len(data) > 1 else "[]"
@@ -1365,6 +1384,16 @@ class Workflow(Blocks):
                 )
             return json.dumps(templates)
 
+        def get_workflow_api(_data=None, _request: Optional[Request] = None) -> str:
+            """Describe the workflow's API endpoints (one per subgraph) for the
+            frontend "View API" panel. Re-reads the current graph so it tracks
+            live edits, same as the registered endpoints."""
+            from gradio.workflow_api import WorkflowGraph, describe_workflow_api
+
+            graph = WorkflowGraph.from_json(_load_initial())
+            endpoints = describe_workflow_api(graph) if graph is not None else []
+            return json.dumps({"endpoints": endpoints})
+
         def save_workflow(
             data,
             request: Optional[Request] = None,
@@ -1384,11 +1413,30 @@ class Workflow(Blocks):
                 if len(payload.encode()) > _max_workflow_bytes:
                     return json.dumps({"error": "Workflow payload exceeds 5 MB limit"})
                 try:
-                    json.loads(payload)
+                    parsed = json.loads(payload)
                 except json.JSONDecodeError as exc:
                     return json.dumps({"error": f"Invalid workflow JSON: {exc}"})
+                if not isinstance(parsed, dict) or parsed.get("schema_version") != "2":
+                    return json.dumps(
+                        {"error": "Workflow payload must use schema_version 2"}
+                    )
+                try:
+                    from gradio.workflow_api import WorkflowGraph
+
+                    WorkflowGraph(parsed)
+                except ValueError as exc:
+                    return json.dumps({"error": f"Invalid workflow schema: {exc}"})
                 with open(workflow_file, "w", encoding="utf-8") as f:
                     f.write(payload)
+                # Re-derive API endpoints so /info + /call track the saved graph
+                # (outputs added / removed / renamed / retyped).
+                if self._api_endpoints is not None:
+                    try:
+                        self._api_endpoints.sync()
+                    except Exception:
+                        logger.error(
+                            "Workflow: endpoint sync after save failed", exc_info=True
+                        )
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
@@ -1412,8 +1460,24 @@ class Workflow(Blocks):
             get_dataset_schema,
             call_fn,
             list_bound_fns,
+            get_workflow_api,
             save_workflow,
         ]
+
+        from gradio.workflow_api import WorkflowGraph, register_workflow_endpoints
+
+        # Operator-kind → server-function used to execute that node. The same
+        # functions back the canvas's client-side run; the API executor reuses
+        # them (with request/token threaded for token resolution).
+        callers = {
+            "space": call_space,
+            "model": call_model,
+            "fn": call_fn,
+            "dataset": fetch_dataset,
+        }
+
+        def _current_graph() -> WorkflowGraph | None:
+            return WorkflowGraph.from_json(_load_initial())
 
         with self:
             if get_space() is not None and os.getenv("OAUTH_CLIENT_ID"):
@@ -1422,6 +1486,11 @@ class Workflow(Blocks):
                 value=_load_initial,
                 server_functions=server_functions,
             )
+
+        # Expose each subject (output) as a named API endpoint reusing /info +
+        # /call. The manager re-syncs on every save_workflow, so adding,
+        # removing, renaming, or retyping an output updates the live API.
+        self._api_endpoints = register_workflow_endpoints(self, _current_graph, callers)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
