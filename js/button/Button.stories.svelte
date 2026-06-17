@@ -62,16 +62,6 @@
 	{template}
 />
 <Story
-	name="Small"
-	args={{ variant: "primary", size: "sm", value: "Small Button" }}
-	{template}
-/>
-<Story
-	name="Medium"
-	args={{ variant: "primary", size: "md", value: "Medium Button" }}
-	{template}
-/>
-<Story
 	name="Disabled"
 	args={{
 		variant: "primary",
@@ -82,22 +72,7 @@
 	{template}
 />
 <Story
-	name="Button with link"
-	args={{
-		variant: "primary",
-		size: "lg",
-		link: "https://huggingface.co",
-		value: "Link Button"
-	}}
-	{template}
-/>
-<Story
 	name="Huggingface variant"
 	args={{ variant: "huggingface", size: "lg", value: "Huggingface Button" }}
-	{template}
-/>
-<Story
-	name="Hidden"
-	args={{ variant: "primary", visible: false, value: "Hidden Button" }}
 	{template}
 />

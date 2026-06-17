@@ -14,7 +14,8 @@ import urllib.parse
 import warnings
 import webbrowser
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional
+from concurrent.futures import ThreadPoolExecutor
+from typing import TYPE_CHECKING, Optional, TypedDict
 
 import httpx
 from huggingface_hub import HfApi
@@ -27,6 +28,88 @@ from gradio.utils import get_space
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
+
+_HF_CLIENT = httpx.Client(
+    base_url="https://huggingface.co",
+    timeout=15,
+    headers={"User-Agent": "gradio-workflow"},
+    limits=httpx.Limits(max_keepalive_connections=8, max_connections=16),
+)
+_SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="hf-search")
+
+_CURATED_DATASET_REPO = "gradio/workflow-curated"
+_CURATED_DATASET_FILE = "curated.json"
+_CURATED_TTL_SECONDS = 3600.0
+
+
+class _CuratedCache(TypedDict):
+    fetched_at: float
+    items: Optional[list[dict]]
+
+
+_CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
+_CURATED_LOCK = __import__("threading").Lock()
+
+
+def _bundled_snapshot_path() -> str:
+    return os.path.join(os.path.dirname(__file__), "_workflow_curated_snapshot.json")
+
+
+def _load_bundled_snapshot() -> list[dict]:
+    try:
+        with open(_bundled_snapshot_path(), encoding="utf-8") as f:
+            payload = json.load(f)
+        items = payload.get("items") if isinstance(payload, dict) else payload
+        return items if isinstance(items, list) else []
+    except Exception as e:
+        logger.warning("workflow curated snapshot unreadable: %s", e)
+        return []
+
+
+def _fetch_curated_from_hub() -> Optional[list[dict]]:
+    try:
+        from huggingface_hub import hf_hub_download
+
+        local = hf_hub_download(
+            repo_id=_CURATED_DATASET_REPO,
+            filename=_CURATED_DATASET_FILE,
+            repo_type="dataset",
+        )
+        with open(local, encoding="utf-8") as f:
+            payload = json.load(f)
+        items = payload.get("items") if isinstance(payload, dict) else payload
+        if isinstance(items, list):
+            return items
+        return None
+    except Exception as e:
+        logger.info("curated dataset fetch failed: %s", e)
+        return None
+
+
+def _load_curated() -> list[dict]:
+    import time
+
+    now = time.monotonic()
+    with _CURATED_LOCK:
+        cached_at = _CURATED_CACHE["fetched_at"]
+        cached_items = _CURATED_CACHE["items"]
+        if cached_items is not None and (now - cached_at) < _CURATED_TTL_SECONDS:
+            return cached_items
+
+    live = _fetch_curated_from_hub()
+    items: list[dict] = live if live is not None else _load_bundled_snapshot()
+
+    with _CURATED_LOCK:
+        cached_at2 = _CURATED_CACHE["fetched_at"]
+        if (now - cached_at2) >= _CURATED_TTL_SECONDS:
+            _CURATED_CACHE["fetched_at"] = now
+            _CURATED_CACHE["items"] = items
+        else:
+            cached = _CURATED_CACHE["items"]
+            if cached is not None:
+                items = cached
+    return items
+
 
 logger = logging.getLogger(__name__)
 
@@ -247,28 +330,9 @@ def _resolve_token(
 
 def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
     headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-    resp = httpx.get(url, headers=headers, timeout=timeout)
+    resp = _HF_CLIENT.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     return resp.text
-
-
-def _normalize_space_result(s: dict, pipeline_tag: str) -> dict:
-    effective_tag = pipeline_tag or s.get("ai_category")
-    return {
-        "id": s.get("id"),
-        "likes": s.get("likes", 0),
-        "trendingScore": s.get("trendingScore", 0),
-        "runtime": s.get("runtime"),
-        "pipeline_tag": effective_tag,
-        "cardData": {
-            "title": s.get("title"),
-            "short_description": (
-                s.get("shortDescription") or s.get("ai_short_description")
-            ),
-            "tags": s.get("tags", []),
-            "sdk": s.get("sdk"),
-        },
-    }
 
 
 def _save_tmp(result, ext: str) -> dict:
@@ -377,48 +441,6 @@ def _format_error(e: Exception) -> str:
     if title:
         err["title"] = title
     return json.dumps(err)
-
-
-VALID_SPACE_CATEGORIES = {
-    "image-generation",
-    "video-generation",
-    "text-generation",
-    "language-translation",
-    "speech-synthesis",
-    "voice-cloning",
-    "face-recognition",
-    "object-detection",
-    "pose-estimation",
-    "text-analysis",
-    "sentiment-analysis",
-    "question-answering",
-    "code-generation",
-    "data-visualization",
-    "3d-modeling",
-    "image-editing",
-    "background-removal",
-    "image-upscaling",
-    "ocr",
-    "document-analysis",
-    "visual-qa",
-    "image-captioning",
-    "chatbots",
-    "text-summarization",
-    "music-generation",
-    "medical-imaging",
-    "financial-analysis",
-    "game-ai",
-    "model-benchmarking",
-    "fine-tuning-tools",
-    "dataset-creation",
-    "anomaly-detection",
-    "recommendation-systems",
-    "character-animation",
-    "style-transfer",
-    "agent-environment",
-    "image",
-    "other",
-}
 
 
 def get_token(
@@ -780,145 +802,319 @@ def fetch_dataset(
         return json.dumps({"error": str(e), "error_type": "unknown", "suggestion": ""})
 
 
+def _curated_entry_to_space_result(entry: dict) -> dict:
+    return {
+        "id": entry.get("id"),
+        "likes": 0,
+        "trendingScore": (entry.get("validation") or {}).get("latency_ms") or 0,
+        "runtime": {"stage": "RUNNING"},
+        "pipeline_tag": entry.get("task"),
+        "tags": ["zero-gpu"] if entry.get("zero_gpu") else [],
+        "cardData": {
+            "title": entry.get("title"),
+            "short_description": entry.get("description"),
+            "tags": ["zero-gpu"] if entry.get("zero_gpu") else [],
+            "sdk": "gradio",
+        },
+        "_curated": True,
+        "_featured": bool(entry.get("featured")),
+        "_thumbnail": entry.get("thumbnail"),
+    }
+
+
+def _curated_entry_to_model_result(entry: dict) -> dict:
+    return {
+        "id": entry.get("id"),
+        "likes": 0,
+        "downloads": 0,
+        "pipeline_tag": entry.get("task"),
+        "_curated": True,
+        "_featured": bool(entry.get("featured")),
+        "_thumbnail": entry.get("thumbnail"),
+    }
+
+
+def _filter_curated(
+    items: list[dict],
+    kind_filter: str,
+    task: str,
+    query: str,
+    modality: str = "",
+) -> list[dict]:
+    out: list[dict] = []
+    q = query.lower().strip()
+    for entry in items:
+        if entry.get("kind") != kind_filter:
+            continue
+        v = entry.get("validation") or {}
+        status = v.get("status", "ok")
+        if status and status != "ok":
+            continue
+        if task:
+            if entry.get("task") != task and entry.get("space_category") != task:
+                continue
+        elif modality and entry.get("modality") != modality:
+            continue
+        if q:
+            haystack = " ".join(
+                [
+                    str(entry.get("title") or ""),
+                    str(entry.get("description") or ""),
+                    str(entry.get("id") or ""),
+                ]
+            ).lower()
+            if q not in haystack:
+                continue
+        out.append(entry)
+    return out
+
+
 def search_spaces(
-    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+    data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
     kind = data[0] if data else "trending"
     try:
         query = data[1] if len(data) > 1 and data[1] else ""
-        pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
-        # If the supplied tag isn't a valid Space category, drop it
-        # so semantic-search doesn't reject the whole request.
-        # The frontend's pipelineTags often carry model-pipeline
-        # values (`summarization`, `image-to-video`, …) that
-        # don't exist as Space categories.
-        if pipeline_tag and pipeline_tag not in VALID_SPACE_CATEGORIES:
-            pipeline_tag = ""
-        hf_token = _resolve_token(data, 3, token, request)
+        space_tag = data[2] if len(data) > 2 and data[2] else ""
+        modality = data[3] if len(data) > 3 and isinstance(data[3], str) else ""
         zero_gpu_only = bool(data[4]) if len(data) > 4 else False
 
-        def _has_zero_gpu(s: dict) -> bool:
-            tags = s.get("tags") or []
-            if "zero-gpu" in tags or "zerogpu" in tags:
-                return True
-            hw = (s.get("runtime") or {}).get("hardware") or ""
-            return "zero" in str(hw).lower()
+        items = _filter_curated(_load_curated(), "space", space_tag, query, modality)
+        if zero_gpu_only:
+            items = [e for e in items if e.get("zero_gpu")]
 
-        def _fallback_search(q: str) -> list:
-            if not q:
-                return []
-            fb_url = (
-                f"https://huggingface.co/api/spaces?filter=gradio"
-                f"&search={urllib.parse.quote(q)}"
-                f"&limit=24"
-                f"&expand[]=likes&expand[]=cardData&expand[]=runtime"
-            )
-            if zero_gpu_only:
-                fb_url += "&filter=zero-gpu"
-            try:
-                return json.loads(_hf_request(fb_url, hf_token))
-            except Exception:
-                return []
-
-        # When a category OR query is set, use the semantic-search
-        # endpoint. It expands category slugs across multiple
-        # related tags (`image-upscaling` → upscaler /
-        # super-resolution / image-restoration / …), which the
-        # plain `/api/spaces?filter=` endpoint doesn't do.
-        #
-        # When neither is set ("All" subtab, no search), fall back
-        # to `/api/spaces?filter=gradio` since semantic-search
-        # rejects calls with no category and no query.
-        if pipeline_tag or query:
-            params = ["sdk=gradio", "includeNonRunning=false"]
-            if pipeline_tag:
-                params.append(f"category={urllib.parse.quote(pipeline_tag)}")
-            # Only send q= when there's no category; otherwise the
-            # AND-filter narrows results unnecessarily (within a
-            # precise category like background-removal, the
-            # query phrase drops valid hits).
-            elif query:
-                params.append(f"q={urllib.parse.quote(query)}")
-            url = "https://huggingface.co/api/spaces/semantic-search?" + "&".join(
-                params
-            )
-            raw = _hf_request(url, hf_token)
-            parsed = json.loads(raw)
-            if not isinstance(parsed, list):
-                return raw  # surface the API's error blob as-is
-
-            if kind == "search" and query and len(parsed) < 6:
-                for fb in _fallback_search(query):
-                    if not any(p.get("id") == fb.get("id") for p in parsed):
-                        parsed.append(fb)
-
-            # semantic-search doesn't honour `filter=zero-gpu`, so
-            # post-filter on the expanded `tags` / `runtime.hardware`.
-            if zero_gpu_only:
-                parsed = [s for s in parsed if _has_zero_gpu(s)]
-
-            if kind == "new":
-                parsed.sort(
-                    key=lambda s: s.get("createdAt") or "",
-                    reverse=True,
-                )
-            elif kind != "search":
-                parsed.sort(
-                    key=lambda s: s.get("trendingScore") or 0,
-                    reverse=True,
-                )
-            return json.dumps(
-                [_normalize_space_result(s, pipeline_tag) for s in parsed[:48]]
-            )
-
-        # No category, no query — browse mode.
-        base_expand = "&expand[]=likes&expand[]=cardData&expand[]=runtime"
-        zero_filter = "&filter=zero-gpu" if zero_gpu_only else ""
         if kind == "new":
-            url = (
-                f"https://huggingface.co/api/spaces?filter=gradio"
-                f"{zero_filter}"
-                f"&limit=24&sort=createdAt&direction=-1{base_expand}"
-            )
+            items.sort(key=lambda e: e.get("added_at") or "", reverse=True)
         else:
-            url = (
-                f"https://huggingface.co/api/spaces?filter=gradio"
-                f"{zero_filter}"
-                f"&limit=48&sort=trendingScore&direction=-1{base_expand}"
-            )
-        return _hf_request(url, hf_token)
+
+            def _rank(e: dict) -> tuple:
+                v = e.get("validation") or {}
+                return (
+                    0 if e.get("zero_gpu") else 1,
+                    0 if e.get("featured") else 1,
+                    v.get("latency_ms") or 999_999,
+                    e.get("added_at") or "",
+                )
+
+            items.sort(key=_rank)
+
+        normalized = [_curated_entry_to_space_result(e) for e in items[:48]]
+        return json.dumps(normalized)
     except Exception as e:
         logger.error("search_spaces failed (kind=%s): %s", kind, e, exc_info=True)
         return json.dumps({"error": str(e)})
 
 
 def search_models(
-    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+    data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
     kind = data[0] if data else "trending"
     try:
         query = data[1] if len(data) > 1 and data[1] else ""
         pipeline_tag = data[2] if len(data) > 2 and data[2] else ""
-        hf_token = _resolve_token(data, 3, token, request)
-        # Wide net — frontend filters to TASK_SCHEMAS-supported models.
-        if kind == "search":
-            sort = "likes&direction=-1"
-        elif kind == "new":
-            sort = "createdAt&direction=-1"
+        modality = data[3] if len(data) > 3 and isinstance(data[3], str) else ""
+
+        items = _filter_curated(_load_curated(), "model", pipeline_tag, query, modality)
+
+        if kind == "new":
+            items.sort(key=lambda e: e.get("added_at") or "", reverse=True)
         else:
-            sort = "trendingScore&direction=-1"
-        url = (
-            f"https://huggingface.co/api/models?sort={sort}&limit=60"
-            f"&expand[]=likes&expand[]=downloads&expand[]=pipeline_tag"
-            f"&expand[]=inferenceProviderMapping"
-        )
-        if query:
-            url += f"&search={urllib.parse.quote(query)}"
-        if pipeline_tag:
-            url += f"&pipeline_tag={urllib.parse.quote(pipeline_tag)}"
-        return _hf_request(url, hf_token)
+            items.sort(
+                key=lambda e: (0 if e.get("featured") else 1, e.get("added_at") or "")
+            )
+
+        normalized = [_curated_entry_to_model_result(e) for e in items[:48]]
+        return json.dumps(normalized)
     except Exception as e:
         logger.error("search_models failed (kind=%s): %s", kind, e, exc_info=True)
+        return json.dumps({"error": str(e)})
+
+
+def curated_modalities(_data=None, _token: Optional[OAuthToken] = None) -> str:
+    try:
+        items = _load_curated()
+        mods: set[str] = set()
+        for entry in items:
+            v = entry.get("validation") or {}
+            if v.get("status", "ok") != "ok":
+                continue
+            m = entry.get("modality")
+            if m:
+                mods.add(m)
+        return json.dumps(sorted(mods))
+    except Exception as e:
+        logger.error("curated_modalities failed: %s", e, exc_info=True)
+        return json.dumps({"error": str(e)})
+
+
+def curated_modality_tasks(data, _token: Optional[OAuthToken] = None) -> str:
+    try:
+        modality = (data[0] if data else "") or ""
+        items = _load_curated()
+        tasks: set[str] = set()
+        for entry in items:
+            if modality and entry.get("modality") != modality:
+                continue
+            v = entry.get("validation") or {}
+            if v.get("status", "ok") != "ok":
+                continue
+            t = entry.get("task")
+            sc = entry.get("space_category")
+            if t:
+                tasks.add(t)
+            if sc:
+                tasks.add(sc)
+        return json.dumps(sorted(tasks))
+    except Exception as e:
+        logger.error("curated_modality_tasks failed: %s", e, exc_info=True)
+        return json.dumps({"error": str(e)})
+
+
+def is_curated(data, _token: Optional[OAuthToken] = None) -> str:
+    try:
+        repo_id = (data[0] if data else "") or ""
+        kind = (data[1] if len(data) > 1 else "") or ""
+        items = _load_curated()
+        for entry in items:
+            if entry.get("id") != repo_id:
+                continue
+            if kind and entry.get("kind") != kind:
+                continue
+            v = entry.get("validation") or {}
+            if v.get("status", "ok") != "ok":
+                return json.dumps({"curated": False})
+            return json.dumps(
+                {
+                    "curated": True,
+                    "status": "ok",
+                    "featured": bool(entry.get("featured")),
+                }
+            )
+        return json.dumps({"curated": False})
+    except Exception as e:
+        logger.error("is_curated failed: %s", e, exc_info=True)
+        return json.dumps({"error": str(e)})
+
+
+_QUICKSEARCH_CACHE: dict[str, tuple[float, str]] = {}
+_QUICKSEARCH_TTL = 30.0
+
+
+def search_quick(data, token: Optional[OAuthToken] = None) -> str:
+    import time
+
+    query = data[0] if data and data[0] else ""
+    if not query or len(query) < 2:
+        return json.dumps({"spaces": [], "models": []})
+    try:
+        hf_token = _resolve_token(data, 1, token)
+
+        cache_key = query.lower().strip()
+        now = time.monotonic()
+        cached = _QUICKSEARCH_CACHE.get(cache_key)
+        if cached and cached[0] > now:
+            return cached[1]
+
+        def _one(repo_type: str) -> list:
+            url = (
+                "https://huggingface.co/api/quicksearch?"
+                f"q={urllib.parse.quote(query)}&type={repo_type}&limit=8"
+            )
+            try:
+                raw = _hf_request(url, hf_token)
+                parsed = json.loads(raw)
+                if isinstance(parsed, dict):
+                    return parsed.get(f"{repo_type}s") or parsed.get(repo_type) or []
+                if isinstance(parsed, list):
+                    return parsed
+                return []
+            except Exception:
+                return []
+
+        space_future = _SEARCH_POOL.submit(_one, "space")
+        model_future = _SEARCH_POOL.submit(_one, "model")
+        spaces = space_future.result()
+        models = model_future.result()
+
+        payload = json.dumps({"spaces": spaces, "models": models})
+        _QUICKSEARCH_CACHE[cache_key] = (now + _QUICKSEARCH_TTL, payload)
+        if len(_QUICKSEARCH_CACHE) > 256:
+            for k in list(_QUICKSEARCH_CACHE.keys())[:64]:
+                _QUICKSEARCH_CACHE.pop(k, None)
+        return payload
+    except Exception as e:
+        logger.error("search_quick failed (q=%s): %s", query, e, exc_info=True)
+        return json.dumps({"error": str(e)})
+
+
+_REPO_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
+
+
+def _parse_repo_input(raw: str) -> tuple[str, Optional[str]]:
+    s = (raw or "").strip().rstrip("/")
+    if not s:
+        return "", None
+    if _REPO_ID_RE.match(s):
+        return s, None
+    s = re.sub(r"^https?://(?:www\.)?", "", s)
+    s = re.sub(r"^hf\.co/", "huggingface.co/", s)
+    m = re.match(
+        r"^huggingface\.co/(spaces|datasets|models)?/?([^/\s?#]+)/([^/\s?#]+)",
+        s,
+    )
+    if m:
+        section, org, name = m.group(1), m.group(2), m.group(3)
+        if section == "spaces":
+            return f"{org}/{name}", "space"
+        if section == "datasets":
+            return f"{org}/{name}", "dataset"
+        return f"{org}/{name}", "model" if section else None
+    return "", None
+
+
+def resolve_repo(data, token: Optional[OAuthToken] = None) -> str:
+    raw = data[0] if data else ""
+    try:
+        hf_token = _resolve_token(data, 1, token)
+        repo_id, kind_hint = _parse_repo_input(raw)
+
+        def _try(rid: str, repo_type: str) -> Optional[dict]:
+            try:
+                url = (
+                    f"https://huggingface.co/api/{repo_type}s/"
+                    f"{urllib.parse.quote(rid, safe='/')}"
+                )
+                return json.loads(_hf_request(url, hf_token))
+            except Exception:
+                return None
+
+        if not repo_id:
+            sub = re.match(
+                r"^(?:https?://)?([^/]+)\.hf\.space", raw.strip(), re.IGNORECASE
+            )
+            if sub:
+                parts = sub.group(1).split("-")
+                for i in range(1, len(parts)):
+                    candidate = f"{'-'.join(parts[:i])}/{'-'.join(parts[i:])}"
+                    rec = _try(candidate, "space")
+                    if rec and rec.get("id"):
+                        return json.dumps(
+                            {"kind": "space", "id": rec["id"], "record": rec}
+                        )
+            return json.dumps({"error": "not_a_repo"})
+
+        repo_types: list[str] = (
+            [kind_hint]
+            if kind_hint in ("space", "model", "dataset")
+            else ["space", "model"]
+        )
+        for repo_type in repo_types:
+            rec = _try(repo_id, repo_type)
+            if rec and rec.get("id"):
+                return json.dumps({"kind": repo_type, "id": rec["id"], "record": rec})
+        return json.dumps({"error": "not_found", "id": repo_id})
+    except Exception as e:
+        logger.error("resolve_repo failed (raw=%s): %s", raw, e, exc_info=True)
         return json.dumps({"error": str(e)})
 
 
@@ -1248,6 +1444,11 @@ class Workflow(Blocks):
             search_spaces,
             search_models,
             search_datasets,
+            search_quick,
+            resolve_repo,
+            is_curated,
+            curated_modalities,
+            curated_modality_tasks,
             get_dataset_schema,
             call_fn,
             list_bound_fns,
