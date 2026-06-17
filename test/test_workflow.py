@@ -318,7 +318,8 @@ class TestSaveWorkflowGating:
 
     def test_save_allowed_with_write_access(self, tmp_path):
         save = self._save_fn(tmp_path)
-        assert save(['{"nodes": []}'], _write_request(), None) == "ok"
+        # A valid schema_version 2 payload (save now validates the schema).
+        assert save(['{"schema_version": "2"}'], _write_request(), None) == "ok"
         assert os.path.exists(tmp_path / "wf.json")
 
 
