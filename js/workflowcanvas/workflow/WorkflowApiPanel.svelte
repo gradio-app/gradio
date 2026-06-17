@@ -163,7 +163,7 @@
 					<div class="api-title-main">API</div>
 					<div class="api-title-sub">
 						Call <strong>{workflowName}</strong> programmatically — one endpoint per
-						output
+						subgraph
 					</div>
 				</div>
 			</div>
