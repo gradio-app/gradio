@@ -758,11 +758,11 @@ describe("Single-select: get_data / set_data", () => {
 describe("Single-select: Accessibility", () => {
 	afterEach(() => cleanup());
 
-	test("input exposes the listbox role", async () => {
+	test("input exposes the combobox role", async () => {
 		const { getByLabelText } = await render(Dropdown, single_select_props);
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		expect(input).toHaveAttribute("role", "listbox");
+		expect(input).toHaveAttribute("role", "combobox");
 	});
 
 	test("aria-controls points at the options listbox", async () => {
@@ -780,6 +780,25 @@ describe("Single-select: Accessibility", () => {
 		const listbox = document.getElementById(controls as string);
 		expect(listbox).toBeTruthy();
 		expect(listbox).toHaveAttribute("role", "listbox");
+	});
+
+	test("aria-activedescendant tracks the active option while navigating", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		expect(input).not.toHaveAttribute("aria-activedescendant");
+
+		await event.keyboard("{ArrowDown}");
+		const active_id = input.getAttribute("aria-activedescendant");
+		expect(active_id).toBeTruthy();
+
+		const active_option = document.getElementById(active_id as string);
+		expect(active_option).toHaveAttribute("role", "option");
+		expect(active_option).toHaveAttribute("aria-label", "apple");
 	});
 });
 
@@ -942,6 +961,28 @@ describe("Multiselect: Rendering", () => {
 		expect(tokens).toHaveLength(2);
 		const removeButtons = container.querySelectorAll(".token-remove");
 		expect(removeButtons).toHaveLength(0);
+	});
+});
+
+describe("Multiselect: Accessibility", () => {
+	afterEach(() => cleanup());
+
+	test("input is a combobox wired to the options listbox", async () => {
+		const { container } = await render(Dropdown, multiselect_props);
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		expect(input).toHaveAttribute("role", "combobox");
+
+		await input.focus();
+
+		const controls = input.getAttribute("aria-controls");
+		const listbox = document.getElementById(controls as string);
+		expect(listbox).toHaveAttribute("role", "listbox");
+
+		const active_id = input.getAttribute("aria-activedescendant");
+		const active_option = document.getElementById(active_id as string);
+		expect(active_option).toHaveAttribute("role", "option");
+		expect(active_option).toHaveAttribute("aria-label", "apple");
 	});
 });
 
