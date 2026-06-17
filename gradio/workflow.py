@@ -37,6 +37,8 @@ _SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="hf-search")
 _CURATED_DATASET_REPO = "gradio/workflow-curated"
 _CURATED_DATASET_FILE = "curated.json"
 _CURATED_TTL_SECONDS = 3600.0
+
+
 class _CuratedCache(TypedDict):
     fetched_at: float
     items: Optional[list[dict]]
