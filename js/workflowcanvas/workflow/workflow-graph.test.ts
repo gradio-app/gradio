@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 import {
 	findFreeSpot,
+	countSubgraphs,
 	topoSort,
 	resolveCurrentInputs,
 	computeStaleNodes,
@@ -177,6 +178,44 @@ describe("topoSort", () => {
 		expect(order.indexOf("a")).toBeLessThan(order.indexOf("c"));
 		expect(order.indexOf("b")).toBeLessThan(order.indexOf("d"));
 		expect(order.indexOf("c")).toBeLessThan(order.indexOf("d"));
+	});
+});
+
+describe("countSubgraphs", () => {
+	test("returns 0 for an empty graph", () => {
+		expect(countSubgraphs([], [])).toBe(0);
+	});
+
+	test("counts each unconnected node as its own subgraph", () => {
+		const a = asLegacy(ref("a"));
+		const b = asLegacy(ref("b"));
+		const c = asLegacy(ref("c"));
+		expect(countSubgraphs([a, b, c], [])).toBe(3);
+	});
+
+	test("collapses a connected chain into one subgraph", () => {
+		const a = asLegacy(ref("a"));
+		const b = asLegacy(op("b"));
+		const c = asLegacy(sub("c"));
+		expect(countSubgraphs([a, b, c], [edge("a", "b"), edge("b", "c")])).toBe(1);
+	});
+
+	test("counts two independent pipelines separately", () => {
+		const a = asLegacy(ref("a"));
+		const b = asLegacy(sub("b"));
+		const c = asLegacy(ref("c"));
+		const d = asLegacy(sub("d"));
+		expect(countSubgraphs([a, b, c, d], [edge("a", "b"), edge("c", "d")])).toBe(
+			2
+		);
+	});
+
+	test("treats edges as undirected when merging components", () => {
+		const a = asLegacy(ref("a"));
+		const b = asLegacy(op("b"));
+		const c = asLegacy(ref("c"));
+		// a -> b and c -> b: both feed b, so all three are one subgraph.
+		expect(countSubgraphs([a, b, c], [edge("a", "b"), edge("c", "b")])).toBe(1);
 	});
 });
 
