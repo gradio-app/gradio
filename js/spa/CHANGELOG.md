@@ -1,5 +1,17 @@
 # @self/spa
 
+## 1.5.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.3.0
+- @gradio/theme@0.6.2
+- @gradio/core@1.8.0
+
 ## 1.4.2
 
 ### Dependency updates
