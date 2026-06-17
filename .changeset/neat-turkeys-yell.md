@@ -5,6 +5,8 @@
 "@gradio/image": minor
 "@gradio/imageeditor": minor
 "@gradio/imageslider": minor
+"@gradio/multimodaltextbox": minor
+"@gradio/tabs": minor
 "@gradio/video": minor
 "gradio": minor
 ---
