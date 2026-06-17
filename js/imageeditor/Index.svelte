@@ -84,6 +84,14 @@
 	let normalised_layers = $derived(
 		gradio.props.value?.layers?.map((layer) => new FileData(layer)) || []
 	);
+	let resolved_theme_mode = $derived(
+		gradio.shared.theme_mode === "dark" ||
+			(gradio.shared.theme_mode === "system" &&
+				typeof window !== "undefined" &&
+				window.matchMedia?.("(prefers-color-scheme: dark)").matches)
+			? "dark"
+			: "light"
+	);
 </script>
 
 {#if !gradio.shared.interactive}
@@ -197,7 +205,7 @@
 			show_download_button={gradio.props.buttons === null
 				? true
 				: (gradio.props.buttons ?? []).includes("download")}
-			theme_mode={gradio.shared.theme_mode === "dark" ? "dark" : "light"}
+			theme_mode={resolved_theme_mode}
 			ondownload_error={(detail) => gradio.dispatch("error", detail)}
 		></InteractiveImageEditor>
 	</Block>

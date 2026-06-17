@@ -16,15 +16,28 @@
 		onload?: HTMLImgAttributes["onload"];
 		[key: string]: any;
 	} = $props();
+
+	const without_class = ({
+		class: _class,
+		...props
+	}: Record<string, any>): Record<string, any> => props;
+
+	let rest_img_props = $derived(without_class(restProps));
+	let direct_img_props = $derived(without_class(imgProps));
+	let classes = $derived(
+		[class_names.join(" "), restProps.class, imgProps.class]
+			.filter(Boolean)
+			.join(" ")
+	);
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
 <img
 	{src}
-	class={class_names.join(" ")}
+	class={classes}
 	data-testid={data_testid}
-	{...restProps}
-	{...imgProps}
+	{...rest_img_props}
+	{...direct_img_props}
 	{onload}
 />
 
