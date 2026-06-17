@@ -197,16 +197,13 @@
 					searchResults = [];
 					return;
 				}
-				searchResults = data
-					.filter((s: any) => s.sdk === "gradio")
-					.slice(0, 6)
-					.map((s: any) => ({
-						id: s.id,
-						likes: s.likes ?? 0,
-						title: s.title || s.id.split("/").pop(),
-						description: s.ai_short_description || "",
-						running: s.runtime?.stage === "RUNNING"
-					}));
+				searchResults = data.slice(0, 6).map((s: any) => ({
+					id: s.id,
+					likes: s.likes ?? 0,
+					title: s.title || s.id.split("/").pop(),
+					description: s.ai_short_description || "",
+					running: s.runtime?.stage === "RUNNING"
+				}));
 			} catch {
 				searchResults = [];
 			} finally {

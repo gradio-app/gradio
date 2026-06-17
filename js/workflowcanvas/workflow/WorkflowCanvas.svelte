@@ -14,6 +14,7 @@
 	import {
 		MODALITIES,
 		DATASET_MODALITY,
+		ALL_MODALITY,
 		portMeta,
 		modalityForPort
 	} from "./workflow-modalities";
@@ -352,7 +353,6 @@
 		nodeId?: string;
 		anchorX?: number;
 		anchorY?: number;
-		initialSource?: "spaces" | "models" | "datasets";
 		initialSubtab?: string;
 	}
 	let activePicker: ActivePicker | null = $state(null);
@@ -1730,24 +1730,21 @@
 		if (node.kind !== "transform") return;
 
 		let modality: ModalityConfig;
-		let initialSource: "spaces" | "models" | "datasets" = "spaces";
 		if (node.dataset_id) {
 			modality = DATASET_MODALITY;
-			initialSource = "datasets";
 		} else {
 			const cat = node.pipeline_tag
 				? getModalityForPipelineTag(node.pipeline_tag)
 				: "image";
 			modality = MODALITIES.find((m) => m.category === cat) ?? MODALITIES[0];
-			initialSource = node.model_id ? "models" : "spaces";
 		}
 
 		let anchorX: number | undefined;
 		let anchorY: number | undefined;
 		if (canvasEl) {
 			const r = canvasEl.getBoundingClientRect();
-			const panelWidth = 536;
-			const panelHeight = 620;
+			const panelWidth = 940;
+			const panelHeight = 720;
 			const nodeScreenRight =
 				node.x * viewport.zoom + viewport.x + node.width * viewport.zoom;
 			anchorX = nodeScreenRight + 12;
@@ -1772,8 +1769,7 @@
 			modality,
 			nodeId,
 			anchorX,
-			anchorY,
-			initialSource
+			anchorY
 		};
 	}
 
@@ -2377,7 +2373,9 @@
 			{running}
 			{hasTransforms}
 			{boundFns}
+			{server}
 			{readOnly}
+			activeModalityKey={activePicker?.modality.key ?? null}
 			onopenpicker={openPicker}
 			onaddinput={addInputNode}
 			onaddfn={addFnNode}
@@ -2396,7 +2394,6 @@
 					mode={activePicker.mode}
 					modality={activePicker.modality}
 					nodeId={activePicker.nodeId}
-					initialSource={activePicker.initialSource}
 					initialSubtab={activePicker.initialSubtab}
 					{server}
 					anchorX={activePicker.anchorX}
@@ -2405,6 +2402,10 @@
 					onupdate={handlePickerUpdate}
 					onclose={() => {
 						activePicker = null;
+					}}
+					oncleared={() => {
+						if (activePicker)
+							activePicker = { ...activePicker, modality: ALL_MODALITY };
 					}}
 					onerror={(msg) => showToast(msg, 5000, "error")}
 				/>
