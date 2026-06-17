@@ -70,21 +70,6 @@
 	{template}
 />
 <Story
-	name="Chatbot with math disabled, small height"
-	args={{
-		latex_delimiters: [],
-		height: 200,
-		show_copy_button: false,
-		value: defaultValue
-	}}
-	{template}
-/>
-<Story
-	name="Chatbot with math disabled, small max_height"
-	args={{ latex_delimiters: [], max_height: 200, value: defaultValue }}
-	{template}
-/>
-<Story
 	name="Chatbot with text rendered right-to-left"
 	args={{
 		rtl: true,
@@ -163,75 +148,6 @@
 		value: [],
 		placeholder:
 			"**Gradio Helper**\n\nThis Chatbot can help you on *any topic related to Gradio*."
-	}}
-	{template}
-/>
-<Story
-	name="Chatbot with headers and lists"
-	args={{
-		value: [
-			{
-				role: "user",
-				content: [
-					{
-						type: "text",
-						text: "# Markdown Example\n\nThis document is a showcase of various Markdown capabilities."
-					}
-				]
-			},
-			{
-				role: "assistant",
-				content: [
-					{
-						type: "text",
-						text: "## Table of Contents\n\n1. [Text Formatting](#text-formating)\n2. [Code Blocks](#code-blocks)\n3. [Tables](#tables)"
-					}
-				]
-			}
-		]
-	}}
-	{template}
-/>
-<Story
-	name="Chatbot with tables and nested lists"
-	args={{
-		value: [
-			{
-				role: "user",
-				content: [
-					{
-						type: "text",
-						text: "Creating tables in Markdown is straightforward:\n\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |\n| Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |\n| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |"
-					}
-				]
-			},
-			{
-				role: "assistant",
-				content: [
-					{
-						type: "text",
-						text: "### Unordered List\n\n- Item 1\n- Item 2\n  - Subitem 2.1\n  - Subitem 2.2\n- Item 3\n\n### Ordered List\n\n1. First Item\n2. Second Item\n   1. Subitem 2.1\n   2. Subitem 2.2\n3. Third Item"
-					}
-				]
-			}
-		]
-	}}
-	{template}
-/>
-<Story
-	name="Chatbot with image in markdown"
-	args={{
-		value: [
-			{
-				role: "user",
-				content: [
-					{
-						type: "text",
-						text: `![A cheetah](${cheetah})`
-					}
-				]
-			}
-		]
 	}}
 	{template}
 />
@@ -393,65 +309,6 @@
 						orig_name: "recording.mp3"
 					},
 					{ mime_type: "video/mp4", url: "/video.mp4", orig_name: "video.mp4" }
-				]
-			}
-		]
-	}}
-	{template}
-/>
-<Story
-	name="Consecutive messages not grouped in same bubble"
-	args={{
-		type: "messages",
-		display_consecutive_in_same_bubble: false,
-		value: [
-			{ role: "user", content: [{ type: "text", text: "Show me the file." }] },
-			{
-				role: "user",
-				content: [{ type: "text", text: "Second user message" }]
-			},
-			{
-				role: "assistant",
-				content: [{ type: "text", text: "Here is the file you requested" }]
-			},
-			{
-				role: "assistant",
-				content: [
-					{
-						type: "file",
-						file: { path: "abc/qwerty.txt", url: "" },
-						alt_text: null
-					}
-				]
-			}
-		]
-	}}
-	{template}
-/>
-<Story
-	name="Chatbot with examples (not multimodal)"
-	args={{
-		value: [],
-		examples: [
-			{ text: "What is machine learning?" },
-			{
-				text: "Analyze this image",
-				files: [
-					{
-						mime_type: "image/jpeg",
-						url: bus,
-						orig_name: "bus.png"
-					}
-				]
-			},
-			{
-				text: "Process this document",
-				files: [
-					{
-						mime_type: "application/pdf",
-						url: "/document.pdf",
-						orig_name: "document.pdf"
-					}
 				]
 			}
 		]

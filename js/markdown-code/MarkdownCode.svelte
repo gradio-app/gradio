@@ -15,7 +15,8 @@
 		line_breaks = true,
 		header_links = false,
 		allow_tags = false,
-		theme_mode = "system"
+		theme_mode = "system",
+		onload
 	}: {
 		chatbot?: boolean;
 		message: string;
@@ -30,6 +31,7 @@
 		header_links?: boolean;
 		allow_tags?: string[] | boolean | undefined;
 		theme_mode?: ThemeMode;
+		onload?: () => void;
 	} = $props();
 
 	let el: HTMLSpanElement;
@@ -178,7 +180,7 @@
 
 	$effect(() => {
 		if (el && document.body.contains(el)) {
-			render_html(message);
+			render_html(message).then(() => onload?.());
 		} else {
 			console.error("Element is not in the DOM");
 		}
@@ -190,6 +192,13 @@
 </span>
 
 <style>
+	span {
+		/* `anywhere`, not `break-word`: it also lowers min-content width, so
+		   markdown in a table/flex container shrinks to fit instead of forcing
+		   the container to overflow. */
+		overflow-wrap: anywhere;
+	}
+
 	span :global(div[class*="code_wrap"]) {
 		position: relative;
 	}

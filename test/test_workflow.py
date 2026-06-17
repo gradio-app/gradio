@@ -12,7 +12,6 @@ from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
     _get_locally_saved_hf_token,
-    _normalize_space_result,
     _request_has_write_token,
     _resolve_token,
     _workflow_from_bind,
@@ -392,40 +391,3 @@ class TestWorkflowFromBind:
         result = json.loads(_workflow_from_bind({"noargs": noargs}))
         node = result["nodes"][0]
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# _normalize_space_result — HF Hub result reshaping
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class TestNormalizeSpaceResult:
-    def test_preserves_id_and_likes(self):
-        result = _normalize_space_result({"id": "owner/repo", "likes": 42}, "")
-        assert result["id"] == "owner/repo"
-        assert result["likes"] == 42
-
-    def test_explicit_pipeline_tag_wins_over_ai_category(self):
-        result = _normalize_space_result(
-            {"ai_category": "image-generation"}, "text-to-image"
-        )
-        assert result["pipeline_tag"] == "text-to-image"
-
-    def test_falls_back_to_ai_category(self):
-        result = _normalize_space_result({"ai_category": "image-generation"}, "")
-        assert result["pipeline_tag"] == "image-generation"
-
-    def test_short_description_falls_back(self):
-        # shortDescription preferred, ai_short_description fallback
-        s = {"ai_short_description": "from ai"}
-        assert (
-            _normalize_space_result(s, "")["cardData"]["short_description"] == "from ai"
-        )
-        s = {"shortDescription": "from card", "ai_short_description": "from ai"}
-        assert (
-            _normalize_space_result(s, "")["cardData"]["short_description"]
-            == "from card"
-        )
-
-    def test_missing_likes_defaults_zero(self):
-        assert _normalize_space_result({}, "")["likes"] == 0

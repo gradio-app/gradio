@@ -3,7 +3,8 @@
 "@gradio/dropdown": minor
 "@gradio/radio": minor
 "@gradio/simpledropdown": minor
+"@gradio/utils": minor
 "gradio": minor
 ---
 
-feat:Translate i18n `choices` display names in choice-based components
+feat:Re-translate i18n choices display names when the language is switched at runtime

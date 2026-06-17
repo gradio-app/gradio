@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { type ComponentType } from "svelte";
+	import { type Component } from "svelte";
 	import type { ColorInput } from "tinycolor2";
+
 	let {
 		Icon,
 		label = "",
@@ -19,7 +20,7 @@
 		roundedness = "quite",
 		onclick = undefined
 	}: {
-		Icon: ComponentType;
+		Icon: Component<any>;
 		label?: string;
 		show_label?: boolean;
 		pending?: boolean;

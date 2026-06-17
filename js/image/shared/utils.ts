@@ -9,19 +9,17 @@ export const get_coordinates_of_clicked_image = (
 	}
 
 	const imageRect = image.getBoundingClientRect();
-	const xScale = image.naturalWidth / imageRect.width;
-	const yScale = image.naturalHeight / imageRect.height;
-	if (xScale > yScale) {
-		const displayed_height = image.naturalHeight / xScale;
-		const y_offset = (imageRect.height - displayed_height) / 2;
-		var x = Math.round((evt.clientX - imageRect.left) * xScale);
-		var y = Math.round((evt.clientY - imageRect.top - y_offset) * xScale);
-	} else {
-		const displayed_width = image.naturalWidth / yScale;
-		const x_offset = (imageRect.width - displayed_width) / 2;
-		var x = Math.round((evt.clientX - imageRect.left - x_offset) * yScale);
-		var y = Math.round((evt.clientY - imageRect.top) * yScale);
-	}
+	// The image is rendered with `object-fit: scale-down`: centered, never
+	// scaled above its natural size, so empty space can appear on both axes.
+	const scale = Math.min(
+		imageRect.width / image.naturalWidth,
+		imageRect.height / image.naturalHeight,
+		1
+	);
+	const x_offset = (imageRect.width - image.naturalWidth * scale) / 2;
+	const y_offset = (imageRect.height - image.naturalHeight * scale) / 2;
+	const x = Math.round((evt.clientX - imageRect.left - x_offset) / scale);
+	const y = Math.round((evt.clientY - imageRect.top - y_offset) / scale);
 	if (x < 0 || x >= image.naturalWidth || y < 0 || y >= image.naturalHeight) {
 		return null;
 	}

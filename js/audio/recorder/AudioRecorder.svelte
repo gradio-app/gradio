@@ -217,10 +217,12 @@
 				recordingContainer &&
 				recordingContainer.contains(document.activeElement);
 			if (!is_focused_in_waveform) return;
+			const waveform = recordingWaveform;
+			if (!waveform) return;
 			if (e.key === "ArrowRight") {
-				skip_audio(recordingWaveform, 0.1);
+				skip_audio(waveform, 0.1);
 			} else if (e.key === "ArrowLeft") {
-				skip_audio(recordingWaveform, -0.1);
+				skip_audio(waveform, -0.1);
 			}
 		});
 	});
@@ -252,7 +254,7 @@
 
 	{#if record_mounted && !recordedAudio}
 		<WaveformRecordControls
-			{record}
+			record={record!}
 			{i18n}
 			{timing}
 			{recording}

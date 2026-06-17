@@ -3,10 +3,10 @@ import shutil
 import subprocess
 import time
 
-import docker
+import docker  # ty: ignore[unresolved-import]
 import pytest
 import requests
-from docker.errors import NotFound
+from docker.errors import NotFound  # ty: ignore[unresolved-import]
 from requests.exceptions import ConnectionError, RequestException
 
 

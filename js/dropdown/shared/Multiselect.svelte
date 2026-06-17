@@ -14,13 +14,16 @@
 	let filter_input: HTMLElement;
 	let input_text = $state("");
 	let label = $derived(gradio.shared.label || "Multiselect");
+
+	const uid = $props.id();
+	const listbox_id = `${uid}-options`;
 	let buttons = $derived(gradio.props.buttons);
 
 	// Translate the display side only; values stay raw for event payloads.
 	let translated_choices: [string, string | number][] = $derived.by(() => {
 		return gradio.props.choices.map(
 			([display, value]) =>
-				[gradio.i18n(display), value] as [string, string | number]
+				[gradio.live_i18n(display), value] as [string, string | number]
 		);
 	});
 	let choices_names: string[] = $derived.by(() => {
@@ -242,6 +245,14 @@
 			{/each}
 			<div class="secondary-wrap">
 				<input
+					role="combobox"
+					aria-controls={listbox_id}
+					aria-expanded={show_options}
+					aria-activedescendant={show_options && active_index !== null
+						? `${listbox_id}-option-${active_index}`
+						: undefined}
+					aria-autocomplete={gradio.props.filterable ? "list" : "none"}
+					aria-label={label}
 					class="border-none"
 					class:subdued={(!choices_names.includes(input_text) &&
 						!gradio.props.allow_custom_value) ||
@@ -290,6 +301,7 @@
 			{disabled}
 			{selected_indices}
 			{active_index}
+			{listbox_id}
 			remember_scroll={true}
 			onchange={handle_option_selected}
 		/>

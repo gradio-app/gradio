@@ -43,18 +43,22 @@
 		layers,
 		composite,
 		background,
-		layer_options,
+		layer_options = {
+			allow_additional_layers: true,
+			layers: [],
+			disabled: false
+		},
 		transforms,
 		accept_blobs,
 		canvas_size,
 		fixed_canvas = false,
-		realtime,
+		realtime = false,
 		upload,
 		is_dragging = $bindable(),
 		placeholder = undefined,
 		border_region,
 		full_history = $bindable(null),
-		webcam_options,
+		webcam_options = { mirror: true, constraints: {} },
 		show_download_button = false,
 		image_id = $bindable(null),
 		onclear,
@@ -65,8 +69,8 @@
 		onreceive_null,
 		ondownload_error
 	}: {
-		brush: IBrush;
-		eraser: Eraser;
+		brush: IBrush | false;
+		eraser: Eraser | false;
 		sources: Source[];
 		i18n: I18nFormatter;
 		root: string;
@@ -77,18 +81,18 @@
 		layers: FileData[];
 		composite: FileData | null;
 		background: FileData | null;
-		layer_options: LayerOptions;
+		layer_options?: LayerOptions;
 		transforms: Transform[];
 		accept_blobs: (a: any) => void;
 		canvas_size: [number, number];
 		fixed_canvas?: boolean;
-		realtime: boolean;
+		realtime?: boolean;
 		upload: Client["upload"];
 		is_dragging?: boolean;
 		placeholder?: string;
 		border_region: number;
 		full_history?: CommandNode | null;
-		webcam_options: WebcamOptions;
+		webcam_options?: WebcamOptions;
 		show_download_button?: boolean;
 		image_id?: null | string;
 		onclear?: () => void;

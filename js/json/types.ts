@@ -1,4 +1,4 @@
-import type { LoadingStatus } from "js/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "js/statustracker";
 import type { CustomButton } from "@gradio/utils";
 
 export interface JSONProps {

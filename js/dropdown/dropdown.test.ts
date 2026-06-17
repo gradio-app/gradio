@@ -3,7 +3,7 @@ import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 import { setupi18n, changeLocale } from "../core/src/i18n";
-import { formatter } from "../core/src/gradio_helper";
+import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
 import { handle_filter } from "./shared/utils";
@@ -758,11 +758,11 @@ describe("Single-select: get_data / set_data", () => {
 describe("Single-select: Accessibility", () => {
 	afterEach(() => cleanup());
 
-	test("input exposes the listbox role", async () => {
+	test("input exposes the combobox role", async () => {
 		const { getByLabelText } = await render(Dropdown, single_select_props);
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
-		expect(input).toHaveAttribute("role", "listbox");
+		expect(input).toHaveAttribute("role", "combobox");
 	});
 
 	test("aria-controls points at the options listbox", async () => {
@@ -780,6 +780,25 @@ describe("Single-select: Accessibility", () => {
 		const listbox = document.getElementById(controls as string);
 		expect(listbox).toBeTruthy();
 		expect(listbox).toHaveAttribute("role", "listbox");
+	});
+
+	test("aria-activedescendant tracks the active option while navigating", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			value: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		expect(input).not.toHaveAttribute("aria-activedescendant");
+
+		await event.keyboard("{ArrowDown}");
+		const active_id = input.getAttribute("aria-activedescendant");
+		expect(active_id).toBeTruthy();
+
+		const active_option = document.getElementById(active_id as string);
+		expect(active_option).toHaveAttribute("role", "option");
+		expect(active_option).toHaveAttribute("aria-label", "apple");
 	});
 });
 
@@ -942,6 +961,28 @@ describe("Multiselect: Rendering", () => {
 		expect(tokens).toHaveLength(2);
 		const removeButtons = container.querySelectorAll(".token-remove");
 		expect(removeButtons).toHaveLength(0);
+	});
+});
+
+describe("Multiselect: Accessibility", () => {
+	afterEach(() => cleanup());
+
+	test("input is a combobox wired to the options listbox", async () => {
+		const { container } = await render(Dropdown, multiselect_props);
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		expect(input).toHaveAttribute("role", "combobox");
+
+		await input.focus();
+
+		const controls = input.getAttribute("aria-controls");
+		const listbox = document.getElementById(controls as string);
+		expect(listbox).toHaveAttribute("role", "listbox");
+
+		const active_id = input.getAttribute("aria-activedescendant");
+		const active_option = document.getElementById(active_id as string);
+		expect(active_option).toHaveAttribute("role", "option");
+		expect(active_option).toHaveAttribute("aria-label", "apple");
 	});
 });
 
@@ -1698,6 +1739,75 @@ describe("i18n choices", () => {
 
 		const data = await get_data();
 		expect(data.value).toEqual(["italic"]);
+	});
+});
+
+describe("runtime locale switching", () => {
+	beforeAll(async () => {
+		await setupi18n(undefined, "en");
+		changeLocale("en");
+	});
+	afterEach(() => {
+		changeLocale("en");
+		cleanup();
+	});
+
+	const i18n_choices: [string, string][] = [
+		[marker("common.clear"), "bold"],
+		[marker("common.remove"), "italic"]
+	];
+
+	test("single-select re-translates the selected display name and options", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				i18n: formatter,
+				i18n_store: reactive_formatter,
+				choices: i18n_choices,
+				value: "bold"
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input.value).toBe("Clear");
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(input.value).toBe("Limpiar");
+		});
+
+		await input.focus();
+		const options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveAttribute("aria-label", "Limpiar");
+		expect(options[1]).toHaveAttribute("aria-label", "Eliminar");
+
+		const data = await get_data();
+		expect(data.value).toBe("bold");
+	});
+
+	test("multiselect re-translates selected tokens when the locale changes", async () => {
+		const { getByText, get_data } = await render(Dropdown, {
+			...multiselect_props,
+			i18n: formatter,
+			i18n_store: reactive_formatter,
+			choices: i18n_choices,
+			value: ["bold", "italic"]
+		});
+
+		expect(getByText("Clear")).toBeVisible();
+		expect(getByText("Remove")).toBeVisible();
+
+		changeLocale("es");
+
+		await waitFor(() => {
+			expect(getByText("Limpiar")).toBeVisible();
+			expect(getByText("Eliminar")).toBeVisible();
+		});
+
+		const data = await get_data();
+		expect(data.value).toEqual(["bold", "italic"]);
 	});
 });
 

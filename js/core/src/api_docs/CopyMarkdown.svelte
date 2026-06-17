@@ -40,7 +40,7 @@
 		bash: "",
 		mcp: ""
 	};
-	/* eslint-disable complexity */
+
 	$: markdown_content.python = `
 # Python API documentation for ${space_id || root}
 API Endpoints: ${api_count}
@@ -272,7 +272,6 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 }
 
 `;
-	/* eslint-enable complexity */
 
 	let current_language_label =
 		current_language === "python"

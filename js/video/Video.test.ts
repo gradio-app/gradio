@@ -37,7 +37,7 @@ vi.mock("@ffmpeg/util", () => ({
 }));
 
 import Video from "./Index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
 	eta: 0,

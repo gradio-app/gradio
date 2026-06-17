@@ -30,9 +30,10 @@
 		try {
 			pending = true;
 			const formatted = await formatter(value);
-			onshare?.({
+			const data = {
 				description: formatted
-			});
+			};
+			onshare?.(data);
 		} catch (e) {
 			console.error(e);
 			let message = e instanceof ShareError ? e.message : "Share failed.";

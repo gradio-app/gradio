@@ -99,7 +99,9 @@ export async function trimVideo(
 
 		await ffmpeg.exec(command);
 		const outputData = await ffmpeg.readFile(outputName);
-		const outputBlob = new Blob([outputData], {
+		const outputBytes =
+			typeof outputData === "string" ? outputData : new Uint8Array(outputData);
+		const outputBlob = new Blob([outputBytes], {
 			type: `video/${type}`
 		});
 

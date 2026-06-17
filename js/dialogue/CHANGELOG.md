@@ -1,5 +1,11 @@
 # @gradio/dialogue
 
+## 0.3.10
+
+### Dependency updates
+
+- @gradio/dropdown@0.13.0
+
 ## 0.3.9
 
 ### Fixes

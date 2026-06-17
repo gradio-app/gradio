@@ -56,7 +56,7 @@
 		background?: boolean;
 		brush_options: BrushType | false;
 		selected_size?: number;
-		eraser_options: EraserType;
+		eraser_options: EraserType | false;
 		selected_eraser_size?: number;
 		selected_color?: any;
 		selected_opacity?: number;

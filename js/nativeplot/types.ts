@@ -1,9 +1,9 @@
 import type { Gradio, SelectData, CustomButton } from "@gradio/utils";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 export interface PlotData {
 	columns: string[];
-	data: [string | number][];
+	data: (string | number)[][];
 	datatypes: Record<string, "quantitative" | "temporal" | "nominal">;
 	mark: "line" | "point" | "bar";
 }

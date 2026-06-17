@@ -20,7 +20,7 @@ import {
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Audio from "./";
 import WaveSurfer from "wavesurfer.js";
-import type { LoadingStatus } from "@gradio/statustracker";
+import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
 
 // WaveSurfer.destroy() throws AbortError when in-flight fetches are cancelled

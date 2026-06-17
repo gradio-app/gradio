@@ -298,7 +298,7 @@
 			{sources}
 			bind:active_source
 			{handle_clear}
-			handle_select={handle_select_source}
+			handle_select={(source) => handle_select_source(source as source_type)}
 		/>
 	{/if}
 </div>

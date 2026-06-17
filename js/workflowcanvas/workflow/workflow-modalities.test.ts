@@ -3,7 +3,7 @@ import type { PortType } from "./workflow-types";
 import {
 	MODALITIES,
 	DATASET_MODALITY,
-	MODEL_MODALITY,
+	ALL_MODALITY,
 	PORT_REGISTRY,
 	portMeta,
 	modalityForPort
@@ -30,9 +30,9 @@ describe("ModalityConfig.port_type", () => {
 		}
 	});
 
-	test("dataset + model meta modalities have no canonical port type", () => {
+	test("dataset + all meta modalities have no canonical port type", () => {
 		expect(DATASET_MODALITY.port_type).toBeNull();
-		expect(MODEL_MODALITY.port_type).toBeNull();
+		expect(ALL_MODALITY.port_type).toBeNull();
 	});
 
 	test("known modality → port_type mapping", () => {

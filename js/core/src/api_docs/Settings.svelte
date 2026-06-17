@@ -1,5 +1,4 @@
 <script lang="ts">
-	/* eslint-disable */
 	import { onMount } from "svelte";
 	import SettingsBanner from "./SettingsBanner.svelte";
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
@@ -61,12 +60,12 @@
 		changeLocale(new_locale);
 	}
 
-	function handleZoomChange(e: CustomEvent): void {
-		allow_zoom = e.detail;
+	function handleZoomChange(value: boolean): void {
+		allow_zoom = value;
 	}
 
-	function handleVideoTrimChange(e: CustomEvent): void {
-		allow_video_trim = e.detail;
+	function handleVideoTrimChange(value: boolean): void {
+		allow_video_trim = value;
 	}
 </script>
 
@@ -146,13 +145,13 @@
 			label="Include automatic zoom in/out"
 			interactive={true}
 			value={allow_zoom}
-			on:change={handleZoomChange}
+			on_change={handleZoomChange}
 		/>
 		<Checkbox
 			label="Include automatic video trimming"
 			interactive={true}
 			value={allow_video_trim}
-			on:change={handleVideoTrimChange}
+			on_change={handleVideoTrimChange}
 		/>
 	</p>
 	<button
