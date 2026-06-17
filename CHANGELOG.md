@@ -1,5 +1,21 @@
 # gradio
 
+## 6.19.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+- [#13534](https://github.com/gradio-app/gradio/pull/13534) [`a11c728`](https://github.com/gradio-app/gradio/commit/a11c7282461ccef90f24a031d77a597ac9ae3d0e) - Re-translate i18n choices display names when the language is switched at runtime.  Thanks @hysts!
+- [#13524](https://github.com/gradio-app/gradio/pull/13524) [`d4d340d`](https://github.com/gradio-app/gradio/commit/d4d340d1bbc1dfdec72fa46431b43f6a808f084f) - Run `gr.Workflow` subgraphs via the Gradio API — each subgraph is exposed as a named endpoint (returning all of its outputs) reusing `/info`, `/call`, and `/api`, with a "View API" panel in the canvas.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13542](https://github.com/gradio-app/gradio/pull/13542) [`9d83502`](https://github.com/gradio-app/gradio/commit/9d83502215b56ed7747490afd0d5145b087a23e7) - Make dropdowns accessible to screen readers (combobox ARIA pattern).  Thanks @hysts!
+- [#13532](https://github.com/gradio-app/gradio/pull/13532) [`0a933b4`](https://github.com/gradio-app/gradio/commit/0a933b428f5b2158cb8c764f38abf0da2312d58a) - Fix `gr.SelectData` coordinates when the image in `gr.Image` does not fill its container.  Thanks @hysts!
+- [#13511](https://github.com/gradio-app/gradio/pull/13511) [`8eafb31`](https://github.com/gradio-app/gradio/commit/8eafb31ee17c134e65d1a006753b9a6ee4631f07) - refactor space and model discovery modal.  Thanks @hannahblair!
+- [#13533](https://github.com/gradio-app/gradio/pull/13533) [`e5ec1ca`](https://github.com/gradio-app/gradio/commit/e5ec1ca66c45e7e3a057b75ac2b8b86660b2827b) - Fix fullscreen button not working in ImageSlider, interactive Image, native plots, and AnnotatedImage.  Thanks @hysts!
+- [#13541](https://github.com/gradio-app/gradio/pull/13541) [`1d19f2b`](https://github.com/gradio-app/gradio/commit/1d19f2b21f6b12285089abc73468ac67b5b93e27) - Fix long unbroken text overflowing in the Markdown component.  Thanks @hysts!
+
 ## 6.18.0
 
 ### Features

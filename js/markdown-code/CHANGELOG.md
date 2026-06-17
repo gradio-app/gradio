@@ -1,5 +1,15 @@
 # @gradio/markdown-code
 
+## 0.9.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13541](https://github.com/gradio-app/gradio/pull/13541) [`1d19f2b`](https://github.com/gradio-app/gradio/commit/1d19f2b21f6b12285089abc73468ac67b5b93e27) - Fix long unbroken text overflowing in the Markdown component.  Thanks @hysts!
+
 ## 0.8.0
 
 ### Features

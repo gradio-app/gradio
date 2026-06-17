@@ -1,5 +1,11 @@
 # @gradio/timer
 
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/utils@0.13.0
+
 ## 0.5.0
 
 ### Features
