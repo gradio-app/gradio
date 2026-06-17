@@ -12,7 +12,6 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import IconButton from "./IconButton.svelte";
 	import {
 		Image,
@@ -32,66 +31,46 @@
 		type Brush as BrushType,
 		type Eraser as EraserType
 	} from "./brush/types";
-	import tinycolor from "tinycolor2";
 
-	export let tool: Tool = "image";
-	export let subtool: Subtool = null;
+	let {
+		tool = "image",
+		subtool = null,
+		background = false,
+		brush_options,
+		selected_size = $bindable(),
+		eraser_options,
+		selected_eraser_size = $bindable(),
+		selected_color = $bindable(),
+		selected_opacity = $bindable(),
+		preview = $bindable(),
+		show_brush_color = false,
+		show_brush_size = false,
+		show_eraser_size = false,
+		sources,
+		transforms,
+		ontool_change,
+		onsubtool_change
+	}: {
+		tool?: Tool;
+		subtool?: Subtool;
+		background?: boolean;
+		brush_options: BrushType | false;
+		selected_size?: number;
+		eraser_options: EraserType;
+		selected_eraser_size?: number;
+		selected_color?: any;
+		selected_opacity?: number;
+		preview?: boolean;
+		show_brush_color?: boolean;
+		show_brush_size?: boolean;
+		show_eraser_size?: boolean;
+		sources: Source[];
+		transforms: Transform[];
+		ontool_change?: (value: { tool: Tool }) => void;
+		onsubtool_change?: (value: { tool: Tool; subtool: Subtool }) => void;
+	} = $props();
 
-	export let background = false;
-	export let brush_options: BrushType | false;
-	export let selected_size =
-		brush_options && typeof brush_options.default_size === "number"
-			? brush_options.default_size
-			: 25;
-	export let eraser_options: EraserType;
-	export let selected_eraser_size =
-		eraser_options && typeof eraser_options.default_size === "number"
-			? eraser_options.default_size
-			: 25;
-
-	// Handle default_color including potential color-opacity tuple
-	export let selected_color =
-		brush_options &&
-		(() => {
-			const default_color = brush_options.default_color;
-			if (Array.isArray(default_color)) {
-				return default_color[0];
-			}
-			return default_color;
-		})();
-
-	// Set default opacity based on default_color if it's a tuple
-	export let selected_opacity =
-		brush_options &&
-		(() => {
-			const default_color = brush_options.default_color;
-			if (Array.isArray(default_color)) {
-				return default_color[1];
-			}
-			// Check if color string has opacity
-			const color = tinycolor(default_color);
-			if (color.getAlpha() < 1) {
-				return color.getAlpha();
-			}
-			return 1;
-		})();
-
-	export let preview = false;
-	export let show_brush_color = false;
-	export let show_brush_size = false;
-	export let show_eraser_size = false;
-	export let sources: Source[];
-	export let transforms: Transform[];
-	let recent_colors: string[] = [];
-
-	let enable_layers = true;
-	const dispatch = createEventDispatcher<{
-		tool_change: { tool: Tool };
-		subtool_change: {
-			tool: Tool;
-			subtool: Subtool;
-		};
-	}>();
+	let recent_colors = $state<string[]>([]);
 
 	/**
 	 * Handles tool click events
@@ -99,7 +78,7 @@
 	 */
 	function handle_tool_click(e: Event, _tool: Tool): void {
 		e.stopPropagation();
-		dispatch("tool_change", { tool: _tool });
+		ontool_change?.({ tool: _tool });
 	}
 
 	/**
@@ -110,18 +89,20 @@
 	function handle_subtool_click(e: Event, _subtool: typeof subtool): void {
 		e.stopPropagation();
 
-		dispatch("subtool_change", { tool, subtool: _subtool });
+		onsubtool_change?.({ tool, subtool: _subtool });
 	}
 
-	$: show_brush_size = tool === "draw" && subtool === "size";
-	$: show_brush_color = tool === "draw" && subtool === "color";
-	$: show_eraser_size = tool === "erase" && subtool === "size";
+	$effect(() => {
+		show_brush_size = tool === "draw" && subtool === "size";
+		show_brush_color = tool === "draw" && subtool === "color";
+		show_eraser_size = tool === "erase" && subtool === "size";
+	});
 
-	$: can_crop = transforms.includes("crop");
-	$: can_resize = transforms.includes("resize");
-	$: can_upload = sources.includes("upload");
-	$: can_webcam = sources.includes("webcam");
-	$: can_paste = sources.includes("clipboard");
+	let can_crop = $derived(transforms.includes("crop"));
+	let can_resize = $derived(transforms.includes("resize"));
+	let can_upload = $derived(sources.includes("upload"));
+	let can_webcam = $derived(sources.includes("webcam"));
+	let can_paste = $derived(sources.includes("clipboard"));
 </script>
 
 <div class="toolbar-wrap">
@@ -265,7 +246,7 @@
 					bind:selected_color
 					bind:selected_opacity
 					bind:preview
-					on:click_outside={(e) => {
+					onclick_outside={(e) => {
 						e.stopPropagation();
 						preview = false;
 						show_brush_color = false;
@@ -298,7 +279,7 @@
 				bind:selected_color
 				bind:selected_opacity
 				bind:preview
-				on:click_outside={(e) => {
+				onclick_outside={(e) => {
 					e.stopPropagation();
 					preview = false;
 					show_eraser_size = false;

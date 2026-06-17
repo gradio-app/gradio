@@ -100,7 +100,7 @@
 		width={gradio.props.width}
 		allow_overflow={false}
 		container={gradio.shared.container}
-		scale{gradio.shared.scale}
+		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
 		bind:fullscreen
 	>
@@ -112,10 +112,10 @@
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		<StaticImage
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
-			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			on:fullscreen={({ detail }) => {
+			onselect={(detail) => gradio.dispatch("select", detail)}
+			onshare={(detail) => gradio.dispatch("share", detail)}
+			onerror={(detail) => gradio.dispatch("error", detail)}
+			onfullscreen={(detail) => {
 				fullscreen = detail;
 			}}
 			{fullscreen}
@@ -145,10 +145,6 @@
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
 		bind:fullscreen
-		on:dragenter={handle_drag_event}
-		on:dragleave={handle_drag_event}
-		on:dragover={handle_drag_event}
-		on:drop={handle_drop}
 	>
 		{#if gradio.shared.loading_status.type === "output" || gradio.shared.loading_status.validation_error}
 			<StatusTracker
@@ -174,31 +170,29 @@
 				: gradio.props.buttons.some(
 						(btn) => typeof btn === "string" && btn === "fullscreen"
 					)}
-			on:edit={() => gradio.dispatch("edit")}
-			on:clear={() => {
+			onclear={() => {
 				fullscreen = false;
 				gradio.dispatch("clear");
 				gradio.dispatch("input");
 			}}
-			on:stream={({ detail }) => {
+			onstream={(detail) => {
 				stream_data = detail;
 				gradio.dispatch("stream", detail);
 			}}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:upload={() => {
+			ondrag={(detail) => (dragging = detail)}
+			onupload={() => {
 				gradio.dispatch("upload");
 				gradio.dispatch("input");
 			}}
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
+			onselect={(detail) => gradio.dispatch("select", detail)}
 			onerror={(detail) => {
 				gradio.shared.loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
-			on:close_stream={() => {
+			onclose_stream={() => {
 				gradio.dispatch("close_stream");
 			}}
-			on:fullscreen={({ detail }) => {
+			onfullscreen={(detail) => {
 				fullscreen = detail;
 			}}
 			label={gradio.shared.label}

@@ -205,9 +205,9 @@
 			<Webcam
 				root={gradio.shared.root}
 				value={null}
-				on:capture={async (e) => {
+				oncapture={async (detail) => {
 					const f = await handle_save(
-						e.detail,
+						detail,
 						(f) => gradio.shared.client.upload(f, gradio.shared.root),
 						"webcam_upload"
 					);
@@ -216,9 +216,6 @@
 					active_source = null;
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				on:error
-				on:drag
-				on:close_stream
 				mirror_webcam={true}
 				streaming={false}
 				mode="image"
@@ -230,17 +227,14 @@
 			<Webcam
 				root={gradio.shared.root}
 				value={null}
-				on:capture={async (e) => {
-					const f = { ...e.detail };
+				oncapture={async (detail) => {
+					const f = { ...detail };
 					f.mime_type = "video/webm";
 					const processed_files = await process_upload_files([f]);
 					gradio.props.value?.push(...processed_files);
 					active_source = null;
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				on:error
-				on:drag
-				on:close_stream
 				mirror_webcam={true}
 				streaming={false}
 				mode="video"

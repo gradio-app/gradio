@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onDestroy, onMount } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 	import {
 		Camera,
 		Circle,
@@ -23,30 +23,48 @@
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
 
-	export let stream_state: "open" | "waiting" | "closed" = "closed";
-
 	let canvas: HTMLCanvasElement;
-	export let streaming = false;
-	export let pending = false;
-	export let root = "";
-	export let stream_every = 1;
-
-	export let mode: "image" | "video" = "image";
-	export let mirror_webcam: boolean;
-	export let include_audio: boolean;
-	export let webcam_constraints: { [key: string]: any } | null = null;
-	export let i18n: I18nFormatter;
-	export let upload: Client["upload"];
-	export let value: FileData | null | Base64File = null;
-	export let time_limit: number | null = null;
-	const dispatch = createEventDispatcher<{
-		stream: Blob | string;
-		capture: FileData | Blob | null;
-		error: string;
-		start_recording: undefined;
-		stop_recording: undefined;
-		close_stream: undefined;
-	}>();
+	let {
+		stream_state = "closed",
+		streaming = false,
+		pending = false,
+		root = "",
+		stream_every = 1,
+		mode = "image",
+		mirror_webcam,
+		include_audio,
+		webcam_constraints = null,
+		i18n,
+		upload,
+		value = null,
+		time_limit = null,
+		onstream,
+		oncapture,
+		onerror,
+		onstart_recording,
+		onstop_recording,
+		onclose_stream
+	}: {
+		stream_state?: "open" | "waiting" | "closed";
+		streaming?: boolean;
+		pending?: boolean;
+		root?: string;
+		stream_every?: number;
+		mode?: "image" | "video";
+		mirror_webcam: boolean;
+		include_audio: boolean;
+		webcam_constraints?: { [key: string]: any } | null;
+		i18n: I18nFormatter;
+		upload: Client["upload"];
+		value?: FileData | null | Base64File;
+		time_limit?: number | null;
+		onstream?: (value: Blob | string) => void;
+		oncapture?: (value: FileData | Blob | null) => void;
+		onerror?: (error: string) => void;
+		onstart_recording?: () => void;
+		onstop_recording?: () => void;
+		onclose_stream?: () => void;
+	} = $props();
 
 	onMount(() => {
 		canvas = document.createElement("canvas");
@@ -101,11 +119,11 @@
 				});
 
 			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-				dispatch("error", i18n("image.no_webcam_support"));
+				onerror?.(i18n("image.no_webcam_support"));
 			}
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				dispatch("error", i18n("image.allow_webcam_access"));
+				onerror?.(i18n("image.allow_webcam_access"));
 			} else {
 				throw err;
 			}
@@ -139,13 +157,17 @@
 			}
 			if (streaming) {
 				const image_data = canvas.toDataURL("image/jpeg");
-				dispatch("stream", image_data);
+				onstream?.(image_data);
 				return;
 			}
 
 			canvas.toBlob(
 				(blob) => {
-					dispatch(streaming ? "stream" : "capture", blob);
+					if (streaming) {
+						onstream?.(blob as Blob);
+					} else {
+						oncapture?.(blob);
+					}
 				},
 				`image/${streaming ? "jpeg" : "png"}`,
 				0.8
@@ -174,13 +196,13 @@
 					let val_ = (
 						(await upload(val, root))?.filter(Boolean) as FileData[]
 					)[0];
-					dispatch("capture", val_);
-					dispatch("stop_recording");
+					oncapture?.(val_);
+					onstop_recording?.();
 				}
 			};
 			ReaderObj.readAsDataURL(video_blob);
 		} else if (typeof MediaRecorder !== "undefined") {
-			dispatch("start_recording");
+			onstart_recording?.();
 			recorded_blobs = [];
 			let validMimeTypes = ["video/webm", "video/mp4"];
 			for (let validMimeType of validMimeTypes) {
@@ -222,7 +244,7 @@
 		}
 
 		if (!recording && stream) {
-			dispatch("close_stream");
+			onclose_stream?.();
 		}
 	}
 
@@ -281,12 +303,12 @@
 			title="grant webcam access"
 			style="height: 100%"
 		>
-			<WebcamPermissions on:click={async () => access_webcam()} />
+			<WebcamPermissions onclick={async () => access_webcam()} />
 		</div>
 	{:else}
 		<div class="button-wrap">
 			<button
-				on:click={() => record_video_or_photo()}
+				onclick={() => record_video_or_photo()}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
 				{#if mode === "video" || streaming}
@@ -321,7 +343,7 @@
 			{#if !recording}
 				<button
 					class="icon"
-					on:click={() => (options_open = true)}
+					onclick={() => (options_open = true)}
 					aria-label="select input source"
 				>
 					<DropdownArrow />
@@ -333,14 +355,8 @@
 				class="select-wrap"
 				aria-label="select source"
 				use:click_outside={handle_click_outside}
-				on:change={handle_device_change}
+				onchange={handle_device_change}
 			>
-				<!-- <button
-					class="inset-icon"
-					on:click|stopPropagation={() => (options_open = false)}
-				>
-					<DropdownArrow />
-				</button> -->
 				{#if available_video_devices.length === 0}
 					<option value="">{i18n("common.no_devices")}</option>
 				{:else}
