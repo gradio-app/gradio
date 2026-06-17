@@ -1,10 +1,10 @@
 # gr.Workflow
 
-`gr.Workflow` is a visual, node-based AI pipeline builder built into Gradio. It lets you chain together Hugging Face Spaces, models, datasets, and your own Python functions on a drag-and-drop canvas — without writing any glue code.
+`gr.Workflow` is a visual, node-based AI pipeline builder built into Gradio. It lets you chain together Hugging Face Spaces, models, datasets, and your own Python functions on a drag-and-drop canvas:
 
 ## Quickstart
 
-The simplest possible Workflow app — a blank canvas that saves to `workflow.json`:
+The simplest possible Workflow app:
 
 ```python
 import gradio as gr
@@ -12,7 +12,7 @@ import gradio as gr
 gr.Workflow().launch()
 ```
 
-Open the app, drag Spaces and models from the sidebar onto the canvas, connect their ports, and hit **Run**.
+Open the app, drag Spaces and models from the sidebar onto the canvas, connect their ports, and hit **Run**. As you create nodes and edges, a `workflow.json` file will automatically be created in your working directory. You can also use a coding agent to write or edit this file, allowing you to create workflows programmatically.
 
 ## Binding Python functions
 
