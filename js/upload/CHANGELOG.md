@@ -1,5 +1,17 @@
 # @gradio/upload
 
+## 0.18.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.25.0
+- @gradio/utils@0.13.0
+- @gradio/client@2.3.0
+
 ## 0.17.10
 
 ### Dependency updates

@@ -1,5 +1,22 @@
 # @gradio/dropdown
 
+## 0.14.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+- [#13534](https://github.com/gradio-app/gradio/pull/13534) [`a11c728`](https://github.com/gradio-app/gradio/commit/a11c7282461ccef90f24a031d77a597ac9ae3d0e) - Re-translate i18n choices display names when the language is switched at runtime.  Thanks @hysts!
+
+### Fixes
+
+- [#13542](https://github.com/gradio-app/gradio/pull/13542) [`9d83502`](https://github.com/gradio-app/gradio/commit/9d83502215b56ed7747490afd0d5145b087a23e7) - Make dropdowns accessible to screen readers (combobox ARIA pattern).  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/atoms@0.25.0
+- @gradio/statustracker@0.15.0
+- @gradio/utils@0.13.0
+
 ## 0.13.0
 
 ### Features

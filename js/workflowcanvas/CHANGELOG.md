@@ -1,5 +1,23 @@
 # @gradio/workflowcanvas
 
+## 0.4.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+- [#13524](https://github.com/gradio-app/gradio/pull/13524) [`d4d340d`](https://github.com/gradio-app/gradio/commit/d4d340d1bbc1dfdec72fa46431b43f6a808f084f) - Run `gr.Workflow` subgraphs via the Gradio API — each subgraph is exposed as a named endpoint (returning all of its outputs) reusing `/info`, `/call`, and `/api`, with a "View API" panel in the canvas.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13511](https://github.com/gradio-app/gradio/pull/13511) [`8eafb31`](https://github.com/gradio-app/gradio/commit/8eafb31ee17c134e65d1a006753b9a6ee4631f07) - refactor space and model discovery modal.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.25.0
+- @gradio/statustracker@0.15.0
+- @gradio/utils@0.13.0
+- @gradio/client@2.3.0
+
 ## 0.3.0
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/theme
 
+## 0.6.2
+
+### Fixes
+
+- [#13541](https://github.com/gradio-app/gradio/pull/13541) [`1d19f2b`](https://github.com/gradio-app/gradio/commit/1d19f2b21f6b12285089abc73468ac67b5b93e27) - Fix long unbroken text overflowing in the Markdown component.  Thanks @hysts!
+
 ## 0.6.1
 
 ### Fixes

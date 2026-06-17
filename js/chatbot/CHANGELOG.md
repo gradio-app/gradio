@@ -1,5 +1,26 @@
 # @gradio/chatbot
 
+## 0.31.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.25.0
+- @gradio/statustracker@0.15.0
+- @gradio/utils@0.13.0
+- @gradio/client@2.3.0
+- @gradio/upload@0.18.0
+- @gradio/image@0.27.0
+- @gradio/gallery@0.18.0
+- @gradio/markdown-code@0.9.0
+- @gradio/plot@0.12.0
+- @gradio/theme@0.6.2
+- @gradio/video@0.21.0
+- @gradio/audio@0.24.0
+
 ## 0.30.0
 
 ### Features
