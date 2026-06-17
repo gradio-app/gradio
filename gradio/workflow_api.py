@@ -223,6 +223,51 @@ def subject_output_type(subject: dict) -> str:
     return subject.get("asset_type") or "text"
 
 
+def subject_groups(graph: WorkflowGraph) -> list[list[dict]]:
+    """Group subjects by weakly-connected component (edges undirected), mirroring
+    `countSubgraphs` in workflow-graph.ts. Each component is one independent
+    pipeline, so all of its outputs become a *single* API endpoint that returns
+    a tuple — matching how a Gradio Space with multiple outputs exposes one
+    endpoint, not one per output.
+
+    Groups are ordered by the declaration order of their first subject; subjects
+    within a group keep declaration order (this fixes the output tuple order)."""
+    parent: dict[str, str] = {nid: nid for nid in graph.node_by_id}
+
+    def find(x: str) -> str:
+        root = x
+        while parent[root] != root:
+            root = parent[root]
+        while parent[x] != root:  # path compression
+            parent[x], x = root, parent[x]
+        return root
+
+    for e in graph.edges:
+        a, b = e.get("from_node_id"), e.get("to_node_id")
+        if a in parent and b in parent:
+            parent[find(a)] = find(b)
+
+    groups: dict[str, list[dict]] = {}
+    order: list[str] = []
+    for subject in graph.subjects:
+        root = find(subject["id"])
+        if root not in groups:
+            groups[root] = []
+            order.append(root)
+        groups[root].append(subject)
+    return [groups[root] for root in order]
+
+
+def group_free_inputs(graph: WorkflowGraph, group: list[dict]) -> list[dict]:
+    """The free inputs feeding a subject group: the union of each subject's
+    upstream subgraph, deduped and returned in graph declaration order (so a
+    reference shared by two outputs in the group becomes a single parameter)."""
+    sub_ids: set[str] = set()
+    for subject in group:
+        sub_ids |= upstream_node_ids(graph, subject["id"])
+    return free_inputs(graph, sub_ids)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Value marshalling (port of toGradioArg / fromGradioOutput / pick_response_item)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -331,12 +376,27 @@ class WorkflowExecutor:
     ) -> Any:
         """Execute the subgraph feeding `subject_id`. `inputs` maps free-input
         reference node id → value. Returns the subject's output value."""
-        graph = self.graph
-        subject = graph.node_by_id.get(subject_id)
-        if subject is None or graph.role_by_id.get(subject_id) != "subject":
-            raise WorkflowExecutionError(f"No such workflow output: {subject_id}")
+        return self.run_many([subject_id], inputs, request, token)[0]
 
-        sub_ids = upstream_node_ids(graph, subject_id)
+    def run_many(
+        self,
+        subject_ids: list[str],
+        inputs: dict[str, Any],
+        request: Any = None,
+        token: Any = None,
+    ) -> list[Any]:
+        """Execute the combined subgraph feeding all `subject_ids` in a single
+        pass and return one output value per subject, in order. Nodes shared
+        between outputs (e.g. an operator with two outputs wired to two subjects)
+        run exactly once rather than once per subject."""
+        graph = self.graph
+        for sid in subject_ids:
+            if graph.role_by_id.get(sid) != "subject":
+                raise WorkflowExecutionError(f"No such workflow output: {sid}")
+
+        sub_ids: set[str] = set()
+        for sid in subject_ids:
+            sub_ids |= upstream_node_ids(graph, sid)
         order = topo_sort(list(sub_ids), graph.edges)
         data_map: dict[str, dict[str, Any]] = {}
 
@@ -346,11 +406,15 @@ class WorkflowExecutor:
         for node_id in order:
             self._execute_node(node_id, data_map, inputs)
 
-        in_ports = subject.get("inputs") or []
-        if not in_ports:
-            return None
-        value = data_map.get(subject_id, {}).get(in_ports[0]["id"])
-        return _from_output(value)
+        outputs: list[Any] = []
+        for sid in subject_ids:
+            in_ports = graph.node_by_id[sid].get("inputs") or []
+            if not in_ports:
+                outputs.append(None)
+                continue
+            value = data_map.get(sid, {}).get(in_ports[0]["id"])
+            outputs.append(_from_output(value))
+        return outputs
 
     # -- internals ----------------------------------------------------------
 
@@ -545,16 +609,17 @@ _PY_TYPE = {
 }
 
 
-def _slug_iter(subjects: list[dict]):
-    """Yield (subject, api_name) with the same dedup as registration, so the
-    described endpoints line up with the ones actually registered."""
+def _group_slug_iter(groups: list[list[dict]]):
+    """Yield (group, api_name) with the dedup used at registration, so the
+    described endpoints line up with the ones actually registered. The slug is
+    derived from the group's first subject label."""
     used: set[str] = set()
-    for subject in subjects:
-        api_name = _slugify(subject.get("label", "output"))
+    for group in groups:
+        api_name = _slugify(group[0].get("label", "output"))
         while api_name in used:
             api_name = f"{api_name}_"
         used.add(api_name)
-        yield subject, api_name
+        yield group, api_name
 
 
 def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
@@ -562,14 +627,12 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
     `api_name`, label, parameters (free inputs), and the return type. Mirrors
     the schema that `register_workflow_endpoints` exposes via `/info`."""
     endpoints = []
-    for subject, api_name in _slug_iter(graph.subjects):
-        sub_ids = upstream_node_ids(graph, subject["id"])
-        frees = free_inputs(graph, sub_ids)
-        out_type = subject_output_type(subject)
+    for group, api_name in _group_slug_iter(subject_groups(graph)):
+        frees = group_free_inputs(graph, group)
         endpoints.append(
             {
                 "api_name": "/" + api_name,
-                "label": subject.get("label", "output"),
+                "label": group[0].get("label", "output"),
                 "parameters": [
                     {
                         "label": f["label"],
@@ -582,9 +645,12 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
                 "returns": [
                     {
                         "label": subject.get("label", "output"),
-                        "type": out_type,
-                        "python_type": _PY_TYPE.get(out_type, "str"),
+                        "type": subject_output_type(subject),
+                        "python_type": _PY_TYPE.get(
+                            subject_output_type(subject), "str"
+                        ),
                     }
+                    for subject in group
                 ],
             }
         )
@@ -622,11 +688,13 @@ def port_to_component(port_type: str, label: str):
 
 def _build_endpoint_fn(
     get_graph: Callable[[], Optional[WorkflowGraph]],
-    subject_id: str,
+    subject_ids: list[str],
     free_ids: list[str],
     callers: dict[str, Callable],
 ):
-    """Build the callable backing one subject endpoint.
+    """Build the callable backing one subgraph endpoint. `subject_ids` are all
+    the outputs of the subgraph; with more than one the endpoint returns a tuple
+    (matching its multiple output components), otherwise a single value.
 
     Execution re-reads the *current* graph via `get_graph()` so operator and
     wiring edits take effect without a restart. The advertised signature
@@ -643,7 +711,10 @@ def _build_endpoint_fn(
         if graph is None:
             raise WorkflowExecutionError("Workflow graph is unavailable")
         inputs = dict(zip(free_ids, input_values))
-        return WorkflowExecutor(graph, callers).run(subject_id, inputs, request, token)
+        results = WorkflowExecutor(graph, callers).run_many(
+            subject_ids, inputs, request, token
+        )
+        return results[0] if len(results) == 1 else tuple(results)
 
     params = [
         inspect.Parameter(f"in_{i}", inspect.Parameter.POSITIONAL_OR_KEYWORD)
@@ -729,24 +800,26 @@ class WorkflowEndpointManager:
         before = set(self.blocks.fns.keys())
         with _active_blocks(self.blocks), gr.Column(visible=False) as col:
             self._blocks_created.append(col)
-            for subject, api_name in _slug_iter(graph.subjects):
-                sub_ids = upstream_node_ids(graph, subject["id"])
-                frees = free_inputs(graph, sub_ids)
+            for group, api_name in _group_slug_iter(subject_groups(graph)):
+                frees = group_free_inputs(graph, group)
                 input_components = [
                     port_to_component(f["type"], f["label"]) for f in frees
                 ]
                 for c in input_components:
                     c.render()
                     self._blocks_created.append(c)
-                output_component = port_to_component(
-                    subject_output_type(subject), subject.get("label", "output")
-                )
-                output_component.render()
-                self._blocks_created.append(output_component)
+                output_components = []
+                for subject in group:
+                    oc = port_to_component(
+                        subject_output_type(subject), subject.get("label", "output")
+                    )
+                    oc.render()
+                    self._blocks_created.append(oc)
+                    output_components.append(oc)
 
                 fn = _build_endpoint_fn(
                     self.get_graph,
-                    subject["id"],
+                    [s["id"] for s in group],
                     [f["node"]["id"] for f in frees],
                     self.callers,
                 )
@@ -755,7 +828,9 @@ class WorkflowEndpointManager:
                 trigger.click(
                     fn,
                     inputs=input_components,
-                    outputs=output_component,
+                    outputs=output_components
+                    if len(output_components) > 1
+                    else output_components[0],
                     api_name=api_name,
                 )
                 self.api_names.append(api_name)

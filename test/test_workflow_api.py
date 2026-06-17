@@ -10,6 +10,7 @@ from gradio.workflow_api import (
     WorkflowGraph,
     describe_workflow_api,
     free_inputs,
+    subject_groups,
     topo_sort,
     upstream_node_ids,
 )
@@ -204,7 +205,7 @@ class TestEndpointRegistration:
             )
 
         fn = _build_endpoint_fn(
-            lambda: g, subject_id, [image_ref["id"]], {"space": fake_call_space}
+            lambda: g, [subject_id], [image_ref["id"]], {"space": fake_call_space}
         )
         # Synthesized signature must advertise request + token for injection.
         params = list(inspect_signature(fn).parameters)
@@ -404,7 +405,7 @@ class TestEndToEndClient:
         not _frontend_built(),
         reason="frontend build required (gradio_client fetches the root page)",
     )
-    def test_two_subjects_callable_via_gradio_client(self):
+    def test_multi_output_endpoint_callable_via_gradio_client(self):
         from gradio_client import Client
 
         import gradio as gr
@@ -415,6 +416,8 @@ class TestEndToEndClient:
         def reverse(text: str) -> str:
             return (text or "")[::-1]
 
+        # "Loud" and "Reversed" share the "Text" input, so they're one subgraph
+        # → one endpoint (slug from the first subject) returning both outputs.
         demo = gr.Workflow(graph=DEMO_API, bind={"shout": shout, "reverse": reverse})
         _, local_url, _ = demo.launch(prevent_thread_lock=True, quiet=True)
         try:
@@ -422,10 +425,9 @@ class TestEndToEndClient:
             api = client.view_api(return_format="dict")
             assert isinstance(api, dict)
             named = api["named_endpoints"]
-            assert "/loud" in named and "/reversed" in named
+            assert "/loud" in named and "/reversed" not in named
 
-            assert client.predict("hello", api_name="/loud") == "HELLO"
-            assert client.predict("hello", api_name="/reversed") == "olleh"
+            assert client.predict("hello", api_name="/loud") == ("HELLO", "olleh")
         finally:
             demo.close()
 
@@ -447,5 +449,169 @@ class TestEndToEndClient:
         resp = client.get("/gradio_api/info")
         assert resp.status_code == 200
         named = resp.json()["named_endpoints"]
-        assert "/loud" in named and "/reversed" in named
+        # One subgraph (shared "Text" input) → one endpoint with two returns.
+        assert "/loud" in named and "/reversed" not in named
         assert len(named["/loud"]["parameters"]) == 1
+        assert len(named["/loud"]["returns"]) == 2
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Multi-output subgraph — outputs of one pipeline are a SINGLE endpoint
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _graph_two_outputs() -> str:
+    """One image reference → an operator with two outputs → two subject nodes.
+    All nodes form a single weakly-connected subgraph, so it must expose ONE
+    endpoint that returns both outputs (not one endpoint per output)."""
+    return json.dumps(
+        {
+            "schema_version": "2",
+            "name": "Two Outputs",
+            "references": [
+                {
+                    "id": "ref0",
+                    "label": "Image",
+                    "role": "reference",
+                    "asset_type": "image",
+                    "inputs": [{"id": "in", "type": "image"}],
+                    "outputs": [{"id": "out", "type": "image"}],
+                    "data": {},
+                }
+            ],
+            "operators": [
+                {
+                    "id": "op",
+                    "label": "Split",
+                    "role": "operator",
+                    "kind": "space",
+                    "space_id": "owner/repo",
+                    "endpoint": "/predict",
+                    "inputs": [
+                        {
+                            "id": "in_0",
+                            "label": "Image",
+                            "type": "image",
+                            "required": True,
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "id": "out_0",
+                            "label": "A",
+                            "type": "image",
+                            "output_index": 0,
+                        },
+                        {
+                            "id": "out_1",
+                            "label": "B",
+                            "type": "image",
+                            "output_index": 1,
+                        },
+                    ],
+                    "data": {},
+                }
+            ],
+            "subjects": [
+                {
+                    "id": "sa",
+                    "label": "Cutout",
+                    "role": "subject",
+                    "asset_type": "image",
+                    "inputs": [{"id": "in", "type": "image"}],
+                    "outputs": [{"id": "out", "type": "image"}],
+                    "data": {},
+                },
+                {
+                    "id": "sb",
+                    "label": "Mask",
+                    "role": "subject",
+                    "asset_type": "image",
+                    "inputs": [{"id": "in", "type": "image"}],
+                    "outputs": [{"id": "out", "type": "image"}],
+                    "data": {},
+                },
+            ],
+            "edges": [
+                {
+                    "id": "e0",
+                    "from_node_id": "ref0",
+                    "from_port_id": "out",
+                    "to_node_id": "op",
+                    "to_port_id": "in_0",
+                    "type": "image",
+                },
+                {
+                    "id": "e1",
+                    "from_node_id": "op",
+                    "from_port_id": "out_0",
+                    "to_node_id": "sa",
+                    "to_port_id": "in",
+                    "type": "image",
+                },
+                {
+                    "id": "e2",
+                    "from_node_id": "op",
+                    "from_port_id": "out_1",
+                    "to_node_id": "sb",
+                    "to_port_id": "in",
+                    "type": "image",
+                },
+            ],
+        }
+    )
+
+
+class TestMultiOutputSubgraph:
+    def test_subjects_in_one_component_form_one_group(self):
+        graph = WorkflowGraph.from_json(_graph_two_outputs())
+        assert graph is not None
+        groups = subject_groups(graph)
+        assert len(groups) == 1
+        assert [s["id"] for s in groups[0]] == ["sa", "sb"]
+
+    def test_one_endpoint_with_two_returns(self, tmp_path):
+        import gradio as gr
+
+        graph = WorkflowGraph.from_json(_graph_two_outputs())
+        assert graph is not None
+        described = describe_workflow_api(graph)
+        assert len(described) == 1
+        # One shared input (the single Image reference), two outputs.
+        assert len(described[0]["parameters"]) == 1
+        assert len(described[0]["returns"]) == 2
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_two_outputs())
+        wf = gr.Workflow(graph=str(path))
+        assert _endpoint_names(wf) == {"/cutout"}
+        assert len(wf.get_api_info()["named_endpoints"]["/cutout"]["returns"]) == 2
+
+    def test_shared_operator_runs_once_and_returns_both(self):
+        graph = WorkflowGraph.from_json(_graph_two_outputs())
+        assert graph is not None
+        calls = []
+
+        def fake_space(data, request=None, token=None):
+            calls.append(data[0])
+            return json.dumps(
+                [
+                    {
+                        "path": "/tmp/a.png",
+                        "url": "/gradio_api/file=/tmp/a.png",
+                        "is_file": True,
+                    },
+                    {
+                        "path": "/tmp/b.png",
+                        "url": "/gradio_api/file=/tmp/b.png",
+                        "is_file": True,
+                    },
+                ]
+            )
+
+        out = WorkflowExecutor(graph, {"space": fake_space}).run_many(
+            ["sa", "sb"], {"ref0": "/tmp/in.png"}
+        )
+        assert out == ["/tmp/a.png", "/tmp/b.png"]
+        # The operator feeding both outputs is executed exactly once.
+        assert calls == ["owner/repo"]
