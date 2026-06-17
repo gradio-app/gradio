@@ -15,7 +15,7 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
+from typing import Optional, TypedDict
 
 import httpx
 from huggingface_hub import HfApi
@@ -37,7 +37,12 @@ _SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="hf-search")
 _CURATED_DATASET_REPO = "gradio/workflow-curated"
 _CURATED_DATASET_FILE = "curated.json"
 _CURATED_TTL_SECONDS = 3600.0
-_CURATED_CACHE: dict[str, object] = {"fetched_at": 0.0, "items": None}
+class _CuratedCache(TypedDict):
+    fetched_at: float
+    items: Optional[list[dict]]
+
+
+_CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
 _CURATED_LOCK = __import__("threading").Lock()
 
 
@@ -81,21 +86,23 @@ def _load_curated() -> list[dict]:
 
     now = time.monotonic()
     with _CURATED_LOCK:
-        cached_at = float(_CURATED_CACHE.get("fetched_at") or 0.0)
-        cached_items = _CURATED_CACHE.get("items")
+        cached_at = _CURATED_CACHE["fetched_at"]
+        cached_items = _CURATED_CACHE["items"]
         if cached_items is not None and (now - cached_at) < _CURATED_TTL_SECONDS:
-            return cached_items  # type: ignore[return-value]
+            return cached_items
 
     live = _fetch_curated_from_hub()
-    items = live if live is not None else _load_bundled_snapshot()
+    items: list[dict] = live if live is not None else _load_bundled_snapshot()
 
     with _CURATED_LOCK:
-        cached_at2 = float(_CURATED_CACHE.get("fetched_at") or 0.0)
+        cached_at2 = _CURATED_CACHE["fetched_at"]
         if (now - cached_at2) >= _CURATED_TTL_SECONDS:
             _CURATED_CACHE["fetched_at"] = now
             _CURATED_CACHE["items"] = items
         else:
-            items = _CURATED_CACHE["items"]  # type: ignore[assignment]
+            cached = _CURATED_CACHE["items"]
+            if cached is not None:
+                items = cached
     return items
 
 
