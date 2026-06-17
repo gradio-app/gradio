@@ -1000,14 +1000,18 @@ _QUICKSEARCH_CACHE: dict[str, tuple[float, str]] = {}
 _QUICKSEARCH_TTL = 30.0
 
 
-def search_quick(data, token: Optional[OAuthToken] = None) -> str:
+def search_quick(
+    data,
+    request: Request | None = None,
+    token: Optional[OAuthToken] = None,
+) -> str:
     import time
 
     query = data[0] if data and data[0] else ""
     if not query or len(query) < 2:
         return json.dumps({"spaces": [], "models": []})
     try:
-        hf_token = _resolve_token(data, 1, token)
+        hf_token = _resolve_token(data, 1, token, request)
 
         cache_key = query.lower().strip()
         now = time.monotonic()
@@ -1072,10 +1076,14 @@ def _parse_repo_input(raw: str) -> tuple[str, Optional[str]]:
     return "", None
 
 
-def resolve_repo(data, token: Optional[OAuthToken] = None) -> str:
+def resolve_repo(
+    data,
+    request: Request | None = None,
+    token: Optional[OAuthToken] = None,
+) -> str:
     raw = data[0] if data else ""
     try:
-        hf_token = _resolve_token(data, 1, token)
+        hf_token = _resolve_token(data, 1, token, request)
         repo_id, kind_hint = _parse_repo_input(raw)
 
         def _try(rid: str, repo_type: str) -> Optional[dict]:

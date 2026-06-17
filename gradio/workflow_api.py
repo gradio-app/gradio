@@ -172,9 +172,19 @@ def upstream_node_ids(graph: WorkflowGraph, target_id: str) -> set[str]:
     while queue:
         cur = queue.popleft()
         for e in graph.edges:
-            if e.get("to_node_id") == cur and e.get("from_node_id") not in include:
-                include.add(e["from_node_id"])
-                queue.append(e["from_node_id"])
+            src = e.get("from_node_id")
+            # Skip edges whose source node doesn't exist: a hand-edited file can
+            # carry a dangling `from_node_id`. Including it would crash later in
+            # `_execute_node`'s raw `node_by_id[...]` lookup; leaving it out lets
+            # the downstream input resolve to None (and `_require` surface a
+            # clean "required but not provided" error if it mattered).
+            if (
+                e.get("to_node_id") == cur
+                and src in graph.node_by_id
+                and src not in include
+            ):
+                include.add(src)
+                queue.append(src)
     return include
 
 
