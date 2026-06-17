@@ -6,7 +6,7 @@
 		selected_size = $bindable(),
 		min,
 		max,
-		onclick_outside
+		onclick_outside = () => {}
 	}: {
 		selected_size: number;
 		min: number;

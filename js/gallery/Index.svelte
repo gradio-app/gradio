@@ -230,7 +230,7 @@
 				value={null}
 				oncapture={async (detail) => {
 					if (!detail) return;
-					const f = { ...detail };
+					const f = { ...(detail as FileData) };
 					f.mime_type = "video/webm";
 					const processed_files = await process_upload_files([f]);
 					gradio.props.value?.push(...processed_files);

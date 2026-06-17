@@ -10,7 +10,7 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 
-	import { Gradio } from "@gradio/utils";
+	import { Gradio, type ShareData } from "@gradio/utils";
 	import type { ImageEditorEvents, ImageEditorProps } from "./types";
 
 	let props = $props();
@@ -84,7 +84,7 @@
 	let normalised_layers = $derived(
 		gradio.props.value?.layers?.map((layer) => new FileData(layer)) || []
 	);
-	let resolved_theme_mode = $derived(
+	let resolved_theme_mode: "dark" | "light" = $derived(
 		gradio.shared.theme_mode === "dark" ||
 			(gradio.shared.theme_mode === "system" &&
 				typeof window !== "undefined" &&
@@ -119,7 +119,7 @@
 		/>
 		<StaticImage
 			onselect={(detail) => gradio.dispatch("select", detail)}
-			onshare={(detail) => gradio.dispatch("share", detail)}
+			onshare={(detail) => gradio.dispatch("share", detail as ShareData)}
 			onerror={(detail) => gradio.dispatch("error", detail)}
 			value={gradio.props.value?.composite || null}
 			label={gradio.shared.label}

@@ -244,7 +244,7 @@
 	let heading = $derived(placeholder_parts[0]);
 	let paragraph = $derived(placeholder_parts[1]);
 
-	let current_tool = $state<ToolbarTool>();
+	let current_tool = $state<ToolbarTool>("image");
 </script>
 
 <BlockLabel

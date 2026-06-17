@@ -213,6 +213,10 @@
 		await tick();
 		upload_input.load_files_from_drop(evt);
 	}
+
+	export function loadFilesFromDrop(evt: DragEvent): void {
+		on_drop(evt);
+	}
 </script>
 
 <BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />

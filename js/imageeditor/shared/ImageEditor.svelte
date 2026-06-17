@@ -601,7 +601,7 @@
 		if (!brush) return;
 		brush.set_brush_color(
 			(() => {
-				let color_value;
+				let color_value: ColorInput = "black";
 				if (selected_color === "auto") {
 					if (!brush_options) return "black";
 					const default_color =
@@ -615,7 +615,7 @@
 						? default_color[0]
 						: default_color;
 				} else {
-					color_value = selected_color;
+					color_value = selected_color ?? "black";
 				}
 				return color_value;
 			})()
@@ -651,6 +651,18 @@
 	$effect(() => {
 		brush?.set_brush_opacity(selected_opacity);
 	});
+
+	function remove_image(): void {
+		onclear?.();
+		editor.reset_canvas();
+		handle_tool_change({ tool: "image" });
+		background_image = false;
+		has_drawn = false;
+	}
+
+	export function handle_remove(): void {
+		remove_image();
+	}
 
 	function handle_zoom_change(zoom_level: number | "fit"): void {
 		zoom.set_zoom(zoom_level);
@@ -765,13 +777,7 @@
 				onzoom_out={() => zoom_in_out("out")}
 				{min_zoom}
 				current_zoom={zoom_level}
-				onremove_image={() => {
-					onclear?.();
-					editor.reset_canvas();
-					handle_tool_change({ tool: "image" });
-					background_image = false;
-					has_drawn = false;
-				}}
+				onremove_image={remove_image}
 				tool={current_tool}
 				can_save={true}
 				onsave={handle_save}

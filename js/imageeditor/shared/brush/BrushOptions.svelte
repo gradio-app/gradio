@@ -19,7 +19,7 @@
 		show_size,
 		mode = "brush",
 		preview = $bindable(),
-		onclick_outside
+		onclick_outside = () => {}
 	}: {
 		colors: (ColorInput | ColorTuple)[];
 		selected_color: any;
