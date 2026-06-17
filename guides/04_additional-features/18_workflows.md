@@ -151,17 +151,17 @@ One reference can feed multiple operators simultaneously — they run in paralle
 
 ## Deploying to Spaces
 
-A Workflow app is a standard Gradio app — deploy it to Hugging Face Spaces exactly like any other:
+A Workflow app is a standard Gradio app — deploy it to Hugging Face Spaces exactly like any other, by uploading the code to a Space, or by simply running in your terminal:
 
 ```
 gradio deploy
 ```
 
-On a Space, the canvas authenticates visitors via OAuth. The Space owner gets write access (can edit and save the workflow); visitors get a read-only view and can run the pipeline with their own HF token.
+On a Space, the canvas authenticates visitors via OAuth. The Space owner gets write access (can edit and save the workflow); visitors get a read-only view and can run the pipeline with their own HF token. As a result, you should set `hf_oauth: true` [in your Space](https://huggingface.co/docs/hub/en/spaces-oauth). 
 
 ## API access
 
-Every Workflow app exposes a Gradio REST API endpoint for each output (subject) node. The endpoint name is derived from the subject's label — for example, a subject labelled "Output Image" becomes `/output_image`. Use `client.view_api()` to see the exact names for your workflow:
+Every Workflow app is a Gradio app, meaning that it exposes a Gradio REST API endpoint for each output (subject) node. The endpoint name is derived from the subject's label — for example, a subject labelled "Output Image" becomes `/output_image`. Use `client.view_api()` to see the exact names for your workflow:
 
 ```python
 from gradio_client import Client
@@ -171,3 +171,5 @@ client.view_api()  # lists available endpoints and their parameters
 
 result = client.predict("a sunset over mountains", api_name="/output_image")
 ```
+
+This also means that you can reuse your workflows within larger workflows, making it possible to build modular and complex applications with Gradio Workflows!
