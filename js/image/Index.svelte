@@ -39,6 +39,7 @@
 	const props = $props();
 	const gradio = new ImageGradio(props, { value: null });
 
+	let value = $state(gradio.props.value ?? null);
 	let fullscreen = $state(false);
 	let dragging = $state(false);
 	let active_source = $derived.by(() =>
@@ -70,17 +71,25 @@
 		}
 	};
 
-	let old_value = gradio.props.value;
+	$effect(() => {
+		value = gradio.props.value ?? null;
+	});
+
+	$effect(() => {
+		gradio.props.value = value;
+	});
+
+	let old_value = value;
 	let mounted = false;
 
 	$effect(() => {
 		if (!mounted) {
-			old_value = gradio.props.value;
+			old_value = value;
 			mounted = true;
 			return;
 		}
-		if (old_value !== gradio.props.value) {
-			old_value = gradio.props.value;
+		if (old_value !== value) {
+			old_value = value;
 			gradio.dispatch("change");
 		}
 	});
@@ -119,7 +128,7 @@
 				fullscreen = detail;
 			}}
 			{fullscreen}
-			value={gradio.props.value}
+			{value}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			selectable={gradio.props._selectable}
@@ -159,7 +168,7 @@
 			bind:upload_promise
 			bind:this={upload_component}
 			bind:active_source
-			bind:value={gradio.props.value}
+			bind:value
 			bind:dragging
 			selectable={gradio.props._selectable}
 			root={gradio.shared.root}
