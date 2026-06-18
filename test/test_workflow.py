@@ -15,6 +15,8 @@ from gradio.workflow import (
     _request_has_write_token,
     _resolve_token,
     _workflow_from_bind,
+    call_model,
+    call_space,
     get_oauth_available,
     get_token,
     has_write_access,
@@ -392,3 +394,58 @@ class TestWorkflowFromBind:
         result = json.loads(_workflow_from_bind({"noargs": noargs}))
         node = result["nodes"][0]
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
+
+
+class TestCallModelValidation:
+    def test_url_shaped_model_id_is_rejected(self):
+        result = json.loads(call_model(["http://169.254.169.254/latest/meta-data/"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_https_url_is_rejected(self):
+        result = json.loads(call_model(["https://attacker.example.com/endpoint"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_empty_model_id_is_rejected(self):
+        result = json.loads(call_model([""]))
+        assert result.get("error_type") == "not_found"
+
+    def test_bare_repo_name_is_rejected(self):
+        result = json.loads(call_model(["gpt2"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_valid_owner_repo_passes_validation(self, monkeypatch):
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def text_generation(self, *args, **kwargs):
+                return "hello"
+
+        monkeypatch.setattr(
+            "gradio.workflow.InferenceClient", FakeClient, raising=False
+        )
+        import importlib
+        import gradio.workflow as wf
+        orig = wf.call_model.__globals__.get("InferenceClient")
+
+        import sys
+        import types
+        fake_hf = types.ModuleType("huggingface_hub")
+        fake_hf.InferenceClient = FakeClient  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hf)
+
+        result = json.loads(call_model(["owner/model"]))
+        assert "error" not in result
+
+
+class TestCallSpaceValidation:
+    def test_url_shaped_space_id_is_rejected(self):
+        result = json.loads(call_space(["http://169.254.169.254/"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_valid_owner_repo_format_accepted_by_regex(self):
+        import re
+        pattern = r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+"
+        assert re.fullmatch(pattern, "owner/repo")
+        assert re.fullmatch(pattern, "my-org/my-space")
+        assert re.fullmatch(pattern, "http://host/path") is None
