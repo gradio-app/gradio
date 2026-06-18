@@ -1,10 +1,10 @@
 import { error } from "@sveltejs/kit";
 
 export async function load({ params, parent }) {
-	const { on_main, wheel, pages, url_version, VERSION } = await parent();
+	const { on_main, wheel, pages, url_version } = await parent();
 
 	const modules: any = import.meta.glob(
-		"/src/lib/templates*/third-party-clients/**/*.svx"
+		"/src/lib/templates/third-party-clients/**/*.svx"
 	);
 	let name = params.doc;
 	let page_path: string | null = null;
@@ -21,14 +21,10 @@ export async function load({ params, parent }) {
 		throw error(404);
 	}
 
-	let version_append = on_main ? "/" : "_" + VERSION.replace(/\./g, "-") + "/";
 	let module;
 
 	for (const path in modules) {
-		if (
-			path.includes(page_path) &&
-			path.includes("templates" + version_append)
-		) {
+		if (path.includes(page_path)) {
 			module = await modules[path]();
 		}
 	}
