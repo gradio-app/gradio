@@ -1,5 +1,24 @@
 # @gradio/image
 
+## 0.27.0
+
+### Features
+
+- [#13526](https://github.com/gradio-app/gradio/pull/13526) [`53cb4ca`](https://github.com/gradio-app/gradio/commit/53cb4cae1ec3521e9170d12867253516413ba37a) - Run `pnpm lint` and `pnpm ts:check` on CI.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13532](https://github.com/gradio-app/gradio/pull/13532) [`0a933b4`](https://github.com/gradio-app/gradio/commit/0a933b428f5b2158cb8c764f38abf0da2312d58a) - Fix `gr.SelectData` coordinates when the image in `gr.Image` does not fill its container.  Thanks @hysts!
+- [#13533](https://github.com/gradio-app/gradio/pull/13533) [`e5ec1ca`](https://github.com/gradio-app/gradio/commit/e5ec1ca66c45e7e3a057b75ac2b8b86660b2827b) - Fix fullscreen button not working in ImageSlider, interactive Image, native plots, and AnnotatedImage.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/atoms@0.25.0
+- @gradio/statustracker@0.15.0
+- @gradio/utils@0.13.0
+- @gradio/client@2.3.0
+- @gradio/upload@0.18.0
+
 ## 0.26.3
 
 ### Dependency updates
