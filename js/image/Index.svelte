@@ -37,7 +37,7 @@
 	}
 
 	const props = $props();
-	const gradio = new ImageGradio(props);
+	const gradio = new ImageGradio(props, { value: null });
 
 	let fullscreen = $state(false);
 	let dragging = $state(false);
