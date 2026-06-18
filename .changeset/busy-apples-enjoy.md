@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fix website build
+feat:website build: add fallback to unversioned templates 
