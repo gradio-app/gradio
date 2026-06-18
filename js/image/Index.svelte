@@ -19,7 +19,7 @@
 	import type { ImageProps, ImageEvents } from "./shared/types";
 
 	let stream_data = { value: null };
-	let upload_promise = $state<Promise<any>>();
+	let upload_promise = $state<Promise<any> | null>(null);
 	class ImageGradio extends Gradio<ImageEvents, ImageProps> {
 		async get_data() {
 			if (upload_promise) {

@@ -37,7 +37,7 @@
 		time_limit,
 		show_fullscreen_button = true,
 		stream_state = "closed",
-		upload_promise = $bindable(),
+		upload_promise = $bindable<Promise<any> | null>(null),
 		onerror,
 		uploading = $bindable(false),
 		active_source = $bindable<source_type>(null),
