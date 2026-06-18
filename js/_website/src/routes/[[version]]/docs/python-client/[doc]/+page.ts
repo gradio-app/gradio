@@ -27,23 +27,19 @@ export async function load({ params, parent }) {
 	let module;
 
 	for (const path in modules) {
-		if (
-			path.includes(page_path) &&
-			path.includes("templates" + version_append)
-		) {
-			module = await modules[path]();
+		if (!path.includes(page_path)) {
+			continue;
 		}
-	}
 
-	if (module === undefined) {
-		for (const path in modules) {
-			if (
-				path.includes(page_path) &&
-				path.includes("templates/") &&
-				!path.includes("templates_")
-			) {
-				module = await modules[path]();
-			}
+		// prefer the versioned template, but fall back to the unversioned
+		// one if the versioned template directory doesn't exist yet
+		if (path.includes("templates" + version_append)) {
+			module = await modules[path]();
+			break;
+		}
+
+		if (module === undefined && path.includes("templates/")) {
+			module = await modules[path]();
 		}
 	}
 
