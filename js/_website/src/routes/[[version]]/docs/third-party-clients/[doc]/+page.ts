@@ -33,6 +33,22 @@ export async function load({ params, parent }) {
 		}
 	}
 
+	if (module === undefined) {
+		for (const path in modules) {
+			if (
+				path.includes(page_path) &&
+				path.includes("templates/") &&
+				!path.includes("templates_")
+			) {
+				module = await modules[path]();
+			}
+		}
+	}
+
+	if (module === undefined) {
+		throw error(404);
+	}
+
 	return {
 		name,
 		on_main,
