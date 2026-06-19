@@ -424,12 +424,13 @@ class TestCallModelValidation:
         monkeypatch.setattr(
             "gradio.workflow.InferenceClient", FakeClient, raising=False
         )
-        import importlib
         import gradio.workflow as wf
-        orig = wf.call_model.__globals__.get("InferenceClient")
+
+        wf.call_model.__globals__.get("InferenceClient")
 
         import sys
         import types
+
         fake_hf = types.ModuleType("huggingface_hub")
         fake_hf.InferenceClient = FakeClient  # type: ignore[attr-defined]
         monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hf)
@@ -445,6 +446,7 @@ class TestCallSpaceValidation:
 
     def test_valid_owner_repo_format_accepted_by_regex(self):
         import re
+
         pattern = r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+"
         assert re.fullmatch(pattern, "owner/repo")
         assert re.fullmatch(pattern, "my-org/my-space")
