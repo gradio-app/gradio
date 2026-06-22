@@ -1,15 +1,17 @@
 import gradio as gr
 
+gr.set_static_paths(paths=["test/test_files/bus.png", "test/test_files/cheetah1.jpg"])
+
+
 def fn(im):
-    return im, "https://picsum.photos/400/300"
+    return im, "test/test_files/cheetah1.jpg"
+
 
 demo = gr.Interface(
     fn=fn,
-    inputs=gr.Image("https://picsum.photos/300/200", label="InputImage"),
+    inputs=gr.Image("test/test_files/bus.png", label="InputImage"),
     outputs=[gr.Image(label="Loopback"), gr.Image(label="RemoteImage")],
-    examples=[
-        ["https://picsum.photos/640/480"]
-    ]
+    examples=[["test/test_files/bus.png"]],
 )
 
 if __name__ == "__main__":
