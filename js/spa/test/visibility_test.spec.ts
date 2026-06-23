@@ -52,6 +52,28 @@ test.describe("Visibility States", () => {
 		await expect(counter_output).toHaveValue("Counter Result: 2");
 	});
 
+	test("column revealed by a multi-yield generator stays visible", async ({
+		page
+	}) => {
+		const target = page.locator("#yield-target");
+
+		// starts hidden (visible=false removes it from the DOM)
+		await expect(target).toHaveCount(0);
+
+		// a generator that yields visible=false then visible=true for this
+		// column (while another column is hidden in the same event) must leave
+		// it visible (#13494)
+		await page.locator("#yield-reveal").click();
+		await expect(target).toBeVisible();
+
+		// round trip: hide it again, then reveal once more
+		await page.locator("#yield-hide").click();
+		await expect(target).not.toBeVisible();
+
+		await page.locator("#yield-reveal").click();
+		await expect(target).toBeVisible();
+	});
+
 	test("hidden textbox maintains its value", async ({ page }) => {
 		const textbox = page.locator("#test-textbox textarea");
 		const button = page.locator("#test-button");
