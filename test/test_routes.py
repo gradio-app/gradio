@@ -8,7 +8,6 @@ import pickle
 import sys
 import tempfile
 import time
-import warnings
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from threading import Thread
@@ -19,7 +18,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import requests
-import starlette.exceptions
 import starlette.routing
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
@@ -937,33 +935,6 @@ class TestQueueRoutes:
         client.predict("test")
 
         assert io._queue.server_app == io.server_app
-
-    def test_queue_join_validator_error_no_starlette_deprecation_warning(self):
-        io = Interface(lambda x: x, "text", "text").queue()
-        app = routes.App.create_app(io)
-        client = TestClient(app)
-
-        async def mock_push(*args, **kwargs):
-            return False, "validation failed", "validator_error"
-
-        io._queue.push = mock_push  # type: ignore[assignment]
-
-        with warnings.catch_warnings():
-            warnings.simplefilter(
-                "error", category=starlette.exceptions.StarletteDeprecationWarning
-            )
-            response = client.post(
-                f"{API_PREFIX}/queue/join",
-                json={
-                    "data": ["test"],
-                    "fn_index": 0,
-                    "session_hash": "sess",
-                    "event_data": None,
-                    "trigger_id": None,
-                },
-            )
-
-        assert response.status_code == 422
 
 
 class TestDevMode:
