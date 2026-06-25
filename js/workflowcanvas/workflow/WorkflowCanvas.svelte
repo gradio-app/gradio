@@ -464,21 +464,48 @@
 			type: PortType,
 			isInput: boolean
 		) => startConnection(e, nodeId, portId, type, isInput),
-		onpopout: (nodeId: string, portId: string, type: PortType, isInput: boolean) => {
+		onpopout: (
+			nodeId: string,
+			portId: string,
+			type: PortType,
+			isInput: boolean
+		) => {
 			if (readOnly) return;
 			const node = legacyView.nodes.find((n) => n.id === nodeId);
 			if (!node) return;
 			const template = getComponentForPortType(type);
 			if (!template) return;
 			if (isInput) {
-				const { x, y } = clampToViewport(node.x - 260, node.y, template.width, template.height);
+				const { x, y } = clampToViewport(
+					node.x - 260,
+					node.y,
+					template.width,
+					template.height
+				);
 				const newId = addNode("reference", template, x, y);
-				addEdge({ from_node_id: newId, from_port_id: "out", to_node_id: nodeId, to_port_id: portId, type });
+				addEdge({
+					from_node_id: newId,
+					from_port_id: "out",
+					to_node_id: nodeId,
+					to_port_id: portId,
+					type
+				});
 				updateNodeData(nodeId, portId, "");
 			} else {
-				const { x, y } = clampToViewport(node.x + node.width + 40, node.y, template.width, template.height);
+				const { x, y } = clampToViewport(
+					node.x + node.width + 40,
+					node.y,
+					template.width,
+					template.height
+				);
 				const newId = addNode("reference", template, x, y);
-				addEdge({ from_node_id: nodeId, from_port_id: portId, to_node_id: newId, to_port_id: "in", type });
+				addEdge({
+					from_node_id: nodeId,
+					from_port_id: portId,
+					to_node_id: newId,
+					to_port_id: "in",
+					type
+				});
 			}
 		}
 	});
@@ -517,13 +544,18 @@
 		};
 	}
 
-	function clampToViewport(x: number, y: number, w: number, h: number): { x: number; y: number } {
+	function clampToViewport(
+		x: number,
+		y: number,
+		w: number,
+		h: number
+	): { x: number; y: number } {
 		if (!canvasEl) return { x, y };
 		const r = canvasEl.getBoundingClientRect();
 		const pad = 20;
-		const minX = (-viewport.x) / viewport.zoom + pad;
+		const minX = -viewport.x / viewport.zoom + pad;
 		const maxX = (r.width - viewport.x) / viewport.zoom - w - pad;
-		const minY = (-viewport.y) / viewport.zoom + pad;
+		const minY = -viewport.y / viewport.zoom + pad;
 		const maxY = (r.height - viewport.y) / viewport.zoom - h - pad;
 		return {
 			x: Math.max(minX, Math.min(maxX, x)),
@@ -729,24 +761,52 @@
 			const dy = Math.abs(mode.cursorCanvasY - mode.startCanvasY);
 			if (dx < 4 && dy < 4) {
 				const direction = mode.reversed ? "input" : "output";
-				const isConnected = connectedPortsSet().has(`${mode.fromNodeId}:${mode.fromPortId}:${direction}`);
+				const isConnected = connectedPortsSet().has(
+					`${mode.fromNodeId}:${mode.fromPortId}:${direction}`
+				);
 				if (!isConnected) {
-					const srcNode = legacyView.nodes.find((n) => n.id === mode.fromNodeId);
+					const srcNode = legacyView.nodes.find(
+						(n) => n.id === mode.fromNodeId
+					);
 					const template = getComponentForPortType(mode.type);
 					if (srcNode && template) {
 						if (mode.reversed) {
-							const { x, y } = clampToViewport(srcNode.x - 260, srcNode.y, template.width, template.height);
+							const { x, y } = clampToViewport(
+								srcNode.x - 260,
+								srcNode.y,
+								template.width,
+								template.height
+							);
 							const newId = addNode("reference", template, x, y);
-							addEdge({ from_node_id: newId, from_port_id: "out", to_node_id: mode.fromNodeId, to_port_id: mode.fromPortId, type: mode.type });
+							addEdge({
+								from_node_id: newId,
+								from_port_id: "out",
+								to_node_id: mode.fromNodeId,
+								to_port_id: mode.fromPortId,
+								type: mode.type
+							});
 							updateNodeData(mode.fromNodeId, mode.fromPortId, "");
 						} else {
-							const { x, y } = clampToViewport(srcNode.x + srcNode.width + 40, srcNode.y, template.width, template.height);
+							const { x, y } = clampToViewport(
+								srcNode.x + srcNode.width + 40,
+								srcNode.y,
+								template.width,
+								template.height
+							);
 							const newId = addNode("reference", template, x, y);
-							addEdge({ from_node_id: mode.fromNodeId, from_port_id: mode.fromPortId, to_node_id: newId, to_port_id: "in", type: mode.type });
+							addEdge({
+								from_node_id: mode.fromNodeId,
+								from_port_id: mode.fromPortId,
+								to_node_id: newId,
+								to_port_id: "in",
+								type: mode.type
+							});
 						}
 					}
 					dragMode = null;
-					try { canvasEl?.releasePointerCapture(e.pointerId); } catch {}
+					try {
+						canvasEl?.releasePointerCapture(e.pointerId);
+					} catch {}
 					return;
 				}
 			}
@@ -827,7 +887,8 @@
 				);
 				const hasChoices = !!(srcPort?.choices && srcPort.choices.length > 0);
 				const rootRect = rootEl?.getBoundingClientRect();
-				const menuW = 220, menuH = 360;
+				const menuW = 220,
+					menuH = 360;
 				const rawX = rootRect ? e.clientX - rootRect.left : e.clientX - r.left;
 				const rawY = rootRect ? e.clientY - rootRect.top : e.clientY - r.top;
 				const containerW = rootRect ? rootRect.width : r.width;
@@ -1824,7 +1885,11 @@
 			const canvasOffsetY = canvasRect.top - rootRect.top;
 			const panelWidth = Math.min(940, rootRect.width - 8);
 			const panelHeight = Math.min(720, rootRect.height - 160);
-			const nodeRight = canvasOffsetX + node.x * viewport.zoom + viewport.x + node.width * viewport.zoom;
+			const nodeRight =
+				canvasOffsetX +
+				node.x * viewport.zoom +
+				viewport.x +
+				node.width * viewport.zoom;
 			const nodeLeft = canvasOffsetX + node.x * viewport.zoom + viewport.x;
 			const nodeTop = canvasOffsetY + node.y * viewport.zoom + viewport.y;
 			anchorX = nodeRight + 12;
@@ -1832,7 +1897,10 @@
 				anchorX = nodeLeft - panelWidth - 12;
 			}
 			anchorX = Math.max(4, Math.min(anchorX, rootRect.width - panelWidth - 4));
-			anchorY = Math.max(4, Math.min(nodeTop, rootRect.height - panelHeight - 8));
+			anchorY = Math.max(
+				4,
+				Math.min(nodeTop, rootRect.height - panelHeight - 8)
+			);
 		}
 
 		activePicker = {

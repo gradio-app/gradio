@@ -55,7 +55,12 @@
 			type: PortType,
 			isInput: boolean
 		) => void;
-		onpopout: (nodeId: string, portId: string, type: PortType, isInput: boolean) => void;
+		onpopout: (
+			nodeId: string,
+			portId: string,
+			type: PortType,
+			isInput: boolean
+		) => void;
 	}
 
 	const ctx = getContext<WfCtx>("wf");
@@ -377,7 +382,9 @@
 							data-port-type={port.type}
 							data-port-direction="input"
 							style="--port-color: {PORT_COLOR[port.type]}"
-							title={!portConnected && pending === null ? "Click to create an input node" : undefined}
+							title={!portConnected && pending === null
+								? "Click to create an input node"
+								: undefined}
 							onpointerdown={(e) =>
 								ctx.onportpointerdown(e, node.id, port.id, port.type, true)}
 							onclick={(e) => {
@@ -550,7 +557,9 @@
 						data-port-type={port.type}
 						data-port-direction="output"
 						style="--port-color: {PORT_COLOR[port.type]}"
-						title={!portConnected && pending === null ? "Click to create an output node" : undefined}
+						title={!portConnected && pending === null
+							? "Click to create an output node"
+							: undefined}
 						onpointerdown={(e) =>
 							ctx.onportpointerdown(e, node.id, port.id, port.type, false)}
 						onclick={(e) => {
