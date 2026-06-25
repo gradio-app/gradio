@@ -21,6 +21,7 @@
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
 	import { fetchSpaceApi } from "./space-api";
+	import { fetchModelEndpoints } from "./model-api";
 	import {
 		workflow,
 		addNode,
@@ -445,6 +446,23 @@
 			} catch (err) {
 				showToast(
 					err instanceof Error ? err.message : "Failed to load endpoints",
+					4000,
+					"error"
+				);
+			}
+		},
+		onhydratemodelendpoints: async (id: string) => {
+			try {
+				if (!server?.get_model_endpoints) return;
+				const endpoints = await fetchModelEndpoints(server);
+				if (endpoints.length === 0) {
+					showToast("No inference endpoints available", 4000, "warning");
+					return;
+				}
+				hydrate_endpoints(id, endpoints);
+			} catch (err) {
+				showToast(
+					err instanceof Error ? err.message : "Failed to load model endpoints",
 					4000,
 					"error"
 				);

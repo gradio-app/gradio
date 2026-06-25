@@ -6,6 +6,7 @@
 		normalize_space_id,
 		normalizeOperatorPorts
 	} from "./space-api";
+	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import { MODALITIES } from "./workflow-modalities";
 	import type { ModalityConfig, SubTab } from "./workflow-modalities";
 	import SearchIcon from "./icons/SearchIcon.svelte";
@@ -336,9 +337,18 @@
 		search_timeout = setTimeout(() => void fetcher(), 150);
 	}
 
-	function select_model(item: SpaceResult) {
+	async function select_model(item: SpaceResult) {
 		if (!item.pipeline_tag) return;
-		const schema = TASK_SCHEMAS[item.pipeline_tag];
+		const endpointName = PIPELINE_TAG_TO_ENDPOINT[item.pipeline_tag];
+		let allEndpoints: { name: string; inputs: any[]; outputs: any[] }[] = [];
+		let endpointSchema: { inputs: any[]; outputs: any[] } | undefined;
+		if (server && endpointName) {
+			try {
+				allEndpoints = await fetchModelEndpoints(server);
+				endpointSchema = allEndpoints.find((e) => e.name === endpointName);
+			} catch {}
+		}
+		const schema = endpointSchema ?? TASK_SCHEMAS[item.pipeline_tag];
 		const inputHints = active_subtab.inputs;
 		const outputHints = active_subtab.outputs;
 		const template = {
@@ -347,6 +357,8 @@
 			source: "model" as const,
 			model_id: item.id,
 			pipeline_tag: item.pipeline_tag,
+			endpoint: endpointName,
+			endpoints: allEndpoints.length > 0 ? allEndpoints : undefined,
 			inputs: normalizeOperatorPorts(
 				modality,
 				schema?.inputs ?? [],
@@ -490,7 +502,7 @@
 		if (item.type === "dataset") {
 			void select_dataset(item);
 		} else if (item.type === "model") {
-			select_model(item);
+			void select_model(item);
 		} else {
 			select_space(item);
 		}

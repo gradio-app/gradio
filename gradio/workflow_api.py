@@ -533,12 +533,20 @@ class WorkflowExecutor:
     def _run_model(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
         resolved = self._resolve_inputs(node, data_map)
         self._require(node, resolved)
-        args = [resolved[p["id"]] for p in node.get("inputs") or []]
-        tag = node.get("pipeline_tag") or "text-generation"
         provider = node.get("provider") or "auto"
-        output_data = self._call(
-            "model", [node.get("model_id"), tag, json.dumps(args), None, provider]
-        )
+        endpoint = node.get("endpoint")
+        if endpoint:
+            kwargs = {
+                p["id"]: resolved[p["id"]]
+                for p in node.get("inputs") or []
+                if p["id"] in resolved
+            }
+            call_data = [node.get("model_id"), endpoint, json.dumps(kwargs), None, provider]
+        else:
+            args = [resolved[p["id"]] for p in node.get("inputs") or []]
+            tag = node.get("pipeline_tag") or "text-generation"
+            call_data = [node.get("model_id"), tag, json.dumps(args), None, provider]
+        output_data = self._call("model", call_data)
         self._map_outputs(node, output_data, data_map)
 
     def _run_fn(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:

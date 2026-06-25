@@ -45,6 +45,7 @@
 		onopenpicker: (id: string) => void;
 		onswitchendpoint: (id: string, endpointName: string) => void;
 		onhydratendpoints: (id: string, spaceId: string) => void;
+		onhydratemodelendpoints: (id: string) => void;
 		onrunnode: (id: string) => void;
 		onselect: (id: string, additive?: boolean) => void;
 		onnodepointerdown: (e: PointerEvent, id: string) => void;
@@ -303,7 +304,7 @@
 		{/if}
 	{/if}
 
-	{#if node.space_id}
+	{#if node.space_id || node.model_id}
 		<div
 			class="node-endpoint-row"
 			onpointerdown={(e) => e.stopPropagation()}
@@ -336,11 +337,15 @@
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => {
 						e.stopPropagation();
-						ctx.onhydratendpoints(node.id, node.space_id ?? "");
+						if (node.model_id) {
+							ctx.onhydratemodelendpoints(node.id);
+						} else {
+							ctx.onhydratendpoints(node.id, node.space_id ?? "");
+						}
 					}}
-					title="Discover this Space's other endpoints"
+					title={node.model_id ? "Browse available inference endpoints" : "Discover this Space's other endpoints"}
 				>
-					{node.endpoint ?? "/predict"} ▾
+					{node.endpoint ?? (node.model_id ? "endpoint" : "/predict")} ▾
 				</button>
 			{/if}
 		</div>

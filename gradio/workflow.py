@@ -351,6 +351,27 @@ def _img_url(a) -> str:
     return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
 
 
+def _apply_args(fn, args: list, image_positions: tuple = ()) -> dict:
+    """Map a positional args list onto fn's named parameters, skipping None/''.
+    Positions in image_positions have _img_url applied."""
+    sig = inspect.signature(fn)
+    param_names = [
+        name
+        for name, p in sig.parameters.items()
+        if name != "self"
+        and p.kind
+        not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+    ]
+    kwargs: dict = {}
+    for i, val in enumerate(args):
+        if i >= len(param_names):
+            break
+        if val is None or val == "":
+            continue
+        kwargs[param_names[i]] = _img_url(val) if i in image_positions else val
+    return kwargs
+
+
 def _classify_error(e: Exception) -> dict:
     http_status: int | None = None
     response = getattr(e, "response", None)
@@ -560,6 +581,232 @@ def call_space(
         return _format_error(e)
 
 
+_INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
+    "text_to_image": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text", "required": True},
+            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text", "required": False},
+            {"id": "height", "label": "Height", "type": "number", "required": False},
+            {"id": "width", "label": "Width", "type": "number", "required": False},
+            {"id": "num_inference_steps", "label": "Steps", "type": "number", "required": False},
+            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number", "required": False},
+            {"id": "seed", "label": "Seed", "type": "number", "required": False},
+        ],
+        "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
+    },
+    "text_to_speech": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text", "required": True},
+        ],
+        "outputs": [{"id": "out_0", "label": "Audio", "type": "audio", "output_index": 0}],
+    },
+    "text_to_video": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text", "required": True},
+            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text", "required": False},
+            {"id": "num_frames", "label": "Frames", "type": "number", "required": False},
+            {"id": "num_inference_steps", "label": "Steps", "type": "number", "required": False},
+            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number", "required": False},
+            {"id": "seed", "label": "Seed", "type": "number", "required": False},
+        ],
+        "outputs": [{"id": "out_0", "label": "Video", "type": "video", "output_index": 0}],
+    },
+    "image_to_image": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image", "required": True},
+            {"id": "prompt", "label": "Prompt", "type": "text", "required": False},
+            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text", "required": False},
+            {"id": "num_inference_steps", "label": "Steps", "type": "number", "required": False},
+            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number", "required": False},
+        ],
+        "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
+    },
+    "text_generation": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text", "required": True},
+            {"id": "max_new_tokens", "label": "Max Tokens", "type": "number", "required": False},
+            {"id": "temperature", "label": "Temperature", "type": "number", "required": False},
+            {"id": "top_p", "label": "Top P", "type": "number", "required": False},
+        ],
+        "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
+    },
+    "summarization": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text", "required": True},
+        ],
+        "outputs": [{"id": "out_0", "label": "Summary", "type": "text", "output_index": 0}],
+    },
+    "translation": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text", "required": True},
+            {"id": "src_lang", "label": "Source Language", "type": "text", "required": False},
+            {"id": "tgt_lang", "label": "Target Language", "type": "text", "required": False},
+        ],
+        "outputs": [{"id": "out_0", "label": "Translation", "type": "text", "output_index": 0}],
+    },
+    "fill_mask": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Result", "type": "json", "output_index": 0}],
+    },
+    "text_classification": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
+    },
+    "token_classification": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Entities", "type": "json", "output_index": 0}],
+    },
+    "zero_shot_classification": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text", "required": True},
+            {"id": "labels", "label": "Labels", "type": "text", "required": True},
+        ],
+        "outputs": [{"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}],
+    },
+    "sentence_similarity": {
+        "inputs": [
+            {"id": "sentence", "label": "Sentence", "type": "text", "required": True},
+            {"id": "other_sentences", "label": "Other Sentences", "type": "text", "required": True},
+        ],
+        "outputs": [{"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}],
+    },
+    "question_answering": {
+        "inputs": [
+            {"id": "question", "label": "Question", "type": "text", "required": True},
+            {"id": "context", "label": "Context", "type": "text", "required": True},
+        ],
+        "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
+    },
+    "feature_extraction": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Embeddings", "type": "json", "output_index": 0}],
+    },
+    "image_classification": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
+    },
+    "object_detection": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Detections", "type": "json", "output_index": 0}],
+    },
+    "image_segmentation": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}],
+    },
+    "image_to_text": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
+    },
+    "automatic_speech_recognition": {
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
+    },
+    "audio_classification": {
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
+    },
+    "visual_question_answering": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image", "required": True},
+            {"id": "question", "label": "Question", "type": "text", "required": True},
+        ],
+        "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
+    },
+    "document_question_answering": {
+        "inputs": [
+            {"id": "image", "label": "Document", "type": "image", "required": True},
+            {"id": "question", "label": "Question", "type": "text", "required": True},
+        ],
+        "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
+    },
+    "depth_estimation": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "outputs": [{"id": "out_0", "label": "Depth", "type": "image", "output_index": 0}],
+    },
+}
+
+_PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
+    "text-to-image": "text_to_image",
+    "text-to-speech": "text_to_speech",
+    "text-to-audio": "text_to_speech",
+    "text-to-video": "text_to_video",
+    "image-to-image": "image_to_image",
+    "image-to-video": "image_to_video",
+    "text-generation": "text_generation",
+    "text2text-generation": "text_generation",
+    "conversational": "text_generation",
+    "summarization": "summarization",
+    "translation": "translation",
+    "fill-mask": "fill_mask",
+    "text-classification": "text_classification",
+    "token-classification": "token_classification",
+    "zero-shot-classification": "zero_shot_classification",
+    "sentence-similarity": "sentence_similarity",
+    "question-answering": "question_answering",
+    "feature-extraction": "feature_extraction",
+    "image-classification": "image_classification",
+    "object-detection": "object_detection",
+    "image-segmentation": "image_segmentation",
+    "image-to-text": "image_to_text",
+    "automatic-speech-recognition": "automatic_speech_recognition",
+    "audio-classification": "audio_classification",
+    "visual-question-answering": "visual_question_answering",
+    "document-question-answering": "document_question_answering",
+    "depth-estimation": "depth_estimation",
+}
+
+_ENDPOINT_OUTPUT_EXT: dict[str, str] = {
+    "text_to_image": "png",
+    "image_to_image": "png",
+    "mask_generation": "png",
+    "depth_estimation": "png",
+    "text_to_speech": "wav",
+    "text_to_audio": "wav",
+    "text_to_video": "mp4",
+    "image_to_video": "mp4",
+}
+
+
+def get_model_endpoints(_data) -> str:
+    """Return all InferenceClient endpoint schemas as a JSON list."""
+    endpoints = [
+        {"name": name, **schema}
+        for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
+    ]
+    return json.dumps([json.dumps(endpoints)])
+
+
+def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
+    """Call client.<endpoint>(**kwargs) and serialize the result."""
+    fn = getattr(client, endpoint, None)
+    if fn is None:
+        raise ValueError(f"InferenceClient has no method '{endpoint}'")
+    clean = {k: (_img_url(v) if isinstance(v, dict) else v) for k, v in kwargs.items() if v is not None and v != ""}
+    result = fn(**clean)
+    ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
+    if ext:
+        return json.dumps([_save_tmp(result, ext)])
+    if hasattr(result, "summary_text"):
+        return json.dumps([result.summary_text])
+    if hasattr(result, "translation_text"):
+        return json.dumps([result.translation_text])
+    if hasattr(result, "generated_text"):
+        return json.dumps([result.generated_text])
+    if hasattr(result, "text"):
+        return json.dumps([result.text])
+    if hasattr(result, "answer"):
+        return json.dumps([result.answer])
+    if isinstance(result, list):
+        def _item(r):
+            if hasattr(r, "__dict__"):
+                return {k: v for k, v in vars(r).items() if not k.startswith("_")}
+            return r
+        return json.dumps([[_item(r) for r in result]])
+    if hasattr(result, "tolist"):
+        return json.dumps([result.tolist()])
+    return json.dumps([result if isinstance(result, (str, int, float, bool)) else str(result)])
+
+
 def call_model(
     data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
 ) -> str:
@@ -576,6 +823,11 @@ def call_model(
         provider = data[4] if len(data) > 4 and data[4] else "auto"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
+
+        if isinstance(args, dict):
+            endpoint = pipeline_tag or ""
+            return _dispatch_model_endpoint(client, endpoint, args)
+
         task = pipeline_tag or "text-generation"
         a0 = args[0] if args else ""
         a1 = args[1] if len(args) > 1 else ""
@@ -650,56 +902,66 @@ def call_model(
                 [client.sentence_similarity(a0, a1.split("\n") if a1 else [])]
             )
         if task == "text-to-image":
-            return json.dumps([_save_tmp(client.text_to_image(a0), "png")])
+            kwargs = _apply_args(client.text_to_image, args)
+            return json.dumps([_save_tmp(client.text_to_image(**kwargs), "png")])
         if task in ("text-to-speech", "text-to-audio"):
-            return json.dumps([_save_tmp(client.text_to_speech(a0), "wav")])
+            kwargs = _apply_args(client.text_to_speech, args)
+            return json.dumps([_save_tmp(client.text_to_speech(**kwargs), "wav")])
         if task == "text-to-video":
-            return json.dumps([_save_tmp(client.text_to_video(a0), "mp4")])
+            kwargs = _apply_args(client.text_to_video, args)
+            return json.dumps([_save_tmp(client.text_to_video(**kwargs), "mp4")])
         if task == "image-classification":
+            kwargs = _apply_args(client.image_classification, args, image_positions=(0,))
             return json.dumps(
                 [
                     [
                         {"label": r.label, "score": r.score}
-                        for r in client.image_classification(_img_url(a0))
+                        for r in client.image_classification(**kwargs)
                     ]
                 ]
             )
         if task == "object-detection":
+            kwargs = _apply_args(client.object_detection, args, image_positions=(0,))
             return json.dumps(
                 [
                     [
                         {"label": r.label, "score": r.score, "box": r.box}
-                        for r in client.object_detection(_img_url(a0))
+                        for r in client.object_detection(**kwargs)
                     ]
                 ]
             )
         if task == "image-segmentation":
+            kwargs = _apply_args(client.image_segmentation, args, image_positions=(0,))
             return json.dumps(
                 [
                     [
                         {"label": r.label, "score": r.score}
-                        for r in client.image_segmentation(_img_url(a0))
+                        for r in client.image_segmentation(**kwargs)
                     ]
                 ]
             )
         if task == "image-to-text":
-            r = client.image_to_text(_img_url(a0))
+            kwargs = _apply_args(client.image_to_text, args, image_positions=(0,))
+            r = client.image_to_text(**kwargs)
             return json.dumps(
                 [r.generated_text if hasattr(r, "generated_text") else str(r)]
             )
         if task == "image-to-image":
+            kwargs = _apply_args(client.image_to_image, args, image_positions=(0,))
             return json.dumps(
-                [_save_tmp(client.image_to_image(_img_url(a0), prompt=a1), "png")]
+                [_save_tmp(client.image_to_image(**kwargs), "png")]
             )
         if task == "automatic-speech-recognition":
-            r = client.automatic_speech_recognition(_img_url(a0))
+            kwargs = _apply_args(client.automatic_speech_recognition, args, image_positions=(0,))
+            r = client.automatic_speech_recognition(**kwargs)
             return json.dumps([r.text if hasattr(r, "text") else str(r)])
         if task == "audio-classification":
+            kwargs = _apply_args(client.audio_classification, args, image_positions=(0,))
             return json.dumps(
                 [
                     [
                         {"label": r.label, "score": r.score}
-                        for r in client.audio_classification(_img_url(a0))
+                        for r in client.audio_classification(**kwargs)
                     ]
                 ]
             )
@@ -708,7 +970,8 @@ def call_model(
             "document-question-answering",
             "image-text-to-text",
         ):
-            r = client.visual_question_answering(_img_url(a0), a1)
+            kwargs = _apply_args(client.visual_question_answering, args, image_positions=(0,))
+            r = client.visual_question_answering(**kwargs)
             return json.dumps([r[0].answer if r else ""])
         if task == "depth-estimation":
             headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
@@ -1461,6 +1724,7 @@ class Workflow(Blocks):
             call_fn,
             list_bound_fns,
             get_workflow_api,
+            get_model_endpoints,
             save_workflow,
         ]
 

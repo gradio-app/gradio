@@ -1,6 +1,8 @@
 import json
 import os
 import tempfile
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -11,10 +13,13 @@ from gradio.route_utils import Request
 from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
+    _apply_args,
     _get_locally_saved_hf_token,
     _request_has_write_token,
     _resolve_token,
     _workflow_from_bind,
+    call_model,
+    get_model_endpoints,
     get_oauth_available,
     get_token,
     has_write_access,
@@ -392,3 +397,49 @@ class TestWorkflowFromBind:
         result = json.loads(_workflow_from_bind({"noargs": noargs}))
         node = result["nodes"][0]
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
+
+
+class TestApplyArgs:
+    def test_behavior(self):
+        def fn(prompt: str, negative_prompt: str = "", width: int = 512): ...
+        def fn_img(image, prompt: str = ""): ...
+
+        assert _apply_args(fn, ["hello", None, 768]) == {"prompt": "hello", "width": 768}
+        assert _apply_args(fn, ["hi", ""]) == {"prompt": "hi"}
+        assert _apply_args(fn_img, [{"url": "/f/a.png"}, "cat"], image_positions=(0,)) == {
+            "image": "/f/a.png",
+            "prompt": "cat",
+        }
+
+
+class TestGetModelEndpoints:
+    def test_schema_structure(self):
+        endpoints = json.loads(json.loads(get_model_endpoints([]))[0])
+        tti = next(e for e in endpoints if e["name"] == "text_to_image")
+        input_ids = {p["id"] for p in tti["inputs"]}
+        assert {"prompt", "negative_prompt", "width", "height"} <= input_ids
+        assert tti["outputs"][0]["type"] == "image"
+        assert all("name" in e and e["inputs"] and e["outputs"] for e in endpoints)
+
+
+class TestCallModel:
+    def test_kwargs_dict_path(self):
+        img = MagicMock()
+        img.save = lambda path: open(path, "wb").close()
+
+        with patch("huggingface_hub.InferenceClient") as MockClient:
+            MockClient.return_value.text_to_image.return_value = img
+            result = json.loads(
+                call_model(["owner/model", "text_to_image", json.dumps({"prompt": "cat", "width": 512, "negative_prompt": None}), None, "auto"])
+            )
+
+        MockClient.return_value.text_to_image.assert_called_once_with(prompt="cat", width=512)
+        assert result[0]["is_file"] is True
+
+    def test_legacy_list_path_and_unknown_endpoint(self):
+        with patch("huggingface_hub.InferenceClient") as MockClient:
+            MockClient.return_value.summarization.return_value = SimpleNamespace(summary_text="short")
+            assert json.loads(call_model(["m", "summarization", json.dumps(["long"]), None, "auto"])) == ["short"]
+
+        with patch("huggingface_hub.InferenceClient"):
+            assert "error" in json.loads(call_model(["m", "no_such_method", json.dumps({"x": 1}), None, "auto"]))
