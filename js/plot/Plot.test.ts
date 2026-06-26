@@ -10,6 +10,15 @@ const matplotlib_value = {
 	chart: "bar"
 };
 
+// layout has no height on purpose: this is the autosize path.
+const plotly_autosize_value = {
+	type: "plotly",
+	plot: JSON.stringify({
+		data: [{ type: "scatter", x: [1, 2, 3], y: [4, 5, 6] }],
+		layout: {}
+	})
+};
+
 const default_props = {
 	value: null as null | Record<string, any>,
 	label: "Plot",
@@ -272,6 +281,24 @@ describe("get_data / set_data", () => {
 
 		const data = await get_data();
 		expect(data.value).toEqual(matplotlib_value);
+	});
+});
+
+describe("Plotly", () => {
+	afterEach(() => cleanup());
+
+	// Regression: this collapsed to zero height after the Svelte 5 migration.
+	test("an autosize figure renders with a non-zero height", async () => {
+		const { getByTestId } = await render(Plot, {
+			...default_props,
+			value: plotly_autosize_value
+		});
+
+		await waitFor(() => {
+			const plot = getByTestId("plotly");
+			expect(plot.querySelector(".main-svg")).toBeTruthy();
+			expect(plot.offsetHeight).toBeGreaterThan(0);
+		});
 	});
 });
 
