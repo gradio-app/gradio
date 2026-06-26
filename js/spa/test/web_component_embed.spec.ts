@@ -4,6 +4,14 @@ import { test, expect } from "@self/tootils";
 // component, and that detaching + re-attaching the element re-mounts cleanly
 // (regression test for the `this.app.$destroy is not a function` bug, #12507).
 
+// The `<gradio-app>` web component is a client-side embedding mechanism; in SSR
+// mode the served HTML doesn't expose the client entry chunk this test relies
+// on, so skip it there (matches the other client-rendering specs).
+test.skip(
+	process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true",
+	"web component embedding is a client-side rendering path"
+);
+
 test("app embeds and renders via the <gradio-app> web component", async ({
 	page
 }) => {
