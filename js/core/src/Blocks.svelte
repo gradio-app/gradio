@@ -147,14 +147,31 @@
 			const button_id = (data as { id: number }).id;
 			dispatch_to_target(button_id, "click", null);
 		} else {
-			// Tabs are a bit weird. The Tabs component dispatches 'select' events
-			// but the target id corresponds to the child Tab component that was selected.
-			// So the id we get from the dispatcher belongs to the Tabs,
-			// so we need to pull out the correct id here.
+			// Tabs are a bit weird. The Tabs component dispatches a single 'select'
+			// event when the active tab changes, and that event should trigger
+			// listeners attached to BOTH the Tabs container itself
+			// (`tabs.select(...)`) and the specific TabItem that became active
+			// (`tab.select(...)`). The id we get from the dispatcher belongs to the
+			// Tabs container; the selected child's component id is carried in
+			// `data.component_id`.
 			if (event === "select" && id in app_tree.initial_tabs) {
-				// this is the id of the selected tab
-				id = (data as { id: number }).id;
+				// Forward to the selected child TabItem by its component id. We use
+				// `component_id` rather than `id` because `id` may be a user-supplied
+				// string (e.g. `gr.Tab("A", id="a")`) that does not match any
+				// component, whereas `component_id` always identifies the TabItem.
+				const tab_component_id = (data as { component_id?: number })
+					.component_id;
+				if (tab_component_id != null) {
+					dep_manager.dispatch({
+						type: "event",
+						event_name: event,
+						target_id: tab_component_id,
+						event_data: data
+					});
+				}
 			}
+			// Always dispatch against the original target id too, so listeners on
+			// the dispatching component itself fire (including `tabs.select(...)`).
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
