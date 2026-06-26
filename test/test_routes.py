@@ -750,6 +750,31 @@ class TestRoutes:
 
         io.close()
 
+    def test_allowed_origins_cors_restrictions(self):
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(
+            prevent_thread_lock=True, allowed_origins=["https://example.com"]
+        )
+        client = TestClient(app)
+
+        # A non-localhost host would normally reflect any origin; with
+        # allowed_origins set, only the listed origin is permitted.
+        disallowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "myapp.example.com", "origin": "https://evil.com"},
+        )
+        assert "access-control-allow-origin" not in disallowed.headers
+
+        allowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "myapp.example.com", "origin": "https://example.com"},
+        )
+        assert (
+            allowed.headers["access-control-allow-origin"] == "https://example.com"
+        )
+
+        io.close()
+
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
             num_files = 0

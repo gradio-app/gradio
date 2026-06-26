@@ -2640,6 +2640,7 @@ Received inputs:
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
+        allowed_origins: list[str] | None = None,
         node_server_name: str | None = None,
         node_port: int | None = None,
         ssr_mode: bool | None = None,
@@ -2692,6 +2693,7 @@ Received inputs:
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
+            allowed_origins: A list of exact origins (e.g. ["https://example.com"]) that are permitted to make cross-origin (CORS) requests to this app. When set, only these origins are allowed, regardless of the server host — this is the supported way to restrict which sites may embed or call a publicly-hosted Gradio app. When None (default), Gradio only applies its built-in localhost CSRF protection and otherwise reflects the requesting origin.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
@@ -2928,6 +2930,7 @@ Received inputs:
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,
+            allowed_origins=allowed_origins,
             mcp_server=mcp_server,
             debug=debug,
         )
