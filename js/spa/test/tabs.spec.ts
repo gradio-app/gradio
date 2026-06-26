@@ -22,6 +22,20 @@ test("clicking through tabs shows correct content", async ({ page }) => {
 	await expect(page.getByText("Text 12!")).toBeVisible();
 });
 
+test("select event fires on the Tabs container itself", async ({ page }) => {
+	await page.waitForTimeout(1000);
+	// `outer_tabs.select(...)` should fire when the active top-level tab changes.
+	// Click "Set 1" first so the subsequent clicks are guaranteed tab changes
+	// regardless of which tab the serial test run left active.
+	await page.getByRole("tab", { name: "Set 1" }).click();
+
+	await page.getByRole("tab", { name: "Set 2" }).click();
+	await expect(page.getByLabel("Outer Container Tab")).toHaveValue("Set 2");
+
+	await page.getByRole("tab", { name: "Set 1" }).click();
+	await expect(page.getByLabel("Outer Container Tab")).toHaveValue("Set 1");
+});
+
 test("correct selected tab shown", async ({ page }) => {
 	await page.waitForTimeout(1000);
 	await page.getByRole("tab", { name: "Tab 2" }).click();
