@@ -1,5 +1,11 @@
 # gradio
 
+## 6.20.0
+
+### Features
+
+- [#13549](https://github.com/gradio-app/gradio/pull/13549) [`ec64242`](https://github.com/gradio-app/gradio/commit/ec642427856c9b7a3e90c35987d87bb98a6e9fbc) - workflow: validate model before invoking inference client.  Thanks @hannahblair!
+
 ## 6.19.0
 
 ### Features
