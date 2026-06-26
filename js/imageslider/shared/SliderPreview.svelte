@@ -57,8 +57,8 @@
 		onfullscreen?: (fullscreen: boolean) => void;
 	} = $props();
 
-	let img: HTMLImageElement;
-	let slider_wrap: HTMLDivElement;
+	let img = $state<HTMLImageElement>();
+	let slider_wrap = $state<HTMLDivElement>();
 	let image_container: HTMLDivElement;
 
 	let transform: Tweened<{ x: number; y: number; z: number }> = tweened(
@@ -112,8 +112,8 @@
 	let observer: ResizeObserver | null = null;
 
 	function init_image(
-		img: HTMLImageElement,
-		slider_wrap: HTMLDivElement
+		img: HTMLImageElement | undefined,
+		slider_wrap: HTMLDivElement | undefined
 	): void {
 		if (!img || !slider_wrap) return;
 		zoomable_image?.destroy();

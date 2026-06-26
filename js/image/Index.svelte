@@ -46,31 +46,6 @@
 		gradio.props.sources ? gradio.props.sources[0] : null
 	);
 
-	let upload_component: ImageUploader;
-	const handle_drag_event = (event: Event): void => {
-		const drag_event = event as DragEvent;
-		drag_event.preventDefault();
-		drag_event.stopPropagation();
-		if (drag_event.type === "dragenter" || drag_event.type === "dragover") {
-			dragging = true;
-		} else if (drag_event.type === "dragleave") {
-			dragging = false;
-		}
-	};
-
-	const handle_drop = (event: Event): void => {
-		if (gradio.shared.interactive) {
-			const drop_event = event as DragEvent;
-			drop_event.preventDefault();
-			drop_event.stopPropagation();
-			dragging = false;
-
-			if (upload_component) {
-				upload_component.loadFilesFromDrop(drop_event);
-			}
-		}
-	};
-
 	$effect(() => {
 		value = gradio.props.value ?? null;
 	});
@@ -166,7 +141,6 @@
 		{/if}
 		<ImageUploader
 			bind:upload_promise
-			bind:this={upload_component}
 			bind:active_source
 			bind:value
 			bind:dragging

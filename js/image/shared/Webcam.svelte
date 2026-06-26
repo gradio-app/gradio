@@ -20,8 +20,8 @@
 	import type { Base64File } from "./types";
 
 	let video_source: HTMLVideoElement;
-	let available_video_devices: MediaDeviceInfo[] = [];
-	let selected_device: MediaDeviceInfo | null = null;
+	let available_video_devices = $state<MediaDeviceInfo[]>([]);
+	let selected_device = $state<MediaDeviceInfo | null>(null);
 
 	let canvas: HTMLCanvasElement;
 	let {
@@ -175,7 +175,7 @@
 		}
 	}
 
-	let recording = false;
+	let recording = $state(false);
 	let recorded_blobs: BlobPart[] = [];
 	let stream: MediaStream;
 	let mimeType: string;
@@ -226,7 +226,7 @@
 		recording = !recording;
 	}
 
-	let webcam_accessed = false;
+	let webcam_accessed = $state(false);
 
 	function record_video_or_photo({
 		destroy
@@ -248,7 +248,7 @@
 		}
 	}
 
-	let options_open = false;
+	let options_open = $state(false);
 
 	export function click_outside(node: Node, cb: any): any {
 		const handle_click = (event: MouseEvent): void => {
