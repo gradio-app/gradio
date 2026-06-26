@@ -899,6 +899,7 @@ class CustomCORSMiddleware:
         self,
         app: ASGIApp,
         strict_cors: bool = True,
+        allowed_origins: list[str] | None = None,
     ) -> None:
         self.app = app
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
@@ -908,6 +909,10 @@ class CustomCORSMiddleware:
             "Access-Control-Allow-Credentials": "true",
         }
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
+        # An explicit allow-list of origins (e.g. ["https://example.com"]). When set,
+        # only these origins are reflected in Access-Control-Allow-Origin, regardless
+        # of the server host. When None, the default localhost-protection logic applies.
+        self.allowed_origins = allowed_origins
         # Any of these hosts suggests that the Gradio app is running locally.
         self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
         if not strict_cors or os.getenv("GRADIO_LOCAL_DEV_MODE") is not None:  # type: ignore
@@ -963,6 +968,13 @@ class CustomCORSMiddleware:
 
     def is_valid_origin(self, request_headers: Headers) -> bool:
         origin = request_headers["Origin"]
+
+        # When an explicit allow-list is configured, it takes precedence: only
+        # those exact origins are permitted (this is what lets a non-localhost
+        # server actually restrict which sites may make cross-origin requests).
+        if self.allowed_origins is not None:
+            return origin in self.allowed_origins
+
         host = request_headers["Host"]
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)

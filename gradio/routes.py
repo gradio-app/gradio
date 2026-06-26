@@ -361,6 +361,7 @@ class App(FastAPI):
         app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
+        allowed_origins: list[str] | None = None,
         mcp_server: bool | None = None,
         debug: bool = False,
     ) -> App:
@@ -384,7 +385,11 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
+        app.add_middleware(
+            CustomCORSMiddleware,  # type: ignore
+            strict_cors=strict_cors,
+            allowed_origins=allowed_origins,
+        )
         app.add_middleware(
             BrotliMiddleware,  # type: ignore
             quality=4,
@@ -2472,6 +2477,8 @@ def mount_gradio_app(
     js: str | Literal[True] | None = None,
     head: str | None = None,
     head_paths: str | Path | Sequence[str | Path] | None = None,
+    strict_cors: bool = True,
+    allowed_origins: list[str] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -2503,6 +2510,8 @@ def mount_gradio_app(
         js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
         head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
         head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
+        strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, also allows requests from "null" origin (needed when embedding a locally-running app as a web component). Should normally be True to prevent CSRF attacks.
+        allowed_origins: A list of exact origins (e.g. ["https://example.com"]) permitted to make cross-origin (CORS) requests to the mounted app. When set, only these origins are allowed, regardless of the server host. When None (default), Gradio only applies its built-in localhost CSRF protection and otherwise reflects the requesting origin.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -2589,6 +2598,8 @@ def mount_gradio_app(
         blocks,
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
+        strict_cors=strict_cors,
+        allowed_origins=allowed_origins,
         mcp_server=mcp_server,
     )
     old_lifespan = app.router.lifespan_context
