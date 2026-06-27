@@ -4,12 +4,14 @@ import { test, expect } from "@self/tootils";
 // component, and that detaching + re-attaching the element re-mounts cleanly
 // (regression test for the `this.app.$destroy is not a function` bug, #12507).
 
-// The `<gradio-app>` web component is a client-side embedding mechanism; in SSR
-// mode the served HTML doesn't expose the client entry chunk this test relies
-// on, so skip it there (matches the other client-rendering specs).
+// Skipped in SSR mode only because of how this test *discovers* the bundle:
+// it scrapes the app's index HTML for the `assets/index-*.js` entry, but in SSR
+// mode the page is served via SvelteKit (`/_app/...`) and doesn't reference it.
+// Embedding itself works fine against an SSR app (the bundle is still served and
+// the web component renders from `/config`) — this is purely a harness limitation.
 test.skip(
 	process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true",
-	"web component embedding is a client-side rendering path"
+	"test discovers the web-component bundle from the client-rendered index HTML"
 );
 
 test("app embeds and renders via the <gradio-app> web component", async ({
