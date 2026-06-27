@@ -1,25 +1,41 @@
 <script lang="ts">
 	import tinycolor from "tinycolor2";
-	import { createEventDispatcher } from "svelte";
 	import type { ColorTuple } from "./types";
 	import type { ColorInput } from "tinycolor2";
 	import IconButton from "../IconButton.svelte";
 	import { Plus } from "@gradio/icons";
 
-	export let selected_color: string;
-	export let colors: (ColorInput | ColorTuple)[];
-	export let user_colors: (ColorInput | ColorTuple)[] | null = [];
+	let {
+		selected_color,
+		colors,
+		user_colors = [],
+		show_empty = false,
+		current_mode = "hex",
+		color_picker = $bindable(false),
+		onselect,
+		onedit,
+		onadd_color
+	}: {
+		selected_color: string;
+		colors: (ColorInput | ColorTuple)[];
+		user_colors?: (ColorInput | ColorTuple)[] | null;
+		show_empty?: boolean;
+		current_mode?: "hex" | "rgb" | "hsl";
+		color_picker?: boolean;
+		onselect?: (value: {
+			index: number | null;
+			color: string | null;
+			opacity?: number;
+		}) => void;
+		onedit?: (value: {
+			index: number;
+			color: string | null;
+			opacity?: number;
+		}) => void;
+		onadd_color?: () => void;
+	} = $props();
 
-	export let show_empty = false;
-	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
-	export let color_picker = false;
-	const dispatch = createEventDispatcher<{
-		select: { index: number | null; color: string | null; opacity?: number };
-		edit: { index: number; color: string | null };
-		add_color: void;
-	}>();
-
-	$: _colors = show_empty ? colors : colors.filter((c) => c);
+	let _colors = $derived(show_empty ? colors : colors.filter((c) => c));
 
 	function get_color(color_input: ColorInput | ColorTuple): string {
 		if (Array.isArray(color_input)) {
@@ -58,7 +74,7 @@
 			get_formatted_color(selected_color, current_mode)
 	)}`;
 
-	$: selected_opacity = get_opacity(selected_color);
+	let selected_opacity = $derived(get_opacity(selected_color));
 
 	function handle_select(
 		type: "edit" | "select",
@@ -69,11 +85,15 @@
 		}
 	): void {
 		current_index = `${type}-${detail.index}`;
-		dispatch(type, detail);
+		if (type === "edit") {
+			onedit?.(detail);
+		} else {
+			onselect?.(detail);
+		}
 	}
 
 	function handle_picker_click(): void {
-		dispatch("select", { index: null, color: selected_color });
+		onselect?.({ index: null, color: selected_color });
 		color_picker = !color_picker;
 	}
 </script>
@@ -89,7 +109,7 @@
 				{#if color_picker}
 					<IconButton
 						Icon={Plus}
-						onclick={() => dispatch("add_color")}
+						onclick={() => onadd_color?.()}
 						roundedness="very"
 						background={get_color(selected_color)}
 						color="white"
@@ -99,7 +119,7 @@
 					{@const color_string = get_color(color)}
 					{@const opacity = get_opacity(color)}
 					<button
-						on:click={() =>
+						onclick={() =>
 							handle_select("edit", {
 								index: i,
 								color: color_string,
@@ -115,7 +135,7 @@
 				{/each}
 
 				<button
-					on:click={handle_picker_click}
+					onclick={handle_picker_click}
 					class="color colorpicker"
 					class:hidden={!color_picker}
 				></button>
@@ -126,7 +146,7 @@
 				{@const color_string = get_color(color_item)}
 				{@const opacity = get_opacity(color_item)}
 				<button
-					on:click={() =>
+					onclick={() =>
 						handle_select("select", {
 							index: i,
 							color: color_string,
