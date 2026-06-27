@@ -1,14 +1,10 @@
 import { test, expect } from "@self/tootils";
 
-// Verifies that a Gradio app can be embedded with the `<gradio-app>` web
-// component, and that detaching + re-attaching the element re-mounts cleanly
-// (regression test for the `this.app.$destroy is not a function` bug, #12507).
+// Embeds an app with the `<gradio-app>` web component and re-attaches the
+// element, a regression test for `this.app.$destroy is not a function` (#12507).
 
-// Skipped in SSR mode only because of how this test *discovers* the bundle:
-// it scrapes the app's index HTML for the `assets/index-*.js` entry, but in SSR
-// mode the page is served via SvelteKit (`/_app/...`) and doesn't reference it.
-// Embedding itself works fine against an SSR app (the bundle is still served and
-// the web component renders from `/config`) — this is purely a harness limitation.
+// Skipped in SSR mode: the test discovers the bundle from the index HTML, which
+// SSR (SvelteKit) doesn't expose. Embedding itself works fine against an SSR app.
 test.skip(
 	process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true",
 	"test discovers the web-component bundle from the client-rendered index HTML"
@@ -17,14 +13,11 @@ test.skip(
 test("app embeds and renders via the <gradio-app> web component", async ({
 	page
 }) => {
-	// The fixture has already launched the app and navigated to it.
 	const app_url = new URL(page.url()).origin;
 
 	const page_errors: string[] = [];
 	page.on("pageerror", (e) => page_errors.push(e.message));
 
-	// Build a plain host page that loads the app's web-component bundle and
-	// embeds it (same origin as the launched app).
 	await page.setContent(`
 		<h1>Host page</h1>
 		<div id="slot"></div>
@@ -43,9 +36,7 @@ test("app embeds and renders via the <gradio-app> web component", async ({
 		timeout: 20_000
 	});
 
-	// #12507: detaching and re-attaching re-runs connectedCallback with
-	// `this.app` already set. The buggy version threw
-	// `TypeError: this.app.$destroy is not a function`; it must now re-mount.
+	// #12507: re-attaching re-runs connectedCallback with `this.app` already set.
 	await page.evaluate(() => {
 		const slot = document.getElementById("slot");
 		const el = slot?.querySelector("gradio-app");
