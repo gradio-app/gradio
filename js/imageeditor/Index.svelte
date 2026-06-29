@@ -10,7 +10,7 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 
-	import { Gradio } from "@gradio/utils";
+	import { Gradio, type ShareData } from "@gradio/utils";
 	import type { ImageEditorEvents, ImageEditorProps } from "./types";
 
 	let props = $props();
@@ -47,7 +47,7 @@
 		return blobs;
 	}
 
-	let is_dragging: boolean;
+	let is_dragging = $state(false);
 
 	const is_browser = typeof window !== "undefined";
 
@@ -84,6 +84,14 @@
 	let normalised_layers = $derived(
 		gradio.props.value?.layers?.map((layer) => new FileData(layer)) || []
 	);
+	let resolved_theme_mode: "dark" | "light" = $derived(
+		gradio.shared.theme_mode === "dark" ||
+			(gradio.shared.theme_mode === "system" &&
+				typeof window !== "undefined" &&
+				window.matchMedia?.("(prefers-color-scheme: dark)").matches)
+			? "dark"
+			: "light"
+	);
 </script>
 
 {#if !gradio.shared.interactive}
@@ -110,9 +118,9 @@
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 		<StaticImage
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
-			on:error={({ detail }) => gradio.dispatch("error", detail)}
+			onselect={(detail) => gradio.dispatch("select", detail)}
+			onshare={(detail) => gradio.dispatch("share", detail as ShareData)}
+			onerror={(detail) => gradio.dispatch("error", detail)}
 			value={gradio.props.value?.composite || null}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
@@ -159,38 +167,29 @@
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			fixed_canvas={gradio.props.fixed_canvas}
-			on:input={() => {
+			oninput={() => {
 				if (!has_run_input) {
 					has_run_input = true;
 				} else {
 					gradio.dispatch("input");
 				}
 			}}
-			on:save={(e) => handle_save()}
-			on:edit={() => gradio.dispatch("edit")}
-			on:clear={() => gradio.dispatch("clear")}
-			on:drag={({ detail }) => (is_dragging = detail)}
-			on:upload={() => gradio.dispatch("upload")}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
-			on:error={({ detail }) => {
-				gradio.shared.loading_status = gradio.shared.loading_status || {};
-				gradio.shared.loading_status.status = "error";
-				gradio.dispatch("error", detail);
-			}}
-			on:receive_null={() =>
+			onsave={() => handle_save()}
+			onclear={() => gradio.dispatch("clear")}
+			onupload={() => gradio.dispatch("upload")}
+			onreceive_null={() =>
 				(gradio.props.value = {
 					background: null,
 					layers: [],
 					composite: null
 				})}
-			on:change={() => {
+			onchange={() => {
 				if (!has_run_change) {
 					has_run_change = true;
 				} else {
 					gradio.dispatch("change");
 				}
 			}}
-			on:error
 			brush={gradio.props.brush ?? false}
 			eraser={gradio.props.eraser ?? false}
 			changeable={gradio.shared.attached_events?.includes("apply") ?? false}
@@ -199,15 +198,15 @@
 			i18n={gradio.i18n}
 			transforms={gradio.props.transforms ?? []}
 			accept_blobs={gradio.shared.server.accept_blobs}
-			layer_options={gradio.props.layers}
+			layer_options={gradio.props.layers!}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			placeholder={gradio.props.placeholder}
-			webcam_options={gradio.props.webcam_options}
+			webcam_options={gradio.props.webcam_options!}
 			show_download_button={gradio.props.buttons === null
 				? true
 				: (gradio.props.buttons ?? []).includes("download")}
-			theme_mode={gradio.shared.theme_mode === "dark" ? "dark" : "light"}
-			on:download_error={(e) => gradio.dispatch("error", e.detail)}
+			theme_mode={resolved_theme_mode}
+			ondownload_error={(detail) => gradio.dispatch("error", detail)}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
