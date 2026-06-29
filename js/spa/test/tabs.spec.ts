@@ -38,17 +38,9 @@ test("select event fires on the Tabs container itself", async ({ page }) => {
 
 test("per-tab select fires exactly once per tab change", async ({ page }) => {
 	await page.waitForTimeout(1000);
-	// The counter increments once per `tab.select`, wired with
-	// `trigger_mode="multiple"` so a double-dispatch regression isn't masked by
-	// the default "once" mode. Assert it goes up by exactly 1 per tab change.
-	// Delta-based rather than absolute, since the initial tab selection may
-	// already have bumped the counter on load.
 	const count = page.getByLabel("Tab Select Count");
 	const selected = page.getByLabel("Selected Tab");
 
-	// `Selected Tab` and `Tab Select Count` are outputs of the same handler, so
-	// waiting for `Selected Tab` to settle guarantees the count for that click
-	// has landed before we baseline against it.
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 	await expect(selected).toHaveValue("Tab 2");
 	const before = Number(await count.inputValue());

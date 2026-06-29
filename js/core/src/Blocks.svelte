@@ -147,12 +147,6 @@
 			const button_id = (data as { id: number }).id;
 			dispatch_to_target(button_id, "click", null);
 		} else {
-			// Dispatch against the original target id. For a Tabs `select` event
-			// this is the Tabs container itself, so `tabs.select(...)` fires when
-			// the active tab changes. The selected child TabItem dispatches its
-			// own `select` event (from `TabItem.svelte`, keyed by its component
-			// id), so `tab.select(...)` is handled there and must not be forwarded
-			// here too — doing so would fire the per-tab `select` twice.
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
