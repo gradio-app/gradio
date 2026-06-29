@@ -34,8 +34,6 @@ function suppress_3d_library_errors(e: PromiseRejectionEvent): void {
 		msg.includes("Viewer is disposed") ||
 		msg.includes("Invalid URL") ||
 		msg.includes("Unsupported property type") ||
-		// BabylonJS render loop touching `scene.postProcessManager` after the
-		// scene has been disposed on cleanup.
 		msg.includes("postProcessManager")
 	) {
 		e.preventDefault();
