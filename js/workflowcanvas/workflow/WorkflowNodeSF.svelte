@@ -551,19 +551,19 @@
 					<div
 						class="port-handle-sf output-handle-sf"
 						class:connected={portConnected}
-						class:popout-hint={!portConnected && pending === null}
+						class:popout-hint={!readOnly && !portConnected && pending === null}
 						data-node-id={node.id}
 						data-port-id={port.id}
 						data-port-type={port.type}
 						data-port-direction="output"
 						style="--port-color: {PORT_COLOR[port.type]}"
-						title={!portConnected && pending === null
+						title={!readOnly && !portConnected && pending === null
 							? "Click to create an output node"
 							: undefined}
 						onpointerdown={(e) =>
 							ctx.onportpointerdown(e, node.id, port.id, port.type, false)}
 						onclick={(e) => {
-							if (!portConnected && pending === null) {
+							if (!readOnly && !portConnected && pending === null) {
 								e.stopPropagation();
 								ctx.onpopout(node.id, port.id, port.type, false);
 							}
