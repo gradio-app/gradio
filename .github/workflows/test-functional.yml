@@ -84,14 +84,14 @@ jobs:
     if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
-      # install-all-deps is referenced locally (not @main) so this PR exercises
-      # its `skip_docs_gen` change. `skip_build: true` skips the frontend build
-      # (we download it from the `build` job instead); `skip_docs_gen: true`
-      # skips website JSON/CSS-var doc generation (~80s, irrelevant to browser
-      # tests). Can be flipped back to @main once merged.
+      # `skip_build: true` skips the frontend build (we download it from the
+      # `build` job instead). `skip_docs_gen: true` skips website JSON/CSS-var
+      # doc generation (~80s, irrelevant to browser tests); it's a new input on
+      # install-all-deps, so it only takes effect once this PR is merged and the
+      # @main action carries it (the current @main ignores the unknown input).
       - name: install dependencies
         id: install_deps
-        uses: "./.github/actions/install-all-deps"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.10"
           test: true
