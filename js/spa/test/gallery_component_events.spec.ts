@@ -1,4 +1,5 @@
 import { test, expect } from "@self/tootils";
+import type { Download } from "@playwright/test";
 
 async function mock_clipboard_with_image(page): Promise<void> {
 	await page.evaluate(async () => {
@@ -46,9 +47,23 @@ test("Gallery select event returns the right value and the download button works
 	);
 
 	const downloadPromise = page.waitForEvent("download");
-	await page.getByLabel("Download").click();
+	await page.getByLabel("Download", { exact: true }).click();
 	const download = await downloadPromise;
 	expect(download.suggestedFilename()).toBe("world.mp4");
+});
+
+test("Gallery download all button downloads every file", async ({ page }) => {
+	await page.getByRole("button", { name: "Run" }).click();
+
+	const downloads: Download[] = [];
+	page.on("download", (download) => downloads.push(download));
+
+	await page.getByLabel("Download All").click();
+
+	await expect.poll(() => downloads.length, { timeout: 15_000 }).toBe(3);
+	expect(
+		downloads.map((download) => download.suggestedFilename()).sort()
+	).toEqual(["TheCheethcat.jpg", "cheetah-003.jpg", "world.mp4"]);
 });
 
 test("Gallery click-to-upload, upload and change events work correctly", async ({
