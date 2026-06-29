@@ -108,11 +108,6 @@ jobs:
             || { echo "::error::frontend templates missing after artifact download"; ls -laR gradio/templates | head -50; exit 1; }
           test -d gradio/templates/node/build \
             || { echo "::error::SSR node build missing after artifact download"; ls -laR gradio/templates | head -50; exit 1; }
-      - name: install dependencies for specific tests
-        run: |
-          . venv/bin/activate
-          uv pip install -r demo/outbreak_forecast/requirements.txt
-          uv pip install -r demo/stream_video_out/requirements.txt
       - name: cache playwright browsers
         uses: actions/cache@v4
         with:
