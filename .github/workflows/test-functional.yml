@@ -37,24 +37,66 @@ jobs:
         with:
           filter: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
+  build:
+    name: "build-frontend"
+    permissions:
+      contents: read
+    runs-on: ubuntu-20.04-16core
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      # Build the frontend exactly once and share it with both SSR test legs
+      # (below) via an artifact. Previously each leg rebuilt it independently,
+      # paying the ~3min `pnpm build` twice. This action sets up node/pnpm,
+      # installs deps and builds into `gradio/templates/**` (the SPA + the SSR
+      # server bundle) — no Python/venv needed (the build only reads the
+      # checked-in `gradio/package.json` for the version string).
+      - name: build frontend
+        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+      - name: upload built frontend templates
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradio-templates
+          path: gradio/templates
+          retention-days: 1
+          include-hidden-files: true
   test:
     name: "functional-test-SSR=${{ matrix.SSR }}"
     permissions:
       contents: read
     runs-on: ubuntu-20.04-16core
-    needs: changes
+    needs: [changes, build]
     strategy:
       matrix:
         ssr: [true, false]
     if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
+      # install-all-deps is referenced locally (not @main) so this PR exercises
+      # its `skip_docs_gen` change. `skip_build: true` skips the frontend build
+      # (we download it from the `build` job instead); `skip_docs_gen: true`
+      # skips website JSON/CSS-var doc generation (~80s, irrelevant to browser
+      # tests). Can be flipped back to @main once merged.
       - name: install dependencies
         id: install_deps
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "./.github/actions/install-all-deps"
         with:
           python_version: "3.10"
           test: true
+          skip_build: true
+          skip_docs_gen: true
+      - name: download built frontend templates
+        uses: actions/download-artifact@v4
+        with:
+          name: gradio-templates
+          path: gradio/templates
+      - name: verify frontend templates present
+        run: |
+          test -f gradio/templates/frontend/index.html \
+            || { echo "::error::frontend templates missing after artifact download"; ls -laR gradio/templates | head -50; exit 1; }
+          test -d gradio/templates/node/build \
+            || { echo "::error::SSR node build missing after artifact download"; ls -laR gradio/templates | head -50; exit 1; }
       - name: install dependencies for specific tests
         run: |
           . venv/bin/activate
@@ -75,6 +117,9 @@ jobs:
       - name: run browser tests
         env:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
+          # 16-core runner + largely wait-bound tests → parallelize beyond the
+          # historical default of 4 workers (see .config/playwright.config.js).
+          PW_BROWSER_WORKERS: 8
         run: |
           . venv/bin/activate
           pnpm test:browser
