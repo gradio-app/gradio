@@ -255,8 +255,10 @@
 	 * Handles visibility changes and resets zoom if dimensions have changed
 	 */
 	async function handle_visibility_change(): Promise<void> {
-		if (!editor || !ready || !zoom) return;
+		if (!editor || !ready || !zoom || !pixi_target) return;
 		await tick();
+
+		if (!pixi_target) return;
 
 		const is_visible = pixi_target.offsetParent !== null;
 
