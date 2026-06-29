@@ -110,6 +110,21 @@ describe("ImageSlider", () => {
 		expect(btns[0]).toBeVisible();
 	});
 
+	test("renders upload area when value is undefined", async () => {
+		const { getAllByRole, get_data } = await render(ImageSlider, {
+			...default_props,
+			interactive: true,
+			value: undefined,
+			client: mock_client()
+		});
+
+		const btns = getAllByRole("button", {
+			name: "Click to upload or drop files"
+		});
+		expect(btns[0]).toBeVisible();
+		expect((await get_data()).value).toEqual([null, null]);
+	});
+
 	test("renders both images when value has two images", async () => {
 		const { getAllByTestId } = await render(ImageSlider, {
 			...default_props,

@@ -2,9 +2,15 @@
 	import { BaseImage as Image } from "@gradio/image";
 	import type { EditorData } from "./InteractiveImageEditor.svelte";
 
-	export let value: EditorData;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value,
+		type,
+		selected = false
+	}: {
+		value: EditorData;
+		type: "gallery" | "table";
+		selected?: boolean;
+	} = $props();
 </script>
 
 <div

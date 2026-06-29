@@ -16,31 +16,49 @@
 	import { ZoomableImage } from "./zoom";
 	import { onMount } from "svelte";
 	import { tweened, type Tweened } from "svelte/motion";
-	import { createEventDispatcher } from "svelte";
 
-	export let value: [null | FileData, null | FileData] = [null, null];
-	export let label: string | undefined = undefined;
-	export let show_download_button = true;
-	export let show_label: boolean;
-	export let i18n: I18nFormatter;
-	export let position: number;
-	export let layer_images = true;
-	export let show_single = false;
-	export let slider_color: string;
-	export let show_fullscreen_button = true;
-	export let fullscreen = false;
-	export let buttons: (string | CustomButtonType)[] | null = null;
-	export let on_custom_button_click: ((id: number) => void) | null = null;
-	export let el_width = 0;
-	export let max_height: number;
-	export let interactive = true;
-	const dispatch = createEventDispatcher<{
-		clear: void;
-		fullscreen: boolean;
-	}>();
+	let {
+		value = $bindable<[null | FileData, null | FileData]>([null, null]),
+		label = undefined,
+		show_download_button = true,
+		show_label,
+		i18n,
+		position = $bindable(0.5),
+		layer_images = true,
+		show_single = false,
+		slider_color,
+		show_fullscreen_button = true,
+		fullscreen = $bindable(false),
+		buttons = null,
+		on_custom_button_click = null,
+		el_width = $bindable(0),
+		max_height,
+		interactive = true,
+		onclear,
+		onfullscreen
+	}: {
+		value?: [null | FileData, null | FileData];
+		label?: string;
+		show_download_button?: boolean;
+		show_label: boolean;
+		i18n: I18nFormatter;
+		position?: number;
+		layer_images?: boolean;
+		show_single?: boolean;
+		slider_color: string;
+		show_fullscreen_button?: boolean;
+		fullscreen?: boolean;
+		buttons?: (string | CustomButtonType)[] | null;
+		on_custom_button_click?: ((id: number) => void) | null;
+		el_width?: number;
+		max_height: number;
+		interactive?: boolean;
+		onclear?: () => void;
+		onfullscreen?: (fullscreen: boolean) => void;
+	} = $props();
 
-	let img: HTMLImageElement;
-	let slider_wrap: HTMLDivElement;
+	let img = $state<HTMLImageElement>();
+	let slider_wrap = $state<HTMLDivElement>();
 	let image_container: HTMLDivElement;
 
 	let transform: Tweened<{ x: number; y: number; z: number }> = tweened(
@@ -50,18 +68,28 @@
 		}
 	);
 	let parent_el: HTMLDivElement;
+	let img_width = $state(0);
+	let viewport_width = $state(0);
+	let image_size = $state<{
+		top: number;
+		left: number;
+		width: number;
+		height: number;
+	}>({ top: 0, left: 0, width: 0, height: 0 });
 
-	$: coords_at_viewport = get_coords_at_viewport(
-		position,
-		viewport_width,
-		image_size.width,
-		image_size.left,
-		$transform.x,
-		$transform.z
+	let coords_at_viewport = $derived(
+		get_coords_at_viewport(
+			position,
+			viewport_width,
+			image_size.width,
+			image_size.left,
+			$transform.x,
+			$transform.z
+		)
 	);
-	$: style = layer_images
-		? `clip-path: inset(0 0 0 ${coords_at_viewport * 100}%)`
-		: "";
+	let style = $derived(
+		layer_images ? `clip-path: inset(0 0 0 ${coords_at_viewport * 100}%)` : ""
+	);
 
 	function get_coords_at_viewport(
 		viewport_percent_x: number, // 0-1
@@ -80,15 +108,12 @@
 		return percent_position;
 	}
 
-	let img_width = 0;
-	let viewport_width = 0;
-
 	let zoomable_image: ZoomableImage | null = null;
 	let observer: ResizeObserver | null = null;
 
 	function init_image(
-		img: HTMLImageElement,
-		slider_wrap: HTMLDivElement
+		img: HTMLImageElement | undefined,
+		slider_wrap: HTMLDivElement | undefined
 	): void {
 		if (!img || !slider_wrap) return;
 		zoomable_image?.destroy();
@@ -115,7 +140,9 @@
 		observer.observe(img);
 	}
 
-	$: init_image(img, slider_wrap);
+	$effect(() => {
+		init_image(img, slider_wrap);
+	});
 
 	onMount(() => {
 		return () => {
@@ -126,11 +153,13 @@
 
 	let slider_wrap_parent: HTMLDivElement;
 
-	let image_size: { top: number; left: number; width: number; height: number } =
-		{ top: 0, left: 0, width: 0, height: 0 };
-
-	function handle_image_load(event: CustomEvent): void {
-		image_size = event.detail;
+	function handle_image_load(size: {
+		top: number;
+		left: number;
+		width: number;
+		height: number;
+	}): void {
+		image_size = size;
 	}
 </script>
 
@@ -151,7 +180,7 @@
 					{fullscreen}
 					onclick={(is_fullscreen) => {
 						fullscreen = is_fullscreen;
-						dispatch("fullscreen", is_fullscreen);
+						onfullscreen?.(is_fullscreen);
 					}}
 				/>
 			{/if}
@@ -170,7 +199,7 @@
 					label="Remove Image"
 					onclick={(event) => {
 						value = [null, null];
-						dispatch("clear");
+						onclear?.();
 						event.stopPropagation();
 					}}
 				/>
@@ -198,7 +227,7 @@
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
 					{fullscreen}
 					{max_height}
-					on:load={handle_image_load}
+					onload={handle_image_load}
 				/>
 				<ImageEl
 					variant="preview"
@@ -211,7 +240,7 @@
 					transform="translate({$transform.x}px, {$transform.y}px) scale({$transform.z})"
 					{fullscreen}
 					{max_height}
-					on:load={handle_image_load}
+					onload={handle_image_load}
 				/>
 			</Slider>
 		</div>
