@@ -30,6 +30,7 @@ with gr.Blocks() as demo:
 
     selected = gr.Textbox(label="Selected Tab")
     outer_selected = gr.Textbox(label="Outer Container Tab")
+    select_count = gr.Number(label="Tab Select Count", value=0)
     with gr.Row():
         hide_odd_btn = gr.Button("Hide Odd Tabs")
         show_all_btn = gr.Button("Show All Tabs")
@@ -46,9 +47,12 @@ with gr.Blocks() as demo:
     unlock_btn.click(lambda: gr.Tab(interactive=True), outputs=locked_tab)
     select_tab_num.submit(lambda x: gr.Tabs(selected=f"a{x}"), inputs=select_tab_num, outputs=tabs_1)
 
-    def get_selected_index(evt: gr.SelectData):
-        return evt.value
-    gr.on([tab.select for tab in tabset_1 + tabset_2], get_selected_index, outputs=selected)
+    def get_selected_index(count, evt: gr.SelectData):
+        # `trigger_mode="multiple"` so that a per-tab `select` firing more than
+        # once per change (a regression we want to catch) would bump the count
+        # past 1 instead of being suppressed by the default "once" mode.
+        return evt.value, count + 1
+    gr.on([tab.select for tab in tabset_1 + tabset_2], get_selected_index, inputs=select_count, outputs=[selected, select_count], trigger_mode="multiple")
 
     # The `select` event on a Tabs container should fire when its active tab changes.
     def get_outer_selected(evt: gr.SelectData):

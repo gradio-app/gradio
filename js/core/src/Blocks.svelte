@@ -147,31 +147,12 @@
 			const button_id = (data as { id: number }).id;
 			dispatch_to_target(button_id, "click", null);
 		} else {
-			// Tabs are a bit weird. The Tabs component dispatches a single 'select'
-			// event when the active tab changes, and that event should trigger
-			// listeners attached to BOTH the Tabs container itself
-			// (`tabs.select(...)`) and the specific TabItem that became active
-			// (`tab.select(...)`). The id we get from the dispatcher belongs to the
-			// Tabs container; the selected child's component id is carried in
-			// `data.component_id`.
-			if (event === "select" && id in app_tree.initial_tabs) {
-				// Forward to the selected child TabItem by its component id. We use
-				// `component_id` rather than `id` because `id` may be a user-supplied
-				// string (e.g. `gr.Tab("A", id="a")`) that does not match any
-				// component, whereas `component_id` always identifies the TabItem.
-				const tab_component_id = (data as { component_id?: number })
-					.component_id;
-				if (tab_component_id != null) {
-					dep_manager.dispatch({
-						type: "event",
-						event_name: event,
-						target_id: tab_component_id,
-						event_data: data
-					});
-				}
-			}
-			// Always dispatch against the original target id too, so listeners on
-			// the dispatching component itself fire (including `tabs.select(...)`).
+			// Dispatch against the original target id. For a Tabs `select` event
+			// this is the Tabs container itself, so `tabs.select(...)` fires when
+			// the active tab changes. The selected child TabItem dispatches its
+			// own `select` event (from `TabItem.svelte`, keyed by its component
+			// id), so `tab.select(...)` is handled there and must not be forwarded
+			// here too — doing so would fire the per-tab `select` twice.
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
