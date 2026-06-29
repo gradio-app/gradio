@@ -757,8 +757,10 @@
 		}
 		if (mode.kind === "connection") {
 			activeConnection = null;
-			const dx = Math.abs(mode.cursorCanvasX - mode.startCanvasX);
-			const dy = Math.abs(mode.cursorCanvasY - mode.startCanvasY);
+			const dx =
+				Math.abs(mode.cursorCanvasX - mode.startCanvasX) * viewport.zoom;
+			const dy =
+				Math.abs(mode.cursorCanvasY - mode.startCanvasY) * viewport.zoom;
 			if (dx < 4 && dy < 4) {
 				const direction = mode.reversed ? "input" : "output";
 				const isConnected = connectedPortsSet().has(
