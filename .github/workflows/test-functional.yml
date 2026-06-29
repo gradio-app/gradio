@@ -62,14 +62,25 @@ jobs:
           retention-days: 1
           include-hidden-files: true
   test:
-    name: "functional-test-SSR=${{ matrix.SSR }}"
+    # Browser legs keep their original check names (functional-test-SSR=true/
+    # false); reload runs as its own leg named functional-reload.
+    name: "${{ matrix.suite == 'reload' && 'functional-reload' || format('functional-test-SSR={0}', matrix.ssr) }}"
     permissions:
       contents: read
     runs-on: ubuntu-20.04-16core
     needs: [changes, build]
     strategy:
+      fail-fast: false
       matrix:
-        ssr: [true, false]
+        # Reload tests get their own leg instead of running after the browser
+        # suite inside each SSR leg: the ~99s serial reload run is taken off the
+        # browser legs' critical path. Reload doesn't depend on SSR mode (the
+        # reload step never set GRADIO_SSR_MODE), so it runs once here rather
+        # than redundantly in both legs.
+        include:
+          - { suite: browser, ssr: true }
+          - { suite: browser, ssr: false }
+          - { suite: reload }
     if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
@@ -115,6 +126,7 @@ jobs:
       - name: build essential packages
         run: pnpm --filter @gradio/utils --filter @gradio/theme package
       - name: run browser tests
+        if: matrix.suite == 'browser'
         env:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
           # 16-core runner + largely wait-bound tests → parallelize beyond the
@@ -125,19 +137,20 @@ jobs:
           pnpm test:browser
       - name: upload screenshots
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && matrix.suite == 'browser'
         with:
           name: playwright-screenshots-SSR-${{ matrix.ssr }}
           path: |
             ./test-results
       - name: run reload mode test
+        if: matrix.suite == 'reload'
         run: |
           . venv/bin/activate
           pnpm test:browser:reload
       - name: upload reload mode screenshots
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && matrix.suite == 'reload'
         with:
-          name: reload-mode-playwright-screenshots-SSR-${{ matrix.ssr }}
+          name: reload-mode-playwright-screenshots
           path: |
             ./test-results
