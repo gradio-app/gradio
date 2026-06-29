@@ -33,7 +33,7 @@
 	let fullscreen = $state(false);
 	let dragging = $state(false);
 	let active_source: sources = $state(null);
-	let upload_component: ImageUploader;
+	let value = $state(gradio.props.value ?? [null, null]);
 
 	let normalised_slider_position = $derived(
 		Math.max(0, Math.min(100, gradio.props.slider_position)) / 100
@@ -41,32 +41,16 @@
 
 	gradio.watch_for_change();
 
-	const handle_drag_event = (event: Event): void => {
-		const drag_event = event as DragEvent;
-		drag_event.preventDefault();
-		drag_event.stopPropagation();
-		if (drag_event.type === "dragenter" || drag_event.type === "dragover") {
-			dragging = true;
-		} else if (drag_event.type === "dragleave") {
-			dragging = false;
-		}
-	};
+	$effect(() => {
+		value = gradio.props.value ?? [null, null];
+	});
 
-	const handle_drop = (event: Event): void => {
-		if (gradio.shared.interactive) {
-			const drop_event = event as DragEvent;
-			drop_event.preventDefault();
-			drop_event.stopPropagation();
-			dragging = false;
-
-			if (upload_component) {
-				upload_component.loadFilesFromDrop(drop_event);
-			}
-		}
-	};
+	$effect(() => {
+		gradio.props.value = value;
+	});
 </script>
 
-{#if !gradio.shared.interactive || (gradio.props.value?.[1] && gradio.props.value?.[0])}
+{#if !gradio.shared.interactive || (value?.[1] && value?.[0])}
 	<Block
 		visible={gradio.shared.visible}
 		variant={"solid"}
@@ -88,19 +72,16 @@
 			{...gradio.shared.loading_status}
 		/>
 		<StaticImage
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
-			on:share={({ detail }) => gradio.dispatch("share", detail)}
-			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			on:clear={() => {
+			onclear={() => {
 				gradio.dispatch("clear");
 				gradio.dispatch("input");
 			}}
-			on:fullscreen={({ detail }) => {
+			onfullscreen={(detail) => {
 				fullscreen = detail;
 			}}
 			{fullscreen}
 			interactive={gradio.shared.interactive}
-			bind:value={gradio.props.value}
+			bind:value
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			show_download_button={gradio.props.buttons.some(
@@ -122,7 +103,7 @@
 {:else}
 	<Block
 		visible={gradio.shared.visible}
-		variant={gradio.props.value === null ? "dashed" : "solid"}
+		variant={value?.[0] || value?.[1] ? "solid" : "dashed"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		elem_id={gradio.shared.elem_id}
@@ -133,10 +114,6 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
-		on:dragenter={handle_drag_event}
-		on:dragleave={handle_drag_event}
-		on:dragover={handle_drag_event}
-		on:drop={handle_drop}
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -148,27 +125,17 @@
 
 		<ImageUploader
 			bind:upload_promise
-			bind:this={upload_component}
-			bind:value={gradio.props.value}
+			bind:value
 			bind:dragging
 			root={gradio.shared.root}
-			on:edit={() => gradio.dispatch("edit")}
-			on:clear={() => {
+			onclear={() => {
 				gradio.dispatch("clear");
 				gradio.dispatch("input");
 			}}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:upload={() => {
+			ondrag={(detail) => (dragging = detail)}
+			onupload={() => {
 				gradio.dispatch("upload");
 				gradio.dispatch("input");
-			}}
-			on:error={({ detail }) => {
-				if (gradio.shared.loading_status)
-					gradio.shared.loading_status.status = "error";
-				gradio.dispatch("error", detail);
-			}}
-			on:close_stream={() => {
-				gradio.dispatch("close_stream", "stream");
 			}}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}

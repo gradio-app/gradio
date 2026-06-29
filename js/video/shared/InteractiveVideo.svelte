@@ -157,10 +157,10 @@
 					webcam_constraints={webcam_options.constraints}
 					{include_audio}
 					mode="video"
-					on:error={({ detail }) => onerror?.(detail)}
-					on:capture={handle_capture}
-					on:start_recording={() => onstart_recording?.()}
-					on:stop_recording={() => onstop_recording?.()}
+					onerror={(detail) => onerror?.(detail)}
+					oncapture={(detail) => handle_capture({ detail } as CustomEvent)}
+					onstart_recording={() => onstart_recording?.()}
+					onstop_recording={() => onstop_recording?.()}
 					{i18n}
 					{upload}
 					stream_every={1}
