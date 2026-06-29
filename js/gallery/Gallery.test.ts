@@ -376,6 +376,60 @@ describe("Props: buttons", () => {
 		expect(getByRole("button", { name: "common.download" })).toBeVisible();
 	});
 
+	test("buttons=['download_all'] shows download all button in preview", async () => {
+		const { getByRole } = await render(Gallery, {
+			...preview_props,
+			buttons: ["download_all"]
+		});
+
+		expect(getByRole("button", { name: "common.download_all" })).toBeVisible();
+	});
+
+	test("buttons=['download_all'] shows download all button in grid view", async () => {
+		const { getByRole } = await render(Gallery, {
+			...default_props,
+			value: three_images,
+			buttons: ["download_all"]
+		});
+
+		expect(getByRole("button", { name: "common.download_all" })).toBeVisible();
+	});
+
+	test("buttons=['download_all'] downloads every gallery file", async () => {
+		const fetch = vi.fn(async () => new Response(new Blob(["file"])));
+		const clicked_names: string[] = [];
+		const click = vi
+			.spyOn(HTMLAnchorElement.prototype, "click")
+			.mockImplementation(function (this: HTMLAnchorElement) {
+				clicked_names.push(this.download);
+			});
+
+		try {
+			const { getByRole } = await render(Gallery, {
+				...preview_props,
+				value: [img("cat"), vid("clip"), img("dog")],
+				buttons: ["download_all"],
+				client: { fetch }
+			});
+
+			await fireEvent.click(
+				getByRole("button", { name: "common.download_all" })
+			);
+
+			await waitFor(() => {
+				expect(fetch).toHaveBeenCalledTimes(3);
+				expect(click).toHaveBeenCalledTimes(3);
+			});
+
+			expect(fetch).toHaveBeenNthCalledWith(1, "https://example.com/cat.png");
+			expect(fetch).toHaveBeenNthCalledWith(2, "https://example.com/clip.mp4");
+			expect(fetch).toHaveBeenNthCalledWith(3, "https://example.com/dog.png");
+			expect(clicked_names).toEqual(["cat.png", "clip.mp4", "dog.png"]);
+		} finally {
+			vi.restoreAllMocks();
+		}
+	});
+
 	test("buttons=['fullscreen'] shows fullscreen button in preview", async () => {
 		const { getByLabelText } = await render(Gallery, {
 			...preview_props,
@@ -394,6 +448,9 @@ describe("Props: buttons", () => {
 		expect(getByRole("button", { name: "Close" })).toBeVisible();
 		expect(
 			queryByRole("button", { name: "common.download" })
+		).not.toBeInTheDocument();
+		expect(
+			queryByRole("button", { name: "common.download_all" })
 		).not.toBeInTheDocument();
 		expect(queryByLabelText("Fullscreen")).not.toBeInTheDocument();
 	});

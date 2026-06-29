@@ -296,6 +296,9 @@
 			show_download_button={gradio.props.buttons.some(
 				(btn) => typeof btn === "string" && btn === "download"
 			)}
+			show_download_all_button={gradio.props.buttons.some(
+				(btn) => typeof btn === "string" && btn === "download_all"
+			)}
 			fit_columns={gradio.props.fit_columns}
 			i18n={gradio.i18n}
 			_fetch={(...args) => gradio.shared.client.fetch(...args)}

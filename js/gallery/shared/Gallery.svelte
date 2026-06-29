@@ -45,6 +45,7 @@
 		object_fit = "cover",
 		show_share_button = false,
 		show_download_button = false,
+		show_download_all_button = false,
 		i18n,
 		selected_index = $bindable(),
 		interactive,
@@ -83,6 +84,7 @@
 		object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
 		show_share_button: boolean;
 		show_download_button: boolean;
+		show_download_all_button: boolean;
 		i18n: I18nFormatter;
 		selected_index: number | null;
 		interactive: boolean;
@@ -307,6 +309,22 @@
 		URL.revokeObjectURL(url);
 	}
 
+	async function download_all(media: GalleryData[]): Promise<void> {
+		for (const item of media) {
+			const file = "image" in item ? item.image : item.video;
+			const name = file.orig_name ?? ("image" in item ? "image" : "video");
+			if (file.url) {
+				await download(file.url, name);
+			}
+		}
+	}
+
+	function handle_download_all(): void {
+		if (resolved_value) {
+			download_all(resolved_value);
+		}
+	}
+
 	let selected_media = $derived.by(() =>
 		selected_index != null && resolved_value != null
 			? resolved_value[selected_index]
@@ -403,6 +421,14 @@
 									download(url, orig_name ?? "image");
 								}
 							}}
+						/>
+					{/if}
+
+					{#if show_download_all_button}
+						<IconButton
+							Icon={Download}
+							label={i18n("common.download_all")}
+							onclick={handle_download_all}
 						/>
 					{/if}
 
@@ -550,6 +576,13 @@
 						onclear();
 					}}
 				>
+					{#if show_download_all_button}
+						<IconButton
+							Icon={Download}
+							label={i18n("common.download_all")}
+							onclick={handle_download_all}
+						/>
+					{/if}
 					{#if upload && stream_handler}
 						<IconButton
 							Icon={UploadIcon}
@@ -598,6 +631,14 @@
 						/>
 					{/if}
 				</ModifyUpload>
+			{:else if show_download_all_button && !(selected_media && allow_preview)}
+				<IconButtonWrapper>
+					<IconButton
+						Icon={Download}
+						label={i18n("common.download_all")}
+						onclick={handle_download_all}
+					/>
+				</IconButtonWrapper>
 			{/if}
 			<div
 				class="grid-container"
