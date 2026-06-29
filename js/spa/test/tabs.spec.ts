@@ -43,10 +43,15 @@ test("per-tab select fires exactly once per tab change", async ({ page }) => {
 
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 	await expect(selected).toHaveValue("Tab 2");
+	// Settle before baselining: the count is a separate listener, and a
+	// double-dispatch would briefly show `before + 1` before settling on
+	// `before + 2`, so we must read only once the value is stable.
+	await page.waitForTimeout(1000);
 	const before = Number(await count.inputValue());
 
 	await page.getByRole("tab", { name: "Tab 5" }).click();
 	await expect(selected).toHaveValue("Tab 5");
+	await page.waitForTimeout(1000);
 	await expect(count).toHaveValue(String(before + 1));
 });
 

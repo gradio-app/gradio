@@ -47,12 +47,20 @@ with gr.Blocks() as demo:
     unlock_btn.click(lambda: gr.Tab(interactive=True), outputs=locked_tab)
     select_tab_num.submit(lambda x: gr.Tabs(selected=f"a{x}"), inputs=select_tab_num, outputs=tabs_1)
 
-    def get_selected_index(count, evt: gr.SelectData):
-        # `trigger_mode="multiple"` so that a per-tab `select` firing more than
-        # once per change (a regression we want to catch) would bump the count
-        # past 1 instead of being suppressed by the default "once" mode.
-        return evt.value, count + 1
-    gr.on([tab.select for tab in tabset_1 + tabset_2], get_selected_index, inputs=select_count, outputs=[selected, select_count], trigger_mode="multiple")
+    def get_selected_index(evt: gr.SelectData):
+        return evt.value
+    gr.on([tab.select for tab in tabset_1 + tabset_2], get_selected_index, outputs=selected)
+
+    # Count how many times the per-tab `select` fires. Uses a server-side
+    # accumulator (not a read-modify-write of the component) so concurrent
+    # dispatches under `trigger_mode="multiple"` can't clobber each other, and
+    # `trigger_mode="multiple"` so a double-dispatch regression isn't masked by
+    # the default "once" mode.
+    tab_select_count = {"n": 0}
+    def count_tab_select():
+        tab_select_count["n"] += 1
+        return tab_select_count["n"]
+    gr.on([tab.select for tab in tabset_1 + tabset_2], count_tab_select, outputs=select_count, trigger_mode="multiple")
 
     # The `select` event on a Tabs container should fire when its active tab changes.
     def get_outer_selected(evt: gr.SelectData):
