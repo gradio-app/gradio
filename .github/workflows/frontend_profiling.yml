@@ -60,62 +60,30 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Checkout latest release
-        if: steps.changes.outputs.should_run == 'true'
-        run: git checkout ${{ steps.latest_tag.outputs.tag }}
-
-      - name: Create venv and install Python deps (base)
+      # Install the benchmark "base" (latest release) straight from PyPI instead
+      # of checking out the tag and rebuilding it — the published wheel already
+      # ships the built frontend (gradio/templates), so this drops the ~4min base
+      # `pnpm build` on every run. We stay on the PR checkout the whole job: the
+      # benchmark spec + demo are the PR's versions for both runs, and the demo is
+      # launched as `python <runner>.py` (the runner/demo dir is on sys.path, not
+      # the cwd), so `import gradio` resolves to the installed package — the wheel
+      # here, the editable PR build later. Base and PR use separate venvs so the
+      # PR's editable install can't shadow the base wheel.
+      - name: Install base gradio from the published release (base)
         if: steps.changes.outputs.should_run == 'true'
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          uv venv --allow-existing venv --python=3.10
-          . venv/bin/activate
-          uv pip install -e client/python
-          uv pip install -e ".[oauth,mcp]"
+          uv venv --python=3.10 venv_base
+          . venv_base/bin/activate
+          TAG="${{ steps.latest_tag.outputs.tag }}"
+          uv pip install "gradio==${TAG#gradio@}"
 
-      # The benchmark "base" is the latest release tag — identical across every
-      # PR until the next release — yet it was rebuilt from scratch on every run
-      # (~4min). Cache the built frontend keyed on the tag and skip `pnpm build`
-      # on subsequent runs. We use restore + explicit save (rather than plain
-      # actions/cache) because the PR build later overwrites gradio/templates;
-      # auto-save at post-job would cache PR output under the base-tag key.
-      - name: Restore base frontend build (keyed on release tag)
+      - name: Install frontend test deps (base)
         if: steps.changes.outputs.should_run == 'true'
-        id: base_build_cache
-        uses: actions/cache/restore@v4
-        with:
-          path: gradio/templates
-          key: frontend-profiling-base-${{ runner.os }}-${{ steps.latest_tag.outputs.tag }}
-
-      - name: Install frontend deps (base)
-        if: steps.changes.outputs.should_run == 'true'
+        # node_modules is only needed to run the Playwright benchmark (no build).
         run: |
           pnpm i --frozen-lockfile --ignore-scripts
           pnpm add -Dw --ignore-scripts playwright@$PLAYWRIGHT_VERSION @playwright/test@$PLAYWRIGHT_VERSION
-          pnpm css
-
-      - name: Build frontend (base)
-        if: steps.changes.outputs.should_run == 'true' && steps.base_build_cache.outputs.cache-hit != 'true'
-        run: pnpm build
-
-      - name: Save base frontend build (keyed on release tag)
-        # Save right after the base build, before the PR build overwrites
-        # gradio/templates. Only on a miss (cache/save no-ops if key exists).
-        if: steps.changes.outputs.should_run == 'true' && steps.base_build_cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: gradio/templates
-          key: frontend-profiling-base-${{ runner.os }}-${{ steps.latest_tag.outputs.tag }}
-
-      - name: Pin Playwright with browser-extraction fix (base)
-        if: steps.changes.outputs.should_run == 'true'
-        # The latest release (the benchmark base) pins Playwright ^1.56, whose
-        # browser download hangs during extraction on current CI runners
-        # (microsoft/playwright#40724, fixed in 1.60 — the version this repo
-        # already uses everywhere else). Pin the base env to the fixed version so
-        # `playwright install` below succeeds; this also runs the base benchmark
-        # on the same Playwright as the PR side for an apples-to-apples harness.
-        run: pnpm add -w playwright@1.60.0 @playwright/test@1.60.0
 
       - name: Cache Playwright Browsers
         if: steps.changes.outputs.should_run == 'true'
@@ -131,23 +99,13 @@ jobs:
         timeout-minutes: 3
         run: pnpm exec playwright install chromium --only-shell
 
-      - name: Checkout benchmark spec and demo from PR
-        if: steps.changes.outputs.should_run == 'true'
-        run: git checkout ${{ github.event.pull_request.head.sha }} -- js/spa/test/big_complex_demo.spec.ts demo/big_complex_demo
-
       - name: Run benchmark (base)
         if: steps.changes.outputs.should_run == 'true'
         run: |
-          . venv/bin/activate
+          . venv_base/bin/activate
           PERF_RESULTS_FILE=/tmp/bench_base.json pnpm exec playwright test \
             --config .config/playwright.config.js \
             js/spa/test/big_complex_demo.spec.ts
-
-      - name: Checkout PR branch
-        if: steps.changes.outputs.should_run == 'true'
-        run: |
-          git clean -fd
-          git checkout -f ${{ github.event.pull_request.head.sha }}
 
       - name: Install and build PR
         if: steps.changes.outputs.should_run == 'true'
