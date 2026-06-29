@@ -73,13 +73,39 @@ jobs:
           uv pip install -e client/python
           uv pip install -e ".[oauth,mcp]"
 
-      - name: Install frontend deps and build (base)
+      # The benchmark "base" is the latest release tag — identical across every
+      # PR until the next release — yet it was rebuilt from scratch on every run
+      # (~4min). Cache the built frontend keyed on the tag and skip `pnpm build`
+      # on subsequent runs. We use restore + explicit save (rather than plain
+      # actions/cache) because the PR build later overwrites gradio/templates;
+      # auto-save at post-job would cache PR output under the base-tag key.
+      - name: Restore base frontend build (keyed on release tag)
+        if: steps.changes.outputs.should_run == 'true'
+        id: base_build_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: gradio/templates
+          key: frontend-profiling-base-${{ runner.os }}-${{ steps.latest_tag.outputs.tag }}
+
+      - name: Install frontend deps (base)
         if: steps.changes.outputs.should_run == 'true'
         run: |
           pnpm i --frozen-lockfile --ignore-scripts
           pnpm add -Dw --ignore-scripts playwright@$PLAYWRIGHT_VERSION @playwright/test@$PLAYWRIGHT_VERSION
           pnpm css
-          pnpm build
+
+      - name: Build frontend (base)
+        if: steps.changes.outputs.should_run == 'true' && steps.base_build_cache.outputs.cache-hit != 'true'
+        run: pnpm build
+
+      - name: Save base frontend build (keyed on release tag)
+        # Save right after the base build, before the PR build overwrites
+        # gradio/templates. Only on a miss (cache/save no-ops if key exists).
+        if: steps.changes.outputs.should_run == 'true' && steps.base_build_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: gradio/templates
+          key: frontend-profiling-base-${{ runner.os }}-${{ steps.latest_tag.outputs.tag }}
 
       - name: Pin Playwright with browser-extraction fix (base)
         if: steps.changes.outputs.should_run == 'true'
