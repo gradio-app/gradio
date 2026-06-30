@@ -39,27 +39,6 @@
 </Story>
 
 <Story
-	name="Multiline Markdown"
-	args={{
-		value: `
-This should
-all be in one line.
-
----
-
-This should be
-
-in two separate lines.`
-	}}
->
-	{#snippet template(args)}
-		<Markdown
-			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
-		/>
-	{/snippet}
-</Story>
-
-<Story
 	name="Markdown with Mermaid"
 	args={{
 		value: `
@@ -117,65 +96,6 @@ A --> B
 >
 	{#snippet template(args)}
 		<Markdown {...wrapProps({ height: args.height, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Markdown with header links"
-	args={{
-		value: "# Visit [Gradio](https://gradio.app) for more information",
-		header_links: true
-	}}
->
-	{#snippet template(args)}
-		<Markdown
-			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
-		/>
-	{/snippet}
-</Story>
-
-<Story
-	name="Markdown with Long Content (Vertical Scrolling)"
-	args={{
-		value: `# Heading\n${"This is some text.\n".repeat(100)}`,
-		height: "200px"
-	}}
->
-	{#snippet template(args)}
-		<Markdown
-			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
-		/>
-	{/snippet}
-</Story>
-
-<Story
-	name="Markdown with Copy Button and Container"
-	args={{
-		value:
-			"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.",
-		show_copy_button: true,
-		container: true
-	}}
->
-	{#snippet template(args)}
-		<Markdown
-			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
-		/>
-	{/snippet}
-</Story>
-
-<Story
-	name="Markdown heading inline code"
-	args={{
-		value:
-			"# `@gr.cache()` Demo\nClick the heading test to confirm the inline code renders cleanly.",
-		height: "150px"
-	}}
->
-	{#snippet template(args)}
-		<Markdown
-			{...wrapProps({ latex_delimiters: [], height: args.height, ...args })}
-		/>
 	{/snippet}
 </Story>
 

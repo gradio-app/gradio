@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { tick, type Snippet } from "svelte";
 	import { BlockLabel, IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import { Clear, Image as ImageIcon } from "@gradio/icons";
 	import { FullscreenButton } from "@gradio/atoms";
@@ -17,36 +17,80 @@
 	import Image from "./Image.svelte";
 	import type { Base64File, WebcamOptions } from "./types";
 
-	export let value: null | FileData | Base64File = null;
-	export let label: string | undefined = undefined;
-	export let show_label: boolean;
-
 	type source_type = "upload" | "webcam" | "clipboard" | "microphone" | null;
 
-	export let sources: source_type[] = ["upload", "clipboard", "webcam"];
-	export let streaming = false;
-	export let pending = false;
-	export let webcam_options: WebcamOptions;
-	export let selectable = false;
-	export let root: string;
-	export let i18n: I18nFormatter;
-	export let max_file_size: number | null = null;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let stream_every: number;
-	export let time_limit: number;
-	export let show_fullscreen_button = true;
-	export let stream_state: "open" | "waiting" | "closed" = "closed";
-	export let upload_promise: Promise<any> | null = null;
-	export let onerror: ((error: string) => void) | undefined = undefined;
+	let {
+		value = $bindable<null | FileData | Base64File>(null),
+		label = undefined,
+		show_label,
+		sources = ["upload", "clipboard", "webcam"],
+		streaming = false,
+		pending = $bindable(false),
+		webcam_options,
+		selectable = false,
+		root,
+		i18n,
+		max_file_size = null,
+		upload,
+		stream_handler,
+		stream_every,
+		time_limit,
+		show_fullscreen_button = true,
+		stream_state = "closed",
+		upload_promise = $bindable<Promise<any> | null>(null),
+		onerror,
+		uploading = $bindable(false),
+		active_source = $bindable<source_type>(null),
+		fullscreen = $bindable(false),
+		dragging = $bindable(false),
+		onchange,
+		onstream,
+		onclear,
+		ondrag,
+		onupload,
+		onselect,
+		onfullscreen,
+		onclose_stream,
+		children
+	}: {
+		value?: null | FileData | Base64File;
+		label?: string;
+		show_label: boolean;
+		sources?: source_type[];
+		streaming?: boolean;
+		pending?: boolean;
+		webcam_options: WebcamOptions;
+		selectable?: boolean;
+		root: string;
+		i18n: I18nFormatter;
+		max_file_size?: number | null;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		stream_every: number;
+		time_limit: number;
+		show_fullscreen_button?: boolean;
+		stream_state?: "open" | "waiting" | "closed";
+		upload_promise?: Promise<any> | null;
+		onerror?: (error: string) => void;
+		uploading?: boolean;
+		active_source?: source_type;
+		fullscreen?: boolean;
+		dragging?: boolean;
+		onchange?: (value?: null | FileData | Base64File) => void;
+		onstream?: (value: ValueData) => void;
+		onclear?: () => void;
+		ondrag?: (dragging: boolean) => void;
+		onupload?: () => void;
+		onselect?: (value: SelectData) => void;
+		onfullscreen?: (fullscreen: boolean) => void;
+		onclose_stream?: () => void;
+		children?: Snippet;
+	} = $props();
 
 	let upload_input: Upload;
-	export let uploading = false;
-	export let active_source: source_type = null;
-	export let fullscreen = false;
 
-	let files: FileData[] = [];
-	let upload_id: string;
+	let files = $state<FileData[]>([]);
+	let upload_id = $state("");
 
 	async function handle_upload(detail: FileData): Promise<void> {
 		if (!streaming) {
@@ -62,14 +106,14 @@
 			}
 
 			await tick();
-			dispatch("upload");
+			onupload?.();
 		}
 	}
 
 	function handle_clear(): void {
 		value = null;
-		dispatch("clear");
-		dispatch("change", null);
+		onclear?.();
+		onchange?.(null);
 	}
 
 	function handle_remove_image_click(event: MouseEvent): void {
@@ -82,7 +126,7 @@
 		event: "change" | "stream" | "upload"
 	): Promise<void> {
 		if (event === "stream") {
-			dispatch("stream", {
+			onstream?.({
 				value: { url: img_blob } as Base64File,
 				is_value_data: true
 			});
@@ -105,39 +149,31 @@
 		if (event === "change" || event === "upload") {
 			value = f?.[0] || null;
 			await tick();
-			dispatch("change");
+			onchange?.();
 		}
 		pending = false;
 	}
 
-	$: active_streaming = streaming && active_source === "webcam";
-	$: if (uploading && !active_streaming) value = null;
-
-	const dispatch = createEventDispatcher<{
-		change?: never;
-		stream: ValueData;
-		clear?: never;
-		drag: boolean;
-		upload?: never;
-		select: SelectData;
-		end_stream: never;
-		fullscreen: boolean;
-	}>();
-
-	export let dragging = false;
-
-	$: dispatch("drag", dragging);
+	let active_streaming = $derived(streaming && active_source === "webcam");
+	$effect(() => {
+		if (uploading && !active_streaming) value = null;
+	});
+	$effect(() => {
+		ondrag?.(dragging);
+	});
 
 	function handle_click(evt: MouseEvent): void {
 		let coordinates = get_coordinates_of_clicked_image(evt);
 		if (coordinates) {
-			dispatch("select", { index: coordinates, value: null });
+			onselect?.({ index: coordinates, value: null });
 		}
 	}
 
-	$: if (!active_source && sources) {
-		active_source = sources[0];
-	}
+	$effect(() => {
+		if (!active_source && sources) {
+			active_source = sources[0];
+		}
+	});
 
 	async function handle_select_source(
 		source: (typeof sources)[number]
@@ -189,7 +225,7 @@
 					{fullscreen}
 					onclick={(is_fullscreen) => {
 						fullscreen = is_fullscreen;
-						dispatch("fullscreen", is_fullscreen);
+						onfullscreen?.(is_fullscreen);
 					}}
 				/>
 			{/if}
@@ -205,8 +241,8 @@
 		class="upload-container"
 		class:reduced-height={sources.length > 1}
 		style:width={value ? "auto" : "100%"}
-		on:dragover={on_drag_over}
-		on:drop={on_drop}
+		ondragover={on_drag_over}
+		ondrop={on_drop}
 	>
 		<Upload
 			bind:upload_promise
@@ -225,7 +261,7 @@
 			aria_label={i18n("image.drop_to_upload")}
 		>
 			{#if value === null}
-				<slot />
+				{#if children}{@render children()}{/if}
 			{/if}
 		</Upload>
 		{#if active_source === "webcam" && !streaming && pending}
@@ -234,12 +270,10 @@
 			<Webcam
 				{root}
 				{value}
-				on:capture={(e) => handle_save(e.detail, "change")}
-				on:stream={(e) => handle_save(e.detail, "stream")}
-				on:error
-				on:drag
-				on:upload={(e) => handle_save(e.detail, "upload")}
-				on:close_stream
+				oncapture={(detail) => handle_save(detail, "change")}
+				onstream={(detail) => handle_save(detail, "stream")}
+				{onerror}
+				{onclose_stream}
 				{stream_state}
 				mirror_webcam={webcam_options.mirror}
 				{stream_every}
@@ -254,7 +288,7 @@
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
-			<div class:selectable class="image-frame" on:click={handle_click}>
+			<div class:selectable class="image-frame" onclick={handle_click}>
 				<Image src={value.url} restProps={{ alt: value.alt_text }} />
 			</div>
 		{/if}

@@ -7,6 +7,7 @@
 	import type { BoundFnTemplate } from "./WorkflowBottomBar.svelte";
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
+	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -14,6 +15,7 @@
 	import {
 		MODALITIES,
 		DATASET_MODALITY,
+		ALL_MODALITY,
 		portMeta,
 		modalityForPort
 	} from "./workflow-modalities";
@@ -48,6 +50,7 @@
 	import { stream_text_generation } from "./inference-stream";
 	import {
 		findFreeSpot as findFreeSpotImpl,
+		countSubgraphs,
 		topoSort,
 		resolveCurrentInputs as resolveCurrentInputsImpl,
 		computeStaleNodes,
@@ -273,6 +276,7 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	let showApiPanel = $state(false);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -336,6 +340,9 @@
 	const nodeCount = $derived(legacyView.nodes.length);
 	const hasTransforms = $derived($workflow.operators.length > 0);
 	const edgeCount = $derived($workflow.edges.length);
+	const subgraphCount = $derived(
+		countSubgraphs(legacyView.nodes, $workflow.edges)
+	);
 
 	const connectedPortsSet = $derived(() => {
 		const set = new Set<string>();
@@ -352,7 +359,6 @@
 		nodeId?: string;
 		anchorX?: number;
 		anchorY?: number;
-		initialSource?: "spaces" | "models" | "datasets";
 		initialSubtab?: string;
 	}
 	let activePicker: ActivePicker | null = $state(null);
@@ -1440,15 +1446,17 @@
 			callModelWithToken,
 			fetchDatasetWithToken,
 			callFnWithToken,
-			(modelId, prompt, provider, signal, onChunk) =>
-				stream_text_generation({
-					modelId,
-					prompt,
-					provider,
-					hfToken: auth.token || undefined,
-					signal: signal ?? undefined,
-					onChunk
-				})
+			auth.token
+				? (modelId, prompt, provider, signal, onChunk) =>
+						stream_text_generation({
+							modelId,
+							prompt,
+							provider,
+							hfToken: auth.token,
+							signal: signal ?? undefined,
+							onChunk
+						})
+				: undefined
 		);
 
 		running = false;
@@ -1730,24 +1738,21 @@
 		if (node.kind !== "transform") return;
 
 		let modality: ModalityConfig;
-		let initialSource: "spaces" | "models" | "datasets" = "spaces";
 		if (node.dataset_id) {
 			modality = DATASET_MODALITY;
-			initialSource = "datasets";
 		} else {
 			const cat = node.pipeline_tag
 				? getModalityForPipelineTag(node.pipeline_tag)
 				: "image";
 			modality = MODALITIES.find((m) => m.category === cat) ?? MODALITIES[0];
-			initialSource = node.model_id ? "models" : "spaces";
 		}
 
 		let anchorX: number | undefined;
 		let anchorY: number | undefined;
 		if (canvasEl) {
 			const r = canvasEl.getBoundingClientRect();
-			const panelWidth = 536;
-			const panelHeight = 620;
+			const panelWidth = 940;
+			const panelHeight = 720;
 			const nodeScreenRight =
 				node.x * viewport.zoom + viewport.x + node.width * viewport.zoom;
 			anchorX = nodeScreenRight + 12;
@@ -1772,8 +1777,7 @@
 			modality,
 			nodeId,
 			anchorX,
-			anchorY,
-			initialSource
+			anchorY
 		};
 	}
 
@@ -2017,8 +2021,17 @@
 				</button>
 			{/if}
 			<span class="toolbar-stat"
-				>{nodeCount} nodes &middot; {edgeCount} edges</span
+				>{subgraphCount}
+				{subgraphCount === 1 ? "subgraph" : "subgraphs"}</span
 			>
+			<button
+				class="tool-btn api-btn"
+				onclick={() => (showApiPanel = true)}
+				title="View the API for this workflow"
+			>
+				<span class="api-btn-glyph">&lt;/&gt;</span>
+				View API
+			</button>
 			{#if saveIndicator}
 				<span
 					class="save-indicator"
@@ -2377,7 +2390,9 @@
 			{running}
 			{hasTransforms}
 			{boundFns}
+			{server}
 			{readOnly}
+			activeModalityKey={activePicker?.modality.key ?? null}
 			onopenpicker={openPicker}
 			onaddinput={addInputNode}
 			onaddfn={addFnNode}
@@ -2396,7 +2411,6 @@
 					mode={activePicker.mode}
 					modality={activePicker.modality}
 					nodeId={activePicker.nodeId}
-					initialSource={activePicker.initialSource}
 					initialSubtab={activePicker.initialSubtab}
 					{server}
 					anchorX={activePicker.anchorX}
@@ -2405,6 +2419,10 @@
 					onupdate={handlePickerUpdate}
 					onclose={() => {
 						activePicker = null;
+					}}
+					oncleared={() => {
+						if (activePicker)
+							activePicker = { ...activePicker, modality: ALL_MODALITY };
 					}}
 					onerror={(msg) => showToast(msg, 5000, "error")}
 				/>
@@ -2480,6 +2498,14 @@
 				</div>
 			</div>
 		</div>
+	{/if}
+
+	{#if showApiPanel}
+		<WorkflowApiPanel
+			{server}
+			workflowName={$workflow.name}
+			onClose={() => (showApiPanel = false)}
+		/>
 	{/if}
 </div>
 

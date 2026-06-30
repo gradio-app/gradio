@@ -1,13 +1,10 @@
 <script lang="ts">
 	import { Webcam } from "@gradio/icons";
-	import { createEventDispatcher } from "svelte";
 
-	const dispatch = createEventDispatcher<{
-		click: undefined;
-	}>();
+	let { onclick }: { onclick?: () => void } = $props();
 </script>
 
-<button style:height="100%" on:click={() => dispatch("click")}>
+<button style:height="100%" {onclick}>
 	<div class="wrap">
 		<span class="icon-wrap">
 			<Webcam />

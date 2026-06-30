@@ -28,6 +28,34 @@ export function findFreeSpot(
 }
 
 /**
+ * Count the number of independent subgraphs (weakly connected components)
+ * in the workflow — i.e. how many disconnected pipelines exist. Edges are
+ * treated as undirected; an unconnected node counts as its own subgraph.
+ * This is what the toolbar surfaces instead of raw node/edge counts: it
+ * maps to the number of distinct things the workflow produces.
+ */
+export function countSubgraphs(nodes: WFNode[], edges: WFEdge[]): number {
+	const parent = new Map<string, string>(nodes.map((n) => [n.id, n.id]));
+	const find = (id: string): string => {
+		let root = id;
+		while (parent.get(root) !== root) root = parent.get(root)!;
+		while (parent.get(id) !== root) {
+			const next = parent.get(id)!;
+			parent.set(id, root);
+			id = next;
+		}
+		return root;
+	};
+	for (const e of edges) {
+		if (!parent.has(e.from_node_id) || !parent.has(e.to_node_id)) continue;
+		parent.set(find(e.from_node_id), find(e.to_node_id));
+	}
+	const roots = new Set<string>();
+	for (const n of nodes) roots.add(find(n.id));
+	return roots.size;
+}
+
+/**
  * Topological sort: returns a sorted list of nodes such that every edge
  * goes from an earlier node to a later one. Standard Kahn's algorithm.
  */

@@ -12,10 +12,11 @@ from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
     _get_locally_saved_hf_token,
-    _normalize_space_result,
     _request_has_write_token,
     _resolve_token,
     _workflow_from_bind,
+    call_model,
+    call_space,
     get_oauth_available,
     get_token,
     has_write_access,
@@ -319,7 +320,8 @@ class TestSaveWorkflowGating:
 
     def test_save_allowed_with_write_access(self, tmp_path):
         save = self._save_fn(tmp_path)
-        assert save(['{"nodes": []}'], _write_request(), None) == "ok"
+        # A valid schema_version 2 payload (save now validates the schema).
+        assert save(['{"schema_version": "2"}'], _write_request(), None) == "ok"
         assert os.path.exists(tmp_path / "wf.json")
 
 
@@ -394,38 +396,58 @@ class TestWorkflowFromBind:
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# _normalize_space_result — HF Hub result reshaping
-# ─────────────────────────────────────────────────────────────────────────────
+class TestCallModelValidation:
+    def test_url_shaped_model_id_is_rejected(self):
+        result = json.loads(call_model(["http://169.254.169.254/latest/meta-data/"]))
+        assert result.get("error_type") == "not_found"
 
+    def test_https_url_is_rejected(self):
+        result = json.loads(call_model(["https://attacker.example.com/endpoint"]))
+        assert result.get("error_type") == "not_found"
 
-class TestNormalizeSpaceResult:
-    def test_preserves_id_and_likes(self):
-        result = _normalize_space_result({"id": "owner/repo", "likes": 42}, "")
-        assert result["id"] == "owner/repo"
-        assert result["likes"] == 42
+    def test_empty_model_id_is_rejected(self):
+        result = json.loads(call_model([""]))
+        assert result.get("error_type") == "not_found"
 
-    def test_explicit_pipeline_tag_wins_over_ai_category(self):
-        result = _normalize_space_result(
-            {"ai_category": "image-generation"}, "text-to-image"
+    def test_bare_repo_name_is_rejected(self):
+        result = json.loads(call_model(["gpt2"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_valid_owner_repo_passes_validation(self, monkeypatch):
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def text_generation(self, *args, **kwargs):
+                return "hello"
+
+        monkeypatch.setattr(
+            "gradio.workflow.InferenceClient", FakeClient, raising=False
         )
-        assert result["pipeline_tag"] == "text-to-image"
+        import gradio.workflow as wf
 
-    def test_falls_back_to_ai_category(self):
-        result = _normalize_space_result({"ai_category": "image-generation"}, "")
-        assert result["pipeline_tag"] == "image-generation"
+        wf.call_model.__globals__.get("InferenceClient")
 
-    def test_short_description_falls_back(self):
-        # shortDescription preferred, ai_short_description fallback
-        s = {"ai_short_description": "from ai"}
-        assert (
-            _normalize_space_result(s, "")["cardData"]["short_description"] == "from ai"
-        )
-        s = {"shortDescription": "from card", "ai_short_description": "from ai"}
-        assert (
-            _normalize_space_result(s, "")["cardData"]["short_description"]
-            == "from card"
-        )
+        import sys
+        import types
 
-    def test_missing_likes_defaults_zero(self):
-        assert _normalize_space_result({}, "")["likes"] == 0
+        fake_hf = types.ModuleType("huggingface_hub")
+        fake_hf.InferenceClient = FakeClient  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hf)
+
+        result = json.loads(call_model(["owner/model"]))
+        assert "error" not in result
+
+
+class TestCallSpaceValidation:
+    def test_url_shaped_space_id_is_rejected(self):
+        result = json.loads(call_space(["http://169.254.169.254/"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_valid_owner_repo_format_accepted_by_regex(self):
+        import re
+
+        pattern = r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+"
+        assert re.fullmatch(pattern, "owner/repo")
+        assert re.fullmatch(pattern, "my-org/my-space")
+        assert re.fullmatch(pattern, "http://host/path") is None

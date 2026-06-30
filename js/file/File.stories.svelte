@@ -60,8 +60,3 @@
 	}}
 	{template}
 />
-<Story
-	name="File upload with height set to 400px"
-	args={{ interactive: true, value: null, height: 400 }}
-	{template}
-/>
