@@ -16,7 +16,7 @@
 	export type TabSelectData = Omit<SelectData, "index"> & {
 		index: number;
 		id: string | number;
-		component_id: string | number;
+		component_id: number;
 	};
 
 	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {

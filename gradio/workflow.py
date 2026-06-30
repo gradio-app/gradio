@@ -586,6 +586,14 @@ def call_model(
     try:
         from huggingface_hub import InferenceClient
 
+        if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+", model_id or ""):
+            return json.dumps(
+                {
+                    "error": "Invalid model ID",
+                    "error_type": "not_found",
+                    "suggestion": "Model ID must be in owner/repo format",
+                }
+            )
         pipeline_tag = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
         hf_token = _resolve_token(data, 3, token, request)
