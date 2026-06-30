@@ -8,6 +8,7 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
+	import type { WorkflowTemplate } from "./workflow-templates";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -1253,6 +1254,16 @@
 
 	let clearConfirm = $state(false);
 
+	function load_template(t: WorkflowTemplate): void {
+		if (readOnly) return;
+		try {
+			const v2 = migrateToV2(t.workflow);
+			revokeAllBlobUrls(legacyView.nodes);
+			workflow.set(v2);
+			showTemplates = false;
+		} catch {}
+	}
+
 	function clearWorkflow(): void {
 		if (legacyView.nodes.length === 0 || readOnly) return;
 		clearConfirm = true;
@@ -2044,6 +2055,12 @@
 			{/if}
 		</div>
 		<div class="toolbar-right">
+			{#if !readOnly && nodeCount > 0}
+				<button
+					class="tool-btn get-started-btn"
+					onclick={clearWorkflow}
+				>Get started</button>
+			{/if}
 			{#if auth.status !== "checking"}
 				{#if auth.user}
 					<div class="toolbar-user-wrap">
@@ -2231,7 +2248,7 @@
 		</div>
 
 		{#if nodeCount === 0}
-			<WorkflowEmptyState />
+			<WorkflowEmptyState onselect={load_template} />
 		{/if}
 
 		{#if running}
@@ -2507,6 +2524,7 @@
 			onClose={() => (showApiPanel = false)}
 		/>
 	{/if}
+
 </div>
 
 <style>
@@ -2759,4 +2777,16 @@
 		border-color: #e2e4ea;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 	}
+
+	.get-started-btn {
+		color: #a0a2ae;
+		border-color: #2a2b38;
+	}
+
+	.get-started-btn:hover {
+		color: #d5d6de;
+		background: #1a1b25;
+		border-color: #3a3b48;
+	}
+
 </style>
