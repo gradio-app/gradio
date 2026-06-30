@@ -1,6 +1,7 @@
 ---
 "@gradio/core": minor
 "@gradio/gallery": minor
+"@gradio/icons": minor
 "gradio": minor
 ---
 
