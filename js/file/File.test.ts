@@ -1,11 +1,15 @@
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, afterEach } from "vitest";
 import {
 	render,
 	download_file,
 	upload_file,
 	drop_file,
+	cleanup,
 	mock_client,
-	TEST_TXT
+	TEST_TXT,
+	TEST_JPG,
+	TEST_MP4,
+	TEST_PDF
 } from "@self/tootils/render";
 import File from "./Index.svelte";
 
@@ -21,6 +25,8 @@ const default_props = {
 };
 
 describe("File", () => {
+	afterEach(() => cleanup());
+
 	test("download link triggers a real file download with correct content", async () => {
 		await render(File, {
 			...default_props,
@@ -49,5 +55,41 @@ describe("File", () => {
 		await drop_file(TEST_TXT, "[aria-label='Click to upload or drop files']");
 
 		await vi.waitFor(() => expect(upload).toHaveBeenCalled());
+	});
+
+	test("file_types accepts image category uploads", async () => {
+		const { listen } = await render(File, {
+			...default_props,
+			file_types: ["image", "video"]
+		});
+
+		const upload = listen("upload");
+		await upload_file(TEST_JPG);
+
+		await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+	});
+
+	test("file_types accepts video category uploads", async () => {
+		const { listen } = await render(File, {
+			...default_props,
+			file_types: ["image", "video"]
+		});
+
+		const upload = listen("upload");
+		await upload_file(TEST_MP4);
+
+		await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+	});
+
+	test("file_types accepts dot-prefixed extension uploads", async () => {
+		const { listen } = await render(File, {
+			...default_props,
+			file_types: [".pdf"]
+		});
+
+		const upload = listen("upload");
+		await upload_file(TEST_PDF);
+
+		await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
 	});
 });
