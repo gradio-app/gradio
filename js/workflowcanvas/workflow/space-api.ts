@@ -22,7 +22,7 @@ export function normalize_space_id(raw: string): string | null {
 	}
 
 	const pageMatch = trimmed.match(
-		/^https?:\/\/(?:www\.)?huggingface\.co\/spaces\/([^/\s?#]+)\/([^/\s?#]+)/i
+		/^https?:\/\/(?:www\.)?huggingface\.co\/(?:spaces|models|datasets)?\/?\/?([^/\s?#]+)\/([^/\s?#]+)/i
 	);
 	if (pageMatch) return `${pageMatch[1]}/${pageMatch[2]}`;
 
