@@ -1,6 +1,6 @@
 ---
-"@gradio/imageeditor": minor
-"gradio": minor
+"@gradio/imageeditor": patch
+"gradio": patch
 ---
 
-feat:Fix ImageEditor transform tools and hidden cleanup
+fix:Fix ImageEditor transform tools and hidden cleanup
