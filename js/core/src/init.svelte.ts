@@ -525,10 +525,20 @@ export class AppTree {
 			// cause a stale "pending" update to be applied after the correct
 			// "complete" status has already been received, trapping the component
 			// in an infinite loading state.
-			const { loading_status: _ls, ...rest_new_state } = new_state;
+			// Exclude visible as well: it is the source of truth for mounting and
+			// is kept current in place on the node above (and synced into the
+			// component from node props on mount), so it never needs to be replayed
+			// via _set_data. Storing it would let a stale pending visible (captured
+			// on an earlier yield) be applied after the component has already
+			// mounted with the correct visibility, hiding it again (#13494).
+			const {
+				loading_status: _ls,
+				visible: _vis,
+				...rest_new_state
+			} = new_state;
 			// Only store a pending update if there is something other than
-			// loading_status to apply. Otherwise we'd cache an empty object,
-			// which still triggers a no-op deferred _set() on mount (extra
+			// loading_status/visible to apply. Otherwise we'd cache an empty
+			// object, which still triggers a no-op deferred _set() on mount (extra
 			// microtask churn for components hidden while loading status changed).
 			if (Object.keys(rest_new_state).length > 0) {
 				const existing = this.#pending_updates.get(id) || {};

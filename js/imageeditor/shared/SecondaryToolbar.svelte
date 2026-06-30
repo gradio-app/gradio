@@ -2,19 +2,35 @@
 	import Layers from "./Layers.svelte";
 	import type { Writable } from "svelte/store";
 
-	export let layers: Writable<{
-		active_layer: string;
-		layers: {
-			name: string;
-			id: string;
-			user_created: boolean;
-			visible: boolean;
-		}[];
-	}>;
-
-	export let enable_additional_layers = true;
-	export let enable_layers = true;
-	export let show_layers = false;
+	let {
+		layers,
+		enable_additional_layers = true,
+		enable_layers = true,
+		show_layers = false,
+		onnew_layer,
+		onchange_layer,
+		onmove_layer,
+		ondelete_layer,
+		ontoggle_layer_visibility
+	}: {
+		layers: Writable<{
+			active_layer: string;
+			layers: {
+				name: string;
+				id: string;
+				user_created: boolean;
+				visible: boolean;
+			}[];
+		}>;
+		enable_additional_layers?: boolean;
+		enable_layers?: boolean;
+		show_layers?: boolean;
+		onnew_layer?: () => void;
+		onchange_layer?: (id: string) => void;
+		onmove_layer?: (value: { id: string; direction: "up" | "down" }) => void;
+		ondelete_layer?: (id: string) => void;
+		ontoggle_layer_visibility?: (id: string) => void;
+	} = $props();
 </script>
 
 <div class="toolbar-wrap-wrap">
@@ -25,11 +41,11 @@
 				{enable_additional_layers}
 				{enable_layers}
 				{show_layers}
-				on:new_layer
-				on:change_layer
-				on:move_layer
-				on:delete_layer
-				on:toggle_layer_visibility
+				{onnew_layer}
+				{onchange_layer}
+				{onmove_layer}
+				{ondelete_layer}
+				{ontoggle_layer_visibility}
 			/>
 		{/if}
 	</div>

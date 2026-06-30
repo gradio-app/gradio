@@ -69,8 +69,3 @@
 	}}
 	{template}
 />
-<Story
-	name="No value"
-	args={{ value: null, file_count: "multiple", interactive: true }}
-	{template}
-/>

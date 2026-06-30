@@ -2,8 +2,6 @@
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import Gallery from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
-	import { within } from "@testing-library/dom";
-	import { userEvent } from "storybook/test";
 	import { wrapProps } from "../storybook/wrapProps";
 
 	const cheetah = "/cheetah.jpg";
@@ -158,10 +156,6 @@
 		sources: ["upload"],
 		allow_preview: true
 	}}
-	play={async ({ canvasElement }) => {
-		const canvas = within(canvasElement);
-		await canvas.findByLabelText("Thumbnail 1 of 8");
-	}}
 >
 	{#snippet template(args)}
 		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
@@ -183,56 +177,10 @@
 </Story>
 
 <Story
-	name="Gallery with rows=3 and columns=3"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		rows: 3,
-		columns: 3,
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with columns=4"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		columns: 4,
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
 	name="Gallery with height=600"
 	args={{
 		label: "My Cheetah Gallery",
 		height: 600,
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with allow_preview=false"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		allow_preview: false,
 		buttons: [],
 		sources: ["upload"]
 	}}
@@ -258,56 +206,11 @@
 </Story>
 
 <Story
-	name="Gallery with object_fit=scale-down"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		object_fit: "scale-down",
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with object_fit=contain"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		object_fit: "contain",
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
 	name="Gallery with object_fit=cover"
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
 		object_fit: "cover",
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with object_fit=none"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		object_fit: "none",
 		buttons: [],
 		sources: ["upload"]
 	}}
@@ -333,90 +236,12 @@
 </Story>
 
 <Story
-	name="Gallery with share button"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		buttons: ["share"],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with overflow of images"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		rows: 2,
-		columns: 2,
-		height: 400,
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with overflow of images and short height"
-	args={{
-		label: "My Cheetah Gallery",
-		show_label: true,
-		rows: 2,
-		columns: 2,
-		height: 200,
-		buttons: [],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with download button"
-	args={{
-		label: "My Cheetah Gallery",
-		rows: 2,
-		height: 400,
-		buttons: ["download"],
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
 	name="Gallery with fit_columns false"
 	args={{
 		label: "My Cheetah Gallery",
 		columns: 10,
 		buttons: ["download"],
 		fit_columns: false,
-		sources: ["upload"]
-	}}
->
-	{#snippet template(args)}
-		<Gallery {...wrapProps({ value: galleryValue, ...args })} />
-	{/snippet}
-</Story>
-
-<Story
-	name="Gallery with fit_columns true"
-	args={{
-		label: "My Cheetah Gallery",
-		columns: 10,
-		buttons: ["download"],
-		fit_columns: true,
 		sources: ["upload"]
 	}}
 >

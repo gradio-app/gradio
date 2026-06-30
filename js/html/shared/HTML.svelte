@@ -1,3 +1,10 @@
+<script module lang="ts">
+	// Shared across instances so a component whose head script was already
+	// added by another instance can await that in-flight load instead of
+	// running js_on_load before the script has executed.
+	const head_script_loads = new Map<string, Promise<void>>();
+</script>
+
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import Handlebars from "handlebars";
@@ -322,6 +329,11 @@
 			if (el.tagName === "SCRIPT") {
 				const src = (el as HTMLScriptElement).src;
 				if (src) {
+					const in_flight = head_script_loads.get(src);
+					if (in_flight) {
+						promises.push(in_flight);
+						continue;
+					}
 					// selector-free dedupe: author-provided src may contain `]` etc.
 					// that would break a querySelector string.
 					if (Array.from(document.scripts).some((s) => s.src === src)) continue;
@@ -330,13 +342,13 @@
 					// so a plain <script src> keeps document order.
 					script.async = (el as HTMLScriptElement).async;
 					script.src = src;
-					promises.push(
-						new Promise<void>((resolve, reject) => {
-							script.onload = () => resolve();
-							script.onerror = () =>
-								reject(new Error(`Failed to load script: ${src}`));
-						})
-					);
+					const load = new Promise<void>((resolve, reject) => {
+						script.onload = () => resolve();
+						script.onerror = () =>
+							reject(new Error(`Failed to load script: ${src}`));
+					});
+					head_script_loads.set(src, load);
+					promises.push(load);
 					document.head.appendChild(script);
 				} else {
 					const script = document.createElement("script");
