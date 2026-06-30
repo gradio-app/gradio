@@ -15,7 +15,7 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict, get_type_hints
 
 import httpx
 from huggingface_hub import HfApi
@@ -441,6 +441,24 @@ def _format_error(e: Exception) -> str:
     if title:
         err["title"] = title
     return json.dumps(err)
+
+
+def _inject_oauth_token(fn: Callable, args: list, token: Optional[OAuthToken]) -> list:
+    """Insert token into args at every position where fn declares OAuthToken."""
+    if token is None:
+        return args
+    try:
+        hints = get_type_hints(fn)
+        params = list(inspect.signature(fn).parameters.items())
+    except Exception:
+        return args
+    result = list(args)
+    for i, (name, param) in enumerate(params):
+        if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
+            break
+        if hints.get(name) in (OAuthToken, Optional[OAuthToken]):
+            result.insert(i, token)
+    return result
 
 
 def get_token(
@@ -1331,6 +1349,7 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
+                args = _inject_oauth_token(fn, args, _token)
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(result)
