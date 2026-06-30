@@ -277,8 +277,6 @@ pnpm test
 To install browser test dependencies:
 
 ```
-pip install -r demo/outbreak_forecast/requirements.txt
-pip install -r demo/stream_video_out/requirements.txt
 pnpm exec playwright install chromium firefox
 pnpm exec playwright install-deps chromium firefox
 pnpm --filter @gradio/utils --filter @gradio/theme package

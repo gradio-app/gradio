@@ -18,7 +18,16 @@ const base = defineConfig({
 	timeout: 30_000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
-	workers: process.env.CUSTOM_TEST ? 1 : process.env.CI ? 4 : undefined,
+	// Reload tests must stay serial (CUSTOM_TEST=1) — several rewrite a shared
+	// `run.py` in the same cwd, so parallel workers would clobber each other.
+	// For the regular browser suite on CI, allow PW_BROWSER_WORKERS to raise the
+	// count above the historical default of 4 (the runner has 16 cores and the
+	// tests are largely wait-bound, so they parallelize well).
+	workers: process.env.CUSTOM_TEST
+		? 1
+		: process.env.CI
+			? Number(process.env.PW_BROWSER_WORKERS) || 4
+			: undefined,
 	retries: 3,
 	fullyParallel: false
 });
