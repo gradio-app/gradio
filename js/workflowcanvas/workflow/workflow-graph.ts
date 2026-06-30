@@ -142,11 +142,8 @@ export function computeStaleNodes(
 }
 
 /**
- * Build a sub-workflow containing `targetId`, all of its transitive upstream
- * dependencies, and all downstream nodes reachable from `targetId`. Used by
- * per-node "run this" so outputs propagate through the full connected chain.
- * Node IDs are stable, so callbacks from the executor still target the same
- * status / output maps in the caller.
+ * Subgraph for "run this node": target + all upstream deps + direct downstream
+ * nodes (one hop), so output subjects update without running unrelated branches.
  */
 export function buildUpstreamSubgraph(
 	workflow: Workflow,
