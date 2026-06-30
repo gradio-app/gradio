@@ -376,9 +376,19 @@ describe("Props: buttons", () => {
 		expect(getByRole("button", { name: "common.download" })).toBeVisible();
 	});
 
-	test("buttons=['download_all'] downloads every gallery file", async () => {
+	test("buttons=['download_all'] downloads gallery files as a zip from grid view", async () => {
 		const fetch = vi.fn(async () => new Response(new Blob(["file"])));
+		const blobs: Blob[] = [];
 		const clicked_names: string[] = [];
+		const create_object_url = vi
+			.spyOn(URL, "createObjectURL")
+			.mockImplementation((object: Blob | MediaSource) => {
+				blobs.push(object as Blob);
+				return "blob:gallery";
+			});
+		const revoke_object_url = vi
+			.spyOn(URL, "revokeObjectURL")
+			.mockImplementation(() => {});
 		const click = vi
 			.spyOn(HTMLAnchorElement.prototype, "click")
 			.mockImplementation(function (this: HTMLAnchorElement) {
@@ -386,9 +396,23 @@ describe("Props: buttons", () => {
 			});
 
 		try {
-			const { getByRole } = await render(Gallery, {
+			const value = [img("cat"), vid("clip"), img("dog")];
+			const { queryByRole } = await render(Gallery, {
 				...preview_props,
-				value: [img("cat"), vid("clip"), img("dog")],
+				value,
+				buttons: ["download_all"],
+				client: { fetch }
+			});
+
+			expect(
+				queryByRole("button", { name: "common.download_all" })
+			).not.toBeInTheDocument();
+
+			cleanup();
+
+			const { getByRole } = await render(Gallery, {
+				...default_props,
+				value,
 				buttons: ["download_all"],
 				client: { fetch }
 			});
@@ -399,13 +423,19 @@ describe("Props: buttons", () => {
 
 			await waitFor(() => {
 				expect(fetch).toHaveBeenCalledTimes(3);
-				expect(click).toHaveBeenCalledTimes(3);
+				expect(click).toHaveBeenCalledTimes(1);
 			});
 
 			expect(fetch).toHaveBeenNthCalledWith(1, "https://example.com/cat.png");
 			expect(fetch).toHaveBeenNthCalledWith(2, "https://example.com/clip.mp4");
 			expect(fetch).toHaveBeenNthCalledWith(3, "https://example.com/dog.png");
-			expect(clicked_names).toEqual(["cat.png", "clip.mp4", "dog.png"]);
+			expect(create_object_url).toHaveBeenCalledTimes(1);
+			expect(revoke_object_url).toHaveBeenCalledWith("blob:gallery");
+			expect(clicked_names).toEqual(["gallery.zip"]);
+			expect(blobs[0].type).toBe("application/zip");
+
+			const zip = new Uint8Array(await blobs[0].arrayBuffer());
+			expect(Array.from(zip.slice(0, 4))).toEqual([0x50, 0x4b, 0x03, 0x04]);
 		} finally {
 			vi.restoreAllMocks();
 		}
