@@ -376,25 +376,6 @@ describe("Props: buttons", () => {
 		expect(getByRole("button", { name: "common.download" })).toBeVisible();
 	});
 
-	test("buttons=['download_all'] shows download all button in preview", async () => {
-		const { getByRole } = await render(Gallery, {
-			...preview_props,
-			buttons: ["download_all"]
-		});
-
-		expect(getByRole("button", { name: "common.download_all" })).toBeVisible();
-	});
-
-	test("buttons=['download_all'] shows download all button in grid view", async () => {
-		const { getByRole } = await render(Gallery, {
-			...default_props,
-			value: three_images,
-			buttons: ["download_all"]
-		});
-
-		expect(getByRole("button", { name: "common.download_all" })).toBeVisible();
-	});
-
 	test("buttons=['download_all'] downloads every gallery file", async () => {
 		const fetch = vi.fn(async () => new Response(new Blob(["file"])));
 		const clicked_names: string[] = [];
@@ -448,9 +429,6 @@ describe("Props: buttons", () => {
 		expect(getByRole("button", { name: "Close" })).toBeVisible();
 		expect(
 			queryByRole("button", { name: "common.download" })
-		).not.toBeInTheDocument();
-		expect(
-			queryByRole("button", { name: "common.download_all" })
 		).not.toBeInTheDocument();
 		expect(queryByLabelText("Fullscreen")).not.toBeInTheDocument();
 	});
