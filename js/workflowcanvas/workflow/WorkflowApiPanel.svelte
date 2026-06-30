@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import CodeIcon from "./icons/CodeIcon.svelte";
 
 	interface ApiParam {
 		label: string;
@@ -158,7 +159,7 @@
 	<div class="api-panel" onclick={(e) => e.stopPropagation()}>
 		<div class="api-header">
 			<div class="api-title">
-				<span class="api-glyph">&lt;/&gt;</span>
+				<span class="api-glyph"><CodeIcon /></span>
 				<div>
 					<div class="api-title-main">API</div>
 					<div class="api-title-sub">
@@ -246,7 +247,7 @@
 		align-items: center;
 		justify-content: center;
 		z-index: 1000;
-		padding: 24px;
+		padding: var(--size-6);
 	}
 	.api-panel {
 		width: min(720px, 100%);
@@ -255,31 +256,31 @@
 		flex-direction: column;
 		background: #101118;
 		border: 1px solid #2a2b38;
-		border-radius: 12px;
-		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+		border-radius: var(--radius-xl);
+		box-shadow: 0 var(--size-6) 60px rgba(0, 0, 0, 0.5);
 		overflow: hidden;
 	}
 	.api-header {
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		padding: 16px 18px;
+		padding: var(--size-4) 18px;
 		border-bottom: 1px solid #1e1f2a;
 	}
 	.api-title {
 		display: flex;
-		gap: 12px;
+		gap: var(--size-3);
 		align-items: center;
 	}
 	.api-glyph {
-		font-family: "JetBrains Mono", monospace;
-		font-size: 13px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		color: var(--color-accent, #f97316);
 		background: #1a1b25;
 		border: 1px solid #2a2b38;
-		border-radius: 8px;
-		padding: 8px 9px;
-		line-height: 1;
+		border-radius: var(--radius-lg);
+		padding: var(--size-2) var(--size-2-5);
 	}
 	.api-title-main {
 		font-family: "Manrope", sans-serif;
@@ -289,7 +290,7 @@
 	}
 	.api-title-sub {
 		font-family: "Manrope", sans-serif;
-		font-size: 12px;
+		font-size: var(--size-3);
 		color: #8a8c98;
 		margin-top: 2px;
 	}
@@ -304,23 +305,23 @@
 		font-size: 22px;
 		line-height: 1;
 		cursor: pointer;
-		padding: 0 4px;
+		padding: 0 var(--size-1);
 	}
 	.api-close:hover {
 		color: #e6e7ec;
 	}
 	.api-langs {
 		display: flex;
-		gap: 4px;
-		padding: 10px 18px;
+		gap: var(--size-1);
+		padding: var(--size-2-5) 18px;
 		border-bottom: 1px solid #1e1f2a;
 	}
 	.api-lang {
 		font-family: "Manrope", sans-serif;
-		font-size: 12px;
+		font-size: var(--size-3);
 		font-weight: 500;
-		padding: 4px 12px;
-		border-radius: 999px;
+		padding: var(--size-1) var(--size-3);
+		border-radius: var(--radius-full);
 		border: 1px solid transparent;
 		background: transparent;
 		color: #6b6e78;
@@ -336,31 +337,31 @@
 	}
 	.api-body {
 		overflow-y: auto;
-		padding: 16px 18px;
+		padding: var(--size-4) 18px;
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: var(--size-4);
 	}
 	.api-empty {
 		font-family: "Manrope", sans-serif;
 		font-size: 13px;
 		color: #8a8c98;
 		text-align: center;
-		padding: 32px 0;
+		padding: var(--size-8) 0;
 	}
 	.api-error {
 		color: #f87171;
 	}
 	.api-endpoint {
 		border: 1px solid #1e1f2a;
-		border-radius: 10px;
+		border-radius: var(--size-2-5);
 		overflow: hidden;
 	}
 	.api-endpoint-head {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		padding: 10px 12px;
+		gap: var(--size-2-5);
+		padding: var(--size-2-5) var(--size-3);
 		background: #16171f;
 		border-bottom: 1px solid #1e1f2a;
 	}
@@ -371,8 +372,8 @@
 		letter-spacing: 0.05em;
 		color: #1a1b25;
 		background: var(--color-accent, #f97316);
-		border-radius: 4px;
-		padding: 2px 6px;
+		border-radius: var(--radius-sm);
+		padding: 2px var(--size-1-5);
 	}
 	.api-name {
 		font-family: "JetBrains Mono", monospace;
@@ -384,9 +385,9 @@
 		font-family: "Manrope", sans-serif;
 		font-size: 11px;
 		font-weight: 600;
-		padding: 4px 10px;
+		padding: var(--size-1) var(--size-2-5);
 		border: 1px solid #2a2b38;
-		border-radius: 6px;
+		border-radius: var(--radius-md);
 		background: transparent;
 		color: #a0a2ae;
 		cursor: pointer;
@@ -397,8 +398,8 @@
 	}
 	.api-io {
 		display: flex;
-		gap: 24px;
-		padding: 12px;
+		gap: var(--size-6);
+		padding: var(--size-3);
 		border-bottom: 1px solid #1e1f2a;
 	}
 	.api-io-col {
@@ -412,14 +413,14 @@
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: #6b6e78;
-		margin-bottom: 6px;
+		margin-bottom: var(--size-1-5);
 	}
 	.api-port {
 		display: flex;
 		justify-content: space-between;
-		gap: 8px;
+		gap: var(--size-2);
 		font-family: "JetBrains Mono", monospace;
-		font-size: 12px;
+		font-size: var(--size-3);
 		padding: 3px 0;
 	}
 	.api-port-name {
@@ -434,10 +435,10 @@
 	}
 	.api-code {
 		margin: 0;
-		padding: 12px 14px;
+		padding: var(--size-3) 14px;
 		background: #0b0c12;
 		font-family: "JetBrains Mono", monospace;
-		font-size: 12px;
+		font-size: var(--size-3);
 		line-height: 1.55;
 		color: #c5c7d0;
 		overflow-x: auto;
