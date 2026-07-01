@@ -55,6 +55,12 @@
 			type: PortType,
 			isInput: boolean
 		) => void;
+		onpopout: (
+			nodeId: string,
+			portId: string,
+			type: PortType,
+			isInput: boolean
+		) => void;
 	}
 
 	const ctx = getContext<WfCtx>("wf");
@@ -370,13 +376,23 @@
 								!ports_compatible(pending.type, port.type)}
 							class:pulse={pending !== null &&
 								ports_compatible(pending.type, port.type)}
+							class:popout-hint={!portConnected && pending === null}
 							data-node-id={node.id}
 							data-port-id={port.id}
 							data-port-type={port.type}
 							data-port-direction="input"
 							style="--port-color: {PORT_COLOR[port.type]}"
+							title={!portConnected && pending === null
+								? "Click to create an input node"
+								: undefined}
 							onpointerdown={(e) =>
 								ctx.onportpointerdown(e, node.id, port.id, port.type, true)}
+							onclick={(e) => {
+								if (!portConnected && pending === null) {
+									e.stopPropagation();
+									ctx.onpopout(node.id, port.id, port.type, true);
+								}
+							}}
 						></div>
 						{#if !hasWidget}
 							<span
@@ -535,13 +551,23 @@
 					<div
 						class="port-handle-sf output-handle-sf"
 						class:connected={portConnected}
+						class:popout-hint={!readOnly && !portConnected && pending === null}
 						data-node-id={node.id}
 						data-port-id={port.id}
 						data-port-type={port.type}
 						data-port-direction="output"
 						style="--port-color: {PORT_COLOR[port.type]}"
+						title={!readOnly && !portConnected && pending === null
+							? "Click to create an output node"
+							: undefined}
 						onpointerdown={(e) =>
 							ctx.onportpointerdown(e, node.id, port.id, port.type, false)}
+						onclick={(e) => {
+							if (!readOnly && !portConnected && pending === null) {
+								e.stopPropagation();
+								ctx.onpopout(node.id, port.id, port.type, false);
+							}
+						}}
 					></div>
 				</div>
 			{/each}
@@ -1039,6 +1065,10 @@
 
 	.inline-input::placeholder {
 		color: #4a4b58;
+	}
+
+	.popout-hint {
+		cursor: cell;
 	}
 
 	.inline-number {

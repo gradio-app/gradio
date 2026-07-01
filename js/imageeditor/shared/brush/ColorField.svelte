@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { Eyedropper, Plus } from "@gradio/icons";
-	import { createEventDispatcher } from "svelte";
 
 	import tinycolor from "tinycolor2";
 	import IconButton from "../IconButton.svelte";
-	export let color: string;
 
-	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
+	let {
+		color,
+		current_mode = $bindable<"hex" | "rgb" | "hsl">("hex"),
+		onselected,
+		onclose
+	}: {
+		color: string;
+		current_mode?: "hex" | "rgb" | "hsl";
+		onselected?: (color: string) => void;
+		onclose?: () => void;
+	} = $props();
 
-	const dispatch = createEventDispatcher<{
-		selected: string;
-		close: void;
-		add_color: void;
-	}>();
 	const modes = [
 		["Hex", "hex"],
 		["RGB", "rgb"],
@@ -28,8 +31,10 @@
 		return tinycolor(color).toHslString();
 	}
 
-	$: color_string = format_color(color, current_mode);
-	$: color_string && dispatch("selected", color_string);
+	let color_string = $derived(format_color(color, current_mode));
+	$effect(() => {
+		if (color_string) onselected?.(color_string);
+	});
 
 	function request_eyedropper(): void {
 		// @ts-ignore
@@ -44,23 +49,23 @@
 	const eyedropper_supported = !!window.EyeDropper;
 
 	function handle_click(): void {
-		dispatch("selected", color_string);
-		dispatch("close");
+		onselected?.(color_string);
+		onclose?.();
 	}
 </script>
 
 <div class="input">
-	<button class="swatch" style:background={color} on:click={handle_click}
+	<button class="swatch" style:background={color} onclick={handle_click}
 	></button>
 	<div>
 		<div class="input-wrap">
 			<input
 				type="text"
 				value={color_string}
-				on:change={(e) => (color = e.currentTarget.value)}
+				onchange={(e) => (color = e.currentTarget.value)}
 			/>
 
-			<button class="eyedropper" on:click={request_eyedropper}>
+			<button class="eyedropper" onclick={request_eyedropper}>
 				{#if eyedropper_supported}
 					<Eyedropper />
 				{/if}
@@ -71,7 +76,7 @@
 				<button
 					class="button"
 					class:active={current_mode === value}
-					on:click={() => (current_mode = value)}>{label}</button
+					onclick={() => (current_mode = value)}>{label}</button
 				>
 			{/each}
 		</div>
