@@ -209,7 +209,8 @@
 							: "Enter text..."}
 					disabled={isReadonly}
 					onchange={(val) => {
-						if (val !== getTextValue()) ondatachange(node.id, widgetPortId, val);
+						if (val !== getTextValue())
+							ondatachange(node.id, widgetPortId, val);
 					}}
 				/>
 			</div>
