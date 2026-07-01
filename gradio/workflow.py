@@ -15,7 +15,7 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict, get_type_hints
 
 import httpx
 from huggingface_hub import HfApi
@@ -182,6 +182,10 @@ def _workflow_from_bind(
         except (ValueError, TypeError):
             sig = inspect.Signature()
 
+        try:
+            _hints = get_type_hints(fn)
+        except Exception:
+            _hints = getattr(fn, "__annotations__", {})
         inputs = [
             {
                 "id": f"in_{p}",
@@ -189,7 +193,7 @@ def _workflow_from_bind(
                 "type": _PY_TO_PORT.get(param.annotation, "text"),
             }
             for p, param in sig.parameters.items()
-            if p != "self"
+            if p != "self" and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
         ]
         outputs = [
             {
@@ -1339,6 +1343,9 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
+                from gradio.helpers import special_args as _special_args
+
+                args, *_ = _special_args(fn, args, _request, None)
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(result)
@@ -1364,6 +1371,10 @@ class Workflow(Blocks):
                     sig = inspect.signature(fn)
                 except (ValueError, TypeError):
                     sig = inspect.Signature()
+                try:
+                    _hints = get_type_hints(fn)
+                except Exception:
+                    _hints = getattr(fn, "__annotations__", {})
                 inputs = [
                     {
                         "id": f"in_{p}",
@@ -1372,6 +1383,7 @@ class Workflow(Blocks):
                     }
                     for p, param in sig.parameters.items()
                     if p != "self"
+                    and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
                 ]
                 if not inputs:
                     inputs = [{"id": "in_0", "label": "input", "type": "text"}]
