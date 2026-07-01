@@ -1614,7 +1614,7 @@ class App(FastAPI):
                 try:
                     form = await multipart_parser.parse()
                 except MultiPartException as exc:
-                    code = 413 if "maximum allowed size" in exc.message else 400
+                    code = 413 if "File size exceeded" in exc.message else 400
                     raise HTTPException(status_code=code, detail=exc.message) from None
                 try:
                     for key, value in form.multi_items():
