@@ -193,8 +193,7 @@ def _workflow_from_bind(
                 "type": _PY_TO_PORT.get(param.annotation, "text"),
             }
             for p, param in sig.parameters.items()
-            if p != "self"
-            and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
+            if p != "self" and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
         ]
         outputs = [
             {
