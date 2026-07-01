@@ -535,7 +535,7 @@ class WorkflowExecutor:
         self._require(node, resolved)
         args = [resolved[p["id"]] for p in node.get("inputs") or []]
         tag = node.get("pipeline_tag") or "text-generation"
-        provider = node.get("provider") or "auto"
+        provider = node.get("provider") or "hf-inference"
         output_data = self._call(
             "model", [node.get("model_id"), tag, json.dumps(args), None, provider]
         )
