@@ -1738,7 +1738,7 @@ class TestCurlEndpointWithFiles:
         finally:
             demo.close()
 
-    @pytest.mark.seriale
+    @pytest.mark.serial
     def test_text_to_image_exception_reported_in_sse(self):
         def fail_fn(prompt):
             raise RuntimeError("Generation exploded!")
