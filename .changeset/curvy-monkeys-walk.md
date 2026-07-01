@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:workflow: always use hf-inference providers
+feat:workflow: default to hf-inference providers
