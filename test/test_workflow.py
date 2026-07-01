@@ -471,7 +471,9 @@ class TestCallFn:
                 }
             }
 
-        result = json.loads(call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest()))
+        result = json.loads(
+            call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest())
+        )
         assert result == ["hi"]
         assert received["token"].token == "test-tok"
 

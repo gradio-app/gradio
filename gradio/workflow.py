@@ -447,7 +447,6 @@ def _format_error(e: Exception) -> str:
     return json.dumps(err)
 
 
-
 def get_token(
     _data=None,
     request: Optional[Request] = None,
@@ -1345,6 +1344,7 @@ class Workflow(Blocks):
                 if not isinstance(args, list):
                     args = [args]
                 from gradio.helpers import special_args as _special_args
+
                 args, *_ = _special_args(fn, args, _request, None)
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
