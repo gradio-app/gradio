@@ -1599,10 +1599,6 @@ class App(FastAPI):
             ):
                 files = []
                 data = {}
-                # Parse with GradioMultiPartParser (rather than Starlette's
-                # request.form()) so that blocks.max_file_size is enforced
-                # incrementally while streaming, before the whole file is read
-                # into memory -- matching the behavior of the /upload route.
                 max_file_size = (
                     blocks.max_file_size
                     if blocks.max_file_size is not None
@@ -1619,9 +1615,7 @@ class App(FastAPI):
                     form = await multipart_parser.parse()
                 except MultiPartException as exc:
                     code = 413 if "maximum allowed size" in exc.message else 400
-                    raise HTTPException(
-                        status_code=code, detail=exc.message
-                    ) from None
+                    raise HTTPException(status_code=code, detail=exc.message) from None
                 try:
                     for key, value in form.multi_items():
                         if isinstance(value, StarletteUploadFile):
@@ -1630,9 +1624,6 @@ class App(FastAPI):
                         else:
                             data[key] = value
                 finally:
-                    # GradioMultiPartParser writes uploaded parts to temporary
-                    # files on disk; remove them now that their contents have
-                    # been read into memory.
                     for _, value in form.multi_items():
                         if isinstance(value, StarletteUploadFile):
                             await value.close()

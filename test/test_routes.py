@@ -1881,30 +1881,31 @@ def test_max_file_size_used_in_upload_route(connect):
 
 def test_max_file_size_used_in_component_server_route(connect):
     with gr.Blocks() as demo:
-        file_explorer = gr.FileExplorer(root_dir=".")
+        editor = gr.ImageEditor()
 
     app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="1kb")
     try:
-        test_client = TestClient(app, raise_server_exceptions=False)
+        test_client = TestClient(app)
         data = {
             "session_hash": "123",
-            "component_id": str(file_explorer._id),
-            "fn_name": "ls",
+            "component_id": str(editor._id),
+            "fn_name": "accept_blobs",
+            "type": "background",
+            "index": "null",
+            "id": "abc",
         }
         r = test_client.post(
             f"{API_PREFIX}/component_server/",
             data=data,
-            files={"payload": ("big.bin", b"x" * 2048, "application/octet-stream")},
+            files={"blob": ("big.bin", b"x" * 2048, "application/octet-stream")},
         )
         assert r.status_code == 413
-        # A file under the limit is not rejected for size; it passes the size
-        # gate and is dispatched to the component function.
         r = test_client.post(
             f"{API_PREFIX}/component_server/",
             data=data,
-            files={"payload": ("small.bin", b"x" * 8, "application/octet-stream")},
+            files={"blob": ("small.bin", b"x" * 8, "application/octet-stream")},
         )
-        assert r.status_code != 413
+        assert r.status_code == 200
     finally:
         demo.close()
 
