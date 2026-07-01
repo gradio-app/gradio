@@ -571,9 +571,7 @@ def call_model(
         pipeline_tag = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
         hf_token = _resolve_token(data, 3, token, request)
-        # "auto" lets HF route to whichever provider serves the model; pinning
-        # "hf-inference" 404s for models not hosted there.
-        provider = data[4] if len(data) > 4 and data[4] else "auto"
+        provider = data[4] if len(data) > 4 and data[4] else "hf-inference"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
         task = pipeline_tag or "text-generation"
