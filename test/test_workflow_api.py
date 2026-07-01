@@ -159,6 +159,83 @@ class TestExecutor:
         with pytest.raises(WorkflowExecutionError, match="No such workflow output"):
             executor.run("does-not-exist", {})
 
+    def test_parallel_layer_executes_concurrently(self):
+        import threading
+
+        graph = WorkflowGraph(
+            {
+                "schema_version": "2",
+                "references": [
+                    {
+                        "id": "ref_in",
+                        "outputs": [{"id": "ref_in_out", "type": "text"}],
+                    }
+                ],
+                "operators": [
+                    {
+                        "id": "op_a",
+                        "kind": "fn",
+                        "fn": "slow",
+                        "inputs": [{"id": "op_a_in", "type": "text"}],
+                        "outputs": [{"id": "op_a_out", "type": "text"}],
+                    },
+                    {
+                        "id": "op_b",
+                        "kind": "fn",
+                        "fn": "slow",
+                        "inputs": [{"id": "op_b_in", "type": "text"}],
+                        "outputs": [{"id": "op_b_out", "type": "text"}],
+                    },
+                ],
+                "subjects": [
+                    {
+                        "id": "sub_a",
+                        "inputs": [{"id": "sub_a_in", "type": "text"}],
+                    },
+                    {
+                        "id": "sub_b",
+                        "inputs": [{"id": "sub_b_in", "type": "text"}],
+                    },
+                ],
+                "edges": [
+                    {
+                        "from_node_id": "ref_in",
+                        "from_port_id": "ref_in_out",
+                        "to_node_id": "op_a",
+                        "to_port_id": "op_a_in",
+                    },
+                    {
+                        "from_node_id": "ref_in",
+                        "from_port_id": "ref_in_out",
+                        "to_node_id": "op_b",
+                        "to_port_id": "op_b_in",
+                    },
+                    {
+                        "from_node_id": "op_a",
+                        "from_port_id": "op_a_out",
+                        "to_node_id": "sub_a",
+                        "to_port_id": "sub_a_in",
+                    },
+                    {
+                        "from_node_id": "op_b",
+                        "from_port_id": "op_b_out",
+                        "to_node_id": "sub_b",
+                        "to_port_id": "sub_b_in",
+                    },
+                ],
+            }
+        )
+
+        barrier = threading.Barrier(2, timeout=2)
+
+        def fn_caller(data, request=None, token=None):
+            barrier.wait()  # both threads must reach here simultaneously
+            return json.dumps(["done"])
+
+        WorkflowExecutor(graph, {"fn": fn_caller}).run_many(
+            ["sub_a", "sub_b"], {"ref_in": "hello"}
+        )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Endpoint registration (B2) — schema via get_api_info() + fn wiring

@@ -200,13 +200,14 @@ class WorkflowExecutor:
         sub_ids: set[str] = set()
         for sid in subject_ids:
             sub_ids |= upstream_node_ids(graph, sid)
-        layers = topo_layers(list(sub_ids), graph.edges)
+        layers = topo_layers(sorted(sub_ids), graph.edges)
         data_map: dict[str, dict[str, Any]] = {}
 
         self._request = request
         self._token = token
 
-        with concurrent.futures.ThreadPoolExecutor() as pool:
+        max_width = max((len(layer) for layer in layers), default=1)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_width) as pool:
             for layer in layers:
                 futs = [
                     pool.submit(self._execute_node, nid, data_map, inputs)
