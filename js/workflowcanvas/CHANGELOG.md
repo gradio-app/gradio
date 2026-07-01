@@ -1,5 +1,17 @@
 # @gradio/workflowcanvas
 
+## 0.5.0
+
+### Features
+
+- [#13544](https://github.com/gradio-app/gradio/pull/13544) [`784eb53`](https://github.com/gradio-app/gradio/commit/784eb536ab6596b0fa967419aaa93de39fa9418d) - workflow: show downstream output on subgraph run.  Thanks @hannahblair!
+- [#13557](https://github.com/gradio-app/gradio/pull/13557) [`55241c8`](https://github.com/gradio-app/gradio/commit/55241c890fc5f0bbfddae4ce2ec14525d594e05e) - workflow: auto add node on port click.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/atoms@0.26.0
+
 ## 0.4.0
 
 ### Features

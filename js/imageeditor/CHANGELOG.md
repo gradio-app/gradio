@@ -1,5 +1,22 @@
 # @gradio/imageeditor
 
+## 0.20.0
+
+### Features
+
+- [#13543](https://github.com/gradio-app/gradio/pull/13543) [`0533483`](https://github.com/gradio-app/gradio/commit/0533483bccdee38f334a598f18297e8c02966343) - Migrate Image components to Svelte 5.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#13571](https://github.com/gradio-app/gradio/pull/13571) [`c576675`](https://github.com/gradio-app/gradio/commit/c576675c1d0d9a917706bb830f7a738d9f96672f) - Fix `gr.ImageEditor` high CPU usage when idle by sleeping the render loop when nothing is changing.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/atoms@0.26.0
+- @gradio/image@0.28.0
+- @gradio/upload@0.18.1
+
 ## 0.19.0
 
 ### Features

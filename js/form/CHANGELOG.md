@@ -1,5 +1,11 @@
 # @gradio/form
 
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/atoms@0.26.0
+
 ## 0.4.0
 
 ### Features

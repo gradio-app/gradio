@@ -1,5 +1,33 @@
 # @gradio/core
 
+## 1.8.1
+
+### Fixes
+
+- [#13560](https://github.com/gradio-app/gradio/pull/13560) [`745f20c`](https://github.com/gradio-app/gradio/commit/745f20c9ec7d1e542c4b35f121b6f74e8e7c100c) - Fix `gr.Tabs.select()` event not firing when switching tabs.  Thanks @abidlabs!
+- [#13553](https://github.com/gradio-app/gradio/pull/13553) [`9a72d0c`](https://github.com/gradio-app/gradio/commit/9a72d0c76e62af365236a36c0137f7e0497d98cb) - Fix Column staying hidden after a multi-yield visibility update.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/tabs@0.9.0
+- @gradio/html@0.13.1
+- @gradio/code@0.18.1
+- @gradio/paramviewer@0.10.1
+- @gradio/statustracker@0.15.1
+- @gradio/button@0.8.1
+- @gradio/tabitem@0.8.2
+- @gradio/atoms@0.26.0
+- @gradio/image@0.28.0
+- @gradio/upload@0.18.1
+- @gradio/plot@0.12.1
+- @gradio/gallery@0.19.0
+- @gradio/video@0.22.0
+- @gradio/file@0.15.1
+- @gradio/audio@0.24.1
+- @gradio/checkbox@0.8.1
+- @gradio/textbox@0.14.1
+- @gradio/dropdown@0.14.1
+
 ## 1.8.0
 
 ### Features

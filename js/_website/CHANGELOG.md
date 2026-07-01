@@ -1,5 +1,21 @@
 # website
 
+## 0.79.0
+
+### Features
+
+- [#13547](https://github.com/gradio-app/gradio/pull/13547) [`370725b`](https://github.com/gradio-app/gradio/commit/370725bb433b15da0c303be8eb04638dc3100b26) - website build: add fallback to unversioned templates.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/tabs@0.9.0
+- @gradio/html@0.13.1
+- @gradio/code@0.18.1
+- @gradio/paramviewer@0.10.1
+- @gradio/statustracker@0.15.1
+- @gradio/button@0.8.1
+- @gradio/tabitem@0.8.2
+
 ## 0.78.1
 
 ### Dependency updates
