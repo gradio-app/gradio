@@ -1,6 +1,7 @@
 import { describe, beforeAll, afterEach, afterAll, test, expect } from "vitest";
 
 import { Client } from "../client";
+import { predict } from "../utils/predict";
 import { initialise_server } from "./server";
 
 let server: Awaited<ReturnType<typeof initialise_server>>;
@@ -153,6 +154,26 @@ describe("submit iterator", () => {
 });
 
 describe("predict error handling", () => {
+	test("predict() resolves with data when complete status arrives before data", async () => {
+		const data_message = { type: "data", data: ["done"] };
+		let consumed_after_settlement = false;
+		const app = {
+			config: { dependencies: [{ id: 0 }] },
+			api_map: { predict: 0 },
+			submit: async function* () {
+				yield { type: "status", stage: "complete" };
+				yield data_message;
+				consumed_after_settlement = true;
+				yield { type: "status", stage: "error" };
+			}
+		} as unknown as Client;
+
+		await expect(predict.call(app, "/predict", ["hi"])).resolves.toEqual(
+			data_message
+		);
+		expect(consumed_after_settlement).toBe(false);
+	});
+
 	test("predict() rejects its returned promise when the endpoint does not exist, so the error is catchable", async () => {
 		const app = await Client.connect("hmb/hello_world");
 
