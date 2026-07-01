@@ -13,9 +13,9 @@
 		"prepare": "svelte-kit sync"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^6.1.1",
+		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.46.2",
+		"@sveltejs/kit": "^2.57.1",
 		"@tailwindcss/forms": "^0.5.10",
 		"@tailwindcss/typography": "^0.5.19",
 		"@types/prismjs": "^1.26.5",
@@ -28,13 +28,13 @@
 		"node": ">=22.0.0"
 	},
 	"dependencies": {
+		"@gradio/button": "workspace:^",
 		"@gradio/code": "workspace:^",
 		"@gradio/html": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
-		"@gradio/button": "workspace:^",
 		"@sindresorhus/slugify": "^3.0.0",
 		"@sveltejs/adapter-vercel": "^5.10.3",
 		"hast-util-to-string": "^3.0.1",
