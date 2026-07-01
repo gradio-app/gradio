@@ -182,6 +182,10 @@ def _workflow_from_bind(
         except (ValueError, TypeError):
             sig = inspect.Signature()
 
+        try:
+            _hints = get_type_hints(fn)
+        except Exception:
+            _hints = getattr(fn, "__annotations__", {})
         inputs = [
             {
                 "id": f"in_{p}",
@@ -190,6 +194,7 @@ def _workflow_from_bind(
             }
             for p, param in sig.parameters.items()
             if p != "self"
+            and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
         ]
         outputs = [
             {
@@ -1383,6 +1388,10 @@ class Workflow(Blocks):
                     sig = inspect.signature(fn)
                 except (ValueError, TypeError):
                     sig = inspect.Signature()
+                try:
+                    _hints = get_type_hints(fn)
+                except Exception:
+                    _hints = getattr(fn, "__annotations__", {})
                 inputs = [
                     {
                         "id": f"in_{p}",
@@ -1391,6 +1400,7 @@ class Workflow(Blocks):
                     }
                     for p, param in sig.parameters.items()
                     if p != "self"
+                    and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
                 ]
                 if not inputs:
                     inputs = [{"id": "in_0", "label": "input", "type": "text"}]
