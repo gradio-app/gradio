@@ -1599,26 +1599,45 @@ class App(FastAPI):
             ):
                 files = []
                 data = {}
-                async with request.form() as form:
-                    for key, value in form.items():
-                        if (
-                            isinstance(value, list)
-                            and len(value) > 1
-                            and isinstance(value[0], StarletteUploadFile)
-                        ):
-                            for i, v in enumerate(value):
-                                if isinstance(v, StarletteUploadFile):
-                                    filename = v.filename
-                                    contents = await v.read()
-                                    files.append((filename, contents))
-                                else:
-                                    data[f"{key}-{i}"] = v
-                        elif isinstance(value, StarletteUploadFile):
-                            filename = value.filename
+                # Parse with GradioMultiPartParser (rather than Starlette's
+                # request.form()) so that blocks.max_file_size is enforced
+                # incrementally while streaming, before the whole file is read
+                # into memory -- matching the behavior of the /upload route.
+                max_file_size = (
+                    blocks.max_file_size
+                    if blocks.max_file_size is not None
+                    else math.inf
+                )
+                multipart_parser = GradioMultiPartParser(
+                    request.headers,
+                    request.stream(),
+                    max_files=1000,
+                    max_fields=1000,
+                    max_file_size=max_file_size,
+                )
+                try:
+                    form = await multipart_parser.parse()
+                except MultiPartException as exc:
+                    code = 413 if "maximum allowed size" in exc.message else 400
+                    raise HTTPException(
+                        status_code=code, detail=exc.message
+                    ) from None
+                try:
+                    for key, value in form.multi_items():
+                        if isinstance(value, StarletteUploadFile):
                             contents = await value.read()
-                            files.append((filename, contents))
+                            files.append((value.filename, contents))
                         else:
                             data[key] = value
+                finally:
+                    # GradioMultiPartParser writes uploaded parts to temporary
+                    # files on disk; remove them now that their contents have
+                    # been read into memory.
+                    for _, value in form.multi_items():
+                        if isinstance(value, StarletteUploadFile):
+                            await value.close()
+                            with contextlib.suppress(OSError, AttributeError):
+                                os.unlink(value.file.name)
 
                 return ComponentServerBlobBody(
                     data=DataWithFiles(data=data, files=files),
