@@ -418,11 +418,11 @@
 						<div class="icon-button">
 							<ShareButton
 								{i18n}
-								on:share={(detail) => {
-									onshare(detail);
+								onshare={(detail) => {
+									onshare({ detail } as CustomEvent);
 								}}
-								on:error={(detail) => {
-									onerror(detail);
+								onerror={(detail) => {
+									onerror({ detail } as CustomEvent);
 								}}
 								value={resolved_value}
 								formatter={format_gallery_for_sharing}

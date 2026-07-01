@@ -1,23 +1,44 @@
 <script lang="ts">
 	import { type Component } from "svelte";
 	import type { ColorInput } from "tinycolor2";
-	export let Icon: Component<any>;
-	export let label = "";
-	export let show_label = false;
-	export let pending = false;
-	export let size: "small" | "large" | "medium" = "small";
-	export let padded = true;
-	export let highlight = false;
-	export let disabled = false;
-	export let hasPopup = false;
-	export let color: string | ColorInput = "var(--block-label-text-color)";
-	export let transparent = false;
-	export let background = "var(--background-fill-primary)";
-	export let offset = 0;
-	export let label_position: "left" | "right" = "left";
-	export let roundedness: "quite" | "very" = "quite";
-	export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
-	$: _color = highlight ? "var(--color-accent)" : color.toString();
+
+	let {
+		Icon,
+		label = "",
+		show_label = false,
+		pending = false,
+		size = "small",
+		padded = true,
+		highlight = false,
+		disabled = false,
+		hasPopup = false,
+		color = "var(--block-label-text-color)",
+		transparent = false,
+		background = "var(--background-fill-primary)",
+		offset = 0,
+		label_position = "left",
+		roundedness = "quite",
+		onclick = undefined
+	}: {
+		Icon: Component<any>;
+		label?: string;
+		show_label?: boolean;
+		pending?: boolean;
+		size?: "small" | "large" | "medium";
+		padded?: boolean;
+		highlight?: boolean;
+		disabled?: boolean;
+		hasPopup?: boolean;
+		color?: string | ColorInput;
+		transparent?: boolean;
+		background?: string;
+		offset?: number;
+		label_position?: "left" | "right";
+		roundedness?: "quite" | "very";
+		onclick?: (event: MouseEvent) => void;
+	} = $props();
+
+	let _color = $derived(highlight ? "var(--color-accent)" : color.toString());
 </script>
 
 <button

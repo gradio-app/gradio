@@ -10,45 +10,53 @@
 		VisibilityOff
 	} from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
-	import { createEventDispatcher } from "svelte";
 	import type { Writable } from "svelte/store";
 
-	const dispatch = createEventDispatcher<{
-		new_layer: void;
-		change_layer: string;
-		move_layer: { id: string; direction: "up" | "down" };
-		delete_layer: string;
-		toggle_layer_visibility: string;
-	}>();
-
-	export let layers: Writable<{
-		active_layer: string;
-		layers: {
-			name: string;
-			id: string;
-			user_created: boolean;
-			visible: boolean;
-		}[];
-	}>;
-	export let enable_additional_layers = true;
-	export let enable_layers = true;
-	export let show_layers = false;
+	let {
+		layers,
+		enable_additional_layers = true,
+		enable_layers = true,
+		show_layers = false,
+		onnew_layer,
+		onchange_layer,
+		onmove_layer,
+		ondelete_layer,
+		ontoggle_layer_visibility
+	}: {
+		layers: Writable<{
+			active_layer: string;
+			layers: {
+				name: string;
+				id: string;
+				user_created: boolean;
+				visible: boolean;
+			}[];
+		}>;
+		enable_additional_layers?: boolean;
+		enable_layers?: boolean;
+		show_layers?: boolean;
+		onnew_layer?: () => void;
+		onchange_layer?: (id: string) => void;
+		onmove_layer?: (value: { id: string; direction: "up" | "down" }) => void;
+		ondelete_layer?: (id: string) => void;
+		ontoggle_layer_visibility?: (id: string) => void;
+	} = $props();
 
 	function new_layer(): void {
-		dispatch("new_layer");
+		onnew_layer?.();
 	}
 
 	function change_layer(id: string): void {
-		dispatch("change_layer", id);
+		onchange_layer?.(id);
 		show_layers = false;
 	}
 
 	function move_layer(id: string, direction: "up" | "down"): void {
-		dispatch("move_layer", { id, direction });
+		onmove_layer?.({ id, direction });
 	}
 
 	function delete_layer(id: string): void {
-		dispatch("delete_layer", id);
+		ondelete_layer?.(id);
 	}
 </script>
 
@@ -61,7 +69,10 @@
 		<button
 			class="layer-title-button"
 			aria-label="Show Layers"
-			on:click|stopPropagation={() => (show_layers = !show_layers)}
+			onclick={(event) => {
+				event.stopPropagation();
+				show_layers = !show_layers;
+			}}
 		>
 			{show_layers
 				? "Layers"
@@ -78,7 +89,7 @@
 								size="small"
 								onclick={(e) => {
 									e.stopPropagation();
-									dispatch("toggle_layer_visibility", id);
+									ontoggle_layer_visibility?.(id);
 								}}
 							/>
 						{:else}
@@ -87,14 +98,17 @@
 								size="small"
 								onclick={(e) => {
 									e.stopPropagation();
-									dispatch("toggle_layer_visibility", id);
+									ontoggle_layer_visibility?.(id);
 								}}
 							/>
 						{/if}
 						<button
 							class:selected_layer={$layers.active_layer === id}
 							aria-label={`layer-${i + 1}`}
-							on:click|stopPropagation={() => change_layer(id)}>{name}</button
+							onclick={(event) => {
+								event.stopPropagation();
+								change_layer(id);
+							}}>{name}</button
 						>
 						{#if $layers.layers.length > 1}
 							<div>

@@ -3,19 +3,25 @@
 	import tinycolor from "tinycolor2";
 	import { clamp } from "../utils/pixi";
 
-	export let color = "rgb(255, 255, 255)";
+	let {
+		color = $bindable("rgb(255, 255, 255)"),
+		opacity = $bindable(1)
+	}: {
+		color?: string;
+		opacity?: number;
+	} = $props();
 
-	let sl_marker_pos = [0, 0];
+	let sl_marker_pos = $state([0, 0]);
 	let sl_rect: DOMRect | null = null;
-	let sl_moving = false;
-	let sl = [0, 0];
+	let sl_moving = $state(false);
+	let sl = $state([0, 0]);
 
-	let hue = 0;
-	let hue_marker_pos = 0;
+	let hue = $state(0);
+	let hue_marker_pos = $state(0);
 	let hue_rect: DOMRect | null = null;
-	let hue_moving = false;
+	let hue_moving = $state(false);
 
-	let opacity_moving = false;
+	let opacity_moving = $state(false);
 
 	function handle_hue_down(
 		event: MouseEvent & { currentTarget: HTMLDivElement }
@@ -121,12 +127,12 @@
 		hue_marker_pos = (hsva.h / 360) * hue_rect!.width;
 	}
 
-	$: update_mouse_from_color(color);
+	$effect(() => {
+		update_mouse_from_color(color);
+	});
 
 	let sl_wrap: HTMLDivElement;
 	let hue_wrap: HTMLDivElement;
-
-	export let opacity = 1;
 
 	let opacity_wrap: HTMLDivElement;
 
@@ -150,12 +156,12 @@
 	});
 </script>
 
-<svelte:window on:mousemove={handle_move} on:mouseup={handle_end} />
+<svelte:window onmousemove={handle_move} onmouseup={handle_end} />
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="color-gradient"
-	on:mousedown={handle_sl_down}
+	onmousedown={handle_sl_down}
 	style="--hue:{hue}"
 	bind:this={sl_wrap}
 >
@@ -168,7 +174,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="opacity-slider"
-	on:mousedown={handle_opacity_down}
+	onmousedown={handle_opacity_down}
 	style="--color:{color === 'auto' ? 'transparent' : color}"
 	bind:this={opacity_wrap}
 >
@@ -179,7 +185,7 @@
 	/>
 </div>
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="hue-slider" on:mousedown={handle_hue_down} bind:this={hue_wrap}>
+<div class="hue-slider" onmousedown={handle_hue_down} bind:this={hue_wrap}>
 	<div
 		class="marker"
 		style:background={"hsl(" + hue + ", 100%, 50%)"}

@@ -1,36 +1,35 @@
 <script lang="ts">
 	import type { HTMLImgAttributes } from "svelte/elements";
-	import { createEventDispatcher, onMount, tick } from "svelte";
-	interface Props extends HTMLImgAttributes {
+	import { onMount, tick } from "svelte";
+	interface Props extends Omit<HTMLImgAttributes, "onload"> {
 		"data-testid"?: string;
 		fixed?: boolean;
 		transform?: string;
-		img_el?: HTMLImageElement;
+		img_el?: HTMLImageElement | null;
 		hidden?: boolean;
 		variant?: "preview" | "upload";
 		max_height?: number;
 		fullscreen?: boolean;
-	}
-	type $$Props = Props;
-
-	export let src: HTMLImgAttributes["src"] = undefined;
-	export let fullscreen = false;
-
-	export let fixed = false;
-	export let transform = "translate(0px, 0px) scale(1)";
-	export let img_el: HTMLImageElement | null = null;
-	export let hidden = false;
-	export let variant = "upload";
-	export let max_height = 500;
-
-	const dispatch = createEventDispatcher<{
-		load: {
+		onload?: (size: {
 			top: number;
 			left: number;
 			width: number;
 			height: number;
-		};
-	}>();
+		}) => void;
+	}
+
+	let {
+		src = undefined,
+		fullscreen = false,
+		fixed = false,
+		transform = "translate(0px, 0px) scale(1)",
+		img_el = $bindable<HTMLImageElement | null>(),
+		hidden = false,
+		variant = "upload",
+		max_height = 500,
+		onload,
+		...restProps
+	}: Props = $props();
 
 	function get_image_size(img: HTMLImageElement | null): {
 		top: number;
@@ -70,7 +69,7 @@
 		const resizer = new ResizeObserver(async (entries) => {
 			for (const entry of entries) {
 				await tick();
-				dispatch("load", get_image_size(img_el));
+				onload?.(get_image_size(img_el));
 			}
 		});
 
@@ -86,7 +85,7 @@
 <img
 	{src}
 	data-testid="imageslider-image"
-	{...$$restProps}
+	{...restProps}
 	class:fixed
 	style:transform
 	bind:this={img_el}
@@ -96,7 +95,7 @@
 	style:max-height={max_height && !fullscreen ? `${max_height}px` : null}
 	class:fullscreen
 	class:small={!fullscreen}
-	on:load={() => dispatch("load", get_image_size(img_el))}
+	onload={() => onload?.(get_image_size(img_el))}
 />
 
 <style>

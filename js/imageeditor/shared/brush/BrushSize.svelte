@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { click_outside } from "../utils/events";
-	import { createEventDispatcher } from "svelte";
 	import { BrushSize } from "@gradio/icons";
 
-	export let selected_size: number;
-	export let min: number;
-	export let max: number;
-
-	const dispatch = createEventDispatcher<{
-		click_outside: void;
-	}>();
+	let {
+		selected_size = $bindable(),
+		min,
+		max,
+		onclick_outside = () => {}
+	}: {
+		selected_size: number;
+		min: number;
+		max: number;
+		onclick_outside?: (event: MouseEvent) => void;
+	} = $props();
 </script>
 
-<div class="wrap" use:click_outside={() => dispatch("click_outside")}>
+<div class="wrap" use:click_outside={onclick_outside}>
 	<span>
 		<BrushSize />
 	</span>
