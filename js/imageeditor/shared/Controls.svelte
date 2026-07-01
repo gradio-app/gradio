@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import {
 		Check,
@@ -11,30 +10,45 @@
 		Undo,
 		Redo
 	} from "@gradio/icons";
-	import type { Writable } from "svelte/store";
+	let {
+		can_save = false,
+		changeable = false,
+		current_zoom = 1,
+		tool,
+		min_zoom = true,
+		enable_download = false,
+		can_undo,
+		can_redo,
+		onremove_image,
+		onundo,
+		onredo,
+		onsave,
+		onzoom_in,
+		onzoom_out,
+		onset_zoom,
+		onpan,
+		ondownload
+	}: {
+		can_save?: boolean;
+		changeable?: boolean;
+		current_zoom?: number;
+		tool: string;
+		min_zoom?: boolean;
+		enable_download?: boolean;
+		can_undo: boolean;
+		can_redo: boolean;
+		onremove_image?: () => void;
+		onundo?: () => void;
+		onredo?: () => void;
+		onsave?: () => void;
+		onzoom_in?: () => void;
+		onzoom_out?: () => void;
+		onset_zoom?: (zoom: number | "fit") => void;
+		onpan?: () => void;
+		ondownload?: () => void;
+	} = $props();
 
-	export let can_save = false;
-	export let changeable = false;
-	export let current_zoom = 1;
-	export let tool: string;
-	export let min_zoom = true;
-	export let enable_download = false;
-	export let can_undo: boolean;
-	export let can_redo: boolean;
-
-	const dispatch = createEventDispatcher<{
-		remove_image: void;
-		undo: void;
-		redo: void;
-		save: void;
-		zoom_in: void;
-		zoom_out: void;
-		set_zoom: number | "fit";
-		pan: void;
-		download: void;
-	}>();
-
-	let show_zoom_popup = false;
+	let show_zoom_popup = $state(false);
 
 	function handle_zoom_click(e: MouseEvent): void {
 		e.stopPropagation();
@@ -42,7 +56,7 @@
 	}
 
 	function handle_zoom_change(zoom: number | "fit"): void {
-		dispatch("set_zoom", zoom);
+		onset_zoom?.(zoom);
 		show_zoom_popup = false;
 	}
 
@@ -52,7 +66,7 @@
 		}
 	}
 
-	$: formatted_zoom = Math.round(current_zoom * 100);
+	let formatted_zoom = $derived(Math.round(current_zoom * 100));
 </script>
 
 <IconButtonWrapper>
@@ -61,7 +75,7 @@
 			Icon={Download}
 			label="Download"
 			onclick={(event) => {
-				dispatch("download");
+				ondownload?.();
 				event.stopPropagation();
 			}}
 		/>
@@ -72,7 +86,7 @@
 		label="Pan"
 		onclick={(e) => {
 			e.stopPropagation();
-			dispatch("pan");
+			onpan?.();
 		}}
 		highlight={tool === "pan"}
 		size="small"
@@ -85,7 +99,7 @@
 		Icon={ZoomOut}
 		label="Zoom out"
 		onclick={(event) => {
-			dispatch("zoom_out");
+			onzoom_out?.();
 			event.stopPropagation();
 		}}
 	/>
@@ -93,7 +107,7 @@
 		Icon={ZoomIn}
 		label="Zoom in"
 		onclick={(event) => {
-			dispatch("zoom_in");
+			onzoom_in?.();
 			event.stopPropagation();
 		}}
 	/>
@@ -102,20 +116,30 @@
 		<span
 			role="button"
 			tabindex="0"
-			on:click={handle_zoom_click}
-			on:keydown={handle_zoom_keydown}>{formatted_zoom}%</span
+			onclick={handle_zoom_click}
+			onkeydown={handle_zoom_keydown}>{formatted_zoom}%</span
 		>
 		{#if show_zoom_popup}
 			<div class="zoom-controls">
 				<ul>
 					<li>
-						<button on:click|stopPropagation={() => handle_zoom_change("fit")}>
+						<button
+							onclick={(event) => {
+								event.stopPropagation();
+								handle_zoom_change("fit");
+							}}
+						>
 							Fit to screen
 						</button>
 					</li>
 					{#each [0.25, 0.5, 1, 2, 4] as zoom}
 						<li>
-							<button on:click|stopPropagation={() => handle_zoom_change(zoom)}>
+							<button
+								onclick={(event) => {
+									event.stopPropagation();
+									handle_zoom_change(zoom);
+								}}
+							>
 								{zoom * 100}%
 							</button>
 						</li>
@@ -130,7 +154,7 @@
 		Icon={Undo}
 		label="Undo"
 		onclick={(event) => {
-			dispatch("undo");
+			onundo?.();
 			event.stopPropagation();
 		}}
 		disabled={!can_undo}
@@ -140,7 +164,7 @@
 		Icon={Redo}
 		label="Redo"
 		onclick={(event) => {
-			dispatch("redo");
+			onredo?.();
 			event.stopPropagation();
 		}}
 		disabled={!can_redo}
@@ -152,7 +176,7 @@
 			Icon={Check}
 			label="Save changes"
 			onclick={(event) => {
-				dispatch("save");
+				onsave?.();
 				event.stopPropagation();
 			}}
 			color="var(--color-accent)"
@@ -163,7 +187,7 @@
 		Icon={Trash}
 		label="Clear canvas"
 		onclick={(event) => {
-			dispatch("remove_image");
+			onremove_image?.();
 			event.stopPropagation();
 		}}
 	/>

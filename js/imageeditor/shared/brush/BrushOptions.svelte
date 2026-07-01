@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
 	import { click_outside } from "../utils/events";
 
 	import { type Brush, type ColorTuple } from "./types";
@@ -9,23 +8,35 @@
 	import BrushSize from "./BrushSize.svelte";
 	import type { ColorInput } from "tinycolor2";
 
-	export let colors: (ColorInput | ColorTuple)[];
-	export let selected_color: any;
-	export let color_mode: Brush["color_mode"] | undefined = undefined;
-	export let recent_colors: (ColorInput | ColorTuple)[] = [];
-	export let selected_size: number;
-	export let selected_opacity: number;
-	export let show_swatch: boolean;
-	export let show_size: boolean;
-	export let mode: "brush" | "eraser" = "brush";
+	let {
+		colors,
+		selected_color = $bindable(),
+		color_mode = undefined,
+		recent_colors = [],
+		selected_size = $bindable(),
+		selected_opacity = $bindable(),
+		show_swatch,
+		show_size,
+		mode = "brush",
+		preview = $bindable(),
+		onclick_outside = () => {}
+	}: {
+		colors: (ColorInput | ColorTuple)[];
+		selected_color: any;
+		color_mode?: Brush["color_mode"];
+		recent_colors?: (ColorInput | ColorTuple)[];
+		selected_size: number;
+		selected_opacity: number;
+		show_swatch: boolean;
+		show_size: boolean;
+		mode?: "brush" | "eraser";
+		preview?: boolean;
+		onclick_outside?: (event: MouseEvent) => void;
+	} = $props();
 
-	let color_picker = false;
-	let current_mode: "hex" | "rgb" | "hsl" = "hex";
-	let editing_index: number | null = null;
-
-	const dispatch = createEventDispatcher<{
-		click_outside: void;
-	}>();
+	let color_picker = $state(false);
+	let current_mode = $state<"hex" | "rgb" | "hsl">("hex");
+	let editing_index = $state<number | null>(null);
 
 	function handle_color_selection(
 		{
@@ -61,9 +72,11 @@
 		recent_colors[editing_index] = color;
 	}
 
-	$: handle_color_change(selected_color);
-	let width = 0;
-	let height = 0;
+	$effect(() => {
+		handle_color_change(selected_color);
+	});
+	let width = $state(0);
+	let height = $state(0);
 
 	function debounce(
 		func: (...args: any[]) => void,
@@ -76,7 +89,6 @@
 		};
 	}
 
-	export let preview = false;
 	function handle_preview(): void {
 		if (!preview) {
 			preview = true;
@@ -92,7 +104,11 @@
 
 	const debounced_close_preview = debounce(handle_close_preview, 1000);
 
-	$: (selected_size, selected_color, handle_preview());
+	$effect(() => {
+		selected_size;
+		selected_color;
+		handle_preview();
+	});
 
 	function handle_select(color: string): void {
 		selected_color = color;
@@ -124,7 +140,7 @@
 <div
 	class="wrap"
 	class:padded={!color_picker}
-	use:click_outside={() => dispatch("click_outside")}
+	use:click_outside={onclick_outside}
 	class:color_picker
 	class:size_picker={show_size && mode === "brush"}
 	class:eraser_picker={mode === "eraser"}
@@ -138,8 +154,8 @@
 			<ColorField
 				bind:current_mode
 				color={selected_color}
-				on:close={() => (color_picker = false)}
-				on:selected={({ detail }) => handle_select(detail)}
+				onclose={() => (color_picker = false)}
+				onselected={(detail) => handle_select(detail)}
 			/>
 		{/if}
 	{/if}
@@ -147,12 +163,12 @@
 		<ColorSwatch
 			bind:color_picker
 			{colors}
-			on:select={({ detail }) => handle_color_selection(detail, "core")}
-			on:edit={({ detail }) => handle_color_selection(detail, "user")}
+			onselect={(detail) => handle_color_selection(detail, "core")}
+			onedit={(detail) => handle_color_selection(detail, "user")}
 			user_colors={color_mode === "defaults" ? recent_colors : null}
 			{selected_color}
 			{current_mode}
-			on:add_color={handle_add_color}
+			onadd_color={handle_add_color}
 		/>
 	{/if}
 

@@ -1,8 +1,15 @@
 <script lang="ts">
-	export let value: [string, string];
-	export let samples_dir: string;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value,
+		samples_dir,
+		type,
+		selected = false
+	}: {
+		value: [string, string];
+		samples_dir: string;
+		type: "gallery" | "table";
+		selected?: boolean;
+	} = $props();
 </script>
 
 <!-- TODO: fix -->

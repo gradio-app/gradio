@@ -12,24 +12,30 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import type { Spring } from "svelte/motion";
 	import Anchor from "./Anchor.svelte";
 
-	export let dimensions: Spring<{ width: number; height: number }>;
+	let {
+		dimensions,
+		onchange
+	}: {
+		dimensions: Spring<{ width: number; height: number }>;
+		onchange?: (value: {
+			anchor: Position;
+			scale: boolean;
+			width: number;
+			height: number;
+		}) => void;
+	} = $props();
 
-	const dispatch = createEventDispatcher<{
-		change: { anchor: Position; scale: boolean; width: number; height: number };
-	}>();
+	let selected_anchor = $state<Position>("center");
+	let scale = $state(false);
 
-	let selected_anchor: Position = "center";
-	let scale = false;
-
-	let new_width = $dimensions?.width;
-	let new_height = $dimensions?.height;
+	let new_width = $state($dimensions?.width);
+	let new_height = $state($dimensions?.height);
 
 	function handle_click(): void {
-		dispatch("change", {
+		onchange?.({
 			anchor: selected_anchor,
 			scale,
 			width: new_width,
@@ -44,7 +50,7 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="wrap" on:click|stopPropagation>
+<div class="wrap" onclick={(event) => event.stopPropagation()}>
 	<div class="size-wrap">
 		<div class="size-input">
 			<label for="width">Width</label><input
@@ -86,9 +92,9 @@
 		</div>
 	</div>
 	<div class="anchor-wrap">
-		<Anchor on:position={(e) => set_anchor(e.detail)} />
+		<Anchor onposition={(position) => set_anchor(position)} />
 	</div>
-	<button class="apply-button" on:click={() => handle_click()}
+	<button class="apply-button" onclick={() => handle_click()}
 		>Resize Canvas</button
 	>
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
+	import { untrack } from "svelte";
 
 	let {
 		value,
@@ -32,7 +33,9 @@
 	$effect(() => {
 		if (!plot_div || !plot) return;
 
-		load_plotly_css();
+		// load_plotly_css writes loaded_plotly_css; untrack it so this effect
+		// doesn't re-run and collapse an autosize plot to zero height.
+		untrack(() => load_plotly_css());
 
 		let plotObj = JSON.parse(plot);
 
