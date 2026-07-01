@@ -1396,7 +1396,8 @@ class Workflow(Blocks):
             """Describe the workflow's API endpoints (one per subgraph) for the
             frontend "View API" panel. Re-reads the current graph so it tracks
             live edits, same as the registered endpoints."""
-            from gradio.workflow_api import WorkflowGraph, describe_workflow_api
+            from gradio.workflow_api import describe_workflow_api
+            from gradio.workflow_graph import WorkflowGraph
 
             graph = WorkflowGraph.from_json(_load_initial())
             endpoints = describe_workflow_api(graph) if graph is not None else []
@@ -1429,7 +1430,7 @@ class Workflow(Blocks):
                         {"error": "Workflow payload must use schema_version 2"}
                     )
                 try:
-                    from gradio.workflow_api import WorkflowGraph
+                    from gradio.workflow_graph import WorkflowGraph
 
                     WorkflowGraph(parsed)
                 except ValueError as exc:
@@ -1472,7 +1473,8 @@ class Workflow(Blocks):
             save_workflow,
         ]
 
-        from gradio.workflow_api import WorkflowGraph, register_workflow_endpoints
+        from gradio.workflow_api import register_workflow_endpoints
+        from gradio.workflow_graph import WorkflowGraph
 
         # Operator-kind → server-function used to execute that node. The same
         # functions back the canvas's client-side run; the API executor reuses
