@@ -28,6 +28,18 @@ def increment_counter(counter):
     return counter + 1
 
 
+def reveal_hidden_column():
+    """Generator that toggles two columns over multiple yields (issue #13494):
+    the column that starts hidden must end up visible."""
+    yield gr.update(visible=False), gr.update(visible=False)
+    yield gr.update(visible=False), gr.update(visible=True)
+
+
+def hide_revealed_column():
+    yield gr.update(visible=True), gr.update(visible=True)
+    yield gr.update(visible=True), gr.update(visible=False)
+
+
 with gr.Blocks() as demo:
     gr.Markdown("# Visibility Test Demo")
     gr.Markdown(
@@ -79,6 +91,20 @@ with gr.Blocks() as demo:
         lambda x: f"Counter Result: {x}", inputs=counter, outputs=counter_result
     )
     increment_btn.click(increment_counter, inputs=counter, outputs=counter)
+
+    # Regression coverage for #13494: a multi-yield generator that updates two
+    # columns at once (one hidden, one revealed) must leave the revealed column
+    # visible. The reveal/hide buttons sit outside both columns so they persist.
+    with gr.Row():
+        reveal_btn = gr.Button("Reveal Hidden Column", elem_id="yield-reveal")
+        hide_btn = gr.Button("Hide Revealed Column", elem_id="yield-hide")
+    with gr.Column(elem_id="yield-col-x") as yield_col_x:
+        gr.Markdown("Column X")
+    with gr.Column(visible=False, elem_id="yield-col-y") as yield_col_y:
+        gr.Textbox(label="Revealed", elem_id="yield-target")
+
+    reveal_btn.click(reveal_hidden_column, outputs=[yield_col_x, yield_col_y])
+    hide_btn.click(hide_revealed_column, outputs=[yield_col_x, yield_col_y])
 
 
 if __name__ == "__main__":

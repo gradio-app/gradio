@@ -103,8 +103,8 @@
 				{#if show_share_button && file}
 					<ShareButton
 						{i18n}
-						on:error={(e) => onerror?.(e.detail)}
-						on:share={(e) => onshare?.(e.detail)}
+						onerror={(detail) => onerror?.(detail)}
+						onshare={(detail) => onshare?.(detail)}
 						formatter={async (value) => {
 							if (!value) return "";
 							let url = await uploadToHuggingFace(value.url, "url");

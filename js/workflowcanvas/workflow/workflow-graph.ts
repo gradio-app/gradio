@@ -142,10 +142,8 @@ export function computeStaleNodes(
 }
 
 /**
- * Build a sub-workflow containing `targetId` plus all of its transitive
- * upstream dependencies. Used by per-node "run this" so we don't execute
- * unrelated branches. Node IDs are stable, so callbacks from the executor
- * still target the same status / output maps in the caller.
+ * Subgraph for "run this node": target + all upstream deps + direct downstream
+ * nodes (one hop), so output subjects update without running unrelated branches.
  */
 export function buildUpstreamSubgraph(
 	workflow: Workflow,
@@ -161,6 +159,9 @@ export function buildUpstreamSubgraph(
 				queue.push(e.from_node_id);
 			}
 		}
+	}
+	for (const e of workflow.edges) {
+		if (e.from_node_id === targetId) include.add(e.to_node_id);
 	}
 	return {
 		...workflow,

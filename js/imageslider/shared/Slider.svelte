@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, type Snippet } from "svelte";
 	import { drag } from "d3-drag";
 	import { select } from "d3-selection";
 
@@ -7,22 +7,33 @@
 		return Math.min(Math.max(value, min), max);
 	}
 
-	export let position = 0.5;
-	export let disabled = false;
+	let {
+		position = $bindable(0.5),
+		disabled = false,
+		slider_color = "var(--border-color-primary)",
+		image_size = { top: 0, left: 0, width: 0, height: 0 },
+		el = $bindable<HTMLDivElement | undefined>(undefined),
+		parent_el = $bindable<HTMLDivElement | undefined>(undefined),
+		children
+	}: {
+		position?: number;
+		disabled?: boolean;
+		slider_color?: string;
+		image_size?: {
+			top: number;
+			left: number;
+			width: number;
+			height: number;
+		};
+		el?: HTMLDivElement;
+		parent_el?: HTMLDivElement;
+		children?: Snippet;
+	} = $props();
 
-	export let slider_color = "var(--border-color-primary)";
-	export let image_size: {
-		top: number;
-		left: number;
-		width: number;
-		height: number;
-	} = { top: 0, left: 0, width: 0, height: 0 };
-	export let el: HTMLDivElement | undefined = undefined;
-	export let parent_el: HTMLDivElement | undefined = undefined;
 	let inner: Element;
-	let px = 0;
-	let active = false;
-	let container_width = 0;
+	let px = $state(0);
+	let active = $state(false);
+	let container_width = $state(0);
 
 	function set_position(width: number): void {
 		container_width = parent_el?.getBoundingClientRect().width || 0;
@@ -67,8 +78,12 @@
 		px = clamp(image_size.width * pc + image_size.left, 0, container_width);
 	}
 
-	$: set_position(image_size.width);
-	$: update_position_from_pc(position);
+	$effect(() => {
+		set_position(image_size.width);
+	});
+	$effect(() => {
+		update_position_from_pc(position);
+	});
 
 	onMount(() => {
 		set_position(image_size.width);
@@ -80,11 +95,11 @@
 	});
 </script>
 
-<svelte:window on:resize={() => set_position(image_size.width)} />
+<svelte:window onresize={() => set_position(image_size.width)} />
 
 <div class="wrap" role="none" bind:this={parent_el}>
 	<div class="content" bind:this={el}>
-		<slot />
+		{#if children}{@render children()}{/if}
 	</div>
 	<div
 		class="outer"

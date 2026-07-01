@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Slider from "./Slider.svelte";
-	import { createEventDispatcher, tick } from "svelte";
+	import { tick, type Snippet } from "svelte";
 	import { BlockLabel, Empty, IconButton, DownloadLink } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
 	import { Image } from "@gradio/icons";
-	import { type SelectData, type I18nFormatter } from "@gradio/utils";
+	import { type I18nFormatter } from "@gradio/utils";
 	import ClearImage from "./ClearImage.svelte";
 	import ImageEl from "./ImageEl.svelte";
 
@@ -12,65 +12,87 @@
 
 	import { type FileData, type Client } from "@gradio/client";
 
-	export let value: [FileData | null, FileData | null];
+	let {
+		value = $bindable<[FileData | null, FileData | null]>([null, null]),
+		label = undefined,
+		show_label,
+		root,
+		position = $bindable(0.5),
+		upload_count = 2,
+		show_download_button = true,
+		slider_color,
+		upload,
+		stream_handler,
+		max_file_size = null,
+		i18n,
+		max_height,
+		upload_promise = $bindable(),
+		dragging = $bindable(false),
+		onclear,
+		ondrag,
+		onupload,
+		children
+	}: {
+		value?: [FileData | null, FileData | null];
+		label?: string;
+		show_label: boolean;
+		root: string;
+		position?: number;
+		upload_count?: number;
+		show_download_button?: boolean;
+		slider_color: string;
+		upload: Client["upload"];
+		stream_handler: Client["stream"];
+		max_file_size?: number | null;
+		i18n: I18nFormatter;
+		max_height: number;
+		upload_promise?: Promise<any>;
+		dragging?: boolean;
+		onclear?: () => void;
+		ondrag?: (dragging: boolean) => void;
+		onupload?: (value: [FileData | null, FileData | null]) => void;
+		children?: Snippet;
+	} = $props();
 
-	export let label: string | undefined = undefined;
-	export let show_label: boolean;
-	export let root: string;
-	export let position: number;
-	export let upload_count = 2;
-
-	export let show_download_button = true;
-	export let slider_color: string;
-	export let upload: Client["upload"];
-	export let stream_handler: Client["stream"];
-	export let max_file_size: number | null = null;
-	export let i18n: I18nFormatter;
-	export let max_height: number;
-	export let upload_promise: Promise<any> | null = null;
-
-	let value_: [FileData | null, FileData | null] = value || [null, null];
+	let value_ = $state<[FileData | null, FileData | null]>(
+		value || [null, null]
+	);
 
 	let img: HTMLImageElement;
-	let el_width: number;
-	let el_height: number;
+	let el_width = $state(0);
+	let el_height = $state(0);
 
-	async function handle_upload(detail: FileData[], n: number): Promise<void> {
+	async function handle_upload(
+		detail: Blob | File | FileData | FileData[],
+		n: number
+	): Promise<void> {
+		const file_data = Array.isArray(detail) ? detail : [detail as FileData];
 		const new_value = [value[0], value[1]] as [
 			FileData | null,
 			FileData | null
 		];
-		if (detail.length > 1) {
-			new_value[n] = detail[0];
+		if (file_data.length > 1) {
+			new_value[n] = file_data[0];
 		} else {
-			new_value[n] = detail[n];
+			new_value[n] = file_data[n];
 		}
 		value = new_value;
 		await tick();
 
-		dispatch("upload", new_value);
+		onupload?.(new_value);
 	}
 
 	let old_value = "";
 
-	$: if (JSON.stringify(value) !== old_value) {
+	$effect(() => {
+		if (JSON.stringify(value) === old_value) return;
 		old_value = JSON.stringify(value);
 		value_ = value;
-	}
+	});
 
-	const dispatch = createEventDispatcher<{
-		change: string | null;
-		stream: string | null;
-		edit: undefined;
-		clear: undefined;
-		drag: boolean;
-		upload: [FileData | null, FileData | null];
-		select: SelectData;
-	}>();
-
-	export let dragging = false;
-
-	$: dispatch("drag", dragging);
+	$effect(() => {
+		ondrag?.(dragging);
+	});
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
@@ -83,10 +105,10 @@
 >
 	{#if value?.[0]?.url || value?.[1]?.url}
 		<ClearImage
-			on:remove_image={() => {
+			onremove_image={() => {
 				position = 0.5;
 				value = [null, null];
-				dispatch("clear");
+				onclear?.();
 			}}
 		/>
 	{/if}
@@ -126,7 +148,7 @@
 						{stream_handler}
 						{max_file_size}
 					>
-						<slot />
+						{#if children}{@render children()}{/if}
 					</Upload>
 				</div>
 			{:else}
@@ -152,7 +174,7 @@
 					{stream_handler}
 					{max_file_size}
 				>
-					<slot />
+					{#if children}{@render children()}{/if}
 				</Upload>
 			{:else if !value_?.[1] && upload_count === 1}
 				<div
