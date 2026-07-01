@@ -151,3 +151,19 @@ describe("submit iterator", () => {
 		expect(error_event).toBeDefined();
 	});
 });
+
+describe("predict error handling", () => {
+	test("predict() rejects its returned promise when the endpoint does not exist, so the error is catchable", async () => {
+		const app = await Client.connect("hmb/hello_world");
+
+		await expect(
+			race_with_timeout(
+				app.predict("nonexistent_endpoint", ["hi"]),
+				1000,
+				"predict() never settled for an unknown endpoint"
+			)
+		).rejects.toThrow(
+			"There is no endpoint matching that name of fn_index matching that number."
+		);
+	});
+});
