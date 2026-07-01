@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+from typing import Optional
 
 import pytest
 
@@ -455,13 +456,22 @@ class TestCallFn:
     def test_injects_oauth_token(self, tmp_path):
         received = {}
 
-        def fn_with_token(text: str, token: OAuthToken) -> str:
+        def fn_with_token(text: str, token: Optional[OAuthToken]) -> str:
             received["token"] = token
             return text
 
         call_fn = self._call_fn(tmp_path, {"fn_with_token": fn_with_token})
-        token = _make_oauth("test-tok")
-        result = json.loads(call_fn(["fn_with_token", '["hi"]'], _token=token))
+
+        class _MockRequest:
+            session = {
+                "oauth_info": {
+                    "access_token": "test-tok",
+                    "scope": "openid",
+                    "expires_at": 9999999999,
+                }
+            }
+
+        result = json.loads(call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest()))
         assert result == ["hi"]
         assert received["token"].token == "test-tok"
 

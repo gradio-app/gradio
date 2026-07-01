@@ -447,23 +447,6 @@ def _format_error(e: Exception) -> str:
     return json.dumps(err)
 
 
-def _inject_oauth_token(fn: Callable, args: list, token: Optional[OAuthToken]) -> list:
-    """Insert token into args at every position where fn declares OAuthToken."""
-    if token is None:
-        return args
-    try:
-        hints = get_type_hints(fn)
-        params = list(inspect.signature(fn).parameters.items())
-    except Exception:
-        return args
-    result = list(args)
-    for i, (name, param) in enumerate(params):
-        if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
-            break
-        if hints.get(name) in (OAuthToken, Optional[OAuthToken]):
-            result.insert(i, token)
-    return result
-
 
 def get_token(
     _data=None,
@@ -1361,7 +1344,8 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
-                args = _inject_oauth_token(fn, args, _token)
+                from gradio.helpers import special_args as _special_args
+                args, *_ = _special_args(fn, args, _request, None)
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(result)
