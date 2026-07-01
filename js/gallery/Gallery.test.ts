@@ -1,5 +1,13 @@
 import { test, describe, afterEach, expect, vi } from "vitest";
-import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
+import {
+	cleanup,
+	render,
+	fireEvent,
+	waitFor,
+	upload_file,
+	mock_client,
+	TEST_JPG
+} from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import Gallery from "./Index.svelte";
@@ -607,6 +615,30 @@ describe("Events: change", () => {
 		await set_data({ value: null });
 
 		expect(change).toHaveBeenCalled();
+	});
+});
+
+describe("Events: upload", () => {
+	afterEach(() => cleanup());
+
+	test("upload: file input dispatches upload and change events", async () => {
+		const { listen } = await render(Gallery, {
+			...default_props,
+			interactive: true,
+			value: null,
+			root: "https://example.com",
+			client: mock_client()
+		});
+
+		const upload = listen("upload");
+		const change = listen("change");
+
+		await upload_file(TEST_JPG);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+		expect(change).toHaveBeenCalledTimes(1);
 	});
 });
 

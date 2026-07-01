@@ -337,8 +337,7 @@
 	}
 
 	function select_model(item: SpaceResult) {
-		if (!item.pipeline_tag) return;
-		const schema = TASK_SCHEMAS[item.pipeline_tag];
+		const schema = item.pipeline_tag ? TASK_SCHEMAS[item.pipeline_tag] : null;
 		const inputHints = active_subtab.inputs;
 		const outputHints = active_subtab.outputs;
 		const template = {
@@ -401,8 +400,7 @@
 		} catch (err) {
 			loading_space_id = null;
 			const msg = err instanceof Error ? err.message : "Couldn't load space";
-			const label = space.title || space.id;
-			onerror?.(`${label}: ${msg}`);
+			pinned_error = msg;
 		}
 	}
 
@@ -728,7 +726,7 @@
 						<span class="spinner small"></span>
 						<span>Resolving repo…</span>
 					</div>
-				{:else if pinned_error}
+				{:else if pinned_error && !pinned_result}
 					<div class="picker-pinned picker-pinned-error">{pinned_error}</div>
 				{:else if pinned_result}
 					{@const pinned = pinned_result}
@@ -811,6 +809,9 @@
 							</a>
 						</div>
 					</div>
+					{#if pinned_error}
+						<div class="picker-pinned picker-pinned-error">{pinned_error}</div>
+					{/if}
 				{/if}
 
 				{#if loading && !has_results}
@@ -1480,10 +1481,13 @@
 	}
 	.picker-pinned-error {
 		color: #ef4444;
+		background: rgba(239, 68, 68, 0.08);
+		border-radius: 8px;
+		margin: 4px 0;
+		font-size: 12.5px;
 	}
 	.space-row.pinned {
 		background: rgba(249, 115, 22, 0.06);
-		border-left: 3px solid #f97316;
 	}
 	:global(body:not(.dark)) .space-row.pinned {
 		background: rgba(249, 115, 22, 0.05);

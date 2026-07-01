@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { spring } from "svelte/motion";
 	import { Image } from "@gradio/icons";
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount } from "svelte";
 
 	const positions = [
 		"top-left",
@@ -14,9 +14,11 @@
 		"bottom",
 		"bottom-right"
 	] as const;
-	const dispatch = createEventDispatcher<{
-		position: (typeof positions)[number];
-	}>();
+	let {
+		onposition
+	}: {
+		onposition?: (position: (typeof positions)[number]) => void;
+	} = $props();
 
 	const spring_opt = {
 		stiffness: 0.1,
@@ -35,8 +37,8 @@
 	};
 	const arrow_spring = spring<Arrow[]>([], spring_opt);
 
-	let last_i = 0;
-	let expanded = true;
+	let last_i = $state(0);
+	let expanded = $state(true);
 	const box_size = (120 - 5 * 2) / 3;
 
 	async function handle_box_hover(i: number): Promise<void> {
@@ -49,7 +51,7 @@
 		dimensions.set(init);
 	}
 
-	let last_pos = 0;
+	let last_pos = $state(0);
 	async function handle_box_click(i: number, stagger = false): Promise<void> {
 		if (expanded && stagger) return;
 
@@ -77,7 +79,7 @@
 		dimensions.set([120 + 10, 120 + 10]);
 		arrow_spring.set(eventual_arrows);
 
-		dispatch("position", positions[i]);
+		onposition?.(positions[i]);
 	}
 
 	function get_valid_offsets(anchorPoint: {
@@ -215,14 +217,14 @@
 		class="box-wrap"
 		role="grid"
 		tabindex="0"
-		on:mouseleave={() => handle_box_click(last_pos, true)}
+		onmouseleave={() => handle_box_click(last_pos, true)}
 	>
 		{#each { length: 9 } as _, i}
 			<button
 				class="box"
 				class:active-box={last_pos === i}
-				on:mouseenter={() => handle_box_hover(i)}
-				on:click={() => handle_box_click(i)}
+				onmouseenter={() => handle_box_hover(i)}
+				onclick={() => handle_box_click(i)}
 			>
 				<span class:active={last_pos === i} class="icon-wrap">
 					<Image />
