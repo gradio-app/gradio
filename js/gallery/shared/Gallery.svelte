@@ -18,6 +18,7 @@
 
 	import {
 		Download,
+		DownloadAll,
 		Image as ImageIcon,
 		Clear,
 		Play,
@@ -45,6 +46,7 @@
 		object_fit = "cover",
 		show_share_button = false,
 		show_download_button = false,
+		show_download_all_button = false,
 		i18n,
 		selected_index = $bindable(),
 		interactive,
@@ -83,6 +85,7 @@
 		object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
 		show_share_button: boolean;
 		show_download_button: boolean;
+		show_download_all_button: boolean;
 		i18n: I18nFormatter;
 		selected_index: number | null;
 		interactive: boolean;
@@ -305,6 +308,184 @@
 		link.download = name;
 		link.click();
 		URL.revokeObjectURL(url);
+	}
+
+	const crc_table = new Uint32Array(
+		Array.from({ length: 256 }, (_, i) => {
+			let c = i;
+			for (let k = 0; k < 8; k++) {
+				c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+			}
+			return c >>> 0;
+		})
+	);
+
+	function crc32(data: Uint8Array): number {
+		let c = 0xffffffff;
+		for (const byte of data) {
+			c = crc_table[(c ^ byte) & 0xff] ^ (c >>> 8);
+		}
+		return (c ^ 0xffffffff) >>> 0;
+	}
+
+	function write_uint16(view: DataView, offset: number, value: number): void {
+		view.setUint16(offset, value, true);
+	}
+
+	function write_uint32(view: DataView, offset: number, value: number): void {
+		view.setUint32(offset, value, true);
+	}
+
+	function zip_header(size: number): Uint8Array {
+		return new Uint8Array(size);
+	}
+
+	function get_unique_name(
+		file: FileData,
+		fallback: string,
+		used_names: Map<string, number>
+	): string {
+		const raw_name = file.orig_name || file.path || fallback;
+		const name = raw_name.split(/[/\\]/).pop() || fallback;
+		const count = used_names.get(name) ?? 0;
+		used_names.set(name, count + 1);
+		if (count === 0) return name;
+
+		const dot_index = name.lastIndexOf(".");
+		const base = dot_index > 0 ? name.slice(0, dot_index) : name;
+		const ext = dot_index > 0 ? name.slice(dot_index) : "";
+		return `${base}-${count + 1}${ext}`;
+	}
+
+	function create_zip(files: { name: string; data: Uint8Array }[]): Uint8Array {
+		const encoder = new TextEncoder();
+		const parts: Uint8Array[] = [];
+		const central_parts: Uint8Array[] = [];
+		const utf8_flag = 0x0800;
+		let offset = 0;
+
+		for (const file of files) {
+			const name = encoder.encode(file.name);
+			const checksum = crc32(file.data);
+			const local_header = zip_header(30 + name.length);
+			const local_view = new DataView(local_header.buffer);
+			write_uint32(local_view, 0, 0x04034b50);
+			write_uint16(local_view, 4, 20);
+			write_uint16(local_view, 6, utf8_flag);
+			write_uint16(local_view, 8, 0);
+			write_uint16(local_view, 10, 0);
+			write_uint16(local_view, 12, 33);
+			write_uint32(local_view, 14, checksum);
+			write_uint32(local_view, 18, file.data.length);
+			write_uint32(local_view, 22, file.data.length);
+			write_uint16(local_view, 26, name.length);
+			write_uint16(local_view, 28, 0);
+			local_header.set(name, 30);
+			parts.push(local_header, file.data);
+
+			const central_header = zip_header(46 + name.length);
+			const central_view = new DataView(central_header.buffer);
+			write_uint32(central_view, 0, 0x02014b50);
+			write_uint16(central_view, 4, 20);
+			write_uint16(central_view, 6, 20);
+			write_uint16(central_view, 8, utf8_flag);
+			write_uint16(central_view, 10, 0);
+			write_uint16(central_view, 12, 0);
+			write_uint16(central_view, 14, 33);
+			write_uint32(central_view, 16, checksum);
+			write_uint32(central_view, 20, file.data.length);
+			write_uint32(central_view, 24, file.data.length);
+			write_uint16(central_view, 28, name.length);
+			write_uint16(central_view, 30, 0);
+			write_uint16(central_view, 32, 0);
+			write_uint16(central_view, 34, 0);
+			write_uint16(central_view, 36, 0);
+			write_uint32(central_view, 38, 0);
+			write_uint32(central_view, 42, offset);
+			central_header.set(name, 46);
+			central_parts.push(central_header);
+
+			offset += local_header.length + file.data.length;
+		}
+
+		const central_offset = offset;
+		const central_size = central_parts.reduce(
+			(sum, part) => sum + part.length,
+			0
+		);
+		const end = zip_header(22);
+		const end_view = new DataView(end.buffer);
+		write_uint32(end_view, 0, 0x06054b50);
+		write_uint16(end_view, 4, 0);
+		write_uint16(end_view, 6, 0);
+		write_uint16(end_view, 8, files.length);
+		write_uint16(end_view, 10, files.length);
+		write_uint32(end_view, 12, central_size);
+		write_uint32(end_view, 16, central_offset);
+		write_uint16(end_view, 20, 0);
+
+		const zip = new Uint8Array(central_offset + central_size + end.length);
+		let cursor = 0;
+		for (const part of [...parts, ...central_parts, end]) {
+			zip.set(part, cursor);
+			cursor += part.length;
+		}
+		return zip;
+	}
+
+	async function get_zip_file(
+		url: string,
+		name: string
+	): Promise<{ name: string; data: Uint8Array } | null> {
+		let response;
+		try {
+			response = await _fetch(url);
+		} catch (error) {
+			if (error instanceof TypeError) {
+				window.open(url, "_blank", "noreferrer");
+			}
+			return null;
+		}
+		if (!response.ok) return null;
+		return {
+			name,
+			data: new Uint8Array(await response.arrayBuffer())
+		};
+	}
+
+	async function download_all(media: GalleryData[]): Promise<void> {
+		const used_names = new Map<string, number>();
+		const files = await Promise.all(
+			media.flatMap((item, index) => {
+				const file = "image" in item ? item.image : item.video;
+				const fallback =
+					"image" in item ? `image-${index + 1}` : `video-${index + 1}`;
+				if (!file.url) return [];
+				const name = get_unique_name(file, fallback, used_names);
+				return [get_zip_file(file.url, name)];
+			})
+		);
+		const valid_files = files.filter(
+			(file): file is { name: string; data: Uint8Array } => file !== null
+		);
+
+		if (valid_files.length === 0) return;
+
+		const zip = create_zip(valid_files);
+		const url = URL.createObjectURL(
+			new Blob([zip.buffer as ArrayBuffer], { type: "application/zip" })
+		);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = "gallery.zip";
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function handle_download_all(): void {
+		if (resolved_value) {
+			download_all(resolved_value);
+		}
 	}
 
 	let selected_media = $derived.by(() =>
@@ -550,6 +731,13 @@
 						onclear();
 					}}
 				>
+					{#if show_download_all_button}
+						<IconButton
+							Icon={DownloadAll}
+							label={i18n("common.download_all")}
+							onclick={handle_download_all}
+						/>
+					{/if}
 					{#if upload && stream_handler}
 						<IconButton
 							Icon={UploadIcon}
@@ -598,6 +786,14 @@
 						/>
 					{/if}
 				</ModifyUpload>
+			{:else if show_download_all_button && !(selected_media && allow_preview)}
+				<IconButtonWrapper>
+					<IconButton
+						Icon={DownloadAll}
+						label={i18n("common.download_all")}
+						onclick={handle_download_all}
+					/>
+				</IconButtonWrapper>
 			{/if}
 			<div
 				class="grid-container"
