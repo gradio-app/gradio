@@ -23,38 +23,31 @@ export async function predict<T = unknown>(
 		)!;
 	}
 
-	return new Promise(async (resolve, reject) => {
-		try {
-			const app = this.submit(endpoint, data, null, null, true);
-			let result: unknown;
+	const app = this.submit(endpoint, data, null, null, true);
+	let result: unknown;
 
-			for await (const message of app) {
-				if (message.type === "data") {
-					data_returned = true;
-					result = message;
-					if (status_complete) {
-						resolve(result as PredictReturn<T>);
-						return;
-					}
-				}
+	for await (const message of app) {
+		if (message.type === "data") {
+			data_returned = true;
+			result = message;
+			if (status_complete) {
+				return result as PredictReturn<T>;
+			}
+		}
 
-				if (message.type === "status") {
-					if (message.stage === "error") {
-						reject(message);
-						return;
-					}
-					if (message.stage === "complete") {
-						status_complete = true;
-						// if complete message comes after data, resolve here
-						if (data_returned) {
-							resolve(result as PredictReturn<T>);
-							return;
-						}
-					}
+		if (message.type === "status") {
+			if (message.stage === "error") {
+				throw message;
+			}
+			if (message.stage === "complete") {
+				status_complete = true;
+				// if complete message comes after data, resolve here
+				if (data_returned) {
+					return result as PredictReturn<T>;
 				}
 			}
-		} catch (error) {
-			reject(error);
 		}
-	});
+	}
+
+	return result as PredictReturn<T>;
 }
