@@ -46,7 +46,7 @@ test("Gallery select event returns the right value and the download button works
 	);
 
 	const downloadPromise = page.waitForEvent("download");
-	await page.getByLabel("Download").click();
+	await page.getByLabel("Download", { exact: true }).click();
 	const download = await downloadPromise;
 	expect(download.suggestedFilename()).toBe("world.mp4");
 });

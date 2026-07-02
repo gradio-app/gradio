@@ -23,7 +23,13 @@ export interface GalleryProps {
 	allow_preview: boolean;
 	selected_index: number | null;
 	object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
-	buttons: (string | CustomButton)[];
+	buttons: (
+		| "share"
+		| "download"
+		| "download_all"
+		| "fullscreen"
+		| CustomButton
+	)[];
 	type: "numpy" | "pil" | "filepath";
 	fit_columns: boolean;
 	sources: ("upload" | "webcam-video" | "webcam" | "clipboard")[];
