@@ -22,7 +22,7 @@ from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
 from gradio.blocks import Blocks
-from gradio.oauth import OAuthToken
+from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
 from gradio.utils import get_space
 
@@ -40,6 +40,17 @@ _SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="hf-search")
 _CURATED_DATASET_REPO = "gradio/workflow-curated"
 _CURATED_DATASET_FILE = "curated.json"
 _CURATED_TTL_SECONDS = 3600.0
+
+# Types that special_args() injects automatically; exclude them from workflow
+# node inputs so they don't appear as user-visible ports and don't shift args.
+_SPECIAL_ARG_TYPES = (
+    OAuthToken,
+    Optional[OAuthToken],
+    OAuthProfile,
+    Optional[OAuthProfile],
+    Request,
+    Optional[Request],
+)
 
 
 class _CuratedCache(TypedDict):
@@ -193,7 +204,7 @@ def _workflow_from_bind(
                 "type": _PY_TO_PORT.get(param.annotation, "text"),
             }
             for p, param in sig.parameters.items()
-            if p != "self" and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
+            if p != "self" and _hints.get(p) not in _SPECIAL_ARG_TYPES
         ]
         outputs = [
             {
@@ -1383,7 +1394,7 @@ class Workflow(Blocks):
                     }
                     for p, param in sig.parameters.items()
                     if p != "self"
-                    and _hints.get(p) not in (OAuthToken, Optional[OAuthToken])
+                    and _hints.get(p) not in _SPECIAL_ARG_TYPES
                 ]
                 if not inputs:
                     inputs = [{"id": "in_0", "label": "input", "type": "text"}]
