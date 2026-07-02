@@ -153,6 +153,9 @@ class Queue:
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
         self.cached_event_analytics_summary = {"functions": {}}
         self.event_count_at_last_cache = 0
+        self.detached_session_expirations: dict[str, float] = {}
+        self.active_session_streams: defaultdict[str, int] = defaultdict(int)
+        self.resume_ttl = float(os.getenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "600"))
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
@@ -247,6 +250,48 @@ class Queue:
         event_message.event_id = event._id
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
+
+    def mark_session_attached(self, session_hash: str) -> None:
+        self.active_session_streams[session_hash] += 1
+        self.detached_session_expirations.pop(session_hash, None)
+
+    async def mark_session_detached(
+        self,
+        session_hash: str,
+        *,
+        stream_closed: bool = True,
+        delete_when_idle: bool = True,
+    ) -> None:
+        if stream_closed and self.active_session_streams.get(session_hash, 0) > 0:
+            self.active_session_streams[session_hash] -= 1
+            if self.active_session_streams[session_hash] == 0:
+                self.active_session_streams.pop(session_hash, None)
+
+        if self.active_session_streams.get(session_hash, 0) > 0:
+            return
+
+        if self.pending_event_ids_session.get(session_hash):
+            self.detached_session_expirations[session_hash] = (
+                time.monotonic() + self.resume_ttl
+            )
+        elif delete_when_idle:
+            await self.delete_session(session_hash)
+
+    async def delete_session(self, session_hash: str) -> None:
+        self.detached_session_expirations.pop(session_hash, None)
+        self.active_session_streams.pop(session_hash, None)
+        self.pending_messages_per_session.pop(session_hash, None)
+        await self.clean_events(session_hash=session_hash)
+
+    async def clean_expired_detached_sessions(self) -> None:
+        now = time.monotonic()
+        expired_sessions = [
+            session_hash
+            for session_hash, expires_at in self.detached_session_expirations.items()
+            if expires_at <= now
+        ]
+        for session_hash in expired_sessions:
+            await self.delete_session(session_hash)
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -521,6 +566,7 @@ class Queue:
     async def start_processing(self) -> None:
         try:
             while not self.stopped:
+                await self.clean_expired_detached_sessions()
                 if len(self) == 0:
                     await asyncio.sleep(self.sleep_when_free)
                     continue

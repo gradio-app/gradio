@@ -64,6 +64,8 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	stream_reconnect_attempts = 0;
+	stream_reconnect_timer: ReturnType<typeof setTimeout> | null = null;
 	heartbeat_event: EventSource | null = null;
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
@@ -309,6 +311,10 @@ export class Client {
 
 	close(): void {
 		this.closed = true;
+		if (this.stream_reconnect_timer) {
+			clearTimeout(this.stream_reconnect_timer);
+			this.stream_reconnect_timer = null;
+		}
 		close_stream(this.stream_status, this.abort_controller);
 	}
 

@@ -307,6 +307,59 @@ def test_cancel_removes_pending_event_from_queue():
         demo.close()
 
 
+def test_detached_queue_session_can_resume():
+    """A dropped queue stream should not cancel a queued or running event."""
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        def slow():
+            time.sleep(0.2)
+            return "done"
+
+        start.click(slow, None, output)
+
+    demo.queue(default_concurrency_limit=1)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        response = test_client.post(
+            f"{API_PREFIX}/queue/join",
+            json={
+                "data": [],
+                "fn_index": 0,
+                "event_data": None,
+                "session_hash": "resume_session",
+                "trigger_id": None,
+            },
+        )
+        assert response.status_code == 200
+        event_id = response.json()["event_id"]
+
+        asyncio.run(demo._queue.mark_session_detached("resume_session"))
+
+        assert event_id in demo._queue.event_ids_to_events
+        assert event_id in demo._queue.pending_event_ids_session["resume_session"]
+        assert "resume_session" in demo._queue.pending_messages_per_session
+
+        response = test_client.get(
+            f"{API_PREFIX}/queue/data?session_hash=resume_session"
+        )
+        completed_data = None
+        for line in response.iter_lines():
+            if "data" not in line:
+                continue
+            data = json.loads(line[5:])
+            if data["msg"] == "process_completed":
+                completed_data = data["output"]["data"]
+
+        assert completed_data == ["done"]
+        assert "resume_session" not in demo._queue.detached_session_expirations
+    finally:
+        demo.close()
+
+
 def test_analytics_summary(monkeypatch):
     """Test that the analytics summary endpoint is correctly being computed every N requests,
     where N is set by the GRADIO_ANALYTICS_CACHE_FREQUENCY environment variable."""

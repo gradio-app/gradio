@@ -1222,6 +1222,14 @@ class App(FastAPI):
                         if not stop_stream_task.done():
                             stop_stream_task.cancel()
 
+                        if app.get_blocks()._queue.pending_event_ids_session.get(
+                            session_hash
+                        ):
+                            await app.get_blocks()._queue.mark_session_detached(
+                                session_hash, stream_closed=False
+                            )
+                            return
+
                         req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
@@ -1501,11 +1509,12 @@ class App(FastAPI):
                         await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
+                blocks._queue.mark_session_attached(session_hash)
                 heartbeat_task = asyncio.create_task(heartbeat())
                 try:
                     while True:
                         if await request.is_disconnected():
-                            await blocks._queue.clean_events(session_hash=session_hash)
+                            await blocks._queue.mark_session_detached(session_hash)
                             heartbeat_task.cancel()
                             return
 
@@ -1568,17 +1577,22 @@ class App(FastAPI):
                                     response = process_msg(message)
                                     if response is not None:
                                         yield response
+                                    await blocks._queue.mark_session_detached(
+                                        session_hash, delete_when_idle=False
+                                    )
                                     heartbeat_task.cancel()
                                     return
+                except asyncio.CancelledError:
+                    await blocks._queue.mark_session_detached(session_hash)
+                    heartbeat_task.cancel()
+                    raise
                 except BaseException as e:
                     message = UnexpectedErrorMessage(
                         message=str(e),
                         session_not_found=isinstance(e, HTTPException),
                     )
                     response = process_msg(message)
-                    if isinstance(e, asyncio.CancelledError):
-                        del blocks._queue.pending_messages_per_session[session_hash]
-                        await blocks._queue.clean_events(session_hash=session_hash)
+                    await blocks._queue.mark_session_detached(session_hash)
                     if response is not None:
                         yield response
                     heartbeat_task.cancel()
