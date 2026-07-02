@@ -361,6 +361,7 @@
 		const encoder = new TextEncoder();
 		const parts: Uint8Array[] = [];
 		const central_parts: Uint8Array[] = [];
+		const utf8_flag = 0x0800;
 		let offset = 0;
 
 		for (const file of files) {
@@ -370,7 +371,7 @@
 			const local_view = new DataView(local_header.buffer);
 			write_uint32(local_view, 0, 0x04034b50);
 			write_uint16(local_view, 4, 20);
-			write_uint16(local_view, 6, 0);
+			write_uint16(local_view, 6, utf8_flag);
 			write_uint16(local_view, 8, 0);
 			write_uint16(local_view, 10, 0);
 			write_uint16(local_view, 12, 33);
@@ -387,7 +388,7 @@
 			write_uint32(central_view, 0, 0x02014b50);
 			write_uint16(central_view, 4, 20);
 			write_uint16(central_view, 6, 20);
-			write_uint16(central_view, 8, 0);
+			write_uint16(central_view, 8, utf8_flag);
 			write_uint16(central_view, 10, 0);
 			write_uint16(central_view, 12, 0);
 			write_uint16(central_view, 14, 33);
@@ -432,6 +433,26 @@
 		return zip;
 	}
 
+	async function get_zip_file(
+		url: string,
+		name: string
+	): Promise<{ name: string; data: Uint8Array } | null> {
+		let response;
+		try {
+			response = await _fetch(url);
+		} catch (error) {
+			if (error instanceof TypeError) {
+				window.open(url, "_blank", "noreferrer");
+			}
+			return null;
+		}
+		if (!response.ok) return null;
+		return {
+			name,
+			data: new Uint8Array(await response.arrayBuffer())
+		};
+	}
+
 	async function download_all(media: GalleryData[]): Promise<void> {
 		const used_names = new Map<string, number>();
 		const files = await Promise.all(
@@ -441,20 +462,18 @@
 					"image" in item ? `image-${index + 1}` : `video-${index + 1}`;
 				if (!file.url) return [];
 				const name = get_unique_name(file, fallback, used_names);
-				return [
-					_fetch(file.url).then(async (response) => ({
-						name,
-						data: new Uint8Array(await response.arrayBuffer())
-					}))
-				];
+				return [get_zip_file(file.url, name)];
 			})
 		);
+		const valid_files = files.filter(
+			(file): file is { name: string; data: Uint8Array } => file !== null
+		);
 
-		if (files.length === 0) return;
+		if (valid_files.length === 0) return;
 
-		const zip = create_zip(files);
+		const zip = create_zip(valid_files);
 		const url = URL.createObjectURL(
-			new Blob([zip], { type: "application/zip" })
+			new Blob([zip.buffer as ArrayBuffer], { type: "application/zip" })
 		);
 		const link = document.createElement("a");
 		link.href = url;

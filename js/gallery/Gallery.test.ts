@@ -444,6 +444,19 @@ describe("Props: buttons", () => {
 
 			const zip = new Uint8Array(await blobs[0].arrayBuffer());
 			expect(Array.from(zip.slice(0, 4))).toEqual([0x50, 0x4b, 0x03, 0x04]);
+			const zip_view = new DataView(zip.buffer);
+			expect(zip_view.getUint16(6, true)).toBe(0x0800);
+			const central_header_index = zip.findIndex((_, index) =>
+				[0x50, 0x4b, 0x01, 0x02].every(
+					(byte, offset) => zip[index + offset] === byte
+				)
+			);
+			expect(central_header_index).toBeGreaterThan(-1);
+			expect(zip_view.getUint16(central_header_index + 8, true)).toBe(0x0800);
+			const zip_text = new TextDecoder().decode(zip);
+			expect(zip_text).toContain("cat.png");
+			expect(zip_text).toContain("clip.mp4");
+			expect(zip_text).toContain("dog.png");
 		} finally {
 			vi.restoreAllMocks();
 		}
