@@ -53,6 +53,7 @@ jobs:
           python_version: "3.10"
           os: "ubuntu-latest"
           test: true
+          skip_docs_gen: true
       - name: Lint
         run: |
           . venv/bin/activate
@@ -117,6 +118,7 @@ jobs:
           test: true
           skip_build: true
           skip_gradio_install: true
+          skip_docs_gen: true
       - name: Install gradio_client wheel
         shell: bash
         run: |

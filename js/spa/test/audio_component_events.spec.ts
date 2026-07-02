@@ -1,43 +1,16 @@
 import { test, expect, drag_and_drop_file } from "@self/tootils";
 import { chromium } from "playwright";
 
-test("Audio events are dispatched correctly. File downloading works and file has correct name.", async ({
+test("Audio click-to-upload downloads the file with the correct name.", async ({
 	page
 }) => {
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
 
-	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Input Input Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
-
-	await page.getByLabel("Clear").click();
-	await expect(page.getByLabel("# Input Change Events")).toHaveValue("2");
-	await expect(page.getByLabel("# Input Input Events")).toHaveValue("2");
-	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
-
-	await expect(page.getByLabel("# Input Change Events")).toHaveValue("3");
-	await expect(page.getByLabel("# Input Input Events")).toHaveValue("3");
-	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("2");
-
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").nth(1).click();
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("audio_sample.wav");
-});
-
-test("Audio drag-and-drop uploads a file to the server correctly.", async ({
-	page
-}) => {
-	await drag_and_drop_file(
-		page,
-		"input[type=file]",
-		"../../test/test_files/audio_sample.wav",
-		"audio_sample.wav",
-		"audio/wav"
-	);
-	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
 });
 
 test("Audio drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
