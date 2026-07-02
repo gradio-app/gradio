@@ -108,6 +108,9 @@ export class ResizeTool implements Tool {
 	private dom_mouseup_handler: ((e: MouseEvent) => void) | null = null;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	private last_scale = 1;
+	private readonly handle_pointer_move_bound =
+		this.handle_pointer_move.bind(this);
+	private readonly handle_pointer_up_bound = this.handle_pointer_up.bind(this);
 
 	private original_state: {
 		width: number;
@@ -938,9 +941,9 @@ export class ResizeTool implements Tool {
 	private setup_event_listeners(): void {
 		const stage = this.image_editor_context.app.stage;
 		stage.eventMode = "static";
-		stage.on("pointermove", this.handle_pointer_move.bind(this));
-		stage.on("pointerup", this.handle_pointer_up.bind(this));
-		stage.on("pointerupoutside", this.handle_pointer_up.bind(this));
+		stage.on("pointermove", this.handle_pointer_move_bound);
+		stage.on("pointerup", this.handle_pointer_up_bound);
+		stage.on("pointerupoutside", this.handle_pointer_up_bound);
 
 		this.setup_dom_event_listeners();
 	}
@@ -1099,9 +1102,9 @@ export class ResizeTool implements Tool {
 	private cleanup_event_listeners(): void {
 		const stage = this.image_editor_context?.app?.stage;
 
-		stage?.off("pointermove", this.handle_pointer_move.bind(this));
-		stage?.off("pointerup", this.handle_pointer_up.bind(this));
-		stage?.off("pointerupoutside", this.handle_pointer_up.bind(this));
+		stage?.off("pointermove", this.handle_pointer_move_bound);
+		stage?.off("pointerup", this.handle_pointer_up_bound);
+		stage?.off("pointerupoutside", this.handle_pointer_up_bound);
 
 		this.cleanup_dom_event_listeners();
 	}
