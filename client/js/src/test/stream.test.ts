@@ -37,7 +37,8 @@ describe("open_stream", () => {
 	});
 
 	afterEach(() => {
-		vi.clearAllMocks();
+		vi.restoreAllMocks();
+		vi.useRealTimers();
 	});
 
 	it("should throw an error if config is not defined", async () => {
@@ -83,5 +84,32 @@ describe("open_stream", () => {
 			data: JSON.stringify("404")
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
+	});
+
+	it("should reconnect the SSE stream after an error when jobs are active", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const callback = vi.fn().mockResolvedValue(undefined);
+		app.event_callbacks["event-1"] = callback;
+		app.unclosed_events.add("event-1");
+
+		await app.open_stream();
+
+		if (!app.stream_instance?.onerror) {
+			throw new Error("stream instance is not defined");
+		}
+
+		app.stream_instance.onerror({
+			data: JSON.stringify("network error")
+		} as MessageEvent);
+
+		expect(app.stream_status.open).toBe(false);
+		expect(callback).not.toHaveBeenCalled();
+		expect(app.stream).toHaveBeenCalledTimes(1);
+
+		await vi.advanceTimersByTimeAsync(500);
+
+		expect(app.stream).toHaveBeenCalledTimes(2);
+		expect(app.stream_status.open).toBe(true);
 	});
 });

@@ -13,9 +13,19 @@ export async function open_stream(this: Client): Promise<void> {
 	} = this;
 
 	const that = this;
+	const max_reconnect_attempts = 8;
 
 	if (!config) {
 		throw new Error("Could not resolve app config");
+	}
+
+	if (stream_status.open) {
+		return;
+	}
+
+	if (this.stream_reconnect_timer) {
+		clearTimeout(this.stream_reconnect_timer);
+		this.stream_reconnect_timer = null;
 	}
 
 	stream_status.open = true;
@@ -39,6 +49,7 @@ export async function open_stream(this: Client): Promise<void> {
 	}
 
 	stream.onmessage = async function (event: MessageEvent) {
+		that.stream_reconnect_attempts = 0;
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
 			close_stream(stream_status, that.abort_controller);
@@ -77,14 +88,45 @@ export async function open_stream(this: Client): Promise<void> {
 	};
 	stream.onerror = async function (e) {
 		console.error(e);
-		await Promise.all(
-			Object.keys(event_callbacks).map((event_id) =>
-				event_callbacks[event_id]({
-					msg: "broken_connection",
-					message: BROKEN_CONNECTION_MSG
-				})
-			)
-		);
+		close_stream(stream_status, that.abort_controller);
+
+		if (
+			that.closed ||
+			(unclosed_events.size === 0 && Object.keys(event_callbacks).length === 0)
+		) {
+			return;
+		}
+
+		if (that.stream_reconnect_attempts >= max_reconnect_attempts) {
+			await Promise.all(
+				Object.keys(event_callbacks).map((event_id) =>
+					event_callbacks[event_id]({
+						msg: "broken_connection",
+						message: BROKEN_CONNECTION_MSG
+					})
+				)
+			);
+			return;
+		}
+
+		const delay = Math.min(500 * 2 ** that.stream_reconnect_attempts, 5000);
+		that.stream_reconnect_attempts += 1;
+
+		that.stream_reconnect_timer = setTimeout(async () => {
+			that.stream_reconnect_timer = null;
+			if (
+				that.closed ||
+				(unclosed_events.size === 0 &&
+					Object.keys(event_callbacks).length === 0)
+			) {
+				return;
+			}
+			try {
+				await that.open_stream();
+			} catch (error) {
+				stream?.onerror?.(error as Event);
+			}
+		}, delay);
 	};
 }
 
