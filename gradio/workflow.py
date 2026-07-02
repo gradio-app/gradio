@@ -1393,8 +1393,7 @@ class Workflow(Blocks):
                         "type": _PY_TO_PORT.get(param.annotation, "text"),
                     }
                     for p, param in sig.parameters.items()
-                    if p != "self"
-                    and _hints.get(p) not in _SPECIAL_ARG_TYPES
+                    if p != "self" and _hints.get(p) not in _SPECIAL_ARG_TYPES
                 ]
                 if not inputs:
                     inputs = [{"id": "in_0", "label": "input", "type": "text"}]
