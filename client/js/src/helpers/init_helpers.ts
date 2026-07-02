@@ -72,8 +72,6 @@ export async function resolve_config(
 		? { Authorization: `Bearer ${this.options.token}` }
 		: {};
 
-	headers["Content-Type"] = "application/json";
-
 	if (
 		typeof window !== "undefined" &&
 		window.gradio_config &&
@@ -94,7 +92,7 @@ export async function resolve_config(
 			);
 			const response = await this.fetch(config_url, {
 				headers,
-				credentials: "include"
+				credentials: "same-origin"
 			});
 			const config = await handleConfigResponse(response, !!this.options.auth);
 			config.root = endpoint || config.root;
@@ -114,7 +112,7 @@ export async function resolve_config(
 
 		const response = await this.fetch(config_url, {
 			headers,
-			credentials: "include"
+			credentials: "same-origin"
 		});
 
 		const config = await handleConfigResponse(response, !!this.options.auth);
@@ -201,7 +199,7 @@ export async function get_cookie_header(
 		headers,
 		method: "POST",
 		body: formData,
-		credentials: "include"
+		credentials: "same-origin"
 	});
 
 	if (res.status === 200) {

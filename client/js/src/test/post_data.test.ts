@@ -1,4 +1,5 @@
 import { Client } from "../client";
+import { post_data } from "../utils/post_data";
 
 import { initialise_server } from "./server";
 import { BROKEN_CONNECTION_MSG } from "../constants";
@@ -45,5 +46,25 @@ describe("post_data", () => {
 
 		expect(response).toEqual(BROKEN_CONNECTION_MSG);
 		expect(status).toBe(500);
+	});
+
+	it("posts with same-origin credentials, so cross-origin embed requests (e.g. queue/join) are not blocked by CORS", async () => {
+		let captured_init: RequestInit | undefined;
+		const fake_client = {
+			options: {},
+			fetch: (_url: string, init: RequestInit) => {
+				captured_init = init;
+				return Promise.resolve(new Response("{}", { status: 200 }));
+			}
+		} as unknown as Client;
+
+		const [, status] = await post_data.call(
+			fake_client,
+			"https://hmb-hello-world.hf.space/gradio_api/queue/join",
+			{ data: "test" }
+		);
+
+		expect(status).toBe(200);
+		expect(captured_init?.credentials).toBe("same-origin");
 	});
 });
