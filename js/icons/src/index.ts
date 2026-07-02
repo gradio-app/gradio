@@ -20,6 +20,7 @@ export { default as Community } from "./Community.svelte";
 export { default as Copy } from "./Copy.svelte";
 export { default as Crop } from "./Crop.svelte";
 export { default as Download } from "./Download.svelte";
+export { default as DownloadAll } from "./DownloadAll.svelte";
 export { default as DropdownArrow } from "./DropdownArrow.svelte";
 export { default as DropdownCircularArrow } from "./DropdownCircularArrow.svelte";
 export { default as Edit } from "./Edit.svelte";
