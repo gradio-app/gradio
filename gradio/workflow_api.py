@@ -541,7 +541,13 @@ class WorkflowExecutor:
                 for p in node.get("inputs") or []
                 if p["id"] in resolved
             }
-            call_data = [node.get("model_id"), endpoint, json.dumps(kwargs), None, provider]
+            call_data = [
+                node.get("model_id"),
+                endpoint,
+                json.dumps(kwargs),
+                None,
+                provider,
+            ]
         else:
             args = [resolved[p["id"]] for p in node.get("inputs") or []]
             tag = node.get("pipeline_tag") or "text-generation"

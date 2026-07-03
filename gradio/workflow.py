@@ -590,13 +590,17 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
             {"id": "seed", "label": "Seed", "type": "number"},
         ],
-        "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
+        ],
     },
     "text_to_speech": {
         "inputs": [
             {"id": "text", "label": "Text", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Audio", "type": "audio", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Audio", "type": "audio", "output_index": 0}
+        ],
     },
     "text_to_video": {
         "inputs": [
@@ -607,7 +611,9 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
             {"id": "seed", "label": "Seed", "type": "number"},
         ],
-        "outputs": [{"id": "out_0", "label": "Video", "type": "video", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
+        ],
     },
     "image_to_image": {
         "inputs": [
@@ -617,7 +623,9 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "num_inference_steps", "label": "Steps", "type": "number"},
             {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
         ],
-        "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
+        ],
     },
     "image_to_video": {
         "inputs": [
@@ -629,7 +637,9 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
             {"id": "seed", "label": "Seed", "type": "number"},
         ],
-        "outputs": [{"id": "out_0", "label": "Video", "type": "video", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
+        ],
     },
     "text_generation": {
         "inputs": [
@@ -638,13 +648,17 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "temperature", "label": "Temperature", "type": "number"},
             {"id": "top_p", "label": "Top P", "type": "number"},
         ],
-        "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
     },
     "summarization": {
         "inputs": [
             {"id": "text", "label": "Text", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Summary", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Summary", "type": "text", "output_index": 0}
+        ],
     },
     "translation": {
         "inputs": [
@@ -652,86 +666,120 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "src_lang", "label": "Source Language", "type": "text"},
             {"id": "tgt_lang", "label": "Target Language", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Translation", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Translation", "type": "text", "output_index": 0}
+        ],
     },
     "fill_mask": {
         "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [{"id": "out_0", "label": "Result", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Result", "type": "json", "output_index": 0}
+        ],
     },
     "text_classification": {
         "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
     },
     "token_classification": {
         "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [{"id": "out_0", "label": "Entities", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Entities", "type": "json", "output_index": 0}
+        ],
     },
     "zero_shot_classification": {
         "inputs": [
             {"id": "text", "label": "Text", "type": "text"},
             {"id": "labels", "label": "Labels", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
+        ],
     },
     "sentence_similarity": {
         "inputs": [
             {"id": "sentence", "label": "Sentence", "type": "text"},
             {"id": "other_sentences", "label": "Other Sentences", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
+        ],
     },
     "question_answering": {
         "inputs": [
             {"id": "question", "label": "Question", "type": "text"},
             {"id": "context", "label": "Context", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
+        ],
     },
     "feature_extraction": {
         "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [{"id": "out_0", "label": "Embeddings", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Embeddings", "type": "json", "output_index": 0}
+        ],
     },
     "image_classification": {
         "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
     },
     "object_detection": {
         "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [{"id": "out_0", "label": "Detections", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Detections", "type": "json", "output_index": 0}
+        ],
     },
     "image_segmentation": {
         "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [{"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}
+        ],
     },
     "image_to_text": {
         "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
     },
     "automatic_speech_recognition": {
         "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
-        "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
     },
     "audio_classification": {
         "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
-        "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
     },
     "visual_question_answering": {
         "inputs": [
             {"id": "image", "label": "Image", "type": "image"},
             {"id": "question", "label": "Question", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
+        ],
     },
     "document_question_answering": {
         "inputs": [
             {"id": "image", "label": "Document", "type": "image"},
             {"id": "question", "label": "Question", "type": "text"},
         ],
-        "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
+        ],
     },
     "depth_estimation": {
         "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [{"id": "out_0", "label": "Depth", "type": "image", "output_index": 0}],
+        "outputs": [
+            {"id": "out_0", "label": "Depth", "type": "image", "output_index": 0}
+        ],
     },
 }
 
@@ -752,8 +800,7 @@ def get_model_endpoints(
     _data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
 ) -> str:
     endpoints = [
-        {"name": name, **schema}
-        for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
+        {"name": name, **schema} for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
     ]
     return json.dumps(endpoints)
 
@@ -763,7 +810,11 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     fn = getattr(client, endpoint, None)
     if fn is None:
         raise ValueError(f"InferenceClient has no method '{endpoint}'")
-    clean = {k: (_img_url(v) if isinstance(v, dict) else v) for k, v in kwargs.items() if v is not None and v != ""}
+    clean = {
+        k: (_img_url(v) if isinstance(v, dict) else v)
+        for k, v in kwargs.items()
+        if v is not None and v != ""
+    }
     result = fn(**clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
@@ -779,14 +830,18 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     if hasattr(result, "answer"):
         return json.dumps([result.answer])
     if isinstance(result, list):
+
         def _item(r):
             if hasattr(r, "__dict__"):
                 return {k: v for k, v in vars(r).items() if not k.startswith("_")}
             return r
+
         return json.dumps([[_item(r) for r in result]])
     if hasattr(result, "tolist"):
         return json.dumps([result.tolist()])
-    return json.dumps([result if isinstance(result, (str, int, float, bool)) else str(result)])
+    return json.dumps(
+        [result if isinstance(result, (str, int, float, bool)) else str(result)]
+    )
 
 
 def call_model(
@@ -892,7 +947,9 @@ def call_model(
             kwargs = _apply_args(client.text_to_video, args)
             return json.dumps([_save_tmp(client.text_to_video(**kwargs), "mp4")])
         if task == "image-classification":
-            kwargs = _apply_args(client.image_classification, args, image_positions=(0,))
+            kwargs = _apply_args(
+                client.image_classification, args, image_positions=(0,)
+            )
             return json.dumps(
                 [
                     [
@@ -929,15 +986,17 @@ def call_model(
             )
         if task == "image-to-image":
             kwargs = _apply_args(client.image_to_image, args, image_positions=(0,))
-            return json.dumps(
-                [_save_tmp(client.image_to_image(**kwargs), "png")]
-            )
+            return json.dumps([_save_tmp(client.image_to_image(**kwargs), "png")])
         if task == "automatic-speech-recognition":
-            kwargs = _apply_args(client.automatic_speech_recognition, args, image_positions=(0,))
+            kwargs = _apply_args(
+                client.automatic_speech_recognition, args, image_positions=(0,)
+            )
             r = client.automatic_speech_recognition(**kwargs)
             return json.dumps([r.text if hasattr(r, "text") else str(r)])
         if task == "audio-classification":
-            kwargs = _apply_args(client.audio_classification, args, image_positions=(0,))
+            kwargs = _apply_args(
+                client.audio_classification, args, image_positions=(0,)
+            )
             return json.dumps(
                 [
                     [
@@ -951,7 +1010,9 @@ def call_model(
             "document-question-answering",
             "image-text-to-text",
         ):
-            kwargs = _apply_args(client.visual_question_answering, args, image_positions=(0,))
+            kwargs = _apply_args(
+                client.visual_question_answering, args, image_positions=(0,)
+            )
             r = client.visual_question_answering(**kwargs)
             return json.dumps([r[0].answer if r else ""])
         if task == "depth-estimation":
