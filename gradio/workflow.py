@@ -15,7 +15,7 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Optional, TypedDict
 
 import httpx
 from huggingface_hub import HfApi
@@ -1025,7 +1025,7 @@ def is_curated(data, _token: Optional[OAuthToken] = None) -> str:
 _QUICKSEARCH_CACHE: dict[str, tuple[float, str]] = {}
 _QUICKSEARCH_TTL = 30.0
 
-_CLIENT_CACHE: dict[tuple[str, str | None], tuple[float, object]] = {}
+_CLIENT_CACHE: dict[tuple[str, str | None], tuple[float, Any]] = {}
 _CLIENT_CACHE_TTL = 300.0
 
 
