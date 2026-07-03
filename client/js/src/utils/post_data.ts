@@ -20,7 +20,7 @@ export async function post_data(
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: { ...headers, ...additional_headers },
-			credentials: "include"
+			credentials: this.options.credentials ?? "same-origin"
 		});
 	} catch (e) {
 		return [{ error: BROKEN_CONNECTION_MSG }, 500];
