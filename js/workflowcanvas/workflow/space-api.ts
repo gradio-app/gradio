@@ -26,6 +26,11 @@ export function normalize_space_id(raw: string): string | null {
 	);
 	if (pageMatch) return `${pageMatch[1]}/${pageMatch[2]}`;
 
+	const repoMatch = trimmed.match(
+		/^https?:\/\/(?:www\.)?huggingface\.co\/(?!spaces\/|datasets\/)([^/\s?#]+)\/([^/\s?#]+)/i
+	);
+	if (repoMatch) return `${repoMatch[1]}/${repoMatch[2]}`;
+
 	const sub = trimmed.match(/^https?:\/\/([^/]+)\.hf\.space/i);
 	if (sub) {
 		const parts = sub[1].split("-");

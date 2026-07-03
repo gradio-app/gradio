@@ -198,6 +198,7 @@ export function toLegacyShape(wf: Workflow): {
 			fn: n.fn,
 			inputs: n.inputs,
 			outputs: n.outputs,
+			hidden_ports: n.hidden_ports,
 			x: n.x,
 			y: n.y,
 			width: n.width,

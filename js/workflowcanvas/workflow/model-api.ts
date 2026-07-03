@@ -12,9 +12,12 @@ export async function fetchModelEndpoints(
 	server: Record<string, any>
 ): Promise<ModelEndpointSchema[]> {
 	if (_cache) return _cache;
+	if (!server.get_model_endpoints) return [];
 	try {
 		const raw = await server.get_model_endpoints([]);
-		const parsed = JSON.parse(raw[0]) as ModelEndpointSchema[];
+		const parsed = (
+			typeof raw === "string" ? JSON.parse(raw) : raw
+		) as ModelEndpointSchema[];
 		_cache = parsed;
 		return _cache;
 	} catch {

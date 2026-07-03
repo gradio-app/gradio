@@ -315,6 +315,43 @@ export function hydrate_endpoints(
 	}));
 }
 
+export function toggle_port_hidden(nodeId: string, portId: string): void {
+	workflow.update((wf) => ({
+		...wf,
+		operators: wf.operators.map((n) => {
+			if (n.id !== nodeId) return n;
+			const hidden = n.hidden_ports ?? [];
+			const next = hidden.includes(portId)
+				? hidden.filter((p) => p !== portId)
+				: [...hidden, portId];
+			return { ...n, hidden_ports: next };
+		})
+	}));
+}
+
+export function init_model_node_ports(
+	schemas: { name: string; inputs: Port[]; outputs: Port[] }[],
+	pipelineTagMap: Record<string, string> = {}
+): void {
+	workflow.update((wf) => ({
+		...wf,
+		operators: wf.operators.map((n) => {
+			if (n.kind !== "model") return n;
+			const endpointName = n.endpoint ?? pipelineTagMap[n.pipeline_tag ?? ""];
+			if (!endpointName) return n;
+			const sig = schemas.find((s) => s.name === endpointName);
+			if (!sig) return { ...n, endpoints: schemas };
+			return {
+				...n,
+				endpoint: endpointName,
+				endpoints: schemas,
+				inputs: sig.inputs,
+				outputs: sig.outputs
+			};
+		})
+	}));
+}
+
 export function switch_endpoint(nodeId: string, endpointName: string): void {
 	workflow.update((wf) => {
 		const node = wf.operators.find((n) => n.id === nodeId);

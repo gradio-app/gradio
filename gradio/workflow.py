@@ -352,8 +352,6 @@ def _img_url(a) -> str:
 
 
 def _apply_args(fn, args: list, image_positions: tuple = ()) -> dict:
-    """Map a positional args list onto fn's named parameters, skipping None/''.
-    Positions in image_positions have _img_url applied."""
     sig = inspect.signature(fn)
     param_names = [
         name
@@ -584,176 +582,159 @@ def call_space(
 _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
     "text_to_image": {
         "inputs": [
-            {"id": "prompt", "label": "Prompt", "type": "text", "required": True},
-            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text", "required": False},
-            {"id": "height", "label": "Height", "type": "number", "required": False},
-            {"id": "width", "label": "Width", "type": "number", "required": False},
-            {"id": "num_inference_steps", "label": "Steps", "type": "number", "required": False},
-            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number", "required": False},
-            {"id": "seed", "label": "Seed", "type": "number", "required": False},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
+            {"id": "height", "label": "Height", "type": "number"},
+            {"id": "width", "label": "Width", "type": "number"},
+            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
+            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
+            {"id": "seed", "label": "Seed", "type": "number"},
         ],
         "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
     },
     "text_to_speech": {
         "inputs": [
-            {"id": "text", "label": "Text", "type": "text", "required": True},
+            {"id": "text", "label": "Text", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Audio", "type": "audio", "output_index": 0}],
     },
     "text_to_video": {
         "inputs": [
-            {"id": "prompt", "label": "Prompt", "type": "text", "required": True},
-            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text", "required": False},
-            {"id": "num_frames", "label": "Frames", "type": "number", "required": False},
-            {"id": "num_inference_steps", "label": "Steps", "type": "number", "required": False},
-            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number", "required": False},
-            {"id": "seed", "label": "Seed", "type": "number", "required": False},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
+            {"id": "num_frames", "label": "Frames", "type": "number"},
+            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
+            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
+            {"id": "seed", "label": "Seed", "type": "number"},
         ],
         "outputs": [{"id": "out_0", "label": "Video", "type": "video", "output_index": 0}],
     },
     "image_to_image": {
         "inputs": [
-            {"id": "image", "label": "Image", "type": "image", "required": True},
-            {"id": "prompt", "label": "Prompt", "type": "text", "required": False},
-            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text", "required": False},
-            {"id": "num_inference_steps", "label": "Steps", "type": "number", "required": False},
-            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number", "required": False},
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
+            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
+            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
         ],
         "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
     },
+    "image_to_video": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
+            {"id": "num_frames", "label": "Frames", "type": "number"},
+            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
+            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
+            {"id": "seed", "label": "Seed", "type": "number"},
+        ],
+        "outputs": [{"id": "out_0", "label": "Video", "type": "video", "output_index": 0}],
+    },
     "text_generation": {
         "inputs": [
-            {"id": "prompt", "label": "Prompt", "type": "text", "required": True},
-            {"id": "max_new_tokens", "label": "Max Tokens", "type": "number", "required": False},
-            {"id": "temperature", "label": "Temperature", "type": "number", "required": False},
-            {"id": "top_p", "label": "Top P", "type": "number", "required": False},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+            {"id": "max_new_tokens", "label": "Max Tokens", "type": "number"},
+            {"id": "temperature", "label": "Temperature", "type": "number"},
+            {"id": "top_p", "label": "Top P", "type": "number"},
         ],
         "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
     },
     "summarization": {
         "inputs": [
-            {"id": "text", "label": "Text", "type": "text", "required": True},
+            {"id": "text", "label": "Text", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Summary", "type": "text", "output_index": 0}],
     },
     "translation": {
         "inputs": [
-            {"id": "text", "label": "Text", "type": "text", "required": True},
-            {"id": "src_lang", "label": "Source Language", "type": "text", "required": False},
-            {"id": "tgt_lang", "label": "Target Language", "type": "text", "required": False},
+            {"id": "text", "label": "Text", "type": "text"},
+            {"id": "src_lang", "label": "Source Language", "type": "text"},
+            {"id": "tgt_lang", "label": "Target Language", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Translation", "type": "text", "output_index": 0}],
     },
     "fill_mask": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
         "outputs": [{"id": "out_0", "label": "Result", "type": "json", "output_index": 0}],
     },
     "text_classification": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
         "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
     },
     "token_classification": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
         "outputs": [{"id": "out_0", "label": "Entities", "type": "json", "output_index": 0}],
     },
     "zero_shot_classification": {
         "inputs": [
-            {"id": "text", "label": "Text", "type": "text", "required": True},
-            {"id": "labels", "label": "Labels", "type": "text", "required": True},
+            {"id": "text", "label": "Text", "type": "text"},
+            {"id": "labels", "label": "Labels", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}],
     },
     "sentence_similarity": {
         "inputs": [
-            {"id": "sentence", "label": "Sentence", "type": "text", "required": True},
-            {"id": "other_sentences", "label": "Other Sentences", "type": "text", "required": True},
+            {"id": "sentence", "label": "Sentence", "type": "text"},
+            {"id": "other_sentences", "label": "Other Sentences", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}],
     },
     "question_answering": {
         "inputs": [
-            {"id": "question", "label": "Question", "type": "text", "required": True},
-            {"id": "context", "label": "Context", "type": "text", "required": True},
+            {"id": "question", "label": "Question", "type": "text"},
+            {"id": "context", "label": "Context", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
     },
     "feature_extraction": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text", "required": True}],
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
         "outputs": [{"id": "out_0", "label": "Embeddings", "type": "json", "output_index": 0}],
     },
     "image_classification": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
         "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
     },
     "object_detection": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
         "outputs": [{"id": "out_0", "label": "Detections", "type": "json", "output_index": 0}],
     },
     "image_segmentation": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
         "outputs": [{"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}],
     },
     "image_to_text": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
         "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
     },
     "automatic_speech_recognition": {
-        "inputs": [{"id": "audio", "label": "Audio", "type": "audio", "required": True}],
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
         "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
     },
     "audio_classification": {
-        "inputs": [{"id": "audio", "label": "Audio", "type": "audio", "required": True}],
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
         "outputs": [{"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}],
     },
     "visual_question_answering": {
         "inputs": [
-            {"id": "image", "label": "Image", "type": "image", "required": True},
-            {"id": "question", "label": "Question", "type": "text", "required": True},
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "question", "label": "Question", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
     },
     "document_question_answering": {
         "inputs": [
-            {"id": "image", "label": "Document", "type": "image", "required": True},
-            {"id": "question", "label": "Question", "type": "text", "required": True},
+            {"id": "image", "label": "Document", "type": "image"},
+            {"id": "question", "label": "Question", "type": "text"},
         ],
         "outputs": [{"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}],
     },
     "depth_estimation": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image", "required": True}],
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
         "outputs": [{"id": "out_0", "label": "Depth", "type": "image", "output_index": 0}],
     },
 }
 
-_PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
-    "text-to-image": "text_to_image",
-    "text-to-speech": "text_to_speech",
-    "text-to-audio": "text_to_speech",
-    "text-to-video": "text_to_video",
-    "image-to-image": "image_to_image",
-    "image-to-video": "image_to_video",
-    "text-generation": "text_generation",
-    "text2text-generation": "text_generation",
-    "conversational": "text_generation",
-    "summarization": "summarization",
-    "translation": "translation",
-    "fill-mask": "fill_mask",
-    "text-classification": "text_classification",
-    "token-classification": "token_classification",
-    "zero-shot-classification": "zero_shot_classification",
-    "sentence-similarity": "sentence_similarity",
-    "question-answering": "question_answering",
-    "feature-extraction": "feature_extraction",
-    "image-classification": "image_classification",
-    "object-detection": "object_detection",
-    "image-segmentation": "image_segmentation",
-    "image-to-text": "image_to_text",
-    "automatic-speech-recognition": "automatic_speech_recognition",
-    "audio-classification": "audio_classification",
-    "visual-question-answering": "visual_question_answering",
-    "document-question-answering": "document_question_answering",
-    "depth-estimation": "depth_estimation",
-}
 
 _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
     "text_to_image": "png",
@@ -767,13 +748,14 @@ _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
 }
 
 
-def get_model_endpoints(_data) -> str:
-    """Return all InferenceClient endpoint schemas as a JSON list."""
+def get_model_endpoints(
+    _data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+) -> str:
     endpoints = [
         {"name": name, **schema}
         for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
     ]
-    return json.dumps([json.dumps(endpoints)])
+    return json.dumps(endpoints)
 
 
 def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
@@ -823,7 +805,6 @@ def call_model(
         provider = data[4] if len(data) > 4 and data[4] else "auto"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
-
         if isinstance(args, dict):
             endpoint = pipeline_tag or ""
             return _dispatch_model_endpoint(client, endpoint, args)

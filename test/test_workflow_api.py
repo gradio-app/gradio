@@ -651,9 +651,11 @@ class TestModelNodeDispatch:
             return file_out
 
         g = self._make_graph("text_to_image", "prompt")
+        assert g is not None
         WorkflowExecutor(g, {"model": capture}).run(g.subjects[0]["id"], {g.references[0]["id"]: "cat"})
         assert isinstance(calls["text_to_image"], dict) and calls["text_to_image"]["prompt"] == "cat"
 
         g2 = self._make_graph(None, "in_0")
+        assert g2 is not None
         WorkflowExecutor(g2, {"model": capture}).run(g2.subjects[0]["id"], {g2.references[0]["id"]: "cat"})
         assert isinstance(calls["text-to-image"], list) and calls["text-to-image"][0] == "cat"

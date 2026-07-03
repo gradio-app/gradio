@@ -66,6 +66,7 @@ export interface WFNode {
 	fn?: string;
 	inputs: Port[];
 	outputs: Port[];
+	hidden_ports?: string[];
 	x: number;
 	y: number;
 	width: number;
@@ -115,6 +116,7 @@ export interface BaseNode {
 	label: string;
 	inputs: Port[];
 	outputs: Port[];
+	hidden_ports?: string[];
 	data: NodeData;
 	x: number;
 	y: number;

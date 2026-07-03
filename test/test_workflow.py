@@ -414,7 +414,7 @@ class TestApplyArgs:
 
 class TestGetModelEndpoints:
     def test_schema_structure(self):
-        endpoints = json.loads(json.loads(get_model_endpoints([]))[0])
+        endpoints = json.loads(get_model_endpoints([]))
         tti = next(e for e in endpoints if e["name"] == "text_to_image")
         input_ids = {p["id"] for p in tti["inputs"]}
         assert {"prompt", "negative_prompt", "width", "height"} <= input_ids

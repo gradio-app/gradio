@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { resizeNode, workflow } from "./workflow-store";
+	import { resizeNode, toggle_port_hidden, workflow } from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -45,7 +45,6 @@
 		onopenpicker: (id: string) => void;
 		onswitchendpoint: (id: string, endpointName: string) => void;
 		onhydratendpoints: (id: string, spaceId: string) => void;
-		onhydratemodelendpoints: (id: string) => void;
 		onrunnode: (id: string) => void;
 		onselect: (id: string, additive?: boolean) => void;
 		onnodepointerdown: (e: PointerEvent, id: string) => void;
@@ -74,6 +73,7 @@
 	let editingLabel = $state(false);
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
+	let showHidden = $state(false);
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
@@ -304,7 +304,7 @@
 		{/if}
 	{/if}
 
-	{#if node.space_id || node.model_id}
+	{#if node.space_id}
 		<div
 			class="node-endpoint-row"
 			onpointerdown={(e) => e.stopPropagation()}
@@ -337,15 +337,11 @@
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => {
 						e.stopPropagation();
-						if (node.model_id) {
-							ctx.onhydratemodelendpoints(node.id);
-						} else {
-							ctx.onhydratendpoints(node.id, node.space_id ?? "");
-						}
+						ctx.onhydratendpoints(node.id, node.space_id ?? "");
 					}}
-					title={node.model_id ? "Browse available inference endpoints" : "Discover this Space's other endpoints"}
+					title="Discover this Space's other endpoints"
 				>
-					{node.endpoint ?? (node.model_id ? "endpoint" : "/predict")} ▾
+					{node.endpoint ?? "/predict"} ▾
 				</button>
 			{/if}
 		</div>
@@ -363,10 +359,24 @@
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
+				{@const hiddenByUser = (node.hidden_ports ?? []).includes(port.id)}
 				{@const visible =
-					showAllInputs || portConnected || port.required !== false}
+					(!hiddenByUser || showHidden) &&
+					(showAllInputs || portConnected || port.required !== false)}
 				{#if visible}
-					<div class="port-row input-row" class:widget-port={hasWidget}>
+					{@const inlineWidget =
+						!portConnected &&
+						node.kind === "transform" &&
+						!port.choices?.length &&
+						(port.type === "number" || port.type === "boolean")}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div
+						class="port-row input-row"
+						class:widget-port={hasWidget}
+						class:port-row-inline={inlineWidget}
+						class:port-row-hidden={hiddenByUser}
+						onmousedown={inlineWidget ? (e) => e.stopPropagation() : undefined}
+					>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="port-handle-sf input-handle-sf"
@@ -389,14 +399,73 @@
 								class:port-label-optional={port.required === false}
 								>{port.label}</span
 							>
-							<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
-								>{port.type}</span
-							>
+							{#if !inlineWidget}
+								<span
+									class="port-type-tag"
+									style="color: {PORT_COLOR[port.type]}">{port.type}</span
+								>
+							{/if}
+						{/if}
+						{#if inlineWidget}
+							{#if port.type === "number"}
+								<input
+									class="inline-number-inrow"
+									type="number"
+									step="any"
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: "0"}
+									value={node.data?.[port.id] ?? ""}
+									oninput={(e) =>
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											parseFloat(e.currentTarget.value) || 0
+										)}
+								/>
+							{:else if port.type === "boolean"}
+								<label class="inline-checkbox-inrow">
+									<input
+										type="checkbox"
+										checked={!!node.data?.[port.id]}
+										onchange={(e) =>
+											ctx.ondatachange(
+												node.id,
+												port.id,
+												e.currentTarget.checked
+											)}
+									/>
+								</label>
+							{/if}
+						{/if}
+						{#if !readOnly && !portConnected && node.source === "model"}
+							{#if hiddenByUser}
+								<button
+									class="port-hide-btn port-restore-btn"
+									title="Restore"
+									onpointerdown={(e) => e.stopPropagation()}
+									onclick={(e) => {
+										e.stopPropagation();
+										toggle_port_hidden(node.id, port.id);
+									}}>+</button
+								>
+							{:else}
+								<button
+									class="port-hide-btn"
+									title="Hide"
+									onpointerdown={(e) => e.stopPropagation()}
+									onclick={(e) => {
+										e.stopPropagation();
+										toggle_port_hidden(node.id, port.id);
+									}}>−</button
+								>
+							{/if}
 						{/if}
 					</div>
-					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
+					{#if !portConnected && node.kind === "transform" && !inlineWidget && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 						<div
 							class="port-inline-config"
+							class:port-row-hidden={hiddenByUser}
 							onmousedown={(e) => e.stopPropagation()}
 						>
 							{#if port.choices && port.choices.length > 0 && port.multiselect}
@@ -492,6 +561,18 @@
 					{/if}
 				{/if}
 			{/each}
+			{#if node.source === "model" && (node.hidden_ports ?? []).length > 0}
+				{@const hp = (node.hidden_ports ?? []).length}
+				<button
+					class="ports-toggle"
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+					onclick={(e) => {
+						e.stopPropagation();
+						showHidden = !showHidden;
+					}}>{showHidden ? "▴" : "▾"} {hp} hidden</button
+				>
+			{/if}
 			{#if collapsible}
 				<button
 					class="ports-toggle"
@@ -880,9 +961,9 @@
 		display: flex;
 		align-items: center;
 		gap: 7px;
-		padding: 4px 12px;
+		padding: 3px 12px;
 		position: relative;
-		min-height: 22px;
+		min-height: 20px;
 	}
 
 	.input-row {
@@ -910,6 +991,54 @@
 		font-size: 9px;
 		font-weight: 500;
 		opacity: 0.5;
+	}
+
+	.port-hide-btn {
+		margin-left: auto;
+		background: none;
+		border: 1px solid transparent;
+		border-radius: 3px;
+		color: #3e3f4d;
+		font-size: 13px;
+		line-height: 1;
+		padding: 1px 5px;
+		cursor: pointer;
+		opacity: 0;
+		transition:
+			opacity 0.12s,
+			background 0.12s,
+			border-color 0.12s,
+			color 0.12s;
+		flex-shrink: 0;
+	}
+
+	.port-row:hover .port-hide-btn {
+		opacity: 1;
+	}
+
+	.port-hide-btn:hover {
+		background: rgba(220, 60, 60, 0.12);
+		border-color: rgba(220, 60, 60, 0.3);
+		color: #e05555;
+	}
+
+	.port-restore-btn {
+		opacity: 1;
+		color: #4a9d6f;
+	}
+
+	.port-restore-btn:hover {
+		background: rgba(74, 157, 111, 0.12);
+		border-color: rgba(74, 157, 111, 0.3);
+		color: #4a9d6f;
+	}
+
+	.port-row-hidden {
+		opacity: 0.4;
+	}
+
+	.port-row-hidden:hover {
+		opacity: 0.7;
 	}
 
 	/* Port handles (plain divs, positioned on each port-row) */
@@ -1022,20 +1151,21 @@
 	}
 
 	.port-inline-config {
-		padding: 2px 12px 4px 20px;
+		padding: 1px 12px 3px 20px;
 	}
 
 	.inline-input {
 		width: 100%;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
-		padding: 4px 8px;
+		padding: 3px 7px;
 		border: 1px solid #1e1f2a;
 		border-radius: 4px;
 		background: #101118;
 		color: #c8c9d2;
 		outline: none;
 		box-sizing: border-box;
+		height: 24px;
 	}
 
 	.inline-input:focus {
@@ -1048,6 +1178,40 @@
 
 	.inline-number {
 		width: 80px;
+	}
+
+	.port-row-inline {
+		display: grid;
+		grid-template-columns: 1fr 60px 20px;
+		gap: 5px;
+		align-items: center;
+	}
+
+	.inline-number-inrow {
+		width: 100%;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 2px 6px;
+		border: 1px solid #1e1f2a;
+		border-radius: 4px;
+		background: #101118;
+		color: #c8c9d2;
+		outline: none;
+		box-sizing: border-box;
+		flex-shrink: 0;
+		height: 22px;
+	}
+
+	.inline-number-inrow:focus {
+		border-color: #3e3f4d;
+	}
+
+	.inline-number-inrow::placeholder {
+		color: #4a4b58;
+	}
+
+	.inline-checkbox-inrow {
+		cursor: pointer;
 	}
 
 	.inline-checkbox {
@@ -1097,6 +1261,10 @@
 		border-bottom-color: #e2e4ea;
 	}
 
+	:global(body:not(.dark)) .node-transform .node-header {
+		border-bottom-color: #e2e4ea;
+	}
+
 	:global(body:not(.dark)) .node-label {
 		color: #1a1b25;
 	}
@@ -1141,6 +1309,16 @@
 	}
 
 	:global(body:not(.dark)) .inline-input::placeholder {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .inline-number-inrow {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .inline-number-inrow::placeholder {
 		color: #c0c2cc;
 	}
 
