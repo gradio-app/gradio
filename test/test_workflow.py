@@ -470,9 +470,9 @@ class TestCallSpaceAsync:
         fake_client = MagicMock()
         fake_client.predict.return_value = ("hello",)
 
-        FakeClient = MagicMock(return_value=fake_client)
+        fake_client_cls = MagicMock(return_value=fake_client)
         fake_gradio_client = types.ModuleType("gradio_client")
-        fake_gradio_client.Client = FakeClient
+        fake_gradio_client.Client = fake_client_cls
         fake_gradio_client.handle_file = lambda x: x
         monkeypatch.setitem(sys.modules, "gradio_client", fake_gradio_client)
 
@@ -489,5 +489,5 @@ class TestCallSpaceAsync:
         )
 
         assert "error" not in result
-        assert FakeClient in thread_fns
+        assert fake_client_cls in thread_fns
         assert fake_client.predict in thread_fns
