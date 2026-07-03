@@ -338,7 +338,9 @@
 	}
 
 	function select_model(item: SpaceResult) {
-		const endpointName = item.pipeline_tag ? PIPELINE_TAG_TO_ENDPOINT[item.pipeline_tag] : undefined;
+		const endpointName = item.pipeline_tag
+			? PIPELINE_TAG_TO_ENDPOINT[item.pipeline_tag]
+			: undefined;
 		const schema = item.pipeline_tag ? TASK_SCHEMAS[item.pipeline_tag] : null;
 		const inputHints = active_subtab.inputs;
 		const outputHints = active_subtab.outputs;

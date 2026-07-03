@@ -460,12 +460,16 @@ class TestCallModel:
                 summary_text="short"
             )
             assert json.loads(
-                call_model(["owner/m", "summarization", json.dumps(["long"]), None, "auto"])
+                call_model(
+                    ["owner/m", "summarization", json.dumps(["long"]), None, "auto"]
+                )
             ) == ["short"]
 
         with patch("huggingface_hub.InferenceClient"):
             assert "error" in json.loads(
-                call_model(["owner/m", "no_such_method", json.dumps({"x": 1}), None, "auto"])
+                call_model(
+                    ["owner/m", "no_such_method", json.dumps({"x": 1}), None, "auto"]
+                )
             )
 
 
