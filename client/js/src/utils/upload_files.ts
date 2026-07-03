@@ -34,7 +34,7 @@ export async function upload_files(
 				method: "POST",
 				body: formData,
 				headers,
-				credentials: "same-origin"
+				credentials: this.options.credentials ?? "same-origin"
 			});
 		} catch (e) {
 			throw new Error(BROKEN_CONNECTION_MSG + (e as Error).message);

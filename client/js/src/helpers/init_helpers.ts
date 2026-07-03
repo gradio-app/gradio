@@ -92,7 +92,7 @@ export async function resolve_config(
 			);
 			const response = await this.fetch(config_url, {
 				headers,
-				credentials: "same-origin"
+				credentials: this.options.credentials ?? "same-origin"
 			});
 			const config = await handleConfigResponse(response, !!this.options.auth);
 			config.root = endpoint || config.root;
@@ -112,7 +112,7 @@ export async function resolve_config(
 
 		const response = await this.fetch(config_url, {
 			headers,
-			credentials: "same-origin"
+			credentials: this.options.credentials ?? "same-origin"
 		});
 
 		const config = await handleConfigResponse(response, !!this.options.auth);
@@ -167,7 +167,8 @@ export async function resolve_cookies(this: Client): Promise<void> {
 				host,
 				this.options.auth,
 				this.fetch,
-				this.options.token
+				this.options.token,
+				this.options.credentials
 			);
 
 			if (cookie_header) this.set_cookies(cookie_header);
@@ -183,7 +184,8 @@ export async function get_cookie_header(
 	host: string,
 	auth: [string, string],
 	_fetch: typeof fetch,
-	token?: `hf_${string}`
+	token?: `hf_${string}`,
+	credentials?: RequestCredentials
 ): Promise<string | null> {
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
@@ -199,7 +201,7 @@ export async function get_cookie_header(
 		headers,
 		method: "POST",
 		body: formData,
-		credentials: "same-origin"
+		credentials: credentials ?? "same-origin"
 	});
 
 	if (res.status === 200) {

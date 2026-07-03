@@ -31,7 +31,7 @@ export async function view_api(this: Client): Promise<any> {
 			const url = join_urls(config.root, this.api_prefix, API_INFO_URL);
 			response = await this.fetch(url, {
 				headers,
-				credentials: "same-origin"
+				credentials: this.options.credentials ?? "same-origin"
 			});
 			if (!response.ok) {
 				throw new Error(BROKEN_CONNECTION_MSG);
