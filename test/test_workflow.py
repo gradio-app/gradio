@@ -440,8 +440,9 @@ class TestCallModelValidation:
 
 
 class TestCallSpaceValidation:
-    def test_url_shaped_space_id_is_rejected(self):
-        result = json.loads(call_space(["http://169.254.169.254/"]))
+    @pytest.mark.asyncio
+    async def test_url_shaped_space_id_is_rejected(self):
+        result = json.loads(await call_space(["http://169.254.169.254/"]))
         assert result.get("error_type") == "not_found"
 
     def test_valid_owner_repo_format_accepted_by_regex(self):
@@ -451,3 +452,42 @@ class TestCallSpaceValidation:
         assert re.fullmatch(pattern, "owner/repo")
         assert re.fullmatch(pattern, "my-org/my-space")
         assert re.fullmatch(pattern, "http://host/path") is None
+
+
+class TestCallSpaceAsync:
+    def test_call_space_is_coroutine(self):
+        import asyncio
+
+        assert asyncio.iscoroutinefunction(call_space)
+
+    @pytest.mark.asyncio
+    async def test_client_construction_and_predict_run_in_thread(self, monkeypatch):
+        import asyncio
+        import sys
+        import types
+        from unittest.mock import MagicMock
+
+        fake_client = MagicMock()
+        fake_client.predict.return_value = ("hello",)
+
+        FakeClient = MagicMock(return_value=fake_client)
+        fake_gradio_client = types.ModuleType("gradio_client")
+        fake_gradio_client.Client = FakeClient
+        fake_gradio_client.handle_file = lambda x: x
+        monkeypatch.setitem(sys.modules, "gradio_client", fake_gradio_client)
+
+        thread_fns: list = []
+
+        async def spy_to_thread(fn, *args, **kwargs):
+            thread_fns.append(fn)
+            return fn(*args, **kwargs)
+
+        monkeypatch.setattr(asyncio, "to_thread", spy_to_thread)
+
+        result = json.loads(
+            await call_space(["owner/space", "/run/predict", '["hello"]'])
+        )
+
+        assert "error" not in result
+        assert FakeClient in thread_fns
+        assert fake_client.predict in thread_fns
