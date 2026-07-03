@@ -811,7 +811,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     if fn is None:
         raise ValueError(f"InferenceClient has no method '{endpoint}'")
     clean = {
-        k: (_img_url(v) if isinstance(v, dict) else v)
+        k: (_img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v)
         for k, v in kwargs.items()
         if v is not None and v != ""
     }

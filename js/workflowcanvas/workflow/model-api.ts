@@ -6,20 +6,21 @@ export interface ModelEndpointSchema {
 	outputs: Port[];
 }
 
-let _cache: ModelEndpointSchema[] | null = null;
+const _cache = new WeakMap<object, ModelEndpointSchema[]>();
 
 export async function fetchModelEndpoints(
 	server: Record<string, any>
 ): Promise<ModelEndpointSchema[]> {
-	if (_cache) return _cache;
+	const cached = _cache.get(server);
+	if (cached) return cached;
 	if (!server.get_model_endpoints) return [];
 	try {
 		const raw = await server.get_model_endpoints([]);
 		const parsed = (
 			typeof raw === "string" ? JSON.parse(raw) : raw
 		) as ModelEndpointSchema[];
-		_cache = parsed;
-		return _cache;
+		_cache.set(server, parsed);
+		return parsed;
 	} catch {
 		return [];
 	}

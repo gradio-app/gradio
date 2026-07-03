@@ -367,8 +367,9 @@
 				)}
 				{@const hiddenByUser = (node.hidden_ports ?? []).includes(port.id)}
 				{@const visible =
-					(!hiddenByUser || showHidden) &&
-					(showAllInputs || portConnected || port.required !== false)}
+					!hiddenByUser
+						? (showAllInputs || portConnected || port.required !== false)
+						: showHidden}
 				{#if visible}
 					{@const inlineWidget =
 						!portConnected &&

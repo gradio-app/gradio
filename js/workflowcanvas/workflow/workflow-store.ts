@@ -341,12 +341,15 @@ export function init_model_node_ports(
 			if (!endpointName) return n;
 			const sig = schemas.find((s) => s.name === endpointName);
 			if (!sig) return { ...n, endpoints: schemas };
+			const validIds = new Set(sig.inputs.map((p) => p.id));
+			const hidden_ports = (n.hidden_ports ?? []).filter((id) => validIds.has(id));
 			return {
 				...n,
 				endpoint: endpointName,
 				endpoints: schemas,
 				inputs: sig.inputs,
-				outputs: sig.outputs
+				outputs: sig.outputs,
+				hidden_ports
 			};
 		})
 	}));
