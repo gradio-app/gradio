@@ -491,25 +491,14 @@ class TestCallModelValidation:
         assert result.get("error_type") == "not_found"
 
     def test_valid_owner_repo_passes_validation(self, monkeypatch):
-        class FakeClient:
-            def __init__(self, **kwargs):
-                pass
-
-            def text_generation(self, *args, **kwargs):
-                return "hello"
-
-        monkeypatch.setattr(
-            "gradio.workflow.InferenceClient", FakeClient, raising=False
-        )
-        import gradio.workflow as wf
-
-        wf.call_model.__globals__.get("InferenceClient")
-
         import sys
         import types
 
+        fake_inference = MagicMock()
+        fake_inference.return_value.text_generation.return_value = "hello"
+
         fake_hf = types.ModuleType("huggingface_hub")
-        fake_hf.InferenceClient = FakeClient  # type: ignore[attr-defined]
+        fake_hf.InferenceClient = fake_inference  # type: ignore[attr-defined]
         monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hf)
 
         result = json.loads(call_model(["owner/model"]))
