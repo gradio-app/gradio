@@ -508,7 +508,9 @@ async def call_space(
         if cached_entry and (now - cached_entry[0]) < _CLIENT_CACHE_TTL:
             client = cached_entry[1]
         else:
-            client = await asyncio.to_thread(Client, space_id, token=hf_token, httpx_kwargs={"timeout": None})
+            client = await asyncio.to_thread(
+                Client, space_id, token=hf_token, httpx_kwargs={"timeout": None}
+            )
             if len(_CLIENT_CACHE) >= 64:
                 cutoff = now - _CLIENT_CACHE_TTL
                 for k, (t, _) in list(_CLIENT_CACHE.items()):
