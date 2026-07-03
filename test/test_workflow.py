@@ -433,8 +433,8 @@ class TestCallModel:
         img = MagicMock()
         img.save = lambda path: open(path, "wb").close()
 
-        with patch("huggingface_hub.InferenceClient") as MockClient:
-            MockClient.return_value.text_to_image.return_value = img
+        with patch("huggingface_hub.InferenceClient") as mock_client:
+            mock_client.return_value.text_to_image.return_value = img
             result = json.loads(
                 call_model(
                     [
@@ -449,14 +449,14 @@ class TestCallModel:
                 )
             )
 
-        MockClient.return_value.text_to_image.assert_called_once_with(
+        mock_client.return_value.text_to_image.assert_called_once_with(
             prompt="cat", width=512
         )
         assert result[0]["is_file"] is True
 
     def test_legacy_list_path_and_unknown_endpoint(self):
-        with patch("huggingface_hub.InferenceClient") as MockClient:
-            MockClient.return_value.summarization.return_value = SimpleNamespace(
+        with patch("huggingface_hub.InferenceClient") as mock_client:
+            mock_client.return_value.summarization.return_value = SimpleNamespace(
                 summary_text="short"
             )
             assert json.loads(

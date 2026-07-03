@@ -797,7 +797,7 @@ _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
 
 
 def get_model_endpoints(
-    _data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+    _data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
     endpoints = [
         {"name": name, **schema} for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
