@@ -500,10 +500,24 @@ async def call_space(
                     "suggestion": "Space ID must be in owner/repo format",
                 }
             )
-        client = await asyncio.to_thread(Client, space_id, token=hf_token)
+        import time
+
+        cache_key = (space_id, hf_token)
+        now = time.monotonic()
+        cached_entry = _CLIENT_CACHE.get(cache_key)
+        if cached_entry and (now - cached_entry[0]) < _CLIENT_CACHE_TTL:
+            client = cached_entry[1]
+        else:
+            client = await asyncio.to_thread(Client, space_id, token=hf_token, httpx_kwargs={"timeout": None})
+            if len(_CLIENT_CACHE) >= 64:
+                cutoff = now - _CLIENT_CACHE_TTL
+                for k, (t, _) in list(_CLIENT_CACHE.items()):
+                    if t < cutoff:
+                        _CLIENT_CACHE.pop(k, None)
+            _CLIENT_CACHE[cache_key] = (now, client)
         args = json.loads(args_json)
         if not endpoint or endpoint == "/predict":
-            api_info = await asyncio.to_thread(client.view_api, return_format="dict")
+            api_info = client.view_api(return_format="dict")
             named = list(
                 (
                     api_info.get("named_endpoints", {})
@@ -1008,6 +1022,9 @@ def is_curated(data, _token: Optional[OAuthToken] = None) -> str:
 
 _QUICKSEARCH_CACHE: dict[str, tuple[float, str]] = {}
 _QUICKSEARCH_TTL = 30.0
+
+_CLIENT_CACHE: dict[tuple[str, str | None], tuple[float, object]] = {}
+_CLIENT_CACHE_TTL = 300.0
 
 
 def search_quick(
