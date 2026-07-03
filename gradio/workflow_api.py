@@ -15,6 +15,7 @@ mocked in tests.
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import inspect
 import json
@@ -498,7 +499,10 @@ class WorkflowExecutor:
         caller = self.callers.get(kind)
         if caller is None:
             raise WorkflowExecutionError(f"No executor available for '{kind}' nodes")
-        result_json = caller(data, self._request, self._token)
+        if inspect.iscoroutinefunction(caller):
+            result_json = asyncio.run(caller(data, self._request, self._token))
+        else:
+            result_json = caller(data, self._request, self._token)
         parsed = json.loads(result_json)
         if isinstance(parsed, dict) and "error" in parsed:
             msg = (
