@@ -69,7 +69,9 @@
 	const readOnly = $derived(ctx.readOnly);
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
 	const error = $derived(ctx.nodeErrors[id] ?? "");
-	$effect(() => { if (!error) errorExpanded = false; });
+	$effect(() => {
+		if (!error) errorExpanded = false;
+	});
 	const isStale = $derived(ctx.staleNodes.has(id));
 	const connectedPorts = $derived(ctx.connectedPorts);
 	// Only operator nodes have meaningful per-node execution. References just
