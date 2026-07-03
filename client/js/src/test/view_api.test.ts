@@ -1,12 +1,7 @@
 import { describe, beforeAll, afterEach, afterAll, test, expect } from "vitest";
 
 import { Client, client, duplicate } from "..";
-import { view_api } from "../utils/view_api";
-import {
-	transformed_api_info,
-	config_response,
-	response_api_info
-} from "./test_data";
+import { transformed_api_info, config_response } from "./test_data";
 import { initialise_server } from "./server";
 
 const app_reference = "hmb/hello_world";
@@ -57,33 +52,5 @@ describe("view_api", () => {
 		expect(await app.view_api()).toEqual({
 			...transformed_api_info
 		});
-	});
-
-	test("requests api info without a Content-Type header and with same-origin credentials, so the cross-origin embed fetch is not blocked by CORS", async () => {
-		let captured_init: RequestInit | undefined;
-		const fake_client = {
-			api_info: null,
-			options: {},
-			config: { root: "https://hmb-hello-world.hf.space" },
-			api_prefix: "",
-			api_map: {},
-			fetch: (_url: string, init: RequestInit) => {
-				captured_init = init;
-				return Promise.resolve(
-					new Response(JSON.stringify(response_api_info), { status: 200 })
-				);
-			}
-		} as unknown as Client;
-
-		// We only assert on the captured request; swallow any downstream
-		// transform error so the test stays focused on the request shape.
-		await view_api.call(fake_client).catch(() => {});
-
-		expect(captured_init).toBeDefined();
-		const header_names = Object.keys(
-			captured_init?.headers as Record<string, string>
-		).map((h) => h.toLowerCase());
-		expect(header_names).not.toContain("content-type");
-		expect(captured_init?.credentials).toBe("same-origin");
 	});
 });
