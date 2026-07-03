@@ -2,12 +2,14 @@ import {
 	resolve_root,
 	get_jwt,
 	determine_protocol,
-	parse_and_set_cookies
+	parse_and_set_cookies,
+	resolve_config
 } from "../helpers/init_helpers";
 import { initialise_server } from "./server";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 import { Client } from "../client";
 import { INVALID_CREDENTIALS_MSG, MISSING_CREDENTIALS_MSG } from "../constants";
+import { config_response } from "./test_data";
 
 let server: Awaited<ReturnType<typeof initialise_server>>;
 
@@ -17,6 +19,31 @@ beforeAll(async () => {
 });
 afterEach(() => server.resetHandlers());
 afterAll(() => server.stop());
+
+describe("resolve_config", () => {
+	it("requests /config without a Content-Type header and with same-origin credentials, so the cross-origin embed fetch is not blocked by CORS", async () => {
+		let captured_init: RequestInit | undefined;
+		const fake_client = {
+			options: {},
+			deep_link: null,
+			fetch: (_url: string, init: RequestInit) => {
+				captured_init = init;
+				return Promise.resolve(
+					new Response(JSON.stringify(config_response), { status: 200 })
+				);
+			}
+		} as unknown as Client;
+
+		await resolve_config.call(fake_client, "https://hmb-hello-world.hf.space");
+
+		expect(captured_init).toBeDefined();
+		const header_names = Object.keys(
+			captured_init?.headers as Record<string, string>
+		).map((h) => h.toLowerCase());
+		expect(header_names).not.toContain("content-type");
+		expect(captured_init?.credentials).toBe("same-origin");
+	});
+});
 
 describe("resolve_root", () => {
 	it('should return the base URL if the root path starts with "http://"', () => {
