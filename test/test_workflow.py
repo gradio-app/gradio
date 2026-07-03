@@ -472,8 +472,8 @@ class TestCallSpaceAsync:
 
         fake_client_cls = MagicMock(return_value=fake_client)
         fake_gradio_client = types.ModuleType("gradio_client")
-        setattr(fake_gradio_client, "Client", fake_client_cls)
-        setattr(fake_gradio_client, "handle_file", lambda x: x)
+        fake_gradio_client.Client = fake_client_cls
+        fake_gradio_client.handle_file = lambda x: x
         monkeypatch.setitem(sys.modules, "gradio_client", fake_gradio_client)
 
         thread_fns: list = []
