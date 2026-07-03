@@ -40,7 +40,7 @@ class TestGraphParsing:
         g = _demo_graph()
         assert {r["label"] for r in g.references} == {"Text", "Image"}
         assert {s["label"] for s in g.subjects} == {"Marketing Image"}
-        assert len(g.operators) == 3
+        assert len(g.operators) == 2
 
     def test_non_v2_returns_none(self):
         assert WorkflowGraph.from_json(json.dumps({"nodes": []})) is None

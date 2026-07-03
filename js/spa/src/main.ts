@@ -84,7 +84,7 @@ function create_custom_element(): void {
 			this.loading = true;
 
 			if (this.app) {
-				this.app.$destroy();
+				unmount(this.app);
 			}
 
 			if (typeof FONTS !== "string") {

@@ -1738,7 +1738,7 @@ class TestCurlEndpointWithFiles:
         finally:
             demo.close()
 
-    @pytest.mark.seriale
+    @pytest.mark.serial
     def test_text_to_image_exception_reported_in_sse(self):
         def fail_fn(prompt):
             raise RuntimeError("Generation exploded!")
@@ -1877,6 +1877,37 @@ def test_max_file_size_used_in_upload_route(connect):
     with open("test/test_files/alphabet.txt", "rb") as f:
         r = test_client.post(f"{API_PREFIX}/upload", files={"files": f})
         assert r.status_code == 200
+
+
+def test_max_file_size_used_in_component_server_route(connect):
+    with gr.Blocks() as demo:
+        editor = gr.ImageEditor()
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="1kb")
+    try:
+        test_client = TestClient(app)
+        data = {
+            "session_hash": "123",
+            "component_id": str(editor._id),
+            "fn_name": "accept_blobs",
+            "type": "background",
+            "index": "null",
+            "id": "abc",
+        }
+        r = test_client.post(
+            f"{API_PREFIX}/component_server/",
+            data=data,
+            files={"blob": ("big.bin", b"x" * 2048, "application/octet-stream")},
+        )
+        assert r.status_code == 413
+        r = test_client.post(
+            f"{API_PREFIX}/component_server/",
+            data=data,
+            files={"blob": ("small.bin", b"x" * 8, "application/octet-stream")},
+        )
+        assert r.status_code == 200
+    finally:
+        demo.close()
 
 
 def test_docs_url():
