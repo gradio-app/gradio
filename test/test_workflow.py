@@ -491,4 +491,3 @@ class TestCallSpaceAsync:
         assert "error" not in result
         assert FakeClient in thread_fns
         assert fake_client.predict in thread_fns
-
