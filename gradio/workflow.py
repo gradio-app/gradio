@@ -480,9 +480,11 @@ def get_oauth_available(_data=None) -> str:
     )
 
 
-def call_space(
+async def call_space(
     data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
 ) -> str:
+    import asyncio
+
     space_id = data[0] if data else ""
     try:
         from gradio_client import Client, handle_file
@@ -498,10 +500,10 @@ def call_space(
                     "suggestion": "Space ID must be in owner/repo format",
                 }
             )
-        client = Client(space_id, token=hf_token)
+        client = await asyncio.to_thread(Client, space_id, token=hf_token)
         args = json.loads(args_json)
         if not endpoint or endpoint == "/predict":
-            api_info = client.view_api(return_format="dict")
+            api_info = await asyncio.to_thread(client.view_api, return_format="dict")
             named = list(
                 (
                     api_info.get("named_endpoints", {})
@@ -521,7 +523,7 @@ def call_space(
                 processed.append(arg)
         while processed and processed[-1] is None:
             processed.pop()
-        result = client.predict(*processed, api_name=endpoint)
+        result = await asyncio.to_thread(client.predict, *processed, api_name=endpoint)
         result = list(result) if isinstance(result, (list, tuple)) else [result]
 
         _tmpdir = os.path.realpath(tempfile.gettempdir())
