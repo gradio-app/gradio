@@ -600,6 +600,7 @@
 
 	function onWheel(e: WheelEvent): void {
 		if (!canvasEl) return;
+		if ((e.target as Element)?.closest(".nowheel")) return;
 		e.preventDefault();
 		if (e.ctrlKey || e.metaKey) {
 			const r = canvasEl.getBoundingClientRect();

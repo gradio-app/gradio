@@ -69,6 +69,7 @@
 	const readOnly = $derived(ctx.readOnly);
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
 	const error = $derived(ctx.nodeErrors[id] ?? "");
+	$effect(() => { if (!error) errorExpanded = false; });
 	const isStale = $derived(ctx.staleNodes.has(id));
 	const connectedPorts = $derived(ctx.connectedPorts);
 	// Only operator nodes have meaningful per-node execution. References just
@@ -79,6 +80,7 @@
 	let editingLabel = $state(false);
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
+	let errorExpanded = $state(false);
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
@@ -575,7 +577,23 @@
 	{/if}
 
 	{#if status === "error" && error}
-		<div class="node-error-banner">{error}</div>
+		<div class="node-error-banner" class:expanded={errorExpanded}>
+			<div class="node-error-text">{error}</div>
+			{#if !errorExpanded}
+				<div class="node-error-fade"></div>
+			{/if}
+			<button
+				class="node-error-toggle nodrag nopan"
+				onclick={(e) => {
+					e.stopPropagation();
+					errorExpanded = !errorExpanded;
+				}}
+				onpointerdown={(e) => e.stopPropagation()}
+				onmousedown={(e) => e.stopPropagation()}
+			>
+				{errorExpanded ? "show less" : "show more"}
+			</button>
+		</div>
 	{/if}
 </div>
 
@@ -1008,18 +1026,56 @@
 	}
 
 	.node-error-banner {
+		position: relative;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 9px;
 		color: #fca5a5;
 		background: rgba(239, 68, 68, 0.1);
 		border-top: 1px solid rgba(239, 68, 68, 0.2);
 		border-radius: 0 0 10px 10px;
-		padding: 6px 12px;
+		padding: 6px 12px 24px;
 		line-height: 1.4;
 		word-break: break-word;
+	}
+
+	.node-error-text {
+		max-height: 3.6em;
 		overflow: hidden;
-		max-height: 4.5em;
-		overflow-y: auto;
+		transition: max-height 0.2s ease;
+	}
+
+	.node-error-banner.expanded .node-error-text {
+		max-height: 400px;
+	}
+
+	.node-error-fade {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 20px;
+		height: 2em;
+		background: linear-gradient(to bottom, transparent, rgba(37, 8, 8, 0.85));
+		pointer-events: none;
+		border-radius: 0;
+	}
+
+	.node-error-toggle {
+		position: absolute;
+		bottom: 4px;
+		right: 8px;
+		background: none;
+		border: none;
+		padding: 0;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 8px;
+		color: rgba(252, 165, 165, 0.55);
+		cursor: pointer;
+		line-height: 1;
+		transition: color 0.15s;
+	}
+
+	.node-error-toggle:hover {
+		color: #fca5a5;
 	}
 
 	.ports-toggle {
