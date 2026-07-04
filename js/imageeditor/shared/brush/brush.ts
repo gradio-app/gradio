@@ -150,16 +150,12 @@ export class BrushTool implements Tool {
 	 * @param {Subtool} subtool - The current subtool.
 	 */
 	set_tool(tool: ToolbarTool, subtool: Subtool): void {
-		const new_mode = tool === "erase" ? "erase" : "draw";
-		const mode_changed = this.state.mode !== new_mode;
-		const needs_brush_tool = tool === "erase" || tool === "draw";
-
-		if (this.is_drawing && (!needs_brush_tool || mode_changed)) {
-			this.commit_pending_changes();
-		}
-
 		this.current_tool = tool;
 		this.current_subtool = subtool;
+
+		if (this.current_tool !== "erase" && this.current_tool !== "draw") {
+			this.commit_pending_changes();
+		}
 
 		if (this.brush_cursor) {
 			const should_be_active = tool === "draw" || tool === "erase";
@@ -167,6 +163,9 @@ export class BrushTool implements Tool {
 			this.brush_cursor.set_active(should_be_active);
 		}
 
+		const new_mode = tool === "erase" ? "erase" : "draw";
+		const mode_changed = this.state.mode !== new_mode;
+		const needs_brush_tool = tool === "erase" || tool === "draw";
 		const textures_initialized =
 			this.brush_textures?.textures_initialized ?? false;
 
@@ -180,7 +179,10 @@ export class BrushTool implements Tool {
 				Math.round(current_bounds.height) !== Math.round(tex_dims.height);
 		}
 
-		if (needs_brush_tool && (!textures_initialized || dimensions_changed)) {
+		if (
+			needs_brush_tool &&
+			(mode_changed || !textures_initialized || dimensions_changed)
+		) {
 			this.brush_textures?.initialize_textures();
 		}
 
