@@ -108,6 +108,9 @@ export class ResizeTool implements Tool {
 	private dom_mouseup_handler: ((e: MouseEvent) => void) | null = null;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
 	private last_scale = 1;
+	private readonly handle_pointer_move_bound =
+		this.handle_pointer_move.bind(this);
+	private readonly handle_pointer_up_bound = this.handle_pointer_up.bind(this);
 
 	private original_state: {
 		width: number;
@@ -223,7 +226,7 @@ export class ResizeTool implements Tool {
 	 * @returns {void}
 	 */
 	cleanup(): void {
-		if (this.resize_ui_container) {
+		if (this.resize_ui_container && this.image_editor_context?.app) {
 			this.image_editor_context.app.stage.removeChild(this.resize_ui_container);
 		}
 		this.cleanup_event_listeners();
@@ -241,10 +244,12 @@ export class ResizeTool implements Tool {
 		this.current_subtool = subtool;
 
 		if (tool === "image" && subtool === "size") {
-			if (this.image_editor_context.background_image) {
-				const storedBorderRegion = (
-					this.image_editor_context.background_image as any
-				).borderRegion;
+			const context = this.image_editor_context;
+			if (!context) return;
+
+			if (context.background_image) {
+				const storedBorderRegion = (context.background_image as any)
+					.borderRegion;
 				if (typeof storedBorderRegion === "number" && storedBorderRegion > 0) {
 					this.borderRegion = storedBorderRegion;
 				}
@@ -252,9 +257,9 @@ export class ResizeTool implements Tool {
 
 			this.show_resize_ui();
 
-			if (this.image_editor_context.background_image) {
-				const bg = this.image_editor_context.background_image;
-				const container = this.image_editor_context.image_container;
+			if (context.background_image) {
+				const bg = context.background_image;
+				const container = context.image_container;
 
 				const bg_width = bg.width;
 				const bg_height = bg.height;
@@ -936,9 +941,9 @@ export class ResizeTool implements Tool {
 	private setup_event_listeners(): void {
 		const stage = this.image_editor_context.app.stage;
 		stage.eventMode = "static";
-		stage.on("pointermove", this.handle_pointer_move.bind(this));
-		stage.on("pointerup", this.handle_pointer_up.bind(this));
-		stage.on("pointerupoutside", this.handle_pointer_up.bind(this));
+		stage.on("pointermove", this.handle_pointer_move_bound);
+		stage.on("pointerup", this.handle_pointer_up_bound);
+		stage.on("pointerupoutside", this.handle_pointer_up_bound);
 
 		this.setup_dom_event_listeners();
 	}
@@ -949,7 +954,10 @@ export class ResizeTool implements Tool {
 	private setup_dom_event_listeners(): void {
 		this.cleanup_dom_event_listeners();
 
-		const canvas = this.image_editor_context.app.canvas;
+		const context = this.image_editor_context;
+		if (!context?.app?.canvas) return;
+
+		const canvas = context.app.canvas;
 
 		this.dom_mousedown_handler = (e: MouseEvent) => {
 			if (this.current_subtool !== "size") return;
@@ -1070,10 +1078,10 @@ export class ResizeTool implements Tool {
 	 * Cleans up DOM event listeners
 	 */
 	private cleanup_dom_event_listeners(): void {
-		const canvas = this.image_editor_context.app.canvas;
+		const canvas = this.image_editor_context?.app?.canvas;
 
 		if (this.dom_mousedown_handler) {
-			canvas.removeEventListener("mousedown", this.dom_mousedown_handler);
+			canvas?.removeEventListener("mousedown", this.dom_mousedown_handler);
 			this.dom_mousedown_handler = null;
 		}
 
@@ -1092,11 +1100,11 @@ export class ResizeTool implements Tool {
 	 * removes event listeners for the resize tool
 	 */
 	private cleanup_event_listeners(): void {
-		const stage = this.image_editor_context.app.stage;
+		const stage = this.image_editor_context?.app?.stage;
 
-		stage.off("pointermove", this.handle_pointer_move.bind(this));
-		stage.off("pointerup", this.handle_pointer_up.bind(this));
-		stage.off("pointerupoutside", this.handle_pointer_up.bind(this));
+		stage?.off("pointermove", this.handle_pointer_move_bound);
+		stage?.off("pointerup", this.handle_pointer_up_bound);
+		stage?.off("pointerupoutside", this.handle_pointer_up_bound);
 
 		this.cleanup_dom_event_listeners();
 	}
@@ -1687,7 +1695,7 @@ export class ResizeTool implements Tool {
 			this.update_resize_ui();
 		}
 
-		if (this.image_editor_context.background_image) {
+		if (this.image_editor_context?.background_image) {
 			const bg = this.image_editor_context.background_image;
 			this.current_cursor = bg.cursor;
 			bg.cursor = "move";
@@ -1705,7 +1713,7 @@ export class ResizeTool implements Tool {
 			this.resize_ui_container.visible = false;
 		}
 
-		if (this.image_editor_context.background_image) {
+		if (this.image_editor_context?.background_image) {
 			const bg = this.image_editor_context.background_image;
 			bg.cursor = this.current_cursor;
 		}
