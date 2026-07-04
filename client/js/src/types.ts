@@ -331,6 +331,7 @@ export interface ClientOptions {
 	query_params?: Record<string, string>;
 	session_hash?: string;
 	cookies?: string;
+	credentials?: RequestCredentials;
 }
 
 export interface FileData {
