@@ -214,12 +214,16 @@ class TestSanitizeForCSV:
         assert sanitize_value_for_csv("=OPEN()") == "'=OPEN()"
         assert sanitize_value_for_csv("=1+2") == "'=1+2"
         assert sanitize_value_for_csv('=1+2";=1+2') == "'=1+2\";=1+2"
+        assert sanitize_value_for_csv("-2+3+cmd|calc") == "'-2+3+cmd|calc"
 
     def test_safe_value(self):
         assert sanitize_value_for_csv(4) == 4
         assert sanitize_value_for_csv(-44.44) == -44.44
         assert sanitize_value_for_csv("1+1=2") == "1+1=2"
         assert sanitize_value_for_csv("1aaa2") == "1aaa2"
+        assert sanitize_value_for_csv("-0.5678") == "-0.5678"
+        assert sanitize_value_for_csv("-42") == "-42"
+        assert sanitize_value_for_csv("-1e-5") == "-1e-05"
 
     def test_list(self):
         assert sanitize_list_for_csv([4, "def=", "=gh+ij"]) == [4, "def=", "'=gh+ij"]

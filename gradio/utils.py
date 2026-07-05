@@ -919,8 +919,10 @@ def sanitize_value_for_csv(value: str | float) -> str | float:
     if not isinstance(value, str):
         value = str(value)
 
-    # Special handling for JSON-like values
-    if value.startswith(("{", "[")):
+    # Special handling for JSON-like values. A leading "-" is only valid JSON
+    # for a negative number, which is not a formula injection vector, so it is
+    # safe to leave unescaped (see issue #13591).
+    if value.startswith(("{", "[", "-")):
         try:
             parsed = json.loads(value)
             # Return normalized, safe JSON
