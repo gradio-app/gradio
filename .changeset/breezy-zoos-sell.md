@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix `JSONDecodeError` when loading cached examples with negative number outputs
+fix:Fix `JSONDecodeError` when loading cached examples with negative number outputs
