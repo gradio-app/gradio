@@ -366,10 +366,9 @@
 					`${node.id}:${port.id}:input`
 				)}
 				{@const hiddenByUser = (node.hidden_ports ?? []).includes(port.id)}
-				{@const visible =
-					!hiddenByUser
-						? (showAllInputs || portConnected || port.required !== false)
-						: showHidden}
+				{@const visible = !hiddenByUser
+					? showAllInputs || portConnected || port.required !== false
+					: showHidden}
 				{#if visible}
 					{@const inlineWidget =
 						!portConnected &&

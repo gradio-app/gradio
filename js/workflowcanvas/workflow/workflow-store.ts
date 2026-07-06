@@ -342,7 +342,9 @@ export function init_model_node_ports(
 			const sig = schemas.find((s) => s.name === endpointName);
 			if (!sig) return { ...n, endpoints: schemas };
 			const validIds = new Set(sig.inputs.map((p) => p.id));
-			const hidden_ports = (n.hidden_ports ?? []).filter((id) => validIds.has(id));
+			const hidden_ports = (n.hidden_ports ?? []).filter((id) =>
+				validIds.has(id)
+			);
 			return {
 				...n,
 				endpoint: endpointName,
