@@ -1359,7 +1359,7 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
-                args, *_ = _special_args(fn, args, _request, None)
+                args, *_ = _special_args(fn, args, _request, None, token=_token)
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(result)
