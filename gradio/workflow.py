@@ -22,7 +22,9 @@ import httpx
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
+import gradio as gr
 from gradio.blocks import Blocks
+from gradio.components.workflowcanvas import WorkflowCanvas
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
@@ -1311,9 +1313,6 @@ class Workflow(Blocks):
         self._build()
 
     def _build(self):
-        import gradio as gr
-        from gradio.components.workflowcanvas import WorkflowCanvas
-
         # Set once the API endpoints are registered (post UI build); save_workflow
         # re-syncs it so /info + /call track edits to the graph.
         self._api_endpoints: WorkflowEndpointManager | None = None
