@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:workflow: forward `_token` to bound fn via `special_args` when no request session
+fix:workflow: forward `_token` to bound fn when no request session
