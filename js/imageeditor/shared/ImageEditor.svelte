@@ -102,11 +102,19 @@
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
 
+	let layer_options_key: string | undefined | null = null;
 	$effect(() => {
-		if (check_if_should_init()) {
-			editor.set_layer_options(layer_options);
-			refresh_tools();
-		}
+		if (!check_if_should_init()) return;
+
+		const next_layer_options_key = JSON.stringify(layer_options);
+		if (next_layer_options_key === layer_options_key) return;
+
+		layer_options_key = next_layer_options_key;
+		editor.set_layer_options(layer_options);
+	});
+
+	$effect(() => {
+		refresh_tools();
 	});
 
 	function refresh_tools(): void {
