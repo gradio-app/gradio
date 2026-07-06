@@ -750,6 +750,36 @@ class TestRoutes:
 
         io.close()
 
+    @pytest.mark.flaky
+    @pytest.mark.parametrize(
+        "url,allowed",
+        [
+            (
+                "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png",
+                True,
+            ),
+            (
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg",
+                True,
+            ),
+            ("http://169.254.169.254/latest/meta-data/", False),
+            ("http://127.0.0.1:22/", False),
+            ("http://10.0.0.1/admin", False),
+        ],
+    )
+    def test_file_endpoint_ssrf_protection(self, url, allowed):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
+        if allowed:
+            assert resp.status_code == 200
+            assert resp.content
+        else:
+            assert resp.status_code == 403
+            assert "location" not in resp.headers
+
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
             num_files = 0

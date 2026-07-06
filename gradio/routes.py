@@ -115,6 +115,7 @@ from gradio.route_utils import (  # noqa: F401
     file_response,
     move_uploaded_files_to_cache,
     routes_safe_join,
+    secure_url_stream_response,
     upload_fn,
 )
 from gradio.screen_recording_utils import process_video_with_ffmpeg
@@ -1082,6 +1083,8 @@ class App(FastAPI):
         @router.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         @router.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
+            if client_utils.is_http_url_like(path_or_url):
+                return await secure_url_stream_response(path_or_url, request)
             blocks = app.get_blocks()
             return file_fetch(path_or_url, request, blocks, app.uploaded_file_dir)
 

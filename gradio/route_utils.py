@@ -36,8 +36,10 @@ import anyio
 import fastapi
 import gradio_client.utils as client_utils
 import httpx
+import safehttpx
 from gradio_client.documentation import document
 from python_multipart.multipart import MultipartParser, parse_options_header
+from starlette.background import BackgroundTask
 from starlette.datastructures import (
     FormData,
     Headers,
@@ -48,7 +50,12 @@ from starlette.datastructures import (
 from starlette.exceptions import HTTPException
 from starlette.formparsers import MultiPartException, MultipartPart
 from starlette.requests import Request as StarletteRequest
-from starlette.responses import FileResponse, PlainTextResponse, Response
+from starlette.responses import (
+    FileResponse,
+    PlainTextResponse,
+    Response,
+    StreamingResponse,
+)
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
@@ -1187,17 +1194,112 @@ def favicon(favicon_path: str | Path | None = None):
         return FileResponse(favicon_path)
 
 
+_FILE_STREAM_MAX_REDIRECTS = 20
+_FILE_STREAM_PASSTHROUGH_HEADERS = (
+    "content-length",
+    "content-range",
+    "accept-ranges",
+    "last-modified",
+    "etag",
+)
+
+
+async def secure_url_stream_response(url: str, request: StarletteRequest):
+    """
+    SSRF-safe way to serve an http(s) URL from the `/gradio_api/file=<url>`
+    endpoint. Instead of redirecting the caller to `url` (an open redirect, and
+    a client-side SSRF vector because `gradio_client` follows redirects), the
+    server fetches `url` itself through `safehttpx` — which resolves the host,
+    confirms it maps to a public IP, and pins that IP for the connection so a DNS
+    rebind cannot swap in an internal address — and streams the bytes back,
+    re-validating every redirect hop. Hosts that are unresolvable or resolve to a
+    private / loopback / link-local / reserved address are rejected. See #13593.
+    """
+    forward_headers = {}
+    range_header = request.headers.get("Range")
+    if range_header:
+        forward_headers["Range"] = range_header
+
+    current_url = url
+    redirects = 0
+    while True:
+        try:
+            parsed = httpx.URL(current_url)
+        except Exception as e:
+            raise HTTPException(403, f"File not allowed: {url}.") from e
+        if parsed.scheme not in ("http", "https") or not parsed.host:
+            raise HTTPException(403, f"File not allowed: {url}.")
+        try:
+            verified_ip = await safehttpx.async_validate_url(parsed.host)
+        except Exception as e:
+            raise HTTPException(403, f"File not allowed: {url}.") from e
+
+        transport = safehttpx.AsyncSecureTransport(verified_ip)
+        client = httpx.AsyncClient(
+            transport=transport, timeout=httpx.Timeout(None, connect=10.0)
+        )
+        try:
+            req = client.build_request(
+                request.method, current_url, headers=forward_headers
+            )
+            upstream = await client.send(req, stream=True)
+        except Exception as e:
+            await client.aclose()
+            raise HTTPException(502, f"Could not fetch file: {url}.") from e
+
+        if upstream.has_redirect_location:
+            location = upstream.headers.get("location", "")
+            await upstream.aclose()
+            await client.aclose()
+            redirects += 1
+            if redirects > _FILE_STREAM_MAX_REDIRECTS or not location:
+                raise HTTPException(502, f"Could not fetch file: {url}.")
+            current_url = str(httpx.URL(current_url).join(location))
+            continue
+
+        upstream_mime = upstream.headers.get("content-type", "").split(";")[0].strip()
+        guessed_mime, _ = mimetypes.guess_type(current_url)
+        if upstream_mime in XSS_SAFE_MIMETYPES or guessed_mime in XSS_SAFE_MIMETYPES:
+            content_type = upstream_mime or guessed_mime or "application/octet-stream"
+            content_disposition = "inline"
+        else:
+            content_type = "application/octet-stream"
+            content_disposition = "attachment"
+
+        response_headers = {
+            "Content-Type": content_type,
+            "Content-Disposition": content_disposition,
+            "X-Content-Type-Options": "nosniff",
+        }
+        for header in _FILE_STREAM_PASSTHROUGH_HEADERS:
+            if header in upstream.headers:
+                response_headers[header] = upstream.headers[header]
+
+        async def _close(upstream=upstream, client=client) -> None:
+            await upstream.aclose()
+            await client.aclose()
+
+        return StreamingResponse(
+            upstream.aiter_raw(),
+            status_code=upstream.status_code,
+            headers=response_headers,
+            background=BackgroundTask(_close),
+        )
+
+
 def file_fetch(
     path_or_url,
     request,
     blocks_or_config,
     upload_dir,
 ):
-    if client_utils.is_http_url_like(path_or_url):
-        from starlette.responses import RedirectResponse
-
-        return RedirectResponse(url=path_or_url, status_code=302)
-
+    # NOTE: http(s) URLs are intentionally NOT handled here. Previously this
+    # returned a 302 redirect to the URL, which was an open redirect and — since
+    # `gradio_client` follows redirects — a client-side SSRF vector (#13593).
+    # They are now served by `secure_url_stream_response()` from the async route,
+    # which fetches through `safehttpx` (public-IP validated, IP-pinned) and
+    # streams the bytes back. Any http(s) URL reaching this sync path falls
+    # through to the `starts_with_protocol` guard below and is rejected.
     if starts_with_protocol(path_or_url):
         raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
