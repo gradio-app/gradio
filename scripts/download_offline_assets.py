@@ -141,18 +141,14 @@ def download_iframe_resizer() -> None:
     dest_dir = STATIC / "js"
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest = dest_dir / "iframeResizer.contentWindow.min.js"
-    node_modules = (
-        ROOT
-        / "node_modules"
-        / "@iframe-resizer"
-        / "child"
-        / "umd"
-        / "iframeResizer.contentWindow.min.js"
-    )
-    if node_modules.exists():
-        shutil.copy2(node_modules, dest)
-        print(f"  iframe-resizer: {dest.relative_to(ROOT)}")
-        return
+    # Pin the iframe-resizer *child* to v4.3.1. It has to match the iframe-resizer
+    # *parent* that HF Spaces runs to embed apps: a v5 child speaks a different
+    # postMessage protocol that the v4 parent can't handshake with, so
+    # `window.parentIFrame` never appears in the embedded app and the height
+    # reporting in Blocks.svelte silently never runs (the app won't size to its
+    # content on Spaces). v4.3.1 is also MIT-licensed, whereas v5 is GPL-3.0.
+    # `@iframe-resizer/child` in node_modules is v5 (a devDependency of the spaces
+    # test harness), so fetch the pinned v4.3.1 build rather than copying it.
     url = (
         "https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/"
         "iframeResizer.contentWindow.min.js"

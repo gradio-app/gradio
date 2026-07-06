@@ -33,7 +33,8 @@ function suppress_3d_library_errors(e: PromiseRejectionEvent): void {
 		msg.includes("addEventListener") ||
 		msg.includes("Viewer is disposed") ||
 		msg.includes("Invalid URL") ||
-		msg.includes("Unsupported property type")
+		msg.includes("Unsupported property type") ||
+		msg.includes("postProcessManager")
 	) {
 		e.preventDefault();
 	}
