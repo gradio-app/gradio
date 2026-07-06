@@ -7,7 +7,7 @@ import pytest
 
 import gradio as gr
 import gradio.workflow as workflow_module
-from gradio.oauth import OAuthToken
+from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
 from gradio.workflow import (
     WRITE_TOKEN,
@@ -476,6 +476,18 @@ class TestCallFn:
         )
         assert result == ["hi"]
         assert received["token"].token == "test-tok"
+
+    def test_injects_direct_token_without_session(self, tmp_path):
+        def fn(text: str, token: OAuthToken, profile: Optional[OAuthProfile]) -> str:
+            return f"{token.token},{profile}"
+
+        call_fn = self._call_fn(tmp_path, {"fn": fn})
+        direct = OAuthToken.__new__(OAuthToken)
+        direct.token = "direct-token"
+        direct.scope = "openid"
+        direct.expires_at = 9999999999
+        result = json.loads(call_fn(["fn", '["hello"]'], _request=None, _token=direct))
+        assert result == ["direct-token,None"]
 
     def test_unknown_fn_returns_error(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
