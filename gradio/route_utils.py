@@ -915,6 +915,20 @@ class CustomCORSMiddleware:
             # as an embedded web component in a local static webpage. However, it can
             # also be used maliciously for CSRF attacks, so it is not allowed by default.
             self.localhost_aliases.append("null")
+        # Hosts at which this app is known to be publicly served. On a genuine
+        # public deployment (e.g. Hugging Face Spaces) cross-origin embedding is
+        # a supported feature, so we allow any origin *only* when the request is
+        # addressed to one of these trusted hosts. This is derived from the
+        # server's own configuration (SPACE_HOST) rather than the client-supplied
+        # Host header, which must not be trusted to decide CORS policy (#13594).
+        self.deployment_hosts: set[str] = set()
+        space_host = os.getenv("SPACE_HOST")
+        if space_host:
+            # SPACE_HOST is a comma-separated list when custom domains are used.
+            for candidate in space_host.split(","):
+                hostname = get_hostname(candidate.strip())
+                if hostname:
+                    self.deployment_hosts.add(hostname)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -967,10 +981,18 @@ class CustomCORSMiddleware:
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)
 
-        return (
-            host_name not in self.localhost_aliases
-            or origin_name in self.localhost_aliases
-        )
+        # Same-origin requests (the app's own frontend) and requests from a
+        # localhost page (local web-component embedding) are always allowed.
+        if origin_name in self.localhost_aliases:
+            return True
+        if origin_name and origin_name == host_name:
+            return True
+        # Otherwise, only reflect the origin when the request is addressed to a
+        # trusted public deployment host. We deliberately do not fall back to
+        # "any non-localhost Host is a public deployment", since the Host header
+        # is client-controlled and could be spoofed to lift the localhost-only
+        # CORS restriction (#13594).
+        return host_name in self.deployment_hosts
 
     @staticmethod
     def allow_explicit_origin(headers: MutableHeaders, origin: str) -> None:
@@ -1195,6 +1217,22 @@ def file_fetch(
 ):
     if client_utils.is_http_url_like(path_or_url):
         from starlette.responses import RedirectResponse
+
+        # Only redirect to URLs that the app explicitly loaded via `gr.load()`
+        # (i.e. hosts already present in `proxy_urls`). Redirecting to arbitrary
+        # URLs turns this endpoint into an open redirect and, because
+        # `gradio_client` follows redirects, a client-side SSRF vector against
+        # e.g. cloud metadata services. See GHSA / issue #13593.
+        proxy_urls = getattr(blocks_or_config, "proxy_urls", None) or []
+        try:
+            request_host = httpx.URL(path_or_url).host
+        except Exception:
+            request_host = ""
+        is_allowed = bool(request_host) and any(
+            request_host == httpx.URL(root).host for root in proxy_urls
+        )
+        if not is_allowed:
+            raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
         return RedirectResponse(url=path_or_url, status_code=302)
 

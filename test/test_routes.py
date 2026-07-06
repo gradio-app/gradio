@@ -750,6 +750,85 @@ class TestRoutes:
 
         io.close()
 
+    def test_cors_host_header_cannot_bypass_localhost_restriction(self):
+        # Regression test for #13594: a spoofed non-localhost Host header must
+        # not lift the localhost-only CORS restriction and reflect an arbitrary
+        # cross-origin request with credentials.
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        io.server_name = "127.0.0.1"
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        # Spoofed Host + evil cross-origin: must NOT be reflected.
+        resp = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "spoofed.example.com", "origin": "https://evil.com"},
+        )
+        assert "access-control-allow-origin" not in resp.headers
+
+        # Same-origin requests (the app's own frontend) must still work.
+        resp = client.get(
+            f"{API_PREFIX}/config",
+            headers={
+                "host": "spoofed.example.com",
+                "origin": "https://spoofed.example.com",
+            },
+        )
+        assert resp.headers["access-control-allow-origin"] == "https://spoofed.example.com"
+
+    def test_cors_allows_any_origin_on_space_host(self, monkeypatch):
+        # On a genuine public deployment (identified via SPACE_HOST, not the
+        # client-controlled Host header) cross-origin embedding is supported.
+        monkeypatch.setenv("SPACE_HOST", "myspace.hf.space")
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        resp = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "myspace.hf.space", "origin": "https://blog.com"},
+        )
+        assert resp.headers["access-control-allow-origin"] == "https://blog.com"
+
+        # A request addressed to a host that is not the trusted deployment host
+        # must not open up CORS, even with SPACE_HOST set.
+        resp = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "spoofed.example.com", "origin": "https://evil.com"},
+        )
+        assert "access-control-allow-origin" not in resp.headers
+
+    def test_file_endpoint_does_not_redirect_to_arbitrary_urls(self):
+        # Regression test for #13593: the /file= endpoint must not act as an
+        # open redirect / SSRF vector for URLs that are not in the app's
+        # proxy_urls allow-list.
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        for url in [
+            "https://evil.com",
+            "http://169.254.169.254/latest/meta-data/",
+        ]:
+            resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
+            assert resp.status_code == 403
+            assert "location" not in resp.headers
+
+    def test_file_endpoint_redirects_to_proxied_urls(self):
+        # URLs whose host was explicitly loaded via gr.load() (present in
+        # proxy_urls) are still redirected, preserving legitimate behavior.
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        app = routes.App.create_app(io)
+        app.get_blocks().proxy_urls = {"https://trusted.hf.space"}
+        client = TestClient(app)
+
+        resp = client.get(
+            f"{API_PREFIX}/file=https://trusted.hf.space/some/file.png",
+            follow_redirects=False,
+        )
+        assert resp.status_code == 302
+        assert resp.headers["location"] == "https://trusted.hf.space/some/file.png"
+
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
             num_files = 0

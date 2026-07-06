@@ -47,6 +47,7 @@ class StaticServerConfig:
     blocked_paths: list[str] = field(default_factory=list)
     max_file_size: int | float | None = None
     favicon_path: str | None = None
+    proxy_urls: list[str] = field(default_factory=list)
 
 
 def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
@@ -202,6 +203,7 @@ class StaticWorkerPool:
             and self.config.max_file_size != math.inf
             else None,
             "favicon_path": self.config.favicon_path,
+            "proxy_urls": self.config.proxy_urls,
         }
 
         for i, port in enumerate(self.ports):
