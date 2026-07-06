@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Security: don't trust the `Host` header for CORS decisions and restrict `/gradio_api/file=` redirects to proxied URLs
+fix:Security: restrict `/gradio_api/file=` redirects to proxied URLs to prevent open redirect / SSRF

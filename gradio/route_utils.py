@@ -891,31 +891,6 @@ def get_hostname(url: str) -> str:
         return ""
 
 
-_DEFAULT_PORTS = {"http": 80, "https": 443, "ws": 80, "wss": 443}
-
-
-def get_host_and_port(value: str, scheme: str | None = None) -> tuple[str, int | None]:
-    """
-    Returns the (lowercased hostname, port) of a URL or a bare `Host` header
-    value. When the port is not explicit, it falls back to the default port for
-    `scheme` so that e.g. "https://example.com" and "example.com:443" compare
-    equal. Returns ("", None) if the value cannot be parsed.
-    """
-    if not value:
-        return "", None
-    # A `Host` header has no scheme; parse it as a bare netloc.
-    parseable = value if "://" in value else "//" + value
-    try:
-        parsed = urlparse(parseable)
-        host = (parsed.hostname or "").lower()
-        port = parsed.port
-    except Exception:
-        return "", None
-    if port is None and scheme:
-        port = _DEFAULT_PORTS.get(scheme)
-    return host, port
-
-
 class CustomCORSMiddleware:
     # This is a modified version of the Starlette CORSMiddleware that restricts the allowed origins when the host is localhost.
     # Adapted from: https://github.com/encode/starlette/blob/89fae174a1ea10f59ae248fe030d9b7e83d0b8a0/starlette/middleware/cors.py
@@ -940,20 +915,6 @@ class CustomCORSMiddleware:
             # as an embedded web component in a local static webpage. However, it can
             # also be used maliciously for CSRF attacks, so it is not allowed by default.
             self.localhost_aliases.append("null")
-        # Hosts at which this app is known to be publicly served. On a genuine
-        # public deployment (e.g. Hugging Face Spaces) cross-origin embedding is
-        # a supported feature, so we allow any origin *only* when the request is
-        # addressed to one of these trusted hosts. This is derived from the
-        # server's own configuration (SPACE_HOST) rather than the client-supplied
-        # Host header, which must not be trusted to decide CORS policy (#13594).
-        self.deployment_hosts: set[str] = set()
-        space_host = os.getenv("SPACE_HOST")
-        if space_host:
-            # SPACE_HOST is a comma-separated list when custom domains are used.
-            for candidate in space_host.split(","):
-                hostname = get_hostname(candidate.strip())
-                if hostname:
-                    self.deployment_hosts.add(hostname)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -1006,24 +967,10 @@ class CustomCORSMiddleware:
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)
 
-        # Same-origin requests (the app's own frontend) and requests from a
-        # localhost page (local web-component embedding) are always allowed.
-        if origin_name in self.localhost_aliases:
-            return True
-        # Same-origin comparison must account for the port (and, via the
-        # Origin's scheme, default ports): example.com:8000 is a *different*
-        # origin from example.com:7860 and must not be reflected.
-        origin_scheme = urlparse(origin).scheme if "://" in origin else None
-        origin_host, origin_port = get_host_and_port(origin, origin_scheme)
-        request_host, request_port = get_host_and_port(host, origin_scheme)
-        if origin_host and origin_host == request_host and origin_port == request_port:
-            return True
-        # Otherwise, only reflect the origin when the request is addressed to a
-        # trusted public deployment host. We deliberately do not fall back to
-        # "any non-localhost Host is a public deployment", since the Host header
-        # is client-controlled and could be spoofed to lift the localhost-only
-        # CORS restriction (#13594).
-        return host_name in self.deployment_hosts
+        return (
+            host_name not in self.localhost_aliases
+            or origin_name in self.localhost_aliases
+        )
 
     @staticmethod
     def allow_explicit_origin(headers: MutableHeaders, origin: str) -> None:
