@@ -108,7 +108,7 @@
 	);
 </script>
 
-<div class="toolbar-wrap">
+<div class="toolbar-wrap" onclick={(e) => e.stopPropagation()}>
 	<div class="half-container">
 		{#if can_edit_image}
 			<IconButton
