@@ -1247,11 +1247,13 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
             await client.aclose()
             raise HTTPException(502, f"Could not fetch file: {url}.") from e
 
-        if upstream.has_redirect_location and redirects < _FILE_STREAM_MAX_REDIRECTS:
+        if upstream.has_redirect_location:
             location = upstream.headers.get("location", "")
             await upstream.aclose()
             await client.aclose()
             redirects += 1
+            if redirects > _FILE_STREAM_MAX_REDIRECTS or not location:
+                raise HTTPException(502, f"Could not fetch file: {url}.")
             current_url = str(httpx.URL(current_url).join(location))
             continue
 
@@ -1267,6 +1269,7 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
         response_headers = {
             "Content-Type": content_type,
             "Content-Disposition": content_disposition,
+            "X-Content-Type-Options": "nosniff",
         }
         for header in _FILE_STREAM_PASSTHROUGH_HEADERS:
             if header in upstream.headers:
