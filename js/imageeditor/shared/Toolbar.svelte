@@ -16,6 +16,7 @@
 	import {
 		Image,
 		Brush,
+		BrushSize,
 		Erase,
 		Crop,
 		Upload,
@@ -228,7 +229,7 @@
 				offset={0}
 			/>
 			<IconButton
-				Icon={Circle}
+				Icon={BrushSize}
 				label="Brush Size"
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
