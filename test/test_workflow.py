@@ -486,9 +486,7 @@ class TestCallFn:
         direct.token = "direct-token"
         direct.scope = "openid"
         direct.expires_at = 9999999999
-        result = json.loads(
-            call_fn(["fn", '["hello"]'], _request=None, _token=direct)
-        )
+        result = json.loads(call_fn(["fn", '["hello"]'], _request=None, _token=direct))
         assert result == ["direct-token,None"]
 
     def test_unknown_fn_returns_error(self, tmp_path):
