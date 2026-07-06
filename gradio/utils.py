@@ -967,6 +967,21 @@ def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     return sanitized_values
 
 
+def parse_flagged_json(payload: Any) -> Any:
+    """
+    Parses a JSON value read back from a flagging or example-cache CSV file.
+    Falls back to stripping the CSV-injection escape character ("'") that older
+    Gradio versions prepended to negative numbers when writing the file, so
+    caches created before the fix for issue #13591 still load.
+    """
+    try:
+        return json.loads(payload)
+    except json.JSONDecodeError:
+        if isinstance(payload, str) and payload.startswith("'"):
+            return json.loads(payload[1:])
+        raise
+
+
 def append_unique_suffix(name: str, list_of_names: list[str]):
     """Appends a numerical suffix to `name` so that it does not appear in `list_of_names`."""
     set_of_names: set[str] = set(list_of_names)  # for O(1) lookup
