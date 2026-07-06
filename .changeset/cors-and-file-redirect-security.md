@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Security: restrict `/gradio_api/file=` redirects to proxied URLs to prevent open redirect / SSRF
+fix:Security: serve `/gradio_api/file=<url>` via an SSRF-safe streaming proxy instead of an open redirect

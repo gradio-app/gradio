@@ -18,6 +18,7 @@ from pathlib import Path
 
 import fastapi
 import uvicorn
+from gradio_client import utils as client_utils
 from starlette.formparsers import MultiPartException
 from starlette.responses import PlainTextResponse, StreamingResponse
 
@@ -30,6 +31,7 @@ from gradio.route_utils import (
     favicon,
     file_fetch,
     file_response,
+    secure_url_stream_response,
     upload_fn,
 )
 from gradio.utils import (
@@ -47,7 +49,6 @@ class StaticServerConfig:
     blocked_paths: list[str] = field(default_factory=list)
     max_file_size: int | float | None = None
     favicon_path: str | None = None
-    proxy_urls: list[str] = field(default_factory=list)
 
 
 def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
@@ -88,6 +89,8 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
     @app.head("/file={path_or_url:path}")
     @app.get("/file={path_or_url:path}")
     async def file(path_or_url: str, request: fastapi.Request):
+        if client_utils.is_http_url_like(path_or_url):
+            return await secure_url_stream_response(path_or_url, request)
         return file_fetch(path_or_url, request, config, upload_dir)
 
     file_upload_statuses = FileUploadProgress()
@@ -203,7 +206,6 @@ class StaticWorkerPool:
             and self.config.max_file_size != math.inf
             else None,
             "favicon_path": self.config.favicon_path,
-            "proxy_urls": self.config.proxy_urls,
         }
 
         for i, port in enumerate(self.ports):

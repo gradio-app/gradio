@@ -1187,33 +1187,122 @@ def favicon(favicon_path: str | Path | None = None):
         return FileResponse(favicon_path)
 
 
+_FILE_STREAM_MAX_REDIRECTS = 20
+# Headers worth relaying from the upstream response (Content-Type and
+# Content-Disposition are set explicitly for XSS safety and so are omitted here).
+_FILE_STREAM_PASSTHROUGH_HEADERS = (
+    "content-length",
+    "content-range",
+    "accept-ranges",
+    "last-modified",
+    "etag",
+)
+
+
+async def secure_url_stream_response(url: str, request: StarletteRequest):
+    """
+    SSRF-safe way to serve an http(s) URL from the `/gradio_api/file=<url>`
+    endpoint. Instead of redirecting the caller to `url` (an open redirect, and
+    a client-side SSRF vector because `gradio_client` follows redirects), the
+    server fetches `url` itself through `safehttpx` — which resolves the host,
+    confirms it maps to a public IP, and pins that IP for the connection so a DNS
+    rebind cannot swap in an internal address — and streams the bytes back,
+    re-validating every redirect hop. Hosts that are unresolvable or resolve to a
+    private / loopback / link-local / reserved address are rejected. See #13593.
+    """
+    import safehttpx
+    from starlette.background import BackgroundTask
+    from starlette.responses import StreamingResponse
+
+    forward_headers = {}
+    range_header = request.headers.get("Range")
+    if range_header:
+        forward_headers["Range"] = range_header
+
+    current_url = url
+    redirects = 0
+    while True:
+        try:
+            parsed = httpx.URL(current_url)
+        except Exception as e:
+            raise HTTPException(403, f"File not allowed: {url}.") from e
+        if parsed.scheme not in ("http", "https") or not parsed.host:
+            raise HTTPException(403, f"File not allowed: {url}.")
+        try:
+            verified_ip = await safehttpx.async_validate_url(parsed.host)
+        except Exception as e:
+            # Host does not resolve to a public IP (private / loopback /
+            # link-local / metadata) or cannot be resolved at all.
+            raise HTTPException(403, f"File not allowed: {url}.") from e
+
+        transport = safehttpx.AsyncSecureTransport(verified_ip)
+        client = httpx.AsyncClient(
+            transport=transport, timeout=httpx.Timeout(None, connect=10.0)
+        )
+        try:
+            req = client.build_request(
+                request.method, current_url, headers=forward_headers
+            )
+            upstream = await client.send(req, stream=True)
+        except Exception as e:
+            await client.aclose()
+            raise HTTPException(502, f"Could not fetch file: {url}.") from e
+
+        if upstream.has_redirect_location and redirects < _FILE_STREAM_MAX_REDIRECTS:
+            location = upstream.headers.get("location", "")
+            await upstream.aclose()
+            await client.aclose()
+            redirects += 1
+            # Resolve relative / scheme-relative redirects against the URL that
+            # produced them, then re-validate the new host on the next loop.
+            current_url = str(httpx.URL(current_url).join(location))
+            continue
+
+        # Final response. Serve attacker-controlled content defensively: only
+        # known-safe types are served inline from the Gradio origin; everything
+        # else is downloaded as an opaque blob to prevent stored-XSS.
+        upstream_mime = upstream.headers.get("content-type", "").split(";")[0].strip()
+        guessed_mime, _ = mimetypes.guess_type(current_url)
+        if upstream_mime in XSS_SAFE_MIMETYPES or guessed_mime in XSS_SAFE_MIMETYPES:
+            content_type = upstream_mime or guessed_mime or "application/octet-stream"
+            content_disposition = "inline"
+        else:
+            content_type = "application/octet-stream"
+            content_disposition = "attachment"
+
+        response_headers = {
+            "Content-Type": content_type,
+            "Content-Disposition": content_disposition,
+        }
+        for header in _FILE_STREAM_PASSTHROUGH_HEADERS:
+            if header in upstream.headers:
+                response_headers[header] = upstream.headers[header]
+
+        async def _close(upstream=upstream, client=client) -> None:
+            await upstream.aclose()
+            await client.aclose()
+
+        return StreamingResponse(
+            upstream.aiter_raw(),
+            status_code=upstream.status_code,
+            headers=response_headers,
+            background=BackgroundTask(_close),
+        )
+
+
 def file_fetch(
     path_or_url,
     request,
     blocks_or_config,
     upload_dir,
 ):
-    if client_utils.is_http_url_like(path_or_url):
-        from starlette.responses import RedirectResponse
-
-        # Only redirect to URLs that the app explicitly loaded via `gr.load()`
-        # (i.e. hosts already present in `proxy_urls`). Redirecting to arbitrary
-        # URLs turns this endpoint into an open redirect and, because
-        # `gradio_client` follows redirects, a client-side SSRF vector against
-        # e.g. cloud metadata services. See GHSA / issue #13593.
-        proxy_urls = getattr(blocks_or_config, "proxy_urls", None) or []
-        try:
-            request_host = httpx.URL(path_or_url).host
-        except Exception:
-            request_host = ""
-        is_allowed = bool(request_host) and any(
-            request_host == httpx.URL(root).host for root in proxy_urls
-        )
-        if not is_allowed:
-            raise HTTPException(403, f"File not allowed: {path_or_url}.")
-
-        return RedirectResponse(url=path_or_url, status_code=302)
-
+    # NOTE: http(s) URLs are intentionally NOT handled here. Previously this
+    # returned a 302 redirect to the URL, which was an open redirect and — since
+    # `gradio_client` follows redirects — a client-side SSRF vector (#13593).
+    # They are now served by `secure_url_stream_response()` from the async route,
+    # which fetches through `safehttpx` (public-IP validated, IP-pinned) and
+    # streams the bytes back. Any http(s) URL reaching this sync path falls
+    # through to the `starts_with_protocol` guard below and is rejected.
     if starts_with_protocol(path_or_url):
         raise HTTPException(403, f"File not allowed: {path_or_url}.")
 

@@ -2998,7 +2998,6 @@ Received inputs:
                     blocked_paths=self.blocked_paths,
                     max_file_size=self.max_file_size,
                     favicon_path=str(self.favicon_path) if self.favicon_path else None,
-                    proxy_urls=list(self.proxy_urls),
                 )
                 # When Node is the front proxy, worker ports were pre-computed above.
                 # Otherwise, compute them here.
