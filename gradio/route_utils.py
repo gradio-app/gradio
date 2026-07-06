@@ -36,8 +36,10 @@ import anyio
 import fastapi
 import gradio_client.utils as client_utils
 import httpx
+import safehttpx
 from gradio_client.documentation import document
 from python_multipart.multipart import MultipartParser, parse_options_header
+from starlette.background import BackgroundTask
 from starlette.datastructures import (
     FormData,
     Headers,
@@ -48,7 +50,12 @@ from starlette.datastructures import (
 from starlette.exceptions import HTTPException
 from starlette.formparsers import MultiPartException, MultipartPart
 from starlette.requests import Request as StarletteRequest
-from starlette.responses import FileResponse, PlainTextResponse, Response
+from starlette.responses import (
+    FileResponse,
+    PlainTextResponse,
+    Response,
+    StreamingResponse,
+)
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
@@ -1188,8 +1195,6 @@ def favicon(favicon_path: str | Path | None = None):
 
 
 _FILE_STREAM_MAX_REDIRECTS = 20
-# Headers worth relaying from the upstream response (Content-Type and
-# Content-Disposition are set explicitly for XSS safety and so are omitted here).
 _FILE_STREAM_PASSTHROUGH_HEADERS = (
     "content-length",
     "content-range",
@@ -1210,10 +1215,6 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
     re-validating every redirect hop. Hosts that are unresolvable or resolve to a
     private / loopback / link-local / reserved address are rejected. See #13593.
     """
-    import safehttpx
-    from starlette.background import BackgroundTask
-    from starlette.responses import StreamingResponse
-
     forward_headers = {}
     range_header = request.headers.get("Range")
     if range_header:

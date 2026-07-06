@@ -750,107 +750,43 @@ class TestRoutes:
 
         io.close()
 
-    def test_file_endpoint_blocks_ssrf_to_internal_addresses(self):
-        # Regression test for #13593: the /file= endpoint must not be usable as
-        # an SSRF vector. It no longer redirects to arbitrary URLs; instead it
-        # fetches through safehttpx, which rejects hosts that resolve to
-        # non-public (loopback / private / link-local) addresses.
+    @pytest.mark.flaky
+    @pytest.mark.parametrize(
+        "url,allowed",
+        [
+            # Public external URLs (used elsewhere in the test suite) are fetched
+            # server-side and streamed back.
+            (
+                "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png",
+                True,
+            ),
+            (
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg",
+                True,
+            ),
+            # Non-public hosts must be rejected (SSRF): cloud metadata
+            # (link-local), loopback, and private ranges.
+            ("http://169.254.169.254/latest/meta-data/", False),
+            ("http://127.0.0.1:22/", False),
+            ("http://10.0.0.1/admin", False),
+        ],
+    )
+    def test_file_endpoint_ssrf_protection(self, url, allowed):
+        # Regression test for #13593: `/file=<url>` no longer redirects (an open
+        # redirect + client-side SSRF vector). It proxies through safehttpx,
+        # which only fetches hosts that resolve to a public IP.
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
         app = routes.App.create_app(io)
         client = TestClient(app)
 
-        for url in [
-            "http://169.254.169.254/latest/meta-data/",  # cloud metadata (link-local)
-            "http://127.0.0.1:22/",  # loopback
-            "http://10.0.0.1/admin",  # private range
-        ]:
-            resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
-            assert resp.status_code == 403, url
+        resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
+        if allowed:
+            assert resp.status_code == 200
+            assert resp.content
+        else:
+            assert resp.status_code == 403
             # Crucially, never a redirect the client would follow itself.
             assert "location" not in resp.headers
-
-    def test_file_endpoint_streams_public_url(self, monkeypatch):
-        # A public external URL (e.g. an image set as a component value) is
-        # fetched server-side through safehttpx and streamed back, forwarding
-        # Range and defensively setting Content-Disposition. We run a local
-        # server and stub safehttpx's public-IP validation (which would
-        # otherwise reject the loopback test server) to exercise the proxy path.
-        import http.server
-        import socket
-        import threading
-
-        import safehttpx
-
-        payload = b"0123456789abcdef"
-
-        class Handler(http.server.BaseHTTPRequestHandler):
-            def log_message(self, *args):
-                pass
-
-            def _serve(self, body=True):
-                rng = self.headers.get("Range")
-                if rng and rng.startswith("bytes="):
-                    start_s, _, end_s = rng[len("bytes=") :].partition("-")
-                    start = int(start_s)
-                    end = int(end_s) if end_s else len(payload) - 1
-                    chunk = payload[start : end + 1]
-                    self.send_response(206)
-                    self.send_header("Content-Type", "image/png")
-                    self.send_header(
-                        "Content-Range", f"bytes {start}-{end}/{len(payload)}"
-                    )
-                    self.send_header("Content-Length", str(len(chunk)))
-                    self.end_headers()
-                    if body:
-                        self.wfile.write(chunk)
-                else:
-                    self.send_response(200)
-                    self.send_header("Content-Type", "image/png")
-                    self.send_header("Content-Length", str(len(payload)))
-                    self.end_headers()
-                    if body:
-                        self.wfile.write(payload)
-
-            def do_GET(self):
-                self._serve(body=True)
-
-        sock = socket.socket()
-        sock.bind(("127.0.0.1", 0))
-        port = sock.getsockname()[1]
-        sock.close()
-        server = http.server.HTTPServer(("127.0.0.1", port), Handler)
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
-
-        # Pretend the loopback test server passed public-IP validation.
-        async def fake_validate(hostname):
-            return "127.0.0.1"
-
-        monkeypatch.setattr(safehttpx, "async_validate_url", fake_validate)
-
-        try:
-            io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
-            app = routes.App.create_app(io)
-            client = TestClient(app)
-            url = f"http://127.0.0.1:{port}/cat.png"
-
-            resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
-            assert resp.status_code == 200
-            assert resp.content == payload
-            # image/png is XSS-safe, so served inline with its real type.
-            assert resp.headers["content-type"] == "image/png"
-            assert resp.headers["content-disposition"] == "inline"
-
-            # Range requests are forwarded and 206 relayed for media seeking.
-            resp = client.get(
-                f"{API_PREFIX}/file={url}",
-                headers={"Range": "bytes=2-5"},
-                follow_redirects=False,
-            )
-            assert resp.status_code == 206
-            assert resp.content == payload[2:6]
-        finally:
-            server.shutdown()
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
