@@ -477,6 +477,20 @@ class TestCallFn:
         assert result == ["hi"]
         assert received["token"].token == "test-tok"
 
+    def test_injects_oauth_token_from_direct_token(self, tmp_path):
+        def fn_with_token(text: str, token: Optional[OAuthToken]) -> str:
+            return token.token if token else "missing"
+
+        call_fn = self._call_fn(tmp_path, {"fn_with_token": fn_with_token})
+        direct = OAuthToken.__new__(OAuthToken)
+        direct.token = "direct-token"
+        direct.scope = "openid"
+        direct.expires_at = 9999999999
+        result = json.loads(
+            call_fn(["fn_with_token", '["hello"]'], _request=None, _token=direct)
+        )
+        assert result == ["direct-token"]
+
     def test_unknown_fn_returns_error(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
         result = json.loads(call_fn(["missing", "[]"]))
