@@ -27,12 +27,22 @@ export async function load({ params, parent }) {
 	let module;
 
 	for (const path in modules) {
-		if (
-			path.includes(page_path) &&
-			path.includes("templates" + version_append)
-		) {
+		if (!path.includes(page_path)) {
+			continue;
+		}
+
+		if (path.includes("templates" + version_append)) {
+			module = await modules[path]();
+			break;
+		}
+
+		if (module === undefined && path.includes("templates/")) {
 			module = await modules[path]();
 		}
+	}
+
+	if (module === undefined) {
+		throw error(404);
 	}
 
 	return {

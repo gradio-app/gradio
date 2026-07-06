@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+from typing import Optional
 
 import pytest
 
@@ -15,6 +16,8 @@ from gradio.workflow import (
     _request_has_write_token,
     _resolve_token,
     _workflow_from_bind,
+    call_model,
+    call_space,
     get_oauth_available,
     get_token,
     has_write_access,
@@ -392,3 +395,103 @@ class TestWorkflowFromBind:
         result = json.loads(_workflow_from_bind({"noargs": noargs}))
         node = result["nodes"][0]
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
+
+
+class TestCallModelValidation:
+    def test_url_shaped_model_id_is_rejected(self):
+        result = json.loads(call_model(["http://169.254.169.254/latest/meta-data/"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_https_url_is_rejected(self):
+        result = json.loads(call_model(["https://attacker.example.com/endpoint"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_empty_model_id_is_rejected(self):
+        result = json.loads(call_model([""]))
+        assert result.get("error_type") == "not_found"
+
+    def test_bare_repo_name_is_rejected(self):
+        result = json.loads(call_model(["gpt2"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_valid_owner_repo_passes_validation(self, monkeypatch):
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def text_generation(self, *args, **kwargs):
+                return "hello"
+
+        monkeypatch.setattr(
+            "gradio.workflow.InferenceClient", FakeClient, raising=False
+        )
+        import gradio.workflow as wf
+
+        wf.call_model.__globals__.get("InferenceClient")
+
+        import sys
+        import types
+
+        fake_hf = types.ModuleType("huggingface_hub")
+        fake_hf.InferenceClient = FakeClient  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hf)
+
+        result = json.loads(call_model(["owner/model"]))
+        assert "error" not in result
+
+
+class TestCallFn:
+    def _call_fn(self, tmp_path, bind):
+        wf = Workflow(graph=str(tmp_path / "wf.json"), bind=bind)
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+        return canvas.call_fn
+
+    def test_calls_bound_fn(self, tmp_path):
+        call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
+        result = json.loads(call_fn(["echo", '["hello"]']))
+        assert result == ["hello"]
+
+    def test_injects_oauth_token(self, tmp_path):
+        received = {}
+
+        def fn_with_token(text: str, token: Optional[OAuthToken]) -> str:
+            received["token"] = token
+            return text
+
+        call_fn = self._call_fn(tmp_path, {"fn_with_token": fn_with_token})
+
+        class _MockRequest:
+            session = {
+                "oauth_info": {
+                    "access_token": "test-tok",
+                    "scope": "openid",
+                    "expires_at": 9999999999,
+                }
+            }
+
+        result = json.loads(
+            call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest())
+        )
+        assert result == ["hi"]
+        assert received["token"].token == "test-tok"
+
+    def test_unknown_fn_returns_error(self, tmp_path):
+        call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
+        result = json.loads(call_fn(["missing", "[]"]))
+        assert result.get("error_type") == "unknown"
+
+
+class TestCallSpaceValidation:
+    def test_url_shaped_space_id_is_rejected(self):
+        result = json.loads(call_space(["http://169.254.169.254/"]))
+        assert result.get("error_type") == "not_found"
+
+    def test_valid_owner_repo_format_accepted_by_regex(self):
+        import re
+
+        pattern = r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+"
+        assert re.fullmatch(pattern, "owner/repo")
+        assert re.fullmatch(pattern, "my-org/my-space")
+        assert re.fullmatch(pattern, "http://host/path") is None

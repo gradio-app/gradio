@@ -12,6 +12,7 @@
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
+	import CodeIcon from "./icons/CodeIcon.svelte";
 
 	import {
 		MODALITIES,
@@ -234,6 +235,8 @@
 				reversed: boolean;
 				cursorCanvasX: number;
 				cursorCanvasY: number;
+				startCanvasX: number;
+				startCanvasY: number;
 		  }
 		| {
 				kind: "marquee";
@@ -250,6 +253,7 @@
 
 	// ─── App state ──────────────────────────────────────────────────────────────
 	let canvasEl: HTMLDivElement;
+	let rootEl: HTMLDivElement;
 	let running = $state(false);
 	let abortController: AbortController | null = null;
 	let nodeStatus: Record<string, NodeStatus> = $state({});
@@ -460,7 +464,51 @@
 			portId: string,
 			type: PortType,
 			isInput: boolean
-		) => startConnection(e, nodeId, portId, type, isInput)
+		) => startConnection(e, nodeId, portId, type, isInput),
+		onpopout: (
+			nodeId: string,
+			portId: string,
+			type: PortType,
+			isInput: boolean
+		) => {
+			if (readOnly) return;
+			const node = legacyView.nodes.find((n) => n.id === nodeId);
+			if (!node) return;
+			const template = getComponentForPortType(type);
+			if (!template) return;
+			if (isInput) {
+				const { x, y } = clampToViewport(
+					node.x - 260,
+					node.y,
+					template.width,
+					template.height
+				);
+				const newId = addNode("reference", template, x, y);
+				addEdge({
+					from_node_id: newId,
+					from_port_id: "out",
+					to_node_id: nodeId,
+					to_port_id: portId,
+					type
+				});
+				updateNodeData(nodeId, portId, "");
+			} else {
+				const { x, y } = clampToViewport(
+					node.x + node.width + 40,
+					node.y,
+					template.width,
+					template.height
+				);
+				const newId = addNode("reference", template, x, y);
+				addEdge({
+					from_node_id: nodeId,
+					from_port_id: portId,
+					to_node_id: newId,
+					to_port_id: "in",
+					type
+				});
+			}
+		}
 	});
 	setContext("wf", wfCtx);
 
@@ -494,6 +542,25 @@
 		return {
 			x: (clientX - r.left - viewport.x) / viewport.zoom,
 			y: (clientY - r.top - viewport.y) / viewport.zoom
+		};
+	}
+
+	function clampToViewport(
+		x: number,
+		y: number,
+		w: number,
+		h: number
+	): { x: number; y: number } {
+		if (!canvasEl) return { x, y };
+		const r = canvasEl.getBoundingClientRect();
+		const pad = 20;
+		const minX = -viewport.x / viewport.zoom + pad;
+		const maxX = (r.width - viewport.x) / viewport.zoom - w - pad;
+		const minY = -viewport.y / viewport.zoom + pad;
+		const maxY = (r.height - viewport.y) / viewport.zoom - h - pad;
+		return {
+			x: Math.max(minX, Math.min(maxX, x)),
+			y: Math.max(minY, Math.min(maxY, y))
 		};
 	}
 
@@ -603,7 +670,9 @@
 			type,
 			reversed: isInput,
 			cursorCanvasX: x,
-			cursorCanvasY: y
+			cursorCanvasY: y,
+			startCanvasX: x,
+			startCanvasY: y
 		};
 		activeConnection = {
 			from_node_id: nodeId,
@@ -689,6 +758,61 @@
 		}
 		if (mode.kind === "connection") {
 			activeConnection = null;
+			const dx =
+				Math.abs(mode.cursorCanvasX - mode.startCanvasX) * viewport.zoom;
+			const dy =
+				Math.abs(mode.cursorCanvasY - mode.startCanvasY) * viewport.zoom;
+			if (dx < 4 && dy < 4) {
+				const direction = mode.reversed ? "input" : "output";
+				const isConnected = connectedPortsSet().has(
+					`${mode.fromNodeId}:${mode.fromPortId}:${direction}`
+				);
+				if (!isConnected) {
+					const srcNode = legacyView.nodes.find(
+						(n) => n.id === mode.fromNodeId
+					);
+					const template = getComponentForPortType(mode.type);
+					if (srcNode && template) {
+						if (mode.reversed) {
+							const { x, y } = clampToViewport(
+								srcNode.x - 260,
+								srcNode.y,
+								template.width,
+								template.height
+							);
+							const newId = addNode("reference", template, x, y);
+							addEdge({
+								from_node_id: newId,
+								from_port_id: "out",
+								to_node_id: mode.fromNodeId,
+								to_port_id: mode.fromPortId,
+								type: mode.type
+							});
+							updateNodeData(mode.fromNodeId, mode.fromPortId, "");
+						} else {
+							const { x, y } = clampToViewport(
+								srcNode.x + srcNode.width + 40,
+								srcNode.y,
+								template.width,
+								template.height
+							);
+							const newId = addNode("reference", template, x, y);
+							addEdge({
+								from_node_id: mode.fromNodeId,
+								from_port_id: mode.fromPortId,
+								to_node_id: newId,
+								to_port_id: "in",
+								type: mode.type
+							});
+						}
+					}
+					dragMode = null;
+					try {
+						canvasEl?.releasePointerCapture(e.pointerId);
+					} catch {}
+					return;
+				}
+			}
 			const targetEl = document.elementFromPoint(
 				e.clientX,
 				e.clientY
@@ -765,9 +889,16 @@
 					mode.reversed
 				);
 				const hasChoices = !!(srcPort?.choices && srcPort.choices.length > 0);
+				const rootRect = rootEl?.getBoundingClientRect();
+				const menuW = 220,
+					menuH = 360;
+				const rawX = rootRect ? e.clientX - rootRect.left : e.clientX - r.left;
+				const rawY = rootRect ? e.clientY - rootRect.top : e.clientY - r.top;
+				const containerW = rootRect ? rootRect.width : r.width;
+				const containerH = rootRect ? rootRect.height : r.height;
 				const choice: DropChoice = {
-					clientX: e.clientX - r.left,
-					clientY: e.clientY - r.top,
+					clientX: Math.min(rawX, containerW - menuW - 8),
+					clientY: Math.min(rawY, containerH - menuH - 8),
 					modelOptions: hasChoices ? [] : buildModelOptions(mode.type),
 					componentOptions: hasChoices
 						? [{ kind: "component", label: srcPort!.label }]
@@ -1760,26 +1891,28 @@
 
 		let anchorX: number | undefined;
 		let anchorY: number | undefined;
-		if (canvasEl) {
-			const r = canvasEl.getBoundingClientRect();
-			const panelWidth = 940;
-			const panelHeight = 720;
-			const nodeScreenRight =
-				node.x * viewport.zoom + viewport.x + node.width * viewport.zoom;
-			anchorX = nodeScreenRight + 12;
-			if (anchorX + panelWidth > r.width) {
-				anchorX = Math.max(
-					4,
-					node.x * viewport.zoom + viewport.x - panelWidth - 12
-				);
+		if (canvasEl && rootEl) {
+			const rootRect = rootEl.getBoundingClientRect();
+			const canvasRect = canvasEl.getBoundingClientRect();
+			const canvasOffsetX = canvasRect.left - rootRect.left;
+			const canvasOffsetY = canvasRect.top - rootRect.top;
+			const panelWidth = Math.min(940, rootRect.width - 8);
+			const panelHeight = Math.min(720, rootRect.height - 160);
+			const nodeRight =
+				canvasOffsetX +
+				node.x * viewport.zoom +
+				viewport.x +
+				node.width * viewport.zoom;
+			const nodeLeft = canvasOffsetX + node.x * viewport.zoom + viewport.x;
+			const nodeTop = canvasOffsetY + node.y * viewport.zoom + viewport.y;
+			anchorX = nodeRight + 12;
+			if (anchorX + panelWidth > rootRect.width - 4) {
+				anchorX = nodeLeft - panelWidth - 12;
 			}
-			anchorX = Math.max(4, anchorX);
+			anchorX = Math.max(4, Math.min(anchorX, rootRect.width - panelWidth - 4));
 			anchorY = Math.max(
 				4,
-				Math.min(
-					node.y * viewport.zoom + viewport.y,
-					r.height - panelHeight - 8
-				)
+				Math.min(nodeTop, rootRect.height - panelHeight - 8)
 			);
 		}
 
@@ -2003,7 +2136,7 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="workflow-root" onclick={handleGlobalClick}>
+<div class="workflow-root" bind:this={rootEl} onclick={handleGlobalClick}>
 	<div class="toolbar">
 		<div class="toolbar-left">
 			{#if readOnly}
@@ -2040,7 +2173,7 @@
 				onclick={() => (showApiPanel = true)}
 				title="View the API for this workflow"
 			>
-				<span class="api-btn-glyph">&lt;/&gt;</span>
+				<CodeIcon />
 				View API
 			</button>
 			{#if saveIndicator}

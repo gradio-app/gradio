@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    with gr.Tabs():
+    with gr.Tabs() as outer_tabs:
         with gr.Tab("Set 1"):
             with gr.Tabs(selected="a3") as tabs_1:
                 tabset_1 = []
@@ -29,6 +29,8 @@ with gr.Blocks() as demo:
             gr.Markdown("This tab was unlocked!")
 
     selected = gr.Textbox(label="Selected Tab")
+    outer_selected = gr.Textbox(label="Outer Container Tab")
+    select_count = gr.Number(label="Tab Select Count", value=0)
     with gr.Row():
         hide_odd_btn = gr.Button("Hide Odd Tabs")
         show_all_btn = gr.Button("Show All Tabs")
@@ -48,6 +50,22 @@ with gr.Blocks() as demo:
     def get_selected_index(evt: gr.SelectData):
         return evt.value
     gr.on([tab.select for tab in tabset_1 + tabset_2], get_selected_index, outputs=selected)
+
+    # Count how many times the per-tab `select` fires. Uses a server-side
+    # accumulator (not a read-modify-write of the component) so concurrent
+    # dispatches under `trigger_mode="multiple"` can't clobber each other, and
+    # `trigger_mode="multiple"` so a double-dispatch regression isn't masked by
+    # the default "once" mode.
+    tab_select_count = {"n": 0}
+    def count_tab_select():
+        tab_select_count["n"] += 1
+        return tab_select_count["n"]
+    gr.on([tab.select for tab in tabset_1 + tabset_2], count_tab_select, outputs=select_count, trigger_mode="multiple")
+
+    # The `select` event on a Tabs container should fire when its active tab changes.
+    def get_outer_selected(evt: gr.SelectData):
+        return evt.value
+    outer_tabs.select(get_outer_selected, None, outer_selected)
 
 if __name__ == "__main__":
     demo.launch()
