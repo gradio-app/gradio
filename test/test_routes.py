@@ -776,6 +776,30 @@ class TestRoutes:
         )
         assert resp.headers["access-control-allow-origin"] == "https://spoofed.example.com"
 
+        # A different port on the same host is a *different* origin and must
+        # not be treated as same-origin.
+        resp = client.get(
+            f"{API_PREFIX}/config",
+            headers={
+                "host": "spoofed.example.com:7860",
+                "origin": "https://spoofed.example.com:8000",
+            },
+        )
+        assert "access-control-allow-origin" not in resp.headers
+
+        # The exact same host:port pair is still allowed.
+        resp = client.get(
+            f"{API_PREFIX}/config",
+            headers={
+                "host": "spoofed.example.com:7860",
+                "origin": "http://spoofed.example.com:7860",
+            },
+        )
+        assert (
+            resp.headers["access-control-allow-origin"]
+            == "http://spoofed.example.com:7860"
+        )
+
     def test_cors_allows_any_origin_on_space_host(self, monkeypatch):
         # On a genuine public deployment (identified via SPACE_HOST, not the
         # client-controlled Host header) cross-origin embedding is supported.

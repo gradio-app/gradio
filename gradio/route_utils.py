@@ -891,6 +891,31 @@ def get_hostname(url: str) -> str:
         return ""
 
 
+_DEFAULT_PORTS = {"http": 80, "https": 443, "ws": 80, "wss": 443}
+
+
+def get_host_and_port(value: str, scheme: str | None = None) -> tuple[str, int | None]:
+    """
+    Returns the (lowercased hostname, port) of a URL or a bare `Host` header
+    value. When the port is not explicit, it falls back to the default port for
+    `scheme` so that e.g. "https://example.com" and "example.com:443" compare
+    equal. Returns ("", None) if the value cannot be parsed.
+    """
+    if not value:
+        return "", None
+    # A `Host` header has no scheme; parse it as a bare netloc.
+    parseable = value if "://" in value else "//" + value
+    try:
+        parsed = urlparse(parseable)
+        host = (parsed.hostname or "").lower()
+        port = parsed.port
+    except Exception:
+        return "", None
+    if port is None and scheme:
+        port = _DEFAULT_PORTS.get(scheme)
+    return host, port
+
+
 class CustomCORSMiddleware:
     # This is a modified version of the Starlette CORSMiddleware that restricts the allowed origins when the host is localhost.
     # Adapted from: https://github.com/encode/starlette/blob/89fae174a1ea10f59ae248fe030d9b7e83d0b8a0/starlette/middleware/cors.py
@@ -985,7 +1010,13 @@ class CustomCORSMiddleware:
         # localhost page (local web-component embedding) are always allowed.
         if origin_name in self.localhost_aliases:
             return True
-        if origin_name and origin_name == host_name:
+        # Same-origin comparison must account for the port (and, via the
+        # Origin's scheme, default ports): example.com:8000 is a *different*
+        # origin from example.com:7860 and must not be reflected.
+        origin_scheme = urlparse(origin).scheme if "://" in origin else None
+        origin_host, origin_port = get_host_and_port(origin, origin_scheme)
+        request_host, request_port = get_host_and_port(host, origin_scheme)
+        if origin_host and origin_host == request_host and origin_port == request_port:
             return True
         # Otherwise, only reflect the origin when the request is addressed to a
         # trusted public deployment host. We deliberately do not fall back to
