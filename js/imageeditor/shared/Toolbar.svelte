@@ -103,11 +103,14 @@
 	let can_upload = $derived(sources.includes("upload"));
 	let can_webcam = $derived(sources.includes("webcam"));
 	let can_paste = $derived(sources.includes("clipboard"));
+	let can_edit_image = $derived(
+		sources.length > 0 || (background && transforms.length > 0)
+	);
 </script>
 
 <div class="toolbar-wrap">
 	<div class="half-container">
-		{#if sources.length > 0}
+		{#if can_edit_image}
 			<IconButton
 				Icon={Image}
 				label="Image"
