@@ -1359,17 +1359,7 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
-                args, *_ = _special_args(fn, args, _request, None)
-                if _token is not None:
-                    hints = get_type_hints(fn)
-                    params = list(inspect.signature(fn).parameters.keys())
-                    for i, p in enumerate(params):
-                        if (
-                            _is_injected_param(hints.get(p))
-                            and i < len(args)
-                            and args[i] is None
-                        ):
-                            args[i] = _token
+                args, *_ = _special_args(fn, args, _request, None, token=_token)
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(result)

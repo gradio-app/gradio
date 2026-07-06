@@ -7,7 +7,7 @@ import pytest
 
 import gradio as gr
 import gradio.workflow as workflow_module
-from gradio.oauth import OAuthToken
+from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
 from gradio.workflow import (
     WRITE_TOKEN,
@@ -490,6 +490,39 @@ class TestCallFn:
             call_fn(["fn_with_token", '["hello"]'], _request=None, _token=direct)
         )
         assert result == ["direct-token"]
+
+    def test_direct_token_injected_into_required_token_param(self, tmp_path):
+        # A non-optional OAuthToken param must be satisfied by the directly
+        # supplied token rather than raising "requires a logged in user".
+        def fn_required(text: str, token: OAuthToken) -> str:
+            return token.token
+
+        call_fn = self._call_fn(tmp_path, {"fn_required": fn_required})
+        direct = OAuthToken.__new__(OAuthToken)
+        direct.token = "direct-token"
+        direct.scope = "openid"
+        direct.expires_at = 9999999999
+        result = json.loads(
+            call_fn(["fn_required", '["hello"]'], _request=None, _token=direct)
+        )
+        assert result == ["direct-token"]
+
+    def test_direct_token_does_not_clobber_profile_param(self, tmp_path):
+        # The direct token must only fill OAuthToken params; an OAuthProfile
+        # param that resolves to None (logged out) must stay None, not receive
+        # the OAuthToken object.
+        def fn_with_profile(text: str, profile: Optional[OAuthProfile]) -> str:
+            return type(profile).__name__ if profile is not None else "none"
+
+        call_fn = self._call_fn(tmp_path, {"fn_with_profile": fn_with_profile})
+        direct = OAuthToken.__new__(OAuthToken)
+        direct.token = "direct-token"
+        direct.scope = "openid"
+        direct.expires_at = 9999999999
+        result = json.loads(
+            call_fn(["fn_with_profile", '["hello"]'], _request=None, _token=direct)
+        )
+        assert result == ["none"]
 
     def test_unknown_fn_returns_error(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
