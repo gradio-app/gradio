@@ -754,8 +754,6 @@ class TestRoutes:
     @pytest.mark.parametrize(
         "url,allowed",
         [
-            # Public external URLs (used elsewhere in the test suite) are fetched
-            # server-side and streamed back.
             (
                 "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png",
                 True,
@@ -764,17 +762,12 @@ class TestRoutes:
                 "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg",
                 True,
             ),
-            # Non-public hosts must be rejected (SSRF): cloud metadata
-            # (link-local), loopback, and private ranges.
             ("http://169.254.169.254/latest/meta-data/", False),
             ("http://127.0.0.1:22/", False),
             ("http://10.0.0.1/admin", False),
         ],
     )
     def test_file_endpoint_ssrf_protection(self, url, allowed):
-        # Regression test for #13593: `/file=<url>` no longer redirects (an open
-        # redirect + client-side SSRF vector). It proxies through safehttpx,
-        # which only fetches hosts that resolve to a public IP.
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
         app = routes.App.create_app(io)
         client = TestClient(app)
@@ -785,7 +778,6 @@ class TestRoutes:
             assert resp.content
         else:
             assert resp.status_code == 403
-            # Crucially, never a redirect the client would follow itself.
             assert "location" not in resp.headers
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):

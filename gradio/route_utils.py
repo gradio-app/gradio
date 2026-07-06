@@ -1232,8 +1232,6 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
         try:
             verified_ip = await safehttpx.async_validate_url(parsed.host)
         except Exception as e:
-            # Host does not resolve to a public IP (private / loopback /
-            # link-local / metadata) or cannot be resolved at all.
             raise HTTPException(403, f"File not allowed: {url}.") from e
 
         transport = safehttpx.AsyncSecureTransport(verified_ip)
@@ -1254,14 +1252,9 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
             await upstream.aclose()
             await client.aclose()
             redirects += 1
-            # Resolve relative / scheme-relative redirects against the URL that
-            # produced them, then re-validate the new host on the next loop.
             current_url = str(httpx.URL(current_url).join(location))
             continue
 
-        # Final response. Serve attacker-controlled content defensively: only
-        # known-safe types are served inline from the Gradio origin; everything
-        # else is downloaded as an opaque blob to prevent stored-XSS.
         upstream_mime = upstream.headers.get("content-type", "").split(";")[0].strip()
         guessed_mime, _ = mimetypes.guess_type(current_url)
         if upstream_mime in XSS_SAFE_MIMETYPES or guessed_mime in XSS_SAFE_MIMETYPES:
