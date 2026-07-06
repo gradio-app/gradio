@@ -477,52 +477,19 @@ class TestCallFn:
         assert result == ["hi"]
         assert received["token"].token == "test-tok"
 
-    def test_injects_oauth_token_from_direct_token(self, tmp_path):
-        def fn_with_token(text: str, token: Optional[OAuthToken]) -> str:
-            return token.token if token else "missing"
+    def test_injects_direct_token_without_session(self, tmp_path):
+        def fn(text: str, token: OAuthToken, profile: Optional[OAuthProfile]) -> str:
+            return f"{token.token},{profile}"
 
-        call_fn = self._call_fn(tmp_path, {"fn_with_token": fn_with_token})
+        call_fn = self._call_fn(tmp_path, {"fn": fn})
         direct = OAuthToken.__new__(OAuthToken)
         direct.token = "direct-token"
         direct.scope = "openid"
         direct.expires_at = 9999999999
         result = json.loads(
-            call_fn(["fn_with_token", '["hello"]'], _request=None, _token=direct)
+            call_fn(["fn", '["hello"]'], _request=None, _token=direct)
         )
-        assert result == ["direct-token"]
-
-    def test_direct_token_injected_into_required_token_param(self, tmp_path):
-        # A non-optional OAuthToken param must be satisfied by the directly
-        # supplied token rather than raising "requires a logged in user".
-        def fn_required(text: str, token: OAuthToken) -> str:
-            return token.token
-
-        call_fn = self._call_fn(tmp_path, {"fn_required": fn_required})
-        direct = OAuthToken.__new__(OAuthToken)
-        direct.token = "direct-token"
-        direct.scope = "openid"
-        direct.expires_at = 9999999999
-        result = json.loads(
-            call_fn(["fn_required", '["hello"]'], _request=None, _token=direct)
-        )
-        assert result == ["direct-token"]
-
-    def test_direct_token_does_not_clobber_profile_param(self, tmp_path):
-        # The direct token must only fill OAuthToken params; an OAuthProfile
-        # param that resolves to None (logged out) must stay None, not receive
-        # the OAuthToken object.
-        def fn_with_profile(text: str, profile: Optional[OAuthProfile]) -> str:
-            return type(profile).__name__ if profile is not None else "none"
-
-        call_fn = self._call_fn(tmp_path, {"fn_with_profile": fn_with_profile})
-        direct = OAuthToken.__new__(OAuthToken)
-        direct.token = "direct-token"
-        direct.scope = "openid"
-        direct.expires_at = 9999999999
-        result = json.loads(
-            call_fn(["fn_with_profile", '["hello"]'], _request=None, _token=direct)
-        )
-        assert result == ["none"]
+        assert result == ["direct-token,None"]
 
     def test_unknown_fn_returns_error(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
