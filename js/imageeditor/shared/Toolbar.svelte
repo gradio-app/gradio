@@ -22,7 +22,6 @@
 		Upload,
 		ImagePaste,
 		Webcam,
-		Circle,
 		Resize,
 		ColorPickerSolid
 	} from "@gradio/icons";
@@ -264,7 +263,7 @@
 
 		{#if tool === "erase" && eraser_options}
 			<IconButton
-				Icon={Circle}
+				Icon={BrushSize}
 				label="Eraser Size"
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
