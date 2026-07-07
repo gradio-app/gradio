@@ -34,6 +34,7 @@ export function is_valid_mimetype(
 
 interface DragActionOptions {
 	disable_click?: boolean;
+	ignore_click_selector?: string;
 	accepted_types?: string | string[] | null;
 	mode?: "single" | "multiple" | "directory";
 	on_drag_change?: (dragging: boolean) => void;
@@ -116,11 +117,20 @@ export function create_drag(): {
 				}
 			}
 
-			function handle_click(): void {
-				if (!_options.disable_click) {
-					hidden_input.value = "";
-					hidden_input.click();
+			function handle_click(e: MouseEvent): void {
+				const target = e.target;
+				const ignored_click_selector = _options.ignore_click_selector;
+				if (
+					_options.disable_click ||
+					(ignored_click_selector &&
+						target instanceof Element &&
+						target.closest(ignored_click_selector) !== null)
+				) {
+					return;
 				}
+
+				hidden_input.value = "";
+				hidden_input.click();
 			}
 
 			function handle_file_input_change(): void {

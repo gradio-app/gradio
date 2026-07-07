@@ -16,12 +16,12 @@
 	import {
 		Image,
 		Brush,
+		BrushSize,
 		Erase,
 		Crop,
 		Upload,
 		ImagePaste,
 		Webcam,
-		Circle,
 		Resize,
 		ColorPickerSolid
 	} from "@gradio/icons";
@@ -108,7 +108,7 @@
 	);
 </script>
 
-<div class="toolbar-wrap">
+<div class="toolbar-wrap" onclick={(e) => e.stopPropagation()}>
 	<div class="half-container">
 		{#if can_edit_image}
 			<IconButton
@@ -228,7 +228,7 @@
 				offset={0}
 			/>
 			<IconButton
-				Icon={Circle}
+				Icon={BrushSize}
 				label="Brush Size"
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
@@ -263,7 +263,7 @@
 
 		{#if tool === "erase" && eraser_options}
 			<IconButton
-				Icon={Circle}
+				Icon={BrushSize}
 				label="Eraser Size"
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
