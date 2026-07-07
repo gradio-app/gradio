@@ -958,7 +958,7 @@ def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     return sanitized_values
 
 
-def parse_flagged_json(payload: Any) -> Any:
+def parse_escaped_json(payload: Any) -> Any:
     """
     Parses a JSON value read back from a flagging or example-cache CSV file,
     tolerating the CSV-injection escape character ("'") that

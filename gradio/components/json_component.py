@@ -19,7 +19,7 @@ from gradio.data_classes import JsonData
 from gradio.events import Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
-from gradio.utils import parse_flagged_json, set_default_buttons
+from gradio.utils import parse_escaped_json, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -168,7 +168,7 @@ class JSON(Component):
         return {"foo": "bar"}
 
     def read_from_flag(self, payload: Any):
-        return parse_flagged_json(payload)
+        return parse_escaped_json(payload)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}

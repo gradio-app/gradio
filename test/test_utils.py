@@ -44,7 +44,7 @@ from gradio.utils import (
     is_hosted_notebook,
     is_in_or_equal,
     is_special_typed_parameter,
-    parse_flagged_json,
+    parse_escaped_json,
     safe_aclose_iterator,
     safe_deepcopy,
     sanitize_list_for_csv,
@@ -229,12 +229,12 @@ class TestSanitizeForCSV:
         ) == [["'=abc", "def", "'gh,+ij"], ["abc", "'=def", "'+ghij"]]
         assert sanitize_list_for_csv([1, ["ab", "=de"]]) == [1, ["ab", "'=de"]]
 
-    def test_parse_flagged_json(self):
-        assert parse_flagged_json("-0.5678") == -0.5678
+    def test_parse_escaped_json(self):
+        assert parse_escaped_json("-0.5678") == -0.5678
         # Negative numbers get CSV-escaped with a leading "'" on write (#13591)
-        assert parse_flagged_json("'-0.5678") == -0.5678
+        assert parse_escaped_json("'-0.5678") == -0.5678
         with pytest.raises(json.JSONDecodeError):
-            parse_flagged_json("'not json")
+            parse_escaped_json("'not json")
 
 
 class TestValidateURL:
