@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.9.0
+
+### Features
+
+- [#13543](https://github.com/gradio-app/gradio/pull/13543) [`0533483`](https://github.com/gradio-app/gradio/commit/0533483bccdee38f334a598f18297e8c02966343) - Migrate Image components to Svelte 5.  Thanks @dawoodkhan82!
+
 ## 0.8.0
 
 ### Features
