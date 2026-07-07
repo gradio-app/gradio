@@ -1,5 +1,17 @@
 # @gradio/upload
 
+## 0.18.1
+
+### Fixes
+
+- [#13597](https://github.com/gradio-app/gradio/pull/13597) [`7a595cb`](https://github.com/gradio-app/gradio/commit/7a595cb72d8a82151ee2231e86d20c91d0bb9062) - Fix ImageEditor brush texture resets.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/client@2.3.1
+
 ## 0.18.0
 
 ### Features
