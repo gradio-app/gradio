@@ -1,5 +1,18 @@
 # @gradio/html
 
+## 0.13.1
+
+### Fixes
+
+- [#13529](https://github.com/gradio-app/gradio/pull/13529) [`6438369`](https://github.com/gradio-app/gradio/commit/64383695167206d7775a364938a1005c662ea9c7) - Wait for in-flight head scripts before running js_on_load in gr.HTML.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/client@2.3.1
+
 ## 0.13.0
 
 ### Features

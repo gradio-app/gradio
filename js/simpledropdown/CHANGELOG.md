@@ -1,5 +1,13 @@
 # @gradio/simpledropdown
 
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+
 ## 0.5.0
 
 ### Features
