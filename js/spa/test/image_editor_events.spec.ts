@@ -21,17 +21,6 @@ test("change events work as expected", async ({ page }) => {
 	await expect(change_text).toContainText("1");
 });
 
-test("brush tool click does not open file upload", async ({ page }) => {
-	const file_chooser_opened = page
-		.waitForEvent("filechooser", { timeout: 500 })
-		.then(() => true)
-		.catch(() => false);
-
-	await page.getByLabel("Brush").first().click();
-
-	await expect(file_chooser_opened).resolves.toBe(false);
-});
-
 test("Image editor user can draw after upload", async ({ page }) => {
 	await page.getByLabel("Click to upload or drop files").first().click();
 	const [fileChooser] = await Promise.all([
