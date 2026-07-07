@@ -249,26 +249,6 @@ class TestProcessExamples:
             prediction = io.examples_handler.load_from_cache(0)
         assert prediction[0] == -0.5678
 
-    def test_caching_negative_number_in_stale_escaped_cache(
-        self, patched_cache_folder, connect
-    ):
-        io = gr.Interface(
-            lambda x: -0.5678,
-            "text",
-            gr.Number(),
-            examples=[["hi"]],
-            cache_examples=True,
-        )
-        with connect(io):
-            # Rewrite the cache the way versions before the fix for #13591
-            # wrote it, with the negative number CSV-escaped by a leading "'"
-            cached_file = Path(io.examples_handler.cached_file)
-            cached_file.write_text(
-                cached_file.read_text().replace("-0.5678", "'-0.5678")
-            )
-            prediction = io.examples_handler.load_from_cache(0)
-        assert prediction[0] == -0.5678
-
     def test_example_caching_relaunch(self, patched_cache_folder, connect):
         def combine(a, b):
             return a + " " + b

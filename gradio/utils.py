@@ -929,15 +929,6 @@ def sanitize_value_for_csv(value: str | float) -> str | float:
             # Not valid JSON → treat as normal string
             pass
 
-    # A leading "-" is only valid JSON for a negative number, which is not a
-    # formula injection vector, so return it unchanged (see issue #13591)
-    if value.startswith("-"):
-        try:
-            json.loads(value)
-            return value
-        except (json.JSONDecodeError, ValueError, TypeError):
-            pass
-
     # Typical CSV injection protection
     unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
     unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]
@@ -969,10 +960,10 @@ def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
 
 def parse_flagged_json(payload: Any) -> Any:
     """
-    Parses a JSON value read back from a flagging or example-cache CSV file.
-    Falls back to stripping the CSV-injection escape character ("'") that older
-    Gradio versions prepended to negative numbers when writing the file, so
-    caches created before the fix for issue #13591 still load.
+    Parses a JSON value read back from a flagging or example-cache CSV file,
+    tolerating the CSV-injection escape character ("'") that
+    sanitize_value_for_csv() prepends to values starting with "-", such as
+    negative numbers (see issue #13591).
     """
     try:
         return json.loads(payload)

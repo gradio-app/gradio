@@ -215,16 +215,12 @@ class TestSanitizeForCSV:
         assert sanitize_value_for_csv("=OPEN()") == "'=OPEN()"
         assert sanitize_value_for_csv("=1+2") == "'=1+2"
         assert sanitize_value_for_csv('=1+2";=1+2') == "'=1+2\";=1+2"
-        assert sanitize_value_for_csv("-2+3+cmd|calc") == "'-2+3+cmd|calc"
 
     def test_safe_value(self):
         assert sanitize_value_for_csv(4) == 4
         assert sanitize_value_for_csv(-44.44) == -44.44
         assert sanitize_value_for_csv("1+1=2") == "1+1=2"
         assert sanitize_value_for_csv("1aaa2") == "1aaa2"
-        assert sanitize_value_for_csv("-0.5678") == "-0.5678"
-        assert sanitize_value_for_csv("-42") == "-42"
-        assert sanitize_value_for_csv("-1e-5") == "-1e-5"
 
     def test_list(self):
         assert sanitize_list_for_csv([4, "def=", "=gh+ij"]) == [4, "def=", "'=gh+ij"]
@@ -235,7 +231,7 @@ class TestSanitizeForCSV:
 
     def test_parse_flagged_json(self):
         assert parse_flagged_json("-0.5678") == -0.5678
-        # Escaped values written by versions before the fix for #13591
+        # Negative numbers get CSV-escaped with a leading "'" on write (#13591)
         assert parse_flagged_json("'-0.5678") == -0.5678
         with pytest.raises(json.JSONDecodeError):
             parse_flagged_json("'not json")
