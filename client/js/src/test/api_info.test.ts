@@ -184,6 +184,34 @@ describe("handle_message", () => {
 		});
 	});
 
+	it("should carry changed_state_ids in the streaming status when msg is 'process_streaming'", () => {
+		const data = {
+			msg: "process_streaming",
+			success: true,
+			code: 200,
+			time_limit: 30,
+			eta: 5,
+			progress_data: { current: 50, total: 100 },
+			output: { data: [1], changed_state_ids: [3] }
+		};
+		const last_status = "pending";
+		const result = handle_message(data, last_status);
+		expect(result).toEqual({
+			type: "streaming",
+			status: {
+				queue: true,
+				message: undefined,
+				stage: "streaming",
+				time_limit: 30,
+				code: 200,
+				progress_data: { current: 50, total: 100 },
+				changed_state_ids: [3],
+				eta: 5
+			},
+			data: { data: [1], changed_state_ids: [3] }
+		});
+	});
+
 	it("should return type 'complete' with success status when msg is 'process_completed' and success is true", () => {
 		const data = {
 			msg: "process_completed",
