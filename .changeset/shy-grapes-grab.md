@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: fix error banner and textarea visibilty
+feat:workflow: fix error banner and textarea visibility
