@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { FileData, type Client } from "@gradio/client";
 	import { onMount, onDestroy } from "svelte";
-	import { resolve_current_origin_url } from "./utils";
+	import { resolve_current_origin_url } from "@gradio/utils";
 
 	type FileDataWithProgress = FileData & { progress: number };
 

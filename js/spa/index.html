@@ -81,8 +81,11 @@
 				const rootUrl = new URL(root || "/", window.location.href);
 				const script = document.createElement("script");
 				const rootPath = rootUrl.pathname.replace(/\/$/, "");
+				// Same-hostname check as resolve_current_origin_url in
+				// @gradio/utils: this page is served by the gradio server, so
+				// when the hostnames match, the page's origin (which reflects
+				// the public proxy port/protocol) is the reachable one.
 				const origin =
-					rootUrl.protocol === window.location.protocol &&
 					rootUrl.hostname === window.location.hostname
 						? window.location.origin
 						: rootUrl.origin;

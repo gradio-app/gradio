@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { resolve_current_origin_url } from "./url";
 
 describe("resolve_current_origin_url", () => {
@@ -46,5 +46,40 @@ describe("resolve_current_origin_url", () => {
 		expect(url.toString()).toBe(
 			"https://remote.example/gradio/gradio_api/upload_progress?upload_id=abc"
 		);
+	});
+
+	test("keeps the backend origin for same-host embeds when the page is not served by gradio", () => {
+		// Like an embedding page at localhost:3000 pointing a <gradio-app> at
+		// a gradio server on localhost:7860.
+		vi.stubGlobal("window", {
+			location: { href: "http://localhost:3000/docs" }
+		});
+
+		try {
+			const url = resolve_current_origin_url(
+				"http://localhost:7860",
+				"/theme.css"
+			);
+			expect(url.origin).toBe("http://localhost:7860");
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	test("uses the page origin for same-host roots when the page is served by gradio", () => {
+		vi.stubGlobal("window", {
+			location: { href: "http://localhost:20080/gradio" },
+			gradio_config: {}
+		});
+
+		try {
+			const url = resolve_current_origin_url(
+				"http://localhost:7860/gradio",
+				"/theme.css"
+			);
+			expect(url.origin).toBe("http://localhost:20080");
+		} finally {
+			vi.unstubAllGlobals();
+		}
 	});
 });

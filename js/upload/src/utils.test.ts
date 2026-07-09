@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { create_drag, resolve_current_origin_url } from "./utils";
+import { create_drag } from "./utils";
 
 describe("create_drag", () => {
 	afterEach(() => {
@@ -44,19 +44,5 @@ describe("create_drag", () => {
 
 		expect(click).toHaveBeenCalledOnce();
 		action.destroy();
-	});
-});
-
-describe("resolve_current_origin_url", () => {
-	test("re-exports the shared same-host proxy URL resolver", () => {
-		const url = resolve_current_origin_url(
-			"https://machine.local/gradio",
-			"/gradio_api/upload_progress?upload_id=abc",
-			"https://machine.local:20080/gradio"
-		);
-
-		expect(url.toString()).toBe(
-			"https://machine.local:20080/gradio/gradio_api/upload_progress?upload_id=abc"
-		);
 	});
 });

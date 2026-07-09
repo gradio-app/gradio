@@ -55,6 +55,20 @@ describe("Client class", () => {
 			const app = await client(app_reference);
 			expect(app.config).toEqual(config_response);
 		});
+		test("connecting succeeds even if fetching api info fails", async () => {
+			const { http, HttpResponse } = await import("msw");
+			const { handlers } = await import("./handlers");
+			server.resetHandlers(
+				http.get(`${direct_app_reference}/info`, () => {
+					return new HttpResponse(null, { status: 500 });
+				}),
+				...handlers
+			);
+			const app = await Client.connect(app_reference);
+			expect(app.config).toEqual(config_response);
+			expect(app.api_info).toBeUndefined();
+		});
+
 		test("connecting to a running app with a space reference", async () => {
 			const app = await Client.connect(app_reference);
 			expect(app.config).toEqual(config_response);

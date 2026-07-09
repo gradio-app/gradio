@@ -1,5 +1,3 @@
-export { resolve_current_origin_url } from "@gradio/utils";
-
 export function is_valid_mimetype(
 	file_accept: string | string[] | null,
 	uploaded_file_extension: string,

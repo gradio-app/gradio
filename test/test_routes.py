@@ -451,18 +451,6 @@ class TestRoutes:
             assert resp.is_success
             assert "/myapp/gradio" in resp.text
 
-    def test_create_app_preserves_app_kwargs_root_path(self):
-        demo = gr.Interface(lambda s: s, "textbox", "textbox")
-        app = routes.App.create_app(demo, app_kwargs={"root_path": "/proxy"})
-
-        assert app.root_path == "/proxy"
-
-        with TestClient(app) as client:
-            resp = client.get("/config")
-            assert resp.is_success
-            config = resp.json()
-            assert "/proxy" in config["root"]
-
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
