@@ -31,10 +31,84 @@ jobs:
           filter: "js"
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Find latest release tag
+      - name: Find latest installable release tag
         if: steps.changes.outputs.should_run == 'true'
         id: latest_tag
-        run: echo "tag=$(git tag --list 'gradio@*' --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+        run: |
+          TAG="$(python - <<'PY'
+          import datetime as dt
+          import json
+          import os
+          import re
+          import subprocess
+          import urllib.request
+
+
+          def version_key(version: str) -> tuple[tuple[int, ...], int, tuple[int, ...]]:
+              match = re.fullmatch(r"(\d+(?:\.\d+)*)(?:-([a-zA-Z]+)\.(\d+))?", version)
+              if not match:
+                  raise ValueError(version)
+              main = tuple(int(part) for part in match.group(1).split("."))
+              if match.group(2) is None:
+                  return main, 1, ()
+              prerelease_name = match.group(2).lower()
+              prerelease_number = int(match.group(3))
+              prerelease_rank = {"dev": -3, "a": -2, "b": -1, "rc": 0}.get(
+                  prerelease_name, -4
+              )
+              return main, prerelease_rank, (prerelease_number,)
+
+
+          def exclude_newer_cutoff() -> dt.datetime | None:
+              value = os.environ.get("UV_EXCLUDE_NEWER", "").strip()
+              match = re.fullmatch(r"(\d+)\s+days?", value)
+              if not match:
+                  return None
+              return dt.datetime.now(dt.timezone.utc) - dt.timedelta(
+                  days=int(match.group(1))
+              )
+
+
+          def is_visible_to_uv(release_files: list[dict], cutoff: dt.datetime | None) -> bool:
+              if cutoff is None:
+                  return True
+              for file in release_files:
+                  upload_time = file.get("upload_time_iso_8601")
+                  if not upload_time:
+                      continue
+                  uploaded_at = dt.datetime.fromisoformat(
+                      upload_time.replace("Z", "+00:00")
+                  )
+                  if uploaded_at <= cutoff:
+                      return True
+              return False
+
+          tags = subprocess.check_output(
+              ["git", "tag", "--list", "gradio@*"], text=True
+          ).splitlines()
+          response = urllib.request.urlopen("https://pypi.org/pypi/gradio/json")
+          releases = json.load(response)["releases"]
+          cutoff = exclude_newer_cutoff()
+
+          candidates = []
+          for tag in tags:
+              version = tag.removeprefix("gradio@")
+              release_files = releases.get(version)
+              if not release_files or not is_visible_to_uv(release_files, cutoff):
+                  continue
+              try:
+                  candidates.append((version_key(version), tag))
+              except ValueError:
+                  continue
+
+          if not candidates:
+              raise SystemExit("No git gradio@* tag has a matching PyPI release")
+
+          print(max(candidates)[1])
+          PY
+          )"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using latest installable release tag: $TAG"
 
       - name: Setup Python
         if: steps.changes.outputs.should_run == 'true'
