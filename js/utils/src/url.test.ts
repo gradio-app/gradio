@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { resolve_current_origin_url } from "./url";
 
 describe("resolve_current_origin_url", () => {
@@ -48,38 +48,39 @@ describe("resolve_current_origin_url", () => {
 		);
 	});
 
-	test("keeps the backend origin for same-host embeds when the page is not served by gradio", () => {
-		// Like an embedding page at localhost:3000 pointing a <gradio-app> at
-		// a gradio server on localhost:7860.
-		vi.stubGlobal("window", {
-			location: { href: "http://localhost:3000/docs" }
-		});
+	// These two cases exercise the window fallback, so they only run in
+	// vitest's browser mode where a real window exists.
+	const in_browser = typeof window !== "undefined";
 
-		try {
-			const url = resolve_current_origin_url(
-				"http://localhost:7860",
-				"/theme.css"
-			);
-			expect(url.origin).toBe("http://localhost:7860");
-		} finally {
-			vi.unstubAllGlobals();
+	test.skipIf(!in_browser)(
+		"keeps the backend origin for same-host embeds when the page is not served by gradio",
+		() => {
+			// Like an embedding page at localhost:3000 pointing a <gradio-app>
+			// at a gradio server on localhost:7860: same hostname as the page,
+			// different port, and no window.gradio_config.
+			const page = new URL(window.location.href);
+			const root = `${page.protocol}//${page.hostname}:7861/gradio`;
+			delete (window as any).gradio_config;
+
+			const url = resolve_current_origin_url(root, "/theme.css");
+
+			expect(url.origin).toBe(`${page.protocol}//${page.hostname}:7861`);
 		}
-	});
+	);
 
-	test("uses the page origin for same-host roots when the page is served by gradio", () => {
-		vi.stubGlobal("window", {
-			location: { href: "http://localhost:20080/gradio" },
-			gradio_config: {}
-		});
+	test.skipIf(!in_browser)(
+		"uses the page origin for same-host roots when the page is served by gradio",
+		() => {
+			const page = new URL(window.location.href);
+			const root = `${page.protocol}//${page.hostname}:7861/gradio`;
+			(window as any).gradio_config = {};
 
-		try {
-			const url = resolve_current_origin_url(
-				"http://localhost:7860/gradio",
-				"/theme.css"
-			);
-			expect(url.origin).toBe("http://localhost:20080");
-		} finally {
-			vi.unstubAllGlobals();
+			try {
+				const url = resolve_current_origin_url(root, "/theme.css");
+				expect(url.origin).toBe(page.origin);
+			} finally {
+				delete (window as any).gradio_config;
+			}
 		}
-	});
+	);
 });
