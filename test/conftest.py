@@ -1,12 +1,16 @@
 import inspect
 import pathlib
+import shutil
 from contextlib import contextmanager
+from urllib.parse import urlparse
 
 import pytest
 from gradio_client import Client
+from gradio_client import utils as client_utils
 
 import gradio as gr
 import gradio.utils
+from gradio import processing_utils
 
 
 def pytest_configure(config):
@@ -66,6 +70,60 @@ def gradio_temp_dir(monkeypatch, tmp_path):
     """
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
     return tmp_path
+
+
+@pytest.fixture
+def mock_gradio_raw_github_download(monkeypatch):
+    repo_root = pathlib.Path(__file__).resolve().parent.parent
+    original_download = processing_utils.async_ssrf_protected_download
+
+    def local_file(url: str) -> pathlib.Path | None:
+        parsed = urlparse(url)
+        if parsed.netloc != "github.com":
+            return None
+
+        path_parts = parsed.path.strip("/").split("/")
+        if path_parts[:3] != ["gradio-app", "gradio", "raw"]:
+            return None
+
+        ref_and_path = path_parts[3:]
+        if not ref_and_path:
+            return None
+        if ref_and_path[0] == "main":
+            relative_path = pathlib.Path(*ref_and_path[1:])
+        elif ref_and_path[:3] == ["refs", "heads", "main"]:
+            relative_path = pathlib.Path(*ref_and_path[3:])
+        else:
+            return None
+
+        source = repo_root / relative_path
+        return source if source.exists() else None
+
+    async def local_download(url: str, cache_dir: str) -> str:
+        source = local_file(url)
+        if source is None:
+            return await original_download(url, cache_dir)
+
+        temp_dir = pathlib.Path(cache_dir) / processing_utils.hash_url(url)
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        base_path = urlparse(url).path.rstrip("/")
+        filename = (
+            client_utils.strip_invalid_filename_characters(pathlib.Path(base_path).name)
+            or "file"
+        )
+        target = temp_dir / filename
+        if not target.exists():
+            shutil.copyfile(source, target)
+        return str(gradio.utils.abspath(target))
+
+    def sync_local_download(url: str, cache_dir: str) -> str:
+        return client_utils.synchronize_async(local_download, url, cache_dir)
+
+    monkeypatch.setattr(
+        processing_utils, "async_ssrf_protected_download", local_download
+    )
+    monkeypatch.setattr(processing_utils, "save_url_to_cache", sync_local_download)
 
 
 @pytest.fixture(autouse=True)
