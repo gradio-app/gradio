@@ -57,12 +57,10 @@ describe("Client class", () => {
 		});
 		test("connecting succeeds even if fetching api info fails", async () => {
 			const { http, HttpResponse } = await import("msw");
-			const { handlers } = await import("./handlers");
-			server.resetHandlers(
+			server.use(
 				http.get(`${direct_app_reference}/info`, () => {
 					return new HttpResponse(null, { status: 500 });
-				}),
-				...handlers
+				})
 			);
 			const app = await Client.connect(app_reference);
 			expect(app.config).toEqual(config_response);

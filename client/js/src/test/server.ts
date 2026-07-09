@@ -9,6 +9,7 @@ interface MockServer {
 	start: (opts: StartOptions) => void | ReturnType<SetupWorker["start"]>;
 	stop: () => void | Promise<void>;
 	resetHandlers: (...handlers: any[]) => void;
+	use: (...handlers: any[]) => void;
 }
 
 export async function initialise_server(): Promise<MockServer> {
@@ -18,7 +19,8 @@ export async function initialise_server(): Promise<MockServer> {
 		return {
 			start: (opts: StartOptions) => server.listen(opts),
 			stop: () => server.close(),
-			resetHandlers: (...h) => server.resetHandlers(...h)
+			resetHandlers: (...h) => server.resetHandlers(...h),
+			use: (...h) => server.use(...h)
 		};
 	}
 	const { setupWorker } = await import("msw/browser");
@@ -26,6 +28,7 @@ export async function initialise_server(): Promise<MockServer> {
 	return {
 		start: (opts: StartOptions) => worker.start(opts),
 		stop: () => worker.stop(),
-		resetHandlers: (...h) => worker.resetHandlers(...h)
+		resetHandlers: (...h) => worker.resetHandlers(...h),
+		use: (...h) => worker.use(...h)
 	};
 }
