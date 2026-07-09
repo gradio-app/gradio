@@ -119,7 +119,7 @@ def test_template_component_configs(io_components):
             )
 
 
-def test_component_example_values(io_components, mock_gradio_raw_github_download):
+def test_component_example_values(io_components):
     for component in io_components:
         if component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
             c: Component = component(x="x", y="y")
@@ -128,7 +128,7 @@ def test_component_example_values(io_components, mock_gradio_raw_github_download
         c.postprocess(c.example_value())
 
 
-def test_component_example_payloads(io_components, mock_gradio_raw_github_download):
+def test_component_example_payloads(io_components):
     for component in io_components:
         if issubclass(component, gr.components.NativePlot):
             c: Component = component(x="x", y="y")

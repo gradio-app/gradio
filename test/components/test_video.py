@@ -14,9 +14,7 @@ from gradio.data_classes import FileData
 
 class TestVideo:
     @pytest.mark.asyncio
-    async def test_component_functions(
-        self, media_data, mock_gradio_raw_github_download
-    ):
+    async def test_component_functions(self, media_data):
         """
         Preprocess, serialize, deserialize, get_config
         """
