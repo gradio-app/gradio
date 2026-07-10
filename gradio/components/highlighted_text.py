@@ -187,8 +187,10 @@ class HighlightedText(Component):
             running_text, running_category = None, None
             for text, category in value:
                 if not text:
-                    # Skip fully empty items, these get added in processing
-                    # of dictionaries.
+                    # Drop empty tokens so they neither seed a run nor get a
+                    # spurious separator when merged. These are inserted
+                    # between entities when a dict value is converted above,
+                    # but skipping them for list values is also correct.
                     continue
                 if running_text is None:
                     running_text = text
