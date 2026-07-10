@@ -50,9 +50,8 @@ class TestHighlightedText:
             {"entity": "PER", "start": 4, "end": 8},
             {"entity": "LOC", "start": 18, "end": 24},
         ]
-        # After a merge empty entries are stripped except the leading one
+        # After a merge empty entries are stripped
         result_after_merge = [
-            {"token": "", "class_or_confidence": None},
             {"token": "Wolfgang", "class_or_confidence": "PER"},
             {"token": " lives in ", "class_or_confidence": None},
             {"token": "Berlin", "class_or_confidence": "LOC"},
@@ -94,6 +93,30 @@ class TestHighlightedText:
             {"token": "", "class_or_confidence": None},
             {"token": text, "class_or_confidence": "PER"},
             {"token": "", "class_or_confidence": None},
+        ]
+
+    def test_combine_adjacent_empty_tokens(self):
+        # https://github.com/gradio-app/gradio/issues/13602
+        component = gr.HighlightedText(combine_adjacent=True, adjacent_separator=" ")
+
+        value = [("", None), ("foo", None), ("bar", None)]
+        assert (result_ := component.postprocess(value))
+        assert result_.model_dump() == [
+            {"token": "foo bar", "class_or_confidence": None}
+        ]
+
+        value = [("foo", None), ("", None), ("bar", None)]
+        assert (result_ := component.postprocess(value))
+        assert result_.model_dump() == [
+            {"token": "foo bar", "class_or_confidence": None}
+        ]
+
+        text = "Wolfgang lives in Berlin"
+        entities = [{"entity": "PER", "start": 0, "end": 8}]
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
+        assert result_.model_dump() == [
+            {"token": "Wolfgang", "class_or_confidence": "PER"},
+            {"token": " lives in Berlin", "class_or_confidence": None},
         ]
 
     def test_show_whitespaces(self):
