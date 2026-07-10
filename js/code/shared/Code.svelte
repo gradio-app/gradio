@@ -39,7 +39,7 @@
 
 	let {
 		class_names = "",
-		value = $bindable(""),
+		value = $bindable(),
 		dark_mode,
 		basic = true,
 		language,
@@ -78,7 +78,7 @@
 	});
 
 	$effect(() => {
-		set_doc(value);
+		set_doc(value ?? "");
 	});
 
 	update_lines();
