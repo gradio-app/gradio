@@ -1,6 +1,7 @@
 ---
 "@gradio/accordion": minor
 "@gradio/browserstate": minor
+"@gradio/code": minor
 "@gradio/core": minor
 "@gradio/file": minor
 "@gradio/fileexplorer": minor
