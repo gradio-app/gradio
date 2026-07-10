@@ -1,12 +1,13 @@
 import json
 import os
 import tempfile
+from typing import Optional
 
 import pytest
 
 import gradio as gr
 import gradio.workflow as workflow_module
-from gradio.oauth import OAuthToken
+from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
 from gradio.workflow import (
     WRITE_TOKEN,
@@ -437,6 +438,61 @@ class TestCallModelValidation:
 
         result = json.loads(call_model(["owner/model"]))
         assert "error" not in result
+
+
+class TestCallFn:
+    def _call_fn(self, tmp_path, bind):
+        wf = Workflow(graph=str(tmp_path / "wf.json"), bind=bind)
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+        return canvas.call_fn
+
+    def test_calls_bound_fn(self, tmp_path):
+        call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
+        result = json.loads(call_fn(["echo", '["hello"]']))
+        assert result == ["hello"]
+
+    def test_injects_oauth_token(self, tmp_path):
+        received = {}
+
+        def fn_with_token(text: str, token: Optional[OAuthToken]) -> str:
+            received["token"] = token
+            return text
+
+        call_fn = self._call_fn(tmp_path, {"fn_with_token": fn_with_token})
+
+        class _MockRequest:
+            session = {
+                "oauth_info": {
+                    "access_token": "test-tok",
+                    "scope": "openid",
+                    "expires_at": 9999999999,
+                }
+            }
+
+        result = json.loads(
+            call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest())
+        )
+        assert result == ["hi"]
+        assert received["token"].token == "test-tok"
+
+    def test_injects_direct_token_without_session(self, tmp_path):
+        def fn(text: str, token: OAuthToken, profile: Optional[OAuthProfile]) -> str:
+            return f"{token.token},{profile}"
+
+        call_fn = self._call_fn(tmp_path, {"fn": fn})
+        direct = OAuthToken.__new__(OAuthToken)
+        direct.token = "direct-token"
+        direct.scope = "openid"
+        direct.expires_at = 9999999999
+        result = json.loads(call_fn(["fn", '["hello"]'], _request=None, _token=direct))
+        assert result == ["direct-token,None"]
+
+    def test_unknown_fn_returns_error(self, tmp_path):
+        call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
+        result = json.loads(call_fn(["missing", "[]"]))
+        assert result.get("error_type") == "unknown"
 
 
 class TestCallSpaceValidation:

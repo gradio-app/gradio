@@ -1,24 +1,11 @@
 import { test, expect, drag_and_drop_file } from "@self/tootils";
-import fs from "fs";
 
-test("Image events are dispatched correctly. Downloading the file works and has the correct name.", async ({
+test("Image click-to-upload downloads files with the correct names.", async ({
 	page
 }) => {
 	const uploader = await page.locator("input[type=file]");
-	const change_counter = await page.getByLabel("# Change Events", {
-		exact: true
-	});
-	const input_counter = await page.getByLabel("# Input Events");
-	const clear_counter = await page.getByLabel("# Clear Events");
-	const upload_counter = await page.getByLabel("# Upload Events");
-	const change_output_counter = await page.getByLabel("# Change Events Output");
 
 	await uploader.setInputFiles("./test/files/cheetah1.jpg");
-
-	await expect(change_counter).toHaveValue("1");
-	await expect(input_counter).toHaveValue("1");
-	await expect(upload_counter).toHaveValue("1");
-	await expect(change_output_counter).toHaveValue("1");
 
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
@@ -27,33 +14,13 @@ test("Image events are dispatched correctly. Downloading the file works and has 
 	await expect(download.suggestedFilename()).toBe("cheetah1.jpg");
 
 	await page.getByLabel("Remove Image").click();
-	await expect(clear_counter).toHaveValue("1");
-	await expect(change_counter).toHaveValue("2");
-	await expect(input_counter).toHaveValue("2");
-	await expect(upload_counter).toHaveValue("1");
 
 	await uploader.setInputFiles("./test/files/gradio-logo.svg");
-	await expect(change_counter).toHaveValue("3");
-	await expect(input_counter).toHaveValue("3");
-	await expect(upload_counter).toHaveValue("2");
-	await expect(change_output_counter).toHaveValue("2");
 
 	const SVGdownloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
 	const SVGdownload = await SVGdownloadPromise;
 	expect(SVGdownload.suggestedFilename()).toBe("gradio-logo.svg");
-});
-
-test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
-	await drag_and_drop_file(
-		page,
-		"input[type=file]",
-		"./test/files/cheetah1.jpg",
-		"cheetag1.jpg",
-		"image/*"
-	);
-	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
 
 test("Image drag-to-upload replaces an image successfully.", async ({

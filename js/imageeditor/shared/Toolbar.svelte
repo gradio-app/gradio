@@ -16,12 +16,12 @@
 	import {
 		Image,
 		Brush,
+		BrushSize,
 		Erase,
 		Crop,
 		Upload,
 		ImagePaste,
 		Webcam,
-		Circle,
 		Resize,
 		ColorPickerSolid
 	} from "@gradio/icons";
@@ -103,11 +103,14 @@
 	let can_upload = $derived(sources.includes("upload"));
 	let can_webcam = $derived(sources.includes("webcam"));
 	let can_paste = $derived(sources.includes("clipboard"));
+	let can_edit_image = $derived(
+		sources.length > 0 || (background && transforms.length > 0)
+	);
 </script>
 
-<div class="toolbar-wrap">
+<div class="toolbar-wrap" onclick={(e) => e.stopPropagation()}>
 	<div class="half-container">
-		{#if sources.length > 0}
+		{#if can_edit_image}
 			<IconButton
 				Icon={Image}
 				label="Image"
@@ -225,7 +228,7 @@
 				offset={0}
 			/>
 			<IconButton
-				Icon={Circle}
+				Icon={BrushSize}
 				label="Brush Size"
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
@@ -260,7 +263,7 @@
 
 		{#if tool === "erase" && eraser_options}
 			<IconButton
-				Icon={Circle}
+				Icon={BrushSize}
 				label="Eraser Size"
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
