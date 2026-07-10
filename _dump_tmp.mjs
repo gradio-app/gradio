@@ -1,0 +1,11 @@
+import { chromium } from "playwright";
+const browser = await chromium.launch();
+const page = await browser.newPage();
+const errors = [];
+page.on("pageerror", (e) => errors.push(`[pageerror] ${e.message}`));
+await page.goto("http://127.0.0.1:7998/", { waitUntil: "load" });
+await page.waitForTimeout(4000);
+const labels = await page.$$eval("[aria-label]", els => els.map(e=>e.getAttribute("aria-label")).filter(l=>/Probe/.test(l||"")));
+console.log("Probe labels present:", JSON.stringify([...new Set(labels)]));
+console.log("pageerrors:", errors.length ? errors.join("\n") : "(none)");
+await browser.close();
