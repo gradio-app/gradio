@@ -76,7 +76,7 @@ jobs:
           uv venv --python=3.10 venv_base
           . venv_base/bin/activate
           TAG="${{ steps.latest_tag.outputs.tag }}"
-          uv pip install "gradio==${TAG#gradio@}"
+          uv pip install --exclude-newer-package gradio=false "gradio==${TAG#gradio@}"
 
       - name: Install frontend test deps (base)
         if: steps.changes.outputs.should_run == 'true'
