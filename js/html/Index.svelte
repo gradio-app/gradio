@@ -124,38 +124,41 @@
 		style:overflow-y={gradio.props.max_height ? "auto" : undefined}
 		class:label-padding={gradio.shared.show_label ?? undefined}
 	>
-		<HTML
-			props={_props}
-			html_template={gradio.props.html_template}
-			css_template={gradio.props.css_template}
-			js_on_load={gradio.props.js_on_load}
-			elem_classes={gradio.shared.elem_classes}
-			visible={gradio.shared.visible === "hidden"
-				? false
-				: gradio.shared.visible}
-			autoscroll={gradio.shared.autoscroll}
-			apply_default_css={gradio.props.apply_default_css}
-			head={gradio.props.head}
-			component_class_name={gradio.props.component_class_name}
-			{upload}
-			server={gradio.shared.server}
-			watch_fn={watch}
-			{fire_watchers}
-			on:event={(e) => {
-				gradio.dispatch(e.detail.type, e.detail.data);
-			}}
-			on:update_value={(e) => {
-				if (e.detail.property === "value") {
-					gradio.props.value = e.detail.data;
-				} else if (e.detail.property === "label") {
-					gradio.shared.label = e.detail.data;
-				} else if (e.detail.property === "visible") {
-					gradio.shared.visible = e.detail.data;
-				}
-			}}
-		>
-			{@render children?.()}
-		</HTML>
+		<!-- js_on_load is mount-only, so remount the renderer for a new gr.render component. -->
+		{#key gradio.shared.id}
+			<HTML
+				props={_props}
+				html_template={gradio.props.html_template}
+				css_template={gradio.props.css_template}
+				js_on_load={gradio.props.js_on_load}
+				elem_classes={gradio.shared.elem_classes}
+				visible={gradio.shared.visible === "hidden"
+					? false
+					: gradio.shared.visible}
+				autoscroll={gradio.shared.autoscroll}
+				apply_default_css={gradio.props.apply_default_css}
+				head={gradio.props.head}
+				component_class_name={gradio.props.component_class_name}
+				{upload}
+				server={gradio.shared.server}
+				watch_fn={watch}
+				{fire_watchers}
+				on:event={(e) => {
+					gradio.dispatch(e.detail.type, e.detail.data);
+				}}
+				on:update_value={(e) => {
+					if (e.detail.property === "value") {
+						gradio.props.value = e.detail.data;
+					} else if (e.detail.property === "label") {
+						gradio.shared.label = e.detail.data;
+					} else if (e.detail.property === "visible") {
+						gradio.shared.visible = e.detail.data;
+					}
+				}}
+			>
+				{@render children?.()}
+			</HTML>
+		{/key}
 	</div>
 </Block>
 

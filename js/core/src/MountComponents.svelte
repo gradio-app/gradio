@@ -14,7 +14,7 @@
 			props={node.props.props}
 		>
 			{#if node.children && node.children.length}
-				{#each node.children as _node (_node.id)}
+				{#each node.children as _node}
 					<Self node={_node} />
 				{/each}
 			{/if}
@@ -22,7 +22,7 @@
 	{:else if node.props.shared_props.visible && node.runtime}
 		<MountCustomComponent {...rest} {node}>
 			{#if node.children && node.children.length}
-				{#each node.children as _node (_node.id)}
+				{#each node.children as _node}
 					<Self node={_node} />
 				{/each}
 			{/if}

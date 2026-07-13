@@ -1,6 +1,6 @@
 ---
-"@gradio/core": patch
+"@gradio/html": patch
 "gradio": patch
 ---
 
-fix:Run component mount behavior when `gr.render` replaces unkeyed components
+fix: Rerun HTML mount behavior when `gr.render` replaces an unkeyed component
