@@ -21,7 +21,7 @@
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
-		"ci:publish": "pnpm changeset tag && TAG=gradio_client@$(node -p \"require('./client/python/gradio_client/package.json').version\") && (git rev-parse --verify --quiet \"refs/tags/$TAG\" >/dev/null || git tag \"$TAG\" -m \"$TAG\") && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
+		"ci:publish": "pnpm changeset tag && TAG=gradio_client@$(node -p \"require('./client/python/gradio_client/package.json').version\") && (git rev-parse --verify --quiet \"refs/tags/$TAG\" >/dev/null || git tag -a \"$TAG\" -m \"$TAG\") && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"website": "pnpm --filter @gradio/website build",
 		"package": "pnpm --filter @gradio/* --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --tsconfig=../../tsconfig.json",
 		"spaces:dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spaces-test dev"
