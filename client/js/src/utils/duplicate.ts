@@ -35,7 +35,9 @@ export async function duplicate(
 			http_protocol,
 			host,
 			auth,
-			fetch
+			fetch,
+			undefined,
+			options.credentials
 		);
 
 		if (cookie_header) cookies = parse_and_set_cookies(cookie_header);

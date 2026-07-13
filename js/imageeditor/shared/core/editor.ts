@@ -74,6 +74,7 @@ export interface ImageEditorContext {
 	resize_canvas: (width: number, height: number) => void;
 	reset: () => void;
 	set_background_image: (image: Sprite) => void;
+	request_render: () => void;
 	pad_bottom: number;
 }
 
@@ -81,6 +82,8 @@ const spring_config = {
 	stiffness: 0.45,
 	damping: 0.8
 };
+
+const RENDER_IDLE_TIMEOUT_MS = 500;
 
 interface EditorStatePublic {
 	position: { x: number; y: number };
@@ -204,6 +207,15 @@ export class ImageEditor {
 	private overlay_graphics!: Graphics;
 	private pad_bottom: number;
 	private theme_mode: "dark" | "light";
+	private render_idle_remaining = RENDER_IDLE_TIMEOUT_MS;
+	private static readonly WAKE_EVENTS: string[] = [
+		"pointerdown",
+		"pointermove",
+		"pointerup",
+		"pointerenter",
+		"wheel"
+	];
+	private wake_render_loop_bound = this.wake_render_loop.bind(this);
 	constructor(options: ImageEditorOptions) {
 		this.pad_bottom = options.pad_bottom || 0;
 		this.dark = options.dark || false;
@@ -278,7 +290,8 @@ export class ImageEditor {
 			execute_command: this.execute_command.bind(this),
 			resize_canvas: this.resize_canvas.bind(this),
 			reset: this.reset.bind(this),
-			set_background_image: this.set_background_image.bind(this)
+			set_background_image: this.set_background_image.bind(this),
+			request_render: this.wake_render_loop.bind(this)
 		};
 	}
 
@@ -337,17 +350,20 @@ export class ImageEditor {
 			this.dimensions_value = dimensions;
 			this.image_container.width = dimensions.width;
 			this.image_container.height = dimensions.height;
+			this.wake_render_loop();
 		});
 
 		this.scale.subscribe((scale) => {
 			this.scale_value = scale;
+			this.wake_render_loop();
 		});
 
 		this.position.subscribe((position) => {
 			this.position_value = position;
+			this.wake_render_loop();
 		});
 
-		this.app.ticker.add(() => {
+		this.app.ticker.add((ticker) => {
 			this.image_container.scale.set(this.scale_value);
 			this.image_container.position.set(
 				this.position_value.x,
@@ -442,9 +458,26 @@ export class ImageEditor {
 			} else {
 				this.overlay_graphics.clear();
 			}
+
+			this.render_idle_remaining -= ticker.deltaMS;
+			if (this.render_idle_remaining <= 0) {
+				ticker.stop();
+			}
 		});
 
+		for (const event_name of ImageEditor.WAKE_EVENTS) {
+			canvas.addEventListener(event_name, this.wake_render_loop_bound);
+		}
+
+		this.wake_render_loop();
 		this.ready_resolve();
+	}
+
+	private wake_render_loop(): void {
+		this.render_idle_remaining = RENDER_IDLE_TIMEOUT_MS;
+		if (this.app?.ticker && !this.app.ticker.started) {
+			this.app.ticker.start();
+		}
 	}
 
 	private setup_containers(): void {
@@ -542,6 +575,7 @@ export class ImageEditor {
 		if (this.outline_container) {
 			this.outline_container.position.set(app_center_x, app_center_y);
 		}
+		this.wake_render_loop();
 	}
 
 	reset(): void {
@@ -557,6 +591,7 @@ export class ImageEditor {
 		if (brush) {
 			this.set_tool("draw");
 		}
+		this.wake_render_loop();
 	}
 
 	async set_image_properties(properties: {
@@ -647,6 +682,7 @@ export class ImageEditor {
 		for (const tool of this.tools.values()) {
 			tool.set_tool(this.current_tool, this.current_subtool);
 		}
+		this.wake_render_loop();
 	}
 
 	set_subtool(subtool: Subtool): void {
@@ -655,6 +691,7 @@ export class ImageEditor {
 		for (const tool of this.tools.values()) {
 			tool.set_tool(this.current_tool, this.current_subtool);
 		}
+		this.wake_render_loop();
 	}
 
 	set_background_image(image: Sprite): void {
@@ -829,6 +866,7 @@ export class ImageEditor {
 	}
 
 	private notify(event: "change" | "input"): void {
+		this.wake_render_loop();
 		for (const callback of this.event_callbacks.get(event) || []) {
 			callback();
 		}
@@ -836,6 +874,13 @@ export class ImageEditor {
 
 	destroy(): void {
 		if (!this.app) return;
+
+		const canvas = this.app.canvas as HTMLCanvasElement | undefined;
+		if (canvas) {
+			for (const event_name of ImageEditor.WAKE_EVENTS) {
+				canvas.removeEventListener(event_name, this.wake_render_loop_bound);
+			}
+		}
 
 		this.app?.destroy();
 	}
@@ -877,9 +922,11 @@ export class ImageEditor {
 			this.width,
 			this.height
 		);
+		this.wake_render_loop();
 	}
 
 	toggle_layer_visibility(id: string): void {
 		this.layer_manager.toggle_layer_visibility(id);
+		this.wake_render_loop();
 	}
 }

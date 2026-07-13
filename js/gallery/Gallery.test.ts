@@ -1,5 +1,13 @@
 import { test, describe, afterEach, expect, vi } from "vitest";
-import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
+import {
+	cleanup,
+	render,
+	fireEvent,
+	waitFor,
+	upload_file,
+	mock_client,
+	TEST_JPG
+} from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import Gallery from "./Index.svelte";
@@ -436,6 +444,19 @@ describe("Props: buttons", () => {
 
 			const zip = new Uint8Array(await blobs[0].arrayBuffer());
 			expect(Array.from(zip.slice(0, 4))).toEqual([0x50, 0x4b, 0x03, 0x04]);
+			const zip_view = new DataView(zip.buffer);
+			expect(zip_view.getUint16(6, true)).toBe(0x0800);
+			const central_header_index = zip.findIndex((_, index) =>
+				[0x50, 0x4b, 0x01, 0x02].every(
+					(byte, offset) => zip[index + offset] === byte
+				)
+			);
+			expect(central_header_index).toBeGreaterThan(-1);
+			expect(zip_view.getUint16(central_header_index + 8, true)).toBe(0x0800);
+			const zip_text = new TextDecoder().decode(zip);
+			expect(zip_text).toContain("cat.png");
+			expect(zip_text).toContain("clip.mp4");
+			expect(zip_text).toContain("dog.png");
 		} finally {
 			vi.restoreAllMocks();
 		}
@@ -672,6 +693,30 @@ describe("Events: change", () => {
 		await set_data({ value: null });
 
 		expect(change).toHaveBeenCalled();
+	});
+});
+
+describe("Events: upload", () => {
+	afterEach(() => cleanup());
+
+	test("upload: file input dispatches upload and change events", async () => {
+		const { listen } = await render(Gallery, {
+			...default_props,
+			interactive: true,
+			value: null,
+			root: "https://example.com",
+			client: mock_client()
+		});
+
+		const upload = listen("upload");
+		const change = listen("change");
+
+		await upload_file(TEST_JPG);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+		expect(change).toHaveBeenCalledTimes(1);
 	});
 });
 

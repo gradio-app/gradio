@@ -481,7 +481,10 @@ export class DependencyManager {
 									});
 									this.update_loading_stati_state();
 									break submit_loop;
-								} else if (result.stage === "generating") {
+								} else if (
+									result.stage === "generating" ||
+									result.stage === "streaming"
+								) {
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
 									this.loading_stati.update({

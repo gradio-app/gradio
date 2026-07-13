@@ -429,6 +429,28 @@ describe("Edge cases", () => {
 		expect(getByLabelText("Code input container")).toBeTruthy();
 	});
 
+	// The backend strips `value` from the config when gr.Code has no initial
+	// value, so the frontend sees undefined rather than null (issue #13598).
+	test("missing value with interactive=true renders the editor", async () => {
+		const { value: _, ...props_without_value } = default_props;
+		const { getByLabelText } = await render(Code, props_without_value);
+		expect(getByLabelText("Code input container")).toBeVisible();
+	});
+
+	test("value set from the backend after mounting with no value is displayed", async () => {
+		const { value: _, ...props_without_value } = default_props;
+		const { getByLabelText, get_data, set_data } = await render(
+			Code,
+			props_without_value
+		);
+		await set_data({ value: "default value" });
+		const data = await get_data();
+		expect(data.value).toBe("default value");
+		expect(getByLabelText("Code input container")).toHaveTextContent(
+			"default value"
+		);
+	});
+
 	test("value with leading and trailing whitespace is displayed", async () => {
 		const { get_data } = await render(Code, {
 			...default_props,
