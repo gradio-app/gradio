@@ -2,6 +2,7 @@ import pytest
 from pydantic import BaseModel
 
 import gradio as gr
+from gradio.state_holder import SessionState
 
 
 class TestModel(BaseModel):
@@ -22,6 +23,18 @@ class TestState:
     def test_initial_value_pydantic(self):
         state = gr.State(value=TestModel(name="Freddy"))
         assert isinstance(state.value, TestModel)
+
+    @pytest.mark.asyncio
+    async def test_callable_default_is_called_before_load_event(self):
+        with gr.Blocks() as demo:
+            state = gr.State(value=lambda: {"count": 42})
+            num = gr.Number()
+            btn = gr.Button()
+            btn.click(lambda s: s["count"], state, num)
+
+        session = SessionState(demo)
+        result = await demo.process_api(0, [None], state=session)
+        assert result["data"][0] == 42
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
