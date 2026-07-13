@@ -8,4 +8,4 @@
 "gradio": patch
 ---
 
-fix:Preserve proxy ports in frontend asset URLs
+Preserve browser-visible proxy origins for frontend assets and API requests, and retain app-level FastAPI root paths.
