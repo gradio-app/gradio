@@ -1,6 +1,7 @@
 import asyncio
 import json
 import sys
+import threading
 import time
 from unittest.mock import patch
 
@@ -308,13 +309,15 @@ def test_cancel_removes_pending_event_from_queue():
 
 
 def test_detached_queue_session_can_resume():
-    """A dropped queue stream should not cancel a queued or running event."""
+    finished = threading.Event()
+
     with gr.Blocks() as demo:
         start = gr.Button()
         output = gr.Textbox()
 
         def slow():
-            time.sleep(0.2)
+            time.sleep(0.05)
+            finished.set()
             return "done"
 
         start.click(slow, None, output)
@@ -342,6 +345,12 @@ def test_detached_queue_session_can_resume():
         assert event_id in demo._queue.event_ids_to_events
         assert event_id in demo._queue.pending_event_ids_session["resume_session"]
         assert "resume_session" in demo._queue.pending_messages_per_session
+        assert finished.wait(timeout=1)
+
+        deadline = time.monotonic() + 1
+        while any(demo._queue.active_jobs) and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert not any(demo._queue.active_jobs)
 
         response = test_client.get(
             f"{API_PREFIX}/queue/data?session_hash=resume_session"
