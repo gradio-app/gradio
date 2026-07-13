@@ -23,8 +23,6 @@
 		component_class_name = "HTML",
 		upload = null,
 		server = {},
-		watch_fn = (_propOrProps: string | string[], _callback: () => void) => {},
-		fire_watchers = (_changedKeys: string[]) => {},
 		children
 	}: {
 		elem_classes: string[];
@@ -39,8 +37,6 @@
 		component_class_name: string;
 		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
 		server: Record<string, (...args: any[]) => Promise<any>>;
-		watch_fn?: (propOrProps: string | string[], callback: () => void) => void;
-		fire_watchers?: (changedKeys: string[]) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -55,6 +51,29 @@
 	);
 
 	let old_props = $state($state.snapshot(props));
+	type WatchEntry = { props: string[]; callback: () => void };
+	let watch_entries: WatchEntry[] = [];
+
+	function watch(propOrProps: string | string[], callback: () => void): void {
+		const prop_list = Array.isArray(propOrProps) ? propOrProps : [propOrProps];
+		watch_entries.push({ props: prop_list, callback });
+	}
+
+	function fire_watchers(changed_keys: string[]): void {
+		const seen = new Set<WatchEntry>();
+		for (const entry of watch_entries) {
+			if (entry.props.some((k) => changed_keys.includes(k))) {
+				seen.add(entry);
+			}
+		}
+		for (const entry of seen) {
+			try {
+				entry.callback();
+			} catch (e) {
+				console.error("Error in watch callback:", e);
+			}
+		}
+	}
 
 	const dispatch = createEventDispatcher<{
 		event: { type: "click" | "submit"; data: any };
@@ -442,7 +461,7 @@
 						"watch",
 						js_on_load
 					);
-					func(element, trigger, reactiveProps, server, upload_func, watch_fn);
+					func(element, trigger, reactiveProps, server, upload_func, watch);
 				} catch (error) {
 					console.error("Error executing js_on_load:", error);
 				}
