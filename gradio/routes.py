@@ -1689,7 +1689,8 @@ class App(FastAPI):
             if inspect.iscoroutinefunction(fn):
                 return await fn(*processed_input)
             else:
-                return fn(*processed_input)
+                import asyncio
+                return await asyncio.to_thread(fn, *processed_input)
 
         @router.get(
             "/queue/status",
