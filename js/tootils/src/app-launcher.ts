@@ -15,6 +15,8 @@ const LOCAL_PYTHONPATH = [
 ]
 	.filter(Boolean)
 	.join(path.delimiter);
+const USE_INSTALLED_GRADIO =
+	process.env.GRADIO_TEST_USE_INSTALLED_GRADIO === "1";
 
 export interface GradioApp {
 	port: number;
@@ -225,7 +227,7 @@ export async function launchGradioApp(
 			// Use unique directories per instance to avoid conflicts
 			GRADIO_EXAMPLES_CACHE: cacheDir,
 			GRADIO_TEMP_DIR: tempDir,
-			PYTHONPATH: LOCAL_PYTHONPATH
+			PYTHONPATH: USE_INSTALLED_GRADIO ? "" : LOCAL_PYTHONPATH
 		}
 	});
 
