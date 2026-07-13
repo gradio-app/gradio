@@ -96,7 +96,6 @@ class TestHighlightedText:
         ]
 
     def test_combine_adjacent_empty_tokens(self):
-        # https://github.com/gradio-app/gradio/issues/13602
         component = gr.HighlightedText(combine_adjacent=True, adjacent_separator=" ")
 
         value = [("", None), ("foo", None), ("bar", None)]
