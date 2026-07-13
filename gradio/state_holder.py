@@ -85,9 +85,6 @@ class SessionState:
         if block.stateful:
             if key not in self.state_data:
                 value = getattr(block, "value", None)
-                # A callable default is a factory that provides the initial
-                # value, same as for non-stateful components (see
-                # Component.get_load_fn_and_initial_value).
                 if callable(value):
                     value = value()
                 self.state_data[key] = deepcopy(value)
