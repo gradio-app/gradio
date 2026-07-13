@@ -255,17 +255,20 @@ class Queue:
         self.active_session_streams[session_hash] += 1
         self.detached_session_expirations.pop(session_hash, None)
 
+    def close_session_stream(self, session_hash: str) -> None:
+        if self.active_session_streams.get(session_hash, 0) > 0:
+            self.active_session_streams[session_hash] -= 1
+            if self.active_session_streams[session_hash] == 0:
+                self.active_session_streams.pop(session_hash, None)
+
     async def mark_session_detached(
         self,
         session_hash: str,
         *,
         stream_closed: bool = True,
-        delete_when_idle: bool = True,
     ) -> None:
-        if stream_closed and self.active_session_streams.get(session_hash, 0) > 0:
-            self.active_session_streams[session_hash] -= 1
-            if self.active_session_streams[session_hash] == 0:
-                self.active_session_streams.pop(session_hash, None)
+        if stream_closed:
+            self.close_session_stream(session_hash)
 
         if self.active_session_streams.get(session_hash, 0) > 0:
             return
@@ -274,7 +277,7 @@ class Queue:
             self.detached_session_expirations[session_hash] = (
                 time.monotonic() + self.resume_ttl
             )
-        elif delete_when_idle:
+        else:
             await self.delete_session(session_hash)
 
     async def delete_session(self, session_hash: str) -> None:

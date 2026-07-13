@@ -1580,9 +1580,7 @@ class App(FastAPI):
                                     response = process_msg(message)
                                     if response is not None:
                                         yield response
-                                    await blocks._queue.mark_session_detached(
-                                        session_hash, delete_when_idle=False
-                                    )
+                                    blocks._queue.close_session_stream(session_hash)
                                     heartbeat_task.cancel()
                                     return
                 except asyncio.CancelledError:

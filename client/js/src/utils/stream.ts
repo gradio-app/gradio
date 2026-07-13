@@ -1,4 +1,4 @@
-import { BROKEN_CONNECTION_MSG, SSE_URL } from "../constants";
+import { SSE_URL } from "../constants";
 import type { Client } from "../client";
 import { stream } from "fetch-event-stream";
 
@@ -13,8 +13,6 @@ export async function open_stream(this: Client): Promise<void> {
 	} = this;
 
 	const that = this;
-	const max_reconnect_attempts = 8;
-
 	if (!config) {
 		throw new Error("Could not resolve app config");
 	}
@@ -92,20 +90,9 @@ export async function open_stream(this: Client): Promise<void> {
 
 		if (
 			that.closed ||
+			that.stream_reconnect_timer ||
 			(unclosed_events.size === 0 && Object.keys(event_callbacks).length === 0)
 		) {
-			return;
-		}
-
-		if (that.stream_reconnect_attempts >= max_reconnect_attempts) {
-			await Promise.all(
-				Object.keys(event_callbacks).map((event_id) =>
-					event_callbacks[event_id]({
-						msg: "broken_connection",
-						message: BROKEN_CONNECTION_MSG
-					})
-				)
-			);
 			return;
 		}
 
