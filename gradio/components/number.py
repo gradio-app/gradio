@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -13,7 +12,7 @@ from gradio.components.button import Button
 from gradio.events import Events
 from gradio.exceptions import Error
 from gradio.i18n import I18nData
-from gradio.utils import set_default_buttons
+from gradio.utils import parse_escaped_json, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -175,4 +174,4 @@ class Number(FormComponent):
 
     def read_from_flag(self, payload: str):
         """Numbers are stored as strings in the flagging file, so we need to parse them as json."""
-        return json.loads(payload)
+        return parse_escaped_json(payload)

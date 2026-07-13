@@ -237,6 +237,18 @@ class TestProcessExamples:
             prediction = io.examples_handler.load_from_cache(1)
         assert prediction[0] == "Hello Dunya"
 
+    def test_caching_negative_number(self, patched_cache_folder, connect):
+        io = gr.Interface(
+            lambda x: -0.5678,
+            "text",
+            gr.Number(),
+            examples=[["hi"]],
+            cache_examples=True,
+        )
+        with connect(io):
+            prediction = io.examples_handler.load_from_cache(0)
+        assert prediction[0] == -0.5678
+
     def test_example_caching_relaunch(self, patched_cache_folder, connect):
         def combine(a, b):
             return a + " " + b

@@ -186,15 +186,17 @@ class HighlightedText(Component):
             output = []
             running_text, running_category = None, None
             for text, category in value:
+                if not text:
+                    # Drop empty tokens so they neither seed a run nor get a
+                    # spurious separator when merged. These are inserted
+                    # between entities when a dict value is converted above,
+                    # but skipping them for list values is also correct.
+                    continue
                 if running_text is None:
                     running_text = text
                     running_category = category
                 elif category == running_category:
                     running_text += self.adjacent_separator + text
-                elif not text:
-                    # Skip fully empty item, these get added in processing
-                    # of dictionaries.
-                    pass
                 else:
                     output.append((running_text, running_category))
                     running_text = text

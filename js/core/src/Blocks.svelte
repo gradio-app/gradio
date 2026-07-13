@@ -147,14 +147,6 @@
 			const button_id = (data as { id: number }).id;
 			dispatch_to_target(button_id, "click", null);
 		} else {
-			// Tabs are a bit weird. The Tabs component dispatches 'select' events
-			// but the target id corresponds to the child Tab component that was selected.
-			// So the id we get from the dispatcher belongs to the Tabs,
-			// so we need to pull out the correct id here.
-			if (event === "select" && id in app_tree.initial_tabs) {
-				// this is the id of the selected tab
-				id = (data as { id: number }).id;
-			}
 			dep_manager.dispatch({
 				type: "event",
 				event_name: event,
@@ -409,12 +401,42 @@
 		return container.children[container.children.length - 1] as HTMLElement;
 	}
 
+	let last_reported_height = 0;
+	let consecutive_grows = 0;
+
 	function handle_resize(): void {
-		if ("parentIFrame" in window) {
-			const box = root_container.children[0].getBoundingClientRect();
-			if (!box) return;
-			window.parentIFrame?.size(box.bottom + footer_height + 32);
+		if (!("parentIFrame" in window)) return;
+		const box = root_container.children[0].getBoundingClientRect();
+		if (!box) return;
+		const next = box.bottom + footer_height + 32;
+		const viewport = window.innerHeight;
+
+		// Ignore sub-pixel echoes from our own resize.
+		if (Math.abs(next - last_reported_height) < 2) {
+			consecutive_grows = 0;
+			return;
 		}
+
+		if (next > last_reported_height) {
+			// Content sized in viewport-relative units (`vh`/`%`) or stretched by
+			// `fill_height` grows to fill whatever height the iframe is given, so its
+			// measured bottom just tracks the viewport. Requesting a larger size in
+			// that case feeds back into an unbounded growth loop (#12089, #12992).
+			// (a) If the content merely fills the viewport (no real overflow), don't grow.
+			if (next > viewport && box.bottom <= viewport + 2) return;
+			// (b) Circuit breaker: if we keep growing tick after tick, the content is
+			// tracking the iframe we just grew (a feedback loop), not genuinely taller
+			// content. Stop growing so the height stays bounded. Legitimate content
+			// (late-loading images, revealed blocks) settles within a few grows.
+			consecutive_grows += 1;
+			if (consecutive_grows > 4) return;
+		} else {
+			// Shrinking to fit shorter content is always safe and breaks any loop.
+			consecutive_grows = 0;
+		}
+
+		last_reported_height = next;
+		window.parentIFrame?.size(next);
 	}
 
 	function screen_recording(): void {

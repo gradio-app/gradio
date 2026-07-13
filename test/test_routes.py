@@ -750,6 +750,36 @@ class TestRoutes:
 
         io.close()
 
+    @pytest.mark.flaky
+    @pytest.mark.parametrize(
+        "url,allowed",
+        [
+            (
+                "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png",
+                True,
+            ),
+            (
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg",
+                True,
+            ),
+            ("http://169.254.169.254/latest/meta-data/", False),
+            ("http://127.0.0.1:22/", False),
+            ("http://10.0.0.1/admin", False),
+        ],
+    )
+    def test_file_endpoint_ssrf_protection(self, url, allowed):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
+        if allowed:
+            assert resp.status_code == 200
+            assert resp.content
+        else:
+            assert resp.status_code == 403
+            assert "location" not in resp.headers
+
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
             num_files = 0
@@ -1738,7 +1768,7 @@ class TestCurlEndpointWithFiles:
         finally:
             demo.close()
 
-    @pytest.mark.seriale
+    @pytest.mark.serial
     def test_text_to_image_exception_reported_in_sse(self):
         def fail_fn(prompt):
             raise RuntimeError("Generation exploded!")
@@ -1877,6 +1907,37 @@ def test_max_file_size_used_in_upload_route(connect):
     with open("test/test_files/alphabet.txt", "rb") as f:
         r = test_client.post(f"{API_PREFIX}/upload", files={"files": f})
         assert r.status_code == 200
+
+
+def test_max_file_size_used_in_component_server_route(connect):
+    with gr.Blocks() as demo:
+        editor = gr.ImageEditor()
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="1kb")
+    try:
+        test_client = TestClient(app)
+        data = {
+            "session_hash": "123",
+            "component_id": str(editor._id),
+            "fn_name": "accept_blobs",
+            "type": "background",
+            "index": "null",
+            "id": "abc",
+        }
+        r = test_client.post(
+            f"{API_PREFIX}/component_server/",
+            data=data,
+            files={"blob": ("big.bin", b"x" * 2048, "application/octet-stream")},
+        )
+        assert r.status_code == 413
+        r = test_client.post(
+            f"{API_PREFIX}/component_server/",
+            data=data,
+            files={"blob": ("small.bin", b"x" * 8, "application/octet-stream")},
+        )
+        assert r.status_code == 200
+    finally:
+        demo.close()
 
 
 def test_docs_url():

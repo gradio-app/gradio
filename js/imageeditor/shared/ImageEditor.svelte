@@ -102,11 +102,19 @@
 	let pixi_target: HTMLDivElement;
 	let pixi_target_crop: HTMLDivElement;
 
+	let layer_options_key: string | undefined | null = null;
 	$effect(() => {
-		if (check_if_should_init()) {
-			editor.set_layer_options(layer_options);
-			refresh_tools();
-		}
+		if (!check_if_should_init()) return;
+
+		const next_layer_options_key = JSON.stringify(layer_options);
+		if (next_layer_options_key === layer_options_key) return;
+
+		layer_options_key = next_layer_options_key;
+		editor.set_layer_options(layer_options);
+	});
+
+	$effect(() => {
+		refresh_tools();
 	});
 
 	function refresh_tools(): void {
@@ -255,8 +263,10 @@
 	 * Handles visibility changes and resets zoom if dimensions have changed
 	 */
 	async function handle_visibility_change(): Promise<void> {
-		if (!editor || !ready || !zoom) return;
+		if (!editor || !ready || !zoom || !pixi_target) return;
 		await tick();
+
+		if (!pixi_target) return;
 
 		const is_visible = pixi_target.offsetParent !== null;
 
@@ -763,7 +773,8 @@
 		on_drag_change: (dragging) => (is_dragging = dragging),
 		on_files: handle_files,
 		accepted_types: "image/*",
-		disable_click: disable_click
+		disable_click: disable_click,
+		ignore_click_selector: ".toolbar-wrap"
 	}}
 	aria-label={"Click to upload or drop files"}
 	aria-dropeffect="copy"

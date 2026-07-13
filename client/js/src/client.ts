@@ -145,7 +145,7 @@ export class Client {
 		this.abort_controller = new AbortController();
 
 		this.stream_instance = readable_stream(url.toString(), {
-			credentials: "include",
+			credentials: this.options.credentials ?? "same-origin",
 			headers: headers,
 			signal: this.abort_controller.signal
 		});
@@ -491,7 +491,7 @@ export class Client {
 					method: "POST",
 					body: body,
 					headers,
-					credentials: "include"
+					credentials: this.options.credentials ?? "same-origin"
 				}
 			);
 

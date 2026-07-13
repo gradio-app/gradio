@@ -52,7 +52,8 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           python_version: "3.10"
-          skip_build: "false"
+          skip_build: true
+          skip_docs_gen: true
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: generate theme.css
