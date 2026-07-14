@@ -1,4 +1,5 @@
 ---
+"@gradio/workflowcanvas": patch
 "gradio": patch
 ---
 
