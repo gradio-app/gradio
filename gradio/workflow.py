@@ -545,7 +545,9 @@ def call_space(
                 processed.append(arg)
         while processed and processed[-1] is _EMPTY:
             processed.pop()
-        result = client.predict(*[None if v is _EMPTY else v for v in processed], api_name=endpoint)
+        result = client.predict(
+            *[None if v is _EMPTY else v for v in processed], api_name=endpoint
+        )
         result = list(result) if isinstance(result, (list, tuple)) else [result]
 
         _tmpdir = os.path.realpath(tempfile.gettempdir())
