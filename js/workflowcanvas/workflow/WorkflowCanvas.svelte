@@ -1567,7 +1567,11 @@
 					} else {
 						nodeErrors = { ...nodeErrors, [nodeId]: error };
 						const brief = error.split("\n")[0];
-						showToast(`${label}: ${brief.length > 120 ? brief.slice(0, 120) + "…" : brief}`, 5000, "error");
+						showToast(
+							`${label}: ${brief.length > 120 ? brief.slice(0, 120) + "…" : brief}`,
+							5000,
+							"error"
+						);
 					}
 				}
 			},
