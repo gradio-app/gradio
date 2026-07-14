@@ -497,8 +497,6 @@ class TestCallFn:
         assert result.get("error_type") == "unknown"
 
     def test_queue_endpoint_registered_for_bound_fn(self, tmp_path):
-        """Each bound fn must have a hidden queue endpoint so the canvas can
-        route through the real Gradio queue instead of component_server."""
         wf = Workflow(graph=str(tmp_path / "wf.json"), bind={"my_fn": lambda x: x})
         api_names = [
             fn.api_name
