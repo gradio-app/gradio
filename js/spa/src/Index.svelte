@@ -1,6 +1,10 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css, prefix_css } from "@gradio/core";
+	import {
+		mount_css,
+		prefix_css,
+		resolve_current_origin_url
+	} from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -148,7 +152,10 @@
 			);
 		}
 		await mount_css(
-			config.root + "/theme.css?v=" + config.theme_hash,
+			resolve_current_origin_url(
+				config.root,
+				`/theme.css?v=${config.theme_hash}`
+			).toString(),
 			document.head
 		);
 		if (!config.stylesheets) return;
@@ -161,7 +168,9 @@
 					return mount_css(stylesheet, document.head);
 				}
 
-				return fetch(config.root + "/" + stylesheet)
+				return fetch(
+					resolve_current_origin_url(config.root, stylesheet).toString()
+				)
 					.then((response) => response.text())
 					.then((css_string) => {
 						prefix_css(css_string, version);

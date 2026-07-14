@@ -75,10 +75,28 @@
 
 		%gradio_config%%gradio_api_info%
 
-		<script
-			src="{{ config.get('root', '') }}/static/js/iframeResizer.contentWindow.min.js"
-			async
-		></script>
+		<script>
+			(() => {
+				const root = {{ config.get('root', '') | toorjson }};
+				const rootUrl = new URL(root || "/", window.location.href);
+				const script = document.createElement("script");
+				const rootPath = rootUrl.pathname.replace(/\/$/, "");
+				// Same-hostname check as resolve_current_origin_url in
+				// @gradio/utils: this page is served by the gradio server, so
+				// when the hostnames match, the page's origin (which reflects
+				// the public proxy port/protocol) is the reachable one.
+				const origin =
+					rootUrl.hostname === window.location.hostname
+						? window.location.origin
+						: rootUrl.origin;
+				script.src = new URL(
+					`${rootPath}/static/js/iframeResizer.contentWindow.min.js`,
+					origin
+				).toString();
+				script.async = true;
+				document.head.appendChild(script);
+			})();
+		</script>
 		<script data-gradio-mode>
 			window.__gradio_mode__ = "app";
 			window.iFrameResizer = {

@@ -3,7 +3,8 @@ import {
 	get_jwt,
 	determine_protocol,
 	parse_and_set_cookies,
-	resolve_config
+	resolve_config,
+	resolve_config_root
 } from "../helpers/init_helpers";
 import { initialise_server } from "./server";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
@@ -21,6 +22,24 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.stop());
 
 describe("resolve_config", () => {
+	it("uses the public protocol and port for a same-host proxy root", () => {
+		expect(
+			resolve_config_root(
+				"http://machine.local:7862/gradio",
+				"https://machine.local:20443/gradio"
+			)
+		).toBe("https://machine.local:20443/gradio");
+	});
+
+	it("keeps the configured origin for a remote root", () => {
+		expect(
+			resolve_config_root(
+				"https://remote.example/gradio",
+				"https://host.example/page"
+			)
+		).toBe("https://remote.example/gradio");
+	});
+
 	it("requests /config without a Content-Type header and with same-origin credentials, so the cross-origin embed fetch is not blocked by CORS", async () => {
 		let captured_init: RequestInit | undefined;
 		const fake_client = {
@@ -43,6 +62,53 @@ describe("resolve_config", () => {
 		expect(header_names).not.toContain("content-type");
 		expect(captured_init?.credentials).toBe("same-origin");
 	});
+
+	const in_browser = typeof window !== "undefined";
+
+	it.skipIf(!in_browser)(
+		"uses the browser origin for a same-host config root behind a proxy",
+		async () => {
+			const page = new URL(window.location.href);
+			const internal_root = `${page.protocol}//${page.hostname}:7862/gradio`;
+			window.gradio_config = {
+				...config_response,
+				root: internal_root
+			};
+			const fake_client = {
+				options: {},
+				deep_link: null
+			} as unknown as Client;
+
+			try {
+				const config = await resolve_config.call(fake_client, internal_root);
+				expect(config?.root).toBe(`${page.origin}/gradio`);
+			} finally {
+				delete (window as Partial<Window>).gradio_config;
+			}
+		}
+	);
+
+	it.skipIf(!in_browser)(
+		"keeps a remote config root when the page and backend hostnames differ",
+		async () => {
+			const remote_root = "https://remote.example/gradio";
+			window.gradio_config = {
+				...config_response,
+				root: remote_root
+			};
+			const fake_client = {
+				options: {},
+				deep_link: null
+			} as unknown as Client;
+
+			try {
+				const config = await resolve_config.call(fake_client, remote_root);
+				expect(config?.root).toBe(remote_root);
+			} finally {
+				delete (window as Partial<Window>).gradio_config;
+			}
+		}
+	);
 });
 
 describe("resolve_root", () => {
