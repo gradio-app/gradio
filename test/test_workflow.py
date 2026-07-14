@@ -486,9 +486,7 @@ class TestCallFn:
         direct.token = "direct-token"
         direct.scope = "openid"
         direct.expires_at = 9999999999
-        result = json.loads(
-            call_fn(["fn", '["hello"]'], _request=None, _token=direct)
-        )
+        result = json.loads(call_fn(["fn", '["hello"]'], _request=None, _token=direct))
         assert result == ["direct-token,None"]
 
     def test_unknown_fn_returns_error(self, tmp_path):
@@ -499,9 +497,7 @@ class TestCallFn:
     def test_queue_endpoint_registered_for_bound_fn(self, tmp_path):
         wf = Workflow(graph=str(tmp_path / "wf.json"), bind={"my_fn": lambda x: x})
         api_names = [
-            fn.api_name
-            for fn in wf.fns.values()
-            if isinstance(fn.api_name, str)
+            fn.api_name for fn in wf.fns.values() if isinstance(fn.api_name, str)
         ]
         assert "predict_fn_my_fn" in api_names
 

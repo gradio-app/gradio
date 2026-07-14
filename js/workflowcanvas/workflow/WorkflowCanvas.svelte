@@ -1536,10 +1536,9 @@
 		const callFnWithToken = gradio_client
 			? async (fnName: string, argsJson: string) => {
 					const safeN = fnName.replace(/[^a-zA-Z0-9_-]/g, "_");
-					const result = await gradio_client.predict(
-						`/predict_fn_${safeN}`,
-						[argsJson]
-					);
+					const result = await gradio_client.predict(`/predict_fn_${safeN}`, [
+						argsJson
+					]);
 					return result.data[0] as string;
 				}
 			: server?.call_fn

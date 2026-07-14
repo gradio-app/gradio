@@ -1529,7 +1529,7 @@ class Workflow(Blocks):
         if bound:
             from gradio.workflow_api import _active_blocks
 
-            def _make_fn_endpoint(fn_name: str, fn: Callable) -> Callable:
+            def _make_fn_endpoint(fn: Callable) -> Callable:
                 async def wrapper(
                     args_json: str,
                     _request: Optional[Request] = None,
@@ -1545,7 +1545,9 @@ class Workflow(Blocks):
                         result = await anyio.to_thread.run_sync(
                             lambda: fn(*args), limiter=self.limiter
                         )
-                    out = list(result) if isinstance(result, (list, tuple)) else [result]
+                    out = (
+                        list(result) if isinstance(result, (list, tuple)) else [result]
+                    )
                     return json.dumps(out)
 
                 return wrapper
@@ -1557,7 +1559,7 @@ class Workflow(Blocks):
                     fn_out = gr.Textbox(label=f"_wf_fn_out_{safe_name}")
                     trigger = gr.Button()
                     trigger.click(
-                        _make_fn_endpoint(fn_name, fn),
+                        _make_fn_endpoint(fn),
                         inputs=[fn_in],
                         outputs=[fn_out],
                         api_name=f"predict_fn_{safe_name}",
