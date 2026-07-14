@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-import contextlib
 import inspect
 import json
 import logging
@@ -18,7 +16,7 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, Optional, TypedDict, Union, get_type_hints
+from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 
 import anyio
 import httpx
@@ -1341,12 +1339,8 @@ class Workflow(Blocks):
                 return None
 
         bound = self._bound
-        # Per-function semaphores — created lazily on first call so the queue's
-        # resolved concurrency limit is available. Keyed by fn_name; None means
-        # unlimited (matches queue's behavior when default_concurrency_limit=None).
-        _fn_semaphores: dict[str, Any] = {}
 
-        async def call_fn(
+        def call_fn(
             data,
             _request: Optional[Request] = None,
             _token: Optional[OAuthToken] = None,
@@ -1367,21 +1361,12 @@ class Workflow(Blocks):
                 if not isinstance(args, list):
                     args = [args]
                 args, *_ = _special_args(fn, args, _request, None, token=_token)
+                if inspect.iscoroutinefunction(fn):
+                    import asyncio
 
-                # Match normal Gradio event handler concurrency (1 by default,
-                # unlimited on ZeroGPU) to avoid CUDA OOM on single-GPU hardware.
-                if fn_name not in _fn_semaphores:
-                    limit = getattr(
-                        getattr(self, "_queue", None), "default_concurrency_limit", 1
-                    )
-                    _fn_semaphores[fn_name] = (
-                        asyncio.Semaphore(limit) if limit else None
-                    )
-                sem = _fn_semaphores[fn_name]
-                async with sem or contextlib.nullcontext():
-                    result = await anyio.to_thread.run_sync(
-                        lambda: fn(*args), limiter=self.limiter
-                    )
+                    result = asyncio.run(fn(*args))
+                else:
+                    result = fn(*args)
                 out = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(out)
             except Exception as e:
@@ -1541,6 +1526,43 @@ class Workflow(Blocks):
                 server_functions=server_functions,
             )
 
+        if bound:
+            from gradio.workflow_api import _active_blocks
+
+            def _make_fn_endpoint(fn_name: str, fn: Callable) -> Callable:
+                async def wrapper(
+                    args_json: str,
+                    _request: Optional[Request] = None,
+                    _token: Optional[OAuthToken] = None,
+                ) -> str:
+                    args = json.loads(args_json)
+                    if not isinstance(args, list):
+                        args = [args]
+                    args, *_ = _special_args(fn, args, _request, None, token=_token)
+                    if inspect.iscoroutinefunction(fn):
+                        result = await fn(*args)
+                    else:
+                        result = await anyio.to_thread.run_sync(
+                            lambda: fn(*args), limiter=self.limiter
+                        )
+                    out = list(result) if isinstance(result, (list, tuple)) else [result]
+                    return json.dumps(out)
+
+                return wrapper
+
+            with _active_blocks(self), gr.Column(visible=False):
+                for fn_name, fn in bound.items():
+                    safe_name = re.sub(r"[^a-zA-Z0-9_-]", "_", fn_name)
+                    fn_in = gr.Textbox(label=f"_wf_fn_in_{safe_name}")
+                    fn_out = gr.Textbox(label=f"_wf_fn_out_{safe_name}")
+                    trigger = gr.Button()
+                    trigger.click(
+                        _make_fn_endpoint(fn_name, fn),
+                        inputs=[fn_in],
+                        outputs=[fn_out],
+                        api_name=f"predict_fn_{safe_name}",
+                        concurrency_limit="default",
+                    )
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.

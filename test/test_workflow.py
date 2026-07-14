@@ -448,14 +448,12 @@ class TestCallFn:
         )
         return canvas.call_fn
 
-    @pytest.mark.asyncio
-    async def test_calls_bound_fn(self, tmp_path):
+    def test_calls_bound_fn(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
-        result = json.loads(await call_fn(["echo", '["hello"]']))
+        result = json.loads(call_fn(["echo", '["hello"]']))
         assert result == ["hello"]
 
-    @pytest.mark.asyncio
-    async def test_injects_oauth_token(self, tmp_path):
+    def test_injects_oauth_token(self, tmp_path):
         received = {}
 
         def fn_with_token(text: str, token: Optional[OAuthToken]) -> str:
@@ -474,13 +472,12 @@ class TestCallFn:
             }
 
         result = json.loads(
-            await call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest())
+            call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest())
         )
         assert result == ["hi"]
         assert received["token"].token == "test-tok"
 
-    @pytest.mark.asyncio
-    async def test_injects_direct_token_without_session(self, tmp_path):
+    def test_injects_direct_token_without_session(self, tmp_path):
         def fn(text: str, token: OAuthToken, profile: Optional[OAuthProfile]) -> str:
             return f"{token.token},{profile}"
 
@@ -490,15 +487,25 @@ class TestCallFn:
         direct.scope = "openid"
         direct.expires_at = 9999999999
         result = json.loads(
-            await call_fn(["fn", '["hello"]'], _request=None, _token=direct)
+            call_fn(["fn", '["hello"]'], _request=None, _token=direct)
         )
         assert result == ["direct-token,None"]
 
-    @pytest.mark.asyncio
-    async def test_unknown_fn_returns_error(self, tmp_path):
+    def test_unknown_fn_returns_error(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
-        result = json.loads(await call_fn(["missing", "[]"]))
+        result = json.loads(call_fn(["missing", "[]"]))
         assert result.get("error_type") == "unknown"
+
+    def test_queue_endpoint_registered_for_bound_fn(self, tmp_path):
+        """Each bound fn must have a hidden queue endpoint so the canvas can
+        route through the real Gradio queue instead of component_server."""
+        wf = Workflow(graph=str(tmp_path / "wf.json"), bind={"my_fn": lambda x: x})
+        api_names = [
+            fn.api_name
+            for fn in wf.fns.values()
+            if isinstance(fn.api_name, str)
+        ]
+        assert "predict_fn_my_fn" in api_names
 
 
 class TestCallSpaceValidation:

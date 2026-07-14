@@ -495,29 +495,10 @@ class WorkflowExecutor:
                 )
 
     def _call(self, kind: str, data: list) -> list:
-        import asyncio
-        import inspect
-
         caller = self.callers.get(kind)
         if caller is None:
             raise WorkflowExecutionError(f"No executor available for '{kind}' nodes")
-        result = caller(data, self._request, self._token)
-        if inspect.iscoroutine(result):
-            try:
-                loop = asyncio.get_running_loop()
-                import concurrent.futures
-
-                result_json = concurrent.futures.Future()
-                asyncio.run_coroutine_threadsafe(result, loop).add_done_callback(
-                    lambda f: result_json.set_result(f.result())
-                    if not f.exception()
-                    else result_json.set_exception(f.exception())
-                )
-                result_json = result_json.result()
-            except RuntimeError:
-                result_json = asyncio.run(result)
-        else:
-            result_json = result
+        result_json = caller(data, self._request, self._token)
         parsed = json.loads(result_json)
         if isinstance(parsed, dict) and "error" in parsed:
             msg = (

@@ -76,8 +76,13 @@
 
 	let {
 		server = {},
-		initialValue = null
-	}: { server?: Record<string, any>; initialValue?: string | null } = $props();
+		initialValue = null,
+		gradio_client = undefined
+	}: {
+		server?: Record<string, any>;
+		initialValue?: string | null;
+		gradio_client?: import("@gradio/client").Client | undefined;
+	} = $props();
 
 	const auth = createHFAuth(() => server);
 
@@ -1528,10 +1533,19 @@
 					])
 			: undefined;
 
-		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) =>
-					server.call_fn([fnName, argsJson])
-			: undefined;
+		const callFnWithToken = gradio_client
+			? async (fnName: string, argsJson: string) => {
+					const safeN = fnName.replace(/[^a-zA-Z0-9_-]/g, "_");
+					const result = await gradio_client.predict(
+						`/predict_fn_${safeN}`,
+						[argsJson]
+					);
+					return result.data[0] as string;
+				}
+			: server?.call_fn
+				? async (fnName: string, argsJson: string) =>
+						server.call_fn([fnName, argsJson])
+				: undefined;
 
 		await executeWorkflow(
 			wfToRun,

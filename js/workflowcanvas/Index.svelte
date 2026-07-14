@@ -11,6 +11,7 @@
 	gradio.watch_for_change();
 
 	let serverObj = $derived(gradio.shared?.server ?? {});
+	let gradioClient = $derived(gradio.shared?.client);
 	let initialValue = $derived(gradio.props.value ?? null);
 
 	$effect(() => {
@@ -45,7 +46,7 @@
 </script>
 
 <div class="workflow-fullscreen">
-	<WorkflowCanvas server={serverObj} {initialValue} />
+	<WorkflowCanvas server={serverObj} {initialValue} gradio_client={gradioClient} />
 </div>
 
 <style>
