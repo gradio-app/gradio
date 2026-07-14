@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 import logging
@@ -1362,8 +1363,6 @@ class Workflow(Blocks):
                     args = [args]
                 args, *_ = _special_args(fn, args, _request, None, token=_token)
                 if inspect.iscoroutinefunction(fn):
-                    import asyncio
-
                     result = asyncio.run(fn(*args))
                 else:
                     result = fn(*args)
