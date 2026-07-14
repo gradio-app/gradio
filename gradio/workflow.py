@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import inspect
 import json
 import logging
@@ -16,8 +18,9 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
+from typing import TYPE_CHECKING, Any, Optional, TypedDict, Union, get_type_hints
 
+import anyio
 import httpx
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
@@ -1338,8 +1341,12 @@ class Workflow(Blocks):
                 return None
 
         bound = self._bound
+        # Per-function semaphores — created lazily on first call so the queue's
+        # resolved concurrency limit is available. Keyed by fn_name; None means
+        # unlimited (matches queue's behavior when default_concurrency_limit=None).
+        _fn_semaphores: dict[str, Any] = {}
 
-        def call_fn(
+        async def call_fn(
             data,
             _request: Optional[Request] = None,
             _token: Optional[OAuthToken] = None,
@@ -1360,9 +1367,23 @@ class Workflow(Blocks):
                 if not isinstance(args, list):
                     args = [args]
                 args, *_ = _special_args(fn, args, _request, None, token=_token)
-                result = fn(*args)
-                result = list(result) if isinstance(result, (list, tuple)) else [result]
-                return json.dumps(result)
+
+                # Match normal Gradio event handler concurrency (1 by default,
+                # unlimited on ZeroGPU) to avoid CUDA OOM on single-GPU hardware.
+                if fn_name not in _fn_semaphores:
+                    limit = getattr(
+                        getattr(self, "_queue", None), "default_concurrency_limit", 1
+                    )
+                    _fn_semaphores[fn_name] = (
+                        asyncio.Semaphore(limit) if limit else None
+                    )
+                sem = _fn_semaphores[fn_name]
+                async with (sem or contextlib.nullcontext()):
+                    result = await anyio.to_thread.run_sync(
+                        lambda: fn(*args), limiter=self.limiter
+                    )
+                out = list(result) if isinstance(result, (list, tuple)) else [result]
+                return json.dumps(out)
             except Exception as e:
                 logger.error("call_fn failed for %s: %s", fn_name, e, exc_info=True)
                 return json.dumps(
