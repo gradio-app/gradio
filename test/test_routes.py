@@ -451,6 +451,17 @@ class TestRoutes:
             assert resp.is_success
             assert "/myapp/gradio" in resp.text
 
+    def test_create_app_preserves_app_kwargs_root_path(self):
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app = routes.App.create_app(demo, app_kwargs={"root_path": "/proxy"})
+
+        assert app.root_path == "/proxy"
+
+        with TestClient(app) as client:
+            resp = client.get("/config")
+            assert resp.is_success
+            assert "/proxy" in resp.json()["root"]
+
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
@@ -458,7 +469,7 @@ class TestRoutes:
             app,
             demo,
             path="/echo",
-            app_kwargs={"docs_url": "/docs-custom"},
+            app_kwargs={"docs_url": "/docs-custom", "root_path": "/proxy"},
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
@@ -749,6 +760,36 @@ class TestRoutes:
         assert file_response.headers["access-control-allow-origin"] == "null"
 
         io.close()
+
+    @pytest.mark.flaky
+    @pytest.mark.parametrize(
+        "url,allowed",
+        [
+            (
+                "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png",
+                True,
+            ),
+            (
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg",
+                True,
+            ),
+            ("http://169.254.169.254/latest/meta-data/", False),
+            ("http://127.0.0.1:22/", False),
+            ("http://10.0.0.1/admin", False),
+        ],
+    )
+    def test_file_endpoint_ssrf_protection(self, url, allowed):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
+        if allowed:
+            assert resp.status_code == 200
+            assert resp.content
+        else:
+            assert resp.status_code == 403
+            assert "location" not in resp.headers
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):

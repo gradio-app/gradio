@@ -1,5 +1,16 @@
 # @self/spa
 
+## 1.5.1
+
+### Fixes
+
+- [#13561](https://github.com/gradio-app/gradio/pull/13561) [`882df35`](https://github.com/gradio-app/gradio/commit/882df35e9eaa7b2fb8767e23f03c66c46ab66d78) - Fix `TypeError: this.app.$destroy is not a function` when embedding a Gradio app with the `<gradio-app>` web component.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.3.1
+- @gradio/core@1.9.0
+
 ## 1.5.0
 
 ### Features

@@ -941,6 +941,7 @@ def special_args(
     request: routes.Request | None = None,
     event_data: EventData | None = None,
     component_props: dict[int, dict[str, Any]] | None = None,
+    token: oauth.OAuthToken | None = None,
 ) -> tuple[list, int | None, int | None, list[int]]:
     """
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
@@ -952,6 +953,9 @@ def special_args(
         request: request to load into inputs.
         event_data: event-related data to load into inputs.
         component_props: dictionary mapping input indices to their full component props.
+        token: an OAuthToken to inject into OAuthToken-annotated params when one cannot
+            be derived from the request session (e.g. server-side workflow calls that
+            resolve the token outside of a browser session).
     Returns:
         updated inputs, progress index, event data index, list of input indices that need component props.
     """
@@ -1023,6 +1027,10 @@ def special_args(
                         if oauth_info is not None
                         else None
                     )
+                    # Fall back to a directly-supplied token when the session does
+                    # not yield one (e.g. server-side workflow calls).
+                    if oauth_token is None and token is not None:
+                        oauth_token = token
                     if oauth_token is None and type_hint == oauth.OAuthToken:
                         raise Error(
                             "This action requires a logged in user. Please sign in and retry."

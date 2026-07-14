@@ -10,19 +10,23 @@ import re
 import secrets
 import sys
 import tempfile
+import types
 import urllib.parse
 import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 
 import httpx
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
+import gradio as gr
 from gradio.blocks import Blocks
-from gradio.oauth import OAuthToken
+from gradio.components.workflowcanvas import WorkflowCanvas
+from gradio.helpers import special_args as _special_args
+from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
 from gradio.utils import get_space
 
@@ -40,6 +44,21 @@ _SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="hf-search")
 _CURATED_DATASET_REPO = "gradio/workflow-curated"
 _CURATED_DATASET_FILE = "curated.json"
 _CURATED_TTL_SECONDS = 3600.0
+
+_INJECTED_TYPES = frozenset({OAuthToken, OAuthProfile, Request})
+
+
+def _is_injected_param(hint: object) -> bool:
+    if hint in _INJECTED_TYPES:
+        return True
+    if getattr(hint, "__origin__", None) is Union:
+        args = hint.__args__  # type: ignore[union-attr]
+        non_none = [a for a in args if a is not type(None)]
+        return len(non_none) == 1 and non_none[0] in _INJECTED_TYPES
+    if isinstance(hint, types.UnionType):
+        non_none = [a for a in hint.__args__ if a is not type(None)]
+        return len(non_none) == 1 and non_none[0] in _INJECTED_TYPES
+    return False
 
 
 class _CuratedCache(TypedDict):
@@ -182,6 +201,10 @@ def _workflow_from_bind(
         except (ValueError, TypeError):
             sig = inspect.Signature()
 
+        try:
+            _hints = get_type_hints(fn)
+        except Exception:
+            _hints = getattr(fn, "__annotations__", {})
         inputs = [
             {
                 "id": f"in_{p}",
@@ -189,7 +212,7 @@ def _workflow_from_bind(
                 "type": _PY_TO_PORT.get(param.annotation, "text"),
             }
             for p, param in sig.parameters.items()
-            if p != "self"
+            if p != "self" and not _is_injected_param(_hints.get(p))
         ]
         outputs = [
             {
@@ -1290,9 +1313,6 @@ class Workflow(Blocks):
         self._build()
 
     def _build(self):
-        import gradio as gr
-        from gradio.components.workflowcanvas import WorkflowCanvas
-
         # Set once the API endpoints are registered (post UI build); save_workflow
         # re-syncs it so /info + /call track edits to the graph.
         self._api_endpoints: WorkflowEndpointManager | None = None
@@ -1339,6 +1359,7 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
+                args, *_ = _special_args(fn, args, _request, None, token=_token)
                 result = fn(*args)
                 result = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(result)
@@ -1364,6 +1385,10 @@ class Workflow(Blocks):
                     sig = inspect.signature(fn)
                 except (ValueError, TypeError):
                     sig = inspect.Signature()
+                try:
+                    _hints = get_type_hints(fn)
+                except Exception:
+                    _hints = getattr(fn, "__annotations__", {})
                 inputs = [
                     {
                         "id": f"in_{p}",
@@ -1371,7 +1396,7 @@ class Workflow(Blocks):
                         "type": _PY_TO_PORT.get(param.annotation, "text"),
                     }
                     for p, param in sig.parameters.items()
-                    if p != "self"
+                    if p != "self" and not _is_injected_param(_hints.get(p))
                 ]
                 if not inputs:
                     inputs = [{"id": "in_0", "label": "input", "type": "text"}]

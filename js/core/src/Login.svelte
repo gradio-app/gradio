@@ -4,6 +4,7 @@
 	import { BaseButton } from "@gradio/button";
 	import { BaseColumn } from "@gradio/column";
 	import { Block } from "@gradio/atoms";
+	import { resolve_current_origin_url } from "@gradio/utils";
 	export let root: string;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
@@ -19,9 +20,7 @@
 		formData.append("username", username);
 		formData.append("password", password);
 
-		// Use URL constructor to properly join paths and avoid double slashes
-		const login_url = new URL("login", root.endsWith("/") ? root : root + "/")
-			.href;
+		const login_url = resolve_current_origin_url(root, "login").href;
 		let response = await fetch(login_url, {
 			method: "POST",
 			body: formData

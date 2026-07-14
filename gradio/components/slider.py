@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import math
 import random
 from collections.abc import Callable, Sequence
@@ -14,6 +13,7 @@ from gradio.components.base import Component, FormComponent
 from gradio.components.number import Number
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import parse_escaped_json
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -159,4 +159,4 @@ class Slider(FormComponent):
 
     def read_from_flag(self, payload: Any):
         """Sliders are stored as strings in the flagging file, so we need to parse them as json."""
-        return json.loads(payload)
+        return parse_escaped_json(payload)

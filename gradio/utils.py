@@ -958,6 +958,21 @@ def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     return sanitized_values
 
 
+def parse_escaped_json(payload: Any) -> Any:
+    """
+    Parses a JSON value read back from a flagging or example-cache CSV file,
+    tolerating the CSV-injection escape character ("'") that
+    sanitize_value_for_csv() prepends to values starting with "-", such as
+    negative numbers (see issue #13591).
+    """
+    try:
+        return json.loads(payload)
+    except json.JSONDecodeError:
+        if isinstance(payload, str) and payload.startswith("'"):
+            return json.loads(payload[1:])
+        raise
+
+
 def append_unique_suffix(name: str, list_of_names: list[str]):
     """Appends a numerical suffix to `name` so that it does not appear in `list_of_names`."""
     set_of_names: set[str] = set(list_of_names)  # for O(1) lookup
