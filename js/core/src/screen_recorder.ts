@@ -1,4 +1,5 @@
 import type { ToastMessage } from "@gradio/statustracker";
+import { resolve_current_origin_url } from "@gradio/utils";
 
 let isRecording = false;
 let mediaRecorder: MediaRecorder | null = null;
@@ -318,10 +319,13 @@ async function handleRecordingComplete(recordedBlob: Blob): Promise<void> {
 			formData.append("zoom_effects", JSON.stringify(zoomEffects));
 		}
 
-		const response = await fetch(root + "/gradio_api/process_recording", {
-			method: "POST",
-			body: formData
-		});
+		const response = await fetch(
+			resolve_current_origin_url(root, "/gradio_api/process_recording"),
+			{
+				method: "POST",
+				body: formData
+			}
+		);
 
 		if (!response.ok) {
 			throw new Error(

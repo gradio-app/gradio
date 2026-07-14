@@ -16,7 +16,10 @@ import type {
 	ServerFunctions
 } from "./types";
 import { type SharedProps } from "@gradio/utils";
-import { allowed_shared_props } from "@gradio/utils";
+import {
+	allowed_shared_props,
+	resolve_current_origin_url
+} from "@gradio/utils";
 import { Client } from "@gradio/client";
 import { reactive_formatter as reactive_formatter_store } from "./gradio_helper";
 
@@ -42,18 +45,21 @@ const type_map = {
 	walkthroughstep: "tabitem"
 };
 
-export function get_api_url(config: Omit<AppConfig, "api_url">): string {
+export function get_api_url(
+	config: Omit<AppConfig, "api_url">,
+	current_location?: string
+): string {
 	// Handle api_prefix correctly when app is mounted at a subpath.
 	// config.root may not include a trailing slash, so we normalize its pathname
 	// before appending api_prefix to ensure correct URL construction.
-	const rootUrl = new URL(config.root);
-	const rootPath = rootUrl.pathname.endsWith("/")
-		? rootUrl.pathname
-		: rootUrl.pathname + "/";
 	const apiPrefix = config.api_prefix.startsWith("/")
 		? config.api_prefix
 		: "/" + config.api_prefix;
-	return new URL(rootPath.slice(0, -1) + apiPrefix, rootUrl.origin).toString();
+	return resolve_current_origin_url(
+		config.root,
+		apiPrefix,
+		current_location
+	).toString();
 }
 export class AppTree {
 	/** the raw component structure received from the backend */
