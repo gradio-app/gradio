@@ -1378,7 +1378,7 @@ class Workflow(Blocks):
                         asyncio.Semaphore(limit) if limit else None
                     )
                 sem = _fn_semaphores[fn_name]
-                async with (sem or contextlib.nullcontext()):
+                async with sem or contextlib.nullcontext():
                     result = await anyio.to_thread.run_sync(
                         lambda: fn(*args), limiter=self.limiter
                     )
