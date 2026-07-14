@@ -448,12 +448,14 @@ class TestCallFn:
         )
         return canvas.call_fn
 
-    def test_calls_bound_fn(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_calls_bound_fn(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
-        result = json.loads(call_fn(["echo", '["hello"]']))
+        result = json.loads(await call_fn(["echo", '["hello"]']))
         assert result == ["hello"]
 
-    def test_injects_oauth_token(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_injects_oauth_token(self, tmp_path):
         received = {}
 
         def fn_with_token(text: str, token: Optional[OAuthToken]) -> str:
@@ -472,12 +474,13 @@ class TestCallFn:
             }
 
         result = json.loads(
-            call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest())
+            await call_fn(["fn_with_token", '["hi"]'], _request=_MockRequest())
         )
         assert result == ["hi"]
         assert received["token"].token == "test-tok"
 
-    def test_injects_direct_token_without_session(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_injects_direct_token_without_session(self, tmp_path):
         def fn(text: str, token: OAuthToken, profile: Optional[OAuthProfile]) -> str:
             return f"{token.token},{profile}"
 
@@ -486,12 +489,15 @@ class TestCallFn:
         direct.token = "direct-token"
         direct.scope = "openid"
         direct.expires_at = 9999999999
-        result = json.loads(call_fn(["fn", '["hello"]'], _request=None, _token=direct))
+        result = json.loads(
+            await call_fn(["fn", '["hello"]'], _request=None, _token=direct)
+        )
         assert result == ["direct-token,None"]
 
-    def test_unknown_fn_returns_error(self, tmp_path):
+    @pytest.mark.asyncio
+    async def test_unknown_fn_returns_error(self, tmp_path):
         call_fn = self._call_fn(tmp_path, {"echo": lambda x: x})
-        result = json.loads(call_fn(["missing", "[]"]))
+        result = json.loads(await call_fn(["missing", "[]"]))
         assert result.get("error_type") == "unknown"
 
 
