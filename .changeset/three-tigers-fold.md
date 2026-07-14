@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: ensure we handle null values
+feat:workflow: ensure we handle trailing null values
