@@ -107,6 +107,16 @@ function addReference(
 			data[port.id] = port.default_value as NodeDataValue;
 		}
 	}
+	const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
+		boolean: false,
+		number: 0,
+		text: ""
+	};
+	for (const port of template.outputs) {
+		if (data[port.id] === undefined && port.type in PORT_DEFAULTS) {
+			data[port.id] = PORT_DEFAULTS[port.type]!;
+		}
+	}
 	const node: ReferenceNode = {
 		...template,
 		role: "reference",
