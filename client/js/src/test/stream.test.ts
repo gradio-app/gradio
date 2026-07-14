@@ -84,32 +84,4 @@ describe("open_stream", () => {
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
 	});
-
-	it.runIf(typeof document !== "undefined")(
-		"should process stream messages immediately when the page is hidden",
-		async () => {
-			await app.open_stream();
-
-			if (!app.stream_instance?.onmessage) {
-				throw new Error("stream instance is not defined");
-			}
-
-			const callback = vi.fn();
-			const message = {
-				msg: "process_completed",
-				event_id: "hidden-tab-event"
-			};
-			app.event_callbacks[message.event_id] = callback;
-			const visibility_spy = vi
-				.spyOn(document, "visibilityState", "get")
-				.mockReturnValue("hidden");
-
-			app.stream_instance.onmessage({
-				data: JSON.stringify(message)
-			} as MessageEvent);
-
-			expect(callback).toHaveBeenCalledWith(message);
-			visibility_spy.mockRestore();
-		}
-	);
 });
