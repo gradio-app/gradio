@@ -535,18 +535,18 @@ def call_space(
             endpoint = (
                 endpoint if endpoint in named else (named[0] if named else "/predict")
             )
-        _EMPTY = object()
+        _empty = object()
         processed = []
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
                 url = arg.get("url") or arg.get("path", "")
-                processed.append(handle_file(url) if url else _EMPTY)
+                processed.append(handle_file(url) if url else _empty)
             else:
                 processed.append(arg)
-        while processed and processed[-1] is _EMPTY:
+        while processed and processed[-1] is _empty:
             processed.pop()
         result = client.predict(
-            *[None if v is _EMPTY else v for v in processed], api_name=endpoint
+            *[None if v is _empty else v for v in processed], api_name=endpoint
         )
         result = list(result) if isinstance(result, (list, tuple)) else [result]
 
