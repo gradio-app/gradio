@@ -45,6 +45,7 @@
 		WFEdge,
 		NodeStatus,
 		NodeRole,
+		NodeDataValue,
 		Workflow
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
@@ -483,6 +484,11 @@
 					template.height
 				);
 				const newId = addNode("reference", template, x, y);
+				const port = node.inputs.find((p) => p.id === portId);
+				if (port?.default_value !== undefined) {
+					const outId = template.outputs[0]?.id ?? "out";
+					updateNodeData(newId, outId, port.default_value as NodeDataValue);
+				}
 				addEdge({
 					from_node_id: newId,
 					from_port_id: "out",
@@ -1993,6 +1999,9 @@
 						inStartY + i * (compH + compGap)
 					);
 					const cId = addNode("reference", comp, cx, cy);
+					if (port.default_value !== undefined) {
+						updateNodeData(cId, comp.outputs[0]?.id ?? "out", port.default_value as NodeDataValue);
+					}
 					addEdge({
 						from_node_id: cId,
 						from_port_id: "out",

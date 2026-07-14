@@ -94,6 +94,11 @@ export function sanitize_for_save(wf: Workflow): Workflow {
 }
 
 // ─── Actions ────────────────────────────────────────────────────────────────
+export const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
+	boolean: false,
+	number: 0,
+	text: ""
+};
 
 function addReference(
 	template: Omit<ReferenceNode, "id" | "role" | "x" | "y" | "data">,
@@ -102,19 +107,11 @@ function addReference(
 ): string {
 	const id = uuid();
 	const data: Record<string, NodeDataValue> = {};
-	for (const port of template.inputs) {
+	for (const port of [...template.inputs, ...template.outputs]) {
 		if (port.default_value !== undefined) {
 			data[port.id] = port.default_value as NodeDataValue;
-		}
-	}
-	const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
-		boolean: false,
-		number: 0,
-		text: ""
-	};
-	for (const port of template.outputs) {
-		if (data[port.id] === undefined && port.type in PORT_DEFAULTS) {
-			data[port.id] = PORT_DEFAULTS[port.type]!;
+		} else if (port.type in PORT_DEFAULTS) {
+			data[port.id] ??= PORT_DEFAULTS[port.type]!;
 		}
 	}
 	const node: ReferenceNode = {
