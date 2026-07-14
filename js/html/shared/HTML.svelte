@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onDestroy } from "svelte";
 	import Handlebars from "handlebars";
 	import type { Snippet } from "svelte";
 
@@ -200,6 +200,8 @@
 		}
 	}
 
+	onDestroy(() => style_element?.remove());
+
 	function updateDOM(
 		_element: HTMLElement | undefined,
 		oldHtml: string,
@@ -346,7 +348,8 @@
 		const promises: Promise<void>[] = [];
 		for (const el of Array.from(doc.head.children)) {
 			if (el.tagName === "SCRIPT") {
-				const src = (el as HTMLScriptElement).src;
+				const parsed_script = el as HTMLScriptElement;
+				const src = parsed_script.src;
 				if (src) {
 					const in_flight = head_script_loads.get(src);
 					if (in_flight) {
@@ -370,8 +373,15 @@
 					promises.push(load);
 					document.head.appendChild(script);
 				} else {
+					if (
+						Array.from(document.scripts).some(
+							(s) => !s.src && s.textContent === parsed_script.textContent
+						)
+					) {
+						continue;
+					}
 					const script = document.createElement("script");
-					script.textContent = el.textContent;
+					script.textContent = parsed_script.textContent;
 					document.head.appendChild(script);
 				}
 			} else {

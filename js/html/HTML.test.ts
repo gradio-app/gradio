@@ -31,7 +31,11 @@ run_shared_prop_tests({
 describe("HTML", () => {
 	afterEach(() => {
 		cleanup();
+		for (const script of Array.from(document.scripts)) {
+			if (script.textContent?.includes("__htmlHeadRuns")) script.remove();
+		}
 		delete (window as any).__htmlWatchConnections;
+		delete (window as any).__htmlHeadRuns;
 	});
 
 	test("js_on_load waits for a head script another instance is already loading", async () => {
@@ -83,6 +87,32 @@ describe("HTML", () => {
 
 		await waitFor(() => {
 			expect((window as any).__htmlWatchConnections).toEqual([true]);
+		});
+	});
+
+	test("remount cleans up CSS and does not rerun inline head scripts", async () => {
+		(window as any).__htmlHeadRuns = 0;
+		const cssMarker = "--html-remount-probe: 1;";
+		const matchingStyles = (): HTMLStyleElement[] =>
+			Array.from(document.head.querySelectorAll("style")).filter((style) =>
+				style.textContent?.includes(cssMarker)
+			);
+		const view = await render(HTML, {
+			...default_props,
+			css_template: cssMarker,
+			head: `<script>window.__htmlHeadRuns += 1;</script>`
+		});
+
+		await waitFor(() => {
+			expect(matchingStyles()).toHaveLength(1);
+			expect((window as any).__htmlHeadRuns).toBe(1);
+		});
+
+		await view.set_data({ id: 123456789 });
+
+		await waitFor(() => {
+			expect((window as any).__htmlHeadRuns).toBe(1);
+			expect(matchingStyles()).toHaveLength(1);
 		});
 	});
 
