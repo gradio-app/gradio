@@ -2395,6 +2395,40 @@ def test_server_fn_passes_request():
     assert response.json()["_url"].endswith("/gradio_api/component_server")
 
 
+def test_component_server_sync_fn_runs_in_thread():
+    import threading
+
+    import requests
+
+    from gradio.components.base import server
+
+    def get_thread_id(self):
+        return threading.get_ident()
+
+    tb = gr.Textbox()
+    tb.get_thread_id = server(get_thread_id)  # type: ignore
+
+    iface = gr.Interface(lambda x: x, inputs=tb, outputs="textbox")
+    component_id = None
+    for component in iface.config["components"]:
+        if component["type"] == "textbox":
+            component_id = component["id"]
+            break
+
+    assert component_id is not None
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+
+    form_data = {
+        "session_hash": "foo",
+        "component_id": component_id,
+        "fn_name": "get_thread_id",
+        "data": json.dumps(None),
+    }
+    response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
+    assert response.status_code == 200
+    assert response.json() != threading.main_thread().ident
+
+
 def test_slugify():
     items = (
         ("Hello, World!", "hello-world"),

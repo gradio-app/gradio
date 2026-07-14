@@ -27,6 +27,7 @@ from typing import (
     cast,
 )
 
+import anyio
 import fastapi
 import httpx
 import markupsafe
@@ -1689,7 +1690,9 @@ class App(FastAPI):
             if inspect.iscoroutinefunction(fn):
                 return await fn(*processed_input)
             else:
-                return await asyncio.to_thread(fn, *processed_input)
+                return await anyio.to_thread.run_sync(
+                    fn, *processed_input, limiter=app.get_blocks().limiter
+                )
 
         @router.get(
             "/queue/status",
