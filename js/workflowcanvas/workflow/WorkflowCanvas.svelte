@@ -2000,7 +2000,11 @@
 					);
 					const cId = addNode("reference", comp, cx, cy);
 					if (port.default_value !== undefined) {
-						updateNodeData(cId, comp.outputs[0]?.id ?? "out", port.default_value as NodeDataValue);
+						updateNodeData(
+							cId,
+							comp.outputs[0]?.id ?? "out",
+							port.default_value as NodeDataValue
+						);
 					}
 					addEdge({
 						from_node_id: cId,
