@@ -581,9 +581,6 @@
 	{#if status === "error" && error}
 		<div class="node-error-banner" class:expanded={errorExpanded}>
 			<div class="node-error-text">{error}</div>
-			{#if !errorExpanded}
-				<div class="node-error-fade"></div>
-			{/if}
 			<button
 				class="node-error-toggle nodrag nopan"
 				onclick={(e) => {
@@ -1033,7 +1030,6 @@
 		font-size: 9px;
 		color: #fca5a5;
 		background: rgba(239, 68, 68, 0.1);
-		border-top: 1px solid rgba(239, 68, 68, 0.2);
 		border-radius: 0 0 10px 10px;
 		padding: 6px 12px 24px;
 		line-height: 1.4;
@@ -1044,21 +1040,14 @@
 		max-height: 3.6em;
 		overflow: hidden;
 		transition: max-height 0.2s ease;
+		mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+		-webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
 	}
 
 	.node-error-banner.expanded .node-error-text {
 		max-height: 400px;
-	}
-
-	.node-error-fade {
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 20px;
-		height: 2em;
-		background: linear-gradient(to bottom, transparent, rgba(37, 8, 8, 0.85));
-		pointer-events: none;
-		border-radius: 0;
+		mask-image: none;
+		-webkit-mask-image: none;
 	}
 
 	.node-error-toggle {
