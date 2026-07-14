@@ -1539,7 +1539,7 @@
 					const result = await gradio_client.predict(`/predict_fn_${safeN}`, [
 						argsJson
 					]);
-					return result.data[0] as string;
+					return (result.data as unknown[])[0] as string;
 				}
 			: server?.call_fn
 				? async (fnName: string, argsJson: string) =>
