@@ -37,13 +37,19 @@ class MemoryStorage implements Storage {
 
 const config = {
 	app_id: "app-1",
-	root: "https://example.com/demo"
+	root:
+		typeof location === "undefined" ? "https://example.com/" : location.origin
 } as Config;
 
 describe("resumable sessions", () => {
 	beforeEach(() => {
-		vi.stubGlobal("sessionStorage", new MemoryStorage());
-		vi.stubGlobal("document", { cookie: "" });
+		if (typeof sessionStorage === "undefined") {
+			vi.stubGlobal("sessionStorage", new MemoryStorage());
+		}
+		sessionStorage.clear();
+		if (typeof document !== "undefined") {
+			document.cookie = "gradio_active_session=; Path=/; Max-Age=0";
+		}
 	});
 
 	it("stores only active events for the current app session", () => {
@@ -74,8 +80,6 @@ describe("resumable sessions", () => {
 	});
 
 	it("reads the active session cookie during server rendering", () => {
-		vi.stubGlobal("sessionStorage", undefined);
-
 		expect(
 			get_resumable_session_hash("other=value; gradio_active_session=session-2")
 		).toBe("session-2");
