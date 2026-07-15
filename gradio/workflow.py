@@ -1563,6 +1563,7 @@ class Workflow(Blocks):
                         outputs=[fn_out],
                         api_name=f"predict_fn_{safe_name}",
                         concurrency_limit="default",
+                        api_visibility="private",
                     )
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,

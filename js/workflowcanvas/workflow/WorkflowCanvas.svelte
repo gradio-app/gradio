@@ -77,12 +77,14 @@
 	let {
 		server = {},
 		initialValue = null,
-		gradio_client = undefined
+		gradio_shared = undefined
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
-		gradio_client?: import("@gradio/client").Client | undefined;
+		gradio_shared?: Record<string, any> | undefined;
 	} = $props();
+
+	const gradio_client = $derived(gradio_shared?.client);
 
 	const auth = createHFAuth(() => server);
 

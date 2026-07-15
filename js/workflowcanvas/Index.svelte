@@ -48,7 +48,7 @@
 	<WorkflowCanvas
 		server={serverObj}
 		{initialValue}
-		gradio_client={gradio.shared?.client}
+		gradio_shared={gradio.shared}
 	/>
 </div>
 
