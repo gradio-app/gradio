@@ -15,7 +15,7 @@ vulnerability.**
   vulnerability** button under this repository's **Security** tab. This routes
   the report to the maintainers, keeps it private until a fix is ready, and lets
   us issue a CVE through GitHub if warranted.
-- **Email:** security@huggingface.co
+- **Email:** security@huggingface.co, and cc gradio-team@huggingface.co.
 
 We acknowledge valid, in-scope reports and will keep you updated on remediation.
 Please give us a reasonable window to fix the issue before any public
