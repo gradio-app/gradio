@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 import json
 import logging
@@ -1341,39 +1340,6 @@ class Workflow(Blocks):
 
         bound = self._bound
 
-        def call_fn(
-            data,
-            _request: Optional[Request] = None,
-            _token: Optional[OAuthToken] = None,
-        ) -> str:
-            fn_name = data[0] if data else ""
-            try:
-                args_json = data[1] if len(data) > 1 else "[]"
-                fn = bound.get(fn_name)
-                if fn is None:
-                    return json.dumps(
-                        {
-                            "error": f"No function '{fn_name}' bound to this workflow",
-                            "error_type": "unknown",
-                            "suggestion": "Check the bind= argument to Workflow()",
-                        }
-                    )
-                args = json.loads(args_json)
-                if not isinstance(args, list):
-                    args = [args]
-                args, *_ = _special_args(fn, args, _request, None, token=_token)
-                if inspect.iscoroutinefunction(fn):
-                    result = asyncio.run(fn(*args))
-                else:
-                    result = fn(*args)
-                out = list(result) if isinstance(result, (list, tuple)) else [result]
-                return json.dumps(out)
-            except Exception as e:
-                logger.error("call_fn failed for %s: %s", fn_name, e, exc_info=True)
-                return json.dumps(
-                    {"error": str(e), "error_type": "unknown", "suggestion": ""}
-                )
-
         workflow_file = self._workflow_file
 
         _max_workflow_bytes = 5 * 1024 * 1024
@@ -1496,7 +1462,6 @@ class Workflow(Blocks):
             curated_modalities,
             curated_modality_tasks,
             get_dataset_schema,
-            call_fn,
             list_bound_fns,
             get_workflow_api,
             save_workflow,
@@ -1510,7 +1475,6 @@ class Workflow(Blocks):
         callers = {
             "space": call_space,
             "model": call_model,
-            "fn": call_fn,
             "dataset": fetch_dataset,
         }
 
@@ -1563,7 +1527,6 @@ class Workflow(Blocks):
                         outputs=[fn_out],
                         api_name=f"predict_fn_{safe_name}",
                         concurrency_limit="default",
-                        api_visibility="private",
                     )
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,

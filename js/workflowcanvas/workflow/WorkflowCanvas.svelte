@@ -1543,10 +1543,7 @@
 					]);
 					return (result.data as unknown[])[0] as string;
 				}
-			: server?.call_fn
-				? async (fnName: string, argsJson: string) =>
-						server.call_fn([fnName, argsJson])
-				: undefined;
+			: undefined;
 
 		await executeWorkflow(
 			wfToRun,
