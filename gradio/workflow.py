@@ -136,6 +136,7 @@ logger = logging.getLogger(__name__)
 # Scalar-only — everything else (str, list, dict, custom classes) falls through
 # to the default "text" port type, which round-trips as JSON.
 _PY_TO_PORT = {int: "number", float: "number", bool: "boolean"}
+_SANITIZE_RE = re.compile(r"[^a-zA-Z0-9_-]")
 
 
 def _build_edges(
@@ -1515,18 +1516,26 @@ class Workflow(Blocks):
 
                 return wrapper
 
+            if len(bound) != len({_SANITIZE_RE.sub("_", n) for n in bound}):
+                sanitized = [_SANITIZE_RE.sub("_", n) for n in bound]
+                dupes = {s for s in sanitized if sanitized.count(s) > 1}
+                raise ValueError(
+                    f"gr.Workflow: bound function names produce duplicate endpoint "
+                    f"names after sanitizing: {dupes}. Rename one."
+                )
             with _active_blocks(self), gr.Column(visible=False):
                 for fn_name, fn in bound.items():
-                    safe_name = re.sub(r"[^a-zA-Z0-9_-]", "_", fn_name)
-                    fn_in = gr.Textbox(label=f"_wf_fn_in_{safe_name}")
-                    fn_out = gr.Textbox(label=f"_wf_fn_out_{safe_name}")
+                    sanitized_name = _SANITIZE_RE.sub("_",fn_name)
+                    fn_in = gr.Textbox(label=f"_wf_fn_in_{sanitized_name}")
+                    fn_out = gr.Textbox(label=f"_wf_fn_out_{sanitized_name}")
                     trigger = gr.Button()
                     trigger.click(
                         _make_fn_endpoint(fn),
                         inputs=[fn_in],
                         outputs=[fn_out],
-                        api_name=f"predict_fn_{safe_name}",
+                        api_name=f"predict_fn_{sanitized_name}",
                         concurrency_limit="default",
+                        api_visibility="undocumented",
                     )
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
