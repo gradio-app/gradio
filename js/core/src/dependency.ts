@@ -413,11 +413,19 @@ export class DependencyManager {
 						target_id
 					);
 
-					if (dep_submission.type === "void") {
+					if (dep_submission.type !== "submit") {
+						if (dep_submission.type === "data") {
+							await this.handle_data(dep.outputs, dep_submission.data);
+						}
 						unset_args.forEach((fn) => fn());
-					} else if (dep_submission.type === "data") {
-						await this.handle_data(dep.outputs, dep_submission.data);
-						unset_args.forEach((fn) => fn());
+						[...success, ...all].forEach((dep_id) => {
+							this.dispatch({
+								type: "fn",
+								fn_index: dep_id,
+								event_data: null,
+								target_id: target_id as number | undefined
+							});
+						});
 					} else {
 						let stream_state: "open" | "closed" | "waiting" | null = null;
 
