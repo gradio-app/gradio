@@ -47,6 +47,7 @@ export async function open_stream(this: Client): Promise<void> {
 	}
 
 	stream = this.stream(url);
+	const abort_controller = this.abort_controller;
 
 	if (!stream) {
 		console.warn("Cannot connect to SSE endpoint: " + url.toString());
@@ -54,10 +55,13 @@ export async function open_stream(this: Client): Promise<void> {
 	}
 
 	stream.onmessage = async function (event: MessageEvent) {
+		if (that.stream_instance !== stream) {
+			return;
+		}
 		that.stream_reconnect_attempts = 0;
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_status, that.abort_controller);
+			close_stream(stream_status, abort_controller);
 			if (!that.closed && unclosed_events.size > 0) {
 				await that.open_stream();
 			}
@@ -86,10 +90,8 @@ export async function open_stream(this: Client): Promise<void> {
 				typeof document !== "undefined" &&
 				document.visibilityState !== "hidden"
 			) {
-				// Put the event at the end of the event loop so the browser can refresh
-				// between callbacks and not freeze during quick generations. Hidden tabs
-				// throttle timers, so process those messages immediately instead.
-				setTimeout(fn, 0, _data); // See https://github.com/gradio-app/gradio/pull/7055
+				// fn(_data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See
+				setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 			} else {
 				fn(_data);
 			}
@@ -101,8 +103,11 @@ export async function open_stream(this: Client): Promise<void> {
 		}
 	};
 	stream.onerror = async function (e) {
+		if (that.stream_instance !== stream) {
+			return;
+		}
 		console.error(e);
-		close_stream(stream_status, that.abort_controller);
+		close_stream(stream_status, abort_controller);
 		unclosed_events.forEach((event_id) => {
 			that.events_to_resume.add(event_id);
 			delete that.pending_diff_streams[event_id];

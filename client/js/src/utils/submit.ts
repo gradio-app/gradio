@@ -147,18 +147,14 @@ export function submit(
 			if (!event_id_final) return;
 			if (!options.resume_sessions) return;
 			clear_resumable_event(event_id_final);
-			try {
-				await fetch(`${config!.root}${api_prefix}/${ACK_URL}`, {
-					headers: { "Content-Type": "application/json" },
-					method: "POST",
-					body: JSON.stringify({
-						event_id: event_id_final,
-						session_hash
-					})
-				});
-			} catch {
-				return;
-			}
+			void fetch(`${config!.root}${api_prefix}/${ACK_URL}`, {
+				headers: { "Content-Type": "application/json" },
+				method: "POST",
+				body: JSON.stringify({
+					event_id: event_id_final,
+					session_hash
+				})
+			}).catch(() => {});
 		}
 
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
