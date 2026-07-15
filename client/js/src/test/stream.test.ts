@@ -75,11 +75,19 @@ describe("open_stream", () => {
 		expect(app.pending_stream_messages).toEqual({});
 
 		const close_stream_message = { msg: "close_stream" };
-		app.stream_instance.onmessage({
+		await app.stream_instance.onmessage({
 			data: JSON.stringify(close_stream_message)
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
 
+		app.unclosed_events.add("event-1");
+		await app.stream_instance.onmessage({
+			data: JSON.stringify(close_stream_message)
+		} as MessageEvent);
+		expect(app.stream_status.open).toBe(true);
+		expect(app.stream).toHaveBeenCalledTimes(2);
+
+		app.unclosed_events.clear();
 		app.stream_instance.onerror({
 			data: JSON.stringify("404")
 		} as MessageEvent);

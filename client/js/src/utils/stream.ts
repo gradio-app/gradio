@@ -58,6 +58,9 @@ export async function open_stream(this: Client): Promise<void> {
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
 			close_stream(stream_status, that.abort_controller);
+			if (!that.closed && unclosed_events.size > 0) {
+				await that.open_stream();
+			}
 			return;
 		}
 		const event_id = _data.event_id;
