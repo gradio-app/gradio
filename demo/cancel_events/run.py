@@ -28,6 +28,7 @@ with gr.Blocks() as demo:
             run = gr.Button(value="Start Iterating")
             output = gr.Textbox(label="Iterative Output")
             stop = gr.Button(value="Stop Iterating")
+            cancel_followup = gr.Textbox(label="Cancel Follow-up")
         with gr.Column():
             textbox = gr.Textbox(label="Prompt")
             loading_box = gr.Textbox(
@@ -58,7 +59,9 @@ with gr.Blocks() as demo:
             )
 
     click_event = run.click(fake_diffusion, n, output)
-    stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])
+    stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event]).then(
+        lambda: "Cancel follow-up ran", outputs=cancel_followup
+    )
     pred_event = run_pred.click(
         fn=long_prediction,
         inputs=[textbox],
