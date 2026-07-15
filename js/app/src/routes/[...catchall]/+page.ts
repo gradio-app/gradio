@@ -95,6 +95,7 @@ export async function load({
 	try {
 		app = await Client.connect(api_url, {
 			with_null_state: true,
+			resume_sessions: true,
 			events: ["data", "log", "status", "render"],
 			query_params: deepLink ? { deep_link: deepLink } : undefined,
 			headers,

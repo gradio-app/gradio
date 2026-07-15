@@ -34,6 +34,7 @@ from gradio.server_messages import (
     ProgressMessage,
     ProgressUnit,
     ServerMessage,
+    UnexpectedErrorMessage,
 )
 from gradio.utils import (
     LRUCache,
@@ -127,6 +128,7 @@ class Queue:
             LRUCache(2000)
         )
         self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.message_history_per_session: dict[str, list[EventMessage]] = {}
         self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
@@ -248,8 +250,42 @@ class Queue:
         if not event.alive:
             return
         event_message.event_id = event._id
+        self.message_history_per_session.setdefault(event.session_hash, []).append(
+            event_message
+        )
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
+
+    def resume_session(self, session_hash: str, event_ids: list[str]) -> None:
+        pending_ids = self.pending_event_ids_session.get(session_hash, set())
+        requested_ids = set(event_ids)
+        messages: AsyncQueue[EventMessage] = AsyncQueue()
+        for message in self.message_history_per_session.get(session_hash, []):
+            if message.event_id in requested_ids:
+                messages.put_nowait(message)
+        for event_id in requested_ids - pending_ids:
+            messages.put_nowait(
+                UnexpectedErrorMessage(
+                    event_id=event_id,
+                    message="Session event not found.",
+                    session_not_found=True,
+                )
+            )
+        self.pending_messages_per_session[session_hash] = messages
+
+    async def acknowledge_event(self, session_hash: str, event_id: str) -> None:
+        pending_ids = self.pending_event_ids_session.get(session_hash)
+        if pending_ids is not None:
+            pending_ids.discard(event_id)
+        self.event_ids_to_events.pop(event_id, None)
+        self.message_history_per_session[session_hash] = [
+            message
+            for message in self.message_history_per_session.get(session_hash, [])
+            if message.event_id != event_id
+        ]
+        if not pending_ids:
+            self.pending_event_ids_session.pop(session_hash, None)
+            await self.delete_session(session_hash)
 
     def mark_session_attached(self, session_hash: str) -> None:
         self.active_session_streams[session_hash] += 1
@@ -284,6 +320,7 @@ class Queue:
         self.detached_session_expirations.pop(session_hash, None)
         self.active_session_streams.pop(session_hash, None)
         self.pending_messages_per_session.pop(session_hash, None)
+        self.message_history_per_session.pop(session_hash, None)
         await self.clean_events(session_hash=session_hash)
 
     async def clean_expired_detached_sessions(self) -> None:

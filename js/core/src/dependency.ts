@@ -547,6 +547,7 @@ export class DependencyManager {
 											);
 										});
 										unset_args.forEach((fn) => fn());
+										await dep_submission.data.acknowledge();
 										this.submissions.delete(dep.id);
 										if (this.queue.has(dep.id)) {
 											this.queue.delete(dep.id);
@@ -624,6 +625,7 @@ export class DependencyManager {
 								this.handle_log(result);
 							}
 						}
+						await dep_submission.data.acknowledge();
 						all.forEach((dep_id) => {
 							this.dispatch({
 								type: "fn",
@@ -641,6 +643,7 @@ export class DependencyManager {
 						}
 					}
 				} catch (error) {
+					await this.submissions.get(dep.id)?.acknowledge();
 					this.loading_stati.update({
 						status: "error",
 						fn_index: dep.id,
@@ -661,6 +664,63 @@ export class DependencyManager {
 			}
 		}
 		return;
+	}
+
+	async resume(): Promise<boolean> {
+		const events = this.client
+			.get_resumable_events()
+			.filter(({ fn_index }) => this.dependencies_by_fn.has(fn_index));
+		if (events.length === 0) return false;
+
+		await Promise.all(
+			events.map(async ({ event_id, fn_index }) => {
+				const dep = this.dependencies_by_fn.get(fn_index);
+				if (!dep) return;
+
+				const submission = this.client.resume(fn_index, event_id);
+				this.submissions.set(fn_index, submission);
+				this.loading_stati.update({
+					status: "pending",
+					fn_index,
+					stream_state: null
+				});
+				await this.update_loading_stati_state();
+
+				try {
+					for await (const result of submission) {
+						if (result.type === "data") {
+							await this.handle_data(dep.outputs, result.data);
+						} else if (result.type === "log") {
+							this.handle_log(result);
+						} else if (result.type === "status") {
+							this.loading_stati.update({
+								status: result.stage,
+								fn_index,
+								stream_state: null,
+								queue: result.queue,
+								size: result.size,
+								position: result.position,
+								eta: result.eta,
+								progress_data: result.progress_data,
+								time_limit: result.time_limit,
+								used_cache: result.used_cache,
+								cache_duration: result.cache_duration,
+								avg_time: result.avg_time
+							});
+							await this.update_loading_stati_state();
+							if (result.stage === "complete" || result.stage === "error") {
+								this.dispatch_state_change_events(result);
+								break;
+							}
+						}
+					}
+				} finally {
+					await submission.acknowledge();
+					this.submissions.delete(fn_index);
+				}
+			})
+		);
+		return true;
 	}
 
 	/**

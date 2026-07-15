@@ -106,10 +106,16 @@ describe("open_stream", () => {
 		expect(app.stream_status.open).toBe(false);
 		expect(callback).not.toHaveBeenCalled();
 		expect(app.stream).toHaveBeenCalledTimes(1);
+		expect(app.events_to_resume).toContain("event-1");
 
 		await vi.advanceTimersByTimeAsync(500);
 
 		expect(app.stream).toHaveBeenCalledTimes(2);
 		expect(app.stream_status.open).toBe(true);
+		expect(
+			(app.stream as Mock).mock.calls[1][0].searchParams.getAll(
+				"resume_event_id"
+			)
+		).toEqual(["event-1"]);
 	});
 });
