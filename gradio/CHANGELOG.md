@@ -1,5 +1,20 @@
 # gradio
 
+## 6.21.0
+
+### Features
+
+- [#13601](https://github.com/gradio-app/gradio/pull/13601) [`0ee5cc8`](https://github.com/gradio-app/gradio/commit/0ee5cc80e2915e5a1b074c892490a62f165cd80d) - Preserve browser-visible proxy origins for frontend assets and API requests, and retain app-level FastAPI root paths.  Thanks @abidlabs!
+- [#13620](https://github.com/gradio-app/gradio/pull/13620) [`5200235`](https://github.com/gradio-app/gradio/commit/520023532b66d6fa327da04701da3e02c554fa6e) - Fix chained events after cancellation and while the browser tab is hidden.  Thanks @abidlabs!
+- [#13606](https://github.com/gradio-app/gradio/pull/13606) [`04c5527`](https://github.com/gradio-app/gradio/commit/04c552732c461771d935496533289c82e652330f) - Fix spurious separators from empty tokens in `HighlightedText` with `combine_adjacent=True`.  Thanks @hysts!
+- [#13590](https://github.com/gradio-app/gradio/pull/13590) [`d5ef897`](https://github.com/gradio-app/gradio/commit/d5ef8972dfaa1d4e051f0bb31dc16807a63398d5) - workflow: fix error banner and textarea visibility.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13613](https://github.com/gradio-app/gradio/pull/13613) [`195593e`](https://github.com/gradio-app/gradio/commit/195593ed271795ce21ea8f94b7ec9e441ffd5227) - Rerun HTML mount behavior when `gr.render` replaces an unkeyed component.  Thanks @abidlabs!
+- [#13605](https://github.com/gradio-app/gradio/pull/13605) [`f3889bf`](https://github.com/gradio-app/gradio/commit/f3889bfa9eb8bc61ed680bd2b9baafc41d4fe866) - Fix `gr.Code` not rendering when it has no initial value.  Thanks @hysts!
+- [#13607](https://github.com/gradio-app/gradio/pull/13607) [`c287b7b`](https://github.com/gradio-app/gradio/commit/c287b7bdccdebd7cebf2db66024e06d9dc9a79ba) - Fix `gr.State` passing its callable default to event handlers instead of the called value.  Thanks @hysts!
+
 ## 6.20.0
 
 ### Features

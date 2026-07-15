@@ -2,6 +2,14 @@
 
 ## 0.28.0
 
+### Dependency updates
+
+- @gradio/client@2.3.2
+- @gradio/utils@0.13.1
+- @gradio/upload@0.18.2
+
+## 0.28.0
+
 ### Features
 
 - [#13543](https://github.com/gradio-app/gradio/pull/13543) [`0533483`](https://github.com/gradio-app/gradio/commit/0533483bccdee38f334a598f18297e8c02966343) - Migrate Image components to Svelte 5.  Thanks @dawoodkhan82!
