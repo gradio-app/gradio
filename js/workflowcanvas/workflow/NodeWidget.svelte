@@ -149,7 +149,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="widget-zone nodrag nopan"
+	class="widget-zone nodrag nopan nowheel"
 	class:text-full={(widgetType === "text" || widgetType === "json") &&
 		!hasChoices}
 	onmousedown={(e) => e.stopPropagation()}
@@ -444,7 +444,6 @@
 
 	.widget-gradio-wrap :global(textarea) {
 		min-height: 60px !important;
-		height: auto !important;
 		resize: vertical !important;
 	}
 

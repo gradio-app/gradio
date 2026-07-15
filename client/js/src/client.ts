@@ -233,7 +233,14 @@ export class Client {
 			this._resolve_heartbeat(config)
 		);
 
-		this.api_info = await this.view_api();
+		try {
+			this.api_info = await this.view_api();
+		} catch (e) {
+			// A failure to fetch API info should not prevent the client from
+			// connecting: otherwise the SSR server renders a spurious login
+			// page whenever the /info endpoint is unreachable.
+			console.error((e as Error).message);
+		}
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 

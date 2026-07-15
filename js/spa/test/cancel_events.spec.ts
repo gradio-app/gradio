@@ -41,6 +41,9 @@ test("when using an iterative function it should be possible to cancel the funct
 	await page.waitForTimeout(200);
 	await stop_button.click();
 	await expect(textbox).not.toHaveValue("9");
+	await expect(page.getByLabel("Cancel Follow-up")).toHaveValue(
+		"Cancel follow-up ran"
+	);
 });
 
 test("when using an iterative function and the user closes the page, the python function should stop running", async ({

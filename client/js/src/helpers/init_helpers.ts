@@ -64,6 +64,21 @@ export function map_names_to_ids(
 	return apis;
 }
 
+export function resolve_config_root(
+	root: string,
+	current_location: string
+): string {
+	const root_url = new URL(root, current_location);
+	const current_url = new URL(current_location);
+	if (root_url.hostname !== current_url.hostname) {
+		return root;
+	}
+
+	root_url.protocol = current_url.protocol;
+	root_url.host = current_url.host;
+	return root_url.toString().replace(/\/$/, "");
+}
+
 export async function resolve_config(
 	this: Client,
 	endpoint: string
@@ -102,8 +117,13 @@ export async function resolve_config(
 				current_page: window.gradio_config.current_page
 			};
 		}
-		// @ts-ignore
-		return { ...window.gradio_config } as Config;
+		// The page was rendered by this Gradio server, so a same-host root may
+		// contain an internal protocol or port supplied by a reverse proxy. Keep
+		// the configured path, but use the browser-visible origin for requests
+		// made by the client itself (queue, upload, reset, etc.).
+		const config = { ...window.gradio_config } as unknown as Config;
+		config.root = resolve_config_root(config.root, location.href);
+		return config;
 	} else if (endpoint) {
 		let config_url = join_urls(
 			endpoint,
