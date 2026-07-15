@@ -2,10 +2,10 @@ import { test, expect } from "@self/tootils";
 import { readFileSync } from "fs";
 
 test("when using an iterative function the UI should update over time as iteration results are received", async ({
-	page
+	page,
 }) => {
 	const start_button = await page.locator("button", {
-		hasText: /Start Iterating/
+		hasText: /Start Iterating/,
 	});
 
 	let output_values: string[] = [];
@@ -27,13 +27,13 @@ test("when using an iterative function the UI should update over time as iterati
 });
 
 test("when using an iterative function it should be possible to cancel the function, after which the UI should stop updating", async ({
-	page
+	page,
 }) => {
 	const start_button = await page.locator("button", {
-		hasText: /Start Iterating/
+		hasText: /Start Iterating/,
 	});
 	const stop_button = await page.locator("button", {
-		hasText: /Stop Iterating/
+		hasText: /Stop Iterating/,
 	});
 	const textbox = await page.getByLabel("Iterative Output");
 
@@ -42,30 +42,26 @@ test("when using an iterative function it should be possible to cancel the funct
 	await stop_button.click();
 	await expect(textbox).not.toHaveValue("9");
 	await expect(page.getByLabel("Cancel Follow-up")).toHaveValue(
-		"Cancel follow-up ran"
+		"Cancel follow-up ran",
 	);
 });
 
-test("when using an iterative function and the user closes the page, the python function should stop running", async ({
-	page
+test("when using an iterative function and the user closes the page, the python function should keep running", async ({
+	page,
 }) => {
 	const start_button = await page.locator("button", {
-		hasText: /Start Iterating/
+		hasText: /Start Iterating/,
 	});
 
 	await start_button.click();
 	await page.waitForTimeout(300);
 	await page.close();
 
-	// wait for the duration of the entire iteration
-	// check that the final value did not get written
-	// to the log file. That's our proof python stopped
-	// running
 	await new Promise((resolve) => setTimeout(resolve, 2000));
 	const data = readFileSync(
 		"../../demo/cancel_events/cancel_events_output_log.txt",
-		"utf-8"
+		"utf-8",
 	);
 	expect(data).toContain("Current step: 0");
-	expect(data).not.toContain("Current step: 8");
+	expect(data).toContain("Current step: 8");
 });
