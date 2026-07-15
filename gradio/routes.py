@@ -80,6 +80,7 @@ from gradio.data_classes import (
     JsonData,
     PredictBody,
     PredictBodyInternal,
+    QueueAckBody,
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
@@ -1452,6 +1453,13 @@ class App(FastAPI):
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
+        @router.post("/queue/ack")
+        async def acknowledge_queue_event(body: QueueAckBody):
+            await app.get_blocks()._queue.acknowledge_event(
+                body.session_hash, body.event_id
+            )
+            return {"success": True}
+
         @router.get(
             "/call/v2/{api_name}/{event_id}", dependencies=[Depends(login_check)]
         )
@@ -1490,19 +1498,32 @@ class App(FastAPI):
         async def queue_data(
             request: fastapi.Request,
             session_hash: str,
+            resume_event_id: list[str] = fastapi.Query(default=[]),
+            acknowledgements: bool = False,
         ):
             def process_msg(message: EventMessage) -> str:
                 return f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
 
-            return await queue_data_helper(request, session_hash, process_msg)
+            return await queue_data_helper(
+                request,
+                session_hash,
+                process_msg,
+                resume_event_id,
+                acknowledgements,
+            )
 
         async def queue_data_helper(
             request: fastapi.Request,
             session_hash: str,
             process_msg: Callable[[EventMessage], str | None],
+            resume_event_ids: list[str] | None = None,
+            acknowledgements: bool = False,
         ):
             blocks = app.get_blocks()
             heartbeat_rate = utils.get_heartbeat_rate()
+
+            if resume_event_ids:
+                blocks._queue.resume_session(session_hash, resume_event_ids)
 
             async def heartbeat():
                 while blocks.is_running:
@@ -1516,6 +1537,7 @@ class App(FastAPI):
             async def sse_stream(request: fastapi.Request):
                 blocks._queue.mark_session_attached(session_hash)
                 heartbeat_task = asyncio.create_task(heartbeat())
+                delivered_completed_event_ids: set[str] = set()
                 try:
                     while True:
                         if await request.is_disconnected():
@@ -1553,10 +1575,11 @@ class App(FastAPI):
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
+                                delivered_completed_event_ids.add(message.event_id)
                                 # It's possible that the event_id has already been removed
                                 # for example, the user sent two duplicate `/cancel` requests.
                                 # The first one would have removed the event_id from pending_event_ids_session
-                                if (
+                                if not acknowledgements and (
                                     message.event_id
                                     in (
                                         blocks._queue.pending_event_ids_session[
@@ -1567,22 +1590,32 @@ class App(FastAPI):
                                     blocks._queue.pending_event_ids_session[
                                         session_hash
                                     ].remove(message.event_id)
+                                all_events_delivered = (
+                                    blocks._queue.pending_event_ids_session.get(
+                                        session_hash, set()
+                                    ).issubset(delivered_completed_event_ids)
+                                    if acknowledgements
+                                    else not blocks._queue.pending_event_ids_session.get(
+                                        session_hash, set()
+                                    )
+                                )
                                 if message.msg == ServerMessage.server_stopped or (
                                     message.msg == ServerMessage.process_completed
-                                    and (
-                                        len(
-                                            blocks._queue.pending_event_ids_session[
-                                                session_hash
-                                            ]
-                                        )
-                                        == 0
-                                    )
+                                    and all_events_delivered
                                 ):
                                     message = CloseStreamMessage()
                                     response = process_msg(message)
                                     if response is not None:
                                         yield response
-                                    blocks._queue.close_session_stream(session_hash)
+                                    if acknowledgements:
+                                        await blocks._queue.mark_session_detached(
+                                            session_hash
+                                        )
+                                    else:
+                                        blocks._queue.close_session_stream(session_hash)
+                                        blocks._queue.message_history_per_session.pop(
+                                            session_hash, None
+                                        )
                                     heartbeat_task.cancel()
                                     return
                 except asyncio.CancelledError:

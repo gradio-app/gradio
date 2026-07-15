@@ -354,6 +354,7 @@ def test_detached_queue_session_can_resume():
 
         response = test_client.get(
             f"{API_PREFIX}/queue/data?session_hash=resume_session"
+            f"&resume_event_id={event_id}&acknowledgements=true"
         )
         completed_data = None
         for line in response.iter_lines():
@@ -364,6 +365,16 @@ def test_detached_queue_session_can_resume():
                 completed_data = data["output"]["data"]
 
         assert completed_data == ["done"]
+        assert event_id in demo._queue.pending_event_ids_session["resume_session"]
+        assert demo._queue.message_history_per_session["resume_session"]
+
+        response = test_client.post(
+            f"{API_PREFIX}/queue/ack",
+            json={"session_hash": "resume_session", "event_id": event_id},
+        )
+        assert response.status_code == 200
+        assert "resume_session" not in demo._queue.pending_event_ids_session
+        assert "resume_session" not in demo._queue.message_history_per_session
         assert "resume_session" not in demo._queue.detached_session_expirations
     finally:
         demo.close()

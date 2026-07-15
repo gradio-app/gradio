@@ -22,6 +22,11 @@ import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
 import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
+import {
+	get_resumable_events,
+	get_resumable_session_hash,
+	type ResumableEvent
+} from "./utils/session";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
@@ -64,6 +69,7 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	events_to_resume: Set<string> = new Set();
 	stream_reconnect_attempts = 0;
 	stream_reconnect_timer: ReturnType<typeof setTimeout> | null = null;
 	heartbeat_event: EventSource | null = null;
@@ -182,6 +188,10 @@ export class Client {
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
+	resume: (
+		endpoint: string | number,
+		event_id: string
+	) => SubmitIterable<GradioEvent>;
 	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
@@ -212,6 +222,17 @@ export class Client {
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
+		this.resume = (endpoint, event_id) =>
+			submit.call(
+				this,
+				endpoint,
+				{},
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				event_id
+			);
 		this.predict = predict.bind(this) as typeof this.predict;
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
@@ -289,11 +310,21 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
-		if (options.session_hash) {
-			client.session_hash = options.session_hash;
+		const session_hash =
+			options.session_hash ||
+			(options.resume_sessions
+				? get_resumable_session_hash(options.cookies)
+				: null);
+		if (session_hash) {
+			client.session_hash = session_hash;
 		}
 		await client.init();
 		return client;
+	}
+
+	get_resumable_events(): ResumableEvent[] {
+		if (!this.options.resume_sessions || !this.config) return [];
+		return get_resumable_events(this.config, this.session_hash);
 	}
 
 	async reconnect(): Promise<"connected" | "broken" | "changed"> {

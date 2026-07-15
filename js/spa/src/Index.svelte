@@ -346,6 +346,7 @@
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
+			resume_sessions: true,
 			events: ["data", "log", "status", "render"],
 			query_params
 		});
@@ -423,6 +424,7 @@
 					app = await Client.connect(api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
+						resume_sessions: true,
 						events: ["data", "log", "status", "render"],
 						session_hash: app.session_hash
 					});

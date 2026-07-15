@@ -467,9 +467,11 @@
 		});
 		res.observe(root_container);
 
-		app_tree.ready.then(() => {
+		app_tree.ready.then(async () => {
 			ready = true;
-			dep_manager.dispatch_load_events();
+			if (!(await dep_manager.resume())) {
+				dep_manager.dispatch_load_events();
+			}
 		});
 
 		if (vibe_mode) {

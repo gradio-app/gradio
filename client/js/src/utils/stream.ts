@@ -30,10 +30,17 @@ export async function open_stream(this: Client): Promise<void> {
 
 	let stream: EventSource | null = null;
 	let params = new URLSearchParams({
-		session_hash: this.session_hash
-	}).toString();
+		session_hash: this.session_hash,
+		acknowledgements: this.options.resume_sessions ? "true" : "false"
+	});
+	this.events_to_resume.forEach((event_id) => {
+		params.append("resume_event_id", event_id);
+	});
+	this.events_to_resume.clear();
 
-	let url = new URL(`${config.root}${this.api_prefix}/${SSE_URL}?${params}`);
+	let url = new URL(
+		`${config.root}${this.api_prefix}/${SSE_URL}?${params.toString()}`
+	);
 
 	if (jwt) {
 		url.searchParams.set("__sign", jwt);
@@ -93,6 +100,10 @@ export async function open_stream(this: Client): Promise<void> {
 	stream.onerror = async function (e) {
 		console.error(e);
 		close_stream(stream_status, that.abort_controller);
+		unclosed_events.forEach((event_id) => {
+			that.events_to_resume.add(event_id);
+			delete that.pending_diff_streams[event_id];
+		});
 
 		if (
 			that.closed ||
