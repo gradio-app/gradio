@@ -63,6 +63,7 @@ describe("open_stream", () => {
 		if (!app.stream_instance?.onmessage || !app.stream_instance?.onerror) {
 			throw new Error("stream instance is not defined");
 		}
+		const first_stream = app.stream_instance;
 
 		const message = { msg: "hello jerry" };
 
@@ -83,6 +84,11 @@ describe("open_stream", () => {
 		app.unclosed_events.add("event-1");
 		await app.stream_instance.onmessage({
 			data: JSON.stringify(close_stream_message)
+		} as MessageEvent);
+		expect(app.stream_status.open).toBe(true);
+		expect(app.stream).toHaveBeenCalledTimes(2);
+		first_stream.onerror?.({
+			data: JSON.stringify("closed stream")
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(true);
 		expect(app.stream).toHaveBeenCalledTimes(2);
