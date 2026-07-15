@@ -75,6 +75,19 @@ INVALID_RUNTIME = [
 # ` $ ! { }           – shell-dangerous characters
 _FORBIDDEN_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\x7f`$!{}]')
 
+# Windows reserved device names (case-insensitive). Uploading e.g. CON.txt
+# fails on Windows hosts because these are not valid filesystem paths.
+_WINDOWS_RESERVED_NAMES = frozenset(
+    {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        *(f"COM{i}" for i in range(1, 10)),
+        *(f"LPT{i}" for i in range(1, 10)),
+    }
+)
+
 
 class Message(TypedDict, total=False):
     msg: str
@@ -760,6 +773,10 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     # stem (e.g. "#.txt" → ".txt" → Path(".txt").suffix == "").
     if not name and ext:
         name = "file"
+    # Prefix Windows reserved device names so uploads remain valid on NTFS
+    # (CON, PRN, AUX, NUL, COM1–COM9, LPT1–LPT9, with or without extension).
+    if name.rstrip(". ").upper() in _WINDOWS_RESERVED_NAMES:
+        name = "_" + name
     filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
