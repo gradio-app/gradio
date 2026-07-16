@@ -190,9 +190,10 @@
 
 	$effect(() => {
 		if (
-			playback_position !== undefined &&
 			playback_position !== time &&
-			video
+			video &&
+			typeof playback_position === "number" &&
+			Number.isFinite(playback_position)
 		) {
 			video.currentTime = playback_position;
 		}
