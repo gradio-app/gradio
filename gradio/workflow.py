@@ -1341,6 +1341,40 @@ class Workflow(Blocks):
 
         bound = self._bound
 
+        def _call_fn_direct(
+            data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+        ) -> str:
+            """Sync fn caller for headless API execution (WorkflowEndpointManager).
+            Not registered as a server function — canvas uses _make_fn_endpoint."""
+            fn_name = data[0] if data else ""
+            try:
+                args_json = data[1] if len(data) > 1 else "[]"
+                fn = bound.get(fn_name)
+                if fn is None:
+                    return json.dumps(
+                        {
+                            "error": f"No function '{fn_name}' bound to this workflow",
+                            "error_type": "unknown",
+                            "suggestion": "Check the bind= argument to Workflow()",
+                        }
+                    )
+                args = json.loads(args_json)
+                if not isinstance(args, list):
+                    args = [args]
+                args, *_ = _special_args(fn, args, request, None, token=token)
+                if inspect.iscoroutinefunction(fn):
+                    import asyncio
+                    result = asyncio.run(fn(*args))
+                else:
+                    result = fn(*args)
+                out = list(result) if isinstance(result, (list, tuple)) else [result]
+                return json.dumps(out)
+            except Exception as e:
+                logger.error("_call_fn_direct failed for %s: %s", fn_name, e, exc_info=True)
+                return json.dumps(
+                    {"error": str(e), "error_type": "unknown", "suggestion": ""}
+                )
+
         workflow_file = self._workflow_file
 
         _max_workflow_bytes = 5 * 1024 * 1024
@@ -1476,6 +1510,7 @@ class Workflow(Blocks):
         callers = {
             "space": call_space,
             "model": call_model,
+            "fn": _call_fn_direct,
             "dataset": fetch_dataset,
         }
 
