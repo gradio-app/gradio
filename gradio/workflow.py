@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import inspect
 import json
-import threading
 import logging
 import os
 import re
 import secrets
 import sys
 import tempfile
+import threading
 import types
 import urllib.parse
 import warnings
@@ -1480,7 +1480,8 @@ class Workflow(Blocks):
                             self._api_endpoints.sync()
                         except Exception:
                             logger.error(
-                                "Workflow: endpoint sync after save failed", exc_info=True
+                                "Workflow: endpoint sync after save failed",
+                                exc_info=True,
                             )
                 return "ok"
             except Exception as e:
