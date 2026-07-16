@@ -323,6 +323,15 @@ export function submit(
 			if (!stream_status.open) {
 				await that.open_stream();
 			}
+			setTimeout(() => {
+				if (
+					!stream_status.open &&
+					unclosed_events.has(queue_event_id) &&
+					!that.closed
+				) {
+					void that.open_stream();
+				}
+			}, 100);
 		}
 
 		if (resume_event_id) {

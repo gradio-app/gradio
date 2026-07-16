@@ -61,6 +61,7 @@ export class Client {
 	last_status: Record<string, Status["stage"]> = {};
 
 	private cookies: string | null = null;
+	private restored_session_hash = false;
 
 	// streaming
 	stream_status = { open: false };
@@ -250,9 +251,15 @@ export class Client {
 			await this.resolve_cookies();
 		}
 
-		await this._resolve_config().then(({ config }) =>
-			this._resolve_heartbeat(config)
-		);
+		const { config } = await this._resolve_config();
+		if (
+			this.restored_session_hash &&
+			typeof sessionStorage !== "undefined" &&
+			get_resumable_events(config, this.session_hash).length === 0
+		) {
+			this.session_hash = Math.random().toString(36).substring(2);
+		}
+		await this._resolve_heartbeat(config);
 
 		try {
 			this.api_info = await this.view_api();
@@ -317,6 +324,7 @@ export class Client {
 				: null);
 		if (session_hash) {
 			client.session_hash = session_hash;
+			client.restored_session_hash = !options.session_hash;
 		}
 		await client.init();
 		return client;
