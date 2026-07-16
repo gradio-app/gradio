@@ -3,7 +3,24 @@
 	import MountCustomComponent from "./MountCustomComponent.svelte";
 	let { node, ...rest } = $props();
 
-	let component = $derived(await node.component);
+	let component = $state<any>(null);
+	let component_load_token = 0;
+
+	$effect(() => {
+		const current_component = node.component;
+		const load_token = ++component_load_token;
+
+		if (!current_component) {
+			component = null;
+			return;
+		}
+
+		Promise.resolve(current_component).then((resolved_component) => {
+			if (load_token === component_load_token) {
+				component = resolved_component;
+			}
+		});
+	});
 </script>
 
 {#if node && component}

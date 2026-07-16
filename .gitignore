@@ -88,7 +88,7 @@ client/js/dist/*
 client/js/test.js
 .config/test.py
 .svelte-kit
-
+.vitest-attachments
 
 # storybook
 storybook-static

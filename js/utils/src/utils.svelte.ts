@@ -51,6 +51,10 @@ export interface SharedProps {
 		set_data: (data: Record<string, any> & SharedProps) => void,
 		get_data: Function
 	) => void;
+	unregister_component: (
+		id: number,
+		set_data?: (data: Record<string, any> & SharedProps) => void
+	) => void;
 	dispatcher: Function;
 }
 
@@ -323,6 +327,7 @@ export const allowed_shared_props: (keyof SharedProps)[] = [
 	"container",
 	"attached_events",
 	"register_component",
+	"unregister_component",
 	"dispatcher"
 ] as const;
 
@@ -380,6 +385,15 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		set_data: (data: Record<string, any> & SharedProps) => void,
 		get_data: Function
 	) => void;
+	unregister_component!: (
+		id: number,
+		set_data?: (data: Record<string, any> & SharedProps) => void
+	) => void;
+	set_data_callback!: (data: Record<string, any> & SharedProps) => void;
+	get_data_callback!: Function;
+	registered_id: number | null = null;
+	last_shared_props!: SharedProps;
+	last_props!: U;
 
 	constructor(
 		_props: { shared_props: SharedProps; props: U },
@@ -404,6 +418,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 				}
 			}
 		}
+
 		// @ts-ignore same here
 		this.i18n = this.props.i18n ?? ((v: string) => v);
 		// @ts-ignore - read the raw store reference before it's wrapped in $state
@@ -432,40 +447,70 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		this.load_component = this.shared.load_component;
 
 		this.register_component = this.shared.register_component || (() => {});
+		this.unregister_component = this.shared.unregister_component || (() => {});
 		this.dispatcher = this.shared.dispatcher || (() => {});
+		this.set_data_callback = this.set_data.bind(this);
+		this.get_data_callback = this.get_data.bind(this);
 
 		this.register_component(
-			_props.shared_props.id,
+			this.shared.id,
 			// @ts-ignore
-			this.set_data.bind(this),
-			this.get_data.bind(this)
+			this.set_data_callback,
+			this.get_data_callback
 		);
+		this.registered_id = this.shared.id;
+		this.last_shared_props = _props.shared_props;
+		this.last_props = _props.props;
 
+		// @gr.render may reuse a Svelte component instance for a node with
+		// a new Gradio id. Register callbacks under that id, while leaving
+		// prop updates to set_data/app-tree sync.
 		$effect(() => {
-			// Need to update the props here
-			// otherwise UI won't reflect latest state from render
-			for (const key in _props.shared_props) {
-				// @ts-ignore
-				if (this._is_i18n_managed(`shared.${key}`, _props.shared_props[key]))
-					continue;
-				// @ts-ignore i'm not doing pointless typescript gymanstics
-				this.shared[key] = _props.shared_props[key];
+			const current_id = _props.shared_props.id;
+			if (this.last_shared_props !== _props.shared_props) {
+				for (const key in _props.shared_props) {
+					// @ts-ignore
+					const value = _props.shared_props[key];
+					if (value === undefined) continue;
+					if (this._is_i18n_managed(`shared.${key}`, value)) continue;
+					// @ts-ignore i'm not doing pointless typescript gymanstics
+					this.shared[key] = value;
+				}
+				this.last_shared_props = _props.shared_props;
 			}
-			for (const key in _props.props) {
-				if (key === "i18n_store") continue;
-				if (this._is_i18n_managed(`props.${key}`, _props.props[key])) continue;
-				// @ts-ignore same here
-				this.props[key] = _props.props[key];
+			if (this.last_props !== _props.props) {
+				for (const key in _props.props) {
+					// i18n_store is a store reference kept off `props`/`$state`
+					if (key === "i18n_store") continue;
+					const value = _props.props[key];
+					if (value === undefined) continue;
+					if (this._is_i18n_managed(`props.${key}`, value)) continue;
+					// @ts-ignore same here
+					this.props[key] = value;
+				}
+				this.last_props = _props.props;
+			}
+			if (this.registered_id !== null && this.registered_id !== current_id) {
+				this.unregister_component(this.registered_id, this.set_data_callback);
 			}
 			this.register_component(
-				_props.shared_props.id,
+				current_id,
 				// @ts-ignore
-				this.set_data.bind(this),
-				this.get_data.bind(this)
+				this.set_data_callback,
+				this.get_data_callback
 			);
+			this.registered_id = current_id;
 			untrack(() => {
-				this.shared.id = _props.shared_props.id;
+				this.shared.id = current_id;
 			});
+		});
+
+		$effect(() => {
+			return () => {
+				if (this.registered_id !== null) {
+					this.unregister_component(this.registered_id, this.set_data_callback);
+				}
+			};
 		});
 
 		// Re-translate props when the locale changes at runtime. The store is

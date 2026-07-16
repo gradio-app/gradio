@@ -48,7 +48,6 @@ export default defineConfig(({ mode }) => {
 			noExternal: ["@gradio/*", "@huggingface/space-header"],
 			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
-
 		build: {
 			rollupOptions: {
 				external: svelte_exports
