@@ -16,6 +16,7 @@ import {
 } from "./test_data";
 import { initialise_server } from "./server";
 import { SPACE_METADATA_ERROR_MSG } from "../constants";
+import { track_resumable_event } from "../utils/session";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -64,6 +65,23 @@ describe("Client class", () => {
 			const app = await Client.connect(direct_app_reference);
 			expect(app.config).toEqual(config_response);
 		});
+
+		test.skipIf(typeof sessionStorage === "undefined")(
+			"does not restore a session from a different app",
+			async () => {
+				track_resumable_event(
+					{ ...config_response, app_id: "another-app" },
+					"restored-session",
+					{ event_id: "event-id", fn_index: 0 }
+				);
+
+				const app = await Client.connect(direct_app_reference, {
+					resume_sessions: true
+				});
+
+				expect(app.session_hash).not.toBe("restored-session");
+			}
+		);
 
 		test("connecting successfully to a private running app with a space reference", async () => {
 			const app = await Client.connect("hmb/secret_world", {

@@ -63,11 +63,10 @@ describe("open_stream", () => {
 		if (!app.stream_instance?.onmessage || !app.stream_instance?.onerror) {
 			throw new Error("stream instance is not defined");
 		}
-		const first_stream = app.stream_instance;
-
+		const stream = app.stream_instance;
 		const message = { msg: "hello jerry" };
 
-		app.stream_instance.onmessage({
+		stream.onmessage({
 			data: JSON.stringify(message)
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(true);
@@ -76,28 +75,20 @@ describe("open_stream", () => {
 		expect(app.pending_stream_messages).toEqual({});
 
 		const close_stream_message = { msg: "close_stream" };
-		await app.stream_instance.onmessage({
+		await stream.onmessage({
 			data: JSON.stringify(close_stream_message)
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
+		expect(app.stream_instance).toBeNull();
 
 		app.unclosed_events.add("event-1");
-		await app.stream_instance.onmessage({
-			data: JSON.stringify(close_stream_message)
-		} as MessageEvent);
-		expect(app.stream_status.open).toBe(true);
-		expect(app.stream).toHaveBeenCalledTimes(2);
-		first_stream.onerror?.({
+		stream.onerror?.({
 			data: JSON.stringify("closed stream")
 		} as MessageEvent);
-		expect(app.stream_status.open).toBe(true);
-		expect(app.stream).toHaveBeenCalledTimes(2);
+		expect(app.stream_status.open).toBe(false);
+		expect(app.stream).toHaveBeenCalledTimes(1);
 
 		app.unclosed_events.clear();
-		app.stream_instance.onerror({
-			data: JSON.stringify("404")
-		} as MessageEvent);
-		expect(app.stream_status.open).toBe(false);
 	});
 
 	it("should reconnect the SSE stream after an error when jobs are active", async () => {
