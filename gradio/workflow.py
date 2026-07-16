@@ -1362,6 +1362,7 @@ class Workflow(Blocks):
                 args, *_ = _special_args(fn, args, request, None, token=token)
                 if inspect.iscoroutinefunction(fn):
                     import asyncio
+
                     result = asyncio.run(fn(*args))
                 else:
                     result = fn(*args)
