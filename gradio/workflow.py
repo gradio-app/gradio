@@ -25,8 +25,8 @@ from huggingface_hub import get_token as hf_get_token
 
 import gradio as gr
 from gradio.blocks import Blocks
-from gradio.context import Context
 from gradio.components.workflowcanvas import WorkflowCanvas
+from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
@@ -1533,7 +1533,15 @@ class Workflow(Blocks):
         if bound:
             from gradio.workflow_api import _active_blocks
 
-            def _make_fn_endpoint(fn: Callable) -> Callable:
+            if len(bound) != len({_SANITIZE_RE.sub("_", n) for n in bound}):
+                sanitized = [_SANITIZE_RE.sub("_", n) for n in bound]
+                dupes = {s for s in sanitized if sanitized.count(s) > 1}
+                raise ValueError(
+                    f"gr.Workflow: bound function names produce duplicate endpoint "
+                    f"names after sanitizing: {dupes}. Rename one."
+                )
+
+            def _wrap_bound_fn(fn: Callable) -> Callable:
                 async def wrapper(
                     args_json: str,
                     _request: Optional[Request] = None,
@@ -1556,23 +1564,11 @@ class Workflow(Blocks):
 
                 return wrapper
 
-            if len(bound) != len({_SANITIZE_RE.sub("_", n) for n in bound}):
-                sanitized = [_SANITIZE_RE.sub("_", n) for n in bound]
-                dupes = {s for s in sanitized if sanitized.count(s) > 1}
-                raise ValueError(
-                    f"gr.Workflow: bound function names produce duplicate endpoint "
-                    f"names after sanitizing: {dupes}. Rename one."
-                )
-            with _active_blocks(self), gr.Column(visible=False):
+            with _active_blocks(self):
                 for fn_name, fn in bound.items():
                     sanitized_name = _SANITIZE_RE.sub("_", fn_name)
-                    fn_in = gr.Textbox(label=f"_wf_fn_in_{sanitized_name}")
-                    fn_out = gr.Textbox(label=f"_wf_fn_out_{sanitized_name}")
-                    trigger = gr.Button()
-                    trigger.click(
-                        _make_fn_endpoint(fn),
-                        inputs=[fn_in],
-                        outputs=[fn_out],
+                    gr.api(
+                        _wrap_bound_fn(fn),
                         api_name=f"predict_fn_{sanitized_name}",
                         concurrency_limit="default",
                         api_visibility="undocumented",
