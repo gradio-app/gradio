@@ -1551,8 +1551,19 @@
 						if (msg.type === "data") {
 							return (msg.data as unknown[])[0] as string;
 						}
+						if (msg.type === "status" && msg.stage === "error") {
+							return JSON.stringify({
+								error: msg.message ?? "Function call failed",
+								error_type: "unknown",
+								suggestion: ""
+							});
+						}
 					}
-					throw new Error("No data received from fn endpoint");
+					return JSON.stringify({
+						error: "No data received from fn endpoint",
+						error_type: "unknown",
+						suggestion: ""
+					});
 				}
 			: undefined;
 
