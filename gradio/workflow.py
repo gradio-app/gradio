@@ -1525,7 +1525,7 @@ class Workflow(Blocks):
                 )
             with _active_blocks(self), gr.Column(visible=False):
                 for fn_name, fn in bound.items():
-                    sanitized_name = _SANITIZE_RE.sub("_",fn_name)
+                    sanitized_name = _SANITIZE_RE.sub("_", fn_name)
                     fn_in = gr.Textbox(label=f"_wf_fn_in_{sanitized_name}")
                     fn_out = gr.Textbox(label=f"_wf_fn_out_{sanitized_name}")
                     trigger = gr.Button()
