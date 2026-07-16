@@ -1341,11 +1341,9 @@ class Workflow(Blocks):
 
         bound = self._bound
 
-        def _call_fn_direct(
+        def call_fn(
             data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
         ) -> str:
-            """Sync fn caller for headless API execution (WorkflowEndpointManager).
-            Not registered as a server function — canvas uses _make_fn_endpoint."""
             fn_name = data[0] if data else ""
             try:
                 args_json = data[1] if len(data) > 1 else "[]"
@@ -1370,7 +1368,7 @@ class Workflow(Blocks):
                 out = list(result) if isinstance(result, (list, tuple)) else [result]
                 return json.dumps(out)
             except Exception as e:
-                logger.error("_call_fn_direct failed for %s: %s", fn_name, e, exc_info=True)
+                logger.error("call_fn failed for %s: %s", fn_name, e, exc_info=True)
                 return json.dumps(
                     {"error": str(e), "error_type": "unknown", "suggestion": ""}
                 )
@@ -1510,7 +1508,7 @@ class Workflow(Blocks):
         callers = {
             "space": call_space,
             "model": call_model,
-            "fn": _call_fn_direct,
+            "fn": call_fn,
             "dataset": fetch_dataset,
         }
 
