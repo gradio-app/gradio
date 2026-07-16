@@ -386,9 +386,11 @@
 	let root = $derived.by(() => {
 		if (!browser) return config.root;
 		const current_url = new URL(window.location.toString());
-		const root_url = new URL(config.root);
+		const root_url = new URL(config.root, current_url);
 
-		return new URL(root_url.pathname, current_url).toString();
+		return new URL(root_url.pathname, current_url)
+			.toString()
+			.replace(/\/$/, "");
 	});
 	run(() => {
 		if (config?.app_id) {

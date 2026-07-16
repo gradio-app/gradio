@@ -607,6 +607,7 @@
 
 	function onWheel(e: WheelEvent): void {
 		if (!canvasEl) return;
+		if (e.target instanceof Element && e.target.closest(".nowheel")) return;
 		e.preventDefault();
 		if (e.ctrlKey || e.metaKey) {
 			const r = canvasEl.getBoundingClientRect();
@@ -1577,7 +1578,12 @@
 						);
 					} else {
 						nodeErrors = { ...nodeErrors, [nodeId]: error };
-						showToast(`${label}: ${error}`, 5000, "error");
+						const brief = error.split("\n")[0];
+						showToast(
+							`${label}: ${brief.length > 120 ? brief.slice(0, 120) + "…" : brief}`,
+							5000,
+							"error"
+						);
 					}
 				}
 			},
