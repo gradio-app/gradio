@@ -539,6 +539,12 @@ def stream_sse_v1plus(
                         pending_responses_for_diffs = list(output)
                     else:
                         for i, value in enumerate(output):
+                            # A new output can appear mid-stream if the app was
+                            # hot-reloaded while a generator was running; its diff
+                            # is computed against None on the server, so treat any
+                            # index beyond what we've seen as starting from None.
+                            if i >= len(pending_responses_for_diffs):
+                                pending_responses_for_diffs.append(None)
                             prev_output = pending_responses_for_diffs[i]
                             new_output = apply_diff(prev_output, value)
                             pending_responses_for_diffs[i] = new_output

@@ -2028,7 +2028,11 @@ Received inputs:
                     }
                     prediction_value["__type__"] = "update"
                 if utils.is_prop_update(prediction_value):
-                    kwargs = state[block._id].constructor_args.copy()
+                    # The output block may be absent from the session config if
+                    # the app was hot-reloaded mid-run and this component was
+                    # added by the reload; fall back to the block's own args.
+                    base_block = state.get(block._id, block)
+                    kwargs = base_block.constructor_args.copy()
                     kwargs.update(prediction_value)
                     kwargs.pop("value", None)
                     kwargs.pop("__type__")
