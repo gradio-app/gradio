@@ -1,13 +1,12 @@
 import json
 import os
 import tempfile
-from typing import Optional
 
 import pytest
 
 import gradio as gr
 import gradio.workflow as workflow_module
-from gradio.oauth import OAuthProfile, OAuthToken
+from gradio.oauth import OAuthToken
 from gradio.route_utils import Request
 from gradio.workflow import (
     WRITE_TOKEN,
