@@ -66,7 +66,7 @@ export class Client {
 	// streaming
 	stream_status = { open: false };
 	closed = false;
-	pending_stream_messages: Record<string, any[][]> = {};
+	pending_stream_messages: Record<string, any[]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
