@@ -942,6 +942,9 @@ class Queue:
                                 )
                         if not awake_events:
                             break
+                        # Re-read the event's fn, which may have been swapped out
+                        # if the app was hot-reloaded while this event was generating
+                        fn = awake_events[0].fn
                         body = cast(PredictBodyInternal, awake_events[0].data)
                         if batch:
                             body.data = list(

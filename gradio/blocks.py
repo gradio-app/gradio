@@ -586,23 +586,36 @@ def postprocess_update_dict(
 
 
 def convert_component_dict_to_list(
-    outputs_ids: list[int], predictions: dict
+    outputs: Sequence[Block], predictions: dict
 ) -> list | dict:
     """
     Converts a dictionary of component updates into a list of updates in the order of
-    the outputs_ids and including every output component. Leaves other types of dictionaries unchanged.
+    the output components and including every output component. Leaves other types of dictionaries unchanged.
     E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
     Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
     """
     keys_are_blocks = [isinstance(key, Block) for key in predictions]
     if all(keys_are_blocks):
+        outputs_ids = [block._id for block in outputs]
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
-            if component._id not in outputs_ids:
+            if component._id in outputs_ids:
+                output_index = outputs_ids.index(component._id)
+            else:
+                # The returned component object may be stale, e.g. created before
+                # the app was hot-reloaded, so fall back to matching by key.
+                output_index = next(
+                    (
+                        index
+                        for index, block in enumerate(outputs)
+                        if component.key is not None and block.key == component.key
+                    ),
+                    None,
+                )
+            if output_index is None:
                 raise ValueError(
                     f"Returned component {component} not specified as output of function."
                 )
-            output_index = outputs_ids.index(component._id)
             reordered_predictions[output_index] = value
         predictions = utils.resolve_singleton(reordered_predictions)
     elif any(keys_are_blocks):
@@ -1962,7 +1975,7 @@ Received inputs:
             predictions = [skip()] * len(block_fn.outputs)
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
-                [block._id for block in block_fn.outputs], predictions
+                list(block_fn.outputs), predictions
             )
 
         if len(block_fn.outputs) == 1 and not block_fn.batch:
@@ -2155,6 +2168,10 @@ Received inputs:
         if first_run:
             self.pending_diff_streams[session_hash][run] = [None] * len(data)
         last_diffs = self.pending_diff_streams[session_hash][run]
+        if len(last_diffs) < len(block_fn.outputs):
+            # The number of outputs can grow mid-run if the app was
+            # hot-reloaded while this function was generating
+            last_diffs.extend([None] * (len(block_fn.outputs) - len(last_diffs)))
 
         for i in range(len(block_fn.outputs)):
             if final:

@@ -173,6 +173,10 @@ class BaseReloader(ABC):
         demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
+        # Carry over streaming state so that generators that were running
+        # when the app was reloaded continue to send diffs, not full values
+        demo.pending_streams = self.running_app.blocks.pending_streams
+        demo.pending_diff_streams = self.running_app.blocks.pending_diff_streams
         demo.allowed_paths = self.running_app.blocks.allowed_paths
         demo.blocked_paths = self.running_app.blocks.blocked_paths
 
@@ -188,6 +192,7 @@ class BaseReloader(ABC):
         for session in self.running_app.state_holder.session_data.values():
             session.blocks_config = copy.copy(demo.default_config)
         self.running_app.blocks = demo
+        reassign_pending_event_fns(demo)
 
 
 class ServerReloader(BaseReloader):
@@ -480,6 +485,36 @@ def deep_equal(a: Any, b: Any) -> bool:
             return a == b
         except Exception:
             return False
+
+
+def reassign_pending_event_fns(new_blocks: "Blocks"):
+    """
+    Points pending and in-progress queue events at the corresponding BlockFunction
+    objects of the newly-loaded app (matched by api_name) so that events that were
+    running when the app was hot-reloaded continue to work against the new config.
+    See https://github.com/gradio-app/gradio/issues/8712.
+    """
+    queue = new_blocks._queue
+    if queue is None:
+        return
+    new_fns_by_api_name = {
+        fn.api_name: fn
+        for fn in new_blocks.default_config.fns.values()
+        if fn.api_name is not None
+    }
+
+    def all_events():
+        for job in queue.active_jobs:
+            if job:
+                yield from job
+        for event_queue in queue.event_queue_per_concurrency_id.values():
+            yield from event_queue.queue
+        yield from queue.event_ids_to_events.values()
+
+    for event in all_events():
+        new_fn = new_fns_by_api_name.get(event.fn.api_name)
+        if new_fn is not None and new_fn.connection == event.fn.connection:
+            event.fn = new_fn
 
 
 def reassign_keys(old_blocks: "Blocks", new_blocks: "Blocks"):

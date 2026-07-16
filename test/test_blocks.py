@@ -744,6 +744,28 @@ class TestBlocksPostprocessing:
         assert output[0] == 23
 
     @pytest.mark.asyncio
+    async def test_blocks_matches_stale_returned_component_by_key(self):
+        # If the app is hot-reloaded while a prediction is in flight, the
+        # function may return components created by a previous version of
+        # the app. They should be matched to the current output components
+        # by key. See https://github.com/gradio-app/gradio/issues/8712
+        with gr.Blocks():
+            stale_num = gr.Number(key="num")
+            unkeyed_num = gr.Number()
+
+        with gr.Blocks() as demo:
+            num = gr.Number(key="num")
+            update = gr.Button(value="update")
+            update.click(lambda: {num: 42}, inputs=[], outputs=[num])
+
+        assert stale_num._id != num._id
+        output = await demo.postprocess_data(demo.fns[0], {stale_num: 42}, state=None)
+        assert output[0] == 42
+
+        with pytest.raises(ValueError, match="not specified as output"):
+            await demo.postprocess_data(demo.fns[0], {unkeyed_num: 42}, state=None)
+
+    @pytest.mark.asyncio
     async def test_blocks_update_dict_without_postprocessing(self, media_data):
         def infer(x):
             return media_data.BASE64_IMAGE, gr.update(visible=True)
