@@ -314,24 +314,23 @@ export function submit(
 				}
 			};
 
-			if (queue_event_id in pending_stream_messages) {
-				pending_stream_messages[queue_event_id].forEach((msg) => callback(msg));
-				delete pending_stream_messages[queue_event_id];
-			}
 			event_callbacks[queue_event_id] = callback;
 			unclosed_events.add(queue_event_id);
-			if (!stream_status.open) {
+			if (queue_event_id in pending_stream_messages) {
+				for (const msg of pending_stream_messages[queue_event_id]) {
+					if (
+						msg.msg === "process_completed" &&
+						["sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
+					) {
+						unclosed_events.delete(queue_event_id);
+					}
+					await callback(msg);
+				}
+				delete pending_stream_messages[queue_event_id];
+			}
+			if (!stream_status.open && unclosed_events.has(queue_event_id)) {
 				await that.open_stream();
 			}
-			setTimeout(() => {
-				if (
-					!stream_status.open &&
-					unclosed_events.has(queue_event_id) &&
-					!that.closed
-				) {
-					void that.open_stream();
-				}
-			}, 100);
 		}
 
 		if (resume_event_id) {

@@ -80,15 +80,36 @@ describe("open_stream", () => {
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
 		expect(app.stream_instance).toBeNull();
-
-		app.unclosed_events.add("event-1");
 		stream.onerror?.({
 			data: JSON.stringify("closed stream")
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
 		expect(app.stream).toHaveBeenCalledTimes(1);
+	});
 
-		app.unclosed_events.clear();
+	it("should open another stream when jobs remain after a normal close", async () => {
+		const callback = vi.fn().mockResolvedValue(undefined);
+		app.event_callbacks["event-1"] = callback;
+		app.unclosed_events.add("event-1");
+
+		await app.open_stream();
+
+		const stream = app.stream_instance;
+		if (!stream?.onmessage) {
+			throw new Error("stream instance is not defined");
+		}
+
+		await stream.onmessage({
+			data: JSON.stringify({ msg: "close_stream" })
+		} as MessageEvent);
+
+		expect(app.stream).toHaveBeenCalledTimes(2);
+		expect(app.stream_status.open).toBe(true);
+
+		stream.onerror?.({
+			data: JSON.stringify("closed stream")
+		} as MessageEvent);
+		expect(app.stream).toHaveBeenCalledTimes(2);
 	});
 
 	it("should reconnect the SSE stream after an error when jobs are active", async () => {

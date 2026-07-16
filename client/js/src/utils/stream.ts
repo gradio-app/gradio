@@ -63,6 +63,9 @@ export async function open_stream(this: Client): Promise<void> {
 		if (_data.msg === "close_stream") {
 			that.stream_instance = null;
 			close_stream(stream_status, abort_controller);
+			if (!that.closed && unclosed_events.size > 0) {
+				await that.open_stream();
+			}
 			return;
 		}
 		const event_id = _data.event_id;
@@ -81,9 +84,10 @@ export async function open_stream(this: Client): Promise<void> {
 			) {
 				unclosed_events.delete(event_id);
 			}
-			let fn: (data: any) => void = event_callbacks[event_id];
+			let fn: (data: any) => void | Promise<void> = event_callbacks[event_id];
 
 			if (
+				_data.msg !== "process_completed" &&
 				typeof window !== "undefined" &&
 				typeof document !== "undefined" &&
 				document.visibilityState !== "hidden"
@@ -91,7 +95,7 @@ export async function open_stream(this: Client): Promise<void> {
 				// fn(_data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See
 				setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 			} else {
-				fn(_data);
+				await fn(_data);
 			}
 		} else {
 			if (!pending_stream_messages[event_id]) {
