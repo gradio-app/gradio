@@ -666,12 +666,13 @@ export class DependencyManager {
 		return;
 	}
 
-	async resume(): Promise<boolean> {
-		const events = this.client
+	get_resumable_events() {
+		return this.client
 			.get_resumable_events()
 			.filter(({ fn_index }) => this.dependencies_by_fn.has(fn_index));
-		if (events.length === 0) return false;
+	}
 
+	async resume(events = this.get_resumable_events()): Promise<void> {
 		await Promise.all(
 			events.map(async ({ event_id, fn_index }) => {
 				const dep = this.dependencies_by_fn.get(fn_index);
@@ -720,7 +721,6 @@ export class DependencyManager {
 				}
 			})
 		);
-		return true;
 	}
 
 	/**

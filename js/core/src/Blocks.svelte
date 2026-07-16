@@ -467,9 +467,12 @@
 		});
 		res.observe(root_container);
 
-		app_tree.ready.then(async () => {
+		app_tree.ready.then(() => {
 			ready = true;
-			if (!(await dep_manager.resume())) {
+			const resumable_events = dep_manager.get_resumable_events();
+			if (resumable_events.length > 0) {
+				void dep_manager.resume(resumable_events);
+			} else {
 				dep_manager.dispatch_load_events();
 			}
 		});
