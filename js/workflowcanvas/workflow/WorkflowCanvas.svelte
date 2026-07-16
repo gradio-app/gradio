@@ -1539,10 +1539,16 @@
 		const callFnWithToken = gradio_client
 			? async (fnName: string, argsJson: string) => {
 					const safeN = fnName.replace(/[^a-zA-Z0-9_-]/gu, "_");
-					const result = await gradio_client.predict(`/predict_fn_${safeN}`, [
-						argsJson
-					]);
-					return (result.data as unknown[])[0] as string;
+					const job = gradio_client.submit(`/predict_fn_${safeN}`, [argsJson]);
+					abortController?.signal.addEventListener("abort", () => job.cancel(), {
+						once: true
+					});
+					for await (const msg of job) {
+						if (msg.type === "data") {
+							return (msg.data as unknown[])[0] as string;
+						}
+					}
+					throw new Error("No data received from fn endpoint");
 				}
 			: undefined;
 
