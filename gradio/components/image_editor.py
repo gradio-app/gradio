@@ -3,7 +3,6 @@ r"""gr.ImageEditor() component."""
 from __future__ import annotations
 
 import dataclasses
-import threading
 import warnings
 from collections.abc import Iterable, Sequence
 from io import BytesIO
@@ -325,7 +324,6 @@ class ImageEditor(Component):
         self.eraser = Eraser() if eraser is None else eraser
         self.brush = Brush() if brush is None else brush
         self.blob_storage: dict[str, EditorDataBlobs] = {}
-        self._blob_lock = threading.Lock()
         self.format = format
         self.layers = (
             LayerOptions()
@@ -539,18 +537,17 @@ class ImageEditor(Component):
         file = data.files[0][1]
         id = data.data["id"]
 
-        with self._blob_lock:
-            current = self.blob_storage.get(
-                id, EditorDataBlobs(background=None, layers=[], composite=None)
-            )
+        current = self.blob_storage.get(
+            id, EditorDataBlobs(background=None, layers=[], composite=None)
+        )
 
-            if type == "layer" and index is not None:
-                if index >= len(current.layers):
-                    current.layers.extend([None] * (index + 1 - len(current.layers)))
-                current.layers[index] = file
-            elif type == "background":
-                current.background = file
-            elif type == "composite":
-                current.composite = file
+        if type == "layer" and index is not None:
+            if index >= len(current.layers):
+                current.layers.extend([None] * (index + 1 - len(current.layers)))
+            current.layers[index] = file
+        elif type == "background":
+            current.background = file
+        elif type == "composite":
+            current.composite = file
 
-            self.blob_storage[id] = current
+        self.blob_storage[id] = current
