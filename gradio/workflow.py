@@ -25,6 +25,7 @@ from huggingface_hub import get_token as hf_get_token
 
 import gradio as gr
 from gradio.blocks import Blocks
+from gradio.context import Context
 from gradio.components.workflowcanvas import WorkflowCanvas
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
@@ -1305,6 +1306,11 @@ class Workflow(Blocks):
         )
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
+
+        if Context.root_block is not None:
+            raise ValueError(
+                "gr.Workflow cannot be created inside another gr.Blocks context."
+            )
 
         warnings.warn(
             "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
