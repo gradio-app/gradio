@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import threading
 import logging
 import os
 import re
@@ -69,7 +70,7 @@ class _CuratedCache(TypedDict):
 
 
 _CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
-_CURATED_LOCK = __import__("threading").Lock()
+_CURATED_LOCK = threading.Lock()
 
 
 def _bundled_snapshot_path() -> str:
@@ -1346,6 +1347,7 @@ class Workflow(Blocks):
                 return None
 
         bound = self._bound
+        _save_lock = threading.Lock()
 
         def call_fn(
             data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
@@ -1470,17 +1472,16 @@ class Workflow(Blocks):
                     WorkflowGraph(parsed)
                 except ValueError as exc:
                     return json.dumps({"error": f"Invalid workflow schema: {exc}"})
-                with open(workflow_file, "w", encoding="utf-8") as f:
-                    f.write(payload)
-                # Re-derive API endpoints so /info + /call track the saved graph
-                # (outputs added / removed / renamed / retyped).
-                if self._api_endpoints is not None:
-                    try:
-                        self._api_endpoints.sync()
-                    except Exception:
-                        logger.error(
-                            "Workflow: endpoint sync after save failed", exc_info=True
-                        )
+                with _save_lock:
+                    with open(workflow_file, "w", encoding="utf-8") as f:
+                        f.write(payload)
+                    if self._api_endpoints is not None:
+                        try:
+                            self._api_endpoints.sync()
+                        except Exception:
+                            logger.error(
+                                "Workflow: endpoint sync after save failed", exc_info=True
+                            )
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
@@ -1530,6 +1531,27 @@ class Workflow(Blocks):
                 server_functions=server_functions,
             )
 
+        def _wrap_bound_fn(fn: Callable) -> Callable:
+            async def wrapper(
+                args_json: str,
+                _request: Optional[Request] = None,
+                _token: Optional[OAuthToken] = None,
+            ) -> str:
+                args = json.loads(args_json)
+                if not isinstance(args, list):
+                    args = [args]
+                args, *_ = _special_args(fn, args, _request, None, token=_token)
+                if inspect.iscoroutinefunction(fn):
+                    result = await fn(*args)
+                else:
+                    result = await anyio.to_thread.run_sync(
+                        lambda: fn(*args), limiter=self.limiter
+                    )
+                out = list(result) if isinstance(result, (list, tuple)) else [result]
+                return json.dumps(out)
+
+            return wrapper
+
         if bound:
             from gradio.workflow_api import _active_blocks
 
@@ -1540,29 +1562,6 @@ class Workflow(Blocks):
                     f"gr.Workflow: bound function names produce duplicate endpoint "
                     f"names after sanitizing: {dupes}. Rename one."
                 )
-
-            def _wrap_bound_fn(fn: Callable) -> Callable:
-                async def wrapper(
-                    args_json: str,
-                    _request: Optional[Request] = None,
-                    _token: Optional[OAuthToken] = None,
-                ) -> str:
-                    args = json.loads(args_json)
-                    if not isinstance(args, list):
-                        args = [args]
-                    args, *_ = _special_args(fn, args, _request, None, token=_token)
-                    if inspect.iscoroutinefunction(fn):
-                        result = await fn(*args)
-                    else:
-                        result = await anyio.to_thread.run_sync(
-                            lambda: fn(*args), limiter=self.limiter
-                        )
-                    out = (
-                        list(result) if isinstance(result, (list, tuple)) else [result]
-                    )
-                    return json.dumps(out)
-
-                return wrapper
 
             with _active_blocks(self):
                 for fn_name, fn in bound.items():
