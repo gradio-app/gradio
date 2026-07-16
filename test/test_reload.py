@@ -61,6 +61,8 @@ def test_reassign_pending_event_fns():
 
     Regression test for https://github.com/gradio-app/gradio/issues/8712
     """
+    from fastapi import Request
+
     from gradio.queueing import Event, EventQueue, Queue
     from gradio.utils import reassign_pending_event_fns
 
@@ -93,9 +95,10 @@ def test_reassign_pending_event_fns():
         max_size=None,
         blocks=demo1,
     )
-    running_event = Event(session_hash="abc", fn=old_fn, request=None, username=None)
+    request = Request({"type": "http", "headers": [], "path": "/"})
+    running_event = Event(session_hash="abc", fn=old_fn, request=request, username=None)
     queue.active_jobs = [[running_event]]
-    pending_event = Event(session_hash="abc", fn=old_fn, request=None, username=None)
+    pending_event = Event(session_hash="abc", fn=old_fn, request=request, username=None)
     event_queue = EventQueue(old_fn.concurrency_id, None)
     event_queue.queue.append(pending_event)
     queue.event_queue_per_concurrency_id[old_fn.concurrency_id] = event_queue
