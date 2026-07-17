@@ -117,7 +117,14 @@ export function apply_diff_stream(
 		});
 	} else {
 		data.data.forEach((value: any, i: number) => {
-			let new_data = apply_diff(pending_diff_streams[event_id][i], value);
+			// A new output can appear mid-stream if the app was hot-reloaded
+			// while a generator was running; such outputs are diffed against
+			// null on the server, so start from null when we haven't seen it.
+			const prev =
+				i < pending_diff_streams[event_id].length
+					? pending_diff_streams[event_id][i]
+					: null;
+			let new_data = apply_diff(prev, value);
 			pending_diff_streams[event_id][i] = new_data;
 			data.data[i] = new_data;
 		});
