@@ -1543,7 +1543,13 @@ class Workflow(Blocks):
                     args = [args]
                 args, *_ = _special_args(fn, args, _request, None, token=_token)
                 try:
-                    result = await fn(*args) if inspect.iscoroutinefunction(fn) else await anyio.to_thread.run_sync(lambda: fn(*args), limiter=self.limiter)
+                    result = (
+                        await fn(*args)
+                        if inspect.iscoroutinefunction(fn)
+                        else await anyio.to_thread.run_sync(
+                            lambda: fn(*args), limiter=self.limiter
+                        )
+                    )
                 except Exception as e:
                     raise gr.Error(str(e)) from e
                 out = list(result) if isinstance(result, (list, tuple)) else [result]
