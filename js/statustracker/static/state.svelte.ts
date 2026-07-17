@@ -104,9 +104,7 @@ export class LoadingStatus {
 			}) => {
 				const prev = this.current[id];
 				const time_start =
-					status === "pending"
-						? (prev?.time_start ?? performance.now())
-						: null;
+					status === "pending" ? (prev?.time_start ?? performance.now()) : null;
 				let eta_total: number | null = null;
 				if (status === "pending" && time_start != null) {
 					if (eta != null && (prev?.eta_total == null || prev.eta !== eta)) {
