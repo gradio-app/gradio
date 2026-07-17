@@ -258,14 +258,16 @@
 	}
 
 	function clear(): void {
-		onchange?.(null);
-		onclear?.();
 		mode = "";
 		value = null;
+		playback_position = 0;
+		onchange?.(null);
+		onclear?.();
 	}
 
 	function handle_load(detail: FileData): void {
 		value = detail;
+		playback_position = 0;
 		onchange?.(detail);
 		onupload?.(detail);
 	}

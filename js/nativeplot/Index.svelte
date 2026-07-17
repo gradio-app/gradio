@@ -789,8 +789,6 @@
 			title: gradio.props.title || undefined
 		} as Spec;
 	}
-
-	$inspect("visible", gradio.shared.visible);
 </script>
 
 <Block
