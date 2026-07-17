@@ -15,7 +15,9 @@
 		value: []
 	});
 
-	let old_value = $state(gradio.props.value);
+	// force rerun on first mount
+	const UNSET = Symbol("unset");
+	let old_value: any = $state(UNSET);
 
 	let rerender_key = $derived([
 		gradio.props.root_dir,
@@ -29,6 +31,7 @@
 	$effect(() => {
 		if (
 			JSON.stringify(old_rerender_key) != JSON.stringify(rerender_key) &&
+			old_value !== UNSET &&
 			old_value == gradio.props.value
 		) {
 			old_rerender_key = rerender_key;
@@ -37,7 +40,7 @@
 	});
 
 	$effect(() => {
-		if (old_value != gradio.props.value) {
+		if (old_value !== gradio.props.value) {
 			old_value = gradio.props.value;
 			gradio.dispatch("change");
 		}
