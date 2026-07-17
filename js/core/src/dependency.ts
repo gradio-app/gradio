@@ -28,6 +28,7 @@ const NOVALUE = Symbol("NOVALUE");
  */
 export class Dependency {
 	id: number;
+	api_name: string | null;
 	inputs: number[];
 	outputs: number[];
 	cancels: number[];
@@ -55,6 +56,7 @@ export class Dependency {
 
 	constructor(dep_config: IDependency) {
 		this.id = dep_config.id;
+		this.api_name = dep_config.api_name;
 		this.original_trigger_id = dep_config.id;
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
@@ -201,6 +203,8 @@ export class DependencyManager {
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
+	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
+		new Map();
 	client: Client;
 	queue: Set<number> = new Set();
 	add_to_api_calls: (payload: Payload) => void;
@@ -259,15 +263,25 @@ export class DependencyManager {
 		client: Client
 	) {
 		const { by_id, by_event } = this.create(dependencies);
+		const by_api_name = new Map(
+			Array.from(by_id.values())
+				.filter((dep) => dep.api_name !== null)
+				.map((dep) => [dep.api_name, dep])
+		);
 		// In-flight submit loops hold references to the old Dependency objects.
 		// Point their inputs/outputs at the new component ids so yields after a
-		// hot-reload update the remounted UI (matched by fn_index).
-		for (const [dep_id, old_dep] of this.dependencies_by_fn) {
-			if (!this.submissions.has(dep_id)) continue;
-			const new_dep = by_id.get(dep_id);
+		// hot-reload update the remounted UI. Keep the captured objects in a
+		// separate registry so consecutive reloads continue to patch the same
+		// objects, and match them by api_name just like the backend does.
+		for (const old_dep of this.active_dependencies.values()) {
+			const new_dep =
+				old_dep.api_name === null
+					? by_id.get(old_dep.id)
+					: by_api_name.get(old_dep.api_name);
 			if (!new_dep) continue;
+			if (new_dep.connection_type !== old_dep.connection_type) continue;
 			this.loading_stati.remap_ids(
-				dep_id,
+				old_dep.id,
 				old_dep.show_progress_on || old_dep.outputs,
 				new_dep.show_progress_on || new_dep.outputs,
 				old_dep.inputs,
@@ -283,6 +297,7 @@ export class DependencyManager {
 			old_dep.functions = new_dep.functions;
 			old_dep.event_args = new_dep.event_args;
 			old_dep.component_prop_inputs = new_dep.component_prop_inputs;
+			old_dep.api_name = new_dep.api_name;
 		}
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
@@ -408,6 +423,7 @@ export class DependencyManager {
 				);
 
 				const { success, failure, all } = dep.get_triggers();
+				let active_submission: ReturnType<Client["submit"]> | undefined;
 
 				try {
 					let target_id: number | null = null;
@@ -472,6 +488,8 @@ export class DependencyManager {
 						}
 
 						this.submissions.set(dep.id, dep_submission.data);
+						this.active_dependencies.set(dep_submission.data, dep);
+						active_submission = dep_submission.data;
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
@@ -582,7 +600,7 @@ export class DependencyManager {
 											);
 										});
 										unset_args.forEach((fn) => fn());
-										this.submissions.delete(dep.id);
+										this.clear_submission(dep.id, dep_submission.data);
 										if (this.queue.has(dep.id)) {
 											this.queue.delete(dep.id);
 											this.dispatch(event_meta);
@@ -668,7 +686,7 @@ export class DependencyManager {
 							});
 						});
 						unset_args.forEach((fn) => fn());
-						this.submissions.delete(dep.id);
+						this.clear_submission(dep.id, dep_submission.data);
 
 						if (this.queue.has(dep.id)) {
 							this.queue.delete(dep.id);
@@ -684,7 +702,9 @@ export class DependencyManager {
 						stream_state: null
 					});
 					this.update_loading_stati_state();
-					this.submissions.delete(dep.id);
+					if (active_submission) {
+						this.clear_submission(dep.id, active_submission);
+					}
 					failure.forEach((dep_id) => {
 						this.dispatch({
 							type: "fn",
@@ -872,7 +892,7 @@ export class DependencyManager {
 					stream_state: null
 				});
 				this.update_loading_stati_state();
-				this.submissions.delete(id);
+				this.clear_submission(id);
 				// Need to trigger any dependencies that are waiting for this one to complete
 				const { failure, all } = this.dependencies_by_fn
 					.get(id)
@@ -932,7 +952,7 @@ export class DependencyManager {
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
 				submission.close_stream();
-				this.submissions.delete(fn_id);
+				this.clear_submission(fn_id);
 			}
 
 			this.loading_stati.update({
@@ -945,6 +965,21 @@ export class DependencyManager {
 		}
 
 		this.update_loading_stati_state();
+	}
+
+	clear_submission(
+		id: number,
+		submission?: ReturnType<Client["submit"]>
+	): void {
+		const registered_submission = this.submissions.get(id);
+		if (submission === undefined || registered_submission === submission) {
+			this.submissions.delete(id);
+		}
+		if (submission) {
+			this.active_dependencies.delete(submission);
+		} else if (registered_submission) {
+			this.active_dependencies.delete(registered_submission);
+		}
 	}
 }
 

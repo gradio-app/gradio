@@ -419,16 +419,29 @@
 					}
 				});
 				stream.addEventListener("reload", async (event) => {
-					// Soft-reload: refresh config in place so in-flight SSE
-					// streams (and generators) keep working across the reload.
-					config = await app.refresh();
-					window.__gradio_space__ = config.space_id;
-					await mount_custom_css(config.css);
-					await add_custom_html_head(config.head);
-					css_ready = true;
-					window.__is_colab__ = config.is_colab;
-					reload_count += 1;
-					dispatch("loaded");
+					try {
+						// Soft-reload: refresh config in place so in-flight SSE
+						// streams (and generators) keep working across the reload.
+						const refreshed_config = await app.refresh();
+						await mount_custom_css(refreshed_config.css);
+						await add_custom_html_head(refreshed_config.head);
+						config = refreshed_config as unknown as Config;
+						window.__gradio_space__ = config.space_id;
+						css_ready = true;
+						window.__is_colab__ = config.is_colab;
+						reload_count += 1;
+						dispatch("loaded");
+					} catch (error) {
+						new_message_fn(
+							"Error",
+							"Error reloading app",
+							-1,
+							"error",
+							10,
+							true
+						);
+						console.error("Error reloading app:", error);
+					}
 				});
 			}, 200);
 		}

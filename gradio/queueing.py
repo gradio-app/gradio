@@ -539,16 +539,17 @@ class Queue:
                     event_queue = self.event_queue_per_concurrency_id[concurrency_id]
                     event_queue.current_concurrency += 1
                     start_time = time.time()
-                    event_queue.start_times_per_fn[events[0].fn].add(start_time)
+                    fn = events[0].fn
+                    event_queue.start_times_per_fn[fn].add(start_time)
                     for event in events:
                         self.event_analytics[event._id]["status"] = "processing"
                     process_event_task = run_coro_in_background(
-                        self.process_events, events, batch, start_time
+                        self.process_events, events, batch, start_time, fn
                     )
                     set_task_name(
                         process_event_task,
                         events[0].session_hash,
-                        events[0].fn._id,
+                        fn._id,
                         events[0]._id,
                         batch,
                     )
@@ -785,10 +786,13 @@ class Queue:
         return awake_events, closed_events
 
     async def process_events(
-        self, events: list[Event], batch: bool, begin_time: float
+        self,
+        events: list[Event],
+        batch: bool,
+        begin_time: float,
+        fn: BlockFunction,
     ) -> None:
         awake_events: list[Event] = []
-        fn = events[0].fn
         success = False
         try:
             for event in events:
@@ -1056,9 +1060,11 @@ class Queue:
 
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
-            start_times = event_queue.start_times_per_fn[fn]
-            if begin_time in start_times:
-                start_times.remove(begin_time)
+            start_times = event_queue.start_times_per_fn.get(fn)
+            if start_times is not None:
+                start_times.discard(begin_time)
+                if not start_times:
+                    del event_queue.start_times_per_fn[fn]
             try:
                 self.active_jobs[self.active_jobs.index(events)] = None
             except ValueError:

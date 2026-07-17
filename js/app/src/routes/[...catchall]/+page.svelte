@@ -333,11 +333,23 @@
 					}
 				});
 				stream.addEventListener("reload", async (event) => {
-					// Soft-reload: refresh config in place so in-flight SSE
-					// streams (and generators) keep working across the reload.
-					config = await app.refresh();
-					reload_count += 1;
-					window.__gradio_space__ = config.space_id;
+					try {
+						// Soft-reload: refresh config in place so in-flight SSE
+						// streams (and generators) keep working across the reload.
+						config = await app.refresh();
+						reload_count += 1;
+						window.__gradio_space__ = config.space_id;
+					} catch (error) {
+						new_message_fn(
+							"Error",
+							"Error reloading app",
+							-1,
+							"error",
+							10,
+							true
+						);
+						console.error("Error reloading app:", error);
+					}
 				});
 			}, 200);
 		}
