@@ -76,8 +76,15 @@
 
 	let {
 		server = {},
-		initialValue = null
-	}: { server?: Record<string, any>; initialValue?: string | null } = $props();
+		initialValue = null,
+		gradio_shared = undefined
+	}: {
+		server?: Record<string, any>;
+		initialValue?: string | null;
+		gradio_shared?: Record<string, any> | undefined;
+	} = $props();
+
+	const gradio_client = $derived(gradio_shared?.client);
 
 	const auth = createHFAuth(() => server);
 
@@ -1529,9 +1536,35 @@
 					])
 			: undefined;
 
-		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) =>
-					server.call_fn([fnName, argsJson])
+		const callFnWithToken = gradio_client
+			? async (fnName: string, argsJson: string) => {
+					const safeN = fnName.replace(/[^a-zA-Z0-9_-]/gu, "_");
+					const job = gradio_client.submit(`/predict_fn_${safeN}`, [argsJson]);
+					abortController?.signal.addEventListener(
+						"abort",
+						() => job.cancel(),
+						{
+							once: true
+						}
+					);
+					for await (const msg of job) {
+						if (msg.type === "data") {
+							return (msg.data as unknown[])[0] as string;
+						}
+						if (msg.type === "status" && msg.stage === "error") {
+							return JSON.stringify({
+								error: msg.message ?? "Function call failed",
+								error_type: "unknown",
+								suggestion: ""
+							});
+						}
+					}
+					return JSON.stringify({
+						error: "No data received from fn endpoint",
+						error_type: "unknown",
+						suggestion: ""
+					});
+				}
 			: undefined;
 
 		await executeWorkflow(

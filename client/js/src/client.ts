@@ -199,7 +199,10 @@ export class Client {
 		event_data?: unknown
 	) => Promise<PredictReturn<T>>;
 	open_stream: () => Promise<void>;
-	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
+	private resolve_config: (
+		endpoint: string,
+		strip_current_page?: boolean
+	) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
 	constructor(
 		app_reference: string,
@@ -362,6 +365,32 @@ export class Client {
 			this.stream_reconnect_timer = null;
 		}
 		close_stream(this.stream_status, this.abort_controller);
+	}
+
+	/**
+	 * Re-fetch the app config without closing the SSE stream.
+	 * Used by hot-reload so in-flight generators keep delivering updates.
+	 */
+	async refresh(): Promise<Config> {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		// config.root is already the app root. resolve_config normally strips the
+		// current page from its endpoint, which would strip one path segment too
+		// many when refreshing from a subpage.
+		const config = await this.resolve_config(this.config.root, false);
+		if (!config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		this.config = config;
+		this.api_prefix = config.api_prefix || "";
+		this.api_map = map_names_to_ids(config.dependencies || []);
+		try {
+			this.api_info = await this.view_api();
+		} catch (e) {
+			console.error(API_INFO_ERROR_MSG + (e as Error).message);
+		}
+		return this.get_url_config();
 	}
 
 	set_current_payload(payload: any): void {

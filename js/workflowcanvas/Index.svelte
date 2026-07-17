@@ -45,7 +45,11 @@
 </script>
 
 <div class="workflow-fullscreen">
-	<WorkflowCanvas server={serverObj} {initialValue} />
+	<WorkflowCanvas
+		server={serverObj}
+		{initialValue}
+		gradio_shared={gradio.shared}
+	/>
 </div>
 
 <style>
