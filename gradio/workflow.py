@@ -10,6 +10,7 @@ import re
 import secrets
 import sys
 import tempfile
+import threading
 import types
 import urllib.parse
 import warnings
@@ -18,6 +19,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 
+import anyio
 import httpx
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
@@ -25,6 +27,7 @@ from huggingface_hub import get_token as hf_get_token
 import gradio as gr
 from gradio.blocks import Blocks
 from gradio.components.workflowcanvas import WorkflowCanvas
+from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
@@ -67,7 +70,7 @@ class _CuratedCache(TypedDict):
 
 
 _CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
-_CURATED_LOCK = __import__("threading").Lock()
+_CURATED_LOCK = threading.Lock()
 
 
 def _bundled_snapshot_path() -> str:
@@ -135,6 +138,7 @@ logger = logging.getLogger(__name__)
 # Scalar-only — everything else (str, list, dict, custom classes) falls through
 # to the default "text" port type, which round-trips as JSON.
 _PY_TO_PORT = {int: "number", float: "number", bool: "boolean"}
+_SANITIZE_RE = re.compile(r"[^a-zA-Z0-9_-]")
 
 
 def _build_edges(
@@ -1304,6 +1308,11 @@ class Workflow(Blocks):
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
 
+        if Context.root_block is not None:
+            raise ValueError(
+                "gr.Workflow cannot be created inside another gr.Blocks context."
+            )
+
         warnings.warn(
             "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
             UserWarning,
@@ -1338,11 +1347,10 @@ class Workflow(Blocks):
                 return None
 
         bound = self._bound
+        _save_lock = threading.Lock()
 
         def call_fn(
-            data,
-            _request: Optional[Request] = None,
-            _token: Optional[OAuthToken] = None,
+            data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
         ) -> str:
             fn_name = data[0] if data else ""
             try:
@@ -1359,10 +1367,15 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
-                args, *_ = _special_args(fn, args, _request, None, token=_token)
-                result = fn(*args)
-                result = list(result) if isinstance(result, (list, tuple)) else [result]
-                return json.dumps(result)
+                args, *_ = _special_args(fn, args, request, None, token=token)
+                if inspect.iscoroutinefunction(fn):
+                    import asyncio
+
+                    result = asyncio.run(fn(*args))
+                else:
+                    result = fn(*args)
+                out = list(result) if isinstance(result, (list, tuple)) else [result]
+                return json.dumps(out)
             except Exception as e:
                 logger.error("call_fn failed for %s: %s", fn_name, e, exc_info=True)
                 return json.dumps(
@@ -1459,17 +1472,17 @@ class Workflow(Blocks):
                     WorkflowGraph(parsed)
                 except ValueError as exc:
                     return json.dumps({"error": f"Invalid workflow schema: {exc}"})
-                with open(workflow_file, "w", encoding="utf-8") as f:
-                    f.write(payload)
-                # Re-derive API endpoints so /info + /call track the saved graph
-                # (outputs added / removed / renamed / retyped).
-                if self._api_endpoints is not None:
-                    try:
-                        self._api_endpoints.sync()
-                    except Exception:
-                        logger.error(
-                            "Workflow: endpoint sync after save failed", exc_info=True
-                        )
+                with _save_lock:
+                    with open(workflow_file, "w", encoding="utf-8") as f:
+                        f.write(payload)
+                    if self._api_endpoints is not None:
+                        try:
+                            self._api_endpoints.sync()
+                        except Exception:
+                            logger.error(
+                                "Workflow: endpoint sync after save failed",
+                                exc_info=True,
+                            )
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
@@ -1491,7 +1504,6 @@ class Workflow(Blocks):
             curated_modalities,
             curated_modality_tasks,
             get_dataset_schema,
-            call_fn,
             list_bound_fns,
             get_workflow_api,
             save_workflow,
@@ -1520,6 +1532,51 @@ class Workflow(Blocks):
                 server_functions=server_functions,
             )
 
+        def _wrap_bound_fn(fn: Callable) -> Callable:
+            async def wrapper(
+                args_json: str,
+                _request: Optional[Request] = None,
+                _token: Optional[OAuthToken] = None,
+            ) -> str:
+                args = json.loads(args_json)
+                if not isinstance(args, list):
+                    args = [args]
+                args, *_ = _special_args(fn, args, _request, None, token=_token)
+                try:
+                    result = (
+                        await fn(*args)
+                        if inspect.iscoroutinefunction(fn)
+                        else await anyio.to_thread.run_sync(
+                            lambda: fn(*args), limiter=self.limiter
+                        )
+                    )
+                except Exception as e:
+                    raise gr.Error(str(e)) from e
+                out = list(result) if isinstance(result, (list, tuple)) else [result]
+                return json.dumps(out)
+
+            return wrapper
+
+        if bound:
+            from gradio.workflow_api import _active_blocks
+
+            if len(bound) != len({_SANITIZE_RE.sub("_", n) for n in bound}):
+                sanitized = [_SANITIZE_RE.sub("_", n) for n in bound]
+                dupes = {s for s in sanitized if sanitized.count(s) > 1}
+                raise ValueError(
+                    f"gr.Workflow: bound function names produce duplicate endpoint "
+                    f"names after sanitizing: {dupes}. Rename one."
+                )
+
+            with _active_blocks(self):
+                for fn_name, fn in bound.items():
+                    sanitized_name = _SANITIZE_RE.sub("_", fn_name)
+                    gr.api(
+                        _wrap_bound_fn(fn),
+                        api_name=f"predict_fn_{sanitized_name}",
+                        concurrency_limit="default",
+                        api_visibility="undocumented",
+                    )
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
