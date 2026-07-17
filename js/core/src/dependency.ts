@@ -263,6 +263,7 @@ export class DependencyManager {
 		client: Client
 	) {
 		const { by_id, by_event } = this.create(dependencies);
+		this.register_loading_stati(by_id);
 		const by_api_name = new Map(
 			Array.from(by_id.values())
 				.filter((dep) => dep.api_name !== null)
@@ -310,7 +311,6 @@ export class DependencyManager {
 				this.set_event_args(output_id, dep.event_args);
 			}
 		}
-		this.register_loading_stati(by_id);
 		// Wait for remounted components to register before pushing status, so
 		// loading_status reaches them via set_data rather than being dropped
 		// (pending updates intentionally exclude loading_status).

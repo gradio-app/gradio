@@ -62,6 +62,7 @@ describe("DependencyManager.reload", () => {
 		);
 
 		expect(active_dependency.outputs).toEqual([21]);
+		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([21]);
 		expect(dependency_manager.dependencies_by_fn.get(0)?.api_name).toBe(
 			"unrelated"
 		);
@@ -79,5 +80,6 @@ describe("DependencyManager.reload", () => {
 		);
 
 		expect(active_dependency.outputs).toEqual([32]);
+		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
 	});
 });
