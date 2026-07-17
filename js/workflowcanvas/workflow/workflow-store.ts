@@ -94,7 +94,7 @@ export function sanitize_for_save(wf: Workflow): Workflow {
 }
 
 // ─── Actions ────────────────────────────────────────────────────────────────
-export const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
+const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
 	boolean: false,
 	number: 0,
 	text: ""
