@@ -319,6 +319,28 @@ export class Client {
 		close_stream(this.stream_status, this.abort_controller);
 	}
 
+	/**
+	 * Re-fetch the app config without closing the SSE stream.
+	 * Used by hot-reload so in-flight generators keep delivering updates.
+	 */
+	async refresh(): Promise<Config> {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		const config = await this.resolve_config(this.config.root);
+		if (!config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		this.config = config;
+		this.api_prefix = config.api_prefix || "";
+		try {
+			this.api_info = await this.view_api();
+		} catch (e) {
+			console.error(API_INFO_ERROR_MSG + (e as Error).message);
+		}
+		return this.get_url_config();
+	}
+
 	set_current_payload(payload: any): void {
 		this.current_payload = payload;
 	}

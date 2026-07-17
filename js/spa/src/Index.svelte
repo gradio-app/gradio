@@ -419,19 +419,9 @@
 					}
 				});
 				stream.addEventListener("reload", async (event) => {
-					app.close();
-					app = await Client.connect(api_url, {
-						status_callback: handle_status,
-						with_null_state: true,
-						events: ["data", "log", "status", "render"],
-						session_hash: app.session_hash
-					});
-
-					if (!app.config) {
-						throw new Error("Could not resolve app config");
-					}
-
-					config = app.get_url_config() as unknown as Config;
+					// Soft-reload: refresh config in place so in-flight SSE
+					// streams (and generators) keep working across the reload.
+					config = await app.refresh();
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
 					await add_custom_html_head(config.head);

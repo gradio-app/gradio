@@ -20,6 +20,49 @@ export class LoadingStatus {
 		this.show_progress[dependency_id] = show_progress;
 	}
 
+	/**
+	 * Move in-flight loading status from old component ids to new ones after a
+	 * hot-reload remounts the UI with fresh ids.
+	 */
+	remap_ids(
+		fn_index: number,
+		old_outputs: number[],
+		new_outputs: number[],
+		old_inputs: number[],
+		new_inputs: number[]
+	): void {
+		const remap = (old_ids: number[], new_ids: number[]): void => {
+			const n = Math.min(old_ids.length, new_ids.length);
+			for (let i = 0; i < n; i++) {
+				const old_id = old_ids[i];
+				const new_id = new_ids[i];
+				if (old_id === new_id) continue;
+				if (old_id in this.current) {
+					this.current[new_id] = {
+						...this.current[old_id],
+						component_id: new_id
+					};
+					delete this.current[old_id];
+				}
+				if (this.pending_outputs.has(old_id)) {
+					this.pending_outputs.set(
+						new_id,
+						this.pending_outputs.get(old_id) as number
+					);
+					this.pending_outputs.delete(old_id);
+				}
+			}
+			for (let i = new_ids.length; i < old_ids.length; i++) {
+				delete this.current[old_ids[i]];
+				this.pending_outputs.delete(old_ids[i]);
+			}
+		};
+		remap(old_outputs, new_outputs);
+		remap(old_inputs, new_inputs);
+		this.fn_outputs[fn_index] = new_outputs;
+		this.fn_inputs[fn_index] = new_inputs;
+	}
+
 	clear(id: number): void {
 		if (id in this.current) {
 			//@ts-ignore
@@ -59,6 +102,19 @@ export class LoadingStatus {
 				cache_duration,
 				avg_time
 			}) => {
+				const prev = this.current[id];
+				const time_start =
+					status === "pending"
+						? (prev?.time_start ?? performance.now())
+						: null;
+				let eta_total: number | null = null;
+				if (status === "pending" && time_start != null) {
+					if (eta != null && (prev?.eta_total == null || prev.eta !== eta)) {
+						eta_total = (performance.now() - time_start) / 1000 + eta;
+					} else {
+						eta_total = prev?.eta_total ?? null;
+					}
+				}
 				this.current[id] = {
 					queue: args.queue || false,
 					queue_size: queue_size,
@@ -71,6 +127,8 @@ export class LoadingStatus {
 					status,
 					fn_index: args.fn_index,
 					time_limit,
+					time_start,
+					eta_total,
 					type,
 					show_progress: this.show_progress[args.fn_index],
 					used_cache,

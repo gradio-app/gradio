@@ -17,6 +17,7 @@ import type {
 	ValidationError,
 	LogMessage
 } from "@gradio/client";
+import { settled } from "svelte";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -258,6 +259,31 @@ export class DependencyManager {
 		client: Client
 	) {
 		const { by_id, by_event } = this.create(dependencies);
+		// In-flight submit loops hold references to the old Dependency objects.
+		// Point their inputs/outputs at the new component ids so yields after a
+		// hot-reload update the remounted UI (matched by fn_index).
+		for (const [dep_id, old_dep] of this.dependencies_by_fn) {
+			if (!this.submissions.has(dep_id)) continue;
+			const new_dep = by_id.get(dep_id);
+			if (!new_dep) continue;
+			this.loading_stati.remap_ids(
+				dep_id,
+				old_dep.show_progress_on || old_dep.outputs,
+				new_dep.show_progress_on || new_dep.outputs,
+				old_dep.inputs,
+				new_dep.inputs
+			);
+			old_dep.inputs = new_dep.inputs;
+			old_dep.outputs = new_dep.outputs;
+			old_dep.cancels = new_dep.cancels;
+			old_dep.targets = new_dep.targets;
+			old_dep.show_progress = new_dep.show_progress;
+			old_dep.show_progress_on = new_dep.show_progress_on;
+			old_dep.connection_type = new_dep.connection_type;
+			old_dep.functions = new_dep.functions;
+			old_dep.event_args = new_dep.event_args;
+			old_dep.component_prop_inputs = new_dep.component_prop_inputs;
+		}
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
 		this.client = client;
@@ -270,6 +296,10 @@ export class DependencyManager {
 			}
 		}
 		this.register_loading_stati(by_id);
+		// Wait for remounted components to register before pushing status, so
+		// loading_status reaches them via set_data rather than being dropped
+		// (pending updates intentionally exclude loading_status).
+		void settled().then(() => this.update_loading_stati_state());
 	}
 	register_loading_stati(deps: Map<number, Dependency>): void {
 		for (const [_, dep] of deps) {
@@ -287,17 +317,18 @@ export class DependencyManager {
 	}
 
 	async update_loading_stati_state() {
-		for (const [component_id, loading_status] of Object.entries(
-			this.loading_stati.current
-		)) {
-			this.update_state_cb(
-				Number(component_id),
-				{
-					loading_status: loading_status
-				},
-				false
-			);
-		}
+		await Promise.all(
+			Object.entries(this.loading_stati.current).map(
+				([component_id, loading_status]) =>
+					this.update_state_cb(
+						Number(component_id),
+						{
+							loading_status: loading_status
+						},
+						false
+					)
+			)
+		);
 	}
 
 	dispatch_state_change_events(result: StatusMessage): void {
