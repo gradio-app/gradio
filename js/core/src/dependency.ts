@@ -299,7 +299,11 @@ export class DependencyManager {
 		// Wait for remounted components to register before pushing status, so
 		// loading_status reaches them via set_data rather than being dropped
 		// (pending updates intentionally exclude loading_status).
-		void settled().then(() => this.update_loading_stati_state());
+		void settled()
+			.then(() => this.update_loading_stati_state())
+			.catch(() => {
+				// fire-and-forget: components may unmount mid-update during teardown
+			});
 	}
 	register_loading_stati(deps: Map<number, Dependency>): void {
 		for (const [_, dep] of deps) {

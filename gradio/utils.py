@@ -504,12 +504,14 @@ def reassign_pending_event_fns(new_blocks: "Blocks"):
     }
 
     def all_events():
-        for job in queue.active_jobs:
+        # Snapshot each collection: reload runs on a watcher thread while the
+        # server's event loop mutates these queue structures concurrently.
+        for job in list(queue.active_jobs):
             if job:
                 yield from job
-        for event_queue in queue.event_queue_per_concurrency_id.values():
-            yield from event_queue.queue
-        yield from queue.event_ids_to_events.values()
+        for event_queue in list(queue.event_queue_per_concurrency_id.values()):
+            yield from list(event_queue.queue)
+        yield from list(queue.event_ids_to_events.values())
 
     for event in all_events():
         new_fn = new_fns_by_api_name.get(event.fn.api_name)
