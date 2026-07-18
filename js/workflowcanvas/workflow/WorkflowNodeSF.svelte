@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { resizeNode, toggle_port_hidden, workflow } from "./workflow-store";
+	import { resizeNode, workflow } from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -79,7 +79,6 @@
 	let editingLabel = $state(false);
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
-	let showHidden = $state(false);
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
@@ -365,10 +364,7 @@
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
-				{@const hiddenByUser = (node.hidden_ports ?? []).includes(port.id)}
-				{@const visible = !hiddenByUser
-					? showAllInputs || portConnected || port.required !== false
-					: showHidden}
+				{@const visible = showAllInputs || portConnected || port.required !== false}
 				{#if visible}
 					{@const inlineWidget =
 						!portConnected &&
@@ -380,7 +376,6 @@
 						class="port-row input-row"
 						class:widget-port={hasWidget}
 						class:port-row-inline={inlineWidget}
-						class:port-row-hidden={hiddenByUser}
 						onmousedown={inlineWidget ? (e) => e.stopPropagation() : undefined}
 					>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -454,34 +449,10 @@
 								</label>
 							{/if}
 						{/if}
-						{#if !readOnly && !portConnected && node.source === "model"}
-							{#if hiddenByUser}
-								<button
-									class="port-hide-btn port-restore-btn"
-									title="Restore"
-									onpointerdown={(e) => e.stopPropagation()}
-									onclick={(e) => {
-										e.stopPropagation();
-										toggle_port_hidden(node.id, port.id);
-									}}>+</button
-								>
-							{:else}
-								<button
-									class="port-hide-btn"
-									title="Hide"
-									onpointerdown={(e) => e.stopPropagation()}
-									onclick={(e) => {
-										e.stopPropagation();
-										toggle_port_hidden(node.id, port.id);
-									}}>−</button
-								>
-							{/if}
-						{/if}
 					</div>
 					{#if !portConnected && node.kind === "transform" && !inlineWidget && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 						<div
 							class="port-inline-config"
-							class:port-row-hidden={hiddenByUser}
 							onmousedown={(e) => e.stopPropagation()}
 						>
 							{#if port.choices && port.choices.length > 0 && port.multiselect}
@@ -577,18 +548,6 @@
 					{/if}
 				{/if}
 			{/each}
-			{#if node.source === "model" && (node.hidden_ports ?? []).length > 0}
-				{@const hp = (node.hidden_ports ?? []).length}
-				<button
-					class="ports-toggle"
-					onpointerdown={(e) => e.stopPropagation()}
-					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => {
-						e.stopPropagation();
-						showHidden = !showHidden;
-					}}>{showHidden ? "▴" : "▾"} {hp} hidden</button
-				>
-			{/if}
 			{#if collapsible}
 				<button
 					class="ports-toggle"
@@ -1017,54 +976,6 @@
 		font-size: 9px;
 		font-weight: 500;
 		opacity: 0.5;
-	}
-
-	.port-hide-btn {
-		margin-left: auto;
-		background: none;
-		border: 1px solid transparent;
-		border-radius: 3px;
-		color: #3e3f4d;
-		font-size: 13px;
-		line-height: 1;
-		padding: 1px 5px;
-		cursor: pointer;
-		opacity: 0;
-		transition:
-			opacity 0.12s,
-			background 0.12s,
-			border-color 0.12s,
-			color 0.12s;
-		flex-shrink: 0;
-	}
-
-	.port-row:hover .port-hide-btn {
-		opacity: 1;
-	}
-
-	.port-hide-btn:hover {
-		background: rgba(220, 60, 60, 0.12);
-		border-color: rgba(220, 60, 60, 0.3);
-		color: #e05555;
-	}
-
-	.port-restore-btn {
-		opacity: 1;
-		color: #4a9d6f;
-	}
-
-	.port-restore-btn:hover {
-		background: rgba(74, 157, 111, 0.12);
-		border-color: rgba(74, 157, 111, 0.3);
-		color: #4a9d6f;
-	}
-
-	.port-row-hidden {
-		opacity: 0.4;
-	}
-
-	.port-row-hidden:hover {
-		opacity: 0.7;
 	}
 
 	/* Port handles (plain divs, positioned on each port-row) */

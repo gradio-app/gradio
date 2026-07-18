@@ -606,12 +606,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
     "text_to_image": {
         "inputs": [
             {"id": "prompt", "label": "Prompt", "type": "text"},
-            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
-            {"id": "height", "label": "Height", "type": "number"},
-            {"id": "width", "label": "Width", "type": "number"},
-            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
-            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
-            {"id": "seed", "label": "Seed", "type": "number"},
         ],
         "outputs": [
             {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
@@ -628,11 +622,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
     "text_to_video": {
         "inputs": [
             {"id": "prompt", "label": "Prompt", "type": "text"},
-            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
-            {"id": "num_frames", "label": "Frames", "type": "number"},
-            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
-            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
-            {"id": "seed", "label": "Seed", "type": "number"},
         ],
         "outputs": [
             {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
@@ -642,9 +631,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
         "inputs": [
             {"id": "image", "label": "Image", "type": "image"},
             {"id": "prompt", "label": "Prompt", "type": "text"},
-            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
-            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
-            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
         ],
         "outputs": [
             {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
@@ -654,11 +640,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
         "inputs": [
             {"id": "image", "label": "Image", "type": "image"},
             {"id": "prompt", "label": "Prompt", "type": "text"},
-            {"id": "negative_prompt", "label": "Negative Prompt", "type": "text"},
-            {"id": "num_frames", "label": "Frames", "type": "number"},
-            {"id": "num_inference_steps", "label": "Steps", "type": "number"},
-            {"id": "guidance_scale", "label": "Guidance Scale", "type": "number"},
-            {"id": "seed", "label": "Seed", "type": "number"},
         ],
         "outputs": [
             {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
@@ -667,9 +648,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
     "text_generation": {
         "inputs": [
             {"id": "prompt", "label": "Prompt", "type": "text"},
-            {"id": "max_new_tokens", "label": "Max Tokens", "type": "number"},
-            {"id": "temperature", "label": "Temperature", "type": "number"},
-            {"id": "top_p", "label": "Top P", "type": "number"},
         ],
         "outputs": [
             {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
