@@ -308,7 +308,7 @@
 					? height + "px"
 					: height
 				: "100%"}
-		tabindex={hidden ? -1 : 0}
+		tabindex={hidden || disable_click ? -1 : 0}
 		use:drag={{
 			on_drag_change: (d) => (dragging = d),
 			on_files: (files) => load_files_from_upload(files),
