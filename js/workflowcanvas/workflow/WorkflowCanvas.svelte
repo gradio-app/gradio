@@ -2270,8 +2270,14 @@
 							</div>
 						{/if}
 					</div>
-				{:else if auth.isHFSpace && auth.oauthAvailable}
-					<button class="toolbar-login-btn" onclick={auth.signIn}
+				{:else if auth.isHFSpace}
+					<button
+						class="toolbar-login-btn"
+						onclick={auth.signIn}
+						disabled={!auth.oauthAvailable}
+						title={auth.oauthAvailable
+							? undefined
+							: "OAuth is not enabled for this Space. If you're the owner, add `hf_oauth: true` to the Space README and redeploy."}
 						>Sign in with 🤗</button
 					>
 				{:else}
@@ -2823,10 +2829,14 @@
 		border-color: #e2e4ea;
 		color: #6b6e78;
 	}
-	:global(body:not(.dark) .toolbar-login-btn:hover) {
+	:global(body:not(.dark) .toolbar-login-btn:hover:not(:disabled)) {
 		background: #f0f1f5;
 		color: #1a1b25;
 		border-color: #d0d2dc;
+	}
+	:global(.toolbar-login-btn:disabled) {
+		opacity: 0.45;
+		cursor: not-allowed;
 	}
 	:global(body:not(.dark) .toolbar-user-chip) {
 		border-color: #e2e4ea;
