@@ -368,7 +368,8 @@
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
-				{@const visible = showAllInputs || portConnected || port.required !== false}
+				{@const visible =
+					showAllInputs || portConnected || port.required !== false}
 				{#if visible}
 					{@const inlineWidget =
 						!portConnected &&
