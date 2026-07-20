@@ -27,6 +27,7 @@ from typing import (
     cast,
 )
 
+import anyio
 import fastapi
 import httpx
 import markupsafe
@@ -276,7 +277,9 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path or ""
+        self.root_path = blocks.root_path or (
+            "" if blocks.custom_mount_path is not None else self.root_path
+        )
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -1689,7 +1692,9 @@ class App(FastAPI):
             if inspect.iscoroutinefunction(fn):
                 return await fn(*processed_input)
             else:
-                return fn(*processed_input)
+                return await anyio.to_thread.run_sync(
+                    fn, *processed_input, limiter=app.get_blocks().limiter
+                )
 
         @router.get(
             "/queue/status",

@@ -105,7 +105,7 @@ import gradio as gr
 gr.Interface(
     predict,
     inputs=[
-        gr.Slider(0, 1000, label='Seed', default=42),
+        gr.Slider(0, 1000, label='Seed', value=42),
     ],
     outputs="image",
 ).launch()
@@ -120,8 +120,8 @@ Generating 4 punks at a time is a good start, but maybe we'd like to control how
 gr.Interface(
     predict,
     inputs=[
-        gr.Slider(0, 1000, label='Seed', default=42),
-        gr.Slider(4, 64, label='Number of Punks', step=1, default=10), # Adding another slider!
+        gr.Slider(0, 1000, label='Seed', value=42),
+        gr.Slider(4, 64, label='Number of Punks', step=1, value=10), # Adding another slider!
     ],
     outputs="image",
 ).launch()
@@ -151,7 +151,8 @@ gr.Interface(
     # ...
     # keep everything as it is, and then add
     examples=[[123, 15], [42, 29], [456, 8], [1337, 35]],
-).launch(cache_examples=True) # cache_examples is optional
+    cache_examples=True, # cache_examples is optional
+).launch()
 ```
 
 The `examples` parameter takes a list of lists, where each item in the sublists is ordered in the same order that we've listed the `inputs`. So in our case, `[seed, num_punks]`. Give it a try!
@@ -206,12 +207,13 @@ def predict(seed, num_punks):
 gr.Interface(
     predict,
     inputs=[
-        gr.Slider(0, 1000, label='Seed', default=42),
-        gr.Slider(4, 64, label='Number of Punks', step=1, default=10),
+        gr.Slider(0, 1000, label='Seed', value=42),
+        gr.Slider(4, 64, label='Number of Punks', step=1, value=10),
     ],
     outputs="image",
     examples=[[123, 15], [42, 29], [456, 8], [1337, 35]],
-).launch(cache_examples=True)
+    cache_examples=True,
+).launch()
 ```
 
 ---

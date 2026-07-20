@@ -1,5 +1,13 @@
 # @gradio/client
 
+## 2.3.1
+
+### Fixes
+
+- [#13588](https://github.com/gradio-app/gradio/pull/13588) [`2e80558`](https://github.com/gradio-app/gradio/commit/2e805588c8dc84a4a584898fd43b267c72209f78) - Fire `state.change()` for streaming (`.stream()`) events.  Thanks @hysts!
+- [#13581](https://github.com/gradio-app/gradio/pull/13581) [`461d82d`](https://github.com/gradio-app/gradio/commit/461d82df2689ec0c53e84b8722eaeae58fd2a6ae) - Use same-origin credentials in the JS client so cross-origin embeds work again.  Thanks @hysts!
+- [#13579](https://github.com/gradio-app/gradio/pull/13579) [`3d26f41`](https://github.com/gradio-app/gradio/commit/3d26f41c4a3bfa31ea01c4ae0d082a9fc9ed0bc7) - Make `Client.predict()` reject its returned promise on unknown endpoints so the error is catchable.  Thanks @abidlabs!
+
 ## 2.3.0
 
 ### Features

@@ -344,6 +344,7 @@ export function handle_message(
 					time_limit: data.time_limit,
 					code: data.code,
 					progress_data: data.progress_data,
+					changed_state_ids: data.output.changed_state_ids,
 					eta: data.eta
 				},
 				data: data.output
