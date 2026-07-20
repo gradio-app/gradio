@@ -13,7 +13,7 @@ from gradio.route_utils import Request
 from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
-    _apply_args,
+    _dispatch_model_endpoint,
     _get_locally_saved_hf_token,
     _request_has_write_token,
     _resolve_token,
@@ -400,22 +400,54 @@ class TestWorkflowFromBind:
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
 
 
-class TestApplyArgs:
-    def test_behavior(self):
-        def fn(prompt: str, negative_prompt: str = "", width: int = 512): ...
-        def fn_img(image, prompt: str = ""): ...
+class TestDispatchModelEndpoint:
+    def test_legacy_in_n_port_ids_remap_to_schema_names(self):
+        client = MagicMock()
+        client.visual_question_answering.return_value = []
+        _dispatch_model_endpoint(
+            client,
+            "visual_question_answering",
+            {"in_0": {"url": "/f/a.png"}, "in_1": "what is this?"},
+        )
+        client.visual_question_answering.assert_called_once_with(
+            image="/f/a.png", question="what is this?"
+        )
 
-        assert _apply_args(fn, ["hello", None, 768]) == {
-            "prompt": "hello",
-            "width": 768,
-        }
-        assert _apply_args(fn, ["hi", ""]) == {"prompt": "hi"}
-        assert _apply_args(
-            fn_img, [{"url": "/f/a.png"}, "cat"], image_positions=(0,)
-        ) == {
-            "image": "/f/a.png",
-            "prompt": "cat",
-        }
+    def test_list_kwargs_coerced_from_strings(self):
+        client = MagicMock()
+        client.zero_shot_classification.return_value = []
+        _dispatch_model_endpoint(
+            client,
+            "zero_shot_classification",
+            {"text": "hello", "candidate_labels": "spam, ham\neggs"},
+        )
+        client.zero_shot_classification.assert_called_once_with(
+            text="hello", candidate_labels=["spam", "ham", "eggs"]
+        )
+
+        client.sentence_similarity.return_value = [0.5]
+        _dispatch_model_endpoint(
+            client,
+            "sentence_similarity",
+            {"sentence": "a, b", "other_sentences": "one, two\nthree"},
+        )
+        client.sentence_similarity.assert_called_once_with(
+            sentence="a, b", other_sentences=["one, two", "three"]
+        )
+
+    def test_zero_shot_without_labels_falls_back_to_text_classification(self):
+        client = MagicMock()
+        client.text_classification.return_value = []
+        _dispatch_model_endpoint(client, "zero_shot_classification", {"text": "hello"})
+        client.text_classification.assert_called_once_with(text="hello")
+        client.zero_shot_classification.assert_not_called()
+
+    def test_unsupported_endpoint_raises_clear_error(self):
+        from huggingface_hub import InferenceClient
+
+        client = InferenceClient(model="owner/model")
+        with pytest.raises(ValueError, match="huggingface_hub"):
+            _dispatch_model_endpoint(client, "depth_estimation", {})
 
 
 class TestGetModelEndpoints:
@@ -471,6 +503,48 @@ class TestCallModel:
                     ["owner/m", "no_such_method", json.dumps({"x": 1}), None, "auto"]
                 )
             )
+
+    def test_legacy_list_args_map_onto_endpoint_schema(self):
+        with patch("huggingface_hub.InferenceClient") as mock_client:
+            mock_client.return_value.image_classification.return_value = [
+                SimpleNamespace(label="cat", score=0.9)
+            ]
+            result = json.loads(
+                call_model(
+                    [
+                        "owner/m",
+                        "image-classification",
+                        json.dumps([{"url": "/f/a.png"}]),
+                        None,
+                        "auto",
+                    ]
+                )
+            )
+        mock_client.return_value.image_classification.assert_called_once_with(
+            image="/f/a.png"
+        )
+        assert result == [[{"label": "cat", "score": 0.9}]]
+
+    def test_legacy_question_answering_returns_top_answer(self):
+        with patch("huggingface_hub.InferenceClient") as mock_client:
+            mock_client.return_value.question_answering.return_value = [
+                SimpleNamespace(answer="42", score=0.99)
+            ]
+            result = json.loads(
+                call_model(
+                    [
+                        "owner/m",
+                        "question-answering",
+                        json.dumps(["q?", "context"]),
+                        None,
+                        "auto",
+                    ]
+                )
+            )
+        mock_client.return_value.question_answering.assert_called_once_with(
+            question="q?", context="context"
+        )
+        assert result == ["42"]
 
 
 class TestCallModelValidation:

@@ -52,6 +52,5 @@ export const PIPELINE_TAG_TO_ENDPOINT: Record<string, string> = {
 	"automatic-speech-recognition": "automatic_speech_recognition",
 	"audio-classification": "audio_classification",
 	"visual-question-answering": "visual_question_answering",
-	"document-question-answering": "document_question_answering",
-	"depth-estimation": "depth_estimation"
+	"document-question-answering": "document_question_answering"
 };

@@ -378,25 +378,6 @@ def _img_url(a) -> str:
     return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
 
 
-def _apply_args(fn, args: list, image_positions: tuple = ()) -> dict:
-    sig = inspect.signature(fn)
-    param_names = [
-        name
-        for name, p in sig.parameters.items()
-        if name != "self"
-        and p.kind
-        not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
-    ]
-    kwargs: dict = {}
-    for i, val in enumerate(args):
-        if i >= len(param_names):
-            break
-        if val is None or val == "":
-            continue
-        kwargs[param_names[i]] = _img_url(val) if i in image_positions else val
-    return kwargs
-
-
 def _classify_error(e: Exception) -> dict:
     http_status: int | None = None
     response = getattr(e, "response", None)
@@ -696,7 +677,7 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
     "zero_shot_classification": {
         "inputs": [
             {"id": "text", "label": "Text", "type": "text"},
-            {"id": "labels", "label": "Labels", "type": "text"},
+            {"id": "candidate_labels", "label": "Candidate Labels", "type": "text"},
         ],
         "outputs": [
             {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
@@ -780,32 +761,72 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
         ],
     },
-    "depth_estimation": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [
-            {"id": "out_0", "label": "Depth", "type": "image", "output_index": 0}
-        ],
-    },
 }
 
 
 _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
     "text_to_image": "png",
     "image_to_image": "png",
-    "mask_generation": "png",
-    "depth_estimation": "png",
     "text_to_speech": "wav",
-    "text_to_audio": "wav",
     "text_to_video": "mp4",
     "image_to_video": "mp4",
+}
+
+
+# Legacy pipeline tags (as sent by older saved workflows and the browser
+# executor) → InferenceClient endpoint names. depth-estimation is absent on
+# purpose: InferenceClient has no such method, so it keeps its raw-POST branch
+# in call_model. Unmapped tags fall through to the chat/raw-POST fallback.
+_PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
+    "text-generation": "text_generation",
+    "text2text-generation": "text_generation",
+    "conversational": "text_generation",
+    "summarization": "summarization",
+    "translation": "translation",
+    "fill-mask": "fill_mask",
+    "text-classification": "text_classification",
+    "token-classification": "token_classification",
+    "zero-shot-classification": "zero_shot_classification",
+    "sentence-similarity": "sentence_similarity",
+    "question-answering": "question_answering",
+    "feature-extraction": "feature_extraction",
+    "text-to-image": "text_to_image",
+    "text-to-speech": "text_to_speech",
+    "text-to-audio": "text_to_speech",
+    "text-to-video": "text_to_video",
+    "image-to-image": "image_to_image",
+    "image-to-video": "image_to_video",
+    "image-classification": "image_classification",
+    "object-detection": "object_detection",
+    "image-segmentation": "image_segmentation",
+    "image-to-text": "image_to_text",
+    "automatic-speech-recognition": "automatic_speech_recognition",
+    "audio-classification": "audio_classification",
+    "visual-question-answering": "visual_question_answering",
+    "document-question-answering": "document_question_answering",
+    "image-text-to-text": "visual_question_answering",
+}
+
+
+# Client params that expect a list of strings; port values arrive as a single
+# string, split on the given pattern.
+_ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
+    "zero_shot_classification": {"candidate_labels": r"[\n,]"},
+    "sentence_similarity": {"other_sentences": r"\n"},
 }
 
 
 def get_model_endpoints(
     _data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
+    from huggingface_hub import InferenceClient
+
+    # Only advertise endpoints the installed huggingface_hub can actually run,
+    # so the UI never shapes a node around a method that would fail server-side.
     endpoints = [
-        {"name": name, **schema} for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
+        {"name": name, **schema}
+        for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
+        if getattr(InferenceClient, name, None) is not None
     ]
     return json.dumps(endpoints)
 
@@ -814,26 +835,66 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     """Call client.<endpoint>(**kwargs) and serialize the result."""
     fn = getattr(client, endpoint, None)
     if fn is None:
-        raise ValueError(f"InferenceClient has no method '{endpoint}'")
-    clean = {
-        k: (_img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v)
-        for k, v in kwargs.items()
-        if v is not None and v != ""
-    }
-    result = fn(**clean)
+        import huggingface_hub
+
+        raise ValueError(
+            f"Task '{endpoint}' is not supported by the installed huggingface_hub "
+            f"version ({huggingface_hub.__version__}). Upgrade it with "
+            "`pip install -U huggingface_hub`."
+        )
+    schema_ids = [
+        p["id"] for p in _INFERENCE_ENDPOINT_SCHEMAS.get(endpoint, {}).get("inputs", [])
+    ]
+    clean: dict = {}
+    for k, v in kwargs.items():
+        if v is None or v == "":
+            continue
+        legacy = re.fullmatch(r"in_(\d+)", k)
+        if legacy and k not in schema_ids and int(legacy.group(1)) < len(schema_ids):
+            # positional port IDs from workflows saved before endpoint schemas
+            k = schema_ids[int(legacy.group(1))]
+        clean[k] = (
+            _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
+        )
+    for key, sep in _ENDPOINT_LIST_KWARGS.get(endpoint, {}).items():
+        if isinstance(clean.get(key), str):
+            clean[key] = [s.strip() for s in re.split(sep, clean[key]) if s.strip()]
+    if endpoint == "zero_shot_classification" and not clean.get("candidate_labels"):
+        # without labels, fall back to scoring with the model's own label set
+        return _dispatch_model_endpoint(
+            client, "text_classification", {"text": clean.get("text", "")}
+        )
+    if endpoint == "text_generation":
+        clean.setdefault("max_new_tokens", 512)
+        try:
+            result = fn(**clean)
+        except Exception as inner:
+            msg = str(inner).lower()
+            if "not supported" in msg and "conversational" in msg:
+                r = client.chat_completion(
+                    [{"role": "user", "content": clean.get("prompt", "")}],
+                    max_tokens=512,
+                )
+                result = r.choices[0].message.content
+            else:
+                raise
+    else:
+        result = fn(**clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
         return json.dumps([_save_tmp(result, ext)])
-    if hasattr(result, "summary_text"):
-        return json.dumps([result.summary_text])
-    if hasattr(result, "translation_text"):
-        return json.dumps([result.translation_text])
-    if hasattr(result, "generated_text"):
-        return json.dumps([result.generated_text])
-    if hasattr(result, "text"):
-        return json.dumps([result.text])
-    if hasattr(result, "answer"):
-        return json.dumps([result.answer])
+    if isinstance(result, list) and result and hasattr(result[0], "answer"):
+        # question-answering-style outputs: surface the top answer
+        result = result[0]
+    for attr in (
+        "summary_text",
+        "translation_text",
+        "generated_text",
+        "text",
+        "answer",
+    ):
+        if hasattr(result, attr):
+            return json.dumps([getattr(result, attr)])
     if isinstance(result, list):
 
         def _item(r):
@@ -841,7 +902,10 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 return {k: v for k, v in vars(r).items() if not k.startswith("_")}
             return r
 
-        return json.dumps([[_item(r) for r in result]])
+        return json.dumps(
+            [[_item(r) for r in result]],
+            default=lambda o: vars(o) if hasattr(o, "__dict__") else str(o),
+        )
     if hasattr(result, "tolist"):
         return json.dumps([result.tolist()])
     return json.dumps(
@@ -881,153 +945,6 @@ def call_model(
         a0 = args[0] if args else ""
         a1 = args[1] if len(args) > 1 else ""
 
-        if task in (
-            "text-generation",
-            "text2text-generation",
-            "conversational",
-        ):
-            try:
-                result = client.text_generation(a0, max_new_tokens=512)
-            except Exception as inner:
-                msg = str(inner).lower()
-                if "not supported" in msg and "conversational" in msg:
-                    r = client.chat_completion(
-                        [{"role": "user", "content": a0}], max_tokens=512
-                    )
-                    result = r.choices[0].message.content
-                else:
-                    raise
-            return json.dumps([result])
-        if task == "summarization":
-            return json.dumps([client.summarization(a0).summary_text])
-        if task == "translation":
-            return json.dumps([client.translation(a0).translation_text])
-        if task in ("text-classification", "zero-shot-classification"):
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.text_classification(a0)
-                    ]
-                ]
-            )
-        if task == "token-classification":
-            return json.dumps(
-                [
-                    [
-                        {
-                            "entity_group": r.entity_group,
-                            "word": r.word,
-                            "score": r.score,
-                        }
-                        for r in client.token_classification(a0)
-                    ]
-                ]
-            )
-        if task == "fill-mask":
-            return json.dumps(
-                [
-                    [
-                        {
-                            "token_str": r.token_str,
-                            "score": r.score,
-                            "sequence": r.sequence,
-                        }
-                        for r in client.fill_mask(a0)
-                    ]
-                ]
-            )
-        if task == "question-answering":
-            qa_result = client.question_answering(question=a0, context=a1)
-            qa_answer = (
-                qa_result[0].answer if isinstance(qa_result, list) else qa_result.answer
-            )  # type: ignore[union-attr]
-            return json.dumps([qa_answer])
-        if task == "feature-extraction":
-            r = client.feature_extraction(a0)
-            return json.dumps([r.tolist() if hasattr(r, "tolist") else r])
-        if task == "sentence-similarity":
-            return json.dumps(
-                [client.sentence_similarity(a0, a1.split("\n") if a1 else [])]
-            )
-        if task == "text-to-image":
-            kwargs = _apply_args(client.text_to_image, args)
-            return json.dumps([_save_tmp(client.text_to_image(**kwargs), "png")])
-        if task in ("text-to-speech", "text-to-audio"):
-            kwargs = _apply_args(client.text_to_speech, args)
-            return json.dumps([_save_tmp(client.text_to_speech(**kwargs), "wav")])
-        if task == "text-to-video":
-            kwargs = _apply_args(client.text_to_video, args)
-            return json.dumps([_save_tmp(client.text_to_video(**kwargs), "mp4")])
-        if task == "image-classification":
-            kwargs = _apply_args(
-                client.image_classification, args, image_positions=(0,)
-            )
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.image_classification(**kwargs)
-                    ]
-                ]
-            )
-        if task == "object-detection":
-            kwargs = _apply_args(client.object_detection, args, image_positions=(0,))
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score, "box": r.box}
-                        for r in client.object_detection(**kwargs)
-                    ]
-                ]
-            )
-        if task == "image-segmentation":
-            kwargs = _apply_args(client.image_segmentation, args, image_positions=(0,))
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.image_segmentation(**kwargs)
-                    ]
-                ]
-            )
-        if task == "image-to-text":
-            kwargs = _apply_args(client.image_to_text, args, image_positions=(0,))
-            r = client.image_to_text(**kwargs)
-            return json.dumps(
-                [r.generated_text if hasattr(r, "generated_text") else str(r)]
-            )
-        if task == "image-to-image":
-            kwargs = _apply_args(client.image_to_image, args, image_positions=(0,))
-            return json.dumps([_save_tmp(client.image_to_image(**kwargs), "png")])
-        if task == "automatic-speech-recognition":
-            kwargs = _apply_args(
-                client.automatic_speech_recognition, args, image_positions=(0,)
-            )
-            r = client.automatic_speech_recognition(**kwargs)
-            return json.dumps([r.text if hasattr(r, "text") else str(r)])
-        if task == "audio-classification":
-            kwargs = _apply_args(
-                client.audio_classification, args, image_positions=(0,)
-            )
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.audio_classification(**kwargs)
-                    ]
-                ]
-            )
-        if task in (
-            "visual-question-answering",
-            "document-question-answering",
-            "image-text-to-text",
-        ):
-            kwargs = _apply_args(
-                client.visual_question_answering, args, image_positions=(0,)
-            )
-            r = client.visual_question_answering(**kwargs)
-            return json.dumps([r[0].answer if r else ""])
         if task == "depth-estimation":
             headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
             resp = httpx.post(
@@ -1043,6 +960,17 @@ def call_model(
 
             depth_img = _Image.open(_io.BytesIO(resp.content))
             return json.dumps([_save_tmp(depth_img, "png")])
+
+        endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
+        if endpoint:
+            # Positional args from legacy saved workflows and the browser
+            # executor map onto the endpoint schema's input order.
+            schema_inputs = _INFERENCE_ENDPOINT_SCHEMAS[endpoint]["inputs"]
+            kwargs = {
+                schema_inputs[i]["id"]: val
+                for i, val in enumerate(args[: len(schema_inputs)])
+            }
+            return _dispatch_model_endpoint(client, endpoint, kwargs)
 
         # Fallback for tasks not handled above: chat_completion (works for most
         # text models across providers), then a raw POST as last resort.
