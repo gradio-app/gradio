@@ -4,8 +4,10 @@
 	import { browser } from "$app/environment";
 	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
-	import { clickOutside, get_components } from "./utils";
+	import { clickOutside } from "./utils";
 	import { theme } from "$lib/stores/theme";
+
+	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 
 	let components: ComponentData[] = [];
 	let selection: string = "";
@@ -44,7 +46,13 @@
 	};
 
 	async function fetch_components(selection: string[] = []) {
-		components = await get_components(selection);
+		const result = await fetch(
+			`${API}components?name_or_tags=${selection.join(",")}`
+		)
+			.then((response) => response.json())
+			.catch(() => []);
+		if (!Array.isArray(result)) return;
+		components = result;
 		define_colors(components);
 		if (!components_length) {
 			components_length = components.length;
