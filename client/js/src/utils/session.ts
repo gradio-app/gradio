@@ -1,6 +1,6 @@
 import type { Config } from "../types";
 
-export interface ResumableEvent {
+export interface ResumableJob {
 	event_id: string;
 	fn_index: number;
 }
@@ -9,7 +9,7 @@ interface ResumableSession {
 	app_id?: string;
 	root: string;
 	session_hash: string;
-	events: ResumableEvent[];
+	events: ResumableJob[];
 	expires_at: number;
 }
 
@@ -102,7 +102,7 @@ export function get_resumable_session_hash(cookies?: string): string | null {
 export function get_resumable_events(
 	config: Config,
 	session_hash: string
-): ResumableEvent[] {
+): ResumableJob[] {
 	const session = read_session();
 	if (
 		!session ||
@@ -119,7 +119,7 @@ export function get_resumable_events(
 export function track_resumable_event(
 	config: Config,
 	session_hash: string,
-	event: ResumableEvent
+	event: ResumableJob
 ): void {
 	const current = read_session();
 	const events =

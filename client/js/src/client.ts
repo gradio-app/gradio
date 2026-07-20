@@ -25,7 +25,7 @@ import { submit } from "./utils/submit";
 import {
 	get_resumable_events,
 	get_resumable_session_hash,
-	type ResumableEvent
+	type ResumableJob
 } from "./utils/session";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
@@ -189,10 +189,7 @@ export class Client {
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
-	resume: (
-		endpoint: string | number,
-		event_id: string
-	) => SubmitIterable<GradioEvent>;
+	resume_jobs: (jobs?: ResumableJob[]) => SubmitIterable<GradioEvent>[];
 	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
@@ -226,17 +223,21 @@ export class Client {
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
-		this.resume = (endpoint, event_id) =>
-			submit.call(
-				this,
-				endpoint,
-				{},
-				undefined,
-				undefined,
-				undefined,
-				undefined,
-				event_id
+		this.resume_jobs = (jobs = this.get_resumable_events()) => {
+			this.options.resume_sessions = true;
+			return jobs.map(({ fn_index, event_id }) =>
+				submit.call(
+					this,
+					fn_index,
+					{},
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					event_id
+				)
 			);
+		};
 		this.predict = predict.bind(this) as typeof this.predict;
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
@@ -333,7 +334,7 @@ export class Client {
 		return client;
 	}
 
-	get_resumable_events(): ResumableEvent[] {
+	get_resumable_events(): ResumableJob[] {
 		if (!this.options.resume_sessions || !this.config) return [];
 		return get_resumable_events(this.config, this.session_hash);
 	}

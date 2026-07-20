@@ -728,12 +728,13 @@ export class DependencyManager {
 	}
 
 	async resume(events = this.get_resumable_events()): Promise<void> {
+		const submissions = this.client.resume_jobs(events);
 		await Promise.all(
-			events.map(async ({ event_id, fn_index }) => {
+			events.map(async ({ fn_index }, index) => {
 				const dep = this.dependencies_by_fn.get(fn_index);
 				if (!dep) return;
 
-				const submission = this.client.resume(fn_index, event_id);
+				const submission = submissions[index];
 				this.submissions.set(fn_index, submission);
 				this.loading_stati.update({
 					status: "pending",
