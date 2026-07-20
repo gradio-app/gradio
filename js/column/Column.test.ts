@@ -26,6 +26,14 @@ describe("Column", () => {
 		expect(container.querySelector(".my-col-class")).not.toBeNull();
 	});
 
+	test.each(["panel", "compact"] as const)(
+		"variant: %s is applied to the root div",
+		async (variant) => {
+			const { container } = await render(Column, { variant });
+			expect(container.querySelector(`.column.${variant}`)).not.toBeNull();
+		}
+	);
+
 	test("visible: true → container is visible", async () => {
 		const { container } = await render(Column, {
 			visible: true,
@@ -78,12 +86,6 @@ describe("Children / slot", () => {
 	});
 });
 
-test.todo(
-	"VISUAL: variant='panel' applies panel border, background fill, and padding to the column container — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: variant='compact' removes border-radius from direct child elements — needs Playwright visual regression screenshot comparison"
-);
 test.todo(
 	"VISUAL: scale prop controls flex-grow, making the column proportionally wider when scale > 1 — needs Playwright visual regression screenshot comparison"
 );
