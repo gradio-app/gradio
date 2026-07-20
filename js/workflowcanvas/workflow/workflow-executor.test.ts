@@ -658,7 +658,7 @@ describe("executeWorkflow — space multi-output mapping", () => {
 });
 
 describe("executeWorkflow — cascading failure messages", () => {
-	test("downstream node's missing-input error names the failed upstream", async () => {
+	test("legacy fn nodes skip execution and name the failed upstream", async () => {
 		const failingFn = "boom";
 		const downstreamFn = "consumer";
 		const callFn = vi.fn().mockImplementation(async (name: string) => {
@@ -693,7 +693,7 @@ describe("executeWorkflow — cascading failure messages", () => {
 			kind: "fn",
 			label: "FLUX",
 			fn: downstreamFn,
-			inputs: [{ id: "in", label: "Prompt", type: "text", required: true }],
+			inputs: [{ id: "in", label: "Prompt", type: "text" }],
 			outputs: [{ id: "out", label: "Image", type: "image" }],
 			data: {},
 			x: 0,
@@ -726,5 +726,6 @@ describe("executeWorkflow — cascading failure messages", () => {
 
 		expect(errors.d).toContain('"Prompt" is missing');
 		expect(errors.d).toContain("moondream2");
+		expect(callFn).toHaveBeenCalledTimes(1);
 	});
 });
