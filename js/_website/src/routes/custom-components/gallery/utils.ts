@@ -30,7 +30,7 @@ async function fetch_component_data(url: string): Promise<ComponentData[]> {
 	return result;
 }
 
-export function filter_components(
+function filter_components(
 	components: ComponentData[],
 	selection: string[]
 ): ComponentData[] {
