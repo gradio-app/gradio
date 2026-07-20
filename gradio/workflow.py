@@ -72,6 +72,11 @@ class _CuratedCache(TypedDict):
 _CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
 _CURATED_LOCK = threading.Lock()
 
+# pipeline_tag lookup cache: model_id → tag string, avoids re-hitting Hub on
+# every execution when the node was added without a stored pipeline_tag.
+_MODEL_TAG_CACHE: dict[str, str] = {}
+_MODEL_TAG_LOCK = threading.Lock()
+
 
 def _bundled_snapshot_path() -> str:
     return os.path.join(os.path.dirname(__file__), "_workflow_curated_snapshot.json")
@@ -611,6 +616,22 @@ def call_model(
         provider = data[4] if len(data) > 4 and data[4] else "auto"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
+
+        # Autodetect the pipeline_tag from the Hub when the node doesn't carry
+        # one, so we never mis-route a text-to-image model as text-generation.
+        if not pipeline_tag:
+            with _MODEL_TAG_LOCK:
+                pipeline_tag = _MODEL_TAG_CACHE.get(model_id)
+            if not pipeline_tag:
+                try:
+                    info = HfApi(token=hf_token).model_info(model_id)
+                    pipeline_tag = info.pipeline_tag or ""
+                    if pipeline_tag:
+                        with _MODEL_TAG_LOCK:
+                            _MODEL_TAG_CACHE[model_id] = pipeline_tag
+                except Exception:
+                    pass
+
         task = pipeline_tag or "text-generation"
         a0 = args[0] if args else ""
         a1 = args[1] if len(args) > 1 else ""
@@ -1267,6 +1288,7 @@ class Workflow(Blocks):
         *,
         bind: dict[str, Callable] | list[Callable] | None = None,
         edges: list[tuple[str, str]] | None = None,
+        history: str | bool | None = None,
     ):
         """
         Parameters:
@@ -1289,6 +1311,11 @@ class Workflow(Blocks):
                         ("shout", "reverse"),         # first output → first input
                         ("clean.output", "tag.text"), # by port label
                     ]
+            history: HF Hub dataset repo ID used to persist generation history.
+                Pass a string like ``"username/my-workflow-history"`` to use an
+                existing or auto-created dataset repo.  Pass ``True`` to
+                auto-name the repo as ``"{hf_user}/{workflow-slug}-history"``.
+                Defaults to ``None`` (no persistence).
         """
         if graph is None:
             caller_filename = sys._getframe(1).f_code.co_filename
@@ -1307,6 +1334,7 @@ class Workflow(Blocks):
         )
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
+        self._history_param: str | bool | None = history
 
         if Context.root_block is not None:
             raise ValueError(
@@ -1332,6 +1360,9 @@ class Workflow(Blocks):
                 "Delete the file to regenerate the workflow from bind/edges.",
                 self._workflow_file,
             )
+
+        # Resolve the history repo ID (may require a Hub API call for history=True).
+        self._wh = self._resolve_history()
 
         # Callable so each browser session re-reads `workflow.json`, picking up
         # writes from `save_workflow` instead of the construction-time snapshot.
@@ -1483,10 +1514,103 @@ class Workflow(Blocks):
                                 "Workflow: endpoint sync after save failed",
                                 exc_info=True,
                             )
+                # Sync workflow graph definition to Hub alongside generations.
+                if self._wh is not None:
+                    import threading as _threading
+
+                    _threading.Thread(
+                        target=self._wh.push_graph_file, args=(payload,), daemon=True
+                    ).start()
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
+
+        def list_history(
+            data=None,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Return recent generation records for the History panel."""
+            if self._wh is None:
+                return json.dumps({"records": [], "repo_id": None})
+            subgraph = data[0] if data else None
+            limit = int(data[1]) if data and len(data) > 1 and data[1] is not None else 50
+            records = self._wh.list(limit=limit, subgraph=subgraph or None)
+            return json.dumps({"records": records, "repo_id": self._wh.repo_id})
+
+        def connect_history(
+            data=None,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Connect (or switch) the workflow to a HF Hub dataset for history.
+
+            data[0]: repo_id string, e.g. ``"user/my-history"``.
+            data[1]: optional bool — if truthy, auto-derive repo_id from the
+                     HF username and workflow name (same as ``history=True``).
+            """
+            if not has_write_access(request, token):
+                return json.dumps({"error": "Write access required", "error_type": "auth"})
+            try:
+                from gradio.workflow_history import WorkflowHistory
+
+                auto = data[1] if data and len(data) > 1 else False
+                # Prefer the caller's OAuth bearer token over the local CLI token so
+                # this works on Spaces where hf_get_token() returns None.
+                hf_token = (token.token if token is not None else None) or hf_get_token()
+                if auto:
+                    user = HfApi(token=hf_token).whoami()["name"]
+                    slug = re.sub(r"[^a-z0-9-]", "-", self._workflow_name.lower()).strip("-")
+                    repo_id = f"{user}/{slug}-history"
+                else:
+                    repo_id = (data[0] if data else "").strip()
+                if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*", repo_id):
+                    return json.dumps({"error": f"Invalid dataset repo ID: {repo_id}"})
+
+                wh = WorkflowHistory(repo_id=repo_id, token=hf_token)
+                wh.ensure_repo()
+                self._wh = wh
+
+                # Persist the repo_id into workflow.json so it survives restarts.
+                # Hold _save_lock for the full read-modify-write to avoid racing
+                # with concurrent save_workflow() calls on the same file.
+                try:
+                    with _save_lock:
+                        raw = _load_initial()
+                        if raw:
+                            parsed = json.loads(raw)
+                            parsed["history_repo"] = repo_id
+                            with open(workflow_file, "w", encoding="utf-8") as f:
+                                json.dump(parsed, f, ensure_ascii=False)
+                except Exception:
+                    logger.debug("connect_history: could not persist to workflow.json", exc_info=True)
+
+                return json.dumps({"ok": True, "repo_id": repo_id})
+            except Exception as e:
+                logger.error("connect_history failed: %s", e, exc_info=True)
+                return json.dumps({"error": str(e)})
+
+        def push_history(
+            data=None,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Accept a pre-built record from a client-side run and push it to Hub.
+
+            data[0]: JSON string of the history record dict.
+            """
+            if self._wh is None:
+                return json.dumps({"ok": False, "reason": "no_history"})
+            try:
+                record = json.loads(data[0]) if data else {}
+                if not record.get("id"):
+                    return json.dumps({"ok": False, "reason": "invalid_record"})
+                self._wh.push(record)
+                return json.dumps({"ok": True})
+            except Exception as e:
+                logger.debug("push_history failed: %s", e, exc_info=True)
+                return json.dumps({"ok": False, "reason": str(e)})
 
         server_functions = [
             get_token,
@@ -1507,6 +1631,9 @@ class Workflow(Blocks):
             list_bound_fns,
             get_workflow_api,
             save_workflow,
+            list_history,
+            connect_history,
+            push_history,
         ]
 
         from gradio.workflow_api import WorkflowGraph, register_workflow_endpoints
@@ -1580,7 +1707,49 @@ class Workflow(Blocks):
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
-        self._api_endpoints = register_workflow_endpoints(self, _current_graph, callers)
+        self._api_endpoints = register_workflow_endpoints(
+            self, _current_graph, callers, get_history=lambda: self._wh
+        )
+
+    def _resolve_history(self):
+        """Instantiate WorkflowHistory from ``self._history_param``, the saved
+        ``history_repo`` field in workflow.json, or return None."""
+        from gradio.workflow_history import WorkflowHistory
+
+        param = self._history_param
+
+        # If no constructor arg, check whether workflow.json already has a
+        # ``history_repo`` written by a previous ``connect_history()`` call.
+        if param is None:
+            try:
+                with open(self._workflow_file, encoding="utf-8") as f:
+                    saved = json.load(f)
+                repo_id = saved.get("history_repo")
+                if repo_id:
+                    return WorkflowHistory(repo_id=repo_id, token=hf_get_token())
+            except Exception:
+                pass
+            return None
+
+        if param is True:
+            try:
+                token = hf_get_token()
+                user = HfApi(token=token).whoami()["name"]
+                slug = re.sub(r"[^a-z0-9-]", "-", self._workflow_name.lower()).strip(
+                    "-"
+                )
+                repo_id = f"{user}/{slug}-history"
+            except Exception:
+                logger.warning(
+                    "Workflow: history=True requires a logged-in HF account "
+                    "(run `huggingface-cli login`). History disabled.",
+                    exc_info=True,
+                )
+                return None
+        else:
+            repo_id = str(param)
+            token = hf_get_token()
+        return WorkflowHistory(repo_id=repo_id, token=token)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
