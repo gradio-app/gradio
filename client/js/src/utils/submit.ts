@@ -146,15 +146,17 @@ export function submit(
 		async function acknowledge(): Promise<void> {
 			if (!event_id_final) return;
 			if (!options.resume_sessions) return;
-			clear_resumable_event(event_id_final);
-			void fetch(`${config!.root}${api_prefix}/${ACK_URL}`, {
-				headers: { "Content-Type": "application/json" },
-				method: "POST",
-				body: JSON.stringify({
-					event_id: event_id_final,
-					session_hash
+			const response = await that
+				.fetch(`${config!.root}${api_prefix}/${ACK_URL}`, {
+					headers: { "Content-Type": "application/json" },
+					method: "POST",
+					body: JSON.stringify({
+						event_id: event_id_final,
+						session_hash
+					})
 				})
-			}).catch(() => {});
+				.catch(() => null);
+			if (response?.ok) clear_resumable_event(event_id_final);
 		}
 
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
@@ -215,6 +217,9 @@ export function submit(
 						type == "unexpected_error" ||
 						type == "broken_connection"
 					) {
+						if (type === "unexpected_error") {
+							unclosed_events.delete(queue_event_id);
+						}
 						console.error("Unexpected error", status?.message);
 						const broken = type === "broken_connection";
 						fire_event({

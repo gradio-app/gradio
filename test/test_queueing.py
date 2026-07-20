@@ -380,6 +380,27 @@ def test_detached_queue_session_can_resume():
         demo.close()
 
 
+def test_missing_resumed_event_closes_stream():
+    with gr.Blocks() as demo:
+        gr.Button().click(lambda: None)
+
+    demo.queue()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        response = test_client.get(
+            f"{API_PREFIX}/queue/data?session_hash=missing_session"
+            "&resume_event_id=missing_event&acknowledgements=true"
+        )
+        messages = [json.loads(line[5:]) for line in response.iter_lines() if line]
+
+        assert messages[0]["session_not_found"] is True
+        assert messages[-1]["msg"] == "close_stream"
+    finally:
+        demo.close()
+
+
 def test_analytics_summary(monkeypatch):
     """Test that the analytics summary endpoint is correctly being computed every N requests,
     where N is set by the GRADIO_ANALYTICS_CACHE_FREQUENCY environment variable."""

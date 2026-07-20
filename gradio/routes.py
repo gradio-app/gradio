@@ -1454,7 +1454,7 @@ class App(FastAPI):
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
-        @router.post("/queue/ack")
+        @router.post("/queue/ack", dependencies=[Depends(login_check)])
         async def acknowledge_queue_event(body: QueueAckBody):
             await app.get_blocks()._queue.acknowledge_event(
                 body.session_hash, body.event_id
@@ -1539,6 +1539,7 @@ class App(FastAPI):
                 blocks._queue.mark_session_attached(session_hash)
                 heartbeat_task = asyncio.create_task(heartbeat())
                 delivered_completed_event_ids: set[str] = set()
+                remaining_resume_event_ids = set(resume_event_ids or [])
                 try:
                     while True:
                         if await request.is_disconnected():
@@ -1573,10 +1574,17 @@ class App(FastAPI):
                             if response is not None:
                                 yield response
                             if (
+                                isinstance(message, UnexpectedErrorMessage)
+                                and message.session_not_found
+                                and message.event_id
+                            ):
+                                remaining_resume_event_ids.discard(message.event_id)
+                            if (
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
                                 delivered_completed_event_ids.add(message.event_id)
+                                remaining_resume_event_ids.discard(message.event_id)
                                 # It's possible that the event_id has already been removed
                                 # for example, the user sent two duplicate `/cancel` requests.
                                 # The first one would have removed the event_id from pending_event_ids_session
@@ -1591,7 +1599,10 @@ class App(FastAPI):
                                     blocks._queue.pending_event_ids_session[
                                         session_hash
                                     ].remove(message.event_id)
-                                all_events_delivered = (
+                            all_events_delivered = (
+                                not remaining_resume_event_ids
+                                if resume_event_ids
+                                else (
                                     blocks._queue.pending_event_ids_session.get(
                                         session_hash, set()
                                     ).issubset(delivered_completed_event_ids)
@@ -1600,25 +1611,32 @@ class App(FastAPI):
                                         session_hash, set()
                                     )
                                 )
-                                if message.msg == ServerMessage.server_stopped or (
+                            )
+                            if message.msg == ServerMessage.server_stopped or (
+                                all_events_delivered
+                                and (
                                     message.msg == ServerMessage.process_completed
-                                    and all_events_delivered
-                                ):
-                                    message = CloseStreamMessage()
-                                    response = process_msg(message)
-                                    if response is not None:
-                                        yield response
-                                    if acknowledgements:
-                                        await blocks._queue.mark_session_detached(
-                                            session_hash
-                                        )
-                                    else:
-                                        blocks._queue.close_session_stream(session_hash)
-                                        blocks._queue.message_history_per_session.pop(
-                                            session_hash, None
-                                        )
-                                    heartbeat_task.cancel()
-                                    return
+                                    or (
+                                        isinstance(message, UnexpectedErrorMessage)
+                                        and message.session_not_found
+                                    )
+                                )
+                            ):
+                                message = CloseStreamMessage()
+                                response = process_msg(message)
+                                if response is not None:
+                                    yield response
+                                if acknowledgements:
+                                    await blocks._queue.mark_session_detached(
+                                        session_hash
+                                    )
+                                else:
+                                    blocks._queue.close_session_stream(session_hash)
+                                    blocks._queue.message_history_per_session.pop(
+                                        session_hash, None
+                                    )
+                                heartbeat_task.cancel()
+                                return
                 except asyncio.CancelledError:
                     await blocks._queue.mark_session_detached(session_hash)
                     heartbeat_task.cancel()
