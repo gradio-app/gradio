@@ -124,6 +124,26 @@ describe("Client class", () => {
 		});
 	});
 
+	describe("resume_jobs", () => {
+		test("reattaches each job to its existing queue event", async () => {
+			const app = await Client.connect(direct_app_reference);
+			app.stream_status.open = true;
+
+			const submissions = app.resume_jobs([
+				{ event_id: "event-1", fn_index: 0 },
+				{ event_id: "event-2", fn_index: 0 }
+			]);
+
+			await expect(submissions[0].wait_for_id()).resolves.toBe("event-1");
+			await expect(submissions[1].wait_for_id()).resolves.toBe("event-2");
+			expect(app.event_callbacks["event-1"]).toBeDefined();
+			expect(app.event_callbacks["event-2"]).toBeDefined();
+			expect(app.options.resume_sessions).toBe(true);
+
+			await Promise.all(submissions.map((submission) => submission.return()));
+		});
+	});
+
 	describe("duplicate", () => {
 		test("backwards compatibility of duplicate using deprecated syntax", async () => {
 			const app = await duplicate("gradio/hello_world", {

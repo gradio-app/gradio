@@ -58,6 +58,7 @@ RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 HEARTBEAT_URL = "heartbeat/{session_hash}"
 CANCEL_URL = "cancel"
+ACK_URL = "queue/ack"
 
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
