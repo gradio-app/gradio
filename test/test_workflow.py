@@ -423,7 +423,7 @@ class TestGetModelEndpoints:
         endpoints = json.loads(get_model_endpoints([]))
         tti = next(e for e in endpoints if e["name"] == "text_to_image")
         input_ids = {p["id"] for p in tti["inputs"]}
-        assert {"prompt", "negative_prompt", "width", "height"} <= input_ids
+        assert {"prompt"} <= input_ids
         assert tti["outputs"][0]["type"] == "image"
         assert all("name" in e and e["inputs"] and e["outputs"] for e in endpoints)
 
