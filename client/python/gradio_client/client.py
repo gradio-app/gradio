@@ -544,7 +544,7 @@ class Client:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
             from gradio_client import Client
-            client = Client(src="gradio/calculator")
+            client = Client(src="gradio/calculator", resume_sessions=True)
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
         """
