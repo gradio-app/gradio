@@ -66,10 +66,15 @@ export function map_names_to_ids(
 
 export function resolve_config_root(
 	root: string,
-	current_location: string
+	current_location: string,
+	prefer_current_location = false
 ): string {
-	const root_url = new URL(root, current_location);
 	const current_url = new URL(current_location);
+	if (prefer_current_location) {
+		return new URL(".", current_url).toString().replace(/\/$/, "");
+	}
+
+	const root_url = new URL(root, current_url);
 	if (root_url.hostname !== current_url.hostname) {
 		return root;
 	}
@@ -121,9 +126,14 @@ export async function resolve_config(
 		// The page was rendered by this Gradio server, so a same-host root may
 		// contain an internal protocol or port supplied by a reverse proxy. Keep
 		// the configured path, but use the browser-visible origin for requests
-		// made by the client itself (queue, upload, reset, etc.).
+		// made by the client itself (queue, upload, reset, etc.). Colab uses a
+		// different public hostname, so its browser-visible URL must be preferred.
 		const config = { ...window.gradio_config } as unknown as Config;
-		config.root = resolve_config_root(config.root, location.href);
+		config.root = resolve_config_root(
+			config.root,
+			location.href,
+			config.is_colab
+		);
 		return config;
 	} else if (endpoint) {
 		let config_url = join_urls(
