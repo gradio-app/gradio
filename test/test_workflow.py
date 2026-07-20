@@ -354,6 +354,15 @@ class TestWorkflowFromBind:
         node = result["nodes"][0]
         assert node["inputs"][0]["type"] == "text"
 
+    def test_parameters_without_defaults_are_required(self):
+        def with_default(required, optional="fallback"):
+            return required, optional
+
+        result = json.loads(_workflow_from_bind({"with_default": with_default}))
+        inputs = result["nodes"][0]["inputs"]
+        assert inputs[0]["required"] is True
+        assert inputs[1]["required"] is False
+
     def test_edges_resolve_by_function_name(self):
         result = json.loads(
             _workflow_from_bind(

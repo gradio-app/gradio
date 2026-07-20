@@ -242,16 +242,22 @@ export async function executeWorkflow(
 	}
 
 	function missing_input_message(node: WFNode, port: Port): string {
+		const upstream = failed_upstream(node, port);
+		if (upstream) {
+			return `"${port.label}" is missing — upstream node "${upstream.label}" failed`;
+		}
+		return `"${port.label}" is missing — an upstream node may have failed`;
+	}
+
+	function failed_upstream(node: WFNode, port: Port): WFNode | undefined {
 		const edge = edges.find(
 			(e) => e.to_node_id === node.id && e.to_port_id === port.id
 		);
 		if (edge) {
 			const upstream = nodes.find((n) => n.id === edge.from_node_id);
-			if (upstream && failed_nodes.has(upstream.id)) {
-				return `"${port.label}" is missing — upstream node "${upstream.label}" failed`;
-			}
+			if (upstream && failed_nodes.has(upstream.id)) return upstream;
 		}
-		return `"${port.label}" is missing — an upstream node may have failed`;
+		return undefined;
 	}
 
 	// Seed input nodes (including component nodes with no incoming edges)
@@ -366,7 +372,10 @@ export async function executeWorkflow(
 					throw new Error("Python function call not available");
 				const inputs = resolveInputs(node, edges, dataMap);
 				for (const port of node.inputs) {
-					if (port.required && inputs[port.id] === null) {
+					if (
+						inputs[port.id] === null &&
+						(port.required || failed_upstream(node, port))
+					) {
 						throw new Error(missing_input_message(node, port));
 					}
 				}
@@ -402,7 +411,10 @@ export async function executeWorkflow(
 			try {
 				const inputs = resolveInputs(node, edges, dataMap);
 				for (const port of node.inputs) {
-					if (port.required && inputs[port.id] === null) {
+					if (
+						inputs[port.id] === null &&
+						(port.required || failed_upstream(node, port))
+					) {
 						throw new Error(missing_input_message(node, port));
 					}
 				}

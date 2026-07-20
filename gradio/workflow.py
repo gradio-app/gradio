@@ -214,6 +214,7 @@ def _workflow_from_bind(
                 "id": f"in_{p}",
                 "label": p,
                 "type": _PY_TO_PORT.get(param.annotation, "text"),
+                "required": param.default is inspect.Parameter.empty,
             }
             for p, param in sig.parameters.items()
             if p != "self" and not _is_injected_param(_hints.get(p))
@@ -1407,6 +1408,7 @@ class Workflow(Blocks):
                         "id": f"in_{p}",
                         "label": p,
                         "type": _PY_TO_PORT.get(param.annotation, "text"),
+                        "required": param.default is inspect.Parameter.empty,
                     }
                     for p, param in sig.parameters.items()
                     if p != "self" and not _is_injected_param(_hints.get(p))
