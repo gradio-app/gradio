@@ -773,7 +773,7 @@ export class DependencyManager {
 					}
 				} finally {
 					await submission.acknowledge();
-					this.submissions.delete(fn_index);
+					this.clear_submission(fn_index, submission);
 				}
 			})
 		);
