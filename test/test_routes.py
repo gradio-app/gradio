@@ -2491,7 +2491,11 @@ class TestOAuthSecurity:
 
         app = FastAPI()
         oauth._add_oauth_routes(app)
-        app.add_middleware(SessionMiddleware, secret_key="secret", https_only=True)
+        app.add_middleware(
+            SessionMiddleware,  # type: ignore
+            secret_key="secret",
+            https_only=True,
+        )
 
         with TestClient(app, base_url="https://space.hf.space") as client:
             client.cookies.set(
