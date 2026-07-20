@@ -132,6 +132,16 @@
 	});
 
 	$effect(() => {
+		if (auth.isHFSpace && auth.writeAccessKnown && !auth.canWrite && !auth.oauthAvailable) {
+			showToast(
+				"To enable editing, add `hf_oauth: true` to this Space's README metadata and redeploy.",
+				0,
+				"warning"
+			);
+		}
+	});
+
+	$effect(() => {
 		if (!initialValue) return;
 		try {
 			const parsed = JSON.parse(initialValue);
