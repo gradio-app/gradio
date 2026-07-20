@@ -77,6 +77,8 @@
 		show_progress?: "full" | "minimal" | "hidden";
 		message?: string | null;
 		progress?: LoadingStatus["progress"] | null | undefined;
+		time_start?: number | null;
+		eta_total?: number | null;
 		variant?: "default" | "center";
 		loading_text?: string;
 		absolute?: boolean;
@@ -112,6 +114,8 @@
 		show_progress = "full",
 		message = null,
 		progress = null,
+		time_start = null,
+		eta_total = null,
 		variant = "default",
 		loading_text = "Loading...",
 		absolute = true,
@@ -224,8 +228,10 @@
 	function start_timer(): void {
 		if (_timer) return;
 
-		old_eta = formatted_eta = null;
-		timer_start = performance.now();
+		if (time_start == null) {
+			old_eta = formatted_eta = null;
+		}
+		timer_start = time_start ?? performance.now();
 
 		_timer = true;
 		run();
@@ -248,6 +254,12 @@
 	});
 
 	$effect(() => {
+		if (status === "pending" && time_start != null && _timer) {
+			timer_start = time_start;
+		}
+	});
+
+	$effect(() => {
 		if (
 			el &&
 			scroll_to_output &&
@@ -258,6 +270,12 @@
 	});
 
 	$effect(() => {
+		if (eta_total != null) {
+			eta_from_start = eta_total;
+			formatted_eta = eta_total.toFixed(1);
+			if (eta != null) old_eta = eta;
+			return;
+		}
 		if (effective_eta != null && old_eta !== effective_eta) {
 			eta_from_start = (performance.now() - timer_start) / 1000 + effective_eta;
 			formatted_eta = eta_from_start.toFixed(1);

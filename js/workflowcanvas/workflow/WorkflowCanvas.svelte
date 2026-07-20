@@ -45,6 +45,7 @@
 		WFEdge,
 		NodeStatus,
 		NodeRole,
+		NodeDataValue,
 		Workflow
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
@@ -76,8 +77,15 @@
 
 	let {
 		server = {},
-		initialValue = null
-	}: { server?: Record<string, any>; initialValue?: string | null } = $props();
+		initialValue = null,
+		gradio_shared = undefined
+	}: {
+		server?: Record<string, any>;
+		initialValue?: string | null;
+		gradio_shared?: Record<string, any> | undefined;
+	} = $props();
+
+	const gradio_client = $derived(gradio_shared?.client);
 
 	const auth = createHFAuth(() => server);
 
@@ -483,6 +491,11 @@
 					template.height
 				);
 				const newId = addNode("reference", template, x, y);
+				const port = node.inputs.find((p) => p.id === portId);
+				if (port?.default_value !== undefined) {
+					const outId = template.outputs[0]?.id ?? "out";
+					updateNodeData(newId, outId, port.default_value as NodeDataValue);
+				}
 				addEdge({
 					from_node_id: newId,
 					from_port_id: "out",
@@ -1529,9 +1542,35 @@
 					])
 			: undefined;
 
-		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) =>
-					server.call_fn([fnName, argsJson])
+		const callFnWithToken = gradio_client
+			? async (fnName: string, argsJson: string) => {
+					const safeN = fnName.replace(/[^a-zA-Z0-9_-]/gu, "_");
+					const job = gradio_client.submit(`/predict_fn_${safeN}`, [argsJson]);
+					abortController?.signal.addEventListener(
+						"abort",
+						() => job.cancel(),
+						{
+							once: true
+						}
+					);
+					for await (const msg of job) {
+						if (msg.type === "data") {
+							return (msg.data as unknown[])[0] as string;
+						}
+						if (msg.type === "status" && msg.stage === "error") {
+							return JSON.stringify({
+								error: msg.message ?? "Function call failed",
+								error_type: "unknown",
+								suggestion: ""
+							});
+						}
+					}
+					return JSON.stringify({
+						error: "No data received from fn endpoint",
+						error_type: "unknown",
+						suggestion: ""
+					});
+				}
 			: undefined;
 
 		await executeWorkflow(
@@ -1999,6 +2038,13 @@
 						inStartY + i * (compH + compGap)
 					);
 					const cId = addNode("reference", comp, cx, cy);
+					if (port.default_value !== undefined) {
+						updateNodeData(
+							cId,
+							comp.outputs[0]?.id ?? "out",
+							port.default_value as NodeDataValue
+						);
+					}
 					addEdge({
 						from_node_id: cId,
 						from_port_id: "out",

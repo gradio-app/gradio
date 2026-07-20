@@ -412,6 +412,57 @@ describe("Events: upload via file input", () => {
 	});
 });
 
+describe("Props: playback_position", () => {
+	setupi18n();
+	afterEach(() => cleanup());
+
+	test("clicking clear resets playback_position to 0", async () => {
+		const { getByLabelText, set_data, get_data } = await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		await set_data({ playback_position: 1.5 });
+		await fireEvent.click(getByLabelText("common.clear"));
+
+		expect((await get_data()).playback_position).toBe(0);
+	});
+
+	test("uploading a new file starts playback from the beginning", async () => {
+		const { listen, set_data, get_data } = await render(Audio, {
+			...upload_props,
+			value: fake_value
+		});
+
+		const upload = listen("upload");
+
+		await set_data({ playback_position: 1.5 });
+		await set_data({ value: null });
+		await upload_file(TEST_WAV);
+
+		await waitFor(() => {
+			expect(upload).toHaveBeenCalledTimes(1);
+		});
+		expect((await get_data()).playback_position).toBe(0);
+	});
+
+	test("a backend update can still set playback_position alongside a new value", async () => {
+		const { set_data, get_data } = await render(Audio, {
+			...default_props,
+			interactive: true,
+			value: fake_value
+		});
+
+		await set_data({
+			value: { ...fake_value, url: `${fake_value.url}?v=2` },
+			playback_position: 2
+		});
+
+		expect((await get_data()).playback_position).toBe(2);
+	});
+});
+
 describe("Waveform controls", () => {
 	setupi18n();
 	afterEach(() => cleanup());
