@@ -7,7 +7,15 @@ import {
 	resolve_config_root
 } from "../helpers/init_helpers";
 import { initialise_server } from "./server";
-import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
+import {
+	beforeAll,
+	afterEach,
+	afterAll,
+	it,
+	expect,
+	describe,
+	vi
+} from "vitest";
 import { Client } from "../client";
 import { INVALID_CREDENTIALS_MSG, MISSING_CREDENTIALS_MSG } from "../constants";
 import { config_response } from "./test_data";
@@ -38,6 +46,42 @@ describe("resolve_config", () => {
 				"https://host.example/page"
 			)
 		).toBe("https://remote.example/gradio");
+	});
+
+	it("uses the browser-visible URL for a Colab proxy root", () => {
+		expect(
+			resolve_config_root(
+				"http://runtime-id.us-central1.c.colab-user-runtimes.internal:7860",
+				"https://runtime-id-7860.us-central1.colab.googleusercontent.com/",
+				true
+			)
+		).toBe("https://runtime-id-7860.us-central1.colab.googleusercontent.com");
+	});
+
+	it("resolves a Colab config to the browser-visible proxy URL", async () => {
+		const internal_root =
+			"http://runtime-id.us-central1.c.colab-user-runtimes.internal:7860";
+		const public_root =
+			"https://runtime-id-7860.us-central1.colab.googleusercontent.com";
+		vi.stubGlobal("window", {
+			gradio_config: {
+				...config_response,
+				is_colab: true,
+				root: internal_root
+			}
+		});
+		vi.stubGlobal("location", new URL(`${public_root}/`));
+		const fake_client = {
+			options: {},
+			deep_link: null
+		} as unknown as Client;
+
+		try {
+			const config = await resolve_config.call(fake_client, internal_root);
+			expect(config?.root).toBe(public_root);
+		} finally {
+			vi.unstubAllGlobals();
+		}
 	});
 
 	it("requests /config without a Content-Type header and with same-origin credentials, so the cross-origin embed fetch is not blocked by CORS", async () => {
