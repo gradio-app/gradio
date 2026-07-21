@@ -947,7 +947,9 @@
 					{/if}
 
 					{#if model_results.length > 0}
-						<div class="picker-section-header">Models (via Inference Providers)</div>
+						<div class="picker-section-header">
+							Models (via Inference Providers)
+						</div>
 						<div class="picker-space-grid">
 							{#each model_results as model (model.id)}
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
