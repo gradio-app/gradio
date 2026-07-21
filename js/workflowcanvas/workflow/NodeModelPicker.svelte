@@ -915,9 +915,7 @@
 												style="background:linear-gradient(135deg, {avatar_color(
 													space.id
 												)}, {avatar_color(space.id + '_2')})"
-											>
-												{avatar_initial(space.id)}
-											</div>
+											></div>
 										{/if}
 										{#if space.zero_gpu}
 											<span
@@ -932,8 +930,18 @@
 										{/if}
 									</div>
 									<div class="space-card-body">
-										<div class="space-card-title">
-											{space.title || (space.id.split("/").pop() ?? space.id)}
+										<div class="space-card-title-row">
+											<div class="space-card-title">
+												{space.title || (space.id.split("/").pop() ?? space.id)}
+											</div>
+											<a
+												class="space-card-open-link"
+												href="https://huggingface.co/spaces/{space.id}"
+												target="_blank"
+												rel="noreferrer"
+												onclick={(e) => e.stopPropagation()}
+												title="Open on Hugging Face"><OpenLinkIcon /></a
+											>
 										</div>
 										<div class="space-card-meta">
 											{#if space.likes > 0}
@@ -981,14 +989,22 @@
 												style="background:linear-gradient(135deg, {avatar_color(
 													model.id
 												)}, {avatar_color(model.id + '_2')})"
-											>
-												{avatar_initial(model.id)}
-											</div>
+											></div>
 										{/if}
 									</div>
 									<div class="space-card-body">
-										<div class="space-card-title">
-											{model.title || (model.id.split("/").pop() ?? model.id)}
+										<div class="space-card-title-row">
+											<div class="space-card-title">
+												{model.title || (model.id.split("/").pop() ?? model.id)}
+											</div>
+											<a
+												class="space-card-open-link"
+												href="https://huggingface.co/{model.id}"
+												target="_blank"
+												rel="noreferrer"
+												onclick={(e) => e.stopPropagation()}
+												title="Open on Hugging Face"><OpenLinkIcon /></a
+											>
 										</div>
 										<div class="space-card-meta">
 											<span class="space-card-owner"
@@ -1642,10 +1658,14 @@
 		min-width: 0;
 	}
 
-	.space-card-title {
+	.space-card-title-row {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		gap: 4px;
+	}
+
+	.space-card-title {
 		font-family: "Manrope", sans-serif;
 		font-size: 13px;
 		font-weight: 700;
@@ -1653,6 +1673,32 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.space-card-open-link {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		color: #4a4d57;
+		opacity: 0;
+		transition:
+			opacity 0.15s,
+			color 0.15s;
+	}
+
+	.space-card-open-link :global(svg) {
+		width: 18px;
+		height: 18px;
+	}
+
+	.space-card:hover .space-card-open-link {
+		opacity: 1;
+	}
+
+	.space-card-open-link:hover {
+		color: #8b8d98;
 	}
 
 	.space-card-meta {
