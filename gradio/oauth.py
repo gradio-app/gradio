@@ -110,8 +110,12 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             # losing the state. A workaround is to delete the cookie and redirect the user to the login page again.
             # See https://github.com/lepture/authlib/issues/622 for more details.
 
-            # Reset the session so the next attempt cannot reuse stale OAuth state.
+            # Reset stale OAuth state without logging out an already-authenticated
+            # user whose callback came from an older login attempt.
+            session_oauth_info = request.session.get("oauth_info")
             request.session.clear()
+            if session_oauth_info is not None:
+                request.session["oauth_info"] = session_oauth_info
 
             # Parse query params
             nb_redirects = int(request.query_params.get("_nb_redirects", 0))
@@ -134,17 +138,19 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
                         "Gradio is not running in a Space (SPACE_HOST environment variable is not set)."
                         " Cannot redirect to non-iframe view."
                     ) from None
+                host = host.split(",")[0].strip()
                 host_url = "https://" + host.rstrip("/")
                 response = RedirectResponse(host_url + login_uri)
             else:
                 # Redirect the user to the login page again
                 response = RedirectResponse(login_uri)
 
-            # SessionMiddleware cannot expire a cookie whose signature it could not
-            # decode, so delete it explicitly as well.
-            response.delete_cookie(
-                "session", secure=True, httponly=True, samesite="none"
-            )
+            if session_oauth_info is None:
+                # SessionMiddleware cannot expire a cookie whose signature it could
+                # not decode, so delete it explicitly as well.
+                response.delete_cookie(
+                    "session", secure=True, httponly=True, samesite="none"
+                )
             return response
 
         # OAuth login worked => store the user info in the session and redirect
