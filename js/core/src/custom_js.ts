@@ -1,4 +1,4 @@
-const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+import { AsyncFunction } from "./init_utils";
 
 export async function execute_custom_js(js: string): Promise<void> {
 	let custom_js: () => Promise<unknown>;
