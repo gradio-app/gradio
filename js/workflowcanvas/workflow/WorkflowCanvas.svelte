@@ -2445,23 +2445,24 @@
 				style="left: {dropChoice.clientX}px; top: {dropChoice.clientY}px;"
 				onmousedown={(e) => e.stopPropagation()}
 				onclick={(e) => e.stopPropagation()}
+				onwheel={(e) => e.stopPropagation()}
 			>
-				{#if dropChoice.modelOptions.length > 0}
-					<div class="drop-section-label">Models</div>
-					{#each dropChoice.modelOptions as opt}
-						<button
-							class="drop-opt"
-							onclick={() => handleDropChoiceModel(opt.subtab)}
-							>{opt.label}</button
-						>
-					{/each}
-				{/if}
 				{#if dropChoice.componentOptions.length > 0}
 					<div class="drop-section-label">
 						{dropChoice.reversed ? "Sources" : "Outputs"}
 					</div>
 					{#each dropChoice.componentOptions as opt}
 						<button class="drop-opt" onclick={handleDropChoiceUpload}
+							>{opt.label}</button
+						>
+					{/each}
+				{/if}
+				{#if dropChoice.modelOptions.length > 0}
+					<div class="drop-section-label">Models</div>
+					{#each dropChoice.modelOptions as opt}
+						<button
+							class="drop-opt"
+							onclick={() => handleDropChoiceModel(opt.subtab)}
 							>{opt.label}</button
 						>
 					{/each}
