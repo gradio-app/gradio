@@ -885,7 +885,12 @@
 					{/each}
 				{:else}
 					{#if space_results.length > 0}
-						<div class="picker-section-header">Curated Spaces</div>
+						<div class="picker-section-header">
+							Spaces
+							<div class="picker-section-subtitle">
+								Gradio apps running on Hugging Face
+							</div>
+						</div>
 						<div class="picker-space-grid">
 							{#each space_results as space (space.id)}
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -949,6 +954,9 @@
 					{#if model_results.length > 0}
 						<div class="picker-section-header">
 							Models (via Inference Providers)
+							<div class="picker-section-subtitle">
+								Run inference remotely via HF providers
+							</div>
 						</div>
 						<div class="picker-space-grid">
 							{#each model_results as model (model.id)}
@@ -1517,16 +1525,27 @@
 
 	.picker-section-header {
 		font-family: "Manrope", sans-serif;
-		font-size: 10px;
+		font-size: 13px;
 		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		color: #4a4d57;
-		padding: 10px 6px 6px;
+		color: #d5d6de;
+		padding: 10px 6px 4px;
+	}
+
+	.picker-section-subtitle {
+		display: block;
+		font-size: 13px;
+		font-weight: 400;
+		color: #5a5c6a;
+		margin-top: 2px;
+		margin-bottom: 4px;
 	}
 
 	:global(body:not(.dark)) .picker-section-header {
-		color: #8b8d98;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .picker-section-subtitle {
+		color: #9b9da8;
 	}
 
 	.picker-space-grid {
