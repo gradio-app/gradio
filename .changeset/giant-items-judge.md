@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Various improvements to Workflow 
+feat:workflow: improve canvas authoring and examples

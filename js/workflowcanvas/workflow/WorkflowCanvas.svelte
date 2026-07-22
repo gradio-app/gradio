@@ -1606,11 +1606,13 @@
 				nodeStatus = { ...nodeStatus, [nodeId]: status };
 				if (status === "running") {
 					nodeRunStarts[nodeId] = performance.now();
-				} else if (status === "done" && nodeId in nodeRunStarts) {
-					nodeDurations = {
-						...nodeDurations,
-						[nodeId]: (performance.now() - nodeRunStarts[nodeId]) / 1000
-					};
+				} else if (nodeId in nodeRunStarts) {
+					if (status === "done") {
+						nodeDurations = {
+							...nodeDurations,
+							[nodeId]: (performance.now() - nodeRunStarts[nodeId]) / 1000
+						};
+					}
 					delete nodeRunStarts[nodeId];
 				}
 				if (status === "done") {
