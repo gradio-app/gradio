@@ -74,6 +74,7 @@ def _get_frontend_dir(directory: Path) -> Path:
         from gradio.blocks import BlockContext
         from gradio.components import Component
 
+        candidates = []
         for name in dir(module):
             if name.startswith("__"):
                 continue
@@ -83,11 +84,24 @@ def _get_frontend_dir(directory: Path) -> Path:
                 and issubclass(value, (BlockContext, Component))
                 and value.__module__.startswith(module.__name__)
             ):
-                file_location = Path(inspect.getfile(value)).parent
-                return (file_location / value.FRONTEND_DIR).resolve()
+                candidates.append(value)
+        if not candidates:
+            return default_frontend_dir
+
+        def overrides_frontend_dir(cls: type) -> bool:
+            return any(
+                "FRONTEND_DIR" in c.__dict__
+                for c in cls.__mro__
+                if c.__module__.startswith(module.__name__)
+            )
+
+        component_class = next(
+            (c for c in candidates if overrides_frontend_dir(c)), candidates[0]
+        )
+        file_location = Path(inspect.getfile(component_class)).parent
+        return (file_location / component_class.FRONTEND_DIR).resolve()
     except Exception:
         return default_frontend_dir
-    return default_frontend_dir
 
 
 def _install_command(

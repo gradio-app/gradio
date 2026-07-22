@@ -99,6 +99,9 @@ def test_get_frontend_dir_respects_frontend_dir_override(tmp_path, monkeypatch):
             """
             from gradio.components import Textbox
 
+            class APlainComponent(Textbox):
+                pass
+
             class ZCustomComponent(Textbox):
                 FRONTEND_DIR = "../frontend/custom"
             """
