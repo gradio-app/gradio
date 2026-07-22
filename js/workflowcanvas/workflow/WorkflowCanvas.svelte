@@ -1719,8 +1719,7 @@
 					user: null
 				};
 				server.push_history([JSON.stringify(record)]).catch(() => {});
-			} catch {
-			}
+			} catch {}
 		}
 
 		showToast(
