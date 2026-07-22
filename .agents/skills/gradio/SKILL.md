@@ -68,7 +68,7 @@ def respond(message, history):
 gr.ChatInterface(fn=respond).launch()
 ```
 
-**Workflow** (beta): builds a visual, node-based pipeline from Hugging Face Spaces, models, datasets, and Python functions. `gr.Workflow` is a standalone app, so do not create it inside a `gr.Blocks` context.
+**Workflow**: builds a visual, node-based pipeline from Hugging Face Spaces, models, datasets, and Python functions. `gr.Workflow` is a standalone app, so do not create it inside a `gr.Blocks` context.
 
 ```python
 import gradio as gr
@@ -87,7 +87,6 @@ gr.Workflow(
 
 `graph=` selects the persisted workflow JSON file; without it, Gradio uses `workflow.json` beside the calling script. The canvas reloads that file for each browser session and autosaves authorized edits. `edges=` only seeds a graph when the file does not yet exist; it is ignored for an existing graph. Use `"fn_name.port_label"` when an edge must select a non-first port. A schema-v2 graph can combine bound functions (`kind: "fn"`) with Space, model, and dataset operators.
 
-Locally, the normal URL is run-only and `launch()` prints a private write-access URL. On a Hugging Face Space, enable `hf_oauth: true`; only the owner or an organization member with write access can edit, while other visitors can run the workflow. The generated Gradio API exposes one endpoint per connected pipeline, named from that pipeline's first subject. If a connected pipeline has multiple subjects, its single endpoint returns all of them.
 
 ## Custom HTML Components
 
