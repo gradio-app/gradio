@@ -492,6 +492,9 @@ and run the install scripts:
 bash scripts/install_gradio.sh
 bash scripts/build_frontend.sh
 ```
+
+To skip downloading assets used for offline support, pass
+`--no-download-offline-assets`.
   </td>
   <td>
   
@@ -499,6 +502,9 @@ bash scripts/build_frontend.sh
 scripts\install_gradio.bat
 scripts\build_frontend.bat
 ```
+
+To skip downloading assets used for offline support, pass
+`--no-download-offline-assets`.
   </td>
   </tr>
 </table>
