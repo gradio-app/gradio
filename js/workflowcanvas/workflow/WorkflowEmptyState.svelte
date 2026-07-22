@@ -2,10 +2,13 @@
 	import { TEMPLATES } from "./workflow-templates";
 	import type { WorkflowTemplate } from "./workflow-templates";
 
-	let { onselect }: { onselect: (t: WorkflowTemplate) => void } = $props();
+	let {
+		onselect,
+		inline = false
+	}: { onselect: (t: WorkflowTemplate) => void; inline?: boolean } = $props();
 </script>
 
-<div class="empty-state">
+<div class="empty-state" class:inline>
 	<div
 		class="template-grid"
 		onpointerdown={(e) => e.stopPropagation()}
@@ -24,7 +27,9 @@
 			</button>
 		{/each}
 	</div>
-	<div class="footer-hint">or add a model from the toolbar below</div>
+	{#if !inline}
+		<div class="footer-hint">or add a model from the toolbar below</div>
+	{/if}
 </div>
 
 <style>
@@ -37,6 +42,12 @@
 		justify-content: center;
 		gap: 16px;
 		pointer-events: none;
+	}
+
+	.empty-state.inline {
+		position: static;
+		inset: auto;
+		pointer-events: all;
 	}
 
 	.template-grid {
