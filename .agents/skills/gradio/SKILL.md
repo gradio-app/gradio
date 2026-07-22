@@ -85,8 +85,6 @@ gr.Workflow(
 ).launch()
 ```
 
-`graph=` selects the persisted workflow JSON file; without it, Gradio uses `workflow.json` beside the calling script. The canvas reloads that file for each browser session and autosaves authorized edits. `edges=` only seeds a graph when the file does not yet exist; it is ignored for an existing graph. Use `"fn_name.port_label"` when an edge must select a non-first port. A schema-v2 graph can combine bound functions (`kind: "fn"`) with Space, model, and dataset operators.
-
 
 ## Custom HTML Components
 
