@@ -131,8 +131,10 @@ def start_node_process(
                 Path(__file__).parent.joinpath("templates", "register.mjs")
             )
 
+            # Node --import needs a file:// URL on Windows; Path.as_uri()
+            # produces a valid URL (file:///C:/...) unlike "file://" + path.
             if sys.platform == "win32":
-                register_file = "file://" + register_file
+                register_file = Path(register_file).as_uri()
 
             node_process = subprocess.Popen(
                 [node_path, "--import", register_file, SSR_APP_PATH],
