@@ -3,6 +3,7 @@
 	import { Music } from "@gradio/icons";
 	import { format_time, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
+	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
@@ -83,6 +84,22 @@
 	let use_waveform = $derived(
 		waveform_options.show_recording_waveform && !value?.is_stream
 	);
+
+	// Streams cannot be decoded up front, so we render a live waveform of the
+	// audio element's output instead (same UI as the recording waveform).
+	const can_capture_stream =
+		typeof HTMLMediaElement !== "undefined" &&
+		("captureStream" in HTMLMediaElement.prototype ||
+			"mozCaptureStream" in HTMLMediaElement.prototype);
+	let use_stream_waveform = $derived(
+		waveform_options.show_recording_waveform &&
+			!!value?.is_stream &&
+			can_capture_stream
+	);
+	let stream_container: HTMLDivElement | undefined = $state();
+	let stream_waveform: WaveSurfer | undefined;
+	let stream_mic: { onDestroy: () => void; onEnd: () => void } | undefined;
+	let stream_waveform_ended = false;
 
 	$effect(() => {
 		if (
@@ -217,6 +234,52 @@
 		}
 	});
 
+	function create_stream_waveform(): void {
+		if (stream_waveform || !stream_container || !audio_player) return;
+		const capture =
+			(audio_player as any).captureStream ??
+			(audio_player as any).mozCaptureStream;
+		if (typeof capture !== "function") return;
+		const media_stream: MediaStream = capture.call(audio_player);
+		if (media_stream.getAudioTracks().length === 0) return;
+		stream_waveform = WaveSurfer.create({
+			...waveform_settings,
+			normalize: false,
+			interact: false,
+			container: stream_container
+		});
+		const record = stream_waveform.registerPlugin(
+			RecordPlugin.create({
+				scrollingWaveform: true,
+				renderRecordedAudio: false
+			})
+		);
+		stream_mic = record.renderMicStream(media_stream);
+	}
+
+	function destroy_stream_waveform(): void {
+		stream_mic?.onDestroy();
+		stream_mic = undefined;
+		stream_waveform?.destroy();
+		stream_waveform = undefined;
+		stream_waveform_ended = false;
+	}
+
+	function handle_stream_playing(): void {
+		if (!value?.is_stream || !use_stream_waveform) return;
+		if (stream_waveform_ended) {
+			// replaying a finished stream: start a fresh live waveform
+			destroy_stream_waveform();
+		}
+		create_stream_waveform();
+	}
+
+	function handle_stream_ended(): void {
+		if (!stream_mic) return;
+		stream_mic.onEnd();
+		stream_waveform_ended = true;
+	}
+
 	function load_stream(value: FileData | null): void {
 		if (!value || !value.is_stream || !value.url) return;
 
@@ -262,7 +325,7 @@
 	}
 
 	$effect(() => {
-		if (audio_player && url && waveform_ready && url) {
+		if (audio_player && url && waveform_ready && !value?.is_stream) {
 			load_audio(url);
 		}
 	});
@@ -270,6 +333,12 @@
 	$effect(() => {
 		if (audio_player && value?.is_stream) {
 			load_stream(value);
+		}
+	});
+
+	$effect(() => {
+		if (!use_stream_waveform) {
+			destroy_stream_waveform();
 		}
 	});
 
@@ -292,6 +361,7 @@
 
 		return () => {
 			waveform?.destroy();
+			destroy_stream_waveform();
 			window.removeEventListener("keydown", handleKeydown);
 		};
 	});
@@ -388,6 +458,20 @@
 	}
 </script>
 
+{#if use_stream_waveform && value !== null}
+	<div
+		class="component-wrapper stream-waveform"
+		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
+	>
+		<div class="waveform-container">
+			<div
+				id="waveform"
+				bind:this={stream_container}
+				style:height={stream_container ? null : "58px"}
+			/>
+		</div>
+	</div>
+{/if}
 <audio
 	class="standard-player"
 	class:hidden={use_waveform}
@@ -395,8 +479,12 @@
 	autoplay={waveform_settings.autoplay}
 	{onload}
 	bind:this={audio_player}
-	onended={() => onstop?.()}
+	onended={() => {
+		handle_stream_ended();
+		onstop?.();
+	}}
 	onplay={() => onplay?.()}
+	onplaying={handle_stream_playing}
 	preload="metadata"
 >
 </audio>
@@ -502,6 +590,10 @@
 	.standard-player {
 		width: 100%;
 		padding: var(--size-2);
+	}
+
+	.stream-waveform {
+		padding-bottom: 0;
 	}
 
 	.subtitle-display {
