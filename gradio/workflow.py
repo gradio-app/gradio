@@ -1289,6 +1289,7 @@ class Workflow(Blocks):
         bind: dict[str, Callable] | list[Callable] | None = None,
         edges: list[tuple[str, str]] | None = None,
         history: str | bool | None = None,
+        history_repo_type: str = "dataset",
     ):
         """
         Parameters:
@@ -1311,11 +1312,14 @@ class Workflow(Blocks):
                         ("shout", "reverse"),         # first output → first input
                         ("clean.output", "tag.text"), # by port label
                     ]
-            history: HF Hub dataset repo ID used to persist generation history.
+            history: HF Hub repo/bucket ID used to persist generation history.
                 Pass a string like ``"username/my-workflow-history"`` to use an
-                existing or auto-created dataset repo.  Pass ``True`` to
-                auto-name the repo as ``"{hf_user}/{workflow-slug}-history"``.
+                existing or auto-created repo.  Pass ``True`` to auto-name the
+                repo as ``"{hf_user}/{workflow-slug}-history"``.
                 Defaults to ``None`` (no persistence).
+            history_repo_type: ``"dataset"`` (default, free accounts) or
+                ``"bucket"`` (Hub S3-like storage, no git commit noise,
+                requires a paid plan).
         """
         if graph is None:
             caller_filename = sys._getframe(1).f_code.co_filename
@@ -1335,6 +1339,7 @@ class Workflow(Blocks):
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
         self._history_param: str | bool | None = history
+        self._history_repo_type: str = history_repo_type
 
         if Context.root_block is not None:
             raise ValueError(
@@ -1556,6 +1561,7 @@ class Workflow(Blocks):
                 from gradio.workflow_history import WorkflowHistory
 
                 auto = data[1] if data and len(data) > 1 else False
+                repo_type = (data[2] if data and len(data) > 2 else None) or "dataset"
                 # Prefer the caller's OAuth bearer token over the local CLI token so
                 # this works on Spaces where hf_get_token() returns None.
                 hf_token = (token.token if token is not None else None) or hf_get_token()
@@ -1566,27 +1572,28 @@ class Workflow(Blocks):
                 else:
                     repo_id = (data[0] if data else "").strip()
                 if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*", repo_id):
-                    return json.dumps({"error": f"Invalid dataset repo ID: {repo_id}"})
+                    return json.dumps({"error": f"Invalid repo ID: {repo_id}"})
 
-                wh = WorkflowHistory(repo_id=repo_id, token=hf_token)
+                wh = WorkflowHistory(repo_id=repo_id, token=hf_token, repo_type=repo_type)
                 wh.ensure_repo()
                 self._wh = wh
 
-                # Persist the repo_id into workflow.json so it survives restarts.
-                # Hold _save_lock for the full read-modify-write to avoid racing
-                # with concurrent save_workflow() calls on the same file.
+                # Persist the repo_id and repo_type into workflow.json so they
+                # survive restarts.  Hold _save_lock for the full read-modify-write
+                # to avoid racing with concurrent save_workflow() calls.
                 try:
                     with _save_lock:
                         raw = _load_initial()
                         if raw:
                             parsed = json.loads(raw)
                             parsed["history_repo"] = repo_id
+                            parsed["history_repo_type"] = repo_type
                             with open(workflow_file, "w", encoding="utf-8") as f:
                                 json.dump(parsed, f, ensure_ascii=False)
                 except Exception:
                     logger.debug("connect_history: could not persist to workflow.json", exc_info=True)
 
-                return json.dumps({"ok": True, "repo_id": repo_id})
+                return json.dumps({"ok": True, "repo_id": repo_id, "repo_type": repo_type})
             except Exception as e:
                 logger.error("connect_history failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
@@ -1717,6 +1724,7 @@ class Workflow(Blocks):
         from gradio.workflow_history import WorkflowHistory
 
         param = self._history_param
+        repo_type = self._history_repo_type
 
         # If no constructor arg, check whether workflow.json already has a
         # ``history_repo`` written by a previous ``connect_history()`` call.
@@ -1726,7 +1734,12 @@ class Workflow(Blocks):
                     saved = json.load(f)
                 repo_id = saved.get("history_repo")
                 if repo_id:
-                    return WorkflowHistory(repo_id=repo_id, token=hf_get_token())
+                    saved_type = saved.get("history_repo_type", "dataset")
+                    return WorkflowHistory(
+                        repo_id=repo_id,
+                        token=hf_get_token(),
+                        repo_type=saved_type,
+                    )
             except Exception:
                 pass
             return None
@@ -1749,7 +1762,7 @@ class Workflow(Blocks):
         else:
             repo_id = str(param)
             token = hf_get_token()
-        return WorkflowHistory(repo_id=repo_id, token=token)
+        return WorkflowHistory(repo_id=repo_id, token=token, repo_type=repo_type)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
