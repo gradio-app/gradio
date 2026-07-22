@@ -206,12 +206,13 @@ test(`chatbot like and dislike functionality`, async ({ page }) => {
 	await page.keyboard.press("Enter");
 	await expect(
 		page.getByTestId("bot").first().getByRole("paragraph")
-	).toBeVisible();
+	).toHaveText("That's cool!");
 	await page.getByLabel("Like", { exact: true }).first().click();
+	await expect(page.getByLabel("Liked", { exact: true })).toHaveCount(1);
 	await page.getByLabel("Dislike", { exact: true }).first().click();
 
-	expect(await page.getByLabel("Disliked", { exact: true }).count()).toEqual(1);
-	expect(await page.getByLabel("Liked", { exact: true }).count()).toEqual(0);
+	await expect(page.getByLabel("Disliked", { exact: true })).toHaveCount(1);
+	await expect(page.getByLabel("Liked", { exact: true })).toHaveCount(0);
 });
 
 test(`Users can upload multiple images and they will be shown as thumbnails`, async ({

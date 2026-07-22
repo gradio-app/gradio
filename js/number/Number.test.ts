@@ -42,14 +42,14 @@ describe("Props: value", () => {
 		expect(el).toHaveAttribute("type", "number");
 	});
 
-	test("null value renders empty input", async () => {
+	test("null value defaults to 0 when no placeholder is set", async () => {
 		const { getByLabelText } = await render(Number, {
 			...default_props,
 			value: null
 		});
 
 		const el = getByLabelText("Number") as HTMLInputElement;
-		expect(el.value).toBe("");
+		expect(el.value).toBe("0");
 	});
 
 	test("zero is rendered correctly", async () => {
@@ -63,14 +63,14 @@ describe("Props: value", () => {
 		expect(el.value).toBe("0");
 	});
 
-	test("undefined renders empty input", async () => {
+	test("undefined value defaults to 0 when no placeholder is set", async () => {
 		const { getByLabelText } = await render(Number, {
 			...default_props,
 			value: undefined
 		});
 
 		const el = getByLabelText("Number") as HTMLInputElement;
-		expect(el.value).toBe("");
+		expect(el.value).toBe("0");
 	});
 
 	test("negative numbers are preserved", async () => {

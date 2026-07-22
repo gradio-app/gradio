@@ -22,6 +22,7 @@
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
 	import { fetchSpaceApi } from "./space-api";
+	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import {
 		workflow,
 		addNode,
@@ -33,6 +34,7 @@
 		replaceNodeSource,
 		switch_endpoint,
 		hydrate_endpoints,
+		init_model_node_ports,
 		sanitize_for_save,
 		revoke_blob_urls
 	} from "./workflow-store";
@@ -45,6 +47,7 @@
 		WFEdge,
 		NodeStatus,
 		NodeRole,
+		NodeDataValue,
 		Workflow
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
@@ -76,8 +79,15 @@
 
 	let {
 		server = {},
-		initialValue = null
-	}: { server?: Record<string, any>; initialValue?: string | null } = $props();
+		initialValue = null,
+		gradio_shared = undefined
+	}: {
+		server?: Record<string, any>;
+		initialValue?: string | null;
+		gradio_shared?: Record<string, any> | undefined;
+	} = $props();
+
+	const gradio_client = $derived(gradio_shared?.client);
 
 	const auth = createHFAuth(() => server);
 
@@ -179,6 +189,14 @@
 				}
 			})
 			.catch(() => {});
+	});
+
+	$effect(() => {
+		if (!server?.get_model_endpoints) return;
+		void fetchModelEndpoints(server).then((schemas) => {
+			if (schemas.length)
+				init_model_node_ports(schemas, PIPELINE_TAG_TO_ENDPOINT);
+		});
 	});
 
 	$effect(() => {
@@ -483,6 +501,11 @@
 					template.height
 				);
 				const newId = addNode("reference", template, x, y);
+				const port = node.inputs.find((p) => p.id === portId);
+				if (port?.default_value !== undefined) {
+					const outId = template.outputs[0]?.id ?? "out";
+					updateNodeData(newId, outId, port.default_value as NodeDataValue);
+				}
 				addEdge({
 					from_node_id: newId,
 					from_port_id: "out",
@@ -1529,9 +1552,35 @@
 					])
 			: undefined;
 
-		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) =>
-					server.call_fn([fnName, argsJson])
+		const callFnWithToken = gradio_client
+			? async (fnName: string, argsJson: string) => {
+					const safeN = fnName.replace(/[^a-zA-Z0-9_-]/gu, "_");
+					const job = gradio_client.submit(`/predict_fn_${safeN}`, [argsJson]);
+					abortController?.signal.addEventListener(
+						"abort",
+						() => job.cancel(),
+						{
+							once: true
+						}
+					);
+					for await (const msg of job) {
+						if (msg.type === "data") {
+							return (msg.data as unknown[])[0] as string;
+						}
+						if (msg.type === "status" && msg.stage === "error") {
+							return JSON.stringify({
+								error: msg.message ?? "Function call failed",
+								error_type: "unknown",
+								suggestion: ""
+							});
+						}
+					}
+					return JSON.stringify({
+						error: "No data received from fn endpoint",
+						error_type: "unknown",
+						suggestion: ""
+					});
+				}
 			: undefined;
 
 		await executeWorkflow(
@@ -1999,6 +2048,13 @@
 						inStartY + i * (compH + compGap)
 					);
 					const cId = addNode("reference", comp, cx, cy);
+					if (port.default_value !== undefined) {
+						updateNodeData(
+							cId,
+							comp.outputs[0]?.id ?? "out",
+							port.default_value as NodeDataValue
+						);
+					}
 					addEdge({
 						from_node_id: cId,
 						from_port_id: "out",
@@ -2389,23 +2445,24 @@
 				style="left: {dropChoice.clientX}px; top: {dropChoice.clientY}px;"
 				onmousedown={(e) => e.stopPropagation()}
 				onclick={(e) => e.stopPropagation()}
+				onwheel={(e) => e.stopPropagation()}
 			>
-				{#if dropChoice.modelOptions.length > 0}
-					<div class="drop-section-label">Models</div>
-					{#each dropChoice.modelOptions as opt}
-						<button
-							class="drop-opt"
-							onclick={() => handleDropChoiceModel(opt.subtab)}
-							>{opt.label}</button
-						>
-					{/each}
-				{/if}
 				{#if dropChoice.componentOptions.length > 0}
 					<div class="drop-section-label">
 						{dropChoice.reversed ? "Sources" : "Outputs"}
 					</div>
 					{#each dropChoice.componentOptions as opt}
 						<button class="drop-opt" onclick={handleDropChoiceUpload}
+							>{opt.label}</button
+						>
+					{/each}
+				{/if}
+				{#if dropChoice.modelOptions.length > 0}
+					<div class="drop-section-label">Models</div>
+					{#each dropChoice.modelOptions as opt}
+						<button
+							class="drop-opt"
+							onclick={() => handleDropChoiceModel(opt.subtab)}
 							>{opt.label}</button
 						>
 					{/each}
