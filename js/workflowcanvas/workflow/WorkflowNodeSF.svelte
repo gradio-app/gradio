@@ -371,7 +371,18 @@
 				{@const visible =
 					showAllInputs || portConnected || port.required !== false}
 				{#if visible}
-					<div class="port-row input-row" class:widget-port={hasWidget}>
+					{@const inlineWidget =
+						!portConnected &&
+						node.kind === "transform" &&
+						!port.choices?.length &&
+						(port.type === "number" || port.type === "boolean")}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div
+						class="port-row input-row"
+						class:widget-port={hasWidget}
+						class:port-row-inline={inlineWidget}
+						onmousedown={inlineWidget ? (e) => e.stopPropagation() : undefined}
+					>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="port-handle-sf input-handle-sf"
@@ -404,12 +415,47 @@
 								class:port-label-optional={port.required === false}
 								>{port.label}</span
 							>
-							<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
-								>{port.type}</span
-							>
+							{#if !inlineWidget}
+								<span
+									class="port-type-tag"
+									style="color: {PORT_COLOR[port.type]}">{port.type}</span
+								>
+							{/if}
+						{/if}
+						{#if inlineWidget}
+							{#if port.type === "number"}
+								<input
+									class="inline-number-inrow"
+									type="number"
+									step="any"
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: "0"}
+									value={node.data?.[port.id] ?? ""}
+									oninput={(e) =>
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											parseFloat(e.currentTarget.value) || 0
+										)}
+								/>
+							{:else if port.type === "boolean"}
+								<label class="inline-checkbox-inrow">
+									<input
+										type="checkbox"
+										checked={!!node.data?.[port.id]}
+										onchange={(e) =>
+											ctx.ondatachange(
+												node.id,
+												port.id,
+												e.currentTarget.checked
+											)}
+									/>
+								</label>
+							{/if}
 						{/if}
 					</div>
-					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
+					{#if !portConnected && node.kind === "transform" && !inlineWidget && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 						<div
 							class="port-inline-config"
 							onmousedown={(e) => e.stopPropagation()}
@@ -919,9 +965,9 @@
 		display: flex;
 		align-items: center;
 		gap: 7px;
-		padding: 4px 12px;
+		padding: 3px 12px;
 		position: relative;
-		min-height: 22px;
+		min-height: 20px;
 	}
 
 	.input-row {
@@ -1091,20 +1137,21 @@
 	}
 
 	.port-inline-config {
-		padding: 2px 12px 4px 20px;
+		padding: 1px 12px 3px 20px;
 	}
 
 	.inline-input {
 		width: 100%;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
-		padding: 4px 8px;
+		padding: 3px 7px;
 		border: 1px solid #1e1f2a;
 		border-radius: 4px;
 		background: #101118;
 		color: #c8c9d2;
 		outline: none;
 		box-sizing: border-box;
+		height: 24px;
 	}
 
 	.inline-input:focus {
@@ -1121,6 +1168,40 @@
 
 	.inline-number {
 		width: 80px;
+	}
+
+	.port-row-inline {
+		display: grid;
+		grid-template-columns: 1fr 60px 20px;
+		gap: 5px;
+		align-items: center;
+	}
+
+	.inline-number-inrow {
+		width: 100%;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 2px 6px;
+		border: 1px solid #1e1f2a;
+		border-radius: 4px;
+		background: #101118;
+		color: #c8c9d2;
+		outline: none;
+		box-sizing: border-box;
+		flex-shrink: 0;
+		height: 22px;
+	}
+
+	.inline-number-inrow:focus {
+		border-color: #3e3f4d;
+	}
+
+	.inline-number-inrow::placeholder {
+		color: #4a4b58;
+	}
+
+	.inline-checkbox-inrow {
+		cursor: pointer;
 	}
 
 	.inline-checkbox {
@@ -1170,6 +1251,10 @@
 		border-bottom-color: #e2e4ea;
 	}
 
+	:global(body:not(.dark)) .node-transform .node-header {
+		border-bottom-color: #e2e4ea;
+	}
+
 	:global(body:not(.dark)) .node-label {
 		color: #1a1b25;
 	}
@@ -1214,6 +1299,16 @@
 	}
 
 	:global(body:not(.dark)) .inline-input::placeholder {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .inline-number-inrow {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .inline-number-inrow::placeholder {
 		color: #c0c2cc;
 	}
 
