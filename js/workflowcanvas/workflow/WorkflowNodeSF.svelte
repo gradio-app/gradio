@@ -33,6 +33,7 @@
 		} | null;
 		nodeStatus: Record<string, NodeStatus>;
 		nodeErrors: Record<string, string>;
+		nodeDurations: Record<string, number>;
 		staleNodes: Set<string>;
 		connectedPorts: Set<string>;
 		readOnly: boolean;
@@ -74,6 +75,13 @@
 	// Only operator nodes have meaningful per-node execution. References just
 	// hold values; subjects just display passthrough.
 	const canRunSolo = $derived(node.kind === "transform");
+	const duration = $derived(ctx.nodeDurations[id] as number | undefined);
+
+	function formatDuration(seconds: number): string {
+		if (seconds >= 10) return `${Math.round(seconds)}s`;
+		if (seconds >= 1) return `${seconds.toFixed(1)}s`;
+		return `${parseFloat(seconds.toFixed(2))}s`;
+	}
 
 	let nodeEl: HTMLDivElement;
 	let editingLabel = $state(false);
@@ -198,7 +206,7 @@
 >
 	<div class="node-header" role="button" tabindex="-1">
 		<div class="node-header-top">
-			{#if status === "running"}
+			{#if status === "running" && !canRunSolo}
 				<span class="node-status-spinner"></span>
 			{/if}
 			{#if editingLabel}
@@ -228,17 +236,32 @@
 			{#if canRunSolo}
 				<button
 					class="node-run"
-					class:node-run-stale={isStale}
+					class:node-run-stale={isStale && status !== "running"}
+					class:has-duration={duration !== undefined}
 					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => {
 						e.stopPropagation();
 						ctx.onrunnode(node.id);
 					}}
-					title={isStale ? "Run this node (inputs changed)" : "Run this node"}
+					title={(status === "running"
+						? "Running…"
+						: isStale
+							? "Run this node (inputs changed)"
+							: "Run this node") +
+						(duration !== undefined
+							? ` — last run ${formatDuration(duration)}`
+							: "")}
 					aria-label="Run this node"
 				>
-					<PlayIcon />
+					{#if duration !== undefined}
+						<span class="node-run-time">{formatDuration(duration)}</span>
+					{/if}
+					{#if status === "running"}
+						<span class="node-status-spinner"></span>
+					{:else}
+						<PlayIcon />
+					{/if}
 				</button>
 			{/if}
 			{#if !readOnly}
@@ -899,31 +922,50 @@
 		color: #ef4444;
 	}
 
-	/* Per-node run button — hidden by default, revealed on hover, mirrors
-	 * the node-delete affordance pattern. Stale state pulses faintly to
+	/* Per-node run button — always visible; shows the spinner in place of the
+	 * play icon while the node runs. Once the node has run, the last duration
+	 * (which doubles as an ETA on re-runs) joins the icon inside the same
+	 * pill, so hover highlights both together. Stale state pulses faintly to
 	 * signal "this needs re-running". */
 	.node-run {
-		display: none;
-		width: 20px;
+		display: flex;
+		min-width: 20px;
 		height: 20px;
 		margin-left: auto;
 		border: none;
-		border-radius: 4px;
+		border-radius: 10px;
 		background: transparent;
 		color: #5c5e6a;
 		cursor: pointer;
 		flex-shrink: 0;
 		align-items: center;
 		justify-content: center;
+		gap: 5px;
 		padding: 0;
 	}
 
-	.wf-node:hover .node-run {
-		display: flex;
+	.node-run.has-duration {
+		padding: 0 3px 0 7px;
+		background: rgba(255, 255, 255, 0.06);
 	}
 
 	.node-run + .node-delete {
 		margin-left: 2px;
+	}
+
+	.node-run-time {
+		color: #8b8d98;
+		font-size: 10px;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.node-run:hover .node-run-time {
+		color: inherit;
+	}
+
+	.wf-node.node-stale .node-run-time {
+		opacity: 0.55;
 	}
 
 	.node-run:hover {
