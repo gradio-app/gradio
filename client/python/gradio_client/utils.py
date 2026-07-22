@@ -75,6 +75,21 @@ INVALID_RUNTIME = [
 # ` $ ! { }           – shell-dangerous characters
 _FORBIDDEN_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\x7f`$!{}]')
 
+# Windows reserved device names (case-insensitive). Uploading e.g. CON.txt
+# fails on Windows hosts because these are not valid filesystem paths.
+_WINDOWS_RESERVED_NAMES = frozenset(
+    {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "CONIN$",
+        "CONOUT$",
+        *(f"COM{c}" for c in "123456789\xb9\xb2\xb3"),
+        *(f"LPT{c}" for c in "123456789\xb9\xb2\xb3"),
+    }
+)
+
 
 class Message(TypedDict, total=False):
     msg: str
@@ -766,6 +781,13 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     # stem (e.g. "#.txt" → ".txt" → Path(".txt").suffix == "").
     if not name and ext:
         name = "file"
+    # Prefix Windows reserved device names so uploads remain valid on NTFS
+    # (CON, PRN, AUX, NUL, COM1–COM9, LPT1–LPT9, with or without extension).
+    # Windows resolves device names from the segment before the *first* dot
+    # (e.g. "NUL.tar.gz" is the NUL device), so check the recombined filename
+    # the same way CPython's ntpath.isreserved does.
+    if (name + ext).partition(".")[0].rstrip(" ").upper() in _WINDOWS_RESERVED_NAMES:
+        name = "_" + name
     filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
