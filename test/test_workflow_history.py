@@ -109,10 +109,10 @@ def test_build_history_record_missing_port_uses_default():
 
 def _make_history(tmp_path, repo_id="user/test-history"):
     with (
-        patch("gradio.workflow_history.HfApi") as MockApi,
+        patch("gradio.workflow_history.HfApi") as mock_api_cls,
         patch("gradio.workflow_history.hf_get_token", return_value="tok"),
     ):
-        mock_api = MockApi.return_value
+        mock_api = mock_api_cls.return_value
         wh = WorkflowHistory(repo_id=repo_id, token="tok")
         wh._api = mock_api
         wh._repo_ready = True
@@ -145,7 +145,7 @@ def test_push_appends_to_local_file(tmp_path):
 
     assert os.path.exists(wh._local_file)
     with open(wh._local_file) as f:
-        lines = [json.loads(l) for l in f if l.strip()]
+        lines = [json.loads(line) for line in f if line.strip()]
     assert len(lines) == 1
     assert lines[0]["id"] == "gen1"
     # upload_file should have been called (once for JSONL, zero times for media since value is text)
@@ -253,10 +253,10 @@ def test_push_graph_file(tmp_path):
 
 def test_ensure_repo_creates_dataset(tmp_path):
     with (
-        patch("gradio.workflow_history.HfApi") as MockApi,
+        patch("gradio.workflow_history.HfApi") as mock_api_cls,
         patch("gradio.workflow_history.hf_get_token", return_value="tok"),
     ):
-        mock_api = MockApi.return_value
+        mock_api = mock_api_cls.return_value
         wh = WorkflowHistory("user/new-repo", token="tok")
         wh._api = mock_api
         wh.ensure_repo()
@@ -274,12 +274,12 @@ def test_history_true_auto_names_repo():
     import warnings
 
     with (
-        patch("gradio.workflow.HfApi") as MockHfApi,
+        patch("gradio.workflow.HfApi") as mock_hf_api_cls,
         patch("gradio.workflow.hf_get_token", return_value="tok"),
         warnings.catch_warnings(),
     ):
         warnings.simplefilter("ignore")
-        mock_api_inst = MockHfApi.return_value
+        mock_api_inst = mock_hf_api_cls.return_value
         mock_api_inst.whoami.return_value = {"name": "testuser"}
 
         from gradio.workflow import Workflow

@@ -193,8 +193,6 @@
 			.catch(() => {});
 	});
 
-	// Probe whether the backend has history configured. The history panel is
-	// only shown when repo_id is non-null in the response.
 	$effect(() => {
 		if (!server?.list_history) return;
 		void server
@@ -1605,7 +1603,6 @@
 				}
 			: undefined;
 
-		// Capture node outputs live for history recording.
 		const capturedOutputs: Record<string, { portId: string; value: any }[]> =
 			{};
 
@@ -1678,8 +1675,6 @@
 		abortController = null;
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
 
-		// Push a history record for client-side runs (the server-side API path
-		// records history itself; the canvas executor doesn't go through it).
 		if (!wasAborted && !hasErrors && server?.push_history) {
 			try {
 				const genInputs: Record<
@@ -1725,7 +1720,6 @@
 				};
 				server.push_history([JSON.stringify(record)]).catch(() => {});
 			} catch {
-				// history push is best-effort
 			}
 		}
 
@@ -2823,7 +2817,6 @@
 				showHistoryConnect = true;
 			}}
 			onload={(inputs) => {
-				// Load historical inputs back into the canvas reference nodes.
 				for (const [nodeId, input] of Object.entries(
 					inputs as Record<string, any>
 				)) {

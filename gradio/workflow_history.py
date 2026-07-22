@@ -20,10 +20,8 @@ logger = logging.getLogger(__name__)
 
 MEDIA_PORT_TYPES = {"image", "audio", "video"}
 
-# Cache TTL for list() so rapid panel refreshes don't hammer Hub.
 _LIST_CACHE_TTL = 10.0
 
-# Max files to scan when listing records.
 _MAX_FILES_SCAN = 200
 
 
@@ -60,17 +58,12 @@ class WorkflowHistory:
         self._token = token or hf_get_token()
         self._api = HfApi(token=self._token)
 
-        # Unique per-process ID so multiple Gradio instances write separate files
-        # without conflicts.
         self._proc_id = secrets.token_hex(6)
 
         if repo_type == "bucket":
-            # Buckets: one JSON file per record — no growing buffer, no O(N²) uploads.
             self._data_path = None
             self._local_file = None
         else:
-            # Datasets: one growing JSONL file per process appended locally then
-            # re-uploaded to Hub.
             self._data_path = f"data/{self._proc_id}.jsonl"
             self._local_file = os.path.join(
                 tempfile.gettempdir(),
@@ -81,13 +74,8 @@ class WorkflowHistory:
         self._repo_ready = False
         self._repo_lock = threading.Lock()
 
-        # list() cache
         self._cache: list[dict] | None = None
         self._cache_at: float = 0.0
-
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
 
     def push(self, record: dict) -> None:
         """Persist *record* to Hub in a background thread (non-blocking)."""
@@ -133,10 +121,6 @@ class WorkflowHistory:
         except Exception:
             logger.debug("WorkflowHistory: graph file upload failed", exc_info=True)
 
-    # ------------------------------------------------------------------
-    # Internals
-    # ------------------------------------------------------------------
-
     def ensure_repo(self) -> None:
         with self._repo_lock:
             if self._repo_ready:
@@ -167,7 +151,6 @@ class WorkflowHistory:
             if not self._repo_ready:
                 return
 
-            # Upload media outputs → replace local paths with stable Hub URLs.
             for sid, output in list(record.get("outputs", {}).items()):
                 value = output.get("value")
                 port_type = output.get("type", "text")
@@ -176,7 +159,6 @@ class WorkflowHistory:
                     if hub_url:
                         record["outputs"][sid]["value"] = hub_url
                     elif os.path.isfile(value):
-                        # Upload was attempted but failed — don't store a dead local path.
                         record["outputs"][sid]["value"] = None
 
             if self.repo_type == "bucket":
@@ -193,10 +175,11 @@ class WorkflowHistory:
         Bucket writes are independent files so no local-state lock is needed;
         concurrent pushes proceed in parallel.
         """
-        # Replace colons in the ISO timestamp so the path is safe on all
-        # platforms and S3-compatible backends (colons are illegal on Windows).
-        safe_ts = record["timestamp"].replace(":", "-")
-        path_in_repo = f"data/{safe_ts}_{record['id']}.json"
+        ts = record.get("timestamp") or datetime.now(timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        safe_ts = ts.replace(":", "-")
+        path_in_repo = f"data/{safe_ts}_{record.get('id', secrets.token_hex(8))}.json"
         data = json.dumps(record, ensure_ascii=False).encode("utf-8")
         self._api.batch_bucket_files(
             bucket_id=self.repo_id,
@@ -216,8 +199,6 @@ class WorkflowHistory:
                 repo_type="dataset",
                 commit_message="Add generation",
             )
-            # Invalidate inside the lock so no concurrent list() refills the
-            # cache with stale data after the upload but before this clear.
             self._cache = None
 
     def _upload_media(
@@ -225,7 +206,6 @@ class WorkflowHistory:
     ) -> str | None:
         """Upload a local media file to the repo/bucket's ``media/`` dir."""
         if not os.path.isfile(value):
-            # Already a URL or non-existent — keep as-is.
             return None
         ext = pathlib.Path(value).suffix or {
             "image": ".png",
@@ -240,7 +220,6 @@ class WorkflowHistory:
                         bucket_id=self.repo_id,
                         add=[(fh.read(), path_in_repo)],
                     )
-                # Bucket files are served at /buckets/{id}/{path} (no /resolve/main/).
                 return f"https://huggingface.co/buckets/{self.repo_id}/{path_in_repo}"
             else:
                 self._api.upload_file(
@@ -270,13 +249,12 @@ class WorkflowHistory:
 
     def _fetch_from_bucket(self) -> list[dict]:
         """Fetch individual JSON record files from a bucket."""
-        from huggingface_hub._buckets import BucketFile
-
         all_items = sorted(
             (
                 item
                 for item in self._api.list_bucket_tree(self.repo_id, prefix="data/")
-                if isinstance(item, BucketFile) and item.path.endswith(".json")
+                if getattr(item, "path", "").endswith(".json")
+                and not hasattr(item, "count")
             ),
             key=lambda f: f.path,
             reverse=True,

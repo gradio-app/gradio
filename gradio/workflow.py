@@ -72,8 +72,6 @@ class _CuratedCache(TypedDict):
 _CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
 _CURATED_LOCK = threading.Lock()
 
-# pipeline_tag lookup cache: model_id → tag string, avoids re-hitting Hub on
-# every execution when the node was added without a stored pipeline_tag.
 _MODEL_TAG_CACHE: dict[str, str] = {}
 _MODEL_TAG_LOCK = threading.Lock()
 
@@ -380,7 +378,18 @@ def _save_tmp(result, ext: str) -> dict:
 
 
 def _img_url(a) -> str:
-    return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
+    if not isinstance(a, dict):
+        return a
+    path = a.get("path", "")
+    url = a.get("url", "")
+    # Prefer the local file path: InferenceClient reads it directly.
+    # Only fall back to url if it's a public HTTPS address; never send
+    # Gradio-internal relative URLs (e.g. /gradio_api/file=...) to the Hub.
+    if path and os.path.isfile(path):
+        return path
+    if url.startswith("https://"):
+        return url
+    return path or url
 
 
 def _classify_error(e: Exception) -> dict:
@@ -778,10 +787,6 @@ _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
 }
 
 
-# Legacy pipeline tags (as sent by older saved workflows and the browser
-# executor) → InferenceClient endpoint names. depth-estimation is absent on
-# purpose: InferenceClient has no such method, so it keeps its raw-POST branch
-# in call_model. Unmapped tags fall through to the chat/raw-POST fallback.
 _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "text-generation": "text_generation",
     "text2text-generation": "text_generation",
@@ -813,8 +818,6 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
 }
 
 
-# Client params that expect a list of strings; port values arrive as a single
-# string, split on the given pattern.
 _ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
     "zero_shot_classification": {"candidate_labels": r"[\n,]"},
     "sentence_similarity": {"other_sentences": r"\n"},
@@ -826,8 +829,6 @@ def get_model_endpoints(
 ) -> str:
     from huggingface_hub import InferenceClient
 
-    # Only advertise endpoints the installed huggingface_hub can actually run,
-    # so the UI never shapes a node around a method that would fail server-side.
     endpoints = [
         {"name": name, **schema}
         for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
@@ -856,7 +857,6 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             continue
         legacy = re.fullmatch(r"in_(\d+)", k)
         if legacy and k not in schema_ids and int(legacy.group(1)) < len(schema_ids):
-            # positional port IDs from workflows saved before endpoint schemas
             k = schema_ids[int(legacy.group(1))]
         clean[k] = (
             _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
@@ -865,7 +865,6 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         if isinstance(clean.get(key), str):
             clean[key] = [s.strip() for s in re.split(sep, clean[key]) if s.strip()]
     if endpoint == "zero_shot_classification" and not clean.get("candidate_labels"):
-        # without labels, fall back to scoring with the model's own label set
         return _dispatch_model_endpoint(
             client, "text_classification", {"text": clean.get("text", "")}
         )
@@ -889,7 +888,6 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     if ext:
         return json.dumps([_save_tmp(result, ext)])
     if isinstance(result, list) and result and hasattr(result[0], "answer"):
-        # question-answering-style outputs: surface the top answer
         result = result[0]
     for attr in (
         "summary_text",
@@ -943,8 +941,6 @@ def call_model(
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
 
-        # Autodetect the pipeline_tag from the Hub when the node doesn't carry
-        # one, so we never mis-route a text-to-image model as text-generation.
         if not pipeline_tag:
             with _MODEL_TAG_LOCK:
                 pipeline_tag = _MODEL_TAG_CACHE.get(model_id)
@@ -984,8 +980,6 @@ def call_model(
 
         endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
         if endpoint:
-            # Positional args from legacy saved workflows and the browser
-            # executor map onto the endpoint schema's input order.
             schema_inputs = _INFERENCE_ENDPOINT_SCHEMAS[endpoint]["inputs"]
             kwargs = {
                 schema_inputs[i]["id"]: val
@@ -1577,7 +1571,6 @@ class Workflow(Blocks):
                 self._workflow_file,
             )
 
-        # Resolve the history repo ID (may require a Hub API call for history=True).
         self._wh = self._resolve_history()
 
         # Callable so each browser session re-reads `workflow.json`, picking up
@@ -1730,7 +1723,6 @@ class Workflow(Blocks):
                                 "Workflow: endpoint sync after save failed",
                                 exc_info=True,
                             )
-                # Sync workflow graph definition to Hub alongside generations.
                 if self._wh is not None:
                     import threading as _threading
 
@@ -1777,8 +1769,6 @@ class Workflow(Blocks):
 
                 auto = data[1] if data and len(data) > 1 else False
                 repo_type = (data[2] if data and len(data) > 2 else None) or "dataset"
-                # Prefer the caller's OAuth bearer token over the local CLI token so
-                # this works on Spaces where hf_get_token() returns None.
                 hf_token = (
                     token.token if token is not None else None
                 ) or hf_get_token()
@@ -1801,9 +1791,6 @@ class Workflow(Blocks):
                 wh.ensure_repo()
                 self._wh = wh
 
-                # Persist the repo_id and repo_type into workflow.json so they
-                # survive restarts.  Hold _save_lock for the full read-modify-write
-                # to avoid racing with concurrent save_workflow() calls.
                 try:
                     with _save_lock:
                         raw = _load_initial()
@@ -1955,8 +1942,6 @@ class Workflow(Blocks):
         param = self._history_param
         repo_type = self._history_repo_type
 
-        # If no constructor arg, check whether workflow.json already has a
-        # ``history_repo`` written by a previous ``connect_history()`` call.
         if param is None:
             try:
                 with open(self._workflow_file, encoding="utf-8") as f:
