@@ -1868,10 +1868,11 @@ def get_node_path():
         return which_node_path
 
     try:
-        # On Windows, try using 'where' command
+        # On Windows, try using 'where' command. Suppress stderr so a missing
+        # node does not print "INFO: Could not find files for the given pattern(s)."
         if sys.platform == "win32":
             windows_path = (
-                subprocess.check_output(["where", "node"])
+                subprocess.check_output(["where", "node"], stderr=subprocess.DEVNULL)
                 .decode()
                 .strip()
                 .split("\r\n")[0]
@@ -1885,7 +1886,11 @@ def get_node_path():
     try:
         # On Unix-like systems, try using 'which' command
         if sys.platform != "win32":
-            return subprocess.check_output(["which", "node"]).decode().strip()
+            return (
+                subprocess.check_output(["which", "node"], stderr=subprocess.DEVNULL)
+                .decode()
+                .strip()
+            )
     except (subprocess.CalledProcessError, FileNotFoundError):
         # Command failed, fall back to checking common install locations
         pass

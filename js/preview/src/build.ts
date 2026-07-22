@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 
 import { build } from "vite";
 import type { PreRenderedChunk } from "rollup";
@@ -56,7 +56,7 @@ export async function make_build({
 				fs.existsSync(join(comp.frontend_dir, "gradio.config.js"))
 			) {
 				const m = await import(
-					join("file://" + comp.frontend_dir, "gradio.config.js")
+					pathToFileURL(join(comp.frontend_dir, "gradio.config.js")).href
 				);
 
 				component_config.plugins = m.default.plugins || [];
