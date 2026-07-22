@@ -83,8 +83,10 @@ _WINDOWS_RESERVED_NAMES = frozenset(
         "PRN",
         "AUX",
         "NUL",
-        *(f"COM{i}" for i in range(1, 10)),
-        *(f"LPT{i}" for i in range(1, 10)),
+        "CONIN$",
+        "CONOUT$",
+        *(f"COM{c}" for c in "123456789\xb9\xb2\xb3"),
+        *(f"LPT{c}" for c in "123456789\xb9\xb2\xb3"),
     }
 )
 
@@ -775,7 +777,10 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
         name = "file"
     # Prefix Windows reserved device names so uploads remain valid on NTFS
     # (CON, PRN, AUX, NUL, COM1–COM9, LPT1–LPT9, with or without extension).
-    if name.rstrip(". ").upper() in _WINDOWS_RESERVED_NAMES:
+    # Windows resolves device names from the segment before the *first* dot
+    # (e.g. "NUL.tar.gz" is the NUL device), so check the recombined filename
+    # the same way CPython's ntpath.isreserved does.
+    if (name + ext).partition(".")[0].rstrip(" ").upper() in _WINDOWS_RESERVED_NAMES:
         name = "_" + name
     filename = name + ext
     filename_len = len(filename.encode())

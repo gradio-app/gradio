@@ -146,6 +146,12 @@ def test_get_mimetype(filename, expected_mimetype):
         ("NUL.pdf", "_NUL.pdf"),
         ("COM1", "_COM1"),
         ("lpt9.dat", "_lpt9.dat"),
+        # Windows resolves device names from the segment before the first dot
+        ("CON.tar.gz", "_CON.tar.gz"),
+        ("nul.tar.gz", "_nul.tar.gz"),
+        # "$" is stripped as shell-dangerous first, which already defuses CONIN$/CONOUT$
+        ("CONOUT$.txt", "CONOUT.txt"),
+        ("COM\xb9.log", "_COM\xb9.log"),
         ("config.txt", "config.txt"),
         ("console.log", "console.log"),
     ],
