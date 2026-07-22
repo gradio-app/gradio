@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import importlib
+import inspect
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Annotated
 
 from rich.markup import escape
+from tomlkit import parse
 from typer import Argument, Option
 
 from gradio.cli.commands.display import LivePanelDisplay
@@ -55,6 +58,38 @@ def _get_executable_path(
     return path
 
 
+def _get_frontend_dir(directory: Path) -> Path:
+    """Get the frontend directory of the custom component located in `directory`.
+
+    Custom components can override the location of their frontend code via the
+    FRONTEND_DIR class attribute, so the installed component class is inspected
+    to resolve the actual path. Falls back to the default `frontend` directory
+    if the component cannot be imported (e.g. it has not been installed yet).
+    """
+    default_frontend_dir = directory / "frontend"
+    try:
+        pyproject_toml = parse((directory / "pyproject.toml").read_text())
+        package_name = pyproject_toml["project"]["name"]  # type: ignore
+        module = importlib.import_module(package_name)  # type: ignore
+        from gradio.blocks import BlockContext
+        from gradio.components import Component
+
+        for name in dir(module):
+            if name.startswith("__"):
+                continue
+            value = getattr(module, name)
+            if (
+                inspect.isclass(value)
+                and issubclass(value, (BlockContext, Component))
+                and value.__module__.startswith(module.__name__)
+            ):
+                file_location = Path(inspect.getfile(value)).parent
+                return (file_location / value.FRONTEND_DIR).resolve()
+    except Exception:
+        return default_frontend_dir
+    return default_frontend_dir
+
+
 def _install_command(
     directory: Path, live: LivePanelDisplay, npm_install: str, pip_path: str | None
 ):
@@ -78,7 +113,7 @@ def _install_command(
     live.update(
         f":construction_worker: Installing javascript... [grey37]({npm_install})[/]"
     )
-    with set_directory(directory / "frontend"):
+    with set_directory(_get_frontend_dir(directory)):
         pipe = subprocess.run(
             npm_install.split(), capture_output=True, text=True, check=False
         )
