@@ -350,8 +350,8 @@
 			events: ["data", "log", "status", "render"],
 			query_params
 		});
-		window.addEventListener("beforeunload", () => {
-			app.close();
+		window.addEventListener("pagehide", (event) => {
+			if (!event.persisted) app.close();
 		});
 
 		if (!app.config && !config?.auth_required) {

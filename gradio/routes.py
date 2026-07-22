@@ -82,6 +82,7 @@ from gradio.data_classes import (
     PredictBody,
     PredictBodyInternal,
     QueueAckBody,
+    QueueCloseBody,
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
@@ -1459,6 +1460,11 @@ class App(FastAPI):
             await app.get_blocks()._queue.acknowledge_event(
                 body.session_hash, body.event_id
             )
+            return {"success": True}
+
+        @router.post("/queue/close", dependencies=[Depends(login_check)])
+        async def close_queue_session(body: QueueCloseBody):
+            app.get_blocks()._queue.mark_session_closing(body.session_hash)
             return {"success": True}
 
         @router.get(
