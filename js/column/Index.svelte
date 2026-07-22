@@ -13,7 +13,7 @@
 	);
 </script>
 
-<BaseColumn {...gradio.shared} variant={gradio.props.variant}>
+<BaseColumn {...gradio.shared} {...gradio.props}>
 	<slot />
 </BaseColumn>
 
