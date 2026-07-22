@@ -41,6 +41,7 @@ import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
+	CLOSE_URL,
 	CONFIG_ERROR_MSG,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
@@ -360,6 +361,26 @@ export class Client {
 	}
 
 	close(): void {
+		if (
+			!this.closed &&
+			this.options.resume_sessions &&
+			this.config &&
+			typeof window !== "undefined"
+		) {
+			const headers: Record<string, string> = {
+				"Content-Type": "application/json"
+			};
+			if (this.options.token) {
+				headers.Authorization = `Bearer ${this.options.token}`;
+			}
+			void this.fetch(`${this.config.root}${this.api_prefix}/${CLOSE_URL}`, {
+				method: "POST",
+				headers,
+				body: JSON.stringify({ session_hash: this.session_hash }),
+				credentials: this.options.credentials ?? "same-origin",
+				keepalive: true
+			}).catch(() => {});
+		}
 		this.closed = true;
 		if (this.stream_reconnect_timer) {
 			clearTimeout(this.stream_reconnect_timer);

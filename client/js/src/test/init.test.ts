@@ -17,6 +17,7 @@ import {
 import { initialise_server } from "./server";
 import { SPACE_METADATA_ERROR_MSG } from "../constants";
 import { track_resumable_event } from "../utils/session";
+import { http, HttpResponse } from "msw";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -142,6 +143,39 @@ describe("Client class", () => {
 
 			await Promise.all(submissions.map((submission) => submission.return()));
 		});
+
+		test.skipIf(typeof window === "undefined")(
+			"notifies the server when a resumable client closes",
+			async () => {
+				const app = await Client.connect(secret_direct_app_reference, {
+					token: "hf_123",
+					resume_sessions: true
+				});
+				let received_session_hash: string | undefined;
+				let received_authorization: string | null = null;
+				let resolve_request: () => void = () => {};
+				const request_received = new Promise<void>((resolve) => {
+					resolve_request = resolve;
+				});
+				server.resetHandlers(
+					http.post(
+						`${secret_direct_app_reference}/queue/close`,
+						async ({ request }) => {
+							const body = (await request.json()) as { session_hash: string };
+							received_session_hash = body.session_hash;
+							received_authorization = request.headers.get("Authorization");
+							resolve_request();
+							return HttpResponse.json({ success: true });
+						}
+					)
+				);
+				app.close();
+				await request_received;
+
+				expect(received_session_hash).toBe(app.session_hash);
+				expect(received_authorization).toBe("Bearer hf_123");
+			}
+		);
 	});
 
 	describe("duplicate", () => {

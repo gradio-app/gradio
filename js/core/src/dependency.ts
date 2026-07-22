@@ -6,7 +6,7 @@ import type {
 	Payload
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
-import { Client, type client_return } from "@gradio/client";
+import { Client, type client_return, type ResumableJob } from "@gradio/client";
 import {
 	LoadingStatusState,
 	type LoadingStatusArgs
@@ -721,13 +721,15 @@ export class DependencyManager {
 		return;
 	}
 
-	get_resumable_events() {
+	get_resumable_events(): ResumableJob[] {
 		return this.client
 			.get_resumable_events()
 			.filter(({ fn_index }) => this.dependencies_by_fn.has(fn_index));
 	}
 
-	async resume(events = this.get_resumable_events()): Promise<void> {
+	async resume(
+		events: ResumableJob[] = this.get_resumable_events()
+	): Promise<void> {
 		const submissions = this.client.resume_jobs(events);
 		await Promise.all(
 			events.map(async ({ fn_index }, index) => {
@@ -978,8 +980,9 @@ export class DependencyManager {
 		}
 	}
 
-	dispatch_load_events() {
+	dispatch_load_events(excluded_fn_indices: Set<number> = new Set()) {
 		this.dependencies_by_fn.forEach((dep) => {
+			if (excluded_fn_indices.has(dep.id)) return;
 			dep.targets.forEach(([target_id, event_name]) => {
 				if (event_name === "load") {
 					this.dispatch({

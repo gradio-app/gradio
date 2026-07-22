@@ -17,7 +17,7 @@ import fastapi
 import numpy as np
 from anyio.to_thread import run_sync
 
-from gradio import route_utils, routes
+from gradio import caching, route_utils, routes
 from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
@@ -158,6 +158,7 @@ class Queue:
         self.detached_session_expirations: dict[str, float] = {}
         self.active_session_streams: defaultdict[str, int] = defaultdict(int)
         self.resume_ttl = float(os.getenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "600"))
+        self.close_grace_period = max(0.0, min(5.0, self.resume_ttl))
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
@@ -257,13 +258,21 @@ class Queue:
         messages.put_nowait(event_message)
 
     def resume_session(self, session_hash: str, event_ids: list[str]) -> None:
-        pending_ids = self.pending_event_ids_session.get(session_hash, set())
         requested_ids = set(event_ids)
         messages: AsyncQueue[EventMessage] = AsyncQueue()
-        for message in self.message_history_per_session.get(session_hash, []):
+        history = self.message_history_per_session.get(session_hash, [])
+        known_ids = {
+            message.event_id for message in history if message.event_id is not None
+        }
+        known_ids.update(
+            event_id
+            for event_id, event in self.event_ids_to_events.items()
+            if event.session_hash == session_hash
+        )
+        for message in history:
             if message.event_id in requested_ids:
                 messages.put_nowait(message)
-        for event_id in requested_ids - pending_ids:
+        for event_id in requested_ids - known_ids:
             messages.put_nowait(
                 UnexpectedErrorMessage(
                     event_id=event_id,
@@ -291,6 +300,17 @@ class Queue:
         self.active_session_streams[session_hash] += 1
         self.detached_session_expirations.pop(session_hash, None)
 
+    def mark_session_closing(self, session_hash: str) -> None:
+        if not self.pending_event_ids_session.get(session_hash):
+            return
+        expiration = time.monotonic() + self.close_grace_period
+        current_expiration = self.detached_session_expirations.get(session_hash)
+        self.detached_session_expirations[session_hash] = (
+            min(expiration, current_expiration)
+            if current_expiration is not None
+            else expiration
+        )
+
     def close_session_stream(self, session_hash: str) -> None:
         if self.active_session_streams.get(session_hash, 0) > 0:
             self.active_session_streams[session_hash] -= 1
@@ -310,18 +330,77 @@ class Queue:
             return
 
         if self.pending_event_ids_session.get(session_hash):
+            expiration = time.monotonic() + self.resume_ttl
+            current_expiration = self.detached_session_expirations.get(session_hash)
             self.detached_session_expirations[session_hash] = (
-                time.monotonic() + self.resume_ttl
+                min(expiration, current_expiration)
+                if current_expiration is not None
+                else expiration
             )
         else:
             await self.delete_session(session_hash)
 
-    async def delete_session(self, session_hash: str) -> None:
+    async def delete_session(
+        self, session_hash: str, *, run_unload: bool = False
+    ) -> None:
+        if run_unload:
+            await self._run_unload(session_hash)
         self.detached_session_expirations.pop(session_hash, None)
         self.active_session_streams.pop(session_hash, None)
         self.pending_messages_per_session.pop(session_hash, None)
         self.message_history_per_session.pop(session_hash, None)
         await self.clean_events(session_hash=session_hash)
+
+    async def _run_unload(self, session_hash: str) -> None:
+        app = self.server_app
+        if app is None:
+            return
+        event = next(
+            (
+                event
+                for event in self.event_ids_to_events.values()
+                if event.session_hash == session_hash
+            ),
+            None,
+        )
+        if event is not None:
+            body = PredictBodyInternal(
+                session_hash=session_hash, data=[], request=event.request
+            )
+            gr_request = route_utils.Request(
+                event.request, event.username, session_hash=session_hash
+            )
+            root_path = route_utils.get_root_url(
+                request=event.request,
+                route_path=route_utils.get_api_call_path(request=event.request),
+                root_path=app.root_path,
+            )
+            unload_fns = [
+                fn
+                for fn in app.get_blocks().fns.values()
+                if any(target[1] == "unload" for target in fn.targets)
+            ]
+            await asyncio.gather(
+                *(
+                    route_utils.call_process_api(
+                        app=app,
+                        body=body,
+                        gr_request=gr_request,
+                        fn=fn,
+                        root_path=root_path,
+                    )
+                    for fn in unload_fns
+                ),
+                return_exceptions=True,
+            )
+        if session_hash in app.state_holder.session_data:
+            app.state_holder.session_data[session_hash].is_closed = True
+        caching.clear_session_caches(session_hash)
+        for event_id in self.pending_event_ids_session.get(session_hash, set()):
+            pending_event = self.event_ids_to_events.get(event_id)
+            if pending_event is not None:
+                pending_event.run_time = float("inf")
+                pending_event.signal.set()
 
     async def clean_expired_detached_sessions(self) -> None:
         now = time.monotonic()
@@ -331,7 +410,7 @@ class Queue:
             if expires_at <= now
         ]
         for session_hash in expired_sessions:
-            await self.delete_session(session_hash)
+            await self.delete_session(session_hash, run_unload=True)
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -718,11 +797,19 @@ class Queue:
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
     ) -> None:
+        removed_ids = {
+            current_event_id
+            for current_event_id, event in self.event_ids_to_events.items()
+            if event.session_hash == session_hash or current_event_id == event_id
+        }
+        if session_hash:
+            removed_ids.update(self.pending_event_ids_session.get(session_hash, set()))
         for job_set in self.active_jobs:
             if job_set:
                 for job in job_set:
                     if job.session_hash == session_hash or job._id == event_id:
                         job.alive = False
+                        removed_ids.add(job._id)
 
         async with self.delete_lock:
             events_to_remove: list[Event] = []
@@ -730,18 +817,25 @@ class Queue:
                 for event in event_queue.queue:
                     if event.session_hash == session_hash or event._id == event_id:
                         events_to_remove.append(event)
+                        removed_ids.add(event._id)
 
             for event in events_to_remove:
                 self.event_queue_per_concurrency_id[event.concurrency_id].queue.remove(
                     event
                 )
-                self.event_ids_to_events.pop(event._id, None)
 
-            if session_hash and session_hash in self.pending_event_ids_session:
-                removed_ids = {e._id for e in events_to_remove}
-                self.pending_event_ids_session[session_hash] -= removed_ids
-                if not self.pending_event_ids_session[session_hash]:
-                    self.pending_event_ids_session.pop(session_hash, None)
+            for removed_id in removed_ids:
+                self.event_ids_to_events.pop(removed_id, None)
+
+            if session_hash:
+                self.pending_event_ids_session.pop(session_hash, None)
+            elif event_id:
+                for current_session_hash, pending_ids in list(
+                    self.pending_event_ids_session.items()
+                ):
+                    pending_ids.discard(event_id)
+                    if not pending_ids:
+                        self.pending_event_ids_session.pop(current_session_hash)
 
     async def notify_clients(self) -> None:
         """
