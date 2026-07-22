@@ -26,9 +26,9 @@ Detailed guides on specific topics (read these when relevant):
 - [Streaming Inputs](https://www.gradio.app/guides/streaming-inputs)
 - [Sharing Your App](https://www.gradio.app/guides/sharing-your-app)
 - [Custom HTML Components](https://www.gradio.app/guides/custom-HTML-components)
+- [Workflows](https://www.gradio.app/guides/workflows)
 - [Getting Started with the Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client)
 - [Getting Started with the JS Client](https://www.gradio.app/guides/getting-started-with-the-js-client)
-- [Workflows](https://www.gradio.app/guides/workflows)
 
 ## Core Patterns
 
@@ -68,7 +68,9 @@ def respond(message, history):
 gr.ChatInterface(fn=respond).launch()
 ```
 
-**Workflow**: builds a visual, node-based pipeline from Hugging Face Spaces, models, datasets, and Python functions. `gr.Workflow` is a standalone app, so do not create it inside a `gr.Blocks` context.
+**Workflow**: builds a visual, node-based pipeline from Hugging Face Spaces,
+models, datasets, and Python functions. `gr.Workflow` is a standalone app, so
+do not create it inside a `gr.Blocks` context.
 
 ```python
 import gradio as gr
@@ -84,7 +86,6 @@ gr.Workflow(
     edges=[("clean", "tag")],
 ).launch()
 ```
-
 
 ## Custom HTML Components
 
