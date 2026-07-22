@@ -7,12 +7,20 @@
 			"label": "Prompt",
 			"role": "reference",
 			"asset_type": "text",
-			"inputs": [{ "id": "in", "label": "Text", "type": "text" }],
-			"outputs": [{ "id": "out", "label": "Text", "type": "text" }],
-			"x": 80,
-			"y": 280,
-			"width": 220,
-			"height": 161,
+			"inputs": [
+				{
+					"id": "in",
+					"label": "Text",
+					"type": "text"
+				}
+			],
+			"outputs": [
+				{
+					"id": "out",
+					"label": "Text",
+					"type": "text"
+				}
+			],
 			"data": {
 				"out": "A cinematic photo of a red fox in a misty forest at dawn"
 			}
@@ -28,327 +36,22 @@
 			"pipeline_tag": "text-to-image",
 			"endpoint": "text-to-image",
 			"inputs": [
-				{ "id": "in_0", "label": "Prompt", "type": "text", "required": true }
+				{
+					"id": "in_0",
+					"label": "Prompt",
+					"type": "text",
+					"required": true
+				}
 			],
 			"outputs": [
-				{ "id": "out_0", "label": "Image", "type": "image", "output_index": 0 }
-			],
-			"x": 420,
-			"y": 120,
-			"width": 220,
-			"height": 115,
-			"data": {},
-			"endpoints": [
 				{
-					"name": "text_to_image",
-					"inputs": [{ "id": "prompt", "label": "Prompt", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Image",
-							"type": "image",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_to_speech",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Audio",
-							"type": "audio",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_to_video",
-					"inputs": [{ "id": "prompt", "label": "Prompt", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Video",
-							"type": "video",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_to_image",
-					"inputs": [
-						{ "id": "image", "label": "Image", "type": "image" },
-						{ "id": "prompt", "label": "Prompt", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Image",
-							"type": "image",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_to_video",
-					"inputs": [
-						{ "id": "image", "label": "Image", "type": "image" },
-						{ "id": "prompt", "label": "Prompt", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Video",
-							"type": "video",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_generation",
-					"inputs": [{ "id": "prompt", "label": "Prompt", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Text",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "summarization",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Summary",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "translation",
-					"inputs": [
-						{ "id": "text", "label": "Text", "type": "text" },
-						{ "id": "src_lang", "label": "Source Language", "type": "text" },
-						{ "id": "tgt_lang", "label": "Target Language", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Translation",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "fill_mask",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Result",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_classification",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Labels",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "token_classification",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Entities",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "zero_shot_classification",
-					"inputs": [
-						{ "id": "text", "label": "Text", "type": "text" },
-						{
-							"id": "candidate_labels",
-							"label": "Candidate Labels",
-							"type": "text"
-						}
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Scores",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "sentence_similarity",
-					"inputs": [
-						{ "id": "sentence", "label": "Sentence", "type": "text" },
-						{
-							"id": "other_sentences",
-							"label": "Other Sentences",
-							"type": "text"
-						}
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Scores",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "question_answering",
-					"inputs": [
-						{ "id": "question", "label": "Question", "type": "text" },
-						{ "id": "context", "label": "Context", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Answer",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "feature_extraction",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Embeddings",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_classification",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Labels",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "object_detection",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Detections",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_segmentation",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Segments",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_to_text",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Text",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "automatic_speech_recognition",
-					"inputs": [{ "id": "audio", "label": "Audio", "type": "audio" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Text",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "audio_classification",
-					"inputs": [{ "id": "audio", "label": "Audio", "type": "audio" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Labels",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "visual_question_answering",
-					"inputs": [
-						{ "id": "image", "label": "Image", "type": "image" },
-						{ "id": "question", "label": "Question", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Answer",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "document_question_answering",
-					"inputs": [
-						{ "id": "image", "label": "Document", "type": "image" },
-						{ "id": "question", "label": "Question", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Answer",
-							"type": "text",
-							"output_index": 0
-						}
-					]
+					"id": "out_0",
+					"label": "Image",
+					"type": "image",
+					"output_index": 0
 				}
-			]
+			],
+			"data": {}
 		},
 		{
 			"id": "op_flux",
@@ -359,327 +62,22 @@
 			"pipeline_tag": "text-to-image",
 			"endpoint": "text-to-image",
 			"inputs": [
-				{ "id": "in_0", "label": "Prompt", "type": "text", "required": true }
+				{
+					"id": "in_0",
+					"label": "Prompt",
+					"type": "text",
+					"required": true
+				}
 			],
 			"outputs": [
-				{ "id": "out_0", "label": "Image", "type": "image", "output_index": 0 }
-			],
-			"x": 420,
-			"y": 440,
-			"width": 220,
-			"height": 115,
-			"data": {},
-			"endpoints": [
 				{
-					"name": "text_to_image",
-					"inputs": [{ "id": "prompt", "label": "Prompt", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Image",
-							"type": "image",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_to_speech",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Audio",
-							"type": "audio",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_to_video",
-					"inputs": [{ "id": "prompt", "label": "Prompt", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Video",
-							"type": "video",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_to_image",
-					"inputs": [
-						{ "id": "image", "label": "Image", "type": "image" },
-						{ "id": "prompt", "label": "Prompt", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Image",
-							"type": "image",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_to_video",
-					"inputs": [
-						{ "id": "image", "label": "Image", "type": "image" },
-						{ "id": "prompt", "label": "Prompt", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Video",
-							"type": "video",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_generation",
-					"inputs": [{ "id": "prompt", "label": "Prompt", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Text",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "summarization",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Summary",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "translation",
-					"inputs": [
-						{ "id": "text", "label": "Text", "type": "text" },
-						{ "id": "src_lang", "label": "Source Language", "type": "text" },
-						{ "id": "tgt_lang", "label": "Target Language", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Translation",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "fill_mask",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Result",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "text_classification",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Labels",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "token_classification",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Entities",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "zero_shot_classification",
-					"inputs": [
-						{ "id": "text", "label": "Text", "type": "text" },
-						{
-							"id": "candidate_labels",
-							"label": "Candidate Labels",
-							"type": "text"
-						}
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Scores",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "sentence_similarity",
-					"inputs": [
-						{ "id": "sentence", "label": "Sentence", "type": "text" },
-						{
-							"id": "other_sentences",
-							"label": "Other Sentences",
-							"type": "text"
-						}
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Scores",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "question_answering",
-					"inputs": [
-						{ "id": "question", "label": "Question", "type": "text" },
-						{ "id": "context", "label": "Context", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Answer",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "feature_extraction",
-					"inputs": [{ "id": "text", "label": "Text", "type": "text" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Embeddings",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_classification",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Labels",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "object_detection",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Detections",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_segmentation",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Segments",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "image_to_text",
-					"inputs": [{ "id": "image", "label": "Image", "type": "image" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Text",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "automatic_speech_recognition",
-					"inputs": [{ "id": "audio", "label": "Audio", "type": "audio" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Text",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "audio_classification",
-					"inputs": [{ "id": "audio", "label": "Audio", "type": "audio" }],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Labels",
-							"type": "json",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "visual_question_answering",
-					"inputs": [
-						{ "id": "image", "label": "Image", "type": "image" },
-						{ "id": "question", "label": "Question", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Answer",
-							"type": "text",
-							"output_index": 0
-						}
-					]
-				},
-				{
-					"name": "document_question_answering",
-					"inputs": [
-						{ "id": "image", "label": "Document", "type": "image" },
-						{ "id": "question", "label": "Question", "type": "text" }
-					],
-					"outputs": [
-						{
-							"id": "out_0",
-							"label": "Answer",
-							"type": "text",
-							"output_index": 0
-						}
-					]
+					"id": "out_0",
+					"label": "Image",
+					"type": "image",
+					"output_index": 0
 				}
-			]
+			],
+			"data": {}
 		}
 	],
 	"subjects": [
@@ -688,12 +86,20 @@
 			"label": "Krea Output",
 			"role": "subject",
 			"asset_type": "image",
-			"inputs": [{ "id": "in", "label": "Image", "type": "image" }],
-			"outputs": [{ "id": "out", "label": "Image", "type": "image" }],
-			"x": 760,
-			"y": 120,
-			"width": 220,
-			"height": 105,
+			"inputs": [
+				{
+					"id": "in",
+					"label": "Image",
+					"type": "image"
+				}
+			],
+			"outputs": [
+				{
+					"id": "out",
+					"label": "Image",
+					"type": "image"
+				}
+			],
 			"data": {}
 		},
 		{
@@ -701,12 +107,20 @@
 			"label": "FLUX Output",
 			"role": "subject",
 			"asset_type": "image",
-			"inputs": [{ "id": "in", "label": "Image", "type": "image" }],
-			"outputs": [{ "id": "out", "label": "Image", "type": "image" }],
-			"x": 760,
-			"y": 440,
-			"width": 220,
-			"height": 105,
+			"inputs": [
+				{
+					"id": "in",
+					"label": "Image",
+					"type": "image"
+				}
+			],
+			"outputs": [
+				{
+					"id": "out",
+					"label": "Image",
+					"type": "image"
+				}
+			],
 			"data": {}
 		}
 	],
@@ -745,3 +159,4 @@
 		}
 	]
 }
+

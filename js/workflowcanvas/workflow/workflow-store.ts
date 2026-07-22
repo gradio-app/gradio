@@ -62,6 +62,9 @@ export { allNodes, findNode, isV2, migrateToV2 };
  * them, and data: URLs would bloat workflow.json with base64 payloads —
  * so we drop the field entirely and let the user re-upload on refresh.
  * Other data (text, numbers, server-served file paths) passes through.
+ * Endpoint catalogs are also session metadata: the canvas hydrates them from
+ * the backend, so persisting them would duplicate every supported task into
+ * every operator node.
  */
 function is_session_url(v: unknown): boolean {
 	const url = (v as { url?: string } | null)?.url;
@@ -84,10 +87,13 @@ export function revoke_blob_urls(
 
 export function sanitize_for_save(wf: Workflow): Workflow {
 	return mapAllRoles(wf, (n) => {
-		if (!n.data) return n;
 		const cleaned: NodeData = {};
-		for (const [k, v] of Object.entries(n.data)) {
+		for (const [k, v] of Object.entries(n.data ?? {})) {
 			if (!is_session_url(v)) cleaned[k] = v as NodeDataValue;
+		}
+		if (n.role === "operator") {
+			const { endpoints: _endpoints, ...persisted } = n;
+			return { ...persisted, data: cleaned };
 		}
 		return { ...n, data: cleaned };
 	});
