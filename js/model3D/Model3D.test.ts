@@ -28,7 +28,7 @@ import Model3D from "./Index.svelte";
 // that can complete after component cleanup, causing unhandled rejections.
 // These are harmless race conditions in the 3D rendering libraries, not test bugs.
 function suppress_3d_library_errors(e: PromiseRejectionEvent): void {
-	const msg = e.reason?.message ?? "";
+	const msg = String(e.reason?.message ?? e.reason ?? "");
 	if (
 		msg.includes("addEventListener") ||
 		msg.includes("Viewer is disposed") ||
@@ -42,10 +42,6 @@ function suppress_3d_library_errors(e: PromiseRejectionEvent): void {
 
 beforeAll(() => {
 	window.addEventListener("unhandledrejection", suppress_3d_library_errors);
-});
-
-afterAll(() => {
-	window.removeEventListener("unhandledrejection", suppress_3d_library_errors);
 });
 
 const base_props = {
