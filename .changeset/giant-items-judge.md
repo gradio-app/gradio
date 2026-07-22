@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Various improvements to Workflow 
+feat:Various improvements to Workflows, particularly for LLM-generated Workflows
