@@ -5,7 +5,7 @@ import gradio as gr
 # black-forest-labs/FLUX.1-dev, each ending in its own output image. Because
 # both outputs share the same input, they're exposed as ONE API endpoint that
 # returns both images as a tuple.
-demo = gr.Workflow(graph="workflow.json")
+demo = gr.Workflow()
 
 if __name__ == "__main__":
     demo.launch()
