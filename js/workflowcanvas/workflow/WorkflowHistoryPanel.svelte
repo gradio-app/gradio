@@ -168,6 +168,7 @@
 				<div class="history-grid">
 					{#each filtered as record (record.id)}
 						{@const out = primaryOutput(record)}
+						{@const summary = inputSummary(record)}
 						<div class="history-card">
 							<div class="card-preview">
 								{#if out && MEDIA_TYPES.has(out.type) && typeof out.value === "string"}
@@ -202,7 +203,6 @@
 								{/if}
 							</div>
 
-							{@const summary = inputSummary(record)}
 							{#if summary}
 								<div class="card-inputs">{summary}</div>
 							{/if}
