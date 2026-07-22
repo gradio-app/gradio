@@ -94,6 +94,11 @@ export function sanitize_for_save(wf: Workflow): Workflow {
 }
 
 // ─── Actions ────────────────────────────────────────────────────────────────
+const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
+	boolean: false,
+	number: 0,
+	text: ""
+};
 
 function addReference(
 	template: Omit<ReferenceNode, "id" | "role" | "x" | "y" | "data">,
@@ -102,9 +107,11 @@ function addReference(
 ): string {
 	const id = uuid();
 	const data: Record<string, NodeDataValue> = {};
-	for (const port of template.inputs) {
+	for (const port of [...template.inputs, ...template.outputs]) {
 		if (port.default_value !== undefined) {
 			data[port.id] = port.default_value as NodeDataValue;
+		} else if (port.type in PORT_DEFAULTS) {
+			data[port.id] ??= PORT_DEFAULTS[port.type]!;
 		}
 	}
 	const node: ReferenceNode = {
@@ -312,6 +319,29 @@ export function hydrate_endpoints(
 		operators: wf.operators.map((n) =>
 			n.id === nodeId ? { ...n, endpoints } : n
 		)
+	}));
+}
+
+export function init_model_node_ports(
+	schemas: { name: string; inputs: Port[]; outputs: Port[] }[],
+	pipelineTagMap: Record<string, string> = {}
+): void {
+	workflow.update((wf) => ({
+		...wf,
+		operators: wf.operators.map((n) => {
+			if (n.kind !== "model") return n;
+			const endpointName = n.endpoint ?? pipelineTagMap[n.pipeline_tag ?? ""];
+			if (!endpointName) return n;
+			const sig = schemas.find((s) => s.name === endpointName);
+			if (!sig) return { ...n, endpoints: schemas };
+			return {
+				...n,
+				endpoint: endpointName,
+				endpoints: schemas,
+				inputs: sig.inputs,
+				outputs: sig.outputs
+			};
+		})
 	}));
 }
 

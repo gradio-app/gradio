@@ -138,6 +138,22 @@ def test_get_mimetype(filename, expected_mimetype):
             "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutschland-GmbH.pdf",
             "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutsc.pdf",
         ),
+        # Windows reserved device names must be rewritten so uploads work on NTFS
+        ("CON", "_CON"),
+        ("con.txt", "_con.txt"),
+        ("PRN.jpg", "_PRN.jpg"),
+        ("aux", "_aux"),
+        ("NUL.pdf", "_NUL.pdf"),
+        ("COM1", "_COM1"),
+        ("lpt9.dat", "_lpt9.dat"),
+        # Windows resolves device names from the segment before the first dot
+        ("CON.tar.gz", "_CON.tar.gz"),
+        ("nul.tar.gz", "_nul.tar.gz"),
+        # "$" is stripped as shell-dangerous first, which already defuses CONIN$/CONOUT$
+        ("CONOUT$.txt", "CONOUT.txt"),
+        ("COM\xb9.log", "_COM\xb9.log"),
+        ("config.txt", "config.txt"),
+        ("console.log", "console.log"),
     ],
 )
 def test_strip_invalid_filename_characters(orig_filename, new_filename):

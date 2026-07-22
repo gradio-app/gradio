@@ -81,7 +81,8 @@ export function resolve_config_root(
 
 export async function resolve_config(
 	this: Client,
-	endpoint: string
+	endpoint: string,
+	strip_current_page = true
 ): Promise<Config | undefined> {
 	const headers: Record<string, string> = this.options.token
 		? { Authorization: `Bearer ${this.options.token}` }
@@ -92,7 +93,7 @@ export async function resolve_config(
 		window.gradio_config &&
 		location.origin !== "http://localhost:9876"
 	) {
-		if (window.gradio_config.current_page) {
+		if (strip_current_page && window.gradio_config.current_page) {
 			endpoint = endpoint.substring(0, endpoint.lastIndexOf("/"));
 		}
 		if (

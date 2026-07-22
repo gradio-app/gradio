@@ -463,6 +463,10 @@ export class AppTree {
 	#sync_reused_components_after_rerender(node: ProcessedComponentMeta): void {
 		const data: Record<string, unknown> = {};
 		for (const key in node.props.shared_props) {
+			// loading_status is owned by DependencyManager / LoadingStatusState and
+			// is remapped separately across hot-reloads. Pushing the empty default
+			// from a freshly created node would wipe an in-flight progress indicator.
+			if (key === "loading_status") continue;
 			// @ts-ignore
 			const v = node.props.shared_props[key];
 			if (v !== undefined) data[key] = v;

@@ -802,6 +802,8 @@ button.access-badge.access-readonly.open {
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 	z-index: 30;
 	min-width: 130px;
+	max-height: 280px;
+	overflow-y: auto;
 	animation: wf-toast-in 0.12s ease-out;
 }
 
