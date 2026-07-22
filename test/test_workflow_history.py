@@ -4,13 +4,9 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from gradio.workflow_history import WorkflowHistory, build_history_record
-
 
 # ─── build_history_record ─────────────────────────────────────────────────────
 
@@ -132,8 +128,17 @@ def test_push_appends_to_local_file(tmp_path):
         "timestamp": "2026-06-30T12:00:00Z",
         "subgraph": "generate",
         "subject_ids": ["subj_0"],
-        "inputs": {"ref_0": {"value": "cat", "type": "text", "label": "Prompt", "port_id": "out_0"}},
-        "outputs": {"subj_0": {"value": "a cute cat", "type": "text", "label": "Result"}},
+        "inputs": {
+            "ref_0": {
+                "value": "cat",
+                "type": "text",
+                "label": "Prompt",
+                "port_id": "out_0",
+            }
+        },
+        "outputs": {
+            "subj_0": {"value": "a cute cat", "type": "text", "label": "Result"}
+        },
         "user": None,
     }
     wh._push_sync(record)
@@ -161,9 +166,7 @@ def test_push_uploads_image_to_media(tmp_path):
         "subgraph": "img",
         "subject_ids": ["subj_img"],
         "inputs": {},
-        "outputs": {
-            "subj_img": {"value": img_path, "type": "image", "label": "Image"}
-        },
+        "outputs": {"subj_img": {"value": img_path, "type": "image", "label": "Image"}},
         "user": None,
     }
     wh._push_sync(record)

@@ -21,7 +21,6 @@ import json
 import logging
 import re
 import secrets
-import threading
 from collections import deque
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Optional
@@ -713,7 +712,7 @@ def _build_endpoint_fn(
     free_ids: list[str],
     callers: dict[str, Callable],
     api_name: str = "",
-    get_history: Optional[Callable[[], Optional["WorkflowHistory"]]] = None,
+    get_history: Optional[Callable[[], Optional[WorkflowHistory]]] = None,
     free_items: Optional[list[dict]] = None,
 ):
     """Build the callable backing one subgraph endpoint. `subject_ids` are all
@@ -742,8 +741,15 @@ def _build_endpoint_fn(
         if history is not None:
             try:
                 _record_generation(
-                    history, api_name, graph, free_items or [], input_values,
-                    subject_ids, results, request, token,
+                    history,
+                    api_name,
+                    graph,
+                    free_items or [],
+                    input_values,
+                    subject_ids,
+                    results,
+                    request,
+                    token,
                 )
             except Exception:
                 logger.debug("_record_generation failed", exc_info=True)
@@ -940,6 +946,8 @@ def register_workflow_endpoints(
     """Create a `WorkflowEndpointManager` and register the initial endpoint set
     from the current graph. Returns the manager so the caller can `.sync()` it
     again whenever the graph is saved."""
-    manager = WorkflowEndpointManager(blocks, get_graph, callers, get_history=get_history)
+    manager = WorkflowEndpointManager(
+        blocks, get_graph, callers, get_history=get_history
+    )
     manager.sync()
     return manager

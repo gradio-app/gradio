@@ -1606,7 +1606,8 @@
 			: undefined;
 
 		// Capture node outputs live for history recording.
-		const capturedOutputs: Record<string, { portId: string; value: any }[]> = {};
+		const capturedOutputs: Record<string, { portId: string; value: any }[]> =
+			{};
 
 		await executeWorkflow(
 			wfToRun,
@@ -1681,7 +1682,10 @@
 		// records history itself; the canvas executor doesn't go through it).
 		if (!wasAborted && !hasErrors && server?.push_history) {
 			try {
-				const genInputs: Record<string, { value: any; type: string; label: string }> = {};
+				const genInputs: Record<
+					string,
+					{ value: any; type: string; label: string }
+				> = {};
 				for (const ref of wfToRun.references) {
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
 					if (!node) continue;
@@ -1689,11 +1693,15 @@
 					if (!outPort) continue;
 					const captured = capturedOutputs[ref.id];
 					const value = captured
-						? (captured.find((o) => o.portId === outPort.id) ?? captured[0])?.value ?? null
-						: node.data?.[outPort.id] ?? null;
+						? ((captured.find((o) => o.portId === outPort.id) ?? captured[0])
+								?.value ?? null)
+						: (node.data?.[outPort.id] ?? null);
 					genInputs[ref.id] = { value, type: outPort.type, label: node.label };
 				}
-				const genOutputs: Record<string, { value: any; type: string; label: string }> = {};
+				const genOutputs: Record<
+					string,
+					{ value: any; type: string; label: string }
+				> = {};
 				for (const subj of wfToRun.subjects) {
 					const node = legacyView.nodes.find((n) => n.id === subj.id);
 					if (!node) continue;
@@ -1701,8 +1709,9 @@
 					if (!inPort) continue;
 					const captured = capturedOutputs[subj.id];
 					const value = captured
-						? (captured.find((o) => o.portId === inPort.id) ?? captured[0])?.value ?? null
-						: node.data?.[inPort.id] ?? null;
+						? ((captured.find((o) => o.portId === inPort.id) ?? captured[0])
+								?.value ?? null)
+						: (node.data?.[inPort.id] ?? null);
 					genOutputs[subj.id] = { value, type: inPort.type, label: node.label };
 				}
 				const record = {
@@ -2815,7 +2824,9 @@
 			}}
 			onload={(inputs) => {
 				// Load historical inputs back into the canvas reference nodes.
-				for (const [nodeId, input] of Object.entries(inputs as Record<string, any>)) {
+				for (const [nodeId, input] of Object.entries(
+					inputs as Record<string, any>
+				)) {
 					const portId: string = (input as any).port_id ?? "out_0";
 					const value = (input as any).value;
 					updateNodeData(nodeId, portId, value);

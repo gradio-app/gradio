@@ -118,7 +118,12 @@
 							rel="noopener noreferrer"
 							title="View dataset on Hugging Face"
 						>
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+							>
 								<path
 									d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"
 								/>
@@ -126,14 +131,22 @@
 							{repoId}
 						</a>
 						{#if onchange}
-							<button class="history-change-btn" onclick={onchange} title="Switch dataset repo">
+							<button
+								class="history-change-btn"
+								onclick={onchange}
+								title="Switch dataset repo"
+							>
 								Change
 							</button>
 						{/if}
 					</div>
 				{/if}
 			</div>
-			<button class="history-close" onclick={onclose} aria-label="Close history">
+			<button
+				class="history-close"
+				onclick={onclose}
+				aria-label="Close history"
+			>
 				&#x2715;
 			</button>
 		</div>
@@ -197,7 +210,9 @@
 
 							<div class="card-meta">
 								<div class="card-subgraph">{record.subgraph}</div>
-								<div class="card-time">{formatRelativeTime(record.timestamp)}</div>
+								<div class="card-time">
+									{formatRelativeTime(record.timestamp)}
+								</div>
 								{#if record.user}
 									<div class="card-user">{record.user}</div>
 								{/if}

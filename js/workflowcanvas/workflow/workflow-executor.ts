@@ -419,7 +419,8 @@ export async function executeWorkflow(
 					// Prefer browser-side streaming for chat-completion-compatible
 					// text tasks so the UI receives tokens as they arrive. The
 					// Python path stays for every other task.
-					const tag = node.pipeline_tag ?? (node as any).task ?? "text-generation";
+					const tag =
+						node.pipeline_tag ?? (node as any).task ?? "text-generation";
 					const streamable =
 						(tag === "text-generation" ||
 							tag === "text2text-generation" ||

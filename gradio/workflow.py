@@ -1751,7 +1751,9 @@ class Workflow(Blocks):
             if self._wh is None:
                 return json.dumps({"records": [], "repo_id": None})
             subgraph = data[0] if data else None
-            limit = int(data[1]) if data and len(data) > 1 and data[1] is not None else 50
+            limit = (
+                int(data[1]) if data and len(data) > 1 and data[1] is not None else 50
+            )
             records = self._wh.list(limit=limit, subgraph=subgraph or None)
             return json.dumps({"records": records, "repo_id": self._wh.repo_id})
 
@@ -1767,7 +1769,9 @@ class Workflow(Blocks):
                      HF username and workflow name (same as ``history=True``).
             """
             if not has_write_access(request, token):
-                return json.dumps({"error": "Write access required", "error_type": "auth"})
+                return json.dumps(
+                    {"error": "Write access required", "error_type": "auth"}
+                )
             try:
                 from gradio.workflow_history import WorkflowHistory
 
@@ -1775,17 +1779,25 @@ class Workflow(Blocks):
                 repo_type = (data[2] if data and len(data) > 2 else None) or "dataset"
                 # Prefer the caller's OAuth bearer token over the local CLI token so
                 # this works on Spaces where hf_get_token() returns None.
-                hf_token = (token.token if token is not None else None) or hf_get_token()
+                hf_token = (
+                    token.token if token is not None else None
+                ) or hf_get_token()
                 if auto:
                     user = HfApi(token=hf_token).whoami()["name"]
-                    slug = re.sub(r"[^a-z0-9-]", "-", self._workflow_name.lower()).strip("-")
+                    slug = re.sub(
+                        r"[^a-z0-9-]", "-", self._workflow_name.lower()
+                    ).strip("-")
                     repo_id = f"{user}/{slug}-history"
                 else:
                     repo_id = (data[0] if data else "").strip()
-                if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*", repo_id):
+                if not re.fullmatch(
+                    r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*", repo_id
+                ):
                     return json.dumps({"error": f"Invalid repo ID: {repo_id}"})
 
-                wh = WorkflowHistory(repo_id=repo_id, token=hf_token, repo_type=repo_type)
+                wh = WorkflowHistory(
+                    repo_id=repo_id, token=hf_token, repo_type=repo_type
+                )
                 wh.ensure_repo()
                 self._wh = wh
 
@@ -1802,9 +1814,14 @@ class Workflow(Blocks):
                             with open(workflow_file, "w", encoding="utf-8") as f:
                                 json.dump(parsed, f, ensure_ascii=False)
                 except Exception:
-                    logger.debug("connect_history: could not persist to workflow.json", exc_info=True)
+                    logger.debug(
+                        "connect_history: could not persist to workflow.json",
+                        exc_info=True,
+                    )
 
-                return json.dumps({"ok": True, "repo_id": repo_id, "repo_type": repo_type})
+                return json.dumps(
+                    {"ok": True, "repo_id": repo_id, "repo_type": repo_type}
+                )
             except Exception as e:
                 logger.error("connect_history failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})

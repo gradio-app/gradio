@@ -29,7 +29,11 @@
 		error = null;
 		connecting = true;
 		try {
-			const raw = await server.connect_history([repoInput.trim(), auto, repoType]);
+			const raw = await server.connect_history([
+				repoInput.trim(),
+				auto,
+				repoType
+			]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			if (data.error) {
 				error = data.error;
@@ -55,7 +59,9 @@
 	<div class="connect-panel">
 		<div class="connect-header">
 			<span class="connect-title">Connect generation history</span>
-			<button class="connect-close" onclick={onclose} aria-label="Close">&#x2715;</button>
+			<button class="connect-close" onclick={onclose} aria-label="Close"
+				>&#x2715;</button
+			>
 		</div>
 
 		<p class="connect-desc">
@@ -101,7 +107,9 @@
 			<input
 				class="connect-input"
 				type="text"
-				placeholder={repoType === "bucket" ? "username/bucket-name" : "username/dataset-name"}
+				placeholder={repoType === "bucket"
+					? "username/bucket-name"
+					: "username/dataset-name"}
 				bind:value={repoInput}
 				disabled={connecting}
 				onkeydown={(e) => {
@@ -212,7 +220,9 @@
 		font-weight: 500;
 		padding: 5px 0;
 		cursor: pointer;
-		transition: background 0.1s, color 0.1s;
+		transition:
+			background 0.1s,
+			color 0.1s;
 	}
 
 	.type-btn.active {
