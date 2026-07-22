@@ -21,6 +21,10 @@
 					"type": "text"
 				}
 			],
+			"x": 80,
+			"y": 280,
+			"width": 220,
+			"height": 161,
 			"data": {
 				"out": "A cinematic photo of a red fox in a misty forest at dawn"
 			}
@@ -34,10 +38,10 @@
 			"kind": "model",
 			"model_id": "krea/Krea-2-Turbo",
 			"pipeline_tag": "text-to-image",
-			"endpoint": "text-to-image",
+			"endpoint": "text_to_image",
 			"inputs": [
 				{
-					"id": "in_0",
+					"id": "prompt",
 					"label": "Prompt",
 					"type": "text",
 					"required": true
@@ -51,6 +55,10 @@
 					"output_index": 0
 				}
 			],
+			"x": 420,
+			"y": 120,
+			"width": 220,
+			"height": 115,
 			"data": {}
 		},
 		{
@@ -60,10 +68,10 @@
 			"kind": "model",
 			"model_id": "black-forest-labs/FLUX.1-dev",
 			"pipeline_tag": "text-to-image",
-			"endpoint": "text-to-image",
+			"endpoint": "text_to_image",
 			"inputs": [
 				{
-					"id": "in_0",
+					"id": "prompt",
 					"label": "Prompt",
 					"type": "text",
 					"required": true
@@ -77,6 +85,10 @@
 					"output_index": 0
 				}
 			],
+			"x": 420,
+			"y": 440,
+			"width": 220,
+			"height": 115,
 			"data": {}
 		}
 	],
@@ -100,6 +112,10 @@
 					"type": "image"
 				}
 			],
+			"x": 760,
+			"y": 120,
+			"width": 220,
+			"height": 105,
 			"data": {}
 		},
 		{
@@ -121,6 +137,10 @@
 					"type": "image"
 				}
 			],
+			"x": 760,
+			"y": 440,
+			"width": 220,
+			"height": 105,
 			"data": {}
 		}
 	],
@@ -130,7 +150,7 @@
 			"from_node_id": "ref_prompt",
 			"from_port_id": "out",
 			"to_node_id": "op_krea",
-			"to_port_id": "in_0",
+			"to_port_id": "prompt",
 			"type": "text"
 		},
 		{
@@ -138,7 +158,7 @@
 			"from_node_id": "ref_prompt",
 			"from_port_id": "out",
 			"to_node_id": "op_flux",
-			"to_port_id": "in_0",
+			"to_port_id": "prompt",
 			"type": "text"
 		},
 		{
@@ -159,4 +179,3 @@
 		}
 	]
 }
-
