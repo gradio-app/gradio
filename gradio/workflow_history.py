@@ -117,7 +117,9 @@ class WorkflowHistory:
                 "%Y-%m-%dT%H:%M:%SZ"
             )
             safe_ts = ts.replace(":", "-")
-            path_in_repo = f"data/{safe_ts}_{record.get('id', secrets.token_hex(8))}.json"
+            path_in_repo = (
+                f"data/{safe_ts}_{record.get('id', secrets.token_hex(8))}.json"
+            )
             data = json.dumps(record, ensure_ascii=False).encode("utf-8")
             self._api.batch_bucket_files(
                 bucket_id=self.repo_id,
