@@ -3,18 +3,23 @@
 	"version": "2.3.1",
 	"description": "Gradio API client",
 	"type": "module",
-	"main": "dist/index.js",
+	"main": "dist/index.cjs",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"author": "",
 	"license": "ISC",
 	"exports": {
 		".": {
 			"gradio": "./src/index.ts",
+			"types": "./dist/index.d.ts",
 			"browser": "./dist/browser.js",
 			"import": "./dist/index.js",
+			"require": "./dist/index.cjs",
 			"default": "./dist/index.js"
 		},
 		"./package.json": "./package.json",
-		"./browser.js": "./dist/browser.js"
+		"./browser.js": "./dist/browser.js",
+		"./dist/index.min.js": "./dist/index.min.js"
 	},
 	"dependencies": {
 		"fetch-event-stream": "^0.1.5"
@@ -26,9 +31,10 @@
 	"scripts": {
 		"bundle": "vite build --ssr",
 		"bundle:browser": "BROWSER_BUILD=true vite build",
+		"bundle:cdn": "BROWSER_BUILD=true CDN_BUILD=true vite build",
 		"generate_types": "tsc",
 		"clean": "rm -rf dist",
-		"build": "pnpm clean && pnpm bundle && pnpm bundle:browser && pnpm generate_types",
+		"build": "pnpm clean && pnpm bundle && pnpm bundle:browser && pnpm bundle:cdn && pnpm generate_types",
 		"test": "pnpm test:browser && pnpm test:node",
 		"test:browser": "vitest run -c vite.config.ts",
 		"test:node": "NODE_NO_WARNINGS=1 TEST_MODE=node vitest run -c vite.config.ts",

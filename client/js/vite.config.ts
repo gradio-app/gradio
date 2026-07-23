@@ -39,6 +39,9 @@ logger.info = (log, options) => {
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 	const isBrowserBuild = process.env.BROWSER_BUILD === "true";
+	// Single-file, minified browser bundle served from CDNs at
+	// dist/index.min.js (see https://github.com/gradio-app/gradio/issues/10028)
+	const isCdnBuild = process.env.CDN_BUILD === "true";
 
 	if (mode === "preview") {
 		return {
@@ -50,15 +53,26 @@ export default defineConfig(({ mode }) => {
 		customLogger: logger,
 		build: {
 			emptyOutDir: false,
+			...(isCdnBuild ? { minify: true } : {}),
 			lib: {
 				entry: "src/index.ts",
-				formats: ["es"],
-				fileName: isBrowserBuild ? `browser` : `index`
+				// the node build also emits a CommonJS bundle (dist/index.cjs)
+				// so that require("@gradio/client") works on all supported
+				// node versions (see https://github.com/gradio-app/gradio/issues/9214)
+				formats: isBrowserBuild ? ["es"] : ["es", "cjs"],
+				fileName: (format) => {
+					if (isCdnBuild) return "index.min.js";
+					if (isBrowserBuild) return "browser.js";
+					return format === "cjs" ? "index.cjs" : "index.js";
+				}
 			},
 			rollupOptions: {
 				input: "src/index.ts",
 				output: {
-					dir: "dist"
+					dir: "dist",
+					// keep the CDN bundle as a single file so the documented
+					// <script type="module"> import works without extra chunks
+					inlineDynamicImports: isCdnBuild
 				}
 			}
 		},
