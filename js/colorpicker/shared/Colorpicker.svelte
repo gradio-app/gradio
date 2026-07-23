@@ -177,10 +177,15 @@
 	}
 
 	function handle_click_outside(event: MouseEvent): void {
+		// click_outside is bound to the dialog, so the swatch (outside it, but
+		// inside the component) triggers this too; let its onclick handle the toggle.
+		if (wrapper.contains(event.target as Node)) {
+			return;
+		}
 		dialog_open = false;
-		// Closing removes the focused element with the dialog, so no focusout
-		// fires; dispatch blur here unless focus is moving back to the swatch.
-		if (has_focus && !wrapper.contains(event.target as Node)) {
+		// The focused element is removed with the dialog, so no focusout fires;
+		// dispatch blur here instead.
+		if (has_focus) {
 			has_focus = false;
 			on_blur();
 		}

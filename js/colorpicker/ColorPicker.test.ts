@@ -99,6 +99,7 @@ describe("Dialog", () => {
 		expect(result.getByRole("button", { name: "Hex" })).toBeInTheDocument();
 
 		const swatch = result.getByRole("button", { name: "Color Picker" });
+		await fireEvent.mouseDown(swatch);
 		await fireEvent.click(swatch);
 
 		expect(
