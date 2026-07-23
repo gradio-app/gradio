@@ -3,10 +3,12 @@ from __future__ import annotations
 import importlib
 import inspect
 import shutil
+import site
 import subprocess
 from pathlib import Path
 from typing import Annotated
 
+from rich import print
 from rich.markup import escape
 from tomlkit import parse
 from typer import Argument, Option
@@ -70,7 +72,18 @@ def _get_frontend_dir(directory: Path) -> Path:
     try:
         pyproject_toml = parse((directory / "pyproject.toml").read_text())
         package_name = pyproject_toml["project"]["name"]  # type: ignore
-        module = importlib.import_module(package_name)  # type: ignore
+    except Exception:
+        return default_frontend_dir
+    try:
+        try:
+            module = importlib.import_module(package_name)  # type: ignore
+        except ImportError:
+            # A package that was pip-installed after this process started (as
+            # happens during `gradio cc install`) is not importable until the
+            # site .pth files are re-processed.
+            importlib.invalidate_caches()
+            site.main()
+            module = importlib.import_module(package_name)  # type: ignore
         from gradio.blocks import BlockContext
         from gradio.components import Component
 
@@ -101,6 +114,10 @@ def _get_frontend_dir(directory: Path) -> Path:
         file_location = Path(inspect.getfile(component_class)).parent
         return (file_location / component_class.FRONTEND_DIR).resolve()
     except Exception:
+        print(
+            f":warning: Could not import `{package_name}` to check for a custom "
+            f"FRONTEND_DIR, assuming the frontend code is located in {default_frontend_dir}."
+        )
         return default_frontend_dir
 
 
