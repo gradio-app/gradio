@@ -15,7 +15,7 @@ import {
 	response_api_info
 } from "./test_data";
 import { initialise_server } from "./server";
-import { SPACE_METADATA_ERROR_MSG } from "../constants";
+import { SPACE_NOT_FOUND_MSG } from "../constants";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -87,12 +87,28 @@ describe("Client class", () => {
 			});
 		});
 
+		test("connecting successfully to a private running app with the deprecated hf_token option", async () => {
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			const app = await Client.connect("hmb/secret_world", {
+				hf_token: "hf_123"
+			});
+
+			expect(app.config).toEqual({
+				...config_response,
+				root: "https://hmb-secret-world.hf.space"
+			});
+			expect(warn).toHaveBeenCalledWith(
+				expect.stringContaining("`hf_token` option has been renamed")
+			);
+			warn.mockRestore();
+		});
+
 		test("unsuccessfully attempting to connect to a private running app", async () => {
 			await expect(
 				Client.connect("hmb/secret_world", {
 					token: "hf_bad_token"
 				})
-			).rejects.toThrowError(SPACE_METADATA_ERROR_MSG);
+			).rejects.toThrowError(SPACE_NOT_FOUND_MSG("hmb/secret_world", 401));
 		});
 
 		test("viewing the api info of a running app", async () => {
@@ -139,7 +155,9 @@ describe("Client class", () => {
 		test("creating a duplicate of a broken app", async () => {
 			const duplicate = Client.duplicate(broken_app_reference);
 
-			await expect(duplicate).rejects.toThrow(SPACE_METADATA_ERROR_MSG);
+			await expect(duplicate).rejects.toThrow(
+				SPACE_NOT_FOUND_MSG(broken_app_reference, 404)
+			);
 		});
 	});
 
