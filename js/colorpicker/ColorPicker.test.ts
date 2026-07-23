@@ -119,6 +119,20 @@ describe("Dialog", () => {
 			result.queryByRole("button", { name: "Hex" })
 		).not.toBeInTheDocument();
 	});
+
+	test("clicking the component's empty area outside the dialog closes the picker", async () => {
+		const result = await render(ColorPicker, default_props);
+
+		await open_picker(result);
+		expect(result.getByRole("button", { name: "Hex" })).toBeInTheDocument();
+
+		const swatch = result.getByRole("button", { name: "Color Picker" });
+		await fireEvent.mouseDown(swatch.parentElement!);
+
+		expect(
+			result.queryByRole("button", { name: "Hex" })
+		).not.toBeInTheDocument();
+	});
 });
 
 describe("Props: interactive", () => {

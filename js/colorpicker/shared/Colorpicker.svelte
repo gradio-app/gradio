@@ -36,6 +36,7 @@
 	let eyedropper_supported = false;
 
 	let wrapper: HTMLDivElement;
+	let dialog_button: HTMLButtonElement;
 	let has_focus = false;
 
 	let sl_wrap: HTMLDivElement;
@@ -179,7 +180,7 @@
 	function handle_click_outside(event: MouseEvent): void {
 		// click_outside is bound to the dialog, so the swatch (outside it, but
 		// inside the component) triggers this too; let its onclick handle the toggle.
-		if (wrapper.contains(event.target as Node)) {
+		if (dialog_button.contains(event.target as Node)) {
 			return;
 		}
 		dialog_open = false;
@@ -207,6 +208,7 @@
 >
 	<button
 		class="dialog-button"
+		bind:this={dialog_button}
 		aria-label={label}
 		style:background={value}
 		{disabled}
