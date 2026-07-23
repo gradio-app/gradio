@@ -155,7 +155,7 @@ export function handle_file(
 		// Return the File as-is so that its filename and MIME type are
 		// preserved when it is uploaded (see issue #10758).
 		return file_or_url;
-	} else if (file_or_url instanceof Buffer) {
+	} else if (globalThis.Buffer && file_or_url instanceof globalThis.Buffer) {
 		return new Blob([file_or_url as any]);
 	} else if (file_or_url instanceof Blob) {
 		return file_or_url;
