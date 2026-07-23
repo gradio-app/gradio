@@ -485,6 +485,32 @@ describe("Events", () => {
 		expect(blur).toHaveBeenCalledTimes(1);
 	});
 
+	test("blur: not emitted when clicking a non-focusable area inside the dialog", async () => {
+		const result = await render(ColorPicker, default_props);
+		await open_picker(result);
+
+		const input = result.getByRole("textbox");
+		input.focus();
+		const blur = result.listen("blur");
+
+		// fireEvent can't reproduce the browser's default mousedown action
+		// (blurring the active element when the target has no focusable
+		// ancestor), so emulate it, honoring preventDefault as browsers do.
+		const dialog = result.container.querySelector(".color-picker")!;
+		const mousedown = new MouseEvent("mousedown", {
+			bubbles: true,
+			cancelable: true
+		});
+		dialog.dispatchEvent(mousedown);
+		if (!mousedown.defaultPrevented) {
+			(document.activeElement as HTMLElement | null)?.blur();
+		}
+
+		expect(blur).not.toHaveBeenCalled();
+		expect(result.getByRole("button", { name: "Hex" })).toBeInTheDocument();
+		expect(document.activeElement).toBe(input);
+	});
+
 	test("blur: emitted when clicking outside closes the dialog while focus is inside", async () => {
 		const result = await render(ColorPicker, default_props);
 

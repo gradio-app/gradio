@@ -219,7 +219,20 @@
 	/>
 
 	{#if dialog_open}
-		<div class="color-picker" use:click_outside={handle_click_outside}>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="color-picker"
+			onmousedown={(e) => {
+				// Keep focus where it is, as Dropdown does for its options:
+				// letting focus fall to body (padding clicks, or button clicks
+				// on browsers where buttons don't take focus) fires a premature
+				// blur. Only the text input needs mouse focus.
+				if (!(e.target instanceof HTMLInputElement)) {
+					e.preventDefault();
+				}
+			}}
+			use:click_outside={handle_click_outside}
+		>
 			<div
 				class="color-gradient"
 				role="slider"
