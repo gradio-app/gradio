@@ -38,10 +38,12 @@ logger.info = (log, options) => {
 };
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
-	const isBrowserBuild = process.env.BROWSER_BUILD === "true";
 	// Single-file, minified browser bundle served from CDNs at
 	// dist/index.min.js (see https://github.com/gradio-app/gradio/issues/10028)
 	const isCdnBuild = process.env.CDN_BUILD === "true";
+	// a CDN build is always a browser build (guards against CDN_BUILD=true
+	// without BROWSER_BUILD=true emitting es+cjs into the same file name)
+	const isBrowserBuild = process.env.BROWSER_BUILD === "true" || isCdnBuild;
 
 	if (mode === "preview") {
 		return {
