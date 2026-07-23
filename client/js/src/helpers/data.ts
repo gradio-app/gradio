@@ -73,7 +73,10 @@ export async function walk_and_store_blobs(
 		return [
 			{
 				path: path,
-				blob: new Blob([data as any]),
+				// Preserve the original Blob/File so that filenames and MIME
+				// types survive the upload (see issue #10758). Only Buffers
+				// need to be converted to Blobs.
+				blob: data instanceof Blob ? data : new Blob([data as any]),
 				type
 			}
 		];
@@ -149,7 +152,9 @@ export function handle_file(
 			});
 		}
 	} else if (typeof File !== "undefined" && file_or_url instanceof File) {
-		return new Blob([file_or_url]);
+		// Return the File as-is so that its filename and MIME type are
+		// preserved when it is uploaded (see issue #10758).
+		return file_or_url;
 	} else if (file_or_url instanceof Buffer) {
 		return new Blob([file_or_url as any]);
 	} else if (file_or_url instanceof Blob) {
