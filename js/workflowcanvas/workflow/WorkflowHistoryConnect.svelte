@@ -14,7 +14,6 @@
 	let repoInput = $state("");
 	let connecting = $state(false);
 	let error = $state<string | null>(null);
-	let repoType = $state<"dataset" | "bucket">("dataset");
 
 	const suggestedName = $derived(
 		workflowName
@@ -29,11 +28,7 @@
 		error = null;
 		connecting = true;
 		try {
-			const raw = await server.connect_history([
-				repoInput.trim(),
-				auto,
-				repoType
-			]);
+			const raw = await server.connect_history([repoInput.trim(), auto]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			if (data.error) {
 				error = data.error;
@@ -65,28 +60,9 @@
 		</div>
 
 		<p class="connect-desc">
-			Save every generation to a private HF Hub repo. Browse and reload past
+			Save every generation to a private HF Hub bucket. Browse and reload past
 			outputs from the History panel.
 		</p>
-
-		<div class="connect-type-toggle">
-			<button
-				class="type-btn"
-				class:active={repoType === "dataset"}
-				onclick={() => (repoType = "dataset")}
-				title="Git-based dataset repo. Works on free accounts."
-			>
-				Dataset
-			</button>
-			<button
-				class="type-btn"
-				class:active={repoType === "bucket"}
-				onclick={() => (repoType = "bucket")}
-				title="S3-like Hub bucket. No commit noise. Requires a paid plan."
-			>
-				Bucket
-			</button>
-		</div>
 
 		<div class="connect-auto">
 			<button
@@ -100,7 +76,7 @@
 		</div>
 
 		<div class="connect-divider">
-			<span>or enter a {repoType} name</span>
+			<span>or enter a bucket name</span>
 		</div>
 
 		<div class="connect-manual">
@@ -193,46 +169,6 @@
 		color: #7c7f99;
 		margin: 0 0 12px;
 		line-height: 1.5;
-	}
-
-	.connect-type-toggle {
-		display: flex;
-		gap: 4px;
-		margin-bottom: 14px;
-		background: #0c0d10;
-		border: 1px solid #2a2b38;
-		border-radius: 6px;
-		padding: 3px;
-	}
-
-	:global(body:not(.dark)) .connect-type-toggle {
-		background: #f3f4f6;
-		border-color: #e5e7eb;
-	}
-
-	.type-btn {
-		flex: 1;
-		background: none;
-		border: none;
-		border-radius: 4px;
-		color: #7c7f99;
-		font-size: 12px;
-		font-weight: 500;
-		padding: 5px 0;
-		cursor: pointer;
-		transition:
-			background 0.1s,
-			color 0.1s;
-	}
-
-	.type-btn.active {
-		background: #22232f;
-		color: #e8e9f0;
-	}
-
-	:global(body:not(.dark)) .type-btn.active {
-		background: #fff;
-		color: #1a1b25;
 	}
 
 	.connect-auto-btn {

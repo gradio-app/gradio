@@ -1,4 +1,4 @@
-"""WorkflowHistory — persists gr.Workflow generation records to a HF Hub repo or bucket."""
+"""WorkflowHistory — persists gr.Workflow generation records to a HF Hub bucket."""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ import tempfile
 import threading
 import time
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Any
 
-from huggingface_hub import HfApi, hf_hub_download
+from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
 logger = logging.getLogger(__name__)
@@ -26,54 +26,24 @@ _MAX_FILES_SCAN = 200
 
 
 class WorkflowHistory:
-    """Persists workflow generation records to a HF Hub dataset repo or bucket.
+    """Persists workflow generation records to a HF Hub bucket.
 
-    Two storage backends are supported:
-
-    * ``repo_type="dataset"`` (default) — git-based dataset repo.  Each process
-      keeps one growing JSONL file so concurrent processes don't conflict.
-      Works on free HF accounts.
-
-    * ``repo_type="bucket"`` — S3-like Hub bucket.  Each generation is stored as
-      an individual JSON file (``data/<timestamp>_<gen_id>.json``), so there is
-      no re-upload growth and no git commit noise.  Requires a paid HF plan.
-
-    Media outputs (images, audio, video) are uploaded to ``media/`` and their
-    local paths are replaced with stable Hub URLs before the record is stored.
+    Each generation is stored as an individual JSON file
+    (``data/<timestamp>_<gen_id>.json``).  Media outputs (images, audio,
+    video) are uploaded to ``media/`` and their local paths are replaced
+    with stable Hub URLs before the record is stored.
 
     Args:
-        repo_id: HF Hub repo/bucket identifier, e.g. ``"user/my-history"``.
+        repo_id: HF Hub bucket identifier, e.g. ``"user/my-history"``.
         token: HF access token.  Falls back to the cached CLI token.
-        repo_type: ``"dataset"`` or ``"bucket"``.
     """
 
-    def __init__(
-        self,
-        repo_id: str,
-        token: str | None = None,
-        repo_type: Literal["dataset", "bucket"] = "dataset",
-    ) -> None:
+    def __init__(self, repo_id: str, token: str | None = None) -> None:
         self.repo_id = repo_id
-        self.repo_type = repo_type
         self._token = token or hf_get_token()
         self._api = HfApi(token=self._token)
-
-        self._proc_id = secrets.token_hex(6)
-
-        if repo_type == "bucket":
-            self._data_path = None
-            self._local_file = None
-        else:
-            self._data_path = f"data/{self._proc_id}.jsonl"
-            self._local_file = os.path.join(
-                tempfile.gettempdir(),
-                f"wf_hist_{repo_id.replace('/', '_')}_{self._proc_id}.jsonl",
-            )
-
-        self._write_lock = threading.Lock()
         self._repo_ready = False
         self._repo_lock = threading.Lock()
-
         self._cache: list[dict] | None = None
         self._cache_at: float = 0.0
 
@@ -100,24 +70,15 @@ class WorkflowHistory:
         return records[:limit]
 
     def push_graph_file(self, workflow_json: str) -> None:
-        """Upload the current ``workflow.json`` to the repo/bucket for versioning."""
+        """Upload the current ``workflow.json`` to the bucket for versioning."""
         try:
             self.ensure_repo()
             if not self._repo_ready:
                 return
-            if self.repo_type == "bucket":
-                self._api.batch_bucket_files(
-                    bucket_id=self.repo_id,
-                    add=[(workflow_json.encode("utf-8"), "workflow.json")],
-                )
-            else:
-                self._api.upload_file(
-                    path_or_fileobj=workflow_json.encode("utf-8"),
-                    path_in_repo="workflow.json",
-                    repo_id=self.repo_id,
-                    repo_type="dataset",
-                    commit_message="Update workflow definition",
-                )
+            self._api.batch_bucket_files(
+                bucket_id=self.repo_id,
+                add=[(workflow_json.encode("utf-8"), "workflow.json")],
+            )
         except Exception:
             logger.debug("WorkflowHistory: graph file upload failed", exc_info=True)
 
@@ -126,20 +87,11 @@ class WorkflowHistory:
             if self._repo_ready:
                 return
             try:
-                if self.repo_type == "bucket":
-                    self._api.create_bucket(self.repo_id, private=True, exist_ok=True)
-                else:
-                    self._api.create_repo(
-                        self.repo_id,
-                        repo_type="dataset",
-                        private=True,
-                        exist_ok=True,
-                    )
+                self._api.create_bucket(self.repo_id, private=True, exist_ok=True)
                 self._repo_ready = True
             except Exception:
                 logger.warning(
-                    "WorkflowHistory: could not create %s %s",
-                    self.repo_type,
+                    "WorkflowHistory: could not create bucket %s",
                     self.repo_id,
                     exc_info=True,
                 )
@@ -161,50 +113,25 @@ class WorkflowHistory:
                     elif os.path.isfile(value):
                         record["outputs"][sid]["value"] = None
 
-            if self.repo_type == "bucket":
-                self._push_to_bucket(record)
-            else:
-                self._push_to_dataset(record)
+            ts = record.get("timestamp") or datetime.now(timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+            safe_ts = ts.replace(":", "-")
+            path_in_repo = f"data/{safe_ts}_{record.get('id', secrets.token_hex(8))}.json"
+            data = json.dumps(record, ensure_ascii=False).encode("utf-8")
+            self._api.batch_bucket_files(
+                bucket_id=self.repo_id,
+                add=[(data, path_in_repo)],
+            )
+            self._cache = None
 
         except Exception:
             logger.debug("WorkflowHistory: push failed", exc_info=True)
 
-    def _push_to_bucket(self, record: dict) -> None:
-        """Write one JSON file per record — no growing buffer, no commit noise.
-
-        Bucket writes are independent files so no local-state lock is needed;
-        concurrent pushes proceed in parallel.
-        """
-        ts = record.get("timestamp") or datetime.now(timezone.utc).strftime(
-            "%Y-%m-%dT%H:%M:%SZ"
-        )
-        safe_ts = ts.replace(":", "-")
-        path_in_repo = f"data/{safe_ts}_{record.get('id', secrets.token_hex(8))}.json"
-        data = json.dumps(record, ensure_ascii=False).encode("utf-8")
-        self._api.batch_bucket_files(
-            bucket_id=self.repo_id,
-            add=[(data, path_in_repo)],
-        )
-        self._cache = None
-
-    def _push_to_dataset(self, record: dict) -> None:
-        """Append to local JSONL buffer and re-upload to the dataset repo."""
-        with self._write_lock:
-            with open(self._local_file, "a", encoding="utf-8") as f:
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
-            self._api.upload_file(
-                path_or_fileobj=self._local_file,
-                path_in_repo=self._data_path,
-                repo_id=self.repo_id,
-                repo_type="dataset",
-                commit_message="Add generation",
-            )
-            self._cache = None
-
     def _upload_media(
         self, gen_id: str, sid: str, value: str, port_type: str
     ) -> str | None:
-        """Upload a local media file to the repo/bucket's ``media/`` dir."""
+        """Upload a local media file to the bucket's ``media/`` dir."""
         if not os.path.isfile(value):
             return None
         ext = pathlib.Path(value).suffix or {
@@ -214,116 +141,63 @@ class WorkflowHistory:
         }.get(port_type, ".bin")
         path_in_repo = f"media/{gen_id}_{sid}{ext}"
         try:
-            if self.repo_type == "bucket":
-                with open(value, "rb") as fh:
-                    self._api.batch_bucket_files(
-                        bucket_id=self.repo_id,
-                        add=[(fh.read(), path_in_repo)],
-                    )
-                return f"https://huggingface.co/buckets/{self.repo_id}/{path_in_repo}"
-            else:
-                self._api.upload_file(
-                    path_or_fileobj=value,
-                    path_in_repo=path_in_repo,
-                    repo_id=self.repo_id,
-                    repo_type="dataset",
-                    commit_message="Add generation media",
+            with open(value, "rb") as fh:
+                self._api.batch_bucket_files(
+                    bucket_id=self.repo_id,
+                    add=[(fh.read(), path_in_repo)],
                 )
-                return (
-                    f"https://huggingface.co/datasets/{self.repo_id}"
-                    f"/resolve/main/{path_in_repo}"
-                )
+            return f"https://huggingface.co/buckets/{self.repo_id}/{path_in_repo}"
         except Exception:
             logger.debug("WorkflowHistory: media upload failed", exc_info=True)
             return None
 
     def _fetch_records(self) -> list[dict]:
-        """Download record files from Hub and sort newest-first."""
+        """Download record files from the bucket and sort newest-first."""
         try:
-            if self.repo_type == "bucket":
-                return self._fetch_from_bucket()
-            return self._fetch_from_dataset()
+            all_items = sorted(
+                (
+                    item
+                    for item in self._api.list_bucket_tree(self.repo_id, prefix="data/")
+                    if getattr(item, "path", "").endswith(".json")
+                    and not hasattr(item, "count")
+                ),
+                key=lambda f: f.path,
+                reverse=True,
+            )[:_MAX_FILES_SCAN]
+
+            if not all_items:
+                return []
+
+            records: list[dict] = []
+            with tempfile.TemporaryDirectory() as tmpdir:
+                downloads = [
+                    (item, os.path.join(tmpdir, f"{i}.json"))
+                    for i, item in enumerate(all_items)
+                ]
+                try:
+                    self._api.download_bucket_files(
+                        bucket_id=self.repo_id,
+                        files=[(item, local) for item, local in downloads],
+                        token=self._token,
+                    )
+                except Exception:
+                    logger.debug(
+                        "WorkflowHistory: bucket download failed", exc_info=True
+                    )
+                    return []
+
+                for _, local in downloads:
+                    try:
+                        with open(local, encoding="utf-8") as fh:
+                            records.append(json.load(fh))
+                    except Exception:
+                        continue
+
+            records.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
+            return records
         except Exception:
             logger.debug("WorkflowHistory: fetch failed", exc_info=True)
             return []
-
-    def _fetch_from_bucket(self) -> list[dict]:
-        """Fetch individual JSON record files from a bucket."""
-        all_items = sorted(
-            (
-                item
-                for item in self._api.list_bucket_tree(self.repo_id, prefix="data/")
-                if getattr(item, "path", "").endswith(".json")
-                and not hasattr(item, "count")
-            ),
-            key=lambda f: f.path,
-            reverse=True,
-        )[:_MAX_FILES_SCAN]
-
-        if not all_items:
-            return []
-
-        records: list[dict] = []
-        with tempfile.TemporaryDirectory() as tmpdir:
-            downloads = [
-                (item, os.path.join(tmpdir, f"{i}.json"))
-                for i, item in enumerate(all_items)
-            ]
-            try:
-                self._api.download_bucket_files(
-                    bucket_id=self.repo_id,
-                    files=[(item, local) for item, local in downloads],
-                    token=self._token,
-                )
-            except Exception:
-                logger.debug("WorkflowHistory: bucket download failed", exc_info=True)
-                return []
-
-            for _, local in downloads:
-                try:
-                    with open(local, encoding="utf-8") as fh:
-                        records.append(json.load(fh))
-                except Exception:
-                    continue
-
-        records.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
-        return records
-
-    def _fetch_from_dataset(self) -> list[dict]:
-        """Download JSONL files from a dataset repo, merge, and sort newest-first."""
-        all_paths = sorted(
-            (
-                f.rfilename
-                for f in self._api.list_repo_tree(
-                    self.repo_id,
-                    repo_type="dataset",
-                    path_in_repo="data",
-                    recursive=False,
-                )
-                if f.rfilename.endswith(".jsonl")
-            ),
-            reverse=True,
-        )[:_MAX_FILES_SCAN]
-
-        records: list[dict] = []
-        for path in all_paths:
-            try:
-                local = hf_hub_download(
-                    self.repo_id,
-                    path,
-                    repo_type="dataset",
-                    token=self._token,
-                )
-                with open(local, encoding="utf-8") as fh:
-                    for line in fh:
-                        line = line.strip()
-                        if line:
-                            records.append(json.loads(line))
-            except Exception:
-                continue
-
-        records.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
-        return records
 
 
 def build_history_record(
