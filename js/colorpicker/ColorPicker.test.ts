@@ -447,9 +447,65 @@ describe("Events", () => {
 
 		const swatch = result.getByRole("button", { name: "Color Picker" });
 		swatch.focus();
-		await fireEvent.blur(swatch);
+		swatch.blur();
 
 		expect(blur).toHaveBeenCalledTimes(1);
+	});
+
+	test("blur: not emitted when focus moves into the dialog, emitted when focus leaves", async () => {
+		const result = await render(ColorPicker, default_props);
+		const blur = result.listen("blur");
+
+		const swatch = result.getByRole("button", { name: "Color Picker" });
+		swatch.focus();
+		await open_picker(result);
+
+		const input = result.getByRole("textbox");
+		input.focus();
+
+		expect(blur).not.toHaveBeenCalled();
+
+		input.blur();
+
+		expect(blur).toHaveBeenCalledTimes(1);
+	});
+
+	test("blur: emitted when clicking outside closes the dialog while focus is inside", async () => {
+		const result = await render(ColorPicker, default_props);
+
+		const swatch = result.getByRole("button", { name: "Color Picker" });
+		swatch.focus();
+		await open_picker(result);
+		result.getByRole("textbox").focus();
+
+		const blur = result.listen("blur");
+		await fireEvent.mouseDown(document.body);
+
+		expect(blur).toHaveBeenCalledTimes(1);
+	});
+
+	test("focus: emitted once while focus stays within the component", async () => {
+		const result = await render(ColorPicker, default_props);
+		const focus = result.listen("focus");
+
+		const swatch = result.getByRole("button", { name: "Color Picker" });
+		swatch.focus();
+		await open_picker(result);
+		result.getByRole("textbox").focus();
+
+		expect(focus).toHaveBeenCalledTimes(1);
+	});
+
+	test("focus: re-emitted when focus returns after blur", async () => {
+		const result = await render(ColorPicker, default_props);
+		const focus = result.listen("focus");
+
+		const swatch = result.getByRole("button", { name: "Color Picker" });
+		swatch.focus();
+		swatch.blur();
+		swatch.focus();
+
+		expect(focus).toHaveBeenCalledTimes(2);
 	});
 });
 
