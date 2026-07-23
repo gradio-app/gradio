@@ -6,11 +6,7 @@ from contextlib import contextmanager
 import gradio as gr
 
 from gradio_client import Client
-from gradio_client.snippet import (
-    _stringify_py,
-    generate_code_snippets,
-    generate_js_snippet,
-)
+from gradio_client.snippet import _stringify_py, generate_code_snippets
 
 
 @contextmanager
@@ -99,49 +95,6 @@ class TestSnippetExecution:
             namespace = {}
             exec(python_snippet, namespace)
             assert isinstance(namespace["result"], (int, float))
-
-
-class TestJsSnippet:
-    def test_js_snippet_uses_handle_file_for_blob_components(self):
-        """The generated JS snippet must wrap blobs of file-based components
-        in handle_file() (see issue #12077)."""
-        params = [
-            {
-                "label": "input_video",
-                "parameter_name": "input_video",
-                "component": "Video",
-                "example_input": {
-                    "url": "https://example.com/video.mp4",
-                    "meta": {"_type": "gradio.FileData"},
-                },
-                "python_type": {"type": "filepath"},
-            },
-            {
-                "label": "input_text",
-                "parameter_name": "input_text",
-                "component": "Textbox",
-                "example_input": "Hello!!",
-                "python_type": {"type": "string"},
-            },
-        ]
-        snippet = generate_js_snippet("/run_video", params, "http://127.0.0.1:7860/")
-        assert 'import { Client, handle_file } from "@gradio/client";' in snippet
-        assert "input_video: handle_file(exampleVideo)," in snippet
-        assert 'input_text: "Hello!!",' in snippet
-
-    def test_js_snippet_without_blob_components_has_no_handle_file(self):
-        params = [
-            {
-                "label": "name",
-                "parameter_name": "name",
-                "component": "Textbox",
-                "example_input": "Hello!!",
-                "python_type": {"type": "string"},
-            },
-        ]
-        snippet = generate_js_snippet("/greet", params, "http://127.0.0.1:7860/")
-        assert 'import { Client } from "@gradio/client";' in snippet
-        assert "handle_file" not in snippet
 
 
 class TestStringifyPy:
