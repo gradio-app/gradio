@@ -63,7 +63,7 @@ export async function process_endpoint(
 		}
 
 		return {
-			space_id: app_reference,
+			space_id: _app_reference,
 			...determine_protocol(_host)
 		};
 	}

@@ -640,7 +640,7 @@ export function submit(
 				type: "status",
 				stage: "error",
 				message: e instanceof Error ? e.message : String(e),
-				queue: true,
+				queue: !skip_queue(fn_index, config),
 				endpoint: _endpoint,
 				fn_index,
 				time: new Date()
@@ -763,7 +763,11 @@ function get_endpoint_info(
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
 
 		fn_index = api_map[trimmed_endpoint];
-		endpoint_info = api_info.named_endpoints[endpoint.trim()];
+		// named endpoints are keyed with a leading slash in the API info, but
+		// accept endpoint names passed without one (e.g. "predict")
+		endpoint_info =
+			api_info.named_endpoints[endpoint.trim()] ??
+			api_info.named_endpoints[`/${trimmed_endpoint}`];
 		dependency = config.dependencies.find(
 			(dep) => dep.id == api_map[trimmed_endpoint]
 		);
