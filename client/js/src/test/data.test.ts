@@ -97,6 +97,27 @@ describe("walk_and_store_blobs", () => {
 		expect(parts[0].path).toEqual(["0"]);
 	});
 
+	it("should preserve File instances (and their filenames)", async () => {
+		const file = new File(["test data"], "report.txt", {
+			type: "text/plain"
+		});
+		const parts = await walk_and_store_blobs([file]);
+
+		expect(parts).toHaveLength(1);
+		expect(parts[0].blob).toBe(file);
+		expect((parts[0].blob as File).name).toBe("report.txt");
+		expect((parts[0].blob as File).type).toBe("text/plain");
+	});
+
+	it("should preserve the MIME type of Blob instances", async () => {
+		const blob = new Blob(["test data"], { type: "image/png" });
+		const parts = await walk_and_store_blobs([blob]);
+
+		expect(parts).toHaveLength(1);
+		expect(parts[0].blob).toBe(blob);
+		expect(parts[0].blob && parts[0].blob.type).toBe("image/png");
+	});
+
 	it("should handle deep structures", async () => {
 		const image = new Blob([]);
 		const parts = await walk_and_store_blobs({ a: { b: { data: { image } } } });
@@ -371,11 +392,13 @@ describe("handle_file", () => {
 	);
 
 	it.skipIf(IS_NODE)(
-		"should handle a File object and return it as FileData",
+		"should handle a File object and return it unchanged, preserving its name and type",
 		() => {
 			const file = new File(["test image"], "test.png", { type: "image/png" });
-			const result = handle_file(file) as FileData;
-			expect(result).toBeInstanceOf(Blob);
+			const result = handle_file(file) as File;
+			expect(result).toBe(file);
+			expect(result.name).toBe("test.png");
+			expect(result.type).toBe("image/png");
 		}
 	);
 
