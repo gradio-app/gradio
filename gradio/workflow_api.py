@@ -749,7 +749,6 @@ def _build_endpoint_fn(
                     subject_ids,
                     results,
                     request,
-                    token,
                 )
             except Exception:
                 logger.debug("_record_generation failed", exc_info=True)
@@ -792,16 +791,13 @@ def _record_generation(
     subject_ids: list[str],
     results: list[Any],
     request: Any,
-    token: Any,
 ) -> None:
     """Fire-and-forget: push a generation record to WorkflowHistory."""
     from gradio.workflow_history import build_history_record
 
     user: str | None = None
     try:
-        if token is not None and hasattr(token, "name"):
-            user = token.name
-        elif hasattr(request, "username"):
+        if hasattr(request, "username"):
             user = request.username
     except Exception:
         pass

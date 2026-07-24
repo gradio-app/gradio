@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from unittest.mock import patch
 
 from gradio.workflow_history import WorkflowHistory, build_history_record
@@ -65,7 +64,6 @@ def test_build_history_record_non_serializable_value():
             "label": "Input",
         }
     ]
-    # Pass a non-serializable object — should be coerced to str
     record = build_history_record(
         gen_id="x",
         subgraph="sg",
@@ -86,7 +84,7 @@ def test_build_history_record_missing_port_uses_default():
     free_items = [
         {
             "node": {"id": "ref_0", "label": "Input"},
-            "port": None,  # No port
+            "port": None,
             "type": "text",
             "label": "Input",
         }
@@ -107,7 +105,7 @@ def test_build_history_record_missing_port_uses_default():
 # ─── WorkflowHistory ──────────────────────────────────────────────────────────
 
 
-def _make_history(tmp_path, repo_id="user/test-history"):
+def _make_history(repo_id="user/test-history"):
     with (
         patch("gradio.workflow_history.HfApi") as mock_api_cls,
         patch("gradio.workflow_history.hf_get_token", return_value="tok"),
@@ -116,13 +114,11 @@ def _make_history(tmp_path, repo_id="user/test-history"):
         wh = WorkflowHistory(repo_id=repo_id, token="tok")
         wh._api = mock_api
         wh._repo_ready = True
-        # Point local file to tmp dir
-        wh._local_file = str(tmp_path / "buf.jsonl")
         return wh, mock_api
 
 
-def test_push_appends_to_local_file(tmp_path):
-    wh, mock_api = _make_history(tmp_path)
+def test_push_uploads_record_to_bucket():
+    wh, mock_api = _make_history()
     record = {
         "id": "gen1",
         "timestamp": "2026-06-30T12:00:00Z",
@@ -143,23 +139,22 @@ def test_push_appends_to_local_file(tmp_path):
     }
     wh._push_sync(record)
 
-    assert os.path.exists(wh._local_file)
-    with open(wh._local_file) as f:
-        lines = [json.loads(line) for line in f if line.strip()]
-    assert len(lines) == 1
-    assert lines[0]["id"] == "gen1"
-    # upload_file should have been called (once for JSONL, zero times for media since value is text)
-    mock_api.upload_file.assert_called_once()
+    mock_api.batch_bucket_files.assert_called_once()
+    call_kwargs = mock_api.batch_bucket_files.call_args.kwargs
+    assert call_kwargs["bucket_id"] == "user/test-history"
+    data_bytes, path = call_kwargs["add"][0]
+    assert path.startswith("data/")
+    assert path.endswith(".json")
+    saved = json.loads(data_bytes.decode())
+    assert saved["id"] == "gen1"
 
 
 def test_push_uploads_image_to_media(tmp_path):
-    wh, mock_api = _make_history(tmp_path)
-    # Create a fake local image file
+    wh, mock_api = _make_history()
     img_path = str(tmp_path / "out.png")
     with open(img_path, "wb") as f:
         f.write(b"\x89PNG\r\n")
 
-    mock_api.upload_file.return_value = None
     record = {
         "id": "gen2",
         "timestamp": "2026-06-30T13:00:00Z",
@@ -171,18 +166,21 @@ def test_push_uploads_image_to_media(tmp_path):
     }
     wh._push_sync(record)
 
-    # Two upload_file calls: media upload + JSONL upload
-    assert mock_api.upload_file.call_count == 2
-    media_call = mock_api.upload_file.call_args_list[0]
-    assert "media/" in media_call.kwargs.get("path_in_repo", "")
-    # Record in local file should have the Hub URL, not the local path
-    with open(wh._local_file) as f:
-        saved = json.loads(f.read().strip())
+    # Two batch_bucket_files calls: media upload + record upload
+    assert mock_api.batch_bucket_files.call_count == 2
+    media_call = mock_api.batch_bucket_files.call_args_list[0]
+    media_path = media_call.kwargs["add"][0][1]
+    assert media_path.startswith("media/")
+
+    # Record stored in bucket should have the Hub URL, not the local path
+    record_call = mock_api.batch_bucket_files.call_args_list[1]
+    record_bytes = record_call.kwargs["add"][0][0]
+    saved = json.loads(record_bytes.decode())
     assert "huggingface.co" in saved["outputs"]["subj_img"]["value"]
 
 
-def test_push_skips_media_upload_for_urls(tmp_path):
-    wh, mock_api = _make_history(tmp_path)
+def test_push_skips_media_upload_for_urls():
+    wh, mock_api = _make_history()
     record = {
         "id": "gen3",
         "timestamp": "2026-06-30T14:00:00Z",
@@ -200,27 +198,25 @@ def test_push_skips_media_upload_for_urls(tmp_path):
     }
     wh._push_sync(record)
 
-    # Only JSONL upload (no media upload since value is already a URL)
-    assert mock_api.upload_file.call_count == 1
-    with open(wh._local_file) as f:
-        saved = json.loads(f.read().strip())
-    # URL preserved as-is
+    # Only one batch_bucket_files call (record only — no media upload for URLs)
+    assert mock_api.batch_bucket_files.call_count == 1
+    record_bytes = mock_api.batch_bucket_files.call_args.kwargs["add"][0][0]
+    saved = json.loads(record_bytes.decode())
     assert saved["outputs"]["subj_img"]["value"] == "https://example.com/img.png"
 
 
-def test_list_returns_cached_results(tmp_path):
-    wh, mock_api = _make_history(tmp_path)
+def test_list_returns_cached_results():
+    wh, mock_api = _make_history()
     wh._cache = [{"id": "cached", "timestamp": "2026-06-30T00:00:00Z"}]
-    wh._cache_at = float("inf")  # never expires
+    wh._cache_at = float("inf")
 
     results = wh.list(limit=10)
-    # _fetch_records should NOT be called since cache is warm
-    mock_api.list_repo_tree.assert_not_called()
+    mock_api.list_bucket_tree.assert_not_called()
     assert results[0]["id"] == "cached"
 
 
-def test_list_filters_by_subgraph(tmp_path):
-    wh, mock_api = _make_history(tmp_path)
+def test_list_filters_by_subgraph():
+    wh, _ = _make_history()
     wh._cache = [
         {"id": "a", "timestamp": "2026-06-30T01:00:00Z", "subgraph": "foo"},
         {"id": "b", "timestamp": "2026-06-30T02:00:00Z", "subgraph": "bar"},
@@ -233,8 +229,8 @@ def test_list_filters_by_subgraph(tmp_path):
     assert all(r["subgraph"] == "foo" for r in filtered)
 
 
-def test_list_respects_limit(tmp_path):
-    wh, mock_api = _make_history(tmp_path)
+def test_list_respects_limit():
+    wh, _ = _make_history()
     wh._cache = [
         {"id": str(i), "timestamp": f"2026-06-30T{i:02d}:00:00Z", "subgraph": "sg"}
         for i in range(20)
@@ -243,26 +239,28 @@ def test_list_respects_limit(tmp_path):
     assert len(wh.list(limit=5)) == 5
 
 
-def test_push_graph_file(tmp_path):
-    wh, mock_api = _make_history(tmp_path)
+def test_push_graph_file():
+    wh, mock_api = _make_history()
     wh.push_graph_file('{"schema_version": "2"}')
-    mock_api.upload_file.assert_called_once()
-    call_kwargs = mock_api.upload_file.call_args.kwargs
-    assert call_kwargs["path_in_repo"] == "workflow.json"
+    mock_api.batch_bucket_files.assert_called_once()
+    call_kwargs = mock_api.batch_bucket_files.call_args.kwargs
+    assert call_kwargs["bucket_id"] == "user/test-history"
+    data_bytes, path = call_kwargs["add"][0]
+    assert path == "workflow.json"
+    assert b"schema_version" in data_bytes
 
 
-def test_ensure_repo_creates_dataset(tmp_path):
+def test_ensure_repo_creates_bucket():
     with (
         patch("gradio.workflow_history.HfApi") as mock_api_cls,
         patch("gradio.workflow_history.hf_get_token", return_value="tok"),
     ):
         mock_api = mock_api_cls.return_value
-        wh = WorkflowHistory("user/new-repo", token="tok")
+        wh = WorkflowHistory("user/new-bucket", token="tok")
         wh._api = mock_api
         wh.ensure_repo()
-        mock_api.create_repo.assert_called_once_with(
-            "user/new-repo",
-            repo_type="dataset",
+        mock_api.create_bucket.assert_called_once_with(
+            "user/new-bucket",
             private=True,
             exist_ok=True,
         )
@@ -270,7 +268,7 @@ def test_ensure_repo_creates_dataset(tmp_path):
 
 
 def test_history_true_auto_names_repo():
-    """history=True should derive the repo ID from the HF username and workflow name."""
+    """history=True should derive the bucket ID from the HF username and workflow name."""
     import warnings
 
     with (
