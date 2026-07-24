@@ -53,8 +53,13 @@ describe("sanitize", () => {
 	});
 
 	test("keeps style attributes", () => {
-		const result = sanitize('<p style="color: red;">hello</p>');
+		const node = new DOMParser().parseFromString(
+			sanitize('<p style="color: red;">hello</p>'),
+			"text/html"
+		);
 
-		expect(result).toBe('<p style="color: red;">hello</p>');
+		const p = node.querySelector("p");
+		expect(p?.getAttribute("style")).toBe("color: red;");
+		expect(p?.textContent).toBe("hello");
 	});
 });
