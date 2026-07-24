@@ -175,7 +175,16 @@
 					aria-label="Refresh history"
 					title="Refresh"
 				>
-					{refreshing ? "…" : "↻"}
+					{#if refreshing}
+					…
+				{:else}
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+						<path d="M21 3v5h-5"/>
+						<path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+						<path d="M8 16H3v5"/>
+					</svg>
+				{/if}
 				</button>
 				<button
 					class="history-close"
@@ -220,7 +229,7 @@
 						{@const summary = inputSummary(record)}
 						<div class="history-card">
 							<div class="card-preview">
-								{#if out && MEDIA_TYPES.has(out.type) && typeof out.value === "string"}
+								{#if out && MEDIA_TYPES.has(out.type) && typeof out.value === "string" && !out.value.startsWith("https://huggingface.co/buckets/")}
 									{#if out.type === "image"}
 										<img
 											class="preview-img"
@@ -233,7 +242,7 @@
 									{:else}
 										<div class="preview-icon">video</div>
 									{/if}
-								{:else if out}
+								{:else if out && out.value !== null && out.value !== undefined && !String(out.value).startsWith("https://huggingface.co/buckets/")}
 									<div class="preview-text">
 										{typeof out.value === "string"
 											? out.value.slice(0, 120)
@@ -335,6 +344,13 @@
 		gap: 2px;
 	}
 
+	.history-header-actions {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		flex-shrink: 0;
+	}
+
 	.history-title {
 		font-size: 13px;
 		font-weight: 600;
@@ -383,22 +399,20 @@
 		color: #ff7a38;
 	}
 
-	.history-header-actions {
-		display: flex;
-		align-items: center;
-		gap: 2px;
-	}
-
 	.history-refresh {
 		background: none;
 		border: none;
 		color: #7c7f99;
-		font-size: 16px;
+		font-size: 14px;
 		cursor: pointer;
 		padding: 4px;
 		line-height: 1;
 		border-radius: 4px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 	}
+
 
 	.history-refresh:hover:not(:disabled) {
 		background: #2a2b38;

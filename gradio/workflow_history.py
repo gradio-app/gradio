@@ -133,9 +133,9 @@ class WorkflowHistory:
                     )
                     hub_url = self._upload_media(record["id"], sid, fs_path, port_type)
                     if hub_url:
-                        record["outputs"][sid]["value"] = hub_url
-                    elif os.path.isfile(fs_path):
-                        record["outputs"][sid]["value"] = None
+                        record["outputs"][sid]["bucket_url"] = hub_url
+                    # Keep value as the Gradio-served URL so the image renders
+                    # in the current session. bucket_url holds the durable copy.
 
             ts = record.get("timestamp") or datetime.now(timezone.utc).strftime(
                 "%Y-%m-%dT%H:%M:%SZ"
@@ -161,7 +161,7 @@ class WorkflowHistory:
         """Upload a local media file to the bucket's ``media/`` dir."""
         if not os.path.isfile(value):
             return None
-        if not os.path.abspath(value).startswith(tempfile.gettempdir()):
+        if not os.path.realpath(value).startswith(os.path.realpath(tempfile.gettempdir())):
             logger.debug("WorkflowHistory: refusing to upload non-temp path: %s", value)
             return None
         ext = pathlib.Path(value).suffix or {

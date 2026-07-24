@@ -2059,6 +2059,7 @@ class Workflow(Blocks):
             kwargs.update(dict(zip(names, args)))
         kwargs["allowed_paths"] = [
             tempfile.gettempdir(),
+            os.path.realpath(tempfile.gettempdir()),
             *(kwargs.get("allowed_paths") or []),
         ]
         # We need the edit link to print (and the browser to open to it) before

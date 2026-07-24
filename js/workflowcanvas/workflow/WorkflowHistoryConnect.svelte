@@ -86,7 +86,6 @@
 						disabled={connecting}
 						onclick={() => connect(bucket.id)}
 					>
-						<span class="bucket-icon">🗄</span>
 						<span class="bucket-id">{bucket.id}</span>
 					</button>
 				{/each}
@@ -244,11 +243,6 @@
 	:global(body:not(.dark)) .bucket-item:hover:not(:disabled) {
 		border-color: #ff7a38;
 		background: #fff;
-	}
-
-	.bucket-icon {
-		font-size: 13px;
-		flex-shrink: 0;
 	}
 
 	.bucket-id {
