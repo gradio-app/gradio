@@ -1338,11 +1338,14 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            parameters_info = app.api_info["named_endpoints"]["/" + api_name][  # type: ignore
-                "parameters"
-            ]
+            endpoint_info = app.api_info["named_endpoints"]["/" + api_name]  # type: ignore
+            parameters_info = endpoint_info["parameters"]
             body = dict(body)
-            oauth_token = body.pop("oauth_token", None)
+            oauth_token = (
+                body.pop("oauth_token", None)
+                if endpoint_info.get("oauth_token")
+                else None
+            )
             processed_args = client_utils.construct_args(
                 parameters_info,
                 (),

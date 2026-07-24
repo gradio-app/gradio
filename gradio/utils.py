@@ -1236,9 +1236,17 @@ def oauth_token_requirement(fn: Callable | None) -> str | None:
     if fn is None:
         return None
     hints = get_type_hints(fn) or getattr(fn, "__annotations__", {}) or {}
-    for hint in hints.values():
+    try:
+        parameters = inspect.signature(fn).parameters
+    except (TypeError, ValueError):
+        return None
+    # Parameters only: the return annotation lives in the same mapping, and a
+    # function that *returns* an OAuthToken is not one that receives one.
+    for name in parameters:
+        hint = hints.get(name)
         if hint is OAuthToken:
             return "required"
+        # `Optional[X]` and PEP 604 `X | None` compare equal, so this covers both.
         if hint == Optional[OAuthToken]:
             return "optional"
     return None

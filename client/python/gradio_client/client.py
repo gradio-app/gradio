@@ -1064,9 +1064,11 @@ class Endpoint:
         return None
 
     def _get_oauth_token_requirement(self) -> str | None:
-        """ "required"/"optional" when this endpoint's function takes a
-        gr.OAuthToken, else None. A token is only ever sent to endpoints that
-        say they take one."""
+        """Whether this endpoint's function takes a gr.OAuthToken.
+
+        Returns "required", "optional", or None. A token is only ever sent to
+        endpoints that say they take one.
+        """
         if self.api_name in self._info["named_endpoints"]:
             return self._info["named_endpoints"][self.api_name].get("oauth_token")
         return None
@@ -1196,8 +1198,10 @@ class Endpoint:
             data = {
                 "data": data or [],
                 "fn_index": self.fn_index,
-                **self.oauth_token_payload(),
                 **kwargs,
+                # Last, so a caller cannot smuggle a token past the per-endpoint
+                # gate by passing oauth_token= as an ordinary keyword argument.
+                **self.oauth_token_payload(),
             }
 
             hash_data = {
