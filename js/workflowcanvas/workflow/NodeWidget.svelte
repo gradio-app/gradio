@@ -55,6 +55,23 @@
 		return typeof v === "boolean" ? v : false;
 	}
 
+	const HTML_PAGE_WIDTH = 1280;
+	const HTML_PAGE_HEIGHT = 800;
+
+	let htmlPreviewEl: HTMLDivElement | undefined = $state();
+	let htmlScale = $state(0.25);
+
+	$effect(() => {
+		const el = htmlPreviewEl;
+		if (!el) return;
+		const ro = new ResizeObserver(() => {
+			const w = el.clientWidth;
+			if (w > 0) htmlScale = w / HTML_PAGE_WIDTH;
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	});
+
 	function getHtmlValue(): string {
 		const v = node.data?.[widgetPortId];
 		return typeof v === "string" ? v : "";
@@ -262,12 +279,17 @@
 	{:else if widgetType === "html"}
 		{@const htmlVal = getHtmlValue()}
 		{#if htmlVal}
-			<div class="widget-html-preview">
+			<div
+				class="widget-html-preview"
+				bind:this={htmlPreviewEl}
+				style="height: {Math.round(HTML_PAGE_HEIGHT * htmlScale)}px;"
+			>
 				<iframe
 					class="widget-html-iframe"
 					srcdoc={htmlVal}
 					sandbox="allow-scripts allow-same-origin"
 					title="HTML preview"
+					style="height: {HTML_PAGE_HEIGHT}px; transform: scale({htmlScale});"
 				></iframe>
 				<div class="widget-preview-actions">
 					<button
@@ -813,15 +835,15 @@
 		overflow: hidden;
 		border-radius: 0 0 10px 10px;
 		background: #fff;
-		height: 260px;
 	}
 
 	.widget-html-iframe {
 		display: block;
-		width: 100%;
-		height: 100%;
+		width: 1280px;
 		border: none;
 		background: #fff;
+		transform-origin: top left;
+		pointer-events: none;
 	}
 
 	.widget-html-preview .widget-preview-actions {
