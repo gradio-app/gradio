@@ -389,8 +389,11 @@ describe("Props: buttons (static mode)", () => {
 			expect(block.getBoundingClientRect().right).toBeLessThanOrEqual(
 				visible_width
 			);
-			const wrapper = block.querySelector(".icon-button-wrapper");
-			expect(wrapper?.getBoundingClientRect().right).toBeLessThanOrEqual(
+			const wrapper = block.querySelector(
+				".icon-button-wrapper"
+			) as HTMLElement;
+			expect(wrapper).toBeTruthy();
+			expect(wrapper.getBoundingClientRect().right).toBeLessThanOrEqual(
 				visible_width
 			);
 		} finally {
