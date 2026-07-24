@@ -35,6 +35,7 @@ from gradio import (
     analytics,
     components,
     networking,
+    oauth,
     processing_utils,
     queueing,
     utils,
@@ -1605,6 +1606,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         event_data: EventData | None = None,
         in_event_listener: bool = False,
         state: SessionState | None = None,
+        oauth_token: oauth.OAuthToken | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1655,6 +1657,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 request,  # type: ignore
                 event_data,  # type: ignore
                 component_props=component_props,
+                token=oauth_token,
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -2209,6 +2212,7 @@ Received inputs:
         simple_format: bool = False,
         explicit_call: bool = False,
         root_path: str | None = None,
+        oauth_token: oauth.OAuthToken | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2272,6 +2276,7 @@ Received inputs:
                     event_data,
                     in_event_listener,
                     state,
+                    oauth_token,
                 )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
@@ -2307,6 +2312,7 @@ Received inputs:
                         event_data,
                         in_event_listener,
                         state,
+                        oauth_token,
                     )
                 manual_cache_used = used_manual_cache()
 
@@ -3427,6 +3433,9 @@ Received inputs:
                     Literal["public", "private", "undocumented"], fn.api_visibility
                 ),
             }
+            oauth_token_kind = utils.oauth_token_requirement(fn.fn)
+            if oauth_token_kind is not None:
+                dependency_info["oauth_token"] = oauth_token_kind
             fn_info = utils.get_function_params(fn.fn)
             if fn.api_description is False:
                 dependency_info["description"] = ""

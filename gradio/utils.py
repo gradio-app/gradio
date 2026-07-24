@@ -1223,6 +1223,27 @@ def is_special_typed_parameter(name, parameter_types):
     return is_request or is_event_data or is_oauth_arg
 
 
+def oauth_token_requirement(fn: Callable | None) -> str | None:
+    """Whether `fn` takes a gr.OAuthToken, and whether it insists on one.
+
+    Returns "required" for `gr.OAuthToken`, "optional" for `gr.OAuthToken | None`,
+    and None when the function never receives one. Reported per endpoint so a
+    caller can see which endpoints act on their behalf, and so clients only send
+    a token where the app asked for it.
+    """
+    from gradio.oauth import OAuthToken
+
+    if fn is None:
+        return None
+    hints = get_type_hints(fn) or getattr(fn, "__annotations__", {}) or {}
+    for hint in hints.values():
+        if hint is OAuthToken:
+            return "required"
+        if hint == Optional[OAuthToken]:
+            return "optional"
+    return None
+
+
 def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function

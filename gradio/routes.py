@@ -1341,12 +1341,16 @@ class App(FastAPI):
             parameters_info = app.api_info["named_endpoints"]["/" + api_name][  # type: ignore
                 "parameters"
             ]
+            body = dict(body)
+            oauth_token = body.pop("oauth_token", None)
             processed_args = client_utils.construct_args(
                 parameters_info,
                 (),
                 body,
             )
-            simple_body = SimplePredictBody(data=processed_args)
+            simple_body = SimplePredictBody(
+                data=processed_args, oauth_token=oauth_token
+            )
             full_body = PredictBody(**simple_body.model_dump(), simple_format=True)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
