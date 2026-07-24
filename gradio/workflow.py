@@ -31,7 +31,7 @@ from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
-from gradio.utils import get_space
+from gradio.utils import colab_check, get_space
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -305,6 +305,50 @@ def _request_has_write_token(request: Request | None) -> bool:
     if query_value:
         return secrets.compare_digest(query_value, WRITE_TOKEN)
     return False
+
+
+def _should_auto_open_browser() -> bool:
+    """Whether `launch()` should open a browser tab on the write-access link
+    without being asked, the way `jupyter notebook` opens its token URL.
+
+    Only done when a browser on this machine is plausibly the right place to
+    open it, so headless servers, containers, CI and remote kernels keep the
+    old print-the-link-only behavior. Set `GRADIO_WORKFLOW_INBROWSER=false` to
+    opt out, or pass `inbrowser=` explicitly to bypass this entirely.
+    """
+    env = os.getenv("GRADIO_WORKFLOW_INBROWSER", "").strip().lower()
+    if env in ("0", "false", "no", "off"):
+        return False
+    if env in ("1", "true", "yes", "on"):
+        return True
+    if get_space() is not None:
+        # No write token to hand out, and no browser on the Space's container.
+        return False
+    if "PYTEST_CURRENT_TEST" in os.environ or os.getenv("CI", "").lower() in (
+        "1",
+        "true",
+    ):
+        return False
+    if colab_check():
+        # The kernel runs on Google's machine, so a tab would open there.
+        return False
+    if os.environ.get("BROWSER"):
+        # Explicitly configured (e.g. VS Code Remote forwards this back to the
+        # local machine), and `webbrowser` honors it first.
+        return True
+    if os.environ.get("SSH_CONNECTION") or os.environ.get("SSH_TTY"):
+        return False
+    if sys.platform.startswith("linux") and not (
+        os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+    ):
+        # Headless Linux: `webbrowser` may fall back to a terminal browser and
+        # take over the console the app is logging to.
+        return False
+    try:
+        webbrowser.get()
+    except webbrowser.Error:
+        return False
+    return True
 
 
 # Shared instance: whoami(cache=True) caches per token on the HfApi instance,
@@ -1828,8 +1872,10 @@ class Workflow(Blocks):
         to `allowed_paths` so those URLs resolve.
 
         Locally, editing requires the write token: the full edit link is printed
-        after the standard launch output (and used for `inbrowser`). Plain
-        local/share URLs open the app read-only."""
+        after the standard launch output, and — unless `inbrowser` is passed
+        explicitly — opened in a browser tab automatically (like `jupyter
+        notebook` does with its token URL). Plain local/share URLs open the app
+        read-only. See `_should_auto_open_browser` for when the tab is opened."""
         if args:
             names = list(inspect.signature(super().launch).parameters)
             kwargs.update(dict(zip(names, args)))
@@ -1846,7 +1892,15 @@ class Workflow(Blocks):
         # replicate Blocks.launch()'s blocking behavior ourselves below.
         prevent_thread_lock = bool(kwargs.get("prevent_thread_lock", False))
         debug = bool(kwargs.get("debug", False))
-        inbrowser = bool(kwargs.get("inbrowser", False))
+        # `inbrowser` defaults to opening the write-access link, but only when
+        # the caller didn't say either way — an explicit `inbrowser=False` still
+        # means "don't open anything".
+        explicit_inbrowser = kwargs.get("inbrowser")
+        inbrowser = (
+            bool(explicit_inbrowser)
+            if explicit_inbrowser is not None
+            else _should_auto_open_browser()
+        )
         kwargs["inbrowser"] = False
 
         real_block_thread = self.block_thread
@@ -1862,8 +1916,9 @@ class Workflow(Blocks):
             sep = "&" if "?" in local_url else "?"
             write_url = f"{local_url}{sep}write_token={WRITE_TOKEN}"
             if not kwargs.get("quiet", False):
+                opening = " — opening it in your browser" if inbrowser else ""
                 print(
-                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see): {write_url}"
+                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see){opening}: {write_url}"
                 )
         if inbrowser:
             webbrowser.open(
