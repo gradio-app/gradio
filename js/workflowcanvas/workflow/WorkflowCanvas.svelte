@@ -8,7 +8,9 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
+	import type { WorkflowTemplate } from "./workflow-templates";
 	import CheckIcon from "./icons/CheckIcon.svelte";
+	import CloseIcon from "./icons/CloseIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
@@ -299,6 +301,7 @@
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
 	let showApiPanel = $state(false);
+	let showTemplatesOverlay = $state(false);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -1408,6 +1411,16 @@
 
 	let clearConfirm = $state(false);
 
+	function load_template(t: WorkflowTemplate): void {
+		if (readOnly) return;
+		try {
+			const v2 = migrateToV2(t.workflow);
+			revokeAllBlobUrls(legacyView.nodes);
+			workflow.set(v2);
+			showTemplatesOverlay = false;
+		} catch {}
+	}
+
 	function clearWorkflow(): void {
 		if (legacyView.nodes.length === 0 || readOnly) return;
 		clearConfirm = true;
@@ -2239,6 +2252,12 @@
 			{/if}
 		</div>
 		<div class="toolbar-right">
+			{#if !readOnly && nodeCount > 0}
+				<button
+					class="tool-btn get-started-btn"
+					onclick={() => (showTemplatesOverlay = true)}
+				><LayoutIcon /> Templates</button>
+			{/if}
 			{#if auth.status !== "checking"}
 				{#if auth.user}
 					<div class="toolbar-user-wrap">
@@ -2426,7 +2445,29 @@
 		</div>
 
 		{#if nodeCount === 0}
-			<WorkflowEmptyState />
+			<WorkflowEmptyState onselect={load_template} />
+		{/if}
+
+		{#if showTemplatesOverlay}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="templates-overlay-backdrop"
+				onpointerdown={() => (showTemplatesOverlay = false)}
+			>
+				<div
+					class="templates-overlay-panel"
+					onpointerdown={(e) => e.stopPropagation()}
+				>
+					<div class="templates-overlay-header">
+						<span class="templates-overlay-title">Start from a template</span>
+						<button
+							class="templates-overlay-close"
+							onclick={() => (showTemplatesOverlay = false)}
+						><CloseIcon /></button>
+					</div>
+					<WorkflowEmptyState onselect={load_template} inline />
+				</div>
+			</div>
 		{/if}
 
 		{#if running}
@@ -2703,6 +2744,7 @@
 			onClose={() => (showApiPanel = false)}
 		/>
 	{/if}
+
 </div>
 
 <style>
@@ -2955,4 +2997,74 @@
 		border-color: #e2e4ea;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 	}
+
+	.get-started-btn {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		color: #a0a2ae;
+		border-color: #2a2b38;
+	}
+
+	.get-started-btn:hover {
+		color: #d5d6de;
+		background: #1a1b25;
+		border-color: #3a3b48;
+	}
+
+	.templates-overlay-backdrop {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 200;
+		backdrop-filter: blur(2px);
+	}
+
+	.templates-overlay-panel {
+		position: relative;
+		background: #13141f;
+		border: 1px solid #2a2b38;
+		border-radius: 16px;
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+		min-width: 680px;
+	}
+
+	.templates-overlay-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.templates-overlay-title {
+		font-family: "Manrope", sans-serif;
+		font-size: 14px;
+		font-weight: 700;
+		color: #d5d6de;
+		letter-spacing: -0.01em;
+	}
+
+	.templates-overlay-close {
+		background: none;
+		border: none;
+		padding: 4px;
+		cursor: pointer;
+		color: #a0a2ae;
+		display: flex;
+		align-items: center;
+		border-radius: 6px;
+		transition: color 0.12s ease, background 0.12s ease;
+	}
+
+	.templates-overlay-close:hover {
+		color: #d5d6de;
+		background: #1a1b25;
+	}
+
 </style>
