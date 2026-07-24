@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import importlib
+import inspect
 import shutil
+import site
 import subprocess
 from pathlib import Path
 from typing import Annotated
 
+from rich import print
 from rich.markup import escape
+from tomlkit import parse
 from typer import Argument, Option
 
 from gradio.cli.commands.display import LivePanelDisplay
@@ -55,6 +60,67 @@ def _get_executable_path(
     return path
 
 
+def _get_frontend_dir(directory: Path) -> Path:
+    """Get the frontend directory of the custom component located in `directory`.
+
+    Custom components can override the location of their frontend code via the
+    FRONTEND_DIR class attribute, so the installed component class is inspected
+    to resolve the actual path. Falls back to the default `frontend` directory
+    if the component cannot be imported (e.g. it has not been installed yet).
+    """
+    default_frontend_dir = directory / "frontend"
+    try:
+        pyproject_toml = parse((directory / "pyproject.toml").read_text())
+        package_name = pyproject_toml["project"]["name"]  # type: ignore
+    except Exception:
+        return default_frontend_dir
+    try:
+        try:
+            module = importlib.import_module(package_name)  # type: ignore
+        except ImportError:
+            # A package that was pip-installed after this process started (as
+            # happens during `gradio cc install`) is not importable until the
+            # site .pth files are re-processed.
+            importlib.invalidate_caches()
+            site.main()
+            module = importlib.import_module(package_name)  # type: ignore
+        from gradio.blocks import BlockContext
+        from gradio.components import Component
+
+        candidates = []
+        for name in dir(module):
+            if name.startswith("__"):
+                continue
+            value = getattr(module, name)
+            if (
+                inspect.isclass(value)
+                and issubclass(value, (BlockContext, Component))
+                and value.__module__.startswith(module.__name__)
+            ):
+                candidates.append(value)
+        if not candidates:
+            return default_frontend_dir
+
+        def overrides_frontend_dir(cls: type) -> bool:
+            return any(
+                "FRONTEND_DIR" in c.__dict__
+                for c in cls.__mro__
+                if c.__module__.startswith(module.__name__)
+            )
+
+        component_class = next(
+            (c for c in candidates if overrides_frontend_dir(c)), candidates[0]
+        )
+        file_location = Path(inspect.getfile(component_class)).parent
+        return (file_location / component_class.FRONTEND_DIR).resolve()
+    except Exception:
+        print(
+            f":warning: Could not import `{package_name}` to check for a custom "
+            f"FRONTEND_DIR, assuming the frontend code is located in {default_frontend_dir}."
+        )
+        return default_frontend_dir
+
+
 def _install_command(
     directory: Path, live: LivePanelDisplay, npm_install: str, pip_path: str | None
 ):
@@ -78,7 +144,7 @@ def _install_command(
     live.update(
         f":construction_worker: Installing javascript... [grey37]({npm_install})[/]"
     )
-    with set_directory(directory / "frontend"):
+    with set_directory(_get_frontend_dir(directory)):
         pipe = subprocess.run(
             npm_install.split(), capture_output=True, text=True, check=False
         )

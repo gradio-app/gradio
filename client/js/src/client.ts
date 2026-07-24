@@ -25,6 +25,7 @@ import { submit } from "./utils/submit";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
+	normalise_token_option,
 	resolve_cookies,
 	resolve_config,
 	get_jwt,
@@ -200,6 +201,7 @@ export class Client {
 		if (!options.events) {
 			options.events = ["data"];
 		}
+		normalise_token_option(options);
 
 		this.options = options;
 		this.current_payload = {};
@@ -230,8 +232,9 @@ export class Client {
 			await this.resolve_cookies();
 		}
 
-		await this._resolve_config().then(({ config }) =>
-			this._resolve_heartbeat(config)
+		await this._resolve_config().then(
+			(res: { config: Config } | undefined) =>
+				res?.config && this._resolve_heartbeat(res.config)
 		);
 
 		try {
@@ -400,7 +403,7 @@ export class Client {
 						load_status: "error",
 						detail: "NOT_FOUND"
 					});
-				throw Error(e);
+				throw e instanceof Error ? e : new Error(String(e));
 			}
 		}
 	}

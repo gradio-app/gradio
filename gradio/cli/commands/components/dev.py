@@ -10,7 +10,10 @@ from rich import print
 
 import gradio
 from gradio.analytics import custom_component_analytics
-from gradio.cli.commands.components.install_component import _get_executable_path
+from gradio.cli.commands.components.install_component import (
+    _get_executable_path,
+    _get_frontend_dir,
+)
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
 
@@ -71,16 +74,18 @@ def _dev(
         "gradio", gradio_path, cli_arg_name="--gradio-path"
     )
 
+    frontend_dir = _get_frontend_dir(component_directory)
+
     gradio_node_path = subprocess.run(
         [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
-        cwd=Path(component_directory / "frontend"),
+        cwd=frontend_dir,
         check=False,
         capture_output=True,
     )
 
     if gradio_node_path.returncode != 0:
         raise ValueError(
-            "Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder."
+            f"Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder ({frontend_dir})."
         )
 
     gradio_node_path = gradio_node_path.stdout.decode("utf-8").strip()
@@ -122,7 +127,7 @@ def _dev(
         )
 
         if "[orange3]Watching:[/]" in text:
-            text += f"'{str(component_directory / 'frontend').strip()}',"
+            text += f"'{str(frontend_dir).strip()}',"
         if "To create a public link" in text:
             continue
         print(text)

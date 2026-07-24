@@ -6,7 +6,10 @@ import pytest
 
 from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create, _create_utils
-from gradio.cli.commands.components.install_component import _get_executable_path
+from gradio.cli.commands.components.install_component import (
+    _get_executable_path,
+    _get_frontend_dir,
+)
 from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
 from gradio.utils import core_gradio_components
@@ -81,6 +84,39 @@ def test_get_executable_path():
         match=r"The provided foo path \(/foo/bar/fum\) does not exist or is not a file.",
     ):
         _get_executable_path("foo", "/foo/bar/fum", "--foo-path")
+
+
+def test_get_frontend_dir_defaults_to_frontend_folder(tmp_path):
+    assert _get_frontend_dir(tmp_path) == tmp_path / "frontend"
+
+
+def test_get_frontend_dir_respects_frontend_dir_override(tmp_path, monkeypatch):
+    package_name = "gradio_frontenddirtest"
+    package_dir = tmp_path / package_name
+    package_dir.mkdir()
+    (package_dir / "__init__.py").write_text(
+        textwrap.dedent(
+            """
+            from gradio.components import Textbox
+
+            class APlainComponent(Textbox):
+                pass
+
+            class ZCustomComponent(Textbox):
+                FRONTEND_DIR = "../frontend/custom"
+            """
+        )
+    )
+    (tmp_path / "pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""
+            [project]
+            name = "{package_name}"
+            """
+        )
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    assert _get_frontend_dir(tmp_path) == (tmp_path / "frontend" / "custom").resolve()
 
 
 def test_raise_error_component_template_does_not_exist(tmp_path):

@@ -162,7 +162,8 @@ def generate_js_snippet(
 ) -> str:
     blob_params = [p for p in params if p.get("component") in BLOB_COMPONENTS]
 
-    lines = ['import { Client } from "@gradio/client";', ""]
+    imports = "Client, handle_file" if blob_params else "Client"
+    lines = [f'import {{ {imports} }} from "@gradio/client";', ""]
 
     for i, bp in enumerate(blob_params):
         example = bp.get("example_input", {})
@@ -183,7 +184,7 @@ def generate_js_snippet(
         name = p.get("parameter_name") or p.get("label", "input")
         component = p.get("component", "")
         if component in blob_component_names:
-            predict_args.append(f"\t\t{name}: example{component},")
+            predict_args.append(f"\t\t{name}: handle_file(example{component}),")
         else:
             value = _get_param_value(p)
             ptype = p.get("python_type", {}).get("type")
