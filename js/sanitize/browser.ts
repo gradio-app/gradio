@@ -12,9 +12,9 @@ configuration.allowElements = (configuration.allowElements ?? []).filter(
 	(element: string) =>
 		element !== "style" && element !== "svg:style" && element !== "link"
 );
+const amuchina = new Amuchina(configuration);
 
 export function sanitize(source: string): string {
-	const amuchina = new Amuchina(configuration);
 	const node = new DOMParser().parseFromString(source, "text/html");
 	const sanitized_node = amuchina.sanitize(node);
 	walk_nodes(sanitized_node.body, "A", (node) => {
