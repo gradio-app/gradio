@@ -1,5 +1,6 @@
 ---
 "@gradio/atoms": patch
+"@gradio/dataframe": patch
 "gradio": patch
 ---
 

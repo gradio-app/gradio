@@ -31,11 +31,67 @@
 	let placeholder_height = 0;
 	let placeholder_width = 0;
 	let preexpansionBoundingRect: DOMRect | null = null;
+	let portal_parent: (Node & ParentNode) | null = null;
+	let portal_marker: Comment | null = null;
 
 	function handleKeydown(event: KeyboardEvent): void {
 		if (fullscreen && event.key === "Escape") {
 			fullscreen = false;
 		}
+	}
+
+	// A `position: fixed` element is only laid out against the viewport when no
+	// ancestor establishes a containing block for fixed descendants. Anything
+	// with a transform, filter, backdrop-filter, perspective, contain or
+	// container-type does establish one — `gr.Sidebar` always sets a transform,
+	// for instance — and then top/left/width/height resolve against that
+	// ancestor instead. Rather than enumerate those properties, measure a probe
+	// in the block's own position: if a fixed probe pinned to the top left does
+	// not fill the viewport, the block needs to be moved out.
+	function needs_portal(): boolean {
+		const parent = element.parentNode;
+		if (!parent) return false;
+		const probe = document.createElement("div");
+		probe.style.cssText =
+			"position: fixed; top: 0; left: 0; width: 100%; height: 100%; visibility: hidden; pointer-events: none;";
+		parent.insertBefore(probe, element);
+		const { top, left, width, height } = probe.getBoundingClientRect();
+		probe.remove();
+		const root = document.documentElement;
+		return (
+			Math.round(top) !== 0 ||
+			Math.round(left) !== 0 ||
+			Math.round(width) !== root.clientWidth ||
+			Math.round(height) !== root.clientHeight
+		);
+	}
+
+	// Moves the block to the app container (which carries the theme variables)
+	// so that its fixed positioning resolves against the viewport. The
+	// placeholder that reserves the block's space stays behind in the original
+	// parent, and `exit_portal` puts the block back where it came from.
+	function enter_portal(): void {
+		const root = element.getRootNode();
+		const target =
+			element.closest(".gradio-container") ??
+			(root instanceof ShadowRoot ? root : document.body);
+		if (!element.parentNode || element.parentNode === target) return;
+		portal_parent = element.parentNode;
+		portal_marker = document.createComment("fullscreen block");
+		portal_parent.insertBefore(portal_marker, element);
+		target.appendChild(element);
+	}
+
+	function exit_portal(): void {
+		if (!portal_parent) return;
+		const marker =
+			portal_marker && portal_marker.parentNode === portal_parent
+				? portal_marker
+				: null;
+		portal_parent.insertBefore(element, marker);
+		marker?.remove();
+		portal_parent = null;
+		portal_marker = null;
 	}
 
 	$: if (fullscreen !== old_fullscreen) {
@@ -44,8 +100,12 @@
 			preexpansionBoundingRect = element.getBoundingClientRect();
 			placeholder_height = element.offsetHeight;
 			placeholder_width = element.offsetWidth;
+			if (needs_portal()) {
+				enter_portal();
+			}
 			window.addEventListener("keydown", handleKeydown);
 		} else {
+			exit_portal();
 			preexpansionBoundingRect = null;
 			window.removeEventListener("keydown", handleKeydown);
 		}
