@@ -846,8 +846,11 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
 
 # Generous by default: vision-language models are asked to emit whole files
 # (an HTML page, a long transcription), and reasoning models spend part of the
-# budget before their first visible token.
-_CHAT_MAX_TOKENS = 8192
+# budget before their first visible token — reasoning counts against this cap,
+# and a dense screenshot can cost thousands of tokens before any output.
+# Bounded by the canvas executor's 300s per-node timeout: at the ~100 tok/s
+# these models stream, a larger cap would be cut off mid-answer anyway.
+_CHAT_MAX_TOKENS = 16384
 
 
 _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
@@ -965,15 +968,42 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             content.append({"type": "image_url", "image_url": {"url": image_url}})
         if not content:
             raise ValueError("Connect a prompt or an image to this model.")
-        response = client.chat_completion(
-            [{"role": "user", "content": content}], max_tokens=_CHAT_MAX_TOKENS
-        )
-        text = (response.choices[0].message.content or "").strip()
+        # Streamed, not buffered: the router's gateway times out a non-streaming
+        # request at ~120s, which a vision model writing a whole file routinely
+        # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
+        # so the request is bounded by the model, not by an idle proxy.
+        parts: list[str] = []
+        reasoned = 0
+        finish_reason = None
+        for chunk in client.chat_completion(
+            [{"role": "user", "content": content}],
+            max_tokens=_CHAT_MAX_TOKENS,
+            stream=True,
+        ):
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            delta = getattr(choice, "delta", None)
+            if delta is not None:
+                if delta.content:
+                    parts.append(delta.content)
+                reasoned += len(getattr(delta, "reasoning_content", None) or "")
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+        text = "".join(parts).strip()
         if not text:
+            model_name = getattr(client, "model", None) or "The model"
+            if finish_reason == "length":
+                # Reasoning is billed against max_tokens, so a model can hit the
+                # cap while still thinking and return no visible answer at all.
+                raise ValueError(
+                    f"{model_name} hit the {_CHAT_MAX_TOKENS}-token limit "
+                    f"({reasoned} characters of reasoning) before producing an "
+                    "answer. Simplify the prompt or use a smaller image, or "
+                    "raise gradio.workflow._CHAT_MAX_TOKENS."
+                )
             raise ValueError(
-                f"{getattr(client, 'model', 'The model')} returned no text. "
-                "Reasoning models can spend the whole token budget before "
-                "answering; try a shorter prompt or a smaller image."
+                f"{model_name} returned no text (finish_reason={finish_reason})."
             )
         return json.dumps([text])
     if endpoint == "text_generation":
