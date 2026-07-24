@@ -17,6 +17,7 @@
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
+	import { execute_custom_js } from "./custom_js";
 	import { reactive_formatter } from "./gradio_helper";
 
 	import logo from "./images/logo.svg";
@@ -467,7 +468,15 @@
 		});
 		res.observe(root_container);
 
-		app_tree.ready.then(() => {
+		app_tree.ready.then(async () => {
+			if (js) {
+				try {
+					await execute_custom_js(js);
+				} catch (e) {
+					console.error("Error executing custom JS:", e);
+				}
+			}
+
 			ready = true;
 			dep_manager.dispatch_load_events();
 		});
