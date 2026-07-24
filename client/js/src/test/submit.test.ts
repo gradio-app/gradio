@@ -162,8 +162,6 @@ describe("predict error handling", () => {
 				1000,
 				"predict() never settled for an unknown endpoint"
 			)
-		).rejects.toThrow(
-			"There is no endpoint matching that name of fn_index matching that number."
-		);
+		).rejects.toThrow('No endpoint matching "nonexistent_endpoint" was found');
 	});
 });
