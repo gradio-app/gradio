@@ -16,6 +16,8 @@ import {
 } from "./test_data";
 import { initialise_server } from "./server";
 import { SPACE_METADATA_ERROR_MSG } from "../constants";
+import { track_resumable_event } from "../utils/session";
+import { http, HttpResponse } from "msw";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -65,6 +67,23 @@ describe("Client class", () => {
 			expect(app.config).toEqual(config_response);
 		});
 
+		test.skipIf(typeof sessionStorage === "undefined")(
+			"does not restore a session from a different app",
+			async () => {
+				track_resumable_event(
+					{ ...config_response, app_id: "another-app" },
+					"restored-session",
+					{ event_id: "event-id", fn_index: 0 }
+				);
+
+				const app = await Client.connect(direct_app_reference, {
+					resume_sessions: true
+				});
+
+				expect(app.session_hash).not.toBe("restored-session");
+			}
+		);
+
 		test("connecting successfully to a private running app with a space reference", async () => {
 			const app = await Client.connect("hmb/secret_world", {
 				token: "hf_123"
@@ -104,6 +123,59 @@ describe("Client class", () => {
 			const app = Client.connect(broken_app_reference);
 			await expect(app).rejects.toThrowError();
 		});
+	});
+
+	describe("resume_jobs", () => {
+		test("reattaches each job to its existing queue event", async () => {
+			const app = await Client.connect(direct_app_reference);
+			app.stream_status.open = true;
+
+			const submissions = app.resume_jobs([
+				{ event_id: "event-1", fn_index: 0 },
+				{ event_id: "event-2", fn_index: 0 }
+			]);
+
+			await expect(submissions[0].wait_for_id()).resolves.toBe("event-1");
+			await expect(submissions[1].wait_for_id()).resolves.toBe("event-2");
+			expect(app.event_callbacks["event-1"]).toBeDefined();
+			expect(app.event_callbacks["event-2"]).toBeDefined();
+			expect(app.options.resume_sessions).toBe(true);
+
+			await Promise.all(submissions.map((submission) => submission.return()));
+		});
+
+		test.skipIf(typeof window === "undefined")(
+			"notifies the server when a resumable client closes",
+			async () => {
+				const app = await Client.connect(secret_direct_app_reference, {
+					token: "hf_123",
+					resume_sessions: true
+				});
+				let received_session_hash: string | undefined;
+				let received_authorization: string | null = null;
+				let resolve_request: () => void = () => {};
+				const request_received = new Promise<void>((resolve) => {
+					resolve_request = resolve;
+				});
+				server.resetHandlers(
+					http.post(
+						`${secret_direct_app_reference}/queue/close`,
+						async ({ request }) => {
+							const body = (await request.json()) as { session_hash: string };
+							received_session_hash = body.session_hash;
+							received_authorization = request.headers.get("Authorization");
+							resolve_request();
+							return HttpResponse.json({ success: true });
+						}
+					)
+				);
+				app.close();
+				await request_received;
+
+				expect(received_session_hash).toBe(app.session_hash);
+				expect(received_authorization).toBe("Bearer hf_123");
+			}
+		);
 	});
 
 	describe("duplicate", () => {

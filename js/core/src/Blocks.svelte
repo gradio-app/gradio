@@ -368,9 +368,6 @@
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const DUPLICATE_MESSAGE = $reactive_formatter("blocks.long_requests_queue");
-	const MOBILE_QUEUE_WARNING = $reactive_formatter(
-		"blocks.connection_can_break"
-	);
 	const LOST_CONNECTION_MESSAGE =
 		"Connection to the server was lost. Attempting reconnection...";
 	const CHANGED_CONNECTION_MESSAGE =
@@ -382,10 +379,7 @@
 		"blocks.waiting_for_inputs"
 	);
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
-	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
-	let is_mobile_device = false;
 	let showed_duplicate_message = false;
-	let showed_mobile_warning = false;
 	let inputs_waiting: number[] = [];
 
 	// as state updates are not synchronous, we need to ensure updates are flushed before triggering any requests
@@ -448,11 +442,6 @@
 	}
 
 	onMount(() => {
-		is_mobile_device =
-			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
-			);
-
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.autoResize(false);
 		}
@@ -469,7 +458,13 @@
 
 		app_tree.ready.then(() => {
 			ready = true;
-			dep_manager.dispatch_load_events();
+			const resumable_events = dep_manager.get_resumable_events();
+			dep_manager.dispatch_load_events(
+				new Set(resumable_events.map(({ fn_index }) => fn_index))
+			);
+			if (resumable_events.length > 0) {
+				void dep_manager.resume(resumable_events);
+			}
 		});
 
 		if (vibe_mode) {

@@ -346,11 +346,12 @@
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
+			resume_sessions: true,
 			events: ["data", "log", "status", "render"],
 			query_params
 		});
-		window.addEventListener("beforeunload", () => {
-			app.close();
+		window.addEventListener("pagehide", (event) => {
+			if (!event.persisted) app.close();
 		});
 
 		if (!app.config && !config?.auth_required) {
