@@ -18,7 +18,7 @@ import gradio as gr
 def render_html(html: str) -> dict:
     """Screenshot generated HTML so the branches can be compared visually."""
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright  # ty: ignore[unresolved-import]
     except ImportError as e:
         raise gr.Error(
             "Rendering needs Playwright: pip install playwright "
