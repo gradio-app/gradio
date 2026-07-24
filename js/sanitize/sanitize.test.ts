@@ -26,4 +26,40 @@ describe("sanitize", () => {
 		expect(link?.getAttribute("target")).toBeNull();
 		expect(link?.getAttribute("rel")).toBeNull();
 	});
+
+	test("removes style elements and their content", () => {
+		const result = sanitize(
+			"<p>hello</p><style>body { background: red; }</style>"
+		);
+
+		expect(result).toBe("<p>hello</p>");
+	});
+
+	test("removes style elements inside svg", () => {
+		const result = sanitize(
+			"<svg><style>body { background: red; }</style><circle r='1'></circle></svg>"
+		);
+
+		expect(result).not.toContain("<style>");
+		expect(result).toContain("<circle");
+	});
+
+	test("removes link elements", () => {
+		const result = sanitize(
+			'<p>hello</p><link rel="stylesheet" href="https://example.com/style.css">'
+		);
+
+		expect(result).toBe("<p>hello</p>");
+	});
+
+	test("keeps style attributes", () => {
+		const node = new DOMParser().parseFromString(
+			sanitize('<p style="color: red;">hello</p>'),
+			"text/html"
+		);
+
+		const p = node.querySelector("p");
+		expect(p?.getAttribute("style")).toBe("color: red;");
+		expect(p?.textContent).toBe("hello");
+	});
 });
