@@ -38,7 +38,7 @@
 		i18n: I18nFormatter;
 		dispatch_blob?: (
 			blobs: Uint8Array[] | Blob[],
-			event: "stream" | "change" | "stop_recording"
+			event: "stream" | "change"
 		) => Promise<void>;
 		interactive?: boolean;
 		editable?: boolean;
