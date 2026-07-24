@@ -1,0 +1,181 @@
+{
+	"schema_version": "2",
+	"name": "Krea-2-Turbo vs FLUX.1-dev",
+	"references": [
+		{
+			"id": "ref_prompt",
+			"label": "Prompt",
+			"role": "reference",
+			"asset_type": "text",
+			"inputs": [
+				{
+					"id": "in",
+					"label": "Text",
+					"type": "text"
+				}
+			],
+			"outputs": [
+				{
+					"id": "out",
+					"label": "Text",
+					"type": "text"
+				}
+			],
+			"x": 80,
+			"y": 280,
+			"width": 220,
+			"height": 161,
+			"data": {
+				"out": "A cinematic photo of a red fox in a misty forest at dawn"
+			}
+		}
+	],
+	"operators": [
+		{
+			"id": "op_krea",
+			"label": "Krea 2 Turbo",
+			"role": "operator",
+			"kind": "model",
+			"model_id": "krea/Krea-2-Turbo",
+			"pipeline_tag": "text-to-image",
+			"endpoint": "text_to_image",
+			"inputs": [
+				{
+					"id": "prompt",
+					"label": "Prompt",
+					"type": "text",
+					"required": true
+				}
+			],
+			"outputs": [
+				{
+					"id": "out_0",
+					"label": "Image",
+					"type": "image",
+					"output_index": 0
+				}
+			],
+			"x": 420,
+			"y": 120,
+			"width": 220,
+			"height": 115,
+			"data": {}
+		},
+		{
+			"id": "op_flux",
+			"label": "FLUX.1 dev",
+			"role": "operator",
+			"kind": "model",
+			"model_id": "black-forest-labs/FLUX.1-dev",
+			"pipeline_tag": "text-to-image",
+			"endpoint": "text_to_image",
+			"inputs": [
+				{
+					"id": "prompt",
+					"label": "Prompt",
+					"type": "text",
+					"required": true
+				}
+			],
+			"outputs": [
+				{
+					"id": "out_0",
+					"label": "Image",
+					"type": "image",
+					"output_index": 0
+				}
+			],
+			"x": 420,
+			"y": 440,
+			"width": 220,
+			"height": 115,
+			"data": {}
+		}
+	],
+	"subjects": [
+		{
+			"id": "sub_krea",
+			"label": "Krea Output",
+			"role": "subject",
+			"asset_type": "image",
+			"inputs": [
+				{
+					"id": "in",
+					"label": "Image",
+					"type": "image"
+				}
+			],
+			"outputs": [
+				{
+					"id": "out",
+					"label": "Image",
+					"type": "image"
+				}
+			],
+			"x": 760,
+			"y": 120,
+			"width": 220,
+			"height": 105,
+			"data": {}
+		},
+		{
+			"id": "sub_flux",
+			"label": "FLUX Output",
+			"role": "subject",
+			"asset_type": "image",
+			"inputs": [
+				{
+					"id": "in",
+					"label": "Image",
+					"type": "image"
+				}
+			],
+			"outputs": [
+				{
+					"id": "out",
+					"label": "Image",
+					"type": "image"
+				}
+			],
+			"x": 760,
+			"y": 440,
+			"width": 220,
+			"height": 105,
+			"data": {}
+		}
+	],
+	"edges": [
+		{
+			"id": "e_prompt_krea",
+			"from_node_id": "ref_prompt",
+			"from_port_id": "out",
+			"to_node_id": "op_krea",
+			"to_port_id": "prompt",
+			"type": "text"
+		},
+		{
+			"id": "e_prompt_flux",
+			"from_node_id": "ref_prompt",
+			"from_port_id": "out",
+			"to_node_id": "op_flux",
+			"to_port_id": "prompt",
+			"type": "text"
+		},
+		{
+			"id": "e_krea_out",
+			"from_node_id": "op_krea",
+			"from_port_id": "out_0",
+			"to_node_id": "sub_krea",
+			"to_port_id": "in",
+			"type": "image"
+		},
+		{
+			"id": "e_flux_out",
+			"from_node_id": "op_flux",
+			"from_port_id": "out_0",
+			"to_node_id": "sub_flux",
+			"to_port_id": "in",
+			"type": "image"
+		}
+	]
+}

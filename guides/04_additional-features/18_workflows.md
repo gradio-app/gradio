@@ -15,7 +15,11 @@ import gradio as gr
 gr.Workflow().launch()
 ```
 
-Open the app, drag Spaces and models from the sidebar onto the canvas, connect their ports, and hit **Run**. As you create nodes and edges, a `workflow.json` file will automatically be created in your working directory. You can also use a coding agent to write or edit this file, allowing you to create workflows programmatically.
+Open the app, drag Spaces, models, and datasets from the sidebar onto the canvas, connect their ports, and hit **Run**. As you edit the workflow, a `workflow.json` file will automatically be created next to the Python script that created the Workflow. Pass `graph=` if you want to save it somewhere else. You can also use a coding agent to write or edit this file, allowing you to create workflows programmatically.
+
+`gr.Workflow` is already a complete Gradio app and must be created at the top level. It cannot be nested inside a `gr.Blocks` context.
+
+When running locally, `launch()` prints a private write-access URL. Open that URL to edit and save the workflow; the ordinary local URL and share URL are run-only. Keep the write-access URL private because edits affect the workflow seen by every visitor.
 
 ## Binding Python functions
 
@@ -36,6 +40,8 @@ Use a dict to give nodes explicit names:
 gr.Workflow(bind={"My Summarizer": summarize}).launch()
 ```
 
+Signature inference is intentionally simple. Parameters annotated as `int` or `float` become `number` ports, `bool` becomes `boolean`, and strings, unannotated parameters, and other annotations default to `text`. Gradio initially generates one output port for each bound function. For media ports or multiple outputs, define the function node's ports explicitly in the workflow JSON.
+
 ## Defining edges in code
 
 For pipelines you want to ship with a fixed topology, declare edges programmatically:
@@ -55,9 +61,9 @@ gr.Workflow(
 ).launch()
 ```
 
-Each edge is a `(from_fn, to_fn)` tuple. Use `"fn_name.port_label"` to target a specific port when a node has multiple inputs or outputs.
+Each edge is a `(from_fn, to_fn)` tuple referring to functions in `bind=`. Use `"fn_name.port_label"` to target a specific port when a node has multiple inputs or outputs; otherwise, the first port is used. Ensure the connected ports have compatible types.
 
-> **Note:** `edges=` is only applied when no workflow file exists yet. If `workflow.json` already exists, `edges=` is ignored — delete the file to regenerate the topology from `bind` and `edges`.
+> **Note:** `edges=` only connects bound Python functions while generating a new workflow. It cannot create edges to Space, model, or dataset nodes, and it is ignored when the workflow file already exists. Delete the file to regenerate the initial topology from `bind` and `edges`.
 
 ## Loading from a JSON file
 
@@ -67,7 +73,7 @@ Pass a `graph=` path to load a saved workflow topology. The canvas reads from th
 gr.Workflow(graph="workflow.json").launch()
 ```
 
-If the file doesn't exist yet, it's created on first save. Combine `graph=` with `bind=` to pre-wire Space nodes alongside your Python functions.
+If the file doesn't exist yet, it's created on the first authorized edit. `bind=` does not automatically add or wire functions into an existing graph. To combine an existing graph with bound functions, either add the functions from the canvas's **Functions** menu or include an operator with `"kind": "fn"` whose `"fn"` value exactly matches a key in `bind`.
 
 ## Workflow JSON format
 
@@ -79,22 +85,21 @@ A workflow is a JSON file with three node collections:
   "name": "My Pipeline",
   "references": [
     {
-      "id": "ref_image", "label": "Input Photo", "role": "reference",
-      "asset_type": "image",
-      "inputs":  [{"id": "in", "label": "Image", "type": "image"}],
-      "outputs": [{"id": "out","label": "Image", "type": "image"}],
-      "x": 80, "y": 120, "width": 220, "height": 124, "data": {}
+      "id": "ref_prompt", "label": "Prompt", "role": "reference",
+      "asset_type": "text",
+      "inputs":  [{"id": "in", "label": "Text", "type": "text"}],
+      "outputs": [{"id": "out", "label": "Text", "type": "text"}]
     }
   ],
   "operators": [
     {
       "id": "op_flux", "label": "FLUX.1", "role": "operator",
-      "kind": "space",
-      "space_id": "black-forest-labs/FLUX.1-schnell",
-      "endpoint": "/infer",
-      "inputs":  [{"id": "in_0", "label": "Prompt", "type": "text", "required": true}],
-      "outputs": [{"id": "out_0","label": "Result","type": "image","output_index": 0}],
-      "x": 400, "y": 120, "width": 220, "height": 124, "data": {}
+      "kind": "model",
+      "model_id": "black-forest-labs/FLUX.1-schnell",
+      "endpoint": "text_to_image",
+      "pipeline_tag": "text-to-image",
+      "inputs":  [{"id": "prompt", "label": "Prompt", "type": "text", "required": true}],
+      "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}]
     }
   ],
   "subjects": [
@@ -102,20 +107,27 @@ A workflow is a JSON file with three node collections:
       "id": "sub_img", "label": "Output Image", "role": "subject",
       "asset_type": "image",
       "inputs":  [{"id": "in", "label": "Image", "type": "image"}],
-      "outputs": [{"id": "out","label": "Image","type": "image"}],
-      "x": 700, "y": 120, "width": 220, "height": 107, "data": {}
+      "outputs": [{"id": "out", "label": "Image", "type": "image"}]
     }
   ],
   "edges": [
     {
       "id": "e1",
-      "from_node_id": "ref_image", "from_port_id": "out",
-      "to_node_id":   "op_flux",   "to_port_id":   "in_0",
+      "from_node_id": "ref_prompt", "from_port_id": "out",
+      "to_node_id":   "op_flux",    "to_port_id":   "prompt",
+      "type": "text"
+    },
+    {
+      "id": "e2",
+      "from_node_id": "op_flux", "from_port_id": "out_0",
+      "to_node_id":   "sub_img", "to_port_id":   "in",
       "type": "image"
     }
   ]
 }
 ```
+
+Node geometry (`x`, `y`, `width`, and `height`) and `data` may be omitted. If any node is missing geometry, the canvas fills in defaults and auto-arranges the entire graph.
 
 | Collection | Role |
 |---|---|
@@ -127,20 +139,22 @@ A workflow is a JSON file with three node collections:
 
 | `kind` | What it calls |
 |---|---|
-| `"space"` | Any Gradio Space on the Hub via `gradio_client` |
-| `"model"` | HF Inference API — set `pipeline_tag` to select the task |
-| `"dataset"` | Streams rows from any Hub dataset |
-| `"fn"` | A Python function passed via `bind=` |
+| `"space"` | A Gradio Space on the Hub via `gradio_client`; set `space_id` and `endpoint` |
+| `"model"` | A Hugging Face model via `InferenceClient`; set `model_id` and a supported `endpoint` such as `text_to_image`. `pipeline_tag` is also stored for discovery and compatibility with older graphs |
+| `"dataset"` | One row from a Hub dataset per run, selected by the `row_index` input; set `dataset_id`, `dataset_config`, and `dataset_split` |
+| `"fn"` | A Python function whose `fn` value matches a key passed via `bind=` |
 
 ## Port types
 
 Ports are typed so the canvas can validate connections. Supported types:
 
-`image` · `audio` · `video` · `text` · `number` · `boolean` · `gallery` · `file` · `json` · `model3d`
+`image` · `audio` · `video` · `text` · `number` · `boolean` · `gallery` · `file` · `json` · `model3d` · `any`
+
+`any` is a compatibility fallback that can connect to every port type. `file` and `any` usually come from API schema inference and are not offered as reference or subject templates in the canvas picker.
 
 ## Fan-out pipelines
 
-One reference can feed multiple operators simultaneously — they run in parallel:
+One reference can feed multiple operators simultaneously. When you run the workflow in the interactive canvas, operators at the same dependency depth run in parallel:
 
 ```python
 # workflow.json excerpt — one product photo → 4 FLUX Kontext branches
@@ -152,6 +166,8 @@ One reference can feed multiple operators simultaneously — they run in paralle
 ]
 ```
 
+When the same workflow is invoked through its generated Gradio API, the server currently executes these branches sequentially.
+
 ## Deploying to Spaces
 
 A Workflow app is a standard Gradio app — deploy it to Hugging Face Spaces exactly like any other, by uploading the code to a Space, or by simply running in your terminal:
@@ -160,11 +176,13 @@ A Workflow app is a standard Gradio app — deploy it to Hugging Face Spaces exa
 gradio deploy
 ```
 
-On a Space, the canvas authenticates visitors via OAuth. The Space owner gets write access (can edit and save the workflow); visitors get a read-only view and can run the pipeline with their own HF token. As a result, you should set `hf_oauth: true` [in your Space](https://huggingface.co/docs/hub/en/spaces-oauth). 
+Set `hf_oauth: true` [in your Space](https://huggingface.co/docs/hub/en/spaces-oauth) so the owner can authenticate for editing. The owning user, or an organization member with `write` or `admin` access, can edit and save the workflow. Other visitors get a read-only canvas and can run the pipeline using their OAuth identity or a Hugging Face access token. Without OAuth enabled, the Space cannot identify its owner, so the deployed workflow remains run-only.
 
 ## API access
 
-Every Workflow app is a Gradio app, meaning that it exposes a Gradio REST API endpoint for each output (subject) node. The endpoint name is derived from the subject's label — for example, a subject labelled "Output Image" becomes `/output_image`. Use `client.view_api()` to see the exact names for your workflow:
+Every Workflow app is a Gradio app, meaning that it exposes its connected pipelines through the standard Gradio REST API. Each disconnected pipeline containing one or more output (subject) nodes gets one endpoint. Its name is derived from the first subject's label — for example, a pipeline whose first subject is labelled "Output Image" becomes `/output_image`.
+
+Uncomputed reference nodes feeding that pipeline become the endpoint's parameters. If the pipeline has multiple subjects, the endpoint returns all of them in subject declaration order rather than creating one endpoint per subject. Use `client.view_api()` to see the exact endpoint names, parameters, and return values:
 
 ```python
 from gradio_client import Client
