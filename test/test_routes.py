@@ -2440,6 +2440,147 @@ def test_json_postprocessing_with_queue_false(connect):
 
 
 class TestOAuthSecurity:
+    def test_oauth_redirect_preserves_retry_count(self, monkeypatch):
+        from urllib.parse import parse_qs, urlparse
+
+        from gradio.oauth import _generate_redirect_uri
+
+        monkeypatch.setenv("SPACE_HOST", "space.hf.space")
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [],
+            "query_string": b"_nb_redirects=2&_target_url=%2Fapp",
+        }
+
+        redirect_uri = _generate_redirect_uri(Request(scope))
+
+        assert parse_qs(urlparse(redirect_uri).query) == {
+            "_nb_redirects": ["2"],
+            "_target_url": ["/app"],
+        }
+
+    def test_mismatching_oauth_state_clears_stale_session_cookie(self, monkeypatch):
+        from authlib.integrations.base_client.errors import MismatchingStateError
+        from fastapi.responses import RedirectResponse
+        from starlette.middleware.sessions import SessionMiddleware
+
+        from gradio import oauth
+
+        class FakeHuggingFaceOAuth:
+            async def authorize_redirect(self, request, redirect_uri):
+                return RedirectResponse(redirect_uri)
+
+            async def authorize_access_token(self, request):
+                assert request.cookies["session"] == "stale-invalid-cookie"
+                assert not request.session
+                raise MismatchingStateError()
+
+        class FakeOAuth:
+            def __init__(self):
+                self.huggingface = FakeHuggingFaceOAuth()
+
+            def register(self, **kwargs):
+                pass
+
+        monkeypatch.setattr("authlib.integrations.starlette_client.OAuth", FakeOAuth)
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_ID", "client")
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_SECRET", "secret")
+        monkeypatch.setattr(oauth, "OAUTH_SCOPES", "openid")
+        monkeypatch.setattr(oauth, "OPENID_PROVIDER_URL", "https://huggingface.co")
+
+        app = FastAPI()
+        oauth._add_oauth_routes(app)
+        app.add_middleware(
+            SessionMiddleware,  # type: ignore
+            secret_key="secret",
+            https_only=True,
+        )
+
+        with TestClient(app, base_url="https://space.hf.space") as client:
+            client.cookies.set(
+                "session", "stale-invalid-cookie", domain="space.hf.space"
+            )
+            response = client.get(
+                "/login/callback?_target_url=/app", follow_redirects=False
+            )
+
+            monkeypatch.setenv("SPACE_HOST", "space.hf.space, custom.example")
+            client.cookies.set(
+                "session", "stale-invalid-cookie", domain="space.hf.space"
+            )
+            external_response = client.get(
+                "/login/callback?_nb_redirects=3&_target_url=/app",
+                follow_redirects=False,
+            )
+
+        assert response.headers["location"] == (
+            "/login/huggingface?_nb_redirects=1&_target_url=%2Fapp"
+        )
+        assert 'session=""' in response.headers["set-cookie"]
+        assert "Max-Age=0" in response.headers["set-cookie"]
+        assert external_response.headers["location"] == (
+            "https://space.hf.space/login/huggingface?"
+            "_nb_redirects=4&_target_url=%2Fapp"
+        )
+
+    def test_mismatching_oauth_state_preserves_existing_login(self, monkeypatch):
+        from authlib.integrations.base_client.errors import MismatchingStateError
+        from fastapi.responses import RedirectResponse
+        from starlette.middleware.sessions import SessionMiddleware
+
+        from gradio import oauth
+
+        oauth_info = {"access_token": "valid"}
+
+        class FakeHuggingFaceOAuth:
+            async def authorize_redirect(self, request, redirect_uri):
+                return RedirectResponse(redirect_uri)
+
+            async def authorize_access_token(self, request):
+                assert request.session["oauth_info"] == oauth_info
+                raise MismatchingStateError()
+
+        class FakeOAuth:
+            def __init__(self):
+                self.huggingface = FakeHuggingFaceOAuth()
+
+            def register(self, **kwargs):
+                pass
+
+        monkeypatch.setattr("authlib.integrations.starlette_client.OAuth", FakeOAuth)
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_ID", "client")
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_SECRET", "secret")
+        monkeypatch.setattr(oauth, "OAUTH_SCOPES", "openid")
+        monkeypatch.setattr(oauth, "OPENID_PROVIDER_URL", "https://huggingface.co")
+
+        app = FastAPI()
+
+        @app.get("/seed-session")
+        async def seed_session(request: Request):
+            request.session["oauth_info"] = oauth_info
+            request.session["_state_huggingface_stale"] = {"state": "stale"}
+            return {}
+
+        @app.get("/session")
+        async def get_session(request: Request):
+            return request.session
+
+        oauth._add_oauth_routes(app)
+        app.add_middleware(
+            SessionMiddleware,  # type: ignore
+            secret_key="secret",
+            https_only=True,
+        )
+
+        with TestClient(app, base_url="https://space.hf.space") as client:
+            client.get("/seed-session")
+            response = client.get("/login/callback", follow_redirects=False)
+            session = client.get("/session").json()
+
+        assert "Max-Age=0" not in response.headers["set-cookie"]
+        assert session == {"oauth_info": oauth_info}
+
     def test_redirect_to_target_blocks_external_urls(self):
         """_redirect_to_target should strip scheme/host to prevent open redirects."""
         from gradio.oauth import _redirect_to_target

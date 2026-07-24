@@ -110,10 +110,12 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             # losing the state. A workaround is to delete the cookie and redirect the user to the login page again.
             # See https://github.com/lepture/authlib/issues/622 for more details.
 
-            # Delete all keys that are related to the OAuth state, just in case
-            for key in list(request.session.keys()):
-                if key.startswith("_state_huggingface"):
-                    request.session.pop(key)
+            # Reset stale OAuth state without logging out an already-authenticated
+            # user whose callback came from an older login attempt.
+            session_oauth_info = request.session.get("oauth_info")
+            request.session.clear()
+            if session_oauth_info is not None:
+                request.session["oauth_info"] = session_oauth_info
 
             # Parse query params
             nb_redirects = int(request.query_params.get("_nb_redirects", 0))
@@ -136,11 +138,20 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
                         "Gradio is not running in a Space (SPACE_HOST environment variable is not set)."
                         " Cannot redirect to non-iframe view."
                     ) from None
+                host = host.split(",")[0].strip()
                 host_url = "https://" + host.rstrip("/")
-                return RedirectResponse(host_url + login_uri)
+                response = RedirectResponse(host_url + login_uri)
+            else:
+                # Redirect the user to the login page again
+                response = RedirectResponse(login_uri)
 
-            # Redirect the user to the login page again
-            return RedirectResponse(login_uri)
+            if session_oauth_info is None:
+                # SessionMiddleware cannot expire a cookie whose signature it could
+                # not decode, so delete it explicitly as well.
+                response.delete_cookie(
+                    "session", secure=True, httponly=True, samesite="none"
+                )
+            return response
 
         # OAuth login worked => store the user info in the session and redirect
         request.session["oauth_info"] = oauth_info
@@ -202,6 +213,10 @@ def _generate_redirect_uri(request: fastapi.Request) -> str:
         # otherwise => keep query params
         target = "/?" + urllib.parse.urlencode(request.query_params)
 
+    callback_query_params = {"_target_url": target}
+    if "_nb_redirects" in request.query_params:
+        callback_query_params["_nb_redirects"] = request.query_params["_nb_redirects"]
+
     # On Spaces, the redirect URI must always be https://<space_host>/login/callback,
     # so if a custom domain is used, we need to replace it with the hf.space URL
     if space_host := os.getenv("SPACE_HOST"):
@@ -210,12 +225,12 @@ def _generate_redirect_uri(request: fastapi.Request) -> str:
             0
         ]  # When custom domain is used, SPACE_HOST is a comma-separated list
         print(f"SPACE_HOST after split: {space_host}")
-        redirect_uri = f"https://{space_host}/login/callback?{urllib.parse.urlencode({'_target_url': target})}"
+        redirect_uri = f"https://{space_host}/login/callback?{urllib.parse.urlencode(callback_query_params)}"
         print(f"Redirect URI: {redirect_uri}")
         return redirect_uri
 
     redirect_uri = request.url_for("oauth_redirect_callback").include_query_params(
-        _target_url=target
+        **callback_query_params
     )
     redirect_uri_as_str = str(redirect_uri)
     return redirect_uri_as_str
