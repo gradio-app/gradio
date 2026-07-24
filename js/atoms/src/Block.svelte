@@ -218,8 +218,11 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		width: 100vw;
-		height: 100vh;
+		/* Percentages resolve against the viewport minus any classic window
+		scrollbar; 100vw/100vh would extend beneath it and hide the top-right
+		controls (#11982) */
+		width: 100%;
+		height: 100%;
 		z-index: 1000;
 		overflow: auto;
 	}
@@ -239,10 +242,10 @@
 		}
 		100% {
 			position: fixed;
-			top: 0vh;
-			left: 0vw;
-			width: 100vw;
-			height: 100vh;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
 			z-index: 1000;
 		}
 	}
