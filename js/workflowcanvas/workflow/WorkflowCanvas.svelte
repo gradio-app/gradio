@@ -8,6 +8,8 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
+	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
+	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -192,6 +194,21 @@
 	});
 
 	$effect(() => {
+		if (!server?.list_history) return;
+		void server
+			.list_history([null, 0])
+			.then((raw: string) => {
+				try {
+					const parsed = JSON.parse(raw);
+					historyAvailable = parsed?.repo_id != null;
+				} catch {
+					/* ignore */
+				}
+			})
+			.catch(() => {});
+	});
+
+	$effect(() => {
 		if (!server?.get_model_endpoints) return;
 		void fetchModelEndpoints(server).then((schemas) => {
 			if (schemas.length)
@@ -299,6 +316,9 @@
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
 	let showApiPanel = $state(false);
+	let showHistoryPanel = $state(false);
+	let showHistoryConnect = $state(false);
+	let historyAvailable = $state(false);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -1583,6 +1603,9 @@
 				}
 			: undefined;
 
+		const capturedOutputs: Record<string, { portId: string; value: any }[]> =
+			{};
+
 		await executeWorkflow(
 			wfToRun,
 			(nodeId, status, error, errorType) => {
@@ -1626,6 +1649,8 @@
 			},
 			(nodeId, portId, value) => {
 				updateNodeData(nodeId, portId, value);
+				if (!capturedOutputs[nodeId]) capturedOutputs[nodeId] = [];
+				capturedOutputs[nodeId].push({ portId, value });
 			},
 			abortController.signal,
 			callSpaceWithToken,
@@ -1646,9 +1671,57 @@
 		);
 
 		running = false;
+		const wasAborted = abortController?.signal.aborted ?? false;
 		abortController = null;
-
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
+
+		if (!wasAborted && !hasErrors && server?.push_history) {
+			try {
+				const genInputs: Record<
+					string,
+					{ value: any; type: string; label: string }
+				> = {};
+				for (const ref of wfToRun.references) {
+					const node = legacyView.nodes.find((n) => n.id === ref.id);
+					if (!node) continue;
+					const outPort = node.outputs[0];
+					if (!outPort) continue;
+					const captured = capturedOutputs[ref.id];
+					const value = captured
+						? ((captured.find((o) => o.portId === outPort.id) ?? captured[0])
+								?.value ?? null)
+						: (node.data?.[outPort.id] ?? null);
+					genInputs[ref.id] = { value, type: outPort.type, label: node.label };
+				}
+				const genOutputs: Record<
+					string,
+					{ value: any; type: string; label: string }
+				> = {};
+				for (const subj of wfToRun.subjects) {
+					const node = legacyView.nodes.find((n) => n.id === subj.id);
+					if (!node) continue;
+					const inPort = node.inputs[0];
+					if (!inPort) continue;
+					const captured = capturedOutputs[subj.id];
+					const value = captured
+						? ((captured.find((o) => o.portId === inPort.id) ?? captured[0])
+								?.value ?? null)
+						: (node.data?.[inPort.id] ?? null);
+					genOutputs[subj.id] = { value, type: inPort.type, label: node.label };
+				}
+				const record = {
+					id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
+					timestamp: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+					subgraph: wfToRun.name ?? "default",
+					subject_ids: wfToRun.subjects.map((s) => s.id),
+					inputs: genInputs,
+					outputs: genOutputs,
+					user: null
+				};
+				server.push_history([JSON.stringify(record)]).catch(() => {});
+			} catch {}
+		}
+
 		showToast(
 			hasErrors ? "Workflow finished with errors" : "Workflow complete",
 			hasErrors ? 5000 : 3000,
@@ -2227,6 +2300,23 @@
 				<CodeIcon />
 				View API
 			</button>
+			{#if historyAvailable}
+				<button
+					class="tool-btn history-btn"
+					onclick={() => (showHistoryPanel = true)}
+					title="Browse generation history"
+				>
+					History
+				</button>
+			{:else if server?.connect_history}
+				<button
+					class="tool-btn connect-dataset-btn"
+					onclick={() => (showHistoryConnect = true)}
+					title="Connect a HF Hub dataset to save generation history"
+				>
+					Connect dataset
+				</button>
+			{/if}
 			{#if saveIndicator}
 				<span
 					class="save-indicator"
@@ -2701,6 +2791,40 @@
 			{server}
 			workflowName={$workflow.name}
 			onClose={() => (showApiPanel = false)}
+		/>
+	{/if}
+
+	{#if showHistoryConnect}
+		<WorkflowHistoryConnect
+			{server}
+			workflowName={$workflow.name}
+			onconnected={(repoId) => {
+				historyAvailable = true;
+				showHistoryConnect = false;
+				showHistoryPanel = true;
+			}}
+			onclose={() => (showHistoryConnect = false)}
+		/>
+	{/if}
+
+	{#if showHistoryPanel}
+		<WorkflowHistoryPanel
+			{server}
+			onclose={() => (showHistoryPanel = false)}
+			onchange={() => {
+				showHistoryPanel = false;
+				showHistoryConnect = true;
+			}}
+			onload={(inputs) => {
+				for (const [nodeId, input] of Object.entries(
+					inputs as Record<string, any>
+				)) {
+					const portId: string = (input as any).port_id ?? "out_0";
+					const value = (input as any).value;
+					updateNodeData(nodeId, portId, value);
+				}
+				showHistoryPanel = false;
+			}}
 		/>
 	{/if}
 </div>

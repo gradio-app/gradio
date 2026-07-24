@@ -72,6 +72,9 @@ class _CuratedCache(TypedDict):
 _CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
 _CURATED_LOCK = threading.Lock()
 
+_MODEL_TAG_CACHE: dict[str, str] = {}
+_MODEL_TAG_LOCK = threading.Lock()
+
 
 def _bundled_snapshot_path() -> str:
     return os.path.join(os.path.dirname(__file__), "_workflow_curated_snapshot.json")
@@ -375,7 +378,18 @@ def _save_tmp(result, ext: str) -> dict:
 
 
 def _img_url(a) -> str:
-    return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
+    if not isinstance(a, dict):
+        return a
+    path = a.get("path", "")
+    url = a.get("url", "")
+    # Prefer the local file path: InferenceClient reads it directly.
+    # Only fall back to url if it's a public HTTPS address; never send
+    # Gradio-internal relative URLs (e.g. /gradio_api/file=...) to the Hub.
+    if path and os.path.isfile(path):
+        return path
+    if url.startswith("https://"):
+        return url
+    return path or url
 
 
 def _classify_error(e: Exception) -> dict:
@@ -773,10 +787,6 @@ _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
 }
 
 
-# Legacy pipeline tags (as sent by older saved workflows and the browser
-# executor) → InferenceClient endpoint names. depth-estimation is absent on
-# purpose: InferenceClient has no such method, so it keeps its raw-POST branch
-# in call_model. Unmapped tags fall through to the chat/raw-POST fallback.
 _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "text-generation": "text_generation",
     "text2text-generation": "text_generation",
@@ -808,8 +818,6 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
 }
 
 
-# Client params that expect a list of strings; port values arrive as a single
-# string, split on the given pattern.
 _ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
     "zero_shot_classification": {"candidate_labels": r"[\n,]"},
     "sentence_similarity": {"other_sentences": r"\n"},
@@ -821,8 +829,6 @@ def get_model_endpoints(
 ) -> str:
     from huggingface_hub import InferenceClient
 
-    # Only advertise endpoints the installed huggingface_hub can actually run,
-    # so the UI never shapes a node around a method that would fail server-side.
     endpoints = [
         {"name": name, **schema}
         for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
@@ -851,7 +857,6 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             continue
         legacy = re.fullmatch(r"in_(\d+)", k)
         if legacy and k not in schema_ids and int(legacy.group(1)) < len(schema_ids):
-            # positional port IDs from workflows saved before endpoint schemas
             k = schema_ids[int(legacy.group(1))]
         clean[k] = (
             _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
@@ -860,7 +865,6 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         if isinstance(clean.get(key), str):
             clean[key] = [s.strip() for s in re.split(sep, clean[key]) if s.strip()]
     if endpoint == "zero_shot_classification" and not clean.get("candidate_labels"):
-        # without labels, fall back to scoring with the model's own label set
         return _dispatch_model_endpoint(
             client, "text_classification", {"text": clean.get("text", "")}
         )
@@ -884,7 +888,6 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     if ext:
         return json.dumps([_save_tmp(result, ext)])
     if isinstance(result, list) and result and hasattr(result[0], "answer"):
-        # question-answering-style outputs: surface the top answer
         result = result[0]
     for attr in (
         "summary_text",
@@ -937,6 +940,20 @@ def call_model(
         provider = data[4] if len(data) > 4 and data[4] else "auto"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
+
+        if not pipeline_tag:
+            with _MODEL_TAG_LOCK:
+                pipeline_tag = _MODEL_TAG_CACHE.get(model_id)
+            if not pipeline_tag:
+                try:
+                    info = HfApi(token=hf_token).model_info(model_id)
+                    pipeline_tag = info.pipeline_tag or ""
+                    if pipeline_tag:
+                        with _MODEL_TAG_LOCK:
+                            _MODEL_TAG_CACHE[model_id] = pipeline_tag
+                except Exception:
+                    pass
+
         if isinstance(args, dict):
             endpoint = pipeline_tag or ""
             return _dispatch_model_endpoint(client, endpoint, args)
@@ -963,8 +980,6 @@ def call_model(
 
         endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
         if endpoint:
-            # Positional args from legacy saved workflows and the browser
-            # executor map onto the endpoint schema's input order.
             schema_inputs = _INFERENCE_ENDPOINT_SCHEMAS[endpoint]["inputs"]
             kwargs = {
                 schema_inputs[i]["id"]: val
@@ -1478,6 +1493,7 @@ class Workflow(Blocks):
         *,
         bind: dict[str, Callable] | list[Callable] | None = None,
         edges: list[tuple[str, str]] | None = None,
+        history: str | bool | None = None,
     ):
         """
         Parameters:
@@ -1500,6 +1516,11 @@ class Workflow(Blocks):
                         ("shout", "reverse"),         # first output → first input
                         ("clean.output", "tag.text"), # by port label
                     ]
+            history: HF Hub bucket ID used to persist generation history.
+                Pass a string like ``"username/my-workflow-history"`` to use an
+                existing or auto-created bucket.  Pass ``True`` to auto-name the
+                bucket as ``"{hf_user}/{workflow-slug}-history"``.
+                Defaults to ``None`` (no persistence).
         """
         if graph is None:
             caller_filename = sys._getframe(1).f_code.co_filename
@@ -1518,6 +1539,7 @@ class Workflow(Blocks):
         )
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
+        self._history_param: str | bool | None = history
 
         if Context.root_block is not None:
             raise ValueError(
@@ -1543,6 +1565,8 @@ class Workflow(Blocks):
                 "Delete the file to regenerate the workflow from bind/edges.",
                 self._workflow_file,
             )
+
+        self._wh = self._resolve_history()
 
         # Callable so each browser session re-reads `workflow.json`, picking up
         # writes from `save_workflow` instead of the construction-time snapshot.
@@ -1694,10 +1718,110 @@ class Workflow(Blocks):
                                 "Workflow: endpoint sync after save failed",
                                 exc_info=True,
                             )
+                if self._wh is not None:
+                    import threading as _threading
+
+                    _threading.Thread(
+                        target=self._wh.push_graph_file, args=(payload,), daemon=True
+                    ).start()
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
+
+        def list_history(
+            data=None,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Return recent generation records for the History panel."""
+            if self._wh is None:
+                return json.dumps({"records": [], "repo_id": None})
+            subgraph = data[0] if data else None
+            limit = (
+                int(data[1]) if data and len(data) > 1 and data[1] is not None else 50
+            )
+            records = self._wh.list(limit=limit, subgraph=subgraph or None)
+            return json.dumps({"records": records, "repo_id": self._wh.repo_id})
+
+        def connect_history(
+            data=None,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Connect (or switch) the workflow to a HF Hub bucket for history.
+
+            data[0]: bucket_id string, e.g. ``"user/my-history"``.
+            data[1]: optional bool — if truthy, auto-derive bucket_id from the
+                     HF username and workflow name (same as ``history=True``).
+            """
+            if not has_write_access(request, token):
+                return json.dumps(
+                    {"error": "Write access required", "error_type": "auth"}
+                )
+            try:
+                from gradio.workflow_history import WorkflowHistory
+
+                auto = data[1] if data and len(data) > 1 else False
+                hf_token = (
+                    token.token if token is not None else None
+                ) or hf_get_token()
+                if auto:
+                    user = HfApi(token=hf_token).whoami()["name"]
+                    slug = re.sub(
+                        r"[^a-z0-9-]", "-", self._workflow_name.lower()
+                    ).strip("-")
+                    repo_id = f"{user}/{slug}-history"
+                else:
+                    repo_id = (data[0] if data else "").strip()
+                if not re.fullmatch(
+                    r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*", repo_id
+                ):
+                    return json.dumps({"error": f"Invalid bucket ID: {repo_id}"})
+
+                wh = WorkflowHistory(repo_id=repo_id, token=hf_token)
+                wh.ensure_repo()
+                self._wh = wh
+
+                try:
+                    with _save_lock:
+                        raw = _load_initial()
+                        if raw:
+                            parsed = json.loads(raw)
+                            parsed["history_repo"] = repo_id
+                            with open(workflow_file, "w", encoding="utf-8") as f:
+                                json.dump(parsed, f, ensure_ascii=False)
+                except Exception:
+                    logger.debug(
+                        "connect_history: could not persist to workflow.json",
+                        exc_info=True,
+                    )
+
+                return json.dumps({"ok": True, "repo_id": repo_id})
+            except Exception as e:
+                logger.error("connect_history failed: %s", e, exc_info=True)
+                return json.dumps({"error": str(e)})
+
+        def push_history(
+            data=None,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Accept a pre-built record from a client-side run and push it to Hub.
+
+            data[0]: JSON string of the history record dict.
+            """
+            if self._wh is None:
+                return json.dumps({"ok": False, "reason": "no_history"})
+            try:
+                record = json.loads(data[0]) if data else {}
+                if not record.get("id"):
+                    return json.dumps({"ok": False, "reason": "invalid_record"})
+                self._wh.push(record)
+                return json.dumps({"ok": True})
+            except Exception as e:
+                logger.debug("push_history failed: %s", e, exc_info=True)
+                return json.dumps({"ok": False, "reason": str(e)})
 
         server_functions = [
             get_token,
@@ -1719,6 +1843,9 @@ class Workflow(Blocks):
             get_workflow_api,
             get_model_endpoints,
             save_workflow,
+            list_history,
+            connect_history,
+            push_history,
         ]
 
         from gradio.workflow_api import WorkflowGraph, register_workflow_endpoints
@@ -1792,7 +1919,47 @@ class Workflow(Blocks):
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
-        self._api_endpoints = register_workflow_endpoints(self, _current_graph, callers)
+        self._api_endpoints = register_workflow_endpoints(
+            self, _current_graph, callers, get_history=lambda: self._wh
+        )
+
+    def _resolve_history(self):
+        """Instantiate WorkflowHistory from ``self._history_param``, the saved
+        ``history_repo`` field in workflow.json, or return None."""
+        from gradio.workflow_history import WorkflowHistory
+
+        param = self._history_param
+
+        if param is None:
+            try:
+                with open(self._workflow_file, encoding="utf-8") as f:
+                    saved = json.load(f)
+                repo_id = saved.get("history_repo")
+                if repo_id:
+                    return WorkflowHistory(repo_id=repo_id, token=hf_get_token())
+            except Exception:
+                pass
+            return None
+
+        if param is True:
+            try:
+                token = hf_get_token()
+                user = HfApi(token=token).whoami()["name"]
+                slug = re.sub(r"[^a-z0-9-]", "-", self._workflow_name.lower()).strip(
+                    "-"
+                )
+                repo_id = f"{user}/{slug}-history"
+            except Exception:
+                logger.warning(
+                    "Workflow: history=True requires a logged-in HF account "
+                    "(run `huggingface-cli login`). History disabled.",
+                    exc_info=True,
+                )
+                return None
+        else:
+            repo_id = str(param)
+            token = hf_get_token()
+        return WorkflowHistory(repo_id=repo_id, token=token)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
