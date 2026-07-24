@@ -492,6 +492,43 @@ describe("sanitize_for_save", () => {
 		expect(result.references[2].data).toEqual({ in: true });
 	});
 
+	test("strips runtime endpoint catalogs from operators", () => {
+		const w = wf();
+		const endpoints = [
+			{
+				name: "text_to_image",
+				inputs: [{ id: "prompt", label: "Prompt", type: "text" as const }],
+				outputs: [{ id: "image", label: "Image", type: "image" as const }]
+			}
+		];
+		w.operators = [
+			{
+				id: "model",
+				role: "operator",
+				kind: "model",
+				label: "Model",
+				model_id: "org/model",
+				endpoint: "text_to_image",
+				endpoints,
+				inputs: endpoints[0].inputs,
+				outputs: endpoints[0].outputs,
+				data: {},
+				x: 0,
+				y: 0,
+				width: 220,
+				height: 90
+			}
+		];
+
+		const result = sanitize_for_save(w);
+		expect(result.operators[0]).not.toHaveProperty("endpoints");
+		expect(result.operators[0]).toMatchObject({
+			model_id: "org/model",
+			endpoint: "text_to_image"
+		});
+		expect(w.operators[0].endpoints).toEqual(endpoints);
+	});
+
 	test("does not mutate the input workflow", () => {
 		const original = wf([
 			refNode("a", { in: { name: "x", url: "blob:nope" } })
