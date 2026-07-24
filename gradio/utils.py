@@ -1223,7 +1223,9 @@ def is_special_typed_parameter(name, parameter_types):
     return is_request or is_event_data or is_oauth_arg
 
 
-def oauth_token_requirement(fn: Callable | None) -> str | None:
+def oauth_token_requirement(
+    fn: Callable | None,
+) -> Literal["required", "optional"] | None:
     """Whether `fn` takes a gr.OAuthToken, and whether it insists on one.
 
     Returns "required" for `gr.OAuthToken`, "optional" for `gr.OAuthToken | None`,
