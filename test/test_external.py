@@ -425,3 +425,46 @@ def test_load_chat_textbox_override():
     )
     assert isinstance(chat, ChatInterface)
     assert chat.textbox is custom_textbox
+
+
+@pytest.mark.flaky
+def test_oauth_token_reaches_only_the_endpoint_that_asks_for_it():
+    """A caller-supplied token reaches a gr.OAuthToken, and nothing else.
+
+    Runs against a real OAuth-enabled Space because the behaviour depends on the
+    environment: a Space sits behind a proxy that strips `x-hf-*` headers, so the
+    token has to travel in the request body to arrive at all. On that Space
+    `/report` takes a gr.OAuthToken and echoes what it received; `/calculator`
+    does not take one.
+    """
+    from gradio_client import Client
+
+    if not HF_TOKEN:
+        pytest.skip("no Hugging Face token available")
+
+    space = "gradio-tests/test-calculator-1"
+    client = Client(space, token=HF_TOKEN, oauth_token=HF_TOKEN, verbose=False)
+    info = client.view_api(return_format="dict")["named_endpoints"]
+
+    # The app declares which endpoints act on the caller's behalf.
+    assert info["/report"]["oauth_token"] == "optional"
+    assert "oauth_token" not in info["/calculator"]
+
+    # The token is only put in the body of the endpoint that declared it.
+    payloads = {
+        endpoint.api_name: endpoint.oauth_token_payload()
+        for endpoint in client.endpoints.values()
+        if endpoint.api_name in ("/report", "/calculator")
+    }
+    assert payloads == {"/report": {"oauth_token": HF_TOKEN}, "/calculator": {}}
+
+    # A usable token arrives, so the Space can act as the caller.
+    assert client.predict(api_name="/report").startswith("user:")
+    assert client.predict(4, "add", 2, api_name="/calculator") == 6
+
+    # Without oauth_token=, nothing is granted, even though `token` authenticates
+    # the caller to the Space itself.
+    assert (
+        Client(space, token=HF_TOKEN, verbose=False).predict(api_name="/report")
+        == "none"
+    )
