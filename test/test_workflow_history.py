@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import patch
+import threading
+from unittest.mock import MagicMock, patch
 
 from gradio.workflow_history import WorkflowHistory, build_history_record
 
@@ -106,15 +107,17 @@ def test_build_history_record_missing_port_uses_default():
 
 
 def _make_history(repo_id="user/test-history"):
-    with (
-        patch("gradio.workflow_history.HfApi") as mock_api_cls,
-        patch("gradio.workflow_history.hf_get_token", return_value="tok"),
-    ):
-        mock_api = mock_api_cls.return_value
-        wh = WorkflowHistory(repo_id=repo_id, token="tok")
-        wh._api = mock_api
-        wh._repo_ready = True
-        return wh, mock_api
+    mock_api = MagicMock()
+    wh = WorkflowHistory.__new__(WorkflowHistory)
+    wh.repo_id = repo_id
+    wh._token = "tok"
+    wh._api = mock_api
+    wh._repo_ready = True
+    wh._repo_lock = threading.Lock()
+    wh._cache_lock = threading.Lock()
+    wh._cache = None
+    wh._cache_at = 0.0
+    return wh, mock_api
 
 
 def test_push_uploads_record_to_bucket():

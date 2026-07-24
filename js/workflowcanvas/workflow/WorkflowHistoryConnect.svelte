@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+
 	let {
 		server = {},
 		workflowName = "",
@@ -14,6 +16,7 @@
 	let repoInput = $state("");
 	let connecting = $state(false);
 	let error = $state<string | null>(null);
+	let existingBuckets = $state<{ id: string }[]>([]);
 
 	const suggestedName = $derived(
 		workflowName
@@ -24,11 +27,11 @@
 			: "workflow-history"
 	);
 
-	async function connect(auto: boolean) {
+	async function connect(bucketId: string, auto = false) {
 		error = null;
 		connecting = true;
 		try {
-			const raw = await server.connect_history([repoInput.trim(), auto]);
+			const raw = await server.connect_history([bucketId, auto]);
 			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
 			if (data.error) {
 				error = data.error;
@@ -41,19 +44,30 @@
 			connecting = false;
 		}
 	}
+
+	onMount(async () => {
+		if (!server?.list_user_buckets) return;
+		try {
+			const raw = await server.list_user_buckets([]);
+			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+			existingBuckets = data.buckets ?? [];
+		} catch {
+			// silently ignore — bucket list is optional
+		}
+	});
 </script>
 
 <div
 	class="connect-backdrop"
 	role="dialog"
-	aria-label="Connect dataset"
+	aria-label="Connect bucket"
 	onpointerdown={(e) => {
 		if (e.target === e.currentTarget) onclose();
 	}}
 >
 	<div class="connect-panel">
 		<div class="connect-header">
-			<span class="connect-title">Connect generation history</span>
+			<span class="connect-title">Connect history</span>
 			<button class="connect-close" onclick={onclose} aria-label="Close"
 				>&#x2715;</button
 			>
@@ -64,11 +78,27 @@
 			outputs from the History panel.
 		</p>
 
+		{#if existingBuckets.length > 0}
+			<div class="bucket-list">
+				{#each existingBuckets as bucket}
+					<button
+						class="bucket-item"
+						disabled={connecting}
+						onclick={() => connect(bucket.id)}
+					>
+						<span class="bucket-icon">🗄</span>
+						<span class="bucket-id">{bucket.id}</span>
+					</button>
+				{/each}
+			</div>
+			<div class="connect-divider"><span>or create a new bucket</span></div>
+		{/if}
+
 		<div class="connect-auto">
 			<button
 				class="connect-auto-btn"
 				disabled={connecting}
-				onclick={() => connect(true)}
+				onclick={() => connect("", true)}
 			>
 				{connecting ? "Connecting..." : "Auto-create"}
 				<span class="connect-auto-hint">{suggestedName}</span>
@@ -83,19 +113,17 @@
 			<input
 				class="connect-input"
 				type="text"
-				placeholder={repoType === "bucket"
-					? "username/bucket-name"
-					: "username/dataset-name"}
+				placeholder="username/bucket-name"
 				bind:value={repoInput}
 				disabled={connecting}
 				onkeydown={(e) => {
-					if (e.key === "Enter" && repoInput.trim()) connect(false);
+					if (e.key === "Enter" && repoInput.trim()) connect(repoInput.trim());
 				}}
 			/>
 			<button
 				class="connect-btn"
 				disabled={connecting || !repoInput.trim()}
-				onclick={() => connect(false)}
+				onclick={() => connect(repoInput.trim())}
 			>
 				{connecting ? "..." : "Connect"}
 			</button>
@@ -169,6 +197,65 @@
 		color: #7c7f99;
 		margin: 0 0 12px;
 		line-height: 1.5;
+	}
+
+	.bucket-list {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin-bottom: 12px;
+	}
+
+	.bucket-item {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		width: 100%;
+		background: #1e1f2a;
+		border: 1px solid #2a2b38;
+		border-radius: 6px;
+		color: #c8cad8;
+		font-size: 12px;
+		padding: 7px 10px;
+		cursor: pointer;
+		text-align: left;
+		transition:
+			border-color 0.1s,
+			background 0.1s;
+	}
+
+	.bucket-item:hover:not(:disabled) {
+		border-color: #ff7a38;
+		background: #252636;
+		color: #e8e9f0;
+	}
+
+	.bucket-item:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	:global(body:not(.dark)) .bucket-item {
+		background: #f9fafb;
+		border-color: #e5e7eb;
+		color: #374151;
+	}
+
+	:global(body:not(.dark)) .bucket-item:hover:not(:disabled) {
+		border-color: #ff7a38;
+		background: #fff;
+	}
+
+	.bucket-icon {
+		font-size: 13px;
+		flex-shrink: 0;
+	}
+
+	.bucket-id {
+		font-family: monospace;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.connect-auto-btn {

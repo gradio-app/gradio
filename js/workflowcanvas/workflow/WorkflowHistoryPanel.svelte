@@ -27,17 +27,20 @@
 		server = {},
 		onload = undefined,
 		onclose,
-		onchange = undefined
+		onchange = undefined,
+		triggerRefresh = 0
 	}: {
 		server?: Record<string, any>;
 		onload?: (inputs: Record<string, HistoryInput>) => void;
 		onclose: () => void;
 		onchange?: () => void;
+		triggerRefresh?: number;
 	} = $props();
 
 	let records = $state<HistoryRecord[]>([]);
 	let repoId = $state<string | null>(null);
 	let loading = $state(true);
+	let refreshing = $state(false);
 	let error = $state<string | null>(null);
 	let selectedSubgraph = $state<string | null>(null);
 
@@ -86,37 +89,59 @@
 		if (onload) onload(record.inputs);
 	}
 
+	async function fetchRecords() {
+		if (!server?.list_history) {
+			error = "History not available";
+			return;
+		}
+		const raw = await server.list_history([null, 50]);
+		const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+		records = (data.records as HistoryRecord[]) ?? [];
+		repoId = data.repo_id ?? null;
+	}
+
+	async function refresh() {
+		refreshing = true;
+		error = null;
+		try {
+			await fetchRecords();
+		} catch (e: any) {
+			error = e?.message ?? "Failed to refresh";
+		} finally {
+			refreshing = false;
+		}
+	}
+
 	onMount(async () => {
 		try {
-			if (!server?.list_history) {
-				error = "History not available";
-				return;
-			}
-			const raw = await server.list_history([null, 50]);
-			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-			records = (data.records as HistoryRecord[]) ?? [];
-			repoId = data.repo_id ?? null;
+			await fetchRecords();
 		} catch (e: any) {
 			error = e?.message ?? "Failed to load history";
 		} finally {
 			loading = false;
 		}
 	});
+
+	$effect(() => {
+		if (triggerRefresh > 0 && !loading) {
+			refresh();
+		}
+	});
 </script>
 
-<div class="history-overlay" role="dialog" aria-label="Generation history">
+<div class="history-overlay" role="dialog" aria-label="History">
 	<div class="history-panel">
 		<div class="history-header">
 			<div class="history-title-row">
-				<span class="history-title">Generation History</span>
+				<span class="history-title">History</span>
 				{#if repoId}
 					<div class="history-repo-row">
 						<a
 							class="history-repo-link"
-							href="https://huggingface.co/datasets/{repoId}"
+							href="https://huggingface.co/buckets/{repoId}"
 							target="_blank"
 							rel="noopener noreferrer"
-							title="View dataset on Hugging Face"
+							title="View bucket on Hugging Face"
 						>
 							<svg
 								width="14"
@@ -134,7 +159,7 @@
 							<button
 								class="history-change-btn"
 								onclick={onchange}
-								title="Switch dataset repo"
+								title="Switch bucket"
 							>
 								Change
 							</button>
@@ -142,13 +167,24 @@
 					</div>
 				{/if}
 			</div>
-			<button
-				class="history-close"
-				onclick={onclose}
-				aria-label="Close history"
-			>
-				&#x2715;
-			</button>
+			<div class="history-header-actions">
+				<button
+					class="history-refresh"
+					onclick={refresh}
+					disabled={refreshing}
+					aria-label="Refresh history"
+					title="Refresh"
+				>
+					{refreshing ? "…" : "↻"}
+				</button>
+				<button
+					class="history-close"
+					onclick={onclose}
+					aria-label="Close history"
+				>
+					&#x2715;
+				</button>
+			</div>
 		</div>
 
 		{#if subgraphs.length > 1}
@@ -209,28 +245,41 @@
 							</div>
 
 							<div class="card-meta">
-								<div class="card-subgraph">{record.subgraph}</div>
 								<div class="card-time">
 									{formatRelativeTime(record.timestamp)}
 								</div>
-								{#if record.user}
-									<div class="card-user">{record.user}</div>
+								{#if summary}
+									<div class="card-inputs">{summary}</div>
+								{/if}
+								{#if onload}
+									<button
+										class="card-load-btn"
+										onclick={() => handleLoad(record)}
+										title="Load these inputs back into the canvas"
+									>
+										Load inputs
+									</button>
+								{/if}
+								{#if server?.delete_history}
+									<button
+										class="card-delete-btn"
+										onclick={async () => {
+											if (!confirm("Delete this generation?")) return;
+											try {
+												await server.delete_history([
+													record.id,
+													record.timestamp
+												]);
+												records = records.filter((r) => r.id !== record.id);
+											} catch {}
+										}}
+										title="Delete this generation"
+										aria-label="Delete"
+									>
+										&#x2715;
+									</button>
 								{/if}
 							</div>
-
-							{#if summary}
-								<div class="card-inputs">{summary}</div>
-							{/if}
-
-							{#if onload}
-								<button
-									class="card-load-btn"
-									onclick={() => handleLoad(record)}
-									title="Load these inputs back into the canvas"
-								>
-									Load inputs
-								</button>
-							{/if}
 						</div>
 					{/each}
 				</div>
@@ -334,6 +383,38 @@
 		color: #ff7a38;
 	}
 
+	.history-header-actions {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+	}
+
+	.history-refresh {
+		background: none;
+		border: none;
+		color: #7c7f99;
+		font-size: 16px;
+		cursor: pointer;
+		padding: 4px;
+		line-height: 1;
+		border-radius: 4px;
+	}
+
+	.history-refresh:hover:not(:disabled) {
+		background: #2a2b38;
+		color: #e8e9f0;
+	}
+
+	.history-refresh:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	:global(body:not(.dark)) .history-refresh:hover:not(:disabled) {
+		background: #f3f4f6;
+		color: #1a1b25;
+	}
+
 	.history-close {
 		background: none;
 		border: none;
@@ -422,8 +503,7 @@
 
 	.card-preview {
 		width: 100%;
-		min-height: 120px;
-		max-height: 220px;
+		height: 160px;
 		overflow: hidden;
 		display: flex;
 		align-items: center;
@@ -443,19 +523,20 @@
 	}
 
 	.preview-icon {
-		font-size: 32px;
-		opacity: 0.4;
+		font-size: 24px;
+		opacity: 0.3;
 	}
 
 	.preview-text {
-		padding: 12px;
-		font-size: 12px;
+		padding: 10px 12px;
+		font-size: 11px;
 		color: #9a9caa;
-		font-family: monospace;
-		white-space: pre-wrap;
+		line-height: 1.5;
 		word-break: break-word;
-		max-height: 120px;
 		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 6;
+		-webkit-box-orient: vertical;
 	}
 
 	:global(body:not(.dark)) .preview-text {
@@ -465,39 +546,28 @@
 	.card-meta {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 8px 10px 4px;
+		gap: 6px;
+		padding: 6px 10px;
+		border-top: 1px solid #2a2b38;
 	}
 
-	.card-subgraph {
-		font-size: 11px;
-		font-weight: 600;
-		color: #ff7a38;
-		flex: 1;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+	:global(body:not(.dark)) .card-meta {
+		border-top-color: #e5e7eb;
 	}
 
 	.card-time {
 		font-size: 10px;
 		color: #7c7f99;
-		flex-shrink: 0;
-	}
-
-	.card-user {
-		font-size: 10px;
-		color: #7c7f99;
-		flex-shrink: 0;
+		flex: 1;
 	}
 
 	.card-inputs {
-		padding: 0 10px 6px;
-		font-size: 11px;
+		font-size: 10px;
 		color: #7c7f99;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		max-width: 130px;
 	}
 
 	:global(body:not(.dark)) .card-inputs {
@@ -505,34 +575,46 @@
 	}
 
 	.card-load-btn {
-		display: block;
-		width: calc(100% - 20px);
-		margin: 0 10px 10px;
-		background: #22232f;
+		background: none;
 		border: 1px solid #3a3b4a;
-		color: #9a9caa;
-		font-size: 11px;
-		padding: 5px 0;
-		border-radius: 5px;
+		color: #7c7f99;
+		font-size: 10px;
+		padding: 3px 8px;
+		border-radius: 4px;
 		cursor: pointer;
-		text-align: center;
+		white-space: nowrap;
+		flex-shrink: 0;
 	}
 
 	.card-load-btn:hover {
-		background: #ff7a38;
 		border-color: #ff7a38;
-		color: #fff;
+		color: #ff7a38;
 	}
 
 	:global(body:not(.dark)) .card-load-btn {
-		background: #f3f4f6;
-		border: 1px solid #e5e7eb;
+		border-color: #e5e7eb;
 		color: #6b7280;
 	}
 
 	:global(body:not(.dark)) .card-load-btn:hover {
-		background: #ff7a38;
 		border-color: #ff7a38;
-		color: #fff;
+		color: #ff7a38;
+	}
+
+	.card-delete-btn {
+		background: none;
+		border: none;
+		color: #4a4b5a;
+		font-size: 11px;
+		cursor: pointer;
+		padding: 2px 4px;
+		border-radius: 3px;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+
+	.card-delete-btn:hover {
+		color: #ef4444;
+		background: rgba(239, 68, 68, 0.1);
 	}
 </style>

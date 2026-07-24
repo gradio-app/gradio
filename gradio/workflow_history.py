@@ -44,6 +44,7 @@ class WorkflowHistory:
         self._api = HfApi(token=self._token)
         self._repo_ready = False
         self._repo_lock = threading.Lock()
+        self._cache_lock = threading.Lock()
         self._cache: list[dict] | None = None
         self._cache_at: float = 0.0
 
@@ -58,16 +59,34 @@ class WorkflowHistory:
         hammering the Hub on rapid panel refreshes.
         """
         now = time.monotonic()
-        if self._cache is not None and (now - self._cache_at) < _LIST_CACHE_TTL:
+        with self._cache_lock:
+            if self._cache is None or (now - self._cache_at) >= _LIST_CACHE_TTL:
+                self._cache = self._fetch_records()
+                self._cache_at = time.monotonic()
             records = self._cache
-        else:
-            records = self._fetch_records()
-            self._cache = records
-            self._cache_at = now
 
         if subgraph:
             records = [r for r in records if r.get("subgraph") == subgraph]
         return records[:limit]
+
+    def delete(self, record_id: str, timestamp: str) -> bool:
+        """Delete a single generation record from the bucket.
+
+        Returns True on success, False if the record could not be deleted.
+        """
+        try:
+            safe_ts = timestamp.replace(":", "-")
+            path_in_repo = f"data/{safe_ts}_{record_id}.json"
+            self._api.batch_bucket_files(
+                bucket_id=self.repo_id,
+                delete=[path_in_repo],
+            )
+            with self._cache_lock:
+                self._cache = None
+            return True
+        except Exception:
+            logger.debug("WorkflowHistory: delete failed", exc_info=True)
+            return False
 
     def push_graph_file(self, workflow_json: str) -> None:
         """Upload the current ``workflow.json`` to the bucket for versioning."""
@@ -107,10 +126,15 @@ class WorkflowHistory:
                 value = output.get("value")
                 port_type = output.get("type", "text")
                 if port_type in MEDIA_PORT_TYPES and isinstance(value, str):
-                    hub_url = self._upload_media(record["id"], sid, value, port_type)
+                    fs_path = (
+                        value[len("/gradio_api/file=") :]
+                        if value.startswith("/gradio_api/file=")
+                        else value
+                    )
+                    hub_url = self._upload_media(record["id"], sid, fs_path, port_type)
                     if hub_url:
                         record["outputs"][sid]["value"] = hub_url
-                    elif os.path.isfile(value):
+                    elif os.path.isfile(fs_path):
                         record["outputs"][sid]["value"] = None
 
             ts = record.get("timestamp") or datetime.now(timezone.utc).strftime(
@@ -125,7 +149,8 @@ class WorkflowHistory:
                 bucket_id=self.repo_id,
                 add=[(data, path_in_repo)],
             )
-            self._cache = None
+            with self._cache_lock:
+                self._cache = None
 
         except Exception:
             logger.debug("WorkflowHistory: push failed", exc_info=True)
@@ -135,6 +160,9 @@ class WorkflowHistory:
     ) -> str | None:
         """Upload a local media file to the bucket's ``media/`` dir."""
         if not os.path.isfile(value):
+            return None
+        if not os.path.abspath(value).startswith(tempfile.gettempdir()):
+            logger.debug("WorkflowHistory: refusing to upload non-temp path: %s", value)
             return None
         ext = pathlib.Path(value).suffix or {
             "image": ".png",

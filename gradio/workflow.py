@@ -1731,16 +1731,20 @@ class Workflow(Blocks):
 
         def list_history(
             data=None,
-            _request: Optional[Request] = None,
-            _token: Optional[OAuthToken] = None,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,
         ) -> str:
             """Return recent generation records for the History panel."""
+            if not has_write_access(request, token):
+                return json.dumps({"records": [], "repo_id": None})
             if self._wh is None:
                 return json.dumps({"records": [], "repo_id": None})
             subgraph = data[0] if data else None
             limit = (
                 int(data[1]) if data and len(data) > 1 and data[1] is not None else 50
             )
+            if limit == 0:
+                return json.dumps({"records": [], "repo_id": self._wh.repo_id})
             records = self._wh.list(limit=limit, subgraph=subgraph or None)
             return json.dumps({"records": records, "repo_id": self._wh.repo_id})
 
@@ -1768,9 +1772,12 @@ class Workflow(Blocks):
                 ) or hf_get_token()
                 if auto:
                     user = HfApi(token=hf_token).whoami()["name"]
-                    slug = re.sub(
-                        r"[^a-z0-9-]", "-", self._workflow_name.lower()
-                    ).strip("-")
+                    try:
+                        with open(workflow_file, encoding="utf-8") as _f:
+                            _wf_name = json.load(_f).get("name") or self._workflow_name
+                    except Exception:
+                        _wf_name = self._workflow_name
+                    slug = re.sub(r"[^a-z0-9-]", "-", _wf_name.lower()).strip("-")
                     repo_id = f"{user}/{slug}-history"
                 else:
                     repo_id = (data[0] if data else "").strip()
@@ -1804,13 +1811,15 @@ class Workflow(Blocks):
 
         def push_history(
             data=None,
-            _request: Optional[Request] = None,
-            _token: Optional[OAuthToken] = None,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,
         ) -> str:
             """Accept a pre-built record from a client-side run and push it to Hub.
 
             data[0]: JSON string of the history record dict.
             """
+            if not has_write_access(request, token):
+                return json.dumps({"ok": False, "reason": "auth"})
             if self._wh is None:
                 return json.dumps({"ok": False, "reason": "no_history"})
             try:
@@ -1821,6 +1830,52 @@ class Workflow(Blocks):
                 return json.dumps({"ok": True})
             except Exception as e:
                 logger.debug("push_history failed: %s", e, exc_info=True)
+                return json.dumps({"ok": False, "reason": str(e)})
+
+        def list_user_buckets(
+            _data=None,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Return the authenticated user's Hub buckets for the connect modal."""
+            if not has_write_access(request, token):
+                return json.dumps({"buckets": []})
+            try:
+                hf_token = (
+                    token.token if token is not None else None
+                ) or hf_get_token()
+                buckets = [
+                    {"id": b.id, "private": b.private}
+                    for b in HfApi(token=hf_token).list_buckets(token=hf_token)
+                ]
+                return json.dumps({"buckets": buckets})
+            except Exception as e:
+                logger.debug("list_user_buckets failed: %s", e, exc_info=True)
+                return json.dumps({"buckets": []})
+
+        def delete_history(
+            data=None,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,
+        ) -> str:
+            """Delete a generation record from the bucket.
+
+            data[0]: record id string.
+            data[1]: record timestamp string.
+            """
+            if not has_write_access(request, token):
+                return json.dumps({"error": "Write access required"})
+            if self._wh is None:
+                return json.dumps({"ok": False, "reason": "no_history"})
+            try:
+                record_id = data[0] if data else ""
+                timestamp = data[1] if data and len(data) > 1 else ""
+                if not record_id or not timestamp:
+                    return json.dumps({"ok": False, "reason": "missing_fields"})
+                ok = self._wh.delete(record_id, timestamp)
+                return json.dumps({"ok": ok})
+            except Exception as e:
+                logger.debug("delete_history failed: %s", e, exc_info=True)
                 return json.dumps({"ok": False, "reason": str(e)})
 
         server_functions = [
@@ -1846,6 +1901,8 @@ class Workflow(Blocks):
             list_history,
             connect_history,
             push_history,
+            list_user_buckets,
+            delete_history,
         ]
 
         from gradio.workflow_api import WorkflowGraph, register_workflow_endpoints

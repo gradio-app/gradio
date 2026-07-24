@@ -319,6 +319,7 @@
 	let showHistoryPanel = $state(false);
 	let showHistoryConnect = $state(false);
 	let historyAvailable = $state(false);
+	let historyRefreshCount = $state(0);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -1677,9 +1678,22 @@
 
 		if (!wasAborted && !hasErrors && server?.push_history) {
 			try {
+				const MEDIA_PORT_TYPES = new Set(["image", "audio", "video"]);
+				const extractValue = (raw: any, type: string): any => {
+					if (raw && typeof raw === "object" && MEDIA_PORT_TYPES.has(type)) {
+						// Prefer the Gradio-served URL so the browser can render the image
+						// in the current session. Python's _push_sync strips the
+						// /gradio_api/file= prefix before uploading to the bucket.
+						const url: string = raw.url ?? "";
+						if (url) return url;
+						if (raw.path) return "/gradio_api/file=" + raw.path;
+					}
+					return raw;
+				};
+
 				const genInputs: Record<
 					string,
-					{ value: any; type: string; label: string }
+					{ value: any; type: string; label: string; port_id?: string }
 				> = {};
 				for (const ref of wfToRun.references) {
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
@@ -1687,11 +1701,16 @@
 					const outPort = node.outputs[0];
 					if (!outPort) continue;
 					const captured = capturedOutputs[ref.id];
-					const value = captured
+					const raw = captured
 						? ((captured.find((o) => o.portId === outPort.id) ?? captured[0])
 								?.value ?? null)
 						: (node.data?.[outPort.id] ?? null);
-					genInputs[ref.id] = { value, type: outPort.type, label: node.label };
+					genInputs[ref.id] = {
+						value: extractValue(raw, outPort.type),
+						type: outPort.type,
+						label: node.label,
+						port_id: outPort.id
+					};
 				}
 				const genOutputs: Record<
 					string,
@@ -1703,11 +1722,15 @@
 					const inPort = node.inputs[0];
 					if (!inPort) continue;
 					const captured = capturedOutputs[subj.id];
-					const value = captured
+					const raw = captured
 						? ((captured.find((o) => o.portId === inPort.id) ?? captured[0])
 								?.value ?? null)
 						: (node.data?.[inPort.id] ?? null);
-					genOutputs[subj.id] = { value, type: inPort.type, label: node.label };
+					genOutputs[subj.id] = {
+						value: extractValue(raw, inPort.type),
+						type: inPort.type,
+						label: node.label
+					};
 				}
 				const record = {
 					id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
@@ -1718,7 +1741,16 @@
 					outputs: genOutputs,
 					user: null
 				};
-				server.push_history([JSON.stringify(record)]).catch(() => {});
+				server
+					.push_history([JSON.stringify(record)])
+					.then(() => {
+						if (showHistoryPanel) {
+							setTimeout(() => {
+								historyRefreshCount++;
+							}, 1500);
+						}
+					})
+					.catch(() => {});
 			} catch {}
 		}
 
@@ -2310,11 +2342,11 @@
 				</button>
 			{:else if server?.connect_history}
 				<button
-					class="tool-btn connect-dataset-btn"
+					class="tool-btn connect-bucket-btn"
 					onclick={() => (showHistoryConnect = true)}
-					title="Connect a HF Hub dataset to save generation history"
+					title="Connect a HF Hub bucket to save generation history"
 				>
-					Connect dataset
+					Connect bucket
 				</button>
 			{/if}
 			{#if saveIndicator}
@@ -2798,7 +2830,7 @@
 		<WorkflowHistoryConnect
 			{server}
 			workflowName={$workflow.name}
-			onconnected={(repoId) => {
+			onconnected={() => {
 				historyAvailable = true;
 				showHistoryConnect = false;
 				showHistoryPanel = true;
@@ -2810,6 +2842,7 @@
 	{#if showHistoryPanel}
 		<WorkflowHistoryPanel
 			{server}
+			triggerRefresh={historyRefreshCount}
 			onclose={() => (showHistoryPanel = false)}
 			onchange={() => {
 				showHistoryPanel = false;
