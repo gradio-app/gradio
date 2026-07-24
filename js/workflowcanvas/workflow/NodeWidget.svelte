@@ -8,6 +8,7 @@
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
+	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 
 	interface Props {
 		node: WFNode;
@@ -52,6 +53,18 @@
 	function getBooleanValue(): boolean {
 		const v = node.data?.[widgetPortId];
 		return typeof v === "boolean" ? v : false;
+	}
+
+	function getHtmlValue(): string {
+		const v = node.data?.[widgetPortId];
+		return typeof v === "string" ? v : "";
+	}
+
+	function openHtmlInTab(html: string): void {
+		const blob = new Blob([html], { type: "text/html" });
+		const url = URL.createObjectURL(blob);
+		window.open(url, "_blank", "noopener");
+		setTimeout(() => URL.revokeObjectURL(url), 10_000);
 	}
 
 	function handleNumberInput(e: Event) {
@@ -246,6 +259,30 @@
 				>
 			</label>
 		</div>
+	{:else if widgetType === "html"}
+		{@const htmlVal = getHtmlValue()}
+		{#if htmlVal}
+			<div class="widget-html-preview">
+				<iframe
+					class="widget-html-iframe"
+					srcdoc={htmlVal}
+					sandbox="allow-scripts allow-same-origin"
+					title="HTML preview"
+				></iframe>
+				<div class="widget-preview-actions">
+					<button
+						class="widget-action"
+						onclick={() => openHtmlInTab(htmlVal)}
+						title="Open in new tab"
+						aria-label="Open in new tab"
+					>
+						<OpenLinkIcon />
+					</button>
+				</div>
+			</div>
+		{:else}
+			<div class="widget-placeholder">Waiting for output...</div>
+		{/if}
 	{:else if widgetType === "image" || widgetType === "audio" || widgetType === "video" || widgetType === "file" || widgetType === "gallery" || widgetType === "model3d"}
 		{@const fileVal = getFileValue()}
 		{#if fileVal}
@@ -769,5 +806,30 @@
 	:global(body:not(.dark)) .widget-preview {
 		background: #f8f9fb;
 		border-color: #e2e4ea;
+	}
+
+	.widget-html-preview {
+		position: relative;
+		overflow: hidden;
+		border-radius: 0 0 10px 10px;
+		background: #fff;
+		height: 260px;
+	}
+
+	.widget-html-iframe {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border: none;
+		background: #fff;
+	}
+
+	.widget-html-preview .widget-preview-actions {
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	.widget-html-preview:hover .widget-preview-actions {
+		opacity: 1;
 	}
 </style>

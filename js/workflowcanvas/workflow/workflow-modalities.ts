@@ -57,7 +57,8 @@ const PORT_LABELS: Partial<Record<PortType, string>> = {
 	number: "Number",
 	boolean: "Toggle",
 	json: "Data",
-	gallery: "Gallery"
+	gallery: "Gallery",
+	html: "HTML"
 };
 
 export const DATASET_MODALITY: ModalityConfig = {
