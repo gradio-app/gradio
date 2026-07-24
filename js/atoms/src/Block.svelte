@@ -40,41 +40,52 @@
 		}
 	}
 
+	// The app container carries the theme variables, so keep the block inside it.
+	function portal_target(): Node & ParentNode {
+		const root = element.getRootNode();
+		return (
+			element.closest(".gradio-container") ??
+			(root instanceof ShadowRoot ? root : document.body)
+		);
+	}
+
+	// Measures where a `position: fixed` element pinned to the top left at a
+	// 100% size lands when it is a child of `parent`.
+	function fixed_probe_rect(parent: Node & ParentNode): DOMRect {
+		const probe = document.createElement("div");
+		probe.style.cssText =
+			"position: fixed; top: 0; left: 0; width: 100%; height: 100%; visibility: hidden; pointer-events: none;";
+		parent.appendChild(probe);
+		const rect = probe.getBoundingClientRect();
+		probe.remove();
+		return rect;
+	}
+
 	// A `position: fixed` element is only laid out against the viewport when no
 	// ancestor establishes a containing block for fixed descendants. Anything
 	// with a transform, filter, backdrop-filter, perspective, contain or
 	// container-type does establish one — `gr.Sidebar` always sets a transform,
 	// for instance — and then top/left/width/height resolve against that
-	// ancestor instead. Rather than enumerate those properties, measure a probe
-	// in the block's own position: if a fixed probe pinned to the top left does
-	// not fill the viewport, the block needs to be moved out.
-	function needs_portal(): boolean {
+	// ancestor instead. Rather than enumerate those properties, compare a probe
+	// where the block currently is with one in the container it would move to.
+	function needs_portal(target: Node & ParentNode): boolean {
 		const parent = element.parentNode;
-		if (!parent) return false;
-		const probe = document.createElement("div");
-		probe.style.cssText =
-			"position: fixed; top: 0; left: 0; width: 100%; height: 100%; visibility: hidden; pointer-events: none;";
-		parent.insertBefore(probe, element);
-		const { top, left, width, height } = probe.getBoundingClientRect();
-		probe.remove();
-		const root = document.documentElement;
+		if (!parent || parent === target) return false;
+		const here = fixed_probe_rect(parent);
+		const there = fixed_probe_rect(target);
 		return (
-			Math.round(top) !== 0 ||
-			Math.round(left) !== 0 ||
-			Math.round(width) !== root.clientWidth ||
-			Math.round(height) !== root.clientHeight
+			Math.abs(here.top - there.top) > 1 ||
+			Math.abs(here.left - there.left) > 1 ||
+			Math.abs(here.width - there.width) > 1 ||
+			Math.abs(here.height - there.height) > 1
 		);
 	}
 
-	// Moves the block to the app container (which carries the theme variables)
-	// so that its fixed positioning resolves against the viewport. The
-	// placeholder that reserves the block's space stays behind in the original
-	// parent, and `exit_portal` puts the block back where it came from.
-	function enter_portal(): void {
-		const root = element.getRootNode();
-		const target =
-			element.closest(".gradio-container") ??
-			(root instanceof ShadowRoot ? root : document.body);
+	// Moves the block to the app container so that its fixed positioning
+	// resolves against the viewport. The placeholder that reserves the block's
+	// space stays behind in the original parent, and `exit_portal` puts the
+	// block back where it came from.
+	function enter_portal(target: Node & ParentNode): void {
 		if (!element.parentNode || element.parentNode === target) return;
 		portal_parent = element.parentNode;
 		portal_marker = document.createComment("fullscreen block");
@@ -100,8 +111,9 @@
 			preexpansionBoundingRect = element.getBoundingClientRect();
 			placeholder_height = element.offsetHeight;
 			placeholder_width = element.offsetWidth;
-			if (needs_portal()) {
-				enter_portal();
+			const target = portal_target();
+			if (needs_portal(target)) {
+				enter_portal(target);
 			}
 			window.addEventListener("keydown", handleKeydown);
 		} else {
