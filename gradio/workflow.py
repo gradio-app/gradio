@@ -1458,15 +1458,42 @@ class Workflow(Blocks):
         Workflow(graph="workflow.json", bind={"summarize": summarize}).launch()
         ```
 
-    The graph file defines nodes and edges:
+    The graph file uses schema version 2 and defines references, operators,
+    subjects, and edges:
         ```json
         {
-          "nodes": [
-            {"id": "sum", "kind": "transform", "source": "fn", "fn": "summarize", ...},
-            {"id": "img", "kind": "transform", "source": "space", "space_id": "black-forest-labs/FLUX.1-schnell", ...}
+          "schema_version": "2",
+          "references": [
+            {
+              "id": "prompt", "role": "reference", "label": "Prompt",
+              "asset_type": "text",
+              "inputs": [{"id": "in", "label": "Text", "type": "text"}],
+              "outputs": [{"id": "out", "label": "Text", "type": "text"}],
+              "data": {"out": "A sunset over the ocean"}
+            }
+          ],
+          "operators": [
+            {
+              "id": "image", "role": "operator", "kind": "model",
+              "model_id": "black-forest-labs/FLUX.1-schnell",
+              "pipeline_tag": "text-to-image", "endpoint": "text_to_image",
+              "inputs": [{"id": "prompt", "label": "Prompt", "type": "text", "required": true}],
+              "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
+              "data": {}
+            }
+          ],
+          "subjects": [
+            {
+              "id": "result", "role": "subject", "label": "Image",
+              "asset_type": "image",
+              "inputs": [{"id": "in", "label": "Image", "type": "image"}],
+              "outputs": [{"id": "out", "label": "Image", "type": "image"}],
+              "data": {}
+            }
           ],
           "edges": [
-            {"id": "e1", "from_node_id": "sum", "from_port_id": "out_0", "to_node_id": "img", "to_port_id": "in_0", "type": "text"}
+            {"id": "e1", "from_node_id": "prompt", "from_port_id": "out", "to_node_id": "image", "to_port_id": "prompt", "type": "text"},
+            {"id": "e2", "from_node_id": "image", "from_port_id": "out_0", "to_node_id": "result", "to_port_id": "in", "type": "image"}
           ]
         }
         ```

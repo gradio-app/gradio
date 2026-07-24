@@ -13,8 +13,10 @@ npm i @gradio/client
 
 Or, you can include it directly in your HTML via the jsDelivr CDN:
 
-```shell
-<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
+```html
+<script type="module">
+	import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+</script>
 ```
 
 ## Usage
