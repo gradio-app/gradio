@@ -370,7 +370,13 @@ export async function executeWorkflow(
 						throw new Error(missing_input_message(node, port));
 					}
 				}
-				const args = node.inputs.map((port) => inputs[port.id]);
+				const args = await Promise.all(
+					node.inputs.map((port) =>
+						MEDIA_PORT_TYPES.has(port.type)
+							? toGradioArg(inputs[port.id])
+							: inputs[port.id]
+					)
+				);
 				const resultJson = await serverCallFn(node.fn, JSON.stringify(args));
 				const resultData = JSON.parse(resultJson);
 				if (
