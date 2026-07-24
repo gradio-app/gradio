@@ -2,6 +2,14 @@
 
 ## 0.19.0
 
+### Dependency updates
+
+- @gradio/client@2.3.2
+- @gradio/utils@0.13.1
+- @gradio/upload@0.18.2
+
+## 0.19.0
+
 ### Features
 
 - [#13566](https://github.com/gradio-app/gradio/pull/13566) [`79b9171`](https://github.com/gradio-app/gradio/commit/79b91718b5c972c174ed042d8b04443bc2274076) - Gallery Download All.  Thanks @dawoodkhan82!
