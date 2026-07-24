@@ -1,10 +1,11 @@
-import type { Config } from "../types";
+import type { ClientOptions, Config } from "../types";
 import {
 	CONFIG_ERROR_MSG,
 	CONFIG_URL,
 	INVALID_CREDENTIALS_MSG,
 	LOGIN_URL,
 	MISSING_CREDENTIALS_MSG,
+	PRIVATE_SPACE_MSG,
 	SPACE_METADATA_ERROR_MSG,
 	UNAUTHORIZED_MSG
 } from "../constants";
@@ -50,6 +51,22 @@ export async function get_jwt(
 		return jwt || false;
 	} catch (e) {
 		return false;
+	}
+}
+
+/**
+ * The `hf_token` option was renamed to `token`, but a lot of existing code
+ * (and the Python client) still uses `hf_token`. Accept it as an alias so
+ * that authenticated requests are not silently sent without credentials,
+ * which previously surfaced as "Could not resolve app config" errors when
+ * connecting to private Spaces.
+ */
+export function normalise_token_option(options: ClientOptions): void {
+	if (options.hf_token && !options.token) {
+		options.token = options.hf_token;
+		console.warn(
+			"The `hf_token` option has been renamed to `token`. Support for `hf_token` will be removed in a future version of @gradio/client."
+		);
 	}
 }
 
@@ -153,7 +170,14 @@ async function handleConfigResponse(
 	authorized: boolean
 ): Promise<Config> {
 	if (response?.status === 401 && !authorized) {
-		const error_data = await response.json();
+		let error_data: any = null;
+		try {
+			error_data = await response.json();
+		} catch (e) {
+			// Unauthenticated requests to private Spaces receive a non-JSON 401
+			// page from the Hugging Face proxy rather than a Gradio auth payload.
+			throw new Error(PRIVATE_SPACE_MSG);
+		}
 		const auth_message = error_data?.detail?.auth_message;
 		throw new Error(auth_message || MISSING_CREDENTIALS_MSG);
 	} else if (response?.status === 401 && authorized) {
@@ -172,7 +196,9 @@ async function handleConfigResponse(
 		throw new Error(UNAUTHORIZED_MSG);
 	}
 
-	throw new Error(CONFIG_ERROR_MSG);
+	throw new Error(
+		`${CONFIG_ERROR_MSG}(received status ${response?.status} when fetching the app config)`
+	);
 }
 
 export async function resolve_cookies(this: Client): Promise<void> {

@@ -2,7 +2,8 @@ import {
 	HOST_URL,
 	INVALID_URL_MSG,
 	QUEUE_FULL_MSG,
-	SPACE_METADATA_ERROR_MSG
+	SPACE_METADATA_ERROR_MSG,
+	SPACE_NOT_FOUND_MSG
 } from "../constants";
 import type {
 	ApiData,
@@ -35,21 +36,36 @@ export async function process_endpoint(
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
 		// app_reference is a HF space name
+		let res: Response;
 		try {
-			const res = await fetch(
+			res = await fetch(
 				`https://huggingface.co/api/spaces/${_app_reference}/${HOST_URL}`,
 				{ headers }
 			);
-
-			const _host = (await res.json()).host;
-
-			return {
-				space_id: app_reference,
-				...determine_protocol(_host)
-			};
 		} catch (e) {
 			throw new Error(SPACE_METADATA_ERROR_MSG);
 		}
+
+		if (res.status === 401 || res.status === 404) {
+			// the space does not exist, or it is private and the request was made
+			// without (or with an invalid) token
+			throw new Error(SPACE_NOT_FOUND_MSG(_app_reference, res.status));
+		}
+
+		let _host: string | undefined;
+		try {
+			_host = (await res.json()).host;
+		} catch (e) {
+			throw new Error(SPACE_METADATA_ERROR_MSG);
+		}
+		if (!_host) {
+			throw new Error(SPACE_METADATA_ERROR_MSG);
+		}
+
+		return {
+			space_id: _app_reference,
+			...determine_protocol(_host)
+		};
 	}
 
 	if (RE_SPACE_DOMAIN.test(_app_reference)) {
@@ -98,7 +114,13 @@ export function transform_api_info(
 			transformed_info[category] = {};
 
 			Object.entries(api_info[category]).forEach(
-				([endpoint, { parameters, returns }]) => {
+				([endpoint, endpoint_info]) => {
+					// Guard against malformed or legacy `/info` payloads that are
+					// missing `parameters`/`returns` so that we surface a usable API
+					// description instead of crashing with
+					// "Cannot read properties of undefined (reading 'map')".
+					const parameters = endpoint_info?.parameters ?? [];
+					const returns = endpoint_info?.returns ?? [];
 					const dependencyIndex =
 						config.dependencies.find(
 							(dep) =>
@@ -108,22 +130,24 @@ export function transform_api_info(
 						api_map[endpoint.replace("/", "")] ||
 						-1;
 
-					const dependencyTypes =
+					const dependency =
 						dependencyIndex !== -1
 							? config.dependencies.find((dep) => dep.id == dependencyIndex)
-									?.types
+							: undefined;
+
+					const dependencyTypes =
+						dependencyIndex !== -1
+							? dependency?.types
 							: { generator: false, cancel: false };
 
 					if (
-						dependencyIndex !== -1 &&
-						config.dependencies.find((dep) => dep.id == dependencyIndex)?.inputs
-							?.length !== parameters.length
+						dependency &&
+						Array.isArray(dependency.inputs) &&
+						dependency.inputs.length !== parameters.length
 					) {
-						const components = config.dependencies
-							.find((dep) => dep.id == dependencyIndex)!
-							.inputs.map(
-								(input) => config.components.find((c) => c.id === input)?.type
-							);
+						const components = dependency.inputs.map(
+							(input) => config.components.find((c) => c.id === input)?.type
+						);
 
 						try {
 							components.forEach((comp, idx) => {
