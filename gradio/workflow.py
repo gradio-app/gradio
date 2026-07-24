@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import base64
 import inspect
 import json
 import logging
+import mimetypes
 import os
 import re
 import secrets
@@ -422,6 +424,28 @@ def _img_url(a) -> str:
     return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
 
 
+def _chat_image_url(a) -> str:
+    """Return an image reference a provider can actually resolve.
+
+    Chat completions send images by reference, and the provider — not this
+    process — is what dereferences them. A local path or a relative
+    `/gradio_api/file=` URL is meaningless there, so those are inlined as a
+    data URI. Absolute http(s) URLs are passed through, though note the
+    provider still has to be able to fetch them.
+    """
+    src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
+    if not isinstance(src, str) or not src:
+        return ""
+    if src.startswith(("data:", "http://", "https://")):
+        return src
+    src = src.removeprefix("/gradio_api/file=")
+    if not os.path.isfile(src):
+        return src
+    mime = mimetypes.guess_type(src)[0] or "image/png"
+    with open(src, "rb") as f:
+        return f"data:{mime};base64,{base64.b64encode(f.read()).decode()}"
+
+
 def _classify_error(e: Exception) -> dict:
     http_status: int | None = None
     response = getattr(e, "response", None)
@@ -805,7 +829,25 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
         ],
     },
+    # Vision-language models are served as `conversational`, so they're called
+    # through chat completions rather than a task-specific endpoint. Port order
+    # matches the canvas's image-text-to-text template (image, then prompt).
+    "chat_completion": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "text", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    },
 }
+
+
+# Generous by default: vision-language models are asked to emit whole files
+# (an HTML page, a long transcription), and reasoning models spend part of the
+# budget before their first visible token.
+_CHAT_MAX_TOKENS = 8192
 
 
 _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
@@ -848,7 +890,10 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "audio-classification": "audio_classification",
     "visual-question-answering": "visual_question_answering",
     "document-question-answering": "document_question_answering",
-    "image-text-to-text": "visual_question_answering",
+    # Not visual_question_answering: the Hub routes every image-text-to-text
+    # model as `conversational`, and no provider serves the VQA task at all,
+    # so a task-specific call fails for every model carrying this tag.
+    "image-text-to-text": "chat_completion",
 }
 
 
@@ -890,6 +935,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         p["id"] for p in _INFERENCE_ENDPOINT_SCHEMAS.get(endpoint, {}).get("inputs", [])
     ]
     clean: dict = {}
+    # Chat images are dereferenced by the provider, not locally, so they need a
+    # different reference than the task endpoints' server-side reads.
+    to_url = _chat_image_url if endpoint == "chat_completion" else _img_url
     for k, v in kwargs.items():
         if v is None or v == "":
             continue
@@ -898,7 +946,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             # positional port IDs from workflows saved before endpoint schemas
             k = schema_ids[int(legacy.group(1))]
         clean[k] = (
-            _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
+            to_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
         )
     for key, sep in _ENDPOINT_LIST_KWARGS.get(endpoint, {}).items():
         if isinstance(clean.get(key), str):
@@ -908,6 +956,26 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         return _dispatch_model_endpoint(
             client, "text_classification", {"text": clean.get("text", "")}
         )
+    if endpoint == "chat_completion":
+        content = []
+        if clean.get("text"):
+            content.append({"type": "text", "text": clean["text"]})
+        image_url = _chat_image_url(clean.get("image"))
+        if image_url:
+            content.append({"type": "image_url", "image_url": {"url": image_url}})
+        if not content:
+            raise ValueError("Connect a prompt or an image to this model.")
+        response = client.chat_completion(
+            [{"role": "user", "content": content}], max_tokens=_CHAT_MAX_TOKENS
+        )
+        text = (response.choices[0].message.content or "").strip()
+        if not text:
+            raise ValueError(
+                f"{getattr(client, 'model', 'The model')} returned no text. "
+                "Reasoning models can spend the whole token budget before "
+                "answering; try a shorter prompt or a smaller image."
+            )
+        return json.dumps([text])
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
