@@ -130,7 +130,8 @@ function output_matches_port_type(item: unknown, portType: string): boolean {
 			("path" in (item as object) || "url" in (item as object))
 		);
 	}
-	if (portType === "text" || portType === "html") return typeof item === "string";
+	if (portType === "text" || portType === "html")
+		return typeof item === "string";
 	if (portType === "number") return typeof item === "number";
 	if (portType === "boolean") return typeof item === "boolean";
 	if (portType === "json")
