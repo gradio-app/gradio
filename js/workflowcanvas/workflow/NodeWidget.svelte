@@ -59,7 +59,7 @@
 	const HTML_PAGE_HEIGHT = 800;
 
 	let htmlPreviewEl: HTMLDivElement | undefined = $state();
-	let htmlScale = $state(0.25);
+	let htmlScale = $state(220 / HTML_PAGE_WIDTH);
 
 	$effect(() => {
 		const el = htmlPreviewEl;
@@ -72,16 +72,17 @@
 		return () => ro.disconnect();
 	});
 
-	function getHtmlValue(): string {
-		const v = node.data?.[widgetPortId];
-		return typeof v === "string" ? v : "";
-	}
+	const htmlValue = $derived(
+		typeof node.data?.[widgetPortId] === "string"
+			? (node.data[widgetPortId] as string)
+			: ""
+	);
 
 	function openHtmlInTab(html: string): void {
 		const blob = new Blob([html], { type: "text/html" });
 		const url = URL.createObjectURL(blob);
 		window.open(url, "_blank", "noopener");
-		setTimeout(() => URL.revokeObjectURL(url), 10_000);
+		setTimeout(() => URL.revokeObjectURL(url), 60_000);
 	}
 
 	function handleNumberInput(e: Event) {
@@ -277,8 +278,7 @@
 			</label>
 		</div>
 	{:else if widgetType === "html"}
-		{@const htmlVal = getHtmlValue()}
-		{#if htmlVal}
+		{#if htmlValue}
 			<div
 				class="widget-html-preview"
 				bind:this={htmlPreviewEl}
@@ -286,15 +286,15 @@
 			>
 				<iframe
 					class="widget-html-iframe"
-					srcdoc={htmlVal}
-					sandbox="allow-scripts allow-same-origin"
+					srcdoc={htmlValue}
+					sandbox="allow-scripts"
 					title="HTML preview"
 					style="height: {HTML_PAGE_HEIGHT}px; transform: scale({htmlScale});"
 				></iframe>
 				<div class="widget-preview-actions">
 					<button
 						class="widget-action"
-						onclick={() => openHtmlInTab(htmlVal)}
+						onclick={() => openHtmlInTab(htmlValue)}
 						title="Open in new tab"
 						aria-label="Open in new tab"
 					>

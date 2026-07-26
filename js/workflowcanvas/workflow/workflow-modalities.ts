@@ -285,7 +285,8 @@ export const PORT_REGISTRY: PortMeta[] = [
 	{ port_type: "number", label: "Number" },
 	{ port_type: "boolean", label: "Toggle" },
 	{ port_type: "json", label: "JSON" },
-	{ port_type: "gallery", label: "Gallery", modality_key: "image" }
+	{ port_type: "gallery", label: "Gallery", modality_key: "image" },
+	{ port_type: "html", label: "HTML" }
 ];
 
 export function portMeta(type: PortType): PortMeta | null {
