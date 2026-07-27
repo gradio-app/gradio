@@ -823,11 +823,16 @@ _CHAT_VISION_TASKS = frozenset({
 })
 
 
-def _vision_message(image_val: object, prompt: str) -> list:
+def _vision_message(image_val: object, prompt: str):
+    """Build chat content from an image and prompt. If no image is provided,
+    returns the prompt as plain text so the request degrades to text-only chat
+    rather than sending a malformed vision message with an empty image URL."""
     url = _img_url(image_val)
+    if not url:
+        return prompt or ""
     # Local paths (no public URL) can't be fetched by an external provider.
     # Inline them as a data URI so the same workflow runs locally and on Spaces.
-    if isinstance(url, str) and url and not url.startswith(("http://", "https://", "data:")):
+    if isinstance(url, str) and not url.startswith(("http://", "https://", "data:")):
         import base64
         import mimetypes
         try:
@@ -856,7 +861,10 @@ def _raw_inference(model_id: str, hf_token: str | None, a0, a1) -> str:
     tasks not covered by InferenceClient's specialized methods still work."""
     def resolve(v):
         return _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
-    payload = resolve(a0) if a1 == "" else [resolve(a0), resolve(a1)]
+    # Treat None and "" as missing (both can arrive from JSON payloads / the
+    # positional args scaffold); real values like 0 or False must survive.
+    a1_missing = a1 is None or a1 == ""
+    payload = resolve(a0) if a1_missing else [resolve(a0), resolve(a1)]
     headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
     resp = httpx.post(
         f"https://api-inference.huggingface.co/models/{model_id}",
