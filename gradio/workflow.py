@@ -799,12 +799,8 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "image-classification": "image_classification",
     "object-detection": "object_detection",
     "image-segmentation": "image_segmentation",
-    "image-to-text": "image_to_text",
     "automatic-speech-recognition": "automatic_speech_recognition",
     "audio-classification": "audio_classification",
-    "visual-question-answering": "visual_question_answering",
-    "document-question-answering": "document_question_answering",
-    "image-text-to-text": "visual_question_answering",
 }
 
 
@@ -814,6 +810,53 @@ _ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
     "zero_shot_classification": {"candidate_labels": r"[\n,]"},
     "sentence_similarity": {"other_sentences": r"\n"},
 }
+
+# Tasks that produce a text answer from an image (+ optional prompt). Modern
+# multimodal models expose these via chat_completion with a vision message,
+# and that path works across every provider. The legacy specialized methods
+# (visual_question_answering, image_to_text) only work on hf-inference.
+_CHAT_VISION_TASKS = frozenset({
+    "image-text-to-text",
+    "visual-question-answering",
+    "document-question-answering",
+    "image-to-text",
+})
+
+
+def _vision_message(image_val: object, prompt: str) -> list:
+    return [
+        {"type": "image_url", "image_url": {"url": _img_url(image_val)}},
+        {"type": "text", "text": prompt or "Describe this image."},
+    ]
+
+
+def _chat(client, content) -> str:
+    r = client.chat_completion(
+        messages=[{"role": "user", "content": content}], max_tokens=512
+    )
+    return json.dumps([r.choices[0].message.content])
+
+
+def _raw_inference(model_id: str, hf_token: str | None, a0, a1) -> str:
+    """Raw POST to HF's inference API for any model with inference enabled.
+    The API handles pipeline dispatch server-side based on the model card, so
+    tasks not covered by InferenceClient's specialized methods still work."""
+    def resolve(v):
+        return _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
+    a0v, a1v = resolve(a0), resolve(a1)
+    payload = a0v if not a1v else [a0v, a1v]
+    headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+    resp = httpx.post(
+        f"https://api-inference.huggingface.co/models/{model_id}",
+        headers=headers,
+        json={"inputs": payload},
+        timeout=60,
+    )
+    resp.raise_for_status()
+    try:
+        return json.dumps([resp.json()])
+    except Exception:
+        return json.dumps([resp.text])
 
 
 def get_model_endpoints(
@@ -865,19 +908,15 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             client, "text_classification", {"text": clean.get("text", "")}
         )
     if endpoint == "text_generation":
-        clean.setdefault("max_new_tokens", 512)
         try:
+            r = client.chat_completion(
+                [{"role": "user", "content": clean.get("prompt", "")}],
+                max_tokens=512,
+            )
+            result = r.choices[0].message.content
+        except Exception:
+            clean.setdefault("max_new_tokens", 512)
             result = fn(**clean)
-        except Exception as inner:
-            msg = str(inner).lower()
-            if "not supported" in msg and "conversational" in msg:
-                r = client.chat_completion(
-                    [{"role": "user", "content": clean.get("prompt", "")}],
-                    max_tokens=512,
-                )
-                result = r.choices[0].message.content
-            else:
-                raise
     else:
         result = fn(**clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
@@ -961,6 +1000,9 @@ def call_model(
             depth_img = _Image.open(_io.BytesIO(resp.content))
             return json.dumps([_save_tmp(depth_img, "png")])
 
+        if task in _CHAT_VISION_TASKS:
+            return _chat(client, _vision_message(a0, a1))
+
         endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
         if endpoint:
             # Positional args from legacy saved workflows and the browser
@@ -972,28 +1014,10 @@ def call_model(
             }
             return _dispatch_model_endpoint(client, endpoint, kwargs)
 
-        # Fallback for tasks not handled above: chat_completion (works for most
-        # text models across providers), then a raw POST as last resort.
-        try:
-            r = client.chat_completion(
-                [{"role": "user", "content": a0}], max_tokens=512
-            )
-            return json.dumps([r.choices[0].message.content])
-        except Exception:
-            pass
-        headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-        fallback_resp = httpx.post(
-            f"https://api-inference.huggingface.co/models/{model_id}",
-            headers=headers,
-            json={"inputs": a0 if not a1 else [a0, a1]},
-            timeout=60,
-        )
-        fallback_resp.raise_for_status()
-        try:
-            parsed = fallback_resp.json()
-        except Exception:
-            parsed = fallback_resp.text
-        return json.dumps([parsed])
+        # Unknown/new task — HF's raw inference API dispatches server-side
+        # based on the model card, so anything with inference enabled works
+        # without waiting for InferenceClient to add a method for it.
+        return _raw_inference(model_id, hf_token, a0, a1)
     except Exception as e:
         logger.error(
             "call_model failed for %s (task=%s): %s",
