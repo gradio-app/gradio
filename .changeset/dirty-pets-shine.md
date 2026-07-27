@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:workflow: refactor task type logic
+feat:workflow: refactor task logic for external providers
