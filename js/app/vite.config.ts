@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
 			resolve: {
 				conditions: ["gradio"]
 			},
-			noExternal: ["@gradio/*", "@huggingface/space-header", "postcss"],
+			noExternal: ["@gradio/*", "@huggingface/space-header"],
 			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
 		build: {
