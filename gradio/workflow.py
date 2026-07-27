@@ -815,12 +815,14 @@ _ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
 # multimodal models expose these via chat_completion with a vision message,
 # and that path works across every provider. The legacy specialized methods
 # (visual_question_answering, image_to_text) only work on hf-inference.
-_CHAT_VISION_TASKS = frozenset({
-    "image-text-to-text",
-    "visual-question-answering",
-    "document-question-answering",
-    "image-to-text",
-})
+_CHAT_VISION_TASKS = frozenset(
+    {
+        "image-text-to-text",
+        "visual-question-answering",
+        "document-question-answering",
+        "image-to-text",
+    }
+)
 
 
 def _vision_message(image_val: object, prompt: str):
@@ -835,6 +837,7 @@ def _vision_message(image_val: object, prompt: str):
     if isinstance(url, str) and not url.startswith(("http://", "https://", "data:")):
         import base64
         import mimetypes
+
         try:
             with open(url, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
@@ -859,8 +862,10 @@ def _raw_inference(model_id: str, hf_token: str | None, a0, a1) -> str:
     """Raw POST to HF's inference API for any model with inference enabled.
     The API handles pipeline dispatch server-side based on the model card, so
     tasks not covered by InferenceClient's specialized methods still work."""
+
     def resolve(v):
         return _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
+
     # Treat None and "" as missing (both can arrive from JSON payloads / the
     # positional args scaffold); real values like 0 or False must survive.
     a1_missing = a1 is None or a1 == ""
