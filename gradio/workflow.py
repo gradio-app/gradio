@@ -843,8 +843,7 @@ def _raw_inference(model_id: str, hf_token: str | None, a0, a1) -> str:
     tasks not covered by InferenceClient's specialized methods still work."""
     def resolve(v):
         return _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
-    a0v, a1v = resolve(a0), resolve(a1)
-    payload = a0v if not a1v else [a0v, a1v]
+    payload = resolve(a0) if a1 == "" else [resolve(a0), resolve(a1)]
     headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
     resp = httpx.post(
         f"https://api-inference.huggingface.co/models/{model_id}",
@@ -907,13 +906,17 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         return _dispatch_model_endpoint(
             client, "text_classification", {"text": clean.get("text", "")}
         )
+    if endpoint in {
+        "visual_question_answering",
+        "document_question_answering",
+        "image_to_text",
+    }:
+        image = clean.get("image") or clean.get("document")
+        prompt = clean.get("question") or ""
+        return _chat(client, _vision_message(image, prompt))
     if endpoint == "text_generation":
         try:
-            r = client.chat_completion(
-                [{"role": "user", "content": clean.get("prompt", "")}],
-                max_tokens=512,
-            )
-            result = r.choices[0].message.content
+            return _chat(client, clean.get("prompt", ""))
         except Exception:
             clean.setdefault("max_new_tokens", 512)
             result = fn(**clean)
