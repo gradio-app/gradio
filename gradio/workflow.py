@@ -824,8 +824,21 @@ _CHAT_VISION_TASKS = frozenset({
 
 
 def _vision_message(image_val: object, prompt: str) -> list:
+    url = _img_url(image_val)
+    # Local paths (no public URL) can't be fetched by an external provider.
+    # Inline them as a data URI so the same workflow runs locally and on Spaces.
+    if isinstance(url, str) and url and not url.startswith(("http://", "https://", "data:")):
+        import base64
+        import mimetypes
+        try:
+            with open(url, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+            mime = mimetypes.guess_type(url)[0] or "image/jpeg"
+            url = f"data:{mime};base64,{b64}"
+        except OSError:
+            pass  # fall through with original url; provider will surface the error
     return [
-        {"type": "image_url", "image_url": {"url": _img_url(image_val)}},
+        {"type": "image_url", "image_url": {"url": url}},
         {"type": "text", "text": prompt or "Describe this image."},
     ]
 
