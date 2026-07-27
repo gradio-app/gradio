@@ -973,10 +973,7 @@ class ChatInterface(Blocks):
                 else:
                     yield first_response, history_, *additional_outputs
             except StopAsyncIteration:
-                if not self.additional_outputs:
-                    yield None, history
-                else:
-                    yield None, history, *([skip()] * len(self.additional_outputs))
+                yield None, history, *[skip() for _ in self.additional_outputs]
             async for response in generator:
                 if self.additional_outputs:
                     response, *additional_outputs = response
