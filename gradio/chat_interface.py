@@ -44,7 +44,7 @@ from gradio.components.multimodal_textbox import MultimodalPostprocess, Multimod
 from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.helpers import special_args, update
+from gradio.helpers import skip, special_args, update
 from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Group, Row
 
@@ -972,8 +972,11 @@ class ChatInterface(Blocks):
                     yield first_response, history_
                 else:
                     yield first_response, history_, *additional_outputs
-            except StopIteration:
-                yield None, history
+            except StopAsyncIteration:
+                if not self.additional_outputs:
+                    yield None, history
+                else:
+                    yield None, history, *([skip()] * len(self.additional_outputs))
             async for response in generator:
                 if self.additional_outputs:
                     response, *additional_outputs = response
