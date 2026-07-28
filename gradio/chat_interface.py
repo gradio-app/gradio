@@ -5,7 +5,6 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import builtins
-import copy
 import dataclasses
 import inspect
 import os
@@ -879,7 +878,8 @@ class ChatInterface(Blocks):
         role: Literal["user", "assistant"] = "user",
     ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
-        history = copy.deepcopy(history)
+        # Shallow on purpose: messages can hold values that are not deep-copyable.
+        history = list(history)
         history.extend(message_dicts)  # type: ignore
         return history
 

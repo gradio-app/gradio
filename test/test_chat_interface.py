@@ -9,6 +9,7 @@ from gradio_client import handle_file
 
 import gradio as gr
 from gradio.components.chatbot import Message, TextMessage
+from gradio.components.plot import PlotData
 
 
 def invalid_fn(message):
@@ -365,6 +366,24 @@ class TestAPI:
                 api_name="/chat",
             )
             assert result["value"] == "test/test_files/audio_sample.wav"
+
+    def test_component_that_cannot_be_deep_copied(self, connect):
+        """Bokeh figures, for one, raise when deep-copied."""
+
+        class UncopyablePlotData(PlotData):
+            def __deepcopy__(self, memo):
+                raise RuntimeError("cannot be deep-copied")
+
+        def mock_chat_fn(msg, history):
+            return gr.Plot(UncopyablePlotData(type="bokeh", plot="{}"))
+
+        chatbot = gr.ChatInterface(mock_chat_fn, api_name="chat")
+        with connect(chatbot) as client:
+            for _ in range(2):
+                # A deep copy raising inside the queue leaves the request hanging
+                # rather than erroring, hence the timeout.
+                result = client.submit("hello", api_name="/chat").result(timeout=30)
+                assert result["value"]["type"] == "bokeh"
 
     def test_multiple_messages(self, connect):
         def multiple_messages(msg, history):
