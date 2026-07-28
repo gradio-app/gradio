@@ -34,6 +34,7 @@ CURATED_GUIDES = [
     "streaming-inputs",
     "sharing-your-app",
     "custom-HTML-components",
+    "workflows",
     "getting-started-with-the-python-client",
     "getting-started-with-the-js-client",
 ]
@@ -297,6 +298,25 @@ def respond(message, history):
 gr.ChatInterface(fn=respond).launch()
 ```
 
+**Workflow**: builds a visual, node-based pipeline from Hugging Face Spaces,
+models, datasets, and Python functions. `gr.Workflow` is a standalone app, so
+do not create it inside a `gr.Blocks` context.
+
+```python
+import gradio as gr
+
+def clean(text: str) -> str:
+    return text.strip().lower()
+
+def tag(text: str) -> str:
+    return f"[processed] {{text}}"
+
+gr.Workflow(
+    bind={{"clean": clean, "tag": tag}},
+    edges=[("clean", "tag")],
+).launch()
+```
+
 ## Custom HTML Components
 
 If a task requires significant customization of an existing component or a component that doesn't exist in Gradio, you can create one with `gr.HTML`. It supports `html_template` (with `${{}}` JS expressions and `{{{{}}}}` Handlebars syntax), `css_template` for scoped styles, and `js_on_load` for interactivity — where `props.value` updates the component value and `trigger('event_name')` fires Gradio events. For reuse, subclass `gr.HTML` and define `api_info()` for API/MCP support. 
@@ -327,6 +347,7 @@ GUIDE_TITLES = {
     "streaming-inputs": "Streaming Inputs",
     "sharing-your-app": "Sharing Your App",
     "custom-HTML-components": "Custom HTML Components",
+    "workflows": "Workflows",
     "getting-started-with-the-python-client": "Getting Started with the Python Client",
     "getting-started-with-the-js-client": "Getting Started with the JS Client",
 }

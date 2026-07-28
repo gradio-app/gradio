@@ -37,7 +37,20 @@ export async function predict<T = unknown>(
 
 		if (message.type === "status") {
 			if (message.stage === "error") {
-				throw message;
+				// Throw a real `Error` (rather than the raw status object) so that
+				// uncaught failures surface a readable message instead of
+				// crashing Node with `ERR_UNHANDLED_REJECTION ... reason "#<Object>"`.
+				// The status fields are preserved on the error for callers that
+				// inspect them.
+				const { message: error_message, ...status } = message;
+				const error = new Error(
+					(typeof error_message === "string"
+						? error_message
+						: error_message && JSON.stringify(error_message)) ||
+						"An unknown error occurred while making a prediction."
+				);
+				Object.assign(error, status);
+				throw error;
 			}
 			if (message.stage === "complete") {
 				status_complete = true;

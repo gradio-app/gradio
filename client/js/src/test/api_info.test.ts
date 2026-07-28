@@ -1,7 +1,7 @@
 import {
 	INVALID_URL_MSG,
 	QUEUE_FULL_MSG,
-	SPACE_METADATA_ERROR_MSG
+	SPACE_NOT_FOUND_MSG
 } from "../constants";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 import {
@@ -10,7 +10,8 @@ import {
 	get_type,
 	process_endpoint,
 	join_urls,
-	map_data_to_params
+	map_data_to_params,
+	transform_api_info
 } from "../helpers/api_info";
 import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
@@ -471,19 +472,13 @@ describe("process_endpoint", () => {
 		expect(result).toEqual(expected);
 	});
 
-	it("should throw an error when fetching space metadata fails", async () => {
+	it("should throw a clear error when the space does not exist or is private", async () => {
 		const app_reference = "hmb/bye_world";
 		const token = "hf_token";
 
-		try {
-			await process_endpoint(app_reference, token);
-		} catch (error) {
-			if (error instanceof Error) {
-				expect(error.message).toEqual(SPACE_METADATA_ERROR_MSG);
-			} else {
-				expect.fail("Error should not be unknown.");
-			}
-		}
+		await expect(process_endpoint(app_reference, token)).rejects.toThrow(
+			SPACE_NOT_FOUND_MSG(app_reference, 404)
+		);
 	});
 
 	it("should return the correct data when app_reference is a valid space domain", async () => {
@@ -697,5 +692,38 @@ describe("map_data_params", () => {
 		expect(() => map_data_to_params(data, endpoint_info)).toThrowError(
 			"No value provided for required parameter: param1"
 		);
+	});
+});
+
+describe("transform_api_info", () => {
+	it("defaults parameters and returns to empty arrays when an endpoint entry is malformed", () => {
+		const api_info = {
+			named_endpoints: {
+				// missing `parameters` and `returns`, as returned by some legacy
+				// or misbehaving apps (see issue #10945)
+				"/predict": {}
+			},
+			unnamed_endpoints: {}
+		} as any;
+		const config = {
+			dependencies: [
+				{
+					id: 0,
+					api_name: "predict",
+					inputs: [1],
+					outputs: [2],
+					types: { generator: false, cancel: false }
+				}
+			],
+			components: [
+				{ id: 1, type: "textbox", props: {} },
+				{ id: 2, type: "textbox", props: {} }
+			]
+		} as any;
+
+		const result = transform_api_info(api_info, config, { predict: 0 });
+
+		expect(result.named_endpoints["/predict"].parameters).toEqual([]);
+		expect(result.named_endpoints["/predict"].returns).toEqual([]);
 	});
 });

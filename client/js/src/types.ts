@@ -323,6 +323,11 @@ export interface DuplicateOptions extends ClientOptions {
 
 export interface ClientOptions {
 	token?: `hf_${string}`;
+	/**
+	 * @deprecated Use `token` instead. Kept as an alias so that code written
+	 * for older versions of the client keeps working.
+	 */
+	hf_token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
 	with_null_state?: boolean;

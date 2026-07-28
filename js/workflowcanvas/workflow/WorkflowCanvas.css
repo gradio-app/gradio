@@ -121,6 +121,11 @@ button.access-badge.access-readonly.open {
 	border-color: #3a3b48;
 }
 
+.access-info-popover a {
+	color: #f97316;
+	text-decoration: underline;
+}
+
 .access-info-popover {
 	position: absolute;
 	top: calc(100% + 8px);

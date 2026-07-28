@@ -39,8 +39,48 @@ export function isV2(wf: unknown): wf is Workflow {
 	);
 }
 
+function serializedNodes(raw: unknown): Record<string, unknown>[] {
+	if (!raw || typeof raw !== "object") return [];
+	const workflow = raw as Record<string, unknown>;
+	const collections = Array.isArray(workflow.nodes)
+		? [workflow.nodes]
+		: [workflow.references, workflow.operators, workflow.subjects];
+	return collections
+		.filter(Array.isArray)
+		.flat()
+		.filter((node): node is Record<string, unknown> => {
+			return !!node && typeof node === "object";
+		});
+}
+
+export function hasMissingNodeGeometry(raw: unknown): boolean {
+	return serializedNodes(raw).some((node) =>
+		["x", "y", "width", "height"].some(
+			(key) => typeof node[key] !== "number" || !Number.isFinite(node[key])
+		)
+	);
+}
+
+function normalizeNodeGeometry<T extends AnyNode>(node: T): T {
+	return {
+		...node,
+		data: node.data ?? {},
+		x: Number.isFinite(node.x) ? node.x : 0,
+		y: Number.isFinite(node.y) ? node.y : 0,
+		width: Number.isFinite(node.width) ? node.width : 200,
+		height: Number.isFinite(node.height) ? node.height : 100
+	};
+}
+
 export function migrateToV2(raw: unknown): Workflow {
-	if (isV2(raw)) return raw;
+	if (isV2(raw)) {
+		return {
+			...raw,
+			references: raw.references.map(normalizeNodeGeometry),
+			operators: raw.operators.map(normalizeNodeGeometry),
+			subjects: raw.subjects.map(normalizeNodeGeometry)
+		};
+	}
 
 	const legacy = (raw ?? {}) as WorkflowV1;
 	const legacyNodes: WFNode[] = Array.isArray(legacy.nodes) ? legacy.nodes : [];
