@@ -130,7 +130,8 @@ function output_matches_port_type(item: unknown, portType: string): boolean {
 			("path" in (item as object) || "url" in (item as object))
 		);
 	}
-	if (portType === "text") return typeof item === "string";
+	if (portType === "text" || portType === "html")
+		return typeof item === "string";
 	if (portType === "number") return typeof item === "number";
 	if (portType === "boolean") return typeof item === "boolean";
 	if (portType === "json")
@@ -185,6 +186,7 @@ function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 	if (typeof result === "string") {
 		if (
 			portType !== "text" &&
+			portType !== "html" &&
 			(result.startsWith("http://") ||
 				result.startsWith("https://") ||
 				result.startsWith("blob:") ||
@@ -370,7 +372,13 @@ export async function executeWorkflow(
 						throw new Error(missing_input_message(node, port));
 					}
 				}
-				const args = node.inputs.map((port) => inputs[port.id]);
+				const args = await Promise.all(
+					node.inputs.map((port) =>
+						MEDIA_PORT_TYPES.has(port.type)
+							? toGradioArg(inputs[port.id])
+							: inputs[port.id]
+					)
+				);
 				const resultJson = await serverCallFn(node.fn, JSON.stringify(args));
 				const resultData = JSON.parse(resultJson);
 				if (

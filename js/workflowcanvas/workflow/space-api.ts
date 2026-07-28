@@ -71,6 +71,7 @@ export function componentToPortType(
 		return "file";
 	if (c === "model3d") return "model3d";
 	if (c === "json" || c === "dataframe") return "json";
+	if (c === "html") return "html";
 	if (c === "state") return "__skip__";
 	if (
 		c === "textbox" ||
@@ -83,8 +84,7 @@ export function componentToPortType(
 		c === "dropdown" ||
 		c === "radio" ||
 		c === "checkboxgroup" ||
-		c === "colorpicker" ||
-		c === "html"
+		c === "colorpicker"
 	)
 		return "text";
 
