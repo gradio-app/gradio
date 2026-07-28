@@ -5,7 +5,6 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import builtins
-import dataclasses
 import inspect
 import os
 import warnings
@@ -900,9 +899,8 @@ class ChatInterface(Blocks):
                 message_dicts.append(msg.model_dump())
             elif isinstance(msg, ChatMessage):
                 msg.role = role
-                message_dicts.append(
-                    dataclasses.asdict(msg, dict_factory=utils.dict_factory)
-                )
+                # Not dataclasses.asdict: it deep-copies the field values.
+                message_dicts.append(utils.shallow_asdict(msg))
             elif isinstance(msg, (str, Component)):
                 message_dicts.append({"role": role, "content": msg})
             elif (

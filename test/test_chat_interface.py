@@ -377,15 +377,22 @@ class TestAPI:
                 raise RuntimeError("cannot be deep-copied")
 
         def mock_chat_fn(msg, history):
-            return gr.Plot(UncopyablePlotData(type="bokeh", plot="{}"))
+            plot = gr.Plot(UncopyablePlotData(type="bokeh", plot="{}"))
+            if msg == "wrapped":
+                return gr.ChatMessage(role="assistant", content=plot)
+            return plot
 
         chatbot = gr.ChatInterface(mock_chat_fn, api_name="chat")
         with connect(chatbot) as client:
-            for _ in range(2):
-                # A deep copy raising inside the queue leaves the request hanging
-                # rather than erroring, hence the timeout.
-                result = client.submit("hello", api_name="/chat").result(timeout=5)
-                assert result["value"]["type"] == "bokeh"
+            # A deep copy raising inside the queue leaves the request hanging
+            # rather than erroring, hence the timeouts. The second turn matters
+            # because that is the one copying a history that already holds the
+            # component, and a wrapped component leaves the chat function by a
+            # different route than a bare one.
+            bare = client.submit("bare", api_name="/chat").result(timeout=5)
+            assert bare["value"]["type"] == "bokeh"
+            wrapped = client.submit("wrapped", api_name="/chat").result(timeout=5)
+            assert wrapped["role"] == "assistant"
 
     def test_multiple_messages(self, connect):
         def multiple_messages(msg, history):
