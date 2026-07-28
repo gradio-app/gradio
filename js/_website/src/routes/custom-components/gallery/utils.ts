@@ -81,14 +81,14 @@ function filterComponents(
 	if (!terms.length) return components;
 
 	return components.filter((component) => {
-		const searchable_text = [
+		const searchableText = [
 			component.name,
 			component.tags,
 			component.description
 		]
 			.map((value) => value?.toLowerCase() ?? "")
 			.join(" ");
-		return terms.some((term) => searchable_text.includes(term));
+		return terms.some((term) => searchableText.includes(term));
 	});
 }
 
@@ -97,7 +97,7 @@ export async function getComponents(
 ): Promise<ComponentData[]> {
 	try {
 		return await fetchComponentData(
-			`${API}components?name_or_tags=${selection.join(",")}`
+			`${API}components?name_or_tags=${encodeURIComponent(selection.join(","))}`
 		);
 	} catch {
 		try {
