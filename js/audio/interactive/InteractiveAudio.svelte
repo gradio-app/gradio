@@ -149,7 +149,7 @@
 
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording"
+		event: "stream" | "change"
 	): Promise<void> => {
 		let _audio_blob = new File(to_blob_parts(blobs), "audio.wav", {
 			type: "audio/wav"
@@ -166,10 +166,8 @@
 		)[0];
 		if (event === "stream") {
 			onstream?.(value);
-		} else if (event === "change") {
+		} else {
 			onchange?.(value);
-		} else if (event === "stop_recording") {
-			onstop_recording?.();
 		}
 	};
 
@@ -207,14 +205,13 @@
 			recorder.addEventListener("dataavailable", (event) => {
 				audio_chunks.push(event.data);
 			});
+			recorder.addEventListener("stop", async () => {
+				recording = false;
+				await dispatch_blob(audio_chunks, "change");
+				onstop_recording?.();
+				audio_chunks = [];
+			});
 		}
-		recorder.addEventListener("stop", async () => {
-			recording = false;
-			recorder.stop();
-			await dispatch_blob(audio_chunks, "change");
-			await dispatch_blob(audio_chunks, "stop_recording");
-			audio_chunks = [];
-		});
 		inited = true;
 	}
 
@@ -283,7 +280,6 @@
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
-			await dispatch_blob(audio_chunks, "stop_recording");
 			onclear?.();
 			mode = "";
 		}
