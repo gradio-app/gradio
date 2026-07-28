@@ -4,7 +4,7 @@
 	import { browser } from "$app/environment";
 	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
-	import { clickOutside, get_components } from "./utils";
+	import { clickOutside, getComponents } from "./utils";
 	import { theme } from "$lib/stores/theme";
 
 	let components: ComponentData[] = [];
@@ -44,7 +44,7 @@
 	};
 
 	async function fetch_components(selection: string[] = []) {
-		components = await get_components(selection);
+		components = await getComponents(selection);
 		define_colors(components);
 		if (!components_length) {
 			components_length = components.length;
