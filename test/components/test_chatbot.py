@@ -1,5 +1,6 @@
 import gradio as gr
 from gradio import utils
+from gradio.components.chatbot import MessageDict
 
 
 class TestChatbot:
@@ -124,7 +125,9 @@ class TestChatbot:
     def test_component_content_created_inside_blocks_context(self):
         """Such a component's `parent` is a Blocks graph, which holds a lock."""
         with gr.Blocks():
-            chatbot = gr.Chatbot(value=[{"role": "assistant", "content": gr.Plot()}])
+            # Built inside the block on purpose: that is what gives it a parent.
+            message: MessageDict = {"role": "assistant", "content": gr.Plot()}
+            chatbot = gr.Chatbot(value=[message])
         assert chatbot.value[0]["content"][0]["component"] == "plot"
 
     def test_component_content_is_not_mutated_by_postprocess(self):
