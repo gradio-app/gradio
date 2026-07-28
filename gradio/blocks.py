@@ -642,6 +642,15 @@ def _find_free_port(host: str, start: int, try_count: int = 100) -> int:
     raise OSError(f"Cannot find empty port in range: {start}-{start + try_count - 1}.")
 
 
+def _port_is_free(host: str, port: int) -> bool:
+    """Whether *port* can be bound, checked the same way as `_find_free_port`."""
+    try:
+        _find_free_port(host, start=port, try_count=1)
+    except OSError:
+        return False
+    return True
+
+
 class BlocksConfig:
     def __init__(self, root_block: Blocks):
         self._id: int = 0
@@ -3393,30 +3402,41 @@ Received inputs:
         healthy. Rebinding there serves the app client-side rendered instead.
 
         Returns whether the move happened; the existing server keeps running if the
-        user-facing port could not be bound.
+        user-facing port could not be taken over.
         """
         from gradio import http_server
 
+        internal_port = self.server_port
         old_server = self.server
-        try:
-            server_name, server_port, local_url, server = http_server.start_server(
+
+        def serve_on(port: int):
+            return http_server.start_server(
                 app=self.app,
                 server_name=self.server_name,
-                server_port=user_port,
+                server_port=port,
                 ssl_keyfile=ssl_keyfile,
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
             )
-        except (OSError, ServerFailedToStartError):
+
+        # Check the port before giving up the one we have. The two servers can't
+        # overlap: they share an app, so the second would run its lifespan a second
+        # time and the first's shutdown would delete the app's cache files from
+        # under it.
+        if not _port_is_free(self.server_name, user_port):
             return False
 
-        # Only let go of the internal port once the new one is actually serving, so
-        # a failure here leaves the app reachable where it already was.
         if old_server is not None:
-            try:
-                old_server.close()
-            except Exception:
-                pass
+            old_server.close()
+
+        try:
+            server_name, server_port, local_url, server = serve_on(user_port)
+        except (OSError, ServerFailedToStartError):
+            # Lost the race for the user-facing port after releasing ours, so go
+            # back to the internal one rather than leave nothing listening.
+            server_name, server_port, local_url, server = serve_on(internal_port)
+            self.server = server
+            return False
 
         self.server_name = server_name
         self.server_port = server_port

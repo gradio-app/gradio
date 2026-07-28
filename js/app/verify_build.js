@@ -12,7 +12,7 @@
  * at runtime, and fails the build if one of them can't be satisfied by what we ship.
  */
 import { readFileSync, existsSync, readdirSync, statSync } from "fs";
-import { builtinModules, createRequire } from "module";
+import { builtinModules } from "module";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { parseAstAsync } from "vite";
@@ -40,10 +40,6 @@ const builtins = new Set([
 	...builtinModules,
 	...builtinModules.map((m) => `node:${m}`)
 ]);
-
-// Conservative match for "this string could be a real bare import specifier",
-// used because aliased `require` calls can't be identified by callee name.
-const specifier_re = /^(?:@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*(?:\/[\w.-]+)*$/i;
 
 function walk_js_files(entry) {
 	const full = join(build_path, entry);
@@ -73,40 +69,91 @@ function static_string(node) {
 	return null;
 }
 
-/**
- * Collects candidate runtime specifiers from a module's AST. Static imports and
- * dynamic `import()` are read directly; `require()` calls are matched by shape
- * (a single string literal argument) rather than by callee name, because the
- * commonjs interop in bundled dependencies calls a minified alias of
- * `createRequire(import.meta.url)` — which is exactly how postcss slipped
- * through. Parsing rather than grepping keeps JSDoc `@import` comments out.
- */
-function collect_specifiers(node, found = new Set()) {
-	if (node === null || typeof node !== "object") return found;
+/** Every node in the tree, so the passes below can look at them in any order. */
+function flatten(node, nodes = []) {
+	if (node === null || typeof node !== "object") return nodes;
 
 	if (Array.isArray(node)) {
-		for (const child of node) collect_specifiers(child, found);
-		return found;
+		for (const child of node) flatten(child, nodes);
+		return nodes;
 	}
 
-	if (
-		node.type === "ImportDeclaration" ||
-		node.type === "ExportNamedDeclaration" ||
-		node.type === "ExportAllDeclaration" ||
-		node.type === "ImportExpression"
-	) {
-		const source = static_string(node.source);
-		if (source !== null) found.add(source);
-	}
-
-	if (node.type === "CallExpression" && node.arguments?.length === 1) {
-		const argument = static_string(node.arguments[0]);
-		if (argument !== null) found.add(argument);
-	}
-
+	if (typeof node.type === "string") nodes.push(node);
 	for (const key of Object.keys(node)) {
 		if (key === "type" || key === "start" || key === "end") continue;
-		collect_specifiers(node[key], found);
+		flatten(node[key], nodes);
+	}
+	return nodes;
+}
+
+/**
+ * Collects the module specifiers a file loads at runtime: static imports and
+ * re-exports, dynamic `import()`, and `require()`.
+ *
+ * `require` has to be resolved through its binding rather than matched by name.
+ * The commonjs interop in bundled dependencies calls a minified alias of
+ * `createRequire(import.meta.url)` (postcss was loaded as ``d(`postcss`)``), so
+ * matching only the name `require` would miss it. Matching any one-argument call
+ * with a string literal instead is far too loose: `headers.get("cookie")` then
+ * reads as a dependency on the `cookie` package.
+ */
+function collect_specifiers(ast) {
+	const nodes = flatten(ast);
+	const found = new Set();
+
+	// Local names bound to `createRequire` itself.
+	const create_require_names = new Set();
+	for (const node of nodes) {
+		if (
+			node.type !== "ImportDeclaration" ||
+			!["module", "node:module"].includes(static_string(node.source))
+		) {
+			continue;
+		}
+		for (const specifier of node.specifiers ?? []) {
+			if (
+				specifier.type === "ImportSpecifier" &&
+				specifier.imported?.name === "createRequire"
+			) {
+				create_require_names.add(specifier.local.name);
+			}
+		}
+	}
+
+	// Local names bound to the require function `createRequire` returns.
+	const require_names = new Set(["require"]);
+	for (const node of nodes) {
+		if (
+			node.type === "VariableDeclarator" &&
+			node.id?.type === "Identifier" &&
+			node.init?.type === "CallExpression" &&
+			node.init.callee?.type === "Identifier" &&
+			create_require_names.has(node.init.callee.name)
+		) {
+			require_names.add(node.id.name);
+		}
+	}
+
+	for (const node of nodes) {
+		if (
+			node.type === "ImportDeclaration" ||
+			node.type === "ExportNamedDeclaration" ||
+			node.type === "ExportAllDeclaration" ||
+			node.type === "ImportExpression"
+		) {
+			const source = static_string(node.source);
+			if (source !== null) found.add(source);
+		}
+
+		if (
+			node.type === "CallExpression" &&
+			node.callee?.type === "Identifier" &&
+			require_names.has(node.callee.name) &&
+			node.arguments?.length === 1
+		) {
+			const argument = static_string(node.arguments[0]);
+			if (argument !== null) found.add(argument);
+		}
 	}
 
 	return found;
@@ -120,28 +167,6 @@ function package_name(specifier) {
 /** Whether the package is present in the node_modules we ship in the build output. */
 function is_shipped(name) {
 	return existsSync(join(build_path, "node_modules", name, "package.json"));
-}
-
-/**
- * Whether the specifier resolves the way it does during development, i.e. by walking
- * up from the build output into the repo's own node_modules. That fallback is what
- * hides an unshipped dependency locally, so it is also what identifies one. A
- * candidate that resolves nowhere is almost always an unrelated string literal
- * (`t("foo")`) rather than a dependency.
- */
-function resolves_in_repo(specifier, referrer, name) {
-	try {
-		createRequire(referrer).resolve(specifier);
-		return true;
-	} catch {
-		// A package can exist but refuse a bare resolve (no `main`, subpath not
-		// exported), so fall back to checking that the directory is there.
-		const repo_modules = resolve(__dirname, "../../node_modules");
-		return (
-			existsSync(join(repo_modules, name, "package.json")) ||
-			existsSync(join(__dirname, "node_modules", name, "package.json"))
-		);
-	}
 }
 
 async function verify() {
@@ -171,16 +196,13 @@ async function verify() {
 				specifier.startsWith("/") ||
 				specifier.startsWith("#") ||
 				builtins.has(specifier) ||
-				hook_resolved(specifier) ||
-				!specifier_re.test(specifier)
+				hook_resolved(specifier)
 			) {
 				continue;
 			}
 
 			const name = package_name(specifier);
-			if (is_shipped(name) || !resolves_in_repo(specifier, file, name)) {
-				continue;
-			}
+			if (is_shipped(name)) continue;
 
 			const referrers = missing.get(name) ?? [];
 			referrers.push(file.slice(build_path.length + 1));

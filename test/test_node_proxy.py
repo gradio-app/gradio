@@ -460,3 +460,33 @@ class TestNodeProxyFallback:
             assert resp.status_code == 200
         finally:
             self._cleanup(demo)
+
+    def test_keeps_internal_port_when_user_port_is_taken(self, monkeypatch):
+        """If something else holds the user-facing port, the app has to keep
+        serving where it already is rather than end up with no listener."""
+        import socket
+
+        import gradio as gr
+
+        user_port = 18868
+        squatter = socket.socket()
+        squatter.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        squatter.bind(("127.0.0.1", user_port))
+        squatter.listen(1)
+
+        demo = gr.Interface(lambda x: x, "text", "text")
+        try:
+            demo.launch(
+                ssr_mode=True,
+                server_port=user_port,
+                prevent_thread_lock=True,
+                quiet=True,
+            )
+
+            assert not demo._ssr_degraded
+            assert demo.server_port != user_port
+            resp = httpx.get(f"http://127.0.0.1:{demo.server_port}/", timeout=10)
+            assert resp.status_code == 200
+        finally:
+            squatter.close()
+            self._cleanup(demo)
