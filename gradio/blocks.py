@@ -3092,9 +3092,8 @@ Received inputs:
                         if self._ssr_degraded:
                             warnings.warn(
                                 "Failed to start Node front proxy for SSR; serving "
-                                "without SSR on "
-                                f"{self.protocol}://{self.server_name}:{self.server_port}. "
-                                "See the Node server output above."
+                                f"without SSR on {self.local_url} "
+                                "(see the Node server output above)."
                             )
                         else:
                             warnings.warn(
