@@ -455,6 +455,7 @@ class TestNodeProxyFallback:
                 f"Expected Python on the user-facing port {user_port}, "
                 f"got {demo.server_port}"
             )
+            assert demo.local_url is not None
             assert f":{user_port}" in demo.local_url
             resp = httpx.get(f"http://127.0.0.1:{user_port}/", timeout=10)
             assert resp.status_code == 200
