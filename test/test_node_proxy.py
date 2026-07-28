@@ -1,6 +1,8 @@
 """Tests for the Node-as-proxy architecture and static worker routing."""
 
 import shutil
+import sys
+import time
 from pathlib import Path
 
 import httpx
@@ -349,3 +351,64 @@ class TestNodeProxyStartupOrdering:
             )
         finally:
             self._cleanup(demo)
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="uses a shell script to stand in for node"
+)
+class TestNodeStartupDiagnostics:
+    """When the Node SSR server starts but can't serve a page, the reason it
+    gives has to reach the user. It previously went to DEVNULL and the failure
+    was reported as a missing Node installation — which is what made the
+    unshipped-postcss regression so hard to diagnose on HF Spaces."""
+
+    def _fake_node(self, tmp_path, message):
+        """A stand-in for node that complains on stderr and then just sits there,
+        like a Node server that binds its port but 500s on every render."""
+        script = tmp_path / "fake_node.sh"
+        script.write_text(f'#!/bin/sh\necho "{message}" >&2\nsleep 30\n')
+        script.chmod(0o755)
+        return str(script)
+
+    def test_node_stderr_is_reported_on_failure(self, tmp_path, monkeypatch, capsys):
+        from gradio import node_server
+
+        message = "Error: Cannot find module 'postcss'"
+
+        # Real verification polls for up to 30s, so give the process the moment it
+        # needs to write its error out before we give up on it.
+        def slow_failing_verify(*args, **kwargs):
+            time.sleep(1)
+            return False
+
+        monkeypatch.setattr(node_server, "verify_server_startup", slow_failing_verify)
+
+        process, port = node_server.start_node_process(
+            node_path=self._fake_node(tmp_path, message),
+            server_name="127.0.0.1",
+            server_ports=[18871],
+        )
+
+        assert process is None and port is None
+        out = capsys.readouterr().out
+        assert message in out, f"Node's stderr was not surfaced. Got: {out}"
+        assert "install Node 20" not in out, (
+            "Blamed the Node installation even though Node ran and explained "
+            f"itself. Got: {out}"
+        )
+
+    def test_missing_node_still_suggests_installing_node(self, monkeypatch, capsys):
+        """With nothing on stderr to go on, the Node-installation hint is still
+        the most useful thing to say."""
+        from gradio import node_server
+
+        monkeypatch.setattr(node_server, "verify_server_startup", lambda *a, **k: False)
+
+        process, port = node_server.start_node_process(
+            node_path="/nonexistent/node",
+            server_name="127.0.0.1",
+            server_ports=[18872],
+        )
+
+        assert process is None and port is None
+        assert "install Node 20" in capsys.readouterr().out

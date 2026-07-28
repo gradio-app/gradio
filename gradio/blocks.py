@@ -3067,8 +3067,8 @@ Received inputs:
                     warnings.warn(
                         "Failed to start Node front proxy for SSR; Gradio is "
                         f"reachable directly on the internal Python port "
-                        f":{self.server_port}. Check the Node installation "
-                        "or set GRADIO_NODE_PATH."
+                        f":{self.server_port}. See the Node server output above, "
+                        "or set ssr_mode=False to serve on the expected port."
                     )
 
             if not self.is_colab and not quiet:

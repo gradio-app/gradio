@@ -45,7 +45,11 @@ export default defineConfig(({ mode }) => {
 			resolve: {
 				conditions: ["gradio"]
 			},
-			noExternal: ["@gradio/*", "@huggingface/space-header"],
+			// postcss is a runtime `require` inside sanitize-html (it parses style
+			// attributes with it). If it stays external, the SSR bundle asks for it
+			// at render time and every render 500s in a wheel install, where only
+			// the build output's own node_modules exists.
+			noExternal: ["@gradio/*", "@huggingface/space-header", "postcss"],
 			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
 		build: {
