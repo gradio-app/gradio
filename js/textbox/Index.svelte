@@ -32,7 +32,7 @@
 
 	async function handle_input(value: string): Promise<void> {
 		if (!gradio.shared || !gradio.props) return;
-		gradio.props.validation_error = null;
+		gradio.shared.validation_error = null;
 		gradio.props.value = value;
 		await tick();
 		gradio.dispatch("input");
@@ -44,7 +44,7 @@
 
 	function handle_change(value: string): void {
 		if (!gradio.shared || !gradio.props) return;
-		gradio.props.validation_error = null;
+		gradio.shared.validation_error = null;
 		gradio.props.value = value;
 	}
 </script>
