@@ -232,7 +232,7 @@
 			<div class="tab-container visually-hidden" aria-hidden="true">
 				{#each tabs as t, i}
 					{#if is_visible_tab(t)}
-						<button bind:this={tab_els[t.id]}>
+						<button tabindex="-1" bind:this={tab_els[t.id]}>
 							{t?.label}
 						</button>
 					{/if}
@@ -274,6 +274,7 @@
 				bind:this={overflow_menu}
 			>
 				<button
+					aria-label="More tabs"
 					onclick={(e) => {
 						e.stopPropagation();
 						overflow_menu_open = !overflow_menu_open;
