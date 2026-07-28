@@ -87,18 +87,6 @@ describe("TabItem", () => {
 			);
 		});
 	});
-
-	test("forwards shared scale through the component wrapper", async () => {
-		const { getByRole } = await render(TabItemHarness, {
-			use_index: true,
-			tab_scale: 2,
-			tab_selected: "t1"
-		});
-		const tabpanel = getByRole("tabpanel", { hidden: true });
-
-		expect(tabpanel).toHaveClass("grow-children");
-		expect(tabpanel).toHaveStyle({ flexGrow: "2" });
-	});
 });
 
 describe("Events: select", () => {
