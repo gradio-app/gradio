@@ -53,26 +53,6 @@ describe("Textbox", () => {
 
 		expect(item.value).toBe("hi some text");
 	});
-
-	test.each(["input", "change"] as const)(
-		"%s clears the shared validation error",
-		async (event_name) => {
-			const result = await render(Textbox, {
-				...default_props,
-				value: "",
-				validation_error: "Shared error",
-				loading_status: { validation_error: "Required" }
-			});
-			const textbox = result.getByRole("textbox");
-
-			expect(result.getByText("Required")).toBeVisible();
-			await fireEvent[event_name](textbox, { target: { value: "valid" } });
-
-			await waitFor(() => {
-				expect(result.queryByText("Required")).not.toBeInTheDocument();
-			});
-		}
-	);
 });
 
 describe("Props: type", () => {

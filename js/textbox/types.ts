@@ -34,6 +34,7 @@ export interface TextboxProps {
 	autoscroll: boolean;
 	max_length: number;
 	html_attributes: InputHTMLAttributes;
+	validation_error: string | null;
 }
 
 type FullAutoFill =

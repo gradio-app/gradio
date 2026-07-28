@@ -7,6 +7,7 @@ export interface DatasetProps {
 	samples: any[][] | null;
 	sample_labels: string[] | null;
 	value: number | null;
+	root: string;
 	proxy_url: null | string;
 	samples_per_page: number;
 

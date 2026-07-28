@@ -35,7 +35,7 @@ export interface SharedProps {
 	client: Client;
 	scale: number;
 	min_width: number;
-	padding: boolean;
+	padding: number;
 	load_component: load_component;
 	loading_status?: any;
 	label: string;

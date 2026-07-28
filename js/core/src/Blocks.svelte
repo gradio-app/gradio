@@ -163,7 +163,6 @@
 		{
 			root,
 			theme: theme_mode,
-			theme_mode,
 			version,
 			api_prefix,
 			max_file_size,
@@ -245,7 +244,6 @@
 			app_tree.reload(components, layout, dependencies, {
 				root,
 				theme: theme_mode,
-				theme_mode,
 				version,
 				api_prefix,
 				max_file_size,

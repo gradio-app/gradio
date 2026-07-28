@@ -13,6 +13,7 @@ export interface HTMLProps {
 	head: string | null;
 	component_class_name: string;
 	buttons: (string | CustomButton)[] | null;
+	padding: boolean;
 }
 
 export interface HTMLEvents {
