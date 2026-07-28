@@ -2,10 +2,12 @@ import tempfile
 import warnings
 from concurrent.futures import wait
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
 from gradio_client import handle_file
+from typing_extensions import Self
 
 import gradio as gr
 from gradio.components.chatbot import Message, TextMessage
@@ -371,7 +373,7 @@ class TestAPI:
         """Bokeh figures, for one, raise when deep-copied."""
 
         class UncopyablePlotData(PlotData):
-            def __deepcopy__(self, memo):
+            def __deepcopy__(self, memo: dict[int, Any] | None = None) -> Self:
                 raise RuntimeError("cannot be deep-copied")
 
         def mock_chat_fn(msg, history):
