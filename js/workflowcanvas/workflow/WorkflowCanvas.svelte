@@ -2020,6 +2020,7 @@
 		"audio",
 		"video",
 		"text",
+		"html",
 		"file",
 		"gallery",
 		"boolean",
