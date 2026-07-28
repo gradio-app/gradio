@@ -412,3 +412,51 @@ class TestNodeStartupDiagnostics:
 
         assert process is None and port is None
         assert "install Node 20" in capsys.readouterr().out
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node not installed")
+class TestNodeProxyFallback:
+    """In proxy mode Python binds an internal port and lets Node own the
+    user-facing one. If Node can't serve, the app has to move onto the
+    user-facing port rather than answer only on a port nothing routes to —
+    otherwise a Space is reported as crashed while Python is healthy."""
+
+    def _cleanup(self, demo):
+        try:
+            demo.close()
+        except Exception:
+            pass
+
+    def test_serves_on_user_facing_port_when_node_fails(self, monkeypatch):
+        import gradio as gr
+        import gradio.blocks as blocks_mod
+
+        user_port = 18866
+
+        def failing_start_node(**kwargs):
+            return kwargs["server_name"], None, None
+
+        monkeypatch.setattr(blocks_mod, "start_node_server", failing_start_node)
+
+        demo = gr.Interface(lambda x: x, "text", "text")
+        try:
+            demo.launch(
+                ssr_mode=True,
+                server_port=user_port,
+                prevent_thread_lock=True,
+                quiet=True,
+            )
+
+            assert demo._ssr_degraded, (
+                "Node failed to start but Gradio did not fall back to serving "
+                "on the user-facing port"
+            )
+            assert demo.server_port == user_port, (
+                f"Expected Python on the user-facing port {user_port}, "
+                f"got {demo.server_port}"
+            )
+            assert f":{user_port}" in demo.local_url
+            resp = httpx.get(f"http://127.0.0.1:{user_port}/", timeout=10)
+            assert resp.status_code == 200
+        finally:
+            self._cleanup(demo)

@@ -71,6 +71,7 @@ from gradio.exceptions import (
     Error,
     InvalidApiNameError,
     InvalidComponentError,
+    ServerFailedToStartError,
     ShareCertificateWriteError,
 )
 from gradio.helpers import create_tracker, skip, special_args
@@ -2860,6 +2861,9 @@ Received inputs:
                 resolved_num_workers = int(env_val)
 
         self._node_is_proxy = False
+        # Set when SSR was requested but Node couldn't serve, and we fell back to
+        # serving the app from Python without SSR.
+        self._ssr_degraded = False
         static_worker_ports: list[int] = []
         # Stashed kwargs for the deferred production Node proxy start.
         # When set, the user-facing Node front proxy is started after
@@ -3063,20 +3067,41 @@ Received inputs:
                     self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
                     if self.mcp_server_obj:
                         self.mcp_server_obj._local_url = self.local_url
-                elif not quiet:
-                    warnings.warn(
-                        "Failed to start Node front proxy for SSR; Gradio is "
-                        f"reachable directly on the internal Python port "
-                        f":{self.server_port}. See the Node server output above, "
-                        "or set ssr_mode=False to serve on the expected port."
+                else:
+                    # Python is listening on an internal port that only Node was
+                    # ever going to route to, so with Node gone the app is
+                    # unreachable at the address the user (or the Space's health
+                    # check) is watching. Move Python onto the user-facing port and
+                    # serve without SSR: worse than SSR, far better than dead.
+                    self._ssr_degraded = self._serve_without_node_proxy(
+                        user_port=_pending_node_proxy_kwargs["server_port"],
+                        ssl_keyfile=ssl_keyfile,
+                        ssl_certfile=ssl_certfile,
+                        ssl_keyfile_password=ssl_keyfile_password,
                     )
+                    if not quiet:
+                        if self._ssr_degraded:
+                            warnings.warn(
+                                "Failed to start Node front proxy for SSR; serving "
+                                "without SSR on "
+                                f"{self.protocol}://{self.server_name}:{self.server_port}. "
+                                "See the Node server output above."
+                            )
+                        else:
+                            warnings.warn(
+                                "Failed to start Node front proxy for SSR, and the "
+                                f"user-facing port could not be taken over; Gradio is "
+                                f"reachable only on the internal Python port "
+                                f":{self.server_port}. See the Node server output "
+                                "above, or set ssr_mode=False."
+                            )
 
             if not self.is_colab and not quiet:
                 if self._node_is_proxy and self.node_port is not None:
                     print(
                         f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.node_port}, with SSR ⚡ (Node proxy -> Python :{self.server_port})"
                     )
-                elif self.ssr_mode:
+                elif self.ssr_mode and not self._ssr_degraded:
                     print(
                         f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.server_port}, with SSR ⚡ (dev mode)"
                     )
@@ -3350,6 +3375,60 @@ Received inputs:
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             analytics.integration_analytics(data)
+
+    def _serve_without_node_proxy(
+        self,
+        user_port: int,
+        ssl_keyfile: str | None = None,
+        ssl_certfile: str | None = None,
+        ssl_keyfile_password: str | None = None,
+    ) -> bool:
+        """Moves the running Python server from its internal port onto the
+        user-facing port, for when the Node front proxy failed to start.
+
+        In proxy mode Python deliberately binds an internal port and lets Node own
+        the user-facing one. If Node never comes up, that leaves the app answering
+        on a port nobody is asking about — on Spaces the container is judged by the
+        user-facing port, so the app is reported as crashed even though Python is
+        healthy. Rebinding there serves the app client-side rendered instead.
+
+        Returns whether the move happened; the existing server keeps running if the
+        user-facing port could not be bound.
+        """
+        from gradio import http_server
+
+        old_server = self.server
+        try:
+            server_name, server_port, local_url, server = http_server.start_server(
+                app=self.app,
+                server_name=self.server_name,
+                server_port=user_port,
+                ssl_keyfile=ssl_keyfile,
+                ssl_certfile=ssl_certfile,
+                ssl_keyfile_password=ssl_keyfile_password,
+            )
+        except (OSError, ServerFailedToStartError):
+            return False
+
+        # Only let go of the internal port once the new one is actually serving, so
+        # a failure here leaves the app reachable where it already was.
+        if old_server is not None:
+            try:
+                old_server.close()
+            except Exception:
+                pass
+
+        self.server_name = server_name
+        self.server_port = server_port
+        self.local_url = local_url
+        self.local_api_url = f"{local_url.rstrip('/')}{API_PREFIX}/"
+        self.server = server
+        self.protocol = (
+            "https" if local_url.startswith("https") or self.is_colab else "http"
+        )
+        if self.mcp_server_obj:
+            self.mcp_server_obj._local_url = local_url
+        return True
 
     def close(self, verbose: bool = True) -> None:
         """
