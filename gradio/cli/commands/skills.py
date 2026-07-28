@@ -86,10 +86,15 @@ def _create_symlink(
     central_skill_path: Path,
     force: bool,
     skill_id: str = SKILL_ID,
-) -> Path:
+) -> Path | None:
     agent_skills_dir = agent_skills_dir.expanduser().resolve()
     agent_skills_dir.mkdir(parents=True, exist_ok=True)
     link_path = agent_skills_dir / skill_id
+    if link_path == central_skill_path:
+        # The agent's skills dir is itself a symlink to the central location
+        # (e.g. .claude/skills -> ../.agents/skills), so the skill is already
+        # visible there and linking would clobber it with a link to itself.
+        return None
     _remove_existing(link_path, force)
     link_path.symlink_to(os.path.relpath(central_skill_path, agent_skills_dir))
     return link_path
@@ -370,7 +375,8 @@ def skills_add(
             link_path = _create_symlink(
                 agent_target, central_skill_path, force, skill_id=skill_id
             )
-            print(f"Created symlink: {link_path}")
+            if link_path is not None:
+                print(f"Created symlink: {link_path}")
         return
 
     if dest:
@@ -406,8 +412,10 @@ def skills_add(
     for agent_target in agent_targets:
         # Create symlinks for both skills
         link_path = _create_symlink(agent_target, central_skill_path, force)
-        print(f"Created symlink: {link_path}")
+        if link_path is not None:
+            print(f"Created symlink: {link_path}")
         hf_link_path = _create_symlink(
             agent_target, central_hf_skill_path, force, skill_id=HF_SKILL_ID
         )
-        print(f"Created symlink: {hf_link_path}")
+        if hf_link_path is not None:
+            print(f"Created symlink: {hf_link_path}")

@@ -52,5 +52,8 @@ export const PIPELINE_TAG_TO_ENDPOINT: Record<string, string> = {
 	"automatic-speech-recognition": "automatic_speech_recognition",
 	"audio-classification": "audio_classification",
 	"visual-question-answering": "visual_question_answering",
-	"document-question-answering": "document_question_answering"
+	"document-question-answering": "document_question_answering",
+	// Vision-language models are served as `conversational`, so they go through
+	// chat completions rather than a task-specific endpoint.
+	"image-text-to-text": "chat_completion"
 };

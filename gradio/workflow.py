@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import base64
 import inspect
 import json
 import logging
+import mimetypes
 import os
 import re
 import secrets
@@ -31,7 +33,7 @@ from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
-from gradio.utils import get_space
+from gradio.utils import colab_check, get_space
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -307,6 +309,50 @@ def _request_has_write_token(request: Request | None) -> bool:
     return False
 
 
+def _should_auto_open_browser() -> bool:
+    """Whether `launch()` should open a browser tab on the write-access link
+    without being asked, the way `jupyter notebook` opens its token URL.
+
+    Only done when a browser on this machine is plausibly the right place to
+    open it, so headless servers, containers, CI and remote kernels keep the
+    old print-the-link-only behavior. Set `GRADIO_WORKFLOW_INBROWSER=false` to
+    opt out, or pass `inbrowser=` explicitly to bypass this entirely.
+    """
+    env = os.getenv("GRADIO_WORKFLOW_INBROWSER", "").strip().lower()
+    if env in ("0", "false", "no", "off"):
+        return False
+    if env in ("1", "true", "yes", "on"):
+        return True
+    if get_space() is not None:
+        # No write token to hand out, and no browser on the Space's container.
+        return False
+    if "PYTEST_CURRENT_TEST" in os.environ or os.getenv("CI", "").lower() in (
+        "1",
+        "true",
+    ):
+        return False
+    if colab_check():
+        # The kernel runs on Google's machine, so a tab would open there.
+        return False
+    if os.environ.get("BROWSER"):
+        # Explicitly configured (e.g. VS Code Remote forwards this back to the
+        # local machine), and `webbrowser` honors it first.
+        return True
+    if os.environ.get("SSH_CONNECTION") or os.environ.get("SSH_TTY"):
+        return False
+    if sys.platform.startswith("linux") and not (
+        os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+    ):
+        # Headless Linux: `webbrowser` may fall back to a terminal browser and
+        # take over the console the app is logging to.
+        return False
+    try:
+        webbrowser.get()
+    except webbrowser.Error:
+        return False
+    return True
+
+
 # Shared instance: whoami(cache=True) caches per token on the HfApi instance,
 # which matters because whoami-v2 is heavily rate-limited.
 _hf_api = HfApi()
@@ -376,6 +422,28 @@ def _save_tmp(result, ext: str) -> dict:
 
 def _img_url(a) -> str:
     return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
+
+
+def _chat_image_url(a) -> str:
+    """Return an image reference a provider can actually resolve.
+
+    Chat completions send images by reference, and the provider — not this
+    process — is what dereferences them. A local path or a relative
+    `/gradio_api/file=` URL is meaningless there, so those are inlined as a
+    data URI. Absolute http(s) URLs are passed through, though note the
+    provider still has to be able to fetch them.
+    """
+    src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
+    if not isinstance(src, str) or not src:
+        return ""
+    if src.startswith(("data:", "http://", "https://")):
+        return src
+    src = src.removeprefix("/gradio_api/file=")
+    if not os.path.isfile(src):
+        return src
+    mime = mimetypes.guess_type(src)[0] or "image/png"
+    with open(src, "rb") as f:
+        return f"data:{mime};base64,{base64.b64encode(f.read()).decode()}"
 
 
 def _classify_error(e: Exception) -> dict:
@@ -761,7 +829,28 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
         ],
     },
+    # Vision-language models are served as `conversational`, so they're called
+    # through chat completions rather than a task-specific endpoint. Port order
+    # matches the canvas's image-text-to-text template (image, then prompt).
+    "chat_completion": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "text", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    },
 }
+
+
+# Generous by default: vision-language models are asked to emit whole files
+# (an HTML page, a long transcription), and reasoning models spend part of the
+# budget before their first visible token — reasoning counts against this cap,
+# and a dense screenshot can cost thousands of tokens before any output.
+# Bounded by the canvas executor's 300s per-node timeout: at the ~100 tok/s
+# these models stream, a larger cap would be cut off mid-answer anyway.
+_CHAT_MAX_TOKENS = 16384
 
 
 _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
@@ -804,7 +893,10 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "audio-classification": "audio_classification",
     "visual-question-answering": "visual_question_answering",
     "document-question-answering": "document_question_answering",
-    "image-text-to-text": "visual_question_answering",
+    # Not visual_question_answering: the Hub routes every image-text-to-text
+    # model as `conversational`, and no provider serves the VQA task at all,
+    # so a task-specific call fails for every model carrying this tag.
+    "image-text-to-text": "chat_completion",
 }
 
 
@@ -846,6 +938,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         p["id"] for p in _INFERENCE_ENDPOINT_SCHEMAS.get(endpoint, {}).get("inputs", [])
     ]
     clean: dict = {}
+    # Chat images are dereferenced by the provider, not locally, so they need a
+    # different reference than the task endpoints' server-side reads.
+    to_url = _chat_image_url if endpoint == "chat_completion" else _img_url
     for k, v in kwargs.items():
         if v is None or v == "":
             continue
@@ -854,7 +949,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             # positional port IDs from workflows saved before endpoint schemas
             k = schema_ids[int(legacy.group(1))]
         clean[k] = (
-            _img_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
+            to_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
         )
     for key, sep in _ENDPOINT_LIST_KWARGS.get(endpoint, {}).items():
         if isinstance(clean.get(key), str):
@@ -864,6 +959,53 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         return _dispatch_model_endpoint(
             client, "text_classification", {"text": clean.get("text", "")}
         )
+    if endpoint == "chat_completion":
+        content = []
+        if clean.get("text"):
+            content.append({"type": "text", "text": clean["text"]})
+        image_url = _chat_image_url(clean.get("image"))
+        if image_url:
+            content.append({"type": "image_url", "image_url": {"url": image_url}})
+        if not content:
+            raise ValueError("Connect a prompt or an image to this model.")
+        # Streamed, not buffered: the router's gateway times out a non-streaming
+        # request at ~120s, which a vision model writing a whole file routinely
+        # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
+        # so the request is bounded by the model, not by an idle proxy.
+        parts: list[str] = []
+        reasoned = 0
+        finish_reason = None
+        for chunk in client.chat_completion(
+            [{"role": "user", "content": content}],
+            max_tokens=_CHAT_MAX_TOKENS,
+            stream=True,
+        ):
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            delta = getattr(choice, "delta", None)
+            if delta is not None:
+                if delta.content:
+                    parts.append(delta.content)
+                reasoned += len(getattr(delta, "reasoning_content", None) or "")
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+        text = "".join(parts).strip()
+        if not text:
+            model_name = getattr(client, "model", None) or "The model"
+            if finish_reason == "length":
+                # Reasoning is billed against max_tokens, so a model can hit the
+                # cap while still thinking and return no visible answer at all.
+                raise ValueError(
+                    f"{model_name} hit the {_CHAT_MAX_TOKENS}-token limit "
+                    f"({reasoned} characters of reasoning) before producing an "
+                    "answer. Simplify the prompt or use a smaller image, or "
+                    "raise gradio.workflow._CHAT_MAX_TOKENS."
+                )
+            raise ValueError(
+                f"{model_name} returned no text (finish_reason={finish_reason})."
+            )
+        return json.dumps([text])
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
@@ -1828,8 +1970,10 @@ class Workflow(Blocks):
         to `allowed_paths` so those URLs resolve.
 
         Locally, editing requires the write token: the full edit link is printed
-        after the standard launch output (and used for `inbrowser`). Plain
-        local/share URLs open the app read-only."""
+        after the standard launch output, and — unless `inbrowser` is passed
+        explicitly — opened in a browser tab automatically (like `jupyter
+        notebook` does with its token URL). Plain local/share URLs open the app
+        read-only. See `_should_auto_open_browser` for when the tab is opened."""
         if args:
             names = list(inspect.signature(super().launch).parameters)
             kwargs.update(dict(zip(names, args)))
@@ -1846,7 +1990,15 @@ class Workflow(Blocks):
         # replicate Blocks.launch()'s blocking behavior ourselves below.
         prevent_thread_lock = bool(kwargs.get("prevent_thread_lock", False))
         debug = bool(kwargs.get("debug", False))
-        inbrowser = bool(kwargs.get("inbrowser", False))
+        # `inbrowser` defaults to opening the write-access link, but only when
+        # the caller didn't say either way — an explicit `inbrowser=False` still
+        # means "don't open anything".
+        explicit_inbrowser = kwargs.get("inbrowser")
+        inbrowser = (
+            bool(explicit_inbrowser)
+            if explicit_inbrowser is not None
+            else _should_auto_open_browser()
+        )
         kwargs["inbrowser"] = False
 
         real_block_thread = self.block_thread
@@ -1862,8 +2014,9 @@ class Workflow(Blocks):
             sep = "&" if "?" in local_url else "?"
             write_url = f"{local_url}{sep}write_token={WRITE_TOKEN}"
             if not kwargs.get("quiet", False):
+                opening = " — opening it in your browser" if inbrowser else ""
                 print(
-                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see): {write_url}"
+                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see){opening}: {write_url}"
                 )
         if inbrowser:
             webbrowser.open(
