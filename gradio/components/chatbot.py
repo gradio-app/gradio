@@ -501,8 +501,8 @@ class Chatbot(Component):
             chat_message.unrender()
             component = import_component_and_data(type(chat_message).__name__)
             if component:
-                # Don't mutate the caller's component: a streaming handler yields
-                # the same history repeatedly, so this runs again on the next pass.
+                # Don't rewrite the caller's constructor args: a streaming handler
+                # yields the same history repeatedly, so this runs again next pass.
                 constructor_args = {**chat_message.constructor_args, "render": False}
                 component = chat_message.__class__(**constructor_args)
                 constructor_args.pop("value", None)

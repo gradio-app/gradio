@@ -382,7 +382,7 @@ class TestAPI:
             for _ in range(2):
                 # A deep copy raising inside the queue leaves the request hanging
                 # rather than erroring, hence the timeout.
-                result = client.submit("hello", api_name="/chat").result(timeout=30)
+                result = client.submit("hello", api_name="/chat").result(timeout=5)
                 assert result["value"]["type"] == "bokeh"
 
     def test_multiple_messages(self, connect):
