@@ -2,7 +2,7 @@
 	import { setContext } from "svelte";
 	import { writable } from "svelte/store";
 	import { TABS } from "@gradio/tabs";
-	import TabItem, { BaseTabItem } from "./Index.svelte";
+	import { BaseTabItem } from "./Index.svelte";
 
 	let all = $props();
 	const cfg = (all as any).props ?? {};
@@ -23,35 +23,15 @@
 	});
 </script>
 
-{#if cfg.use_index}
-	<TabItem
-		shared_props={{
-			elem_id: "",
-			elem_classes: [],
-			label: "First Tab",
-			visible: cfg.tab_visible ?? true,
-			interactive: true,
-			scale: cfg.tab_scale ?? 0
-		}}
-		props={{
-			id: cfg.omit_id ? undefined : (cfg.tab_id ?? "t1"),
-			order: 0,
-			component_id: 1
-		}}
-	>
-		<div data-testid="tab-content">tab panel content</div>
-	</TabItem>
-{:else}
-	<BaseTabItem
-		label="First Tab"
-		id={cfg.omit_id ? undefined : (cfg.tab_id ?? "t1")}
-		order={0}
-		visible={cfg.tab_visible ?? true}
-		interactive={true}
-		scale={0}
-		component_id={1}
-		onselect={(data) => cfg.on_tab_select?.(data)}
-	>
-		<div data-testid="tab-content">tab panel content</div>
-	</BaseTabItem>
-{/if}
+<BaseTabItem
+	label="First Tab"
+	id={cfg.omit_id ? undefined : (cfg.tab_id ?? "t1")}
+	order={0}
+	visible={cfg.tab_visible ?? true}
+	interactive={true}
+	scale={0}
+	component_id={1}
+	onselect={(data) => cfg.on_tab_select?.(data)}
+>
+	<div data-testid="tab-content">tab panel content</div>
+</BaseTabItem>

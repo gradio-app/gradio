@@ -60,7 +60,8 @@ describe("Textbox", () => {
 			const result = await render(Textbox, {
 				...default_props,
 				value: "",
-				validation_error: "Required"
+				validation_error: "Shared error",
+				loading_status: { validation_error: "Required" }
 			});
 			const textbox = result.getByRole("textbox");
 
