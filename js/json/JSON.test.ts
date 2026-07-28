@@ -137,6 +137,15 @@ describe("JSON", () => {
 		});
 		expect(getByText('"a"')).toBeVisible();
 	});
+
+	test("theme_mode=dark applies the dark-mode class", async () => {
+		const { container } = await render(JSONOutput, {
+			...default_props,
+			theme_mode: "dark"
+		});
+
+		expect(container.querySelector(".json-node.root")).toHaveClass("dark-mode");
+	});
 });
 
 describe("Empty state", () => {

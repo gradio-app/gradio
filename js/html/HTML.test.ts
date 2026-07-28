@@ -128,4 +128,21 @@ describe("HTML", () => {
 
 		expect(view.queryByText("HTML label")).not.toBeInTheDocument();
 	});
+
+	test.each([
+		{ padding: true, expected: true },
+		{ padding: false, expected: false }
+	])(
+		"padding=$padding controls block padding",
+		async ({ padding, expected }) => {
+			const { container } = await render(HTML, {
+				...default_props,
+				padding
+			});
+			const block = container.querySelector(".block");
+
+			expect(block).not.toBeNull();
+			expect(block?.classList.contains("padded")).toBe(expected);
+		}
+	);
 });
