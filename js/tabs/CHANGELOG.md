@@ -1,5 +1,19 @@
 # @gradio/tabs
 
+## 0.10.0
+
+### Features
+
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Fixes
+
+- [#13639](https://github.com/gradio-app/gradio/pull/13639) [`1535d69`](https://github.com/gradio-app/gradio/commit/1535d695af964793e27fa55ec1f047dd64de5c9d) - Fix hidden tab focus and label overflow menu.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+
 ## 0.9.0
 
 ### Features

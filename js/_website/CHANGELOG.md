@@ -1,5 +1,25 @@
 # website
 
+## 0.80.0
+
+### Features
+
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Fixes
+
+- [#13640](https://github.com/gradio-app/gradio/pull/13640) [`d833d9a`](https://github.com/gradio-app/gradio/commit/d833d9add10925d74dfcbd8fdc9686132c6fa458) - fall back to the custom component backup dataset when the gallery API is unavailable.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.2
+- @gradio/tabs@0.10.0
+- @gradio/html@0.13.2
+- @gradio/tabitem@0.8.3
+- @gradio/code@0.19.0
+- @gradio/paramviewer@0.11.0
+- @gradio/button@0.8.2
+
 ## 0.79.0
 
 ### Features

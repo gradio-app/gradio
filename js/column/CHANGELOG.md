@@ -1,5 +1,16 @@
 # @gradio/column
 
+## 0.4.1
+
+### Fixes
+
+- [#13644](https://github.com/gradio-app/gradio/pull/13644) [`f0abb1e`](https://github.com/gradio-app/gradio/commit/f0abb1ea8e61f4b886296365639b9fe0492012a9) - restore shared props lost during frontend prop partitioning.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+- @gradio/statustracker@0.15.2
+
 ## 0.4.0
 
 ### Dependency updates
