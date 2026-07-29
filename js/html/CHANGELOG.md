@@ -1,5 +1,16 @@
 # @gradio/html
 
+## 0.13.2
+
+### Fixes
+
+- [#13613](https://github.com/gradio-app/gradio/pull/13613) [`195593e`](https://github.com/gradio-app/gradio/commit/195593ed271795ce21ea8f94b7ec9e441ffd5227) - Rerun HTML mount behavior when `gr.render` replaces an unkeyed component.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.3.2
+- @gradio/utils@0.13.1
+
 ## 0.13.1
 
 ### Fixes

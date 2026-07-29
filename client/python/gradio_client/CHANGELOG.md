@@ -1,5 +1,11 @@
 # gradio_client
 
+## 2.5.1
+
+### Fixes
+
+- [#13614](https://github.com/gradio-app/gradio/pull/13614) [`643fb05`](https://github.com/gradio-app/gradio/commit/643fb05b51ba5b04be925ec59ab3ee9f2e50ebe5) - Restore Git tags for Python `gradio_client` releases.  Thanks @abidlabs!
+
 ## 2.5.0
 
 ### Features
