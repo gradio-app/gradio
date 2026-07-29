@@ -5,10 +5,12 @@
 		NodeDataValue,
 		FileValue
 	} from "./workflow-types";
+	import { getContext } from "svelte";
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
+	import ExpandIcon from "./icons/ExpandIcon.svelte";
 
 	interface Props {
 		node: WFNode;
@@ -24,6 +26,10 @@
 
 	let { node, widgetPortId, widgetType, isReadonly, ondatachange }: Props =
 		$props();
+
+	const wf = getContext<{
+		onviewfullscreen?: (src: string, alt: string) => void;
+	}>("wf");
 
 	const widgetPort = $derived(
 		node.outputs.find((p) => p.id === widgetPortId) ??
@@ -336,6 +342,20 @@
 					</div>
 				{/if}
 				<div class="widget-preview-actions">
+					{#if (widgetType === "image" || widgetType === "gallery") && wf?.onviewfullscreen}
+						<button
+							class="widget-action"
+							onclick={(e) => {
+								e.stopPropagation();
+								wf.onviewfullscreen?.(fileVal.url, fileVal.name ?? "image");
+							}}
+							onpointerdown={(e) => e.stopPropagation()}
+							title="View full screen"
+							aria-label="View full screen"
+						>
+							<ExpandIcon />
+						</button>
+					{/if}
 					<button
 						class="widget-action"
 						onclick={downloadFile}
@@ -694,7 +714,9 @@
 	.widget-img {
 		display: block;
 		width: 100%;
-		max-height: 320px;
+		/* Scales with the node so widening one actually enlarges the preview;
+		   --preview-max-h is set from the node width. */
+		max-height: var(--preview-max-h, 320px);
 		object-fit: contain;
 		background: #101118;
 	}

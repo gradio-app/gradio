@@ -397,6 +397,7 @@
 		initialSubtab?: string;
 	}
 	let activePicker: ActivePicker | null = $state(null);
+	let fullscreenImage: { src: string; alt: string } | null = $state(null);
 
 	interface PendingDrop {
 		from_node_id: string;
@@ -457,7 +458,12 @@
 		staleNodes: new Set<string>(),
 		connectedPorts: new Set<string>(),
 		readOnly: false,
+		// Resize drags happen in screen pixels but node width is canvas units.
+		zoom: 1,
 		ondatachange: updateNodeData,
+		onviewfullscreen: (src: string, alt: string) => {
+			fullscreenImage = { src, alt };
+		},
 		onremove: (id: string) => {
 			if (!readOnly) removeNode(id);
 		},
@@ -565,6 +571,9 @@
 	});
 	$effect(() => {
 		wfCtx.connectedPorts = connectedPortsSet();
+	});
+	$effect(() => {
+		wfCtx.zoom = viewport.zoom;
 	});
 	$effect(() => {
 		wfCtx.readOnly = readOnly;
@@ -1872,6 +1881,11 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent): void {
+		if (e.key === "Escape" && fullscreenImage) {
+			e.preventDefault();
+			fullscreenImage = null;
+			return;
+		}
 		if (
 			e.key === "Enter" &&
 			(e.metaKey || e.ctrlKey) &&
@@ -2748,10 +2762,71 @@
 			onClose={() => (showApiPanel = false)}
 		/>
 	{/if}
+
+	{#if fullscreenImage}
+		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+		<div
+			class="fullscreen-overlay"
+			onclick={() => (fullscreenImage = null)}
+			transition:fade={{ duration: 120 }}
+		>
+			<img
+				class="fullscreen-img"
+				src={fullscreenImage.src}
+				alt={fullscreenImage.alt}
+			/>
+			<button
+				class="fullscreen-close"
+				onclick={() => (fullscreenImage = null)}
+				title="Close (Esc)"
+				aria-label="Close full screen">&times;</button
+			>
+		</div>
+	{/if}
 </div>
 
 <style>
 	@import "./WorkflowCanvas.css";
+
+	/* ─── Full-screen image viewer ──────────────────────────────────────────── */
+	.fullscreen-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 1100;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: var(--size-8);
+		background: rgba(8, 9, 13, 0.9);
+		backdrop-filter: blur(2px);
+		cursor: zoom-out;
+	}
+
+	.fullscreen-img {
+		/* Fill the viewport and letterbox rather than render at natural size —
+		   the point is to inspect the image, including small ones. */
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		border-radius: var(--radius-md);
+	}
+
+	.fullscreen-close {
+		position: absolute;
+		top: var(--size-4);
+		right: var(--size-5);
+		background: transparent;
+		border: none;
+		color: #c5c7d0;
+		font-size: 30px;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0 var(--size-2);
+	}
+
+	.fullscreen-close:hover {
+		color: #fff;
+	}
 
 	/* ─── Custom canvas ─────────────────────────────────────────────────────── */
 	.editor {

@@ -42,6 +42,8 @@
 			portId: string,
 			value: NodeDataValue
 		) => void;
+		zoom: number;
+		onviewfullscreen: (src: string, alt: string) => void;
 		onremove: (id: string) => void;
 		onopenpicker: (id: string) => void;
 		onswitchendpoint: (id: string, endpointName: string) => void;
@@ -68,6 +70,42 @@
 
 	const pending = $derived(ctx.pending);
 	const readOnly = $derived(ctx.readOnly);
+
+	const MIN_NODE_WIDTH = 180;
+	const MAX_NODE_WIDTH = 900;
+	let resizing = $state(false);
+
+	function startResize(e: PointerEvent): void {
+		if (readOnly) return;
+		e.preventDefault();
+		e.stopPropagation();
+		resizing = true;
+		const startX = e.clientX;
+		const startWidth = node.width;
+		const target = e.currentTarget as HTMLElement;
+		target.setPointerCapture(e.pointerId);
+
+		const onMove = (ev: PointerEvent): void => {
+			// Screen pixels → canvas units, so the handle tracks the cursor at
+			// any zoom level.
+			const dx = (ev.clientX - startX) / (ctx.zoom || 1);
+			const width = Math.round(
+				Math.min(MAX_NODE_WIDTH, Math.max(MIN_NODE_WIDTH, startWidth + dx))
+			);
+			// Height is content-driven (a ResizeObserver syncs it back), so only
+			// width is ours to set.
+			if (width !== node.width) resizeNode(node.id, width, node.height);
+		};
+		const onUp = (): void => {
+			resizing = false;
+			target.removeEventListener("pointermove", onMove);
+			target.removeEventListener("pointerup", onUp);
+			target.removeEventListener("pointercancel", onUp);
+		};
+		target.addEventListener("pointermove", onMove);
+		target.addEventListener("pointerup", onUp);
+		target.addEventListener("pointercancel", onUp);
+	}
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
 	const error = $derived(ctx.nodeErrors[id] ?? "");
 	const isStale = $derived(ctx.staleNodes.has(id));
@@ -198,8 +236,10 @@
 	class:has-pending={pending !== null}
 	bind:this={nodeEl}
 	onclick={(e) => ctx.onselect(node.id, e.shiftKey)}
+	class:node-resizing={resizing}
 	style="
 		width: {node.width}px;
+		--preview-max-h: {Math.round(node.width * 1.15)}px;
 		--accent: {accentColor};
 		--accent-dim: {accentDim};
 	"
@@ -664,6 +704,15 @@
 			</button>
 		</div>
 	{/if}
+
+	{#if !readOnly}
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="node-resize-handle nodrag nopan"
+			onpointerdown={startResize}
+			title="Drag to resize"
+		></div>
+	{/if}
 </div>
 
 <style>
@@ -1111,6 +1160,36 @@
 			box-shadow: 0 0 0 4px var(--port-color);
 			opacity: 0.3;
 		}
+	}
+
+	.node-resize-handle {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		width: 14px;
+		height: 14px;
+		cursor: nwse-resize;
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	/* The two ticks that read as a resize corner. */
+	.node-resize-handle::after {
+		content: "";
+		position: absolute;
+		right: 3px;
+		bottom: 3px;
+		width: 7px;
+		height: 7px;
+		border-right: 2px solid #6b6e78;
+		border-bottom: 2px solid #6b6e78;
+		border-bottom-right-radius: 2px;
+	}
+
+	.wf-node:hover .node-resize-handle,
+	.wf-node.node-selected .node-resize-handle,
+	.wf-node.node-resizing .node-resize-handle {
+		opacity: 1;
 	}
 
 	.node-error-banner {
