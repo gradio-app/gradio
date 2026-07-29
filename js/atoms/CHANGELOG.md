@@ -1,5 +1,15 @@
 # @gradio/atoms
 
+## 0.26.1
+
+### Fixes
+
+- [#13661](https://github.com/gradio-app/gradio/pull/13661) [`8647a06`](https://github.com/gradio-app/gradio/commit/8647a06d13a77aefb818565e8766474dae8eeb70) - Keep fullscreen component controls inside the visible viewport when the page has a scrollbar.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+
 ## 0.26.0
 
 ### Features
