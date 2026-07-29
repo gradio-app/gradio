@@ -13,7 +13,11 @@
 		label: string;
 		parameters: ApiParam[];
 		returns: ApiParam[];
+		/** Set when the endpoint's function takes a `gr.OAuthToken`. */
+		oauth_token?: "required" | "optional";
 	}
+
+	const OAUTH_TOKEN_PLACEHOLDER = "hf_...";
 
 	let {
 		server = {},
@@ -61,32 +65,41 @@
 		}
 	});
 
+	const EXAMPLE_FILE_URL = "https://example.com/file";
+
+	function isFileParam(p: ApiParam): boolean {
+		return (
+			p.python_type === "filepath" || p.python_type.startsWith("list[filepath")
+		);
+	}
+
 	function example(p: ApiParam): string {
-		if (
-			p.python_type === "filepath" ||
-			p.python_type.startsWith("list[filepath")
-		)
-			return lang === "python"
-				? `handle_file('https://example.com/file')`
-				: `"https://example.com/file"`;
+		if (isFileParam(p)) {
+			// Each client takes a file differently: `handle_file` wraps a URL for
+			// the Python and JS clients, while a raw request has to spell out the
+			// FileData payload those helpers produce.
+			if (lang === "python") return `handle_file('${EXAMPLE_FILE_URL}')`;
+			if (lang === "javascript") return `handle_file("${EXAMPLE_FILE_URL}")`;
+			return `{"path": "${EXAMPLE_FILE_URL}", "meta": {"_type": "gradio.FileData"}}`;
+		}
 		if (p.python_type === "float") return "3";
 		if (p.python_type === "bool") return lang === "python" ? "True" : "true";
 		if (p.python_type === "dict") return "{}";
-		return lang === "python" ? '"Hello!!"' : '"Hello!!"';
+		return '"Hello!!"';
 	}
 
 	function pySnippet(ep: ApiEndpoint): string {
-		const needsHandleFile = ep.parameters.some((p) =>
-			p.python_type.includes("filepath")
-		);
-		const imports = needsHandleFile
+		const imports = ep.parameters.some(isFileParam)
 			? "from gradio_client import Client, handle_file"
 			: "from gradio_client import Client";
 		const args = ep.parameters.map((p) => `\t\t${paramName(p)}=${example(p)},`);
+		const client = ep.oauth_token
+			? `client = Client("${root}", oauth_token="${OAUTH_TOKEN_PLACEHOLDER}")`
+			: `client = Client("${root}")`;
 		return [
 			imports,
 			"",
-			`client = Client("${root}")`,
+			client,
 			"result = client.predict(",
 			...args,
 			`\t\tapi_name="${ep.api_name}"`,
@@ -99,10 +112,16 @@
 		const args = ep.parameters
 			.map((p) => `\t${paramName(p)}: ${example(p)}`)
 			.join(",\n");
+		const connect = ep.oauth_token
+			? `const client = await Client.connect("${root}", { oauth_token: "${OAUTH_TOKEN_PLACEHOLDER}" });`
+			: `const client = await Client.connect("${root}");`;
+		const imports = ep.parameters.some(isFileParam)
+			? 'import { Client, handle_file } from "@gradio/client";'
+			: 'import { Client } from "@gradio/client";';
 		return [
-			'import { Client } from "@gradio/client";',
+			imports,
 			"",
-			`const client = await Client.connect("${root}");`,
+			connect,
 			`const result = await client.predict("${ep.api_name}", {`,
 			args,
 			"});",
@@ -112,10 +131,13 @@
 
 	function bashSnippet(ep: ApiEndpoint): string {
 		const data = ep.parameters.map((p) => example(p)).join(", ");
+		const body = ep.oauth_token
+			? `{"data": [${data}], "oauth_token": "${OAUTH_TOKEN_PLACEHOLDER}"}`
+			: `{"data": [${data}]}`;
 		return [
 			`curl -X POST ${root}/gradio_api/call${ep.api_name} \\`,
 			`\t-H "Content-Type: application/json" \\`,
-			`\t-d '{"data": [${data}]}' \\`,
+			`\t-d '${body}' \\`,
 			`\t| awk -F'"' '{ print $4 }' \\`,
 			`\t| xargs -I {} curl -N ${root}/gradio_api/call${ep.api_name}/{}`
 		].join("\n");
@@ -228,6 +250,20 @@
 								{/each}
 							</div>
 						</div>
+
+						{#if ep.oauth_token}
+							<div class="api-note">
+								<span class="api-note-label">oauth_token</span>
+								<span>
+									This endpoint runs the workflow on your behalf, so it takes
+									your Hugging Face token ({ep.oauth_token}). On a Space it is
+									what lets an API caller — who has no OAuth session — reach
+									gated models and Spaces as themselves. It is passed to the
+									workflow's own code, so it is only ever sent to endpoints that
+									declare they take one.
+								</span>
+							</div>
+						{/if}
 
 						<pre class="api-code"><code>{snippet(ep)}</code></pre>
 					</div>
@@ -433,6 +469,28 @@
 		color: #5a5d68;
 		font-style: italic;
 	}
+	.api-note {
+		display: flex;
+		gap: var(--size-2-5);
+		align-items: baseline;
+		padding: var(--size-3);
+		border-bottom: 1px solid #1e1f2a;
+		font-family: "Manrope", sans-serif;
+		font-size: 12px;
+		line-height: 1.5;
+		color: #8a8c98;
+	}
+	.api-note-label {
+		flex-shrink: 0;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		color: var(--color-accent, #f97316);
+		background: #1a1b25;
+		border: 1px solid #2a2b38;
+		border-radius: var(--radius-sm);
+		padding: 2px var(--size-1-5);
+	}
+
 	.api-code {
 		margin: 0;
 		padding: var(--size-3) 14px;
