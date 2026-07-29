@@ -2874,6 +2874,14 @@ Received inputs:
             env_val = os.environ.get("GRADIO_NUM_WORKERS")
             if env_val is not None:
                 resolved_num_workers = int(env_val)
+        static_worker_count = (
+            resolved_num_workers
+            if resolved_num_workers is not None
+            and resolved_num_workers >= 1
+            and self.auth is None
+            and auth_dependency is None
+            else 0
+        )
 
         self._node_is_proxy = False
         # Set when SSR was requested but Node couldn't serve, and we fell back to
@@ -2925,10 +2933,10 @@ Received inputs:
                     python_host, start=user_port + 1, try_count=TRY_NUM_PORTS
                 )
 
-                if resolved_num_workers is not None and resolved_num_workers >= 1:
+                if static_worker_count:
                     worker_start = python_internal_port + 1
                     static_worker_ports = [
-                        worker_start + i for i in range(resolved_num_workers)
+                        worker_start + i for i in range(static_worker_count)
                     ]
 
                 # Commit Python to the internal port now (so it can bind
@@ -3023,7 +3031,7 @@ Received inputs:
             self._queue.set_server_app(self.server_app)
 
             # Static worker pool for offloading file serving / uploads
-            if resolved_num_workers is not None and resolved_num_workers >= 1:
+            if static_worker_count:
                 from gradio.routes import (
                     BUILD_PATH_LIB,
                     STATIC_PATH_LIB,
@@ -3048,10 +3056,10 @@ Received inputs:
                     if self.node_port is not None:
                         worker_start = max(worker_start, self.node_port + 1)
                     worker_ports = [
-                        worker_start + i for i in range(resolved_num_workers)
+                        worker_start + i for i in range(static_worker_count)
                     ]
                 self._static_worker_pool = StaticWorkerPool(
-                    num_workers=resolved_num_workers,
+                    num_workers=static_worker_count,
                     config=static_config,
                     ports=worker_ports,
                 )
@@ -3059,7 +3067,7 @@ Received inputs:
 
                 if not quiet:
                     print(
-                        f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"
+                        f"* Static file workers: {static_worker_count} processes on ports {self._static_worker_pool.ports}"
                     )
 
             # Now that Python (and any static workers) are listening,

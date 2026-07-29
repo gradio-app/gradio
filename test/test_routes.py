@@ -855,6 +855,8 @@ class TestRoutes:
         client = TestClient(app)
         response = client.get("/monitoring")
         assert response.status_code == 403
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 403
 
 
 def test_api_listener(connect):
@@ -957,6 +959,8 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 200
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 200
 
         response = client.get("/logout")
 
@@ -964,6 +968,34 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 401
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 401
+
+    def test_profiling_routes(self, monkeypatch):
+        from gradio import profiling
+
+        monkeypatch.setattr(profiling, "PROFILING_ENABLED", True)
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+        routes = [
+            ("get", f"{API_PREFIX}/profiling/traces"),
+            ("get", f"{API_PREFIX}/profiling/summary"),
+            ("post", f"{API_PREFIX}/profiling/clear"),
+        ]
+
+        for method, path in routes:
+            assert getattr(client, method)(path).status_code == 401
+
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
+        for method, path in routes:
+            assert getattr(client, method)(path).status_code == 200
 
 
 class TestQueueRoutes:

@@ -119,6 +119,35 @@ class TestStaticWorkerApp:
 class TestStaticWorkerPool:
     """Test that the worker pool starts processes and serves traffic."""
 
+    @pytest.mark.parametrize(
+        "auth_kwargs",
+        [
+            {"auth": ("user", "password")},
+            {"auth_dependency": lambda request: request.headers.get("x-user")},
+        ],
+    )
+    def test_authenticated_apps_do_not_start_static_workers(
+        self, monkeypatch, auth_kwargs
+    ):
+        import gradio as gr
+
+        workers_started = []
+        monkeypatch.setattr(
+            StaticWorkerPool, "start", lambda self: workers_started.append(self)
+        )
+        demo = gr.Interface(lambda value: value, "text", "text")
+        try:
+            demo.launch(
+                prevent_thread_lock=True,
+                quiet=True,
+                num_workers=1,
+                ssr_mode=False,
+                **auth_kwargs,
+            )
+            assert workers_started == []
+        finally:
+            demo.close()
+
     def test_pool_starts_and_serves_health(self, upload_dir):
         config = StaticServerConfig(
             build_path=str(
@@ -191,6 +220,48 @@ class TestStaticWorkerPool:
                 assert Path(resp.json()[0]).exists()
         finally:
             pool.shutdown()
+
+
+def test_node_proxy_does_not_inherit_stale_static_worker_ports(monkeypatch):
+    from gradio import node_server
+
+    captured_env = {}
+
+    class FakeSocket:
+        def setsockopt(self, *args):
+            pass
+
+        def bind(self, address):
+            pass
+
+        def close(self):
+            pass
+
+    class FakeProcess:
+        stderr = None
+
+    def fake_popen(*args, **kwargs):
+        captured_env.update(kwargs["env"])
+        return FakeProcess()
+
+    monkeypatch.setenv("GRADIO_STATIC_WORKER_PORTS", "19999")
+    monkeypatch.setattr(node_server, "GRADIO_LOCAL_DEV_MODE", False)
+    monkeypatch.setattr(node_server.socket, "socket", FakeSocket)
+    monkeypatch.setattr(node_server.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(
+        node_server, "verify_server_startup", lambda *args, **kwargs: True
+    )
+    monkeypatch.setattr(node_server.signal, "signal", lambda *args: None)
+
+    node_server.start_node_process(
+        node_path="node",
+        server_name="127.0.0.1",
+        server_ports=[17890],
+        python_port=17891,
+        static_worker_ports=[],
+    )
+
+    assert "GRADIO_STATIC_WORKER_PORTS" not in captured_env
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node not installed")

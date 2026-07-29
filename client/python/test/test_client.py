@@ -1079,15 +1079,19 @@ class TestEndpoints:
         mock_response.raise_for_status.return_value = None
         mock_response.iter_bytes.return_value = [b"test content"]
 
+        @contextmanager
         def mock_stream(*args, **kwargs):
             # Verify that the URL is used directly for streams
             called_url: str = args[1]  # Second argument is the URL
             assert called_url.endswith("api/stream/test_file.txt"), (
                 f"Expected stream URL, got: {called_url}"
             )
-            return mock_response
+            yield mock_response
 
-        monkeypatch.setattr(httpx, "stream", mock_stream)
+        monkeypatch.setattr(
+            "gradio_client.client.utils._stream_with_same_origin_redirects",
+            mock_stream,
+        )
 
         # Test stream file with URL
         stream_file_data = {
@@ -1102,14 +1106,18 @@ class TestEndpoints:
         # Test non-stream file still uses path-based URL construction
         regular_file_data = {"path": "regular/file.txt", "is_stream": False}
 
+        @contextmanager
         def mock_stream_regular(*args, **kwargs):
             called_url = args[1]
             assert called_url.endswith("file=regular/file.txt"), (
                 f"Expected path-based URL, got: {called_url}"
             )
-            return mock_response
+            yield mock_response
 
-        monkeypatch.setattr(httpx, "stream", mock_stream_regular)
+        monkeypatch.setattr(
+            "gradio_client.client.utils._stream_with_same_origin_redirects",
+            mock_stream_regular,
+        )
 
         with patch("pathlib.Path.resolve", return_value="/tmp/regular_file.txt"):
             client.endpoints[0]._download_file(regular_file_data)  # type: ignore

@@ -16,7 +16,8 @@ import tempfile
 import time
 import warnings
 from collections import deque
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -654,6 +655,50 @@ def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
     return str(dest.resolve())
 
 
+def _url_origin(url: httpx.URL) -> tuple[str, str, int | None]:
+    port = url.port
+    if port is None:
+        port = {"http": 80, "https": 443}.get(url.scheme)
+    return url.scheme, url.host, port
+
+
+@contextmanager
+def _stream_with_same_origin_redirects(
+    method: str,
+    url: str,
+    *,
+    max_redirects: int = 20,
+    **kwargs: Any,
+) -> Iterator[httpx.Response]:
+    initial_url = httpx.URL(url)
+    initial_origin = _url_origin(initial_url)
+    current_url = initial_url
+    redirects_followed = 0
+
+    kwargs.pop("follow_redirects", None)
+    with httpx.Client(follow_redirects=False, **kwargs) as client:
+        while True:
+            with client.stream(method, current_url) as response:
+                if not response.has_redirect_location:
+                    yield response
+                    return
+
+                if redirects_followed >= max_redirects:
+                    raise httpx.TooManyRedirects(
+                        f"Exceeded maximum allowed redirects ({max_redirects}).",
+                        request=response.request,
+                    )
+
+                redirect_url = response.url.join(response.headers["location"])
+                if _url_origin(redirect_url) != initial_origin:
+                    raise ValueError(
+                        "Refusing to follow a cross-origin file redirect from "
+                        f"{response.url} to {redirect_url}."
+                    )
+                current_url = redirect_url
+                redirects_followed += 1
+
+
 def download_tmp_copy_of_file(
     url_path: str, token: str | None = None, dir: str | None = None
 ) -> str:
@@ -665,8 +710,8 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with httpx.stream(
-        "GET", url_path, headers=headers, follow_redirects=True
+    with _stream_with_same_origin_redirects(
+        "GET", url_path, headers=headers
     ) as response:
         response.raise_for_status()
         with open(file_path, "wb") as f:
