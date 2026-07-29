@@ -5,8 +5,16 @@ const should_open_link_in_new_tab = (link: string | null): boolean => {
 	return !!href && !href.startsWith("#");
 };
 
+// <style> elements and stylesheet <link>s apply to the whole document once
+// injected, so drop them, matching the server-side sanitize-html defaults.
+const configuration = Amuchina.getDefaultConfiguration();
+configuration.allowElements = (configuration.allowElements ?? []).filter(
+	(element: string) =>
+		element !== "style" && element !== "svg:style" && element !== "link"
+);
+const amuchina = new Amuchina(configuration);
+
 export function sanitize(source: string): string {
-	const amuchina = new Amuchina();
 	const node = new DOMParser().parseFromString(source, "text/html");
 	const sanitized_node = amuchina.sanitize(node);
 	walk_nodes(sanitized_node.body, "A", (node) => {
