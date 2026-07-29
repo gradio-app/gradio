@@ -22,6 +22,12 @@
 	let dark_mode = gradio.shared.theme === "dark";
 
 	let label = $derived(gradio.shared.label || gradio.i18n("code.code"));
+	// gr.Code() with no value serializes to `undefined`. Svelte 5 forbids
+	// `bind:value={undefined}` when the child's `value` prop has a fallback
+	// default (`$bindable("")`), throwing `props_invalid_value`, which aborts
+	// hydration and breaks event wiring for the whole page. Coerce to "" so the
+	// binding below always has a defined value (mirrors Textbox/Index.svelte).
+	gradio.props.value = gradio.props.value ?? "";
 	let old_value = $state(gradio.props.value);
 	let first_change = $state(true);
 

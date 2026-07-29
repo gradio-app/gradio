@@ -3,8 +3,11 @@ const defaultTheme = require("tailwindcss/defaultTheme");
 module.exports = {
 	content: [
 		"./src/*.{html,js,css}",
-		"./src/**/*.{html,js,svelte,ts,css}",
-		"**/@gradio/**/*.{html,js,svelte,ts,css}"
+		"./src/**/*.{html,js,svelte,ts,css}"
+		// NOTE: @gradio component packages are intentionally NOT scanned — only the
+		// website itself uses Tailwind. Scanning component source made Tailwind emit
+		// spurious arbitrary-property utilities (e.g. `[-:=]` -> `-: =;`) that break
+		// the lightningcss CSS minifier under Vite 8 (docs-build CI).
 	],
 
 	theme: {

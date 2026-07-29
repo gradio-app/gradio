@@ -33,6 +33,7 @@
 		} | null;
 		nodeStatus: Record<string, NodeStatus>;
 		nodeErrors: Record<string, string>;
+		nodeDurations: Record<string, number>;
 		staleNodes: Set<string>;
 		connectedPorts: Set<string>;
 		readOnly: boolean;
@@ -74,6 +75,13 @@
 	// Only operator nodes have meaningful per-node execution. References just
 	// hold values; subjects just display passthrough.
 	const canRunSolo = $derived(node.kind === "transform");
+	const duration = $derived(ctx.nodeDurations[id] as number | undefined);
+
+	function formatDuration(seconds: number): string {
+		if (seconds >= 10) return `${Math.round(seconds)}s`;
+		if (seconds >= 1) return `${seconds.toFixed(1)}s`;
+		return `${parseFloat(seconds.toFixed(2))}s`;
+	}
 
 	let nodeEl: HTMLDivElement;
 	let editingLabel = $state(false);
@@ -198,7 +206,7 @@
 >
 	<div class="node-header" role="button" tabindex="-1">
 		<div class="node-header-top">
-			{#if status === "running"}
+			{#if status === "running" && !canRunSolo}
 				<span class="node-status-spinner"></span>
 			{/if}
 			{#if editingLabel}
@@ -228,17 +236,32 @@
 			{#if canRunSolo}
 				<button
 					class="node-run"
-					class:node-run-stale={isStale}
+					class:node-run-stale={isStale && status !== "running"}
+					class:has-duration={duration !== undefined}
 					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => {
 						e.stopPropagation();
 						ctx.onrunnode(node.id);
 					}}
-					title={isStale ? "Run this node (inputs changed)" : "Run this node"}
+					title={(status === "running"
+						? "Running…"
+						: isStale
+							? "Run this node (inputs changed)"
+							: "Run this node") +
+						(duration !== undefined
+							? ` — last run ${formatDuration(duration)}`
+							: "")}
 					aria-label="Run this node"
 				>
-					<PlayIcon />
+					{#if duration !== undefined}
+						<span class="node-run-time">{formatDuration(duration)}</span>
+					{/if}
+					{#if status === "running"}
+						<span class="node-status-spinner"></span>
+					{:else}
+						<PlayIcon />
+					{/if}
 				</button>
 			{/if}
 			{#if !readOnly}
@@ -371,7 +394,18 @@
 				{@const visible =
 					showAllInputs || portConnected || port.required !== false}
 				{#if visible}
-					<div class="port-row input-row" class:widget-port={hasWidget}>
+					{@const inlineWidget =
+						!portConnected &&
+						node.kind === "transform" &&
+						!port.choices?.length &&
+						(port.type === "number" || port.type === "boolean")}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div
+						class="port-row input-row"
+						class:widget-port={hasWidget}
+						class:port-row-inline={inlineWidget}
+						onmousedown={inlineWidget ? (e) => e.stopPropagation() : undefined}
+					>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="port-handle-sf input-handle-sf"
@@ -404,12 +438,47 @@
 								class:port-label-optional={port.required === false}
 								>{port.label}</span
 							>
-							<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
-								>{port.type}</span
-							>
+							{#if !inlineWidget}
+								<span
+									class="port-type-tag"
+									style="color: {PORT_COLOR[port.type]}">{port.type}</span
+								>
+							{/if}
+						{/if}
+						{#if inlineWidget}
+							{#if port.type === "number"}
+								<input
+									class="inline-number-inrow"
+									type="number"
+									step="any"
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: "0"}
+									value={node.data?.[port.id] ?? ""}
+									oninput={(e) =>
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											parseFloat(e.currentTarget.value) || 0
+										)}
+								/>
+							{:else if port.type === "boolean"}
+								<label class="inline-checkbox-inrow">
+									<input
+										type="checkbox"
+										checked={!!node.data?.[port.id]}
+										onchange={(e) =>
+											ctx.ondatachange(
+												node.id,
+												port.id,
+												e.currentTarget.checked
+											)}
+									/>
+								</label>
+							{/if}
 						{/if}
 					</div>
-					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
+					{#if !portConnected && node.kind === "transform" && !inlineWidget && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 						<div
 							class="port-inline-config"
 							onmousedown={(e) => e.stopPropagation()}
@@ -853,31 +922,50 @@
 		color: #ef4444;
 	}
 
-	/* Per-node run button — hidden by default, revealed on hover, mirrors
-	 * the node-delete affordance pattern. Stale state pulses faintly to
+	/* Per-node run button — always visible; shows the spinner in place of the
+	 * play icon while the node runs. Once the node has run, the last duration
+	 * (which doubles as an ETA on re-runs) joins the icon inside the same
+	 * pill, so hover highlights both together. Stale state pulses faintly to
 	 * signal "this needs re-running". */
 	.node-run {
-		display: none;
-		width: 20px;
+		display: flex;
+		min-width: 20px;
 		height: 20px;
 		margin-left: auto;
 		border: none;
-		border-radius: 4px;
+		border-radius: 10px;
 		background: transparent;
 		color: #5c5e6a;
 		cursor: pointer;
 		flex-shrink: 0;
 		align-items: center;
 		justify-content: center;
+		gap: 5px;
 		padding: 0;
 	}
 
-	.wf-node:hover .node-run {
-		display: flex;
+	.node-run.has-duration {
+		padding: 0 3px 0 7px;
+		background: rgba(255, 255, 255, 0.06);
 	}
 
 	.node-run + .node-delete {
 		margin-left: 2px;
+	}
+
+	.node-run-time {
+		color: #8b8d98;
+		font-size: 10px;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.node-run:hover .node-run-time {
+		color: inherit;
+	}
+
+	.wf-node.node-stale .node-run-time {
+		opacity: 0.55;
 	}
 
 	.node-run:hover {
@@ -919,9 +1007,9 @@
 		display: flex;
 		align-items: center;
 		gap: 7px;
-		padding: 4px 12px;
+		padding: 3px 12px;
 		position: relative;
-		min-height: 22px;
+		min-height: 20px;
 	}
 
 	.input-row {
@@ -1091,20 +1179,21 @@
 	}
 
 	.port-inline-config {
-		padding: 2px 12px 4px 20px;
+		padding: 1px 12px 3px 20px;
 	}
 
 	.inline-input {
 		width: 100%;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
-		padding: 4px 8px;
+		padding: 3px 7px;
 		border: 1px solid #1e1f2a;
 		border-radius: 4px;
 		background: #101118;
 		color: #c8c9d2;
 		outline: none;
 		box-sizing: border-box;
+		height: 24px;
 	}
 
 	.inline-input:focus {
@@ -1121,6 +1210,40 @@
 
 	.inline-number {
 		width: 80px;
+	}
+
+	.port-row-inline {
+		display: grid;
+		grid-template-columns: 1fr 60px 20px;
+		gap: 5px;
+		align-items: center;
+	}
+
+	.inline-number-inrow {
+		width: 100%;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 2px 6px;
+		border: 1px solid #1e1f2a;
+		border-radius: 4px;
+		background: #101118;
+		color: #c8c9d2;
+		outline: none;
+		box-sizing: border-box;
+		flex-shrink: 0;
+		height: 22px;
+	}
+
+	.inline-number-inrow:focus {
+		border-color: #3e3f4d;
+	}
+
+	.inline-number-inrow::placeholder {
+		color: #4a4b58;
+	}
+
+	.inline-checkbox-inrow {
+		cursor: pointer;
 	}
 
 	.inline-checkbox {
@@ -1170,6 +1293,10 @@
 		border-bottom-color: #e2e4ea;
 	}
 
+	:global(body:not(.dark)) .node-transform .node-header {
+		border-bottom-color: #e2e4ea;
+	}
+
 	:global(body:not(.dark)) .node-label {
 		color: #1a1b25;
 	}
@@ -1214,6 +1341,16 @@
 	}
 
 	:global(body:not(.dark)) .inline-input::placeholder {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .inline-number-inrow {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .inline-number-inrow::placeholder {
 		color: #c0c2cc;
 	}
 

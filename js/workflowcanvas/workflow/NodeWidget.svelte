@@ -8,6 +8,7 @@
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
+	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 
 	interface Props {
 		node: WFNode;
@@ -52,6 +53,36 @@
 	function getBooleanValue(): boolean {
 		const v = node.data?.[widgetPortId];
 		return typeof v === "boolean" ? v : false;
+	}
+
+	const HTML_PAGE_WIDTH = 1280;
+	const HTML_PAGE_HEIGHT = 800;
+
+	let htmlPreviewEl: HTMLDivElement | undefined = $state();
+	let htmlScale = $state(220 / HTML_PAGE_WIDTH);
+
+	$effect(() => {
+		const el = htmlPreviewEl;
+		if (!el) return;
+		const ro = new ResizeObserver(() => {
+			const w = el.clientWidth;
+			if (w > 0) htmlScale = w / HTML_PAGE_WIDTH;
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	});
+
+	const htmlValue = $derived(
+		typeof node.data?.[widgetPortId] === "string"
+			? (node.data[widgetPortId] as string)
+			: ""
+	);
+
+	function openHtmlInTab(html: string): void {
+		const blob = new Blob([html], { type: "text/html" });
+		const url = URL.createObjectURL(blob);
+		window.open(url, "_blank", "noopener");
+		setTimeout(() => URL.revokeObjectURL(url), 60_000);
 	}
 
 	function handleNumberInput(e: Event) {
@@ -246,6 +277,34 @@
 				>
 			</label>
 		</div>
+	{:else if widgetType === "html"}
+		{#if htmlValue}
+			<div
+				class="widget-html-preview"
+				bind:this={htmlPreviewEl}
+				style="height: {Math.round(HTML_PAGE_HEIGHT * htmlScale)}px;"
+			>
+				<iframe
+					class="widget-html-iframe"
+					srcdoc={htmlValue}
+					sandbox="allow-scripts"
+					title="HTML preview"
+					style="height: {HTML_PAGE_HEIGHT}px; transform: scale({htmlScale});"
+				></iframe>
+				<div class="widget-preview-actions">
+					<button
+						class="widget-action"
+						onclick={() => openHtmlInTab(htmlValue)}
+						title="Open in new tab"
+						aria-label="Open in new tab"
+					>
+						<OpenLinkIcon />
+					</button>
+				</div>
+			</div>
+		{:else}
+			<div class="widget-placeholder">Waiting for output...</div>
+		{/if}
 	{:else if widgetType === "image" || widgetType === "audio" || widgetType === "video" || widgetType === "file" || widgetType === "gallery" || widgetType === "model3d"}
 		{@const fileVal = getFileValue()}
 		{#if fileVal}
@@ -769,5 +828,30 @@
 	:global(body:not(.dark)) .widget-preview {
 		background: #f8f9fb;
 		border-color: #e2e4ea;
+	}
+
+	.widget-html-preview {
+		position: relative;
+		overflow: hidden;
+		border-radius: 0 0 10px 10px;
+		background: #fff;
+	}
+
+	.widget-html-iframe {
+		display: block;
+		width: 1280px;
+		border: none;
+		background: #fff;
+		transform-origin: top left;
+		pointer-events: none;
+	}
+
+	.widget-html-preview .widget-preview-actions {
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	.widget-html-preview:hover .widget-preview-actions {
+		opacity: 1;
 	}
 </style>

@@ -22,6 +22,7 @@
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
 	import { fetchSpaceApi } from "./space-api";
+	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import {
 		workflow,
 		addNode,
@@ -33,10 +34,15 @@
 		replaceNodeSource,
 		switch_endpoint,
 		hydrate_endpoints,
+		init_model_node_ports,
 		sanitize_for_save,
 		revoke_blob_urls
 	} from "./workflow-store";
-	import { migrateToV2, toLegacyShape } from "./workflow-migration";
+	import {
+		hasMissingNodeGeometry,
+		migrateToV2,
+		toLegacyShape
+	} from "./workflow-migration";
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
@@ -45,6 +51,7 @@
 		WFEdge,
 		NodeStatus,
 		NodeRole,
+		NodeDataValue,
 		Workflow
 	} from "./workflow-types";
 	import { executeWorkflow } from "./workflow-executor";
@@ -76,8 +83,15 @@
 
 	let {
 		server = {},
-		initialValue = null
-	}: { server?: Record<string, any>; initialValue?: string | null } = $props();
+		initialValue = null,
+		gradio_shared = undefined
+	}: {
+		server?: Record<string, any>;
+		initialValue?: string | null;
+		gradio_shared?: Record<string, any> | undefined;
+	} = $props();
+
+	const gradio_client = $derived(gradio_shared?.client);
 
 	const auth = createHFAuth(() => server);
 
@@ -99,7 +113,7 @@
 			? auth.oauthAvailable
 				? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that owns this Space (or has write access to it) to make changes. Alternatively, duplicate this Space under your own account to edit your own copy."
 				: "Run-only: editing is disabled because this Space doesn't have OAuth enabled, so the owner can't sign in to authenticate. To allow editing, add `hf_oauth: true` to the Space's README metadata and redeploy. Alternatively, duplicate this Space under your own account to edit your own copy."
-			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes."
+			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes."
 	);
 
 	// Flash a brief "Saved" confirmation after each successful autosave. The
@@ -127,11 +141,13 @@
 		if (!initialValue) return;
 		try {
 			const parsed = JSON.parse(initialValue);
+			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
 			// Migration handles both v1 (legacy workflow.json files) and v2.
 			const v2 = migrateToV2(parsed);
 			workflow.set(v2);
 			// Baseline the persisted state so the load itself isn't autosaved.
 			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
+			if (shouldAutoLayout) requestAnimationFrame(autoLayout);
 		} catch {}
 	});
 
@@ -179,6 +195,14 @@
 				}
 			})
 			.catch(() => {});
+	});
+
+	$effect(() => {
+		if (!server?.get_model_endpoints) return;
+		void fetchModelEndpoints(server).then((schemas) => {
+			if (schemas.length)
+				init_model_node_ports(schemas, PIPELINE_TAG_TO_ENDPOINT);
+		});
 	});
 
 	$effect(() => {
@@ -257,6 +281,13 @@
 	let abortController: AbortController | null = null;
 	let nodeStatus: Record<string, NodeStatus> = $state({});
 	let nodeErrors: Record<string, string> = $state({});
+	/**
+	 * Wall-clock seconds of each node's last successful run, keyed by node id.
+	 * Kept across runs (and on failure) so the previous time doubles as an ETA
+	 * while the node re-runs; overwritten only when a run completes.
+	 */
+	let nodeDurations: Record<string, number> = $state({});
+	const nodeRunStarts: Record<string, number> = {};
 	/**
 	 * Bound Python functions advertised by the server (`list_bound_fns`).
 	 * Populates the bottom-bar Functions button so users can re-add an
@@ -422,6 +453,7 @@
 		pending: null as Pending | null,
 		nodeStatus: {} as Record<string, NodeStatus>,
 		nodeErrors: {} as Record<string, string>,
+		nodeDurations: {} as Record<string, number>,
 		staleNodes: new Set<string>(),
 		connectedPorts: new Set<string>(),
 		readOnly: false,
@@ -483,6 +515,11 @@
 					template.height
 				);
 				const newId = addNode("reference", template, x, y);
+				const port = node.inputs.find((p) => p.id === portId);
+				if (port?.default_value !== undefined) {
+					const outId = template.outputs[0]?.id ?? "out";
+					updateNodeData(newId, outId, port.default_value as NodeDataValue);
+				}
 				addEdge({
 					from_node_id: newId,
 					from_port_id: "out",
@@ -519,6 +556,9 @@
 	});
 	$effect(() => {
 		wfCtx.nodeErrors = nodeErrors;
+	});
+	$effect(() => {
+		wfCtx.nodeDurations = nodeDurations;
 	});
 	$effect(() => {
 		wfCtx.staleNodes = staleNodes;
@@ -1529,15 +1569,52 @@
 					])
 			: undefined;
 
-		const callFnWithToken = server?.call_fn
-			? async (fnName: string, argsJson: string) =>
-					server.call_fn([fnName, argsJson])
+		const callFnWithToken = gradio_client
+			? async (fnName: string, argsJson: string) => {
+					const safeN = fnName.replace(/[^a-zA-Z0-9_-]/gu, "_");
+					const job = gradio_client.submit(`/predict_fn_${safeN}`, [argsJson]);
+					abortController?.signal.addEventListener(
+						"abort",
+						() => job.cancel(),
+						{
+							once: true
+						}
+					);
+					for await (const msg of job) {
+						if (msg.type === "data") {
+							return (msg.data as unknown[])[0] as string;
+						}
+						if (msg.type === "status" && msg.stage === "error") {
+							return JSON.stringify({
+								error: msg.message ?? "Function call failed",
+								error_type: "unknown",
+								suggestion: ""
+							});
+						}
+					}
+					return JSON.stringify({
+						error: "No data received from fn endpoint",
+						error_type: "unknown",
+						suggestion: ""
+					});
+				}
 			: undefined;
 
 		await executeWorkflow(
 			wfToRun,
 			(nodeId, status, error, errorType) => {
 				nodeStatus = { ...nodeStatus, [nodeId]: status };
+				if (status === "running") {
+					nodeRunStarts[nodeId] = performance.now();
+				} else if (nodeId in nodeRunStarts) {
+					if (status === "done") {
+						nodeDurations = {
+							...nodeDurations,
+							[nodeId]: (performance.now() - nodeRunStarts[nodeId]) / 1000
+						};
+					}
+					delete nodeRunStarts[nodeId];
+				}
 				if (status === "done") {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					if (node) {
@@ -1943,6 +2020,7 @@
 		"audio",
 		"video",
 		"text",
+		"html",
 		"file",
 		"gallery",
 		"boolean",
@@ -1999,6 +2077,13 @@
 						inStartY + i * (compH + compGap)
 					);
 					const cId = addNode("reference", comp, cx, cy);
+					if (port.default_value !== undefined) {
+						updateNodeData(
+							cId,
+							comp.outputs[0]?.id ?? "out",
+							port.default_value as NodeDataValue
+						);
+					}
 					addEdge({
 						from_node_id: cId,
 						from_port_id: "out",
@@ -2270,7 +2355,23 @@
 						>Run only<span class="access-info-icon"><InfoIcon /></span></button
 					>
 					{#if showAccessInfo}
-						<div class="access-info-popover">{readOnlyReason}</div>
+						<div class="access-info-popover">
+							{#if auth.isHFSpace}
+								{readOnlyReason}
+							{:else}
+								<!-- Mirrors the local-session readOnlyReason string (used for the
+								     hover title), with "access token" rendered as a link. -->
+								Run-only: you can run this workflow but not edit it. This session
+								is missing the write token — open the edit link printed in the terminal
+								to make changes. That link also signs this session in with your locally
+								saved Hugging Face token; without it, paste an
+								<a
+									href="https://huggingface.co/settings/tokens"
+									target="_blank"
+									rel="noopener noreferrer">access token</a
+								> to run nodes.
+							{/if}
+						</div>
 					{/if}
 				</div>
 			{/if}
@@ -2389,23 +2490,24 @@
 				style="left: {dropChoice.clientX}px; top: {dropChoice.clientY}px;"
 				onmousedown={(e) => e.stopPropagation()}
 				onclick={(e) => e.stopPropagation()}
+				onwheel={(e) => e.stopPropagation()}
 			>
-				{#if dropChoice.modelOptions.length > 0}
-					<div class="drop-section-label">Models</div>
-					{#each dropChoice.modelOptions as opt}
-						<button
-							class="drop-opt"
-							onclick={() => handleDropChoiceModel(opt.subtab)}
-							>{opt.label}</button
-						>
-					{/each}
-				{/if}
 				{#if dropChoice.componentOptions.length > 0}
 					<div class="drop-section-label">
 						{dropChoice.reversed ? "Sources" : "Outputs"}
 					</div>
 					{#each dropChoice.componentOptions as opt}
 						<button class="drop-opt" onclick={handleDropChoiceUpload}
+							>{opt.label}</button
+						>
+					{/each}
+				{/if}
+				{#if dropChoice.modelOptions.length > 0}
+					<div class="drop-section-label">Models</div>
+					{#each dropChoice.modelOptions as opt}
+						<button
+							class="drop-opt"
+							onclick={() => handleDropChoiceModel(opt.subtab)}
 							>{opt.label}</button
 						>
 					{/each}

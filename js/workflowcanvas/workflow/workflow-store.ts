@@ -62,6 +62,9 @@ export { allNodes, findNode, isV2, migrateToV2 };
  * them, and data: URLs would bloat workflow.json with base64 payloads —
  * so we drop the field entirely and let the user re-upload on refresh.
  * Other data (text, numbers, server-served file paths) passes through.
+ * Endpoint catalogs are also session metadata: the canvas hydrates them from
+ * the backend, so persisting them would duplicate every supported task into
+ * every operator node.
  */
 function is_session_url(v: unknown): boolean {
 	const url = (v as { url?: string } | null)?.url;
@@ -84,16 +87,24 @@ export function revoke_blob_urls(
 
 export function sanitize_for_save(wf: Workflow): Workflow {
 	return mapAllRoles(wf, (n) => {
-		if (!n.data) return n;
 		const cleaned: NodeData = {};
-		for (const [k, v] of Object.entries(n.data)) {
+		for (const [k, v] of Object.entries(n.data ?? {})) {
 			if (!is_session_url(v)) cleaned[k] = v as NodeDataValue;
+		}
+		if (n.role === "operator") {
+			const { endpoints: _endpoints, ...persisted } = n;
+			return { ...persisted, data: cleaned };
 		}
 		return { ...n, data: cleaned };
 	});
 }
 
 // ─── Actions ────────────────────────────────────────────────────────────────
+const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
+	boolean: false,
+	number: 0,
+	text: ""
+};
 
 function addReference(
 	template: Omit<ReferenceNode, "id" | "role" | "x" | "y" | "data">,
@@ -102,9 +113,11 @@ function addReference(
 ): string {
 	const id = uuid();
 	const data: Record<string, NodeDataValue> = {};
-	for (const port of template.inputs) {
+	for (const port of [...template.inputs, ...template.outputs]) {
 		if (port.default_value !== undefined) {
 			data[port.id] = port.default_value as NodeDataValue;
+		} else if (port.type in PORT_DEFAULTS) {
+			data[port.id] ??= PORT_DEFAULTS[port.type]!;
 		}
 	}
 	const node: ReferenceNode = {
@@ -312,6 +325,29 @@ export function hydrate_endpoints(
 		operators: wf.operators.map((n) =>
 			n.id === nodeId ? { ...n, endpoints } : n
 		)
+	}));
+}
+
+export function init_model_node_ports(
+	schemas: { name: string; inputs: Port[]; outputs: Port[] }[],
+	pipelineTagMap: Record<string, string> = {}
+): void {
+	workflow.update((wf) => ({
+		...wf,
+		operators: wf.operators.map((n) => {
+			if (n.kind !== "model") return n;
+			const endpointName = n.endpoint ?? pipelineTagMap[n.pipeline_tag ?? ""];
+			if (!endpointName) return n;
+			const sig = schemas.find((s) => s.name === endpointName);
+			if (!sig) return { ...n, endpoints: schemas };
+			return {
+				...n,
+				endpoint: endpointName,
+				endpoints: schemas,
+				inputs: sig.inputs,
+				outputs: sig.outputs
+			};
+		})
 	}));
 }
 

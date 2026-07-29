@@ -92,6 +92,11 @@ class SessionState:
         else:
             return block
 
+    def get(self, key: int, default: Any = None) -> Any:
+        if key in self:
+            return self[key]
+        return default
+
     def __setitem__(self, key: int, value: Any):
         from gradio.components import State
 

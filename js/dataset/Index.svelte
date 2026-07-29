@@ -54,6 +54,7 @@
 		onselect={(data) => gradio.dispatch("select", data)}
 		load_component={gradio.shared.load_component}
 		{...gradio.props}
+		root={gradio.shared.root}
 		{samples}
 	/>
 </Block>

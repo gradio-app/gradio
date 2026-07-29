@@ -147,6 +147,9 @@ async function collectMetrics(
 		lcpValues.push(timings.lcp);
 
 		await waitForAppReady(page);
+		await page
+			.getByRole("tab", { name: "Chatbot", exact: true })
+			.waitFor({ state: "visible", timeout: 15_000 });
 
 		const navDuration = await page.evaluate(() => {
 			const start = performance.now();

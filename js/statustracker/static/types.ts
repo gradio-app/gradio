@@ -10,6 +10,10 @@ export interface ILoadingStatus {
 	scroll_to_output?: boolean;
 	show_progress?: "full" | "minimal" | "hidden";
 	time_limit?: number | null | undefined;
+	/** performance.now() when this run first entered pending; survives soft reload. */
+	time_start?: number | null;
+	/** Total ETA (elapsed + remaining) at last server eta update; survives soft reload. */
+	eta_total?: number | null;
 	progress?: {
 		progress: number | null;
 		index: number | null;

@@ -19,11 +19,13 @@ import {
 } from "../helpers/api_info";
 import {
 	BROKEN_CONNECTION_MSG,
+	NO_API_INFO_MSG,
 	QUEUE_FULL_MSG,
 	SSE_URL,
 	SSE_DATA_URL,
 	RESET_URL,
-	CANCEL_URL
+	CANCEL_URL,
+	WS_PROTOCOL_MSG
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
@@ -60,7 +62,7 @@ export function submit(
 
 		const that = this;
 
-		if (!api_info) throw new Error("No API found");
+		if (!api_info) throw new Error(NO_API_INFO_MSG);
 		if (!config) throw new Error("Could not resolve app config");
 
 		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
@@ -75,7 +77,7 @@ export function submit(
 		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
 		if (protocol === "ws") {
-			throw new Error("WebSocket protocol is not supported in this version");
+			throw new Error(WS_PROTOCOL_MSG);
 		}
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
@@ -630,6 +632,22 @@ export function submit(
 			}
 		});
 
+		// Surface internal failures (e.g. malformed payloads or configs) as an
+		// error event instead of leaving the returned iterator hanging forever
+		// with an unhandled promise rejection.
+		job.catch((e) => {
+			fire_event({
+				type: "status",
+				stage: "error",
+				message: e instanceof Error ? e.message : String(e),
+				queue: !skip_queue(fn_index, config),
+				endpoint: _endpoint,
+				fn_index,
+				time: new Date()
+			});
+			close();
+		});
+
 		let done = false;
 		const values: (IteratorResult<GradioEvent> | PromiseLike<never>)[] = [];
 		const resolvers: ((
@@ -735,25 +753,37 @@ function get_endpoint_info(
 } {
 	let fn_index: number;
 	let endpoint_info: EndpointInfo<JsApiData>;
-	let dependency: Dependency;
+	let dependency: Dependency | undefined;
 
 	if (typeof endpoint === "number") {
 		fn_index = endpoint;
 		endpoint_info = api_info.unnamed_endpoints[fn_index];
-		dependency = config.dependencies.find((dep) => dep.id == endpoint)!;
+		dependency = config.dependencies.find((dep) => dep.id == endpoint);
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
 
 		fn_index = api_map[trimmed_endpoint];
-		endpoint_info = api_info.named_endpoints[endpoint.trim()];
+		// named endpoints are keyed with a leading slash in the API info, but
+		// accept endpoint names passed without one (e.g. "predict")
+		endpoint_info =
+			api_info.named_endpoints[endpoint.trim()] ??
+			api_info.named_endpoints[`/${trimmed_endpoint}`];
 		dependency = config.dependencies.find(
 			(dep) => dep.id == api_map[trimmed_endpoint]
-		)!;
+		);
 	}
 
-	if (typeof fn_index !== "number") {
+	if (typeof fn_index !== "number" || !dependency) {
+		const valid_endpoints = config.dependencies
+			.filter((dep) => dep.api_name)
+			.map((dep) => `"/${dep.api_name}"`)
+			.join(", ");
 		throw new Error(
-			"There is no endpoint matching that name of fn_index matching that number."
+			`No endpoint matching ${JSON.stringify(endpoint)} was found. ` +
+				(valid_endpoints
+					? `Valid named endpoints are: ${valid_endpoints}. `
+					: "This app exposes no named endpoints. ") +
+				"An fn_index (number) of an existing dependency can also be used."
 		);
 	}
 	return { fn_index, endpoint_info, dependency };
