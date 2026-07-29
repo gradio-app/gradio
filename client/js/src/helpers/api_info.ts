@@ -189,7 +189,10 @@ export function transform_api_info(
 						returns: returns.map((r: ApiData) =>
 							transform_type(r, r?.component, r?.serializer, "return")
 						),
-						type: dependencyTypes
+						type: dependencyTypes,
+						...(endpoint_info?.oauth_token
+							? { oauth_token: endpoint_info.oauth_token }
+							: {})
 					};
 				}
 			);

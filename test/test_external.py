@@ -2,6 +2,7 @@ import os
 import tempfile
 import textwrap
 from pathlib import Path
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import huggingface_hub
@@ -425,3 +426,46 @@ def test_load_chat_textbox_override():
     )
     assert isinstance(chat, ChatInterface)
     assert chat.textbox is custom_textbox
+
+
+@pytest.mark.flaky
+def test_oauth_token_reaches_only_the_endpoint_that_asks_for_it():
+    """A caller-supplied token reaches a gr.OAuthToken, and nothing else.
+
+    Runs against a real OAuth-enabled Space because the behaviour depends on the
+    environment: a Space sits behind a proxy that strips `x-hf-*` headers, so the
+    token has to travel in the request body to arrive at all. On that Space
+    `/report` takes a gr.OAuthToken and echoes what it received; `/calculator`
+    does not take one.
+    """
+    from gradio_client import Client
+    from gradio_client.client import Endpoint
+
+    if not HF_TOKEN:
+        pytest.skip("no Hugging Face token available")
+
+    space = "gradio-tests/test-calculator-1"
+    client = Client(space, token=HF_TOKEN, oauth_token=HF_TOKEN, verbose=False)
+    api = cast(dict, client.view_api(return_format="dict"))
+    info = api["named_endpoints"]
+
+    assert info["/report"]["oauth_token"] == "optional"
+    assert "oauth_token" not in info["/calculator"]
+
+    endpoints: list[Endpoint] = [
+        endpoint
+        for endpoint in client.endpoints.values()
+        if isinstance(endpoint, Endpoint)
+        and endpoint.api_name in ("/report", "/calculator")
+    ]
+    payloads = {e.api_name: e.oauth_token_payload() for e in endpoints}
+    assert payloads == {"/report": {"oauth_token": HF_TOKEN}, "/calculator": {}}
+
+    assert client.predict(api_name="/report").startswith("user:")
+    assert client.predict(4, "add", 2, api_name="/calculator") == 6
+
+    # `token` authenticates the caller to the Space, but grants nothing to the fn.
+    assert (
+        Client(space, token=HF_TOKEN, verbose=False).predict(api_name="/report")
+        == "none"
+    )
