@@ -163,6 +163,31 @@
 		return bashSnippet(ep);
 	}
 
+	// `_build_endpoint_fn` synthesizes the same token parameter into every
+	// subgraph endpoint, so the note belongs to the panel rather than being
+	// repeated on each card. Still derived from the endpoint data instead of
+	// assumed: a mixed set degrades to naming the endpoints it applies to rather
+	// than over-claiming, and a required token isn't described as optional.
+	const tokenEndpoints = $derived(endpoints.filter((ep) => ep.oauth_token));
+	const tokenNote = $derived.by(() => {
+		if (tokenEndpoints.length === 0) return null;
+		const all = tokenEndpoints.length === endpoints.length;
+		const required = tokenEndpoints.some((ep) => ep.oauth_token === "required");
+		return {
+			subject: all
+				? "Each endpoint runs"
+				: `${tokenEndpoints.map((ep) => ep.api_name).join(", ")} run`,
+			pronoun: all ? "it" : "they",
+			verb: required
+				? all
+					? "requires"
+					: "require"
+				: all
+					? "(optionally) takes"
+					: "(optionally) take"
+		};
+	});
+
 	async function copy(ep: ApiEndpoint): Promise<void> {
 		try {
 			await navigator.clipboard.writeText(snippet(ep));
@@ -210,7 +235,8 @@
 				<div class="api-empty api-error">{error}</div>
 			{:else if endpoints.length === 0}
 				<div class="api-empty">
-					No API endpoints yet — add an output node to expose one.
+					No API endpoints yet — wire a component into an output port to expose
+					one.
 				</div>
 			{:else}
 				{#each endpoints as ep}
@@ -218,9 +244,6 @@
 						<div class="api-endpoint-head">
 							<span class="api-method">POST</span>
 							<span class="api-name">{ep.api_name}</span>
-							<button class="api-copy" onclick={() => copy(ep)}>
-								{copied === ep.api_name ? "Copied!" : "Copy"}
-							</button>
 						</div>
 
 						<div class="api-io">
@@ -251,23 +274,30 @@
 							</div>
 						</div>
 
-						{#if ep.oauth_token}
-							<div class="api-note">
-								<span class="api-note-label">oauth_token</span>
-								<span>
-									This endpoint runs the workflow on your behalf, so it takes
-									your Hugging Face token ({ep.oauth_token}). On a Space it is
-									what lets an API caller — who has no OAuth session — reach
-									gated models and Spaces as themselves. It is passed to the
-									workflow's own code, so it is only ever sent to endpoints that
-									declare they take one.
-								</span>
-							</div>
-						{/if}
-
-						<pre class="api-code"><code>{snippet(ep)}</code></pre>
+						<div class="api-code-wrap">
+							<button class="api-copy" onclick={() => copy(ep)}>
+								{copied === ep.api_name ? "Copied!" : "Copy"}
+							</button>
+							<pre class="api-code"><code>{snippet(ep)}</code></pre>
+						</div>
 					</div>
 				{/each}
+
+				{#if tokenNote}
+					<div class="api-note">
+						<span class="api-note-label">oauth_token</span>
+						<span>
+							{tokenNote.subject} the workflow on your behalf, so {tokenNote.pronoun}
+							{tokenNote.verb}
+							your
+							<a
+								href="https://huggingface.co/settings/tokens"
+								target="_blank"
+								rel="noreferrer">Hugging Face token</a
+							>.
+						</span>
+					</div>
+				{/if}
 			{/if}
 		</div>
 	</div>
@@ -392,6 +422,11 @@
 		border: 1px solid #1e1f2a;
 		border-radius: var(--size-2-5);
 		overflow: hidden;
+		/* `.api-body` is a column flex container, and `overflow: hidden` above
+		 * resolves this card's automatic minimum size to 0 — so without this the
+		 * cards shrink to fit the panel and clip their code blocks mid-line
+		 * instead of letting the body scroll. */
+		flex-shrink: 0;
 	}
 	.api-endpoint-head {
 		display: flex;
@@ -417,14 +452,22 @@
 		color: #e6e7ec;
 		flex: 1;
 	}
+	.api-code-wrap {
+		position: relative;
+	}
 	.api-copy {
+		position: absolute;
+		top: var(--size-2);
+		right: var(--size-2);
+		z-index: 1;
 		font-family: "Manrope", sans-serif;
 		font-size: 11px;
 		font-weight: 600;
 		padding: var(--size-1) var(--size-2-5);
 		border: 1px solid #2a2b38;
 		border-radius: var(--radius-md);
-		background: transparent;
+		/* Opaque, not transparent: it sits over a scrollable code block. */
+		background: #16171f;
 		color: #a0a2ae;
 		cursor: pointer;
 	}
@@ -469,16 +512,25 @@
 		color: #5a5d68;
 		font-style: italic;
 	}
+	/* Panel-level, below every endpoint card — the token isn't one of the
+	 * endpoint's own parameters, so it shouldn't read as one. */
 	.api-note {
 		display: flex;
 		gap: var(--size-2-5);
 		align-items: baseline;
 		padding: var(--size-3);
-		border-bottom: 1px solid #1e1f2a;
+		border: 1px solid #1e1f2a;
+		border-radius: var(--size-2-5);
+		flex-shrink: 0;
 		font-family: "Manrope", sans-serif;
 		font-size: 12px;
 		line-height: 1.5;
 		color: #8a8c98;
+	}
+	.api-note a {
+		color: var(--color-accent, #f97316);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 	.api-note-label {
 		flex-shrink: 0;
@@ -493,13 +545,17 @@
 
 	.api-code {
 		margin: 0;
-		padding: var(--size-3) 14px;
+		/* Right padding clears the absolutely positioned Copy button. */
+		padding: var(--size-3) 76px var(--size-3) 14px;
 		background: #0b0c12;
 		font-family: "JetBrains Mono", monospace;
 		font-size: var(--size-3);
 		line-height: 1.55;
 		color: #c5c7d0;
-		overflow-x: auto;
+		/* Scroll a long snippet inside its own block rather than letting the card
+		 * grow unbounded — and never clip it. */
+		max-height: 320px;
+		overflow: auto;
 		white-space: pre;
 		tab-size: 2;
 	}

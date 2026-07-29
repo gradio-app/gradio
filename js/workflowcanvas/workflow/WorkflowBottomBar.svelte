@@ -27,8 +27,7 @@
 		server?: Record<string, any>;
 		readOnly?: boolean;
 		onopenpicker: (modality: ModalityConfig) => void;
-		onaddinput: (portType: string) => void;
-		onaddoutput: (portType: string) => void;
+		onaddcomponent: (portType: string) => void;
 		onaddfn: (template: BoundFnTemplate) => void;
 		onrun: () => void;
 		onstop: () => void;
@@ -42,8 +41,7 @@
 		server = {},
 		readOnly = false,
 		onopenpicker,
-		onaddinput,
-		onaddoutput,
+		onaddcomponent,
 		onaddfn,
 		onrun,
 		onstop
@@ -75,7 +73,13 @@
 		return MODALITIES.filter((m) => mods.has(m.key));
 	});
 
-	const INPUT_TYPES = [
+	/**
+	 * Component types offered by the "Component" button. One button, not an
+	 * Input/Output pair: a component's direction is derived from its wiring
+	 * (`reconcileComponentRoles` in the store, mirroring `WorkflowNodeSF`'s
+	 * input-vs-output rendering), so there's nothing for the user to pre-declare.
+	 */
+	const COMPONENT_TYPES = [
 		{ key: "image", label: "Image" },
 		{ key: "text", label: "Text" },
 		{ key: "audio", label: "Audio" },
@@ -84,47 +88,30 @@
 		{ key: "file", label: "File" }
 	];
 
-	let showInputMenu = $state(false);
-	let showOutputMenu = $state(false);
+	let showComponentMenu = $state(false);
 	let showFnMenu = $state(false);
 
 	function closeMenus(): void {
-		showInputMenu = false;
-		showOutputMenu = false;
+		showComponentMenu = false;
 		showFnMenu = false;
 	}
 
-	function toggleInputMenu(e: MouseEvent) {
+	function toggleComponentMenu(e: MouseEvent) {
 		e.stopPropagation();
 		showFnMenu = false;
-		showOutputMenu = false;
-		showInputMenu = !showInputMenu;
-	}
-
-	function toggleOutputMenu(e: MouseEvent) {
-		e.stopPropagation();
-		showFnMenu = false;
-		showInputMenu = false;
-		showOutputMenu = !showOutputMenu;
+		showComponentMenu = !showComponentMenu;
 	}
 
 	function toggleFnMenu(e: MouseEvent) {
 		e.stopPropagation();
-		showInputMenu = false;
-		showOutputMenu = false;
+		showComponentMenu = false;
 		showFnMenu = !showFnMenu;
 	}
 
-	function handleInputType(type: string, e: MouseEvent) {
+	function handleComponentType(type: string, e: MouseEvent) {
 		e.stopPropagation();
-		showInputMenu = false;
-		onaddinput(type);
-	}
-
-	function handleOutputType(type: string, e: MouseEvent) {
-		e.stopPropagation();
-		showOutputMenu = false;
-		onaddoutput(type);
+		showComponentMenu = false;
+		onaddcomponent(type);
 	}
 
 	function handleFnClick(tmpl: BoundFnTemplate, e: MouseEvent) {
@@ -202,39 +189,18 @@
 		<div class="bb-input-wrap">
 			<button
 				class="bb-input-btn"
-				onclick={toggleInputMenu}
-				title="Add input node"
+				onclick={toggleComponentMenu}
+				title="Add a component node — becomes an output once something is wired into it"
 			>
 				<PlusIcon />
-				Input
+				Component
 			</button>
-			{#if showInputMenu}
+			{#if showComponentMenu}
 				<div class="input-type-menu">
-					{#each INPUT_TYPES as t}
+					{#each COMPONENT_TYPES as t}
 						<button
 							class="input-type-opt"
-							onclick={(e) => handleInputType(t.key, e)}>{t.label}</button
-						>
-					{/each}
-				</div>
-			{/if}
-		</div>
-
-		<div class="bb-input-wrap">
-			<button
-				class="bb-input-btn"
-				onclick={toggleOutputMenu}
-				title="Add output node"
-			>
-				<PlusIcon />
-				Output
-			</button>
-			{#if showOutputMenu}
-				<div class="input-type-menu">
-					{#each INPUT_TYPES as t}
-						<button
-							class="input-type-opt"
-							onclick={(e) => handleOutputType(t.key, e)}>{t.label}</button
+							onclick={(e) => handleComponentType(t.key, e)}>{t.label}</button
 						>
 					{/each}
 				</div>

@@ -36,7 +36,8 @@
 		hydrate_endpoints,
 		init_model_node_ports,
 		sanitize_for_save,
-		revoke_blob_urls
+		revoke_blob_urls,
+		reconcileComponentRoles
 	} from "./workflow-store";
 	import {
 		hasMissingNodeGeometry,
@@ -143,7 +144,13 @@
 			const parsed = JSON.parse(initialValue);
 			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
 			// Migration handles both v1 (legacy workflow.json files) and v2.
-			const v2 = migrateToV2(parsed);
+			// Reconcile on load as well as on edit: files written before roles were
+			// derived can carry a wired-up component still filed under `references`,
+			// which renders as an output tile but generates no API endpoint. The
+			// baseline below means the heal isn't a save on its own, but the first
+			// store write after mount (port hydration, a drag, an edit) carries it
+			// to disk — so a stale file corrects itself in practice.
+			const v2 = reconcileComponentRoles(migrateToV2(parsed));
 			workflow.set(v2);
 			// Baseline the persisted state so the load itself isn't autosaved.
 			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
@@ -2155,20 +2162,15 @@
 		activePicker = null;
 	}
 
-	function addInputNode(portType: string, cx?: number, cy?: number): void {
-		addComponentNode("reference", portType, cx, cy);
-	}
-
-	function addOutputNode(portType: string, cx?: number, cy?: number): void {
-		addComponentNode("subject", portType, cx, cy);
-	}
-
-	function addComponentNode(
-		role: NodeRole,
-		portType: string,
-		cx?: number,
-		cy?: number
-	): void {
+	/**
+	 * Drop a bare component on the canvas. Always created as a `reference`: an
+	 * unwired component *is* an input, and `reconcileComponentRoles` promotes it
+	 * to a subject the moment something feeds its input port — which is the same
+	 * moment `WorkflowNodeSF` starts rendering it as a read-only output tile.
+	 * That's why the bottom bar offers one "Component" button rather than making
+	 * the user pre-declare a direction the graph already knows.
+	 */
+	function addComponentNode(portType: string, cx?: number, cy?: number): void {
 		if (readOnly) return;
 		let pos: { x: number; y: number };
 		if (cx !== undefined && cy !== undefined) {
@@ -2185,7 +2187,7 @@
 		const template = getComponentForPortType(portType) ?? LIBRARY.components[0];
 		const half = (template.width ?? 200) / 2;
 		const { x, y } = findFreeSpot(pos.x - half, pos.y - 45);
-		addNode(role, template, x, y);
+		addNode("reference", template, x, y);
 	}
 
 	/**
@@ -2646,8 +2648,7 @@
 			{readOnly}
 			activeModalityKey={activePicker?.modality.key ?? null}
 			onopenpicker={openPicker}
-			onaddinput={addInputNode}
-			onaddoutput={addOutputNode}
+			onaddcomponent={addComponentNode}
 			onaddfn={addFnNode}
 			onrun={() => void runWorkflow()}
 			onstop={stopWorkflow}
