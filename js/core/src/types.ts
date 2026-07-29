@@ -136,6 +136,7 @@ export type LoadingComponent = Promise<{
 export interface AppConfig {
 	root: string;
 	theme: string;
+	theme_mode: ThemeMode;
 	version: string;
 	max_file_size?: number;
 	autoscroll: boolean;

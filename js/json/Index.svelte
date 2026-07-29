@@ -64,7 +64,7 @@
 	<JSON
 		value={gradio.props.value}
 		open={gradio.props.open}
-		theme_mode={gradio.props.theme_mode}
+		theme_mode={gradio.shared.theme_mode}
 		show_indices={gradio.props.show_indices}
 		show_copy_button={gradio.props.buttons == null
 			? true
