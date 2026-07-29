@@ -18,7 +18,7 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
-		"@gradio/sanitize": "^0.2.0",
+		"@gradio/sanitize": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
 	"devDependencies": {
