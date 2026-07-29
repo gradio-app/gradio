@@ -36,6 +36,18 @@ async def async_stream(message, history):
         yield message[: i + 1]
 
 
+def stream_or_nothing(message, history):
+    if message == "skip":
+        return
+    yield f"history_len={len(history)}"
+
+
+async def async_stream_or_nothing(message, history):
+    if message == "skip":
+        return
+    yield f"history_len={len(history)}"
+
+
 def count(message, history):
     return str(len(history))
 
@@ -300,6 +312,40 @@ class TestAPI:
             job = client.submit("hello")
             wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
+
+    def test_streaming_api_empty_generator(self, connect):
+        chatbot = gr.ChatInterface(stream_or_nothing).queue()
+        with connect(chatbot) as client:
+            assert client.predict("hello") == "history_len=0"
+            assert client.predict("skip") is None
+            # The skipped turn must leave the history intact and still record
+            # the user message, so the next turn sees three messages.
+            assert client.predict("hello") == "history_len=3"
+
+    def test_streaming_api_empty_generator_async(self, connect):
+        chatbot = gr.ChatInterface(async_stream_or_nothing).queue()
+        with connect(chatbot) as client:
+            assert client.predict("hello") == "history_len=0"
+            assert client.predict("skip") is None
+            assert client.predict("hello") == "history_len=3"
+
+    def test_streaming_api_empty_generator_with_additional_outputs(self, connect):
+        def stream_or_nothing_with_extra(message, history):
+            if message == "skip":
+                return
+            yield message, "extra"
+
+        with gr.Blocks() as demo:
+            code = gr.Code(render=False)
+            gr.ChatInterface(
+                stream_or_nothing_with_extra,
+                additional_outputs=[code],
+                api_name="chat",
+            )
+            code.render()
+        with connect(demo) as client:
+            assert client.predict("hello", api_name="/chat") == ("hello", "extra")
+            assert client.predict("skip", api_name="/chat") == (None, gr.skip())
 
     def test_non_streaming_api(self, connect):
         chatbot = gr.ChatInterface(double)
