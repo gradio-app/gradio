@@ -1,7 +1,24 @@
 <script module lang="ts">
-	import * as Prism from "prismjs";
-	import "prismjs/components/prism-python";
-	import "prismjs/components/prism-typescript";
+	import Prism from "prismjs";
+
+	// `prismjs/components/*` are side-effect scripts: each does
+	// `Prism.languages.x = ...` against a bare global and declares no imports of
+	// its own, so nothing in the module graph orders them after prismjs. As
+	// *static* imports the bundler is free to hoist them into a chunk that
+	// evaluates before the assignment below, and rolldown compounds it by
+	// emitting prismjs as a lazily-invoked CommonJS factory — so importing it
+	// does not initialise it either, and `window.Prism` stayed undefined. Every
+	// docs page then died during hydration on `ReferenceError: Prism is not
+	// defined` (#13677).
+	//
+	// Dynamic imports are not hoisted, so the global below is guaranteed to be in
+	// place before any grammar runs.
+	(globalThis as any).Prism = Prism;
+
+	const grammars_loaded: Promise<unknown> = Promise.all([
+		import("prismjs/components/prism-python"),
+		import("prismjs/components/prism-typescript")
+	]);
 </script>
 
 <script lang="ts">
@@ -34,7 +51,12 @@
 	let all_open = $state(false);
 	let lang: "python" | "typescript" = "python";
 
-	let _docs = $derived(highlight_code(docs, lang));
+	// The grammars now arrive asynchronously, and `highlight` falls back to plain
+	// text until they do, so re-derive once they land.
+	let grammars_ready = $state(false);
+	grammars_loaded.then(() => (grammars_ready = true));
+
+	let _docs = $derived(highlight_code(docs, lang, grammars_ready));
 
 	function create_slug(name: string, anchor_links: string | boolean): string {
 		let prefix = "param-";
@@ -61,7 +83,9 @@
 
 	function highlight_code(
 		_docs: typeof docs,
-		lang: "python" | "typescript"
+		lang: "python" | "typescript",
+		// Unused, but read so the `$derived` re-runs when the grammars load.
+		_grammars_ready?: boolean
 	): Param[] {
 		if (!_docs) {
 			return [];
