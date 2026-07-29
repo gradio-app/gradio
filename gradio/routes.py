@@ -1416,7 +1416,9 @@ class App(FastAPI):
             )
             error_map = {
                 "queue_full": status.HTTP_503_SERVICE_UNAVAILABLE,
-                "validator_error": status.HTTP_422_UNPROCESSABLE_CONTENT,
+                "validator_error": getattr(
+                    status, "HTTP_422_UNPROCESSABLE_CONTENT", 422
+                ),
                 "error": status.HTTP_400_BAD_REQUEST,
                 "success": status.HTTP_200_OK,
             }
