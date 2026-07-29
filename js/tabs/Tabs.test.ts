@@ -1,6 +1,7 @@
 import { test, describe, afterEach, expect } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+import event from "@testing-library/user-event";
 import type { Tab } from "./shared/Tabs.svelte";
 
 import Tabs from "./Index.svelte";
@@ -78,6 +79,36 @@ describe("Tabs", () => {
 			"aria-selected",
 			"false"
 		);
+	});
+});
+
+describe("Accessibility", () => {
+	afterEach(() => cleanup());
+
+	test("keyboard focus skips the hidden tab measurement buttons", async () => {
+		const { getByRole } = await render(Tabs, default_props);
+
+		await event.tab();
+
+		expect(getByRole("tab", { name: "First" })).toHaveFocus();
+	});
+
+	test("the tab overflow button has an accessible name", async () => {
+		const many_tabs = Array.from({ length: 20 }, (_, index) =>
+			make_tab({
+				label: `Long tab label ${index + 1}`,
+				id: `t${index + 1}`,
+				component_id: index + 1
+			})
+		);
+		const { getByRole } = await render(Tabs, {
+			...default_props,
+			initial_tabs: many_tabs
+		});
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		});
 	});
 });
 
