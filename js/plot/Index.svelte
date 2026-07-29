@@ -65,7 +65,7 @@
 	/>
 	<Plot
 		value={gradio.props.value}
-		theme_mode={gradio.props.theme_mode}
+		theme_mode={gradio.shared.theme_mode}
 		show_label={gradio.shared.show_label}
 		caption={gradio.props.caption}
 		bokeh_version={gradio.props.bokeh_version}
