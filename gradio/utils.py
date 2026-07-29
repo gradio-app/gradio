@@ -2,6 +2,7 @@
 
 import asyncio
 import copy
+import dataclasses
 import functools
 import hashlib
 import importlib
@@ -1994,6 +1995,16 @@ def dict_factory(items):
         else:
             d[key] = value
     return d
+
+
+def shallow_asdict(obj) -> dict:
+    """
+    Like dataclasses.asdict, but without deep-copying the field values, which
+    fails for values such as bokeh figures.
+    """
+    return dict_factory(
+        [(f.name, getattr(obj, f.name)) for f in dataclasses.fields(obj)]
+    )
 
 
 def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[str]]:

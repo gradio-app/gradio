@@ -345,6 +345,64 @@ describe("Props: buttons (static mode)", () => {
 		});
 	});
 
+	test("fullscreen block does not extend beneath the window scrollbar", async () => {
+		// Reserve a 16px scrollbar gutter so the window scrollbar takes layout
+		// space, as classic (non-overlay) scrollbars do on Windows (#11982).
+		// The box-sizing rule mirrors the app's global reset.css, which is not
+		// loaded in the test environment.
+		const style = document.createElement("style");
+		style.textContent =
+			"html { scrollbar-gutter: stable; } ::-webkit-scrollbar { width: 16px; } * { box-sizing: border-box; }";
+		document.head.appendChild(style);
+		const filler = document.createElement("div");
+		filler.style.height = "5000px";
+		document.body.appendChild(filler);
+		// A fixed element spanning left:0/right:0 measures the visible viewport
+		// width, which excludes the scrollbar gutter.
+		const probe = document.createElement("div");
+		probe.style.cssText = "position: fixed; left: 0; right: 0; height: 1px;";
+		document.body.appendChild(probe);
+
+		try {
+			const visible_width = probe.getBoundingClientRect().width;
+			expect(visible_width).toBeLessThan(window.innerWidth);
+
+			const { getByLabelText } = await render(Image, {
+				...default_props,
+				interactive: true,
+				value: fake_value,
+				buttons: ["fullscreen"]
+			});
+
+			await fireEvent.click(getByLabelText("Fullscreen"));
+			const block = await waitFor(() => {
+				const el = document.querySelector(".block.fullscreen");
+				expect(el).toBeTruthy();
+				// Wait out the pop-out animation: the block must have reached
+				// its final, (at least) full-viewport width before measuring.
+				expect(el?.getBoundingClientRect().width).toBeGreaterThanOrEqual(
+					visible_width - 1
+				);
+				return el as HTMLElement;
+			});
+
+			expect(block.getBoundingClientRect().right).toBeLessThanOrEqual(
+				visible_width
+			);
+			const wrapper = block.querySelector(
+				".icon-button-wrapper"
+			) as HTMLElement;
+			expect(wrapper).toBeTruthy();
+			expect(wrapper.getBoundingClientRect().right).toBeLessThanOrEqual(
+				visible_width
+			);
+		} finally {
+			style.remove();
+			filler.remove();
+			probe.remove();
+		}
+	});
+
 	test("empty buttons array shows no action buttons", async () => {
 		const { queryByLabelText } = await render(Image, {
 			...default_props,
