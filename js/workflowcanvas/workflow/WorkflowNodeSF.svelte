@@ -88,9 +88,24 @@
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
 	let errorExpanded = $state(false);
+	let errorCopied = $state(false);
+	let errorCopiedTimer: ReturnType<typeof setTimeout> | undefined;
 	$effect(() => {
 		if (!error) errorExpanded = false;
 	});
+	$effect(() => () => clearTimeout(errorCopiedTimer));
+
+	async function copyError(): Promise<void> {
+		if (!error) return;
+		try {
+			await navigator.clipboard?.writeText(error);
+			errorCopied = true;
+			clearTimeout(errorCopiedTimer);
+			errorCopiedTimer = setTimeout(() => (errorCopied = false), 1500);
+		} catch {
+			/* clipboard unavailable — leave the label unchanged */
+		}
+	}
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
@@ -650,18 +665,32 @@
 	{#if status === "error" && error}
 		<div class="node-error-banner" class:expanded={errorExpanded}>
 			<div class="node-error-text">{error}</div>
-			<button
-				type="button"
-				class="node-error-toggle nodrag nopan"
-				onclick={(e) => {
-					e.stopPropagation();
-					errorExpanded = !errorExpanded;
-				}}
-				onpointerdown={(e) => e.stopPropagation()}
-				onmousedown={(e) => e.stopPropagation()}
-			>
-				{errorExpanded ? "show less" : "show more"}
-			</button>
+			<div class="node-error-actions">
+				<button
+					type="button"
+					class="node-error-toggle nodrag nopan"
+					onclick={(e) => {
+						e.stopPropagation();
+						void copyError();
+					}}
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{errorCopied ? "copied" : "copy"}
+				</button>
+				<button
+					type="button"
+					class="node-error-toggle nodrag nopan"
+					onclick={(e) => {
+						e.stopPropagation();
+						errorExpanded = !errorExpanded;
+					}}
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{errorExpanded ? "show less" : "show more"}
+				</button>
+			</div>
 		</div>
 	{/if}
 </div>
@@ -1139,10 +1168,15 @@
 		-webkit-mask-image: none;
 	}
 
-	.node-error-toggle {
+	.node-error-actions {
 		position: absolute;
 		bottom: 4px;
 		right: 8px;
+		display: flex;
+		gap: 8px;
+	}
+
+	.node-error-toggle {
 		background: none;
 		border: none;
 		padding: 0;

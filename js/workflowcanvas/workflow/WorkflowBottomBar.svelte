@@ -28,6 +28,7 @@
 		readOnly?: boolean;
 		onopenpicker: (modality: ModalityConfig) => void;
 		onaddinput: (portType: string) => void;
+		onaddoutput: (portType: string) => void;
 		onaddfn: (template: BoundFnTemplate) => void;
 		onrun: () => void;
 		onstop: () => void;
@@ -42,6 +43,7 @@
 		readOnly = false,
 		onopenpicker,
 		onaddinput,
+		onaddoutput,
 		onaddfn,
 		onrun,
 		onstop
@@ -83,22 +85,33 @@
 	];
 
 	let showInputMenu = $state(false);
+	let showOutputMenu = $state(false);
 	let showFnMenu = $state(false);
 
 	function closeMenus(): void {
 		showInputMenu = false;
+		showOutputMenu = false;
 		showFnMenu = false;
 	}
 
 	function toggleInputMenu(e: MouseEvent) {
 		e.stopPropagation();
 		showFnMenu = false;
+		showOutputMenu = false;
 		showInputMenu = !showInputMenu;
+	}
+
+	function toggleOutputMenu(e: MouseEvent) {
+		e.stopPropagation();
+		showFnMenu = false;
+		showInputMenu = false;
+		showOutputMenu = !showOutputMenu;
 	}
 
 	function toggleFnMenu(e: MouseEvent) {
 		e.stopPropagation();
 		showInputMenu = false;
+		showOutputMenu = false;
 		showFnMenu = !showFnMenu;
 	}
 
@@ -106,6 +119,12 @@
 		e.stopPropagation();
 		showInputMenu = false;
 		onaddinput(type);
+	}
+
+	function handleOutputType(type: string, e: MouseEvent) {
+		e.stopPropagation();
+		showOutputMenu = false;
+		onaddoutput(type);
 	}
 
 	function handleFnClick(tmpl: BoundFnTemplate, e: MouseEvent) {
@@ -175,7 +194,7 @@
 			<span class="bb-icon">
 				<DatasetIcon />
 			</span>
-			<span class="bb-label">Data</span>
+			<span class="bb-label">Dataset</span>
 		</button>
 
 		<div class="bb-divider"></div>
@@ -195,6 +214,27 @@
 						<button
 							class="input-type-opt"
 							onclick={(e) => handleInputType(t.key, e)}>{t.label}</button
+						>
+					{/each}
+				</div>
+			{/if}
+		</div>
+
+		<div class="bb-input-wrap">
+			<button
+				class="bb-input-btn"
+				onclick={toggleOutputMenu}
+				title="Add output node"
+			>
+				<PlusIcon />
+				Output
+			</button>
+			{#if showOutputMenu}
+				<div class="input-type-menu">
+					{#each INPUT_TYPES as t}
+						<button
+							class="input-type-opt"
+							onclick={(e) => handleOutputType(t.key, e)}>{t.label}</button
 						>
 					{/each}
 				</div>
