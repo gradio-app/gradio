@@ -449,11 +449,9 @@ def test_oauth_token_reaches_only_the_endpoint_that_asks_for_it():
     api = cast(dict, client.view_api(return_format="dict"))
     info = api["named_endpoints"]
 
-    # The app declares which endpoints act on the caller's behalf.
     assert info["/report"]["oauth_token"] == "optional"
     assert "oauth_token" not in info["/calculator"]
 
-    # The token is only put in the body of the endpoint that declared it.
     endpoints: list[Endpoint] = [
         endpoint
         for endpoint in client.endpoints.values()
@@ -463,12 +461,10 @@ def test_oauth_token_reaches_only_the_endpoint_that_asks_for_it():
     payloads = {e.api_name: e.oauth_token_payload() for e in endpoints}
     assert payloads == {"/report": {"oauth_token": HF_TOKEN}, "/calculator": {}}
 
-    # A usable token arrives, so the Space can act as the caller.
     assert client.predict(api_name="/report").startswith("user:")
     assert client.predict(4, "add", 2, api_name="/calculator") == 6
 
-    # Without oauth_token=, nothing is granted, even though `token` authenticates
-    # the caller to the Space itself.
+    # `token` authenticates the caller to the Space, but grants nothing to the fn.
     assert (
         Client(space, token=HF_TOKEN, verbose=False).predict(api_name="/report")
         == "none"

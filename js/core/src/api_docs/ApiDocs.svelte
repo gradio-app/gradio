@@ -8,6 +8,7 @@
 	import ApiBanner from "./ApiBanner.svelte";
 	import { BaseButton as Button } from "@gradio/button";
 	import ParametersSnippet from "./ParametersSnippet.svelte";
+	import OAuthTokenSnippet from "./OAuthTokenSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippet from "./CodeSnippet.svelte";
 	import RecordingSnippet from "./RecordingSnippet.svelte";
@@ -580,6 +581,14 @@
 										.code_snippets}
 									{cli_command}
 								/>
+
+								{#if info.named_endpoints["/" + dependency.api_name].oauth_token}
+									<OAuthTokenSnippet
+										oauth_token={info.named_endpoints["/" + dependency.api_name]
+											.oauth_token}
+										{current_language}
+									/>
+								{/if}
 
 								<ParametersSnippet
 									endpoint_returns={info.named_endpoints[

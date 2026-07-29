@@ -36,11 +36,7 @@ export interface EndpointInfo<T extends ApiData | JsApiData> {
 	parameters: T[];
 	returns: T[];
 	type?: DependencyTypes;
-	/**
-	 * Present only when the endpoint's function takes a `gr.OAuthToken`, so the
-	 * caller can see which endpoints act on their behalf. A token is sent only
-	 * to endpoints that declare one.
-	 */
+	/** Set when the endpoint's function takes a `gr.OAuthToken`. */
 	oauth_token?: "required" | "optional";
 }
 
@@ -345,10 +341,10 @@ export interface ClientOptions {
 	cookies?: string;
 	credentials?: RequestCredentials;
 	/**
-	 * A Hugging Face token for the app to act on your behalf, for endpoints whose
+	 * A Hugging Face token passed to the app's own code, for endpoints whose
 	 * function takes a `gr.OAuthToken`. Unlike `token`, which only authenticates
-	 * you to the app, this is passed to the app's code, so it is sent only to
-	 * endpoints that declare they need it. It is never inferred from anywhere.
+	 * you to the app, this lets the app act on your behalf, so it is sent only to
+	 * endpoints that declare they need it.
 	 */
 	oauth_token?: string;
 }

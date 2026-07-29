@@ -92,10 +92,7 @@ class PredictBody(BaseModel):
     session_hash: str | None = None
     event_id: str | None = None
     data: list[Any]
-    # A token the caller supplies for endpoints that take a gr.OAuthToken. It
-    # rides alongside `data` rather than in it, so it never becomes a positional
-    # argument or shows up in an endpoint's parameter schema. Treat as a secret:
-    # keep it out of logs, analytics, flagging, and cached examples.
+    # Secret: a caller-supplied token for endpoints that take a gr.OAuthToken.
     oauth_token: str | None = None
     event_data: Any | None = None
     fn_index: int | None = None
@@ -465,9 +462,7 @@ class APIEndpointInfo(TypedDict):
     parameters: list[ParameterInfo]
     returns: list[APIReturnInfo]
     api_visibility: Literal["public", "private", "undocumented"]
-    # Present only when the function takes a gr.OAuthToken, so a caller can see
-    # which endpoints act on their behalf — and clients know where it is safe to
-    # send a token. Absent means the endpoint never receives one.
+    # Set only when the function takes a gr.OAuthToken.
     oauth_token: NotRequired[Literal["required", "optional"]]
 
 

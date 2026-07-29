@@ -371,8 +371,7 @@ def prepare_event_data(
 def oauth_token_from_body(body: PredictBodyInternal) -> Optional[OAuthToken]:
     """Wrap a caller-supplied token so it can be injected as a gr.OAuthToken.
 
-    Scope and expiry are unknown: unlike an OAuth grant this is a token the
-    caller handed over directly, and the request carries neither.
+    Scope and expiry are empty because the request carries neither.
     """
     from gradio.oauth import OAuthToken as _OAuthToken
 

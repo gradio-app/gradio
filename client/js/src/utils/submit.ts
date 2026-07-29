@@ -185,8 +185,6 @@ export function submit(
 				event_data,
 				fn_index,
 				trigger_id,
-				// Only endpoints that declare a gr.OAuthToken receive one, so an
-				// app can't collect tokens from calls with no reason to carry them.
 				...(options.oauth_token && endpoint_info?.oauth_token
 					? { oauth_token: options.oauth_token }
 					: {})

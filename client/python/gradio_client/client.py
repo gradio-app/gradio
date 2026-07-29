@@ -802,8 +802,6 @@ class Client:
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
         if endpoints_info.get("oauth_token"):
-            # Say so plainly: this endpoint receives the caller's token and can
-            # act as them, which is not visible from its parameters.
             human_info += (
                 f"    Acts on your behalf: this endpoint takes your Hugging Face "
                 f"token ({endpoints_info['oauth_token']}). Pass it with "
@@ -1064,18 +1062,13 @@ class Endpoint:
         return None
 
     def _get_oauth_token_requirement(self) -> str | None:
-        """Whether this endpoint's function takes a gr.OAuthToken.
-
-        Returns "required", "optional", or None. A token is only ever sent to
-        endpoints that say they take one.
-        """
+        """Returns "required", "optional", or None for this endpoint's gr.OAuthToken."""
         if self.api_name in self._info["named_endpoints"]:
             return self._info["named_endpoints"][self.api_name].get("oauth_token")
         return None
 
     def oauth_token_payload(self) -> dict[str, str]:
-        """The oauth_token body field, when this endpoint asked for one and the
-        caller supplied one."""
+        """The oauth_token body field, if this endpoint takes one and the caller supplied one."""
         token = self.client.oauth_token
         if token and self.oauth_token_requirement is not None:
             return {"oauth_token": token}
@@ -1199,8 +1192,7 @@ class Endpoint:
                 "data": data or [],
                 "fn_index": self.fn_index,
                 **kwargs,
-                # Last, so a caller cannot smuggle a token past the per-endpoint
-                # gate by passing oauth_token= as an ordinary keyword argument.
+                # Last, so an oauth_token= kwarg cannot bypass the per-endpoint gate.
                 **self.oauth_token_payload(),
             }
 

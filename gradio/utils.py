@@ -1227,13 +1227,8 @@ def is_special_typed_parameter(name, parameter_types):
 def oauth_token_requirement(
     fn: Callable | None,
 ) -> Literal["required", "optional"] | None:
-    """Whether `fn` takes a gr.OAuthToken, and whether it insists on one.
-
-    Returns "required" for `gr.OAuthToken`, "optional" for `gr.OAuthToken | None`,
-    and None when the function never receives one. Reported per endpoint so a
-    caller can see which endpoints act on their behalf, and so clients only send
-    a token where the app asked for it.
-    """
+    """Returns "required" for `gr.OAuthToken`, "optional" for `gr.OAuthToken | None`,
+    and None when `fn` never receives one."""
     from gradio.oauth import OAuthToken
 
     if fn is None:
@@ -1243,13 +1238,11 @@ def oauth_token_requirement(
         parameters = inspect.signature(fn).parameters
     except (TypeError, ValueError):
         return None
-    # Parameters only: the return annotation lives in the same mapping, and a
-    # function that *returns* an OAuthToken is not one that receives one.
+    # Iterate over parameters, not hints, which also holds the return annotation.
     for name in parameters:
         hint = hints.get(name)
         if hint is OAuthToken:
             return "required"
-        # `Optional[X]` and PEP 604 `X | None` compare equal, so this covers both.
         if hint == Optional[OAuthToken]:
             return "optional"
     return None
