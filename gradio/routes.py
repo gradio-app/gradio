@@ -1338,15 +1338,26 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            parameters_info = app.api_info["named_endpoints"]["/" + api_name][  # type: ignore
-                "parameters"
-            ]
+            endpoint_info = app.api_info["named_endpoints"]["/" + api_name]  # type: ignore
+            parameters_info = endpoint_info["parameters"]
+            body = dict(body)
+            oauth_token = None
+            if endpoint_info.get("oauth_token"):
+                oauth_token = body.pop("oauth_token", None)
+            elif not any(
+                p.get("parameter_name") == "oauth_token" for p in parameters_info
+            ):
+                # Not this endpoint's to receive, and not one of its parameters
+                # either, so drop it rather than report an unknown argument.
+                body.pop("oauth_token", None)
             processed_args = client_utils.construct_args(
                 parameters_info,
                 (),
                 body,
             )
-            simple_body = SimplePredictBody(data=processed_args)
+            simple_body = SimplePredictBody(
+                data=processed_args, oauth_token=oauth_token
+            )
             full_body = PredictBody(**simple_body.model_dump(), simple_format=True)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body

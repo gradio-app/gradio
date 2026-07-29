@@ -90,6 +90,7 @@ class Client:
         ssl_verify: bool = True,
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
         analytics_enabled: bool = True,
+        oauth_token: str | None = None,
     ):
         """
         Parameters:
@@ -102,9 +103,11 @@ class Client:
             ssl_verify: if False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
             httpx_kwargs: additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            oauth_token: optional Hugging Face token for the app to act on your behalf, for endpoints whose function takes a `gr.OAuthToken`. Unlike `token`, which only authenticates you to the app, this is passed to the app's code, so it is sent only to endpoints that declare they need it — `view_api()` marks those. It is never sent anywhere else, and is not inferred from your locally saved token.
         """
         self.verbose = verbose
         self.token = token
+        self.oauth_token = oauth_token
         self.download_files = download_files
         self._skip_components = _skip_components
         self.headers = build_hf_headers(
@@ -798,6 +801,12 @@ class Client:
             raise ValueError("name_or_index must be a string or integer")
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
+        if endpoints_info.get("oauth_token"):
+            human_info += (
+                f"    Acts on your behalf: this endpoint takes your Hugging Face "
+                f"token ({endpoints_info['oauth_token']}). Pass it with "
+                f"Client(..., oauth_token=...) to grant it.\n"
+            )
         human_info += "    Parameters:\n"
         if parameter_info:
             for info in parameter_info:
@@ -1019,6 +1028,7 @@ class Endpoint:
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
         self.parameters_info = self._get_parameters_info()
+        self.oauth_token_requirement = self._get_oauth_token_requirement()
         self.root_url = self.client.src_prefixed
         self.backend_fn = dependency.get("backend_fn")
 
@@ -1050,6 +1060,19 @@ class Endpoint:
         if self.api_name in self._info["named_endpoints"]:
             return self._info["named_endpoints"][self.api_name]["parameters"]
         return None
+
+    def _get_oauth_token_requirement(self) -> str | None:
+        """Returns "required", "optional", or None for this endpoint's gr.OAuthToken."""
+        if self.api_name in self._info["named_endpoints"]:
+            return self._info["named_endpoints"][self.api_name].get("oauth_token")
+        return None
+
+    def oauth_token_payload(self) -> dict[str, str]:
+        """The oauth_token body field, if this endpoint takes one and the caller supplied one."""
+        token = self.client.oauth_token
+        if token and self.oauth_token_requirement is not None:
+            return {"oauth_token": token}
+        return {}
 
     @staticmethod
     def value_is_file(component: dict) -> bool:
@@ -1169,6 +1192,8 @@ class Endpoint:
                 "data": data or [],
                 "fn_index": self.fn_index,
                 **kwargs,
+                # Last, so an oauth_token= kwarg cannot bypass the per-endpoint gate.
+                **self.oauth_token_payload(),
             }
 
             hash_data = {

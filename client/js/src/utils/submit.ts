@@ -184,7 +184,10 @@ export function submit(
 				data: input_data || [],
 				event_data,
 				fn_index,
-				trigger_id
+				trigger_id,
+				...(options.oauth_token && endpoint_info?.oauth_token
+					? { oauth_token: options.oauth_token }
+					: {})
 			};
 			if (skip_queue(fn_index, config)) {
 				fire_event({

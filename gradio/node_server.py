@@ -5,8 +5,10 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 import warnings
+from collections import deque
 from concurrent.futures import TimeoutError
 from contextlib import closing
 from http.client import HTTPConnection
@@ -98,6 +100,10 @@ def start_node_process(
         return None, None
 
     node_process = None
+    # Node's own output is hidden unless debug=True, which means a server that starts
+    # but fails to render leaves no trace. Keep the last of it so a failed startup can
+    # say what actually went wrong instead of guessing at the Node version.
+    node_errors: str = ""
 
     for port in server_ports:
         try:
@@ -139,9 +145,22 @@ def start_node_process(
             node_process = subprocess.Popen(
                 [node_path, "--import", register_file, SSR_APP_PATH],
                 env=env,
-                stdout=subprocess.DEVNULL if not debug else None,
-                stderr=subprocess.DEVNULL if not debug else None,
+                stdout=None if debug else subprocess.DEVNULL,
+                stderr=None if debug else subprocess.PIPE,
             )
+
+            # The pipe has to be drained for the lifetime of the process or Node
+            # blocks once the buffer fills, so a thread keeps reading it and holds
+            # on to only the most recent lines.
+            recent_errors: deque[str] = deque(maxlen=50)
+            stderr_thread = None
+            if node_process.stderr is not None:
+                stderr_thread = threading.Thread(
+                    target=drain_stderr,
+                    args=(node_process.stderr, recent_errors),
+                    daemon=True,
+                )
+                stderr_thread.start()
 
             # Node starts only after the Python backend is already
             # listening (Blocks.launch defers the front-proxy start), so we
@@ -162,6 +181,11 @@ def start_node_process(
                 # If verification failed, terminate the process and try the next port
                 node_process.terminate()
                 node_process.wait(timeout=2)
+                # Let the reader finish the lines already in the pipe before we
+                # look at them, otherwise the diagnosis can race the output.
+                if stderr_thread is not None:
+                    stderr_thread.join(timeout=2)
+                node_errors = "".join(recent_errors).strip() or node_errors
                 node_process = None
 
         except OSError:
@@ -179,14 +203,35 @@ def start_node_process(
     print(
         f"Cannot start Node server on any port in the range {server_ports[0]}-{server_ports[-1]}."
     )
-    print(
-        "Please install Node 20 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
-    )
+    if node_errors:
+        # Node ran and told us why it couldn't serve requests, so pass that along
+        # rather than pointing at the Node installation, which is evidently fine.
+        # The same failure usually repeats once per probe, so one tail is enough.
+        print("The Node server reported:")
+        print("\n".join(node_errors.splitlines()[-20:]))
+    else:
+        print(
+            "Please install Node 20 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
+        )
     print(
         "You can explicitly specify a port by setting the environment variable GRADIO_NODE_PORT."
     )
 
     return None, None
+
+
+def drain_stderr(stream, buffer: deque[str]) -> None:
+    """Reads the Node server's stderr, keeping only the most recent lines."""
+    try:
+        for line in iter(stream.readline, b""):
+            buffer.append(line.decode("utf-8", errors="replace"))
+    except Exception:
+        pass
+    finally:
+        try:
+            stream.close()
+        except Exception:
+            pass
 
 
 def attempt_connection(host: str, port: int) -> bool:
