@@ -11,6 +11,9 @@
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 	import ExpandIcon from "./icons/ExpandIcon.svelte";
+	import UploadIcon from "./icons/UploadIcon.svelte";
+	import MicIcon from "./icons/MicIcon.svelte";
+	import CameraIcon from "./icons/CameraIcon.svelte";
 	import NodeCapture from "./NodeCapture.svelte";
 
 	interface Props {
@@ -18,6 +21,8 @@
 		widgetPortId: string;
 		widgetType: PortType;
 		isReadonly: boolean;
+		/** The node has a user-pinned height, so stretch to fill it. */
+		fillHeight?: boolean;
 		ondatachange: (
 			nodeId: string,
 			portId: string,
@@ -25,12 +30,25 @@
 		) => void;
 	}
 
-	let { node, widgetPortId, widgetType, isReadonly, ondatachange }: Props =
-		$props();
+	let {
+		node,
+		widgetPortId,
+		widgetType,
+		isReadonly,
+		fillHeight = false,
+		ondatachange
+	}: Props = $props();
 
 	const wf = getContext<{
 		onviewfullscreen?: (src: string, alt: string) => void;
+		readOnly?: boolean;
 	}>("wf");
+
+	// Editable canvases resize through the node's own corner handle, which does
+	// both axes and persists. A textarea's native grip sits in the same corner
+	// and only does height, so it's redundant there — but it's the only way a
+	// run-only viewer can enlarge a text output, so keep it for them.
+	const nativeTextareaResize = $derived(!!wf?.readOnly);
 
 	let capturing = $state(false);
 
@@ -52,6 +70,7 @@
 	const multiselect = $derived(!!widgetPort?.multiselect);
 
 	let fileInputEl: HTMLInputElement | undefined = $state();
+	let dragActive = $state(false);
 
 	function getTextValue(): string {
 		const v = node.data?.[widgetPortId];
@@ -135,9 +154,17 @@
 	function handleFileDrop(e: DragEvent) {
 		e.preventDefault();
 		e.stopPropagation();
+		dragActive = false;
 		const file = e.dataTransfer?.files?.[0];
 		if (file) adopt_file(file);
 	}
+
+	const ACCEPT: Partial<Record<PortType, string>> = {
+		image: "image/*",
+		audio: "audio/*",
+		video: "video/*",
+		model3d: ".glb,.gltf,.obj,.stl"
+	};
 
 	function clearFile() {
 		revoke_old_blob();
@@ -199,6 +226,8 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="widget-zone nodrag nopan nowheel"
+	class:fill={fillHeight}
+	class:native-resize={nativeTextareaResize}
 	class:text-full={(widgetType === "text" || widgetType === "json") &&
 		!hasChoices}
 	onmousedown={(e) => e.stopPropagation()}
@@ -300,7 +329,9 @@
 			<div
 				class="widget-html-preview"
 				bind:this={htmlPreviewEl}
-				style="height: {Math.round(HTML_PAGE_HEIGHT * htmlScale)}px;"
+				style={fillHeight
+					? ""
+					: `height: ${Math.round(HTML_PAGE_HEIGHT * htmlScale)}px;`}
 			>
 				<iframe
 					class="widget-html-iframe"
@@ -398,54 +429,86 @@
 				oncancel={() => (capturing = false)}
 			/>
 		{:else}
+			<!-- Empty input: drop anywhere on the zone, or take one of the two
+			     explicit routes in. The buttons carry the affordance the old
+			     "or record from mic" text link was too quiet to carry. -->
 			<!-- svelte-ignore a11y_interactive_supports_focus -->
 			<div
 				class="widget-file-drop nodrag nopan"
+				class:drag-active={dragActive}
 				role="button"
 				tabindex="0"
+				title="Drop a file here, or click to browse"
 				onclick={() => fileInputEl?.click()}
 				onkeydown={(e) => {
 					if (e.key === "Enter" || e.key === " ") fileInputEl?.click();
 				}}
 				onmousedown={(e) => e.stopPropagation()}
 				onpointerdown={(e) => e.stopPropagation()}
+				ondragenter={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					dragActive = true;
+				}}
 				ondragover={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
+					dragActive = true;
+				}}
+				ondragleave={(e) => {
+					// Only the zone itself leaving counts; moving between its own
+					// children fires dragleave too and would flicker the highlight.
+					if (!e.currentTarget.contains(e.relatedTarget as Node | null))
+						dragActive = false;
 				}}
 				ondrop={handleFileDrop}
 			>
 				<input
 					bind:this={fileInputEl}
 					type="file"
-					accept={widgetType === "image"
-						? "image/*"
-						: widgetType === "audio"
-							? "audio/*"
-							: widgetType === "video"
-								? "video/*"
-								: widgetType === "model3d"
-									? ".glb,.gltf,.obj,.stl"
-									: "*"}
+					accept={ACCEPT[widgetType] ?? "*"}
 					onchange={handleFileSelect}
 					style="display: none"
 				/>
 				<span class="widget-drop-text">
-					Drop {widgetType} or click
+					{dragActive ? `Drop to add ${widgetType}` : `Drop ${widgetType} here`}
 				</span>
+				<div class="widget-drop-actions">
+					<button
+						class="widget-io-btn"
+						onclick={(e) => {
+							e.stopPropagation();
+							fileInputEl?.click();
+						}}
+						onpointerdown={(e) => e.stopPropagation()}
+						title="Choose a file"
+					>
+						<UploadIcon />
+						<span>Upload</span>
+					</button>
+					{#if canCapture}
+						<button
+							class="widget-io-btn widget-io-record"
+							onclick={(e) => {
+								e.stopPropagation();
+								capturing = true;
+							}}
+							onpointerdown={(e) => e.stopPropagation()}
+							title={widgetType === "audio"
+								? "Record from your microphone"
+								: "Capture from your webcam"}
+						>
+							{#if widgetType === "audio"}
+								<MicIcon />
+								<span>Record</span>
+							{:else}
+								<CameraIcon />
+								<span>Webcam</span>
+							{/if}
+						</button>
+					{/if}
+				</div>
 			</div>
-			{#if canCapture}
-				<button
-					class="widget-capture-link nodrag nopan"
-					onclick={(e) => {
-						e.stopPropagation();
-						capturing = true;
-					}}
-					onpointerdown={(e) => e.stopPropagation()}
-				>
-					{widgetType === "audio" ? "or record from mic" : "or use webcam"}
-				</button>
-			{/if}
 		{/if}
 	{/if}
 </div>
@@ -595,6 +658,10 @@
 		min-height: 120px !important;
 		width: 100% !important;
 		box-sizing: border-box !important;
+		resize: none !important;
+	}
+
+	.widget-zone.text-full.native-resize :global(textarea) {
 		resize: vertical !important;
 	}
 
@@ -705,18 +772,31 @@
 
 	.widget-file-drop {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		height: 80px;
+		gap: 8px;
+		min-height: 92px;
+		padding: 12px 10px;
 		border: none;
 		border-radius: 0 0 10px 10px;
 		background: #101118;
 		cursor: pointer;
-		transition: background 0.15s;
+		transition:
+			background 0.15s,
+			box-shadow 0.15s;
+		box-sizing: border-box;
 	}
 
 	.widget-file-drop:hover {
 		background: #14151a;
+	}
+
+	/* Dragging over: inset ring rather than a real border, so the zone doesn't
+	   change size (and shift the card) mid-drag. */
+	.widget-file-drop.drag-active {
+		background: #14161f;
+		box-shadow: inset 0 0 0 1.5px var(--accent);
 	}
 
 	.widget-file-drop input {
@@ -726,6 +806,49 @@
 	.widget-drop-text {
 		font-size: 10.5px;
 		color: #4a4b58;
+		text-align: center;
+	}
+
+	.widget-file-drop.drag-active .widget-drop-text {
+		color: var(--accent);
+	}
+
+	.widget-drop-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+
+	.widget-io-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 4px 9px;
+		border: 1px solid #2a2b38;
+		border-radius: 5px;
+		background: #191a23;
+		color: #a8aab6;
+		font-family: "Manrope", sans-serif;
+		font-size: 10.5px;
+		font-weight: 600;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			background 0.15s,
+			border-color 0.15s,
+			color 0.15s;
+	}
+
+	.widget-io-btn:hover {
+		background: #21222d;
+		border-color: #3a3b4a;
+		color: #e6e7ec;
+	}
+
+	.widget-io-record:hover {
+		border-color: var(--accent);
+		color: var(--accent);
 	}
 
 	.widget-placeholder {
@@ -767,22 +890,6 @@
 		max-height: 100px;
 		object-fit: contain;
 		border-radius: 5px;
-	}
-
-	.widget-capture-link {
-		display: block;
-		width: 100%;
-		padding: 0 0 8px;
-		border: none;
-		background: none;
-		color: #6b6e78;
-		font-family: "Manrope", sans-serif;
-		font-size: 10px;
-		cursor: pointer;
-	}
-
-	.widget-capture-link:hover {
-		color: #a0a2ae;
 	}
 
 	.widget-preview-actions {
@@ -886,8 +993,24 @@
 		background: #f0f1f5;
 	}
 
+	:global(body:not(.dark)) .widget-file-drop.drag-active {
+		background: #f0f2f8;
+	}
+
 	:global(body:not(.dark)) .widget-drop-text {
-		color: #b0b2bc;
+		color: #9a9caa;
+	}
+
+	:global(body:not(.dark)) .widget-io-btn {
+		background: #ffffff;
+		border-color: #dfe1e9;
+		color: #5c5e6a;
+	}
+
+	:global(body:not(.dark)) .widget-io-btn:hover {
+		background: #f4f5f9;
+		border-color: #c3c6d2;
+		color: #1a1b25;
 	}
 
 	:global(body:not(.dark)) .widget-placeholder {
@@ -899,6 +1022,12 @@
 	:global(body:not(.dark)) .widget-preview {
 		background: #f8f9fb;
 		border-color: #e2e4ea;
+	}
+
+	/* The letterbox around a contained image is the element's own background, so
+	   it has to follow the theme or a light canvas gets black bars. */
+	:global(body:not(.dark)) .widget-img {
+		background: #f1f2f6;
 	}
 
 	.widget-html-preview {
@@ -924,5 +1053,96 @@
 
 	.widget-html-preview:hover .widget-preview-actions {
 		opacity: 1;
+	}
+
+	/* ─── Fill mode ───
+	 * The node has a height the user dragged out, so the widget takes the slack
+	 * instead of leaving dead space under a fixed-size preview. Every rule here
+	 * is a `min-height: 0` chain: without it a flex item refuses to shrink below
+	 * its content and the card overflows. Comes last in the file so it wins
+	 * against the natural-size rules above it. */
+	.widget-zone.fill {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	.widget-zone.fill > * {
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	.widget-zone.fill .widget-preview,
+	.widget-zone.fill .widget-text-wrap,
+	.widget-zone.fill .widget-gradio-wrap,
+	.widget-zone.fill .widget-gradio-image {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	.widget-zone.fill .widget-preview > *,
+	.widget-zone.fill .widget-text-wrap > * {
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	.widget-zone.fill .widget-img,
+	.widget-zone.fill .widget-video {
+		height: 100%;
+		max-height: none;
+	}
+
+	/* BaseStaticImage nests the image in wrappers that shrink-wrap to its natural
+	   size, so stretching the outermost one isn't enough — the whole chain down
+	   to the `img` has to be told to fill, or a small output stays a speck in the
+	   middle of a card the user just dragged bigger. */
+	.widget-zone.fill .widget-gradio-image :global(.image-container),
+	.widget-zone.fill .widget-gradio-image :global(.image-frame),
+	.widget-zone.fill .widget-gradio-image :global(button),
+	.widget-zone.fill .widget-gradio-image :global(img) {
+		width: 100% !important;
+		height: 100% !important;
+		max-height: none !important;
+	}
+
+	.widget-zone.fill .widget-gradio-image :global(img) {
+		object-fit: contain !important;
+	}
+
+	/* A stretched native audio player looks broken, so keep it its own size and
+	   let the auto margins park it in the middle of the space. */
+	.widget-zone.fill .widget-audio {
+		flex: 0 0 auto;
+		width: calc(100% - 16px);
+		margin: auto 8px;
+	}
+
+	.widget-zone.fill .widget-placeholder,
+	.widget-zone.fill .widget-file-drop {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 12px 10px;
+	}
+
+	.widget-zone.fill .widget-gradio-wrap :global(.block),
+	.widget-zone.fill .widget-gradio-wrap :global(.container),
+	.widget-zone.fill .widget-gradio-wrap :global(.input-container) {
+		display: flex !important;
+		flex-direction: column !important;
+		flex: 1 1 auto !important;
+		min-height: 0 !important;
+	}
+
+	.widget-zone.fill :global(textarea) {
+		flex: 1 1 auto !important;
+		height: 100% !important;
+		min-height: 0 !important;
+		resize: none !important;
+	}
+
+	.widget-zone.fill .widget-text-display {
+		max-height: none;
 	}
 </style>

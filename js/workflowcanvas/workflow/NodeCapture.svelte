@@ -24,12 +24,26 @@
 	let recording = $state(false);
 	let error = $state<string | null>(null);
 	let ready = $state(false);
+	let elapsed = $state(0);
+	let ticker: ReturnType<typeof setInterval> | null = null;
+
+	function stop_ticker(): void {
+		if (ticker !== null) clearInterval(ticker);
+		ticker = null;
+	}
 
 	function stop_stream(): void {
 		recorder?.state === "recording" && recorder.stop();
 		recorder = null;
+		stop_ticker();
 		stream?.getTracks().forEach((t) => t.stop());
 		stream = null;
+	}
+
+	function clock(seconds: number): string {
+		const m = Math.floor(seconds / 60);
+		const s = seconds % 60;
+		return `${m}:${String(s).padStart(2, "0")}`;
 	}
 
 	onDestroy(stop_stream);
@@ -50,6 +64,10 @@
 				await videoEl.play().catch(() => {});
 			}
 			ready = true;
+			// A mic has nothing to frame, so the click that opened it was already
+			// the "record" click — waiting for a second one just loses audio. The
+			// webcam does need framing, so it stops at a live preview.
+			if (kind === "audio") toggle_recording();
 		} catch (e) {
 			error =
 				e instanceof Error && e.name === "NotAllowedError"
@@ -88,6 +106,7 @@
 		recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
 		recorder.onstop = () => {
 			recording = false;
+			stop_ticker();
 			const type = recorder?.mimeType || "audio/webm";
 			const ext = type.includes("ogg") ? "ogg" : "webm";
 			onfile(new File(chunks, `recording.${ext}`, { type }));
@@ -95,6 +114,8 @@
 		};
 		recorder.start();
 		recording = true;
+		elapsed = 0;
+		ticker = setInterval(() => (elapsed += 1), 1000);
 	}
 
 	function cancel(): void {
@@ -116,19 +137,28 @@
 		<video class="capture-video" bind:this={videoEl} muted playsinline></video>
 	{:else}
 		<div class="capture-audio" class:live={recording}>
-			{recording ? "Recording…" : ready ? "Ready" : "Opening mic…"}
+			{#if recording}
+				<span class="capture-dot"></span>
+				<span class="capture-time">{clock(elapsed)}</span>
+			{:else}
+				<span>{ready ? "Ready" : "Opening mic…"}</span>
+			{/if}
 		</div>
 	{/if}
 
 	<div class="capture-actions">
 		{#if !error}
 			{#if kind === "image"}
-				<button class="capture-btn" disabled={!ready} onclick={snapshot}>
+				<button
+					class="capture-btn capture-primary"
+					disabled={!ready}
+					onclick={snapshot}
+				>
 					Capture
 				</button>
 			{:else}
 				<button
-					class="capture-btn"
+					class="capture-btn capture-primary"
 					disabled={!ready}
 					onclick={toggle_recording}
 				>
@@ -160,6 +190,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		gap: 7px;
 		height: 44px;
 		border: 1px dashed #2a2b38;
 		border-radius: 6px;
@@ -169,8 +200,34 @@
 	}
 
 	.capture-audio.live {
-		border-color: #ef4444;
+		border-style: solid;
+		border-color: rgba(239, 68, 68, 0.5);
+		background: rgba(239, 68, 68, 0.06);
 		color: #fca5a5;
+	}
+
+	.capture-dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: #ef4444;
+		animation: capture-pulse 1.2s ease-in-out infinite;
+	}
+
+	.capture-time {
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+	}
+
+	@keyframes capture-pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.25;
+		}
 	}
 
 	.capture-error {
@@ -211,5 +268,41 @@
 	.capture-cancel {
 		flex: 0 0 auto;
 		color: #8a8c98;
+	}
+
+	.capture-primary:hover:not(:disabled) {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+
+	/* ─── Light mode ─── */
+	:global(body:not(.dark)) .capture-video,
+	:global(body:not(.dark)) .capture {
+		background: transparent;
+	}
+
+	:global(body:not(.dark)) .capture-video {
+		background: #eef0f5;
+	}
+
+	:global(body:not(.dark)) .capture-audio {
+		border-color: #dfe1e9;
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .capture-audio.live {
+		border-color: rgba(239, 68, 68, 0.45);
+		color: #dc2626;
+	}
+
+	:global(body:not(.dark)) .capture-btn {
+		background: #ffffff;
+		border-color: #dfe1e9;
+		color: #5c5e6a;
+	}
+
+	:global(body:not(.dark)) .capture-btn:hover:not(:disabled) {
+		background: #f4f5f9;
+		color: #1a1b25;
 	}
 </style>

@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:`gr.Workflow`: image input nodes can capture from the webcam and audio input nodes can record from the microphone, instead of only accepting an uploaded file
+feat:`gr.Workflow`: image and audio input nodes offer Upload and Webcam/Record buttons next to the drop zone, so a file can come from disk, a drag-and-drop, the webcam or the microphone
