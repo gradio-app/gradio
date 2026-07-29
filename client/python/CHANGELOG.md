@@ -1,5 +1,18 @@
 # gradio_client
 
+## 2.6.0
+
+### Features
+
+- [#13667](https://github.com/gradio-app/gradio/pull/13667) [`2d753d0`](https://github.com/gradio-app/gradio/commit/2d753d0e86bf53e97b0094c2dce0726a265cbe3e) - oauth: let API callers supply a token for endpoints that take a `gr.OAuthToken`, via `oauth_token` on the Python and JS clients — sent only to endpoints that declare they need one.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13656](https://github.com/gradio-app/gradio/pull/13656) [`7205856`](https://github.com/gradio-app/gradio/commit/72058560a660d4dc97e8a9948bee5e972ad80afa) - Preserve original filenames and MIME types when uploading `File`/`Blob` objects via the JS client, and use `handle_file` in the auto-generated JavaScript API snippets.  Thanks @abidlabs!
+- [#13627](https://github.com/gradio-app/gradio/pull/13627) [`3b12faa`](https://github.com/gradio-app/gradio/commit/3b12faa404660cd68ff4b3f20fbf6af3f3906670) - Keep in-flight events and generators working when an app is hot-reloaded (`gradio app.py`).  Thanks @abidlabs!
+- [#13614](https://github.com/gradio-app/gradio/pull/13614) [`643fb05`](https://github.com/gradio-app/gradio/commit/643fb05b51ba5b04be925ec59ab3ee9f2e50ebe5) - Restore Git tags for Python `gradio_client` releases.  Thanks @abidlabs!
+- [#13622](https://github.com/gradio-app/gradio/pull/13622) [`95369a3`](https://github.com/gradio-app/gradio/commit/95369a3ddaf69665adfbed092fca88fb432ee80a) - Fix Windows filename/path handling (reserved names, node probe, file URLs).  Thanks @abidlabs!
+
 ## 2.5.0
 
 ### Features
