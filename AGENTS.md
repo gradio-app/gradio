@@ -38,6 +38,8 @@ Follow these rules when creating or contributing to pull requests:
 
 7. **Submit against `main`.** All PRs target the `main` branch.
 
+8. **Don't write changeset files.** A GitHub Action adds a `.changeset/*.md` file to your branch for you (it appears as an "add changeset" commit from `gradio-pr-bot`). It uses your PR title as the changelog entry and works out the affected packages from the files you changed, so putting a good title on the PR is all that's needed. Writing the file yourself is redundant, and because the bot leaves an existing changeset alone, a hand-written one silently becomes the changelog entry instead of your title. If the entry genuinely needs to differ from the title, use the links in the bot's PR comment to adjust the version bump or the changelog text.
+
 ## Code Style
 
 - Python code is formatted with `ruff`. Run `bash scripts/format_backend.sh`.
