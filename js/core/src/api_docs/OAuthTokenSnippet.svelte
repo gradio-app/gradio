@@ -77,8 +77,14 @@
 		margin: 10px;
 	}
 
+	.note p {
+		font-size: var(--text-lg);
+	}
+
+	/* A step down, so the mono spans sit optically level with the prose. */
 	.code {
 		font-family: var(--font-mono);
+		font-size: var(--text-md);
 		display: inline;
 		background: var(--color-accent-soft);
 		color: var(--color-accent);
@@ -87,7 +93,6 @@
 
 	.desc {
 		color: var(--body-text-color-subdued);
-		font-size: var(--text-lg);
 		margin-top: var(--size-1);
 	}
 </style>
