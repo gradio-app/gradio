@@ -2,6 +2,12 @@
 
 ## 0.12.1
 
+### Dependency updates
+
+- @gradio/utils@0.13.1
+
+## 0.12.1
+
 ### Fixes
 
 - [#13540](https://github.com/gradio-app/gradio/pull/13540) [`98de45e`](https://github.com/gradio-app/gradio/commit/98de45e708305563f79614221aede2bf5d863922) - Fix gr.Plot collapsing to zero height for autosize Plotly figures.  Thanks @hysts!

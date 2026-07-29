@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/utils@0.13.1
+
+## 0.4.10
+
+### Dependency updates
+
 - @gradio/statustracker@0.15.1
 - @gradio/icons@0.16.0
 - @gradio/atoms@0.26.0
