@@ -1,5 +1,16 @@
 # @gradio/code
 
+## 0.18.2
+
+### Fixes
+
+- [#13605](https://github.com/gradio-app/gradio/pull/13605) [`f3889bf`](https://github.com/gradio-app/gradio/commit/f3889bfa9eb8bc61ed680bd2b9baafc41d4fe866) - Fix `gr.Code` not rendering when it has no initial value.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/utils@0.13.1
+- @gradio/upload@0.18.2
+
 ## 0.18.1
 
 ### Dependency updates
