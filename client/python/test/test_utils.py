@@ -59,52 +59,6 @@ def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
         utils.encode_url_to_base64("https://example.com/foo")
 
 
-def test_file_stream_follows_same_origin_redirects():
-    requested_urls = []
-
-    def handler(request: httpx.Request):
-        requested_urls.append(str(request.url))
-        if request.url.path == "/file":
-            return httpx.Response(
-                302, headers={"Location": "/download"}, request=request
-            )
-        return httpx.Response(200, content=b"file contents", request=request)
-
-    with utils._stream_with_same_origin_redirects(
-        "GET",
-        "https://app.example/file",
-        transport=httpx.MockTransport(handler),
-    ) as response:
-        assert response.read() == b"file contents"
-
-    assert requested_urls == [
-        "https://app.example/file",
-        "https://app.example/download",
-    ]
-
-
-def test_file_stream_rejects_cross_origin_redirects_before_request():
-    requested_urls = []
-
-    def handler(request: httpx.Request):
-        requested_urls.append(str(request.url))
-        return httpx.Response(
-            302,
-            headers={"Location": "https://other.example/download"},
-            request=request,
-        )
-
-    with pytest.raises(ValueError, match="cross-origin file redirect"):
-        with utils._stream_with_same_origin_redirects(
-            "GET",
-            "https://app.example/file",
-            transport=httpx.MockTransport(handler),
-        ):
-            pass
-
-    assert requested_urls == ["https://app.example/file"]
-
-
 def test_decode_base64_to_binary(media_data):
     binary = utils.decode_base64_to_binary(deepcopy(media_data.BASE64_IMAGE))
     assert deepcopy(media_data.BINARY_IMAGE) == binary

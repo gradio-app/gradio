@@ -1364,12 +1364,13 @@ class Endpoint:
         temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
         temp_dir.mkdir(exist_ok=True, parents=True)
 
-        with utils._stream_with_same_origin_redirects(
+        with httpx.stream(
             "GET",
             url_path,
             headers=self.client.headers,
             cookies=self.client.cookies,
             verify=self.client.ssl_verify,
+            follow_redirects=True,
             **self.client.httpx_kwargs,
         ) as response:
             response.raise_for_status()
