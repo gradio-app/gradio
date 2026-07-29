@@ -2,13 +2,16 @@ import tempfile
 import warnings
 from concurrent.futures import wait
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
 from gradio_client import handle_file
+from typing_extensions import Self
 
 import gradio as gr
 from gradio.components.chatbot import Message, TextMessage
+from gradio.components.plot import PlotData
 
 
 def invalid_fn(message):
@@ -365,6 +368,31 @@ class TestAPI:
                 api_name="/chat",
             )
             assert result["value"] == "test/test_files/audio_sample.wav"
+
+    def test_component_that_cannot_be_deep_copied(self, connect):
+        """Bokeh figures, for one, raise when deep-copied."""
+
+        class UncopyablePlotData(PlotData):
+            def __deepcopy__(self, memo: dict[int, Any] | None = None) -> Self:
+                raise RuntimeError("cannot be deep-copied")
+
+        def mock_chat_fn(msg, history):
+            plot = gr.Plot(UncopyablePlotData(type="bokeh", plot="{}"))
+            if msg == "wrapped":
+                return gr.ChatMessage(role="assistant", content=plot)
+            return plot
+
+        chatbot = gr.ChatInterface(mock_chat_fn, api_name="chat")
+        with connect(chatbot) as client:
+            # A deep copy raising inside the queue leaves the request hanging
+            # rather than erroring, hence the timeouts. The second turn matters
+            # because that is the one copying a history that already holds the
+            # component, and a wrapped component leaves the chat function by a
+            # different route than a bare one.
+            bare = client.submit("bare", api_name="/chat").result(timeout=5)
+            assert bare["value"]["type"] == "bokeh"
+            wrapped = client.submit("wrapped", api_name="/chat").result(timeout=5)
+            assert wrapped["role"] == "assistant"
 
     def test_multiple_messages(self, connect):
         def multiple_messages(msg, history):
