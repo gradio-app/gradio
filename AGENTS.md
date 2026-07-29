@@ -36,7 +36,9 @@ Follow these rules when creating or contributing to pull requests:
 
 6. **PR title and description should be clear and written in English.** The title should concisely describe *what* the PR does. The description should explain *why*.
 
-7. **Submit against `main`.** All PRs target the `main` branch.
+7. **Don't write changeset files.** A GitHub Action adds `.changeset/*.md` to your branch from the PR title, so a good title is all that's needed. The bot leaves an existing changeset alone, so a hand-written one silently replaces your title in the changelog.
+
+8. **Submit against `main`.** All PRs target the `main` branch.
 
 ## Code Style
 
