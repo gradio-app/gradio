@@ -11,6 +11,7 @@
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 	import ExpandIcon from "./icons/ExpandIcon.svelte";
+	import NodeCapture from "./NodeCapture.svelte";
 
 	interface Props {
 		node: WFNode;
@@ -30,6 +31,17 @@
 	const wf = getContext<{
 		onviewfullscreen?: (src: string, alt: string) => void;
 	}>("wf");
+
+	let capturing = $state(false);
+
+	// Capture needs a secure context; getUserMedia is undefined over plain http
+	// on anything but localhost, so don't offer what can't work.
+	const canCapture = $derived(
+		(widgetType === "image" || widgetType === "audio") &&
+			!isReadonly &&
+			typeof navigator !== "undefined" &&
+			!!navigator.mediaDevices?.getUserMedia
+	);
 
 	const widgetPort = $derived(
 		node.outputs.find((p) => p.id === widgetPortId) ??
@@ -376,6 +388,15 @@
 			</div>
 		{:else if isReadonly}
 			<div class="widget-placeholder">Waiting for output...</div>
+		{:else if capturing}
+			<NodeCapture
+				kind={widgetType === "audio" ? "audio" : "image"}
+				onfile={(f) => {
+					adopt_file(f);
+					capturing = false;
+				}}
+				oncancel={() => (capturing = false)}
+			/>
 		{:else}
 			<!-- svelte-ignore a11y_interactive_supports_focus -->
 			<div
@@ -413,6 +434,18 @@
 					Drop {widgetType} or click
 				</span>
 			</div>
+			{#if canCapture}
+				<button
+					class="widget-capture-link nodrag nopan"
+					onclick={(e) => {
+						e.stopPropagation();
+						capturing = true;
+					}}
+					onpointerdown={(e) => e.stopPropagation()}
+				>
+					{widgetType === "audio" ? "or record from mic" : "or use webcam"}
+				</button>
+			{/if}
 		{/if}
 	{/if}
 </div>
@@ -734,6 +767,22 @@
 		max-height: 100px;
 		object-fit: contain;
 		border-radius: 5px;
+	}
+
+	.widget-capture-link {
+		display: block;
+		width: 100%;
+		padding: 0 0 8px;
+		border: none;
+		background: none;
+		color: #6b6e78;
+		font-family: "Manrope", sans-serif;
+		font-size: 10px;
+		cursor: pointer;
+	}
+
+	.widget-capture-link:hover {
+		color: #a0a2ae;
 	}
 
 	.widget-preview-actions {
