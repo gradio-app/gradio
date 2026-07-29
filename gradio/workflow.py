@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import functools
 import inspect
 import json
 import logging
@@ -655,193 +656,145 @@ def call_space(
         return _format_error(e)
 
 
-_INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
-    "text_to_image": {
-        "inputs": [
-            {"id": "prompt", "label": "Prompt", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
-        ],
-    },
-    "text_to_speech": {
-        "inputs": [
-            {"id": "text", "label": "Text", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Audio", "type": "audio", "output_index": 0}
-        ],
-    },
-    "text_to_video": {
-        "inputs": [
-            {"id": "prompt", "label": "Prompt", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
-        ],
-    },
-    "image_to_image": {
-        "inputs": [
-            {"id": "image", "label": "Image", "type": "image"},
-            {"id": "prompt", "label": "Prompt", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
-        ],
-    },
-    "image_to_video": {
-        "inputs": [
-            {"id": "image", "label": "Image", "type": "image"},
-            {"id": "prompt", "label": "Prompt", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
-        ],
-    },
-    "text_generation": {
-        "inputs": [
-            {"id": "prompt", "label": "Prompt", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
-        ],
-    },
-    "summarization": {
-        "inputs": [
-            {"id": "text", "label": "Text", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Summary", "type": "text", "output_index": 0}
-        ],
-    },
-    "translation": {
-        "inputs": [
-            {"id": "text", "label": "Text", "type": "text"},
-            {"id": "src_lang", "label": "Source Language", "type": "text"},
-            {"id": "tgt_lang", "label": "Target Language", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Translation", "type": "text", "output_index": 0}
-        ],
-    },
-    "fill_mask": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [
-            {"id": "out_0", "label": "Result", "type": "json", "output_index": 0}
-        ],
-    },
-    "text_classification": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [
-            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
-        ],
-    },
-    "token_classification": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [
-            {"id": "out_0", "label": "Entities", "type": "json", "output_index": 0}
-        ],
-    },
-    "zero_shot_classification": {
-        "inputs": [
-            {"id": "text", "label": "Text", "type": "text"},
-            {"id": "candidate_labels", "label": "Candidate Labels", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
-        ],
-    },
-    "sentence_similarity": {
-        "inputs": [
-            {"id": "sentence", "label": "Sentence", "type": "text"},
-            {"id": "other_sentences", "label": "Other Sentences", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
-        ],
-    },
-    "question_answering": {
-        "inputs": [
-            {"id": "question", "label": "Question", "type": "text"},
-            {"id": "context", "label": "Context", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
-        ],
-    },
-    "feature_extraction": {
-        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
-        "outputs": [
-            {"id": "out_0", "label": "Embeddings", "type": "json", "output_index": 0}
-        ],
-    },
-    "image_classification": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [
-            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
-        ],
-    },
-    "object_detection": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [
-            {"id": "out_0", "label": "Detections", "type": "json", "output_index": 0}
-        ],
-    },
-    "image_segmentation": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [
-            {"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}
-        ],
-    },
-    "image_to_text": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
-        ],
-    },
-    "automatic_speech_recognition": {
-        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
-        "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
-        ],
-    },
-    "audio_classification": {
-        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
-        "outputs": [
-            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
-        ],
-    },
-    "visual_question_answering": {
-        "inputs": [
-            {"id": "image", "label": "Image", "type": "image"},
-            {"id": "question", "label": "Question", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
-        ],
-    },
-    "document_question_answering": {
-        "inputs": [
-            {"id": "image", "label": "Document", "type": "image"},
-            {"id": "question", "label": "Question", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
-        ],
-    },
-    # Vision-language models are served as `conversational`, so they're called
-    # through chat completions rather than a task-specific endpoint. Port order
-    # matches the canvas's image-text-to-text template (image, then prompt).
+# Param name → gradio port type (name-based lookup wins over annotation).
+_PORT_TYPE_BY_PARAM: dict[str, str] = {
+    "image": "image", "images": "image", "document": "image",
+    "audio": "audio", "video": "video",
+}
+
+# Method name → output port type. Missing entries default to "text".
+_MEDIA_OUTPUT_METHODS: dict[str, str] = {
+    "text_to_image": "image", "image_to_image": "image",
+    "text_to_speech": "audio", "text_to_audio": "audio",
+    "text_to_video": "video", "image_to_video": "video",
+}
+_JSON_OUTPUT_METHODS: frozenset[str] = frozenset({
+    "text_classification", "token_classification", "zero_shot_classification",
+    "zero_shot_image_classification", "image_classification",
+    "audio_classification", "object_detection", "image_segmentation",
+    "fill_mask", "sentence_similarity", "feature_extraction",
+    "tabular_classification", "tabular_regression",
+})
+
+# Params dropped from the discovered schema — infrastructure or postprocessing
+# knobs that shouldn't appear as canvas inputs. Small by design.
+_SKIP_PARAMS: frozenset[str] = frozenset({
+    # Infrastructure
+    "self", "model", "parameters", "extra_headers", "extra_body",
+    "stream", "stream_options", "return_type", "return_dict",
+    # Nested knob bags
+    "generate_parameters", "generation_parameters",
+    # Postprocessing / tokenization internals — model defaults are almost
+    # always right and there's no meaningful UI for them.
+    "clean_up_tokenization_spaces", "handle_impossible_answer",
+    "align_to_words", "doc_stride", "aggregation_strategy",
+    "ignore_labels", "stride", "function_to_apply",
+    "mask_threshold", "overlap_mask_area_threshold",
+    "adapter_id", "best_of", "details", "decoder_input_details",
+    "epsilon_cutoff", "eta_cutoff", "early_stopping",
+    "prompt_name", "normalize", "truncate", "targets",
+    "sequential", "hypothesis_template",
+    "decoder_start_token_id", "forced_bos_token_id",
+})
+
+# InferenceClient members that aren't inference tasks (helpers, deprecated,
+# or handled via a synthetic schema below).
+_NON_TASK_METHODS: frozenset[str] = frozenset({
+    "chat_completion", "close", "post", "health_check",
+    "list_deployed_models", "get_endpoint_info", "get_recommended_model",
+    "get_model_status", "list_endpoints", "conversational",
+})
+
+# Synthetic endpoints — not direct InferenceClient method calls, but exposed
+# to the canvas as if they were. `chat_completion` has a purpose-built VLM
+# shape (image + prompt → text) and its own streaming dispatch below.
+_SYNTHETIC_ENDPOINTS: dict[str, dict] = {
     "chat_completion": {
         "inputs": [
-            {"id": "image", "label": "Image", "type": "image"},
-            {"id": "text", "label": "Prompt", "type": "text"},
+            {"id": "image", "label": "Image", "type": "image", "required": False},
+            {"id": "text", "label": "Prompt", "type": "text", "required": False},
         ],
         "outputs": [
             {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
         ],
     },
 }
+
+
+def _port_type(param_name: str, annotation: object) -> str:
+    if param_name in _PORT_TYPE_BY_PARAM:
+        return _PORT_TYPE_BY_PARAM[param_name]
+    # Unwrap Optional[X] / Union[X, None] to get at the real type.
+    origin = getattr(annotation, "__origin__", None)
+    if origin is Union or isinstance(annotation, types.UnionType):
+        args = [a for a in getattr(annotation, "__args__", ()) if a is not type(None)]
+        annotation = args[0] if len(args) == 1 else annotation
+        origin = getattr(annotation, "__origin__", annotation)
+    else:
+        origin = annotation
+    if origin in (int, float):
+        return "number"
+    if origin is bool:
+        return "boolean"
+    return "text"
+
+
+def _output_port_type(method_name: str) -> str:
+    if method_name in _MEDIA_OUTPUT_METHODS:
+        return _MEDIA_OUTPUT_METHODS[method_name]
+    if method_name in _JSON_OUTPUT_METHODS:
+        return "json"
+    return "text"
+
+
+@functools.lru_cache(maxsize=1)
+def _inference_endpoint_schemas() -> dict[str, dict]:
+    """Auto-generate endpoint schemas by introspecting InferenceClient. Any
+    new task method shipped in huggingface_hub becomes available with no
+    code changes here — required-ness, port types, and labels come from the
+    method signature. Synthetic endpoints (chat_completion) are merged in
+    afterwards for shapes that don't correspond 1:1 to a client method."""
+    from huggingface_hub import InferenceClient
+
+    endpoints: dict[str, dict] = {}
+    for name in dir(InferenceClient):
+        if name.startswith("_") or name in _NON_TASK_METHODS:
+            continue
+        method = getattr(InferenceClient, name)
+        if not callable(method):
+            continue
+        try:
+            sig = inspect.signature(method)
+        except (TypeError, ValueError):
+            continue
+        inputs = []
+        for pname, param in sig.parameters.items():
+            if pname in _SKIP_PARAMS:
+                continue
+            if param.kind in (
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.VAR_KEYWORD,
+            ):
+                continue
+            inputs.append({
+                "id": pname,
+                "label": pname.replace("_", " ").title(),
+                "type": _port_type(pname, param.annotation),
+                "required": param.default is inspect.Parameter.empty,
+            })
+        if not inputs:
+            continue
+        endpoints[name] = {
+            "inputs": inputs,
+            "outputs": [{
+                "id": "out_0",
+                "label": "Output",
+                "type": _output_port_type(name),
+                "output_index": 0,
+            }],
+        }
+    endpoints.update(_SYNTHETIC_ENDPOINTS)
+    return endpoints
 
 
 # Generous by default: vision-language models are asked to emit whole files
@@ -862,42 +815,34 @@ _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
 }
 
 
-# Legacy pipeline tags (as sent by older saved workflows and the browser
-# executor) → InferenceClient endpoint names. depth-estimation is absent on
-# purpose: InferenceClient has no such method, so it keeps its raw-POST branch
-# in call_model. Unmapped tags fall through to the chat/raw-POST fallback.
-_PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
-    "text-generation": "text_generation",
+# Pipeline tag → InferenceClient method name is almost always dash → underscore.
+# Only entries where the resolved name differs from that convention live here.
+#
+# Vision tasks all route to `chat_completion` because no Inference Provider
+# serves the task-specific VQA/image-to-text endpoints — the Hub routes every
+# vision-language model as `conversational` regardless of its declared tag.
+# `text2text-generation` and `conversational` collapse into `text_generation`
+# for legacy compat.
+# `text-to-audio` and `text-to-speech` share one InferenceClient method.
+_PIPELINE_TAG_ALIASES: dict[str, str] = {
     "text2text-generation": "text_generation",
     "conversational": "text_generation",
-    "summarization": "summarization",
-    "translation": "translation",
-    "fill-mask": "fill_mask",
-    "text-classification": "text_classification",
-    "token-classification": "token_classification",
-    "zero-shot-classification": "zero_shot_classification",
-    "sentence-similarity": "sentence_similarity",
-    "question-answering": "question_answering",
-    "feature-extraction": "feature_extraction",
-    "text-to-image": "text_to_image",
-    "text-to-speech": "text_to_speech",
     "text-to-audio": "text_to_speech",
-    "text-to-video": "text_to_video",
-    "image-to-image": "image_to_image",
-    "image-to-video": "image_to_video",
-    "image-classification": "image_classification",
-    "object-detection": "object_detection",
-    "image-segmentation": "image_segmentation",
-    "image-to-text": "image_to_text",
-    "automatic-speech-recognition": "automatic_speech_recognition",
-    "audio-classification": "audio_classification",
-    "visual-question-answering": "visual_question_answering",
-    "document-question-answering": "document_question_answering",
-    # Not visual_question_answering: the Hub routes every image-text-to-text
-    # model as `conversational`, and no provider serves the VQA task at all,
-    # so a task-specific call fails for every model carrying this tag.
     "image-text-to-text": "chat_completion",
+    "visual-question-answering": "chat_completion",
+    "document-question-answering": "chat_completion",
+    "image-to-text": "chat_completion",
 }
+
+
+def _endpoint_for_tag(pipeline_tag: str | None) -> str | None:
+    """Resolve an HF pipeline_tag to an available endpoint name. Returns None
+    if nothing matches — call_model falls through to the raw inference API,
+    so any future task tag still works via HF's server-side dispatch."""
+    if not pipeline_tag:
+        return None
+    name = _PIPELINE_TAG_ALIASES.get(pipeline_tag, pipeline_tag.replace("-", "_"))
+    return name if name in _inference_endpoint_schemas() else None
 
 
 # Client params that expect a list of strings; port values arrive as a single
@@ -911,16 +856,13 @@ _ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
 def get_model_endpoints(
     _data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
-    from huggingface_hub import InferenceClient
-
-    # Only advertise endpoints the installed huggingface_hub can actually run,
-    # so the UI never shapes a node around a method that would fail server-side.
-    endpoints = [
+    # Schemas are auto-discovered from InferenceClient method signatures at
+    # first call (cached) — no hardcoded catalog to keep in sync when
+    # huggingface_hub adds/renames methods or params.
+    return json.dumps([
         {"name": name, **schema}
-        for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
-        if getattr(InferenceClient, name, None) is not None
-    ]
-    return json.dumps(endpoints)
+        for name, schema in _inference_endpoint_schemas().items()
+    ])
 
 
 def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
@@ -935,7 +877,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             "`pip install -U huggingface_hub`."
         )
     schema_ids = [
-        p["id"] for p in _INFERENCE_ENDPOINT_SCHEMAS.get(endpoint, {}).get("inputs", [])
+        p["id"] for p in _inference_endpoint_schemas().get(endpoint, {}).get("inputs", [])
     ]
     clean: dict = {}
     # Chat images are dereferenced by the provider, not locally, so they need a
@@ -1103,31 +1045,35 @@ def call_model(
             depth_img = _Image.open(_io.BytesIO(resp.content))
             return json.dumps([_save_tmp(depth_img, "png")])
 
-        endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
+        endpoint = _endpoint_for_tag(task)
         if endpoint:
             # Positional args from legacy saved workflows and the browser
             # executor map onto the endpoint schema's input order.
-            schema_inputs = _INFERENCE_ENDPOINT_SCHEMAS[endpoint]["inputs"]
+            schema_inputs = _inference_endpoint_schemas()[endpoint]["inputs"]
             kwargs = {
                 schema_inputs[i]["id"]: val
                 for i, val in enumerate(args[: len(schema_inputs)])
             }
             return _dispatch_model_endpoint(client, endpoint, kwargs)
 
-        # Fallback for tasks not handled above: chat_completion (works for most
-        # text models across providers), then a raw POST as last resort.
-        try:
-            r = client.chat_completion(
-                [{"role": "user", "content": a0}], max_tokens=512
+        # Unknown/new task — HF's raw inference API dispatches server-side
+        # based on the model card, so anything with inference enabled works
+        # without waiting for InferenceClient to add a method for it.
+        def _resolve(v):
+            return (
+                _img_url(v)
+                if isinstance(v, dict) and ("url" in v or "path" in v)
+                else v
             )
-            return json.dumps([r.choices[0].message.content])
-        except Exception:
-            pass
+
+        # Treat None and "" as missing; real values like 0 or False survive.
+        a1_missing = a1 is None or a1 == ""
+        payload = _resolve(a0) if a1_missing else [_resolve(a0), _resolve(a1)]
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
         fallback_resp = httpx.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
-            json={"inputs": a0 if not a1 else [a0, a1]},
+            json={"inputs": payload},
             timeout=60,
         )
         fallback_resp.raise_for_status()
