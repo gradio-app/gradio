@@ -1224,6 +1224,31 @@ def is_special_typed_parameter(name, parameter_types):
     return is_request or is_event_data or is_oauth_arg
 
 
+def oauth_token_requirement(
+    fn: Callable | None,
+) -> Literal["required", "optional"] | None:
+    """Returns "required" for `gr.OAuthToken`, "optional" for `gr.OAuthToken | None`,
+    and None when `fn` never receives one."""
+    from gradio.oauth import OAuthToken
+
+    if fn is None:
+        return None
+    hints = get_type_hints(fn) or getattr(fn, "__annotations__", {}) or {}
+    try:
+        parameters = inspect.signature(fn).parameters
+    except (TypeError, ValueError):
+        return None
+    # Iterate over parameters, not hints, which also holds the return annotation.
+    for name in parameters:
+        hint = hints.get(name)
+        if hint is OAuthToken:
+            return "required"
+        # `Optional[X]` and PEP 604 `X | None` compare equal, so this covers both.
+        if hint == Optional[OAuthToken]:
+            return "optional"
+    return None
+
+
 def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function

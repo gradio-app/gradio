@@ -27,6 +27,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
+    Optional,
     Union,
     cast,
 )
@@ -74,6 +75,7 @@ from gradio.utils import get_package_version
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks, BlocksConfig
     from gradio.helpers import EventData
+    from gradio.oauth import OAuthToken
     from gradio.routes import App
 
 
@@ -366,6 +368,19 @@ def prepare_event_data(
     return event_data
 
 
+def oauth_token_from_body(body: PredictBodyInternal) -> Optional[OAuthToken]:
+    """Wrap a caller-supplied token so it can be injected as a gr.OAuthToken.
+
+    Scope and expiry are empty because the request carries neither.
+    """
+    from gradio.oauth import OAuthToken as _OAuthToken
+
+    token = getattr(body, "oauth_token", None)
+    if not token or not isinstance(token, str):
+        return None
+    return _OAuthToken(token=token, scope="", expires_at=0)
+
+
 async def call_process_api(
     app: App,
     body: PredictBodyInternal,
@@ -402,6 +417,7 @@ async def call_process_api(
                     in_event_listener=True,
                     simple_format=body.simple_format,
                     root_path=root_path,
+                    oauth_token=oauth_token_from_body(body),
                 )
         iterator = output.pop("iterator", None)
         if event_id is not None:

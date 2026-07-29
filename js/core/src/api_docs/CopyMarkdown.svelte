@@ -34,6 +34,12 @@
 	export let info: any;
 	export let js_info: any;
 
+	function oauth_token_note(api_name: string, how: string): string {
+		const requirement = info?.named_endpoints["/" + api_name]?.oauth_token;
+		if (!requirement) return "";
+		return `Acts on your behalf: this endpoint's function takes a \`gr.OAuthToken\`, so it receives your Hugging Face token and can act as you (${requirement}). ${how} This differs from the token that authenticates you to the app itself, and should only be sent to endpoints that declare they take one.\n`;
+	}
+
 	let markdown_content: Record<string, string> = {
 		python: "",
 		javascript: "",
@@ -67,6 +73,7 @@ ${info?.named_endpoints["/" + d.api_name]?.description ? "Description: " + info?
 ${markdown_code_snippets[d.api_name as keyof typeof markdown_code_snippets]?.python}
 \`\`\`
 
+${oauth_token_note(d.api_name as string, "Pass `oauth_token` to `Client()` to grant it.")}
 Accepts ${info?.named_endpoints["/" + d.api_name]?.parameters?.length} parameter${info?.named_endpoints["/" + d.api_name]?.parameters?.length != 1 ? "s" : ""}:
 
 ${info?.named_endpoints["/" + d.api_name]?.parameters
@@ -118,6 +125,7 @@ ${info?.named_endpoints["/" + d.api_name]?.description ? "Description: " + info?
 ${markdown_code_snippets[d.api_name as keyof typeof markdown_code_snippets]?.javascript}
 \`\`\`
 
+${oauth_token_note(d.api_name as string, "Pass `oauth_token` to `Client.connect()` to grant it.")}
 Accepts ${info?.named_endpoints["/" + d.api_name]?.parameters?.length} parameter${info?.named_endpoints["/" + d.api_name]?.parameters?.length != 1 ? "s" : ""}:
 
 ${info?.named_endpoints["/" + d.api_name]?.parameters
@@ -172,6 +180,7 @@ ${info?.named_endpoints["/" + d.api_name]?.description ? "Description: " + info?
 ${markdown_code_snippets[d.api_name as keyof typeof markdown_code_snippets]?.bash}
 \`\`\`
 
+${oauth_token_note(d.api_name as string, "Send it as the `oauth_token` key of the request body.")}
 Accepts a JSON object with ${info?.named_endpoints["/" + d.api_name]?.parameters?.length} key${info?.named_endpoints["/" + d.api_name]?.parameters?.length != 1 ? "s" : ""}:
 
 ${info?.named_endpoints["/" + d.api_name]?.parameters
