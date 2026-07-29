@@ -1341,9 +1341,15 @@ class App(FastAPI):
             endpoint_info = app.api_info["named_endpoints"]["/" + api_name]  # type: ignore
             parameters_info = endpoint_info["parameters"]
             body = dict(body)
-            # Always taken out of the args; only honored where the fn takes one.
-            supplied_token = body.pop("oauth_token", None)
-            oauth_token = supplied_token if endpoint_info.get("oauth_token") else None
+            oauth_token = None
+            if endpoint_info.get("oauth_token"):
+                oauth_token = body.pop("oauth_token", None)
+            elif not any(
+                p.get("parameter_name") == "oauth_token" for p in parameters_info
+            ):
+                # Not this endpoint's to receive, and not one of its parameters
+                # either, so drop it rather than report an unknown argument.
+                body.pop("oauth_token", None)
             processed_args = client_utils.construct_args(
                 parameters_info,
                 (),

@@ -1883,6 +1883,13 @@ class TestCurlEndpointWithOAuthToken:
             out = gr.Textbox()
             gr.Button("Report").click(report, None, out, api_name="report")
             gr.Button("Echo").click(lambda: "echo", None, out, api_name="echo")
+            named = gr.Textbox(value="orig", label="oauth_token")
+            gr.Button("Named").click(
+                lambda oauth_token: "param:" + oauth_token,
+                named,
+                out,
+                api_name="named",
+            )
 
         demo.launch(prevent_thread_lock=True)
 
@@ -1903,6 +1910,10 @@ class TestCurlEndpointWithOAuthToken:
             assert call("report", {}) == "none"
             # An endpoint that takes no token ignores one rather than erroring.
             assert call("echo", {"oauth_token": "hf_abc"}) == "echo"
+            # The name is only reserved where the fn takes a token, so an
+            # endpoint with a parameter of that name still receives its value.
+            assert call("named", {"oauth_token": "MINE"}) == "param:MINE"
+            assert call("named", {}) == "param:orig"
         finally:
             demo.close()
 
