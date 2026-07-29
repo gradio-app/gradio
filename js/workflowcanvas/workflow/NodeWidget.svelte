@@ -51,6 +51,7 @@
 	const nativeTextareaResize = $derived(!!wf?.readOnly);
 
 	let capturing = $state(false);
+	let captureStreamPromise = $state<Promise<MediaStream> | null>(null);
 
 	// Capture needs a secure context; getUserMedia is undefined over plain http
 	// on anything but localhost, so don't offer what can't work.
@@ -169,6 +170,16 @@
 	function clearFile() {
 		revoke_old_blob();
 		ondatachange(node.id, widgetPortId, null);
+	}
+
+	function beginCapture(): void {
+		// This must run in the button's click handler. Calling getUserMedia from
+		// the capture component's effect loses the user activation in browsers
+		// that require it, leaving the panel at “Opening mic…”.
+		captureStreamPromise = navigator.mediaDevices.getUserMedia(
+			widgetType === "audio" ? { audio: true } : { video: true }
+		);
+		capturing = true;
 	}
 
 	/**
@@ -376,7 +387,9 @@
 				{:else if widgetType === "image" || widgetType === "gallery"}
 					<img class="widget-img" src={fileVal.url} alt={fileVal.name} />
 				{:else if widgetType === "audio"}
-					<audio class="widget-audio" controls src={fileVal.url}></audio>
+					<div class="widget-audio-shell">
+						<audio class="widget-audio" controls src={fileVal.url}></audio>
+					</div>
 				{:else if widgetType === "video"}
 					<video class="widget-video" controls src={fileVal.url}></video>
 				{:else}
@@ -419,14 +432,19 @@
 			</div>
 		{:else if isReadonly}
 			<div class="widget-placeholder">Waiting for output...</div>
-		{:else if capturing}
+		{:else if capturing && captureStreamPromise}
 			<NodeCapture
 				kind={widgetType === "audio" ? "audio" : "image"}
+				streamPromise={captureStreamPromise}
 				onfile={(f) => {
 					adopt_file(f);
+					captureStreamPromise = null;
 					capturing = false;
 				}}
-				oncancel={() => (capturing = false)}
+				oncancel={() => {
+					captureStreamPromise = null;
+					capturing = false;
+				}}
 			/>
 		{:else}
 			<!-- Empty input: drop anywhere on the zone, or take one of the two
@@ -491,7 +509,7 @@
 							class="widget-io-btn widget-io-record"
 							onclick={(e) => {
 								e.stopPropagation();
-								capturing = true;
+								beginCapture();
 							}}
 							onpointerdown={(e) => e.stopPropagation()}
 							title={widgetType === "audio"
@@ -877,11 +895,19 @@
 		background: #101118;
 	}
 
+	.widget-audio-shell {
+		display: flex;
+		align-items: center;
+		padding: 8px 10px;
+		background: #15161e;
+		border-radius: 0 0 10px 10px;
+	}
+
 	.widget-audio {
 		display: block;
 		width: 100%;
-		height: 36px;
-		border-radius: 5px;
+		height: 32px;
+		border-radius: 7px;
 	}
 
 	.widget-video {
@@ -1112,10 +1138,16 @@
 
 	/* A stretched native audio player looks broken, so keep it its own size and
 	   let the auto margins park it in the middle of the space. */
-	.widget-zone.fill .widget-audio {
+	.widget-zone.fill .widget-audio-shell {
 		flex: 0 0 auto;
 		width: calc(100% - 16px);
 		margin: auto 8px;
+		border-radius: 8px;
+	}
+
+	:global(body:not(.dark)) .widget-audio-shell {
+		background: #f8f9fb;
+		border-top: 1px solid #eceef3;
 	}
 
 	.widget-zone.fill .widget-placeholder,

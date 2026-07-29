@@ -12,11 +12,18 @@
 
 	interface Props {
 		kind: "image" | "audio";
+		/**
+		 * Created by the Record/Webcam button's click handler. Keeping the
+		 * getUserMedia call in that handler preserves its user activation; doing
+		 * it in this component's mount effect can leave some browsers waiting
+		 * indefinitely even after permission has been granted.
+		 */
+		streamPromise: Promise<MediaStream>;
 		onfile: (file: File) => void;
 		oncancel: () => void;
 	}
 
-	let { kind, onfile, oncancel }: Props = $props();
+	let { kind, streamPromise, onfile, oncancel }: Props = $props();
 
 	let videoEl: HTMLVideoElement | undefined = $state();
 	let stream: MediaStream | null = null;
@@ -46,19 +53,18 @@
 		return `${m}:${String(s).padStart(2, "0")}`;
 	}
 
-	onDestroy(stop_stream);
-
-	let started = false;
+	let disposed = false;
 
 	async function start(): Promise<void> {
-		// Guarded rather than left to effect scheduling: opening the device twice
-		// would leak a stream and leave the camera light on.
-		if (started) return;
-		started = true;
 		try {
-			stream = await navigator.mediaDevices.getUserMedia(
-				kind === "image" ? { video: true } : { audio: true }
-			);
+			const openedStream = await streamPromise;
+			// The user may cancel while the permission prompt is open. Don't leave
+			// a late-resolving stream holding the camera/mic in that case.
+			if (disposed) {
+				openedStream.getTracks().forEach((track) => track.stop());
+				return;
+			}
+			stream = openedStream;
 			if (kind === "image" && videoEl) {
 				videoEl.srcObject = stream;
 				await videoEl.play().catch(() => {});
@@ -76,10 +82,15 @@
 		}
 	}
 
-	// Kick off as soon as the widget mounts — the user already opted in by
-	// choosing capture over upload.
+	// `streamPromise` was created from the click that chose capture. We only
+	// consume it here to render the capture state and release it safely.
 	$effect(() => {
 		void start();
+	});
+
+	onDestroy(() => {
+		disposed = true;
+		stop_stream();
 	});
 
 	function snapshot(): void {
