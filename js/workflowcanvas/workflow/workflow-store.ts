@@ -340,14 +340,46 @@ export function init_model_node_ports(
 			if (!endpointName) return n;
 			const sig = schemas.find((s) => s.name === endpointName);
 			if (!sig) return { ...n, endpoints: schemas };
+			// Preserve any user-added custom params across schema refreshes.
+			const customPorts = (n.inputs ?? []).filter((p) => p.custom);
 			return {
 				...n,
 				endpoint: endpointName,
 				endpoints: schemas,
-				inputs: sig.inputs,
+				inputs: [...sig.inputs, ...customPorts],
 				outputs: sig.outputs
 			};
 		})
+	}));
+}
+
+export function add_custom_port(nodeId: string, port: Port): void {
+	workflow.update((wf) => ({
+		...wf,
+		operators: wf.operators.map((n) =>
+			n.id === nodeId
+				? { ...n, inputs: [...n.inputs, { ...port, custom: true }] }
+				: n
+		)
+	}));
+}
+
+export function remove_custom_port(nodeId: string, portId: string): void {
+	workflow.update((wf) => ({
+		...wf,
+		operators: wf.operators.map((n) =>
+			n.id === nodeId
+				? {
+						...n,
+						inputs: n.inputs.filter(
+							(p) => !(p.id === portId && p.custom)
+						)
+					}
+				: n
+		),
+		edges: wf.edges.filter(
+			(e) => !(e.to_node_id === nodeId && e.to_port_id === portId)
+		)
 	}));
 }
 
@@ -361,6 +393,9 @@ export function switch_endpoint(nodeId: string, endpointName: string): void {
 		const input_by_id = new Map(sig.inputs.map((p) => [p.id, p]));
 		const output_by_id = new Map(sig.outputs.map((p) => [p.id, p]));
 
+		// Preserve user-added custom params when switching endpoints — they
+		// were never tied to a specific endpoint's schema.
+		const customPorts = (node.inputs ?? []).filter((p) => p.custom);
 		return {
 			...wf,
 			operators: wf.operators.map((n) =>
@@ -368,7 +403,7 @@ export function switch_endpoint(nodeId: string, endpointName: string): void {
 					? {
 							...n,
 							endpoint: sig.name,
-							inputs: sig.inputs,
+							inputs: [...sig.inputs, ...customPorts],
 							outputs: sig.outputs,
 							data: {}
 						}

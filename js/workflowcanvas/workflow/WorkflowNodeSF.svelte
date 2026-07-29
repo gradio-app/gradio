@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { resizeNode, workflow } from "./workflow-store";
+	import {
+		add_custom_port,
+		remove_custom_port,
+		resizeNode,
+		workflow
+	} from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -91,6 +96,37 @@
 	$effect(() => {
 		if (!error) errorExpanded = false;
 	});
+
+	// Custom param popover — lets the user add a port for a model-specific
+	// param the auto-discovered schema doesn't know about (per-provider quirks).
+	let showCustomParamForm = $state(false);
+	let customParamName = $state("");
+	let customParamType = $state<PortType>("text");
+
+	function submitCustomParam(): void {
+		const raw = customParamName.trim();
+		if (!raw) return;
+		// Match the InferenceClient param naming convention (snake_case) so
+		// the value is passed as a valid kwarg on the server side.
+		const id = raw
+			.toLowerCase()
+			.replace(/[^a-z0-9_]+/g, "_")
+			.replace(/^_+|_+$/g, "");
+		if (!id) return;
+		if (node.inputs.some((p) => p.id === id)) return;
+		const label = raw
+			.replace(/_/g, " ")
+			.replace(/\b\w/g, (c) => c.toUpperCase());
+		add_custom_port(node.id, {
+			id,
+			label,
+			type: customParamType,
+			required: false
+		});
+		customParamName = "";
+		customParamType = "text";
+		showCustomParamForm = false;
+	}
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
@@ -436,6 +472,7 @@
 							<span
 								class="port-label"
 								class:port-label-optional={port.required === false}
+								class:port-label-custom={port.custom}
 								>{port.label}</span
 							>
 							{#if !inlineWidget}
@@ -443,6 +480,20 @@
 									class="port-type-tag"
 									style="color: {PORT_COLOR[port.type]}">{port.type}</span
 								>
+							{/if}
+							{#if port.custom && !readOnly}
+								<button
+									class="port-remove-btn"
+									title="Remove custom param"
+									onpointerdown={(e) => e.stopPropagation()}
+									onmousedown={(e) => e.stopPropagation()}
+									onclick={(e) => {
+										e.stopPropagation();
+										remove_custom_port(node.id, port.id);
+									}}
+								>
+									✕
+								</button>
 							{/if}
 						{/if}
 						{#if inlineWidget}
@@ -591,6 +642,73 @@
 							? ""
 							: "s"}{/if}
 				</button>
+			{/if}
+			{#if !readOnly && node.kind === "transform" && node.model_id}
+				<div
+					class="custom-param-wrap"
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{#if showCustomParamForm}
+						<div class="custom-param-form">
+							<input
+								class="custom-param-input"
+								type="text"
+								bind:value={customParamName}
+								placeholder="param name (e.g. strength)"
+								onkeydown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										submitCustomParam();
+									}
+									if (e.key === "Escape") showCustomParamForm = false;
+								}}
+							/>
+							<select
+								class="custom-param-select"
+								bind:value={customParamType}
+							>
+								<option value="text">text</option>
+								<option value="number">number</option>
+								<option value="boolean">boolean</option>
+								<option value="image">image</option>
+								<option value="audio">audio</option>
+							</select>
+							<button
+								class="custom-param-add"
+								onclick={(e) => {
+									e.stopPropagation();
+									submitCustomParam();
+								}}
+								disabled={!customParamName.trim()}
+							>
+								Add
+							</button>
+							<button
+								class="custom-param-cancel"
+								title="Cancel"
+								onclick={(e) => {
+									e.stopPropagation();
+									showCustomParamForm = false;
+									customParamName = "";
+								}}
+							>
+								✕
+							</button>
+						</div>
+					{:else}
+						<button
+							class="custom-param-btn"
+							onclick={(e) => {
+								e.stopPropagation();
+								showCustomParamForm = true;
+							}}
+							title="Add a param the schema doesn't include (e.g. provider-specific overrides)"
+						>
+							＋ Add param
+						</button>
+					{/if}
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -1176,6 +1294,100 @@
 
 	.ports-toggle:hover {
 		color: #8b8d98;
+	}
+
+	.custom-param-wrap {
+		padding: 2px 12px 6px 12px;
+	}
+
+	.custom-param-btn {
+		display: block;
+		width: 100%;
+		padding: 4px 8px;
+		border: 1px dashed #2a2c3a;
+		border-radius: 4px;
+		background: transparent;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9px;
+		font-weight: 600;
+		color: #6b6d78;
+		cursor: pointer;
+		text-align: center;
+		letter-spacing: 0.02em;
+		transition: color 0.15s, border-color 0.15s;
+	}
+
+	.custom-param-btn:hover {
+		color: #b8b9c4;
+		border-color: #3e3f4d;
+	}
+
+	.custom-param-form {
+		display: grid;
+		grid-template-columns: 1fr auto auto auto;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.custom-param-input,
+	.custom-param-select {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 3px 6px;
+		border: 1px solid #1e1f2a;
+		border-radius: 3px;
+		background: #0f1017;
+		color: #e5e6ea;
+		min-width: 0;
+	}
+
+	.custom-param-input:focus,
+	.custom-param-select:focus {
+		outline: none;
+		border-color: #3e3f4d;
+	}
+
+	.custom-param-add,
+	.custom-param-cancel {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9px;
+		font-weight: 600;
+		padding: 3px 7px;
+		border: 1px solid #2a2c3a;
+		border-radius: 3px;
+		background: transparent;
+		color: #b8b9c4;
+		cursor: pointer;
+	}
+
+	.custom-param-add:not(:disabled):hover,
+	.custom-param-cancel:hover {
+		border-color: #3e3f4d;
+		color: #e5e6ea;
+	}
+
+	.custom-param-add:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.port-label-custom {
+		font-style: italic;
+	}
+
+	.port-remove-btn {
+		margin-left: 4px;
+		padding: 0 4px;
+		border: none;
+		background: transparent;
+		color: #6b6d78;
+		font-size: 10px;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.port-remove-btn:hover {
+		color: #ef4444;
 	}
 
 	.port-inline-config {

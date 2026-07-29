@@ -32,6 +32,11 @@ export interface Port {
 	output_index?: number;
 	choices?: string[];
 	multiselect?: boolean;
+	/** User-added port for a model param not in the endpoint schema. Preserved
+	 * across schema refreshes; passed through to the InferenceClient call as
+	 * an extra kwarg. Used when a provider accepts params the auto-discovered
+	 * schema doesn't know about (per-model provider overrides). */
+	custom?: boolean;
 }
 
 export interface FileValue {
