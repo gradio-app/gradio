@@ -71,17 +71,15 @@ class Frame {
 }
 
 describe("next_frame_height", () => {
-	test("sizes the frame to the content", () => {
+	test("follows content that grows and shrinks again", () => {
 		const frame = new Frame(800);
 		frame.settle(rigid(108));
 		expect(frame.viewport).toBe(161);
-	});
-
-	test("grows for content that genuinely overflows", () => {
-		const frame = new Frame(800);
-		frame.settle(rigid(108));
 		frame.settle(rigid(1000));
 		expect(frame.viewport).toBe(1053);
+		// Content that does not stretch is not held to the parent's height.
+		frame.settle(rigid(108));
+		expect(frame.viewport).toBe(161);
 	});
 
 	// gradio-app/gradio#8771
