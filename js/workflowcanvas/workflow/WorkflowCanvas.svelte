@@ -398,6 +398,34 @@
 	}
 	let activePicker: ActivePicker | null = $state(null);
 	let fullscreenImage: { src: string; alt: string } | null = $state(null);
+	let fullscreenReturnFocus: HTMLElement | null = null;
+	let fullscreenCloseBtn: HTMLButtonElement | undefined = $state();
+
+	function openFullscreenImage(src: string, alt: string): void {
+		fullscreenReturnFocus = document.activeElement as HTMLElement | null;
+		fullscreenImage = { src, alt };
+	}
+
+	function closeFullscreenImage(): void {
+		fullscreenImage = null;
+	}
+
+	$effect(() => {
+		if (!fullscreenImage) return;
+		fullscreenCloseBtn?.focus();
+		const onKey = (e: KeyboardEvent): void => {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				closeFullscreenImage();
+			}
+		};
+		window.addEventListener("keydown", onKey);
+		return () => {
+			window.removeEventListener("keydown", onKey);
+			fullscreenReturnFocus?.focus?.();
+			fullscreenReturnFocus = null;
+		};
+	});
 
 	interface PendingDrop {
 		from_node_id: string;
@@ -461,9 +489,7 @@
 		// Resize drags happen in screen pixels but node width is canvas units.
 		zoom: 1,
 		ondatachange: updateNodeData,
-		onviewfullscreen: (src: string, alt: string) => {
-			fullscreenImage = { src, alt };
-		},
+		onviewfullscreen: openFullscreenImage,
 		onremove: (id: string) => {
 			if (!readOnly) removeNode(id);
 		},
@@ -1881,11 +1907,6 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent): void {
-		if (e.key === "Escape" && fullscreenImage) {
-			e.preventDefault();
-			fullscreenImage = null;
-			return;
-		}
 		if (
 			e.key === "Enter" &&
 			(e.metaKey || e.ctrlKey) &&
@@ -2767,7 +2788,10 @@
 		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 		<div
 			class="fullscreen-overlay"
-			onclick={() => (fullscreenImage = null)}
+			role="dialog"
+			aria-modal="true"
+			aria-label={fullscreenImage.alt || "Image preview"}
+			onclick={closeFullscreenImage}
 			transition:fade={{ duration: 120 }}
 		>
 			<img
@@ -2776,8 +2800,9 @@
 				alt={fullscreenImage.alt}
 			/>
 			<button
+				bind:this={fullscreenCloseBtn}
 				class="fullscreen-close"
-				onclick={() => (fullscreenImage = null)}
+				onclick={closeFullscreenImage}
 				title="Close (Esc)"
 				aria-label="Close full screen">&times;</button
 			>
