@@ -421,12 +421,11 @@
 
 	function handle_resize(): void {
 		if (!("parentIFrame" in window)) return;
-		const el = root_container.children[0] as HTMLElement;
-		const box = el?.getBoundingClientRect();
-		if (!box) return;
+		const el = root_container.children[0] as HTMLElement | undefined;
+		if (!el) return;
 
 		const next = next_frame_height(resize_state, {
-			stretched_bottom: box.bottom,
+			stretched_bottom: el.getBoundingClientRect().bottom,
 			measure_unstretched_bottom: () => measure_unstretched_bottom(el),
 			footer_height,
 			viewport: window.innerHeight
