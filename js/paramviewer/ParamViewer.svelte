@@ -1,7 +1,34 @@
 <script module lang="ts">
-	import * as Prism from "prismjs";
-	import "prismjs/components/prism-python";
-	import "prismjs/components/prism-typescript";
+	import Prism from "prismjs";
+
+	// `prismjs/components/*` are side-effect scripts: each does
+	// `Prism.languages.x = ...` against a bare global and declares no imports of
+	// its own, so nothing in the module graph orders them after prismjs. As
+	// *static* imports the bundler is free to hoist them into a chunk that
+	// evaluates before the assignment below, and rolldown compounds it by
+	// emitting prismjs as a lazily-invoked CommonJS factory — so importing it
+	// does not initialise it either, and `window.Prism` stayed undefined. Every
+	// docs page then died during hydration on `ReferenceError: Prism is not
+	// defined` (#13677).
+	//
+	// Dynamic imports are not hoisted, so the global below is guaranteed to be in
+	// place before any grammar runs.
+	(globalThis as any).Prism = Prism;
+
+	// Awaited here rather than gated behind a promise: the component must not
+	// render before the grammars are registered. prismjs schedules its own
+	// `highlightAll()` on a rAF as soon as it loads, and without a grammar
+	// `highlightElement` overwrites the element with `encode(textContent)` —
+	// which strips the server's highlighting *and* the hydration comments the
+	// `{@html}` blocks own. Anything derived later then repaints into detached
+	// nodes, so the types stay plain until the component is recreated.
+	try {
+		await import("prismjs/components/prism-python");
+		await import("prismjs/components/prism-typescript");
+	} catch (e) {
+		// `highlight` already falls back to plain text without a grammar.
+		console.error("failed to load Prism grammars", e);
+	}
 </script>
 
 <script lang="ts">
