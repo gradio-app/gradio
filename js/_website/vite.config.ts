@@ -1,7 +1,6 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 import { inject_component_loader } from "../build/out/index.js";
-import { patchParamViewer } from "./vite-plugin-patch-paramviewer.js";
 
 // Workaround for rolldown-vite (Vite 8): its build environments don't isolate
 // their module graphs, so SSR-resolved `*.server.*` modules (e.g.
@@ -26,7 +25,6 @@ function stub_server_modules_in_client() {
 export default defineConfig(({ mode }) => ({
 	plugins: [
 		stub_server_modules_in_client(),
-		patchParamViewer(),
 		sveltekit(),
 		inject_component_loader({ mode })
 	],
