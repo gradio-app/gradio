@@ -186,4 +186,18 @@ describe("next_frame_height", () => {
 		frame.settle(stretchy(700, 0), 20);
 		expect(frame.viewport).toBe(800);
 	});
+
+	test("gives up after a few grows when the content keeps outgrowing the frame", () => {
+		const frame = new Frame(800);
+		let needs = 900;
+		const creeping: Content = () => {
+			needs += 100;
+			return { stretched_bottom: needs, unstretched_bottom: needs };
+		};
+		for (let i = 0; i < 20; i++) {
+			frame.tick(creeping);
+			frame.apply();
+		}
+		expect(frame.reports.length).toBeLessThanOrEqual(5);
+	});
 });
