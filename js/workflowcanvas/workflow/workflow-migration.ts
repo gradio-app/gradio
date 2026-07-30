@@ -217,6 +217,7 @@ export function toLegacyShape(wf: Workflow): {
 			y: n.y,
 			width: n.width,
 			height: n.height,
+			manual_height: n.manual_height,
 			data: n.data
 		});
 	}
@@ -242,6 +243,7 @@ export function toLegacyShape(wf: Workflow): {
 			y: n.y,
 			width: n.width,
 			height: n.height,
+			manual_height: n.manual_height,
 			data: n.data
 		});
 	}
@@ -257,6 +259,7 @@ export function toLegacyShape(wf: Workflow): {
 			y: n.y,
 			width: n.width,
 			height: n.height,
+			manual_height: n.manual_height,
 			data: n.data
 		});
 	}

@@ -274,6 +274,29 @@ export function resizeNode(id: string, width: number, height: number): void {
 	);
 }
 
+/**
+ * Apply a size the user dragged out. `manual_height` of `null` releases the
+ * card back to content-driven height; a number pins it there. `height` keeps
+ * tracking the rendered box either way (see `resizeNode`).
+ */
+export function setNodeSize(
+	id: string,
+	width: number,
+	manual_height: number | null
+): void {
+	workflow.update((wf) =>
+		mapAllRoles(wf, (n) => {
+			if (n.id !== id) return n;
+			if (manual_height === null) {
+				const released = { ...n, width };
+				delete released.manual_height;
+				return released;
+			}
+			return { ...n, width, height: manual_height, manual_height };
+		})
+	);
+}
+
 export function updateNodeData(
 	nodeId: string,
 	portId: string,
