@@ -422,10 +422,6 @@
 		border: 1px solid #1e1f2a;
 		border-radius: var(--size-2-5);
 		overflow: hidden;
-		/* `.api-body` is a column flex container, and `overflow: hidden` above
-		 * resolves this card's automatic minimum size to 0 — so without this the
-		 * cards shrink to fit the panel and clip their code blocks mid-line
-		 * instead of letting the body scroll. */
 		flex-shrink: 0;
 	}
 	.api-endpoint-head {
@@ -466,7 +462,6 @@
 		padding: var(--size-1) var(--size-2-5);
 		border: 1px solid #2a2b38;
 		border-radius: var(--radius-md);
-		/* Opaque, not transparent: it sits over a scrollable code block. */
 		background: #16171f;
 		color: #a0a2ae;
 		cursor: pointer;
@@ -512,8 +507,6 @@
 		color: #5a5d68;
 		font-style: italic;
 	}
-	/* Panel-level, below every endpoint card — the token isn't one of the
-	 * endpoint's own parameters, so it shouldn't read as one. */
 	.api-note {
 		display: flex;
 		gap: var(--size-2-5);
@@ -545,15 +538,12 @@
 
 	.api-code {
 		margin: 0;
-		/* Right padding clears the absolutely positioned Copy button. */
 		padding: var(--size-3) 76px var(--size-3) 14px;
 		background: #0b0c12;
 		font-family: "JetBrains Mono", monospace;
 		font-size: var(--size-3);
 		line-height: 1.55;
 		color: #c5c7d0;
-		/* Scroll a long snippet inside its own block rather than letting the card
-		 * grow unbounded — and never clip it. */
 		max-height: 320px;
 		overflow: auto;
 		white-space: pre;
