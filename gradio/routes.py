@@ -1925,7 +1925,7 @@ class App(FastAPI):
 
         @app.get("/monitoring/summary", dependencies=[Depends(login_check)])
         async def _():
-            if not blocks.enable_monitoring:
+            if blocks.enable_monitoring is False:
                 raise HTTPException(
                     status_code=403, detail="Monitoring is not enabled."
                 )
