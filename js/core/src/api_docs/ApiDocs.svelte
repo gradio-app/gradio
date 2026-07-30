@@ -147,9 +147,17 @@
 	async function get_summary(): Promise<{
 		functions: any;
 	}> {
-		let response = await fetch(root.replace(/\/$/, "") + "/monitoring/summary");
-		let data = await response.json();
-		return data;
+		try {
+			let response = await fetch(
+				root.replace(/\/$/, "") + "/monitoring/summary"
+			);
+			if (!response.ok) {
+				return { functions: {} };
+			}
+			return await response.json();
+		} catch {
+			return { functions: {} };
+		}
 	}
 
 	get_summary().then((summary) => {
