@@ -15,10 +15,20 @@
 	// place before any grammar runs.
 	(globalThis as any).Prism = Prism;
 
-	const grammars_loaded: Promise<unknown> = Promise.all([
-		import("prismjs/components/prism-python"),
-		import("prismjs/components/prism-typescript")
-	]);
+	// Awaited here rather than gated behind a promise: the component must not
+	// render before the grammars are registered. prismjs schedules its own
+	// `highlightAll()` on a rAF as soon as it loads, and without a grammar
+	// `highlightElement` overwrites the element with `encode(textContent)` —
+	// which strips the server's highlighting *and* the hydration comments the
+	// `{@html}` blocks own. Anything derived later then repaints into detached
+	// nodes, so the types stay plain until the component is recreated.
+	try {
+		await import("prismjs/components/prism-python");
+		await import("prismjs/components/prism-typescript");
+	} catch (e) {
+		// `highlight` already falls back to plain text without a grammar.
+		console.error("failed to load Prism grammars", e);
+	}
 </script>
 
 <script lang="ts">
@@ -51,12 +61,7 @@
 	let all_open = $state(false);
 	let lang: "python" | "typescript" = "python";
 
-	// The grammars now arrive asynchronously, and `highlight` falls back to plain
-	// text until they do, so re-derive once they land.
-	let grammars_ready = $state(false);
-	grammars_loaded.then(() => (grammars_ready = true));
-
-	let _docs = $derived(highlight_code(docs, lang, grammars_ready));
+	let _docs = $derived(highlight_code(docs, lang));
 
 	function create_slug(name: string, anchor_links: string | boolean): string {
 		let prefix = "param-";
@@ -83,9 +88,7 @@
 
 	function highlight_code(
 		_docs: typeof docs,
-		lang: "python" | "typescript",
-		// Unused, but read so the `$derived` re-runs when the grammars load.
-		_grammars_ready?: boolean
+		lang: "python" | "typescript"
 	): Param[] {
 		if (!_docs) {
 			return [];
