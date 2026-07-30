@@ -139,6 +139,27 @@ describe("next_frame_height", () => {
 		expect(frame.viewport).toBe(1400);
 	});
 
+	test("adopts the parent's height when it resizes while a request is in flight", () => {
+		const frame = new Frame(800);
+		frame.settle(stretchy(747));
+		frame.settle(stretchy(1127));
+
+		// We ask for a smaller frame, but the window is resized before the parent
+		// applies it, so the frame moves somewhere we never asked for.
+		frame.tick(stretchy(747));
+		expect(frame.requested).toBe(800);
+		frame.viewport = 1400;
+		frame.requested = null;
+
+		frame.settle(stretchy(1347));
+		expect(frame.viewport).toBe(1400);
+
+		// The content shrinks again: we come back to the parent's height, not the
+		// one it had before the resize.
+		frame.settle(stretchy(600));
+		expect(frame.viewport).toBe(1400);
+	});
+
 	test("does not measure the unstretched height while the frame is not grown", () => {
 		const state = create_resize_state();
 		const measure = vi.fn(() => 108);

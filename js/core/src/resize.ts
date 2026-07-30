@@ -43,7 +43,13 @@ export function next_frame_height(
 	if (state.awaiting_height !== null) {
 		const landed = Math.abs(m.viewport - state.awaiting_height) < 2;
 		const moved = Math.abs(m.viewport - state.viewport_at_request) >= 2;
-		if (landed || moved) state.awaiting_height = null;
+		if (landed) {
+			state.awaiting_height = null;
+		} else if (moved) {
+			// Somewhere we never asked for, so the parent moved us itself.
+			state.awaiting_height = null;
+			state.base_height = m.viewport;
+		}
 	} else if (Math.abs(m.viewport - state.last_reported_height) >= 2) {
 		state.base_height = m.viewport;
 	}
