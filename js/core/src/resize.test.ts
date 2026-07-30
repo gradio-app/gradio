@@ -6,10 +6,7 @@ interface Content {
 	(viewport: number): { stretched_bottom: number; unstretched_bottom: number };
 }
 
-/**
- * Content stretched by `fill_height`: it fills the frame when it fits, and
- * overflows by its own height when it does not.
- */
+/** `fill_height` content: fills the frame when it fits, overflows when it does not. */
 function stretchy(needs: number, footer = 21): Content {
 	return (viewport) => ({
 		stretched_bottom: Math.max(needs, viewport - footer - FRAME_SLACK),
@@ -17,7 +14,6 @@ function stretchy(needs: number, footer = 21): Content {
 	});
 }
 
-/** Content with a height of its own, unaffected by the height of the frame. */
 function rigid(needs: number): Content {
 	return () => ({ stretched_bottom: needs, unstretched_bottom: needs });
 }
@@ -28,11 +24,8 @@ const viewport_sized: Content = (viewport) => ({
 	unstretched_bottom: viewport
 });
 
-/**
- * The app inside a frame the parent resizes on request. The parent does not
- * apply a size the moment it is asked, so ticks in between still see the old
- * viewport - the case that makes this logic tricky.
- */
+/** The parent does not apply a size the moment it is asked, so ticks in between
+ * still see the old viewport. That delay is what makes this logic tricky. */
 class Frame {
 	viewport: number;
 	footer: number;
@@ -60,7 +53,6 @@ class Frame {
 		return next;
 	}
 
-	/** The parent gets round to applying the last size we asked for. */
 	apply(): void {
 		if (this.requested !== null) {
 			this.viewport = Math.ceil(this.requested);
@@ -68,7 +60,6 @@ class Frame {
 		}
 	}
 
-	/** Run the observer loop, with ticks landing either side of the parent. */
 	settle(content: Content, rounds = 8): void {
 		for (let i = 0; i < rounds; i++) {
 			this.tick(content);
@@ -107,20 +98,15 @@ describe("next_frame_height", () => {
 		}
 	});
 
-	// A tick between asking for a smaller frame and the parent applying it still
-	// sees the old, tall viewport. Reading that as the content's own height grows
-	// the frame straight back, which left #8771 fixed only on the first toggle.
 	test("does not grow back while its own shrink request is in flight", () => {
 		const frame = new Frame(800);
 		frame.settle(stretchy(747));
 		frame.settle(stretchy(1127));
 		const grown = frame.viewport;
 
-		// The accordion closes and we ask for the smaller frame.
 		frame.tick(stretchy(747));
 		expect(frame.requested).toBe(800);
 
-		// More ticks arrive before the parent has resized anything.
 		expect(frame.tick(stretchy(747))).toBe(null);
 		expect(frame.tick(stretchy(747))).toBe(null);
 		expect(frame.viewport).toBe(grown);
@@ -134,7 +120,6 @@ describe("next_frame_height", () => {
 		const frame = new Frame(800);
 		frame.settle(stretchy(747));
 		frame.settle(stretchy(1127));
-		// The content now needs almost nothing, but the parent asked for 800.
 		frame.settle(stretchy(100));
 		expect(frame.viewport).toBe(800);
 	});
@@ -148,7 +133,6 @@ describe("next_frame_height", () => {
 		frame.settle(stretchy(1347));
 		expect(frame.viewport).toBe(1400);
 
-		// Overflow and come back: we return to 1400, not to 800.
 		frame.settle(stretchy(1800));
 		expect(frame.viewport).toBeGreaterThan(1800);
 		frame.settle(stretchy(600));
@@ -175,8 +159,7 @@ describe("next_frame_height", () => {
 		expect(frame.reports).toEqual([]);
 	});
 
-	// gradio-app/gradio#12992: `fill_height` with `footer_links=[]`, where no
-	// footer height masks the slack the app adds to its own measurement.
+	// gradio-app/gradio#12992 (`fill_height` with `footer_links=[]`)
 	test("does not grow for stretched content when there is no footer", () => {
 		const frame = new Frame(800, 0);
 		frame.settle(stretchy(700, 0), 20);

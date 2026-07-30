@@ -1,32 +1,22 @@
-/**
- * Height reporting for apps embedded in an auto-sizing iframe (Hugging Face
- * Spaces). The decision is kept separate from the DOM so it can be tested.
- */
+/** Height reporting for apps embedded in an auto-sizing iframe (Spaces). */
 
 /** Reported on top of the content so its bottom is not clipped. */
 export const FRAME_SLACK = 32;
 
 export interface ResizeState {
-	/** The height we last asked the parent frame for. */
 	last_reported_height: number;
-	/** How many ticks in a row we have asked to grow. */
 	consecutive_grows: number;
 	/** The height the parent frame gave us of its own accord. */
 	base_height: number;
 	/** A size we asked for that the parent has not applied yet. */
 	awaiting_height: number | null;
-	/** The viewport at the moment we asked, so we can tell when it moves. */
+	/** The viewport when we asked, so we can tell when the frame moves. */
 	viewport_at_request: number;
 }
 
 export interface Measurement {
-	/** Bottom of the measured element as it is laid out right now. */
 	stretched_bottom: number;
-	/**
-	 * Bottom of the measured element with `fill_height` stretching removed, i.e.
-	 * how much room the content actually needs. Only called when it can change
-	 * the outcome, because measuring it forces a reflow.
-	 */
+	/** Forces a reflow, so it is only called when it can change the outcome. */
 	measure_unstretched_bottom: () => number;
 	footer_height: number;
 	viewport: number;
@@ -42,18 +32,14 @@ export function create_resize_state(): ResizeState {
 	};
 }
 
-/**
- * Decide what height to ask the parent frame for, updating `state`. Returns
- * `null` to leave the frame alone.
- */
+/** The height to ask the parent frame for, or `null` to leave it alone. */
 export function next_frame_height(
 	state: ResizeState,
 	m: Measurement
 ): number | null {
-	// Learn the height the parent wants us to have. Until a size we asked for has
-	// actually been applied, the viewport still shows the old height, and reading
-	// that as a parent-driven resize would pin `base_height` to a height we are
-	// in the middle of giving back.
+	// Until a size we asked for has been applied, the viewport still shows the old
+	// height; reading that as a parent-driven resize would pin `base_height` to a
+	// height we are in the middle of giving back.
 	if (state.awaiting_height !== null) {
 		const landed = Math.abs(m.viewport - state.awaiting_height) < 2;
 		const moved = Math.abs(m.viewport - state.viewport_at_request) >= 2;
@@ -63,16 +49,13 @@ export function next_frame_height(
 	}
 
 	let bottom = m.stretched_bottom;
+	// In a frame we grew ourselves, `fill_height` content fills whatever height it
+	// is given, so only the unstretched bottom says whether it still needs the
+	// room. Keyed off the current frame, not the last request: right after asking
+	// to shrink, the frame is still tall.
 	if (m.viewport > state.base_height + 2) {
-		// The frame we are laid out in is taller than the one the parent wants us
-		// to have, because we grew it earlier. Content stretched by `fill_height`
-		// fills whatever height the frame has, so `stretched_bottom` cannot say
-		// whether the content still needs the extra room - the unstretched bottom
-		// can. This has to key off the current frame rather than what we last
-		// asked for: right after we request a shrink, the frame is still tall.
 		const unstretched = m.measure_unstretched_bottom();
 		if (unstretched < bottom) {
-			// Give the room back, but never more than we took.
 			bottom = Math.max(
 				unstretched,
 				state.base_height - m.footer_height - FRAME_SLACK
