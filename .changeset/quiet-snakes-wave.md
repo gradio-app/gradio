@@ -1,5 +1,6 @@
 ---
-"gradio": minor
+"@gradio/core": patch
+"gradio": patch
 ---
 
-feat:Harden authentication and file redirect boundaries
+fix:Harden authentication and file redirect boundaries
