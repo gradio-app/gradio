@@ -36,7 +36,8 @@
 		hydrate_endpoints,
 		init_model_node_ports,
 		sanitize_for_save,
-		revoke_blob_urls
+		revoke_blob_urls,
+		reconcileComponentRoles
 	} from "./workflow-store";
 	import {
 		hasMissingNodeGeometry,
@@ -143,7 +144,13 @@
 			const parsed = JSON.parse(initialValue);
 			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
 			// Migration handles both v1 (legacy workflow.json files) and v2.
-			const v2 = migrateToV2(parsed);
+			// Reconcile on load as well as on edit: files written before roles were
+			// derived can carry a wired-up component still filed under `references`,
+			// which renders as an output tile but generates no API endpoint. The
+			// baseline below means the heal isn't a save on its own, but the first
+			// store write after mount (port hydration, a drag, an edit) carries it
+			// to disk — so a stale file corrects itself in practice.
+			const v2 = reconcileComponentRoles(migrateToV2(parsed));
 			workflow.set(v2);
 			// Baseline the persisted state so the load itself isn't autosaved.
 			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
@@ -2078,19 +2085,21 @@
 		const newId = await addTemplateToCanvas({ ...template }, x, y);
 		if (!newId) return;
 
-		// For spaces added fresh to the canvas (not wired from an existing port),
-		// auto-create input + output components to form a ready-to-run subgraph
-		const isSpaceFresh =
-			template.source === "space" && (!drop || drop.positionOnly);
-		if (isSpaceFresh) {
-			const spaceNode = legacyView.nodes.find((n) => n.id === newId);
-			if (spaceNode) {
+		// For spaces and models added fresh to the canvas (not wired from an
+		// existing port), auto-create input + output components to form a
+		// ready-to-run subgraph
+		const isOperatorFresh =
+			(template.source === "space" || template.source === "model") &&
+			(!drop || drop.positionOnly);
+		if (isOperatorFresh) {
+			const operatorNode = legacyView.nodes.find((n) => n.id === newId);
+			if (operatorNode) {
 				const compGap = 24;
 				const compH = 180;
 				// Skip ports with `choices` — they render an inline dropdown in
 				// the node body, so an auto-wired reference would be redundant
 				// (and worse, the reference is a plain textbox).
-				const typedInputs = spaceNode.inputs.filter(
+				const typedInputs = operatorNode.inputs.filter(
 					(p) =>
 						SUBGRAPH_PORT_TYPES.has(p.type) &&
 						!(p.choices && p.choices.length > 0)
@@ -2098,12 +2107,12 @@
 				const requiredInputs = typedInputs.filter((p) => p.required !== false);
 				const inputPorts =
 					requiredInputs.length > 0 ? requiredInputs : typedInputs;
-				const outputPorts = spaceNode.outputs.filter((p) =>
+				const outputPorts = operatorNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
 
 				const inTotal = inputPorts.length * (compH + compGap) - compGap;
-				const inStartY = y + (spaceNode.height ?? 90) / 2 - inTotal / 2;
+				const inStartY = y + (operatorNode.height ?? 90) / 2 - inTotal / 2;
 				inputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
@@ -2129,12 +2138,12 @@
 				});
 
 				const outTotal = outputPorts.length * (compH + compGap) - compGap;
-				const outStartY = y + (spaceNode.height ?? 90) / 2 - outTotal / 2;
+				const outStartY = y + (operatorNode.height ?? 90) / 2 - outTotal / 2;
 				outputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
 					const { x: cx, y: cy } = findFreeSpot(
-						x + (spaceNode.width ?? 280) + 80,
+						x + (operatorNode.width ?? 280) + 80,
 						outStartY + i * (compH + compGap)
 					);
 					const cId = addNode("subject", comp, cx, cy);
@@ -2188,7 +2197,15 @@
 		activePicker = null;
 	}
 
-	function addInputNode(portType: string, cx?: number, cy?: number): void {
+	/**
+	 * Drop a bare component on the canvas. Always created as a `reference`: an
+	 * unwired component *is* an input, and `reconcileComponentRoles` promotes it
+	 * to a subject the moment something feeds its input port — which is the same
+	 * moment `WorkflowNodeSF` starts rendering it as a read-only output tile.
+	 * That's why the bottom bar offers one "Component" button rather than making
+	 * the user pre-declare a direction the graph already knows.
+	 */
+	function addComponentNode(portType: string, cx?: number, cy?: number): void {
 		if (readOnly) return;
 		let pos: { x: number; y: number };
 		if (cx !== undefined && cy !== undefined) {
@@ -2202,11 +2219,7 @@
 		} else {
 			pos = canvasCenter();
 		}
-		const typedComponents: Record<string, any> = {};
-		for (const c of LIBRARY.components) {
-			typedComponents[c.outputs[0]?.type ?? "any"] = c;
-		}
-		const template = typedComponents[portType] ?? LIBRARY.components[0];
+		const template = getComponentForPortType(portType) ?? LIBRARY.components[0];
 		const half = (template.width ?? 200) / 2;
 		const { x, y } = findFreeSpot(pos.x - half, pos.y - 45);
 		addNode("reference", template, x, y);
@@ -2670,7 +2683,7 @@
 			{readOnly}
 			activeModalityKey={activePicker?.modality.key ?? null}
 			onopenpicker={openPicker}
-			onaddinput={addInputNode}
+			onaddcomponent={addComponentNode}
 			onaddfn={addFnNode}
 			onrun={() => void runWorkflow()}
 			onstop={stopWorkflow}
