@@ -427,6 +427,24 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_monitoring_summary(self):
+        app = FastAPI()
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/default",
+        )
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/disabled",
+            enable_monitoring=False,
+        )
+
+        with TestClient(app) as client:
+            assert client.get("/default/monitoring/summary").is_success
+            assert client.get("/disabled/monitoring/summary").status_code == 403
+
     def test_mount_gradio_app_picks_up_root_path_from_asgi_scope(self):
         """Test that media URLs include the proxy prefix when root_path is set
         via the ASGI scope (e.g. uvicorn --root-path), without needing to
@@ -855,6 +873,8 @@ class TestRoutes:
         client = TestClient(app)
         response = client.get("/monitoring")
         assert response.status_code == 403
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 403
 
 
 def test_api_listener(connect):
@@ -957,12 +977,16 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 200
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 200
 
         response = client.get("/logout")
 
         response = client.get(
             "/monitoring",
         )
+        assert response.status_code == 401
+        response = client.get("/monitoring/summary")
         assert response.status_code == 401
 
 
