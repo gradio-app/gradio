@@ -404,6 +404,35 @@
 		initialSubtab?: string;
 	}
 	let activePicker: ActivePicker | null = $state(null);
+	let fullscreenImage: { src: string; alt: string } | null = $state(null);
+	let fullscreenReturnFocus: HTMLElement | null = null;
+	let fullscreenCloseBtn: HTMLButtonElement | undefined = $state();
+
+	function openFullscreenImage(src: string, alt: string): void {
+		fullscreenReturnFocus = document.activeElement as HTMLElement | null;
+		fullscreenImage = { src, alt };
+	}
+
+	function closeFullscreenImage(): void {
+		fullscreenImage = null;
+	}
+
+	$effect(() => {
+		if (!fullscreenImage) return;
+		fullscreenCloseBtn?.focus();
+		const onKey = (e: KeyboardEvent): void => {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				closeFullscreenImage();
+			}
+		};
+		window.addEventListener("keydown", onKey);
+		return () => {
+			window.removeEventListener("keydown", onKey);
+			fullscreenReturnFocus?.focus?.();
+			fullscreenReturnFocus = null;
+		};
+	});
 
 	interface PendingDrop {
 		from_node_id: string;
@@ -464,7 +493,10 @@
 		staleNodes: new Set<string>(),
 		connectedPorts: new Set<string>(),
 		readOnly: false,
+		// Resize drags happen in screen pixels but node width is canvas units.
+		zoom: 1,
 		ondatachange: updateNodeData,
+		onviewfullscreen: openFullscreenImage,
 		onremove: (id: string) => {
 			if (!readOnly) removeNode(id);
 		},
@@ -572,6 +604,9 @@
 	});
 	$effect(() => {
 		wfCtx.connectedPorts = connectedPortsSet();
+	});
+	$effect(() => {
+		wfCtx.zoom = viewport.zoom;
 	});
 	$effect(() => {
 		wfCtx.readOnly = readOnly;
@@ -2761,10 +2796,75 @@
 			onClose={() => (showApiPanel = false)}
 		/>
 	{/if}
+
+	{#if fullscreenImage}
+		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+		<div
+			class="fullscreen-overlay"
+			role="dialog"
+			aria-modal="true"
+			aria-label={fullscreenImage.alt || "Image preview"}
+			onclick={closeFullscreenImage}
+			transition:fade={{ duration: 120 }}
+		>
+			<img
+				class="fullscreen-img"
+				src={fullscreenImage.src}
+				alt={fullscreenImage.alt}
+			/>
+			<button
+				bind:this={fullscreenCloseBtn}
+				class="fullscreen-close"
+				onclick={closeFullscreenImage}
+				title="Close (Esc)"
+				aria-label="Close full screen">&times;</button
+			>
+		</div>
+	{/if}
 </div>
 
 <style>
 	@import "./WorkflowCanvas.css";
+
+	/* ─── Full-screen image viewer ──────────────────────────────────────────── */
+	.fullscreen-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 1100;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: var(--size-8);
+		background: rgba(8, 9, 13, 0.9);
+		backdrop-filter: blur(2px);
+		cursor: zoom-out;
+	}
+
+	.fullscreen-img {
+		/* Fill the viewport and letterbox rather than render at natural size —
+		   the point is to inspect the image, including small ones. */
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		border-radius: var(--radius-md);
+	}
+
+	.fullscreen-close {
+		position: absolute;
+		top: var(--size-4);
+		right: var(--size-5);
+		background: transparent;
+		border: none;
+		color: #c5c7d0;
+		font-size: 30px;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0 var(--size-2);
+	}
+
+	.fullscreen-close:hover {
+		color: #fff;
+	}
 
 	/* ─── Custom canvas ─────────────────────────────────────────────────────── */
 	.editor {

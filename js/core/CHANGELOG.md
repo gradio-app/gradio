@@ -1,5 +1,43 @@
 # @gradio/core
 
+## 1.10.0
+
+### Features
+
+- [#13601](https://github.com/gradio-app/gradio/pull/13601) [`0ee5cc8`](https://github.com/gradio-app/gradio/commit/0ee5cc80e2915e5a1b074c892490a62f165cd80d) - Preserve browser-visible proxy origins for frontend assets and API requests, and retain app-level FastAPI root paths.  Thanks @abidlabs!
+- [#13620](https://github.com/gradio-app/gradio/pull/13620) [`5200235`](https://github.com/gradio-app/gradio/commit/520023532b66d6fa327da04701da3e02c554fa6e) - Fix chained events after cancellation and while the browser tab is hidden.  Thanks @abidlabs!
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Fixes
+
+- [#13627](https://github.com/gradio-app/gradio/pull/13627) [`3b12faa`](https://github.com/gradio-app/gradio/commit/3b12faa404660cd68ff4b3f20fbf6af3f3906670) - Keep in-flight events and generators working when an app is hot-reloaded (`gradio app.py`).  Thanks @abidlabs!
+- [#13644](https://github.com/gradio-app/gradio/pull/13644) [`f0abb1e`](https://github.com/gradio-app/gradio/commit/f0abb1ea8e61f4b886296365639b9fe0492012a9) - restore shared props lost during frontend prop partitioning.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/theme@0.7.0
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+- @gradio/textbox@0.14.2
+- @gradio/column@0.4.1
+- @gradio/tabs@0.10.0
+- @gradio/html@0.13.2
+- @gradio/tabitem@0.8.3
+- @gradio/code@0.19.0
+- @gradio/paramviewer@0.11.0
+- @gradio/button@0.8.2
+- @gradio/checkbox@0.8.2
+- @gradio/file@0.16.0
+- @gradio/image@0.28.1
+- @gradio/video@0.23.0
+- @gradio/plot@0.12.2
+- @gradio/gallery@0.19.1
+- @gradio/dropdown@0.14.2
+- @gradio/audio@0.24.2
+
 ## 1.9.0
 
 ### Features
