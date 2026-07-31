@@ -71,8 +71,7 @@ def test_load_assets(launch_services):
             assert len(asset_response.text) > 0
             if main_asset.endswith(".js"):
                 js_asset_found = True
-                first_line = asset_response.text.split(";")[0]
-                sub_assets = re.findall(asset_regex, first_line)
+                sub_assets = re.findall(asset_regex, asset_response.text)
                 assert len(sub_assets) > 1
                 random.shuffle(sub_assets)
                 for sub_asset in sub_assets[:5]:

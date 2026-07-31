@@ -1,33 +1,34 @@
 <script module lang="ts">
-	import Prism from "prismjs";
+	type PrismApi = typeof import("prismjs");
 
-	// `prismjs/components/*` are side-effect scripts: each does
-	// `Prism.languages.x = ...` against a bare global and declares no imports of
-	// its own, so nothing in the module graph orders them after prismjs. As
-	// *static* imports the bundler is free to hoist them into a chunk that
-	// evaluates before the assignment below, and rolldown compounds it by
-	// emitting prismjs as a lazily-invoked CommonJS factory — so importing it
-	// does not initialise it either, and `window.Prism` stayed undefined. Every
-	// docs page then died during hydration on `ReferenceError: Prism is not
-	// defined` (#13677).
-	//
-	// Dynamic imports are not hoisted, so the global below is guaranteed to be in
-	// place before any grammar runs.
-	(globalThis as any).Prism = Prism;
+	let prism: PrismApi | null = null;
+	let prism_languages: Promise<PrismApi> | null = null;
 
-	// Awaited here rather than gated behind a promise: the component must not
-	// render before the grammars are registered. prismjs schedules its own
-	// `highlightAll()` on a rAF as soon as it loads, and without a grammar
-	// `highlightElement` overwrites the element with `encode(textContent)` —
-	// which strips the server's highlighting *and* the hydration comments the
-	// `{@html}` blocks own. Anything derived later then repaints into detached
-	// nodes, so the types stay plain until the component is recreated.
-	try {
-		await import("prismjs/components/prism-python");
-		await import("prismjs/components/prism-typescript");
-	} catch (e) {
-		// `highlight` already falls back to plain text without a grammar.
-		console.error("failed to load Prism grammars", e);
+	function load_prism_languages(): Promise<PrismApi> {
+		if (prism_languages) return prism_languages;
+
+		prism_languages = (async () => {
+			// Prism checks this pre-existing global while its module evaluates.
+			// Manual mode prevents its scheduled highlightAll() from rewriting
+			// Svelte's hydration markers before the grammars are ready.
+			(globalThis as any).Prism = { manual: true };
+			const prism_module = await import("prismjs");
+			const loaded_prism =
+				(
+					prism_module as unknown as {
+						default?: PrismApi;
+					}
+				).default ?? (prism_module as PrismApi);
+			loaded_prism.manual = true;
+			(globalThis as any).Prism = loaded_prism;
+			// @ts-expect-error Prism component modules do not ship declarations.
+			await import("prismjs/components/prism-python");
+			// @ts-expect-error Prism component modules do not ship declarations.
+			await import("prismjs/components/prism-typescript");
+			prism = loaded_prism;
+			return loaded_prism;
+		})();
+		return prism_languages;
 	}
 </script>
 
@@ -60,8 +61,23 @@
 	let component_root: HTMLElement;
 	let all_open = $state(false);
 	let lang: "python" | "typescript" = "python";
+	let prism_ready = $state(prism !== null);
 
-	let _docs = $derived(highlight_code(docs, lang));
+	$effect(() => {
+		let active = true;
+		load_prism_languages()
+			.then(() => {
+				if (active) prism_ready = true;
+			})
+			.catch((e) => {
+				console.error("failed to load Prism grammars", e);
+			});
+		return () => {
+			active = false;
+		};
+	});
+
+	let _docs = $derived(highlight_code(docs, lang, prism_ready));
 
 	function create_slug(name: string, anchor_links: string | boolean): string {
 		let prefix = "param-";
@@ -72,8 +88,8 @@
 	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
-		let highlighted = Prism.languages[lang]
-			? Prism.highlight(code, Prism.languages[lang], lang)
+		let highlighted = prism?.languages[lang]
+			? prism.highlight(code, prism.languages[lang], lang)
 			: code;
 
 		for (const link of linkify) {
@@ -88,7 +104,8 @@
 
 	function highlight_code(
 		_docs: typeof docs,
-		lang: "python" | "typescript"
+		lang: "python" | "typescript",
+		_prism_ready: boolean
 	): Param[] {
 		if (!_docs) {
 			return [];
