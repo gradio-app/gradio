@@ -881,6 +881,15 @@ def _inference_endpoint_schemas() -> dict[str, dict]:
     return endpoints
 
 
+# Warm the schema cache at import time so it captures the real InferenceClient
+# rather than whatever a test happens to have patched it with. Also moves the
+# ~100ms introspection cost off the first request thread.
+try:
+    _inference_endpoint_schemas()
+except Exception:
+    pass
+
+
 # Generous by default: vision-language models are asked to emit whole files
 # (an HTML page, a long transcription), and reasoning models spend part of the
 # budget before their first visible token — reasoning counts against this cap,
@@ -1016,20 +1025,24 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         return json.dumps([text])
     # Kwargs outside the method's declared signature are custom-port extras
     # (from the "+ Add param" UI). Fold them into `extra_body` — the escape
-    # hatch InferenceClient exposes for provider-specific params.
+    # hatch InferenceClient exposes for provider-specific params. Only split
+    # when the method actually accepts `extra_body`; otherwise pass all
+    # kwargs through (methods without extra_body will TypeError on genuinely
+    # unknown kwargs — the honest failure mode).
     try:
         fn_params = set(inspect.signature(fn).parameters)
     except (TypeError, ValueError):
         fn_params = set()
-    extras: dict = {}
-    if fn_params:
+    if "extra_body" in fn_params:
         known: dict = {}
+        extras: dict = {}
         for k, v in clean.items():
             (known if k in fn_params else extras)[k] = v
-        clean = known
-        if extras and "extra_body" in fn_params:
-            merged = {**(clean.get("extra_body") or {}), **extras}
-            clean["extra_body"] = merged
+        if extras:
+            clean = {
+                **known,
+                "extra_body": {**(known.get("extra_body") or {}), **extras},
+            }
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
