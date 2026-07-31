@@ -252,6 +252,27 @@ job.status()
 
 _Note_: The `Job` class also has a `.done()` instance method which returns a boolean indicating whether the job has completed.
 
+## Resuming Jobs After a Disconnect
+
+Pass `resume_sessions=True` to keep active queued jobs available when the client temporarily loses its connection. Save the job's event ID, function index, and the client's session hash if you need to recreate the client process and retrieve the same job later:
+
+```py
+from gradio_client import Client
+
+client = Client("gradio/calculator", resume_sessions=True)
+job = client.submit(5, "add", 4, api_name="/predict")
+
+saved_job = {"event_id": job.wait_for_id(), "fn_index": job.fn_index}
+saved_session = client.session_hash
+
+# The same values can be loaded from your own persistent storage after restart.
+client = Client("gradio/calculator")
+job = client.resume_jobs([saved_job], session_hash=saved_session)[0]
+print(job.result())  # 9.0
+```
+
+The server retains an interrupted job for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (10 minutes by default). The result is acknowledged and removed from the resume buffer after the resumed client receives it.
+
 ## Cancelling Jobs
 
 The `Job` class also has a `.cancel()` instance method that cancels jobs that have been queued but not started. For example, if you run:
