@@ -16,12 +16,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    pass
+    from collections.abc import Callable
 
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NODE_NUM_PORTS", "100"))
+# Node waits for the connections it is serving to finish, so without a bound
+# here a single long-lived connection keeps the Python process alive too.
+NODE_SHUTDOWN_TIMEOUT = 5.0
 LOCALHOST_NAME = os.getenv(
     "GRADIO_NODE_SERVER_NAME", os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 )
@@ -35,6 +38,7 @@ def start_node_server(
     python_host: str | None = None,
     static_worker_ports: list[int] | None = None,
     debug: bool = False,
+    on_shutdown: Callable[[], None] | None = None,
 ) -> tuple[str | None, subprocess.Popen[bytes] | None, int | None]:
     """Launches the Node SSR server as a front proxy.
 
@@ -45,6 +49,7 @@ def start_node_server(
         python_port: the port of the main Python (FastAPI) server that Node will proxy to.
         python_host: the host of the main Python server (default 127.0.0.1).
         static_worker_ports: ports of static file worker processes for round-robin proxying.
+        on_shutdown: called when a shutdown signal arrives, before Node is stopped.
 
     Returns:
         server_name: the name of the server (default is "localhost")
@@ -76,6 +81,7 @@ def start_node_server(
         python_host=python_host or "127.0.0.1",
         static_worker_ports=static_worker_ports or [],
         debug=debug,
+        on_shutdown=on_shutdown,
     )
 
     return server_name, node_process, node_port
@@ -93,6 +99,7 @@ def start_node_process(
     python_host: str = "127.0.0.1",
     static_worker_ports: list[int] | None = None,
     debug: bool = False,
+    on_shutdown: Callable[[], None] | None = None,
 ) -> tuple[subprocess.Popen[bytes] | None, int | None]:
     if GRADIO_LOCAL_DEV_MODE:
         return None, 9876
@@ -172,11 +179,7 @@ def start_node_process(
             # port is reachable while the first requests 502 as SSR initialises.
             is_working = verify_server_startup(server_name, port, timeout=30)
             if is_working:
-                signal.signal(
-                    signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
-                )
-                signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
-
+                install_shutdown_handlers(node_process, on_shutdown)
                 return node_process, port
 
             else:
@@ -266,9 +269,39 @@ def verify_server_startup(host: str, port: int, timeout: float = 15.0) -> bool:
     return False
 
 
-def handle_sigterm(node_process: subprocess.Popen[bytes] | None):
-    if node_process is not None:
-        print("\nStopping Node.js server...")
-        node_process.terminate()
+def stop_node_process(
+    node_process: subprocess.Popen[bytes],
+    timeout: float = NODE_SHUTDOWN_TIMEOUT,
+) -> None:
+    """Stops the Node server, killing it if it does not exit within `timeout`."""
+    node_process.terminate()
+    try:
+        node_process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        node_process.kill()
         node_process.wait()
+
+
+def install_shutdown_handlers(
+    node_process: subprocess.Popen[bytes],
+    on_shutdown: Callable[[], None] | None = None,
+) -> None:
+    """Stops the Node server when this process is asked to terminate."""
+    stopping = False
+
+    def handle_shutdown(_signum, _frame):
+        nonlocal stopping
+        # Popen.wait() holds a non-reentrant lock across its waitpid() call, so
+        # a second signal re-entering this handler would deadlock the process
+        # for good. Once shutdown is under way, later signals are ignored.
+        if stopping:
+            return
+        stopping = True
+        print("\nStopping Node.js server...")
+        if on_shutdown is not None:
+            on_shutdown()
+        stop_node_process(node_process)
         sys.exit(0)
+
+    signal.signal(signal.SIGTERM, handle_shutdown)
+    signal.signal(signal.SIGINT, handle_shutdown)

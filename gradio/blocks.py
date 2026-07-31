@@ -3077,7 +3077,10 @@ Received inputs:
             # request resolved to a 502 from an unreachable upstream.
             if _pending_node_proxy_kwargs is not None:
                 self.node_server_name, self.node_process, self.node_port = (
-                    start_node_server(**_pending_node_proxy_kwargs)
+                    start_node_server(
+                        **_pending_node_proxy_kwargs,
+                        on_shutdown=self._end_streaming_responses,
+                    )
                 )
                 if self.node_process is not None and self.node_port is not None:
                     self._node_is_proxy = True
@@ -3462,6 +3465,13 @@ Received inputs:
         if self.mcp_server_obj:
             self.mcp_server_obj._local_url = local_url
         return True
+
+    def _end_streaming_responses(self) -> None:
+        """
+        Ends the session heartbeat streams. The Node front proxy waits for the
+        connections it is serving before exiting, and these are those connections.
+        """
+        self.app.stop_event.set()
 
     def close(self, verbose: bool = True) -> None:
         """
