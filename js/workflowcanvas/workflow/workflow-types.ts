@@ -16,6 +16,7 @@ export type PortType =
 	| "json"
 	| "gallery"
 	| "model3d"
+	| "html"
 	| "any";
 
 export function ports_compatible(a: PortType, b: PortType): boolean {
@@ -70,6 +71,7 @@ export interface WFNode {
 	y: number;
 	width: number;
 	height: number;
+	manual_height?: number;
 	data: NodeData;
 }
 
@@ -119,7 +121,18 @@ export interface BaseNode {
 	x: number;
 	y: number;
 	width: number;
+	/**
+	 * Last measured height of the rendered card. Written by the canvas, not the
+	 * user — layout math (zoom-to-fit, marquee selection, auto-arrange) reads it.
+	 */
 	height: number;
+	/**
+	 * Height the user pinned by dragging the resize handle. When set, the card is
+	 * locked to it and the widget zone stretches to fill; when absent, height is
+	 * content-driven. Kept separate from `height` so the measured value stays
+	 * meaningful either way.
+	 */
+	manual_height?: number;
 }
 
 export interface ReferenceNode extends BaseNode {
@@ -193,6 +206,7 @@ export const PORT_COLOR: Record<PortType, string> = {
 	json: "#22d3ee",
 	gallery: "#34d399",
 	model3d: "#a78bfa",
+	html: "#f97316",
 	any: "#6b6e78"
 };
 
@@ -207,5 +221,6 @@ export const PORT_COLOR_DIM: Record<PortType, string> = {
 	json: "rgba(34, 211, 238, 0.15)",
 	gallery: "rgba(52, 211, 153, 0.15)",
 	model3d: "rgba(167, 139, 250, 0.15)",
+	html: "rgba(249, 115, 22, 0.15)",
 	any: "rgba(107, 110, 120, 0.10)"
 };

@@ -1,5 +1,34 @@
 # @gradio/workflowcanvas
 
+## 0.7.0
+
+### Features
+
+- [#13685](https://github.com/gradio-app/gradio/pull/13685) [`6302098`](https://github.com/gradio-app/gradio/commit/6302098bc300df0dd36f2cbea904bafca03b208d) - `gr.Workflow`: auto-create input/output nodes for model nodes (as already happens for Space nodes), replace the "Input"/"Output" buttons with a single "Component" button whose direction is derived from wiring, rename "Data" to "Dataset", let node error messages be copied, and document the `oauth_token` parameter in the View API panel.  Thanks @abidlabs!
+- [#13688](https://github.com/gradio-app/gradio/pull/13688) [`321361f`](https://github.com/gradio-app/gradio/commit/321361fd8de9942e7046dcb54987d18a2a091e7e) - Workflow: resizable nodes, full-screen image view, and webcam/mic capture.  Thanks @abidlabs!
+
+## 0.6.0
+
+### Features
+
+- [#13558](https://github.com/gradio-app/gradio/pull/13558) [`d07af9d`](https://github.com/gradio-app/gradio/commit/d07af9ddb77e792bea17f669905a36f2fc218c43) - workflow: add model endpoint integration.  Thanks @hannahblair!
+- [#13654](https://github.com/gradio-app/gradio/pull/13654) [`2f6d04a`](https://github.com/gradio-app/gradio/commit/2f6d04acf8bd9eb147b628539a77efde168c6b92) - workflow: improve canvas authoring and examples.  Thanks @abidlabs!
+- [#13668](https://github.com/gradio-app/gradio/pull/13668) [`3473879`](https://github.com/gradio-app/gradio/commit/347387984c9254be3bee97238b435bcde522b023) - workflow: add html modality.  Thanks @hannahblair!
+- [#13666](https://github.com/gradio-app/gradio/pull/13666) [`d3c70fa`](https://github.com/gradio-app/gradio/commit/d3c70fa5cb3e714175953bc43a23e0773adb8259) - workflow: various UX improvements, including opening the write-access link in a browser tab automatically when a `gr.Workflow` is launched locally, and calling vision-language models through chat completions so `image-text-to-text` model nodes work.  Thanks @abidlabs!
+- [#13590](https://github.com/gradio-app/gradio/pull/13590) [`d5ef897`](https://github.com/gradio-app/gradio/commit/d5ef8972dfaa1d4e051f0bb31dc16807a63398d5) - workflow: fix error banner and textarea visibility.  Thanks @hannahblair!
+- [#13616](https://github.com/gradio-app/gradio/pull/13616) [`a2ddecf`](https://github.com/gradio-app/gradio/commit/a2ddecfb29a9a8489a5489ab54d9c5141a536727) - workflow: ensure we handle trailing null values.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13612](https://github.com/gradio-app/gradio/pull/13612) [`0286f2c`](https://github.com/gradio-app/gradio/commit/0286f2c2f7cb516a486347ee009a38f1b1999747) - workflow: use anyio.to_thread to send sync server functions to thread pool.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+
 ## 0.5.0
 
 ### Features

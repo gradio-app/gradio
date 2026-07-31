@@ -30,6 +30,7 @@ import {
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
+	normalise_token_option,
 	resolve_cookies,
 	resolve_config,
 	get_jwt,
@@ -211,6 +212,7 @@ export class Client {
 		if (!options.events) {
 			options.events = ["data"];
 		}
+		normalise_token_option(options);
 
 		this.options = options;
 		this.current_payload = {};
@@ -256,15 +258,19 @@ export class Client {
 			await this.resolve_cookies();
 		}
 
-		const { config } = await this._resolve_config();
-		if (
-			this.restored_session_hash &&
-			typeof sessionStorage !== "undefined" &&
-			get_resumable_events(config, this.session_hash).length === 0
-		) {
-			this.session_hash = Math.random().toString(36).substring(2);
+		const resolved = (await this._resolve_config()) as
+			| { config: Config }
+			| undefined;
+		if (resolved?.config) {
+			if (
+				this.restored_session_hash &&
+				typeof sessionStorage !== "undefined" &&
+				get_resumable_events(resolved.config, this.session_hash).length === 0
+			) {
+				this.session_hash = Math.random().toString(36).substring(2);
+			}
+			await this._resolve_heartbeat(resolved.config);
 		}
-		await this._resolve_heartbeat(config);
 
 		try {
 			this.api_info = await this.view_api();
@@ -467,7 +473,7 @@ export class Client {
 						load_status: "error",
 						detail: "NOT_FOUND"
 					});
-				throw Error(e);
+				throw e instanceof Error ? e : new Error(String(e));
 			}
 		}
 	}

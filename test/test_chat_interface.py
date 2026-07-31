@@ -2,13 +2,16 @@ import tempfile
 import warnings
 from concurrent.futures import wait
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
 from gradio_client import handle_file
+from typing_extensions import Self
 
 import gradio as gr
 from gradio.components.chatbot import Message, TextMessage
+from gradio.components.plot import PlotData
 
 
 def invalid_fn(message):
@@ -31,6 +34,18 @@ def stream(message, history):
 async def async_stream(message, history):
     for i in range(len(message)):
         yield message[: i + 1]
+
+
+def stream_or_nothing(message, history):
+    if message == "skip":
+        return
+    yield f"history_len={len(history)}"
+
+
+async def async_stream_or_nothing(message, history):
+    if message == "skip":
+        return
+    yield f"history_len={len(history)}"
 
 
 def count(message, history):
@@ -298,6 +313,40 @@ class TestAPI:
             wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
+    def test_streaming_api_empty_generator(self, connect):
+        chatbot = gr.ChatInterface(stream_or_nothing).queue()
+        with connect(chatbot) as client:
+            assert client.predict("hello") == "history_len=0"
+            assert client.predict("skip") is None
+            # The skipped turn must leave the history intact and still record
+            # the user message, so the next turn sees three messages.
+            assert client.predict("hello") == "history_len=3"
+
+    def test_streaming_api_empty_generator_async(self, connect):
+        chatbot = gr.ChatInterface(async_stream_or_nothing).queue()
+        with connect(chatbot) as client:
+            assert client.predict("hello") == "history_len=0"
+            assert client.predict("skip") is None
+            assert client.predict("hello") == "history_len=3"
+
+    def test_streaming_api_empty_generator_with_additional_outputs(self, connect):
+        def stream_or_nothing_with_extra(message, history):
+            if message == "skip":
+                return
+            yield message, "extra"
+
+        with gr.Blocks() as demo:
+            code = gr.Code(render=False)
+            gr.ChatInterface(
+                stream_or_nothing_with_extra,
+                additional_outputs=[code],
+                api_name="chat",
+            )
+            code.render()
+        with connect(demo) as client:
+            assert client.predict("hello", api_name="/chat") == ("hello", "extra")
+            assert client.predict("skip", api_name="/chat") == (None, gr.skip())
+
     def test_non_streaming_api(self, connect):
         chatbot = gr.ChatInterface(double)
         with connect(chatbot) as client:
@@ -365,6 +414,31 @@ class TestAPI:
                 api_name="/chat",
             )
             assert result["value"] == "test/test_files/audio_sample.wav"
+
+    def test_component_that_cannot_be_deep_copied(self, connect):
+        """Bokeh figures, for one, raise when deep-copied."""
+
+        class UncopyablePlotData(PlotData):
+            def __deepcopy__(self, memo: dict[int, Any] | None = None) -> Self:
+                raise RuntimeError("cannot be deep-copied")
+
+        def mock_chat_fn(msg, history):
+            plot = gr.Plot(UncopyablePlotData(type="bokeh", plot="{}"))
+            if msg == "wrapped":
+                return gr.ChatMessage(role="assistant", content=plot)
+            return plot
+
+        chatbot = gr.ChatInterface(mock_chat_fn, api_name="chat")
+        with connect(chatbot) as client:
+            # A deep copy raising inside the queue leaves the request hanging
+            # rather than erroring, hence the timeouts. The second turn matters
+            # because that is the one copying a history that already holds the
+            # component, and a wrapped component leaves the chat function by a
+            # different route than a bare one.
+            bare = client.submit("bare", api_name="/chat").result(timeout=5)
+            assert bare["value"]["type"] == "bokeh"
+            wrapped = client.submit("wrapped", api_name="/chat").result(timeout=5)
+            assert wrapped["role"] == "assistant"
 
     def test_multiple_messages(self, connect):
         def multiple_messages(msg, history):

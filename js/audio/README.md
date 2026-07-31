@@ -57,7 +57,7 @@ BasePlayer:
 	export let dispatch: (event: any, detail?: any) => void;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording"
+		event: "stream" | "change"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
 	export let waveform_settings = {};

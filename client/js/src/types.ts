@@ -36,6 +36,8 @@ export interface EndpointInfo<T extends ApiData | JsApiData> {
 	parameters: T[];
 	returns: T[];
 	type?: DependencyTypes;
+	/** Set when the endpoint's function takes a `gr.OAuthToken`. */
+	oauth_token?: "required" | "optional";
 }
 
 export interface ApiInfo<T extends ApiData | JsApiData> {
@@ -302,6 +304,7 @@ export interface Payload {
 	time?: Date;
 	event_data?: unknown;
 	trigger_id?: number | null;
+	oauth_token?: string;
 }
 
 export interface PostResponse {
@@ -324,6 +327,11 @@ export interface DuplicateOptions extends ClientOptions {
 
 export interface ClientOptions {
 	token?: `hf_${string}`;
+	/**
+	 * @deprecated Use `token` instead. Kept as an alias so that code written
+	 * for older versions of the client keeps working.
+	 */
+	hf_token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
 	with_null_state?: boolean;
@@ -334,6 +342,13 @@ export interface ClientOptions {
 	resume_sessions?: boolean;
 	cookies?: string;
 	credentials?: RequestCredentials;
+	/**
+	 * A Hugging Face token passed to the app's own code, for endpoints whose
+	 * function takes a `gr.OAuthToken`. Unlike `token`, which only authenticates
+	 * you to the app, this lets the app act on your behalf, so it is sent only to
+	 * endpoints that declare they need it.
+	 */
+	oauth_token?: string;
 }
 
 export interface FileData {

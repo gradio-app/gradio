@@ -2291,8 +2291,8 @@ importers:
         specifier: workspace:^
         version: link:../icons
       '@gradio/sanitize':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: workspace:^
+        version: link:../sanitize
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -3602,9 +3602,6 @@ packages:
 
   '@formatjs/intl-localematcher@0.6.2':
     resolution: {integrity: sha512-XOMO2Hupl0wdd172Y06h6kLpBz6Dv+J4okPLl4LPtzbr8f66WbIoy4ev98EBuZ6ZK4h5ydTN6XneT4QVpD7cdA==}
-
-  '@gradio/sanitize@0.2.0':
-    resolution: {integrity: sha512-fb8v4s/YHhCRF+4d3xTAtaW2z9G2xUJBlWpKwc0vAK7GL/eSKLtNKnWNjgkiRIHzpwT4PZEvWa7WxuTMoJgj+Q==}
 
   '@huggingface/hub@1.1.2':
     resolution: {integrity: sha512-Jf4GhvVj9ABDw4Itb3BV1T7f22iewuZva476qTicQ4kOTbosuUuFDhsVH7ZH6rVNgg20Ll9kaNBF5CXjySIT+w==}
@@ -9680,11 +9677,6 @@ snapshots:
   '@formatjs/intl-localematcher@0.6.2':
     dependencies:
       tslib: 2.8.1
-
-  '@gradio/sanitize@0.2.0':
-    dependencies:
-      amuchina: 1.0.12
-      sanitize-html: 2.17.0
 
   '@huggingface/hub@1.1.2':
     dependencies:

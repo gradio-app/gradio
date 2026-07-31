@@ -62,6 +62,9 @@ export { allNodes, findNode, isV2, migrateToV2 };
  * them, and data: URLs would bloat workflow.json with base64 payloads —
  * so we drop the field entirely and let the user re-upload on refresh.
  * Other data (text, numbers, server-served file paths) passes through.
+ * Endpoint catalogs are also session metadata: the canvas hydrates them from
+ * the backend, so persisting them would duplicate every supported task into
+ * every operator node.
  */
 function is_session_url(v: unknown): boolean {
 	const url = (v as { url?: string } | null)?.url;
@@ -84,10 +87,13 @@ export function revoke_blob_urls(
 
 export function sanitize_for_save(wf: Workflow): Workflow {
 	return mapAllRoles(wf, (n) => {
-		if (!n.data) return n;
 		const cleaned: NodeData = {};
-		for (const [k, v] of Object.entries(n.data)) {
+		for (const [k, v] of Object.entries(n.data ?? {})) {
 			if (!is_session_url(v)) cleaned[k] = v as NodeDataValue;
+		}
+		if (n.role === "operator") {
+			const { endpoints: _endpoints, ...persisted } = n;
+			return { ...persisted, data: cleaned };
 		}
 		return { ...n, data: cleaned };
 	});
@@ -100,20 +106,31 @@ const PORT_DEFAULTS: Partial<Record<PortType, NodeDataValue>> = {
 	text: ""
 };
 
-function addReference(
-	template: Omit<ReferenceNode, "id" | "role" | "x" | "y" | "data">,
-	x: number,
-	y: number
-): string {
-	const id = uuid();
+/**
+ * The literal values a reference node starts life with: an explicit
+ * `default_value` from the port, else the type's zero value. Shared with
+ * `reconcileComponentRoles`, so a subject that flips back to a reference shows
+ * "" rather than `undefined` in its widget.
+ */
+function seed_reference_data(ports: Port[]): Record<string, NodeDataValue> {
 	const data: Record<string, NodeDataValue> = {};
-	for (const port of [...template.inputs, ...template.outputs]) {
+	for (const port of ports) {
 		if (port.default_value !== undefined) {
 			data[port.id] = port.default_value as NodeDataValue;
 		} else if (port.type in PORT_DEFAULTS) {
 			data[port.id] ??= PORT_DEFAULTS[port.type]!;
 		}
 	}
+	return data;
+}
+
+function addReference(
+	template: Omit<ReferenceNode, "id" | "role" | "x" | "y" | "data">,
+	x: number,
+	y: number
+): string {
+	const id = uuid();
+	const data = seed_reference_data([...template.inputs, ...template.outputs]);
 	const node: ReferenceNode = {
 		...template,
 		role: "reference",
@@ -256,6 +273,65 @@ function mapAllRoles(wf: Workflow, fn: (node: AnyNode) => AnyNode): Workflow {
 	};
 }
 
+/**
+ * Re-derive component roles from the edge set. A component node is a
+ * *subject* when something feeds its input port and a *reference* otherwise —
+ * the same rule `WorkflowNodeSF` already uses to pick between an editable
+ * widget (`mode === "input"`) and a read-only output tile (`mode === "output"`),
+ * so the role tag can't drift from what the user sees.
+ *
+ * This matters beyond presentation: `workflow_api.py` builds endpoint
+ * parameters from `references` (skipping any with an incoming edge) and
+ * endpoints themselves from `subjects`, so a node that renders as an output but
+ * is still filed under `references` contributes no endpoint at all.
+ *
+ * Operators are never touched — their role is intrinsic, not positional.
+ * Call after any change to `edges`; it is idempotent.
+ */
+export function reconcileComponentRoles(wf: Workflow): Workflow {
+	const driven = new Set(wf.edges.map((e) => e.to_node_id));
+
+	// A component with no input port can never be driven, so it stays an input
+	// regardless of the edge set.
+	const wants_subject = (n: ReferenceNode | SubjectNode): boolean =>
+		n.inputs.length > 0 && driven.has(n.id);
+
+	// Flipping invalidates whatever was in `data`: a reference's literal was keyed
+	// to its *output* port and an upstream edge now supplies the value, while a
+	// subject's computed result was keyed to its *input* port and is no longer
+	// being produced. Drop it either way (revoking blob URLs so the old media
+	// doesn't leak) and reseed as the new role expects.
+	const toSubject = (n: ReferenceNode): SubjectNode => {
+		revoke_blob_urls(n.data);
+		const { value: _value, ...rest } = n;
+		return { ...rest, role: "subject", data: {} };
+	};
+	const toReference = (n: SubjectNode): ReferenceNode => {
+		revoke_blob_urls(n.data);
+		return {
+			...n,
+			role: "reference",
+			data: seed_reference_data([...n.inputs, ...n.outputs])
+		};
+	};
+
+	// Nodes that keep their role keep their index; flipped ones are *appended* to
+	// the far collection rather than merged in place. `free_inputs` and
+	// `subject_groups` derive API parameter and output-tuple order from these
+	// arrays, so prepending would silently reorder a live workflow's signature.
+	return {
+		...wf,
+		references: [
+			...wf.references.filter((n) => !wants_subject(n)),
+			...wf.subjects.filter((n) => !wants_subject(n)).map(toReference)
+		],
+		subjects: [
+			...wf.subjects.filter(wants_subject),
+			...wf.references.filter(wants_subject).map(toSubject)
+		]
+	};
+}
+
 export function moveNode(id: string, x: number, y: number): void {
 	workflow.update((wf) =>
 		mapAllRoles(wf, (n) => (n.id === id ? { ...n, x, y } : n))
@@ -265,6 +341,29 @@ export function moveNode(id: string, x: number, y: number): void {
 export function resizeNode(id: string, width: number, height: number): void {
 	workflow.update((wf) =>
 		mapAllRoles(wf, (n) => (n.id === id ? { ...n, width, height } : n))
+	);
+}
+
+/**
+ * Apply a size the user dragged out. `manual_height` of `null` releases the
+ * card back to content-driven height; a number pins it there. `height` keeps
+ * tracking the rendered box either way (see `resizeNode`).
+ */
+export function setNodeSize(
+	id: string,
+	width: number,
+	manual_height: number | null
+): void {
+	workflow.update((wf) =>
+		mapAllRoles(wf, (n) => {
+			if (n.id !== id) return n;
+			if (manual_height === null) {
+				const released = { ...n, width };
+				delete released.manual_height;
+				return released;
+			}
+			return { ...n, width, height: manual_height, manual_height };
+		})
 	);
 }
 
@@ -284,7 +383,9 @@ export function removeNode(id: string): void {
 	workflow.update((wf) => {
 		const node = findNode(wf, id);
 		if (node) revoke_blob_urls(node.data);
-		return {
+		// Deleting a node also drops its edges, which can un-drive a downstream
+		// component — hence the reconcile here too.
+		return reconcileComponentRoles({
 			...wf,
 			references: wf.references.filter((n) => n.id !== id),
 			operators: wf.operators.filter((n) => n.id !== id),
@@ -292,22 +393,26 @@ export function removeNode(id: string): void {
 			edges: wf.edges.filter(
 				(e) => e.from_node_id !== id && e.to_node_id !== id
 			)
-		};
+		});
 	});
 }
 
 export function addEdge(e: Omit<WFEdge, "id">): void {
-	workflow.update((wf) => ({
-		...wf,
-		edges: [...wf.edges, { ...e, id: uuid() }]
-	}));
+	workflow.update((wf) =>
+		reconcileComponentRoles({
+			...wf,
+			edges: [...wf.edges, { ...e, id: uuid() }]
+		})
+	);
 }
 
 export function removeEdge(id: string): void {
-	workflow.update((wf) => ({
-		...wf,
-		edges: wf.edges.filter((e) => e.id !== id)
-	}));
+	workflow.update((wf) =>
+		reconcileComponentRoles({
+			...wf,
+			edges: wf.edges.filter((e) => e.id !== id)
+		})
+	);
 }
 
 export function hydrate_endpoints(
@@ -355,7 +460,9 @@ export function switch_endpoint(nodeId: string, endpointName: string): void {
 		const input_by_id = new Map(sig.inputs.map((p) => [p.id, p]));
 		const output_by_id = new Map(sig.outputs.map((p) => [p.id, p]));
 
-		return {
+		// Switching endpoints prunes edges whose ports vanished, so a component
+		// downstream of a dropped output reverts to an input.
+		return reconcileComponentRoles({
 			...wf,
 			operators: wf.operators.map((n) =>
 				n.id === nodeId
@@ -381,7 +488,7 @@ export function switch_endpoint(nodeId: string, endpointName: string): void {
 				}
 				return true;
 			})
-		};
+		});
 	});
 }
 
