@@ -1,5 +1,15 @@
 # website
 
+## 0.80.1
+
+### Fixes
+
+- [#13692](https://github.com/gradio-app/gradio/pull/13692) [`3676c45`](https://github.com/gradio-app/gradio/commit/3676c45acfc12456de097996fe5adab2132e2d30) - publish the `Prism` global before its grammar files load, so the docs pages stop failing to hydrate with `ReferenceError: Prism is not defined`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.12.0
+
 ## 0.80.0
 
 ### Features

@@ -1,5 +1,15 @@
 # @gradio/core
 
+## 1.10.1
+
+### Fixes
+
+- [#13687](https://github.com/gradio-app/gradio/pull/13687) [`fd79d09`](https://github.com/gradio-app/gradio/commit/fd79d0999e66a3331a59d2ac80a7b61ec3e90f46) - Harden authentication and file redirect boundaries.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.12.0
+
 ## 1.10.0
 
 ### Features
