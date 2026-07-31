@@ -139,6 +139,39 @@ def test_simplify_filedata_schema(test_mcp_app):
     assert test_schema == old_schema
 
 
+def test_input_schema_marks_parameters_without_defaults_as_required():
+    with gr.Blocks() as demo:
+
+        @gr.api
+        def mixed(a: str, b: int = 3, c: str | None = None) -> str:
+            return a
+
+        @gr.api
+        def all_optional(a: int = 1) -> int:
+            return a
+
+        no_default = gr.Textbox(label="No Default")
+        with_default = gr.Textbox("hello", label="With Default")
+        output = gr.Textbox()
+
+        def concat(first: str, second: str) -> str:
+            return first + second
+
+        gr.Button().click(concat, [no_default, with_default], output)
+
+    server = GradioMCPServer(demo)
+
+    schema, _ = server.get_input_schema("mixed")
+    assert schema["required"] == ["a"]
+
+    # A component with an initial value counts as a default for its parameter.
+    schema, _ = server.get_input_schema("concat")
+    assert schema["required"] == ["first"]
+
+    schema, _ = server.get_input_schema("all_optional")
+    assert "required" not in schema
+
+
 def test_tool_prefix_character_replacement(test_mcp_app):
     test_cases = [
         ("test-space", "test_space_test_tool"),
