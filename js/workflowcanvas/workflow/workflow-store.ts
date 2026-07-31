@@ -479,9 +479,7 @@ export function remove_custom_port(nodeId: string, portId: string): void {
 				n.id === nodeId
 					? {
 							...n,
-							inputs: n.inputs.filter(
-								(p) => !(p.id === portId && p.custom)
-							)
+							inputs: n.inputs.filter((p) => !(p.id === portId && p.custom))
 						}
 					: n
 			),
