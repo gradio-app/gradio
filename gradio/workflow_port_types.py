@@ -39,6 +39,7 @@ def _build() -> dict[type, str]:
     for module_path, class_name, port_type in _component_map:
         try:
             import importlib
+
             mod = importlib.import_module(module_path)
             cls = getattr(mod, class_name, None)
             if cls is not None:
@@ -49,11 +50,13 @@ def _build() -> dict[type, str]:
     # Common third-party types
     try:
         from PIL.Image import Image as _PILImage
+
         mapping[_PILImage] = "image"
     except ImportError:
         pass
     try:
         import numpy as np
+
         mapping[np.ndarray] = "image"
     except ImportError:
         pass

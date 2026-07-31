@@ -586,7 +586,11 @@ class TestGetModelEndpoints:
         expected: dict[str, dict] = {
             "text_to_image": {
                 "required_inputs": {"prompt"},
-                "input_types": {"prompt": "text", "height": "number", "width": "number"},
+                "input_types": {
+                    "prompt": "text",
+                    "height": "number",
+                    "width": "number",
+                },
                 "output_type": "image",
             },
             "text_to_speech": {
@@ -653,8 +657,7 @@ class TestGetModelEndpoints:
             assert not missing_required, (
                 f"{name}: required inputs changed — expected "
                 f"{sorted(spec['required_inputs'])} required, got "
-                f"required={sorted(required)}, all_inputs={sorted(by_id)}."
-                + RUNBOOK
+                f"required={sorted(required)}, all_inputs={sorted(by_id)}." + RUNBOOK
             )
             for port_id, expected_type in spec["input_types"].items():
                 assert port_id in by_id, (
@@ -663,8 +666,7 @@ class TestGetModelEndpoints:
                 )
                 assert by_id[port_id]["type"] == expected_type, (
                     f"{name}.{port_id}: port type shifted from "
-                    f"{expected_type!r} to {by_id[port_id]['type']!r}."
-                    + RUNBOOK
+                    f"{expected_type!r} to {by_id[port_id]['type']!r}." + RUNBOOK
                 )
             assert ep["outputs"][0]["type"] == spec["output_type"], (
                 f"{name}: output type shifted from {spec['output_type']!r} "
