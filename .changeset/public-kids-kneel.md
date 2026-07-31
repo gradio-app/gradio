@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Emit a `required` array in MCP tool input schemas
+fix:Emit a `required` array in MCP tool input schemas
