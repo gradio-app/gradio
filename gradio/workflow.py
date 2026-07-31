@@ -657,16 +657,25 @@ def call_space(
 
 
 _PORT_TYPE_BY_PARAM: dict[str, str] = {
-    "image": "image", "images": "image", "document": "image",
-    "audio": "audio", "video": "video",
+    "image": "image",
+    "images": "image",
+    "document": "image",
+    "audio": "audio",
+    "video": "video",
 }
 
 # Substring safety net — catches renames like `img` or `source_audio`.
 _MEDIA_TOKEN_TO_TYPE: dict[str, str] = {
-    "image": "image", "img": "image", "images": "image",
-    "picture": "image", "pic": "image", "document": "image",
-    "audio": "audio", "sound": "audio",
-    "video": "video", "clip": "video",
+    "image": "image",
+    "img": "image",
+    "images": "image",
+    "picture": "image",
+    "pic": "image",
+    "document": "image",
+    "audio": "audio",
+    "sound": "audio",
+    "video": "video",
+    "clip": "video",
 }
 
 _OUTPUT_SUFFIX_TO_TYPE: dict[str, str] = {
@@ -678,13 +687,23 @@ _OUTPUT_SUFFIX_TO_TYPE: dict[str, str] = {
 
 _MEDIA_EXT: dict[str, str] = {"image": "png", "audio": "wav", "video": "mp4"}
 
-_JSON_OUTPUT_METHODS: frozenset[str] = frozenset({
-    "text_classification", "token_classification", "zero_shot_classification",
-    "zero_shot_image_classification", "image_classification",
-    "audio_classification", "object_detection", "image_segmentation",
-    "fill_mask", "sentence_similarity", "feature_extraction",
-    "tabular_classification", "tabular_regression",
-})
+_JSON_OUTPUT_METHODS: frozenset[str] = frozenset(
+    {
+        "text_classification",
+        "token_classification",
+        "zero_shot_classification",
+        "zero_shot_image_classification",
+        "image_classification",
+        "audio_classification",
+        "object_detection",
+        "image_segmentation",
+        "fill_mask",
+        "sentence_similarity",
+        "feature_extraction",
+        "tabular_classification",
+        "tabular_regression",
+    }
+)
 
 # Semantic labels only — modality labels come from `_output_label`.
 _OUTPUT_LABELS: dict[str, str] = {
@@ -708,26 +727,62 @@ _OUTPUT_LABELS: dict[str, str] = {
     "automatic_speech_recognition": "Transcript",
 }
 
-_SKIP_PARAMS: frozenset[str] = frozenset({
-    "self", "model", "parameters", "extra_headers", "extra_body",
-    "stream", "stream_options", "return_type", "return_dict",
-    "generate_parameters", "generation_parameters",
-    "clean_up_tokenization_spaces", "handle_impossible_answer",
-    "align_to_words", "doc_stride", "aggregation_strategy",
-    "ignore_labels", "stride", "function_to_apply",
-    "mask_threshold", "overlap_mask_area_threshold",
-    "adapter_id", "best_of", "details", "decoder_input_details",
-    "epsilon_cutoff", "eta_cutoff", "early_stopping",
-    "prompt_name", "normalize", "truncate", "targets",
-    "sequential", "hypothesis_template",
-    "decoder_start_token_id", "forced_bos_token_id",
-})
+_SKIP_PARAMS: frozenset[str] = frozenset(
+    {
+        "self",
+        "model",
+        "parameters",
+        "extra_headers",
+        "extra_body",
+        "stream",
+        "stream_options",
+        "return_type",
+        "return_dict",
+        "generate_parameters",
+        "generation_parameters",
+        "clean_up_tokenization_spaces",
+        "handle_impossible_answer",
+        "align_to_words",
+        "doc_stride",
+        "aggregation_strategy",
+        "ignore_labels",
+        "stride",
+        "function_to_apply",
+        "mask_threshold",
+        "overlap_mask_area_threshold",
+        "adapter_id",
+        "best_of",
+        "details",
+        "decoder_input_details",
+        "epsilon_cutoff",
+        "eta_cutoff",
+        "early_stopping",
+        "prompt_name",
+        "normalize",
+        "truncate",
+        "targets",
+        "sequential",
+        "hypothesis_template",
+        "decoder_start_token_id",
+        "forced_bos_token_id",
+    }
+)
 
-_NON_TASK_METHODS: frozenset[str] = frozenset({
-    "chat_completion", "close", "post", "health_check",
-    "list_deployed_models", "get_endpoint_info", "get_recommended_model",
-    "get_model_status", "list_endpoints", "conversational",
-})
+_NON_TASK_METHODS: frozenset[str] = frozenset(
+    {
+        "chat_completion",
+        "close",
+        "post",
+        "health_check",
+        "list_deployed_models",
+        "get_endpoint_info",
+        "get_recommended_model",
+        "get_model_status",
+        "list_endpoints",
+        "conversational",
+    }
+)
+
 
 def _port_type(param_name: str, annotation: object) -> str:
     if param_name in _PORT_TYPE_BY_PARAM:
@@ -791,23 +846,27 @@ def _inference_endpoint_schemas() -> dict[str, dict]:
                 inspect.Parameter.VAR_KEYWORD,
             ):
                 continue
-            inputs.append({
-                "id": pname,
-                "label": pname.replace("_", " ").title(),
-                "type": _port_type(pname, param.annotation),
-                "required": param.default is inspect.Parameter.empty,
-            })
+            inputs.append(
+                {
+                    "id": pname,
+                    "label": pname.replace("_", " ").title(),
+                    "type": _port_type(pname, param.annotation),
+                    "required": param.default is inspect.Parameter.empty,
+                }
+            )
         if not inputs:
             continue
         port_type = _output_port_type(name)
         endpoints[name] = {
             "inputs": inputs,
-            "outputs": [{
-                "id": "out_0",
-                "label": _output_label(name, port_type),
-                "type": port_type,
-                "output_index": 0,
-            }],
+            "outputs": [
+                {
+                    "id": "out_0",
+                    "label": _output_label(name, port_type),
+                    "type": port_type,
+                    "output_index": 0,
+                }
+            ],
         }
     # chat_completion needs a hand-crafted shape (image + prompt, not messages).
     endpoints["chat_completion"] = {
@@ -863,10 +922,12 @@ _ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
 def get_model_endpoints(
     _data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
-    return json.dumps([
-        {"name": name, **schema}
-        for name, schema in _inference_endpoint_schemas().items()
-    ])
+    return json.dumps(
+        [
+            {"name": name, **schema}
+            for name, schema in _inference_endpoint_schemas().items()
+        ]
+    )
 
 
 def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
@@ -881,7 +942,8 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             "`pip install -U huggingface_hub`."
         )
     schema_ids = [
-        p["id"] for p in _inference_endpoint_schemas().get(endpoint, {}).get("inputs", [])
+        p["id"]
+        for p in _inference_endpoint_schemas().get(endpoint, {}).get("inputs", [])
     ]
     clean: dict = {}
     # Chat images are dereferenced by the provider, not locally, so they need a
