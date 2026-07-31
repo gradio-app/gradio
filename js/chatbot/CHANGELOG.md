@@ -1,5 +1,22 @@
 # @gradio/chatbot
 
+## 0.32.1
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/theme@0.7.0
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+- @gradio/markdown-code@0.10.0
+- @gradio/image@0.28.1
+- @gradio/video@0.23.0
+- @gradio/plot@0.12.2
+- @gradio/gallery@0.19.1
+- @gradio/audio@0.24.2
+
 ## 0.32.0
 
 ### Features

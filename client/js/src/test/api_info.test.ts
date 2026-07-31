@@ -726,4 +726,41 @@ describe("transform_api_info", () => {
 		expect(result.named_endpoints["/predict"].parameters).toEqual([]);
 		expect(result.named_endpoints["/predict"].returns).toEqual([]);
 	});
+
+	it("keeps oauth_token, which submit() needs to decide where a token may be sent", () => {
+		const api_info = {
+			named_endpoints: {
+				"/report": { parameters: [], returns: [], oauth_token: "optional" },
+				"/calculator": { parameters: [], returns: [] }
+			},
+			unnamed_endpoints: {}
+		} as any;
+		const config = {
+			dependencies: [
+				{
+					id: 0,
+					api_name: "report",
+					inputs: [],
+					outputs: [],
+					types: { generator: false, cancel: false }
+				},
+				{
+					id: 1,
+					api_name: "calculator",
+					inputs: [],
+					outputs: [],
+					types: { generator: false, cancel: false }
+				}
+			],
+			components: []
+		} as any;
+
+		const result = transform_api_info(api_info, config, {
+			report: 0,
+			calculator: 1
+		});
+
+		expect(result.named_endpoints["/report"].oauth_token).toBe("optional");
+		expect(result.named_endpoints["/calculator"].oauth_token).toBeUndefined();
+	});
 });

@@ -236,6 +236,25 @@ class TestEndpointRegistration:
             described["parameters"][0]["parameter_name"] == info_param["parameter_name"]
         )
 
+    def test_describe_oauth_token_matches_info(self, tmp_path):
+        """The View API panel advertises the same token requirement as `/info`.
+
+        Subgraph endpoints take a `gr.OAuthToken` so an API caller — who has no
+        OAuth session on a Space — can still run the workflow as themselves.
+        """
+        import gradio as gr
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_with_subjects(1))
+        wf = gr.Workflow(graph=str(path))
+        graph = WorkflowGraph.from_json(path.read_text())
+        assert graph is not None
+
+        described = describe_workflow_api(graph)[0]
+        info = wf.get_api_info()["named_endpoints"]["/out0"]
+        assert described["oauth_token"] == "optional"
+        assert described["oauth_token"] == info["oauth_token"]
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Live schema updates — endpoint set re-derives on save (Option 2)

@@ -11,9 +11,16 @@ import {
 	removeNode,
 	removeEdge,
 	sanitize_for_save,
-	switch_endpoint
+	switch_endpoint,
+	reconcileComponentRoles
 } from "./workflow-store";
-import type { OperatorNode, ReferenceNode, Workflow } from "./workflow-types";
+import type {
+	OperatorNode,
+	PortType,
+	ReferenceNode,
+	SubjectNode,
+	Workflow
+} from "./workflow-types";
 
 function resetWorkflow(): void {
 	workflow.set({
@@ -418,6 +425,216 @@ describe("switch_endpoint", () => {
 		switch_endpoint(id, "/answer_question");
 		const op = get(workflow).operators.find((o) => o.id === id);
 		expect(op?.data).toEqual({});
+	});
+});
+
+describe("reconcileComponentRoles", () => {
+	function component(
+		id: string,
+		role: "reference" | "subject",
+		type: PortType = "image",
+		data: Record<string, unknown> = {}
+	): ReferenceNode | SubjectNode {
+		return {
+			id,
+			role,
+			label: id,
+			asset_type: type,
+			inputs: [{ id: "in", label: "in", type }],
+			outputs: [{ id: "out", label: "out", type }],
+			data: data as ReferenceNode["data"],
+			x: 0,
+			y: 0,
+			width: 220,
+			height: 160
+		} as ReferenceNode | SubjectNode;
+	}
+
+	function graph(
+		refs: (ReferenceNode | SubjectNode)[],
+		subs: (ReferenceNode | SubjectNode)[],
+		edges: { to: string; from?: string }[] = []
+	): Workflow {
+		return {
+			schema_version: "2",
+			name: "Test",
+			runtime: { default: "client" },
+			references: refs as ReferenceNode[],
+			operators: [],
+			subjects: subs as SubjectNode[],
+			edges: edges.map((e, i) => ({
+				id: `e${i}`,
+				from_node_id: e.from ?? "op",
+				from_port_id: "out",
+				to_node_id: e.to,
+				to_port_id: "in",
+				type: "image" as PortType
+			})),
+			view: { default: "canvas" }
+		};
+	}
+
+	test("a driven reference becomes a subject", () => {
+		const out = reconcileComponentRoles(
+			graph([component("a", "reference")], [], [{ to: "a" }])
+		);
+		expect(out.references).toHaveLength(0);
+		expect(out.subjects.map((n) => n.id)).toEqual(["a"]);
+		expect(out.subjects[0].role).toBe("subject");
+	});
+
+	test("an undriven subject reverts to a reference", () => {
+		const out = reconcileComponentRoles(graph([], [component("a", "subject")]));
+		expect(out.subjects).toHaveLength(0);
+		expect(out.references.map((n) => n.id)).toEqual(["a"]);
+		expect(out.references[0].role).toBe("reference");
+	});
+
+	test("an undriven reference and a driven subject are left alone", () => {
+		const out = reconcileComponentRoles(
+			graph(
+				[component("a", "reference")],
+				[component("b", "subject")],
+				[{ to: "b" }]
+			)
+		);
+		expect(out.references.map((n) => n.id)).toEqual(["a"]);
+		expect(out.subjects.map((n) => n.id)).toEqual(["b"]);
+	});
+
+	test("flipped nodes append, so existing output order is stable", () => {
+		// `subject_groups` in workflow_api.py fixes the API's output-tuple order
+		// from `subjects` order — a newly promoted node must not jump the queue.
+		const out = reconcileComponentRoles(
+			graph(
+				[component("promoted", "reference")],
+				[component("existing", "subject")],
+				[{ to: "promoted" }, { to: "existing" }]
+			)
+		);
+		expect(out.subjects.map((n) => n.id)).toEqual(["existing", "promoted"]);
+	});
+
+	test("is idempotent", () => {
+		const once = reconcileComponentRoles(
+			graph(
+				[component("a", "reference"), component("b", "reference")],
+				[component("c", "subject")],
+				[{ to: "a" }]
+			)
+		);
+		expect(reconcileComponentRoles(once)).toEqual(once);
+	});
+
+	test("a component with no input port can never be driven", () => {
+		const bare = component("a", "reference");
+		bare.inputs = [];
+		const out = reconcileComponentRoles(graph([bare], [], [{ to: "a" }]));
+		expect(out.references.map((n) => n.id)).toEqual(["a"]);
+	});
+
+	test("operators are never reassigned", () => {
+		const wf = graph([], []);
+		wf.operators = [
+			{
+				id: "op",
+				role: "operator",
+				kind: "fn",
+				label: "op",
+				fn: "op",
+				inputs: [{ id: "in", label: "x", type: "text" }],
+				outputs: [{ id: "out", label: "y", type: "text" }],
+				data: {},
+				x: 0,
+				y: 0,
+				width: 200,
+				height: 80
+			} as OperatorNode
+		];
+		wf.edges = [
+			{
+				id: "e",
+				from_node_id: "other",
+				from_port_id: "out",
+				to_node_id: "op",
+				to_port_id: "in",
+				type: "text"
+			}
+		];
+		const out = reconcileComponentRoles(wf);
+		expect(out.operators).toEqual(wf.operators);
+		expect(out.references).toHaveLength(0);
+		expect(out.subjects).toHaveLength(0);
+	});
+
+	test("promotion clears the stale literal, demotion reseeds defaults", () => {
+		const promoted = reconcileComponentRoles(
+			graph(
+				[component("a", "reference", "image", { out: { url: "/f/a.png" } })],
+				[],
+				[{ to: "a" }]
+			)
+		);
+		expect(promoted.subjects[0].data).toEqual({});
+
+		const demoted = reconcileComponentRoles(
+			graph([], [component("b", "subject", "text", { in: "computed" })])
+		);
+		// `text` has a zero value in PORT_DEFAULTS, so both ports get seeded.
+		expect(demoted.references[0].data).toEqual({ in: "", out: "" });
+	});
+
+	test("addEdge promotes, removeEdge demotes", () => {
+		resetWorkflow();
+		workflow.update((wf) => ({
+			...wf,
+			references: [component("a", "reference") as ReferenceNode]
+		}));
+		addEdge({
+			from_node_id: "op",
+			from_port_id: "out",
+			to_node_id: "a",
+			to_port_id: "in",
+			type: "image"
+		});
+		expect(get(workflow).subjects.map((n) => n.id)).toEqual(["a"]);
+
+		removeEdge(get(workflow).edges[0].id);
+		expect(get(workflow).references.map((n) => n.id)).toEqual(["a"]);
+		expect(get(workflow).subjects).toHaveLength(0);
+	});
+
+	test("removeNode demotes the components it was feeding", () => {
+		resetWorkflow();
+		const op = addOperator(
+			{
+				kind: "fn",
+				label: "op",
+				fn: "op",
+				inputs: [],
+				outputs: [{ id: "out", label: "y", type: "image" }],
+				width: 200,
+				height: 80
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+		workflow.update((wf) => ({
+			...wf,
+			subjects: [component("sink", "subject") as SubjectNode]
+		}));
+		addEdge({
+			from_node_id: op,
+			from_port_id: "out",
+			to_node_id: "sink",
+			to_port_id: "in",
+			type: "image"
+		});
+		expect(get(workflow).subjects.map((n) => n.id)).toEqual(["sink"]);
+
+		removeNode(op);
+		expect(get(workflow).subjects).toHaveLength(0);
+		expect(get(workflow).references.map((n) => n.id)).toEqual(["sink"]);
 	});
 });
 

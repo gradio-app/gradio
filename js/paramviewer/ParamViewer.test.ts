@@ -1,5 +1,5 @@
 import { test, describe, afterEach, expect, vi } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 
 import ParamViewer from "./Index.svelte";
 
@@ -37,7 +37,9 @@ describe("ParamViewer", () => {
 	test("renders parameter types alongside names", async () => {
 		const { getByText } = await render(ParamViewer, default_props);
 
-		expect(getByText("float")).toBeVisible();
+		await waitFor(() => {
+			expect(getByText("float")).toBeVisible();
+		});
 	});
 
 	test("renders header text when provided", async () => {

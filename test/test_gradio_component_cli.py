@@ -22,6 +22,51 @@ core = [
 ]
 
 
+def test_component_root_downloads_missing_version_to_snapshot_cache(
+    tmp_path, monkeypatch
+):
+    package_dir = tmp_path / "package"
+    (package_dir / "_frontend_code").mkdir(parents=True)
+    snapshot_dir = tmp_path / "snapshot"
+    expected_root = snapshot_dir / "test-version"
+    (expected_root / "image").mkdir(parents=True)
+    download_count = 0
+
+    def download():
+        nonlocal download_count
+        download_count += 1
+        return snapshot_dir
+
+    monkeypatch.setattr(
+        _create_utils.inspect, "getfile", lambda _module: package_dir / "__init__.py"
+    )
+    monkeypatch.setattr(_create_utils.gradio, "__version__", "test-version")
+    monkeypatch.setattr(_create_utils, "_download_from_hub", download)
+
+    component = _create_utils._get_component_code("Image")
+    assert _create_utils._get_component_root(component) == expected_root
+    assert download_count == 1
+
+
+def test_component_root_uses_complete_local_component(tmp_path, monkeypatch):
+    package_dir = tmp_path / "package"
+    expected_root = package_dir / "_frontend_code" / "test-version"
+    (expected_root / "image").mkdir(parents=True)
+
+    monkeypatch.setattr(
+        _create_utils.inspect, "getfile", lambda _module: package_dir / "__init__.py"
+    )
+    monkeypatch.setattr(_create_utils.gradio, "__version__", "test-version")
+    monkeypatch.setattr(
+        _create_utils,
+        "_download_from_hub",
+        lambda: pytest.fail("complete local component should not be downloaded"),
+    )
+
+    component = _create_utils._get_component_code("Image")
+    assert _create_utils._get_component_root(component) == expected_root
+
+
 @pytest.mark.serial
 @pytest.mark.flaky
 @pytest.mark.parametrize(

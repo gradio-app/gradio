@@ -118,7 +118,7 @@ def start_node_process(
             s.close()
 
             # Set environment variables for the Node server
-            env = os.environ
+            env = os.environ.copy()
             env["PORT"] = str(port)
             env["HOST"] = server_name
             if GRADIO_LOCAL_DEV_MODE:
@@ -132,6 +132,8 @@ def start_node_process(
                 env["GRADIO_STATIC_WORKER_PORTS"] = ",".join(
                     str(p) for p in static_worker_ports
                 )
+            else:
+                env.pop("GRADIO_STATIC_WORKER_PORTS", None)
 
             register_file = str(
                 Path(__file__).parent.joinpath("templates", "register.mjs")
