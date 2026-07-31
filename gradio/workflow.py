@@ -656,18 +656,28 @@ def call_space(
         return _format_error(e)
 
 
-# Param name → gradio port type (name-based lookup wins over annotation).
 _PORT_TYPE_BY_PARAM: dict[str, str] = {
     "image": "image", "images": "image", "document": "image",
     "audio": "audio", "video": "video",
 }
 
-# Method name → output port type. Missing entries default to "text".
-_MEDIA_OUTPUT_METHODS: dict[str, str] = {
-    "text_to_image": "image", "image_to_image": "image",
-    "text_to_speech": "audio", "text_to_audio": "audio",
-    "text_to_video": "video", "image_to_video": "video",
+# Substring safety net — catches renames like `img` or `source_audio`.
+_MEDIA_TOKEN_TO_TYPE: dict[str, str] = {
+    "image": "image", "img": "image", "images": "image",
+    "picture": "image", "pic": "image", "document": "image",
+    "audio": "audio", "sound": "audio",
+    "video": "video", "clip": "video",
 }
+
+_OUTPUT_SUFFIX_TO_TYPE: dict[str, str] = {
+    "_to_image": "image",
+    "_to_speech": "audio",
+    "_to_audio": "audio",
+    "_to_video": "video",
+}
+
+_MEDIA_EXT: dict[str, str] = {"image": "png", "audio": "wav", "video": "mp4"}
+
 _JSON_OUTPUT_METHODS: frozenset[str] = frozenset({
     "text_classification", "token_classification", "zero_shot_classification",
     "zero_shot_image_classification", "image_classification",
@@ -676,16 +686,32 @@ _JSON_OUTPUT_METHODS: frozenset[str] = frozenset({
     "tabular_classification", "tabular_regression",
 })
 
-# Params dropped from the discovered schema — infrastructure or postprocessing
-# knobs that shouldn't appear as canvas inputs. Small by design.
+# Semantic labels only — modality labels come from `_output_label`.
+_OUTPUT_LABELS: dict[str, str] = {
+    "summarization": "Summary",
+    "translation": "Translation",
+    "question_answering": "Answer",
+    "visual_question_answering": "Answer",
+    "document_question_answering": "Answer",
+    "table_question_answering": "Answer",
+    "feature_extraction": "Embeddings",
+    "sentence_similarity": "Scores",
+    "text_classification": "Labels",
+    "zero_shot_classification": "Labels",
+    "zero_shot_image_classification": "Labels",
+    "image_classification": "Labels",
+    "audio_classification": "Labels",
+    "token_classification": "Entities",
+    "object_detection": "Detections",
+    "image_segmentation": "Segments",
+    "fill_mask": "Predictions",
+    "automatic_speech_recognition": "Transcript",
+}
+
 _SKIP_PARAMS: frozenset[str] = frozenset({
-    # Infrastructure
     "self", "model", "parameters", "extra_headers", "extra_body",
     "stream", "stream_options", "return_type", "return_dict",
-    # Nested knob bags
     "generate_parameters", "generation_parameters",
-    # Postprocessing / tokenization internals — model defaults are almost
-    # always right and there's no meaningful UI for them.
     "clean_up_tokenization_spaces", "handle_impossible_answer",
     "align_to_words", "doc_stride", "aggregation_strategy",
     "ignore_labels", "stride", "function_to_apply",
@@ -697,34 +723,19 @@ _SKIP_PARAMS: frozenset[str] = frozenset({
     "decoder_start_token_id", "forced_bos_token_id",
 })
 
-# InferenceClient members that aren't inference tasks (helpers, deprecated,
-# or handled via a synthetic schema below).
 _NON_TASK_METHODS: frozenset[str] = frozenset({
     "chat_completion", "close", "post", "health_check",
     "list_deployed_models", "get_endpoint_info", "get_recommended_model",
     "get_model_status", "list_endpoints", "conversational",
 })
 
-# Synthetic endpoints — not direct InferenceClient method calls, but exposed
-# to the canvas as if they were. `chat_completion` has a purpose-built VLM
-# shape (image + prompt → text) and its own streaming dispatch below.
-_SYNTHETIC_ENDPOINTS: dict[str, dict] = {
-    "chat_completion": {
-        "inputs": [
-            {"id": "image", "label": "Image", "type": "image", "required": False},
-            {"id": "text", "label": "Prompt", "type": "text", "required": False},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
-        ],
-    },
-}
-
-
 def _port_type(param_name: str, annotation: object) -> str:
     if param_name in _PORT_TYPE_BY_PARAM:
         return _PORT_TYPE_BY_PARAM[param_name]
-    # Unwrap Optional[X] / Union[X, None] to get at the real type.
+    tokens = set(param_name.lower().split("_"))
+    for token, port_type in _MEDIA_TOKEN_TO_TYPE.items():
+        if token in tokens:
+            return port_type
     origin = getattr(annotation, "__origin__", None)
     if origin is Union or isinstance(annotation, types.UnionType):
         args = [a for a in getattr(annotation, "__args__", ()) if a is not type(None)]
@@ -740,20 +751,24 @@ def _port_type(param_name: str, annotation: object) -> str:
 
 
 def _output_port_type(method_name: str) -> str:
-    if method_name in _MEDIA_OUTPUT_METHODS:
-        return _MEDIA_OUTPUT_METHODS[method_name]
+    for suffix, port_type in _OUTPUT_SUFFIX_TO_TYPE.items():
+        if method_name.endswith(suffix):
+            return port_type
     if method_name in _JSON_OUTPUT_METHODS:
         return "json"
     return "text"
 
 
+def _output_label(method_name: str, port_type: str) -> str:
+    if method_name in _OUTPUT_LABELS:
+        return _OUTPUT_LABELS[method_name]
+    if port_type in ("image", "audio", "video", "text"):
+        return port_type.capitalize()
+    return "Output"
+
+
 @functools.lru_cache(maxsize=1)
 def _inference_endpoint_schemas() -> dict[str, dict]:
-    """Auto-generate endpoint schemas by introspecting InferenceClient. Any
-    new task method shipped in huggingface_hub becomes available with no
-    code changes here — required-ness, port types, and labels come from the
-    method signature. Synthetic endpoints (chat_completion) are merged in
-    afterwards for shapes that don't correspond 1:1 to a client method."""
     from huggingface_hub import InferenceClient
 
     endpoints: dict[str, dict] = {}
@@ -784,16 +799,26 @@ def _inference_endpoint_schemas() -> dict[str, dict]:
             })
         if not inputs:
             continue
+        port_type = _output_port_type(name)
         endpoints[name] = {
             "inputs": inputs,
             "outputs": [{
                 "id": "out_0",
-                "label": "Output",
-                "type": _output_port_type(name),
+                "label": _output_label(name, port_type),
+                "type": port_type,
                 "output_index": 0,
             }],
         }
-    endpoints.update(_SYNTHETIC_ENDPOINTS)
+    # chat_completion needs a hand-crafted shape (image + prompt, not messages).
+    endpoints["chat_completion"] = {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image", "required": False},
+            {"id": "text", "label": "Prompt", "type": "text", "required": False},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    }
     return endpoints
 
 
@@ -806,24 +831,9 @@ def _inference_endpoint_schemas() -> dict[str, dict]:
 _CHAT_MAX_TOKENS = 16384
 
 
-_ENDPOINT_OUTPUT_EXT: dict[str, str] = {
-    "text_to_image": "png",
-    "image_to_image": "png",
-    "text_to_speech": "wav",
-    "text_to_video": "mp4",
-    "image_to_video": "mp4",
-}
-
-
-# Pipeline tag → InferenceClient method name is almost always dash → underscore.
-# Only entries where the resolved name differs from that convention live here.
-#
-# Vision tasks all route to `chat_completion` because no Inference Provider
-# serves the task-specific VQA/image-to-text endpoints — the Hub routes every
-# vision-language model as `conversational` regardless of its declared tag.
-# `text2text-generation` and `conversational` collapse into `text_generation`
-# for legacy compat.
-# `text-to-audio` and `text-to-speech` share one InferenceClient method.
+# Only tags whose method name isn't `tag.replace("-", "_")`. Vision tags
+# route through chat_completion — no Inference Provider serves the
+# task-specific VQA/image-to-text endpoints.
 _PIPELINE_TAG_ALIASES: dict[str, str] = {
     "text2text-generation": "text_generation",
     "conversational": "text_generation",
@@ -836,9 +846,6 @@ _PIPELINE_TAG_ALIASES: dict[str, str] = {
 
 
 def _endpoint_for_tag(pipeline_tag: str | None) -> str | None:
-    """Resolve an HF pipeline_tag to an available endpoint name. Returns None
-    if nothing matches — call_model falls through to the raw inference API,
-    so any future task tag still works via HF's server-side dispatch."""
     if not pipeline_tag:
         return None
     name = _PIPELINE_TAG_ALIASES.get(pipeline_tag, pipeline_tag.replace("-", "_"))
@@ -856,9 +863,6 @@ _ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
 def get_model_endpoints(
     _data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
 ) -> str:
-    # Schemas are auto-discovered from InferenceClient method signatures at
-    # first call (cached) — no hardcoded catalog to keep in sync when
-    # huggingface_hub adds/renames methods or params.
     return json.dumps([
         {"name": name, **schema}
         for name, schema in _inference_endpoint_schemas().items()
@@ -948,6 +952,22 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 f"{model_name} returned no text (finish_reason={finish_reason})."
             )
         return json.dumps([text])
+    # Kwargs outside the method's declared signature are custom-port extras
+    # (from the "+ Add param" UI). Fold them into `extra_body` — the escape
+    # hatch InferenceClient exposes for provider-specific params.
+    try:
+        fn_params = set(inspect.signature(fn).parameters)
+    except (TypeError, ValueError):
+        fn_params = set()
+    extras: dict = {}
+    if fn_params:
+        known: dict = {}
+        for k, v in clean.items():
+            (known if k in fn_params else extras)[k] = v
+        clean = known
+        if extras and "extra_body" in fn_params:
+            merged = {**(clean.get("extra_body") or {}), **extras}
+            clean["extra_body"] = merged
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
@@ -964,7 +984,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 raise
     else:
         result = fn(**clean)
-    ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
+    ext = _MEDIA_EXT.get(_output_port_type(endpoint))
     if ext:
         return json.dumps([_save_tmp(result, ext)])
     if isinstance(result, list) and result and hasattr(result[0], "answer"):
@@ -1022,7 +1042,9 @@ def call_model(
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
         if isinstance(args, dict):
-            endpoint = pipeline_tag or ""
+            # Dict args come from nodes with custom ports; fall through to
+            # treating pipeline_tag as an endpoint name if it doesn't alias.
+            endpoint = _endpoint_for_tag(pipeline_tag) or pipeline_tag or ""
             return _dispatch_model_endpoint(client, endpoint, args)
 
         task = pipeline_tag or "text-generation"
@@ -1047,8 +1069,6 @@ def call_model(
 
         endpoint = _endpoint_for_tag(task)
         if endpoint:
-            # Positional args from legacy saved workflows and the browser
-            # executor map onto the endpoint schema's input order.
             schema_inputs = _inference_endpoint_schemas()[endpoint]["inputs"]
             kwargs = {
                 schema_inputs[i]["id"]: val
@@ -1056,9 +1076,9 @@ def call_model(
             }
             return _dispatch_model_endpoint(client, endpoint, kwargs)
 
-        # Unknown/new task — HF's raw inference API dispatches server-side
-        # based on the model card, so anything with inference enabled works
-        # without waiting for InferenceClient to add a method for it.
+        # Unknown task — fall through to HF's raw inference API for server-
+        # side dispatch. `a1 == ""`/`None` means "not provided"; real falsy
+        # values (0, False) survive.
         def _resolve(v):
             return (
                 _img_url(v)
@@ -1066,7 +1086,6 @@ def call_model(
                 else v
             )
 
-        # Treat None and "" as missing; real values like 0 or False survive.
         a1_missing = a1 is None or a1 == ""
         payload = _resolve(a0) if a1_missing else [_resolve(a0), _resolve(a1)]
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}

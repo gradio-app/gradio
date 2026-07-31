@@ -32,6 +32,7 @@ export interface Port {
 	output_index?: number;
 	choices?: string[];
 	multiselect?: boolean;
+	custom?: boolean;
 }
 
 export interface FileValue {
