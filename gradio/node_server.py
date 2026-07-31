@@ -299,7 +299,12 @@ def install_shutdown_handlers(
         stopping = True
         print("\nStopping Node.js server...")
         if on_shutdown is not None:
-            on_shutdown()
+            try:
+                on_shutdown()
+            except Exception:
+                # Only an optimisation: stopping Node has to happen regardless,
+                # and leaving it running would hold the user-facing port.
+                pass
         stop_node_process(node_process)
         sys.exit(0)
 

@@ -3470,8 +3470,13 @@ Received inputs:
         """
         Ends the session heartbeat streams. The Node front proxy waits for the
         connections it is serving before exiting, and these are those connections.
+
+        This runs on the main thread while the event loop runs in uvicorn's, so
+        the set() only lands on the loop's next wake; uvicorn's main loop ticks
+        every 100ms, which is what keeps shutdown prompt. `server_app` rather
+        than `app`, because `queue()` rebinds `app` but not the served instance.
         """
-        self.app.stop_event.set()
+        self.server_app.stop_event.set()
 
     def close(self, verbose: bool = True) -> None:
         """

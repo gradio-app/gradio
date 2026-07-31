@@ -223,6 +223,7 @@ class TestNodeProxyStartupOrdering:
         from gradio import http_server
 
         events: list[str] = []
+        node_kwargs: dict[str, Any] = {}
         original_start_server = http_server.start_server
         original_start_node = blocks_mod.start_node_server
 
@@ -234,6 +235,7 @@ class TestNodeProxyStartupOrdering:
 
         def patched_start_node(*args, **kwargs):
             events.append("node_start")
+            node_kwargs.update(kwargs)
             result = original_start_node(*args, **kwargs)
             events.append("node_returned")
             return result
@@ -257,6 +259,10 @@ class TestNodeProxyStartupOrdering:
             )
             assert "node_start" in events, (
                 f"start_node_server never ran. Events: {events}"
+            )
+            assert node_kwargs.get("on_shutdown") is not None, (
+                "launch() must pass on_shutdown, or the heartbeat streams stay "
+                "open and shutdown stalls until Node force-closes them."
             )
             python_ready_idx = events.index("python_ready")
             node_start_idx = events.index("node_start")
@@ -414,6 +420,8 @@ class TestNodeShutdown:
             assert time.perf_counter() - start < 5
         finally:
             node.kill()
+            node.stdout.close()
+            node.wait(timeout=5)
 
     def test_streams_are_ended_before_node_is_stopped(self, monkeypatch):
         import signal
