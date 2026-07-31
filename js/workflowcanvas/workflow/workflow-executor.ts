@@ -433,13 +433,15 @@ export async function executeWorkflow(
 							) as unknown)
 						: args;
 					// Prefer browser-side streaming for chat-completion-compatible
-					// text tasks so the UI receives tokens as they arrive. The
-					// Python path stays for every other task.
+					// text tasks so the UI receives tokens as they arrive. Skip
+					// streaming when there are custom ports — the streaming path
+					// only sends the prompt and would drop the extras.
 					const tag = node.pipeline_tag ?? "text-generation";
 					const streamable =
 						(tag === "text-generation" ||
 							tag === "text2text-generation" ||
 							tag === "conversational") &&
+						!hasCustomPorts &&
 						!!stream_text_generation;
 					if (streamable) {
 						const prompt =

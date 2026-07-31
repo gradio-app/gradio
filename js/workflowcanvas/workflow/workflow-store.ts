@@ -472,13 +472,17 @@ export function add_custom_port(nodeId: string, port: Port): void {
 export function remove_custom_port(nodeId: string, portId: string): void {
 	workflow.update((wf) => {
 		const node = wf.operators.find((n) => n.id === nodeId);
-		const target = node?.inputs.find((p) => p.id === portId && p.custom);
-		if (!target) return wf;
+		if (!node?.inputs.some((p) => p.id === portId && p.custom)) return wf;
 		return reconcileComponentRoles({
 			...wf,
 			operators: wf.operators.map((n) =>
 				n.id === nodeId
-					? { ...n, inputs: n.inputs.filter((p) => p !== target) }
+					? {
+							...n,
+							inputs: n.inputs.filter(
+								(p) => !(p.id === portId && p.custom)
+							)
+						}
 					: n
 			),
 			edges: wf.edges.filter(

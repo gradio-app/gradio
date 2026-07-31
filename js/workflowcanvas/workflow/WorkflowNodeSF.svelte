@@ -600,6 +600,7 @@
 								<button
 									class="port-remove-btn"
 									title="Remove custom param"
+									aria-label="Remove custom param {port.label}"
 									onpointerdown={(e) => e.stopPropagation()}
 									onmousedown={(e) => e.stopPropagation()}
 									onclick={(e) => {
@@ -803,6 +804,7 @@
 								<button
 									class="custom-param-cancel"
 									title="Cancel"
+									aria-label="Cancel adding custom param"
 									onclick={(e) => {
 										e.stopPropagation();
 										showCustomParamForm = false;
