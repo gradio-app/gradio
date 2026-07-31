@@ -578,6 +578,99 @@ class TestGetModelEndpoints:
         assert tti["outputs"][0]["type"] == "image"
         assert all("name" in e and e["inputs"] and e["outputs"] for e in endpoints)
 
+    def test_schema_stability_across_hub_updates(self):
+        """Fails if a huggingface_hub upgrade shifts the port shape of any
+        endpoint workflows depend on. Failure messages carry the runbook."""
+        endpoints = {e["name"]: e for e in json.loads(get_model_endpoints([]))}
+
+        expected: dict[str, dict] = {
+            "text_to_image": {
+                "required_inputs": {"prompt"},
+                "input_types": {"prompt": "text", "height": "number", "width": "number"},
+                "output_type": "image",
+            },
+            "text_to_speech": {
+                "required_inputs": {"text"},
+                "input_types": {"text": "text"},
+                "output_type": "audio",
+            },
+            "text_to_video": {
+                "required_inputs": {"prompt"},
+                "input_types": {"prompt": "text"},
+                "output_type": "video",
+            },
+            "image_to_image": {
+                "required_inputs": {"image"},
+                "input_types": {"image": "image"},
+                "output_type": "image",
+            },
+            "image_classification": {
+                "required_inputs": {"image"},
+                "input_types": {"image": "image"},
+                "output_type": "json",
+            },
+            "automatic_speech_recognition": {
+                "required_inputs": {"audio"},
+                "input_types": {"audio": "audio"},
+                "output_type": "text",
+            },
+            "summarization": {
+                "required_inputs": {"text"},
+                "input_types": {"text": "text"},
+                "output_type": "text",
+            },
+            "translation": {
+                "required_inputs": {"text"},
+                "input_types": {"text": "text"},
+                "output_type": "text",
+            },
+            "visual_question_answering": {
+                "required_inputs": {"image", "question"},
+                "input_types": {"image": "image", "question": "text"},
+                "output_type": "text",
+            },
+        }
+
+        RUNBOOK = (
+            "\n\nSchema drift detected. Runbook:\n"
+            "  1. Rename?   → add new name to _PORT_TYPE_BY_PARAM or "
+            "_MEDIA_TOKEN_TO_TYPE in gradio/workflow.py.\n"
+            "  2. Removed?  → verify with `pip show huggingface_hub`, then "
+            "update `expected` in this test.\n"
+            "  3. Type shift? → check huggingface_hub changelog; either "
+            "update `expected` here (intentional) or add an annotation-level "
+            "override in _port_type() (regression)."
+        )
+
+        for name, spec in expected.items():
+            assert name in endpoints, (
+                f"endpoint {name!r} disappeared from InferenceClient." + RUNBOOK
+            )
+            ep = endpoints[name]
+            by_id = {p["id"]: p for p in ep["inputs"]}
+            required = {p["id"] for p in ep["inputs"] if p.get("required")}
+            missing_required = spec["required_inputs"] - required
+            assert not missing_required, (
+                f"{name}: required inputs changed — expected "
+                f"{sorted(spec['required_inputs'])} required, got "
+                f"required={sorted(required)}, all_inputs={sorted(by_id)}."
+                + RUNBOOK
+            )
+            for port_id, expected_type in spec["input_types"].items():
+                assert port_id in by_id, (
+                    f"{name}: input {port_id!r} missing — likely renamed or "
+                    f"removed. Current inputs: {sorted(by_id)}." + RUNBOOK
+                )
+                assert by_id[port_id]["type"] == expected_type, (
+                    f"{name}.{port_id}: port type shifted from "
+                    f"{expected_type!r} to {by_id[port_id]['type']!r}."
+                    + RUNBOOK
+                )
+            assert ep["outputs"][0]["type"] == spec["output_type"], (
+                f"{name}: output type shifted from {spec['output_type']!r} "
+                f"to {ep['outputs'][0]['type']!r}." + RUNBOOK
+            )
+
 
 class TestCallModel:
     def test_kwargs_dict_path(self):
