@@ -653,11 +653,11 @@ class TestGetModelEndpoints:
             ep = endpoints[name]
             by_id = {p["id"]: p for p in ep["inputs"]}
             required = {p["id"] for p in ep["inputs"] if p.get("required")}
-            missing_required = spec["required_inputs"] - required
-            assert not missing_required, (
+            assert required == spec["required_inputs"], (
                 f"{name}: required inputs changed — expected "
                 f"{sorted(spec['required_inputs'])} required, got "
-                f"required={sorted(required)}, all_inputs={sorted(by_id)}." + runbook
+                f"required={sorted(required)}, all_inputs={sorted(by_id)}."
+                + runbook
             )
             for port_id, expected_type in spec["input_types"].items():
                 assert port_id in by_id, (
