@@ -635,7 +635,7 @@ class TestGetModelEndpoints:
             },
         }
 
-        RUNBOOK = (
+        runbook = (
             "\n\nSchema drift detected. Runbook:\n"
             "  1. Rename?   → add new name to _PORT_TYPE_BY_PARAM or "
             "_MEDIA_TOKEN_TO_TYPE in gradio/workflow.py.\n"
@@ -648,7 +648,7 @@ class TestGetModelEndpoints:
 
         for name, spec in expected.items():
             assert name in endpoints, (
-                f"endpoint {name!r} disappeared from InferenceClient." + RUNBOOK
+                f"endpoint {name!r} disappeared from InferenceClient." + runbook
             )
             ep = endpoints[name]
             by_id = {p["id"]: p for p in ep["inputs"]}
@@ -657,20 +657,20 @@ class TestGetModelEndpoints:
             assert not missing_required, (
                 f"{name}: required inputs changed — expected "
                 f"{sorted(spec['required_inputs'])} required, got "
-                f"required={sorted(required)}, all_inputs={sorted(by_id)}." + RUNBOOK
+                f"required={sorted(required)}, all_inputs={sorted(by_id)}." + runbook
             )
             for port_id, expected_type in spec["input_types"].items():
                 assert port_id in by_id, (
                     f"{name}: input {port_id!r} missing — likely renamed or "
-                    f"removed. Current inputs: {sorted(by_id)}." + RUNBOOK
+                    f"removed. Current inputs: {sorted(by_id)}." + runbook
                 )
                 assert by_id[port_id]["type"] == expected_type, (
                     f"{name}.{port_id}: port type shifted from "
-                    f"{expected_type!r} to {by_id[port_id]['type']!r}." + RUNBOOK
+                    f"{expected_type!r} to {by_id[port_id]['type']!r}." + runbook
                 )
             assert ep["outputs"][0]["type"] == spec["output_type"], (
                 f"{name}: output type shifted from {spec['output_type']!r} "
-                f"to {ep['outputs'][0]['type']!r}." + RUNBOOK
+                f"to {ep['outputs'][0]['type']!r}." + runbook
             )
 
 
