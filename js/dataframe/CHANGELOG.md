@@ -1,5 +1,22 @@
 # @gradio/dataframe
 
+## 0.24.2
+
+### Fixes
+
+- [#13661](https://github.com/gradio-app/gradio/pull/13661) [`8647a06`](https://github.com/gradio-app/gradio/commit/8647a06d13a77aefb818565e8766474dae8eeb70) - Keep fullscreen component controls inside the visible viewport when the page has a scrollbar.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+- @gradio/button@0.8.2
+- @gradio/markdown-code@0.10.0
+- @gradio/checkbox@0.8.2
+
 ## 0.24.1
 
 ### Dependency updates

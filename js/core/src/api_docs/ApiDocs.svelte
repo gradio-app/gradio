@@ -8,6 +8,7 @@
 	import ApiBanner from "./ApiBanner.svelte";
 	import { BaseButton as Button } from "@gradio/button";
 	import ParametersSnippet from "./ParametersSnippet.svelte";
+	import OAuthTokenSnippet from "./OAuthTokenSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippet from "./CodeSnippet.svelte";
 	import RecordingSnippet from "./RecordingSnippet.svelte";
@@ -146,9 +147,17 @@
 	async function get_summary(): Promise<{
 		functions: any;
 	}> {
-		let response = await fetch(root.replace(/\/$/, "") + "/monitoring/summary");
-		let data = await response.json();
-		return data;
+		try {
+			let response = await fetch(
+				root.replace(/\/$/, "") + "/monitoring/summary"
+			);
+			if (!response.ok) {
+				return { functions: {} };
+			}
+			return await response.json();
+		} catch {
+			return { functions: {} };
+		}
 	}
 
 	get_summary().then((summary) => {
@@ -580,6 +589,14 @@
 										.code_snippets}
 									{cli_command}
 								/>
+
+								{#if info.named_endpoints["/" + dependency.api_name].oauth_token}
+									<OAuthTokenSnippet
+										oauth_token={info.named_endpoints["/" + dependency.api_name]
+											.oauth_token}
+										{current_language}
+									/>
+								{/if}
 
 								<ParametersSnippet
 									endpoint_returns={info.named_endpoints[

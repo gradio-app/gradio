@@ -427,6 +427,24 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_monitoring_summary(self):
+        app = FastAPI()
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/default",
+        )
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/disabled",
+            enable_monitoring=False,
+        )
+
+        with TestClient(app) as client:
+            assert client.get("/default/monitoring/summary").is_success
+            assert client.get("/disabled/monitoring/summary").status_code == 403
+
     def test_mount_gradio_app_picks_up_root_path_from_asgi_scope(self):
         """Test that media URLs include the proxy prefix when root_path is set
         via the ASGI scope (e.g. uvicorn --root-path), without needing to
@@ -855,6 +873,8 @@ class TestRoutes:
         client = TestClient(app)
         response = client.get("/monitoring")
         assert response.status_code == 403
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 403
 
 
 def test_api_listener(connect):
@@ -957,12 +977,16 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 200
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 200
 
         response = client.get("/logout")
 
         response = client.get(
             "/monitoring",
         )
+        assert response.status_code == 401
+        response = client.get("/monitoring/summary")
         assert response.status_code == 401
 
 
@@ -1869,6 +1893,51 @@ class TestCurlEndpointWithFiles:
             }
             assert output[-2] == "event: error"
             assert output[-1] == f"data: {json.dumps(data)}"
+        finally:
+            demo.close()
+
+
+class TestCurlEndpointWithOAuthToken:
+    @pytest.mark.serial
+    def test_token_reaches_only_the_endpoint_that_takes_one(self):
+        def report(oauth_token: gr.OAuthToken | None) -> str:
+            return "none" if oauth_token is None else "token:" + oauth_token.token
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            gr.Button("Report").click(report, None, out, api_name="report")
+            gr.Button("Echo").click(lambda: "echo", None, out, api_name="echo")
+            named = gr.Textbox(value="orig", label="oauth_token")
+            gr.Button("Named").click(
+                lambda oauth_token: "param:" + oauth_token,
+                named,
+                out,
+                api_name="named",
+            )
+
+        demo.launch(prevent_thread_lock=True)
+
+        def call(api_name: str, payload: dict) -> str:
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/{api_name}", json=payload
+            )
+            assert post_resp.status_code == 200, post_resp.text
+            event_id = post_resp.json()["event_id"]
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/{api_name}/{event_id}", stream=True
+            )
+            output = [line.decode("utf-8") for line in sse_resp.iter_lines() if line]
+            return json.loads(output[-1].removeprefix("data: "))[0]
+
+        try:
+            assert call("report", {"oauth_token": "hf_abc"}) == "token:hf_abc"
+            assert call("report", {}) == "none"
+            # An endpoint that takes no token ignores one rather than erroring.
+            assert call("echo", {"oauth_token": "hf_abc"}) == "echo"
+            # The name is only reserved where the fn takes a token, so an
+            # endpoint with a parameter of that name still receives its value.
+            assert call("named", {"oauth_token": "MINE"}) == "param:MINE"
+            assert call("named", {}) == "param:orig"
         finally:
             demo.close()
 

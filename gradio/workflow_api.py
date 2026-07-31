@@ -636,17 +636,27 @@ def _group_slug_iter(groups: list[list[dict]]):
         yield group, api_name
 
 
+def _endpoint_oauth_token_requirement() -> str | None:
+    """Whether a subgraph endpoint takes a `gr.OAuthToken`, asked of the same
+    builder that registers them so the panel can't drift from `/info`."""
+    from gradio.utils import oauth_token_requirement
+
+    return oauth_token_requirement(_build_endpoint_fn(lambda: None, [], [], {}))
+
+
 def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
     """Describe each subject endpoint for the frontend "View API" panel:
     `api_name`, label, parameters (free inputs), and the return type. Mirrors
     the schema that `register_workflow_endpoints` exposes via `/info`."""
     endpoints = []
+    oauth_token = _endpoint_oauth_token_requirement()
     for group, api_name in _group_slug_iter(subject_groups(graph)):
         frees = group_free_inputs(graph, group)
         endpoints.append(
             {
                 "api_name": "/" + api_name,
                 "label": group[0].get("label", "output"),
+                **({"oauth_token": oauth_token} if oauth_token else {}),
                 "parameters": [
                     {
                         "label": f["label"],

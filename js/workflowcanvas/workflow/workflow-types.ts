@@ -72,6 +72,7 @@ export interface WFNode {
 	y: number;
 	width: number;
 	height: number;
+	manual_height?: number;
 	data: NodeData;
 }
 
@@ -121,7 +122,18 @@ export interface BaseNode {
 	x: number;
 	y: number;
 	width: number;
+	/**
+	 * Last measured height of the rendered card. Written by the canvas, not the
+	 * user — layout math (zoom-to-fit, marquee selection, auto-arrange) reads it.
+	 */
 	height: number;
+	/**
+	 * Height the user pinned by dragging the resize handle. When set, the card is
+	 * locked to it and the widget zone stretches to fill; when absent, height is
+	 * content-driven. Kept separate from `height` so the measured value stays
+	 * meaningful either way.
+	 */
+	manual_height?: number;
 }
 
 export interface ReferenceNode extends BaseNode {
