@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import inspect
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -502,9 +501,11 @@ class Chatbot(Component):
             chat_message.unrender()
             component = import_component_and_data(type(chat_message).__name__)
             if component:
-                chat_message.constructor_args["render"] = False
-                component = chat_message.__class__(**chat_message.constructor_args)
-                chat_message.constructor_args.pop("value", None)
+                # Don't rewrite the caller's constructor args: a streaming handler
+                # yields the same history repeatedly, so this runs again next pass.
+                constructor_args = {**chat_message.constructor_args, "render": False}
+                component = chat_message.__class__(**constructor_args)
+                constructor_args.pop("value", None)
                 config = component.get_config()
                 component_name = type(chat_message).__name__.lower()
                 value = config.get("value", None)
@@ -518,7 +519,7 @@ class Chatbot(Component):
                 return ComponentMessage(
                     component=component_name,
                     value=value,
-                    constructor_args=chat_message.constructor_args,
+                    constructor_args=constructor_args,
                     props=config,
                 )
         elif isinstance(chat_message, dict) and "path" in chat_message:
@@ -544,7 +545,6 @@ class Chatbot(Component):
     def _postprocess(
         self, message: MessageDict | Message | ChatMessage | NormalizedMessageDict
     ) -> list[Message] | None:
-        message = copy.deepcopy(message)
         role = message["role"] if isinstance(message, dict) else message.role  # type: ignore[possibly-unbound-attribute]
         metadata = (
             message.get("metadata") if isinstance(message, dict) else message.metadata  # type: ignore[possibly-unbound-attribute]

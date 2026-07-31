@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import copy
 import inspect
 import os
 import platform
@@ -1193,8 +1192,10 @@ class Queue:
                     )
 
             elif response:
-                output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
+                    # Copy per event because "data" is replaced below and the
+                    # message is serialized later; only that key changes.
+                    output = dict(response)
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.get("data"), strict=False))[
                             e

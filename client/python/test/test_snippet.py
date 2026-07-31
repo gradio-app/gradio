@@ -97,6 +97,35 @@ class TestSnippetExecution:
             assert isinstance(namespace["result"], (int, float))
 
 
+class TestOAuthTokenSnippets:
+    def test_snippets_ask_for_a_token_only_where_the_endpoint_takes_one(self):
+        def report(oauth_token: gr.OAuthToken | None) -> str:
+            return "none" if oauth_token is None else "token"
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            gr.Button("Report").click(report, None, out, api_name="report")
+            name = gr.Textbox()
+            gr.Button("Greet").click(lambda n: n, name, out, api_name="greet")
+
+        info = demo.get_api_info()
+        assert info["named_endpoints"]["/report"]["oauth_token"] == "optional"
+        assert "oauth_token" not in info["named_endpoints"]["/greet"]
+
+        with_token = generate_code_snippets(
+            "/report", info["named_endpoints"]["/report"], "http://localhost:7860"
+        )
+        assert 'oauth_token="hf_..."' in with_token["python"]
+        assert 'oauth_token: "hf_..."' in with_token["javascript"]
+        assert '"oauth_token": "hf_..."' in with_token["bash"]
+
+        without_token = generate_code_snippets(
+            "/greet", info["named_endpoints"]["/greet"], "http://localhost:7860"
+        )
+        for snippet in without_token.values():
+            assert "oauth_token" not in snippet
+
+
 class TestStringifyPy:
     def test_datetime_in_nested_structure(self):
         """Non-JSON-native types like datetime should not raise TypeError."""

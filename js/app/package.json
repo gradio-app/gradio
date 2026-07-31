@@ -1,10 +1,10 @@
 {
 	"name": "@self/app",
-	"version": "2.2.2",
+	"version": "2.3.0",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build && node after_build.js && node cleanup_build.js",
+		"build": "vite build && node after_build.js && node verify_build.js && node cleanup_build.js",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

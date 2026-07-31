@@ -34,11 +34,11 @@
 			'<span class="kw">$1</span>'
 		);
 		html = html.replace(
-			/(Client\()("[^"]*")(\))/g,
-			'$1<span class="str">$2</span>$3'
+			/(Client\()("[^"]*")/g,
+			'$1<span class="str">$2</span>'
 		);
 		html = html.replace(
-			/(api_name=)("[^"]*")/g,
+			/(api_name=|oauth_token=)("[^"]*")/g,
 			'$1<span class="api-name">$2</span>'
 		);
 		return html;
@@ -51,11 +51,11 @@
 			'<span class="kw">$1</span>'
 		);
 		html = html.replace(
-			/(Client\.connect\()("[^"]*")(\))/g,
-			'$1<span class="str">$2</span>$3'
+			/(Client\.connect\()("[^"]*")/g,
+			'$1<span class="str">$2</span>'
 		);
 		html = html.replace(
-			/(\.predict\()("[^"]*")/g,
+			/(\.predict\(|oauth_token: )("[^"]*")/g,
 			'$1<span class="api-name">$2</span>'
 		);
 		return html;

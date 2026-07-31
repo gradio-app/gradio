@@ -1,14 +1,26 @@
 import Prism from "prismjs";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-csv";
-import "prismjs/components/prism-markup";
-import "prism-svelte";
 
+// Same hazard as `js/paramviewer/ParamViewer.svelte`, and it broke
+// /custom-components/html-gallery the same way: `prismjs/components/*` and
+// `prism-svelte` assign into a bare `Prism` global and declare no imports, so as
+// static imports the bundler hoists them above the assignment below (in the
+// built html-gallery chunk the grammars sat ~10kB ahead of it). Dynamic imports
+// are not hoisted, so the global is published first.
+//
+// Awaited at module scope rather than gated behind a promise so `highlight()`
+// stays synchronous for the server `load` functions that render guides and the
+// changelog — by the time any importer runs, the grammars are registered.
 (globalThis as any).Prism = Prism;
+
+// Order preserved from the static imports; the grammars extend one another.
+await import("prismjs/components/prism-python");
+await import("prismjs/components/prism-bash");
+await import("prismjs/components/prism-json");
+await import("prismjs/components/prism-typescript");
+await import("prismjs/components/prism-javascript");
+await import("prismjs/components/prism-csv");
+await import("prismjs/components/prism-markup");
+await import("prism-svelte");
 
 Prism.languages.insertBefore("python", "keyword", {
 	namespace: { pattern: /\b[a-zA-Z_]\w*(?=\.)/ },

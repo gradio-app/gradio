@@ -36,9 +36,14 @@
 		hydrate_endpoints,
 		init_model_node_ports,
 		sanitize_for_save,
-		revoke_blob_urls
+		revoke_blob_urls,
+		reconcileComponentRoles
 	} from "./workflow-store";
-	import { migrateToV2, toLegacyShape } from "./workflow-migration";
+	import {
+		hasMissingNodeGeometry,
+		migrateToV2,
+		toLegacyShape
+	} from "./workflow-migration";
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
@@ -109,7 +114,7 @@
 			? auth.oauthAvailable
 				? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that owns this Space (or has write access to it) to make changes. Alternatively, duplicate this Space under your own account to edit your own copy."
 				: "Run-only: editing is disabled because this Space doesn't have OAuth enabled, so the owner can't sign in to authenticate. To allow editing, add `hf_oauth: true` to the Space's README metadata and redeploy. Alternatively, duplicate this Space under your own account to edit your own copy."
-			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes."
+			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes."
 	);
 
 	// Flash a brief "Saved" confirmation after each successful autosave. The
@@ -137,11 +142,19 @@
 		if (!initialValue) return;
 		try {
 			const parsed = JSON.parse(initialValue);
+			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
 			// Migration handles both v1 (legacy workflow.json files) and v2.
-			const v2 = migrateToV2(parsed);
+			// Reconcile on load as well as on edit: files written before roles were
+			// derived can carry a wired-up component still filed under `references`,
+			// which renders as an output tile but generates no API endpoint. The
+			// baseline below means the heal isn't a save on its own, but the first
+			// store write after mount (port hydration, a drag, an edit) carries it
+			// to disk — so a stale file corrects itself in practice.
+			const v2 = reconcileComponentRoles(migrateToV2(parsed));
 			workflow.set(v2);
 			// Baseline the persisted state so the load itself isn't autosaved.
 			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
+			if (shouldAutoLayout) requestAnimationFrame(autoLayout);
 		} catch {}
 	});
 
@@ -276,6 +289,13 @@
 	let nodeStatus: Record<string, NodeStatus> = $state({});
 	let nodeErrors: Record<string, string> = $state({});
 	/**
+	 * Wall-clock seconds of each node's last successful run, keyed by node id.
+	 * Kept across runs (and on failure) so the previous time doubles as an ETA
+	 * while the node re-runs; overwritten only when a run completes.
+	 */
+	let nodeDurations: Record<string, number> = $state({});
+	const nodeRunStarts: Record<string, number> = {};
+	/**
 	 * Bound Python functions advertised by the server (`list_bound_fns`).
 	 * Populates the bottom-bar Functions button so users can re-add an
 	 * fn node after deleting it without re-launching the app.
@@ -384,6 +404,35 @@
 		initialSubtab?: string;
 	}
 	let activePicker: ActivePicker | null = $state(null);
+	let fullscreenImage: { src: string; alt: string } | null = $state(null);
+	let fullscreenReturnFocus: HTMLElement | null = null;
+	let fullscreenCloseBtn: HTMLButtonElement | undefined = $state();
+
+	function openFullscreenImage(src: string, alt: string): void {
+		fullscreenReturnFocus = document.activeElement as HTMLElement | null;
+		fullscreenImage = { src, alt };
+	}
+
+	function closeFullscreenImage(): void {
+		fullscreenImage = null;
+	}
+
+	$effect(() => {
+		if (!fullscreenImage) return;
+		fullscreenCloseBtn?.focus();
+		const onKey = (e: KeyboardEvent): void => {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				closeFullscreenImage();
+			}
+		};
+		window.addEventListener("keydown", onKey);
+		return () => {
+			window.removeEventListener("keydown", onKey);
+			fullscreenReturnFocus?.focus?.();
+			fullscreenReturnFocus = null;
+		};
+	});
 
 	interface PendingDrop {
 		from_node_id: string;
@@ -440,10 +489,14 @@
 		pending: null as Pending | null,
 		nodeStatus: {} as Record<string, NodeStatus>,
 		nodeErrors: {} as Record<string, string>,
+		nodeDurations: {} as Record<string, number>,
 		staleNodes: new Set<string>(),
 		connectedPorts: new Set<string>(),
 		readOnly: false,
+		// Resize drags happen in screen pixels but node width is canvas units.
+		zoom: 1,
 		ondatachange: updateNodeData,
+		onviewfullscreen: openFullscreenImage,
 		onremove: (id: string) => {
 			if (!readOnly) removeNode(id);
 		},
@@ -544,10 +597,16 @@
 		wfCtx.nodeErrors = nodeErrors;
 	});
 	$effect(() => {
+		wfCtx.nodeDurations = nodeDurations;
+	});
+	$effect(() => {
 		wfCtx.staleNodes = staleNodes;
 	});
 	$effect(() => {
 		wfCtx.connectedPorts = connectedPortsSet();
+	});
+	$effect(() => {
+		wfCtx.zoom = viewport.zoom;
 	});
 	$effect(() => {
 		wfCtx.readOnly = readOnly;
@@ -1587,6 +1646,17 @@
 			wfToRun,
 			(nodeId, status, error, errorType) => {
 				nodeStatus = { ...nodeStatus, [nodeId]: status };
+				if (status === "running") {
+					nodeRunStarts[nodeId] = performance.now();
+				} else if (nodeId in nodeRunStarts) {
+					if (status === "done") {
+						nodeDurations = {
+							...nodeDurations,
+							[nodeId]: (performance.now() - nodeRunStarts[nodeId]) / 1000
+						};
+					}
+					delete nodeRunStarts[nodeId];
+				}
 				if (status === "done") {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					if (node) {
@@ -1992,6 +2062,7 @@
 		"audio",
 		"video",
 		"text",
+		"html",
 		"file",
 		"gallery",
 		"boolean",
@@ -2014,19 +2085,21 @@
 		const newId = await addTemplateToCanvas({ ...template }, x, y);
 		if (!newId) return;
 
-		// For spaces added fresh to the canvas (not wired from an existing port),
-		// auto-create input + output components to form a ready-to-run subgraph
-		const isSpaceFresh =
-			template.source === "space" && (!drop || drop.positionOnly);
-		if (isSpaceFresh) {
-			const spaceNode = legacyView.nodes.find((n) => n.id === newId);
-			if (spaceNode) {
+		// For spaces and models added fresh to the canvas (not wired from an
+		// existing port), auto-create input + output components to form a
+		// ready-to-run subgraph
+		const isOperatorFresh =
+			(template.source === "space" || template.source === "model") &&
+			(!drop || drop.positionOnly);
+		if (isOperatorFresh) {
+			const operatorNode = legacyView.nodes.find((n) => n.id === newId);
+			if (operatorNode) {
 				const compGap = 24;
 				const compH = 180;
 				// Skip ports with `choices` — they render an inline dropdown in
 				// the node body, so an auto-wired reference would be redundant
 				// (and worse, the reference is a plain textbox).
-				const typedInputs = spaceNode.inputs.filter(
+				const typedInputs = operatorNode.inputs.filter(
 					(p) =>
 						SUBGRAPH_PORT_TYPES.has(p.type) &&
 						!(p.choices && p.choices.length > 0)
@@ -2034,12 +2107,12 @@
 				const requiredInputs = typedInputs.filter((p) => p.required !== false);
 				const inputPorts =
 					requiredInputs.length > 0 ? requiredInputs : typedInputs;
-				const outputPorts = spaceNode.outputs.filter((p) =>
+				const outputPorts = operatorNode.outputs.filter((p) =>
 					SUBGRAPH_PORT_TYPES.has(p.type)
 				);
 
 				const inTotal = inputPorts.length * (compH + compGap) - compGap;
-				const inStartY = y + (spaceNode.height ?? 90) / 2 - inTotal / 2;
+				const inStartY = y + (operatorNode.height ?? 90) / 2 - inTotal / 2;
 				inputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
@@ -2065,12 +2138,12 @@
 				});
 
 				const outTotal = outputPorts.length * (compH + compGap) - compGap;
-				const outStartY = y + (spaceNode.height ?? 90) / 2 - outTotal / 2;
+				const outStartY = y + (operatorNode.height ?? 90) / 2 - outTotal / 2;
 				outputPorts.forEach((port, i) => {
 					const comp = getComponentForPortType(port.type);
 					if (!comp) return;
 					const { x: cx, y: cy } = findFreeSpot(
-						x + (spaceNode.width ?? 280) + 80,
+						x + (operatorNode.width ?? 280) + 80,
 						outStartY + i * (compH + compGap)
 					);
 					const cId = addNode("subject", comp, cx, cy);
@@ -2124,7 +2197,15 @@
 		activePicker = null;
 	}
 
-	function addInputNode(portType: string, cx?: number, cy?: number): void {
+	/**
+	 * Drop a bare component on the canvas. Always created as a `reference`: an
+	 * unwired component *is* an input, and `reconcileComponentRoles` promotes it
+	 * to a subject the moment something feeds its input port — which is the same
+	 * moment `WorkflowNodeSF` starts rendering it as a read-only output tile.
+	 * That's why the bottom bar offers one "Component" button rather than making
+	 * the user pre-declare a direction the graph already knows.
+	 */
+	function addComponentNode(portType: string, cx?: number, cy?: number): void {
 		if (readOnly) return;
 		let pos: { x: number; y: number };
 		if (cx !== undefined && cy !== undefined) {
@@ -2138,11 +2219,7 @@
 		} else {
 			pos = canvasCenter();
 		}
-		const typedComponents: Record<string, any> = {};
-		for (const c of LIBRARY.components) {
-			typedComponents[c.outputs[0]?.type ?? "any"] = c;
-		}
-		const template = typedComponents[portType] ?? LIBRARY.components[0];
+		const template = getComponentForPortType(portType) ?? LIBRARY.components[0];
 		const half = (template.width ?? 200) / 2;
 		const { x, y } = findFreeSpot(pos.x - half, pos.y - 45);
 		addNode("reference", template, x, y);
@@ -2326,7 +2403,23 @@
 						>Run only<span class="access-info-icon"><InfoIcon /></span></button
 					>
 					{#if showAccessInfo}
-						<div class="access-info-popover">{readOnlyReason}</div>
+						<div class="access-info-popover">
+							{#if auth.isHFSpace}
+								{readOnlyReason}
+							{:else}
+								<!-- Mirrors the local-session readOnlyReason string (used for the
+								     hover title), with "access token" rendered as a link. -->
+								Run-only: you can run this workflow but not edit it. This session
+								is missing the write token — open the edit link printed in the terminal
+								to make changes. That link also signs this session in with your locally
+								saved Hugging Face token; without it, paste an
+								<a
+									href="https://huggingface.co/settings/tokens"
+									target="_blank"
+									rel="noopener noreferrer">access token</a
+								> to run nodes.
+							{/if}
+						</div>
 					{/if}
 				</div>
 			{/if}
@@ -2590,7 +2683,7 @@
 			{readOnly}
 			activeModalityKey={activePicker?.modality.key ?? null}
 			onopenpicker={openPicker}
-			onaddinput={addInputNode}
+			onaddcomponent={addComponentNode}
 			onaddfn={addFnNode}
 			onrun={() => void runWorkflow()}
 			onstop={stopWorkflow}
@@ -2703,10 +2796,75 @@
 			onClose={() => (showApiPanel = false)}
 		/>
 	{/if}
+
+	{#if fullscreenImage}
+		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+		<div
+			class="fullscreen-overlay"
+			role="dialog"
+			aria-modal="true"
+			aria-label={fullscreenImage.alt || "Image preview"}
+			onclick={closeFullscreenImage}
+			transition:fade={{ duration: 120 }}
+		>
+			<img
+				class="fullscreen-img"
+				src={fullscreenImage.src}
+				alt={fullscreenImage.alt}
+			/>
+			<button
+				bind:this={fullscreenCloseBtn}
+				class="fullscreen-close"
+				onclick={closeFullscreenImage}
+				title="Close (Esc)"
+				aria-label="Close full screen">&times;</button
+			>
+		</div>
+	{/if}
 </div>
 
 <style>
 	@import "./WorkflowCanvas.css";
+
+	/* ─── Full-screen image viewer ──────────────────────────────────────────── */
+	.fullscreen-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 1100;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: var(--size-8);
+		background: rgba(8, 9, 13, 0.9);
+		backdrop-filter: blur(2px);
+		cursor: zoom-out;
+	}
+
+	.fullscreen-img {
+		/* Fill the viewport and letterbox rather than render at natural size —
+		   the point is to inspect the image, including small ones. */
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		border-radius: var(--radius-md);
+	}
+
+	.fullscreen-close {
+		position: absolute;
+		top: var(--size-4);
+		right: var(--size-5);
+		background: transparent;
+		border: none;
+		color: #c5c7d0;
+		font-size: 30px;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0 var(--size-2);
+	}
+
+	.fullscreen-close:hover {
+		color: #fff;
+	}
 
 	/* ─── Custom canvas ─────────────────────────────────────────────────────── */
 	.editor {

@@ -125,10 +125,14 @@ def _get_param_value(param: dict) -> Any:
     return param.get("example_input")
 
 
+OAUTH_TOKEN_PLACEHOLDER = "hf_..."
+
+
 def generate_python_snippet(
     api_name: str,
     params: list[dict],
     src: str,
+    oauth_token: str | None = None,
 ) -> str:
     has_file = any(_has_file_data(p.get("example_input")) for p in params)
     imports = "from gradio_client import Client"
@@ -136,7 +140,12 @@ def generate_python_snippet(
         imports += ", handle_file"
 
     lines = [imports, ""]
-    lines.append(f'client = Client("{src}")')
+    if oauth_token:
+        lines.append(
+            f'client = Client("{src}", oauth_token="{OAUTH_TOKEN_PLACEHOLDER}")'
+        )
+    else:
+        lines.append(f'client = Client("{src}")')
 
     predict_args = []
     for p in params:
@@ -159,10 +168,12 @@ def generate_js_snippet(
     api_name: str,
     params: list[dict],
     src: str,
+    oauth_token: str | None = None,
 ) -> str:
     blob_params = [p for p in params if p.get("component") in BLOB_COMPONENTS]
 
-    lines = ['import { Client } from "@gradio/client";', ""]
+    imports = "Client, handle_file" if blob_params else "Client"
+    lines = [f'import {{ {imports} }} from "@gradio/client";', ""]
 
     for i, bp in enumerate(blob_params):
         example = bp.get("example_input", {})
@@ -174,7 +185,12 @@ def generate_js_snippet(
     if blob_params:
         lines.append("")
 
-    lines.append(f'const client = await Client.connect("{src}");')
+    if oauth_token:
+        lines.append(
+            f'const client = await Client.connect("{src}", {{ oauth_token: "{OAUTH_TOKEN_PLACEHOLDER}" }});'
+        )
+    else:
+        lines.append(f'const client = await Client.connect("{src}");')
 
     blob_component_names = {bp.get("component") for bp in blob_params}
 
@@ -183,7 +199,7 @@ def generate_js_snippet(
         name = p.get("parameter_name") or p.get("label", "input")
         component = p.get("component", "")
         if component in blob_component_names:
-            predict_args.append(f"\t\t{name}: example{component},")
+            predict_args.append(f"\t\t{name}: handle_file(example{component}),")
         else:
             value = _get_param_value(p)
             ptype = p.get("python_type", {}).get("type")
@@ -204,6 +220,7 @@ def generate_bash_snippet(
     params: list[dict],
     root: str,
     api_prefix: str = "/",
+    oauth_token: str | None = None,
 ) -> str:
     normalised_root = root.rstrip("/")
     normalised_prefix = api_prefix if api_prefix else "/"
@@ -238,6 +255,9 @@ def generate_bash_snippet(
             formatted = _represent_value(value, ptype, "bash")
             data_dict[name] = formatted
 
+    if oauth_token:
+        data_dict["oauth_token"] = f'"{OAUTH_TOKEN_PLACEHOLDER}"'
+
     data_entries = ", ".join(f'"{k}": {v}' for k, v in data_dict.items())
     data_str = "{" + data_entries + "}"
     for _ in file_param_names:
@@ -268,9 +288,10 @@ def generate_code_snippets(
 ) -> dict[str, str]:
     params = endpoint_info.get("parameters", [])
     src = space_id or root
+    oauth_token = endpoint_info.get("oauth_token")
 
     return {
-        "python": generate_python_snippet(api_name, params, src),
-        "javascript": generate_js_snippet(api_name, params, src),
-        "bash": generate_bash_snippet(api_name, params, root, api_prefix),
+        "python": generate_python_snippet(api_name, params, src, oauth_token),
+        "javascript": generate_js_snippet(api_name, params, src, oauth_token),
+        "bash": generate_bash_snippet(api_name, params, root, api_prefix, oauth_token),
     }

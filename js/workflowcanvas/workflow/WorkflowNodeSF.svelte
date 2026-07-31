@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { resizeNode, workflow } from "./workflow-store";
+	import { resizeNode, setNodeSize, workflow } from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -33,6 +33,7 @@
 		} | null;
 		nodeStatus: Record<string, NodeStatus>;
 		nodeErrors: Record<string, string>;
+		nodeDurations: Record<string, number>;
 		staleNodes: Set<string>;
 		connectedPorts: Set<string>;
 		readOnly: boolean;
@@ -41,6 +42,8 @@
 			portId: string,
 			value: NodeDataValue
 		) => void;
+		zoom: number;
+		onviewfullscreen: (src: string, alt: string) => void;
 		onremove: (id: string) => void;
 		onopenpicker: (id: string) => void;
 		onswitchendpoint: (id: string, endpointName: string) => void;
@@ -67,6 +70,90 @@
 
 	const pending = $derived(ctx.pending);
 	const readOnly = $derived(ctx.readOnly);
+
+	const MIN_NODE_WIDTH = 180;
+	const MAX_NODE_WIDTH = 900;
+	const MIN_NODE_HEIGHT = 120;
+	const MAX_NODE_HEIGHT = 1200;
+	let resizing = $state(false);
+
+	// A height the user dragged out. While set, the card is that tall and the
+	// widget zone stretches to fill it; otherwise height follows content.
+	const pinnedHeight = $derived(node.manual_height ?? null);
+
+	/**
+	 * Everything in the card except the stretchable widget zone, in canvas units.
+	 * Pinning a height below this would push the ports out through the card's
+	 * bottom edge, so it's the floor for a vertical drag.
+	 */
+	function chromeHeight(): number {
+		if (!nodeEl) return MIN_NODE_HEIGHT;
+		const zoom = ctx.zoom || 1;
+		let h = 0;
+		for (const child of nodeEl.children) {
+			if (child.classList.contains("widget-zone")) continue;
+			// Floats above the card; not part of its box.
+			if (child.classList.contains("node-outside-label-wrap")) continue;
+			h += child.getBoundingClientRect().height / zoom;
+		}
+		return Math.ceil(h);
+	}
+
+	function startResize(e: PointerEvent): void {
+		if (readOnly) return;
+		e.preventDefault();
+		e.stopPropagation();
+		resizing = true;
+		const startX = e.clientX;
+		const startY = e.clientY;
+		const startWidth = node.width;
+		// First drag on an auto-height node starts from whatever it measures now,
+		// so the card doesn't jump when it becomes pinned.
+		const startHeight = pinnedHeight ?? node.height;
+		const minHeight = Math.max(MIN_NODE_HEIGHT, chromeHeight() + 40);
+		const target = e.currentTarget as HTMLElement;
+		target.setPointerCapture(e.pointerId);
+
+		const onMove = (ev: PointerEvent): void => {
+			// Screen pixels → canvas units, so the handle tracks the cursor at
+			// any zoom level.
+			const zoom = ctx.zoom || 1;
+			const width = Math.round(
+				Math.min(
+					MAX_NODE_WIDTH,
+					Math.max(MIN_NODE_WIDTH, startWidth + (ev.clientX - startX) / zoom)
+				)
+			);
+			// Only cards with a widget have something that can absorb extra height;
+			// a transform node is all header and ports, so it stays width-only.
+			const height = canPinHeight
+				? Math.round(
+						Math.min(
+							MAX_NODE_HEIGHT,
+							Math.max(minHeight, startHeight + (ev.clientY - startY) / zoom)
+						)
+					)
+				: null;
+			if (width !== node.width || height !== pinnedHeight) {
+				setNodeSize(node.id, width, height);
+			}
+		};
+		const onUp = (): void => {
+			resizing = false;
+			target.removeEventListener("pointermove", onMove);
+			target.removeEventListener("pointerup", onUp);
+			target.removeEventListener("pointercancel", onUp);
+		};
+		target.addEventListener("pointermove", onMove);
+		target.addEventListener("pointerup", onUp);
+		target.addEventListener("pointercancel", onUp);
+	}
+
+	/** Double-click the handle to release a pinned height back to fit-content. */
+	function resetHeight(): void {
+		if (readOnly || pinnedHeight === null) return;
+		setNodeSize(node.id, node.width, null);
+	}
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
 	const error = $derived(ctx.nodeErrors[id] ?? "");
 	const isStale = $derived(ctx.staleNodes.has(id));
@@ -74,15 +161,37 @@
 	// Only operator nodes have meaningful per-node execution. References just
 	// hold values; subjects just display passthrough.
 	const canRunSolo = $derived(node.kind === "transform");
+	const duration = $derived(ctx.nodeDurations[id] as number | undefined);
+
+	function formatDuration(seconds: number): string {
+		if (seconds >= 10) return `${Math.round(seconds)}s`;
+		if (seconds >= 1) return `${seconds.toFixed(1)}s`;
+		return `${parseFloat(seconds.toFixed(2))}s`;
+	}
 
 	let nodeEl: HTMLDivElement;
 	let editingLabel = $state(false);
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
 	let errorExpanded = $state(false);
+	let errorCopied = $state(false);
+	let errorCopiedTimer: ReturnType<typeof setTimeout> | undefined;
 	$effect(() => {
 		if (!error) errorExpanded = false;
 	});
+	$effect(() => () => clearTimeout(errorCopiedTimer));
+
+	async function copyError(): Promise<void> {
+		if (!error) return;
+		try {
+			await navigator.clipboard?.writeText(error);
+			errorCopied = true;
+			clearTimeout(errorCopiedTimer);
+			errorCopiedTimer = setTimeout(() => (errorCopied = false), 1500);
+		} catch {
+			/* clipboard unavailable — leave the label unchanged */
+		}
+	}
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
@@ -132,6 +241,8 @@
 	);
 
 	const hasWidget = $derived(mode === "input" || mode === "output");
+	// See the height clamp in `startResize`: only a widget can take up slack.
+	const canPinHeight = $derived(hasWidget);
 	const widgetPortId = $derived(
 		mode === "input"
 			? (node.outputs[0]?.id ?? null)
@@ -168,6 +279,9 @@
 	$effect(() => {
 		if (!nodeEl) return;
 		const ro = new ResizeObserver(([entry]) => {
+			// A pinned card already knows its height — `setNodeSize` wrote it — and
+			// echoing the measurement back would only fight the drag.
+			if (pinnedHeight !== null) return;
 			const h = Math.ceil(entry.borderBoxSize[0].blockSize);
 			if (Math.abs(h - node.height) > 1) {
 				resizeNode(node.id, node.width, h);
@@ -190,15 +304,19 @@
 	class:has-pending={pending !== null}
 	bind:this={nodeEl}
 	onclick={(e) => ctx.onselect(node.id, e.shiftKey)}
+	class:node-resizing={resizing}
+	class:node-fixed-height={pinnedHeight !== null}
 	style="
 		width: {node.width}px;
+		{pinnedHeight !== null ? `height: ${pinnedHeight}px;` : ''}
+		--preview-max-h: {Math.round(node.width * 1.15)}px;
 		--accent: {accentColor};
 		--accent-dim: {accentDim};
 	"
 >
 	<div class="node-header" role="button" tabindex="-1">
 		<div class="node-header-top">
-			{#if status === "running"}
+			{#if status === "running" && !canRunSolo}
 				<span class="node-status-spinner"></span>
 			{/if}
 			{#if editingLabel}
@@ -228,17 +346,32 @@
 			{#if canRunSolo}
 				<button
 					class="node-run"
-					class:node-run-stale={isStale}
+					class:node-run-stale={isStale && status !== "running"}
+					class:has-duration={duration !== undefined}
 					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => {
 						e.stopPropagation();
 						ctx.onrunnode(node.id);
 					}}
-					title={isStale ? "Run this node (inputs changed)" : "Run this node"}
+					title={(status === "running"
+						? "Running…"
+						: isStale
+							? "Run this node (inputs changed)"
+							: "Run this node") +
+						(duration !== undefined
+							? ` — last run ${formatDuration(duration)}`
+							: "")}
 					aria-label="Run this node"
 				>
-					<PlayIcon />
+					{#if duration !== undefined}
+						<span class="node-run-time">{formatDuration(duration)}</span>
+					{/if}
+					{#if status === "running"}
+						<span class="node-status-spinner"></span>
+					{:else}
+						<PlayIcon />
+					{/if}
 				</button>
 			{/if}
 			{#if !readOnly}
@@ -579,6 +712,7 @@
 			{widgetPortId}
 			{widgetType}
 			{isReadonly}
+			fillHeight={pinnedHeight !== null}
 			ondatachange={ctx.ondatachange}
 		/>
 	{/if}
@@ -627,19 +761,48 @@
 	{#if status === "error" && error}
 		<div class="node-error-banner" class:expanded={errorExpanded}>
 			<div class="node-error-text">{error}</div>
-			<button
-				type="button"
-				class="node-error-toggle nodrag nopan"
-				onclick={(e) => {
-					e.stopPropagation();
-					errorExpanded = !errorExpanded;
-				}}
-				onpointerdown={(e) => e.stopPropagation()}
-				onmousedown={(e) => e.stopPropagation()}
-			>
-				{errorExpanded ? "show less" : "show more"}
-			</button>
+			<div class="node-error-actions">
+				<button
+					type="button"
+					class="node-error-toggle nodrag nopan"
+					onclick={(e) => {
+						e.stopPropagation();
+						void copyError();
+					}}
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{errorCopied ? "copied" : "copy"}
+				</button>
+				<button
+					type="button"
+					class="node-error-toggle nodrag nopan"
+					onclick={(e) => {
+						e.stopPropagation();
+						errorExpanded = !errorExpanded;
+					}}
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{errorExpanded ? "show less" : "show more"}
+				</button>
+			</div>
 		</div>
+	{/if}
+
+	{#if !readOnly}
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="node-resize-handle nodrag nopan"
+			class:width-only={!canPinHeight}
+			onpointerdown={startResize}
+			ondblclick={resetHeight}
+			title={!canPinHeight
+				? "Drag to set width"
+				: pinnedHeight !== null
+					? "Drag to resize — double-click to fit height to content"
+					: "Drag to resize"}
+		></div>
 	{/if}
 </div>
 
@@ -658,6 +821,20 @@
 			box-shadow 0.2s,
 			border-color 0.3s;
 		box-sizing: border-box;
+	}
+
+	/* Pinned height: lay the card out as a column so the widget zone absorbs the
+	 * slack instead of the card overflowing its own border. `min-height: 0` on
+	 * the growing child is what lets a preview shrink below its natural size. */
+	.wf-node.node-fixed-height {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	.wf-node.node-fixed-height :global(.widget-zone) {
+		flex: 1 1 auto;
+		min-height: 0;
 	}
 
 	/* Space/transform nodes get a subtle top accent to distinguish from component nodes */
@@ -899,31 +1076,50 @@
 		color: #ef4444;
 	}
 
-	/* Per-node run button — hidden by default, revealed on hover, mirrors
-	 * the node-delete affordance pattern. Stale state pulses faintly to
+	/* Per-node run button — always visible; shows the spinner in place of the
+	 * play icon while the node runs. Once the node has run, the last duration
+	 * (which doubles as an ETA on re-runs) joins the icon inside the same
+	 * pill, so hover highlights both together. Stale state pulses faintly to
 	 * signal "this needs re-running". */
 	.node-run {
-		display: none;
-		width: 20px;
+		display: flex;
+		min-width: 20px;
 		height: 20px;
 		margin-left: auto;
 		border: none;
-		border-radius: 4px;
+		border-radius: 10px;
 		background: transparent;
 		color: #5c5e6a;
 		cursor: pointer;
 		flex-shrink: 0;
 		align-items: center;
 		justify-content: center;
+		gap: 5px;
 		padding: 0;
 	}
 
-	.wf-node:hover .node-run {
-		display: flex;
+	.node-run.has-duration {
+		padding: 0 3px 0 7px;
+		background: rgba(255, 255, 255, 0.06);
 	}
 
 	.node-run + .node-delete {
 		margin-left: 2px;
+	}
+
+	.node-run-time {
+		color: #8b8d98;
+		font-size: 10px;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.node-run:hover .node-run-time {
+		color: inherit;
+	}
+
+	.wf-node.node-stale .node-run-time {
+		opacity: 0.55;
 	}
 
 	.node-run:hover {
@@ -1071,6 +1267,46 @@
 		}
 	}
 
+	.node-resize-handle {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		width: 15px;
+		height: 15px;
+		cursor: nwse-resize;
+		opacity: 0;
+		box-sizing: border-box;
+		transition: opacity 0.15s;
+		/* Widgets reach the card's bottom-right corner too — a textarea's own
+		 * grip lands exactly here — so the handle has to win the hit test. */
+		z-index: 3;
+	}
+
+	/* Transform cards resize in width only, so say so with the cursor rather
+	   than letting a diagonal arrow promise a drag that won't happen. */
+	.node-resize-handle.width-only {
+		cursor: ew-resize;
+	}
+
+	/* The two ticks that read as a resize corner. */
+	.node-resize-handle::after {
+		content: "";
+		position: absolute;
+		right: 3px;
+		bottom: 3px;
+		width: 7px;
+		height: 7px;
+		border-right: 2px solid #6b6e78;
+		border-bottom: 2px solid #6b6e78;
+		border-bottom-right-radius: 2px;
+	}
+
+	.wf-node:hover .node-resize-handle,
+	.wf-node.node-selected .node-resize-handle,
+	.wf-node.node-resizing .node-resize-handle {
+		opacity: 1;
+	}
+
 	.node-error-banner {
 		position: relative;
 		font-family: "JetBrains Mono", monospace;
@@ -1097,10 +1333,15 @@
 		-webkit-mask-image: none;
 	}
 
-	.node-error-toggle {
+	.node-error-actions {
 		position: absolute;
 		bottom: 4px;
 		right: 8px;
+		display: flex;
+		gap: 8px;
+	}
+
+	.node-error-toggle {
 		background: none;
 		border: none;
 		padding: 0;

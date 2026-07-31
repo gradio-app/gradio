@@ -1348,15 +1348,26 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            parameters_info = app.api_info["named_endpoints"]["/" + api_name][  # type: ignore
-                "parameters"
-            ]
+            endpoint_info = app.api_info["named_endpoints"]["/" + api_name]  # type: ignore
+            parameters_info = endpoint_info["parameters"]
+            body = dict(body)
+            oauth_token = None
+            if endpoint_info.get("oauth_token"):
+                oauth_token = body.pop("oauth_token", None)
+            elif not any(
+                p.get("parameter_name") == "oauth_token" for p in parameters_info
+            ):
+                # Not this endpoint's to receive, and not one of its parameters
+                # either, so drop it rather than report an unknown argument.
+                body.pop("oauth_token", None)
             processed_args = client_utils.construct_args(
                 parameters_info,
                 (),
                 body,
             )
-            simple_body = SimplePredictBody(data=processed_args)
+            simple_body = SimplePredictBody(
+                data=processed_args, oauth_token=oauth_token
+            )
             full_body = PredictBody(**simple_body.model_dump(), simple_format=True)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
@@ -1773,7 +1784,7 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_status()
 
-        @router.get("/upload_progress")
+        @router.get("/upload_progress", dependencies=[Depends(login_check)])
         async def get_upload_progress(upload_id: str, request: fastapi.Request):
             async def sse_stream(request: fastapi.Request):
                 last_heartbeat = time.perf_counter()
@@ -1981,8 +1992,12 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
-        @app.get("/monitoring/summary")
+        @app.get("/monitoring/summary", dependencies=[Depends(login_check)])
         async def _():
+            if blocks.enable_monitoring is False:
+                raise HTTPException(
+                    status_code=403, detail="Monitoring is not enabled."
+                )
             return app.get_blocks()._queue.cached_event_analytics_summary
 
         @app.get("/monitoring/{key}")
@@ -2409,17 +2424,17 @@ Existing code:
         if PROFILING_ENABLED:
             from gradio.profiling import collector
 
-            @router.get("/profiling/traces")
+            @router.get("/profiling/traces", dependencies=[Depends(login_check)])
             async def profiling_traces(
                 last_n: int | None = None,
             ):
                 return ORJSONResponse(collector.get_all(last_n=last_n))
 
-            @router.get("/profiling/summary")
+            @router.get("/profiling/summary", dependencies=[Depends(login_check)])
             async def profiling_summary():
                 return ORJSONResponse(collector.get_summary())
 
-            @router.post("/profiling/clear")
+            @router.post("/profiling/clear", dependencies=[Depends(login_check)])
             async def profiling_clear():
                 collector.clear()
                 return ORJSONResponse({"status": "cleared"})

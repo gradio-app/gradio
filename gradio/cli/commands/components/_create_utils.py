@@ -273,14 +273,12 @@ def copy_svelte_to_deps(package_json: dict):
 def _modify_js_deps(
     package_json: dict,
     key: Literal["dependencies", "devDependencies"],
-    gradio_dir: Path,
+    component_root: Path,
 ):
     for dep in package_json.get(key, []):
         # if current working directory is the gradio repo, use the local version of the dependency'
         if not _in_test_dir() and dep.startswith("@gradio/"):
-            package_json[key][dep] = _get_js_dependency_version(
-                dep, gradio_dir / "_frontend_code" / gradio.__version__
-            )
+            package_json[key][dep] = _get_js_dependency_version(dep, component_root)
     return package_json
 
 
@@ -294,15 +292,24 @@ def delete_contents(directory: str | Path) -> None:
             shutil.rmtree(child)
 
 
-def _download_from_hub(destination: Path):
+def _download_from_hub() -> Path:
     version = gradio.__version__
 
-    snapshot_download(
-        repo_id="gradio/frontend",
-        allow_patterns=f"{version}/**",
-        local_dir=destination,
-        repo_type="dataset",
+    return Path(
+        snapshot_download(
+            repo_id="gradio/frontend",
+            allow_patterns=f"{version}/**",
+            repo_type="dataset",
+        )
     )
+
+
+def _get_component_root(component: ComponentFiles) -> Path:
+    gradio_dir = Path(inspect.getfile(gradio)).parent
+    component_root = gradio_dir / "_frontend_code" / gradio.__version__
+    if (component_root / component.js_dir).exists():
+        return component_root
+    return _download_from_hub() / gradio.__version__
 
 
 def _create_frontend(
@@ -314,12 +321,7 @@ def _create_frontend(
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
 
-    p = Path(inspect.getfile(gradio)).parent
-
-    component_source = p / "_frontend_code"
-    if not component_source.exists():
-        component_source.mkdir(exist_ok=True)
-        _download_from_hub(component_source)
+    component_root = _get_component_root(component)
 
     def ignore(_src, names):
         ignored = []
@@ -336,15 +338,19 @@ def _create_frontend(
 
     # Replace once we figure out bug with svelte-package
     shutil.copytree(
-        str(p / "_frontend_code" / gradio.__version__ / component.js_dir),
+        str(component_root / component.js_dir),
         frontend,
         dirs_exist_ok=True,
         ignore=ignore,
     )
     source_package_json = json.loads(Path(frontend / "package.json").read_text())
     source_package_json["name"] = package_name
-    source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
-    source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
+    source_package_json = _modify_js_deps(
+        source_package_json, "dependencies", component_root
+    )
+    source_package_json = _modify_js_deps(
+        source_package_json, "devDependencies", component_root
+    )
     source_package_json = copy_svelte_to_deps(source_package_json)
 
     (frontend / "package.json").write_text(json.dumps(source_package_json, indent=2))
