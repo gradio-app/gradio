@@ -15,5 +15,5 @@
 	scale={gradio.shared.scale}
 	min_width={gradio.shared.min_width}
 >
-	<slot />
+	{@render props.children?.()}
 </BaseForm>

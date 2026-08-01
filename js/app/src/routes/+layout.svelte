@@ -1,12 +1,15 @@
-<script>
+<script lang="ts">
 	import "@gradio/theme/reset.css";
 	import "@gradio/theme/global.css";
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 	import "@gradio/theme/gradio-style.scss";
+	import type { Snippet } from "svelte";
+
+	let { children }: { children?: Snippet } = $props();
 </script>
 
-<slot></slot>
+{@render children?.()}
 
 <style>
 	:global(body) {

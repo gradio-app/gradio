@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, type Snippet } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
@@ -28,7 +28,8 @@
 		onclear,
 		ondrag,
 		onload,
-		onerror
+		onerror,
+		children
 	}: {
 		value?: FileData | null;
 		display_mode?: "solid" | "point_cloud" | "wireframe";
@@ -50,6 +51,7 @@
 		ondrag?: (dragging: boolean) => void;
 		onload?: (value: FileData) => void;
 		onerror?: (error: string) => void;
+		children?: Snippet;
 	} = $props();
 
 	let use_3dgs = $state(false);
@@ -125,7 +127,7 @@
 		onerror={handle_error}
 		aria_label={i18n("model3d.drop_to_upload")}
 	>
-		<slot />
+		{@render children?.()}
 	</Upload>
 {:else}
 	<div class="input-model">

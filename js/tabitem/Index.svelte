@@ -24,5 +24,5 @@
 	component_id={gradio.props.component_id}
 	onselect={(data) => gradio.dispatch("select", data)}
 >
-	<slot />
+	{@render props.children?.()}
 </TabItem>

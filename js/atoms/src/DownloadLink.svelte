@@ -1,19 +1,21 @@
 <script lang="ts">
 	import type { HTMLAnchorAttributes } from "svelte/elements";
-	import { createEventDispatcher } from "svelte";
+	import type { Snippet } from "svelte";
 
 	interface DownloadLinkAttributes extends Omit<
 		HTMLAnchorAttributes,
-		"target"
+		"target" | "children"
 	> {
 		download: NonNullable<HTMLAnchorAttributes["download"]>;
+		children?: Snippet;
 	}
-	type $$Props = DownloadLinkAttributes;
 
-	export let href: DownloadLinkAttributes["href"] = undefined;
-	export let download: DownloadLinkAttributes["download"];
-
-	const dispatch = createEventDispatcher();
+	let {
+		href = undefined,
+		download,
+		children,
+		...rest
+	}: DownloadLinkAttributes = $props();
 </script>
 
 <a
@@ -26,10 +28,9 @@
 		: null}
 	rel="noopener noreferrer"
 	{download}
-	{...$$restProps}
-	on:click={dispatch.bind(null, "click")}
+	{...rest}
 >
-	<slot />
+	{@render children?.()}
 </a>
 
 <style>

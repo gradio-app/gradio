@@ -14,7 +14,7 @@
 </script>
 
 <BaseColumn {...gradio.shared} {...gradio.props}>
-	<slot />
+	{@render props.children?.()}
 </BaseColumn>
 
 <style>

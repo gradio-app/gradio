@@ -572,37 +572,42 @@
 				i18n={$_}
 				{autoscroll}
 			>
-				<div class="load-text" slot="additional-loading-text">
-					{#if gradio_dev_mode === "dev"}
-						<p>
-							If your custom component never loads, consult the troubleshooting <a
-								style="color: blue;"
-								href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
-								>guide</a
-							>.
-						</p>
-					{/if}
-				</div>
+				{#snippet additional_loading_text()}
+					<div class="load-text">
+						{#if gradio_dev_mode === "dev"}
+							<p>
+								If your custom component never loads, consult the
+								troubleshooting <a
+									style="color: blue;"
+									href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
+									>guide</a
+								>.
+							</p>
+						{/if}
+					</div>
+				{/snippet}
 				<!-- todo: translate message text -->
-				<div class="error" slot="error">
-					<p><strong>{status?.message || ""}</strong></p>
-					{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
-						<p>
-							Please <a
-								href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-									status?.detail
-								)}&description={discussion_message.description(
-									status?.detail,
-									location.origin
-								)}"
-							>
-								contact the author of the space</a
-							> to let them know.
-						</p>
-					{:else if i18n_ready}
-						<p>{$_("errors.contact_page_author")}</p>
-					{/if}
-				</div>
+				{#snippet error_details()}
+					<div class="error">
+						<p><strong>{status?.message || ""}</strong></p>
+						{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
+							<p>
+								Please <a
+									href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
+										status?.detail
+									)}&description={discussion_message.description(
+										status?.detail,
+										location.origin
+									)}"
+								>
+									contact the author of the space</a
+								> to let them know.
+							</p>
+						{:else if i18n_ready}
+							<p>{$_("errors.contact_page_author")}</p>
+						{/if}
+					</div>
+				{/snippet}
 			</StatusTracker>
 		{/if}
 		{#if config?.auth_required && Login}

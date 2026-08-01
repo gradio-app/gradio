@@ -424,8 +424,8 @@
 				label="Plain Text"
 				bind:checked
 				disabled={is_formatting || is_unformatting}
-				on:click={async (e) => {
-					if (!e.detail.checked) {
+				onclick={async (e) => {
+					if (!e.checked) {
 						is_unformatting = true;
 						try {
 							gradio.props.value = await gradio.shared.server.unformat({

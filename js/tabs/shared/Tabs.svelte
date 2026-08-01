@@ -30,7 +30,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, tick, untrack } from "svelte";
+	import { setContext, tick, untrack, type Snippet } from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
 
@@ -41,7 +41,8 @@
 		selected = $bindable(),
 		initial_tabs,
 		onchange,
-		onselect
+		onselect,
+		children
 	}: {
 		visible?: boolean | "hidden";
 		elem_id?: string;
@@ -50,6 +51,7 @@
 		initial_tabs: Tab[];
 		onchange?: () => void;
 		onselect?: (data: TabSelectData) => void;
+		children?: Snippet;
 	} = $props();
 
 	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
@@ -306,7 +308,7 @@
 			</span>
 		</div>
 	{/if}
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

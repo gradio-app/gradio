@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher, onDestroy } from "svelte";
+	import { onDestroy } from "svelte";
 	import Handlebars from "handlebars";
 	import type { Snippet } from "svelte";
 
@@ -23,6 +23,8 @@
 		component_class_name = "HTML",
 		upload = null,
 		server = {},
+		onevent,
+		onupdate_value,
 		children
 	}: {
 		elem_classes: string[];
@@ -37,6 +39,11 @@
 		component_class_name: string;
 		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
 		server: Record<string, (...args: any[]) => Promise<any>>;
+		onevent?: (detail: { type: "click" | "submit"; data: any }) => void;
+		onupdate_value?: (detail: {
+			data: any;
+			property: "value" | "label" | "visible";
+		}) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -75,16 +82,11 @@
 		}
 	}
 
-	const dispatch = createEventDispatcher<{
-		event: { type: "click" | "submit"; data: any };
-		update_value: { data: any; property: "value" | "label" | "visible" };
-	}>();
-
 	const trigger = (
 		event_type: "click" | "submit",
 		event_data: any = {}
 	): void => {
-		dispatch("event", { type: event_type, data: event_data });
+		onevent?.({ type: event_type, data: event_data });
 	};
 
 	let element: HTMLDivElement;
@@ -420,7 +422,7 @@
 					) {
 						props[property] = value;
 						old_props[property] = value;
-						dispatch("update_value", { data: value, property });
+						onupdate_value?.({ data: value, property });
 					}
 				}
 				return true;

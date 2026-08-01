@@ -1,11 +1,18 @@
 <script lang="ts">
-	export let text: string;
-	export let x: number;
-	export let y: number;
-	export let color: string;
+	let {
+		text,
+		x,
+		y,
+		color
+	}: {
+		text: string;
+		x: number;
+		y: number;
+		color: string;
+	} = $props();
 
-	let w: number;
-	let h: number;
+	let w = $state(0);
+	let h = $state(0);
 </script>
 
 <div
@@ -15,7 +22,7 @@
 		top: {y - h / 2}px;
 		left: {x - w - 7}px;"
 >
-	<span style="background: {color}" />
+	<span style="background: {color}"></span>
 	{text}
 </div>
 

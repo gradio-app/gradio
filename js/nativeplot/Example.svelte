@@ -1,7 +1,13 @@
 <script lang="ts">
-	export let title: string | null;
-	export let x: string;
-	export let y: string;
+	let {
+		title,
+		x,
+		y
+	}: {
+		title: string | null;
+		x: string;
+		y: string;
+	} = $props();
 </script>
 
 {#if title}
