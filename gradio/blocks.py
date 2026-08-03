@@ -3434,9 +3434,7 @@ Received inputs:
 
         internal_port = self.server_port
         old_server = self.server
-        bind_host = (
-            "127.0.0.1" if self.server_name == "0.0.0.0" else self.server_name
-        )
+        bind_host = "127.0.0.1" if self.server_name == "0.0.0.0" else self.server_name
 
         def serve_on(port: int | None):
             return http_server.start_server(
