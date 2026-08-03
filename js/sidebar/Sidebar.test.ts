@@ -343,6 +343,8 @@ describe("Parent overlap", () => {
 		// narrower than that, so the variable is what can be asserted here.
 		wrap = document.createElement("div");
 		wrap.className = "wrap";
+		// Flush left, so the starting overlap does not depend on ambient CSS.
+		wrap.style.marginLeft = "0px";
 		document.body.appendChild(wrap);
 
 		await render(
