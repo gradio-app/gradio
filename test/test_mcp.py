@@ -147,6 +147,10 @@ def test_input_schema_marks_parameters_without_defaults_as_required():
             return a
 
         @gr.api
+        def multiple_required(a: str, b: int, c: bool = False) -> str:
+            return a
+
+        @gr.api
         def all_optional(a: int = 1) -> int:
             return a
 
@@ -163,6 +167,9 @@ def test_input_schema_marks_parameters_without_defaults_as_required():
 
     schema, _ = server.get_input_schema("mixed")
     assert schema["required"] == ["a"]
+
+    schema, _ = server.get_input_schema("multiple_required")
+    assert schema["required"] == ["a", "b"]
 
     # A component with an initial value counts as a default for its parameter.
     schema, _ = server.get_input_schema("concat")
