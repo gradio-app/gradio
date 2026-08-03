@@ -1,5 +1,5 @@
 import { test, describe, afterEach, expect } from "vitest";
-import { cleanup, render, fireEvent } from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 
 import Sidebar from "./Index.svelte";
 import SidebarWithChild from "./WithChild.svelte";
@@ -320,6 +320,48 @@ describe("Children / slot", () => {
 		});
 		// {#if visible} removes the entire sidebar from the DOM, including slot children
 		expect(queryByTestId("slot-content")).not.toBeInTheDocument();
+	});
+});
+
+describe("Parent overlap", () => {
+	let wrap: HTMLElement;
+
+	const overlap = (): number =>
+		parseFloat(
+			document.documentElement.style.getPropertyValue("--overlap-amount")
+		);
+
+	afterEach(() => {
+		cleanup();
+		wrap?.remove();
+		document.documentElement.style.removeProperty("--overlap-amount");
+	});
+
+	test("--overlap-amount is recalculated on resize", async () => {
+		// .sidebar-parent turns this variable into padding, but the padding is
+		// forced to 0 below the 768px breakpoint and the test viewport is
+		// narrower than that, so the variable is what can be asserted here.
+		wrap = document.createElement("div");
+		wrap.className = "wrap";
+		document.body.appendChild(wrap);
+
+		await render(
+			Sidebar,
+			{ width: 320, visible: true, open: true, position: "left" },
+			{ container: wrap }
+		);
+
+		await waitFor(() => expect(overlap()).toBeGreaterThan(0));
+
+		// Opening up space to the left of .wrap is what rotating a tablet to
+		// landscape does: the sidebar now fits beside the content.
+		wrap.style.marginLeft = "900px";
+		window.dispatchEvent(new Event("resize"));
+		await waitFor(() => expect(overlap()).toBe(0));
+
+		wrap.style.marginLeft = "0px";
+		window.dispatchEvent(new Event("resize"));
+		await waitFor(() => expect(overlap()).toBeGreaterThan(0));
 	});
 });
 
