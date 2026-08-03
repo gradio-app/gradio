@@ -111,6 +111,8 @@ def start_node_process(
     # but fails to render leaves no trace. Keep the last of it so a failed startup can
     # say what actually went wrong instead of guessing at the Node version.
     node_errors: str = ""
+    busy_ports: list[int] = []
+    attempted_start = False
 
     for port in server_ports:
         try:
@@ -123,6 +125,7 @@ def start_node_process(
             # Instead, we just check if the port is available on localhost.
             s.bind((server_name, port))
             s.close()
+            attempted_start = True
 
             # Set environment variables for the Node server
             env = os.environ.copy()
@@ -194,6 +197,7 @@ def start_node_process(
                 node_process = None
 
         except OSError:
+            busy_ports.append(port)
             continue
         except Exception as e:
             warnings.warn(
@@ -214,12 +218,22 @@ def start_node_process(
         # The same failure usually repeats once per probe, so one tail is enough.
         print("The Node server reported:")
         print("\n".join(node_errors.splitlines()[-20:]))
+    elif not attempted_start:
+        if len(busy_ports) == 1:
+            print(
+                f"Port {busy_ports[0]} is already in use. "
+                "Pass a free `server_port`, or omit it to let Gradio pick the next available port."
+            )
+        else:
+            print(
+                f"No free port found in range {server_ports[0]}-{server_ports[-1]}."
+            )
     else:
         print(
             "Please install Node 20 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
         )
     print(
-        "You can explicitly specify a port by setting the environment variable GRADIO_NODE_PORT."
+        "You can explicitly specify a port by setting the environment variable GRADIO_NODE_SERVER_PORT."
     )
 
     return None, None
