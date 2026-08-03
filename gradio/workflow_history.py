@@ -22,7 +22,7 @@ MEDIA_PORT_TYPES = {"image", "audio", "video"}
 
 _LIST_CACHE_TTL = 10.0
 
-_MAX_FILES_SCAN = 200
+_MAX_FILES_SCAN = 50
 
 
 class WorkflowHistory:
@@ -161,7 +161,9 @@ class WorkflowHistory:
         """Upload a local media file to the bucket's ``media/`` dir."""
         if not os.path.isfile(value):
             return None
-        if not os.path.realpath(value).startswith(os.path.realpath(tempfile.gettempdir())):
+        if not os.path.realpath(value).startswith(
+            os.path.realpath(tempfile.gettempdir())
+        ):
             logger.debug("WorkflowHistory: refusing to upload non-temp path: %s", value)
             return None
         ext = pathlib.Path(value).suffix or {

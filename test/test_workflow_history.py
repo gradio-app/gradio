@@ -175,11 +175,13 @@ def test_push_uploads_image_to_media(tmp_path):
     media_path = media_call.kwargs["add"][0][1]
     assert media_path.startswith("media/")
 
-    # Record stored in bucket should have the Hub URL, not the local path
+    # value stays as the local path (for in-session display via Gradio file server);
+    # bucket_url holds the durable Hub URL.
     record_call = mock_api.batch_bucket_files.call_args_list[1]
     record_bytes = record_call.kwargs["add"][0][0]
     saved = json.loads(record_bytes.decode())
-    assert "huggingface.co" in saved["outputs"]["subj_img"]["value"]
+    assert saved["outputs"]["subj_img"]["value"] == img_path
+    assert "huggingface.co" in saved["outputs"]["subj_img"]["bucket_url"]
 
 
 def test_push_skips_media_upload_for_urls():

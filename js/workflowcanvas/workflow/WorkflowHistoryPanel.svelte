@@ -43,6 +43,7 @@
 	let refreshing = $state(false);
 	let error = $state<string | null>(null);
 	let selectedSubgraph = $state<string | null>(null);
+	let pendingDelete = $state<string | null>(null);
 
 	const MEDIA_TYPES = new Set(["image", "audio", "video"]);
 
@@ -270,23 +271,31 @@
 									</button>
 								{/if}
 								{#if server?.delete_history}
-									<button
-										class="card-delete-btn"
-										onclick={async () => {
-											if (!confirm("Delete this generation?")) return;
-											try {
-												await server.delete_history([
-													record.id,
-													record.timestamp
-												]);
-												records = records.filter((r) => r.id !== record.id);
-											} catch {}
-										}}
-										title="Delete this generation"
-										aria-label="Delete"
-									>
-										&#x2715;
-									</button>
+									{#if pendingDelete === record.id}
+										<button
+											class="card-delete-confirm"
+											onclick={async () => {
+												pendingDelete = null;
+												try {
+													await server.delete_history([record.id, record.timestamp]);
+													records = records.filter((r) => r.id !== record.id);
+												} catch {}
+											}}
+										>Delete?</button>
+										<button
+											class="card-delete-cancel"
+											onclick={() => (pendingDelete = null)}
+										>Cancel</button>
+									{:else}
+										<button
+											class="card-delete-btn"
+											onclick={() => (pendingDelete = record.id)}
+											title="Delete this generation"
+											aria-label="Delete"
+										>
+											&#x2715;
+										</button>
+									{/if}
 								{/if}
 							</div>
 						</div>
@@ -630,5 +639,27 @@
 	.card-delete-btn:hover {
 		color: #ef4444;
 		background: rgba(239, 68, 68, 0.1);
+	}
+
+	.card-delete-confirm {
+		background: #ef4444;
+		border: none;
+		color: #fff;
+		font-size: 10px;
+		padding: 2px 6px;
+		border-radius: 3px;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.card-delete-cancel {
+		background: none;
+		border: 1px solid #3a3b4a;
+		color: #7c7f99;
+		font-size: 10px;
+		padding: 2px 6px;
+		border-radius: 3px;
+		cursor: pointer;
+		flex-shrink: 0;
 	}
 </style>

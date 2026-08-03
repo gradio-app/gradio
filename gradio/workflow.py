@@ -72,8 +72,9 @@ class _CuratedCache(TypedDict):
 _CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
 _CURATED_LOCK = threading.Lock()
 
-_MODEL_TAG_CACHE: dict[str, str] = {}
+_MODEL_TAG_CACHE: dict[str, tuple[str, float]] = {}
 _MODEL_TAG_LOCK = threading.Lock()
+_MODEL_TAG_TTL = 3600.0
 
 
 def _bundled_snapshot_path() -> str:
@@ -942,15 +943,20 @@ def call_model(
         args = json.loads(args_json)
 
         if not pipeline_tag:
+            import time as _time
+
+            now = _time.monotonic()
             with _MODEL_TAG_LOCK:
-                pipeline_tag = _MODEL_TAG_CACHE.get(model_id)
+                cached = _MODEL_TAG_CACHE.get(model_id)
+                if cached and (now - cached[1]) < _MODEL_TAG_TTL:
+                    pipeline_tag = cached[0]
             if not pipeline_tag:
                 try:
                     info = HfApi(token=hf_token).model_info(model_id)
                     pipeline_tag = info.pipeline_tag or ""
                     if pipeline_tag:
                         with _MODEL_TAG_LOCK:
-                            _MODEL_TAG_CACHE[model_id] = pipeline_tag
+                            _MODEL_TAG_CACHE[model_id] = (pipeline_tag, _time.monotonic())
                 except Exception:
                     pass
 
@@ -1594,6 +1600,8 @@ class Workflow(Blocks):
             )
 
         self._wh = self._resolve_history()
+        self._graph_push_timer: threading.Timer | None = None
+        self._graph_push_lock = threading.Lock()
 
         # Callable so each browser session re-reads `workflow.json`, picking up
         # writes from `save_workflow` instead of the construction-time snapshot.
@@ -1746,11 +1754,15 @@ class Workflow(Blocks):
                                 exc_info=True,
                             )
                 if self._wh is not None:
-                    import threading as _threading
-
-                    _threading.Thread(
-                        target=self._wh.push_graph_file, args=(payload,), daemon=True
-                    ).start()
+                    with self._graph_push_lock:
+                        if self._graph_push_timer is not None:
+                            self._graph_push_timer.cancel()
+                        t = threading.Timer(
+                            30.0, self._wh.push_graph_file, args=(payload,)
+                        )
+                        t.daemon = True
+                        t.start()
+                        self._graph_push_timer = t
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
