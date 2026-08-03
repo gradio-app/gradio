@@ -614,11 +614,10 @@
 				<svelte:component
 					this={ApiDocs}
 					root_node={app_tree.root}
-					on:close={(event) => {
+					onclose={(detail?: { api_recorder_visible: boolean }) => {
 						set_api_docs_visible(false);
 						api_calls = [];
-						api_recorder_visible = api_recorder_visible =
-							event.detail?.api_recorder_visible;
+						api_recorder_visible = detail?.api_recorder_visible ?? false;
 					}}
 					{dependencies}
 					{root}
