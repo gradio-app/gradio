@@ -100,11 +100,14 @@
 	<div
 		class="title"
 		class:expanded
-		on:click|stopPropagation={toggleExpanded}
+		onclick={(event) => {
+			event.stopPropagation();
+			toggleExpanded();
+		}}
 		aria-busy={thought_node.content === "" || thought_node.content === null}
 		role="button"
 		tabindex="0"
-		on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
+		onkeydown={(e) => e.key === "Enter" && toggleExpanded()}
 	>
 		<span
 			class="arrow"
@@ -146,7 +149,7 @@
 			class:content-preview={!expanded &&
 				thought_node.metadata?.status !== "done"}
 			bind:this={content_preview_element}
-			on:scroll={handleScroll}
+			onscroll={handleScroll}
 			transition:slide
 		>
 			<MessageContent

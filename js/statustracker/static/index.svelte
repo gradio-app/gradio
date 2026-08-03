@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { tick, untrack } from "svelte";
 	import { pretty_si } from "./utils";
 

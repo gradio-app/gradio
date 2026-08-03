@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { TABS, type Tab, type TabSelectData } from "./Tabs.svelte";
 
 	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {

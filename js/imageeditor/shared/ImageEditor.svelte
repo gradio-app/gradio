@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script module lang="ts">
 	import type { Tool, Subtool } from "./Toolbar.svelte";
 
 	export const EDITOR_KEY = Symbol("editor");

@@ -192,7 +192,7 @@
 		{/if}
 		<button
 			class="toggle-all"
-			on:click={toggle_all}
+			onclick={toggle_all}
 			title={all_open ? "Close All" : "Open All"}
 		>
 			{all_open ? "▲" : "▼"}

@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseImageUploader } from "./shared/ImageUploader.svelte";
 	export { default as BaseStaticImage } from "./shared/ImagePreview.svelte";
 	export { default as BaseExample } from "./Example.svelte";

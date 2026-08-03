@@ -62,8 +62,8 @@
 	<input
 		bind:checked={value}
 		bind:indeterminate
-		on:keydown={handle_enter}
-		on:input={handle_input}
+		onkeydown={handle_enter}
+		oninput={handle_input}
 		{disabled}
 		type="checkbox"
 		name="test"

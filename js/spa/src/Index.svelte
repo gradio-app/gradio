@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { writable } from "svelte/store";
 	import {
 		mount_css,

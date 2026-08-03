@@ -516,10 +516,10 @@
 		>
 			{#if footer_links.includes("api")}
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadApiDocs();
 						loadApiRecorder();
 					}}
@@ -547,7 +547,7 @@
 			{/if}
 			<button
 				class:hidden={!$is_screen_recording}
-				on:click={() => {
+				onclick={() => {
 					screen_recording();
 				}}
 				class="record"
@@ -562,10 +562,10 @@
 			{#if footer_links.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_settings_visible(!settings_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadSettings();
 					}}
 					class="settings"
@@ -585,7 +585,7 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
 			id="api-recorder-container"
-			on:click={() => {
+			onclick={() => {
 				set_api_docs_visible(true);
 				api_recorder_visible = false;
 			}}
@@ -606,7 +606,7 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_api_docs_visible(false);
 				}}
 			/>
@@ -644,7 +644,7 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_settings_visible(false);
 				}}
 			/>

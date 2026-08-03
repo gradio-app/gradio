@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
 	import type { SimpleTextboxProps, SimpleTextboxEvents } from "./types";
 	import { Gradio } from "@gradio/utils";
@@ -65,8 +63,8 @@
 			placeholder={gradio.props.placeholder}
 			disabled={!gradio.shared.interactive}
 			dir={gradio.props.rtl ? "rtl" : "ltr"}
-			on:input={() => gradio.dispatch("input")}
-			on:keypress={handle_keypress}
+			oninput={() => gradio.dispatch("input")}
+			onkeypress={handle_keypress}
 		/>
 	</label>
 </Block>

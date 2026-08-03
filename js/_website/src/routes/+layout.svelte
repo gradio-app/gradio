@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	declare global {
 		interface Window {
 			__gradio_mode__: "app" | "website";
