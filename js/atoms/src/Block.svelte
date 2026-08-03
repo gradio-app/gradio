@@ -167,7 +167,9 @@
 
 	// Nothing reactive is read here, so this effect runs once and its cleanup
 	// only fires on destroy — tearing down a block while it is fullscreen would
-	// otherwise leak the keydown listener and the portal marker comment node.
+	// otherwise leak the keydown listener. It cannot be folded into the effect
+	// above, which re-runs on every `fullscreen` change and would therefore
+	// remove the listener immediately after adding it.
 	$effect(() => {
 		return () => {
 			window.removeEventListener("keydown", handleKeydown);
