@@ -68,6 +68,9 @@
 	let preexpansionBoundingRect: DOMRect | null = $state(null);
 	let portal_parent: (Node & ParentNode) | null = null;
 	let portal_marker: Comment | null = null;
+	// Kept outside `$state` so teardown can still reach the element after
+	// Svelte has cleared the `bind:this` binding.
+	let portal_element: HTMLElement | null = null;
 
 	function handleKeydown(event: KeyboardEvent): void {
 		if (fullscreen && event.key === "Escape") {
@@ -123,21 +126,23 @@
 	function enter_portal(el: HTMLElement, target: Node & ParentNode): void {
 		if (!el.parentNode || el.parentNode === target) return;
 		portal_parent = el.parentNode;
+		portal_element = el;
 		portal_marker = document.createComment("fullscreen block");
 		portal_parent.insertBefore(portal_marker, el);
 		target.appendChild(el);
 	}
 
-	function exit_portal(el: HTMLElement): void {
-		if (!portal_parent) return;
+	function exit_portal(): void {
+		if (!portal_parent || !portal_element) return;
 		const marker =
 			portal_marker && portal_marker.parentNode === portal_parent
 				? portal_marker
 				: null;
-		portal_parent.insertBefore(el, marker);
+		portal_parent.insertBefore(portal_element, marker);
 		marker?.remove();
 		portal_parent = null;
 		portal_marker = null;
+		portal_element = null;
 	}
 
 	$effect(() => {
@@ -154,10 +159,20 @@
 			}
 			window.addEventListener("keydown", handleKeydown);
 		} else {
-			exit_portal(el);
+			exit_portal();
 			preexpansionBoundingRect = null;
 			window.removeEventListener("keydown", handleKeydown);
 		}
+	});
+
+	// Nothing reactive is read here, so this effect runs once and its cleanup
+	// only fires on destroy — tearing down a block while it is fullscreen would
+	// otherwise leak the keydown listener and the portal marker comment node.
+	$effect(() => {
+		return () => {
+			window.removeEventListener("keydown", handleKeydown);
+			exit_portal();
+		};
 	});
 
 	const get_dimension = (

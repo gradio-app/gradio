@@ -6,13 +6,15 @@
 		HTMLAnchorAttributes,
 		"target" | "children"
 	> {
-		download: NonNullable<HTMLAnchorAttributes["download"]>;
+		// `null` omits the attribute entirely, which is how callers opt out of a
+		// native download (e.g. Colab, where the anchor has to open in a new tab).
+		download?: HTMLAnchorAttributes["download"] | null;
 		children?: Snippet;
 	}
 
 	let {
 		href = undefined,
-		download,
+		download = undefined,
 		children,
 		...rest
 	}: DownloadLinkAttributes = $props();
