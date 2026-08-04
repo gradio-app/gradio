@@ -13,6 +13,9 @@
 	];
 
 	// $: afterNavigate(() => (location.hash = $page.url.pathname.replace("/", "")));
+	import type { Snippet } from "svelte";
+
+	let { children }: { children?: Snippet } = $props();
 </script>
 
 <svelte:head>
@@ -38,7 +41,7 @@
 			<li><a href={url}>{name}</a></li>
 		{/each}
 	</ul>
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

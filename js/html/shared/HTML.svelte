@@ -27,18 +27,19 @@
 		onupdate_value,
 		children
 	}: {
-		elem_classes: string[];
-		props: Record<string, any>;
-		html_template: string;
-		css_template: string;
-		js_on_load: string | null;
+		// every one of these has a default in the destructure above
+		elem_classes?: string[];
+		props?: Record<string, any>;
+		html_template?: string;
+		css_template?: string;
+		js_on_load?: string | null;
 		head?: string | null;
-		visible: boolean;
-		autoscroll: boolean;
-		apply_default_css: boolean;
-		component_class_name: string;
-		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
-		server: Record<string, (...args: any[]) => Promise<any>>;
+		visible?: boolean;
+		autoscroll?: boolean;
+		apply_default_css?: boolean;
+		component_class_name?: string;
+		upload?: ((file: File) => Promise<{ path: string; url: string }>) | null;
+		server?: Record<string, (...args: any[]) => Promise<any>>;
 		onevent?: (detail: { type: "click" | "submit"; data: any }) => void;
 		onupdate_value?: (detail: {
 			data: any;

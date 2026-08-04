@@ -3,23 +3,18 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 
-	export let data;
+	let { data } = $props();
 
-	let components = data.components;
-	let helpers = data.helpers;
-	let modals = data.modals;
-	let routes = data.routes;
-	let py_client = data.py_client;
 	let wheel: any = data.wheel;
 	let install_command: string = wheel.gradio_js_client_install;
 
-	let readme_html = data.readme_html;
-	$: components = data.components;
-	$: helpers = data.helpers;
-	$: modals = data.modals;
-	$: routes = data.routes;
-	$: py_client = data.py_client;
-	$: on_main = data.on_main;
+	let readme_html = $derived(data.readme_html);
+	let components = $derived(data.components);
+	let helpers = $derived(data.helpers);
+	let modals = $derived(data.modals);
+	let routes = $derived(data.routes);
+	let py_client = $derived(data.py_client);
+	let on_main = $derived(data.on_main);
 </script>
 
 <MetaTags

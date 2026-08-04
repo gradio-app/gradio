@@ -4,16 +4,17 @@
 	import { BaseCode } from "@gradio/code";
 	import { BaseMarkdown } from "@gradio/markdown";
 
-	export let app: Client;
-	export let root: string;
-	let prompt = "";
-	let editorWidth = 350;
-	let isResizing = false;
-	let editorElement: HTMLDivElement;
-	let activeTab: "chat" | "code" = "chat";
+	let { app, root }: { app: Client; root: string } = $props();
 
-	let codeValue = "";
-	let diffStats: { lines_added: number; lines_removed: number } | null = null;
+	let prompt = $state("");
+	let editorWidth = $state(350);
+	let isResizing = false;
+	let editorElement: HTMLDivElement | undefined = $state();
+	let activeTab: "chat" | "code" = $state("chat");
+
+	let codeValue = $state("");
+	let diffStats: { lines_added: number; lines_removed: number } | null =
+		$state(null);
 
 	interface Message {
 		text: string;
@@ -22,9 +23,9 @@
 		hash?: string;
 	}
 
-	let message_history: Message[] = [];
+	let message_history: Message[] = $state([]);
 
-	let history_elem: HTMLDivElement;
+	let history_elem: HTMLDivElement | undefined = $state();
 
 	const scroll_to_bottom = (behavior: "smooth" | "auto" = "smooth"): void => {
 		if (!history_elem) return;
@@ -34,7 +35,7 @@
 		});
 	};
 
-	let starterQueries: string[] = [];
+	let starterQueries: string[] = $state([]);
 
 	const fetchStarterQueries = async (): Promise<void> => {
 		const post = app.post_data(`${root}/gradio_api/vibe-starter-queries/`, {});
@@ -203,7 +204,7 @@
 		}
 	};
 
-	let code_updated = false;
+	let code_updated = $state(false);
 
 	const updateCode = async (): Promise<void> => {
 		try {
@@ -219,13 +220,16 @@
 		}
 	};
 
-	$: (app, fetchCode());
+	$effect(() => {
+		app;
+		fetchCode();
+	});
 
-	$: if (activeTab === "chat") {
-		tick().then(() => scroll_to_bottom("auto"));
-	}
-
-	$: code_updated;
+	$effect(() => {
+		if (activeTab === "chat") {
+			tick().then(() => scroll_to_bottom("auto"));
+		}
+	});
 
 	function create_spaces_url(): void {
 		const base_URL = "https://huggingface.co/new-space";
@@ -245,8 +249,6 @@
 			document.removeEventListener("mouseup", handleResizeEnd);
 		};
 	});
-
-	$: starterQueries;
 </script>
 
 <div
@@ -257,20 +259,20 @@
 	<button
 		class="resize-handle"
 		aria-label="Resize sidebar"
-		on:mousedown={handleResizeStart}
+		onmousedown={handleResizeStart}
 	></button>
 	<div class="tab-header">
 		<button
 			class="tab-button"
 			class:active={activeTab === "chat"}
-			on:click={() => (activeTab = "chat")}
+			onclick={() => (activeTab = "chat")}
 		>
 			Chat
 		</button>
 		<button
 			class="tab-button"
 			class:active={activeTab === "code"}
-			on:click={() => (activeTab = "code")}
+			onclick={() => (activeTab = "code")}
 		>
 			Code
 			{#if diffStats && (diffStats.lines_added > 0 || diffStats.lines_removed > 0)}
@@ -306,7 +308,7 @@
 							{#if !message.isBot && message.hash && !message.isPending}
 								<button
 									class="undo-button"
-									on:click={() => undoMessage(message.hash || "", index)}
+									onclick={() => undoMessage(message.hash || "", index)}
 									title="Undo this change"
 								>
 									Undo
@@ -326,7 +328,7 @@
 							{#each starterQueries as query}
 								<button
 									class="starter-query-button"
-									on:click={() => handleStarterQuery(query)}
+									onclick={() => handleStarterQuery(query)}
 								>
 									{query}
 								</button>
@@ -352,7 +354,7 @@
 				<button
 					class:updating={code_updated}
 					class="update-code-button"
-					on:click={updateCode}
+					onclick={updateCode}
 				>
 					{#if code_updated}
 						Updated!
@@ -362,7 +364,7 @@
 				</button>
 				<button
 					class="deploy-to-spaces-button"
-					on:click={() => create_spaces_url()}
+					onclick={() => create_spaces_url()}
 				>
 					<span class="button-content">
 						Deploy to
@@ -404,7 +406,7 @@
 	<div class="input-section">
 		<div class="powered-by">Powered by: <code>gpt-oss</code></div>
 		<textarea
-			on:keydown={(e) => {
+			onkeydown={(e) => {
 				if (e.key === "Enter" && !e.shiftKey) {
 					e.preventDefault();
 					submit();
@@ -415,7 +417,7 @@
 			class="prompt-input"
 		/>
 		<button
-			on:click={() => submit()}
+			onclick={() => submit()}
 			class="submit-button"
 			disabled={prompt.trim() === ""}
 		>

@@ -3,16 +3,14 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 
-	export let data;
+	let { data } = $props();
 
-	let name = data.name;
-	let readme_html = data.readme_html;
-	let js_pages = data.js_pages;
+	let js_pages = $derived(data.js_pages);
 
-	let js_components = js_pages.filter((c) => c !== "js-client");
+	let js_components = $derived(js_pages.filter((c) => c !== "js-client"));
 
-	$: name = data.name;
-	$: readme_html = data.readme_html;
+	let name = $derived(data.name);
+	let readme_html = $derived(data.readme_html);
 </script>
 
 <MetaTags

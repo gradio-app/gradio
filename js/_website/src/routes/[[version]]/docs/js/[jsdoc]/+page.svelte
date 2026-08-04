@@ -3,29 +3,29 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 
-	export let data;
+	let { data } = $props();
 
-	let name = data.name;
-	let readme_html = data.readme_html;
-	let js_pages = data.js_pages;
+	let js_pages = $derived(data.js_pages);
 
-	let js_components = js_pages.filter((c) => c !== "js-client");
-	$: name = data.name;
+	let js_components = $derived(js_pages.filter((c) => c !== "js-client"));
+	let name = $derived(data.name);
 
-	$: current_jsdoc = $page.params?.jsdoc;
+	let current_jsdoc = $derived($page.params?.jsdoc);
 
-	$: prev_obj =
+	let prev_obj = $derived(
 		current_jsdoc === "atoms"
 			? "storybook"
 			: js_components[
 					js_components.findIndex((page: any) => page === current_jsdoc) - 1
-				];
-	$: next_obj =
+				]
+	);
+	let next_obj = $derived(
 		js_components[
 			js_components.findIndex((page: any) => page === current_jsdoc) + 1
-		];
+		]
+	);
 
-	$: readme_html = data.readme_html;
+	let readme_html = $derived(data.readme_html);
 </script>
 
 <MetaTags

@@ -10,38 +10,41 @@
 	import { clickOutside } from "$lib/components/clickOutside.js";
 	import CopyMarkdown from "$lib/components/CopyMarkdown.svelte";
 
-	export let data: {
-		guide: any;
-		guide_slug: {
-			text: string;
-			href: string;
-			level: number;
-		}[];
-		guide_names: {
-			category: string;
-			guides: {
-				name: string;
-				pretty_name: string;
-				url: string;
+	let {
+		data
+	}: {
+		data: {
+			guide: any;
+			guide_slug: {
+				text: string;
+				href: string;
+				level: number;
 			}[];
-		}[];
-	};
-	let guide_page = data.guide;
-	let guide_names = data.guide_names;
-	let guide_slug = data.guide_slug;
+			guide_names: {
+				category: string;
+				guides: {
+					name: string;
+					pretty_name: string;
+					url: string;
+				}[];
+			}[];
+		};
+	} = $props();
 
 	let header_targets: { [key: string]: HTMLElement } = {};
-	let current_header_id: string = "";
+	let current_header_id: string = $state("");
 
-	$: if (y !== undefined && guide_slug.length > 0) {
-		for (const slug of guide_slug) {
-			const id = slug.href.slice(1);
-			const el = document.getElementById(id);
-			if (el && y >= el.offsetTop - 100) {
-				current_header_id = id;
+	$effect(() => {
+		if (y !== undefined && guide_slug.length > 0) {
+			for (const slug of guide_slug) {
+				const id = slug.href.slice(1);
+				const el = document.getElementById(id);
+				if (el && y >= el.offsetTop - 100) {
+					current_header_id = id;
+				}
 			}
 		}
-	}
+	});
 
 	const COLORS = [
 		"bg-green-50 dark:bg-green-900/30",
@@ -54,35 +57,38 @@
 	let show_all = false;
 
 	let sidebar: HTMLElement;
-	let target_link: HTMLElement;
+	let target_link: HTMLElement = $state()!;
 	let navigation;
-	let y: number;
+	let y: number = $state()!;
 
-	let flattened_guides = guide_names.map((category) => category.guides).flat();
-	let prev_guide: any;
-	let next_guide: any;
 	let content_el: HTMLDivElement;
 
-	$: if (sidebar) {
-		if (
-			target_link?.previousElementSibling?.classList.contains("category-link")
-		) {
-			target_link = target_link.previousElementSibling as HTMLElement;
+	$effect(() => {
+		if (sidebar) {
+			if (
+				target_link?.previousElementSibling?.classList.contains("category-link")
+			) {
+				target_link = target_link.previousElementSibling as HTMLElement;
+			}
+			sidebar.scrollTop = target_link?.offsetTop;
 		}
-		sidebar.scrollTop = target_link?.offsetTop;
-	}
-	$: guide_page = data.guide;
-	$: guide_slug = data.guide_slug;
-	$: flattened_guides = guide_names.map((category) => category.guides).flat();
-	$: prev_guide =
+	});
+	let guide_page = $derived(data.guide);
+	let guide_slug = $derived(data.guide_slug);
+	let flattened_guides = $derived(
+		guide_names.map((category) => category.guides).flat()
+	);
+	let prev_guide = $derived(
 		flattened_guides[
 			flattened_guides.findIndex((guide) => guide.url === guide_page.url) - 1
-		];
-	$: next_guide =
+		]
+	);
+	let next_guide = $derived(
 		flattened_guides[
 			flattened_guides.findIndex((guide) => guide.url === guide_page.url) + 1
-		];
-	$: guide_names = data.guide_names;
+		]
+	);
+	let guide_names = $derived(data.guide_names);
 
 	let _details: (FancyDetails | void)[] = [];
 
@@ -119,15 +125,15 @@
 		});
 	}
 
-	$: content_el && data.guide.new_html && make_details();
+	$effect(() => {
+		content_el && data.guide.new_html && make_details();
+	});
 
-	let show_nav = false;
+	let show_nav = $state(false);
 
 	onNavigate(() => {
 		show_nav = false;
 	});
-
-	$: show_nav;
 
 	function get_category(name: string) {
 		if (guide_names) {
@@ -141,9 +147,7 @@
 		}
 	}
 
-	let category_and_name: any[] | undefined = get_category(guide_page.name);
-
-	$: category_and_name = get_category(guide_page.name);
+	let category_and_name = $derived(get_category(guide_page.name));
 </script>
 
 <MetaTags
@@ -161,13 +165,13 @@
 	>
 		<div
 			use:clickOutside
-			on:click_outside={() => (show_nav = false)}
+			onclick_outside={() => (show_nav = false)}
 			class:hidden={!show_nav}
 			class="max-w-max min-w-[75%] shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 px-6 py-4 h-full inset-0"
 			id="mobile-nav"
 		>
 			<button
-				on:click={() => (show_nav = false)}
+				onclick={() => (show_nav = false)}
 				type="button"
 				class="absolute z-10 top-4 right-4 w-2/12 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 p-4"
 				tabindex="0"
@@ -258,7 +262,7 @@
 			class="flex items-center p-4 border-b border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]"
 		>
 			<button
-				on:click={() => (show_nav = !show_nav)}
+				onclick={() => (show_nav = !show_nav)}
 				type="button"
 				class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
 			>

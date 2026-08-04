@@ -7,57 +7,59 @@
 	import { onNavigate } from "$app/navigation";
 	import '$lib/assets/theme.css';
 
-	export let data: any = {};
+	let {
+		data = {}
+	}: {
+		data?: any;
+	} = $props();
 
-	let name: string = data.name;
-	let on_main: boolean;
 	let wheel: any = data.wheel;
 	let install_command: string = wheel.gradio_install;
-	let url_version: string = data.url_version;
-
-	let y: number;
+	let y: number = $state()!;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
-	let module = data.module.default;
-	$: module = data.module.default;
+	let module = $derived(data.module.default);
 
 	let current_target: HTMLElement;
 
-	$: for (const target in header_targets) {
-		target_elem = document.querySelector(`#${target}`) as HTMLElement;
-		if (
-			y > target_elem?.offsetTop - 50 &&
-			y < target_elem?.offsetTop + target_elem?.offsetHeight
-		) {
-			current_target = header_targets[target];
-			current_target.classList.add("current-nav-link");
-			Object.values(header_targets).forEach((target) => {
-				if (target !== current_target && target) {
-					target.classList.remove("current-nav-link");
-				}
-			});
-		} 
-	}
+	$effect(() => {
+	for (const target in header_targets) {
+			target_elem = document.querySelector(`#${target}`) as HTMLElement;
+			if (
+				y > target_elem?.offsetTop - 50 &&
+				y < target_elem?.offsetTop + target_elem?.offsetHeight
+			) {
+				current_target = header_targets[target];
+				current_target.classList.add("current-nav-link");
+				Object.values(header_targets).forEach((target) => {
+					if (target !== current_target && target) {
+						target.classList.remove("current-nav-link");
+					}
+				});
+			} 
+		}
+	});
 
-	$: name = data.name;
-	$: on_main = data.on_main;
-	$: url_version = data.url_version;
-	$: pages = data.pages.gradio;
-	$: page_path = data.page_path;
+	let name = $derived(data.name);
+	let on_main = $derived(data.on_main);
+	let url_version = $derived(data.url_version);
+	let pages = $derived(data.pages.gradio);
+	let page_path = $derived(data.page_path);
 
-	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+	let flattened_pages = $derived(pages.map((category: any) => category.pages).flat());
 
-	let component_name = $page.params?.doc;
-	$: component_name = $page.params?.doc;
+	let component_name = $derived($page.params?.doc);
 
-	$: prev_obj =
-	flattened_pages[
-		flattened_pages.findIndex((page: any) => page.name === component_name) - 1
-		];
-	$: next_obj =
+	let prev_obj = $derived(
 		flattened_pages[
-			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
-		];
+			flattened_pages.findIndex((page: any) => page.name === component_name) - 1
+			]
+	);
+	let next_obj = $derived(
+		flattened_pages[
+				flattened_pages.findIndex((page: any) => page.name === component_name) + 1
+			]
+	);
 	
 	function get_headers() {
 		let headers: any[] = [];
@@ -87,22 +89,23 @@
 		return guides;
 	}
 	
-	var all_headers : {headers: any[], page_title: {title: string, id: string}} = {headers: [], page_title: {title: "", id: ""}};
-	var related_guides: {name: string, url: string}[] = [];
+	let all_headers : {headers: any[], page_title: {title: string, id: string}} = $state({headers: [], page_title: {title: "", id: ""}});
+	let related_guides: {name: string, url: string}[] = $state([]);
 	var dynamic_component: any = null;
 
-	$: if (dynamic_component) {
-		all_headers = get_headers();
-		related_guides = get_related_guides();
-	}
+	$effect(() => {
+	if (dynamic_component) {
+			all_headers = get_headers();
+			related_guides = get_related_guides();
+		}
+	});
 
-	let show_nav = false;
+	let show_nav = $state(false);
 
 	onNavigate(() => {
 		show_nav = false;
 	});
 
-	$: show_nav;
 
 	function get_category(name: string) {
 		if (pages) {
@@ -117,9 +120,7 @@
 	}
 
 
-	let category_and_name: any[] | undefined = get_category(name);
-
-	$: category_and_name = get_category(name);
+	let category_and_name = $derived(get_category(name));
 
 </script>
 
@@ -135,7 +136,7 @@
 <main class="container mx-auto px-4 pt-8 flex flex-col gap-4">
 	<div class="flex items-center p-4 border-b border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]">
 		<button 
-		on:click={() => (show_nav = !show_nav)}
+	 onclick={() => (show_nav = !show_nav)}
 		type="button" class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300">
 			<svg width="24" height="24"><path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
 		</button>

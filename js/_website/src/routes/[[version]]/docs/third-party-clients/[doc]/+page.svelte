@@ -3,51 +3,57 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 
-	export let data: any = {};
+	let {
+		data = {}
+	}: {
+		data?: any;
+	} = $props();
 
-	let name: string = data.name;
-	let module = data.module.default;
-
-	let y: number;
+	let y: number = $state()!;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
 
 	let current_target: HTMLElement;
 
-	$: for (const target in header_targets) {
-		target_elem = document.querySelector(`#${target}`) as HTMLElement;
-		if (
-			y > target_elem?.offsetTop - 50 &&
-			y < target_elem?.offsetTop + target_elem?.offsetHeight
-		) {
-			current_target = header_targets[target];
-			current_target.classList.add("current-nav-link");
-			Object.values(header_targets).forEach((target) => {
-				if (target !== current_target && target) {
-					target.classList.remove("current-nav-link");
-				}
-			});
+	$effect(() => {
+		for (const target in header_targets) {
+			target_elem = document.querySelector(`#${target}`) as HTMLElement;
+			if (
+				y > target_elem?.offsetTop - 50 &&
+				y < target_elem?.offsetTop + target_elem?.offsetHeight
+			) {
+				current_target = header_targets[target];
+				current_target.classList.add("current-nav-link");
+				Object.values(header_targets).forEach((target) => {
+					if (target !== current_target && target) {
+						target.classList.remove("current-nav-link");
+					}
+				});
+			}
 		}
-	}
+	});
 
-	$: name = data.name;
-	$: pages = data.pages["third-party-clients"];
-	$: page_path = data.page_path;
-	$: module = data.module.default;
+	let name = $derived(data.name);
+	let pages = $derived(data.pages["third-party-clients"]);
+	let page_path = $derived(data.page_path);
+	let module = $derived(data.module.default);
 
-	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+	let flattened_pages = $derived(
+		pages.map((category: any) => category.pages).flat()
+	);
 
-	let component_name = $page.params?.doc;
-	$: component_name = $page.params?.doc;
+	let component_name = $derived($page.params?.doc);
 
-	$: prev_obj =
+	let prev_obj = $derived(
 		flattened_pages[
 			flattened_pages.findIndex((page: any) => page.name === component_name) - 1
-		];
-	$: next_obj =
+		]
+	);
+	let next_obj = $derived(
 		flattened_pages[
 			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
-		];
+		]
+	);
 
 	function get_headers() {
 		let headers: any[] = [];
@@ -68,26 +74,28 @@
 		return { headers: headers, page_title: page_title };
 	}
 
-	var all_headers: {
+	let all_headers: {
 		headers: any[];
 		page_title: { title: string; id: string };
-	} = { headers: [], page_title: { title: "", id: "" } };
+	} = $state({ headers: [], page_title: { title: "", id: "" } });
 
 	var dynamic_component: any = null;
 
-	$: if (dynamic_component) {
-		all_headers = get_headers();
-	}
-	let title: string;
-	let description: string;
-	$: title =
+	$effect(() => {
+		if (dynamic_component) {
+			all_headers = get_headers();
+		}
+	});
+	let title = $derived(
 		all_headers.page_title.title === "Introduction"
 			? "Third Party Client - " + all_headers.page_title.title + " Docs"
-			: "Third Python Client - " + all_headers.page_title.title + " Class Docs";
-	$: description =
+			: "Third Python Client - " + all_headers.page_title.title + " Class Docs"
+	);
+	let description = $derived(
 		all_headers.page_title.title === "Introduction"
 			? "Make programmatic requests to Gradio applications from third party clients."
-			: "Using " + all_headers.page_title.title;
+			: "Using " + all_headers.page_title.title
+	);
 </script>
 
 <MetaTags

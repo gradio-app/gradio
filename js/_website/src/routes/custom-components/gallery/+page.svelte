@@ -7,12 +7,12 @@
 	import { clickOutside, getComponents } from "./utils";
 	import { theme } from "$lib/stores/theme";
 
-	let components: ComponentData[] = [];
-	let selection: string = "";
-	let link_copied = false;
+	let components: ComponentData[] = $state([]);
+	let selection: string = $state("");
+	let link_copied = $state(false);
 
-	let selected_component: ComponentData | null = null;
-	let components_length: number = 0;
+	let selected_component: ComponentData | null = $state(null);
+	let components_length: number = $state(0);
 
 	const COLOR_SETS = [
 		"from-red-50 via-red-100 to-red-50 dark:from-red-950 dark:via-red-900 dark:to-red-950",
@@ -76,7 +76,9 @@
 		});
 	}
 
-	$: if (browser) fetch_components(selection.split(","));
+	$effect(() => {
+		if (browser) fetch_components(selection.split(","));
+	});
 </script>
 
 <MetaTags
@@ -92,7 +94,7 @@
 		class="w-full border border-gray-200 dark:border-gray-700 dark:bg-neutral-800 dark:text-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
 		placeholder="What are you looking for?"
 		autocomplete="off"
-		on:keyup={handle_keypress}
+		onkeyup={handle_keypress}
 		bind:value={selection}
 	/>
 	<div class="text-gray-600 dark:text-gray-300 mb-0 mx-auto w-fit text-sm">
@@ -106,7 +108,7 @@
 	<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 !m-0 !mt-8">
 		{#each components as component (component.id)}
 			<div
-				on:click={(event) => {
+				onclick={(event) => {
 					handle_box_click(component);
 					event.stopPropagation();
 				}}
@@ -189,7 +191,7 @@
 		<div class="self-end mr-8 flex">
 			{#if !link_copied}
 				<button
-					on:click={(e) => {
+					onclick={(e) => {
 						link_copied = true;
 						copy_link(component.id);
 					}}

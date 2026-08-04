@@ -3,29 +3,35 @@
 	import { page } from "$app/stores";
 	import { clickOutside } from "$lib/components/clickOutside.js";
 
-	export let data: {
-		content: any;
-		changelog_slug: {
-			text: string;
-			href: string;
-		}[];
-	};
+	let {
+		data
+	}: {
+		data: {
+			content: any;
+			changelog_slug: {
+				text: string;
+				href: string;
+			}[];
+		};
+	} = $props();
 
-	$: content = data.content;
-	$: slugs = data.changelog_slug || [];
-	let show_nav = false;
-	let y: number;
-	let current_slug: string = "";
+	let content = $derived(data.content);
+	let slugs = $derived(data.changelog_slug || []);
+	let show_nav = $state(false);
+	let y: number = $state()!;
+	let current_slug: string = $state("");
 
-	$: if (typeof document !== "undefined" && y !== undefined) {
-		for (const slug of slugs) {
-			const id = slug.href.replace("#", "");
-			const elem = document.getElementById(id);
-			if (elem && y >= elem.offsetTop - 100) {
-				current_slug = slug.href;
+	$effect(() => {
+		if (typeof document !== "undefined" && y !== undefined) {
+			for (const slug of slugs) {
+				const id = slug.href.replace("#", "");
+				const elem = document.getElementById(id);
+				if (elem && y >= elem.offsetTop - 100) {
+					current_slug = slug.href;
+				}
 			}
 		}
-	}
+	});
 </script>
 
 <svelte:window bind:scrollY={y} />
@@ -42,7 +48,7 @@
 		class="flex items-center p-4 border-b border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]"
 	>
 		<button
-			on:click={() => (show_nav = !show_nav)}
+			onclick={() => (show_nav = !show_nav)}
 			type="button"
 			class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
 		>
@@ -71,13 +77,13 @@
 
 		<div
 			use:clickOutside
-			on:click_outside={() => (show_nav = false)}
+			onclick_outside={() => (show_nav = false)}
 			class="w-64 flex-shrink-0 max-h-[calc(100vh-4rem)] overflow-y-auto max-lg:fixed max-lg:inset-0 max-lg:z-50 bg-white lg:bg-transparent dark:bg-neutral-900 lg:dark:bg-transparent p-6 lg:sticky lg:top-8 lg:self-start {show_nav
 				? 'block'
 				: 'hidden lg:block'}"
 		>
 			<button
-				on:click={() => (show_nav = false)}
+				onclick={() => (show_nav = false)}
 				type="button"
 				class="absolute z-10 top-4 right-4 flex items-center justify-center text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 lg:hidden"
 				tabindex="0"
@@ -104,7 +110,7 @@
 						{#each slugs as heading}
 							<li>
 								<a
-									on:click={() => (show_nav = false)}
+									onclick={() => (show_nav = false)}
 									class="block text-sm transition-colors py-1 {current_slug ===
 									heading.href
 										? 'text-orange-500 font-medium'

@@ -5,11 +5,15 @@
 			__gradio_space__: string | null;
 		}
 	}
-	import type { media_query as MQ } from "../lib/utils";
-	export let store: ReturnType<typeof MQ>;
+	import { media_query } from "../lib/utils";
+
+	// Header.svelte imports this from the module scope; it was an `export let`
+	// assigned by the instance script, which runes mode does not allow.
+	export const store = media_query();
 </script>
 
 <script lang="ts">
+	import { mount, type Snippet } from "svelte";
 	import "$lib/assets/style.css";
 	import "$lib/assets/prism.css";
 
@@ -19,24 +23,24 @@
 	import WHEEL from "$lib/json/wheel.json";
 
 	import { browser } from "$app/environment";
-	import { media_query } from "../lib/utils";
-
-	const mediaQueryStore = media_query();
-	store = mediaQueryStore;
 	import { theme } from "$lib/stores/theme";
+
+	let { children }: { children?: Snippet } = $props();
 
 	if (browser) {
 		window.__gradio_mode__ = "website";
 	}
 
 	// Reactively apply dark mode class when theme changes
-	$: if (typeof window !== "undefined") {
-		if ($theme === "dark") {
-			document.documentElement.classList.add("dark");
-		} else {
-			document.documentElement.classList.remove("dark");
+	$effect(() => {
+		if (typeof window !== "undefined") {
+			if ($theme === "dark") {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
 		}
-	}
+	});
 
 	import CopyButton from "$lib/components/CopyButton.svelte";
 	import { afterNavigate } from "$app/navigation";
@@ -44,17 +48,17 @@
 	afterNavigate(() => {
 		if (window.innerWidth > 768) {
 			for (const node of document.querySelectorAll(".codeblock")) {
-				let children = Array.from(node.querySelectorAll("pre, a"));
+				let code_children = Array.from(node.querySelectorAll("pre, a"));
 				let textContent = node.textContent;
 				node.innerHTML = "";
 
-				new CopyButton({
+				mount(CopyButton, {
 					target: node,
 					props: {
 						content: textContent ?? ""
 					}
 				});
-				for (const child of children) {
+				for (const child of code_children) {
 					node.appendChild(child);
 				}
 			}
@@ -87,7 +91,7 @@
 <div class="bg-white dark:bg-neutral-900 min-h-screen transition-colors">
 	<Header />
 
-	<slot />
+	{@render children?.()}
 
 	<Footer />
 </div>

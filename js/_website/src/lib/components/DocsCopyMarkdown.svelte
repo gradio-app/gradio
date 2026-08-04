@@ -6,14 +6,18 @@
 	import IconHuggingChat from "./icons/IconHuggingChat.svelte";
 	import { tick } from "svelte";
 
-	export let doc_name: string;
+	let {
+		doc_name
+	}: {
+		doc_name: string;
+	} = $props();
 
-	let copied = false;
-	let loading = false;
-	let open = false;
+	let copied = $state(false);
+	let loading = $state(false);
+	let open = $state(false);
 	let triggerEl: HTMLDivElement | null = null;
-	let menuEl: HTMLDivElement | null = null;
-	let menuStyle = "";
+	let menuEl: HTMLDivElement | null = $state(null);
+	let menuStyle = $state("");
 
 	const isClient = typeof window !== "undefined";
 
@@ -168,16 +172,16 @@ Read the documentation above so I can ask questions about it.`;
 </script>
 
 <svelte:window
-	on:mousedown={handleWindowPointer}
-	on:keydown={handleWindowKeydown}
-	on:resize={handleWindowResize}
-	on:scroll={handleWindowScroll}
+	onmousedown={handleWindowPointer}
+	onkeydown={handleWindowKeydown}
+	onresize={handleWindowResize}
+	onscroll={handleWindowScroll}
 />
 
 <div class="container-wrapper">
 	<div bind:this={triggerEl} class="trigger-wrapper">
 		<button
-			on:click={() => copyMarkdown()}
+			onclick={() => copyMarkdown()}
 			class="copy-button"
 			aria-live="polite"
 			disabled={loading}
@@ -192,7 +196,7 @@ Read the documentation above so I can ask questions about it.`;
 			<span>{copied ? "Copied!" : loading ? "Loading..." : "Copy Page"}</span>
 		</button>
 		<button
-			on:click={toggleMenu}
+			onclick={toggleMenu}
 			class="menu-toggle-button"
 			aria-haspopup="menu"
 			aria-expanded={open}
@@ -209,7 +213,7 @@ Read the documentation above so I can ask questions about it.`;
 			class="backdrop-overlay"
 			aria-hidden="true"
 			style="background: transparent;"
-			on:click={closeMenu}
+			onclick={closeMenu}
 		></div>
 		<div
 			bind:this={menuEl}
@@ -220,7 +224,7 @@ Read the documentation above so I can ask questions about it.`;
 		>
 			<button
 				role="menuitem"
-				on:click={() => {
+				onclick={() => {
 					copyMarkdown();
 					closeMenu();
 				}}
@@ -237,7 +241,7 @@ Read the documentation above so I can ask questions about it.`;
 
 			<button
 				role="menuitem"
-				on:click={() => openHuggingChat()}
+				onclick={() => openHuggingChat()}
 				class="base-menu-item"
 			>
 				<div class="menu-icon-container">

@@ -3,9 +3,13 @@
 	import { page } from "$app/stores";
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 
-	export let data: {
-		[key: string]: any;
-	};
+	let {
+		data
+	}: {
+		data: {
+			[key: string]: any;
+		};
+	} = $props();
 </script>
 
 <MetaTags
