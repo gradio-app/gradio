@@ -73,6 +73,7 @@
 			sidebar.scrollTop = target_link?.offsetTop;
 		}
 	});
+	let guide_names = $derived(data.guide_names);
 	let guide_page = $derived(data.guide);
 	let guide_slug = $derived(data.guide_slug);
 	let flattened_guides = $derived(
@@ -88,7 +89,6 @@
 			flattened_guides.findIndex((guide) => guide.url === guide_page.url) + 1
 		]
 	);
-	let guide_names = $derived(data.guide_names);
 
 	let _details: (FancyDetails | void)[] = [];
 

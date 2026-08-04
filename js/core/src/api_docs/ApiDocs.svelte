@@ -83,20 +83,6 @@
 
 	let cli_command = $derived(cli_flavor === "hf" ? "hf gradio" : "gradio");
 
-	let sorted_dependencies = $derived.by(() => {
-		const valid = dependencies.filter(
-			(dep) =>
-				dep.api_visibility === "public" &&
-				info?.named_endpoints?.["/" + dep.api_name]
-		);
-		if (info && last_api_call) {
-			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
-			const others = valid.filter((dep) => dep.id !== last_api_call.fn_index);
-			return mostRecent ? [mostRecent, ...others] : valid;
-		}
-		return valid;
-	});
-
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
 		url.searchParams.set(key, value);
@@ -148,6 +134,20 @@
 
 	let js_info: Record<string, any> = $state()!;
 	let analytics: Record<string, any> = $state()!;
+
+	let sorted_dependencies = $derived.by(() => {
+		const valid = dependencies.filter(
+			(dep) =>
+				dep.api_visibility === "public" &&
+				info?.named_endpoints?.["/" + dep.api_name]
+		);
+		if (info && last_api_call) {
+			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
+			const others = valid.filter((dep) => dep.id !== last_api_call.fn_index);
+			return mostRecent ? [mostRecent, ...others] : valid;
+		}
+		return valid;
+	});
 
 	get_info().then((data) => {
 		info = data;
