@@ -47,13 +47,6 @@
 		sidebar_div.closest(".wrap")?.classList.add("sidebar-parent");
 		check_overlap();
 		window.addEventListener("resize", check_overlap);
-		const update_parent_overlap = (): void => {
-			document.documentElement.style.setProperty(
-				"--overlap-amount",
-				`${overlap_amount}px`
-			);
-		};
-		update_parent_overlap();
 		mounted = true;
 		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 		prefersReducedMotion = mediaQuery.matches;
@@ -65,6 +58,13 @@
 			window.removeEventListener("resize", check_overlap);
 			mediaQuery.removeEventListener("change", updateMotionPreference);
 		};
+	});
+
+	$effect(() => {
+		document.documentElement.style.setProperty(
+			"--overlap-amount",
+			`${overlap_amount}px`
+		);
 	});
 
 	// We need to wait for the component to be mounted before we can set the open state
