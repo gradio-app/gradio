@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { listHistory, deleteHistory } from "./history-api";
 
 	interface HistoryInput {
 		value: any;
@@ -24,13 +25,11 @@
 	}
 
 	let {
-		server = {},
 		onload = undefined,
 		onclose,
 		onchange = undefined,
 		triggerRefresh = 0
 	}: {
-		server?: Record<string, any>;
 		onload?: (inputs: Record<string, HistoryInput>) => void;
 		onclose: () => void;
 		onchange?: () => void;
@@ -91,12 +90,7 @@
 	}
 
 	async function fetchRecords() {
-		if (!server?.list_history) {
-			error = "History not available";
-			return;
-		}
-		const raw = await server.list_history([null, 50]);
-		const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+		const data = await listHistory(null, 50);
 		records = (data.records as HistoryRecord[]) ?? [];
 		repoId = data.repo_id ?? null;
 	}
@@ -270,32 +264,30 @@
 										Load inputs
 									</button>
 								{/if}
-								{#if server?.delete_history}
-									{#if pendingDelete === record.id}
-										<button
-											class="card-delete-confirm"
-											onclick={async () => {
-												pendingDelete = null;
-												try {
-													await server.delete_history([record.id, record.timestamp]);
-													records = records.filter((r) => r.id !== record.id);
-												} catch {}
-											}}
-										>Delete?</button>
-										<button
-											class="card-delete-cancel"
-											onclick={() => (pendingDelete = null)}
-										>Cancel</button>
-									{:else}
-										<button
-											class="card-delete-btn"
-											onclick={() => (pendingDelete = record.id)}
-											title="Delete this generation"
-											aria-label="Delete"
-										>
-											&#x2715;
-										</button>
-									{/if}
+								{#if pendingDelete === record.id}
+									<button
+										class="card-delete-confirm"
+										onclick={async () => {
+											pendingDelete = null;
+											try {
+												await deleteHistory(record.id, record.timestamp);
+												records = records.filter((r) => r.id !== record.id);
+											} catch {}
+										}}
+									>Delete?</button>
+									<button
+										class="card-delete-cancel"
+										onclick={() => (pendingDelete = null)}
+									>Cancel</button>
+								{:else}
+									<button
+										class="card-delete-btn"
+										onclick={() => (pendingDelete = record.id)}
+										title="Delete this generation"
+										aria-label="Delete"
+									>
+										&#x2715;
+									</button>
 								{/if}
 							</div>
 						</div>

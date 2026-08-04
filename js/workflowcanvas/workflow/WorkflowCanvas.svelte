@@ -10,6 +10,7 @@
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
 	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
+	import { listHistory, pushHistory } from "./history-api";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -200,16 +201,9 @@
 	});
 
 	$effect(() => {
-		if (!server?.list_history) return;
-		void server
-			.list_history([null, 0])
-			.then((raw: string) => {
-				try {
-					const parsed = JSON.parse(raw);
-					historyAvailable = parsed?.repo_id != null;
-				} catch {
-					/* ignore */
-				}
+		void listHistory(null, 0)
+			.then((data) => {
+				historyAvailable = data?.repo_id != null;
 			})
 			.catch(() => {});
 	});
@@ -1704,7 +1698,7 @@
 		abortController = null;
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
 
-		if (!wasAborted && !hasErrors && server?.push_history) {
+		if (!wasAborted && !hasErrors) {
 			try {
 				const MEDIA_PORT_TYPES = new Set(["image", "audio", "video"]);
 				const extractValue = (raw: any, type: string): any => {
@@ -1769,8 +1763,7 @@
 					outputs: genOutputs,
 					user: null
 				};
-				server
-					.push_history([JSON.stringify(record)])
+				pushHistory(record)
 					.then(() => {
 						if (showHistoryPanel) {
 							setTimeout(() => {
@@ -2368,7 +2361,7 @@
 				>
 					History
 				</button>
-			{:else if server?.connect_history}
+			{:else}
 				<button
 					class="tool-btn connect-bucket-btn"
 					onclick={() => (showHistoryConnect = true)}
@@ -2872,7 +2865,6 @@
 
 	{#if showHistoryConnect}
 		<WorkflowHistoryConnect
-			{server}
 			workflowName={$workflow.name}
 			onconnected={() => {
 				historyAvailable = true;
@@ -2885,7 +2877,6 @@
 
 	{#if showHistoryPanel}
 		<WorkflowHistoryPanel
-			{server}
 			triggerRefresh={historyRefreshCount}
 			onclose={() => (showHistoryPanel = false)}
 			onchange={() => {

@@ -1,4 +1,4 @@
-"""Unit tests for gradio.workflow_history.WorkflowHistory and build_history_record."""
+"""Unit tests for gradio.history.BucketHistory and build_history_record."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import json
 import threading
 from unittest.mock import MagicMock, patch
 
-from gradio.workflow_history import WorkflowHistory, build_history_record
+from gradio.history import BucketHistory, build_history_record
 
 # ─── build_history_record ─────────────────────────────────────────────────────
 
@@ -103,12 +103,12 @@ def test_build_history_record_missing_port_uses_default():
     assert record["inputs"]["ref_0"]["port_id"] == "out_0"
 
 
-# ─── WorkflowHistory ──────────────────────────────────────────────────────────
+# ─── BucketHistory ──────────────────────────────────────────────────────────
 
 
 def _make_history(repo_id="user/test-history"):
     mock_api = MagicMock()
-    wh = WorkflowHistory.__new__(WorkflowHistory)
+    wh = BucketHistory.__new__(BucketHistory)
     wh.repo_id = repo_id
     wh._token = "tok"
     wh._api = mock_api
@@ -257,11 +257,11 @@ def test_push_graph_file():
 
 def test_ensure_repo_creates_bucket():
     with (
-        patch("gradio.workflow_history.HfApi") as mock_api_cls,
-        patch("gradio.workflow_history.hf_get_token", return_value="tok"),
+        patch("gradio.history.HfApi") as mock_api_cls,
+        patch("gradio.history.hf_get_token", return_value="tok"),
     ):
         mock_api = mock_api_cls.return_value
-        wh = WorkflowHistory("user/new-bucket", token="tok")
+        wh = BucketHistory("user/new-bucket", token="tok")
         wh._api = mock_api
         wh.ensure_repo()
         mock_api.create_bucket.assert_called_once_with(

@@ -26,7 +26,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
-    from gradio.workflow_history import WorkflowHistory
+    from gradio.history import BucketHistory
 
 logger = logging.getLogger(__name__)
 
@@ -712,7 +712,7 @@ def _build_endpoint_fn(
     free_ids: list[str],
     callers: dict[str, Callable],
     api_name: str = "",
-    get_history: Optional[Callable[[], Optional[WorkflowHistory]]] = None,
+    get_history: Optional[Callable[[], Optional[BucketHistory]]] = None,
     free_items: Optional[list[dict]] = None,
 ):
     """Build the callable backing one subgraph endpoint. `subject_ids` are all
@@ -783,7 +783,7 @@ def _build_endpoint_fn(
 
 
 def _record_generation(
-    history: WorkflowHistory,
+    history: BucketHistory,
     api_name: str,
     graph: WorkflowGraph,
     free_items: list[dict],
@@ -792,8 +792,8 @@ def _record_generation(
     results: list[Any],
     request: Any,
 ) -> None:
-    """Fire-and-forget: push a generation record to WorkflowHistory."""
-    from gradio.workflow_history import build_history_record
+    """Fire-and-forget: push a generation record to BucketHistory."""
+    from gradio.history import build_history_record
 
     user: str | None = None
     try:
@@ -833,7 +833,7 @@ class WorkflowEndpointManager:
         blocks,
         get_graph: Callable[[], Optional[WorkflowGraph]],
         callers: dict[str, Callable],
-        get_history: Optional[Callable[[], Optional[WorkflowHistory]]] = None,
+        get_history: Optional[Callable[[], Optional[BucketHistory]]] = None,
     ):
         self.blocks = blocks
         self.get_graph = get_graph
@@ -937,7 +937,7 @@ def register_workflow_endpoints(
     blocks,
     get_graph: Callable[[], Optional[WorkflowGraph]],
     callers: dict[str, Callable],
-    get_history: Optional[Callable[[], Optional[WorkflowHistory]]] = None,
+    get_history: Optional[Callable[[], Optional[BucketHistory]]] = None,
 ) -> WorkflowEndpointManager:
     """Create a `WorkflowEndpointManager` and register the initial endpoint set
     from the current graph. Returns the manager so the caller can `.sync()` it

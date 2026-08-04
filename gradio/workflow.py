@@ -956,7 +956,10 @@ def call_model(
                     pipeline_tag = info.pipeline_tag or ""
                     if pipeline_tag:
                         with _MODEL_TAG_LOCK:
-                            _MODEL_TAG_CACHE[model_id] = (pipeline_tag, _time.monotonic())
+                            _MODEL_TAG_CACHE[model_id] = (
+                                pipeline_tag,
+                                _time.monotonic(),
+                            )
                 except Exception:
                     pass
 
@@ -1599,7 +1602,7 @@ class Workflow(Blocks):
                 self._workflow_file,
             )
 
-        self._wh = self._resolve_history()
+        self._history = self._resolve_history()
         self._graph_push_timer: threading.Timer | None = None
         self._graph_push_lock = threading.Lock()
 
@@ -1753,12 +1756,12 @@ class Workflow(Blocks):
                                 "Workflow: endpoint sync after save failed",
                                 exc_info=True,
                             )
-                if self._wh is not None:
+                if self._history is not None:
                     with self._graph_push_lock:
                         if self._graph_push_timer is not None:
                             self._graph_push_timer.cancel()
                         t = threading.Timer(
-                            30.0, self._wh.push_graph_file, args=(payload,)
+                            30.0, self._history.push_graph_file, args=(payload,)
                         )
                         t.daemon = True
                         t.start()
@@ -1768,154 +1771,24 @@ class Workflow(Blocks):
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
 
-        def list_history(
-            data=None,
-            request: Optional[Request] = None,
-            token: Optional[OAuthToken] = None,
-        ) -> str:
-            """Return recent generation records for the History panel."""
-            if not has_write_access(request, token):
-                return json.dumps({"records": [], "repo_id": None})
-            if self._wh is None:
-                return json.dumps({"records": [], "repo_id": None})
-            subgraph = data[0] if data else None
-            limit = (
-                int(data[1]) if data and len(data) > 1 and data[1] is not None else 50
-            )
-            if limit == 0:
-                return json.dumps({"records": [], "repo_id": self._wh.repo_id})
-            records = self._wh.list(limit=limit, subgraph=subgraph or None)
-            return json.dumps({"records": records, "repo_id": self._wh.repo_id})
-
-        def connect_history(
-            data=None,
-            request: Optional[Request] = None,
-            token: Optional[OAuthToken] = None,
-        ) -> str:
-            """Connect (or switch) the workflow to a HF Hub bucket for history.
-
-            data[0]: bucket_id string, e.g. ``"user/my-history"``.
-            data[1]: optional bool — if truthy, auto-derive bucket_id from the
-                     HF username and workflow name (same as ``history=True``).
-            """
-            if not has_write_access(request, token):
-                return json.dumps(
-                    {"error": "Write access required", "error_type": "auth"}
+        # Callback used by the core /gradio_api/history/connect route to write
+        # the repo id back into workflow.json so it survives restarts.
+        def _persist_history_repo(repo_id: str) -> None:
+            try:
+                with _save_lock:
+                    raw = _load_initial()
+                    if raw:
+                        parsed = json.loads(raw)
+                        parsed["history_repo"] = repo_id
+                        with open(workflow_file, "w", encoding="utf-8") as f:
+                            json.dump(parsed, f, ensure_ascii=False)
+            except Exception:
+                logger.debug(
+                    "_persist_history_repo: could not persist to workflow.json",
+                    exc_info=True,
                 )
-            try:
-                from gradio.workflow_history import WorkflowHistory
 
-                auto = data[1] if data and len(data) > 1 else False
-                hf_token = (
-                    token.token if token is not None else None
-                ) or hf_get_token()
-                if auto:
-                    user = HfApi(token=hf_token).whoami()["name"]
-                    try:
-                        with open(workflow_file, encoding="utf-8") as _f:
-                            _wf_name = json.load(_f).get("name") or self._workflow_name
-                    except Exception:
-                        _wf_name = self._workflow_name
-                    slug = re.sub(r"[^a-z0-9-]", "-", _wf_name.lower()).strip("-")
-                    repo_id = f"{user}/{slug}-history"
-                else:
-                    repo_id = (data[0] if data else "").strip()
-                if not re.fullmatch(
-                    r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*", repo_id
-                ):
-                    return json.dumps({"error": f"Invalid bucket ID: {repo_id}"})
-
-                wh = WorkflowHistory(repo_id=repo_id, token=hf_token)
-                wh.ensure_repo()
-                self._wh = wh
-
-                try:
-                    with _save_lock:
-                        raw = _load_initial()
-                        if raw:
-                            parsed = json.loads(raw)
-                            parsed["history_repo"] = repo_id
-                            with open(workflow_file, "w", encoding="utf-8") as f:
-                                json.dump(parsed, f, ensure_ascii=False)
-                except Exception:
-                    logger.debug(
-                        "connect_history: could not persist to workflow.json",
-                        exc_info=True,
-                    )
-
-                return json.dumps({"ok": True, "repo_id": repo_id})
-            except Exception as e:
-                logger.error("connect_history failed: %s", e, exc_info=True)
-                return json.dumps({"error": str(e)})
-
-        def push_history(
-            data=None,
-            request: Optional[Request] = None,
-            token: Optional[OAuthToken] = None,
-        ) -> str:
-            """Accept a pre-built record from a client-side run and push it to Hub.
-
-            data[0]: JSON string of the history record dict.
-            """
-            if not has_write_access(request, token):
-                return json.dumps({"ok": False, "reason": "auth"})
-            if self._wh is None:
-                return json.dumps({"ok": False, "reason": "no_history"})
-            try:
-                record = json.loads(data[0]) if data else {}
-                if not record.get("id"):
-                    return json.dumps({"ok": False, "reason": "invalid_record"})
-                self._wh.push(record)
-                return json.dumps({"ok": True})
-            except Exception as e:
-                logger.debug("push_history failed: %s", e, exc_info=True)
-                return json.dumps({"ok": False, "reason": str(e)})
-
-        def list_user_buckets(
-            _data=None,
-            request: Optional[Request] = None,
-            token: Optional[OAuthToken] = None,
-        ) -> str:
-            """Return the authenticated user's Hub buckets for the connect modal."""
-            if not has_write_access(request, token):
-                return json.dumps({"buckets": []})
-            try:
-                hf_token = (
-                    token.token if token is not None else None
-                ) or hf_get_token()
-                buckets = [
-                    {"id": b.id, "private": b.private}
-                    for b in HfApi(token=hf_token).list_buckets(token=hf_token)
-                ]
-                return json.dumps({"buckets": buckets})
-            except Exception as e:
-                logger.debug("list_user_buckets failed: %s", e, exc_info=True)
-                return json.dumps({"buckets": []})
-
-        def delete_history(
-            data=None,
-            request: Optional[Request] = None,
-            token: Optional[OAuthToken] = None,
-        ) -> str:
-            """Delete a generation record from the bucket.
-
-            data[0]: record id string.
-            data[1]: record timestamp string.
-            """
-            if not has_write_access(request, token):
-                return json.dumps({"error": "Write access required"})
-            if self._wh is None:
-                return json.dumps({"ok": False, "reason": "no_history"})
-            try:
-                record_id = data[0] if data else ""
-                timestamp = data[1] if data and len(data) > 1 else ""
-                if not record_id or not timestamp:
-                    return json.dumps({"ok": False, "reason": "missing_fields"})
-                ok = self._wh.delete(record_id, timestamp)
-                return json.dumps({"ok": ok})
-            except Exception as e:
-                logger.debug("delete_history failed: %s", e, exc_info=True)
-                return json.dumps({"ok": False, "reason": str(e)})
+        self._persist_history_repo = _persist_history_repo
 
         server_functions = [
             get_token,
@@ -1937,11 +1810,6 @@ class Workflow(Blocks):
             get_workflow_api,
             get_model_endpoints,
             save_workflow,
-            list_history,
-            connect_history,
-            push_history,
-            list_user_buckets,
-            delete_history,
         ]
 
         from gradio.workflow_api import WorkflowGraph, register_workflow_endpoints
@@ -2016,13 +1884,13 @@ class Workflow(Blocks):
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
         self._api_endpoints = register_workflow_endpoints(
-            self, _current_graph, callers, get_history=lambda: self._wh
+            self, _current_graph, callers, get_history=lambda: self._history
         )
 
     def _resolve_history(self):
-        """Instantiate WorkflowHistory from ``self._history_param``, the saved
+        """Instantiate BucketHistory from ``self._history_param``, the saved
         ``history_repo`` field in workflow.json, or return None."""
-        from gradio.workflow_history import WorkflowHistory
+        from gradio.history import BucketHistory
 
         param = self._history_param
 
@@ -2032,7 +1900,7 @@ class Workflow(Blocks):
                     saved = json.load(f)
                 repo_id = saved.get("history_repo")
                 if repo_id:
-                    return WorkflowHistory(repo_id=repo_id, token=hf_get_token())
+                    return BucketHistory(repo_id=repo_id, token=hf_get_token())
             except Exception:
                 pass
             return None
@@ -2055,7 +1923,7 @@ class Workflow(Blocks):
         else:
             repo_id = str(param)
             token = hf_get_token()
-        return WorkflowHistory(repo_id=repo_id, token=token)
+        return BucketHistory(repo_id=repo_id, token=token)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.

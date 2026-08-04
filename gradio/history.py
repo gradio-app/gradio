@@ -1,4 +1,8 @@
-"""WorkflowHistory — persists gr.Workflow generation records to a HF Hub bucket."""
+"""BucketHistory — core Gradio primitive for persisting per-app history to a HF Hub bucket.
+
+Used by ``gr.Workflow`` for generation history, but usable by any Gradio app that
+wants an append-only record store backed by a private HF Hub bucket.
+"""
 
 from __future__ import annotations
 
@@ -25,17 +29,18 @@ _LIST_CACHE_TTL = 10.0
 _MAX_FILES_SCAN = 50
 
 
-class WorkflowHistory:
-    """Persists workflow generation records to a HF Hub bucket.
+class BucketHistory:
+    """Persists app records to a private HF Hub bucket.
 
-    Each generation is stored as an individual JSON file
-    (``data/<timestamp>_<gen_id>.json``).  Media outputs (images, audio,
-    video) are uploaded to ``media/`` and their local paths are replaced
-    with stable Hub URLs before the record is stored.
+    Each record is stored as an individual JSON file under
+    ``data/<timestamp>_<id>.json``. Media outputs (images, audio, video)
+    are uploaded to ``media/`` and a ``bucket_url`` is added to the record
+    for durable reference; the original ``value`` (usually a Gradio-served
+    URL) is preserved for in-session display.
 
     Args:
         repo_id: HF Hub bucket identifier, e.g. ``"user/my-history"``.
-        token: HF access token.  Falls back to the cached CLI token.
+        token: HF access token. Falls back to the cached CLI token.
     """
 
     def __init__(self, repo_id: str, token: str | None = None) -> None:
@@ -53,7 +58,7 @@ class WorkflowHistory:
         threading.Thread(target=self._push_sync, args=(record,), daemon=True).start()
 
     def list(self, limit: int = 50, subgraph: str | None = None) -> list[dict]:
-        """Return recent generation records, newest first.
+        """Return recent records, newest first.
 
         Results are cached for ``_LIST_CACHE_TTL`` seconds to avoid
         hammering the Hub on rapid panel refreshes.
@@ -70,7 +75,7 @@ class WorkflowHistory:
         return records[:limit]
 
     def delete(self, record_id: str, timestamp: str) -> bool:
-        """Delete a single generation record from the bucket.
+        """Delete a single record from the bucket.
 
         Returns True on success, False if the record could not be deleted.
         """
@@ -85,11 +90,15 @@ class WorkflowHistory:
                 self._cache = None
             return True
         except Exception:
-            logger.debug("WorkflowHistory: delete failed", exc_info=True)
+            logger.debug("BucketHistory: delete failed", exc_info=True)
             return False
 
     def push_graph_file(self, workflow_json: str) -> None:
-        """Upload the current ``workflow.json`` to the bucket for versioning."""
+        """Upload an arbitrary text blob to ``workflow.json`` in the bucket.
+
+        (Used by ``gr.Workflow`` to version the current graph alongside runs;
+        for general apps this is a convenient way to store app state.)
+        """
         try:
             self.ensure_repo()
             if not self._repo_ready:
@@ -99,7 +108,7 @@ class WorkflowHistory:
                 add=[(workflow_json.encode("utf-8"), "workflow.json")],
             )
         except Exception:
-            logger.debug("WorkflowHistory: graph file upload failed", exc_info=True)
+            logger.debug("BucketHistory: graph file upload failed", exc_info=True)
 
     def ensure_repo(self) -> None:
         with self._repo_lock:
@@ -110,7 +119,7 @@ class WorkflowHistory:
                 self._repo_ready = True
             except Exception:
                 logger.warning(
-                    "WorkflowHistory: could not create bucket %s",
+                    "BucketHistory: could not create bucket %s",
                     self.repo_id,
                     exc_info=True,
                 )
@@ -134,8 +143,6 @@ class WorkflowHistory:
                     hub_url = self._upload_media(record["id"], sid, fs_path, port_type)
                     if hub_url:
                         record["outputs"][sid]["bucket_url"] = hub_url
-                    # Keep value as the Gradio-served URL so the image renders
-                    # in the current session. bucket_url holds the durable copy.
 
             ts = record.get("timestamp") or datetime.now(timezone.utc).strftime(
                 "%Y-%m-%dT%H:%M:%SZ"
@@ -153,7 +160,7 @@ class WorkflowHistory:
                 self._cache = None
 
         except Exception:
-            logger.debug("WorkflowHistory: push failed", exc_info=True)
+            logger.debug("BucketHistory: push failed", exc_info=True)
 
     def _upload_media(
         self, gen_id: str, sid: str, value: str, port_type: str
@@ -164,7 +171,7 @@ class WorkflowHistory:
         if not os.path.realpath(value).startswith(
             os.path.realpath(tempfile.gettempdir())
         ):
-            logger.debug("WorkflowHistory: refusing to upload non-temp path: %s", value)
+            logger.debug("BucketHistory: refusing to upload non-temp path: %s", value)
             return None
         ext = pathlib.Path(value).suffix or {
             "image": ".png",
@@ -180,7 +187,7 @@ class WorkflowHistory:
                 )
             return f"https://huggingface.co/buckets/{self.repo_id}/{path_in_repo}"
         except Exception:
-            logger.debug("WorkflowHistory: media upload failed", exc_info=True)
+            logger.debug("BucketHistory: media upload failed", exc_info=True)
             return None
 
     def _fetch_records(self) -> list[dict]:
@@ -213,9 +220,7 @@ class WorkflowHistory:
                         token=self._token,
                     )
                 except Exception:
-                    logger.debug(
-                        "WorkflowHistory: bucket download failed", exc_info=True
-                    )
+                    logger.debug("BucketHistory: bucket download failed", exc_info=True)
                     return []
 
                 for _, local in downloads:
@@ -228,7 +233,7 @@ class WorkflowHistory:
             records.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
             return records
         except Exception:
-            logger.debug("WorkflowHistory: fetch failed", exc_info=True)
+            logger.debug("BucketHistory: fetch failed", exc_info=True)
             return []
 
 

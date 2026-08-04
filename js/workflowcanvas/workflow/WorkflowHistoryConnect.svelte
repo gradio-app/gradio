@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { connectHistory, listUserBuckets } from "./history-api";
 
 	let {
-		server = {},
 		workflowName = "",
 		onconnected,
 		onclose
 	}: {
-		server?: Record<string, any>;
 		workflowName?: string;
 		onconnected: (repoId: string) => void;
 		onclose: () => void;
@@ -31,11 +30,10 @@
 		error = null;
 		connecting = true;
 		try {
-			const raw = await server.connect_history([bucketId, auto]);
-			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+			const data = await connectHistory(bucketId, auto);
 			if (data.error) {
 				error = data.error;
-			} else {
+			} else if (data.repo_id) {
 				onconnected(data.repo_id);
 			}
 		} catch (e: any) {
@@ -46,10 +44,8 @@
 	}
 
 	onMount(async () => {
-		if (!server?.list_user_buckets) return;
 		try {
-			const raw = await server.list_user_buckets([]);
-			const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+			const data = await listUserBuckets();
 			existingBuckets = data.buckets ?? [];
 		} catch {
 			// silently ignore — bucket list is optional

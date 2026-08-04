@@ -66,6 +66,7 @@ from starlette.responses import RedirectResponse
 import gradio
 from gradio import (
     caching,
+    oauth,
     route_utils,
     themes,
     utils,
@@ -694,6 +695,155 @@ class App(FastAPI):
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
+
+        # ─── BucketHistory routes ────────────────────────────────────────
+        # Callable by any Gradio app that has a `_history` (BucketHistory)
+        # attached to its Blocks. Currently driven by ``gr.Workflow``.
+
+        def _history_auth(request: fastapi.Request):
+            """Reuse the workflow write-access check for history routes."""
+            from gradio.workflow import has_write_access
+
+            try:
+                session = request.session
+            except Exception:
+                session = {}
+            oauth_info = oauth._get_valid_oauth_info_from_session(session)
+            token_obj = None
+            if oauth_info is not None:
+                token_obj = oauth.OAuthToken(
+                    token=oauth_info["access_token"],
+                    scope=oauth_info["scope"],
+                    expires_at=oauth_info["expires_at"],
+                )
+            return has_write_access(request, token_obj), token_obj
+
+        def _current_history():
+            return getattr(app.get_blocks(), "_history", None)
+
+        async def _history_body(request: fastapi.Request) -> dict:
+            try:
+                data = await request.json()
+                return data if isinstance(data, dict) else {}
+            except Exception:
+                return {}
+
+        @app.post("/gradio_api/history/list")
+        async def _history_list(request: fastapi.Request):
+            authed, _ = _history_auth(request)
+            if not authed:
+                return JSONResponse({"records": [], "repo_id": None})
+            wh = _current_history()
+            if wh is None:
+                return JSONResponse({"records": [], "repo_id": None})
+            body = await _history_body(request)
+            subgraph = body.get("subgraph")
+            try:
+                limit = int(body.get("limit", 50) or 0)
+            except Exception:
+                limit = 50
+            if limit == 0:
+                return JSONResponse({"records": [], "repo_id": wh.repo_id})
+            records = wh.list(limit=limit, subgraph=subgraph or None)
+            return JSONResponse({"records": records, "repo_id": wh.repo_id})
+
+        @app.post("/gradio_api/history/push")
+        async def _history_push(request: fastapi.Request):
+            authed, _ = _history_auth(request)
+            if not authed:
+                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
+            wh = _current_history()
+            if wh is None:
+                return JSONResponse({"ok": False, "reason": "no_history"})
+            body = await _history_body(request)
+            record = body.get("record") or {}
+            if isinstance(record, str):
+                try:
+                    record = orjson.loads(record)
+                except Exception:
+                    return JSONResponse({"ok": False, "reason": "invalid_record"})
+            if not isinstance(record, dict) or not record.get("id"):
+                return JSONResponse({"ok": False, "reason": "invalid_record"})
+            wh.push(record)
+            return JSONResponse({"ok": True})
+
+        @app.post("/gradio_api/history/connect")
+        async def _history_connect(request: fastapi.Request):
+            from gradio.history import BucketHistory
+            from gradio.workflow import _get_locally_saved_hf_token
+
+            authed, token_obj = _history_auth(request)
+            if not authed:
+                return JSONResponse({"error": "Write access required"}, status_code=403)
+            body = await _history_body(request)
+            hf_token = (
+                token_obj.token if token_obj is not None else None
+            ) or _get_locally_saved_hf_token()
+            auto = bool(body.get("auto"))
+            repo_id = str(body.get("repo_id") or "").strip()
+            blocks = app.get_blocks()
+            if auto:
+                try:
+                    from huggingface_hub import HfApi as _HfApi
+
+                    user = _HfApi(token=hf_token).whoami()["name"]
+                    name = getattr(blocks, "_workflow_name", None) or "app"
+                    slug = re.sub(r"[^a-z0-9-]", "-", name.lower()).strip("-")
+                    repo_id = f"{user}/{slug}-history"
+                except Exception as e:
+                    return JSONResponse({"error": str(e)})
+            if not re.fullmatch(
+                r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*", repo_id
+            ):
+                return JSONResponse({"error": f"Invalid bucket ID: {repo_id}"})
+            try:
+                wh = BucketHistory(repo_id=repo_id, token=hf_token)
+                wh.ensure_repo()
+                blocks._history = wh
+                if callable(getattr(blocks, "_persist_history_repo", None)):
+                    try:
+                        blocks._persist_history_repo(repo_id)
+                    except Exception:
+                        pass
+                return JSONResponse({"ok": True, "repo_id": repo_id})
+            except Exception as e:
+                return JSONResponse({"error": str(e)})
+
+        @app.post("/gradio_api/history/delete")
+        async def _history_delete(request: fastapi.Request):
+            authed, _ = _history_auth(request)
+            if not authed:
+                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
+            wh = _current_history()
+            if wh is None:
+                return JSONResponse({"ok": False, "reason": "no_history"})
+            body = await _history_body(request)
+            record_id = str(body.get("id") or "")
+            timestamp = str(body.get("timestamp") or "")
+            if not record_id or not timestamp:
+                return JSONResponse({"ok": False, "reason": "missing_fields"})
+            return JSONResponse({"ok": wh.delete(record_id, timestamp)})
+
+        @app.get("/gradio_api/history/buckets")
+        async def _history_buckets(request: fastapi.Request):
+            from gradio.workflow import _get_locally_saved_hf_token
+
+            authed, token_obj = _history_auth(request)
+            if not authed:
+                return JSONResponse({"buckets": []})
+            hf_token = (
+                token_obj.token if token_obj is not None else None
+            ) or _get_locally_saved_hf_token()
+            try:
+                from huggingface_hub import HfApi as _HfApi
+
+                buckets = [
+                    {"id": b.id, "private": getattr(b, "private", True)}
+                    for b in _HfApi(token=hf_token).list_buckets(token=hf_token)
+                ]
+                return JSONResponse({"buckets": buckets})
+            except Exception:
+                return JSONResponse({"buckets": []})
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):
