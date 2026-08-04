@@ -76,7 +76,7 @@
 <script lang="ts">
 	import { run } from "svelte/legacy";
 
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
@@ -88,8 +88,6 @@
 
 	import Blocks from "@gradio/core/blocks";
 	import Login from "@gradio/core/login";
-
-	const dispatch = createEventDispatcher();
 
 	let stream: EventSource;
 
@@ -311,7 +309,7 @@
 			}
 		}
 
-		dispatch("loaded");
+		// nothing subscribes to a load event on the SvelteKit page
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(data.api_url);

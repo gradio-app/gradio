@@ -83,7 +83,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, createEventDispatcher, onDestroy } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
@@ -92,51 +92,66 @@
 	import { setupi18n } from "@gradio/core";
 	import { init } from "@huggingface/space-header";
 
-	let i18n_ready = false;
+	let i18n_ready = $state(false);
 	setupi18n().then(() => {
 		i18n_ready = true;
 	});
 
-	const dispatch = createEventDispatcher();
+	let {
+		autoscroll,
+		version,
+		initial_height,
+		app_mode,
+		is_embed,
+		theme_mode = "system",
+		control_page_title,
+		container,
+		info,
+		eager,
+		// These utilities are exported to be injectable for the Wasm version.
+		Client,
+		space,
+		src,
+		onloaded
+	}: {
+		autoscroll: boolean;
+		version: string;
+		initial_height: string;
+		app_mode: boolean;
+		is_embed: boolean;
+		theme_mode?: ThemeMode | null;
+		control_page_title: boolean;
+		container: boolean;
+		info: boolean;
+		eager: boolean;
+		Client: typeof ClientType;
+		space: string | null;
+		src: string | null;
+		onloaded?: () => void;
+	} = $props();
 
-	export let autoscroll: boolean;
-	export let version: string;
-	export let initial_height: string;
-	export let app_mode: boolean;
-	export let is_embed: boolean;
-	export let theme_mode: ThemeMode | null = "system";
-	export let control_page_title: boolean;
-	export let container: boolean;
-	export let info: boolean;
-	export let eager: boolean;
 	let stream: EventSource;
-	let pages: [string, string, boolean][] = [];
-	let current_page: string;
-	let root: string;
-
-	// These utilities are exported to be injectable for the Wasm version.
-	export let Client: typeof ClientType;
-
-	export let space: string | null;
-	export let src: string | null;
+	let pages: [string, string, boolean][] = $state([]);
+	let current_page: string = $state("");
+	let root: string = $state("");
 
 	let _id = id++;
 
-	let loader_status: "pending" | "error" | "complete" | "generating" =
-		"pending";
 	let app_id: string | null = null;
-	let wrapper: HTMLDivElement;
-	let ready = false;
-	let render_complete = false;
-	let config: Config;
-	let loading_text = "Loading...";
+	let wrapper: HTMLDivElement | undefined = $state();
+	let ready = $state(false);
+	let render_complete = $state(false);
+	let config: Config = $state()!;
+	let loading_text = $state("Loading...");
 
-	let active_theme_mode: ThemeMode;
+	let active_theme_mode: ThemeMode = $state("system");
 	let api_url: string;
 
-	$: if (config?.app_id) {
-		app_id = config.app_id;
-	}
+	$effect(() => {
+		if (config?.app_id) {
+			app_id = config.app_id;
+		}
+	});
 
 	let css_text_stylesheet: HTMLStyleElement | null = null;
 	async function mount_custom_css(css_string: string | null): Promise<void> {
@@ -286,22 +301,22 @@
 		}
 	}
 
-	let status: SpaceStatus = {
+	let status: SpaceStatus = $state({
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
 		detail: "SLEEPING"
-	};
+	});
 
-	let app: ClientType;
-	let css_ready = false;
+	let app: ClientType = $state()!;
+	let css_ready = $state(false);
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
 	}
 	//@ts-ignore
 	const gradio_dev_mode = window.__GRADIO_DEV__;
 
-	let pending_deep_link_error = false;
+	let pending_deep_link_error = $state(false);
 
 	type AddNewMessage = (
 		title: string,
@@ -312,16 +327,19 @@
 		visible?: boolean
 	) => void;
 
-	let new_message_fn: AddNewMessage;
+	let new_message_fn: AddNewMessage = $state()!;
 
-	$: if (new_message_fn && pending_deep_link_error) {
-		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
-		pending_deep_link_error = false;
-	}
+	$effect(() => {
+		if (new_message_fn && pending_deep_link_error) {
+			new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
+			pending_deep_link_error = false;
+		}
+	});
 
-	let reload_count = 0;
+	let reload_count = $state(0);
 
 	onMount(async () => {
+		if (!wrapper) return;
 		active_theme_mode = handle_theme_mode(wrapper);
 
 		//@ts-ignore
@@ -379,7 +397,7 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
-		dispatch("loaded");
+		onloaded?.();
 
 		pages = config.pages;
 		current_page = config.current_page;
@@ -430,7 +448,7 @@
 						css_ready = true;
 						window.__is_colab__ = config.is_colab;
 						reload_count += 1;
-						dispatch("loaded");
+						onloaded?.();
 					} catch (error) {
 						new_message_fn(
 							"Error",
@@ -447,18 +465,21 @@
 		}
 	});
 
-	$: loader_status =
+	let loader_status: "pending" | "error" | "complete" | "generating" = $derived(
 		!ready && status.load_status !== "error"
 			? "pending"
 			: !ready && status.load_status === "error"
 				? "error"
-				: status.load_status;
+				: status.load_status
+	);
 
-	$: config && (eager || $intersecting[_id]) && load_demo();
+	$effect(() => {
+		if (config && (eager || $intersecting[_id])) load_demo();
+	});
 
-	let Blocks: typeof import("@gradio/core/blocks").default;
+	let Blocks: typeof import("@gradio/core/blocks").default = $state()!;
 
-	let Login: typeof import("@gradio/core/login").default;
+	let Login: typeof import("@gradio/core/login").default = $state()!;
 
 	async function get_blocks(): Promise<void> {
 		Blocks = (await import("@gradio/core/blocks")).default;
@@ -484,9 +505,10 @@
 		readable_error: Record<error_types, string>;
 		title: (error: error_types) => string;
 		description: (error: error_types, site: string) => string;
-	};
+	} = $state()!;
 
-	$: if (i18n_ready) {
+	$effect(() => {
+		if (!i18n_ready) return;
 		loading_text = $_("common.loading") + "...";
 		discussion_message = {
 			readable_error: {
@@ -507,23 +529,27 @@
 				);
 			}
 		};
-	}
-
-	onMount(async () => {
-		intersecting.register(_id, wrapper);
 	});
 
-	$: if (render_complete) {
-		wrapper.dispatchEvent(
-			new CustomEvent("render", {
-				bubbles: true,
-				cancelable: false,
-				composed: true
-			})
-		);
-	}
+	onMount(async () => {
+		if (wrapper) intersecting.register(_id, wrapper);
+	});
 
-	$: app?.config && mount_space_header(app?.config?.space_id, is_embed);
+	$effect(() => {
+		if (render_complete && wrapper) {
+			wrapper.dispatchEvent(
+				new CustomEvent("render", {
+					bubbles: true,
+					cancelable: false,
+					composed: true
+				})
+			);
+		}
+	});
+
+	$effect(() => {
+		if (app?.config) mount_space_header(app?.config?.space_id, is_embed);
+	});
 	let spaceheader: HTMLElement | undefined;
 
 	async function mount_space_header(
@@ -626,7 +652,7 @@
 				fill_height={!is_embed && !!config.fill_height}
 				theme_mode={active_theme_mode}
 				{control_page_title}
-				target={wrapper}
+				target={wrapper!}
 				{autoscroll}
 				bind:render_complete
 				bind:add_new_message={new_message_fn}
