@@ -2920,17 +2920,26 @@ Received inputs:
                 # 502 from the proxy (observed on HF Spaces after #13366).
                 from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
 
-                user_port = server_port or int(
-                    os.getenv("GRADIO_SERVER_PORT", str(INITIAL_PORT_VALUE))
-                )
                 python_host = server_name or os.getenv(
                     "GRADIO_SERVER_NAME", "127.0.0.1"
+                )
+
+                user_port = node_port
+                if user_port is None:
+                    env_node_port = os.getenv("GRADIO_NODE_SERVER_PORT")
+                    if env_node_port is not None:
+                        user_port = int(env_node_port)
+                if user_port is None and server_port is not None:
+                    user_port = server_port
+
+                preferred_start = (
+                    user_port if user_port is not None else INITIAL_PORT_VALUE
                 )
 
                 # Reserve a free internal port for Python; Node will proxy
                 # non-static traffic here once it starts.
                 python_internal_port = _find_free_port(
-                    python_host, start=user_port + 1, try_count=TRY_NUM_PORTS
+                    python_host, start=preferred_start + 1, try_count=TRY_NUM_PORTS
                 )
 
                 if static_worker_count:
@@ -2948,7 +2957,7 @@ Received inputs:
                 server_port = python_internal_port
                 _pending_node_proxy_kwargs = {
                     "server_name": node_server_name or python_host,
-                    "server_port": node_port or user_port,
+                    "server_port": user_port,
                     "node_path": self.node_path,
                     "python_port": python_internal_port,
                     "python_host": python_host,
@@ -3077,7 +3086,10 @@ Received inputs:
             # request resolved to a 502 from an unreachable upstream.
             if _pending_node_proxy_kwargs is not None:
                 self.node_server_name, self.node_process, self.node_port = (
-                    start_node_server(**_pending_node_proxy_kwargs)
+                    start_node_server(
+                        **_pending_node_proxy_kwargs,
+                        on_shutdown=self._end_streaming_responses,
+                    )
                 )
                 if self.node_process is not None and self.node_port is not None:
                     self._node_is_proxy = True
@@ -3400,7 +3412,7 @@ Received inputs:
 
     def _serve_without_node_proxy(
         self,
-        user_port: int,
+        user_port: int | None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
         ssl_keyfile_password: str | None = None,
@@ -3418,11 +3430,13 @@ Received inputs:
         user-facing port could not be taken over.
         """
         from gradio import http_server
+        from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
 
         internal_port = self.server_port
         old_server = self.server
+        bind_host = "127.0.0.1" if self.server_name == "0.0.0.0" else self.server_name
 
-        def serve_on(port: int):
+        def serve_on(port: int | None):
             return http_server.start_server(
                 app=self.app,
                 server_name=self.server_name,
@@ -3436,14 +3450,23 @@ Received inputs:
         # overlap: they share an app, so the second would run its lifespan a second
         # time and the first's shutdown would delete the app's cache files from
         # under it.
-        if not _port_is_free(self.server_name, user_port):
-            return False
+        if user_port is not None:
+            if not _port_is_free(bind_host, user_port):
+                return False
+            target_port: int | None = user_port
+        else:
+            try:
+                target_port = _find_free_port(
+                    bind_host, start=INITIAL_PORT_VALUE, try_count=TRY_NUM_PORTS
+                )
+            except OSError:
+                return False
 
         if old_server is not None:
             old_server.close()
 
         try:
-            server_name, server_port, local_url, server = serve_on(user_port)
+            server_name, server_port, local_url, server = serve_on(target_port)
         except (OSError, ServerFailedToStartError):
             # Lost the race for the user-facing port after releasing ours, so go
             # back to the internal one rather than leave nothing listening.
@@ -3462,6 +3485,18 @@ Received inputs:
         if self.mcp_server_obj:
             self.mcp_server_obj._local_url = local_url
         return True
+
+    def _end_streaming_responses(self) -> None:
+        """
+        Ends the session heartbeat streams. The Node front proxy waits for the
+        connections it is serving before exiting, and these are those connections.
+
+        This runs on the main thread while the event loop runs in uvicorn's, so
+        the set() only lands on the loop's next wake; uvicorn's main loop ticks
+        every 100ms, which is what keeps shutdown prompt. `server_app` rather
+        than `app`, because `queue()` rebinds `app` but not the served instance.
+        """
+        self.server_app.stop_event.set()
 
     def close(self, verbose: bool = True) -> None:
         """
