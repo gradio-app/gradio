@@ -1,5 +1,10 @@
 import { test, describe, assert, afterEach, beforeEach, vi } from "vitest";
 import { tick, mount, unmount } from "svelte";
+// @ts-ignore — `proxy` is the runtime implementation behind `$state(...)`.
+// Using it directly keeps this file plain `.ts` rather than `.svelte.ts`,
+// which intermittently fails to load in CI under concurrent test-file imports
+// (see the same note in js/tootils/src/render.ts).
+import { proxy } from "svelte/internal/client";
 
 import Block from "./src/Block.svelte";
 
@@ -26,7 +31,7 @@ describe("Block fullscreen teardown", () => {
 		const add_spy = vi.spyOn(window, "addEventListener");
 		const remove_spy = vi.spyOn(window, "removeEventListener");
 
-		const props = $state({ fullscreen: false });
+		const props = proxy({ fullscreen: false });
 		component = mount(Block, { target, props });
 		await tick();
 
@@ -82,7 +87,7 @@ describe("Block fullscreen teardown", () => {
 		transformed.style.width = "200px";
 		transformed.style.height = "200px";
 
-		const props = $state({ fullscreen: false });
+		const props = proxy({ fullscreen: false });
 		component = mount(Block, { target: transformed, props });
 		await tick();
 
