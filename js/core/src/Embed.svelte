@@ -188,7 +188,7 @@
 		padding: 0;
 		min-height: 1px;
 		overflow: hidden;
-		color: var(--button-secondary-text-color);
+		color: var(--body-text-color);
 	}
 
 	.embed-container {
