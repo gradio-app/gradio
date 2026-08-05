@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 
 	let {
 		data = {}
@@ -37,12 +37,14 @@
 	let pages = $derived(data.pages["third-party-clients"]);
 	let page_path = $derived(data.page_path);
 	let module = $derived(data.module.default);
+	// capitalised alias so it can be used as a component tag
+	let DocModule = $derived(module);
 
 	let flattened_pages = $derived(
 		pages.map((category: any) => category.pages).flat()
 	);
 
-	let component_name = $derived($page.params?.doc);
+	let component_name = $derived(page.params?.doc);
 
 	let prev_obj = $derived(
 		flattened_pages[
@@ -100,8 +102,8 @@
 
 <MetaTags
 	{title}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	{description}
 />
 
@@ -163,7 +165,7 @@
 			<div class="flex flex-row">
 				<div class="lg:ml-10">
 					<div class="obj">
-						<svelte:component this={module} bind:this={dynamic_component} />
+						<DocModule bind:this={dynamic_component} />
 					</div>
 				</div>
 			</div>

@@ -82,7 +82,7 @@
 	import type { ThemeMode } from "@gradio/core";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
 
@@ -472,7 +472,7 @@
 			footer_links={is_embed ? [] : config.footer_links}
 			{app_mode}
 			{version}
-			search_params={$page.url.searchParams}
+			search_params={page.url.searchParams}
 			initial_layout={data.layout}
 		/>
 	{/if}

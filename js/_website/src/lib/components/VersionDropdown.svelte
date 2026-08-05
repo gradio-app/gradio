@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import { version } from "$lib/json/version.json";
 
 	let {
 		choices = [version, "5.49.1", "4.44.1", "main"],
-		value = $page.params?.version || version,
+		value = page.params?.version || version,
 		docs_type = "python"
 	}: {
 		choices?: any;
@@ -14,20 +14,20 @@
 		docs_type?: any;
 	} = $props();
 
-	let is_guide = $derived($page.route.id?.includes("/guides"));
-	let is_docs = $derived($page.route.id?.includes("/docs"));
+	let is_guide = $derived(page.route.id?.includes("/guides"));
+	let is_docs = $derived(page.route.id?.includes("/docs"));
 
-	let match_name = $derived($page.url?.pathname?.match(/\/docs\/([^/]+)/));
+	let match_name = $derived(page.url?.pathname?.match(/\/docs\/([^/]+)/));
 	let docs_section = $derived(match_name ? match_name[1] : "");
 
-	let path_parts = $derived($page.route.id?.split("/") || []);
+	let path_parts = $derived(page.route.id?.split("/") || []);
 	let is_dynamic = $derived(path_parts[path_parts.length - 1]?.match(/\[.+\]/));
 
 	let docs_url = $derived(
 		`${value === version ? "" : `/${value}`}/docs${
 			docs_section ? `/${docs_section}` : ""
 		}/${
-			$page.params?.doc ||
+			page.params?.doc ||
 			(is_dynamic || path_parts.length !== 5
 				? ""
 				: path_parts[path_parts.length - 1])
@@ -36,7 +36,7 @@
 
 	let guide_url = $derived(
 		`${value === version ? "" : `/${value}`}/guides/${
-			$page.params?.guide ||
+			page.params?.guide ||
 			(is_dynamic || path_parts.length !== 4
 				? ""
 				: path_parts[path_parts.length - 1])

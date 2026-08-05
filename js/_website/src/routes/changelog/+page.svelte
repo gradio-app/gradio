@@ -1,6 +1,6 @@
 <script lang="ts">
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { clickOutside } from "$lib/components/clickOutside.js";
 
 	let {
@@ -38,8 +38,8 @@
 
 <MetaTags
 	title={"Gradio Changelog"}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="Gradio Changelog and Release Notes"
 />
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import JSDocsNav from "$lib/components/JSDocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 
 	let { data } = $props();
 
@@ -10,7 +10,7 @@
 	let js_components = $derived(js_pages.filter((c) => c !== "js-client"));
 	let name = $derived(data.name);
 
-	let current_jsdoc = $derived($page.params?.jsdoc);
+	let current_jsdoc = $derived(page.params?.jsdoc);
 
 	let prev_obj = $derived(
 		current_jsdoc === "atoms"
@@ -30,8 +30,8 @@
 
 <MetaTags
 	title={"Gradio " + name + " JS Docs"}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description={"How to use " + name + " in JS"}
 />
 

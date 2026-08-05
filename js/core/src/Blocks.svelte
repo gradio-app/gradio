@@ -584,7 +584,7 @@
 				api_recorder_visible = false;
 			}}
 		>
-			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
+			<ApiRecorder {api_calls} {dependencies} />
 		</div>
 	{/if}
 
@@ -605,8 +605,7 @@
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={ApiDocs}
+				<ApiDocs
 					root_node={app_tree.root}
 					onclose={(detail?: { api_recorder_visible: boolean }) => {
 						set_api_docs_visible(false);
@@ -642,8 +641,7 @@
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={Settings}
+				<Settings
 					bind:allow_zoom
 					bind:allow_video_trim
 					onclose={() => {
@@ -662,7 +660,7 @@
 	{/if}
 
 	{#if vibe_mode && VibeEditor}
-		<svelte:component this={VibeEditor} {app} {root} />
+		<VibeEditor {app} {root} />
 	{/if}
 </div>
 

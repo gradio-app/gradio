@@ -2,7 +2,7 @@
 	// @ts-nocheck
 	import space_logo from "$lib/assets/img/spaces-logo.svg";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 	import { tick } from "svelte";
 	import FancyDetails from "$lib/components/Details.svelte";
@@ -152,8 +152,8 @@
 
 <MetaTags
 	title={guide_page.pretty_name}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="A Step-by-Step Gradio Tutorial"
 />
 <div class="container mx-auto px-4 pt-8 flex relative w-full">

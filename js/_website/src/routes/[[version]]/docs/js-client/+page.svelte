@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DocsNavCustom from "$lib/components/DocsNavCustom.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 
 	let { data } = $props();
 
@@ -19,8 +19,8 @@
 
 <MetaTags
 	title={"Gradio Javascript Client Docs"}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description={"Make programmatic requests to Gradio applications in JavaScript (TypeScript) from the browser or server-side."}
 />
 

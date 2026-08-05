@@ -3,7 +3,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import RelatedGuides from "$lib/components/RelatedGuides.svelte";
 	import DocsCopyMarkdown from "$lib/components/DocsCopyMarkdown.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { onNavigate } from "$app/navigation";
 	import '$lib/assets/theme.css';
 
@@ -19,6 +19,8 @@
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
 	let module = $derived(data.module.default);
+	// capitalised alias so it can be used as a component tag
+	let DocModule = $derived(module);
 
 	let current_target: HTMLElement;
 
@@ -48,7 +50,7 @@
 
 	let flattened_pages = $derived(pages.map((category: any) => category.pages).flat());
 
-	let component_name = $derived($page.params?.doc);
+	let component_name = $derived(page.params?.doc);
 
 	let prev_obj = $derived(
 		flattened_pages[
@@ -126,8 +128,8 @@
 
 <MetaTags
 	title={"Gradio " + all_headers.page_title.title + " Docs"}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description={"Gradio docs for using " + all_headers.page_title.title}
 />
 
@@ -231,7 +233,7 @@
 				<div class="flex flex-row">
 					<div class="lg:ml-10 w-full">
 						<div class="obj text-gray-900 dark:text-gray-100">
-							<svelte:component this={module} bind:this={dynamic_component}/>
+							<DocModule bind:this={dynamic_component} />
 						</div>
 					</div>
 				</div>

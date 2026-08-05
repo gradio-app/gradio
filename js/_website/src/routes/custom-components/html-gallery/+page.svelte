@@ -5,7 +5,7 @@
 	import { BaseButton } from "@gradio/button";
 	import CopyButton from "$lib/icons/CopyButton.svelte";
 	import { highlight } from "$lib/prism";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { browser } from "$app/environment";
 	import { tick, onMount } from "svelte";
 	import ComponentEntry from "./ComponentEntry.svelte";
@@ -186,8 +186,8 @@
 
 <MetaTags
 	title="HTML Components Gallery - Gradio"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="Browse and interact with custom HTML components built with gr.HTML. Copy the Python code to use them in your Gradio apps."
 />
 

@@ -4,6 +4,8 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import MessageContent from "./MessageContent.svelte";
+	// self-import replaces the deprecated <svelte:self>
+	import Thought from "./Thought.svelte";
 	import { DropdownCircularArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { slide } from "svelte/transition";
@@ -174,9 +176,10 @@
 			{#if thought_node.children?.length > 0}
 				<div class="children">
 					{#each thought_node.children as child, index}
-						<svelte:self
+						<Thought
 							thought={child}
-							rtc={rtl || false}
+							rtl={rtl || false}
+							{allow_tags}
 							{sanitize_html}
 							{latex_delimiters}
 							{render_markdown}

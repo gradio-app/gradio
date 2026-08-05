@@ -39,6 +39,9 @@
 		onload?: () => void;
 	} = $props();
 
+	// capitalised alias so it can be used as a component tag
+	let Comp = $derived(components[type]);
+
 	let image_fullscreen = $state(false);
 	let image_container: HTMLElement;
 
@@ -57,8 +60,7 @@
 </script>
 
 {#if type === "gallery"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		display_icon_button_wrapper_top_corner={false}
@@ -72,8 +74,7 @@
 		onload={handle_load}
 	/>
 {:else if type === "dataframe"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		show_label={props.label ? true : false}
@@ -90,8 +91,7 @@
 		onload={handle_load}
 	/>
 {:else if type === "plot"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		{target}
@@ -103,8 +103,7 @@
 		onload={handle_load}
 	/>
 {:else if type === "audio"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		show_label={props.label ? true : false}
@@ -120,8 +119,7 @@
 		onload={handle_load}
 	/>
 {:else if type === "video"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		autoplay={props.autoplay}
 		value={value.video || value}
@@ -134,11 +132,10 @@
 		onload={handle_load}
 	>
 		<track kind="captions" />
-	</svelte:component>
+	</Comp>
 {:else if type === "image"}
 	<div bind:this={image_container}>
-		<svelte:component
-			this={components[type]}
+		<Comp
 			{...props}
 			{value}
 			show_label={props.label ? true : false}
@@ -152,15 +149,9 @@
 		/>
 	</div>
 {:else if type === "html"}
-	<svelte:component
-		this={components[type]}
-		{...props}
-		props={{ value }}
-		onload={handle_load}
-	/>
+	<Comp {...props} props={{ value }} onload={handle_load} />
 {:else if type === "model3d"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		clear_color={props.clear_color}

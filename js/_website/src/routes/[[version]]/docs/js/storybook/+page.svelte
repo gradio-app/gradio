@@ -1,7 +1,7 @@
 <script lang="ts">
 	import JSDocsNav from "$lib/components/JSDocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 
 	let { data } = $props();
 
@@ -15,8 +15,8 @@
 
 <MetaTags
 	title={"Gradio Storybook"}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description={"All of Gradio's UI Components"}
 />
 

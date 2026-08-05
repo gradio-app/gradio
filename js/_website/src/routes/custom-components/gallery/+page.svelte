@@ -1,6 +1,6 @@
 <script lang="ts">
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { browser } from "$app/environment";
 	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
@@ -51,7 +51,7 @@
 		}
 		components = components.sort((a, b) => b["likes"] - a["likes"]);
 		if (browser) {
-			const id = $page.url.searchParams.get("id");
+			const id = page.url.searchParams.get("id");
 			selected_component =
 				components.find((component) => component.id === id) ?? null;
 		}
@@ -66,7 +66,7 @@
 	}
 
 	function copy_link(id: string) {
-		const url = $page.url;
+		const url = page.url;
 		url.searchParams.set("id", id);
 		const link = url.toString();
 		navigator.clipboard.writeText(link).then(() => {
@@ -83,8 +83,8 @@
 
 <MetaTags
 	title="Gradio Custom Components Gallery"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="Search through a gallery of custom components."
 />
 
