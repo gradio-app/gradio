@@ -885,17 +885,15 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "text-to-video": "text_to_video",
     "image-to-image": "image_to_image",
     "image-to-video": "image_to_video",
+    "image-text-to-video": "image_to_video",
     "image-classification": "image_classification",
     "object-detection": "object_detection",
     "image-segmentation": "image_segmentation",
-    "image-to-text": "image_to_text",
     "automatic-speech-recognition": "automatic_speech_recognition",
     "audio-classification": "audio_classification",
-    "visual-question-answering": "visual_question_answering",
-    "document-question-answering": "document_question_answering",
-    # Not visual_question_answering: the Hub routes every image-text-to-text
-    # model as `conversational`, and no provider serves the VQA task at all,
-    # so a task-specific call fails for every model carrying this tag.
+    "image-to-text": "chat_completion",
+    "visual-question-answering": "chat_completion",
+    "document-question-answering": "chat_completion",
     "image-text-to-text": "chat_completion",
 }
 
@@ -1006,6 +1004,20 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 f"{model_name} returned no text (finish_reason={finish_reason})."
             )
         return json.dumps([text])
+    try:
+        fn_params = set(inspect.signature(fn).parameters)
+    except (TypeError, ValueError):
+        fn_params = set()
+    if "extra_body" in fn_params:
+        known: dict = {}
+        extras: dict = {}
+        for k, v in clean.items():
+            (known if k in fn_params else extras)[k] = v
+        if extras:
+            clean = {
+                **known,
+                "extra_body": {**(known.get("extra_body") or {}), **extras},
+            }
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
@@ -1080,7 +1092,11 @@ def call_model(
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
         if isinstance(args, dict):
-            endpoint = pipeline_tag or ""
+            endpoint = (
+                _PIPELINE_TAG_TO_ENDPOINT.get(pipeline_tag or "")
+                or pipeline_tag
+                or ""
+            )
             return _dispatch_model_endpoint(client, endpoint, args)
 
         task = pipeline_tag or "text-generation"
@@ -1114,20 +1130,20 @@ def call_model(
             }
             return _dispatch_model_endpoint(client, endpoint, kwargs)
 
-        # Fallback for tasks not handled above: chat_completion (works for most
-        # text models across providers), then a raw POST as last resort.
-        try:
-            r = client.chat_completion(
-                [{"role": "user", "content": a0}], max_tokens=512
+        def _resolve(v):
+            return (
+                _img_url(v)
+                if isinstance(v, dict) and ("url" in v or "path" in v)
+                else v
             )
-            return json.dumps([r.choices[0].message.content])
-        except Exception:
-            pass
+
+        a1_missing = a1 is None or a1 == ""
+        payload = _resolve(a0) if a1_missing else [_resolve(a0), _resolve(a1)]
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
         fallback_resp = httpx.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
-            json={"inputs": a0 if not a1 else [a0, a1]},
+            json={"inputs": payload},
             timeout=60,
         )
         fallback_resp.raise_for_status()

@@ -134,6 +134,13 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
 		outputs: [{ id: "out_0", label: "Video", type: "video" }]
 	},
+	"image-text-to-video": {
+		inputs: [
+			{ id: "in_0", label: "Image", type: "image" },
+			{ id: "in_1", label: "Prompt", type: "text" }
+		],
+		outputs: [{ id: "out_0", label: "Video", type: "video" }]
+	},
 	"depth-estimation": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
 		outputs: [{ id: "out_0", label: "Depth", type: "image" }]
@@ -274,6 +281,7 @@ export const PIPELINE_TO_CATEGORY: Record<string, string> = {
 	// Video
 	"text-to-video": "video",
 	"image-to-video": "video",
+	"image-text-to-video": "video",
 	"video-classification": "video",
 	// 3D
 	"text-to-3d": "3d",
