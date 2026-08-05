@@ -301,16 +301,6 @@
 
 		await add_custom_html_head(config.head);
 
-		if (config.js) {
-			try {
-				const script = document.createElement("script");
-				script.textContent = config.js;
-				document.head.appendChild(script);
-			} catch (e) {
-				console.error("Error executing custom JS:", e);
-			}
-		}
-
 		dispatch("loaded");
 		if (config.dev_mode) {
 			setTimeout(() => {
