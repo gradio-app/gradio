@@ -599,6 +599,7 @@
 		right: 0;
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);
+		color: var(--body-text-color);
 		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
@@ -613,6 +614,7 @@
 		transform: translateY(var(--size-6));
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);
+		color: var(--body-text-color);
 		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 		text-align: center;
