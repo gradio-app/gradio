@@ -1093,9 +1093,7 @@ def call_model(
         args = json.loads(args_json)
         if isinstance(args, dict):
             endpoint = (
-                _PIPELINE_TAG_TO_ENDPOINT.get(pipeline_tag or "")
-                or pipeline_tag
-                or ""
+                _PIPELINE_TAG_TO_ENDPOINT.get(pipeline_tag or "") or pipeline_tag or ""
             )
             return _dispatch_model_endpoint(client, endpoint, args)
 
