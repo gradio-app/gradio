@@ -57,7 +57,7 @@ class TestReload:
 
 
 class TestReloadCliArgs:
-    """`gradio app.py --name Gretel` must forward `--name Gretel` to the script."""
+    """`gradio app.py -- --name Gretel` forwards `--name Gretel` to the script."""
 
     @pytest.fixture
     def child_argv(self, monkeypatch):
@@ -83,26 +83,84 @@ class TestReloadCliArgs:
 
         return invoke
 
-    def test_unknown_args_are_forwarded_to_the_app(self, child_argv):
-        argv, _ = child_argv("demo/calculator/run.py", "--name", "Gretel")
+    @pytest.fixture
+    def run_cli(self, monkeypatch):
+        """Invoke the reload CLI without launching anything, and return the result."""
+
+        class FakePopen:
+            def __init__(self, args, **kwargs):
+                pass
+
+            def poll(self):
+                return 0
+
+            def wait(self):
+                return 0
+
+        monkeypatch.setattr(subprocess, "Popen", FakePopen)
+        return lambda *args: CliRunner().invoke(build_app(), list(args))
+
+    @staticmethod
+    def _flat(output: str) -> str:
+        """Normalise CLI error text for matching.
+
+        Rich wraps it across panel lines, and Click versions differ on the exact
+        punctuation ("No such option: --x" vs "No such option '--x'."), so only
+        the stable parts of a message are worth asserting on.
+        """
+        return " ".join(output.replace("\u2502", " ").replace("'", "").split())
+
+    def test_args_after_separator_are_forwarded_to_the_app(self, child_argv):
+        argv, _ = child_argv("demo/calculator/run.py", "--", "--name", "Gretel")
         assert argv[-2:] == ["--name", "Gretel"]
 
-    def test_unknown_flags_and_positionals_are_forwarded(self, child_argv):
-        argv, _ = child_argv("demo/calculator/run.py", "--verbose", "extra", "-x")
-        assert argv[-3:] == ["--verbose", "extra", "-x"]
+    def test_flags_and_positionals_after_separator_are_forwarded(self, child_argv):
+        argv, _ = child_argv(
+            "demo/calculator/run.py", "--", "--verbose", "extra", "-x", "--y=1"
+        )
+        assert argv[-4:] == ["--verbose", "extra", "-x", "--y=1"]
+
+    def test_separator_itself_is_not_forwarded(self, child_argv):
+        argv, _ = child_argv("demo/calculator/run.py", "--", "--name", "Gretel")
+        assert "--" not in argv
+
+    def test_only_the_first_separator_is_consumed(self, child_argv):
+        """A script that itself uses `--` still receives it."""
+        argv, _ = child_argv("demo/calculator/run.py", "--", "-a", "--", "-b")
+        assert argv[-3:] == ["-a", "--", "-b"]
 
     def test_no_extra_args_by_default(self, child_argv):
         argv, _ = child_argv("demo/calculator/run.py")
         assert str(argv[-1]).endswith("run.py")
 
-    def test_reload_options_are_still_consumed(self, child_argv):
+    def test_reload_options_are_consumed_before_the_separator(self, child_argv):
+        """The same option name can be given to gradio and to the app."""
         argv, kwargs = child_argv(
-            "demo/calculator/run.py", "--demo-name", "my_demo", "--name", "Gretel"
+            "demo/calculator/run.py",
+            "--demo-name",
+            "my_demo",
+            "--",
+            "--demo-name",
+            "theirs",
         )
-        assert "--demo-name" not in argv
-        assert "my_demo" not in argv
         assert kwargs["env"]["GRADIO_WATCH_DEMO_NAME"] == "my_demo"
-        assert argv[-2:] == ["--name", "Gretel"]
+        assert argv[-2:] == ["--demo-name", "theirs"]
+
+    def test_unknown_option_before_the_separator_is_an_error(self, run_cli):
+        """Options are not silently forwarded, so adding one to gradio later
+        cannot change what an existing command means."""
+        result = run_cli("demo/calculator/run.py", "--name", "Gretel")
+        assert result.exit_code != 0
+        output = self._flat(result.output)
+        assert "No such option" in output
+        assert "--name" in output
+
+    def test_a_mistyped_reload_option_is_still_suggested(self, run_cli):
+        result = run_cli("demo/calculator/run.py", "--demo-nam", "my_demo")
+        assert result.exit_code != 0
+        output = self._flat(result.output)
+        assert "Did you mean" in output
+        assert "--demo-name" in output
 
 
 def test_reassign_pending_event_fns():
