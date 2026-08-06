@@ -1,0 +1,423 @@
+<script lang="ts">
+	import { onMount } from "svelte";
+	import {
+		clear_run_history,
+		read_run_history,
+		stage_run_history_replay,
+		type StoredRun,
+		type StoredRunComponent
+	} from "@gradio/client";
+	import RunValue from "./RunValue.svelte";
+
+	interface Props {
+		root: string;
+	}
+
+	let { root }: Props = $props();
+	let runs: StoredRun[] = $state([]);
+
+	let groups = $derived.by(() => {
+		const grouped = new Map<string, StoredRun[]>();
+		for (const run of runs) {
+			const current = grouped.get(run.api_name) || [];
+			current.push(run);
+			grouped.set(run.api_name, current);
+		}
+		return Array.from(grouped.entries());
+	});
+
+	function refresh(): void {
+		runs = read_run_history(root);
+	}
+
+	onMount(() => {
+		refresh();
+		window.addEventListener("storage", refresh);
+		return () => window.removeEventListener("storage", refresh);
+	});
+
+	function values(value: unknown): unknown[] {
+		if (Array.isArray(value)) return value;
+		if (value && typeof value === "object") {
+			return Object.values(value as Record<string, unknown>);
+		}
+		return value === null || value === undefined ? [] : [value];
+	}
+
+	function summarize(value: unknown): string {
+		if (value === null || value === undefined) return "No value";
+		if (typeof value === "string") return value || "Empty value";
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return String(value);
+		}
+	}
+
+	function label(meta: StoredRunComponent | undefined, index: number): string {
+		const component_label = meta?.props?.label;
+		if (typeof component_label === "string" && component_label) {
+			return component_label;
+		}
+		return meta?.type || `Value ${index + 1}`;
+	}
+
+	function format_time(value: string): string {
+		return new Intl.DateTimeFormat(undefined, {
+			dateStyle: "medium",
+			timeStyle: "short"
+		}).format(new Date(value));
+	}
+
+	function load(run: StoredRun): void {
+		stage_run_history_replay(root, run);
+		const app_url = new URL(root, window.location.href);
+		let target = new URL(run.page || app_url.pathname, app_url);
+		if (target.origin !== app_url.origin) target = app_url;
+		window.location.assign(target);
+	}
+
+	function clear_all(): void {
+		if (!window.confirm("Clear all saved runs for this app?")) return;
+		clear_run_history(root);
+		refresh();
+	}
+</script>
+
+<main class="history-page" data-testid="run-history">
+	<header class="page-header">
+		<div>
+			<h1>Run history</h1>
+			<p>Runs are saved privately in this browser.</p>
+		</div>
+		{#if runs.length}
+			<button class="clear" onclick={clear_all}>Clear history</button>
+		{/if}
+	</header>
+
+	{#if groups.length === 0}
+		<section class="empty">
+			<h2>No runs yet</h2>
+			<p>Use the app, then return here to load previous runs.</p>
+		</section>
+	{:else}
+		{#each groups as [api_name, endpoint_runs]}
+			<section class="group">
+				<header class="group-header">
+					<span class="play" aria-hidden="true">▶</span>
+					<code>{api_name}</code>
+					<span class="count"
+						>{endpoint_runs.length}
+						{endpoint_runs.length === 1 ? "run" : "runs"}</span
+					>
+				</header>
+				<div class="table-header" aria-hidden="true">
+					<span>Inputs</span><span>Outputs</span><span></span>
+				</div>
+				{#each endpoint_runs as run (run.id)}
+					{@const input_values = values(run.inputs)}
+					{@const output_values = values(run.outputs)}
+					<article class="run">
+						<section class="run-values">
+							<h3>Inputs</h3>
+							{#each input_values as value, index}
+								{@const meta = run.input_components?.[index]}
+								<div class="example-cell">
+									<span class="value-label">{label(meta, index)}</span>
+									{#if meta}
+										<RunValue component={meta} {value} {root} />
+									{:else}
+										<span class="fallback" title={summarize(value)}
+											>{summarize(value)}</span
+										>
+									{/if}
+								</div>
+							{/each}
+						</section>
+						<section class="run-values">
+							<h3>Outputs</h3>
+							{#if output_values.length}
+								{#each output_values as value, index}
+									{@const meta = run.output_components?.[index]}
+									<div class="example-cell">
+										<span class="value-label">{label(meta, index)}</span>
+										{#if meta}
+											<RunValue component={meta} {value} {root} />
+										{:else}
+											<span class="fallback" title={summarize(value)}
+												>{summarize(value)}</span
+											>
+										{/if}
+									</div>
+								{/each}
+							{:else}
+								<div class="empty-output">No saved output</div>
+							{/if}
+						</section>
+						<div class="run-action">
+							<button class="load" onclick={() => load(run)}>Load run</button>
+						</div>
+						<footer class="metadata">
+							<time datetime={run.started_at}
+								>{format_time(run.started_at)}</time
+							>
+							<span
+								class:completed={run.status === "completed"}
+								class:failed={run.status === "failed"}
+								class:running={run.status === "running"}
+							>
+								{run.status === "completed"
+									? "Completed"
+									: run.status === "failed"
+										? "Failed"
+										: "Running"}
+							</span>
+							{#if run.error}<span class="error">{run.error}</span>{/if}
+						</footer>
+					</article>
+				{/each}
+			</section>
+		{/each}
+	{/if}
+</main>
+
+<style>
+	.history-page {
+		box-sizing: border-box;
+		width: min(100%, 1080px);
+		margin: 0 auto;
+		padding: 40px 24px 80px;
+		color: var(--body-text-color);
+	}
+	.page-header,
+	.group-header,
+	.metadata {
+		display: flex;
+		align-items: center;
+	}
+	.page-header {
+		justify-content: space-between;
+		gap: 16px;
+		padding-bottom: 24px;
+		border-bottom: 1px solid var(--border-color-primary, #e4e4e7);
+	}
+	h1 {
+		margin: 0;
+		font-size: var(--text-xxl, 26px);
+		font-weight: var(--weight-semibold, 600);
+		line-height: 1.2;
+	}
+	.page-header p,
+	.empty p {
+		margin: 6px 0 0;
+		color: var(--body-text-color-subdued, #71717a);
+	}
+	.clear,
+	.load {
+		border: var(--button-border-width, 1px) solid
+			var(--button-secondary-border-color, #d4d4d8);
+		border-radius: var(--button-medium-radius, 8px);
+		background: var(
+			--button-secondary-background-fill,
+			linear-gradient(#fff, #f4f4f5)
+		);
+		color: var(--button-secondary-text-color, #27272a);
+		font-size: var(--button-medium-text-size, 14px);
+		font-weight: var(--button-medium-text-weight, 600);
+		cursor: pointer;
+		box-shadow: var(--button-secondary-shadow, 0 1px 2px rgb(0 0 0 / 8%));
+		transition: var(--button-transition, 0.1s ease);
+	}
+	.clear {
+		padding: 8px 12px;
+	}
+	.load {
+		min-width: 112px;
+		padding: 10px 16px;
+	}
+	.clear:hover,
+	.load:hover {
+		border-color: var(--button-secondary-border-color-hover, #a1a1aa);
+		background: var(--button-secondary-background-fill-hover, #f4f4f5);
+		color: var(--button-secondary-text-color-hover, #18181b);
+	}
+	.group {
+		overflow: hidden;
+		margin-top: 24px;
+		border: 1px solid var(--border-color-primary, #e4e4e7);
+		border-radius: var(--radius-xl, 12px);
+		background: var(--block-background-fill, #fff);
+		box-shadow: var(--block-shadow, 0 1px 3px rgb(0 0 0 / 6%));
+	}
+	.group-header {
+		gap: 12px;
+		padding: 14px 18px;
+		border-bottom: 1px solid var(--border-color-primary, #e4e4e7);
+		background: var(--background-fill-secondary, #fafafa);
+		font-size: var(--text-lg, 18px);
+		font-weight: var(--weight-semibold, 600);
+	}
+	.group-header code {
+		color: var(--color-accent, #f97316);
+		font-family: var(--font-mono, monospace);
+	}
+	.count {
+		margin-left: auto;
+		color: var(--body-text-color-subdued, #71717a);
+		font-size: var(--text-sm, 14px);
+		font-weight: var(--weight-normal, 400);
+	}
+	.play {
+		display: grid;
+		width: 30px;
+		height: 30px;
+		place-items: center;
+		border-radius: 50%;
+		background: var(--color-accent-soft, #ffedd5);
+		color: var(--color-accent, #f97316);
+		font-size: 11px;
+	}
+	.table-header,
+	.run {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 132px;
+	}
+	.table-header {
+		gap: 16px;
+		padding: 8px 18px;
+		border-bottom: 1px solid var(--border-color-primary, #e4e4e7);
+		color: var(--block-label-text-color, #52525b);
+		font-size: var(--block-label-text-size, 12px);
+		font-weight: var(--block-label-text-weight, 600);
+		text-transform: uppercase;
+	}
+	.run {
+		gap: 16px;
+		padding: 16px 18px 12px;
+	}
+	.run + .run {
+		border-top: 1px solid var(--border-color-primary, #e4e4e7);
+	}
+	.run-values {
+		display: flex;
+		min-width: 0;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.run-values h3 {
+		display: none;
+		margin: 0;
+		color: var(--block-label-text-color, #52525b);
+		font-size: 12px;
+		text-transform: uppercase;
+	}
+	.example-cell {
+		min-width: 0;
+		padding: 10px;
+		border: 1px solid var(--border-color-primary, #e4e4e7);
+		border-radius: var(--radius-lg, 8px);
+		background: var(--background-fill-secondary, #fafafa);
+	}
+	.value-label {
+		display: block;
+		margin-bottom: 5px;
+		color: var(--body-text-color-subdued, #71717a);
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+	}
+	.fallback,
+	.empty-output {
+		display: block;
+		overflow: hidden;
+		color: var(--body-text-color, #27272a);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.empty-output {
+		padding: 12px;
+		color: var(--body-text-color-subdued, #71717a);
+		font-style: italic;
+	}
+	.run-action {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+	}
+	.metadata {
+		grid-column: 1 / -1;
+		gap: 10px;
+		min-width: 0;
+		margin-top: 10px;
+		color: var(--body-text-color-subdued, #71717a);
+		font-size: 13px;
+	}
+	.metadata > span:not(.error) {
+		padding: 3px 8px;
+		border-radius: 999px;
+		font-weight: 600;
+	}
+	.completed {
+		background: #dcfce7;
+		color: #166534;
+	}
+	.failed {
+		background: #fee2e2;
+		color: #991b1b;
+	}
+	.running {
+		background: #fef3c7;
+		color: #92400e;
+	}
+	.error {
+		overflow: hidden;
+		color: var(--error-text-color, #b91c1c);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.empty {
+		margin-top: 32px;
+		padding: 64px 24px;
+		border: 1px solid var(--border-color-primary, #e4e4e7);
+		border-radius: var(--radius-xl, 12px);
+		background: var(--block-background-fill, #fff);
+		text-align: center;
+	}
+	.empty h2 {
+		margin: 0;
+	}
+	:global(.dark) .completed {
+		background: #14532d;
+		color: #dcfce7;
+	}
+	:global(.dark) .failed {
+		background: #7f1d1d;
+		color: #fee2e2;
+	}
+	:global(.dark) .running {
+		background: #78350f;
+		color: #fef3c7;
+	}
+	@media (max-width: 700px) {
+		.history-page {
+			padding-inline: 16px;
+		}
+		.table-header {
+			display: none;
+		}
+		.run {
+			grid-template-columns: 1fr;
+		}
+		.run-values h3 {
+			display: block;
+		}
+		.run-action {
+			justify-content: flex-start;
+		}
+		.metadata {
+			grid-column: 1;
+			align-items: flex-start;
+			flex-wrap: wrap;
+		}
+	}
+</style>

@@ -29,6 +29,11 @@ import {
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
+import {
+	start_run_history,
+	update_run_history,
+	update_run_inputs
+} from "./run_history";
 
 export function submit(
 	this: Client,
@@ -73,12 +78,42 @@ export function submit(
 		);
 
 		let resolved_data = map_data_to_params(data, endpoint_info);
-
-		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
 		if (protocol === "ws") {
 			throw new Error(WS_PROTOCOL_MSG);
 		}
+		const history_endpoint =
+			typeof dependency.api_name === "string"
+				? `/${dependency.api_name}`
+				: endpoint;
+		const history_api_name =
+			typeof dependency.api_name === "string"
+				? `/${dependency.api_name}`
+				: `Function ${fn_index}`;
+		const component_metadata = (id: number) => {
+			const component = config.components.find((item) => item.id === id);
+			if (!component) return undefined;
+			return {
+				type: component.type,
+				component_class_id: component.component_class_id,
+				props: component.props
+			};
+		};
+		const history_run_id = start_run_history({
+			root: config.root,
+			endpoint: history_endpoint,
+			api_name: history_api_name,
+			fn_index,
+			inputs: resolved_data,
+			input_components: dependency.inputs
+				.map(component_metadata)
+				.filter((item) => item !== undefined),
+			output_components: dependency.outputs
+				.map(component_metadata)
+				.filter((item) => item !== undefined)
+		});
+
+		let stream: EventSource | null;
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
 
@@ -103,6 +138,7 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
+			update_run_history(config!.root, history_run_id, event);
 			if (all_events || events_to_publish[event.type]) {
 				push_event(event);
 			}
@@ -180,6 +216,7 @@ export function submit(
 				"input",
 				true
 			);
+			update_run_inputs(config.root, history_run_id, input_data || []);
 			payload = {
 				data: input_data || [],
 				event_data,

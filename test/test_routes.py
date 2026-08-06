@@ -59,6 +59,13 @@ class TestRoutes:
         response = test_client.get("/")
         assert response.status_code == 200
 
+    def test_get_run_history_route(self, test_client):
+        response = test_client.get(f"{API_PREFIX}/runs")
+        assert response.status_code == 200
+        assert "<gradio-app" in response.text
+        assert '<base href="../"' in response.text
+        assert '"root":"http://testserver"' in response.text
+
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
         response = test_client.get(r"/static/..%2findex.html")

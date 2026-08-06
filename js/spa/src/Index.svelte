@@ -84,13 +84,18 @@
 
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import type { SpaceStatus } from "@gradio/client";
+	import {
+		consume_run_history_replay,
+		type SpaceStatus,
+		type StoredRun
+	} from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "@gradio/core";
 	import { init } from "@huggingface/space-header";
+	import RunHistory from "./RunHistory.svelte";
 
 	let i18n_ready = $state(false);
 	setupi18n().then(() => {
@@ -145,7 +150,40 @@
 	let loading_text = $state("Loading...");
 
 	let active_theme_mode: ThemeMode = $state("system");
-	let api_url: string;
+	let api_url = $state("");
+	let run_history = $state(false);
+
+	function restore_run(config: Config, run: StoredRun | null): void {
+		if (!run) return;
+		const dependency = config.dependencies.find(
+			(item) =>
+				item.id === run.fn_index ||
+				(typeof item.api_name === "string" &&
+					`/${item.api_name.replace(/^\//, "")}` === run.api_name)
+		);
+		if (!dependency) return;
+
+		const inputs = Array.isArray(run.inputs)
+			? run.inputs
+			: Object.values(run.inputs as Record<string, unknown>);
+		const outputs = Array.isArray(run.outputs)
+			? run.outputs
+			: run.outputs === null
+				? []
+				: [run.outputs];
+		for (const [index, id] of dependency.inputs.entries()) {
+			const component = config.components.find((item) => item.id === id);
+			if (component && index < inputs.length) {
+				component.props.value = inputs[index];
+			}
+		}
+		for (const [index, id] of dependency.outputs.entries()) {
+			const component = config.components.find((item) => item.id === id);
+			if (component && index < outputs.length) {
+				component.props.value = outputs[index];
+			}
+		}
+	}
 
 	$effect(() => {
 		if (config?.app_id) {
@@ -341,10 +379,16 @@
 	onMount(async () => {
 		if (!wrapper) return;
 		active_theme_mode = handle_theme_mode(wrapper);
+		run_history = window.location.pathname
+			.replace(/\/$/, "")
+			.endsWith("/gradio_api/runs");
 
 		//@ts-ignore
 		const server_port = window.__GRADIO__SERVER_PORT__;
 
+		const app_path = run_history
+			? window.location.pathname.replace(/gradio_api\/runs\/?$/, "")
+			: window.location.pathname;
 		api_url =
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
@@ -352,7 +396,7 @@
 					}`
 				: space ||
 					src ||
-					new URL(location.pathname, location.origin).href.replace(/\/$/, "");
+					new URL(app_path, location.origin).href.replace(/\/$/, "");
 
 		const deep_link = new URLSearchParams(window.location.search).get(
 			"deep_link"
@@ -376,6 +420,7 @@
 		}
 
 		config = app.get_url_config() as unknown as Config;
+		restore_run(config, consume_run_history_replay(config.root));
 		window.__gradio_space__ = config.space_id;
 
 		if (app.config?.i18n_translations) {
@@ -466,11 +511,13 @@
 	});
 
 	let loader_status: "pending" | "error" | "complete" | "generating" = $derived(
-		!ready && status.load_status !== "error"
-			? "pending"
-			: !ready && status.load_status === "error"
-				? "error"
-				: status.load_status
+		run_history
+			? status.load_status
+			: !ready && status.load_status !== "error"
+				? "pending"
+				: !ready && status.load_status === "error"
+					? "error"
+					: status.load_status
 	);
 
 	$effect(() => {
@@ -586,7 +633,7 @@
 	bind:wrapper
 >
 	{#if i18n_ready}
-		{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
+		{#if !run_history && (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
 			<StatusTracker
 				absolute={!is_embed}
 				status={loader_status}
@@ -644,6 +691,8 @@
 				i18n={i18n_ready ? $_ : (s: string) => s}
 				{app_mode}
 			/>
+		{:else if config && css_ready && run_history}
+			<RunHistory root={api_url} />
 		{:else if config && Blocks && css_ready}
 			<Blocks
 				{app}
