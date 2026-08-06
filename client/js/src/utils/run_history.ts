@@ -123,6 +123,13 @@ export function clear_run_history(root: string): void {
 	}
 }
 
+export function delete_run_history(root: string, id: string): void {
+	write_run_history(
+		root,
+		read_run_history(root).filter((run) => run.id !== id)
+	);
+}
+
 export function stage_run_history_replay(root: string, run: StoredRun): void {
 	const key = replay_key(root);
 	if (!key) return;

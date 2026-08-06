@@ -28,8 +28,17 @@
 		Promise.all([loaded.component, loaded.runtime]).then(
 			([component, runtime]) => {
 				if (disposed) return;
+				const choices = Array.isArray(meta.props.choices)
+					? meta.props.choices
+					: (meta.type === "dropdown" || meta.type === "radio") && value != null
+						? (Array.isArray(value) ? value : [value]).map((item) => [
+								String(item),
+								item
+							])
+						: undefined;
 				const props = {
 					...meta.props,
+					...(choices ? { choices } : {}),
 					value,
 					type: "table",
 					selected: false,

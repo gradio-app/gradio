@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import {
 	clear_run_history,
 	consume_run_history_replay,
+	delete_run_history,
 	read_run_history,
 	stage_run_history_replay,
 	start_run_history,
@@ -139,6 +140,28 @@ describe("run history", () => {
 		expect(runs).toHaveLength(100);
 		expect(runs[0].inputs).toEqual([104]);
 		expect(runs.at(-1)?.inputs).toEqual([5]);
+	});
+
+	test("deletes an individual run", () => {
+		const first = start_run_history({
+			root,
+			endpoint: "/predict",
+			api_name: "/predict",
+			fn_index: 0,
+			inputs: ["first"]
+		});
+		start_run_history({
+			root,
+			endpoint: "/predict",
+			api_name: "/predict",
+			fn_index: 0,
+			inputs: ["second"]
+		});
+
+		delete_run_history(root, first!);
+
+		expect(read_run_history(root)).toHaveLength(1);
+		expect(read_run_history(root)[0].inputs).toEqual(["second"]);
 	});
 
 	test("stages a run once so it can be loaded on its saved page", () => {

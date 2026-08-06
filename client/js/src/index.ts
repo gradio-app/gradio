@@ -8,6 +8,7 @@ export { handle_file } from "./helpers/data";
 export {
 	clear_run_history,
 	consume_run_history_replay,
+	delete_run_history,
 	read_run_history,
 	stage_run_history_replay,
 	type StoredRunComponent,

@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import {
 		clear_run_history,
+		delete_run_history,
 		read_run_history,
 		stage_run_history_replay,
 		type StoredRun,
@@ -82,13 +83,42 @@
 		clear_run_history(root);
 		refresh();
 	}
+
+	function delete_run(run: StoredRun): void {
+		if (!window.confirm("Delete this saved run?")) return;
+		delete_run_history(root, run.id);
+		refresh();
+	}
 </script>
 
 <main class="history-page" data-testid="run-history">
 	<header class="page-header">
 		<div>
 			<h1>Run history</h1>
-			<p>Runs are saved privately in this browser.</p>
+			<div class="storage-copy">
+				<span>Runs ({runs.length}) logged in</span>
+				<details class="storage-picker">
+					<summary>Local Storage <span aria-hidden="true">⌄</span></summary>
+					<div class="storage-menu">
+						<div class="storage-option active">
+							<span
+								><strong>Local Storage</strong><small>This browser</small></span
+							>
+							<span aria-label="Selected">✓</span>
+						</div>
+						<div class="storage-option disabled" aria-disabled="true">
+							<span><strong>Local File</strong><small>Coming soon</small></span>
+						</div>
+						<div class="storage-option disabled" aria-disabled="true">
+							<span
+								><strong>Hugging Face Bucket</strong><small>Coming soon</small
+								></span
+							>
+						</div>
+					</div>
+				</details>
+				<span>, privately in this browser.</span>
+			</div>
 		</div>
 		{#if runs.length}
 			<button class="clear" onclick={clear_all}>Clear history</button>
@@ -112,7 +142,7 @@
 					>
 				</header>
 				<div class="table-header" aria-hidden="true">
-					<span>Inputs</span><span>Outputs</span><span></span>
+					<span>Inputs</span><span>Outputs</span>
 				</div>
 				{#each endpoint_runs as run (run.id)}
 					{@const input_values = values(run.inputs)}
@@ -154,9 +184,6 @@
 								<div class="empty-output">No saved output</div>
 							{/if}
 						</section>
-						<div class="run-action">
-							<button class="load" onclick={() => load(run)}>Load run</button>
-						</div>
 						<footer class="metadata">
 							<time datetime={run.started_at}
 								>{format_time(run.started_at)}</time
@@ -172,7 +199,11 @@
 										? "Failed"
 										: "Running"}
 							</span>
+							<button class="load" onclick={() => load(run)}>Load run</button>
 							{#if run.error}<span class="error">{run.error}</span>{/if}
+							<button class="delete" onclick={() => delete_run(run)}
+								>Delete</button
+							>
 						</footer>
 					</article>
 				{/each}
@@ -207,13 +238,81 @@
 		font-weight: var(--weight-semibold, 600);
 		line-height: 1.2;
 	}
-	.page-header p,
+	.storage-copy,
 	.empty p {
 		margin: 6px 0 0;
 		color: var(--body-text-color-subdued, #71717a);
 	}
+	.storage-copy {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 5px;
+	}
+	.storage-picker {
+		display: inline-block;
+		position: relative;
+	}
+	.storage-picker summary {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 3px 8px;
+		border: 1px solid var(--border-color-primary, #d4d4d8);
+		border-radius: 999px;
+		background: var(--background-fill-secondary, #f4f4f5);
+		color: var(--body-text-color, #27272a);
+		font-size: 13px;
+		font-weight: 600;
+		cursor: pointer;
+		list-style: none;
+	}
+	.storage-picker summary::-webkit-details-marker {
+		display: none;
+	}
+	.storage-picker[open] summary {
+		border-color: var(--border-color-accent, #f97316);
+	}
+	.storage-menu {
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 0;
+		z-index: 10;
+		width: 250px;
+		padding: 6px;
+		border: 1px solid var(--border-color-primary, #e4e4e7);
+		border-radius: var(--radius-lg, 8px);
+		background: var(--block-background-fill, #fff);
+		box-shadow: var(--shadow-drop-lg, 0 12px 28px rgb(0 0 0 / 15%));
+	}
+	.storage-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 9px 10px;
+		border-radius: 6px;
+	}
+	.storage-option.active {
+		background: var(--background-fill-secondary, #f4f4f5);
+		color: var(--body-text-color, #27272a);
+	}
+	.storage-option.disabled {
+		color: var(--body-text-color-subdued, #71717a);
+		opacity: 0.7;
+	}
+	.storage-option strong,
+	.storage-option small {
+		display: block;
+	}
+	.storage-option small {
+		margin-top: 2px;
+		font-size: 11px;
+		font-weight: 400;
+	}
 	.clear,
-	.load {
+	.load,
+	.delete {
 		border: var(--button-border-width, 1px) solid
 			var(--button-secondary-border-color, #d4d4d8);
 		border-radius: var(--button-medium-radius, 8px);
@@ -232,11 +331,20 @@
 		padding: 8px 12px;
 	}
 	.load {
-		min-width: 112px;
-		padding: 10px 16px;
+		padding: 5px 10px;
+		font-size: 13px;
+	}
+	.delete {
+		margin-left: auto;
+		padding: 5px 10px;
+		border-color: transparent;
+		background: transparent;
+		box-shadow: none;
+		color: var(--body-text-color-subdued, #71717a);
 	}
 	.clear:hover,
-	.load:hover {
+	.load:hover,
+	.delete:hover {
 		border-color: var(--button-secondary-border-color-hover, #a1a1aa);
 		background: var(--button-secondary-background-fill-hover, #f4f4f5);
 		color: var(--button-secondary-text-color-hover, #18181b);
@@ -280,7 +388,7 @@
 	.table-header,
 	.run {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 132px;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	}
 	.table-header {
 		gap: 16px;
@@ -338,11 +446,6 @@
 		padding: 12px;
 		color: var(--body-text-color-subdued, #71717a);
 		font-style: italic;
-	}
-	.run-action {
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
 	}
 	.metadata {
 		grid-column: 1 / -1;
@@ -410,9 +513,6 @@
 		}
 		.run-values h3 {
 			display: block;
-		}
-		.run-action {
-			justify-content: flex-start;
 		}
 		.metadata {
 			grid-column: 1;
