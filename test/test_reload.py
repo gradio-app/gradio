@@ -1,10 +1,12 @@
 import dataclasses
+import subprocess
 from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
 
 import gradio as gr
-from gradio.cli.commands.reload import _setup_config
+from gradio.cli.commands.reload import _setup_config, build_app
 from gradio.http_server import Server
 
 
@@ -52,6 +54,55 @@ class TestReload:
     def test_config_watch_app(self, config):
         demo_dir = str(Path("demo/calculator/run.py").resolve().parent)
         assert demo_dir in config.watch_dirs
+
+
+class TestReloadCliArgs:
+    """`gradio app.py --name Gretel` must forward `--name Gretel` to the script."""
+
+    @pytest.fixture
+    def child_argv(self, monkeypatch):
+        """Invoke the reload CLI and capture the argv it launches the app with."""
+        recorded: list[tuple[list[str], dict]] = []
+
+        class FakePopen:
+            def __init__(self, args, **kwargs):
+                recorded.append((args, kwargs))
+
+            def poll(self):
+                return 0
+
+            def wait(self):
+                return 0
+
+        monkeypatch.setattr(subprocess, "Popen", FakePopen)
+
+        def invoke(*args: str) -> tuple[list[str], dict]:
+            result = CliRunner().invoke(build_app(), list(args))
+            assert result.exit_code == 0, result.output
+            return recorded[-1]
+
+        return invoke
+
+    def test_unknown_args_are_forwarded_to_the_app(self, child_argv):
+        argv, _ = child_argv("demo/calculator/run.py", "--name", "Gretel")
+        assert argv[-2:] == ["--name", "Gretel"]
+
+    def test_unknown_flags_and_positionals_are_forwarded(self, child_argv):
+        argv, _ = child_argv("demo/calculator/run.py", "--verbose", "extra", "-x")
+        assert argv[-3:] == ["--verbose", "extra", "-x"]
+
+    def test_no_extra_args_by_default(self, child_argv):
+        argv, _ = child_argv("demo/calculator/run.py")
+        assert str(argv[-1]).endswith("run.py")
+
+    def test_reload_options_are_still_consumed(self, child_argv):
+        argv, kwargs = child_argv(
+            "demo/calculator/run.py", "--demo-name", "my_demo", "--name", "Gretel"
+        )
+        assert "--demo-name" not in argv
+        assert "my_demo" not in argv
+        assert kwargs["env"]["GRADIO_WATCH_DEMO_NAME"] == "my_demo"
+        assert argv[-2:] == ["--name", "Gretel"]
 
 
 def test_reassign_pending_event_fns():

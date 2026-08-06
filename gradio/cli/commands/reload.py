@@ -104,6 +104,7 @@ def _setup_config(
 
 
 def main(
+    ctx: typer.Context,
     demo_path: Path,
     demo_name: str = "",
     watch_dirs: list[str] | None = None,
@@ -132,8 +133,10 @@ def main(
     if "GRADIO_VIBE_MODE" in os.environ:
         env_vars["GRADIO_VIBE_MODE"] = os.environ["GRADIO_VIBE_MODE"]
 
+    # Anything the reload CLI does not recognise belongs to the user's script,
+    # e.g. `gradio app.py --name Gretel` for a script that uses argparse.
     popen = subprocess.Popen(
-        [sys.executable, "-u", path],
+        [sys.executable, "-u", path, *ctx.args],
         env=env_vars,
     )
     if popen.poll() is None:
@@ -143,5 +146,22 @@ def main(
             pass
 
 
+def build_app() -> typer.Typer:
+    """Build the `gradio app.py [...]` CLI.
+
+    Unlike `typer.run(main)`, this leaves unrecognised arguments alone so they
+    can be forwarded to the user's script instead of erroring out.
+    """
+    app = typer.Typer(add_completion=False)
+    app.command(
+        context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+    )(main)
+    return app
+
+
+def run() -> None:
+    build_app()()
+
+
 if __name__ == "__main__":
-    typer.run(main)
+    run()
