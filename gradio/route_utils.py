@@ -14,16 +14,12 @@ import secrets
 import shutil
 import tempfile
 import threading
+import traceback
 import unicodedata
 import uuid
 from collections import defaultdict, deque
 from collections.abc import AsyncGenerator, Callable
-from contextlib import (
-    AbstractAsyncContextManager,
-    AsyncExitStack,
-    asynccontextmanager,
-    suppress,
-)
+from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -1045,8 +1041,15 @@ async def delete_files_on_schedule(app: App, frequency: int, age: int) -> None:
 async def _cancel_background_task(task: asyncio.Task) -> None:
     """Cancel a lifespan background task and wait for it to unwind."""
     task.cancel()
-    with suppress(asyncio.CancelledError):
+    try:
         await task
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        # These tasks were previously fire-and-forget, so a failure inside one
+        # only ever got logged. Awaiting it must not turn that into an error
+        # that aborts the rest of the shutdown sequence.
+        traceback.print_exc()
 
 
 @asynccontextmanager
