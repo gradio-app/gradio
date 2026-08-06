@@ -12,6 +12,7 @@
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
+	import DownloadIcon from "./icons/DownloadIcon.svelte";
 
 	import {
 		MODALITIES,
@@ -386,6 +387,38 @@
 
 	function dismissToast(id: number): void {
 		toasts = toasts.filter((t) => t.id !== id);
+	}
+
+	function serializedWorkflow(): string {
+		return JSON.stringify(sanitize_for_save($workflow), null, 2);
+	}
+
+	async function copyWorkflowJson(): Promise<void> {
+		try {
+			await navigator.clipboard.writeText(serializedWorkflow());
+			showToast("Copied workflow JSON to clipboard", 2000, "success");
+		} catch {
+			showToast(
+				"Couldn't copy to clipboard — use Download instead",
+				3500,
+				"warning"
+			);
+		}
+	}
+
+	function downloadWorkflowJson(): void {
+		const blob = new Blob([serializedWorkflow()], {
+			type: "application/json"
+		});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		const safeName = ($workflow.name || "workflow").replace(/[^\w.-]+/g, "_");
+		a.download = `${safeName}.json`;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
 	}
 
 	// v1 shape for read paths; writes go through v2 store actions.
@@ -2322,6 +2355,24 @@
 				<CodeIcon />
 				View API
 			</button>
+			{#if auth.isHFSpace}
+				<button
+					class="tool-btn"
+					onclick={copyWorkflowJson}
+					title="Copy the workflow JSON to your clipboard"
+				>
+					<CodeIcon />
+					Copy JSON
+				</button>
+				<button
+					class="tool-btn"
+					onclick={downloadWorkflowJson}
+					title="Download the workflow as a .json file"
+				>
+					<DownloadIcon />
+					Download
+				</button>
+			{/if}
 			{#if saveIndicator}
 				<span
 					class="save-indicator"
