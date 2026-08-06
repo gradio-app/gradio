@@ -9,7 +9,15 @@ with gr.Blocks() as demo:
     textbox = gr.Textbox(label="Copied text")
     with gr.Row():
         markdown = gr.Markdown(value=md, header_links=True, height=400, buttons=["copy"])
-        chatbot = gr.Chatbot([("Hello", "World"), ("Goodbye", "World")], buttons=["copy"])  # type: ignore
+        chatbot = gr.Chatbot(
+            [
+                {"role": "user", "content": "Hello"},
+                {"role": "assistant", "content": "World"},
+                {"role": "user", "content": "Goodbye"},
+                {"role": "assistant", "content": "World"},
+            ],
+            buttons=["copy"],
+        )
         textbox2 = gr.Textbox("Write something here", interactive=True, buttons=["copy"])
 
         gr.on(

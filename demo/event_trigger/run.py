@@ -1,11 +1,16 @@
 # %%
+import os
+
 import gradio as gr
 
-TEST_VIDEO_A = "mp4/a.mp4"
-TEST_VIDEO_B = "mp4/b.mp4"
+# resolve assets relative to this file so the demo runs from any cwd
+DEMO_DIR = os.path.dirname(os.path.abspath(__file__))
 
-TEST_IMAGE_A = "img/a.jpg"
-TEST_IMAGE_B = "img/b.jpg"
+TEST_VIDEO_A = os.path.join(DEMO_DIR, "mp4/a.mp4")
+TEST_VIDEO_B = os.path.join(DEMO_DIR, "mp4/b.mp4")
+
+TEST_IMAGE_A = os.path.join(DEMO_DIR, "img/a.jpg")
+TEST_IMAGE_B = os.path.join(DEMO_DIR, "img/b.jpg")
 
 def alert_change(component, value):
     print(f"Detected {component} change, {type(value)}")

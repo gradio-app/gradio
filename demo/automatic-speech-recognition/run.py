@@ -9,9 +9,9 @@ hf_token = os.getenv("hf_token")
 demo = gr.load(
     "huggingface/facebook/wav2vec2-base-960h",
     title="Speech-to-text",
-    inputs="mic",
+    inputs="microphone",
     description="Let me try to guess what you're saying!",
-    hf_token=hf_token
+    token=hf_token
 )
 
 demo.launch()
