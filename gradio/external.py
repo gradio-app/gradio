@@ -28,6 +28,7 @@ from gradio.exceptions import (
     GradioVersionIncompatibleError,
     TooManyRequestsError,
 )
+from gradio.media import get_audio, get_image
 from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
@@ -226,25 +227,19 @@ def from_model(
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Label(label="Class")
         postprocess = external_utils.postprocess_label
-        examples = [
-            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-        ]
+        examples = [get_audio("audio_sample.wav")]
         fn = client.audio_classification
     # example model: facebook/xm_transformer_sm_all-en
     elif p == "audio-to-audio":
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Audio(label="Output")
-        examples = [
-            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-        ]
+        examples = [get_audio("audio_sample.wav")]
         fn = custom_post_binary
     # example model: facebook/wav2vec2-base-960h
     elif p == "automatic-speech-recognition":
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Textbox(label="Output")
-        examples = [
-            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-        ]
+        examples = [get_audio("audio_sample.wav")]
         fn = client.automatic_speech_recognition
         postprocess = lambda x: x.text  # noqa: E731
     # example model: julien-c/distilbert-feature-extraction
@@ -267,7 +262,7 @@ def from_model(
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Label(label="Classification")
         postprocess = external_utils.postprocess_label
-        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
+        examples = [get_image("cheetah1.jpg")]
         fn = client.image_classification
     # Example: deepset/xlm-roberta-base-squad2
     elif p == "question-answering":
@@ -410,7 +405,7 @@ def from_model(
         postprocess = external_utils.postprocess_visual_question_answering
         examples = [
             [
-                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                get_image("cheetah1.jpg"),
                 "What animal is in the image?",
             ]
         ]
@@ -419,7 +414,7 @@ def from_model(
     elif p == "image-to-text":
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Textbox(label="Generated Text")
-        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
+        examples = [get_image("cheetah1.jpg")]
         fn = client.image_to_text
     # example model: rajistics/autotrain-Adult-934630783
     elif p in ["tabular-classification", "tabular-regression"]:
@@ -452,7 +447,7 @@ def from_model(
         outputs = components.Image(label="Output")
         examples = [
             [
-                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                get_image("cheetah1.jpg"),
                 "Photo of a cheetah with green eyes",
             ]
         ]
@@ -468,7 +463,7 @@ def from_model(
         outputs = components.Textbox(label="Generated Text")
         examples = [
             [
-                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                get_image("cheetah1.jpg"),
                 "What animal is in the image?",
             ]
         ]

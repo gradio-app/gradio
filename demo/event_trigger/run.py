@@ -1,20 +1,29 @@
 # %%
+import os
+
 import gradio as gr
+from gradio.media import get_video
 
-TEST_VIDEO_A = "mp4/a.mp4"
-TEST_VIDEO_B = "mp4/b.mp4"
+# resolve assets relative to this file so the demo runs from any cwd
+DEMO_DIR = os.path.dirname(os.path.abspath(__file__))
 
-TEST_IMAGE_A = "img/a.jpg"
-TEST_IMAGE_B = "img/b.jpg"
+TEST_VIDEO_A = get_video("a.mp4")
+TEST_VIDEO_B = get_video("b.mp4")
+
+TEST_IMAGE_A = os.path.join(DEMO_DIR, "img/a.jpg")
+TEST_IMAGE_B = os.path.join(DEMO_DIR, "img/b.jpg")
+
 
 def alert_change(component, value):
     print(f"Detected {component} change, {type(value)}")
 
-    if type(value) == list or type(value) == str:
+    if isinstance(value, (list, str)):
         print(value)
+
 
 def change_interactive(state):
     return gr.Video(interactive=not state), not state
+
 
 with gr.Blocks() as demo:
     with gr.Tab(label="Text change"):
@@ -123,7 +132,7 @@ with gr.Blocks() as demo:
                 file1_interactive = gr.State(value=False)
 
         def change_file(index):
-            if index == 0 or index == 1:
+            if index in (0, 1):
                 return [TEST_IMAGE_A]
             elif index == 2:
                 return [TEST_IMAGE_A, TEST_IMAGE_B]
