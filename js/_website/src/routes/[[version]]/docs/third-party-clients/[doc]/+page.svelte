@@ -16,11 +16,12 @@
 	let current_target: HTMLElement;
 
 	$effect(() => {
+		const scroll_y = y;
 		for (const target in header_targets) {
 			target_elem = document.querySelector(`#${target}`) as HTMLElement;
 			if (
-				y > target_elem?.offsetTop - 50 &&
-				y < target_elem?.offsetTop + target_elem?.offsetHeight
+				scroll_y > target_elem?.offsetTop - 50 &&
+				scroll_y < target_elem?.offsetTop + target_elem?.offsetHeight
 			) {
 				current_target = header_targets[target];
 				current_target.classList.add("current-nav-link");
@@ -81,7 +82,7 @@
 		page_title: { title: string; id: string };
 	} = $state({ headers: [], page_title: { title: "", id: "" } });
 
-	var dynamic_component: any = null;
+	let dynamic_component: any = $state(null);
 
 	$effect(() => {
 		if (dynamic_component) {
