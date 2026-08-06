@@ -13,8 +13,10 @@ with gr.Blocks() as demo:
     start_btn = gr.Button("Start")
     stop_btn = gr.Button("Stop")
 
-    time_3 = start_btn.click(lambda: round(time.time()), None, timestamp_3, every=1)
-    stop_btn.click(fn=None, cancels=time_3)
+    timer3 = gr.Timer(1, active=False)
+    timer3.tick(lambda: round(time.time()), None, timestamp_3)
+    start_btn.click(lambda: gr.Timer(active=True), None, timer3)
+    stop_btn.click(lambda: gr.Timer(active=False), None, timer3)
 
   with gr.Row():
     min = gr.Number(1, label="Min")
