@@ -4,9 +4,11 @@ demo = gr.Interface(
     lambda x: x,
     gr.Code(language="python"),
     gr.Code(language="python"),
-    examples=[[("/Users/freddy/sources/gradio/demo/code_component/run.py",)],
-               ["print('Hello, World!')"],
-               [("/Users/freddy/sources/gradio/demo/code/run.py", )]]
+    examples=[
+        ["print('Hello, World!')"],
+        ["def add(a, b):\n    return a + b"],
+        ["for i in range(3):\n    print(i)"],
+    ],
 )
 
 if __name__ == "__main__":
