@@ -72,8 +72,9 @@
 
 	async function load_files(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files).filter((file) => {
-			const ext = "." + file.name.toLowerCase().split(".").pop();
-			if (is_valid_mimetype(accept_file_types, ext, file.type)) {
+			if (
+				is_valid_mimetype(accept_file_types, file.name.toLowerCase(), file.type)
+			) {
 				return true;
 			}
 			onerror?.(`Invalid file type only ${file_types?.join(", ")} allowed.`);

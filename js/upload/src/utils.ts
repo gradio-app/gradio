@@ -1,5 +1,9 @@
 export function is_valid_mimetype(
 	file_accept: string | string[] | null,
+	// Either a bare extension (".gz") or the whole filename ("scan.nii.gz").
+	// Extension entries in `file_accept` are matched against the tail of this
+	// string, so passing the filename is what makes compound extensions such as
+	// ".nii.gz" or ".tar.gz" match.
 	uploaded_file_extension: string,
 	uploaded_file_type: string
 ): boolean {
@@ -21,8 +25,13 @@ export function is_valid_mimetype(
 		return false;
 	}
 
+	const name = uploaded_file_extension.toLowerCase();
 	return (
-		acceptArray.includes(uploaded_file_extension) ||
+		acceptArray.some((type) => {
+			if (!type.startsWith(".")) return false;
+			const ext = type.toLowerCase();
+			return name.length > ext.length ? name.endsWith(ext) : name === ext;
+		}) ||
 		acceptArray.some((type) => {
 			const [category] = type.split("/").map((s) => s.trim());
 			return (

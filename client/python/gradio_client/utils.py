@@ -702,13 +702,18 @@ def get_extension(encoding: str) -> str | None:
 
 def is_valid_file(file_path: str, file_types: list[str]) -> bool:
     mime_type = get_mimetype(file_path)
+    file_name = Path(file_path).name.lower()
     for file_type in file_types:
         if file_type == "file":
             return True
         if file_type.startswith("."):
-            file_type = file_type.lstrip(".").lower()
-            file_ext = Path(file_path).suffix.lstrip(".").lower()
-            if file_type == file_ext:
+            # Match against the tail of the filename rather than `Path.suffix`,
+            # which only ever returns the last component -- so a compound
+            # extension like ".nii.gz" or ".tar.gz" could never match. The
+            # length check keeps a file literally named ".gz" from counting as
+            # a ".gz" file, matching the old `Path.suffix` behaviour.
+            file_type = file_type.lower()
+            if len(file_name) > len(file_type) and file_name.endswith(file_type):
                 return True
         elif mime_type is not None and mime_type.startswith(f"{file_type}/"):
             return True
