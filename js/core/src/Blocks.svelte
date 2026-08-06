@@ -28,6 +28,7 @@
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
+	import { create_resize_state, next_frame_height } from "./resize";
 	type AddNewMessage = (
 		title: string,
 		message: string,
@@ -397,42 +398,34 @@
 		return container.children[container.children.length - 1] as HTMLElement;
 	}
 
-	let last_reported_height = 0;
-	let consecutive_grows = 0;
+	const resize_state = create_resize_state();
+	let mutation_observer: MutationObserver | null = null;
+
+	// Drop the `fill_height` stretch for a single synchronous measurement. It is
+	// restored before anything is painted, so the collapsed state is never shown.
+	function measure_unstretched_bottom(el: HTMLElement): number {
+		const previous = el.style.flexGrow;
+		el.style.flexGrow = "0";
+		const bottom = el.getBoundingClientRect().bottom;
+		el.style.flexGrow = previous;
+		// Drop the records for our own two style writes so they don't re-trigger us.
+		mutation_observer?.takeRecords();
+		return bottom;
+	}
 
 	function handle_resize(): void {
 		if (!("parentIFrame" in window)) return;
-		const box = root_container.children[0].getBoundingClientRect();
-		if (!box) return;
-		const next = box.bottom + footer_height + 32;
-		const viewport = window.innerHeight;
+		const el = root_container.children[0] as HTMLElement | undefined;
+		if (!el) return;
 
-		// Ignore sub-pixel echoes from our own resize.
-		if (Math.abs(next - last_reported_height) < 2) {
-			consecutive_grows = 0;
-			return;
-		}
+		const next = next_frame_height(resize_state, {
+			stretched_bottom: el.getBoundingClientRect().bottom,
+			measure_unstretched_bottom: () => measure_unstretched_bottom(el),
+			footer_height,
+			viewport: window.innerHeight
+		});
 
-		if (next > last_reported_height) {
-			// Content sized in viewport-relative units (`vh`/`%`) or stretched by
-			// `fill_height` grows to fill whatever height the iframe is given, so its
-			// measured bottom just tracks the viewport. Requesting a larger size in
-			// that case feeds back into an unbounded growth loop (#12089, #12992).
-			// (a) If the content merely fills the viewport (no real overflow), don't grow.
-			if (next > viewport && box.bottom <= viewport + 2) return;
-			// (b) Circuit breaker: if we keep growing tick after tick, the content is
-			// tracking the iframe we just grew (a feedback loop), not genuinely taller
-			// content. Stop growing so the height stays bounded. Legitimate content
-			// (late-loading images, revealed blocks) settles within a few grows.
-			consecutive_grows += 1;
-			if (consecutive_grows > 4) return;
-		} else {
-			// Shrinking to fit shorter content is always safe and breaks any loop.
-			consecutive_grows = 0;
-		}
-
-		last_reported_height = next;
-		window.parentIFrame?.size(next);
+		if (next !== null) window.parentIFrame?.size(next);
 	}
 
 	function screen_recording(): void {
@@ -448,10 +441,10 @@
 			window.parentIFrame?.autoResize(false);
 		}
 
-		const mut = new MutationObserver(handle_resize);
+		mutation_observer = new MutationObserver(handle_resize);
 		const res = new ResizeObserver(handle_resize);
 
-		mut.observe(root_container, {
+		mutation_observer.observe(root_container, {
 			childList: true,
 			subtree: true,
 			attributes: true
@@ -474,7 +467,8 @@
 		}
 
 		return () => {
-			mut.disconnect();
+			mutation_observer?.disconnect();
+			mutation_observer = null;
 			res.disconnect();
 			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
@@ -511,10 +505,10 @@
 		>
 			{#if footer_links.includes("api")}
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadApiDocs();
 						loadApiRecorder();
 					}}
@@ -542,7 +536,7 @@
 			{/if}
 			<button
 				class:hidden={!$is_screen_recording}
-				on:click={() => {
+				onclick={() => {
 					screen_recording();
 				}}
 				class="record"
@@ -557,10 +551,10 @@
 			{#if footer_links.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_settings_visible(!settings_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadSettings();
 					}}
 					class="settings"
@@ -580,12 +574,12 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
 			id="api-recorder-container"
-			on:click={() => {
+			onclick={() => {
 				set_api_docs_visible(true);
 				api_recorder_visible = false;
 			}}
 		>
-			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
+			<ApiRecorder {api_calls} {dependencies} />
 		</div>
 	{/if}
 
@@ -601,19 +595,17 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_api_docs_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={ApiDocs}
+				<ApiDocs
 					root_node={app_tree.root}
-					on:close={(event) => {
+					onclose={(detail?: { api_recorder_visible: boolean }) => {
 						set_api_docs_visible(false);
 						api_calls = [];
-						api_recorder_visible = api_recorder_visible =
-							event.detail?.api_recorder_visible;
+						api_recorder_visible = detail?.api_recorder_visible ?? false;
 					}}
 					{dependencies}
 					{root}
@@ -639,13 +631,12 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_settings_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={Settings}
+				<Settings
 					bind:allow_zoom
 					bind:allow_video_trim
 					onclose={() => {
@@ -664,7 +655,7 @@
 	{/if}
 
 	{#if vibe_mode && VibeEditor}
-		<svelte:component this={VibeEditor} {app} {root} />
+		<VibeEditor {app} {root} />
 	{/if}
 </div>
 

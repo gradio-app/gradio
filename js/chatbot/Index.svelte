@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseChatBot } from "./shared/ChatBot.svelte";
 </script>
 
