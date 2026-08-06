@@ -1100,21 +1100,89 @@ def video_is_playable(video_filepath: str) -> bool:
         return True
 
 
+# Codecs that both fit in an mp4 container and are playable in browsers, so a
+# file holding them only needs remuxing rather than re-encoding. The video set
+# matches the mp4 entries in `video_is_playable`.
+MP4_COMPATIBLE_VIDEO_CODECS = frozenset({"h264", "av1"})
+MP4_COMPATIBLE_AUDIO_CODECS = frozenset({"aac", "mp3"})
+
+
+def _first_stream_codecs(video_path: str) -> tuple[str | None, str | None] | None:
+    """Return the first (video codec, audio codec) of a media file.
+
+    Either element is None when the file has no stream of that kind. Returns
+    None if the file could not be probed at all.
+    """
+    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
+
+    try:
+        probe = FFprobe(
+            global_options="-show_streams -print_format json",
+            inputs={video_path: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        streams = json.loads(output[0])["streams"]  # type: ignore
+    except (FFRuntimeError, IndexError, KeyError, ValueError):
+        return None
+    codecs: dict[str, str] = {}
+    for stream in streams:
+        codec_type = stream.get("codec_type")
+        if codec_type in ("video", "audio") and codec_type not in codecs:
+            codecs[codec_type] = stream.get("codec_name", "")
+    return codecs.get("video"), codecs.get("audio")
+
+
+def _can_remux_to_mp4(video_path: str) -> bool:
+    """Whether the file's streams can be copied into an mp4 as-is."""
+    codecs = _first_stream_codecs(video_path)
+    if codecs is None:
+        return False
+    video_codec, audio_codec = codecs
+    return video_codec in MP4_COMPATIBLE_VIDEO_CODECS and (
+        audio_codec is None or audio_codec in MP4_COMPATIBLE_AUDIO_CODECS
+    )
+
+
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
     from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
+
+    def to_mp4(input_path: str, output_path: Path, copy_streams: bool) -> None:
+        ff = FFmpeg(
+            inputs={input_path: None},
+            # Only the video and audio streams are carried over when copying:
+            # a Matroska file can hold subtitle or attachment streams that an
+            # mp4 cannot, and those would fail the mux. `0:a?` makes audio
+            # optional so silent videos still work.
+            outputs={
+                str(output_path): "-map 0:v:0 -map 0:a? -c copy"
+                if copy_streams
+                else None
+            },
+            global_options="-y -loglevel quiet",
+        )
+        ff.run()
+
+    # A container that browsers cannot play (.mkv, say) often still holds
+    # streams they can, in which case only the container has to change. Copying
+    # the streams is near-instant and lossless, where a re-encode of a large
+    # file takes minutes and degrades quality (#13527).
+    can_remux = _can_remux_to_mp4(video_path)
 
     try:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             output_path = Path(video_path).with_suffix(".mp4")
             shutil.copy2(video_path, tmp_file.name)
+            if can_remux:
+                try:
+                    to_mp4(tmp_file.name, output_path, copy_streams=True)
+                    return str(output_path)
+                except FFRuntimeError:
+                    # The streams turned out not to be muxable into an mp4
+                    # after all; fall back to a full re-encode.
+                    pass
             # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
-            ff = FFmpeg(
-                inputs={str(tmp_file.name): None},
-                outputs={str(output_path): None},
-                global_options="-y -loglevel quiet",
-            )
-            ff.run()
+            to_mp4(tmp_file.name, output_path, copy_streams=False)
     except FFRuntimeError as e:
         print(f"Error converting video to browser-playable format {str(e)}")
         output_path = video_path
