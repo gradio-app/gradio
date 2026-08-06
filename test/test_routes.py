@@ -1,5 +1,6 @@
 """Contains tests for networking.py and app.py"""
 
+import asyncio
 import functools
 import inspect
 import json
@@ -11,6 +12,7 @@ import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from threading import Thread
+from types import SimpleNamespace
 
 import gradio_client as grc
 import httpx
@@ -35,7 +37,10 @@ from gradio import (
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
+    _delete_state_handler,
+    _lifespan_handler,
     compare_passwords_securely,
+    create_lifespan_handler,
     get_api_call_path,
     get_request_origin,
     get_root_url,
@@ -901,6 +906,36 @@ class TestApp:
     def test_create_app_debug_flag_forwarded(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"), debug=True)
         assert app.debug is True
+
+
+class TestLifespanHandlers:
+    @staticmethod
+    def _fake_app():
+        blocks = SimpleNamespace(blocks={}, temp_file_sets=[])
+        return SimpleNamespace(
+            state_holder=SimpleNamespace(delete_all_expired_state=lambda: None),
+            get_blocks=lambda: blocks,
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "make_handler",
+        [
+            lambda app: _delete_state_handler(app),
+            lambda app: _lifespan_handler(app, 1, 1),
+            lambda app: create_lifespan_handler(None, 1, 1)(app),
+        ],
+        ids=["delete_state", "lifespan", "combined"],
+    )
+    async def test_background_tasks_do_not_leak(self, make_handler):
+        """Each handler starts a `while True` task; leaving it running would leak
+        one task (and the `App` it closes over) per launch."""
+        pending_before = len(asyncio.all_tasks())
+        for _ in range(3):
+            async with make_handler(self._fake_app()):
+                await asyncio.sleep(0)  # let the background task start
+        await asyncio.sleep(0)  # let the cancellations be delivered
+        assert len(asyncio.all_tasks()) == pending_before
 
 
 class TestAuthenticatedRoutes:

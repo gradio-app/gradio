@@ -18,7 +18,12 @@ import unicodedata
 import uuid
 from collections import defaultdict, deque
 from collections.abc import AsyncGenerator, Callable
-from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
+from contextlib import (
+    AbstractAsyncContextManager,
+    AsyncExitStack,
+    asynccontextmanager,
+    suppress,
+)
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -1037,14 +1042,27 @@ async def delete_files_on_schedule(app: App, frequency: int, age: int) -> None:
         )
 
 
+async def _cancel_background_task(task: asyncio.Task) -> None:
+    """Cancel a lifespan background task and wait for it to unwind."""
+    task.cancel()
+    with suppress(asyncio.CancelledError):
+        await task
+
+
 @asynccontextmanager
 async def _lifespan_handler(
     app: App, frequency: int = 1, age: int = 1
 ) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
-    asyncio.create_task(delete_files_on_schedule(app, frequency, age))
-    yield
-    delete_files_created_by_app(app.get_blocks(), age=None)
+    # The handle must be kept: the event loop only holds a weak reference to a
+    # task, and without cancelling it on shutdown the loop would keep one
+    # `while True` task (and the `App` it closes over) alive per launch.
+    task = asyncio.create_task(delete_files_on_schedule(app, frequency, age))
+    try:
+        yield
+    finally:
+        await _cancel_background_task(task)
+        delete_files_created_by_app(app.get_blocks(), age=None)
 
 
 async def _delete_state(app: App):
@@ -1057,8 +1075,11 @@ async def _delete_state(app: App):
 @asynccontextmanager
 async def _delete_state_handler(app: App):
     """When the server launches, regularly delete expired state."""
-    asyncio.create_task(_delete_state(app))
-    yield
+    task = asyncio.create_task(_delete_state(app))
+    try:
+        yield
+    finally:
+        await _cancel_background_task(task)
 
 
 def create_lifespan_handler(
