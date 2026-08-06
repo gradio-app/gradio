@@ -165,6 +165,13 @@
 		Start Recording
 	</button>
 </div>
+<div class="banner-wrap">
+	<h2>Run history</h2>
+	<p class="padded">Review and load runs saved privately in this browser.</p>
+	<a class="run-history-button" href={`${root}gradio_api/runs`}>
+		View run history
+	</a>
+</div>
 
 <style>
 	.banner-wrap {
@@ -196,16 +203,35 @@
 	}
 
 	.theme-button,
-	.record-button {
+	.record-button,
+	.run-history-button {
 		display: flex;
 		align-items: center;
+		width: fit-content;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-md);
 		padding: var(--size-2) var(--size-2-5);
 		line-height: 1;
 		user-select: none;
-		text-transform: capitalize;
 		cursor: pointer;
+	}
+
+	.theme-button,
+	.record-button {
+		text-transform: capitalize;
+	}
+
+	.run-history-button {
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+		font-weight: var(--button-large-text-weight);
+		text-decoration: none;
+	}
+
+	.run-history-button:hover,
+	.run-history-button:focus-visible {
+		border-color: var(--button-secondary-border-color-hover);
+		background: var(--button-secondary-background-fill-hover);
 	}
 
 	.record-button img {
