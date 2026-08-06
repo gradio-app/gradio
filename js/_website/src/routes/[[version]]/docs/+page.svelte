@@ -1,17 +1,21 @@
 <script lang="ts">
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 
-	export let data: {
-		[key: string]: any;
-	};
+	let {
+		data
+	}: {
+		data: {
+			[key: string]: any;
+		};
+	} = $props();
 </script>
 
 <MetaTags
 	title="Gradio API Documentation"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="API reference documentation for the Gradio ecosystem."
 />
 

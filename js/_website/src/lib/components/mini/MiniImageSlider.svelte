@@ -31,15 +31,15 @@
 </script>
 
 <svelte:window
-	on:mousemove={handle_image_slider_mousemove}
-	on:mouseup={handle_image_slider_mouseup}
+	onmousemove={handle_image_slider_mousemove}
+	onmouseup={handle_image_slider_mouseup}
 />
 
 <div class="flex flex-col items-center w-full h-full pb-2">
 	<div class="flex-1 flex items-center justify-center w-full">
 		<div
 			class="image-slider-container relative w-full h-32 overflow-hidden select-none rounded-lg"
-			on:mousedown={handle_image_slider_mousedown}
+			onmousedown={handle_image_slider_mousedown}
 			role="slider"
 			tabindex="0"
 			aria-valuenow={image_slider_position}

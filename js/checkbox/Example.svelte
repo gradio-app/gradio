@@ -1,7 +1,13 @@
 <script lang="ts">
-	export let value: boolean | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value,
+		type,
+		selected = false
+	}: {
+		value: boolean | null;
+		type: "gallery" | "table";
+		selected?: boolean;
+	} = $props();
 </script>
 
 <div

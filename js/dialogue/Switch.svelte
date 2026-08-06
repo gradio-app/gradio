@@ -1,18 +1,23 @@
 <script lang="ts">
 	// based on https://svelte.dev/playground/d65a4e9f0ae74d1eb1b08d13e428af32?version=3.35.0
 
-	import { createEventDispatcher } from "svelte";
-	export let label;
-	export let checked = false;
-	export let disabled = false;
-	const dispatch = createEventDispatcher();
-	// @ts-ignore
-	function handleClick(event: Event): void {
-		const target = event.target;
-		// @ts-ignore
-		const state = target.getAttribute("aria-checked");
+	let {
+		label,
+		checked = $bindable(false),
+		disabled = false,
+		onclick
+	}: {
+		label: string;
+		checked?: boolean;
+		disabled?: boolean;
+		onclick?: (detail: { checked: boolean }) => void;
+	} = $props();
+
+	function handle_click(event: Event): void {
+		const target = event.target as HTMLElement | null;
+		const state = target?.getAttribute("aria-checked");
 		checked = state === "true" ? false : true;
-		dispatch("click", { checked });
+		onclick?.({ checked });
 	}
 </script>
 
@@ -20,7 +25,7 @@
 	<button
 		role="switch"
 		aria-checked={checked}
-		on:click={handleClick}
+		onclick={handle_click}
 		{disabled}
 	>
 	</button>

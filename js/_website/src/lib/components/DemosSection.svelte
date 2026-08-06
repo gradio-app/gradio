@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Demos from "$lib/components/Demos.svelte";
-	export let demos = [] as any[];
-	let current_selection = 0;
+	let { demos = [] as any[] } = $props();
+
+	let current_selection = $state(0);
 	let url_version = "4+";
 </script>
 
@@ -14,7 +15,7 @@
 			<div class="flex overflow-auto pt-4">
 				{#each demos as demo, i}
 					<button
-						on:click={() => (current_selection = i)}
+						onclick={() => (current_selection = i)}
 						class:selected-demo-tab={current_selection == i}
 						class="demo-btn px-4 py-2 text-lg min-w-max text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400"
 						name={demo[0]}>{demo[0]}</button

@@ -17,13 +17,13 @@
 	import nasaspaceexplorer from "$lib/assets/img/nasaspaceexplorer.png";
 	import opensorus from "$lib/assets/img/opensorus.png";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 </script>
 
 <MetaTags
 	title="Gradio Hackathon Winners"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="Announcing the winners of the Gradio Agents & MCP Hackathon."
 />
 

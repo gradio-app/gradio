@@ -7,13 +7,13 @@
 	import elevenlabs_logo from "$lib/assets/img/eleven-labs-logo.png";
 	import hf_logo from "$lib/assets/logos/hf-logo.svg";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 </script>
 
 <MetaTags
 	title="MCP's 1st Birthday Hackathon Winners"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="Announcing the winners of the MCP's 1st Birthday Hackathon."
 />
 
