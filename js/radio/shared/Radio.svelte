@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
 	let id = 0;
 </script>
 
@@ -38,7 +38,7 @@
 		value={internal_value}
 		aria-checked={is_selected}
 		bind:group={selected}
-		on:input={handle_input}
+		oninput={handle_input}
 	/>
 	<span>{display_value}</span>
 </label>

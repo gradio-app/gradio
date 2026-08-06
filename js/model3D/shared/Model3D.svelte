@@ -105,15 +105,9 @@
 		</IconButtonWrapper>
 
 		{#if use_3dgs}
-			<svelte:component
-				this={Canvas3DGSComponent}
-				{value}
-				{zoom_speed}
-				{pan_speed}
-			/>
+			<Canvas3DGSComponent {value} {zoom_speed} {pan_speed} />
 		{:else}
-			<svelte:component
-				this={Canvas3DComponent}
+			<Canvas3DComponent
 				bind:this={canvas3d}
 				{value}
 				{display_mode}

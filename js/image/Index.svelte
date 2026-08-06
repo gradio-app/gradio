@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as Webcam } from "./shared/Webcam.svelte";
 	export { default as BaseImageUploader } from "./shared/ImageUploader.svelte";
 	export { default as BaseStaticImage } from "./shared/ImagePreview.svelte";

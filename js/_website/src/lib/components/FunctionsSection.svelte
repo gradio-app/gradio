@@ -1,8 +1,7 @@
 <script lang="ts">
 	import EventListeners from "$lib/components/EventListeners.svelte";
 	import FunctionDoc from "$lib/components/FunctionDoc.svelte";
-	export let fns = [] as any[];
-	export let event_listeners = false;
+	let { fns = [] as any[], event_listeners = false } = $props();
 </script>
 
 {#if event_listeners}

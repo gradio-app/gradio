@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, type Snippet } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel, IconButtonWrapper, IconButton } from "@gradio/atoms";
@@ -33,7 +33,8 @@
 		onupload,
 		onerror,
 		ondelete,
-		onselect
+		onselect,
+		children
 	}: {
 		value: null | FileData | FileData[];
 		label: string;
@@ -59,6 +60,7 @@
 		onerror?: (error: string) => void;
 		ondelete?: (event_data: FileData) => void;
 		onselect?: (event_data: SelectData) => void;
+		children?: Snippet;
 	} = $props();
 
 	async function handle_upload(detail: FileData | FileData[]): Promise<void> {
@@ -143,6 +145,6 @@
 		{upload}
 		{height}
 	>
-		<slot />
+		{@render children?.()}
 	</Upload>
 {/if}

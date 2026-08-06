@@ -510,10 +510,10 @@
 		>
 			{#if footer_links.includes("api")}
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadApiDocs();
 						loadApiRecorder();
 					}}
@@ -541,7 +541,7 @@
 			{/if}
 			<button
 				class:hidden={!$is_screen_recording}
-				on:click={() => {
+				onclick={() => {
 					screen_recording();
 				}}
 				class="record"
@@ -556,10 +556,10 @@
 			{#if footer_links.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_settings_visible(!settings_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadSettings();
 					}}
 					class="settings"
@@ -579,12 +579,12 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
 			id="api-recorder-container"
-			on:click={() => {
+			onclick={() => {
 				set_api_docs_visible(true);
 				api_recorder_visible = false;
 			}}
 		>
-			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
+			<ApiRecorder {api_calls} {dependencies} />
 		</div>
 	{/if}
 
@@ -600,19 +600,17 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_api_docs_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={ApiDocs}
+				<ApiDocs
 					root_node={app_tree.root}
-					on:close={(event) => {
+					onclose={(detail?: { api_recorder_visible: boolean }) => {
 						set_api_docs_visible(false);
 						api_calls = [];
-						api_recorder_visible = api_recorder_visible =
-							event.detail?.api_recorder_visible;
+						api_recorder_visible = detail?.api_recorder_visible ?? false;
 					}}
 					{dependencies}
 					{root}
@@ -638,13 +636,12 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_settings_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={Settings}
+				<Settings
 					bind:allow_zoom
 					bind:allow_video_trim
 					onclose={() => {
@@ -663,7 +660,7 @@
 	{/if}
 
 	{#if vibe_mode && VibeEditor}
-		<svelte:component this={VibeEditor} {app} {root} />
+		<VibeEditor {app} {root} />
 	{/if}
 </div>
 

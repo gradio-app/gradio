@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseMultimodalTextbox } from "./shared/MultimodalTextbox.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
