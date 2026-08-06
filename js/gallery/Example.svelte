@@ -1,9 +1,15 @@
 <script lang="ts">
 	import type { GalleryImage, GalleryVideo } from "./types";
 
-	export let value: (GalleryImage | GalleryVideo)[] | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value,
+		type,
+		selected = false
+	}: {
+		value: (GalleryImage | GalleryVideo)[] | null;
+		type: "gallery" | "table";
+		selected?: boolean;
+	} = $props();
 </script>
 
 <div

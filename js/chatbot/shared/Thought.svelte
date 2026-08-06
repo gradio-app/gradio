@@ -4,6 +4,8 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import MessageContent from "./MessageContent.svelte";
+	// self-import replaces the deprecated <svelte:self>
+	import Thought from "./Thought.svelte";
 	import { DropdownCircularArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { slide } from "svelte/transition";
@@ -100,11 +102,14 @@
 	<div
 		class="title"
 		class:expanded
-		on:click|stopPropagation={toggleExpanded}
+		onclick={(event) => {
+			event.stopPropagation();
+			toggleExpanded();
+		}}
 		aria-busy={thought_node.content === "" || thought_node.content === null}
 		role="button"
 		tabindex="0"
-		on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
+		onkeydown={(e) => e.key === "Enter" && toggleExpanded()}
 	>
 		<span
 			class="arrow"
@@ -146,7 +151,7 @@
 			class:content-preview={!expanded &&
 				thought_node.metadata?.status !== "done"}
 			bind:this={content_preview_element}
-			on:scroll={handleScroll}
+			onscroll={handleScroll}
 			transition:slide
 		>
 			<MessageContent
@@ -171,9 +176,10 @@
 			{#if thought_node.children?.length > 0}
 				<div class="children">
 					{#each thought_node.children as child, index}
-						<svelte:self
+						<Thought
 							thought={child}
-							rtc={rtl || false}
+							rtl={rtl || false}
+							{allow_tags}
 							{sanitize_html}
 							{latex_delimiters}
 							{render_markdown}

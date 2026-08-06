@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseModel3D } from "./shared/Model3D.svelte";
 	export { default as BaseModel3DUpload } from "./shared/Model3DUpload.svelte";
 	export { default as BaseExample } from "./Example.svelte";

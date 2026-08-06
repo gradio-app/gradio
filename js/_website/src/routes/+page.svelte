@@ -24,23 +24,27 @@
 	import MiniDateTime from "$lib/components/mini/MiniDateTime.svelte";
 
 	import "$lib/assets/theme.css";
-	export let data: {
-		logos: {
-			img: string;
-			contrast: boolean;
-			description: string;
-		}[];
-		tweets: {
-			profile_pic: string;
-			name: string;
-			handle: string;
-			link: string;
-			content: string;
-			likes: number;
-			timestamp: string;
-		}[];
-		star_count: any;
-	};
+	let {
+		data
+	}: {
+		data: {
+			logos: {
+				img: string;
+				contrast: boolean;
+				description: string;
+			}[];
+			tweets: {
+				profile_pic: string;
+				name: string;
+				handle: string;
+				link: string;
+				content: string;
+				likes: number;
+				timestamp: string;
+			}[];
+			star_count: any;
+		};
+	} = $props();
 
 	let version = version_json.version;
 </script>

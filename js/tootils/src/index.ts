@@ -1,12 +1,8 @@
 import { test as base, type Locator, type Page } from "@playwright/test";
-import { spy } from "tinyspy";
 import url from "url";
 import path from "path";
 import fsPromises from "fs/promises";
 import type { ChildProcess } from "node:child_process";
-
-import type { SvelteComponent } from "svelte";
-import type { SpyFn } from "tinyspy";
 
 import { launchGradioApp, killGradioApp, hasTestcase } from "./app-launcher";
 
@@ -164,19 +160,6 @@ process.on("SIGTERM", () => {
 });
 
 export const test = test_normal;
-
-export async function wait_for_event(
-	component: SvelteComponent,
-	event: string
-): Promise<SpyFn> {
-	const mock = spy();
-	return new Promise((res) => {
-		component.$on(event, () => {
-			mock();
-			res(mock);
-		});
-	});
-}
 
 export interface ActionReturn<
 	Parameter = never,

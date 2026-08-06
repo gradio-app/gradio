@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseCode } from "./shared/Code.svelte";
 	export { default as BaseCopy } from "./shared/Copy.svelte";
 	export { default as BaseDownload } from "./shared/Download.svelte";

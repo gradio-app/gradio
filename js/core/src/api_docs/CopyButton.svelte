@@ -2,9 +2,9 @@
 	import IconCopy from "./img/IconCopy.svelte";
 	import IconCheck from "./img/IconCheck.svelte";
 
-	export let code: string;
+	let { code }: { code: string } = $props();
 
-	let copied = false;
+	let copied = $state(false);
 
 	function copy(): void {
 		navigator.clipboard.writeText(code);
@@ -13,11 +13,9 @@
 			copied = false;
 		}, 1500);
 	}
-
-	$: copied;
 </script>
 
-<button on:click={copy} class="copy-button" aria-live="polite">
+<button onclick={copy} class="copy-button" aria-live="polite">
 	<span
 		class="inline-flex items-center justify-center rounded-md p-0.5 max-sm:p-0"
 	>

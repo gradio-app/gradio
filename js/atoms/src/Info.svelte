@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { render_inline_markdown } from "./inline-markdown";
-	export let info: string;
+	let { info }: { info: string } = $props();
 </script>
 
 <div class="info-text">

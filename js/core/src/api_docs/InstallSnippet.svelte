@@ -2,14 +2,19 @@
 	import CopyButton from "./CopyButton.svelte";
 	import { Block } from "@gradio/atoms";
 
-	export let current_language:
-		| "python"
-		| "javascript"
-		| "bash"
-		| "skill"
-		| "mcp"
-		| "cli";
-	export let cli_flavor: "hf" | "gradio" = "hf";
+	let {
+		current_language,
+		cli_flavor = "hf"
+	}: {
+		current_language:
+			| "python"
+			| "javascript"
+			| "bash"
+			| "skill"
+			| "mcp"
+			| "cli";
+		cli_flavor?: "hf" | "gradio";
+	} = $props();
 
 	let py_install = "pip install gradio_client";
 	let js_install = "npm i -D @gradio/client";
@@ -17,10 +22,11 @@
 	const hf_mac_install = "curl -LsSf https://hf.co/cli/install.sh | bash";
 	const hf_win_install =
 		'powershell -ExecutionPolicy ByPass -c "irm https://hf.co/cli/install.ps1 | iex"';
-	$: cli_install =
+	let cli_install = $derived(
 		cli_flavor === "hf"
 			? "hf extensions install gradio-app/hf-gradio"
-			: "pip install gradio --upgrade";
+			: "pip install gradio --upgrade"
+	);
 </script>
 
 {#if current_language === "python"}

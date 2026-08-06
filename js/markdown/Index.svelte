@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseMarkdown } from "./shared/Markdown.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>

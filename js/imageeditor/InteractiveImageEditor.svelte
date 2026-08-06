@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script module lang="ts">
 	export interface EditorData {
 		background: FileData | null;
 		layers: FileData[] | null;

@@ -1,13 +1,11 @@
 <script>
 	/**
-	 * @type {{type: string; label: string; component:string}[]}
+	 * @type {{
+	 *   app_info: {type: string; label: string; component:string}[],
+	 *   request_data?: any[]
+	 * }}
 	 */
-	export let app_info;
-
-	/**
-	 * @type any[]
-	 */
-	export let request_data = [];
+	let { app_info, request_data = $bindable([]) } = $props();
 
 	/**
 	 *
@@ -50,7 +48,7 @@
 			<input
 				type="text"
 				value={request_data[i]}
-				on:input={(e) =>
+				oninput={(e) =>
 					(request_data[i] = e.currentTarget.value
 						.split(",")
 						.map((v) => v.trim()))}
@@ -61,7 +59,7 @@
 			<span>{label} <code>File</code></span>
 			<input
 				type="file"
-				on:input={(e) => handle_file(e.currentTarget.files, i)}
+				oninput={(e) => handle_file(e.currentTarget.files, i)}
 			/>
 		</label>
 	{/if}

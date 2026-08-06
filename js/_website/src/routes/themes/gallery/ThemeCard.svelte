@@ -2,18 +2,32 @@
 	import type { ThemeData } from "./types";
 	import { is_color_dark } from "./utils";
 
-	export let theme: ThemeData;
-	export let on_click: () => void;
-	export let dark: boolean = false;
+	let {
+		theme,
+		on_click,
+		dark = false
+	}: {
+		theme: ThemeData;
+		on_click: () => void;
+		dark?: boolean;
+	} = $props();
 
-	$: current_bg = dark ? theme.colors.background_dark : theme.colors.background;
-	$: is_dark = is_color_dark(current_bg);
-	$: is_btn_dark = is_color_dark(theme.colors.button_primary);
-	$: is_block_dark = is_color_dark(theme.colors.block_background);
-	$: card_text = is_dark ? "#ffffff" : theme.colors.text_color;
-	$: block_text = is_block_dark ? "#ffffff" : theme.colors.text_color;
-	$: label_color = is_block_dark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
-	$: track_color = is_block_dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
+	let current_bg = $derived(
+		dark ? theme.colors.background_dark : theme.colors.background
+	);
+	let is_dark = $derived(is_color_dark(current_bg));
+	let is_btn_dark = $derived(is_color_dark(theme.colors.button_primary));
+	let is_block_dark = $derived(is_color_dark(theme.colors.block_background));
+	let card_text = $derived(is_dark ? "#ffffff" : theme.colors.text_color);
+	let block_text = $derived(
+		is_block_dark ? "#ffffff" : theme.colors.text_color
+	);
+	let label_color = $derived(
+		is_block_dark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)"
+	);
+	let track_color = $derived(
+		is_block_dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"
+	);
 
 	function mix_color(hex: string, opacity: number): string {
 		return `${hex}${Math.round(opacity * 255)
@@ -23,11 +37,11 @@
 </script>
 
 <div
-	on:click={(event) => {
+	onclick={(event) => {
 		on_click();
 		event.stopPropagation();
 	}}
-	on:keydown={(event) => {
+	onkeydown={(event) => {
 		if (event.key === "Enter" || event.key === " ") {
 			on_click();
 			event.preventDefault();

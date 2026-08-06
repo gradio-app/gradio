@@ -39,11 +39,14 @@
 		onload?: () => void;
 	} = $props();
 
+	// capitalised alias so it can be used as a component tag
+	let Comp = $derived(components[type]);
+
 	let image_fullscreen = $state(false);
 	let image_container: HTMLElement;
 
-	function handle_fullscreen(event: CustomEvent<boolean>): void {
-		image_fullscreen = event.detail;
+	function handle_fullscreen(fullscreen: boolean): void {
+		image_fullscreen = fullscreen;
 		if (image_fullscreen && image_container) {
 			image_container.requestFullscreen?.();
 		} else if (document.fullscreenElement) {
@@ -57,8 +60,7 @@
 </script>
 
 {#if type === "gallery"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		display_icon_button_wrapper_top_corner={false}
@@ -69,11 +71,10 @@
 		interactive={false}
 		mode="minimal"
 		fixed_height={1}
-		on:load={handle_load}
+		onload={handle_load}
 	/>
 {:else if type === "dataframe"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		show_label={props.label ? true : false}
@@ -87,11 +88,10 @@
 		latex_delimiters={props.latex_delimiters}
 		col_count={props.col_count}
 		row_count={props.row_count}
-		on:load={handle_load}
+		onload={handle_load}
 	/>
 {:else if type === "plot"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		{target}
@@ -100,11 +100,10 @@
 		bokeh_version={props.bokeh_version}
 		caption={props.caption || ""}
 		show_actions_button={true}
-		on:load={handle_load}
+		onload={handle_load}
 	/>
 {:else if type === "audio"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		show_label={props.label ? true : false}
@@ -117,11 +116,10 @@
 		show_download_button={false}
 		display_icon_button_wrapper_top_corner={false}
 		minimal={true}
-		on:load={handle_load}
+		onload={handle_load}
 	/>
 {:else if type === "video"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		autoplay={props.autoplay}
 		value={value.video || value}
@@ -131,14 +129,13 @@
 		{upload}
 		display_icon_button_wrapper_top_corner={false}
 		show_download_button={false}
-		on:load={handle_load}
+		onload={handle_load}
 	>
 		<track kind="captions" />
-	</svelte:component>
+	</Comp>
 {:else if type === "image"}
 	<div bind:this={image_container}>
-		<svelte:component
-			this={components[type]}
+		<Comp
 			{...props}
 			{value}
 			show_label={props.label ? true : false}
@@ -146,21 +143,15 @@
 			buttons={["fullscreen"]}
 			fullscreen={image_fullscreen}
 			show_button_background={false}
-			on:fullscreen={handle_fullscreen}
-			on:load={handle_load}
+			onfullscreen={handle_fullscreen}
+			onload={handle_load}
 			{i18n}
 		/>
 	</div>
 {:else if type === "html"}
-	<svelte:component
-		this={components[type]}
-		{...props}
-		props={{ value }}
-		on:load={handle_load}
-	/>
+	<Comp {...props} props={{ value }} onload={handle_load} />
 {:else if type === "model3d"}
-	<svelte:component
-		this={components[type]}
+	<Comp
 		{...props}
 		{value}
 		clear_color={props.clear_color}
@@ -176,7 +167,7 @@
 		interactive={false}
 		show_share_button={false}
 		gradio={{ dispatch: () => {}, i18n }}
-		on:load={handle_load}
+		onload={handle_load}
 		{i18n}
 	/>
 {/if}

@@ -1,20 +1,25 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import api_logo from "./img/api-logo.svg";
 	import Clear from "./img/clear.svelte";
 	import { BaseButton } from "@gradio/button";
 
-	export let root: string;
-	export let api_count: number;
-	export let current_language:
-		| "python"
-		| "javascript"
-		| "bash"
-		| "skill"
-		| "mcp"
-		| "cli" = "python";
-
-	const dispatch = createEventDispatcher();
+	let {
+		root,
+		api_count,
+		current_language = "python",
+		onclose
+	}: {
+		root: string;
+		api_count: number;
+		current_language?:
+			| "python"
+			| "javascript"
+			| "bash"
+			| "skill"
+			| "mcp"
+			| "cli";
+		onclose?: (detail?: { api_recorder_visible: boolean }) => void;
+	} = $props();
 </script>
 
 <h2>
@@ -32,7 +37,7 @@
 				size="sm"
 				variant="secondary"
 				elem_id="start-api-recorder"
-				onclick={() => dispatch("close", { api_recorder_visible: true })}
+				onclick={() => onclose?.({ api_recorder_visible: true })}
 			>
 				<div class="loading-dot self-baseline"></div>
 				<p class="self-baseline btn-text">API Recorder</p>
@@ -46,7 +51,7 @@
 	</span>
 </h2>
 
-<button on:click={() => dispatch("close")}>
+<button onclick={() => onclose?.()}>
 	<Clear />
 </button>
 

@@ -3,14 +3,21 @@
 	import { BaseButton } from "@gradio/button";
 	import { Block } from "@gradio/atoms";
 
-	export let dependency: Dependency;
-	export let dependency_failures: boolean[][];
-	export let dependency_index: number;
-	export let instance_map: {
-		[id: number]: ComponentMeta;
-	};
-	export let run: (id: number) => Promise<void>;
-	export let dependency_inputs: string[][];
+	let {
+		dependency,
+		dependency_failures,
+		dependency_index,
+		instance_map,
+		run,
+		dependency_inputs
+	}: {
+		dependency: Dependency;
+		dependency_failures: boolean[][];
+		dependency_index: number;
+		instance_map: { [id: number]: ComponentMeta };
+		run: (id: number) => Promise<void>;
+		dependency_inputs: string[][];
+	} = $props();
 
 	function format_label(label: unknown): string {
 		return label ? "'" + label + "'" : "the";

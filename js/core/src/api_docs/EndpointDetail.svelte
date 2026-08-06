@@ -1,16 +1,27 @@
 <script lang="ts">
 	import type { Payload } from "../types";
-	export let api_name: string | null = null;
-	export let description: string | null = null;
-	export let analytics: Record<string, any>;
-	export let last_api_call: Payload | null = null;
-	export let dependency_id: number | null = null;
 	import { format_latency, get_color_from_success_rate } from "./utils";
 	import PercentileChart from "./PercentileChart.svelte";
 
+	let {
+		api_name = null,
+		description = null,
+		analytics,
+		last_api_call = null,
+		dependency_id = null
+	}: {
+		api_name?: string | null;
+		description?: string | null;
+		analytics: Record<string, any>;
+		last_api_call?: Payload | null;
+		dependency_id?: number | null;
+	} = $props();
+
 	const success_rate = api_name ? analytics[api_name]?.success_rate : 0;
 	const color = get_color_from_success_rate(success_rate);
-	$: is_most_recently_used = last_api_call?.fn_index === dependency_id;
+	let is_most_recently_used = $derived(
+		last_api_call?.fn_index === dependency_id
+	);
 </script>
 
 <h3>

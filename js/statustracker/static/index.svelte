@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { tick, untrack } from "svelte";
 	import { pretty_si } from "./utils";
 
@@ -54,6 +54,7 @@
 	import Loader from "./Loader.svelte";
 	import type { ILoadingStatus as LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { Snippet } from "svelte";
 
 	import { IconButton } from "@gradio/atoms";
 	import { Clear } from "@gradio/icons";
@@ -93,6 +94,8 @@
 		cache_duration?: number | null;
 		avg_time?: number | null;
 		cache_event_id?: number | null;
+		additional_loading_text?: Snippet;
+		error_details?: Snippet;
 	}
 
 	interface ProgressLevel {
@@ -129,7 +132,9 @@
 		used_cache = null,
 		cache_duration = null,
 		avg_time = null,
-		cache_event_id = null
+		cache_event_id = null,
+		additional_loading_text,
+		error_details
 	}: Props = $props();
 
 	let el: HTMLDivElement;
@@ -450,7 +455,7 @@
 
 		{#if !timer}
 			<p class="loading">{loading_text}</p>
-			<slot name="additional-loading-text" />
+			{@render additional_loading_text?.()}
 		{/if}
 	{:else if status === "error"}
 		<div class="clear-status">
@@ -464,7 +469,7 @@
 			/>
 		</div>
 		<span class="error">{i18n("common.error")}</span>
-		<slot name="error" />
+		{@render error_details?.()}
 	{/if}
 </div>
 

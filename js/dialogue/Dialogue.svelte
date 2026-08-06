@@ -397,7 +397,7 @@
 	});
 </script>
 
-<svelte:window on:click={handle_click_outside} />
+<svelte:window onclick={handle_click_outside} />
 
 <div class:container={gradio.shared.container}>
 	{#if gradio.shared.show_label && (buttons.some((btn) => typeof btn === "string" && btn === "copy") || buttons.some((btn) => typeof btn !== "string"))}
@@ -424,8 +424,8 @@
 				label="Plain Text"
 				bind:checked
 				disabled={is_formatting || is_unformatting}
-				on:click={async (e) => {
-					if (!e.detail.checked) {
+				onclick={async (e) => {
+					if (!e.checked) {
 						is_unformatting = true;
 						try {
 							gradio.props.value = await gradio.shared.server.unformat({
@@ -472,8 +472,8 @@
 						class="speaker-column"
 						role="button"
 						tabindex="0"
-						on:mouseenter={() => disabled && (hoveredSpeaker = line.speaker)}
-						on:mouseleave={() => disabled && (hoveredSpeaker = null)}
+						onmouseenter={() => disabled && (hoveredSpeaker = line.speaker)}
+						onmouseleave={() => disabled && (hoveredSpeaker = null)}
 					>
 						{#if disabled}
 							<textarea
@@ -500,9 +500,9 @@
 								bind:value={line.text}
 								placeholder={gradio.props.placeholder}
 								{disabled}
-								on:input={(event) => handle_input(event, i)}
-								on:focus={(event) => handle_input(event, i)}
-								on:keydown={(event) => {
+								oninput={(event) => handle_input(event, i)}
+								onfocus={(event) => handle_input(event, i)}
+								onkeydown={(event) => {
 									if (event.key === "Escape" && showTagMenu) {
 										showTagMenu = false;
 										selectedOptionIndex = 0;
@@ -559,7 +559,7 @@
 							<button
 								class="add-button"
 								data-testid="dialogue-add-button-{i}"
-								on:click={() => add_line(i)}
+								onclick={() => add_line(i)}
 								aria-label="Add new line"
 								{disabled}
 							>
@@ -571,7 +571,7 @@
 						<button
 							class="delete-button"
 							data-testid="dialogue-delete-button-{i}"
-							on:click={() => delete_line(i)}
+							onclick={() => delete_line(i)}
 							aria-label="Remove current line"
 							{disabled}
 						>
@@ -595,12 +595,12 @@
 				placeholder={gradio.props.placeholder}
 				rows={5}
 				{disabled}
-				on:input={(event) => {
+				oninput={(event) => {
 					handle_input(event, 0);
 					gradio.props.value = textbox_value;
 				}}
-				on:focus={(event) => handle_input(event, 0)}
-				on:keydown={(event) => {
+				onfocus={(event) => handle_input(event, 0)}
+				onkeydown={(event) => {
 					if (event.key === "Escape" && showTagMenu) {
 						showTagMenu = false;
 						selectedOptionIndex = 0;
@@ -652,7 +652,7 @@
 			<button
 				class="submit-button"
 				data-testid="dialogue-submit-button"
-				on:click={handle_submit}
+				onclick={handle_submit}
 				{disabled}
 			>
 				{#if typeof gradio.props.submit_btn === "string"}

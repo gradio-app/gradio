@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount } from "svelte";
 	import type { ComponentMeta, Dependency } from "../types";
 	import NoApi from "./NoApi.svelte";
 	import type { Client } from "@gradio/client";
@@ -28,13 +28,27 @@
 	import MCPSnippet from "./MCPSnippet.svelte";
 	import CopyMarkdown from "./CopyMarkdown.svelte";
 
-	export let dependencies: Dependency[];
-	export let root: string;
-	export let app: Awaited<ReturnType<typeof Client.connect>>;
-	export let space_id: string | null;
-	export let root_node: ComponentMeta;
-	export let username: string | null;
-	export let last_api_call: Payload | null = null;
+	let {
+		dependencies,
+		root = $bindable(),
+		app,
+		space_id,
+		root_node,
+		username,
+		last_api_call = null,
+		api_calls = [],
+		onclose
+	}: {
+		dependencies: Dependency[];
+		root: string;
+		app: Awaited<ReturnType<typeof Client.connect>>;
+		space_id: string | null;
+		root_node: ComponentMeta;
+		username: string | null;
+		last_api_call?: Payload | null;
+		api_calls?: Payload[];
+		onclose?: (detail?: { api_recorder_visible: boolean }) => void;
+	} = $props();
 
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
@@ -57,32 +71,17 @@
 		root += "/";
 	}
 
-	export let api_calls: Payload[] = [];
 	let current_language:
 		| "python"
 		| "javascript"
 		| "bash"
 		| "skill"
 		| "mcp"
-		| "cli" = "python";
+		| "cli" = $state("python");
 
-	let cli_flavor: "hf" | "gradio" = "gradio";
+	let cli_flavor = $state<"hf" | "gradio">("gradio");
 
-	$: cli_command = cli_flavor === "hf" ? "hf gradio" : "gradio";
-
-	$: sorted_dependencies = (() => {
-		const valid = dependencies.filter(
-			(dep) =>
-				dep.api_visibility === "public" &&
-				info?.named_endpoints?.["/" + dep.api_name]
-		);
-		if (info && last_api_call) {
-			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
-			const others = valid.filter((dep) => dep.id !== last_api_call.fn_index);
-			return mostRecent ? [mostRecent, ...others] : valid;
-		}
-		return valid;
-	})();
+	let cli_command = $derived(cli_flavor === "hf" ? "hf gradio" : "gradio");
 
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
@@ -101,17 +100,17 @@
 		);
 	}
 
-	$: langs = [
+	let langs = $derived([
 		["python", "Python", python],
 		["javascript", "JavaScript", javascript],
 		["cli", "CLI", agent],
 		["bash", "cURL", bash],
 		...(space_id ? [["skill", "Skill", skill] as const] : []),
 		["mcp", "MCP", mcp]
-	] as const;
+	] as const);
 
-	let is_running = false;
-	let mcp_server_active = false;
+	let is_running = $state(false);
+	let mcp_server_active = $state(false);
 
 	async function get_info(): Promise<{
 		named_endpoints: any;
@@ -131,10 +130,24 @@
 	let info: {
 		named_endpoints: any;
 		unnamed_endpoints: any;
-	};
+	} = $state()!;
 
-	let js_info: Record<string, any>;
-	let analytics: Record<string, any>;
+	let js_info: Record<string, any> = $state()!;
+	let analytics: Record<string, any> = $state()!;
+
+	let sorted_dependencies = $derived.by(() => {
+		const valid = dependencies.filter(
+			(dep) =>
+				dep.api_visibility === "public" &&
+				info?.named_endpoints?.["/" + dep.api_name]
+		);
+		if (info && last_api_call) {
+			const mostRecent = valid.find((dep) => dep.id === last_api_call.fn_index);
+			const others = valid.filter((dep) => dep.id !== last_api_call.fn_index);
+			return mostRecent ? [mostRecent, ...others] : valid;
+		}
+		return valid;
+	});
 
 	get_info().then((data) => {
 		info = data;
@@ -164,17 +177,6 @@
 		analytics = summary.functions;
 	});
 
-	const dispatch = createEventDispatcher();
-
-	$: selected_tools_array = Array.from(selected_tools);
-	$: selected_tools_without_prefix =
-		selected_tools_array.map(remove_tool_prefix);
-	$: mcp_server_url_streamable =
-		selected_tools_array.length > 0 &&
-		selected_tools_array.length < tools.length
-			? `${root}gradio_api/mcp/?tools=${selected_tools_without_prefix.join(",")}`
-			: `${root}gradio_api/mcp/`;
-
 	interface ToolParameter {
 		title?: string;
 		type: string;
@@ -195,11 +197,11 @@
 		};
 	}
 
-	let tools: Tool[] = [];
-	let headers: string[] = [];
-	let mcp_json_stdio: any;
-	let file_data_present = false;
-	let selected_tools: Set<string> = new Set();
+	let tools: Tool[] = $state([]);
+	let headers: string[] = $state([]);
+	let mcp_json_stdio: any = $state();
+	let file_data_present = $state(false);
+	let selected_tools: Set<string> = $state(new Set());
 	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
 
 	function remove_tool_prefix(toolName: string): string {
@@ -208,6 +210,17 @@
 		}
 		return toolName;
 	}
+
+	let selected_tools_array = $derived(Array.from(selected_tools));
+	let selected_tools_without_prefix = $derived(
+		selected_tools_array.map(remove_tool_prefix)
+	);
+	let mcp_server_url_streamable = $derived(
+		selected_tools_array.length > 0 &&
+			selected_tools_array.length < tools.length
+			? `${root}gradio_api/mcp/?tools=${selected_tools_without_prefix.join(",")}`
+			: `${root}gradio_api/mcp/`
+	);
 
 	const upload_file_mcp_server = {
 		command: "uvx",
@@ -285,7 +298,7 @@
 		}
 	}
 
-	$: markdown_code_snippets = (() => {
+	let markdown_code_snippets = $derived.by(() => {
 		const out: Record<string, Record<string, string>> = {};
 		if (!info?.named_endpoints) return out;
 		for (const dep of dependencies) {
@@ -302,9 +315,9 @@
 			};
 		}
 		return out;
-	})();
+	});
 
-	let config_snippets: Record<string, string> = {};
+	let config_snippets: Record<string, string> = $state({});
 
 	onMount(() => {
 		const controller = new AbortController();
@@ -356,7 +369,7 @@
 	{#if api_count}
 		<div class="banner-wrap">
 			<ApiBanner
-				on:close
+				{onclose}
 				root={space_id || root}
 				{api_count}
 				{current_language}
@@ -397,7 +410,7 @@
 						<li
 							class="snippet
 						{current_language === language ? 'current-lang' : 'inactive-lang'}"
-							on:click={() => {
+							onclick={() => {
 								current_language = language;
 								set_query_param("lang", language);
 							}}
@@ -468,7 +481,7 @@
 								class="snippet {cli_flavor === 'gradio'
 									? 'current-lang'
 									: 'inactive-lang'}"
-								on:click={() => {
+								onclick={() => {
 									cli_flavor = "gradio";
 								}}
 							>
@@ -479,7 +492,7 @@
 								class="snippet {cli_flavor === 'hf'
 									? 'current-lang'
 									: 'inactive-lang'}"
-								on:click={() => {
+								onclick={() => {
 									cli_flavor = "hf";
 								}}
 							>
@@ -531,8 +544,7 @@
 							<Button
 								size="sm"
 								variant="secondary"
-								onclick={() =>
-									dispatch("close", { api_recorder_visible: true })}
+								onclick={() => onclose?.({ api_recorder_visible: true })}
 							>
 								<div class="loading-dot"></div>
 								<p class="self-baseline">API Recorder</p>
@@ -563,7 +575,7 @@
 
 							<!-- <span
 							id="api-recorder"
-							on:click={() => dispatch("close", { api_recorder_visible: true })}
+							onclick={() => onclose?.({ api_recorder_visible: true })}
 							>🪄 API Recorder</span
 						> to automatically generate your API requests! -->
 						</p>
@@ -628,7 +640,7 @@
 			</div>
 		</div>
 	{:else}
-		<NoApi {root} on:close />
+		<NoApi {root} {onclose} />
 	{/if}
 {/if}
 

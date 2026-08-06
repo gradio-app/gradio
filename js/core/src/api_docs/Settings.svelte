@@ -82,21 +82,21 @@
 					? 'current-theme'
 					: 'inactive-theme'}"
 			>
-				<button on:click={() => setTheme("light")}>☀︎ &nbsp;Light</button>
+				<button onclick={() => setTheme("light")}>☀︎ &nbsp;Light</button>
 			</li>
 			<li
 				class="theme-button {current_theme === 'dark'
 					? 'current-theme'
 					: 'inactive-theme'}"
 			>
-				<button on:click={() => setTheme("dark")}>⏾ &nbsp; Dark</button>
+				<button onclick={() => setTheme("dark")}>⏾ &nbsp; Dark</button>
 			</li>
 			<li
 				class="theme-button {current_theme === 'system'
 					? 'current-theme'
 					: 'inactive-theme'}"
 			>
-				<button on:click={() => setTheme("system")}>🖥︎ &nbsp;System</button>
+				<button onclick={() => setTheme("system")}>🖥︎ &nbsp;System</button>
 			</li>
 		</ul>
 	</div>
@@ -156,7 +156,7 @@
 	</p>
 	<button
 		class="record-button"
-		on:click={() => {
+		onclick={() => {
 			onclose?.();
 			start_recording?.();
 		}}

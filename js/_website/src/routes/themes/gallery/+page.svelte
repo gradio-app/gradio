@@ -6,30 +6,36 @@
 	import ThemeDetailModal from "./ThemeDetailModal.svelte";
 	import { theme as siteTheme } from "$lib/stores/theme";
 
-	export let data: { themes: ThemeData[] };
+	let {
+		data
+	}: {
+		data: { themes: ThemeData[] };
+	} = $props();
 
 	type FilterType = "all" | "core" | "community";
 
-	$: all_themes = data.themes;
-	let themes: ThemeData[] = [];
-	let search_query: string = "";
-	let selected_theme: ThemeData | null = null;
-	let active_filter: FilterType = "all";
-	let preview_dark: boolean = $siteTheme === "dark";
+	let all_themes = $derived(data.themes);
+	let search_query: string = $state("");
+	let selected_theme: ThemeData | null = $state(null);
+	let active_filter: FilterType = $state("all");
+	let preview_dark: boolean = $state($siteTheme === "dark");
 
-	$: core_count = all_themes.filter((t) => t.is_official).length;
-	$: community_count = all_themes.filter((t) => !t.is_official).length;
+	let core_count = $derived(all_themes.filter((t) => t.is_official).length);
+	let community_count = $derived(
+		all_themes.filter((t) => !t.is_official).length
+	);
 
-	$: unique_fonts = [
+	let unique_fonts = $derived([
 		...new Set(all_themes.flatMap((t) => [t.fonts.main, t.fonts.mono]))
-	];
-	$: font_url =
+	]);
+	let font_url = $derived(
 		unique_fonts.length > 0
 			? `https://fonts.googleapis.com/css2?${unique_fonts.map((f) => `family=${f.replace(/ /g, "+")}:wght@400;500;600`).join("&")}&display=swap`
-			: "";
-	$: custom_stylesheets = [
+			: ""
+	);
+	let custom_stylesheets = $derived([
 		...new Set(all_themes.flatMap((t) => t.stylesheets ?? []))
-	];
+	]);
 
 	function filter_themes(query: string, filter: FilterType): ThemeData[] {
 		let filtered = all_themes;
@@ -86,7 +92,7 @@
 		}
 	}
 
-	$: themes = filter_themes(search_query, active_filter);
+	let themes = $derived(filter_themes(search_query, active_filter));
 </script>
 
 <svelte:head>
@@ -135,7 +141,7 @@
 	<div class="flex items-center justify-center gap-2 mb-6">
 		<div class="flex gap-1">
 			<button
-				on:click={() => set_filter("all")}
+				onclick={() => set_filter("all")}
 				class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter ===
 				'all'
 					? 'bg-orange-500 text-white'
@@ -144,7 +150,7 @@
 				All <span class="opacity-70">{all_themes.length}</span>
 			</button>
 			<button
-				on:click={() => set_filter("core")}
+				onclick={() => set_filter("core")}
 				class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter ===
 				'core'
 					? 'bg-orange-500 text-white'
@@ -154,7 +160,7 @@
 			</button>
 			{#if community_count > 0}
 				<button
-					on:click={() => set_filter("community")}
+					onclick={() => set_filter("community")}
 					class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors {active_filter ===
 					'community'
 						? 'bg-orange-500 text-white'
@@ -165,7 +171,7 @@
 			{/if}
 		</div>
 		<button
-			on:click={() => (preview_dark = !preview_dark)}
+			onclick={() => (preview_dark = !preview_dark)}
 			class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {preview_dark
 				? 'bg-gray-800 text-white'
 				: 'bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-gray-300'}"

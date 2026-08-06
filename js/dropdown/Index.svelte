@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseDropdown } from "./shared/Dropdown.svelte";
 	export { default as BaseDropdownOptions } from "./shared/DropdownOptions.svelte";
 	export { default as BaseMultiselect } from "./shared/Multiselect.svelte";

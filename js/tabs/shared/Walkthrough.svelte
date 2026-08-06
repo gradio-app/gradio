@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { TABS, type Tab, type TabSelectData } from "./Tabs.svelte";
 
 	function is_visible_tab(tab: Tab | null | undefined): tab is Tab {
@@ -12,7 +12,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, tick } from "svelte";
+	import { setContext, tick, type Snippet } from "svelte";
 	import { writable } from "svelte/store";
 
 	let {
@@ -22,7 +22,8 @@
 		selected = $bindable(),
 		initial_tabs,
 		onchange,
-		onselect
+		onselect,
+		children
 	}: {
 		visible?: boolean | "hidden";
 		elem_id?: string;
@@ -31,6 +32,7 @@
 		initial_tabs: Tab[];
 		onchange?: () => void;
 		onselect?: (data: TabSelectData) => void;
+		children?: Snippet;
 	} = $props();
 
 	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
@@ -276,7 +278,7 @@
 			</div>
 		</div>
 	{/if}
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, type Snippet } from "svelte";
 
 	let {
 		open = $bindable(true),
@@ -8,7 +8,8 @@
 		elem_classes = [],
 		elem_id = "",
 		onexpand = () => {},
-		oncollapse = () => {}
+		oncollapse = () => {},
+		children
 	}: {
 		open?: boolean;
 		width: number | string;
@@ -17,6 +18,7 @@
 		elem_id?: string;
 		onexpand?: () => void;
 		oncollapse?: () => void;
+		children?: Snippet;
 	} = $props();
 
 	// Using a temporary variable to animate the sidebar opening at the start
@@ -101,7 +103,7 @@
 		</div>
 	</button>
 	<div class="sidebar-content">
-		<slot />
+		{@render children?.()}
 	</div>
 </div>
 

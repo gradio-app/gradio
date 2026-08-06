@@ -8,29 +8,41 @@
 	import type { ManifestEntry, HTMLComponentEntry } from "./types";
 	import { needs_iframe, build_srcdoc } from "./utils";
 
-	export let manifest: ManifestEntry;
-	export let full_data: HTMLComponentEntry | null = null;
-	export let on_maximize: (component: HTMLComponentEntry) => void = () => {};
-	export let on_request_load: (id: string) => void = () => {};
+	let {
+		manifest,
+		full_data = null,
+		on_maximize = () => {},
+		on_request_load = () => {}
+	}: {
+		manifest: ManifestEntry;
+		full_data?: HTMLComponentEntry | null;
+		on_maximize?: (component: HTMLComponentEntry) => void;
+		on_request_load?: (id: string) => void;
+	} = $props();
 
-	let show_code = false;
+	let show_code = $state(false);
 
-	$: component = full_data;
-	$: initial_props = component
-		? JSON.parse(JSON.stringify(component.default_props))
-		: {};
-	$: highlighted_html = component
-		? highlight(component.python_code, "python")
-		: "";
-	$: use_iframe = component ? needs_iframe(component.css_template) : false;
-	$: has_children_slot =
-		component?.html_template?.includes("@children") ?? false;
-	$: is_dark = $theme === "dark";
+	let component = $derived(full_data);
+	let initial_props = $derived(
+		component ? JSON.parse(JSON.stringify(component.default_props)) : {}
+	);
+	let highlighted_html = $derived(
+		component ? highlight(component.python_code, "python") : ""
+	);
+	let use_iframe = $derived(
+		component ? needs_iframe(component.css_template) : false
+	);
+	let has_children_slot = $derived(
+		component?.html_template?.includes("@children") ?? false
+	);
+	let is_dark = $derived($theme === "dark");
 
-	let iframe_el: HTMLIFrameElement;
-	$: if (browser && iframe_el && component && use_iframe) {
-		iframe_el.srcdoc = build_srcdoc(component, initial_props, is_dark);
-	}
+	let iframe_el: HTMLIFrameElement | undefined = $state()!;
+	$effect(() => {
+		if (browser && iframe_el && component && use_iframe) {
+			iframe_el.srcdoc = build_srcdoc(component, initial_props, is_dark);
+		}
+	});
 
 	function handle_maximize() {
 		if (component) {
@@ -98,7 +110,7 @@
 		</div>
 		<div class="entry-actions">
 			{#if !show_code}
-				<button class="icon-btn" on:click={handle_maximize} title="Expand">
+				<button class="icon-btn" onclick={handle_maximize} title="Expand">
 					<svg
 						width="16"
 						height="16"
@@ -111,7 +123,7 @@
 					</svg>
 				</button>
 			{/if}
-			<button class="toggle-btn" on:click={handle_view_code}>
+			<button class="toggle-btn" onclick={handle_view_code}>
 				{show_code ? "Live Demo" : "View Code"}
 			</button>
 			{#if show_code && component}
