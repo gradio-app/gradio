@@ -97,27 +97,11 @@
 			<h1>Run history</h1>
 			<div class="storage-copy">
 				<span>Runs ({runs.length}) logged in</span>
-				<details class="storage-picker">
-					<summary>Local Storage <span aria-hidden="true">⌄</span></summary>
-					<div class="storage-menu">
-						<div class="storage-option active">
-							<span
-								><strong>Local Storage</strong><small>This browser</small></span
-							>
-							<span aria-label="Selected">✓</span>
-						</div>
-						<div class="storage-option disabled" aria-disabled="true">
-							<span><strong>Local File</strong><small>Coming soon</small></span>
-						</div>
-						<div class="storage-option disabled" aria-disabled="true">
-							<span
-								><strong>Hugging Face Bucket</strong><small>Coming soon</small
-								></span
-							>
-						</div>
-					</div>
-				</details>
+				<code class="storage-code">Local Storage</code>
 				<span>, privately in this browser.</span>
+			</div>
+			<div class="storage-note">
+				Local File and Hugging Face Bucket storage are not implemented yet.
 			</div>
 		</div>
 		{#if runs.length}
@@ -199,7 +183,9 @@
 										? "Failed"
 										: "Running"}
 							</span>
-							<button class="load" onclick={() => load(run)}>Load run</button>
+							<button class="load" onclick={() => load(run)}
+								><span aria-hidden="true">▶</span> Load run</button
+							>
 							{#if run.error}<span class="error">{run.error}</span>{/if}
 							<button class="delete" onclick={() => delete_run(run)}
 								>Delete</button
@@ -249,69 +235,21 @@
 		flex-wrap: wrap;
 		gap: 5px;
 	}
-	.storage-picker {
-		display: inline-block;
-		position: relative;
-	}
-	.storage-picker summary {
-		display: inline-flex;
-		align-items: center;
-		gap: 5px;
-		padding: 3px 8px;
-		border: 1px solid var(--border-color-primary, #d4d4d8);
-		border-radius: 999px;
-		background: var(--background-fill-secondary, #f4f4f5);
+	.storage-code {
+		padding: 2px 6px;
+		border-radius: var(--radius-sm, 4px);
+		background: var(--code-background-fill, #f4f4f5);
 		color: var(--body-text-color, #27272a);
-		font-size: 13px;
+		font-family: var(--font-mono, monospace);
+		font-size: 0.9em;
 		font-weight: 600;
-		cursor: pointer;
-		list-style: none;
 	}
-	.storage-picker summary::-webkit-details-marker {
-		display: none;
-	}
-	.storage-picker[open] summary {
-		border-color: var(--border-color-accent, #f97316);
-	}
-	.storage-menu {
-		position: absolute;
-		top: calc(100% + 8px);
-		left: 0;
-		z-index: 10;
-		width: 250px;
-		padding: 6px;
-		border: 1px solid var(--border-color-primary, #e4e4e7);
-		border-radius: var(--radius-lg, 8px);
-		background: var(--block-background-fill, #fff);
-		box-shadow: var(--shadow-drop-lg, 0 12px 28px rgb(0 0 0 / 15%));
-	}
-	.storage-option {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 16px;
-		padding: 9px 10px;
-		border-radius: 6px;
-	}
-	.storage-option.active {
-		background: var(--background-fill-secondary, #f4f4f5);
-		color: var(--body-text-color, #27272a);
-	}
-	.storage-option.disabled {
+	.storage-note {
+		margin-top: 4px;
 		color: var(--body-text-color-subdued, #71717a);
-		opacity: 0.7;
-	}
-	.storage-option strong,
-	.storage-option small {
-		display: block;
-	}
-	.storage-option small {
-		margin-top: 2px;
 		font-size: 11px;
-		font-weight: 400;
 	}
 	.clear,
-	.load,
 	.delete {
 		border: var(--button-border-width, 1px) solid
 			var(--button-secondary-border-color, #d4d4d8);
@@ -331,8 +269,26 @@
 		padding: 8px 12px;
 	}
 	.load {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
 		padding: 5px 10px;
+		border: var(--button-border-width, 1px) solid
+			var(--button-primary-border-color, #ea580c);
+		border-radius: var(--button-medium-radius, 8px);
+		background: var(
+			--button-primary-background-fill,
+			linear-gradient(#f97316, #ea580c)
+		);
+		color: var(--button-primary-text-color, #fff);
 		font-size: 13px;
+		font-weight: var(--button-medium-text-weight, 600);
+		cursor: pointer;
+		box-shadow: var(--button-primary-shadow, 0 1px 2px rgb(0 0 0 / 12%));
+		transition: var(--button-transition, 0.1s ease);
+	}
+	.load span {
+		font-size: 9px;
 	}
 	.delete {
 		margin-left: auto;
@@ -343,11 +299,16 @@
 		color: var(--body-text-color-subdued, #71717a);
 	}
 	.clear:hover,
-	.load:hover,
 	.delete:hover {
 		border-color: var(--button-secondary-border-color-hover, #a1a1aa);
 		background: var(--button-secondary-background-fill-hover, #f4f4f5);
 		color: var(--button-secondary-text-color-hover, #18181b);
+	}
+	.load:hover {
+		border-color: var(--button-primary-border-color-hover, #c2410c);
+		background: var(--button-primary-background-fill-hover, #ea580c);
+		color: var(--button-primary-text-color-hover, #fff);
+		box-shadow: var(--button-primary-shadow-hover, 0 2px 4px rgb(0 0 0 / 15%));
 	}
 	.group {
 		overflow: hidden;
