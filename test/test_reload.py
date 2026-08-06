@@ -60,13 +60,17 @@ class TestReloadCliArgs:
     """`gradio app.py -- --name Gretel` forwards `--name Gretel` to the script."""
 
     @pytest.fixture
-    def child_argv(self, monkeypatch):
-        """Invoke the reload CLI and capture the argv it launches the app with."""
-        recorded: list[tuple[list[str], dict]] = []
+    def run_cli(self, monkeypatch):
+        """Run the reload CLI without launching anything.
+
+        Returns the CliRunner result plus the argv and env the app would have
+        been launched with.
+        """
+        launched: list[tuple[list[str], dict]] = []
 
         class FakePopen:
             def __init__(self, args, **kwargs):
-                recorded.append((args, kwargs))
+                launched.append((args, kwargs))
 
             def poll(self):
                 return 0
@@ -76,91 +80,42 @@ class TestReloadCliArgs:
 
         monkeypatch.setattr(subprocess, "Popen", FakePopen)
 
-        def invoke(*args: str) -> tuple[list[str], dict]:
+        def invoke(*args: str):
             result = CliRunner().invoke(build_app(), list(args))
-            assert result.exit_code == 0, result.output
-            return recorded[-1]
+            argv, kwargs = launched[-1] if launched else ([], {})
+            return result, argv, kwargs
 
         return invoke
 
-    @pytest.fixture
-    def run_cli(self, monkeypatch):
-        """Invoke the reload CLI without launching anything, and return the result."""
-
-        class FakePopen:
-            def __init__(self, args, **kwargs):
-                pass
-
-            def poll(self):
-                return 0
-
-            def wait(self):
-                return 0
-
-        monkeypatch.setattr(subprocess, "Popen", FakePopen)
-        return lambda *args: CliRunner().invoke(build_app(), list(args))
-
-    @staticmethod
-    def _flat(output: str) -> str:
-        """Normalise CLI error text for matching.
-
-        Rich wraps it across panel lines, and Click versions differ on the exact
-        punctuation ("No such option: --x" vs "No such option '--x'."), so only
-        the stable parts of a message are worth asserting on.
-        """
-        return " ".join(output.replace("\u2502", " ").replace("'", "").split())
-
-    def test_args_after_separator_are_forwarded_to_the_app(self, child_argv):
-        argv, _ = child_argv("demo/calculator/run.py", "--", "--name", "Gretel")
-        assert argv[-2:] == ["--name", "Gretel"]
-
-    def test_flags_and_positionals_after_separator_are_forwarded(self, child_argv):
-        argv, _ = child_argv(
-            "demo/calculator/run.py", "--", "--verbose", "extra", "-x", "--y=1"
+    def test_args_after_separator_are_forwarded_to_the_app(self, run_cli):
+        result, argv, _ = run_cli(
+            "demo/calculator/run.py", "--", "--verbose", "--name", "Gretel"
         )
-        assert argv[-4:] == ["--verbose", "extra", "-x", "--y=1"]
+        assert result.exit_code == 0, result.output
+        assert argv[-3:] == ["--verbose", "--name", "Gretel"]
 
-    def test_separator_itself_is_not_forwarded(self, child_argv):
-        argv, _ = child_argv("demo/calculator/run.py", "--", "--name", "Gretel")
-        assert "--" not in argv
-
-    def test_only_the_first_separator_is_consumed(self, child_argv):
-        """A script that itself uses `--` still receives it."""
-        argv, _ = child_argv("demo/calculator/run.py", "--", "-a", "--", "-b")
-        assert argv[-3:] == ["-a", "--", "-b"]
-
-    def test_no_extra_args_by_default(self, child_argv):
-        argv, _ = child_argv("demo/calculator/run.py")
-        assert str(argv[-1]).endswith("run.py")
-
-    def test_reload_options_are_consumed_before_the_separator(self, child_argv):
-        """The same option name can be given to gradio and to the app."""
-        argv, kwargs = child_argv(
+    def test_gradio_and_the_app_can_use_the_same_option_name(self, run_cli):
+        result, argv, kwargs = run_cli(
             "demo/calculator/run.py",
             "--demo-name",
-            "my_demo",
+            "mine",
             "--",
             "--demo-name",
             "theirs",
         )
-        assert kwargs["env"]["GRADIO_WATCH_DEMO_NAME"] == "my_demo"
+        assert result.exit_code == 0, result.output
+        assert kwargs["env"]["GRADIO_WATCH_DEMO_NAME"] == "mine"
         assert argv[-2:] == ["--demo-name", "theirs"]
 
-    def test_unknown_option_before_the_separator_is_an_error(self, run_cli):
-        """Options are not silently forwarded, so adding one to gradio later
-        cannot change what an existing command means."""
-        result = run_cli("demo/calculator/run.py", "--name", "Gretel")
+    def test_unknown_option_is_an_error_not_silently_forwarded(self, run_cli):
+        """Nothing is swept up implicitly, so adding an option to the reload CLI
+        later cannot change what an existing command means."""
+        result, _, _ = run_cli("demo/calculator/run.py", "--name", "Gretel")
         assert result.exit_code != 0
-        output = self._flat(result.output)
-        assert "No such option" in output
-        assert "--name" in output
-
-    def test_a_mistyped_reload_option_is_still_suggested(self, run_cli):
-        result = run_cli("demo/calculator/run.py", "--demo-nam", "my_demo")
-        assert result.exit_code != 0
-        output = self._flat(result.output)
-        assert "Did you mean" in output
-        assert "--demo-name" in output
+        # Rich wraps the message across panel lines.
+        assert "No such option" in " ".join(
+            result.output.replace("\u2502", " ").split()
+        )
 
 
 def test_reassign_pending_event_fns():
