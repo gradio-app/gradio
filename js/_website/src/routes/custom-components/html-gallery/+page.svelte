@@ -5,7 +5,7 @@
 	import { BaseButton } from "@gradio/button";
 	import CopyButton from "$lib/icons/CopyButton.svelte";
 	import { highlight } from "$lib/prism";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { browser } from "$app/environment";
 	import { tick, onMount } from "svelte";
 	import ComponentEntry from "./ComponentEntry.svelte";
@@ -17,21 +17,23 @@
 		"https://huggingface.co/datasets/gradio/custom-html-gallery/resolve/main";
 
 	let manifest: ManifestEntry[] = [];
-	let component_cache: Record<string, HTMLComponentEntry> = {};
-	let loading = true;
-	let error = "";
+	let component_cache: Record<string, HTMLComponentEntry> = $state({});
+	let loading = $state(true);
+	let error = $state("");
 
-	let search = "";
+	let search = $state("");
 
-	$: filtered = manifest.filter((c) => {
-		if (!search.trim()) return true;
-		const q = search.toLowerCase();
-		return (
-			c.name.toLowerCase().includes(q) ||
-			c.description.toLowerCase().includes(q) ||
-			c.tags.some((t) => t.toLowerCase().includes(q))
-		);
-	});
+	let filtered = $derived(
+		manifest.filter((c) => {
+			if (!search.trim()) return true;
+			const q = search.toLowerCase();
+			return (
+				c.name.toLowerCase().includes(q) ||
+				c.description.toLowerCase().includes(q) ||
+				c.tags.some((t) => t.toLowerCase().includes(q))
+			);
+		})
+	);
 
 	async function load_manifest() {
 		loading = true;
@@ -134,29 +136,33 @@
 		});
 	}
 
-	let maximized_component: HTMLComponentEntry | null = null;
-	let maximized_props: Record<string, any> = {};
-	let show_maximized_code = false;
-	$: maximized_highlighted = maximized_component
-		? highlight(maximized_component.python_code, "python")
-		: "";
-	$: maximized_use_iframe = maximized_component
-		? needs_iframe(maximized_component.css_template)
-		: false;
+	let maximized_component: HTMLComponentEntry | null = $state(null);
+	let maximized_props: Record<string, any> = $state({});
+	let show_maximized_code = $state(false);
+	let maximized_highlighted = $derived(
+		maximized_component
+			? highlight(maximized_component.python_code, "python")
+			: ""
+	);
+	let maximized_use_iframe = $derived(
+		maximized_component ? needs_iframe(maximized_component.css_template) : false
+	);
 
-	let modal_iframe_el: HTMLIFrameElement;
-	$: if (
-		browser &&
-		modal_iframe_el &&
-		maximized_component &&
-		maximized_use_iframe
-	) {
-		modal_iframe_el.srcdoc = build_srcdoc(
-			maximized_component,
-			maximized_props,
-			$theme === "dark"
-		);
-	}
+	let modal_iframe_el: HTMLIFrameElement = $state()!;
+	$effect(() => {
+		if (
+			browser &&
+			modal_iframe_el &&
+			maximized_component &&
+			maximized_use_iframe
+		) {
+			modal_iframe_el.srcdoc = build_srcdoc(
+				maximized_component,
+				maximized_props,
+				$theme === "dark"
+			);
+		}
+	});
 
 	async function open_maximized(comp: HTMLComponentEntry) {
 		maximized_component = comp;
@@ -180,8 +186,8 @@
 
 <MetaTags
 	title="HTML Components Gallery - Gradio"
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description="Browse and interact with custom HTML components built with gr.HTML. Copy the Python code to use them in your Gradio apps."
 />
 
@@ -207,7 +213,7 @@
 	{:else if error}
 		<div class="error-state">
 			<p class="error-text">{error}</p>
-			<button class="retry-btn" on:click={load_manifest}>Retry</button>
+			<button class="retry-btn" onclick={load_manifest}>Retry</button>
 		</div>
 	{:else}
 		<div class="max-w-2xl mx-auto mb-6">
@@ -243,8 +249,8 @@
 	{#if maximized_component}
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div class="modal-backdrop" on:click={close_maximized}>
-			<div class="modal-content" on:click|stopPropagation>
+		<div class="modal-backdrop" onclick={close_maximized}>
+			<div class="modal-content" onclick={(e) => e.stopPropagation()}>
 				<div class="modal-header">
 					<div class="modal-info">
 						<h2 class="modal-title">
@@ -257,14 +263,14 @@
 					<div class="modal-actions">
 						<button
 							class="modal-toggle-btn"
-							on:click={() => (show_maximized_code = !show_maximized_code)}
+							onclick={() => (show_maximized_code = !show_maximized_code)}
 						>
 							{show_maximized_code ? "Live Demo" : "View Code"}
 						</button>
 						{#if show_maximized_code}
 							<CopyButton content={maximized_component.python_code} />
 						{/if}
-						<button class="modal-close-btn" on:click={close_maximized}>
+						<button class="modal-close-btn" onclick={close_maximized}>
 							<svg
 								width="20"
 								height="20"

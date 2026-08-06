@@ -14,7 +14,7 @@
 			{#if selected_gallery_image}
 				<button
 					class="mini-gallery-large"
-					on:click={(e) => select_gallery_image(selected_gallery_image, e)}
+					onclick={(e) => select_gallery_image(selected_gallery_image, e)}
 				>
 					<img src={selected_gallery_image} alt="Selected" />
 				</button>
@@ -22,25 +22,25 @@
 				<div class="mini-gallery-grid">
 					<button
 						class="mini-gallery-item"
-						on:click={(e) => select_gallery_image("/dog.jpg", e)}
+						onclick={(e) => select_gallery_image("/dog.jpg", e)}
 					>
 						<img src="/dog.jpg" alt="Gallery 1" />
 					</button>
 					<button
 						class="mini-gallery-item"
-						on:click={(e) => select_gallery_image("/dog_blurred.jpg", e)}
+						onclick={(e) => select_gallery_image("/dog_blurred.jpg", e)}
 					>
 						<img src="/dog_blurred.jpg" alt="Gallery 2" />
 					</button>
 					<button
 						class="mini-gallery-item"
-						on:click={(e) => select_gallery_image("/dog.jpg", e)}
+						onclick={(e) => select_gallery_image("/dog.jpg", e)}
 					>
 						<img src="/dog.jpg" alt="Gallery 3" />
 					</button>
 					<button
 						class="mini-gallery-item"
-						on:click={(e) => select_gallery_image("/dog_blurred.jpg", e)}
+						onclick={(e) => select_gallery_image("/dog_blurred.jpg", e)}
 					>
 						<img src="/dog_blurred.jpg" alt="Gallery 4" />
 					</button>

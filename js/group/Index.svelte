@@ -25,7 +25,7 @@
 			style:--button-large-radius="0px"
 			style:--button-small-radius="0px"
 		>
-			<slot />
+			{@render props.children?.()}
 		</div>
 	</div>
 </div>

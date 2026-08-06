@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script module lang="ts">
 	export { default as BaseUploadButton } from "./shared/UploadButton.svelte";
 </script>
 

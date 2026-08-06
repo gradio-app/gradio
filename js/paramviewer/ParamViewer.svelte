@@ -52,10 +52,10 @@
 		max_height
 	}: {
 		docs: Record<string, Param>;
-		linkify: string[];
+		linkify?: string[];
 		header: string | null;
 		anchor_links: string | boolean;
-		max_height: number | string | undefined;
+		max_height?: number | string | undefined;
 	} = $props();
 
 	let component_root: HTMLElement;
@@ -192,7 +192,7 @@
 		{/if}
 		<button
 			class="toggle-all"
-			on:click={toggle_all}
+			onclick={toggle_all}
 			title={all_open ? "Close All" : "Open All"}
 		>
 			{all_open ? "▲" : "▼"}

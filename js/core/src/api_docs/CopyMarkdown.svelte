@@ -10,29 +10,49 @@
 	import { represent_value } from "./utils";
 	import type { Dependency } from "../types";
 
-	export let current_language:
-		| "python"
-		| "javascript"
-		| "bash"
-		| "skill"
-		| "mcp"
-		| "cli";
-	export let space_id: string | null;
-	export let root: string;
-	export let api_count: number;
-	export let tools: any[];
-	export let py_docs: string;
-	export let js_docs: string;
-	export let bash_docs: string;
-	export let mcp_docs: string;
-	export let spaces_docs_suffix: string;
-	export let mcp_server_active: boolean;
-	export let mcp_server_url_streamable: string;
-	export let config_snippets: Record<string, string>;
-	export let markdown_code_snippets: Record<string, Record<string, string>>;
-	export let dependencies: Dependency[];
-	export let info: any;
-	export let js_info: any;
+	let {
+		current_language,
+		space_id,
+		root,
+		api_count,
+		tools,
+		py_docs,
+		js_docs,
+		bash_docs,
+		mcp_docs,
+		spaces_docs_suffix,
+		mcp_server_active,
+		mcp_server_url_streamable,
+		config_snippets,
+		markdown_code_snippets,
+		dependencies,
+		info,
+		js_info
+	}: {
+		current_language:
+			| "python"
+			| "javascript"
+			| "bash"
+			| "skill"
+			| "mcp"
+			| "cli";
+		space_id: string | null;
+		root: string;
+		api_count: number;
+		tools: any[];
+		py_docs: string;
+		js_docs: string;
+		bash_docs: string;
+		mcp_docs: string;
+		spaces_docs_suffix: string;
+		mcp_server_active: boolean;
+		mcp_server_url_streamable: string;
+		config_snippets: Record<string, string>;
+		markdown_code_snippets: Record<string, Record<string, string>>;
+		dependencies: Dependency[];
+		info: any;
+		js_info: any;
+	} = $props();
 
 	function oauth_token_note(api_name: string, how: string): string {
 		const requirement = info?.named_endpoints["/" + api_name]?.oauth_token;
@@ -40,14 +60,7 @@
 		return `Acts on your behalf: this endpoint's function takes a \`gr.OAuthToken\`, so it receives your Hugging Face token and can act as you (${requirement}). ${how} This differs from the token that authenticates you to the app itself, and should only be sent to endpoints that declare they take one.\n`;
 	}
 
-	let markdown_content: Record<string, string> = {
-		python: "",
-		javascript: "",
-		bash: "",
-		mcp: ""
-	};
-
-	$: markdown_content.python = `
+	let markdown_python = $derived(`
 # Python API documentation for ${space_id || root}
 API Endpoints: ${api_count}
 
@@ -98,8 +111,8 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 `
 	)
 	.join("\n\n\n")}
-`;
-	$: markdown_content.javascript = `
+`);
+	let markdown_javascript = $derived(`
 # JavaScript API documentation for ${space_id || root}
 API Endpoints: ${api_count}
 
@@ -149,8 +162,8 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 	.join("\n\n")}`
 	)
 	.join("\n\n\n")}
-`;
-	$: markdown_content.bash = `
+`);
+	let markdown_bash = $derived(`
 # Bash API documentation for ${space_id || root}
 API Endpoints: ${api_count}
 
@@ -202,8 +215,8 @@ ${info?.named_endpoints["/" + d.api_name]?.returns
 `
 	)
 	.join("\n\n\n")}
-`;
-	$: markdown_content.mcp = `
+`);
+	let markdown_mcp = $derived(`
 # MCP documentation for ${space_id || root}
 MCP Tools: ${tools.length}
 
@@ -280,9 +293,16 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 `
 }
 
-`;
+`);
 
-	let current_language_label =
+	let markdown_content: Record<string, string> = $derived({
+		python: markdown_python,
+		javascript: markdown_javascript,
+		bash: markdown_bash,
+		mcp: markdown_mcp
+	});
+
+	let current_language_label = $derived(
 		current_language === "python"
 			? "Python"
 			: current_language === "javascript"
@@ -291,30 +311,19 @@ Read more about the MCP in the [Gradio docs](${mcp_docs}).
 					? "Bash"
 					: current_language === "cli"
 						? "CLI"
-						: "MCP";
+						: "MCP"
+	);
 
-	$: current_language;
-	$: current_language_label =
-		current_language === "python"
-			? "Python"
-			: current_language === "javascript"
-				? "JavaScript"
-				: current_language === "bash"
-					? "Bash"
-					: current_language === "cli"
-						? "CLI"
-						: "MCP";
+	let label = $derived(
+		`Copy ${current_language_label} Docs as Markdown for LLMs`
+	);
 
-	let label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
-	$: label = `Copy ${current_language_label} Docs as Markdown for LLMs`;
+	let copied = $state(false);
 
-	let copied = false;
-	$: copied;
-
-	let open = false;
-	let triggerEl: HTMLDivElement | null = null;
-	let menuEl: HTMLDivElement | null = null;
-	let menuStyle = "";
+	let open = $state(false);
+	let triggerEl: HTMLDivElement | null = $state(null);
+	let menuEl: HTMLDivElement | null = $state(null);
+	let menuStyle = $state("");
 
 	const isClient = typeof window !== "undefined";
 
@@ -413,16 +422,16 @@ Read the documentation above so I can ask questions about it.`
 </script>
 
 <svelte:window
-	on:mousedown={handleWindowPointer}
-	on:keydown={handleWindowKeydown}
-	on:resize={handleWindowResize}
-	on:scroll={handleWindowScroll}
+	onmousedown={handleWindowPointer}
+	onkeydown={handleWindowKeydown}
+	onresize={handleWindowResize}
+	onscroll={handleWindowScroll}
 />
 
 <div class="container-wrapper">
 	<div bind:this={triggerEl} class="trigger-wrapper">
 		<button
-			on:click={() => copyMarkdown(current_language)}
+			onclick={() => copyMarkdown(current_language)}
 			class="copy-button"
 			aria-live="polite"
 		>
@@ -438,7 +447,7 @@ Read the documentation above so I can ask questions about it.`
 			>
 		</button>
 		<button
-			on:click={toggleMenu}
+			onclick={toggleMenu}
 			class="menu-toggle-button"
 			aria-haspopup="menu"
 			aria-expanded={open}
@@ -455,7 +464,7 @@ Read the documentation above so I can ask questions about it.`
 			class="backdrop-overlay"
 			aria-hidden="true"
 			style="background: transparent;"
-			on:click={closeMenu}
+			onclick={closeMenu}
 		></div>
 		<div
 			bind:this={menuEl}
@@ -466,7 +475,7 @@ Read the documentation above so I can ask questions about it.`
 		>
 			<button
 				role="menuitem"
-				on:click={() => {
+				onclick={() => {
 					copyMarkdown(current_language);
 					closeMenu();
 				}}
@@ -485,7 +494,7 @@ Read the documentation above so I can ask questions about it.`
 
 			<button
 				role="menuitem"
-				on:click={() => {
+				onclick={() => {
 					openHuggingChat();
 					closeMenu();
 				}}

@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseForm } from "./BaseForm.svelte";
 </script>
 
@@ -15,5 +15,5 @@
 	scale={gradio.shared.scale}
 	min_width={gradio.shared.min_width}
 >
-	<slot />
+	{@render props.children?.()}
 </BaseForm>

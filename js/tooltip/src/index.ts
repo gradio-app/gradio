@@ -1,1 +1,1 @@
-export { tooltip } from "./tooltip";
+export { tooltip } from "./tooltip_action.svelte.js";

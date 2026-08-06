@@ -16,7 +16,7 @@
 	</div>
 </h2>
 
-<button on:click={() => onclose?.()}>
+<button onclick={() => onclose?.()}>
 	<Clear />
 </button>
 

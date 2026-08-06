@@ -1,8 +1,10 @@
 <script>
-	export let value = {
-		visible: true,
-		home_page_title: "Home"
-	};
+	let {
+		value = {
+			visible: true,
+			home_page_title: "Home"
+		}
+	} = $props();
 </script>
 
 <!-- Navbar component examples are not displayed as it's a configuration component -->

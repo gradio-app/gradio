@@ -558,7 +558,7 @@
 	<div class="gallery-container" bind:this={image_container}>
 		{#if selected_media && allow_preview}
 			<span
-				on:keydown={on_keydown}
+				onkeydown={on_keydown}
 				class="preview"
 				class:minimal={mode === "minimal"}
 			>
@@ -623,7 +623,7 @@
 				</IconButtonWrapper>
 				<button
 					class="media-button"
-					on:click={"image" in selected_media
+					onclick={"image" in selected_media
 						? (event) => handle_preview_click(event)
 						: null}
 					style="height: calc(100% - {selected_media.caption
@@ -671,7 +671,7 @@
 					{#each resolved_value as media, i}
 						<button
 							bind:this={el[i]}
-							on:click={() => {
+							onclick={() => {
 								selected_index = i;
 								dispatch_select(i);
 							}}
@@ -805,7 +805,7 @@
 						<button
 							class="thumbnail-item thumbnail-lg"
 							class:selected={selected_index === i}
-							on:click={() => {
+							onclick={() => {
 								if (selected_index === null && allow_preview) {
 									onpreview_open();
 								}
@@ -846,7 +846,10 @@
 						{#if interactive}
 							<button
 								class="delete-button"
-								on:click|stopPropagation={() => handle_item_delete(i)}
+								onclick={(event) => {
+									event.stopPropagation();
+									handle_item_delete(i);
+								}}
 								aria-label="Delete image"
 							>
 								<Clear />

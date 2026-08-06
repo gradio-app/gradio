@@ -1,17 +1,21 @@
 <script lang="ts">
-	export let value: string | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
-	export let choices: [string, string | number][];
+	let {
+		value,
+		type,
+		selected = false,
+		choices
+	}: {
+		value: string | null;
+		type: "gallery" | "table";
+		selected?: boolean;
+		choices: [string, string | number][];
+	} = $props();
 
-	let name_string: string;
-
-	if (value === null) {
-		name_string = "";
-	} else {
-		let name = choices.find((pair) => pair[1] === value);
-		name_string = name ? name[0] : "";
-	}
+	let name_string = $derived.by(() => {
+		if (value === null) return "";
+		const name = choices.find((pair) => pair[1] === value);
+		return name ? name[0] : "";
+	});
 </script>
 
 <div

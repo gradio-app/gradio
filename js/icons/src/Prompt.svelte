@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let icon_size = 16;
+	let { icon_size = 16 }: { icon_size?: number } = $props();
 </script>
 
 <svg

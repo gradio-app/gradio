@@ -106,7 +106,10 @@
 	}
 
 	// grow the edit-mode textarea to fit its content so the overlay
-	// expands the same way the display span does.
+	// expands the same way the display span does. `rows="1"` on the element
+	// matters: without it `height: auto` falls back to the HTML default of two
+	// rows, so scrollHeight reports two lines and a single-line cell renders an
+	// edit box roughly twice the row height.
 	function use_autosize(node: HTMLTextAreaElement): any {
 		function resize(): void {
 			node.style.height = "auto";
@@ -151,6 +154,7 @@
 		readonly={is_static}
 		aria-readonly={is_static}
 		aria-label={is_static ? "Cell is read-only" : "Edit cell"}
+		rows="1"
 		bind:this={el}
 		bind:value
 		class:header

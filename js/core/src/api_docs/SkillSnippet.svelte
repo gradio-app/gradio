@@ -2,16 +2,22 @@
 	import { Block } from "@gradio/atoms";
 	import CopyButton from "./CopyButton.svelte";
 
-	export let space_id: string | null;
+	let { space_id }: { space_id: string | null } = $props();
 
-	$: effective_space_id = space_id || "";
-	$: skill_id = effective_space_id.replace("/", "-");
-	$: install_gradio = "pip install --upgrade gradio";
-	$: install_cmd_claude = `gradio skills add ${effective_space_id} --claude`;
-	$: install_cmd_cursor = `gradio skills add ${effective_space_id} --cursor`;
-	$: install_cmd_codex = `gradio skills add ${effective_space_id} --codex`;
+	let effective_space_id = $derived(space_id || "");
+	let skill_id = $derived(effective_space_id.replace("/", "-"));
+	const install_gradio = "pip install --upgrade gradio";
+	let install_cmd_claude = $derived(
+		`gradio skills add ${effective_space_id} --claude`
+	);
+	let install_cmd_cursor = $derived(
+		`gradio skills add ${effective_space_id} --cursor`
+	);
+	let install_cmd_codex = $derived(
+		`gradio skills add ${effective_space_id} --codex`
+	);
 
-	$: skill_preview = `---
+	let skill_preview = $derived(`---
 name: ${skill_id}
 description: Use the ${effective_space_id} Gradio Space via API. Provides Python, JavaScript, and cURL usage examples.
 ---
@@ -21,7 +27,7 @@ description: Use the ${effective_space_id} Gradio Space via API. Provides Python
 This skill describes how to use the ${effective_space_id} Gradio Space programmatically.
 
 ## API Endpoints
-...`;
+...`);
 </script>
 
 <div class="skill-content">

@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseColumn } from "./BaseColumn.svelte";
 </script>
 
@@ -14,7 +14,7 @@
 </script>
 
 <BaseColumn {...gradio.shared} {...gradio.props}>
-	<slot />
+	{@render props.children?.()}
 </BaseColumn>
 
 <style>

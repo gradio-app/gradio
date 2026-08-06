@@ -5,9 +5,9 @@
 	import type { Result } from "./search";
 	import { browser } from "$app/environment";
 
-	let search: "idle" | "load" | "ready" = "idle";
-	let search_term = "";
-	let results: Result[] = [];
+	let search: "idle" | "load" | "ready" = $state("idle");
+	let search_term = $state("");
+	let results: Result[] = $state([]);
 	let search_worker: Worker;
 
 	function initialize() {
@@ -23,21 +23,25 @@
 		search_worker.postMessage({ type: "load" });
 	}
 
-	let open: boolean = false;
+	let open: boolean = $state(false);
 
 	onNavigate(() => {
 		open = false;
 	});
 
-	$: if (search === "ready") {
-		search_worker.postMessage({ type: "search", payload: { search_term } });
-	}
+	$effect(() => {
+		if (search === "ready") {
+			search_worker.postMessage({ type: "search", payload: { search_term } });
+		}
+	});
 
-	$: if (search_term && !open) {
-		search_term = "";
-	}
+	$effect(() => {
+		if (search_term && !open) {
+			search_term = "";
+		}
+	});
 
-	let content_elem: HTMLElement;
+	let content_elem: HTMLElement = $state()!;
 	let search_button_elem: HTMLElement;
 
 	function focus_input(el: HTMLInputElement) {
@@ -58,12 +62,14 @@
 		return "Unknown";
 	}
 
-	let meta_key = "⌘";
+	let meta_key = $state("⌘");
 
-	$: if (browser && navigator) {
-		let os = get_os();
-		meta_key = os === "MacOS" || os === "iOS" ? "⌘" : "CTRL+";
-	}
+	$effect(() => {
+		if (browser && navigator) {
+			let os = get_os();
+			meta_key = os === "MacOS" || os === "iOS" ? "⌘" : "CTRL+";
+		}
+	});
 
 	function handle_key_down(e: KeyboardEvent): void {
 		if (e.ctrlKey || e.metaKey) {
@@ -123,12 +129,14 @@
 		}
 	}
 
-	$: if (browser && document.querySelector(".res-block")) {
-		document.querySelector(".res-block")?.classList.add("first-res");
-	}
+	$effect(() => {
+		if (browser && document.querySelector(".res-block")) {
+			document.querySelector(".res-block")?.classList.add("first-res");
+		}
+	});
 </script>
 
-<svelte:window on:keydown={handle_key_down} on:click={on_click} />
+<svelte:window onkeydown={handle_key_down} onclick={on_click} />
 
 <button class="search-button" bind:this={search_button_elem}>
 	<span class="text-gray-700 dark:text-gray-300 text-sm">Search</span>
@@ -165,7 +173,7 @@
 				class="text-black dark:text-white !bg-transparent"
 			/>
 			<button
-				on:click={() => {
+				onclick={() => {
 					open = false;
 				}}
 				class="text-xs font-semibold rounded-md p-1 border-gray-300 dark:border-neutral-700 border bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300"

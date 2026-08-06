@@ -1,23 +1,32 @@
 <script lang="ts">
-	export let value: (string | number)[][] | string;
-	export let type: "gallery" | "table";
-	export let selected = false;
-	export let index: number;
+	let {
+		value,
+		type,
+		selected = false,
+		index
+	}: {
+		value: (string | number)[][] | string;
+		type: "gallery" | "table";
+		selected?: boolean;
+		index: number;
+	} = $props();
 
-	let hovered = false;
-	let loaded = Array.isArray(value);
-	let is_empty = loaded && (value.length === 0 || value[0].length === 0);
+	let hovered = $state(false);
+	let loaded = $derived(Array.isArray(value));
+	let is_empty = $derived(
+		loaded && (value.length === 0 || value[0].length === 0)
+	);
 </script>
 
 {#if loaded}
 	<!-- TODO: fix-->
-	<!-- svelte-ignore a11y-no-static-element-interactions-->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class:table={type === "table"}
 		class:gallery={type === "gallery"}
 		class:selected
-		on:mouseenter={() => (hovered = true)}
-		on:mouseleave={() => (hovered = false)}
+		onmouseenter={() => (hovered = true)}
+		onmouseleave={() => (hovered = false)}
 	>
 		{#if typeof value === "string"}
 			{value}

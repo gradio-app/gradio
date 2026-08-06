@@ -3,19 +3,28 @@
 	import { Upload as UploadIcon, ImagePaste } from "@gradio/icons";
 	import { inject } from "./utils/parse_placeholder";
 
-	export let type:
-		| "video"
-		| "image"
-		| "audio"
-		| "file"
-		| "csv"
-		| "clipboard"
-		| "gallery" = "file";
-	export let i18n: I18nFormatter;
-	export let message: string | undefined = undefined;
-	export let mode: "full" | "short" = "full";
-	export let hovered = false;
-	export let placeholder: string | undefined = undefined;
+	let {
+		type = "file",
+		i18n,
+		message = undefined,
+		mode = "full",
+		hovered = false,
+		placeholder = undefined
+	}: {
+		type?:
+			| "video"
+			| "image"
+			| "audio"
+			| "file"
+			| "csv"
+			| "clipboard"
+			| "gallery";
+		i18n: I18nFormatter;
+		message?: string | undefined;
+		mode?: "full" | "short";
+		hovered?: boolean;
+		placeholder?: string | undefined;
+	} = $props();
 
 	const defs = {
 		image: "upload_text.drop_image",
@@ -27,7 +36,11 @@
 		clipboard: "upload_text.paste_clipboard"
 	};
 
-	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
+	let parsed_placeholder = $derived<[string | false, string | false]>(
+		placeholder ? inject(placeholder) : [false, false]
+	);
+	let heading = $derived(parsed_placeholder[0]);
+	let paragraph = $derived(parsed_placeholder[1]);
 </script>
 
 <div class="wrap">

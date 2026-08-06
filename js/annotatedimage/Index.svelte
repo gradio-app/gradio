@@ -113,11 +113,11 @@
 								: `hsla(${Math.round(
 										(i * 360) / gradio.props.value.annotations.length
 									)}, 100%, 50%, 0.3)`}"
-							on:mouseover={() => handle_mouseover(ann.label)}
-							on:focus={() => handle_mouseover(ann.label)}
-							on:mouseout={() => handle_mouseout()}
-							on:blur={() => handle_mouseout()}
-							on:click={() => handle_click(i, ann.label)}
+							onmouseover={() => handle_mouseover(ann.label)}
+							onfocus={() => handle_mouseover(ann.label)}
+							onmouseout={() => handle_mouseout()}
+							onblur={() => handle_mouseout()}
+							onclick={() => handle_click(i, ann.label)}
 						>
 							{ann.label}
 						</button>

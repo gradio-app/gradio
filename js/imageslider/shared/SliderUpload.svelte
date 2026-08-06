@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";

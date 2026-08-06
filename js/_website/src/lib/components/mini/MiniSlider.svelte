@@ -16,7 +16,7 @@
 					min="0"
 					max="100"
 					value={slider_value}
-					on:input={handle_slider_input}
+					oninput={handle_slider_input}
 					class="gradio-slider flex-1"
 					style="--range-progress: {slider_value}%"
 				/>

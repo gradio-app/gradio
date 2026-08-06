@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseDialogue } from "./Dialogue.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>

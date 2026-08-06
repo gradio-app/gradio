@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script module lang="ts">
 	export type Tool = "image" | "draw" | "erase" | "pan";
 	export type Subtool =
 		| "upload"

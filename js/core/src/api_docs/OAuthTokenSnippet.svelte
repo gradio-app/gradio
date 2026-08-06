@@ -1,19 +1,25 @@
 <script lang="ts">
-	export let oauth_token: "required" | "optional";
-	export let current_language:
-		| "python"
-		| "javascript"
-		| "bash"
-		| "skill"
-		| "cli"
-		| "mcp";
+	let {
+		oauth_token,
+		current_language
+	}: {
+		oauth_token: "required" | "optional";
+		current_language:
+			| "python"
+			| "javascript"
+			| "bash"
+			| "skill"
+			| "cli"
+			| "mcp";
+	} = $props();
 
-	$: how =
+	let how = $derived(
 		current_language === "javascript"
 			? "Client.connect()"
 			: current_language === "python"
 				? "Client()"
-				: null;
+				: null
+	);
 </script>
 
 <h4>

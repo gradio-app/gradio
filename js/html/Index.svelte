@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseHTML } from "./shared/HTML.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
@@ -117,16 +117,16 @@
 				component_class_name={gradio.props.component_class_name}
 				{upload}
 				server={gradio.shared.server}
-				on:event={(e) => {
-					gradio.dispatch(e.detail.type, e.detail.data);
+				onevent={(detail) => {
+					gradio.dispatch(detail.type, detail.data);
 				}}
-				on:update_value={(e) => {
-					if (e.detail.property === "value") {
-						gradio.props.value = e.detail.data;
-					} else if (e.detail.property === "label") {
-						gradio.shared.label = e.detail.data;
-					} else if (e.detail.property === "visible") {
-						gradio.shared.visible = e.detail.data;
+				onupdate_value={(detail) => {
+					if (detail.property === "value") {
+						gradio.props.value = detail.data;
+					} else if (detail.property === "label") {
+						gradio.shared.label = detail.data;
+					} else if (detail.property === "visible") {
+						gradio.shared.visible = detail.data;
 					}
 				}}
 			>

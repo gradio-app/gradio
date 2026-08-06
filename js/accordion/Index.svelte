@@ -61,7 +61,7 @@
 		oncollapse={() => gradio.dispatch("collapse")}
 	>
 		<BaseColumn>
-			<slot />
+			{@render props.children?.()}
 		</BaseColumn>
 	</Accordion>
 </Block>

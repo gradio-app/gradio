@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let classNames = "";
+	let { classNames = "" }: { classNames?: string } = $props();
 </script>
 
 <svg

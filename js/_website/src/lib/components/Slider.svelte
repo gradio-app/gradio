@@ -1,20 +1,28 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, type Snippet } from "svelte";
 
-	export let position = 0.5;
-	export let disabled = false;
-	export let show_nav = true;
+	let {
+		position = $bindable(0.5),
+		disabled = false,
+		show_nav = true,
+		children
+	}: {
+		position?: number;
+		disabled?: boolean;
+		show_nav?: boolean;
+		children?: Snippet;
+	} = $props();
 
 	let active = false;
-	let hidden = true;
-	let el: HTMLDivElement;
-	let inner: HTMLDivElement;
-	let box: DOMRect;
-	let px = 0;
+	let hidden = $state(true);
+	let el: HTMLDivElement | undefined = $state()!;
+	let inner: HTMLDivElement | undefined = $state()!;
+	let box: DOMRect | undefined;
+	let px = $state(0);
 	let offset = 0;
 
 	function handle_mousedown(e: MouseEvent) {
-		if (disabled) return;
+		if (disabled || !el || !inner) return;
 		active = true;
 		box = el.getBoundingClientRect();
 		const innerbox = inner.getBoundingClientRect();
@@ -26,7 +34,7 @@
 	}
 
 	function handle_mousemove(e: MouseEvent) {
-		if (!active) return;
+		if (!active || !box) return;
 		px = clamp(e.clientX - offset - box.left, 100, box.width - 240);
 		position = round((px + 10) / box.width, 5);
 	}
@@ -41,6 +49,7 @@
 	}
 
 	function set_position() {
+		if (!el) return;
 		box = el.getBoundingClientRect();
 		px = box.width * position - 10;
 		hidden = false;
@@ -48,28 +57,26 @@
 
 	onMount(set_position);
 
-	$: if (!hidden && show_nav) {
-		box = el.getBoundingClientRect();
-		px = box.width * position - 10;
-	} else if (!hidden && !show_nav) {
-		box = el.getBoundingClientRect();
-		px = box.width * position - 10;
-	}
+	$effect(() => {
+		// both branches of the original reactive block did the same thing
+		show_nav;
+		if (!hidden) set_position();
+	});
 </script>
 
 <svelte:window
-	on:resize={set_position}
-	on:mousemove={handle_mousemove}
-	on:mouseup={handle_mouseup}
+	onresize={set_position}
+	onmousemove={handle_mousemove}
+	onmouseup={handle_mouseup}
 />
 
 <div class="wrap" bind:this={el}>
-	<slot />
+	{@render children?.()}
 	<div
 		class="outer hidden sm:block"
 		class:disabled
-		on:mousedown={handle_mousedown}
-		on:mouseup={handle_mouseup}
+		onmousedown={handle_mousedown}
+		onmouseup={handle_mouseup}
 		bind:this={inner}
 		role="none"
 		style="transform: translateX({px}px)"

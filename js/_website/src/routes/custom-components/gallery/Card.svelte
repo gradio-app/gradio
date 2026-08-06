@@ -4,15 +4,23 @@
 	import { BaseCode } from "@gradio/code";
 	import { onMount } from "svelte";
 
-	export let data: ComponentData;
+	let {
+		data
+	}: {
+		data: ComponentData;
+	} = $props();
 
-	let source_code_link = `https://huggingface.co/spaces/${data.id}`;
-	let author_link = `https://huggingface.co/${data.author}`;
-	let discussion_link = `https://huggingface.co/spaces/${data.id}/discussions/new`;
-	let code_url = `https://huggingface.co/spaces/${data.id}/raw/main/app.py`;
+	let source_code_link = $derived(`https://huggingface.co/spaces/${data.id}`);
+	let author_link = $derived(`https://huggingface.co/${data.author}`);
+	let discussion_link = $derived(
+		`https://huggingface.co/spaces/${data.id}/discussions/new`
+	);
+	let code_url = $derived(
+		`https://huggingface.co/spaces/${data.id}/raw/main/app.py`
+	);
 	const tabs = ["Demo", "Code"];
-	let active_tab = 0;
-	let code: string;
+	let active_tab = $state(0);
+	let code: string = $state()!;
 
 	onMount(async () => {
 		code = await fetch(code_url, { referrerPolicy: "no-referrer" }).then(
@@ -82,7 +90,7 @@
 						: ''} {active_tab === index
 						? ''
 						: 'border-b-2'} px-8 py-1 rounded-t-md border-x-2 border-t-2 border-orange-300 content-center"
-					on:click={() => {
+					onclick={() => {
 						active_tab = index;
 					}}
 				>

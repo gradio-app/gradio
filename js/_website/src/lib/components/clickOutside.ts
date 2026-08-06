@@ -1,9 +1,11 @@
 /** Dispatch event on click outside of node */
-namespace svelte.JSX {
-	interface HTMLProps<T> {
+declare module "svelte/elements" {
+	interface HTMLAttributes<T> {
 		onclick_outside?: (e: CustomEvent) => void;
 	}
 }
+
+export {};
 
 export function clickOutside(node: Node) {
 	const handleClick = (event: MouseEvent) => {

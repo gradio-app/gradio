@@ -1,7 +1,13 @@
 <script lang="ts">
-	export let parameters = [] as any[];
-	export let header = "Parameters";
-	export let anchor_links: string | boolean = true;
+	let {
+		parameters = [] as any[],
+		header = "Parameters",
+		anchor_links = true
+	}: {
+		parameters?: any;
+		header?: any;
+		anchor_links?: string | boolean;
+	} = $props();
 
 	import ParamViewer from "@gradio/paramviewer/ParamViewer";
 
@@ -63,7 +69,7 @@
 		}
 		return new_parameters;
 	}
-	let new_parameters = convert_params(parameters);
+	let new_parameters = $derived(convert_params(parameters));
 </script>
 
 <ParamViewer

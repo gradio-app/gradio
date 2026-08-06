@@ -3,40 +3,40 @@
 	import EndpointInputs from "../../lib/EndpointInputs.svelte";
 	import ResponsePreview from "../../lib/ResponsePreview.svelte";
 
-	let api = "gradio/cancel_events";
+	let api = $state("gradio/cancel_events");
 
 	/**
 	 * @type {`hf_${string}`}
 	 */
-	let hf_token = "hf_";
+	let hf_token = $state("hf_");
 	/**
-	 * @type Client
+	 * @type {Client | undefined}
 	 */
-	let app;
+	let app = $state();
 	/**
 	 * @type any
 	 */
-	let app_info;
+	let app_info = $state();
 	/**
 	 * @type string[]
 	 */
-	let named = [];
+	let named = $state([]);
 	/**
 	 * @type string[]
 	 */
-	let unnamed = [];
+	let unnamed = $state([]);
 	/**
 	 * @type string | number
 	 */
-	let active_endpoint = "";
+	let active_endpoint = $state("");
 	/**
 	 *  @type {{data: any[]; fn_index: number; endpoint: string|number}}
 	 */
-	let response_data = { data: [], fn_index: 0, endpoint: "" };
+	let response_data = $state({ data: [], fn_index: 0, endpoint: "" });
 	/**
 	 * @type any[]
 	 */
-	let request_data = [];
+	let request_data = $state([]);
 	async function connect() {
 		named = [];
 		unnamed = [];
@@ -60,6 +60,7 @@
 	 * @param _endpoint {string}
 	 */
 	async function select_endpoint(type, _endpoint) {
+		if (!app) return;
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 		const _endpoint_info = (await app.view_api())?.[`${type}_endpoints`]?.[
 			type === "unnamed" ? parseInt(_endpoint) : _endpoint
@@ -71,19 +72,19 @@
 	}
 
 	/**
-	 * @type ReturnType<Client['submit']>
+	 * @type {ReturnType<Client['submit']> | undefined}
 	 */
-	let job;
+	let job = $state();
 
 	/**
 	 * @type {"pending" | "error" | "complete" | "generating" | 'idle'}
 	 */
-	let status = "idle";
+	let status = $state("idle");
 
 	async function submit() {
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 
-		job = app.submit(active_endpoint, request_data);
+		job = app?.submit(active_endpoint, request_data);
 		// .on("data", (data) => {
 		// 	response_data = data;
 		// })
@@ -93,23 +94,21 @@
 	}
 
 	function cancel() {
-		job.cancel();
+		job?.cancel();
 	}
 
-	let endpoint_type_text = "";
-	$: {
+	let endpoint_type_text = $derived.by(() => {
 		if (!app_info) {
-			endpoint_type_text = "";
-		} else if (!app_info.type.continuos && app_info.type.generator) {
-			endpoint_type_text =
-				"This endpoint generates values over time and can be cancelled.";
-		} else if (app_info.type.continuos && app_info.type.generator) {
-			endpoint_type_text =
-				"This endpoint generates values over time and will continue to yield values until cancelled.";
-		} else {
-			endpoint_type_text = "This endpoint runs once and cannot be cancelled.";
+			return "";
 		}
-	}
+		if (!app_info.type.continuos && app_info.type.generator) {
+			return "This endpoint generates values over time and can be cancelled.";
+		}
+		if (app_info.type.continuos && app_info.type.generator) {
+			return "This endpoint generates values over time and will continue to yield values until cancelled.";
+		}
+		return "This endpoint runs once and cannot be cancelled.";
+	});
 </script>
 
 <h2>Client Browser</h2>
@@ -134,7 +133,7 @@
 	</label>
 </div>
 
-<button on:click={connect}>Connect</button>
+<button onclick={connect}>Connect</button>
 
 {#if named.length || unnamed.length}
 	<div class="endpoints">
@@ -145,7 +144,7 @@
 					<button
 						class="endpoint-button"
 						class:selected={endpoint === active_endpoint}
-						on:click={() => select_endpoint("named", endpoint)}
+						onclick={() => select_endpoint("named", endpoint)}
 						>{endpoint}</button
 					>
 				{/each}
@@ -162,7 +161,7 @@
 					<button
 						class="endpoint-button"
 						class:selected={parseInt(endpoint) === active_endpoint}
-						on:click={() => select_endpoint("unnamed", endpoint)}
+						onclick={() => select_endpoint("unnamed", endpoint)}
 						>{endpoint}</button
 					>
 				{/each}
@@ -191,9 +190,9 @@
 	<div class="app_info">
 		<div>
 			<EndpointInputs app_info={app_info.parameters} bind:request_data />
-			<button class="submit" on:click={submit}>Submit Request</button>
+			<button class="submit" onclick={submit}>Submit Request</button>
 			{#if app_info.type.generator || app_info.type.continuous}
-				<button class="cancel" on:click={cancel}>Cancel Request</button>
+				<button class="cancel" onclick={cancel}>Cancel Request</button>
 			{/if}
 		</div>
 		<div>
