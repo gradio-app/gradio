@@ -93,15 +93,12 @@
 
 <main class="history-page" data-testid="run-history">
 	<header class="page-header">
-		<div>
+		<div class="title-line">
 			<h1>Run history</h1>
 			<div class="storage-copy">
 				<span>Runs ({runs.length}) logged in</span>
 				<code class="storage-code">Local Storage</code>
 				<span>, privately in this browser.</span>
-			</div>
-			<div class="storage-note">
-				Local File and Hugging Face Bucket storage are not implemented yet.
 			</div>
 		</div>
 		{#if runs.length}
@@ -224,9 +221,15 @@
 		font-weight: var(--weight-semibold, 600);
 		line-height: 1.2;
 	}
+	.title-line {
+		display: flex;
+		align-items: baseline;
+		gap: 14px;
+		white-space: nowrap;
+	}
 	.storage-copy,
 	.empty p {
-		margin: 6px 0 0;
+		margin: 0;
 		color: var(--body-text-color-subdued, #71717a);
 	}
 	.storage-copy {
@@ -243,11 +246,6 @@
 		font-family: var(--font-mono, monospace);
 		font-size: 0.9em;
 		font-weight: 600;
-	}
-	.storage-note {
-		margin-top: 4px;
-		color: var(--body-text-color-subdued, #71717a);
-		font-size: 11px;
 	}
 	.clear,
 	.delete {
@@ -465,6 +463,15 @@
 	@media (max-width: 700px) {
 		.history-page {
 			padding-inline: 16px;
+		}
+		.page-header,
+		.title-line {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+		.title-line {
+			gap: 6px;
+			white-space: normal;
 		}
 		.table-header {
 			display: none;
