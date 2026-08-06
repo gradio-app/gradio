@@ -1057,9 +1057,10 @@ async def _lifespan_handler(
     app: App, frequency: int = 1, age: int = 1
 ) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
-    # The handle must be kept: the event loop only holds a weak reference to a
-    # task, and without cancelling it on shutdown the loop would keep one
-    # `while True` task (and the `App` it closes over) alive per launch.
+    # Keep the handle so the task can be cancelled below. It never finishes on
+    # its own, and its pending `sleep` keeps it reachable from the event loop,
+    # so not cancelling it leaves one `while True` task (and the `App` it closes
+    # over) alive for the lifetime of the process on every launch.
     task = asyncio.create_task(delete_files_on_schedule(app, frequency, age))
     try:
         yield
