@@ -337,6 +337,51 @@ button.access-badge.access-readonly.open {
 	border-color: #3a3b48;
 }
 
+.toolbar-export-wrap {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.toolbar-export-menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	min-width: 180px;
+	background: #16171f;
+	border: 1px solid #2a2b36;
+	border-radius: 10px;
+	padding: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	box-shadow:
+		0 8px 24px rgba(0, 0, 0, 0.45),
+		0 0 0 1px rgba(255, 255, 255, 0.03);
+	z-index: 40;
+}
+
+.toolbar-export-menu-btn {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-family: "Manrope", sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 6px 10px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: #e0e1e6;
+	cursor: pointer;
+	text-align: left;
+	transition: background 0.15s;
+}
+
+.toolbar-export-menu-btn:hover {
+	background: #1e1f2a;
+}
+
 .toolbar-token-input {
 	font-family: "JetBrains Mono", monospace;
 	font-size: 11px;

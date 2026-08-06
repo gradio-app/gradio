@@ -13,6 +13,7 @@
 	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
+	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
 
 	import {
 		MODALITIES,
@@ -337,6 +338,7 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	let showExportMenu = $state(false);
 	let showApiPanel = $state(false);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
@@ -1818,6 +1820,9 @@
 		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
 			showUserMenu = false;
 		}
+		if (showExportMenu && !target?.closest(".toolbar-export-wrap")) {
+			showExportMenu = false;
+		}
 		if (showAccessInfo && !target?.closest(".access-info-wrap")) {
 			showAccessInfo = false;
 		}
@@ -2356,22 +2361,42 @@
 				View API
 			</button>
 			{#if auth.isHFSpace}
-				<button
-					class="tool-btn"
-					onclick={copyWorkflowJson}
-					title="Copy the workflow JSON to your clipboard"
-				>
-					<CodeIcon />
-					Copy JSON
-				</button>
-				<button
-					class="tool-btn"
-					onclick={downloadWorkflowJson}
-					title="Download the workflow as a .json file"
-				>
-					<DownloadIcon />
-					Download
-				</button>
+				<div class="toolbar-export-wrap">
+					<button
+						class="tool-btn"
+						class:open={showExportMenu}
+						onclick={() => (showExportMenu = !showExportMenu)}
+						title="Export this workflow"
+					>
+						<DownloadIcon />
+						Export
+						<ChevronDownIcon />
+					</button>
+					{#if showExportMenu}
+						<div class="toolbar-export-menu">
+							<button
+								class="toolbar-export-menu-btn"
+								onclick={() => {
+									showExportMenu = false;
+									void copyWorkflowJson();
+								}}
+							>
+								<CodeIcon />
+								Copy JSON
+							</button>
+							<button
+								class="toolbar-export-menu-btn"
+								onclick={() => {
+									showExportMenu = false;
+									downloadWorkflowJson();
+								}}
+							>
+								<DownloadIcon />
+								Download .json
+							</button>
+						</div>
+					{/if}
+				</div>
 			{/if}
 			{#if saveIndicator}
 				<span
@@ -3107,6 +3132,17 @@
 	:global(body:not(.dark) .toolbar-user-menu-btn:hover) {
 		background: #f0f1f5;
 		border-color: #d0d2dc;
+	}
+	:global(body:not(.dark) .toolbar-export-menu) {
+		background: #ffffff;
+		border-color: #e2e4ea;
+		box-shadow: 0 8px 24px rgba(20, 22, 30, 0.08);
+	}
+	:global(body:not(.dark) .toolbar-export-menu-btn) {
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .toolbar-export-menu-btn:hover) {
+		background: #f0f1f5;
 	}
 	:global(body:not(.dark) .toolbar-token-input) {
 		background: #ffffff;
