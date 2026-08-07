@@ -6,6 +6,7 @@
 	import { language_choices, changeLocale } from "../i18n";
 	import { locale, _ } from "svelte-i18n";
 	import { get } from "svelte/store";
+	import { read_run_history } from "@gradio/client";
 	import record from "./img/record.svg";
 
 	let {
@@ -47,13 +48,21 @@
 		const url = new URL(window.location.href);
 		const theme = url.searchParams.get("__theme");
 		current_theme = (theme as "light" | "dark" | "system") || "system";
+		refreshRunCount();
+		window.addEventListener("storage", refreshRunCount);
 		return () => {
+			window.removeEventListener("storage", refreshRunCount);
 			document.body.style.overflow = "auto";
 		};
 	});
 
 	let current_locale: string = $state(get(locale) ?? "en");
 	let current_theme: "light" | "dark" | "system" = $state("system");
+	let run_count = $state(0);
+
+	function refreshRunCount(): void {
+		run_count = read_run_history(root).length;
+	}
 
 	function handleLanguageChange(value: string): void {
 		const new_locale = value;
@@ -165,6 +174,12 @@
 		Start Recording
 	</button>
 </div>
+<div class="banner-wrap">
+	<h2>Run History ({run_count})</h2>
+	<a class="run-history-button" href={`${root}gradio_api/runs`}>
+		View run history
+	</a>
+</div>
 
 <style>
 	.banner-wrap {
@@ -196,16 +211,36 @@
 	}
 
 	.theme-button,
-	.record-button {
+	.record-button,
+	.run-history-button {
 		display: flex;
 		align-items: center;
+		width: fit-content;
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-md);
 		padding: var(--size-2) var(--size-2-5);
 		line-height: 1;
 		user-select: none;
-		text-transform: capitalize;
 		cursor: pointer;
+	}
+
+	.theme-button,
+	.record-button {
+		text-transform: capitalize;
+	}
+
+	.run-history-button {
+		margin-top: var(--size-3);
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+		font-weight: var(--button-large-text-weight);
+		text-decoration: none;
+	}
+
+	.run-history-button:hover,
+	.run-history-button:focus-visible {
+		border-color: var(--button-secondary-border-color-hover);
+		background: var(--button-secondary-background-fill-hover);
 	}
 
 	.record-button img {

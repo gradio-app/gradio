@@ -614,9 +614,10 @@ class App(FastAPI):
         ):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
+            is_run_history = request.url.path.rstrip("/").endswith(f"{API_PREFIX}/runs")
             root = route_utils.get_root_url(
                 request=request,
-                route_path=f"/{page}",
+                route_path=f"{API_PREFIX}/runs" if is_run_history else f"/{page}",
                 root_path=app.root_path
                 or request.scope.get("root_path")
                 or blocks.custom_mount_path,
@@ -678,6 +679,11 @@ class App(FastAPI):
                     request=request,
                     name=template,
                     context={
+                        "base_url": (
+                            "../../" if request.url.path.endswith("/") else "../"
+                        )
+                        if is_run_history
+                        else "./",
                         "config": config,
                         "gradio_api_info": gradio_api_info,
                     },
@@ -694,6 +700,14 @@ class App(FastAPI):
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
+
+        @router.get("/runs", response_class=HTMLResponse)
+        @router.get("/runs/", response_class=HTMLResponse)
+        def run_history(
+            request: fastapi.Request,
+            user: str = Depends(get_current_user),
+        ):
+            return main(request, user)
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):
