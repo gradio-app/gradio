@@ -2398,7 +2398,7 @@
 					{/if}
 				</div>
 			{/if}
-			{#if saveIndicator}
+			{#if saveIndicator && !auth.isHFSpace}
 				<span
 					class="save-indicator"
 					in:fade={{ duration: 120 }}
