@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { resizeNode, setNodeSize, workflow } from "./workflow-store";
+	import {
+		add_custom_port,
+		remove_custom_port,
+		resizeNode,
+		setNodeSize,
+		workflow
+	} from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -191,6 +197,34 @@
 		} catch {
 			/* clipboard unavailable — leave the label unchanged */
 		}
+	}
+
+	let showCustomParamForm = $state(false);
+	let customParamName = $state("");
+	let customParamType = $state<PortType>("text");
+
+	function submitCustomParam(): void {
+		const raw = customParamName.trim();
+		if (!raw) return;
+		// to match the InferenceClient param naming convention (snake_case)
+		const id = raw
+			.toLowerCase()
+			.replace(/[^a-z0-9_]+/g, "_")
+			.replace(/^_+|_+$/g, "");
+		if (!id) return;
+		if (node.inputs.some((p) => p.id === id)) return;
+		const label = id
+			.replace(/_/g, " ")
+			.replace(/\b\w/g, (c) => c.toUpperCase());
+		add_custom_port(node.id, {
+			id,
+			label,
+			type: customParamType,
+			required: false
+		});
+		customParamName = "";
+		customParamType = "text";
+		showCustomParamForm = false;
 	}
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
@@ -489,20 +523,28 @@
 		</div>
 	{/if}
 
-	<!-- Input ports -->
 	{#if node.inputs.length > 0}
-		{@const hiddenCount = node.inputs.filter(
+		{@const orderedInputs = [
+			...node.inputs.filter((p) => p.custom),
+			...node.inputs.filter((p) => !p.custom)
+		]}
+		{@const hiddenCount = orderedInputs.filter(
 			(p) =>
-				p.required === false && !connectedPorts.has(`${node.id}:${p.id}:input`)
+				!p.custom &&
+				p.required === false &&
+				!connectedPorts.has(`${node.id}:${p.id}:input`)
 		).length}
 		{@const collapsible = hiddenCount > 0}
 		<div class="ports" class:widget-ports={hasWidget}>
-			{#each node.inputs as port}
+			{#each orderedInputs as port}
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
 				{@const visible =
-					showAllInputs || portConnected || port.required !== false}
+					showAllInputs ||
+					portConnected ||
+					port.required !== false ||
+					port.custom}
 				{#if visible}
 					{@const inlineWidget =
 						!portConnected &&
@@ -546,13 +588,28 @@
 							<span
 								class="port-label"
 								class:port-label-optional={port.required === false}
-								>{port.label}</span
+								class:port-label-custom={port.custom}>{port.label}</span
 							>
 							{#if !inlineWidget}
 								<span
 									class="port-type-tag"
 									style="color: {PORT_COLOR[port.type]}">{port.type}</span
 								>
+							{/if}
+							{#if port.custom && !readOnly}
+								<button
+									class="port-remove-btn"
+									title="Remove custom param"
+									aria-label="Remove custom param {port.label}"
+									onpointerdown={(e) => e.stopPropagation()}
+									onmousedown={(e) => e.stopPropagation()}
+									onclick={(e) => {
+										e.stopPropagation();
+										remove_custom_port(node.id, port.id);
+									}}
+								>
+									✕
+								</button>
 							{/if}
 						{/if}
 						{#if inlineWidget}
@@ -701,6 +758,77 @@
 							? ""
 							: "s"}{/if}
 				</button>
+			{/if}
+			{#if !readOnly && node.kind === "transform" && node.model_id}
+				<div
+					class="custom-param-wrap"
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{#if showCustomParamForm}
+						<div class="custom-param-form">
+							<input
+								class="custom-param-input"
+								type="text"
+								bind:value={customParamName}
+								placeholder="param name (e.g. strength)"
+								onkeydown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										submitCustomParam();
+									}
+									if (e.key === "Escape") showCustomParamForm = false;
+								}}
+							/>
+							<div class="custom-param-form-row">
+								<select
+									class="custom-param-select"
+									bind:value={customParamType}
+								>
+									<option value="text">text</option>
+									<option value="number">number</option>
+									<option value="boolean">boolean</option>
+									<option value="image">image</option>
+									<option value="audio">audio</option>
+								</select>
+								<button
+									class="custom-param-add"
+									onclick={(e) => {
+										e.stopPropagation();
+										submitCustomParam();
+									}}
+									disabled={!customParamName.trim()}
+								>
+									Add
+								</button>
+								<button
+									class="custom-param-cancel"
+									title="Cancel"
+									aria-label="Cancel adding custom param"
+									onclick={(e) => {
+										e.stopPropagation();
+										showCustomParamForm = false;
+										customParamName = "";
+									}}
+								>
+									✕
+								</button>
+							</div>
+						</div>
+					{:else}
+						<button
+							class="custom-param-btn"
+							onclick={(e) => {
+								e.stopPropagation();
+								showCustomParamForm = true;
+							}}
+							title="Add a param the default schema doesn't include (e.g. provider-specific overrides)"
+						>
+							<span class="custom-param-btn-icon" aria-hidden="true">+</span> Add
+							param
+						</button>
+					{/if}
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -1377,6 +1505,135 @@
 		color: #8b8d98;
 	}
 
+	.custom-param-btn {
+		display: block;
+		width: 100%;
+		padding: 4px 12px;
+		border: none;
+		background: transparent;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9px;
+		font-weight: 600;
+		color: #3e3f4d;
+		cursor: pointer;
+		text-align: left;
+		letter-spacing: 0.03em;
+		transition: color 0.15s;
+	}
+
+	.custom-param-btn:hover {
+		color: #8b8d98;
+	}
+
+	/* Fixed-width slot so the "+" aligns with .ports-toggle's "▾" one row up. */
+	.custom-param-btn-icon {
+		display: inline-block;
+		width: 0.8em;
+		text-align: left;
+	}
+
+	/* Padding mirrors .port-inline-config so the input's left edge lines up
+	   with the other inline text inputs (Prompt / Scheduler etc.). */
+	.custom-param-form {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 1px 12px 3px 20px;
+	}
+
+	.custom-param-form-row {
+		display: flex;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.custom-param-input {
+		width: 100%;
+	}
+
+	.custom-param-select {
+		flex: 1;
+	}
+
+	.custom-param-input,
+	.custom-param-select {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 0 7px;
+		border: 1px solid #1e1f2a;
+		border-radius: 4px;
+		background: transparent;
+		color: inherit;
+		min-width: 0;
+		box-sizing: border-box;
+		height: 24px;
+		line-height: 22px;
+	}
+
+	.custom-param-input:focus,
+	.custom-param-select:focus {
+		outline: none;
+		border-color: #3e3f4d;
+	}
+
+	.custom-param-input::placeholder {
+		color: #4a4b58;
+	}
+
+	.custom-param-add,
+	.custom-param-cancel {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 24px;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 11px;
+		font-weight: 600;
+		padding: 0 10px;
+		border: none;
+		background: transparent;
+		color: #6b6e78;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.custom-param-cancel {
+		font-size: 14px;
+		padding: 0 8px;
+	}
+
+	.custom-param-add:not(:disabled):hover,
+	.custom-param-cancel:hover {
+		color: #b8b9c4;
+	}
+
+	.custom-param-add:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+
+	.port-label-custom {
+		font-style: italic;
+	}
+
+	/* order + margin-left: auto pin ✕ to the far right after any inline
+	   widget, without stealing the widget's width. */
+	.port-remove-btn {
+		order: 999;
+		margin-left: auto;
+		padding: 0 4px;
+		border: none;
+		background: transparent;
+		color: #6b6d78;
+		font-size: 10px;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.port-remove-btn:hover {
+		color: #ef4444;
+	}
+
 	.port-inline-config {
 		padding: 1px 12px 3px 20px;
 	}
@@ -1555,6 +1812,48 @@
 
 	:global(body:not(.dark)) .inline-checkbox {
 		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .custom-param-btn {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .custom-param-btn:hover {
+		color: #3e3f4d;
+	}
+
+	:global(body:not(.dark)) .custom-param-input,
+	:global(body:not(.dark)) .custom-param-select {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .custom-param-input:focus,
+	:global(body:not(.dark)) .custom-param-select:focus {
+		border-color: #b8b9c4;
+	}
+
+	:global(body:not(.dark)) .custom-param-input::placeholder {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .custom-param-add,
+	:global(body:not(.dark)) .custom-param-cancel {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .custom-param-add:not(:disabled):hover,
+	:global(body:not(.dark)) .custom-param-cancel:hover {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .port-remove-btn {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .port-remove-btn:hover {
+		color: #ef4444;
 	}
 
 	.node-endpoint-row {

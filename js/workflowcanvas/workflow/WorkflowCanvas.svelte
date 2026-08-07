@@ -144,12 +144,13 @@
 			!oauthHintShown &&
 			auth.isHFSpace &&
 			auth.writeAccessKnown &&
+			auth.oauthAvailableKnown &&
 			!auth.canWrite &&
 			!auth.oauthAvailable
 		) {
 			oauthHintShown = true;
 			showToast(
-				"Sign-in has not beed enabled on this Space. The author should add `hf_oauth: true` to the README so users can run workflows on their own inference quota, and authors can edit.",
+				"Sign-in has not been enabled on this Space. The author should add `hf_oauth: true` to the README so users can run workflows on their own inference quota, and authors can edit.",
 				0,
 				"warning"
 			);
