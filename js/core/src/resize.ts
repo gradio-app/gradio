@@ -2,6 +2,7 @@
 
 /** Reported on top of the content so its bottom is not clipped. */
 export const FRAME_SLACK = 32;
+export const IFRAME_RESIZER_READY_EVENT = "gradio:iframe-resizer-ready";
 
 export interface ResizeState {
 	last_reported_height: number;
@@ -30,6 +31,24 @@ export function create_resize_state(): ResizeState {
 		awaiting_height: null,
 		viewport_at_request: 0
 	};
+}
+
+/** Connect manual sizing whether iframe-resizer initializes before or after us. */
+export function setup_iframe_resizer(
+	target: EventTarget,
+	get_parent_iframe: () => Window["parentIFrame"],
+	handle_resize: () => void
+): () => void {
+	const connect = (): void => {
+		const parent_iframe = get_parent_iframe();
+		if (!parent_iframe) return;
+		parent_iframe.autoResize(false);
+		handle_resize();
+	};
+
+	target.addEventListener(IFRAME_RESIZER_READY_EVENT, connect);
+	connect();
+	return () => target.removeEventListener(IFRAME_RESIZER_READY_EVENT, connect);
 }
 
 /** The height to ask the parent frame for, or `null` to leave it alone. */
