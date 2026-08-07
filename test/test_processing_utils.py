@@ -393,6 +393,80 @@ class TestVideoProcessing:
             )
             assert processing_utils.video_is_playable(tmp_not_playable_vid.name)
 
+    @staticmethod
+    def _as_mkv(source: Path, destination: Path) -> None:
+        """Rewrap a video into a Matroska container without touching the streams."""
+        ffmpy.FFmpeg(
+            inputs={str(source): None},
+            outputs={str(destination): "-c copy"},
+            global_options="-y -loglevel quiet",
+        ).run()
+
+    def test_can_remux_to_mp4(self, test_file_dir, tmp_path):
+        # h264 + aac, only the container is wrong
+        mkv = tmp_path / "h264.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+        assert processing_utils._can_remux_to_mp4(str(mkv))
+
+        # theora + vorbis cannot live in an mp4
+        assert not processing_utils._can_remux_to_mp4(
+            str(test_file_dir / "playable_but_bad_container.mkv")
+        )
+        # mpeg4 is not browser-playable
+        assert not processing_utils._can_remux_to_mp4(
+            str(test_file_dir / "bad_video_sample.mp4")
+        )
+        # a file ffprobe cannot read at all
+        unreadable = tmp_path / "unreadable.mkv"
+        unreadable.write_bytes(b"not a video")
+        assert not processing_utils._can_remux_to_mp4(str(unreadable))
+
+    @staticmethod
+    @contextmanager
+    def _record_ffmpeg_commands():
+        """Yield the list of ffmpeg command lines run inside the block.
+
+        `FFprobe` subclasses `FFmpeg`, so probe calls are filtered out.
+        """
+        commands: list[str] = []
+        real_run = ffmpy.FFmpeg.run
+
+        def record(self, *args, **kwargs):
+            if not self.cmd.startswith("ffprobe"):
+                commands.append(self.cmd)
+            return real_run(self, *args, **kwargs)
+
+        with patch.object(ffmpy.FFmpeg, "run", record):
+            yield commands
+
+    def test_convert_video_copies_already_compatible_streams(
+        self, test_file_dir, tmp_path
+    ):
+        """A browser-playable codec in a bad container only needs remuxing (#13527)."""
+        mkv = tmp_path / "h264.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+
+        with self._record_ffmpeg_commands() as commands:
+            playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert len(commands) == 1, "should not fall back to a re-encode"
+        assert "-c copy" in commands[0]
+
+    def test_convert_video_reencodes_incompatible_streams(
+        self, test_file_dir, tmp_path
+    ):
+        """theora/vorbis cannot be copied into an mp4, so it must be re-encoded."""
+        mkv = tmp_path / "theora.mkv"
+        shutil.copy(test_file_dir / "playable_but_bad_container.mkv", mkv)
+
+        with self._record_ffmpeg_commands() as commands:
+            playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert len(commands) == 1, "should not have attempted a remux"
+        assert "-c copy" not in commands[0]
+
     def test_convert_video_to_playable_mp4(self, test_file_dir):
         with tempfile.NamedTemporaryFile(
             suffix="out.avi", delete=False
