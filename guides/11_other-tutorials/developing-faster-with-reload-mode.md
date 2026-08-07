@@ -97,7 +97,15 @@ if __name__ == "__main__":
     demo.launch()
 ```
 
-Which you could run like this: `gradio run.py --name Gretel`
+Which you could run like this: `gradio run.py -- --name Gretel`
+
+Everything after the `--` separator is passed straight through to your app, so your app's arguments are yours to name — including ones that happen to match a `gradio` option:
+
+```bash
+gradio run.py --demo-name my_demo -- --demo-name production
+```
+
+Here `gradio` reads the first `--demo-name`, and your app receives the second.
 
 As a small aside, this auto-reloading happens if you change your `run.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
