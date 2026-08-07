@@ -33,9 +33,7 @@
 			window.__gradio_mode__ = "app";
 			window.iFrameResizer = {
 				autoResize: false,
-				sizeWidth: false,
-				onReady: () =>
-					window.dispatchEvent(new Event("gradio:iframe-resizer-ready"))
+				sizeWidth: false
 			};
 			window.parent?.postMessage(
 				{ type: "SET_SCROLLING", enabled: false },

@@ -75,19 +75,6 @@
 
 		%gradio_config%%gradio_api_info%
 
-		<script data-gradio-mode>
-			window.__gradio_mode__ = "app";
-			window.iFrameResizer = {
-				autoResize: false,
-				sizeWidth: false,
-				onReady: () =>
-					window.dispatchEvent(new Event("gradio:iframe-resizer-ready"))
-			};
-			window.parent?.postMessage(
-				{ type: "SET_SCROLLING", enabled: false },
-				"*"
-			);
-		</script>
 		<script>
 			(() => {
 				const root = {{ config.get('root', '') | toorjson }};
@@ -109,6 +96,17 @@
 				script.async = true;
 				document.head.appendChild(script);
 			})();
+		</script>
+		<script data-gradio-mode>
+			window.__gradio_mode__ = "app";
+			window.iFrameResizer = {
+				autoResize: false,
+				sizeWidth: false
+			};
+			window.parent?.postMessage(
+				{ type: "SET_SCROLLING", enabled: false },
+				"*"
+			);
 		</script>
 		<link rel="manifest" href="/manifest.json" />
 	</head>
