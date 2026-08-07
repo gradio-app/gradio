@@ -120,7 +120,10 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		outputs: [{ id: "out_0", label: "Segments", type: "json" }]
 	},
 	"image-to-text": {
-		inputs: [{ id: "in_0", label: "Image", type: "image" }],
+		inputs: [
+			{ id: "in_0", label: "Image", type: "image" },
+			{ id: "in_1", label: "Prompt", type: "text" }
+		],
 		outputs: [{ id: "out_0", label: "Text", type: "text" }]
 	},
 	"image-to-image": {
