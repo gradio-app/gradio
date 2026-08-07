@@ -28,11 +28,7 @@
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
-	import {
-		create_resize_state,
-		next_frame_height,
-		setup_iframe_resizer
-	} from "./resize";
+	import { create_resize_state, next_frame_height } from "./resize";
 	type AddNewMessage = (
 		title: string,
 		message: string,
@@ -452,6 +448,10 @@
 				navigator.userAgent
 			);
 
+		if ("parentIFrame" in window) {
+			window.parentIFrame?.autoResize(false);
+		}
+
 		mutation_observer = new MutationObserver(handle_resize);
 		const res = new ResizeObserver(handle_resize);
 
@@ -461,11 +461,6 @@
 			attributes: true
 		});
 		res.observe(root_container);
-		const disconnect_iframe_resizer = setup_iframe_resizer(
-			window,
-			() => window.parentIFrame,
-			handle_resize
-		);
 
 		app_tree.ready.then(() => {
 			ready = true;
@@ -477,7 +472,6 @@
 		}
 
 		return () => {
-			disconnect_iframe_resizer();
 			mutation_observer?.disconnect();
 			mutation_observer = null;
 			res.disconnect();
