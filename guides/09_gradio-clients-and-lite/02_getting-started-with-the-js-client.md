@@ -294,6 +294,28 @@ for await (const message of job) {
 }
 ```
 
+## Resuming Jobs After a Disconnect
+
+Set `resume_sessions: true` when connecting from a browser. The client stores active queued event IDs in browser session storage, reconnects the stream after temporary network failures, and exposes unfinished jobs after a page reload:
+
+```js
+import { Client } from "@gradio/client";
+
+const app = await Client.connect(location.origin, {
+	resume_sessions: true,
+	events: ["status", "data"]
+});
+
+const resumed_jobs = app.resume_jobs();
+for (const job of resumed_jobs) {
+	for await (const message of job) {
+		console.log(message);
+	}
+}
+```
+
+New calls made with `app.submit()` are tracked automatically. Call `app.resume_jobs()` after reconnecting the page to reattach to those same event IDs rather than submitting duplicate work. The server keeps disconnected jobs for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (10 minutes by default).
+
 ## Cancelling Jobs
 
 The job instance also has a `.cancel()` method that cancels jobs that have been queued but not started. For example, if you run:

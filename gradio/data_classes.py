@@ -53,6 +53,15 @@ class CancelBody(BaseModel):
     event_id: str
 
 
+class QueueAckBody(BaseModel):
+    session_hash: str
+    event_id: str
+
+
+class QueueCloseBody(BaseModel):
+    session_hash: str
+
+
 class SimplePredictBody(BaseModel):
     data: list[Any]
     session_hash: str | None = None

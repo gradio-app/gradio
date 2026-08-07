@@ -37,7 +37,8 @@ describe("open_stream", () => {
 	});
 
 	afterEach(() => {
-		vi.clearAllMocks();
+		vi.restoreAllMocks();
+		vi.useRealTimers();
 	});
 
 	it("should throw an error if config is not defined", async () => {
@@ -62,10 +63,10 @@ describe("open_stream", () => {
 		if (!app.stream_instance?.onmessage || !app.stream_instance?.onerror) {
 			throw new Error("stream instance is not defined");
 		}
-
+		const stream = app.stream_instance;
 		const message = { msg: "hello jerry" };
 
-		app.stream_instance.onmessage({
+		stream.onmessage({
 			data: JSON.stringify(message)
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(true);
@@ -74,14 +75,73 @@ describe("open_stream", () => {
 		expect(app.pending_stream_messages).toEqual({});
 
 		const close_stream_message = { msg: "close_stream" };
-		app.stream_instance.onmessage({
+		await stream.onmessage({
 			data: JSON.stringify(close_stream_message)
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
-
-		app.stream_instance.onerror({
-			data: JSON.stringify("404")
+		expect(app.stream_instance).toBeNull();
+		stream.onerror?.({
+			data: JSON.stringify("closed stream")
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
+		expect(app.stream).toHaveBeenCalledTimes(1);
+	});
+
+	it("should open another stream when jobs remain after a normal close", async () => {
+		const callback = vi.fn().mockResolvedValue(undefined);
+		app.event_callbacks["event-1"] = callback;
+		app.unclosed_events.add("event-1");
+
+		await app.open_stream();
+
+		const stream = app.stream_instance;
+		if (!stream?.onmessage) {
+			throw new Error("stream instance is not defined");
+		}
+
+		await stream.onmessage({
+			data: JSON.stringify({ msg: "close_stream" })
+		} as MessageEvent);
+
+		expect(app.stream).toHaveBeenCalledTimes(2);
+		expect(app.stream_status.open).toBe(true);
+
+		stream.onerror?.({
+			data: JSON.stringify("closed stream")
+		} as MessageEvent);
+		expect(app.stream).toHaveBeenCalledTimes(2);
+	});
+
+	it("should reconnect the SSE stream after an error when jobs are active", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const callback = vi.fn().mockResolvedValue(undefined);
+		app.event_callbacks["event-1"] = callback;
+		app.unclosed_events.add("event-1");
+
+		await app.open_stream();
+
+		if (!app.stream_instance?.onerror) {
+			throw new Error("stream instance is not defined");
+		}
+
+		app.stream_instance.onerror({
+			data: JSON.stringify("network error")
+		} as MessageEvent);
+
+		expect(app.stream_status.open).toBe(false);
+		expect(callback).not.toHaveBeenCalled();
+		expect(app.stream).toHaveBeenCalledTimes(1);
+		expect(app.events_to_resume).toContain("event-1");
+
+		await vi.advanceTimersByTimeAsync(500);
+
+		expect(app.stream).toHaveBeenCalledTimes(2);
+		expect(app.stream_status.open).toBe(true);
+		expect(
+			(app.stream as Mock).mock.calls[1][0].searchParams.getAll(
+				"resume_event_id"
+			)
+		).toEqual(["event-1"]);
 	});
 });
