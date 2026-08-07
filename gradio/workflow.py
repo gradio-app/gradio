@@ -1529,7 +1529,6 @@ class Workflow(Blocks):
         *,
         bind: dict[str, Callable] | list[Callable] | None = None,
         edges: list[tuple[str, str]] | None = None,
-        history: str | bool | None = None,
     ):
         """
         Parameters:
@@ -1552,11 +1551,6 @@ class Workflow(Blocks):
                         ("shout", "reverse"),         # first output → first input
                         ("clean.output", "tag.text"), # by port label
                     ]
-            history: HF Hub bucket ID used to persist generation history.
-                Pass a string like ``"username/my-workflow-history"`` to use an
-                existing or auto-created bucket.  Pass ``True`` to auto-name the
-                bucket as ``"{hf_user}/{workflow-slug}-history"``.
-                Defaults to ``None`` (no persistence).
         """
         if graph is None:
             caller_filename = sys._getframe(1).f_code.co_filename
@@ -1575,7 +1569,6 @@ class Workflow(Blocks):
         )
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
-        self._history_param: str | bool | None = history
 
         if Context.root_block is not None:
             raise ValueError(
@@ -1601,10 +1594,6 @@ class Workflow(Blocks):
                 "Delete the file to regenerate the workflow from bind/edges.",
                 self._workflow_file,
             )
-
-        self._history = self._resolve_history()
-        self._graph_push_timer: threading.Timer | None = None
-        self._graph_push_lock = threading.Lock()
 
         # Callable so each browser session re-reads `workflow.json`, picking up
         # writes from `save_workflow` instead of the construction-time snapshot.
@@ -1756,39 +1745,10 @@ class Workflow(Blocks):
                                 "Workflow: endpoint sync after save failed",
                                 exc_info=True,
                             )
-                if self._history is not None:
-                    with self._graph_push_lock:
-                        if self._graph_push_timer is not None:
-                            self._graph_push_timer.cancel()
-                        t = threading.Timer(
-                            30.0, self._history.push_graph_file, args=(payload,)
-                        )
-                        t.daemon = True
-                        t.start()
-                        self._graph_push_timer = t
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
-
-        # Callback used by the core /gradio_api/history/connect route to write
-        # the repo id back into workflow.json so it survives restarts.
-        def _persist_history_repo(repo_id: str) -> None:
-            try:
-                with _save_lock:
-                    raw = _load_initial()
-                    if raw:
-                        parsed = json.loads(raw)
-                        parsed["history_repo"] = repo_id
-                        with open(workflow_file, "w", encoding="utf-8") as f:
-                            json.dump(parsed, f, ensure_ascii=False)
-            except Exception:
-                logger.debug(
-                    "_persist_history_repo: could not persist to workflow.json",
-                    exc_info=True,
-                )
-
-        self._persist_history_repo = _persist_history_repo
 
         server_functions = [
             get_token,
@@ -1884,46 +1844,8 @@ class Workflow(Blocks):
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
         self._api_endpoints = register_workflow_endpoints(
-            self, _current_graph, callers, get_history=lambda: self._history
+            self, _current_graph, callers
         )
-
-    def _resolve_history(self):
-        """Instantiate BucketHistory from ``self._history_param``, the saved
-        ``history_repo`` field in workflow.json, or return None."""
-        from gradio.history import BucketHistory
-
-        param = self._history_param
-
-        if param is None:
-            try:
-                with open(self._workflow_file, encoding="utf-8") as f:
-                    saved = json.load(f)
-                repo_id = saved.get("history_repo")
-                if repo_id:
-                    return BucketHistory(repo_id=repo_id, token=hf_get_token())
-            except Exception:
-                pass
-            return None
-
-        if param is True:
-            try:
-                token = hf_get_token()
-                user = HfApi(token=token).whoami()["name"]
-                slug = re.sub(r"[^a-z0-9-]", "-", self._workflow_name.lower()).strip(
-                    "-"
-                )
-                repo_id = f"{user}/{slug}-history"
-            except Exception:
-                logger.warning(
-                    "Workflow: history=True requires a logged-in HF account "
-                    "(run `huggingface-cli login`). History disabled.",
-                    exc_info=True,
-                )
-                return None
-        else:
-            repo_id = str(param)
-            token = hf_get_token()
-        return BucketHistory(repo_id=repo_id, token=token)
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.

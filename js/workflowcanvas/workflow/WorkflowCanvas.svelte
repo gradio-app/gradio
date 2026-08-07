@@ -8,9 +8,6 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
-	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
-	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
-	import { listHistory, pushHistory } from "./history-api";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -201,14 +198,6 @@
 	});
 
 	$effect(() => {
-		void listHistory(null, 0)
-			.then((data) => {
-				historyAvailable = data?.repo_id != null;
-			})
-			.catch(() => {});
-	});
-
-	$effect(() => {
 		if (!server?.get_model_endpoints) return;
 		void fetchModelEndpoints(server).then((schemas) => {
 			if (schemas.length)
@@ -323,10 +312,6 @@
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
 	let showApiPanel = $state(false);
-	let showHistoryPanel = $state(false);
-	let showHistoryConnect = $state(false);
-	let historyAvailable = $state(false);
-	let historyRefreshCount = $state(0);
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -1615,9 +1600,6 @@
 				}
 			: undefined;
 
-		const capturedOutputs: Record<string, { portId: string; value: any }[]> =
-			{};
-
 		await executeWorkflow(
 			wfToRun,
 			(nodeId, status, error, errorType) => {
@@ -1672,8 +1654,6 @@
 			},
 			(nodeId, portId, value) => {
 				updateNodeData(nodeId, portId, value);
-				if (!capturedOutputs[nodeId]) capturedOutputs[nodeId] = [];
-				capturedOutputs[nodeId].push({ portId, value });
 			},
 			abortController.signal,
 			callSpaceWithToken,
@@ -1697,83 +1677,6 @@
 		const wasAborted = abortController?.signal.aborted ?? false;
 		abortController = null;
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
-
-		if (!wasAborted && !hasErrors) {
-			try {
-				const MEDIA_PORT_TYPES = new Set(["image", "audio", "video"]);
-				const extractValue = (raw: any, type: string): any => {
-					if (raw && typeof raw === "object" && MEDIA_PORT_TYPES.has(type)) {
-						// Prefer the Gradio-served URL so the browser can render the image
-						// in the current session. Python's _push_sync strips the
-						// /gradio_api/file= prefix before uploading to the bucket.
-						const url: string = raw.url ?? "";
-						if (url) return url;
-						if (raw.path) return "/gradio_api/file=" + raw.path;
-					}
-					return raw;
-				};
-
-				const genInputs: Record<
-					string,
-					{ value: any; type: string; label: string; port_id?: string }
-				> = {};
-				for (const ref of wfToRun.references) {
-					const node = legacyView.nodes.find((n) => n.id === ref.id);
-					if (!node) continue;
-					const outPort = node.outputs[0];
-					if (!outPort) continue;
-					const captured = capturedOutputs[ref.id];
-					const raw = captured
-						? ((captured.find((o) => o.portId === outPort.id) ?? captured[0])
-								?.value ?? null)
-						: (node.data?.[outPort.id] ?? null);
-					genInputs[ref.id] = {
-						value: extractValue(raw, outPort.type),
-						type: outPort.type,
-						label: node.label,
-						port_id: outPort.id
-					};
-				}
-				const genOutputs: Record<
-					string,
-					{ value: any; type: string; label: string }
-				> = {};
-				for (const subj of wfToRun.subjects) {
-					const node = legacyView.nodes.find((n) => n.id === subj.id);
-					if (!node) continue;
-					const inPort = node.inputs[0];
-					if (!inPort) continue;
-					const captured = capturedOutputs[subj.id];
-					const raw = captured
-						? ((captured.find((o) => o.portId === inPort.id) ?? captured[0])
-								?.value ?? null)
-						: (node.data?.[inPort.id] ?? null);
-					genOutputs[subj.id] = {
-						value: extractValue(raw, inPort.type),
-						type: inPort.type,
-						label: node.label
-					};
-				}
-				const record = {
-					id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
-					timestamp: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
-					subgraph: wfToRun.name ?? "default",
-					subject_ids: wfToRun.subjects.map((s) => s.id),
-					inputs: genInputs,
-					outputs: genOutputs,
-					user: null
-				};
-				pushHistory(record)
-					.then(() => {
-						if (showHistoryPanel) {
-							setTimeout(() => {
-								historyRefreshCount++;
-							}, 1500);
-						}
-					})
-					.catch(() => {});
-			} catch {}
-		}
 
 		showToast(
 			hasErrors ? "Workflow finished with errors" : "Workflow complete",
@@ -2353,23 +2256,6 @@
 				<CodeIcon />
 				View API
 			</button>
-			{#if historyAvailable}
-				<button
-					class="tool-btn history-btn"
-					onclick={() => (showHistoryPanel = true)}
-					title="Browse generation history"
-				>
-					History
-				</button>
-			{:else}
-				<button
-					class="tool-btn connect-bucket-btn"
-					onclick={() => (showHistoryConnect = true)}
-					title="Connect a HF Hub bucket to save generation history"
-				>
-					Connect bucket
-				</button>
-			{/if}
 			{#if saveIndicator}
 				<span
 					class="save-indicator"
@@ -2863,38 +2749,6 @@
 		/>
 	{/if}
 
-	{#if showHistoryConnect}
-		<WorkflowHistoryConnect
-			workflowName={$workflow.name}
-			onconnected={() => {
-				historyAvailable = true;
-				showHistoryConnect = false;
-				showHistoryPanel = true;
-			}}
-			onclose={() => (showHistoryConnect = false)}
-		/>
-	{/if}
-
-	{#if showHistoryPanel}
-		<WorkflowHistoryPanel
-			triggerRefresh={historyRefreshCount}
-			onclose={() => (showHistoryPanel = false)}
-			onchange={() => {
-				showHistoryPanel = false;
-				showHistoryConnect = true;
-			}}
-			onload={(inputs) => {
-				for (const [nodeId, input] of Object.entries(
-					inputs as Record<string, any>
-				)) {
-					const portId: string = (input as any).port_id ?? "out_0";
-					const value = (input as any).value;
-					updateNodeData(nodeId, portId, value);
-				}
-				showHistoryPanel = false;
-			}}
-		/>
-	{/if}
 </div>
 
 <style>

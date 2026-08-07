@@ -244,17 +244,6 @@ def test_list_respects_limit():
     assert len(wh.list(limit=5)) == 5
 
 
-def test_push_graph_file():
-    wh, mock_api = _make_history()
-    wh.push_graph_file('{"schema_version": "2"}')
-    mock_api.batch_bucket_files.assert_called_once()
-    call_kwargs = mock_api.batch_bucket_files.call_args.kwargs
-    assert call_kwargs["bucket_id"] == "user/test-history"
-    data_bytes, path = call_kwargs["add"][0]
-    assert path == "workflow.json"
-    assert b"schema_version" in data_bytes
-
-
 def test_ensure_repo_creates_bucket():
     with (
         patch("gradio.history.HfApi") as mock_api_cls,
@@ -270,60 +259,3 @@ def test_ensure_repo_creates_bucket():
             exist_ok=True,
         )
         assert wh._repo_ready is True
-
-
-def test_history_true_auto_names_repo():
-    """history=True should derive the bucket ID from the HF username and workflow name."""
-    import warnings
-
-    with (
-        patch("gradio.workflow.HfApi") as mock_hf_api_cls,
-        patch("gradio.workflow.hf_get_token", return_value="tok"),
-        warnings.catch_warnings(),
-    ):
-        warnings.simplefilter("ignore")
-        mock_api_inst = mock_hf_api_cls.return_value
-        mock_api_inst.whoami.return_value = {"name": "testuser"}
-
-        from gradio.workflow import Workflow
-
-        wf = Workflow.__new__(Workflow)
-        wf._workflow_name = "My Workflow"
-        wf._history_param = True
-        result = wf._resolve_history()
-
-    assert result is not None
-    assert result.repo_id == "testuser/my-workflow-history"
-
-
-def test_history_string_uses_explicit_repo():
-    import warnings
-
-    with (
-        patch("gradio.workflow.hf_get_token", return_value="tok"),
-        warnings.catch_warnings(),
-    ):
-        warnings.simplefilter("ignore")
-        from gradio.workflow import Workflow
-
-        wf = Workflow.__new__(Workflow)
-        wf._workflow_name = "Workflow"
-        wf._history_param = "acme/custom-history"
-        result = wf._resolve_history()
-
-    assert result is not None
-    assert result.repo_id == "acme/custom-history"
-
-
-def test_history_none_returns_none():
-    import warnings
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        from gradio.workflow import Workflow
-
-        wf = Workflow.__new__(Workflow)
-        wf._history_param = None
-        result = wf._resolve_history()
-
-    assert result is None

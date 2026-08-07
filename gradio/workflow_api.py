@@ -20,13 +20,9 @@ import inspect
 import json
 import logging
 import re
-import secrets
 from collections import deque
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Optional
-
-if TYPE_CHECKING:
-    from gradio.history import BucketHistory
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -711,9 +707,6 @@ def _build_endpoint_fn(
     subject_ids: list[str],
     free_ids: list[str],
     callers: dict[str, Callable],
-    api_name: str = "",
-    get_history: Optional[Callable[[], Optional[BucketHistory]]] = None,
-    free_items: Optional[list[dict]] = None,
 ):
     """Build the callable backing one subgraph endpoint. `subject_ids` are all
     the outputs of the subgraph; with more than one the endpoint returns a tuple
@@ -737,21 +730,6 @@ def _build_endpoint_fn(
         results = WorkflowExecutor(graph, callers).run_many(
             subject_ids, inputs, request, token
         )
-        history = get_history() if get_history else None
-        if history is not None:
-            try:
-                _record_generation(
-                    history,
-                    api_name,
-                    graph,
-                    free_items or [],
-                    input_values,
-                    subject_ids,
-                    results,
-                    request,
-                )
-            except Exception:
-                logger.debug("_record_generation failed", exc_info=True)
         return results[0] if len(results) == 1 else tuple(results)
 
     params = [
@@ -782,40 +760,6 @@ def _build_endpoint_fn(
     return endpoint
 
 
-def _record_generation(
-    history: BucketHistory,
-    api_name: str,
-    graph: WorkflowGraph,
-    free_items: list[dict],
-    input_values: list[Any],
-    subject_ids: list[str],
-    results: list[Any],
-    request: Any,
-) -> None:
-    """Fire-and-forget: push a generation record to BucketHistory."""
-    from gradio.history import build_history_record
-
-    user: str | None = None
-    try:
-        if hasattr(request, "username"):
-            user = request.username
-    except Exception:
-        pass
-
-    gen_id = secrets.token_hex(12)
-    record = build_history_record(
-        gen_id=gen_id,
-        subgraph=api_name,
-        graph=graph,
-        free_items=free_items,
-        input_values=list(input_values),
-        subject_ids=subject_ids,
-        results=list(results),
-        user=user,
-    )
-    history.push(record)
-
-
 class WorkflowEndpointManager:
     """Owns the lifecycle of the per-subject API endpoints and keeps them in
     sync with the workflow graph.
@@ -833,12 +777,10 @@ class WorkflowEndpointManager:
         blocks,
         get_graph: Callable[[], Optional[WorkflowGraph]],
         callers: dict[str, Callable],
-        get_history: Optional[Callable[[], Optional[BucketHistory]]] = None,
     ):
         self.blocks = blocks
         self.get_graph = get_graph
         self.callers = callers
-        self.get_history = get_history
         self._blocks_created: list = []
         self._fn_ids: list[int] = []
         self.api_names: list[str] = []
@@ -896,9 +838,6 @@ class WorkflowEndpointManager:
                     [s["id"] for s in group],
                     [f["node"]["id"] for f in frees],
                     self.callers,
-                    api_name=api_name,
-                    get_history=self.get_history,
-                    free_items=frees,
                 )
                 trigger = gr.Button(visible=False)
                 self._blocks_created.append(trigger)
@@ -937,13 +876,10 @@ def register_workflow_endpoints(
     blocks,
     get_graph: Callable[[], Optional[WorkflowGraph]],
     callers: dict[str, Callable],
-    get_history: Optional[Callable[[], Optional[BucketHistory]]] = None,
 ) -> WorkflowEndpointManager:
     """Create a `WorkflowEndpointManager` and register the initial endpoint set
     from the current graph. Returns the manager so the caller can `.sync()` it
     again whenever the graph is saved."""
-    manager = WorkflowEndpointManager(
-        blocks, get_graph, callers, get_history=get_history
-    )
+    manager = WorkflowEndpointManager(blocks, get_graph, callers)
     manager.sync()
     return manager

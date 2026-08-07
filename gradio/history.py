@@ -93,23 +93,6 @@ class BucketHistory:
             logger.debug("BucketHistory: delete failed", exc_info=True)
             return False
 
-    def push_graph_file(self, workflow_json: str) -> None:
-        """Upload an arbitrary text blob to ``workflow.json`` in the bucket.
-
-        (Used by ``gr.Workflow`` to version the current graph alongside runs;
-        for general apps this is a convenient way to store app state.)
-        """
-        try:
-            self.ensure_repo()
-            if not self._repo_ready:
-                return
-            self._api.batch_bucket_files(
-                bucket_id=self.repo_id,
-                add=[(workflow_json.encode("utf-8"), "workflow.json")],
-            )
-        except Exception:
-            logger.debug("BucketHistory: graph file upload failed", exc_info=True)
-
     def ensure_repo(self) -> None:
         with self._repo_lock:
             if self._repo_ready:
