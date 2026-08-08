@@ -2,7 +2,7 @@
 	import { tick } from "svelte";
 	import { BaseButton } from "@gradio/button";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-	import { is_valid_mimetype } from "@gradio/upload";
+	import { is_valid_mimetype, to_accept_attribute } from "@gradio/upload";
 
 	let {
 		elem_id = "",
@@ -119,7 +119,7 @@
 
 <input
 	class="hide"
-	accept={accept_file_types}
+	accept={to_accept_attribute(accept_file_types)}
 	type="file"
 	bind:this={hidden_upload}
 	onchange={load_files_from_upload}

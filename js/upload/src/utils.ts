@@ -37,6 +37,26 @@ export function is_valid_mimetype(
 	);
 }
 
+export function to_accept_attribute(
+	file_accept: string | string[] | null
+): string | undefined {
+	if (file_accept == null) return undefined;
+	const types = Array.isArray(file_accept)
+		? file_accept
+		: file_accept.split(",");
+	const widened = new Set<string>();
+	for (const raw of types) {
+		const type = raw.trim();
+		if (!type) continue;
+		widened.add(type);
+		const last_dot = type.lastIndexOf(".");
+		if (type.startsWith(".") && last_dot > 0) {
+			widened.add(type.slice(last_dot));
+		}
+	}
+	return Array.from(widened).join(", ");
+}
+
 interface DragActionOptions {
 	disable_click?: boolean;
 	ignore_click_selector?: string;
@@ -74,9 +94,9 @@ export function create_drag(): {
 				hidden_input.style.display = "none";
 				hidden_input.setAttribute("aria-label", "File upload");
 				hidden_input.setAttribute("data-testid", "file-upload");
-				const accept_options = Array.isArray(_options.accepted_types)
-					? _options.accepted_types.join(",")
-					: _options.accepted_types || undefined;
+				const accept_options = to_accept_attribute(
+					_options.accepted_types ?? null
+				);
 
 				if (accept_options) {
 					hidden_input.accept = accept_options;

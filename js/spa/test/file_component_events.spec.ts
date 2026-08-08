@@ -57,6 +57,15 @@ test("File component accepts a compound extension in file_types.", async ({
 	).toHaveValue("1");
 });
 
+test("File component widens the accept attribute for a compound extension.", async ({
+	page
+}) => {
+	await expect(page.locator("input[type=file]").nth(6)).toHaveAttribute(
+		"accept",
+		".nii.gz, .gz"
+	);
+});
+
 test("File component rejects a partial match of a compound extension in file_types.", async ({
 	page
 }) => {

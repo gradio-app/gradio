@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { create_drag, is_valid_mimetype } from "./utils";
+import { create_drag, is_valid_mimetype, to_accept_attribute } from "./utils";
 
 describe("is_valid_mimetype", () => {
 	test("matches compound extensions", () => {
@@ -41,6 +41,33 @@ describe("is_valid_mimetype", () => {
 		expect(is_valid_mimetype([".png", ".nii.gz"], "brain.nii.gz", "")).toBe(
 			true
 		);
+	});
+});
+
+describe("to_accept_attribute", () => {
+	test("widens a compound extension so the native picker can resolve it", () => {
+		expect(to_accept_attribute([".nii.gz"])).toBe(".nii.gz, .gz");
+		expect(to_accept_attribute([".tar.gz", ".png"])).toBe(".tar.gz, .gz, .png");
+	});
+
+	test("leaves plain extensions and mime types untouched", () => {
+		expect(to_accept_attribute([".png"])).toBe(".png");
+		expect(to_accept_attribute(["image/*"])).toBe("image/*");
+		expect(to_accept_attribute("*")).toBe("*");
+	});
+
+	test("does not duplicate an extension that is already listed", () => {
+		expect(to_accept_attribute([".tar.gz", ".gz"])).toBe(".tar.gz, .gz");
+	});
+
+	test("accepts a comma-separated string", () => {
+		expect(to_accept_attribute(".tar.gz, .png")).toBe(".tar.gz, .gz, .png");
+	});
+
+	test("preserves the no-filter cases", () => {
+		expect(to_accept_attribute(null)).toBe(undefined);
+		expect(to_accept_attribute("")).toBe("");
+		expect(to_accept_attribute([])).toBe("");
 	});
 });
 
