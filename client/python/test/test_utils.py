@@ -99,12 +99,12 @@ def test_decode_base64_to_file(media_data):
         ("/home/user/scans/brain.nii", [".nii.gz"], False),
         ("/home/user/archives/src.tar.gz", [".tar.gz"], True),
         ("/home/user/archives/src.zip", [".tar.gz"], False),
-        # A compound extension must not stop the plain one from matching
         ("/home/user/scans/brain.nii.gz", [".gz"], True),
-        # The extension has to be a real suffix, not just a substring
         ("/home/user/notes/my.js.txt", [".js"], False),
         # A file whose whole name is the extension has no extension
         ("/home/user/archives/.gz", [".gz"], False),
+        ("/home/user/scans/.nii.gz", [".nii.gz"], False),
+        ("/home/user/scans/nii.gz", [".nii.gz"], False),
     ],
 )
 def test_is_valid_file_type(path_or_url, file_types, expected_result):

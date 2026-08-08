@@ -23,9 +23,10 @@ describe("is_valid_mimetype", () => {
 		expect(is_valid_mimetype(".js", "my.js.txt", "")).toBe(false);
 	});
 
-	test("still accepts a bare extension in place of a filename", () => {
-		expect(is_valid_mimetype(".png", ".png", "")).toBe(true);
-		expect(is_valid_mimetype(".png", ".jpg", "")).toBe(false);
+	test("a file whose whole name is the extension does not match", () => {
+		expect(is_valid_mimetype(".png", ".png", "")).toBe(false);
+		expect(is_valid_mimetype(".nii.gz", ".nii.gz", "")).toBe(false);
+		expect(is_valid_mimetype(".nii.gz", "nii.gz", "")).toBe(false);
 	});
 
 	test("still matches mime categories and wildcards", () => {

@@ -707,11 +707,6 @@ def is_valid_file(file_path: str, file_types: list[str]) -> bool:
         if file_type == "file":
             return True
         if file_type.startswith("."):
-            # Match against the tail of the filename rather than `Path.suffix`,
-            # which only ever returns the last component -- so a compound
-            # extension like ".nii.gz" or ".tar.gz" could never match. The
-            # length check keeps a file literally named ".gz" from counting as
-            # a ".gz" file, matching the old `Path.suffix` behaviour.
             file_type = file_type.lower()
             if len(file_name) > len(file_type) and file_name.endswith(file_type):
                 return True
