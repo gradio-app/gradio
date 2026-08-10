@@ -86,15 +86,24 @@
 		waveform_options.show_recording_waveform && !value?.is_stream
 	);
 
+	let native_fallback_active = $derived(
+		waveform_load_failed && value?.url !== undefined && value?.url !== null
+	);
+
 	$effect(() => {
 		if (
-			waveform_ready &&
 			playback_position !== undefined &&
-			old_playback_position !== playback_position &&
-			audio_duration
+			old_playback_position !== playback_position
 		) {
-			waveform?.seekTo(playback_position / audio_duration);
-			old_playback_position = playback_position;
+			if (native_fallback_active) {
+				if (audio_player) {
+					audio_player.currentTime = playback_position;
+					old_playback_position = playback_position;
+				}
+			} else if (waveform_ready && audio_duration) {
+				waveform?.seekTo(playback_position / audio_duration);
+				old_playback_position = playback_position;
+			}
 		}
 	});
 
@@ -400,13 +409,34 @@
 
 <audio
 	class="standard-player"
-	class:hidden={use_waveform && !waveform_load_failed}
+	class:hidden={use_waveform && !native_fallback_active}
 	controls
 	autoplay={waveform_settings.autoplay}
 	{onload}
 	bind:this={audio_player}
-	onended={() => onstop?.()}
-	onplay={() => onplay?.()}
+	onended={() => {
+		if (native_fallback_active) playing = false;
+		onstop?.();
+	}}
+	onplay={() => {
+		if (native_fallback_active) playing = true;
+		onplay?.();
+	}}
+	onpause={() => {
+		if (!native_fallback_active) return;
+		playing = false;
+		onpause?.();
+	}}
+	ontimeupdate={() => {
+		if (!native_fallback_active || !audio_player) return;
+		playback_position = audio_player.currentTime;
+		old_playback_position = audio_player.currentTime;
+	}}
+	onloadedmetadata={() => {
+		if (native_fallback_active && audio_player) {
+			audio_duration = audio_player.duration;
+		}
+	}}
 	preload="metadata"
 >
 </audio>
@@ -417,7 +447,7 @@
 {:else if use_waveform}
 	<div
 		class="component-wrapper"
-		class:hidden={waveform_load_failed}
+		class:hidden={native_fallback_active}
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 		bind:this={waveform_component_wrapper}
 	>
