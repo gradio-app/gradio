@@ -101,66 +101,34 @@ export function submit(
 				props: component.props
 			};
 		};
-		// A run is something the user asked for. Walk back up the `.then()` chain
-		// to whatever triggered it: the page loading, or Gradio filling in an
-		// example, means this fired on the user's behalf rather than at their
-		// request, and recording it would fill the history before they have done
-		// anything. Visibility is not the signal here — `gr.ChatInterface` sends
-		// its chat submissions through an "undocumented" dependency, and its one
-		// "public" endpoint is for API callers rather than the UI.
-		const triggered_incidentally = (): boolean => {
-			const seen = new Set<number>();
-			let current: typeof dependency | undefined = dependency;
-			while (current && !seen.has(current.id)) {
-				seen.add(current.id);
-				const triggers = (current.targets || []).filter(
-					([, event]) => event !== "then"
-				);
-				if (triggers.length) {
-					return triggers.every(
-						([component_id, event]) =>
-							event === "load" ||
-							config.components.find((item) => item.id === component_id)
-								?.type === "dataset"
-					);
-				}
-				const parent: number | undefined | null = current.trigger_after;
-				current =
-					parent === undefined || parent === null
-						? undefined
-						: config.dependencies.find((item) => item.id === parent);
-			}
-			return false;
-		};
-		// Bookkeeping events whose whole output is server-side state have nothing
-		// to preview and nothing to restore, so they are not runs either.
-		const only_writes_state =
-			dependency.outputs.length > 0 &&
-			dependency.outputs.every((id) => {
-				const type = config.components.find((item) => item.id === id)?.type;
-				return type === "state" || type === "browserstate";
-			});
-		const history_run_id =
-			triggered_incidentally() || only_writes_state
-				? null
-				: start_run_history({
-						app_id: config.app_id,
-						endpoint: history_endpoint,
-						api_name: history_api_name,
-						fn_index,
-						// Aligned to `dependency.inputs` the same way the submitted payload
-						// is, so this placeholder matches the components until the uploaded
-						// files are swapped in by `update_run_inputs` below.
-						inputs: handle_payload(
-							resolved_data,
-							dependency,
-							config.components,
-							"input",
-							true
-						),
-						input_components: dependency.inputs.map(component_metadata),
-						output_components: dependency.outputs.map(component_metadata)
-					});
+		// The run history covers the same endpoints the API page documents, which
+		// it selects with exactly this predicate (see `ApiDocs.svelte`). That also
+		// keeps out the dependencies Gradio wires up for itself, since example
+		// loading, flagging and clear buttons are all "undocumented" or "private"
+		// and some of them fire on page load. The trade is that a component whose
+		// UI submits through an undocumented dependency — `gr.ChatInterface` does
+		// — records nothing for its in-app use.
+		const is_documented_endpoint = dependency.api_visibility === "public";
+		const history_run_id = !is_documented_endpoint
+			? null
+			: start_run_history({
+					app_id: config.app_id,
+					endpoint: history_endpoint,
+					api_name: history_api_name,
+					fn_index,
+					// Aligned to `dependency.inputs` the same way the submitted payload
+					// is, so this placeholder matches the components until the uploaded
+					// files are swapped in by `update_run_inputs` below.
+					inputs: handle_payload(
+						resolved_data,
+						dependency,
+						config.components,
+						"input",
+						true
+					),
+					input_components: dependency.inputs.map(component_metadata),
+					output_components: dependency.outputs.map(component_metadata)
+				});
 
 		let stream: EventSource | null;
 		let event_id_final = "";
