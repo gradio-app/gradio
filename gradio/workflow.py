@@ -32,6 +32,10 @@ from gradio.components.workflowcanvas import WorkflowCanvas
 from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
+from gradio.workflow_provider_shims import (
+    PROVIDER_TASK_MISMATCH_RE,
+    run_via_helper,
+)
 from gradio.route_utils import Request
 from gradio.utils import colab_check, get_space
 
@@ -1036,31 +1040,21 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         try:
             result = fn(**clean)
         except ValueError as exc:
-            # huggingface_hub's per-task client methods hardcode a task string,
-            # but a provider may register a model under a different task
-            # (e.g. fal-ai serves MiniMax-H3 as `image-text-to-video`, not
-            # `image-to-video`). Parse the mismatch out of the error and drive
-            # the same helper with the corrected task.
-            m = re.search(
-                r"is not supported for task (\S+) and provider (\S+)\. "
-                r"Supported task: ([^.\s]+)\.",
-                str(exc),
-            )
+            m = PROVIDER_TASK_MISMATCH_RE.search(str(exc))
             if not m:
                 raise
             from huggingface_hub.inference._providers import get_provider_helper
 
             helper = get_provider_helper(m.group(2), task=m.group(1), model=client.model)  # type: ignore[arg-type]
             helper.task = m.group(3)
-            input_key = next(iter(inspect.signature(fn).parameters), "inputs")
-            req = helper.prepare_request(
-                inputs=clean.pop(input_key, None),
-                parameters=clean,
-                headers=client.headers,
-                model=client.model,
-                api_key=client.token,
-            )
-            result = helper.get_response(client._inner_post(req), req)
+            result = run_via_helper(client, helper, fn, endpoint, clean)
+        except KeyError:
+            if endpoint != "image_to_video":
+                raise
+            from huggingface_hub.inference._providers import get_provider_helper
+
+            helper = get_provider_helper(client.provider, task="image-to-video", model=client.model)
+            result = run_via_helper(client, helper, fn, endpoint, clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
         return json.dumps([_save_tmp(result, ext)])
