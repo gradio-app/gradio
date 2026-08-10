@@ -92,6 +92,19 @@ def test_decode_base64_to_file(media_data):
         ("/home/user/images/photo.WebP", ["image"], True),
         ("C:\\Users\\user\\images\\photo.webp", ["image", "video"], True),
         ("C:\\Users\\user\\images\\photo.WEBP", ["image", "video"], True),
+        # Compound extensions
+        ("/home/user/scans/brain.nii.gz", [".nii.gz"], True),
+        ("/home/user/scans/brain.NII.GZ", [".nii.gz"], True),
+        ("/home/user/scans/brain.nii.gz", [".nii"], False),
+        ("/home/user/scans/brain.nii", [".nii.gz"], False),
+        ("/home/user/archives/src.tar.gz", [".tar.gz"], True),
+        ("/home/user/archives/src.zip", [".tar.gz"], False),
+        ("/home/user/scans/brain.nii.gz", [".gz"], True),
+        ("/home/user/notes/my.js.txt", [".js"], False),
+        # A file whose whole name is the extension has no extension
+        ("/home/user/archives/.gz", [".gz"], False),
+        ("/home/user/scans/.nii.gz", [".nii.gz"], False),
+        ("/home/user/scans/nii.gz", [".nii.gz"], False),
     ],
 )
 def test_is_valid_file_type(path_or_url, file_types, expected_result):
