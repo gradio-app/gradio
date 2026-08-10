@@ -119,6 +119,25 @@
 		return run.status === "failed" ? "Failed" : "Running";
 	}
 
+	// Hover reveals the error, but tapping has to work too, and a touch device
+	// has no hover to offer.
+	let open_error: string | null = $state(null);
+
+	function toggle_error(id: string): void {
+		open_error = open_error === id ? null : id;
+	}
+
+	function close_error(event: KeyboardEvent): void {
+		if (event.key !== "Escape") return;
+		open_error = null;
+		// Pressing a key promotes the trigger to `:focus-visible`, which would
+		// keep the message on screen even though it was just dismissed.
+		const active = document.activeElement;
+		if (active instanceof HTMLElement && active.matches(".error-trigger")) {
+			active.blur();
+		}
+	}
+
 	function load(run: StoredRun): void {
 		stage_run_history_replay(root, run);
 		const app_url = new URL(root, window.location.href);
@@ -140,12 +159,14 @@
 	}
 </script>
 
+<svelte:window onkeydown={close_error} />
+
 <main class="history-page" data-testid="run-history">
 	<header class="page-header">
 		<div class="title-line">
-			<h1>Run history</h1>
+			<h1>Run history ({runs.length})</h1>
 			<div class="storage-copy">
-				<span>({runs.length}) logged in</span>
+				<span>logged in</span>
 				<span
 					><code class="storage-code">Local Storage</code>, privately in this
 					browser.</span
@@ -233,37 +254,24 @@
 								class:failed={run.status === "failed"}
 								class:running={run.status === "running"}
 							>
+								<span class="dot" aria-hidden="true"></span>
 								{#if run.error}
 									<!-- The message is long and only matters for the run that
-									     failed, so it lives in a tooltip on the status itself. -->
-									<span class="has-error" title={run.error}>
-										<svg
-											class="info"
-											viewBox="0 0 16 16"
-											aria-hidden="true"
-											focusable="false"
+									     failed, so it is revealed from the status itself. -->
+									<span class="error-anchor" class:open={open_error === run.id}>
+										<button
+											type="button"
+											class="error-trigger"
+											onclick={() => toggle_error(run.id)}
 										>
-											<circle
-												cx="8"
-												cy="8"
-												r="7"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.6"
-											/>
-											<circle cx="8" cy="4.85" r="0.95" fill="currentColor" />
-											<path
-												d="M8 7.3v4.3"
-												stroke="currentColor"
-												stroke-width="1.6"
-												stroke-linecap="round"
-											/>
-										</svg>
-										<span class="status-word">{status_label(run)}</span>
+											{status_label(run)}
+										</button>
+										<span class="error-bubble" aria-hidden="true"
+											>{run.error}</span
+										>
 										<span class="visually-hidden">: {run.error}</span>
 									</span>
 								{:else}
-									<span class="dot" aria-hidden="true"></span>
 									{status_label(run)}
 								{/if}
 								{#if run.duration_ms !== undefined}
@@ -400,7 +408,8 @@
 		border-color: var(--color-accent, #ea580c);
 	}
 	.group {
-		overflow: hidden;
+		/* Not `overflow: hidden`, so an error bubble is never clipped. The
+		   header rounds its own corners instead. */
 		margin-top: 24px;
 		border: 1px solid var(--border-color-primary, #e4e4e7);
 		border-radius: var(--radius-xl, 12px);
@@ -411,6 +420,7 @@
 		gap: 12px;
 		padding: 14px 18px;
 		border-bottom: 1px solid var(--border-color-primary, #e4e4e7);
+		border-radius: var(--radius-xl, 12px) var(--radius-xl, 12px) 0 0;
 		background: var(--background-fill-secondary, #fafafa);
 		font-size: var(--text-lg, 18px);
 		font-weight: var(--weight-semibold, 600);
@@ -512,22 +522,46 @@
 		border-radius: 50%;
 		background: currentColor;
 	}
-	.has-error {
+	.error-anchor {
 		display: inline-flex;
-		align-items: center;
-		gap: 6px;
+		position: relative;
+	}
+	.error-trigger {
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		font-weight: 600;
 		cursor: help;
-	}
-	.info {
-		width: 13px;
-		height: 13px;
-		flex-shrink: 0;
-	}
-	/* Signals that hovering reveals the error message. */
-	.has-error .status-word {
+		/* Signals that there is a message to reveal. */
 		text-decoration: underline dotted;
 		text-decoration-thickness: 1px;
 		text-underline-offset: 3px;
+	}
+	.error-bubble {
+		display: none;
+		position: absolute;
+		bottom: calc(100% + 7px);
+		left: 0;
+		z-index: 5;
+		box-sizing: border-box;
+		width: max-content;
+		max-width: min(320px, 60vw);
+		padding: 6px 9px;
+		border-radius: var(--radius-md, 6px);
+		background: var(--body-text-color, #27272a);
+		color: var(--background-fill-primary, #fff);
+		font-weight: 400;
+		font-size: 12px;
+		line-height: 1.4;
+		white-space: normal;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
+	}
+	.error-anchor:hover .error-bubble,
+	.error-trigger:focus-visible ~ .error-bubble,
+	.error-anchor.open .error-bubble {
+		display: block;
 	}
 	.visually-hidden {
 		position: absolute;
