@@ -1100,6 +1100,81 @@ def video_is_playable(video_filepath: str) -> bool:
         return True
 
 
+def audio_is_playable(audio_filepath: str) -> bool:
+    """Determines if an audio file is playable in the browser.
+
+    Audio is playable if it has a playable container and codec, e.g.
+        .wav -> pcm_s16le
+        .mp3 -> mp3
+        .m4a -> aac
+    Containers such as AIFF are not decodable by any major browser regardless of
+    the codec inside them.
+    """
+    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
+
+    try:
+        container = Path(audio_filepath).suffix.lower()
+        probe = FFprobe(
+            global_options="-show_format -show_streams -select_streams a -print_format json",
+            inputs={audio_filepath: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        output = json.loads(output[0])  # type: ignore
+        audio_codec = output["streams"][0]["codec_name"]
+        return (container, audio_codec) in [
+            (".wav", "pcm_s16le"),
+            (".wav", "pcm_s24le"),
+            (".wav", "pcm_f32le"),
+            (".wav", "pcm_u8"),
+            (".mp3", "mp3"),
+            (".m4a", "aac"),
+            (".m4a", "alac"),
+            (".mp4", "aac"),
+            (".aac", "aac"),
+            (".flac", "flac"),
+            (".ogg", "vorbis"),
+            (".ogg", "opus"),
+            (".oga", "vorbis"),
+            (".oga", "opus"),
+            (".opus", "opus"),
+            (".weba", "opus"),
+            (".webm", "opus"),
+            (".webm", "vorbis"),
+        ]
+    # If anything goes wrong, assume the audio can be played so that we do not
+    # convert downstream.
+    except (FFRuntimeError, IndexError, KeyError):
+        return True
+
+
+def convert_audio_to_playable_wav(audio_path: str, cache_dir: str) -> str:
+    """Convert audio to wav. If something goes wrong return the original audio.
+
+    Unlike the video equivalent the output is written to the cache rather than
+    next to the source: `.aif` and `.wav` share a directory far more often than
+    the video containers do, so writing alongside would clobber the user's files.
+    """
+    from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
+
+    temp_dir = Path(cache_dir) / hash_file(audio_path)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    output_path = temp_dir / f"{Path(audio_path).stem}.wav"
+    if output_path.exists():
+        return str(output_path)
+
+    try:
+        ff = FFmpeg(
+            inputs={str(audio_path): None},
+            outputs={str(output_path): None},
+            global_options="-y -loglevel quiet",
+        )
+        ff.run()
+    except FFRuntimeError as e:
+        print(f"Error converting audio to browser-playable format {str(e)}")
+        return str(audio_path)
+    return str(output_path)
+
+
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
     from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
