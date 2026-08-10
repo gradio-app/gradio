@@ -32,12 +32,12 @@ from gradio.components.workflowcanvas import WorkflowCanvas
 from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
+from gradio.route_utils import Request
+from gradio.utils import colab_check, get_space
 from gradio.workflow_provider_shims import (
     PROVIDER_TASK_MISMATCH_RE,
     run_via_helper,
 )
-from gradio.route_utils import Request
-from gradio.utils import colab_check, get_space
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -1045,7 +1045,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 raise
             from huggingface_hub.inference._providers import get_provider_helper
 
-            helper = get_provider_helper(m.group(2), task=m.group(1), model=client.model)  # type: ignore[arg-type]
+            helper = get_provider_helper(
+                m.group(2), task=m.group(1), model=client.model
+            )  # type: ignore[arg-type]
             helper.task = m.group(3)
             result = run_via_helper(client, helper, fn, endpoint, clean)
         except KeyError:
@@ -1053,7 +1055,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 raise
             from huggingface_hub.inference._providers import get_provider_helper
 
-            helper = get_provider_helper(client.provider, task="image-to-video", model=client.model)
+            helper = get_provider_helper(
+                client.provider, task="image-to-video", model=client.model
+            )
             result = run_via_helper(client, helper, fn, endpoint, clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:

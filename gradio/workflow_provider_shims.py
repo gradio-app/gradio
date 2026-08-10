@@ -12,7 +12,6 @@ import re
 
 import httpx
 
-
 # Raised by `TaskProviderHelper._prepare_mapping_info` when the client method's
 # hardcoded task doesn't match the model's provider registration.
 PROVIDER_TASK_MISMATCH_RE = re.compile(
