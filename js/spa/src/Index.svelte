@@ -171,18 +171,19 @@
 			: run.outputs === null
 				? []
 				: [run.outputs];
-		for (const [index, id] of dependency.inputs.entries()) {
-			const component = config.components.find((item) => item.id === id);
-			if (component && index < inputs.length) {
-				component.props.value = inputs[index];
+		const restore = (ids: number[], saved: unknown[]): void => {
+			for (const [index, id] of ids.entries()) {
+				const component = config.components.find((item) => item.id === id);
+				if (!component || index >= saved.length) continue;
+				// `gr.State` is held on the server and always saved as null, so
+				// writing it back would wipe out the component's real default.
+				if (component.type === "state") continue;
+				component.props.value = saved[index];
 			}
-		}
-		for (const [index, id] of dependency.outputs.entries()) {
-			const component = config.components.find((item) => item.id === id);
-			if (component && index < outputs.length) {
-				component.props.value = outputs[index];
-			}
-		}
+		};
+
+		restore(dependency.inputs, inputs);
+		restore(dependency.outputs, outputs);
 	}
 
 	$effect(() => {

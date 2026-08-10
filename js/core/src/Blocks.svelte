@@ -2,7 +2,12 @@
 	import { tick, onMount, setContext, settled, untrack } from "svelte";
 	import type { Component } from "svelte";
 	import { _ } from "svelte-i18n";
-	import { Client } from "@gradio/client";
+	import {
+		Client,
+		on_run_history_change,
+		read_run_history,
+		run_history_url
+	} from "@gradio/client";
 	import { writable } from "svelte/store";
 
 	import type {
@@ -22,6 +27,7 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import history_logo from "./api_docs/img/history-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AppTree } from "./init.svelte";
 
@@ -199,6 +205,12 @@
 		if (!api_recorder_visible) return;
 		api_calls = [...api_calls, last_api_call];
 	};
+
+	let run_count = $state(0);
+
+	function refresh_run_count(): void {
+		run_count = read_run_history(root).length;
+	}
 
 	function handle_connection_lost(): void {
 		messages = messages.filter((m) => m.type !== "error");
@@ -448,6 +460,9 @@
 				navigator.userAgent
 			);
 
+		refresh_run_count();
+		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
+
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.autoResize(false);
 		}
@@ -475,6 +490,7 @@
 			mutation_observer?.disconnect();
 			mutation_observer = null;
 			res.disconnect();
+			unsubscribe_run_history();
 			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
 	});
@@ -552,6 +568,20 @@
 					alt={$reactive_formatter("common.stop_recording")}
 				/>
 			</button>
+			{#if footer_links.includes("history") && run_count > 0}
+				<div class="divider">·</div>
+				<a
+					href={run_history_url(root, api_prefix)}
+					class="run-history"
+					title={$reactive_formatter("common.run_history_description")}
+				>
+					{$reactive_formatter("common.run_history")}
+					<img
+						src={history_logo}
+						alt={$reactive_formatter("common.run_history")}
+					/>
+				</a>
+			{/if}
 			<div class="divider">·</div>
 			{#if footer_links.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
@@ -696,7 +726,8 @@
 
 	.show-api,
 	.settings,
-	.record {
+	.record,
+	.run-history {
 		display: flex;
 		align-items: center;
 	}
@@ -710,7 +741,8 @@
 		width: var(--size-3);
 	}
 
-	.settings img {
+	.settings img,
+	.run-history img {
 		margin-right: var(--size-1);
 		margin-left: var(--size-1);
 		width: var(--size-4);
@@ -729,7 +761,8 @@
 
 	.built-with:hover,
 	.settings:hover,
-	.record:hover {
+	.record:hover,
+	.run-history:hover {
 		color: var(--body-text-color);
 	}
 

@@ -242,7 +242,9 @@ class Server(App):
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+        footer_links: list[
+            Literal["api", "gradio", "settings", "history"] | dict[str, str]
+        ]
         | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,

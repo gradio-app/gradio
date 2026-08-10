@@ -90,9 +90,11 @@ export function submit(
 			typeof dependency.api_name === "string"
 				? `/${dependency.api_name}`
 				: `Function ${fn_index}`;
+		// Kept index-aligned with the stored payloads (null for components we
+		// cannot resolve) so every saved value stays matched to its component.
 		const component_metadata = (id: number) => {
 			const component = config.components.find((item) => item.id === id);
-			if (!component) return undefined;
+			if (!component) return null;
 			return {
 				type: component.type,
 				component_class_id: component.component_class_id,
@@ -104,13 +106,18 @@ export function submit(
 			endpoint: history_endpoint,
 			api_name: history_api_name,
 			fn_index,
-			inputs: resolved_data,
-			input_components: dependency.inputs
-				.map(component_metadata)
-				.filter((item) => item !== undefined),
-			output_components: dependency.outputs
-				.map(component_metadata)
-				.filter((item) => item !== undefined)
+			// Aligned to `dependency.inputs` the same way the submitted payload is,
+			// so this placeholder matches the components until the uploaded files
+			// are swapped in by `update_run_inputs` below.
+			inputs: handle_payload(
+				resolved_data,
+				dependency,
+				config.components,
+				"input",
+				true
+			),
+			input_components: dependency.inputs.map(component_metadata),
+			output_components: dependency.outputs.map(component_metadata)
 		});
 
 		let stream: EventSource | null;

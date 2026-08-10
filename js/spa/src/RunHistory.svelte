@@ -3,6 +3,7 @@
 	import {
 		clear_run_history,
 		delete_run_history,
+		on_run_history_change,
 		read_run_history,
 		stage_run_history_replay,
 		type StoredRun,
@@ -33,8 +34,7 @@
 
 	onMount(() => {
 		refresh();
-		window.addEventListener("storage", refresh);
-		return () => window.removeEventListener("storage", refresh);
+		return on_run_history_change(refresh);
 	});
 
 	function values(value: unknown): unknown[] {
@@ -55,7 +55,10 @@
 		}
 	}
 
-	function label(meta: StoredRunComponent | undefined, index: number): string {
+	function label(
+		meta: StoredRunComponent | null | undefined,
+		index: number
+	): string {
 		const component_label = meta?.props?.label;
 		if (typeof component_label === "string" && component_label) {
 			return component_label;
@@ -63,11 +66,52 @@
 		return meta?.type || `Value ${index + 1}`;
 	}
 
+	// `gr.State` lives on the server, so its value is never part of a saved run
+	// and there is nothing worth previewing or restoring for it.
+	function displayed(
+		values_list: unknown[],
+		components: (StoredRunComponent | null)[] | undefined
+	): { value: unknown; meta: StoredRunComponent | null; index: number }[] {
+		return values_list
+			.map((value, index) => ({
+				value,
+				meta: components?.[index] ?? null,
+				index
+			}))
+			.filter((entry) => entry.meta?.type !== "state");
+	}
+
 	function format_time(value: string): string {
 		return new Intl.DateTimeFormat(undefined, {
 			dateStyle: "medium",
 			timeStyle: "short"
 		}).format(new Date(value));
+	}
+
+	function format_duration(ms: number): string {
+		if (ms < 1000) return `${Math.round(ms)}ms`;
+		if (ms < 10000) return `${(ms / 1000).toFixed(2)}s`;
+		if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+		const minutes = Math.floor(ms / 60000);
+		const seconds = Math.round((ms % 60000) / 1000);
+		return `${minutes}m ${seconds}s`;
+	}
+
+	function duration_detail(run: StoredRun): string {
+		const parts = [`Ran in ${format_duration(run.duration_ms ?? 0)}`];
+		if (run.queued_ms) {
+			parts.push(`queued for ${format_duration(run.queued_ms)}`);
+		}
+		if (run.completed_at) {
+			const total = Date.parse(run.completed_at) - Date.parse(run.started_at);
+			if (total > 0) parts.push(`${format_duration(total)} in total`);
+		}
+		return parts.join(" · ");
+	}
+
+	function status_label(run: StoredRun): string {
+		if (run.status === "completed") return "Completed";
+		return run.status === "failed" ? "Failed" : "Running";
 	}
 
 	function load(run: StoredRun): void {
@@ -97,8 +141,10 @@
 			<h1>Run history</h1>
 			<div class="storage-copy">
 				<span>Runs ({runs.length}) logged in</span>
-				<code class="storage-code">Local Storage</code>
-				<span>, privately in this browser.</span>
+				<span
+					><code class="storage-code">Local Storage</code>, privately in this
+					browser.</span
+				>
 			</div>
 		</div>
 		{#if runs.length}
@@ -126,20 +172,26 @@
 					<span>Inputs</span><span>Outputs</span>
 				</div>
 				{#each endpoint_runs as run (run.id)}
-					{@const input_values = values(run.inputs)}
-					{@const output_values = values(run.outputs)}
+					{@const input_cells = displayed(
+						values(run.inputs),
+						run.input_components
+					)}
+					{@const output_cells = displayed(
+						values(run.outputs),
+						run.output_components
+					)}
 					<article class="run">
 						<section class="run-values">
 							<h3>Inputs</h3>
-							{#each input_values as value, index}
-								{@const meta = run.input_components?.[index]}
+							{#each input_cells as cell (cell.index)}
 								<div class="example-cell">
-									<span class="value-label">{label(meta, index)}</span>
-									{#if meta}
-										<RunValue component={meta} {value} {root} />
+									<span class="value-label">{label(cell.meta, cell.index)}</span
+									>
+									{#if cell.meta}
+										<RunValue component={cell.meta} value={cell.value} {root} />
 									{:else}
-										<span class="fallback" title={summarize(value)}
-											>{summarize(value)}</span
+										<span class="fallback" title={summarize(cell.value)}
+											>{summarize(cell.value)}</span
 										>
 									{/if}
 								</div>
@@ -147,16 +199,21 @@
 						</section>
 						<section class="run-values">
 							<h3>Outputs</h3>
-							{#if output_values.length}
-								{#each output_values as value, index}
-									{@const meta = run.output_components?.[index]}
+							{#if output_cells.length}
+								{#each output_cells as cell (cell.index)}
 									<div class="example-cell">
-										<span class="value-label">{label(meta, index)}</span>
-										{#if meta}
-											<RunValue component={meta} {value} {root} />
+										<span class="value-label"
+											>{label(cell.meta, cell.index)}</span
+										>
+										{#if cell.meta}
+											<RunValue
+												component={cell.meta}
+												value={cell.value}
+												{root}
+											/>
 										{:else}
-											<span class="fallback" title={summarize(value)}
-												>{summarize(value)}</span
+											<span class="fallback" title={summarize(cell.value)}
+												>{summarize(cell.value)}</span
 											>
 										{/if}
 									</div>
@@ -166,27 +223,33 @@
 							{/if}
 						</section>
 						<footer class="metadata">
-							<time datetime={run.started_at}
-								>{format_time(run.started_at)}</time
-							>
 							<span
+								class="status"
 								class:completed={run.status === "completed"}
 								class:failed={run.status === "failed"}
 								class:running={run.status === "running"}
 							>
-								{run.status === "completed"
-									? "Completed"
-									: run.status === "failed"
-										? "Failed"
-										: "Running"}
+								<span class="dot" aria-hidden="true"></span>
+								{status_label(run)}
+								{#if run.duration_ms !== undefined}
+									<span class="duration" title={duration_detail(run)}
+										>in {format_duration(run.duration_ms)}</span
+									>
+								{/if}
 							</span>
-							<button class="load" onclick={() => load(run)}
-								><span aria-hidden="true">▶</span> Load run</button
+							<span class="separator" aria-hidden="true">·</span>
+							<time datetime={run.started_at}
+								>{format_time(run.started_at)}</time
 							>
-							{#if run.error}<span class="error">{run.error}</span>{/if}
-							<button class="delete" onclick={() => delete_run(run)}
-								>Delete</button
-							>
+							{#if run.error}<span class="error" title={run.error}
+									>{run.error}</span
+								>{/if}
+							<div class="actions">
+								<button class="load" onclick={() => load(run)}>Load run</button>
+								<button class="delete" onclick={() => delete_run(run)}
+									>Delete</button
+								>
+							</div>
 						</footer>
 					</article>
 				{/each}
@@ -269,27 +332,17 @@
 	.load {
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
 		padding: 5px 10px;
-		border: var(--button-border-width, 1px) solid
-			var(--button-primary-border-color, #ea580c);
+		border: var(--button-border-width, 1px) solid transparent;
 		border-radius: var(--button-medium-radius, 8px);
-		background: var(
-			--button-primary-background-fill,
-			linear-gradient(#f97316, #ea580c)
-		);
-		color: var(--button-primary-text-color, #fff);
+		background: var(--color-accent-soft, #ffedd5);
+		color: var(--color-accent, #ea580c);
 		font-size: 13px;
 		font-weight: var(--button-medium-text-weight, 600);
 		cursor: pointer;
-		box-shadow: var(--button-primary-shadow, 0 1px 2px rgb(0 0 0 / 12%));
 		transition: var(--button-transition, 0.1s ease);
 	}
-	.load span {
-		font-size: 9px;
-	}
 	.delete {
-		margin-left: auto;
 		padding: 5px 10px;
 		border-color: transparent;
 		background: transparent;
@@ -303,10 +356,7 @@
 		color: var(--button-secondary-text-color-hover, #18181b);
 	}
 	.load:hover {
-		border-color: var(--button-primary-border-color-hover, #c2410c);
-		background: var(--button-primary-background-fill-hover, #ea580c);
-		color: var(--button-primary-text-color-hover, #fff);
-		box-shadow: var(--button-primary-shadow-hover, 0 2px 4px rgb(0 0 0 / 15%));
+		border-color: var(--color-accent, #ea580c);
 	}
 	.group {
 		overflow: hidden;
@@ -414,22 +464,40 @@
 		color: var(--body-text-color-subdued, #71717a);
 		font-size: 13px;
 	}
-	.metadata > span:not(.error) {
-		padding: 3px 8px;
-		border-radius: 999px;
+	.status {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
 		font-weight: 600;
 	}
+	.dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: currentColor;
+	}
+	.duration {
+		color: var(--body-text-color-subdued, #71717a);
+		font-weight: 400;
+		font-variant-numeric: tabular-nums;
+	}
+	.separator {
+		color: var(--border-color-primary, #e4e4e7);
+	}
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		margin-left: auto;
+	}
 	.completed {
-		background: #dcfce7;
-		color: #166534;
+		color: #15803d;
 	}
 	.failed {
-		background: #fee2e2;
-		color: #991b1b;
+		color: #b91c1c;
 	}
 	.running {
-		background: #fef3c7;
-		color: #92400e;
+		color: #b45309;
 	}
 	.error {
 		overflow: hidden;
@@ -449,16 +517,13 @@
 		margin: 0;
 	}
 	:global(.dark) .completed {
-		background: #14532d;
-		color: #dcfce7;
+		color: #4ade80;
 	}
 	:global(.dark) .failed {
-		background: #7f1d1d;
-		color: #fee2e2;
+		color: #f87171;
 	}
 	:global(.dark) .running {
-		background: #78350f;
-		color: #fef3c7;
+		color: #fbbf24;
 	}
 	@media (max-width: 700px) {
 		.history-page {

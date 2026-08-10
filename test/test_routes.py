@@ -1340,6 +1340,32 @@ def test_config_show_api_reflects_mount_flag():
     assert config["footer_links"] == ["gradio", "settings"]
 
 
+def test_run_history_is_a_default_footer_link():
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+    try:
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        config = client.get("/config").json()
+        assert config["footer_links"] == ["api", "gradio", "settings", "history"]
+    finally:
+        demo.close()
+
+
+def test_footer_links_can_exclude_run_history():
+    with gr.Blocks() as demo:
+        gr.Markdown("Hello")
+    try:
+        app, _, _ = demo.launch(
+            prevent_thread_lock=True, footer_links=["api", "gradio", "settings"]
+        )
+        client = TestClient(app)
+        config = client.get("/config").json()
+        assert "history" not in config["footer_links"]
+    finally:
+        demo.close()
+
+
 def test_empty_footer_links():
     with gr.Blocks() as demo:
         gr.Markdown("Hello")

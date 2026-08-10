@@ -71,6 +71,8 @@
 		"logo": "logo",
 		"or": "or",
 		"remove": "Remove",
+		"run_history": "History",
+		"run_history_description": "View runs saved in this browser",
 		"settings": "Settings",
 		"share": "Share",
 		"submit": "Submit",

@@ -1,4 +1,4 @@
-import type { GradioEvent } from "../types";
+import type { GradioEvent, StatusMessage } from "../types";
 
 const STORAGE_PREFIX = "gradio:run-history:v1:";
 const REPLAY_PREFIX = "gradio:run-history:replay:v1:";
@@ -20,12 +20,18 @@ export interface StoredRun {
 	page: string;
 	inputs: unknown;
 	outputs: unknown | null;
-	input_components?: StoredRunComponent[];
-	output_components?: StoredRunComponent[];
+	input_components?: (StoredRunComponent | null)[];
+	output_components?: (StoredRunComponent | null)[];
 	status: RunStatus;
 	error?: string;
 	started_at: string;
+	/** When the server started running the function, if it reported queueing. */
+	process_started_at?: string;
 	completed_at?: string;
+	/** How long the function itself took, server-reported where available. */
+	duration_ms?: number;
+	/** How long the run waited in the queue before the function started. */
+	queued_ms?: number;
 }
 
 interface StartRunOptions {
@@ -34,8 +40,19 @@ interface StartRunOptions {
 	api_name: string;
 	fn_index: number;
 	inputs: unknown;
-	input_components?: StoredRunComponent[];
-	output_components?: StoredRunComponent[];
+	input_components?: (StoredRunComponent | null)[];
+	output_components?: (StoredRunComponent | null)[];
+}
+
+/**
+ * The URL of the run history page for an app. `root` never carries a trailing
+ * slash, so it cannot simply be concatenated with the path.
+ */
+export function run_history_url(
+	root: string,
+	api_prefix = "/gradio_api"
+): string {
+	return `${root.replace(/\/+$/, "")}${api_prefix}/runs`;
 }
 
 function storage_key(root: string): string | null {
@@ -121,6 +138,7 @@ export function clear_run_history(root: string): void {
 	} catch {
 		// Storage may be disabled by the browser.
 	}
+	notify_run_history_change();
 }
 
 export function delete_run_history(root: string, id: string): void {
@@ -128,6 +146,35 @@ export function delete_run_history(root: string, id: string): void {
 		root,
 		read_run_history(root).filter((run) => run.id !== id)
 	);
+	notify_run_history_change();
+}
+
+const CHANGE_EVENT = "gradio:run-history-change";
+
+function notify_run_history_change(): void {
+	if (typeof window === "undefined") return;
+	try {
+		window.dispatchEvent(new Event(CHANGE_EVENT));
+	} catch {
+		// Nothing depends on the notification arriving.
+	}
+}
+
+/**
+ * Subscribes to runs being added, deleted or cleared. `storage` covers other
+ * tabs; the custom event covers this one, which `storage` never fires for.
+ * Only counts change, not per-run progress, so listeners stay cheap.
+ *
+ * @returns a function that unsubscribes.
+ */
+export function on_run_history_change(listener: () => void): () => void {
+	if (typeof window === "undefined") return () => {};
+	window.addEventListener(CHANGE_EVENT, listener);
+	window.addEventListener("storage", listener);
+	return () => {
+		window.removeEventListener(CHANGE_EVENT, listener);
+		window.removeEventListener("storage", listener);
+	};
 }
 
 export function stage_run_history_replay(root: string, run: StoredRun): void {
@@ -168,20 +215,21 @@ export function start_run_history(options: StartRunOptions): string | null {
 			? {
 					input_components: clone_for_storage(
 						options.input_components
-					) as StoredRunComponent[]
+					) as (StoredRunComponent | null)[]
 				}
 			: {}),
 		...(options.output_components
 			? {
 					output_components: clone_for_storage(
 						options.output_components
-					) as StoredRunComponent[]
+					) as (StoredRunComponent | null)[]
 				}
 			: {}),
 		status: "running",
 		started_at: new Date().toISOString()
 	};
 	write_run_history(options.root, [run, ...read_run_history(options.root)]);
+	notify_run_history_change();
 	return run.id;
 }
 
@@ -212,17 +260,48 @@ export function update_run_history(
 
 	if (event.type === "data") {
 		run.outputs = clone_for_storage(event.data);
+	} else if (
+		event.type === "status" &&
+		event.original_msg === "process_starts"
+	) {
+		mark_process_start(run, event.time);
 	} else if (event.type === "status" && event.stage === "complete") {
 		run.status = "completed";
-		run.completed_at = (event.time || new Date()).toISOString();
+		mark_complete(run, event);
 	} else if (event.type === "status" && event.stage === "error") {
 		run.status = "failed";
 		run.error =
 			typeof event.message === "string"
 				? event.message
 				: JSON.stringify(event.message || "Unknown error");
-		run.completed_at = (event.time || new Date()).toISOString();
+		mark_complete(run, event);
 	}
 
 	write_run_history(root, runs);
+}
+
+function mark_process_start(run: StoredRun, time: Date | undefined): void {
+	// The queue tells us when the function actually started, which lets us
+	// report a runtime that excludes however long the run sat in the queue.
+	if (run.process_started_at) return;
+	const started = time || new Date();
+	run.process_started_at = started.toISOString();
+	run.queued_ms = Math.max(0, started.getTime() - Date.parse(run.started_at));
+}
+
+function mark_complete(run: StoredRun, event: StatusMessage): void {
+	const completed = event.time || new Date();
+	run.completed_at = completed.toISOString();
+	// `cache_duration` is how long the function took on the server, which the
+	// queue reports on every completed run (not just cached ones).
+	const server_duration =
+		typeof event.cache_duration === "number" && event.cache_duration >= 0
+			? event.cache_duration * 1000
+			: null;
+	run.duration_ms =
+		server_duration ??
+		Math.max(
+			0,
+			completed.getTime() - Date.parse(run.process_started_at || run.started_at)
+		);
 }

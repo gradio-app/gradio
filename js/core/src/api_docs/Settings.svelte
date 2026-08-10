@@ -6,7 +6,11 @@
 	import { language_choices, changeLocale } from "../i18n";
 	import { locale, _ } from "svelte-i18n";
 	import { get } from "svelte/store";
-	import { read_run_history } from "@gradio/client";
+	import {
+		on_run_history_change,
+		read_run_history,
+		run_history_url
+	} from "@gradio/client";
 	import record from "./img/record.svg";
 
 	let {
@@ -49,9 +53,9 @@
 		const theme = url.searchParams.get("__theme");
 		current_theme = (theme as "light" | "dark" | "system") || "system";
 		refreshRunCount();
-		window.addEventListener("storage", refreshRunCount);
+		const unsubscribe_run_history = on_run_history_change(refreshRunCount);
 		return () => {
-			window.removeEventListener("storage", refreshRunCount);
+			unsubscribe_run_history();
 			document.body.style.overflow = "auto";
 		};
 	});
@@ -176,7 +180,7 @@
 </div>
 <div class="banner-wrap">
 	<h2>Run History ({run_count})</h2>
-	<a class="run-history-button" href={`${root}gradio_api/runs`}>
+	<a class="run-history-button" href={run_history_url(root)}>
 		View run history
 	</a>
 </div>
