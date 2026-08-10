@@ -80,6 +80,13 @@
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
+	// Some containers cannot be decoded by the Web Audio API even though the
+	// browser can play them in a media element (e.g. AAC/.m4a in Safari), so fall
+	// back to the native player instead of showing a dead waveform. See #10153.
+	// The waveform stays mounted (just hidden) so that its container reference
+	// remains valid and a later, decodable value renders normally.
+	let waveform_load_failed = $state(false);
+
 	let use_waveform = $derived(
 		waveform_options.show_recording_waveform && !value?.is_stream
 	);
@@ -163,21 +170,33 @@
 		waveform?.on("load", () => {
 			onload?.();
 		});
+
+		// Fired when the file cannot be fetched or decoded — e.g. AAC/.m4a in
+		// Safari, which the Web Audio API refuses even though the media element
+		// plays it. `load()` does not always reject in that case, so this event
+		// is the only reliable signal. See #10153.
+		waveform?.on("error", handle_waveform_error);
 	};
 
 	$effect(() => {
 		if (url && waveform_ready) {
 			untrack(() => {
 				if (value?.url && waveform) {
-					waveform.load(value.url).catch((e) => {
-						if (e.name !== "AbortError") {
-							console.error("Waveform load error:", e);
-						}
-					});
+					waveform_load_failed = false;
+					waveform.load(value.url).catch(handle_waveform_error);
 				}
 			});
 		}
 	});
+
+	function handle_waveform_error(e: Error): void {
+		if (e?.name === "AbortError" || waveform_load_failed) return;
+		console.error("Waveform load error:", e);
+		waveform_load_failed = true;
+		if (audio_player && value?.url) {
+			audio_player.src = value.url;
+		}
+	}
 
 	const handle_trim_audio = async (
 		start: number,
@@ -390,7 +409,7 @@
 
 <audio
 	class="standard-player"
-	class:hidden={use_waveform}
+	class:hidden={use_waveform && !waveform_load_failed}
 	controls
 	autoplay={waveform_settings.autoplay}
 	{onload}
@@ -407,6 +426,7 @@
 {:else if use_waveform}
 	<div
 		class="component-wrapper"
+		class:hidden={waveform_load_failed}
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 		bind:this={waveform_component_wrapper}
 	>
