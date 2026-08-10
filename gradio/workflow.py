@@ -1033,7 +1033,34 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             else:
                 raise
     else:
-        result = fn(**clean)
+        try:
+            result = fn(**clean)
+        except ValueError as exc:
+            # huggingface_hub's per-task client methods hardcode a task string,
+            # but a provider may register a model under a different task
+            # (e.g. fal-ai serves MiniMax-H3 as `image-text-to-video`, not
+            # `image-to-video`). Parse the mismatch out of the error and drive
+            # the same helper with the corrected task.
+            m = re.search(
+                r"is not supported for task (\S+) and provider (\S+)\. "
+                r"Supported task: ([^.\s]+)\.",
+                str(exc),
+            )
+            if not m:
+                raise
+            from huggingface_hub.inference._providers import get_provider_helper
+
+            helper = get_provider_helper(m.group(2), task=m.group(1), model=client.model)  # type: ignore[arg-type]
+            helper.task = m.group(3)
+            input_key = next(iter(inspect.signature(fn).parameters), "inputs")
+            req = helper.prepare_request(
+                inputs=clean.pop(input_key, None),
+                parameters=clean,
+                headers=client.headers,
+                model=client.model,
+                api_key=client.token,
+            )
+            result = helper.get_response(client._inner_post(req), req)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
         return json.dumps([_save_tmp(result, ext)])
