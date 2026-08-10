@@ -1100,6 +1100,32 @@ def video_is_playable(video_filepath: str) -> bool:
         return True
 
 
+# Container/codec pairs that browsers can decode. Anything outside this set has
+# to be converted before it will play back.
+PLAYABLE_AUDIO_CODECS = frozenset(
+    {
+        (".wav", "pcm_s16le"),
+        (".wav", "pcm_s24le"),
+        (".wav", "pcm_f32le"),
+        (".wav", "pcm_u8"),
+        (".mp3", "mp3"),
+        (".m4a", "aac"),
+        (".m4a", "alac"),
+        (".mp4", "aac"),
+        (".aac", "aac"),
+        (".flac", "flac"),
+        (".ogg", "vorbis"),
+        (".ogg", "opus"),
+        (".oga", "vorbis"),
+        (".oga", "opus"),
+        (".opus", "opus"),
+        (".weba", "opus"),
+        (".webm", "opus"),
+        (".webm", "vorbis"),
+    }
+)
+
+
 def audio_is_playable(audio_filepath: str) -> bool:
     """Determines if an audio file is playable in the browser.
 
@@ -1121,26 +1147,7 @@ def audio_is_playable(audio_filepath: str) -> bool:
         output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         output = json.loads(output[0])  # type: ignore
         audio_codec = output["streams"][0]["codec_name"]
-        return (container, audio_codec) in [
-            (".wav", "pcm_s16le"),
-            (".wav", "pcm_s24le"),
-            (".wav", "pcm_f32le"),
-            (".wav", "pcm_u8"),
-            (".mp3", "mp3"),
-            (".m4a", "aac"),
-            (".m4a", "alac"),
-            (".mp4", "aac"),
-            (".aac", "aac"),
-            (".flac", "flac"),
-            (".ogg", "vorbis"),
-            (".ogg", "opus"),
-            (".oga", "vorbis"),
-            (".oga", "opus"),
-            (".opus", "opus"),
-            (".weba", "opus"),
-            (".webm", "opus"),
-            (".webm", "vorbis"),
-        ]
+        return (container, audio_codec) in PLAYABLE_AUDIO_CODECS
     # If anything goes wrong, assume the audio can be played so that we do not
     # convert downstream.
     except (FFRuntimeError, IndexError, KeyError):
