@@ -304,7 +304,9 @@ class Video(StreamingOutput, Component):
                 "Video does not have browser-compatible container or codec. Converting to mp4."
             )
             with trace_phase_sync("postprocess_video_convert_video_to_playable_mp4"):
-                video = processing_utils.convert_video_to_playable_mp4(video)
+                video = processing_utils.convert_video_to_playable_mp4(
+                    video, cache_dir=self.GRADIO_CACHE
+                )
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if (

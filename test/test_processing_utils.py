@@ -1,5 +1,8 @@
+import hashlib
+import json
 import os
 import shutil
+import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -393,6 +396,87 @@ class TestVideoProcessing:
             )
             assert processing_utils.video_is_playable(tmp_not_playable_vid.name)
 
+    @staticmethod
+    def _as_mkv(source: Path, destination: Path) -> None:
+        """Rewrap a video into a Matroska container without touching the streams."""
+        ffmpy.FFmpeg(
+            inputs={str(source): None},
+            outputs={str(destination): "-c copy"},
+            global_options="-y -loglevel quiet",
+        ).run()
+
+    def test_can_remux_to_mp4(self, test_file_dir, tmp_path):
+        # h264 + aac, only the container is wrong
+        mkv = tmp_path / "h264.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+        assert processing_utils._can_remux_to_mp4(str(mkv))
+
+        # theora + vorbis cannot live in an mp4
+        assert not processing_utils._can_remux_to_mp4(
+            str(test_file_dir / "playable_but_bad_container.mkv")
+        )
+        # mpeg4 is not browser-playable
+        assert not processing_utils._can_remux_to_mp4(
+            str(test_file_dir / "bad_video_sample.mp4")
+        )
+        # a file ffprobe cannot read at all
+        unreadable = tmp_path / "unreadable.mkv"
+        unreadable.write_bytes(b"not a video")
+        assert not processing_utils._can_remux_to_mp4(str(unreadable))
+
+    @staticmethod
+    def _streams(path: str) -> list[dict]:
+        """The stream descriptors ffprobe reports for a file."""
+        output = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-show_streams", "-print_format", "json", path],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return json.loads(output.stdout)["streams"]
+
+    @staticmethod
+    def _video_stream_md5(path: str) -> str:
+        """Checksum of the encoded video stream, ignoring the container."""
+        output = subprocess.run(
+            ["ffmpeg", "-v", "quiet", "-i", path, "-map", "0:v:0", "-f", "md5", "-"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return output.stdout.strip()
+
+    def test_convert_video_copies_already_compatible_streams(
+        self, test_file_dir, tmp_path
+    ):
+        """A browser-playable codec in a bad container only needs remuxing (#13527)."""
+        mkv = tmp_path / "h264.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        # The stream came through untouched, which a re-encode could not manage
+        assert self._video_stream_md5(playable_vid) == self._video_stream_md5(str(mkv))
+
+    def test_convert_video_reencodes_incompatible_streams(
+        self, test_file_dir, tmp_path
+    ):
+        """theora/vorbis cannot be copied into an mp4, so it must be re-encoded."""
+        mkv = tmp_path / "theora.mkv"
+        shutil.copy(test_file_dir / "playable_but_bad_container.mkv", mkv)
+        assert processing_utils._first_stream_codecs(str(mkv)) == ("theora", "vorbis")
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        # theora has no place in an mp4, so the streams must have been rebuilt
+        codecs = processing_utils._first_stream_codecs(playable_vid)
+        assert codecs is not None
+        video_codec, audio_codec = codecs
+        assert video_codec == "h264"
+        assert audio_codec != "vorbis"
+
     def test_convert_video_to_playable_mp4(self, test_file_dir):
         with tempfile.NamedTemporaryFile(
             suffix="out.avi", delete=False
@@ -400,13 +484,97 @@ class TestVideoProcessing:
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
             )
-            with patch("os.remove", wraps=os.remove) as mock_remove:
-                playable_vid = processing_utils.convert_video_to_playable_mp4(
-                    tmp_not_playable_vid.name
-                )
-            # check tempfile got deleted
-            assert not Path(mock_remove.call_args[0][0]).exists()
+            playable_vid = processing_utils.convert_video_to_playable_mp4(
+                tmp_not_playable_vid.name
+            )
             assert processing_utils.video_is_playable(playable_vid)
+
+    def test_convert_video_copies_only_the_validated_audio_track(
+        self, test_file_dir, tmp_path
+    ):
+        """Extra audio tracks are not vetted by `_can_remux_to_mp4`, so they are dropped."""
+        mkv = tmp_path / "two_audio.mkv"
+        ffmpy.FFmpeg(
+            inputs={
+                str(test_file_dir / "video_sample.mp4"): None,
+                "sine=duration=2": "-f lavfi",
+            },
+            outputs={
+                str(mkv): "-map 0:v:0 -map 0:a:0 -map 1:a:0 "
+                "-c:v copy -c:a:0 copy -c:a:1 libopus"
+            },
+            global_options="-y -loglevel quiet",
+        ).run()
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        codecs = [
+            stream["codec_name"]
+            for stream in self._streams(playable_vid)
+            if stream["codec_type"] == "audio"
+        ]
+        assert codecs == ["aac"], "the unchecked opus track should not be carried over"
+
+    def test_convert_video_creates_the_cache_root(self, test_file_dir, tmp_path):
+        """The cache directory is only a name until something creates it."""
+        mkv = tmp_path / "h264.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+        missing_cache = tmp_path / "not" / "created" / "yet"
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(
+            str(mkv), cache_dir=str(missing_cache)
+        )
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert missing_cache.exists()
+
+    def test_convert_video_cleans_up_after_a_failed_conversion(
+        self, test_file_dir, tmp_path
+    ):
+        """A failed conversion must not leave a directory nothing can reach."""
+        cache = tmp_path / "cache"
+        with patch(
+            "gradio._vendor.ffmpy.FFmpeg.run",
+            side_effect=ffmpy.FFRuntimeError("", "", "", ""),  # type: ignore
+        ):
+            returned = processing_utils.convert_video_to_playable_mp4(
+                str(test_file_dir / "bad_video_sample.mp4"), cache_dir=str(cache)
+            )
+
+        assert returned == str(test_file_dir / "bad_video_sample.mp4")
+        assert list(cache.iterdir()) == []
+
+    def test_convert_video_does_not_write_next_to_the_source(
+        self, test_file_dir, tmp_path
+    ):
+        """The conversion must not touch anything in the source directory.
+
+        `Path(video_path).with_suffix(".mp4")` overwrote an unrelated file of the
+        same stem, and for a non-playable `.mp4` it resolved to the input itself.
+        """
+        mkv = tmp_path / "clip.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+        neighbour = tmp_path / "clip.mp4"
+        neighbour.write_bytes(b"an unrelated file that happens to share a stem")
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert Path(playable_vid).parent != tmp_path
+        assert (
+            neighbour.read_bytes() == b"an unrelated file that happens to share a stem"
+        )
+
+        # A `.mp4` that is not playable would otherwise be rewritten in place.
+        source = tmp_path / "user_video.mp4"
+        shutil.copy(test_file_dir / "bad_video_sample.mp4", source)
+        digest = hashlib.md5(source.read_bytes()).hexdigest()
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(source))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert hashlib.md5(source.read_bytes()).hexdigest() == digest
 
     @patch(
         "gradio._vendor.ffmpy.FFmpeg.run",
