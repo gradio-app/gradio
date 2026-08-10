@@ -29,15 +29,16 @@ const RENDERS_FILES = new Set([
 	"imageeditor"
 ]);
 
+/**
+ * Both the backend and the JS client stamp `FileData` with this discriminator,
+ * and it survives being saved. Matching on `path` or `url` instead would claim
+ * ordinary JSON such as `{ "url": "https://example.com" }` as a file and show
+ * it as a file name.
+ */
 function is_file_like(value: unknown): boolean {
 	if (Array.isArray(value)) return value.some(is_file_like);
 	if (!value || typeof value !== "object") return false;
-	const file = value as FileLike;
-	return (
-		file.meta?._type === "gradio.FileData" ||
-		typeof file.path === "string" ||
-		typeof file.url === "string"
-	);
+	return (value as FileLike).meta?._type === "gradio.FileData";
 }
 
 function file_label(value: unknown): string {
@@ -94,8 +95,10 @@ export function summarize(value: unknown): string {
 		return value.map((item) => (item as { token: string }).token).join("");
 	}
 
-	const file = file_label(value);
-	if (file) return file;
+	if (is_file_like(value)) {
+		const file = file_label(value);
+		if (file) return file;
+	}
 
 	try {
 		return JSON.stringify(value);

@@ -340,8 +340,10 @@ function update_run_history_impl(
 	const run = runs.find((item) => item.id === id);
 	if (!run) return;
 
+	let finished = false;
 	if (event.type === "data") {
 		run.outputs = clone_for_storage(event.data);
+		deferred_outputs.set(id, run.outputs);
 	} else if (
 		event.type === "status" &&
 		event.original_msg === "process_starts"
@@ -355,6 +357,7 @@ function update_run_history_impl(
 	} else if (event.type === "status" && event.stage === "complete") {
 		run.status = "completed";
 		mark_complete(run, event);
+		finished = true;
 	} else if (event.type === "status" && event.stage === "error") {
 		run.status = "failed";
 		run.error =
@@ -362,10 +365,37 @@ function update_run_history_impl(
 				? event.message
 				: JSON.stringify(event.message || "Unknown error");
 		mark_complete(run, event);
+		finished = true;
+	} else {
+		// Logs, renders and progress updates change nothing worth saving, and
+		// writing serialises every run we hold.
+		return;
+	}
+
+	if (finished) {
+		// Every call re-reads from storage, so a chunk that was held back above is
+		// missing from `run`. Put the last one back before this final write.
+		if (deferred_outputs.has(id)) run.outputs = deferred_outputs.get(id);
+		deferred_outputs.delete(id);
+		last_write.delete(id);
+	} else if (run.streamed) {
+		// A generator emits an event per chunk. Saving each one would stringify
+		// the whole history on the main thread over and over, so write at most
+		// once an interval and let the run's completion flush the rest.
+		const since = Date.now() - (last_write.get(id) ?? 0);
+		if (since < STREAM_WRITE_INTERVAL_MS) return;
+		last_write.set(id, Date.now());
+		deferred_outputs.delete(id);
 	}
 
 	write_run_history(app_id, runs);
 }
+
+const STREAM_WRITE_INTERVAL_MS = 500;
+/** When each in-flight streamed run was last written. */
+const last_write = new Map<string, number>();
+/** The newest output of a streamed run that has not been written yet. */
+const deferred_outputs = new Map<string, unknown>();
 
 function mark_process_start(run: StoredRun, time: Date | undefined): void {
 	// The queue tells us when the function actually started, which lets us

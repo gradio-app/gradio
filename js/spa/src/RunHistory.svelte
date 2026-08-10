@@ -90,9 +90,10 @@
 		if (ms < 1000) return `${Math.round(ms)}ms`;
 		if (ms < 10000) return `${(ms / 1000).toFixed(2)}s`;
 		if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-		const minutes = Math.floor(ms / 60000);
-		const seconds = Math.round((ms % 60000) / 1000);
-		return `${minutes}m ${seconds}s`;
+		// Round the total first: rounding the remainder on its own turns 119.6s
+		// into "1m 60s".
+		const total_seconds = Math.round(ms / 1000);
+		return `${Math.floor(total_seconds / 60)}m ${total_seconds % 60}s`;
 	}
 
 	function duration_detail(run: StoredRun): string {
@@ -159,7 +160,7 @@
 		<div class="title-line">
 			<h1>Run history ({runs.length})</h1>
 			<div class="storage-copy">
-				<span>logged in</span>
+				<span>saved in</span>
 				<span
 					><code class="storage-code">Local Storage</code>, privately in this
 					browser.</span
@@ -460,12 +461,21 @@
 		flex-direction: column;
 		gap: 8px;
 	}
+	/* The column headings above are decorative duplicates hidden from assistive
+	   technology, so these have to stay in the accessibility tree even though
+	   they are redundant on screen. The mobile breakpoint, which drops the
+	   columns, reveals them. */
 	.run-values h3 {
-		display: none;
+		position: absolute;
+		width: 1px;
+		height: 1px;
 		margin: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
 		color: var(--block-label-text-color, #52525b);
 		font-size: 12px;
 		text-transform: uppercase;
+		white-space: nowrap;
 	}
 	.example-cell {
 		min-width: 0;
@@ -627,7 +637,11 @@
 			grid-template-columns: 1fr;
 		}
 		.run-values h3 {
-			display: block;
+			position: static;
+			width: auto;
+			height: auto;
+			overflow: visible;
+			clip-path: none;
 		}
 		.metadata {
 			grid-column: 1;
