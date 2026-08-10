@@ -1046,8 +1046,10 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             from huggingface_hub.inference._providers import get_provider_helper
 
             helper = get_provider_helper(
-                m.group(2), task=m.group(1), model=client.model
-            )  # type: ignore[arg-type]
+                m.group(2),  # ty: ignore[invalid-argument-type]
+                task=m.group(1),
+                model=client.model,
+            )
             helper.task = m.group(3)
             result = run_via_helper(client, helper, fn, endpoint, clean)
         except KeyError:
