@@ -59,7 +59,8 @@
 	let url = $derived(value?.url);
 	let old_playback_position = $state(0);
 
-	let container: HTMLDivElement;
+	let container = $state<HTMLDivElement | undefined>(undefined);
+	let waveform_container: HTMLDivElement | undefined = undefined;
 	let waveform: WaveSurfer | undefined;
 	let waveform_ready = $state(false);
 	let waveform_component_wrapper: HTMLDivElement;
@@ -74,7 +75,7 @@
 	let trimDuration = $state(0);
 
 	let show_volume_slider = $state(false);
-	let audio_player: HTMLAudioElement;
+	let audio_player = $state<HTMLAudioElement | undefined>(undefined);
 
 	let stream_active = false;
 	let subtitles_toggle = $state(true);
@@ -108,6 +109,13 @@
 	});
 
 	const create_waveform = (): void => {
+		// `container` only exists while the waveform branch is rendered, and it is
+		// a fresh element every time that branch remounts, so bail out when there
+		// is nothing to draw into and rebuild when the element is replaced.
+		if (!container || waveform_container === container) return;
+		waveform?.destroy();
+		waveform_ready = false;
+		waveform_container = container;
 		waveform = WaveSurfer.create({
 			container: container,
 			...waveform_settings
@@ -237,7 +245,7 @@
 	});
 
 	function load_stream(value: FileData | null): void {
-		if (!value || !value.is_stream || !value.url) return;
+		if (!value || !value.is_stream || !value.url || !audio_player) return;
 
 		if (Hls.isSupported() && !stream_active) {
 			// Set config to start playback after 1 second of data received
@@ -249,7 +257,7 @@
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player.play();
+				if (waveform_settings.autoplay) audio_player?.play();
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
 				console.error("HLS error:", event, data);
@@ -281,7 +289,13 @@
 	}
 
 	$effect(() => {
-		if (audio_player && url && waveform_ready && url) {
+		// Without a waveform there is nothing to become ready, so gating the load
+		// on `waveform_ready` left the native player with no source at all.
+		if (
+			audio_player &&
+			url &&
+			(waveform_ready || !waveform_options.show_recording_waveform)
+		) {
 			load_audio(url);
 		}
 	});
@@ -292,8 +306,13 @@
 		}
 	});
 
+	$effect(() => {
+		if (container) {
+			untrack(() => create_waveform());
+		}
+	});
+
 	onMount(() => {
-		create_waveform();
 		const handleKeydown = (e: KeyboardEvent): void => {
 			if (!waveform || show_volume_slider) return;
 
