@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import tempfile
@@ -474,13 +475,41 @@ class TestVideoProcessing:
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
             )
-            with patch("os.remove", wraps=os.remove) as mock_remove:
-                playable_vid = processing_utils.convert_video_to_playable_mp4(
-                    tmp_not_playable_vid.name
-                )
-            # check tempfile got deleted
-            assert not Path(mock_remove.call_args[0][0]).exists()
+            playable_vid = processing_utils.convert_video_to_playable_mp4(
+                tmp_not_playable_vid.name
+            )
             assert processing_utils.video_is_playable(playable_vid)
+
+    def test_convert_video_does_not_write_next_to_the_source(
+        self, test_file_dir, tmp_path
+    ):
+        """The conversion must not touch anything in the source directory.
+
+        `Path(video_path).with_suffix(".mp4")` overwrote an unrelated file of the
+        same stem, and for a non-playable `.mp4` it resolved to the input itself.
+        """
+        mkv = tmp_path / "clip.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+        neighbour = tmp_path / "clip.mp4"
+        neighbour.write_bytes(b"an unrelated file that happens to share a stem")
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert Path(playable_vid).parent != tmp_path
+        assert (
+            neighbour.read_bytes() == b"an unrelated file that happens to share a stem"
+        )
+
+        # A `.mp4` that is not playable would otherwise be rewritten in place.
+        source = tmp_path / "user_video.mp4"
+        shutil.copy(test_file_dir / "bad_video_sample.mp4", source)
+        digest = hashlib.md5(source.read_bytes()).hexdigest()
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(source))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert hashlib.md5(source.read_bytes()).hexdigest() == digest
 
     @patch(
         "gradio._vendor.ffmpy.FFmpeg.run",

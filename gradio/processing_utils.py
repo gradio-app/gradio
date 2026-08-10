@@ -1143,13 +1143,13 @@ def _can_remux_to_mp4(video_path: str) -> bool:
     )
 
 
-def convert_video_to_playable_mp4(video_path: str) -> str:
+def convert_video_to_playable_mp4(video_path: str, cache_dir: str | None = None) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
     from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
 
-    def to_mp4(input_path: str, output_path: Path, copy_streams: bool) -> None:
+    def to_mp4(output_path: Path, copy_streams: bool) -> None:
         ff = FFmpeg(
-            inputs={input_path: None},
+            inputs={video_path: None},
             # Only the video and audio streams are carried over when copying:
             # a Matroska file can hold subtitle or attachment streams that an
             # mp4 cannot, and those would fail the mux. `0:a?` makes audio
@@ -1169,26 +1169,29 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
     # file takes minutes and degrades quality (#13527).
     can_remux = _can_remux_to_mp4(video_path)
 
+    # The result goes to a fresh directory rather than next to the source.
+    # `Path(video_path).with_suffix(".mp4")` overwrites an unrelated `clip.mp4`
+    # sitting beside `clip.mkv`, and for a non-playable `.mp4` it resolves to the
+    # input itself, rewriting the user's own file in place. Writing elsewhere
+    # also means the input no longer has to be copied aside first, which for a
+    # multi-gigabyte upload cost more than the remux it was protecting.
+    output_dir = Path(tempfile.mkdtemp(dir=cache_dir or get_upload_folder()))
+    output_path = output_dir / f"{Path(video_path).stem}.mp4"
+
     try:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            output_path = Path(video_path).with_suffix(".mp4")
-            shutil.copy2(video_path, tmp_file.name)
-            if can_remux:
-                try:
-                    to_mp4(tmp_file.name, output_path, copy_streams=True)
-                    return str(output_path)
-                except FFRuntimeError:
-                    # The streams turned out not to be muxable into an mp4
-                    # after all; fall back to a full re-encode.
-                    pass
-            # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
-            to_mp4(tmp_file.name, output_path, copy_streams=False)
+        if can_remux:
+            try:
+                to_mp4(output_path, copy_streams=True)
+                return str(output_path)
+            except FFRuntimeError:
+                # The streams turned out not to be muxable into an mp4
+                # after all; fall back to a full re-encode.
+                pass
+        # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
+        to_mp4(output_path, copy_streams=False)
     except FFRuntimeError as e:
         print(f"Error converting video to browser-playable format {str(e)}")
-        output_path = video_path
-    finally:
-        # Remove temp file
-        os.remove(tmp_file.name)  # type: ignore
+        return str(video_path)
     return str(output_path)
 
 
