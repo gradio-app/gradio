@@ -471,7 +471,9 @@ class TestVideoProcessing:
 
         assert processing_utils.video_is_playable(playable_vid)
         # theora has no place in an mp4, so the streams must have been rebuilt
-        video_codec, audio_codec = processing_utils._first_stream_codecs(playable_vid)
+        codecs = processing_utils._first_stream_codecs(playable_vid)
+        assert codecs is not None
+        video_codec, audio_codec = codecs
         assert video_codec == "h264"
         assert audio_codec != "vorbis"
 
