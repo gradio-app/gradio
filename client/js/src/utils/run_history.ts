@@ -4,6 +4,20 @@ const STORAGE_PREFIX = "gradio:run-history:v1:";
 const REPLAY_PREFIX = "gradio:run-history:replay:v1:";
 const MAX_RUNS = 100;
 
+/**
+ * Run history is a side effect of submitting, never the point of it, so no
+ * failure in here may propagate into the caller and break the app. Every
+ * exported function routes through this.
+ */
+function safely<T>(operation: () => T, fallback: T): T {
+	try {
+		return operation();
+	} catch (error) {
+		console.warn("Could not update the run history.", error);
+		return fallback;
+	}
+}
+
 export type RunStatus = "running" | "completed" | "failed";
 
 export interface StoredRunComponent {
@@ -100,7 +114,7 @@ function clone_for_storage(value: unknown): unknown {
 	}
 }
 
-export function read_run_history(root: string): StoredRun[] {
+function read_run_history_impl(root: string): StoredRun[] {
 	const key = storage_key(root);
 	if (!key) return [];
 
@@ -132,7 +146,7 @@ function write_run_history(root: string, runs: StoredRun[]): void {
 	}
 }
 
-export function clear_run_history(root: string): void {
+function clear_run_history_impl(root: string): void {
 	const key = storage_key(root);
 	if (!key) return;
 	try {
@@ -143,10 +157,10 @@ export function clear_run_history(root: string): void {
 	notify_run_history_change();
 }
 
-export function delete_run_history(root: string, id: string): void {
+function delete_run_history_impl(root: string, id: string): void {
 	write_run_history(
 		root,
-		read_run_history(root).filter((run) => run.id !== id)
+		read_run_history_impl(root).filter((run) => run.id !== id)
 	);
 	notify_run_history_change();
 }
@@ -169,7 +183,7 @@ function notify_run_history_change(): void {
  *
  * @returns a function that unsubscribes.
  */
-export function on_run_history_change(listener: () => void): () => void {
+function on_run_history_change_impl(listener: () => void): () => void {
 	if (typeof window === "undefined") return () => {};
 	window.addEventListener(CHANGE_EVENT, listener);
 	window.addEventListener("storage", listener);
@@ -179,7 +193,7 @@ export function on_run_history_change(listener: () => void): () => void {
 	};
 }
 
-export function stage_run_history_replay(root: string, run: StoredRun): void {
+function stage_run_history_replay_impl(root: string, run: StoredRun): void {
 	const key = replay_key(root);
 	if (!key) return;
 	try {
@@ -189,7 +203,7 @@ export function stage_run_history_replay(root: string, run: StoredRun): void {
 	}
 }
 
-export function consume_run_history_replay(root: string): StoredRun | null {
+function consume_run_history_replay_impl(root: string): StoredRun | null {
 	const key = replay_key(root);
 	if (!key) return null;
 	try {
@@ -201,7 +215,7 @@ export function consume_run_history_replay(root: string): StoredRun | null {
 	}
 }
 
-export function start_run_history(options: StartRunOptions): string | null {
+function start_run_history_impl(options: StartRunOptions): string | null {
 	const key = storage_key(options.root);
 	if (!key) return null;
 
@@ -230,33 +244,36 @@ export function start_run_history(options: StartRunOptions): string | null {
 		status: "running",
 		started_at: new Date().toISOString()
 	};
-	write_run_history(options.root, [run, ...read_run_history(options.root)]);
+	write_run_history(options.root, [
+		run,
+		...read_run_history_impl(options.root)
+	]);
 	notify_run_history_change();
 	return run.id;
 }
 
-export function update_run_inputs(
+function update_run_inputs_impl(
 	root: string,
 	id: string | null,
 	inputs: unknown
 ): void {
 	if (!id) return;
 
-	const runs = read_run_history(root);
+	const runs = read_run_history_impl(root);
 	const run = runs.find((item) => item.id === id);
 	if (!run) return;
 	run.inputs = clone_for_storage(inputs);
 	write_run_history(root, runs);
 }
 
-export function update_run_history(
+function update_run_history_impl(
 	root: string,
 	id: string | null,
 	event: GradioEvent
 ): void {
 	if (!id) return;
 
-	const runs = read_run_history(root);
+	const runs = read_run_history_impl(root);
 	const run = runs.find((item) => item.id === id);
 	if (!run) return;
 
@@ -315,4 +332,53 @@ function mark_complete(run: StoredRun, event: StatusMessage): void {
 			0,
 			completed.getTime() - Date.parse(run.process_started_at || run.started_at)
 		);
+}
+
+// Public API. Each of these is a no-op if anything goes wrong.
+
+export function read_run_history(root: string): StoredRun[] {
+	return safely(() => read_run_history_impl(root), []);
+}
+
+export function clear_run_history(root: string): void {
+	safely(() => clear_run_history_impl(root), undefined);
+}
+
+export function delete_run_history(root: string, id: string): void {
+	safely(() => delete_run_history_impl(root, id), undefined);
+}
+
+export function stage_run_history_replay(root: string, run: StoredRun): void {
+	safely(() => stage_run_history_replay_impl(root, run), undefined);
+}
+
+export function consume_run_history_replay(root: string): StoredRun | null {
+	return safely(() => consume_run_history_replay_impl(root), null);
+}
+
+export function start_run_history(options: StartRunOptions): string | null {
+	return safely(() => start_run_history_impl(options), null);
+}
+
+export function update_run_inputs(
+	root: string,
+	id: string | null,
+	inputs: unknown
+): void {
+	safely(() => update_run_inputs_impl(root, id, inputs), undefined);
+}
+
+export function update_run_history(
+	root: string,
+	id: string | null,
+	event: GradioEvent
+): void {
+	safely(() => update_run_history_impl(root, id, event), undefined);
+}
+
+export function on_run_history_change(listener: () => void): () => void {
+	return safely(
+		() => on_run_history_change_impl(() => safely(listener, undefined)),
+		() => {}
+	);
 }

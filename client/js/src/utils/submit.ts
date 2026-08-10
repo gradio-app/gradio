@@ -101,24 +101,33 @@ export function submit(
 				props: component.props
 			};
 		};
-		const history_run_id = start_run_history({
-			root: config.root,
-			endpoint: history_endpoint,
-			api_name: history_api_name,
-			fn_index,
-			// Aligned to `dependency.inputs` the same way the submitted payload is,
-			// so this placeholder matches the components until the uploaded files
-			// are swapped in by `update_run_inputs` below.
-			inputs: handle_payload(
-				resolved_data,
-				dependency,
-				config.components,
-				"input",
-				true
-			),
-			input_components: dependency.inputs.map(component_metadata),
-			output_components: dependency.outputs.map(component_metadata)
-		});
+		// Only real API endpoints count as runs. Gradio's own example loading,
+		// flagging and clear-button dependencies are all "undocumented" or
+		// "private", and the ones that preload examples fire on page load, so
+		// recording them would fill the history before the user does anything.
+		const is_api_endpoint =
+			dependency.api_visibility === undefined ||
+			dependency.api_visibility === "public";
+		const history_run_id = !is_api_endpoint
+			? null
+			: start_run_history({
+					root: config.root,
+					endpoint: history_endpoint,
+					api_name: history_api_name,
+					fn_index,
+					// Aligned to `dependency.inputs` the same way the submitted payload
+					// is, so this placeholder matches the components until the uploaded
+					// files are swapped in by `update_run_inputs` below.
+					inputs: handle_payload(
+						resolved_data,
+						dependency,
+						config.components,
+						"input",
+						true
+					),
+					input_components: dependency.inputs.map(component_metadata),
+					output_components: dependency.outputs.map(component_metadata)
+				});
 
 		let stream: EventSource | null;
 		let event_id_final = "";

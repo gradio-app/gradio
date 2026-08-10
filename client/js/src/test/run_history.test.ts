@@ -337,6 +337,67 @@ describe.skipIf(!in_browser)("run history", () => {
 		expect(notified).toBe(3);
 	});
 
+	test("never throws, whatever it is handed", () => {
+		const circular: Record<string, unknown> = {};
+		circular.self = circular;
+
+		// A value that cannot be serialised, and a storage that rejects writes.
+		const set = window.localStorage.setItem;
+		window.localStorage.setItem = () => {
+			throw new Error("storage is full");
+		};
+		try {
+			expect(() =>
+				start_run_history({
+					root,
+					endpoint: "/predict",
+					api_name: "/predict",
+					fn_index: 0,
+					inputs: [circular, BigInt(3), () => "fn"]
+				})
+			).not.toThrow();
+			expect(() => read_run_history(root)).not.toThrow();
+			expect(() => clear_run_history(root)).not.toThrow();
+			expect(() => delete_run_history(root, "missing")).not.toThrow();
+			expect(() =>
+				update_run_history(root, "missing", {
+					type: "status",
+					endpoint: "/predict",
+					fn_index: 0,
+					queue: false,
+					stage: "complete"
+				})
+			).not.toThrow();
+			expect(() => update_run_inputs(root, "missing", [1])).not.toThrow();
+		} finally {
+			window.localStorage.setItem = set;
+		}
+	});
+
+	test("survives a listener that throws", () => {
+		let reached = false;
+		const unsubscribe = on_run_history_change(() => {
+			throw new Error("listener blew up");
+		});
+		const second = on_run_history_change(() => {
+			reached = true;
+		});
+
+		expect(() =>
+			start_run_history({
+				root,
+				endpoint: "/predict",
+				api_name: "/predict",
+				fn_index: 0,
+				inputs: ["hello"]
+			})
+		).not.toThrow();
+		expect(reached).toBe(true);
+
+		unsubscribe();
+		second();
+	});
+
 	test("stages a run once so it can be loaded on its saved page", () => {
 		const id = start_run_history({
 			root,
