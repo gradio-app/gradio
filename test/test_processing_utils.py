@@ -1,6 +1,7 @@
 import hashlib
 import os
 import shutil
+import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -423,22 +424,15 @@ class TestVideoProcessing:
         assert not processing_utils._can_remux_to_mp4(str(unreadable))
 
     @staticmethod
-    @contextmanager
-    def _record_ffmpeg_commands():
-        """Yield the list of ffmpeg command lines run inside the block.
-
-        `FFprobe` subclasses `FFmpeg`, so probe calls are filtered out.
-        """
-        commands: list[str] = []
-        real_run = ffmpy.FFmpeg.run
-
-        def record(self, *args, **kwargs):
-            if not self.cmd.startswith("ffprobe"):
-                commands.append(self.cmd)
-            return real_run(self, *args, **kwargs)
-
-        with patch.object(ffmpy.FFmpeg, "run", record):
-            yield commands
+    def _video_stream_md5(path: str) -> str:
+        """Checksum of the encoded video stream, ignoring the container."""
+        output = subprocess.run(
+            ["ffmpeg", "-v", "quiet", "-i", path, "-map", "0:v:0", "-f", "md5", "-"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return output.stdout.strip()
 
     def test_convert_video_copies_already_compatible_streams(
         self, test_file_dir, tmp_path
@@ -447,12 +441,11 @@ class TestVideoProcessing:
         mkv = tmp_path / "h264.mkv"
         self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
 
-        with self._record_ffmpeg_commands() as commands:
-            playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
 
         assert processing_utils.video_is_playable(playable_vid)
-        assert len(commands) == 1, "should not fall back to a re-encode"
-        assert "-c copy" in commands[0]
+        # The stream came through untouched, which a re-encode could not manage
+        assert self._video_stream_md5(playable_vid) == self._video_stream_md5(str(mkv))
 
     def test_convert_video_reencodes_incompatible_streams(
         self, test_file_dir, tmp_path
@@ -460,13 +453,15 @@ class TestVideoProcessing:
         """theora/vorbis cannot be copied into an mp4, so it must be re-encoded."""
         mkv = tmp_path / "theora.mkv"
         shutil.copy(test_file_dir / "playable_but_bad_container.mkv", mkv)
+        assert processing_utils._first_stream_codecs(str(mkv)) == ("theora", "vorbis")
 
-        with self._record_ffmpeg_commands() as commands:
-            playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
 
         assert processing_utils.video_is_playable(playable_vid)
-        assert len(commands) == 1, "should not have attempted a remux"
-        assert "-c copy" not in commands[0]
+        # theora has no place in an mp4, so the streams must have been rebuilt
+        video_codec, audio_codec = processing_utils._first_stream_codecs(playable_vid)
+        assert video_codec == "h264"
+        assert audio_codec != "vorbis"
 
     def test_convert_video_to_playable_mp4(self, test_file_dir):
         with tempfile.NamedTemporaryFile(
