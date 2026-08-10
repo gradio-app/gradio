@@ -88,6 +88,20 @@ Instead of reading through the view API page, you can also use Gradio's built-in
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api-recorder.gif)
 
+## Run History
+
+Next to the "Use via API" link, the footer has a **Runs** link, which opens a page at `<your-gradio-app-url>/gradio_api/runs` listing the runs made from this browser, grouped by endpoint. Each run shows its inputs, its outputs, how long the function took, and whether it succeeded. Clicking **Load run** puts a saved run's values back onto the page without calling the function again, which is a quick way to get back to an input you liked or to compare two results side by side.
+
+The run history covers the same endpoints as this API page. An event listener with `api_visibility="undocumented"` or `"private"` is not recorded, and neither is anything Gradio wires up on your behalf, such as loading an example.
+
+Runs are saved in the browser's local storage and are never sent to the server, so each visitor only ever sees their own, and nothing is stored alongside your app. The most recent 100 runs are kept per running app, and starting your app again begins a fresh history. Values held in `gr.State` live on the server, so they are neither shown nor restored.
+
+The link appears once the browser has saved its first run. To leave it out altogether, list the footer links you do want:
+
+```py
+demo.launch(footer_links=["api", "gradio", "settings"])
+```
+
 ## MCP Server
 
 The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs. 
