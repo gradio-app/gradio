@@ -98,6 +98,11 @@
 <style>
 	.run-value {
 		display: flex;
+		/* A containing block, so an absolutely positioned child of a renderer
+		   cannot escape this cell. The dataframe renderer's "more rows" gradient
+		   otherwise sized itself against the page and covered the whole run,
+		   swallowing clicks meant for the buttons underneath. */
+		position: relative;
 		align-items: center;
 		min-width: 0;
 		min-height: var(--size-8);
@@ -106,6 +111,12 @@
 	}
 	.run-value :global(*) {
 		max-width: 100%;
+	}
+	/* That gradient fades towards a table background this cell does not have, so
+	   it reads as a grey wash over the preview. The cell is already clipped, and
+	   its own overflow communicates that there is more. */
+	.run-value :global(.overlay) {
+		display: none;
 	}
 	.fallback {
 		display: block;

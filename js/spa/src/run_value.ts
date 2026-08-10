@@ -11,6 +11,33 @@ interface FileLike {
 	orig_name?: string;
 	path?: string;
 	url?: string;
+	meta?: { _type?: string };
+}
+
+/**
+ * The renderers that draw a file rather than describe it, by reading `url` off
+ * the value. Every other renderer prints what it is handed, so a `FileData`
+ * would come out as "[object Object]" and wants a file name instead. Keeping
+ * this as an allowlist means an unrecognised component degrades to its file
+ * name rather than to that.
+ */
+const RENDERS_FILES = new Set([
+	"image",
+	"simpleimage",
+	"video",
+	"gallery",
+	"imageeditor"
+]);
+
+function is_file_like(value: unknown): boolean {
+	if (Array.isArray(value)) return value.some(is_file_like);
+	if (!value || typeof value !== "object") return false;
+	const file = value as FileLike;
+	return (
+		file.meta?._type === "gradio.FileData" ||
+		typeof file.path === "string" ||
+		typeof file.url === "string"
+	);
 }
 
 function file_label(value: unknown): string {
@@ -41,9 +68,7 @@ export function to_example_value(type: string, value: unknown): unknown {
 		return value;
 	}
 
-	// These renderers print their value as text, so a `FileData` would come out
-	// as "[object Object]". Give them the file name instead.
-	if (type === "audio" || type === "file" || type === "uploadbutton") {
+	if (!RENDERS_FILES.has(type) && is_file_like(value)) {
 		return file_label(value) || value;
 	}
 
