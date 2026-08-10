@@ -1147,8 +1147,36 @@ def audio_is_playable(audio_filepath: str) -> bool:
         return True
 
 
-def convert_audio_to_playable_wav(audio_path: str, cache_dir: str) -> str:
-    """Convert audio to wav. If something goes wrong return the original audio.
+# Browser-playable codecs mapped to a container that can hold them, so a file
+# whose container is the only problem needs remuxing rather than re-encoding.
+# The pairs match the entries in `audio_is_playable`.
+REMUXABLE_AUDIO_CODECS = {
+    "aac": ".m4a",
+    "alac": ".m4a",
+    "mp3": ".mp3",
+    "flac": ".flac",
+    "opus": ".ogg",
+    "vorbis": ".ogg",
+}
+
+
+def _first_audio_codec(audio_path: str) -> str | None:
+    """Return the codec of a file's first audio stream, or None if unprobeable."""
+    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
+
+    try:
+        probe = FFprobe(
+            global_options="-show_streams -select_streams a -print_format json",
+            inputs={audio_path: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        return json.loads(output[0])["streams"][0]["codec_name"]  # type: ignore
+    except (FFRuntimeError, IndexError, KeyError, ValueError):
+        return None
+
+
+def convert_audio_to_playable(audio_path: str, cache_dir: str) -> str:
+    """Convert audio to a browser-playable file, returning the original on failure.
 
     Unlike the video equivalent the output is written to the cache rather than
     next to the source: `.aif` and `.wav` share a directory far more often than
@@ -1158,17 +1186,41 @@ def convert_audio_to_playable_wav(audio_path: str, cache_dir: str) -> str:
 
     temp_dir = Path(cache_dir) / hash_file(audio_path)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    output_path = temp_dir / f"{Path(audio_path).stem}.wav"
-    if output_path.exists():
-        return str(output_path)
+    stem = Path(audio_path).stem
 
-    try:
+    def to_playable(output_path: Path, copy_streams: bool) -> None:
         ff = FFmpeg(
             inputs={str(audio_path): None},
-            outputs={str(output_path): None},
+            # Only the first audio stream is carried over when copying: a
+            # Matroska file can hold cover art or subtitle streams that the
+            # target container would reject, failing the whole mux.
+            outputs={str(output_path): "-map 0:a:0 -c copy" if copy_streams else None},
             global_options="-y -loglevel quiet",
         )
         ff.run()
+
+    # A container browsers cannot play often still holds a codec they can, in
+    # which case only the container has to change. Copying the stream is
+    # near-instant and lossless, where re-encoding to wav is slow and inflates
+    # a compressed file into raw PCM.
+    remux_suffix = REMUXABLE_AUDIO_CODECS.get(_first_audio_codec(audio_path) or "")
+    if remux_suffix:
+        remuxed_path = temp_dir / f"{stem}{remux_suffix}"
+        if remuxed_path.exists():
+            return str(remuxed_path)
+        try:
+            to_playable(remuxed_path, copy_streams=True)
+            return str(remuxed_path)
+        except FFRuntimeError:
+            # The stream turned out not to be muxable into that container after
+            # all; fall back to a full re-encode.
+            pass
+
+    output_path = temp_dir / f"{stem}.wav"
+    if output_path.exists():
+        return str(output_path)
+    try:
+        to_playable(output_path, copy_streams=False)
     except FFRuntimeError as e:
         print(f"Error converting audio to browser-playable format {str(e)}")
         return str(audio_path)

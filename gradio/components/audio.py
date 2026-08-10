@@ -320,7 +320,7 @@ class Audio(
                 warnings.warn(
                     "Audio does not have browser-compatible container or codec. Converting to wav."
                 )
-                file_path = processing_utils.convert_audio_to_playable_wav(
+                file_path = processing_utils.convert_audio_to_playable(
                     str(value), cache_dir=self.GRADIO_CACHE
                 )
             else:
