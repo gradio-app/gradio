@@ -32,6 +32,8 @@ export interface StoredRun {
 	duration_ms?: number;
 	/** How long the run waited in the queue before the function started. */
 	queued_ms?: number;
+	/** Whether the run produced its output in chunks, i.e. came from a generator. */
+	streamed?: boolean;
 }
 
 interface StartRunOptions {
@@ -265,6 +267,11 @@ export function update_run_history(
 		event.original_msg === "process_starts"
 	) {
 		mark_process_start(run, event.time);
+	} else if (
+		event.type === "status" &&
+		(event.stage === "generating" || event.stage === "streaming")
+	) {
+		run.streamed = true;
 	} else if (event.type === "status" && event.stage === "complete") {
 		run.status = "completed";
 		mark_complete(run, event);
@@ -293,9 +300,13 @@ function mark_complete(run: StoredRun, event: StatusMessage): void {
 	const completed = event.time || new Date();
 	run.completed_at = completed.toISOString();
 	// `cache_duration` is how long the function took on the server, which the
-	// queue reports on every completed run (not just cached ones).
+	// queue reports on every completed run (not just cached ones). A generator
+	// reports it per chunk though, so the final value covers only the last one
+	// and the elapsed time is the honest number for a streamed run.
 	const server_duration =
-		typeof event.cache_duration === "number" && event.cache_duration >= 0
+		!run.streamed &&
+		typeof event.cache_duration === "number" &&
+		event.cache_duration >= 0
 			? event.cache_duration * 1000
 			: null;
 	run.duration_ms =

@@ -129,6 +129,51 @@ describe.skipIf(!in_browser)("run history", () => {
 		});
 	});
 
+	test("times a streamed run by its elapsed time, not its last chunk", () => {
+		const id = start_run_history({
+			root,
+			endpoint: "/predict",
+			api_name: "/predict",
+			fn_index: 0,
+			inputs: ["hello"]
+		});
+		const started_at = read_run_history(root)[0].started_at;
+
+		update_run_history(root, id, {
+			type: "status",
+			endpoint: "/predict",
+			fn_index: 0,
+			queue: true,
+			stage: "pending",
+			original_msg: "process_starts",
+			time: new Date(Date.parse(started_at) + 100)
+		});
+		update_run_history(root, id, {
+			type: "status",
+			endpoint: "/predict",
+			fn_index: 0,
+			queue: true,
+			stage: "generating",
+			time: new Date(Date.parse(started_at) + 400)
+		});
+		// A generator reports the duration of its final chunk only, which would
+		// make a multi-second run look instantaneous.
+		update_run_history(root, id, {
+			type: "status",
+			endpoint: "/predict",
+			fn_index: 0,
+			queue: true,
+			stage: "complete",
+			cache_duration: 0.001,
+			time: new Date(Date.parse(started_at) + 1600)
+		});
+
+		expect(read_run_history(root)[0]).toMatchObject({
+			streamed: true,
+			duration_ms: 1500
+		});
+	});
+
 	test("measures the runtime from when the queue starts the function", () => {
 		const id = start_run_history({
 			root,
