@@ -1233,20 +1233,16 @@ XSS_SAFE_MIMETYPES = {
     "application/json",
 }
 
-# Extensions whose type is missing from (or wrong in) the stdlib mimetypes
-# database. Serving media as `application/octet-stream` makes Safari refuse to
-# play it (#10153), so the media containers below need to resolve to a real
-# type that is also in `XSS_SAFE_MIMETYPES`.
 MEDIA_MIMETYPE_OVERRIDES = {
     ".aac": "audio/aac",
     ".aif": "audio/aiff",
     ".aifc": "audio/aiff",
     ".aiff": "audio/aiff",
     ".flac": "audio/flac",
-    ".m4a": "audio/mp4",  # stdlib maps this to the unrelated "audio/mp4a-latm"
+    ".m4a": "audio/mp4",
     ".m4b": "audio/mp4",
     ".mka": "audio/x-matroska",
-    ".wav": "audio/wav",  # stdlib maps this to "audio/x-wav"
+    ".wav": "audio/wav",
     ".weba": "audio/webm",
     ".avi": "video/x-msvideo",
     ".m4v": "video/mp4",

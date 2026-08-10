@@ -80,11 +80,6 @@
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
-	// Some containers cannot be decoded by the Web Audio API even though the
-	// browser can play them in a media element (e.g. AAC/.m4a in Safari), so fall
-	// back to the native player instead of showing a dead waveform. See #10153.
-	// The waveform stays mounted (just hidden) so that its container reference
-	// remains valid and a later, decodable value renders normally.
 	let waveform_load_failed = $state(false);
 
 	let use_waveform = $derived(
@@ -171,10 +166,6 @@
 			onload?.();
 		});
 
-		// Fired when the file cannot be fetched or decoded — e.g. AAC/.m4a in
-		// Safari, which the Web Audio API refuses even though the media element
-		// plays it. `load()` does not always reject in that case, so this event
-		// is the only reliable signal. See #10153.
 		waveform?.on("error", handle_waveform_error);
 	};
 

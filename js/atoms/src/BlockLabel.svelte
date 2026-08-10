@@ -16,9 +16,6 @@
 	} = $props();
 </script>
 
-<!-- This label is a decorative caption for the block, not the label of a form
-control, so it has no `for` target. An empty `for` makes Firefox log
-"Empty string passed to getElementById()" on every render/hover (#9374). -->
 <!-- svelte-ignore a11y_label_has_associated_control -->
 <label
 	class:hide={!show_label}

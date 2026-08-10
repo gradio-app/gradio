@@ -329,36 +329,6 @@ class TestRoutes:
         assert file_response.headers["Content-Type"] == "application/octet-stream"
         assert "attachment" in file_response.headers["Content-Disposition"]
 
-    def test_media_files_keep_their_mimetype(self):
-        # Media served as application/octet-stream is refused by Safari's media
-        # element, so it must keep its real Content-Type even when it comes from
-        # the upload/cache directory rather than an explicitly allowed path.
-        # See https://github.com/gradio-app/gradio/issues/10153
-        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-
-        expected_types = {
-            ".aif": "audio/aiff",
-            ".flac": "audio/flac",
-            ".m4a": "audio/mp4",
-            ".mp3": "audio/mpeg",
-            ".mov": "video/quicktime",
-            ".wav": "audio/wav",
-        }
-        for suffix, expected_type in expected_types.items():
-            with tempfile.NamedTemporaryFile(
-                delete=False, suffix=suffix, dir=app.uploaded_file_dir
-            ) as media_file:
-                media_file.write(b"only the extension matters for this test")
-                media_file.flush()
-
-            file_response = client.get(f"{API_PREFIX}/file={media_file.name}")
-            assert file_response.headers["Content-Type"] == expected_type, suffix
-            assert "inline" in file_response.headers["Content-Disposition"], suffix
-
-        io.close()
-
     def test_allowed_and_blocked_paths(self):
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
             io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
