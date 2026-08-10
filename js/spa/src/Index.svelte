@@ -421,7 +421,7 @@
 		}
 
 		config = app.get_url_config() as unknown as Config;
-		restore_run(config, consume_run_history_replay(config.root));
+		restore_run(config, consume_run_history_replay(config.app_id));
 		window.__gradio_space__ = config.space_id;
 
 		if (app.config?.i18n_translations) {
@@ -693,7 +693,11 @@
 				{app_mode}
 			/>
 		{:else if config && css_ready && run_history}
-			<RunHistory root={api_url} footer_links={config.footer_links} />
+			<RunHistory
+				root={api_url}
+				app_id={config.app_id}
+				footer_links={config.footer_links}
+			/>
 		{:else if config && Blocks && css_ready}
 			<Blocks
 				{app}

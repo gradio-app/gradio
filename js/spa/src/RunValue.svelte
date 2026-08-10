@@ -2,6 +2,7 @@
 	import { mount, unmount } from "svelte";
 	import type { StoredRunComponent } from "@gradio/client";
 	import { load_component } from "virtual:component-loader";
+	import { summarize, to_example_value } from "./run_value";
 
 	interface Props {
 		component: StoredRunComponent;
@@ -31,16 +32,6 @@
 		unpreviewable = !loaded?.component;
 	});
 
-	function summarize(item: unknown): string {
-		if (item === null || item === undefined) return "No value";
-		if (typeof item === "string") return item || "Empty value";
-		try {
-			return JSON.stringify(item);
-		} catch {
-			return String(item);
-		}
-	}
-
 	$effect(() => {
 		const mount_target = target;
 		if (!mount_target || !loaded?.component) return;
@@ -61,7 +52,7 @@
 				const props = {
 					...meta.props,
 					...(choices ? { choices } : {}),
-					value,
+					value: to_example_value(meta.type, value),
 					type: "table",
 					selected: false,
 					root,
@@ -73,6 +64,16 @@
 							props
 						})
 					: mount(component.default, { target: mount_target, props });
+
+				// Some renderers bail out entirely on a value they do not
+				// recognise, which would otherwise leave a blank cell.
+				requestAnimationFrame(() => {
+					if (disposed) return;
+					const drew_nothing =
+						mount_target.children.length === 0 &&
+						!mount_target.textContent?.trim();
+					if (drew_nothing) unpreviewable = true;
+				});
 			})
 			.catch(() => {
 				if (!disposed) unpreviewable = true;

@@ -111,7 +111,7 @@ export function submit(
 		const history_run_id = !is_api_endpoint
 			? null
 			: start_run_history({
-					root: config.root,
+					app_id: config.app_id,
 					endpoint: history_endpoint,
 					api_name: history_api_name,
 					fn_index,
@@ -154,7 +154,7 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			update_run_history(config!.root, history_run_id, event);
+			update_run_history(config!.app_id, history_run_id, event);
 			if (all_events || events_to_publish[event.type]) {
 				push_event(event);
 			}
@@ -232,7 +232,7 @@ export function submit(
 				"input",
 				true
 			);
-			update_run_inputs(config.root, history_run_id, input_data || []);
+			update_run_inputs(config.app_id, history_run_id, input_data || []);
 			payload = {
 				data: input_data || [],
 				event_data,

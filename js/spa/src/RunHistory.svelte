@@ -12,13 +12,15 @@
 	import PageFooter from "@gradio/core/page_footer";
 	import { _ } from "svelte-i18n";
 	import RunValue from "./RunValue.svelte";
+	import { summarize } from "./run_value";
 
 	interface Props {
 		root: string;
+		app_id?: string | number | null;
 		footer_links?: (string | Record<string, string>)[];
 	}
 
-	let { root, footer_links = [] }: Props = $props();
+	let { root, app_id, footer_links = [] }: Props = $props();
 
 	let app_url = $derived(new URL(root, window.location.href).href);
 	let runs: StoredRun[] = $state([]);
@@ -34,7 +36,7 @@
 	});
 
 	function refresh(): void {
-		runs = read_run_history(root);
+		runs = read_run_history(app_id);
 	}
 
 	onMount(() => {
@@ -48,16 +50,6 @@
 			return Object.values(value as Record<string, unknown>);
 		}
 		return value === null || value === undefined ? [] : [value];
-	}
-
-	function summarize(value: unknown): string {
-		if (value === null || value === undefined) return "No value";
-		if (typeof value === "string") return value || "Empty value";
-		try {
-			return JSON.stringify(value);
-		} catch {
-			return String(value);
-		}
 	}
 
 	function label(
@@ -94,6 +86,7 @@
 	}
 
 	function format_duration(ms: number): string {
+		if (ms < 1) return "<1ms";
 		if (ms < 1000) return `${Math.round(ms)}ms`;
 		if (ms < 10000) return `${(ms / 1000).toFixed(2)}s`;
 		if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
@@ -139,7 +132,7 @@
 	}
 
 	function load(run: StoredRun): void {
-		stage_run_history_replay(root, run);
+		stage_run_history_replay(app_id, run);
 		const app_url = new URL(root, window.location.href);
 		let target = new URL(run.page || app_url.pathname, app_url);
 		if (target.origin !== app_url.origin) target = app_url;
@@ -148,13 +141,13 @@
 
 	function clear_all(): void {
 		if (!window.confirm("Clear all saved runs for this app?")) return;
-		clear_run_history(root);
+		clear_run_history(app_id);
 		refresh();
 	}
 
 	function delete_run(run: StoredRun): void {
 		if (!window.confirm("Delete this saved run?")) return;
-		delete_run_history(root, run.id);
+		delete_run_history(app_id, run.id);
 		refresh();
 	}
 </script>

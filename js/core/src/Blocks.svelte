@@ -209,7 +209,7 @@
 	let run_count = $state(0);
 
 	function refresh_run_count(): void {
-		run_count = read_run_history(root).length;
+		run_count = read_run_history(app.config?.app_id).length;
 	}
 
 	function handle_connection_lost(): void {
@@ -679,6 +679,7 @@
 					}}
 					pwa_enabled={app.config.pwa}
 					{root}
+					app_id={app.config?.app_id}
 					{space_id}
 					i18n={$reactive_formatter}
 				/>

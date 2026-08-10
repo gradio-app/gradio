@@ -1,8 +1,16 @@
 import type { GradioEvent, StatusMessage } from "../types";
 
-const STORAGE_PREFIX = "gradio:run-history:v1:";
-const REPLAY_PREFIX = "gradio:run-history:replay:v1:";
+// Keyed on the app id, so two different apps served on the same port never
+// share a history. The id is regenerated whenever an app starts, so a restart
+// begins a fresh history and leaves the previous one orphaned; `prune_apps`
+// keeps those from accumulating.
+const KEY_ROOT = "gradio:run-history:";
+const STORAGE_PREFIX = `${KEY_ROOT}v2:`;
+const REPLAY_PREFIX = `${KEY_ROOT}replay:v2:`;
 const MAX_RUNS = 100;
+const MAX_APPS = 8;
+
+export type AppId = string | number | null | undefined;
 
 /**
  * Run history is a side effect of submitting, never the point of it, so no
@@ -51,7 +59,7 @@ export interface StoredRun {
 }
 
 interface StartRunOptions {
-	root: string;
+	app_id: AppId;
 	endpoint: string | number;
 	api_name: string;
 	fn_index: number;
@@ -71,22 +79,65 @@ export function run_history_url(
 	return `${root.replace(/\/+$/, "")}${api_prefix}/runs`;
 }
 
-function storage_key(root: string): string | null {
+function storage_key(app_id: AppId): string | null {
 	if (typeof window === "undefined") return null;
+	if (app_id === null || app_id === undefined || app_id === "") return null;
 
 	try {
 		if (!window.localStorage) return null;
-		const root_url = new URL(root || "/", window.location.href);
-		const path = root_url.pathname.replace(/\/$/, "") || "/";
-		return `${STORAGE_PREFIX}${path}`;
+		return `${STORAGE_PREFIX}${app_id}`;
 	} catch {
 		return null;
 	}
 }
 
-function replay_key(root: string): string | null {
-	const key = storage_key(root);
+function replay_key(app_id: AppId): string | null {
+	const key = storage_key(app_id);
 	return key ? key.replace(STORAGE_PREFIX, REPLAY_PREFIX) : null;
+}
+
+/** When a run was most recently saved under a key, for deciding what to drop. */
+function last_saved_at(key: string): number {
+	try {
+		const runs = JSON.parse(window.localStorage.getItem(key) || "[]");
+		// Runs are stored newest first.
+		return Array.isArray(runs) && runs.length
+			? Date.parse(runs[0]?.started_at) || 0
+			: 0;
+	} catch {
+		return 0;
+	}
+}
+
+/**
+ * Drops the histories of long-gone app instances. Every restart mints a new app
+ * id, so without this the browser would keep every history an app ever had and
+ * eventually run out of room for the current one.
+ */
+function prune_apps(current_key: string): void {
+	const keys = Object.keys(window.localStorage).filter((key) =>
+		key.startsWith(KEY_ROOT)
+	);
+	const stale = [
+		// Keys written by an older layout can never be read again.
+		...keys.filter(
+			(key) => !key.startsWith(STORAGE_PREFIX) && !key.startsWith(REPLAY_PREFIX)
+		),
+		...keys
+			.filter((key) => key.startsWith(STORAGE_PREFIX) && key !== current_key)
+			.sort((a, b) => last_saved_at(b) - last_saved_at(a))
+			.slice(MAX_APPS - 1)
+	];
+	for (const key of stale) {
+		try {
+			window.localStorage.removeItem(key);
+			window.localStorage.removeItem(
+				key.replace(STORAGE_PREFIX, REPLAY_PREFIX)
+			);
+		} catch {
+			// Nothing to do if the browser will not let us clean up.
+		}
+	}
 }
 
 function make_id(): string {
@@ -114,8 +165,8 @@ function clone_for_storage(value: unknown): unknown {
 	}
 }
 
-function read_run_history_impl(root: string): StoredRun[] {
-	const key = storage_key(root);
+function read_run_history_impl(app_id: AppId): StoredRun[] {
+	const key = storage_key(app_id);
 	if (!key) return [];
 
 	try {
@@ -126,16 +177,24 @@ function read_run_history_impl(root: string): StoredRun[] {
 	}
 }
 
-function write_run_history(root: string, runs: StoredRun[]): void {
-	const key = storage_key(root);
+function write_run_history(app_id: AppId, runs: StoredRun[]): void {
+	const key = storage_key(app_id);
 	if (!key) return;
 
 	let next = runs.slice(0, MAX_RUNS);
+	let pruned = false;
 	while (next.length > 0) {
 		try {
 			window.localStorage.setItem(key, JSON.stringify(next));
 			return;
 		} catch {
+			// Reclaim the space held by app instances that are long gone before
+			// giving up on the oldest runs of the current one.
+			if (!pruned) {
+				pruned = true;
+				prune_apps(key);
+				continue;
+			}
 			next = next.slice(0, -1);
 		}
 	}
@@ -146,8 +205,8 @@ function write_run_history(root: string, runs: StoredRun[]): void {
 	}
 }
 
-function clear_run_history_impl(root: string): void {
-	const key = storage_key(root);
+function clear_run_history_impl(app_id: AppId): void {
+	const key = storage_key(app_id);
 	if (!key) return;
 	try {
 		window.localStorage.removeItem(key);
@@ -157,10 +216,10 @@ function clear_run_history_impl(root: string): void {
 	notify_run_history_change();
 }
 
-function delete_run_history_impl(root: string, id: string): void {
+function delete_run_history_impl(app_id: AppId, id: string): void {
 	write_run_history(
-		root,
-		read_run_history_impl(root).filter((run) => run.id !== id)
+		app_id,
+		read_run_history_impl(app_id).filter((run) => run.id !== id)
 	);
 	notify_run_history_change();
 }
@@ -193,8 +252,8 @@ function on_run_history_change_impl(listener: () => void): () => void {
 	};
 }
 
-function stage_run_history_replay_impl(root: string, run: StoredRun): void {
-	const key = replay_key(root);
+function stage_run_history_replay_impl(app_id: AppId, run: StoredRun): void {
+	const key = replay_key(app_id);
 	if (!key) return;
 	try {
 		window.sessionStorage.setItem(key, JSON.stringify(run));
@@ -203,8 +262,8 @@ function stage_run_history_replay_impl(root: string, run: StoredRun): void {
 	}
 }
 
-function consume_run_history_replay_impl(root: string): StoredRun | null {
-	const key = replay_key(root);
+function consume_run_history_replay_impl(app_id: AppId): StoredRun | null {
+	const key = replay_key(app_id);
 	if (!key) return null;
 	try {
 		const value = window.sessionStorage.getItem(key);
@@ -216,8 +275,12 @@ function consume_run_history_replay_impl(root: string): StoredRun | null {
 }
 
 function start_run_history_impl(options: StartRunOptions): string | null {
-	const key = storage_key(options.root);
+	const key = storage_key(options.app_id);
 	if (!key) return null;
+
+	// A new app id means a new key, so clear out the ones left behind before
+	// adding to this one.
+	prune_apps(key);
 
 	const run: StoredRun = {
 		id: make_id(),
@@ -244,36 +307,36 @@ function start_run_history_impl(options: StartRunOptions): string | null {
 		status: "running",
 		started_at: new Date().toISOString()
 	};
-	write_run_history(options.root, [
+	write_run_history(options.app_id, [
 		run,
-		...read_run_history_impl(options.root)
+		...read_run_history_impl(options.app_id)
 	]);
 	notify_run_history_change();
 	return run.id;
 }
 
 function update_run_inputs_impl(
-	root: string,
+	app_id: AppId,
 	id: string | null,
 	inputs: unknown
 ): void {
 	if (!id) return;
 
-	const runs = read_run_history_impl(root);
+	const runs = read_run_history_impl(app_id);
 	const run = runs.find((item) => item.id === id);
 	if (!run) return;
 	run.inputs = clone_for_storage(inputs);
-	write_run_history(root, runs);
+	write_run_history(app_id, runs);
 }
 
 function update_run_history_impl(
-	root: string,
+	app_id: AppId,
 	id: string | null,
 	event: GradioEvent
 ): void {
 	if (!id) return;
 
-	const runs = read_run_history_impl(root);
+	const runs = read_run_history_impl(app_id);
 	const run = runs.find((item) => item.id === id);
 	if (!run) return;
 
@@ -301,7 +364,7 @@ function update_run_history_impl(
 		mark_complete(run, event);
 	}
 
-	write_run_history(root, runs);
+	write_run_history(app_id, runs);
 }
 
 function mark_process_start(run: StoredRun, time: Date | undefined): void {
@@ -336,24 +399,24 @@ function mark_complete(run: StoredRun, event: StatusMessage): void {
 
 // Public API. Each of these is a no-op if anything goes wrong.
 
-export function read_run_history(root: string): StoredRun[] {
-	return safely(() => read_run_history_impl(root), []);
+export function read_run_history(app_id: AppId): StoredRun[] {
+	return safely(() => read_run_history_impl(app_id), []);
 }
 
-export function clear_run_history(root: string): void {
-	safely(() => clear_run_history_impl(root), undefined);
+export function clear_run_history(app_id: AppId): void {
+	safely(() => clear_run_history_impl(app_id), undefined);
 }
 
-export function delete_run_history(root: string, id: string): void {
-	safely(() => delete_run_history_impl(root, id), undefined);
+export function delete_run_history(app_id: AppId, id: string): void {
+	safely(() => delete_run_history_impl(app_id, id), undefined);
 }
 
-export function stage_run_history_replay(root: string, run: StoredRun): void {
-	safely(() => stage_run_history_replay_impl(root, run), undefined);
+export function stage_run_history_replay(app_id: AppId, run: StoredRun): void {
+	safely(() => stage_run_history_replay_impl(app_id, run), undefined);
 }
 
-export function consume_run_history_replay(root: string): StoredRun | null {
-	return safely(() => consume_run_history_replay_impl(root), null);
+export function consume_run_history_replay(app_id: AppId): StoredRun | null {
+	return safely(() => consume_run_history_replay_impl(app_id), null);
 }
 
 export function start_run_history(options: StartRunOptions): string | null {
@@ -361,19 +424,19 @@ export function start_run_history(options: StartRunOptions): string | null {
 }
 
 export function update_run_inputs(
-	root: string,
+	app_id: AppId,
 	id: string | null,
 	inputs: unknown
 ): void {
-	safely(() => update_run_inputs_impl(root, id, inputs), undefined);
+	safely(() => update_run_inputs_impl(app_id, id, inputs), undefined);
 }
 
 export function update_run_history(
-	root: string,
+	app_id: AppId,
 	id: string | null,
 	event: GradioEvent
 ): void {
-	safely(() => update_run_history_impl(root, id, event), undefined);
+	safely(() => update_run_history_impl(app_id, id, event), undefined);
 }
 
 export function on_run_history_change(listener: () => void): () => void {

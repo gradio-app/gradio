@@ -15,6 +15,7 @@
 
 	let {
 		root,
+		app_id,
 		space_id,
 		pwa_enabled,
 		allow_zoom = $bindable(),
@@ -65,7 +66,7 @@
 	let run_count = $state(0);
 
 	function refreshRunCount(): void {
-		run_count = read_run_history(root).length;
+		run_count = read_run_history(app_id).length;
 	}
 
 	function handleLanguageChange(value: string): void {
