@@ -33,6 +33,11 @@ export function create_resize_state(): ResizeState {
 	};
 }
 
+/** Start a new growth burst after UI explicitly reveals previously hidden content. */
+export function reset_resize_growth(state: ResizeState): void {
+	state.consecutive_grows = 0;
+}
+
 /** Connect manual sizing whether iframe-resizer initializes before or after us. */
 export function setup_iframe_resizer(
 	target: EventTarget,
