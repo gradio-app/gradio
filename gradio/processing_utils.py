@@ -1150,12 +1150,13 @@ def convert_video_to_playable_mp4(video_path: str, cache_dir: str | None = None)
     def to_mp4(output_path: Path, copy_streams: bool) -> None:
         ff = FFmpeg(
             inputs={video_path: None},
-            # Only the video and audio streams are carried over when copying:
-            # a Matroska file can hold subtitle or attachment streams that an
-            # mp4 cannot, and those would fail the mux. `0:a?` makes audio
-            # optional so silent videos still work.
+            # Only the first video and audio stream are carried over when
+            # copying. A Matroska file can hold subtitle or attachment streams
+            # that an mp4 cannot, and those would fail the mux; it can also hold
+            # further audio tracks that `_can_remux_to_mp4` never checked. The
+            # `?` keeps audio optional so silent videos still work.
             outputs={
-                str(output_path): "-map 0:v:0 -map 0:a? -c copy"
+                str(output_path): "-map 0:v:0 -map 0:a:0? -c copy"
                 if copy_streams
                 else None
             },
@@ -1175,7 +1176,11 @@ def convert_video_to_playable_mp4(video_path: str, cache_dir: str | None = None)
     # input itself, rewriting the user's own file in place. Writing elsewhere
     # also means the input no longer has to be copied aside first, which for a
     # multi-gigabyte upload cost more than the remux it was protecting.
-    output_dir = Path(tempfile.mkdtemp(dir=cache_dir or get_upload_folder()))
+    # `get_upload_folder()` only names the cache, it does not create it, and
+    # `mkdtemp` will not create missing parents.
+    cache_root = Path(cache_dir or get_upload_folder())
+    cache_root.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(tempfile.mkdtemp(dir=cache_root))
     output_path = output_dir / f"{Path(video_path).stem}.mp4"
 
     try:
@@ -1191,6 +1196,10 @@ def convert_video_to_playable_mp4(video_path: str, cache_dir: str | None = None)
         to_mp4(output_path, copy_streams=False)
     except FFRuntimeError as e:
         print(f"Error converting video to browser-playable format {str(e)}")
+        # The original is returned, so nothing will ever reference this
+        # directory or the partial file ffmpeg may have left in it, and the
+        # cache cleanup only tracks paths that were handed out.
+        shutil.rmtree(output_dir, ignore_errors=True)
         return str(video_path)
     return str(output_path)
 

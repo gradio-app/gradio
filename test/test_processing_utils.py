@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -424,6 +425,17 @@ class TestVideoProcessing:
         assert not processing_utils._can_remux_to_mp4(str(unreadable))
 
     @staticmethod
+    def _streams(path: str) -> list[dict]:
+        """The stream descriptors ffprobe reports for a file."""
+        output = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-show_streams", "-print_format", "json", path],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return json.loads(output.stdout)["streams"]
+
+    @staticmethod
     def _video_stream_md5(path: str) -> str:
         """Checksum of the encoded video stream, ignoring the container."""
         output = subprocess.run(
@@ -474,6 +486,62 @@ class TestVideoProcessing:
                 tmp_not_playable_vid.name
             )
             assert processing_utils.video_is_playable(playable_vid)
+
+    def test_convert_video_copies_only_the_validated_audio_track(
+        self, test_file_dir, tmp_path
+    ):
+        """Extra audio tracks are not vetted by `_can_remux_to_mp4`, so they are dropped."""
+        mkv = tmp_path / "two_audio.mkv"
+        ffmpy.FFmpeg(
+            inputs={
+                str(test_file_dir / "video_sample.mp4"): None,
+                "sine=duration=2": "-f lavfi",
+            },
+            outputs={
+                str(mkv): "-map 0:v:0 -map 0:a:0 -map 1:a:0 "
+                "-c:v copy -c:a:0 copy -c:a:1 libopus"
+            },
+            global_options="-y -loglevel quiet",
+        ).run()
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(str(mkv))
+
+        assert processing_utils.video_is_playable(playable_vid)
+        codecs = [
+            stream["codec_name"]
+            for stream in self._streams(playable_vid)
+            if stream["codec_type"] == "audio"
+        ]
+        assert codecs == ["aac"], "the unchecked opus track should not be carried over"
+
+    def test_convert_video_creates_the_cache_root(self, test_file_dir, tmp_path):
+        """The cache directory is only a name until something creates it."""
+        mkv = tmp_path / "h264.mkv"
+        self._as_mkv(test_file_dir / "video_sample.mp4", mkv)
+        missing_cache = tmp_path / "not" / "created" / "yet"
+
+        playable_vid = processing_utils.convert_video_to_playable_mp4(
+            str(mkv), cache_dir=str(missing_cache)
+        )
+
+        assert processing_utils.video_is_playable(playable_vid)
+        assert missing_cache.exists()
+
+    def test_convert_video_cleans_up_after_a_failed_conversion(
+        self, test_file_dir, tmp_path
+    ):
+        """A failed conversion must not leave a directory nothing can reach."""
+        cache = tmp_path / "cache"
+        with patch(
+            "gradio._vendor.ffmpy.FFmpeg.run",
+            side_effect=ffmpy.FFRuntimeError("", "", "", ""),  # type: ignore
+        ):
+            returned = processing_utils.convert_video_to_playable_mp4(
+                str(test_file_dir / "bad_video_sample.mp4"), cache_dir=str(cache)
+            )
+
+        assert returned == str(test_file_dir / "bad_video_sample.mp4")
+        assert list(cache.iterdir()) == []
 
     def test_convert_video_does_not_write_next_to_the_source(
         self, test_file_dir, tmp_path
