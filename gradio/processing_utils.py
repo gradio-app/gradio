@@ -27,6 +27,7 @@ from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils
 from gradio._vendor import aiofiles
+from gradio._vendor.ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
@@ -1076,8 +1077,6 @@ def video_is_playable(video_filepath: str) -> bool:
         .webm -> vp9
         .ogg -> theora
     """
-    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
-
     try:
         container = Path(video_filepath).suffix.lower()
         probe = FFprobe(
@@ -1136,8 +1135,6 @@ def audio_is_playable(audio_filepath: str) -> bool:
     Containers such as AIFF are not decodable by any major browser regardless of
     the codec inside them.
     """
-    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
-
     try:
         container = Path(audio_filepath).suffix.lower()
         probe = FFprobe(
@@ -1169,8 +1166,6 @@ REMUXABLE_AUDIO_CODECS = {
 
 def _first_audio_codec(audio_path: str) -> str | None:
     """Return the codec of a file's first audio stream, or None if unprobeable."""
-    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
-
     try:
         probe = FFprobe(
             global_options="-show_streams -select_streams a -print_format json",
@@ -1189,8 +1184,6 @@ def convert_audio_to_playable(audio_path: str, cache_dir: str) -> str:
     next to the source: `.aif` and `.wav` share a directory far more often than
     the video containers do, so writing alongside would clobber the user's files.
     """
-    from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
-
     temp_dir = Path(cache_dir) / hash_file(audio_path)
     temp_dir.mkdir(exist_ok=True, parents=True)
     stem = Path(audio_path).stem
@@ -1236,8 +1229,6 @@ def convert_audio_to_playable(audio_path: str, cache_dir: str) -> str:
 
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
-    from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
-
     try:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             output_path = Path(video_path).with_suffix(".mp4")
