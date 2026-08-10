@@ -1347,7 +1347,7 @@ def test_run_history_is_a_default_footer_link():
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
         config = client.get("/config").json()
-        assert config["footer_links"] == ["api", "gradio", "settings", "history"]
+        assert config["footer_links"] == ["api", "gradio", "settings", "runs"]
     finally:
         demo.close()
 
@@ -1361,7 +1361,7 @@ def test_footer_links_can_exclude_run_history():
         )
         client = TestClient(app)
         config = client.get("/config").json()
-        assert "history" not in config["footer_links"]
+        assert "runs" not in config["footer_links"]
     finally:
         demo.close()
 

@@ -693,7 +693,7 @@
 				{app_mode}
 			/>
 		{:else if config && css_ready && run_history}
-			<RunHistory root={api_url} />
+			<RunHistory root={api_url} footer_links={config.footer_links} />
 		{:else if config && Blocks && css_ready}
 			<Blocks
 				{app}

@@ -79,6 +79,11 @@
 			"svelte": "./dist/src/Login.svelte",
 			"types": "./dist/src/Login.svelte.d.ts"
 		},
+		"./page_footer": {
+			"gradio": "./src/PageFooter.svelte",
+			"svelte": "./dist/src/PageFooter.svelte",
+			"types": "./dist/src/PageFooter.svelte.d.ts"
+		},
 		"./navbar_store": {
 			"gradio": "./src/navbar_store.ts",
 			"import": "./src/navbar_store.ts",

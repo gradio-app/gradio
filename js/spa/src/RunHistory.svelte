@@ -9,13 +9,18 @@
 		type StoredRun,
 		type StoredRunComponent
 	} from "@gradio/client";
+	import PageFooter from "@gradio/core/page_footer";
+	import { _ } from "svelte-i18n";
 	import RunValue from "./RunValue.svelte";
 
 	interface Props {
 		root: string;
+		footer_links?: (string | Record<string, string>)[];
 	}
 
-	let { root }: Props = $props();
+	let { root, footer_links = [] }: Props = $props();
+
+	let app_url = $derived(new URL(root, window.location.href).href);
 	let runs: StoredRun[] = $state([]);
 
 	let groups = $derived.by(() => {
@@ -140,7 +145,7 @@
 		<div class="title-line">
 			<h1>Run history</h1>
 			<div class="storage-copy">
-				<span>Runs ({runs.length}) logged in</span>
+				<span>({runs.length}) logged in</span>
 				<span
 					><code class="storage-code">Local Storage</code>, privately in this
 					browser.</span
@@ -161,7 +166,6 @@
 		{#each groups as [api_name, endpoint_runs]}
 			<section class="group">
 				<header class="group-header">
-					<span class="play" aria-hidden="true">▶</span>
 					<code>{api_name}</code>
 					<span class="count"
 						>{endpoint_runs.length}
@@ -229,8 +233,39 @@
 								class:failed={run.status === "failed"}
 								class:running={run.status === "running"}
 							>
-								<span class="dot" aria-hidden="true"></span>
-								{status_label(run)}
+								{#if run.error}
+									<!-- The message is long and only matters for the run that
+									     failed, so it lives in a tooltip on the status itself. -->
+									<span class="has-error" title={run.error}>
+										<svg
+											class="info"
+											viewBox="0 0 16 16"
+											aria-hidden="true"
+											focusable="false"
+										>
+											<circle
+												cx="8"
+												cy="8"
+												r="7"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.6"
+											/>
+											<circle cx="8" cy="4.85" r="0.95" fill="currentColor" />
+											<path
+												d="M8 7.3v4.3"
+												stroke="currentColor"
+												stroke-width="1.6"
+												stroke-linecap="round"
+											/>
+										</svg>
+										<span class="status-word">{status_label(run)}</span>
+										<span class="visually-hidden">: {run.error}</span>
+									</span>
+								{:else}
+									<span class="dot" aria-hidden="true"></span>
+									{status_label(run)}
+								{/if}
 								{#if run.duration_ms !== undefined}
 									<span class="duration" title={duration_detail(run)}
 										>in {format_duration(run.duration_ms)}</span
@@ -241,11 +276,10 @@
 							<time datetime={run.started_at}
 								>{format_time(run.started_at)}</time
 							>
-							{#if run.error}<span class="error" title={run.error}
-									>{run.error}</span
-								>{/if}
 							<div class="actions">
-								<button class="load" onclick={() => load(run)}>Load run</button>
+								<button class="load" onclick={() => load(run)}
+									><span class="play" aria-hidden="true">▶</span> Load run</button
+								>
 								<button class="delete" onclick={() => delete_run(run)}
 									>Delete</button
 								>
@@ -256,6 +290,8 @@
 			</section>
 		{/each}
 	{/if}
+
+	<PageFooter {app_url} {footer_links} i18n={$_} />
 </main>
 
 <style>
@@ -332,6 +368,7 @@
 	.load {
 		display: inline-flex;
 		align-items: center;
+		gap: 6px;
 		padding: 5px 10px;
 		border: var(--button-border-width, 1px) solid transparent;
 		border-radius: var(--button-medium-radius, 8px);
@@ -341,6 +378,10 @@
 		font-weight: var(--button-medium-text-weight, 600);
 		cursor: pointer;
 		transition: var(--button-transition, 0.1s ease);
+	}
+	.load .play {
+		font-size: 8px;
+		line-height: 1;
 	}
 	.delete {
 		padding: 5px 10px;
@@ -380,19 +421,14 @@
 	}
 	.count {
 		margin-left: auto;
-		color: var(--body-text-color-subdued, #71717a);
+		padding: 3px 9px;
+		border-radius: 999px;
+		background: var(--background-fill-primary, #fff);
+		box-shadow: inset 0 0 0 1px var(--border-color-primary, #e4e4e7);
+		color: var(--body-text-color, #27272a);
 		font-size: var(--text-sm, 14px);
-		font-weight: var(--weight-normal, 400);
-	}
-	.play {
-		display: grid;
-		width: 30px;
-		height: 30px;
-		place-items: center;
-		border-radius: 50%;
-		background: var(--color-accent-soft, #ffedd5);
-		color: var(--color-accent, #f97316);
-		font-size: 11px;
+		font-weight: var(--weight-semibold, 600);
+		font-variant-numeric: tabular-nums;
 	}
 	.table-header,
 	.run {
@@ -476,6 +512,31 @@
 		border-radius: 50%;
 		background: currentColor;
 	}
+	.has-error {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		cursor: help;
+	}
+	.info {
+		width: 13px;
+		height: 13px;
+		flex-shrink: 0;
+	}
+	/* Signals that hovering reveals the error message. */
+	.has-error .status-word {
+		text-decoration: underline dotted;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 3px;
+	}
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
 	.duration {
 		color: var(--body-text-color-subdued, #71717a);
 		font-weight: 400;
@@ -498,12 +559,6 @@
 	}
 	.running {
 		color: #b45309;
-	}
-	.error {
-		overflow: hidden;
-		color: var(--error-text-color, #b91c1c);
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 	.empty {
 		margin-top: 32px;
@@ -551,6 +606,10 @@
 			grid-column: 1;
 			align-items: flex-start;
 			flex-wrap: wrap;
+		}
+		/* The row wraps here, so the separator would dangle at a line end. */
+		.separator {
+			display: none;
 		}
 	}
 </style>

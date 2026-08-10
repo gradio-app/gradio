@@ -524,6 +524,17 @@
 			bind:clientHeight={footer_height}
 			aria-label="Gradio footer navigation"
 		>
+			{#if footer_links.includes("runs") && run_count > 0}
+				<a
+					href={run_history_url(root, api_prefix)}
+					class="run-history"
+					title={$reactive_formatter("common.runs_description")}
+				>
+					{$reactive_formatter("common.runs")}
+					<img src={history_logo} alt={$reactive_formatter("common.runs")} />
+				</a>
+				<div class="divider">·</div>
+			{/if}
 			{#if footer_links.includes("api")}
 				<button
 					onclick={() => {
@@ -568,20 +579,6 @@
 					alt={$reactive_formatter("common.stop_recording")}
 				/>
 			</button>
-			{#if footer_links.includes("history") && run_count > 0}
-				<div class="divider">·</div>
-				<a
-					href={run_history_url(root, api_prefix)}
-					class="run-history"
-					title={$reactive_formatter("common.run_history_description")}
-				>
-					{$reactive_formatter("common.run_history")}
-					<img
-						src={history_logo}
-						alt={$reactive_formatter("common.run_history")}
-					/>
-				</a>
-			{/if}
 			<div class="divider">·</div>
 			{#if footer_links.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>

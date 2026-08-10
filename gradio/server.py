@@ -243,7 +243,7 @@ class Server(App):
         ssl_verify: bool = True,
         quiet: bool = False,
         footer_links: list[
-            Literal["api", "gradio", "settings", "history"] | dict[str, str]
+            Literal["api", "gradio", "settings", "runs"] | dict[str, str]
         ]
         | None = None,
         allowed_paths: list[str] | None = None,
