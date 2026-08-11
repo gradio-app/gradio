@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let shortcuts = [] as any[];
+	let { shortcuts = [] as any[] } = $props();
 </script>
 
 <div class="mb-4 shortcut-card">

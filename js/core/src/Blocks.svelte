@@ -28,7 +28,12 @@
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
-	import { create_resize_state, next_frame_height } from "./resize";
+	import {
+		create_resize_state,
+		next_frame_height,
+		reset_resize_growth,
+		setup_iframe_resizer
+	} from "./resize";
 	type AddNewMessage = (
 		title: string,
 		message: string,
@@ -126,6 +131,7 @@
 		} else if (event === "info") {
 			new_message("Info", data as string, -1, event, 10, true);
 		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
+			reset_resize_growth(resize_state);
 			const id_ =
 				event === "gradio_expand"
 					? id
@@ -448,10 +454,6 @@
 				navigator.userAgent
 			);
 
-		if ("parentIFrame" in window) {
-			window.parentIFrame?.autoResize(false);
-		}
-
 		mutation_observer = new MutationObserver(handle_resize);
 		const res = new ResizeObserver(handle_resize);
 
@@ -461,6 +463,11 @@
 			attributes: true
 		});
 		res.observe(root_container);
+		const disconnect_iframe_resizer = setup_iframe_resizer(
+			window,
+			() => window.parentIFrame,
+			handle_resize
+		);
 
 		app_tree.ready.then(() => {
 			ready = true;
@@ -472,6 +479,7 @@
 		}
 
 		return () => {
+			disconnect_iframe_resizer();
 			mutation_observer?.disconnect();
 			mutation_observer = null;
 			res.disconnect();
@@ -510,10 +518,10 @@
 		>
 			{#if footer_links.includes("api")}
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadApiDocs();
 						loadApiRecorder();
 					}}
@@ -541,7 +549,7 @@
 			{/if}
 			<button
 				class:hidden={!$is_screen_recording}
-				on:click={() => {
+				onclick={() => {
 					screen_recording();
 				}}
 				class="record"
@@ -556,10 +564,10 @@
 			{#if footer_links.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_settings_visible(!settings_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadSettings();
 					}}
 					class="settings"
@@ -579,12 +587,12 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
 			id="api-recorder-container"
-			on:click={() => {
+			onclick={() => {
 				set_api_docs_visible(true);
 				api_recorder_visible = false;
 			}}
 		>
-			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
+			<ApiRecorder {api_calls} {dependencies} />
 		</div>
 	{/if}
 
@@ -600,19 +608,17 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_api_docs_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={ApiDocs}
+				<ApiDocs
 					root_node={app_tree.root}
-					on:close={(event) => {
+					onclose={(detail?: { api_recorder_visible: boolean }) => {
 						set_api_docs_visible(false);
 						api_calls = [];
-						api_recorder_visible = api_recorder_visible =
-							event.detail?.api_recorder_visible;
+						api_recorder_visible = detail?.api_recorder_visible ?? false;
 					}}
 					{dependencies}
 					{root}
@@ -638,13 +644,12 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_settings_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={Settings}
+				<Settings
 					bind:allow_zoom
 					bind:allow_video_trim
 					onclose={() => {
@@ -663,7 +668,7 @@
 	{/if}
 
 	{#if vibe_mode && VibeEditor}
-		<svelte:component this={VibeEditor} {app} {root} />
+		<VibeEditor {app} {root} />
 	{/if}
 </div>
 

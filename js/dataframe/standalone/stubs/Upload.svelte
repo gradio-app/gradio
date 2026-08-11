@@ -1,12 +1,19 @@
 <script lang="ts">
-	export const aria_label = "";
-	export const root = "";
-	export const upload: any = null;
-	export const stream_handler: any = null;
+	import type { Snippet } from "svelte";
+
+	let {
+		children
+	}: {
+		aria_label?: string;
+		root?: string;
+		upload?: any;
+		stream_handler?: any;
+		children?: Snippet;
+	} = $props();
 </script>
 
 <div>
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

@@ -1,14 +1,23 @@
 <script lang="ts">
-	export let label: string | null = null;
-	export let Icon: any;
-	export let show_label = true;
-	export let disable = false;
-	export let float = true;
-	export let rtl = false;
+	let {
+		label = null,
+		Icon,
+		show_label = true,
+		disable = false,
+		float = true,
+		rtl = false
+	}: {
+		label?: string | null;
+		Icon: any;
+		show_label?: boolean;
+		disable?: boolean;
+		float?: boolean;
+		rtl?: boolean;
+	} = $props();
 </script>
 
+<!-- svelte-ignore a11y_label_has_associated_control -->
 <label
-	for=""
 	class:hide={!show_label}
 	class:sr-only={!show_label}
 	class:float

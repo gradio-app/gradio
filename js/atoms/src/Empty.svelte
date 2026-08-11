@@ -1,11 +1,20 @@
 <script lang="ts">
-	export let size: "small" | "large" = "small";
-	export let unpadded_box = false;
+	import type { Snippet } from "svelte";
 
-	let el: HTMLDivElement;
-	$: parent_height = compare_el_to_parent(el);
+	let {
+		size = "small",
+		unpadded_box = false,
+		children
+	}: {
+		size?: "small" | "large";
+		unpadded_box?: boolean;
+		children?: Snippet;
+	} = $props();
 
-	function compare_el_to_parent(el: HTMLDivElement): boolean {
+	let el: HTMLDivElement | undefined = $state();
+	let parent_height = $derived(compare_el_to_parent(el));
+
+	function compare_el_to_parent(el: HTMLDivElement | undefined): boolean {
 		if (!el) return false;
 
 		const { height: el_height } = el.getBoundingClientRect();
@@ -26,7 +35,7 @@
 	aria-label="Empty value"
 >
 	<div class="icon">
-		<slot />
+		{@render children?.()}
 	</div>
 </div>
 

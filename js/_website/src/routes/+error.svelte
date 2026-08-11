@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import logo_melted from "$lib/assets/img/logo-melted.png";
 </script>
 
@@ -12,12 +12,12 @@
 		<h1
 			class="error-code max-w-xl text-4xl font md:text-6xl pb-4 z-10 relative"
 		>
-			{$page.status}
+			{page.status}
 		</h1>
 		<h2
 			class="max-w-xl text-2xl text-gray-500 dark:text-gray-400 md:text-4xl z-10 relative"
 		>
-			{$page.error?.message}
+			{page.error?.message}
 		</h2>
 	</div>
 </div>

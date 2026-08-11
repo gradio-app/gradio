@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
 	import { tick } from "svelte";
 	import type { FileData } from "@gradio/client";

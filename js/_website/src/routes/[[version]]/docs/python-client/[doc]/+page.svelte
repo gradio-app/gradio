@@ -1,59 +1,66 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 
-	export let data: any = {};
+	let {
+		data = {}
+	}: {
+		data?: any;
+	} = $props();
 
-	let name: string = data.name;
-	let on_main: boolean;
 	let wheel: any = data.wheel;
 	let install_command: string = wheel.gradio_py_client_install;
-	let url_version: string = data.url_version;
-	let module = data.module.default;
-
-	let y: number;
+	let y: number = $state()!;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
 
 	let current_target: HTMLElement;
 
-	$: for (const target in header_targets) {
-		target_elem = document.querySelector(`#${target}`) as HTMLElement;
-		if (
-			y > target_elem?.offsetTop - 50 &&
-			y < target_elem?.offsetTop + target_elem?.offsetHeight
-		) {
-			current_target = header_targets[target];
-			current_target.classList.add("current-nav-link");
-			Object.values(header_targets).forEach((target) => {
-				if (target !== current_target && target) {
-					target.classList.remove("current-nav-link");
-				}
-			});
+	$effect(() => {
+		const scroll_y = y;
+		for (const target in header_targets) {
+			target_elem = document.querySelector(`#${target}`) as HTMLElement;
+			if (
+				scroll_y > target_elem?.offsetTop - 50 &&
+				scroll_y < target_elem?.offsetTop + target_elem?.offsetHeight
+			) {
+				current_target = header_targets[target];
+				current_target.classList.add("current-nav-link");
+				Object.values(header_targets).forEach((target) => {
+					if (target !== current_target && target) {
+						target.classList.remove("current-nav-link");
+					}
+				});
+			}
 		}
-	}
+	});
 
-	$: name = data.name;
-	$: on_main = data.on_main;
-	$: url_version = data.url_version;
-	$: pages = data.pages["python-client"];
-	$: page_path = data.page_path;
-	$: module = data.module.default;
+	let name = $derived(data.name);
+	let on_main = $derived(data.on_main);
+	let url_version = $derived(data.url_version);
+	let pages = $derived(data.pages["python-client"]);
+	let page_path = $derived(data.page_path);
+	let module = $derived(data.module.default);
+	// capitalised alias so it can be used as a component tag
+	let DocModule = $derived(module);
 
-	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+	let flattened_pages = $derived(
+		pages.map((category: any) => category.pages).flat()
+	);
 
-	let component_name = $page.params?.doc;
-	$: component_name = $page.params?.doc;
+	let component_name = $derived(page.params?.doc);
 
-	$: prev_obj =
+	let prev_obj = $derived(
 		flattened_pages[
 			flattened_pages.findIndex((page: any) => page.name === component_name) - 1
-		];
-	$: next_obj =
+		]
+	);
+	let next_obj = $derived(
 		flattened_pages[
 			flattened_pages.findIndex((page: any) => page.name === component_name) + 1
-		];
+		]
+	);
 
 	function get_headers() {
 		let headers: any[] = [];
@@ -74,36 +81,36 @@
 		return { headers: headers, page_title: page_title };
 	}
 
-	var all_headers: {
+	let all_headers: {
 		headers: any[];
 		page_title: { title: string; id: string };
-	} = { headers: [], page_title: { title: "", id: "" } };
+	} = $state({ headers: [], page_title: { title: "", id: "" } });
 
-	var dynamic_component: any = null;
+	let dynamic_component: any = $state(null);
 
-	$: if (dynamic_component) {
-		all_headers = get_headers();
-	}
-	let title: string;
-	let description: string;
-	$: title =
+	$effect(() => {
+		if (dynamic_component) {
+			all_headers = get_headers();
+		}
+	});
+	let title = $derived(
 		all_headers.page_title.title === "Introduction"
 			? "Gradio Python Client - " + all_headers.page_title.title + " Docs"
-			: "Gradio Python Client - " +
-				all_headers.page_title.title +
-				" Class Docs";
-	$: description =
+			: "Gradio Python Client - " + all_headers.page_title.title + " Class Docs"
+	);
+	let description = $derived(
 		all_headers.page_title.title === "Introduction"
 			? "Make programmatic requests to Gradio applications from Python environments."
 			: "Using the " +
-				all_headers.page_title.title +
-				" class in the Gradio Python Client.";
+					all_headers.page_title.title +
+					" class in the Gradio Python Client."
+	);
 </script>
 
 <MetaTags
 	{title}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	{description}
 />
 
@@ -181,7 +188,7 @@
 			<div class="flex flex-row">
 				<div class="lg:ml-10">
 					<div class="obj">
-						<svelte:component this={module} bind:this={dynamic_component} />
+						<DocModule bind:this={dynamic_component} />
 					</div>
 				</div>
 			</div>

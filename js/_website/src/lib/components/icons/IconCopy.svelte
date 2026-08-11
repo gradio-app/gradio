@@ -1,5 +1,5 @@
 <script>
-	export let classNames = "";
+	let { classNames = "" } = $props();
 </script>
 
 <svg

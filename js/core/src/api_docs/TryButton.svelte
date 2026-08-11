@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { BaseButton } from "@gradio/button";
 
-	export let dependency_index: number;
-	export let run: (id: number) => Promise<void>;
+	let {
+		dependency_index,
+		run
+	}: {
+		dependency_index: number;
+		run: (id: number) => Promise<void>;
+	} = $props();
 </script>
 
 <span class="space" />
