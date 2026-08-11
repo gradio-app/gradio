@@ -5,6 +5,18 @@ export { submit } from "./utils/submit";
 export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
+export {
+	clear_run_history,
+	consume_run_history_replay,
+	delete_run_history,
+	on_run_history_change,
+	read_run_history,
+	run_history_url,
+	stage_run_history_replay,
+	type RunHistoryScope,
+	type StoredRunComponent,
+	type StoredRun
+} from "./utils/run_history";
 
 export type {
 	SpaceStatus,
