@@ -319,6 +319,84 @@ class TestAudioPreprocessing:
         )
 
 
+class TestAudioPlayability:
+    """Covers the browser-playability checks behind #10153."""
+
+    @staticmethod
+    def _transcode(source: Path, destination: Path, options: str | None = None) -> None:
+        ffmpy.FFmpeg(
+            inputs={str(source): None},
+            outputs={str(destination): options},
+            global_options="-y -loglevel quiet",
+        ).run()
+
+    @staticmethod
+    def _audio_stream_md5(path: str) -> str:
+        """Checksum of the encoded audio stream, ignoring the container."""
+        output = subprocess.run(
+            ["ffmpeg", "-v", "quiet", "-i", path, "-map", "0:a:0", "-f", "md5", "-"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return output.stdout.strip()
+
+    def test_audio_is_playable(self, test_file_dir, tmp_path):
+        assert processing_utils.audio_is_playable(
+            str(test_file_dir / "audio_sample.wav")
+        )
+
+        # AIFF holds ordinary PCM but no browser can decode the container
+        aiff = tmp_path / "sample.aiff"
+        self._transcode(test_file_dir / "audio_sample.wav", aiff)
+        assert not processing_utils.audio_is_playable(str(aiff))
+
+        # A file ffprobe cannot read is assumed playable so that we never
+        # convert on a guess
+        unreadable = tmp_path / "unreadable.wav"
+        unreadable.write_bytes(b"not audio")
+        assert processing_utils.audio_is_playable(str(unreadable))
+
+    def test_convert_audio_remuxes_already_playable_codec(
+        self, test_file_dir, tmp_path
+    ):
+        """Only the container is wrong, so the stream is kept as it is."""
+        mka = tmp_path / "aac.mka"
+        self._transcode(test_file_dir / "audio_sample.wav", mka, "-c:a aac")
+
+        converted = processing_utils.convert_audio_to_playable(
+            str(mka), cache_dir=str(tmp_path / "cache")
+        )
+
+        assert Path(converted).suffix == ".m4a"
+        assert processing_utils.audio_is_playable(converted)
+        # Still AAC rather than the PCM a re-encode would have produced, and
+        # byte-for-byte the original stream.
+        assert processing_utils._first_audio_codec(converted) == "aac"
+        assert self._audio_stream_md5(converted) == self._audio_stream_md5(str(mka))
+
+    def test_convert_audio_reencodes_undecodable_codec(self, test_file_dir, tmp_path):
+        """Big-endian PCM cannot be copied into a wav, so it must be re-encoded."""
+        aiff = tmp_path / "sample.aiff"
+        self._transcode(test_file_dir / "audio_sample.wav", aiff)
+        assert processing_utils._first_audio_codec(str(aiff)) == "pcm_s16be"
+
+        converted = processing_utils.convert_audio_to_playable(
+            str(aiff), cache_dir=str(tmp_path / "cache")
+        )
+
+        assert Path(converted).suffix == ".wav"
+        assert processing_utils.audio_is_playable(converted)
+        assert processing_utils._first_audio_codec(converted) == "pcm_s16le"
+        # The conversion must not be written next to the source
+        assert Path(converted).parent != aiff.parent
+        # The audio itself survived the round trip
+        sample_rate, data = processing_utils.audio_from_file(converted)
+        original_rate, original_data = processing_utils.audio_from_file(str(aiff))
+        assert sample_rate == original_rate
+        assert np.array_equal(data, original_data)
+
+
 class TestOutputPreprocessing:
     float_dtype_list = [
         float,

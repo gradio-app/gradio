@@ -27,6 +27,7 @@ from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils
 from gradio._vendor import aiofiles
+from gradio._vendor.ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
@@ -1076,8 +1077,6 @@ def video_is_playable(video_filepath: str) -> bool:
         .webm -> vp9
         .ogg -> theora
     """
-    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
-
     try:
         container = Path(video_filepath).suffix.lower()
         probe = FFprobe(
@@ -1100,6 +1099,134 @@ def video_is_playable(video_filepath: str) -> bool:
         return True
 
 
+# Container/codec pairs that browsers can decode. Anything outside this set has
+# to be converted before it will play back.
+PLAYABLE_AUDIO_CODECS = frozenset(
+    {
+        (".wav", "pcm_s16le"),
+        (".wav", "pcm_s24le"),
+        (".wav", "pcm_f32le"),
+        (".wav", "pcm_u8"),
+        (".mp3", "mp3"),
+        (".m4a", "aac"),
+        (".m4a", "alac"),
+        (".mp4", "aac"),
+        (".aac", "aac"),
+        (".flac", "flac"),
+        (".ogg", "vorbis"),
+        (".ogg", "opus"),
+        (".oga", "vorbis"),
+        (".oga", "opus"),
+        (".opus", "opus"),
+        (".weba", "opus"),
+        (".webm", "opus"),
+        (".webm", "vorbis"),
+    }
+)
+
+
+def audio_is_playable(audio_filepath: str) -> bool:
+    """Determines if an audio file is playable in the browser.
+
+    Audio is playable if it has a playable container and codec, e.g.
+        .wav -> pcm_s16le
+        .mp3 -> mp3
+        .m4a -> aac
+    Containers such as AIFF are not decodable by any major browser regardless of
+    the codec inside them.
+    """
+    try:
+        container = Path(audio_filepath).suffix.lower()
+        probe = FFprobe(
+            global_options="-show_format -show_streams -select_streams a -print_format json",
+            inputs={audio_filepath: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        output = json.loads(output[0])  # type: ignore
+        audio_codec = output["streams"][0]["codec_name"]
+        return (container, audio_codec) in PLAYABLE_AUDIO_CODECS
+    # If anything goes wrong, assume the audio can be played so that we do not
+    # convert downstream.
+    except (FFRuntimeError, IndexError, KeyError):
+        return True
+
+
+# Browser-playable codecs mapped to a container that can hold them, so a file
+# whose container is the only problem needs remuxing rather than re-encoding.
+# The pairs match the entries in `audio_is_playable`.
+REMUXABLE_AUDIO_CODECS = {
+    "aac": ".m4a",
+    "alac": ".m4a",
+    "mp3": ".mp3",
+    "flac": ".flac",
+    "opus": ".ogg",
+    "vorbis": ".ogg",
+}
+
+
+def _first_audio_codec(audio_path: str) -> str | None:
+    """Return the codec of a file's first audio stream, or None if unprobeable."""
+    try:
+        probe = FFprobe(
+            global_options="-show_streams -select_streams a -print_format json",
+            inputs={audio_path: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        return json.loads(output[0])["streams"][0]["codec_name"]  # type: ignore
+    except (FFRuntimeError, IndexError, KeyError, ValueError):
+        return None
+
+
+def convert_audio_to_playable(audio_path: str, cache_dir: str) -> str:
+    """Convert audio to a browser-playable file, returning the original on failure.
+
+    Unlike the video equivalent the output is written to the cache rather than
+    next to the source: `.aif` and `.wav` share a directory far more often than
+    the video containers do, so writing alongside would clobber the user's files.
+    """
+    temp_dir = Path(cache_dir) / hash_file(audio_path)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    stem = Path(audio_path).stem
+
+    def to_playable(output_path: Path, copy_streams: bool) -> None:
+        ff = FFmpeg(
+            inputs={str(audio_path): None},
+            # Only the first audio stream is carried over when copying: a
+            # Matroska file can hold cover art or subtitle streams that the
+            # target container would reject, failing the whole mux.
+            outputs={str(output_path): "-map 0:a:0 -c copy" if copy_streams else None},
+            global_options="-y -loglevel quiet",
+        )
+        ff.run()
+
+    # A container browsers cannot play often still holds a codec they can, in
+    # which case only the container has to change. Copying the stream is
+    # near-instant and lossless, where re-encoding to wav is slow and inflates
+    # a compressed file into raw PCM.
+    remux_suffix = REMUXABLE_AUDIO_CODECS.get(_first_audio_codec(audio_path) or "")
+    if remux_suffix:
+        remuxed_path = temp_dir / f"{stem}{remux_suffix}"
+        if remuxed_path.exists():
+            return str(remuxed_path)
+        try:
+            to_playable(remuxed_path, copy_streams=True)
+            return str(remuxed_path)
+        except FFRuntimeError:
+            # The stream turned out not to be muxable into that container after
+            # all; fall back to a full re-encode.
+            pass
+
+    output_path = temp_dir / f"{stem}.wav"
+    if output_path.exists():
+        return str(output_path)
+    try:
+        to_playable(output_path, copy_streams=False)
+    except FFRuntimeError as e:
+        print(f"Error converting audio to browser-playable format {str(e)}")
+        return str(audio_path)
+    return str(output_path)
+
+
 # Codecs that both fit in an mp4 container and are playable in browsers, so a
 # file holding them only needs remuxing rather than re-encoding. The video set
 # matches the mp4 entries in `video_is_playable`.
@@ -1113,8 +1240,6 @@ def _first_stream_codecs(video_path: str) -> tuple[str | None, str | None] | Non
     Either element is None when the file has no stream of that kind. Returns
     None if the file could not be probed at all.
     """
-    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
-
     try:
         probe = FFprobe(
             global_options="-show_streams -print_format json",
@@ -1145,7 +1270,6 @@ def _can_remux_to_mp4(video_path: str) -> bool:
 
 def convert_video_to_playable_mp4(video_path: str, cache_dir: str | None = None) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
-    from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
 
     def to_mp4(output_path: Path, copy_streams: bool) -> None:
         ff = FFmpeg(

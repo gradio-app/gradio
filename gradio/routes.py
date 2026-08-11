@@ -115,6 +115,7 @@ from gradio.route_utils import (  # noqa: F401
     file_fetch,
     file_response,
     move_uploaded_files_to_cache,
+    register_media_mimetypes,
     routes_safe_join,
     secure_url_stream_response,
     upload_fn,
@@ -147,6 +148,7 @@ import shutil
 import tempfile
 
 mimetypes.init()
+register_media_mimetypes()
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t  # type: ignore

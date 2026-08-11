@@ -1,5 +1,11 @@
 # @gradio/workflowcanvas
 
+## 0.8.0
+
+### Features
+
+- [#13632](https://github.com/gradio-app/gradio/pull/13632) [`a0800b9`](https://github.com/gradio-app/gradio/commit/a0800b9e4692a22f9bc6095a8d57be49fa38213c) - workflow: add oauth hint.  Thanks @hannahblair!
+
 ## 0.7.0
 
 ### Features
