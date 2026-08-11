@@ -48,7 +48,7 @@ jobs:
           title: "chore: update versions"
           publish: pnpm ci:publish
         env:
-          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: Upload npm logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,19 +64,19 @@ jobs:
         run: gh pr edit "$PR_NUMBER" --add-label "no-visual-update"
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: add label to run flaky tests
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
         run: gh pr edit "$PR_NUMBER" --add-label "flaky-tests"
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: add label to run backend tests on Windows
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
         run: gh pr edit "$PR_NUMBER" --add-label "windows-tests"
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: publish to pypi
         if: steps.changesets.outputs.hasChangesets != 'true'
         uses: "gradio-app/github/actions/publish-pypi@main"
