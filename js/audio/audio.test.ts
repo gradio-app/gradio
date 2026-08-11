@@ -775,6 +775,53 @@ describe("Waveform options", () => {
 	});
 });
 
+describe("Props: show_recording_waveform", () => {
+	setupi18n();
+	afterEach(() => cleanup());
+
+	const native_props = {
+		...default_props,
+		interactive: false,
+		label: "music",
+		value: fake_value,
+		waveform_options: {
+			...default_props.waveform_options,
+			show_recording_waveform: false
+		}
+	};
+
+	test("show_recording_waveform=false dispatches pause from the native player", async () => {
+		const { getByTestId, queryByTestId, listen } = await render(
+			Audio,
+			native_props
+		);
+		expect(queryByTestId("waveform-music")).not.toBeInTheDocument();
+
+		const pause = listen("pause");
+		await fireEvent.pause(getByTestId("audio-player-music"));
+
+		expect(pause).toHaveBeenCalledTimes(1);
+	});
+
+	test("show_recording_waveform=false keeps playback_position in sync both ways", async () => {
+		const { getByTestId, set_data, get_data } = await render(
+			Audio,
+			native_props
+		);
+		const player = getByTestId("audio-player-music") as HTMLAudioElement;
+		await waitFor(() => expect(player.readyState).toBeGreaterThan(0));
+		const halfway = player.duration / 2;
+		const quarter = player.duration / 4;
+
+		player.currentTime = halfway;
+		await fireEvent.timeUpdate(player);
+		expect((await get_data()).playback_position).toBeCloseTo(halfway, 1);
+
+		await set_data({ playback_position: quarter });
+		expect(player.currentTime).toBeCloseTo(quarter, 1);
+	});
+});
+
 describe("Subtitles", () => {
 	setupi18n();
 	afterEach(() => cleanup());
