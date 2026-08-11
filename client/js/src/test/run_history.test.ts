@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import {
 	clear_run_history,
@@ -7,6 +7,7 @@ import {
 	on_run_history_change,
 	read_run_history,
 	run_history_url,
+	stage_run_history_replay,
 	start_run_history,
 	update_run_history,
 	update_run_inputs
@@ -14,11 +15,19 @@ import {
 
 const app_id = "app-under-test";
 const other_app = "some-other-app";
+const replacement_apps = Array.from(
+	{ length: 8 },
+	(_, index) => `replacement-app-${index}`
+);
 const in_browser = typeof window !== "undefined";
 
 afterEach(() => {
 	clear_run_history(app_id);
 	clear_run_history(other_app);
+	for (const replacement_app of replacement_apps) {
+		clear_run_history(replacement_app);
+	}
+	vi.useRealTimers();
 });
 
 describe.skipIf(!in_browser)("run history", () => {
@@ -254,6 +263,33 @@ describe.skipIf(!in_browser)("run history", () => {
 
 		expect(read_run_history(app_id)[0].inputs).toEqual(["mine"]);
 		expect(read_run_history(other_app)[0].inputs).toEqual(["theirs"]);
+	});
+
+	test("removes staged replays when pruning an old app", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2025-01-01T00:00:00Z"));
+		start_run_history({
+			app_id: other_app,
+			endpoint: "/predict",
+			api_name: "/predict",
+			fn_index: 0,
+			inputs: ["old"]
+		});
+		stage_run_history_replay(other_app, read_run_history(other_app)[0]);
+
+		for (const [index, replacement_app] of replacement_apps.entries()) {
+			vi.setSystemTime(new Date(Date.UTC(2025, 0, index + 2)));
+			start_run_history({
+				app_id: replacement_app,
+				endpoint: "/predict",
+				api_name: "/predict",
+				fn_index: 0,
+				inputs: [index]
+			});
+		}
+
+		expect(read_run_history(other_app)).toEqual([]);
+		expect(consume_run_history_replay(other_app)).toBeNull();
 	});
 });
 

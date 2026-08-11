@@ -131,7 +131,7 @@ function prune_apps(current_key: string): void {
 	for (const key of stale) {
 		try {
 			window.localStorage.removeItem(key);
-			window.localStorage.removeItem(
+			window.sessionStorage.removeItem(
 				key.replace(STORAGE_PREFIX, REPLAY_PREFIX)
 			);
 		} catch {
