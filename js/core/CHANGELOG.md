@@ -1,5 +1,11 @@
 # @gradio/core
 
+## 1.10.2
+
+### Fixes
+
+- [#13695](https://github.com/gradio-app/gradio/pull/13695) [`03d7c53`](https://github.com/gradio-app/gradio/commit/03d7c53b5e45fe97fe24d10dd115e7d7bb9f0615) - Let embedded apps shrink back after stretched content stops needing the room.  Thanks @hysts!
+
 ## 1.10.1
 
 ### Fixes
