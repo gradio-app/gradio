@@ -88,5 +88,5 @@ jobs:
           use-oidc: true
       - name: trigger spaces deploy workflow
         env:
-          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
         run: gh workflow run previews-build.yml
