@@ -91,12 +91,18 @@
 		waveform_load_failed && value?.url !== undefined && value?.url !== null
 	);
 
+	// The native element is the player, rather than a hidden decoy, whenever
+	// there is no working waveform to drive playback: the waveform is turned
+	// off, the value is a stream, or the waveform failed to load. Its events
+	// are only meaningful in those cases.
+	let native_player_active = $derived(!use_waveform || native_fallback_active);
+
 	$effect(() => {
 		if (
 			playback_position !== undefined &&
 			old_playback_position !== playback_position
 		) {
-			if (native_fallback_active) {
+			if (native_player_active) {
 				if (audio_player) {
 					audio_player.currentTime = playback_position;
 					old_playback_position = playback_position;
@@ -428,31 +434,32 @@
 
 <audio
 	class="standard-player"
-	class:hidden={use_waveform && !native_fallback_active}
+	class:hidden={!native_player_active}
+	data-testid={label ? "audio-player-" + label : "unlabelled-audio-player"}
 	controls
 	autoplay={waveform_settings.autoplay}
 	{onload}
 	bind:this={audio_player}
 	onended={() => {
-		if (native_fallback_active) playing = false;
+		if (native_player_active) playing = false;
 		onstop?.();
 	}}
 	onplay={() => {
-		if (native_fallback_active) playing = true;
+		if (native_player_active) playing = true;
 		onplay?.();
 	}}
 	onpause={() => {
-		if (!native_fallback_active) return;
+		if (!native_player_active) return;
 		playing = false;
 		onpause?.();
 	}}
 	ontimeupdate={() => {
-		if (!native_fallback_active || !audio_player) return;
+		if (!native_player_active || !audio_player) return;
 		playback_position = audio_player.currentTime;
 		old_playback_position = audio_player.currentTime;
 	}}
 	onloadedmetadata={() => {
-		if (native_fallback_active && audio_player) {
+		if (native_player_active && audio_player) {
 			audio_duration = audio_player.duration;
 		}
 	}}
