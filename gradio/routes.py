@@ -709,6 +709,8 @@ class App(FastAPI):
             request: fastapi.Request,
             user: str = Depends(get_current_user),
         ):
+            if not getattr(app.get_blocks(), "run_history", True):
+                raise HTTPException(status_code=404, detail="Not found")
             return main(request, user)
 
         @app.get("/gradio_api/deep_link")
@@ -2497,6 +2499,7 @@ def mount_gradio_app(
     footer_links: (
         list[Literal["api", "gradio", "settings", "runs"] | dict[str, str]] | None
     ) = None,
+    run_history: bool | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -2540,7 +2543,8 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears once the browser has saved runs for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+        run_history: If True, each user's browser saves the inputs and outputs of their own calls to this app, which they can review and reload from the run history page at /gradio_api/runs. The runs are kept in that browser's local storage, are scoped to the logged-in user if the app uses `auth`, and are never sent to the server. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
@@ -2570,8 +2574,15 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
+    blocks.run_history = (
+        os.environ.get("GRADIO_RUN_HISTORY", "True").lower() == "true"
+        if run_history is None
+        else run_history
+    )
     if footer_links is None:
         footer_links = ["api", "gradio", "settings", "runs"]
+    if not blocks.run_history:
+        footer_links = [link for link in footer_links if link != "runs"]
     blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()

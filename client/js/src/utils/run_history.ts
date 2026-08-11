@@ -4,6 +4,10 @@ import type { GradioEvent, StatusMessage } from "../types";
 // share a history. The id is regenerated whenever an app starts, so a restart
 // begins a fresh history and leaves the previous one orphaned; `prune_apps`
 // keeps those from accumulating.
+//
+// The key also carries the logged-in user, because local storage outlives a
+// session: without it, whoever logs into an authenticated app next on this
+// browser would open the previous user's runs.
 const KEY_ROOT = "gradio:run-history:";
 const STORAGE_PREFIX = `${KEY_ROOT}v2:`;
 const REPLAY_PREFIX = `${KEY_ROOT}replay:v2:`;
@@ -11,6 +15,16 @@ const MAX_RUNS = 100;
 const MAX_APPS = 8;
 
 export type AppId = string | number | null | undefined;
+
+/**
+ * Which history to read or write. `Config` satisfies this shape, so callers
+ * that hold one can pass it straight through.
+ */
+export interface RunHistoryScope {
+	app_id?: AppId;
+	/** The authenticated user, when the app uses `auth`. */
+	username?: string | null;
+}
 
 /**
  * Run history is a side effect of submitting, never the point of it, so no
@@ -58,8 +72,7 @@ export interface StoredRun {
 	streamed?: boolean;
 }
 
-interface StartRunOptions {
-	app_id: AppId;
+interface StartRunOptions extends RunHistoryScope {
 	endpoint: string | number;
 	api_name: string;
 	fn_index: number;
@@ -79,20 +92,26 @@ export function run_history_url(
 	return `${root.replace(/\/+$/, "")}${api_prefix}/runs`;
 }
 
-function storage_key(app_id: AppId): string | null {
+function storage_key(scope: RunHistoryScope | null | undefined): string | null {
 	if (typeof window === "undefined") return null;
+	const app_id = scope?.app_id;
 	if (app_id === null || app_id === undefined || app_id === "") return null;
 
 	try {
 		if (!window.localStorage) return null;
-		return `${STORAGE_PREFIX}${app_id}`;
+		// Encoded so that a username containing the separator cannot be made to
+		// collide with another user's key.
+		const user = scope?.username
+			? `:user:${encodeURIComponent(scope.username)}`
+			: "";
+		return `${STORAGE_PREFIX}${app_id}${user}`;
 	} catch {
 		return null;
 	}
 }
 
-function replay_key(app_id: AppId): string | null {
-	const key = storage_key(app_id);
+function replay_key(scope: RunHistoryScope | null | undefined): string | null {
+	const key = storage_key(scope);
 	return key ? key.replace(STORAGE_PREFIX, REPLAY_PREFIX) : null;
 }
 
@@ -165,8 +184,10 @@ function clone_for_storage(value: unknown): unknown {
 	}
 }
 
-function read_run_history_impl(app_id: AppId): StoredRun[] {
-	const key = storage_key(app_id);
+function read_run_history_impl(
+	scope: RunHistoryScope | null | undefined
+): StoredRun[] {
+	const key = storage_key(scope);
 	if (!key) return [];
 
 	try {
@@ -177,8 +198,11 @@ function read_run_history_impl(app_id: AppId): StoredRun[] {
 	}
 }
 
-function write_run_history(app_id: AppId, runs: StoredRun[]): void {
-	const key = storage_key(app_id);
+function write_run_history(
+	scope: RunHistoryScope | null | undefined,
+	runs: StoredRun[]
+): void {
+	const key = storage_key(scope);
 	if (!key) return;
 
 	let next = runs.slice(0, MAX_RUNS);
@@ -205,8 +229,10 @@ function write_run_history(app_id: AppId, runs: StoredRun[]): void {
 	}
 }
 
-function clear_run_history_impl(app_id: AppId): void {
-	const key = storage_key(app_id);
+function clear_run_history_impl(
+	scope: RunHistoryScope | null | undefined
+): void {
+	const key = storage_key(scope);
 	if (!key) return;
 	try {
 		window.localStorage.removeItem(key);
@@ -216,10 +242,13 @@ function clear_run_history_impl(app_id: AppId): void {
 	notify_run_history_change();
 }
 
-function delete_run_history_impl(app_id: AppId, id: string): void {
+function delete_run_history_impl(
+	scope: RunHistoryScope | null | undefined,
+	id: string
+): void {
 	write_run_history(
-		app_id,
-		read_run_history_impl(app_id).filter((run) => run.id !== id)
+		scope,
+		read_run_history_impl(scope).filter((run) => run.id !== id)
 	);
 	notify_run_history_change();
 }
@@ -252,8 +281,11 @@ function on_run_history_change_impl(listener: () => void): () => void {
 	};
 }
 
-function stage_run_history_replay_impl(app_id: AppId, run: StoredRun): void {
-	const key = replay_key(app_id);
+function stage_run_history_replay_impl(
+	scope: RunHistoryScope | null | undefined,
+	run: StoredRun
+): void {
+	const key = replay_key(scope);
 	if (!key) return;
 	try {
 		window.sessionStorage.setItem(key, JSON.stringify(run));
@@ -262,8 +294,10 @@ function stage_run_history_replay_impl(app_id: AppId, run: StoredRun): void {
 	}
 }
 
-function consume_run_history_replay_impl(app_id: AppId): StoredRun | null {
-	const key = replay_key(app_id);
+function consume_run_history_replay_impl(
+	scope: RunHistoryScope | null | undefined
+): StoredRun | null {
+	const key = replay_key(scope);
 	if (!key) return null;
 	try {
 		const value = window.sessionStorage.getItem(key);
@@ -275,7 +309,7 @@ function consume_run_history_replay_impl(app_id: AppId): StoredRun | null {
 }
 
 function start_run_history_impl(options: StartRunOptions): string | null {
-	const key = storage_key(options.app_id);
+	const key = storage_key(options);
 	if (!key) return null;
 
 	// A new app id means a new key, so clear out the ones left behind before
@@ -307,36 +341,33 @@ function start_run_history_impl(options: StartRunOptions): string | null {
 		status: "running",
 		started_at: new Date().toISOString()
 	};
-	write_run_history(options.app_id, [
-		run,
-		...read_run_history_impl(options.app_id)
-	]);
+	write_run_history(options, [run, ...read_run_history_impl(options)]);
 	notify_run_history_change();
 	return run.id;
 }
 
 function update_run_inputs_impl(
-	app_id: AppId,
+	scope: RunHistoryScope | null | undefined,
 	id: string | null,
 	inputs: unknown
 ): void {
 	if (!id) return;
 
-	const runs = read_run_history_impl(app_id);
+	const runs = read_run_history_impl(scope);
 	const run = runs.find((item) => item.id === id);
 	if (!run) return;
 	run.inputs = clone_for_storage(inputs);
-	write_run_history(app_id, runs);
+	write_run_history(scope, runs);
 }
 
 function update_run_history_impl(
-	app_id: AppId,
+	scope: RunHistoryScope | null | undefined,
 	id: string | null,
 	event: GradioEvent
 ): void {
 	if (!id) return;
 
-	const runs = read_run_history_impl(app_id);
+	const runs = read_run_history_impl(scope);
 	const run = runs.find((item) => item.id === id);
 	if (!run) return;
 
@@ -388,7 +419,7 @@ function update_run_history_impl(
 		deferred_outputs.delete(id);
 	}
 
-	write_run_history(app_id, runs);
+	write_run_history(scope, runs);
 }
 
 const STREAM_WRITE_INTERVAL_MS = 500;
@@ -429,24 +460,36 @@ function mark_complete(run: StoredRun, event: StatusMessage): void {
 
 // Public API. Each of these is a no-op if anything goes wrong.
 
-export function read_run_history(app_id: AppId): StoredRun[] {
-	return safely(() => read_run_history_impl(app_id), []);
+export function read_run_history(
+	scope: RunHistoryScope | null | undefined
+): StoredRun[] {
+	return safely(() => read_run_history_impl(scope), []);
 }
 
-export function clear_run_history(app_id: AppId): void {
-	safely(() => clear_run_history_impl(app_id), undefined);
+export function clear_run_history(
+	scope: RunHistoryScope | null | undefined
+): void {
+	safely(() => clear_run_history_impl(scope), undefined);
 }
 
-export function delete_run_history(app_id: AppId, id: string): void {
-	safely(() => delete_run_history_impl(app_id, id), undefined);
+export function delete_run_history(
+	scope: RunHistoryScope | null | undefined,
+	id: string
+): void {
+	safely(() => delete_run_history_impl(scope, id), undefined);
 }
 
-export function stage_run_history_replay(app_id: AppId, run: StoredRun): void {
-	safely(() => stage_run_history_replay_impl(app_id, run), undefined);
+export function stage_run_history_replay(
+	scope: RunHistoryScope | null | undefined,
+	run: StoredRun
+): void {
+	safely(() => stage_run_history_replay_impl(scope, run), undefined);
 }
 
-export function consume_run_history_replay(app_id: AppId): StoredRun | null {
-	return safely(() => consume_run_history_replay_impl(app_id), null);
+export function consume_run_history_replay(
+	scope: RunHistoryScope | null | undefined
+): StoredRun | null {
+	return safely(() => consume_run_history_replay_impl(scope), null);
 }
 
 export function start_run_history(options: StartRunOptions): string | null {
@@ -454,19 +497,19 @@ export function start_run_history(options: StartRunOptions): string | null {
 }
 
 export function update_run_inputs(
-	app_id: AppId,
+	scope: RunHistoryScope | null | undefined,
 	id: string | null,
 	inputs: unknown
 ): void {
-	safely(() => update_run_inputs_impl(app_id, id, inputs), undefined);
+	safely(() => update_run_inputs_impl(scope, id, inputs), undefined);
 }
 
 export function update_run_history(
-	app_id: AppId,
+	scope: RunHistoryScope | null | undefined,
 	id: string | null,
 	event: GradioEvent
 ): void {
-	safely(() => update_run_history_impl(app_id, id, event), undefined);
+	safely(() => update_run_history_impl(scope, id, event), undefined);
 }
 
 export function on_run_history_change(listener: () => void): () => void {

@@ -246,6 +246,7 @@ class Server(App):
             Literal["api", "gradio", "settings", "runs"] | dict[str, str]
         ]
         | None = None,
+        run_history: bool | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -311,6 +312,7 @@ class Server(App):
             ssl_verify=ssl_verify,
             quiet=quiet,
             footer_links=footer_links,
+            run_history=run_history,
             allowed_paths=allowed_paths,
             blocked_paths=blocked_paths,
             root_path=root_path,

@@ -13,6 +13,7 @@ export {
 	read_run_history,
 	run_history_url,
 	stage_run_history_replay,
+	type RunHistoryScope,
 	type StoredRunComponent,
 	type StoredRun
 } from "./utils/run_history";

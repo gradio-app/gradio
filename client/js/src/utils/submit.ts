@@ -109,26 +109,32 @@ export function submit(
 		// UI submits through an undocumented dependency — `gr.ChatInterface` does
 		// — records nothing for its in-app use.
 		const is_documented_endpoint = dependency.api_visibility === "public";
-		const history_run_id = !is_documented_endpoint
-			? null
-			: start_run_history({
-					app_id: config.app_id,
-					endpoint: history_endpoint,
-					api_name: history_api_name,
-					fn_index,
-					// Aligned to `dependency.inputs` the same way the submitted payload
-					// is, so this placeholder matches the components until the uploaded
-					// files are swapped in by `update_run_inputs` below.
-					inputs: handle_payload(
-						resolved_data,
-						dependency,
-						config.components,
-						"input",
-						true
-					),
-					input_components: dependency.inputs.map(component_metadata),
-					output_components: dependency.outputs.map(component_metadata)
-				});
+		// Either side may opt out: the app for everyone who uses it, and this
+		// caller for itself.
+		const history_enabled =
+			config.run_history !== false && this.options.record_history !== false;
+		const history_scope = { app_id: config.app_id, username: config.username };
+		const history_run_id =
+			!history_enabled || !is_documented_endpoint
+				? null
+				: start_run_history({
+						...history_scope,
+						endpoint: history_endpoint,
+						api_name: history_api_name,
+						fn_index,
+						// Aligned to `dependency.inputs` the same way the submitted payload
+						// is, so this placeholder matches the components until the uploaded
+						// files are swapped in by `update_run_inputs` below.
+						inputs: handle_payload(
+							resolved_data,
+							dependency,
+							config.components,
+							"input",
+							true
+						),
+						input_components: dependency.inputs.map(component_metadata),
+						output_components: dependency.outputs.map(component_metadata)
+					});
 
 		let stream: EventSource | null;
 		let event_id_final = "";
@@ -155,7 +161,7 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			update_run_history(config!.app_id, history_run_id, event);
+			update_run_history(history_scope, history_run_id, event);
 			if (all_events || events_to_publish[event.type]) {
 				push_event(event);
 			}
@@ -233,7 +239,7 @@ export function submit(
 				"input",
 				true
 			);
-			update_run_inputs(config.app_id, history_run_id, input_data || []);
+			update_run_inputs(history_scope, history_run_id, input_data || []);
 			payload = {
 				data: input_data || [],
 				event_data,

@@ -6,6 +6,7 @@
 		on_run_history_change,
 		read_run_history,
 		stage_run_history_replay,
+		type RunHistoryScope,
 		type StoredRun,
 		type StoredRunComponent
 	} from "@gradio/client";
@@ -16,11 +17,11 @@
 
 	interface Props {
 		root: string;
-		app_id?: string | number | null;
+		scope: RunHistoryScope;
 		footer_links?: (string | Record<string, string>)[];
 	}
 
-	let { root, app_id, footer_links = [] }: Props = $props();
+	let { root, scope, footer_links = [] }: Props = $props();
 
 	let app_url = $derived(new URL(root, window.location.href).href);
 	let runs: StoredRun[] = $state([]);
@@ -36,7 +37,7 @@
 	});
 
 	function refresh(): void {
-		runs = read_run_history(app_id);
+		runs = read_run_history(scope);
 	}
 
 	onMount(() => {
@@ -133,7 +134,7 @@
 	}
 
 	function load(run: StoredRun): void {
-		stage_run_history_replay(app_id, run);
+		stage_run_history_replay(scope, run);
 		const app_url = new URL(root, window.location.href);
 		let target = new URL(run.page || app_url.pathname, app_url);
 		if (target.origin !== app_url.origin) target = app_url;
@@ -142,13 +143,13 @@
 
 	function clear_all(): void {
 		if (!window.confirm("Clear all saved runs for this app?")) return;
-		clear_run_history(app_id);
+		clear_run_history(scope);
 		refresh();
 	}
 
 	function delete_run(run: StoredRun): void {
 		if (!window.confirm("Delete this saved run?")) return;
-		delete_run_history(app_id, run.id);
+		delete_run_history(scope, run.id);
 		refresh();
 	}
 </script>

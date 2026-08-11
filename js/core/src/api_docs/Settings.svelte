@@ -15,7 +15,8 @@
 
 	let {
 		root,
-		app_id,
+		run_history_scope,
+		run_history_enabled = true,
 		space_id,
 		pwa_enabled,
 		allow_zoom = $bindable(),
@@ -53,8 +54,11 @@
 		const url = new URL(window.location.href);
 		const theme = url.searchParams.get("__theme");
 		current_theme = (theme as "light" | "dark" | "system") || "system";
-		refreshRunCount();
-		const unsubscribe_run_history = on_run_history_change(refreshRunCount);
+		let unsubscribe_run_history = (): void => {};
+		if (run_history_enabled) {
+			refreshRunCount();
+			unsubscribe_run_history = on_run_history_change(refreshRunCount);
+		}
 		return () => {
 			unsubscribe_run_history();
 			document.body.style.overflow = "auto";
@@ -66,7 +70,7 @@
 	let run_count = $state(0);
 
 	function refreshRunCount(): void {
-		run_count = read_run_history(app_id).length;
+		run_count = read_run_history(run_history_scope).length;
 	}
 
 	function handleLanguageChange(value: string): void {
@@ -179,12 +183,14 @@
 		Start Recording
 	</button>
 </div>
-<div class="banner-wrap">
-	<h2>Run History ({run_count})</h2>
-	<a class="run-history-button" href={run_history_url(root)}>
-		View run history
-	</a>
-</div>
+{#if run_history_enabled}
+	<div class="banner-wrap">
+		<h2>Run History ({run_count})</h2>
+		<a class="run-history-button" href={run_history_url(root)}>
+			View run history
+		</a>
+	</div>
+{/if}
 
 <style>
 	.banner-wrap {

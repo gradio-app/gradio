@@ -15,6 +15,8 @@ import {
 
 const app_id = "app-under-test";
 const other_app = "some-other-app";
+const scope = { app_id };
+const other_scope = { app_id: other_app };
 const replacement_apps = Array.from(
 	{ length: 8 },
 	(_, index) => `replacement-app-${index}`
@@ -22,10 +24,10 @@ const replacement_apps = Array.from(
 const in_browser = typeof window !== "undefined";
 
 afterEach(() => {
-	clear_run_history(app_id);
-	clear_run_history(other_app);
+	clear_run_history(scope);
+	clear_run_history(other_scope);
 	for (const replacement_app of replacement_apps) {
-		clear_run_history(replacement_app);
+		clear_run_history({ app_id: replacement_app });
 	}
 	vi.useRealTimers();
 });
@@ -47,7 +49,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			]
 		});
 
-		const runs = read_run_history(app_id);
+		const runs = read_run_history(scope);
 		expect(runs).toHaveLength(1);
 		expect(runs[0]).toMatchObject({
 			id,
@@ -64,7 +66,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			],
 			page: `${window.location.pathname}${window.location.search}`
 		});
-		expect(read_run_history(other_app)).toEqual([]);
+		expect(read_run_history(other_scope)).toEqual([]);
 	});
 
 	test("replaces inputs with their upload-processed values", () => {
@@ -76,11 +78,11 @@ describe.skipIf(!in_browser)("run history", () => {
 			inputs: [new File(["hello"], "hello.txt")]
 		});
 
-		update_run_inputs(app_id, id, [
+		update_run_inputs(scope, id, [
 			{ path: "/tmp/hello.txt", url: "/gradio_api/file=/tmp/hello.txt" }
 		]);
 
-		expect(read_run_history(app_id)[0].inputs).toEqual([
+		expect(read_run_history(scope)[0].inputs).toEqual([
 			{ path: "/tmp/hello.txt", url: "/gradio_api/file=/tmp/hello.txt" }
 		]);
 	});
@@ -94,13 +96,13 @@ describe.skipIf(!in_browser)("run history", () => {
 			inputs: ["hello"]
 		});
 
-		update_run_history(app_id, id, {
+		update_run_history(scope, id, {
 			type: "data",
 			endpoint: "/predict",
 			fn_index: 0,
 			data: ["hello hello"]
 		});
-		update_run_history(app_id, id, {
+		update_run_history(scope, id, {
 			type: "status",
 			endpoint: "/predict",
 			fn_index: 0,
@@ -109,7 +111,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			time: new Date("2025-05-16T21:45:00Z")
 		});
 
-		expect(read_run_history(app_id)[0]).toMatchObject({
+		expect(read_run_history(scope)[0]).toMatchObject({
 			outputs: ["hello hello"],
 			status: "completed",
 			completed_at: "2025-05-16T21:45:00.000Z"
@@ -125,7 +127,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			inputs: ["hello"]
 		});
 
-		update_run_history(app_id, id, {
+		update_run_history(scope, id, {
 			type: "status",
 			endpoint: "/predict",
 			fn_index: 0,
@@ -135,7 +137,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			time: new Date("2025-05-16T21:45:00Z")
 		});
 
-		expect(read_run_history(app_id)[0]).toMatchObject({
+		expect(read_run_history(scope)[0]).toMatchObject({
 			duration_ms: 1250,
 			completed_at: "2025-05-16T21:45:00.000Z"
 		});
@@ -150,7 +152,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			inputs: [{ circular: null }]
 		});
 
-		update_run_history(app_id, id, {
+		update_run_history(scope, id, {
 			type: "status",
 			endpoint: "/predict",
 			fn_index: 3,
@@ -159,11 +161,11 @@ describe.skipIf(!in_browser)("run history", () => {
 			message: "generation failed"
 		});
 
-		expect(read_run_history(app_id)[0]).toMatchObject({
+		expect(read_run_history(scope)[0]).toMatchObject({
 			status: "failed",
 			error: "generation failed"
 		});
-		expect(read_run_history(app_id)[0].duration_ms).toBeGreaterThanOrEqual(0);
+		expect(read_run_history(scope)[0].duration_ms).toBeGreaterThanOrEqual(0);
 	});
 
 	test("keeps only the newest 100 runs", () => {
@@ -177,7 +179,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			});
 		}
 
-		const runs = read_run_history(app_id);
+		const runs = read_run_history(scope);
 		expect(runs).toHaveLength(100);
 		expect(runs[0].inputs).toEqual([104]);
 		expect(runs.at(-1)?.inputs).toEqual([5]);
@@ -199,10 +201,10 @@ describe.skipIf(!in_browser)("run history", () => {
 			inputs: ["second"]
 		});
 
-		delete_run_history(app_id, first!);
+		delete_run_history(scope, first!);
 
-		expect(read_run_history(app_id)).toHaveLength(1);
-		expect(read_run_history(app_id)[0].inputs).toEqual(["second"]);
+		expect(read_run_history(scope)).toHaveLength(1);
+		expect(read_run_history(scope)[0].inputs).toEqual(["second"]);
 	});
 
 	test("notifies this tab when runs are added, deleted or cleared", () => {
@@ -219,7 +221,7 @@ describe.skipIf(!in_browser)("run history", () => {
 		expect(notified).toBe(1);
 
 		// Progress updates are not structural, so they must not notify.
-		update_run_history(app_id, id, {
+		update_run_history(scope, id, {
 			type: "status",
 			endpoint: "/predict",
 			fn_index: 0,
@@ -228,10 +230,10 @@ describe.skipIf(!in_browser)("run history", () => {
 		});
 		expect(notified).toBe(1);
 
-		delete_run_history(app_id, id!);
+		delete_run_history(scope, id!);
 		expect(notified).toBe(2);
 
-		clear_run_history(app_id);
+		clear_run_history(scope);
 		expect(notified).toBe(3);
 
 		unsubscribe();
@@ -261,8 +263,27 @@ describe.skipIf(!in_browser)("run history", () => {
 			inputs: ["theirs"]
 		});
 
-		expect(read_run_history(app_id)[0].inputs).toEqual(["mine"]);
-		expect(read_run_history(other_app)[0].inputs).toEqual(["theirs"]);
+		expect(read_run_history(scope)[0].inputs).toEqual(["mine"]);
+		expect(read_run_history(other_scope)[0].inputs).toEqual(["theirs"]);
+	});
+
+	test("keeps a separate history per user of the same app", () => {
+		const ada = { app_id, username: "ada" };
+		const grace = { app_id, username: "grace" };
+
+		start_run_history({
+			...ada,
+			endpoint: "/predict",
+			api_name: "/predict",
+			fn_index: 0,
+			inputs: ["ada's secret"]
+		});
+
+		expect(read_run_history(grace)).toEqual([]);
+		expect(read_run_history(scope)).toEqual([]);
+		expect(read_run_history(ada)[0].inputs).toEqual(["ada's secret"]);
+
+		clear_run_history(ada);
 	});
 
 	test("removes staged replays when pruning an old app", () => {
@@ -275,7 +296,7 @@ describe.skipIf(!in_browser)("run history", () => {
 			fn_index: 0,
 			inputs: ["old"]
 		});
-		stage_run_history_replay(other_app, read_run_history(other_app)[0]);
+		stage_run_history_replay(other_scope, read_run_history(other_scope)[0]);
 
 		for (const [index, replacement_app] of replacement_apps.entries()) {
 			vi.setSystemTime(new Date(Date.UTC(2025, 0, index + 2)));
@@ -288,8 +309,8 @@ describe.skipIf(!in_browser)("run history", () => {
 			});
 		}
 
-		expect(read_run_history(other_app)).toEqual([]);
-		expect(consume_run_history_replay(other_app)).toBeNull();
+		expect(read_run_history(other_scope)).toEqual([]);
+		expect(consume_run_history_replay(other_scope)).toBeNull();
 	});
 });
 
@@ -318,7 +339,7 @@ describe.skipIf(in_browser)("run history outside the browser", () => {
 				inputs: ["hello"]
 			})
 		).toBeNull();
-		expect(read_run_history(app_id)).toEqual([]);
-		expect(consume_run_history_replay(app_id)).toBeNull();
+		expect(read_run_history(scope)).toEqual([]);
+		expect(consume_run_history_replay(scope)).toBeNull();
 	});
 });

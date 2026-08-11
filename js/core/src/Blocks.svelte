@@ -67,6 +67,7 @@
 		js,
 		fill_height,
 		username,
+		run_history = true,
 		api_prefix,
 		max_file_size,
 		initial_layout,
@@ -95,6 +96,7 @@
 		js: string | null;
 		fill_height: boolean;
 		username: string | null;
+		run_history?: boolean;
 		api_prefix: string;
 		max_file_size: number | undefined;
 		initial_layout: ComponentMeta | undefined;
@@ -215,7 +217,7 @@
 	let run_count = $state(0);
 
 	function refresh_run_count(): void {
-		run_count = read_run_history(app.config?.app_id).length;
+		run_count = read_run_history(app.config).length;
 	}
 
 	function handle_connection_lost(): void {
@@ -532,7 +534,7 @@
 			bind:clientHeight={footer_height}
 			aria-label="Gradio footer navigation"
 		>
-			{#if footer_links.includes("runs") && run_count > 0}
+			{#if run_history && footer_links.includes("runs") && run_count > 0}
 				<a
 					href={run_history_url(root, api_prefix)}
 					class="run-history"
@@ -687,7 +689,8 @@
 					}}
 					pwa_enabled={app.config.pwa}
 					{root}
-					app_id={app.config?.app_id}
+					run_history_scope={app.config}
+					run_history_enabled={run_history}
 					{space_id}
 					i18n={$reactive_formatter}
 				/>
