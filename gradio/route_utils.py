@@ -1209,15 +1209,57 @@ XSS_SAFE_MIMETYPES = {
     "image/png",
     "image/gif",
     "image/webp",
+    "audio/aac",
+    "audio/aiff",
+    "audio/flac",
+    "audio/mp4",
     "audio/mpeg",
-    "audio/wav",
     "audio/ogg",
+    "audio/wav",
+    "audio/webm",
+    "audio/x-aiff",
+    "audio/x-flac",
+    "audio/x-m4a",
+    "audio/x-matroska",
+    "audio/x-wav",
     "video/mp4",
-    "video/webm",
+    "video/mpeg",
     "video/ogg",
+    "video/quicktime",
+    "video/webm",
+    "video/x-matroska",
+    "video/x-msvideo",
     "text/plain",
     "application/json",
 }
+
+MEDIA_MIMETYPE_OVERRIDES = {
+    ".aac": "audio/aac",
+    ".aif": "audio/aiff",
+    ".aifc": "audio/aiff",
+    ".aiff": "audio/aiff",
+    ".flac": "audio/flac",
+    ".m4a": "audio/mp4",
+    ".m4b": "audio/mp4",
+    ".mka": "audio/x-matroska",
+    ".wav": "audio/wav",
+    ".weba": "audio/webm",
+    ".avi": "video/x-msvideo",
+    ".m4v": "video/mp4",
+    ".mkv": "video/x-matroska",
+    ".mov": "video/quicktime",
+}
+
+
+def register_media_mimetypes() -> None:
+    """Teach `mimetypes` the media types in `MEDIA_MIMETYPE_OVERRIDES`.
+
+    Must be called after `mimetypes.init()`, which rebuilds the database from
+    scratch and would otherwise discard these entries.
+    """
+    for extension, mime_type in MEDIA_MIMETYPE_OVERRIDES.items():
+        mimetypes.add_type(mime_type, extension)
+
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
