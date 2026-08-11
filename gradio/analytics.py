@@ -1,4 +1,4 @@
-"""Functions related to analytics and telemetry."""
+"""Analytics and telemetry helpers."""
 
 from __future__ import annotations
 
