@@ -57,7 +57,6 @@
 "@self/app": minor
 "@self/component-test": minor
 "@self/spa": minor
-"@self/spaces-test": minor
 "gradio": minor
 "gradio_test": minor
 "website": minor
