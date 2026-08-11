@@ -14,6 +14,8 @@
 		col_style = "",
 		cell_style = "",
 		selection_classes = "",
+		is_active = false,
+		aria_row_index,
 		is_editing = false,
 		is_flash = false,
 		is_static = false,
@@ -32,6 +34,7 @@
 		onmousedown,
 		ondblclick,
 		oncontextmenu,
+		onfocus,
 		onblur,
 		on_menu_click,
 		on_select_column,
@@ -45,6 +48,8 @@
 		col_style?: string;
 		cell_style?: string;
 		selection_classes?: string;
+		is_active?: boolean;
+		aria_row_index: number;
 		is_editing?: boolean;
 		is_flash?: boolean;
 		is_static?: boolean;
@@ -63,6 +68,7 @@
 		onmousedown: (event: MouseEvent) => void;
 		ondblclick: (event: MouseEvent) => void;
 		oncontextmenu: (event: MouseEvent) => void;
+		onfocus: () => void;
 		onblur: (detail: {
 			blur_event: FocusEvent;
 			coords: [number, number];
@@ -98,10 +104,15 @@
 	data-row={row_idx}
 	data-col={col_idx}
 	data-testid={`cell-${row_idx}-${col_idx}`}
-	tabindex={is_static ? -1 : undefined}
+	role="gridcell"
+	aria-rowindex={aria_row_index}
+	aria-colindex={col_idx + 1}
+	aria-selected={is_selected}
+	tabindex={is_active ? 0 : -1}
 	{onmousedown}
 	{ondblclick}
 	{oncontextmenu}
+	{onfocus}
 	style="{col_style} {cell_style}"
 >
 	<div class="cell-wrap" bind:this={wrap_el} style={locked_height}>
@@ -127,7 +138,7 @@
 			expanded={is_solo}
 		/>
 		{#if show_menu_button}
-			<CellMenuButton on_click={on_menu_click} />
+			<CellMenuButton on_click={on_menu_click} tab_index={-1} />
 		{/if}
 	</div>
 </div>

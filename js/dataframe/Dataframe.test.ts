@@ -7,6 +7,8 @@ import {
 	within
 } from "@self/tootils/render";
 import { tick } from "svelte";
+import event from "@testing-library/user-event";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import Dataframe from "./Index.svelte";
 
@@ -36,6 +38,14 @@ const default_props = {
 	fullscreen: false,
 	max_height: 500
 };
+
+run_shared_prop_tests({
+	component: Dataframe,
+	name: "Dataframe",
+	base_props: default_props,
+	has_label: false,
+	has_validation_error: false
+});
 
 function get_cell(container: HTMLElement, row: number, col: number) {
 	return container.querySelector(
@@ -256,22 +266,6 @@ describe("Cell selection", () => {
 		expect(next_cell.className).toContain("cell-selected");
 	});
 
-	test("Tab moves to next cell", async () => {
-		const { container } = await render(Dataframe, default_props);
-		await wait();
-
-		const cell = get_cell(container, 0, 0)!;
-		await fireEvent.mouseDown(cell);
-		await wait();
-
-		const table_wrap = get_table_wrap(container)!;
-		await fireEvent.keyDown(table_wrap, { key: "Tab" });
-		await wait();
-
-		const next_cell = get_cell(container, 0, 1)!;
-		expect(next_cell.className).toContain("cell-selected");
-	});
-
 	test("shift+click selects a range", async () => {
 		const { container } = await render(Dataframe, default_props);
 		await wait();
@@ -315,6 +309,240 @@ describe("Cell selection", () => {
 
 		expect(cell.className).toContain("cell-selected");
 	});
+});
+
+describe("Keyboard accessibility", () => {
+	afterEach(() => cleanup());
+
+	const navigation_props = {
+		...default_props,
+		buttons: [] as string[]
+	};
+
+	test("Tab enters the grid on a single active cell", async () => {
+		const before = document.createElement("button");
+		before.textContent = "Before dataframe";
+		document.body.appendChild(before);
+
+		const { getByRole, getByTestId } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+
+		before.focus();
+		await event.tab();
+
+		expect(first_cell).toHaveFocus();
+		expect(first_cell).toHaveAttribute("tabindex", "0");
+		expect(second_cell).toHaveAttribute("tabindex", "-1");
+		expect(getByRole("grid")).toHaveAttribute("aria-rowcount", "4");
+		expect(getByRole("grid")).toHaveAttribute("aria-colcount", "3");
+	});
+
+	test("Tab and Shift+Tab leave the grid in navigation mode", async () => {
+		const before = document.createElement("button");
+		before.textContent = "Before dataframe";
+		document.body.appendChild(before);
+
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const after = document.createElement("button");
+		after.textContent = "After dataframe";
+		document.body.appendChild(after);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.tab();
+		expect(after).toHaveFocus();
+
+		first_cell.focus();
+		await event.tab({ shift: true });
+		expect(before).toHaveFocus();
+	});
+
+	test("arrow keys move DOM focus between cells and headers", async () => {
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+		const second_header = getByTestId("header-1");
+
+		first_cell.focus();
+		await event.keyboard("{ArrowRight}");
+		expect(second_cell).toHaveFocus();
+
+		await event.keyboard("{ArrowUp}");
+		expect(second_header).toHaveFocus();
+
+		await event.keyboard("{ArrowDown}");
+		expect(second_cell).toHaveFocus();
+	});
+
+	test("Home and End move to row and grid boundaries", async () => {
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard("{End}");
+		expect(getByTestId("cell-0-2")).toHaveFocus();
+
+		await event.keyboard("{Control>}{End}{/Control}");
+		expect(getByTestId("cell-2-2")).toHaveFocus();
+
+		await event.keyboard("{Home}");
+		expect(getByTestId("cell-2-0")).toHaveFocus();
+
+		await event.keyboard("{Control>}{Home}{/Control}");
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Enter activates the selected cell, enters editing, and commits back to grid navigation", async () => {
+		const { getByRole, getByTestId, queryByRole, listen } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const select = listen("select");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+
+		const editor = getByRole("textbox", { name: "Edit cell" });
+		await waitFor(() => expect(editor).toHaveFocus());
+		expect(select).toHaveBeenCalledWith({
+			index: [0, 0],
+			value: "Alice",
+			row_value: ["Alice", "30", "Engineer"],
+			col_value: ["Alice", "Bob", "Carol"]
+		});
+
+		await event.keyboard("{Enter}");
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Space activates a cell without entering edit mode", async () => {
+		const { getByTestId, queryByRole, listen } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const select = listen("select");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard(" ");
+
+		expect(select).toHaveBeenCalledTimes(1);
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("F2 toggles edit mode and Escape returns to grid navigation", async () => {
+		const { getByRole, getByTestId, queryByRole } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard("{F2}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
+		await event.keyboard("{F2}");
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+
+		await event.keyboard("{F2}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
+
+		await event.keyboard("{Escape}");
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Tab moves between cells while editing and leaves at the grid boundary", async () => {
+		const before = document.createElement("button");
+		before.textContent = "Before dataframe";
+		document.body.appendChild(before);
+		const { getByRole, getByTestId } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const after = document.createElement("button");
+		after.textContent = "After dataframe";
+		document.body.appendChild(after);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const last_cell = getByTestId("cell-2-2");
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+		await event.tab();
+		expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus();
+		expect(getByTestId("cell-0-1")).toHaveAttribute("tabindex", "0");
+
+		last_cell.focus();
+		await event.keyboard("{Enter}");
+		await event.tab();
+		expect(after).toHaveFocus();
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+		await event.tab({ shift: true });
+		expect(before).toHaveFocus();
+	});
+
+	test("arrow navigation follows visible filtered rows while select reports original indices", async () => {
+		const filtered_props = {
+			...navigation_props,
+			value: {
+				data: [["match one"], ["skip"], ["match two"]],
+				headers: ["Value"],
+				metadata: null
+			},
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [3, "fixed"] as [number, "fixed"],
+			show_search: "search" as const
+		};
+		const { getByPlaceholderText, getByTestId, queryByTestId, listen } =
+			await render(Dataframe, filtered_props);
+		const search = getByPlaceholderText("Search...");
+
+		await event.type(search, "match");
+		await waitFor(() => {
+			expect(queryByTestId("cell-1-0")).not.toBeInTheDocument();
+		});
+
+		const first_match = getByTestId("cell-0-0");
+		const second_match = getByTestId("cell-2-0");
+		first_match.focus();
+		await event.keyboard("{ArrowDown}");
+		expect(second_match).toHaveFocus();
+		expect(second_match).toHaveAttribute("aria-rowindex", "3");
+
+		const select = listen("select");
+		await event.keyboard(" ");
+		expect(select).toHaveBeenCalledWith({
+			index: [2, 0],
+			value: "match two",
+			row_value: ["match two"],
+			col_value: ["match one", "skip", "match two"]
+		});
+	});
+
+	test.todo(
+		"VISUAL: keyboard focus shows a visible outline around the active Dataframe cell — needs Playwright visual regression screenshot comparison"
+	);
 });
 
 describe("Header overflow", () => {
