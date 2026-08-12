@@ -225,6 +225,26 @@ describe("next_frame_height", () => {
 		reset_resize_growth(frame.state);
 		expect(frame.tick(revealed)).toBeGreaterThan(frame.viewport);
 	});
+
+	test("reports the settled layout after initial rendering trips the limiter", () => {
+		const frame = new Frame(670);
+		let needs = 700;
+		const rendering: Content = () => {
+			needs += 100;
+			return { stretched_bottom: needs, unstretched_bottom: needs };
+		};
+
+		for (let i = 0; i < 20; i++) {
+			frame.tick(rendering);
+			frame.apply();
+		}
+
+		const settled = rigid(frame.viewport + 300);
+		expect(frame.tick(settled)).toBe(null);
+
+		reset_resize_growth(frame.state);
+		expect(frame.tick(settled)).toBeGreaterThan(frame.viewport);
+	});
 });
 
 describe("setup_iframe_resizer", () => {
