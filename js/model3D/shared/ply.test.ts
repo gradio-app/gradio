@@ -130,6 +130,14 @@ describe("ascii_ply_to_binary", () => {
 		expect(result.byteLength).toBe(new_header.byte_length + face + 13);
 	});
 
+	test("stops at the end of the body, not at the declared count", () => {
+		const malicious = MESH_PLY.replace("3 0 1 2", "9999999999 0 1 2");
+		const bytes = encode(malicious);
+		expect(() =>
+			ascii_ply_to_binary(bytes, parse_ply_header(bytes)!)
+		).toThrowError(/Truncated/);
+	});
+
 	test("throws when the body has fewer rows than the header promises", () => {
 		const truncated = MESH_PLY.replace("element vertex 3", "element vertex 4");
 		const bytes = encode(truncated);
