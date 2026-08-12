@@ -1,5 +1,15 @@
 # @self/spa
 
+## 1.7.0
+
+### Features
+
+- [#13718](https://github.com/gradio-app/gradio/pull/13718) [`a9e8382`](https://github.com/gradio-app/gradio/commit/a9e8382c4f68e938b5fceef299d7539434c6063f) - Add browser-local run history and loading.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
 ## 1.6.0
 
 ### Features

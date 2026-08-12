@@ -1,5 +1,15 @@
 # @gradio/workflowcanvas
 
+## 0.8.1
+
+### Features
+
+- [#13750](https://github.com/gradio-app/gradio/pull/13750) [`e0f0790`](https://github.com/gradio-app/gradio/commit/e0f0790b6fbe591cfb6de968316596806f5b59dc) - Workflow: only inline app-owned files, and keep opened HTML off the app origin.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
 ## 0.8.0
 
 ### Features

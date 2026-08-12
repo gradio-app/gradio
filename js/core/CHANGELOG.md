@@ -1,5 +1,16 @@
 # @gradio/core
 
+## 1.11.0
+
+### Features
+
+- [#13718](https://github.com/gradio-app/gradio/pull/13718) [`a9e8382`](https://github.com/gradio-app/gradio/commit/a9e8382c4f68e938b5fceef299d7539434c6063f) - Add browser-local run history and loading.  Thanks @abidlabs!
+- [#13751](https://github.com/gradio-app/gradio/pull/13751) [`1c8aa23`](https://github.com/gradio-app/gradio/commit/1c8aa23263ef1d3a641690395b8f0d816b593cc3) - Fix initial Spaces iframe resize after app render.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
 ## 1.10.3
 
 ### Fixes
