@@ -2569,7 +2569,9 @@ def test_server_fn_forwards_x_ip_token_via_local_context():
     tb.get_ip_token = server(get_ip_token)  # type: ignore
     iface = gr.Interface(lambda x: x, inputs=tb, outputs="text")
     component_id = next(
-        c["id"] for c in iface.config["components"] if c["type"] == "textbox"  # type: ignore
+        c["id"]
+        for c in iface.config["components"]
+        if c["type"] == "textbox"  # type: ignore
     )
     _, local_url, _ = iface.launch(prevent_thread_lock=True)
     response = requests.post(
