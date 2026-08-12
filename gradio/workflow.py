@@ -414,9 +414,6 @@ def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
 
 
 def _save_tmp(result, ext: str) -> dict:
-    # The Gradio cache, not a bare temp dir: this is where the rest of the library
-    # keeps app-produced files, so these outputs are servable over
-    # `/gradio_api/file=` and are covered by the app's own file policy.
     directory = get_upload_folder()
     os.makedirs(directory, exist_ok=True)
     path = os.path.join(directory, f"workflow_{os.urandom(8).hex()}.{ext}")
@@ -440,11 +437,6 @@ def _chat_image_url(a) -> str:
     `/gradio_api/file=` URL is meaningless there, so those are inlined as a
     data URI. Absolute http(s) URLs are passed through, though note the
     provider still has to be able to fetch them.
-
-    Inlining reads bytes off disk, so only files inside the Gradio cache are
-    inlined -- uploads, component outputs, and operator outputs, i.e. the files
-    the app itself put there. Any other local path is passed through unread,
-    exactly as a non-existent one already was.
     """
     src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
     if not isinstance(src, str) or not src:
