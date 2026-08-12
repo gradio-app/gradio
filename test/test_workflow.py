@@ -734,14 +734,16 @@ class TestChatImageUrl:
 
         assert _chat_image_url({"path": str(owned)}).startswith("data:")
 
-    def test_inlines_operator_outputs(self, tmp_path, monkeypatch):
-        from gradio.workflow import _save_tmp
+    def test_operator_outputs_land_in_the_cache_and_inline(self, tmp_path, monkeypatch):
+        from gradio.utils import get_upload_folder, is_in_or_equal
+        from gradio.workflow import _chat_image_url, _save_tmp
 
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
-        from gradio.workflow import _chat_image_url
-
         saved = _save_tmp(b"operator-output", "png")
 
+        # written where the rest of the library keeps app-produced files, which is
+        # what lets one containment check cover uploads and operator outputs alike
+        assert is_in_or_equal(saved["path"], get_upload_folder())
         assert _chat_image_url({"path": saved["path"]}).startswith("data:")
 
     def test_does_not_read_files_outside_the_cache(self, tmp_path, monkeypatch):

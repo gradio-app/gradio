@@ -33,7 +33,12 @@ from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
-from gradio.utils import colab_check, get_space, is_in_or_equal
+from gradio.utils import (
+    colab_check,
+    get_space,
+    get_upload_folder,
+    is_in_or_equal,
+)
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -409,9 +414,12 @@ def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
 
 
 def _save_tmp(result, ext: str) -> dict:
-    path = os.path.join(
-        tempfile.gettempdir(), f"hf_workflow_{os.urandom(8).hex()}.{ext}"
-    )
+    # The Gradio cache, not a bare temp dir: this is where the rest of the library
+    # keeps app-produced files, so these outputs are servable over
+    # `/gradio_api/file=` and are covered by the app's own file policy.
+    directory = get_upload_folder()
+    os.makedirs(directory, exist_ok=True)
+    path = os.path.join(directory, f"workflow_{os.urandom(8).hex()}.{ext}")
     if hasattr(result, "save"):
         result.save(path)
     else:
@@ -424,25 +432,6 @@ def _img_url(a) -> str:
     return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
 
 
-def _is_app_owned_file(path: str) -> bool:
-    """True for files this app received or produced, and only those.
-
-    Inlining reads bytes off disk, so the set of readable paths has to be the set
-    the app itself put there: uploads and component outputs in the Gradio cache
-    and upload folders, plus the operator outputs written by `_save_tmp`. A path
-    that merely happens to be readable by this process is not the app's to send.
-    """
-    from gradio import utils
-
-    if is_in_or_equal(path, utils.get_cache_folder()) or is_in_or_equal(
-        path, utils.get_upload_folder()
-    ):
-        return True
-    return os.path.basename(path).startswith("hf_workflow_") and is_in_or_equal(
-        path, tempfile.gettempdir()
-    )
-
-
 def _chat_image_url(a) -> str:
     """Return an image reference a provider can actually resolve.
 
@@ -452,8 +441,10 @@ def _chat_image_url(a) -> str:
     data URI. Absolute http(s) URLs are passed through, though note the
     provider still has to be able to fetch them.
 
-    Only app-owned files are inlined; any other local path is passed through
-    unread, exactly as a non-existent one already was.
+    Inlining reads bytes off disk, so only files inside the Gradio cache are
+    inlined -- uploads, component outputs, and operator outputs, i.e. the files
+    the app itself put there. Any other local path is passed through unread,
+    exactly as a non-existent one already was.
     """
     src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
     if not isinstance(src, str) or not src:
@@ -461,7 +452,7 @@ def _chat_image_url(a) -> str:
     if src.startswith(("data:", "http://", "https://")):
         return src
     src = src.removeprefix("/gradio_api/file=")
-    if not os.path.isfile(src) or not _is_app_owned_file(src):
+    if not os.path.isfile(src) or not is_in_or_equal(src, get_upload_folder()):
         return src
     mime = mimetypes.guess_type(src)[0] or "image/png"
     with open(src, "rb") as f:
