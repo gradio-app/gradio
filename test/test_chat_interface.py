@@ -278,6 +278,40 @@ class TestInit:
                 Message(role="assistant", content=[TextMessage(text="ro")]),
             ]
 
+    @pytest.mark.asyncio
+    async def test_history_mutation_in_fn_is_ignored_consistently(self):
+        # Mutating `history` inside the chat function used to change the conversation
+        # for a non-streaming function but not for a streaming one, because the two
+        # paths copied the history at different points relative to running the
+        # function. See https://github.com/gradio-app/gradio/issues/10823.
+        def mutating(message, history):
+            history.append({"role": "assistant", "content": "INJECTED BY FN"})
+            return "reply"
+
+        def mutating_stream(message, history):
+            history.append({"role": "assistant", "content": "INJECTED BY FN"})
+            yield "reply"
+
+        expected = [
+            {"role": "user", "content": "hi"},
+            {"role": "assistant", "content": "reply"},
+        ]
+
+        original_history: list[Any] = []
+        _, non_streaming_history = await gr.ChatInterface(mutating)._submit_fn(
+            "hi", original_history
+        )
+        assert non_streaming_history == expected
+        assert original_history == []
+
+        streaming_history = None
+        async for _, streaming_history in gr.ChatInterface(
+            mutating_stream
+        )._stream_fn("hi", original_history):
+            pass
+        assert streaming_history == expected
+        assert original_history == []
+
     def test_custom_chatbot_with_events(self):
         with gr.Blocks() as demo:
             chatbot = gr.Chatbot()
