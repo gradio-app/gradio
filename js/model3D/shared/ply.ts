@@ -3,9 +3,6 @@
  * renderer handles, and ordinary meshes and point clouds, which Babylon
  * handles. The extension alone doesn't say which one a file is, so the header
  * has to be read before a renderer can be picked.
- *
- * Babylon's PLY support is also little-endian binary only, so ASCII files are
- * transcoded here before being handed over.
  */
 
 type ScalarType =
@@ -94,7 +91,6 @@ const EMIT_TYPE: Record<ScalarType, ScalarType> = {
 const LIST_COUNT_TYPE: ScalarType = "uchar";
 const LIST_ENTRY_TYPE: ScalarType = "int";
 
-/** How far into a file to look for `end_header` before giving up. */
 const HEADER_SCAN_LIMIT = 64 * 1024;
 
 export type PlyFormat = "ascii" | "binary_little_endian" | "binary_big_endian";
@@ -122,12 +118,8 @@ export interface PlyHeader {
 }
 
 export type PlySource =
-	/** A Gaussian splat: render with gsplat, which fetches the URL itself. */
 	| { renderer: "gsplat" }
-	/**
-	 * A mesh or point cloud: render with Babylon. `data` is set only when the
-	 * file had to be transcoded, otherwise Babylon fetches the URL itself.
-	 */
+	/** `data` is set only when the file had to be transcoded. */
 	| { renderer: "babylon"; data?: Uint8Array<ArrayBuffer> };
 
 export function parse_ply_header(bytes: Uint8Array): PlyHeader | null {
@@ -227,11 +219,9 @@ function binary_header_text(header: PlyHeader): string {
 }
 
 /**
- * Rewrites an ASCII PLY as little-endian binary. The header is rebuilt from the
- * parsed elements rather than copied from the source, so the line endings, type
- * spellings and list layout all come out in the one dialect Babylon reads. A
- * copied header keeps whatever the writing tool used, and CRLF alone is enough
- * for Babylon to miss `end_header` and treat the whole file as a raw splat.
+ * Rewrites an ASCII PLY as little-endian binary. The header is rebuilt rather
+ * than copied because Babylon reads one narrow dialect: a copied CRLF header is
+ * enough for it to miss `end_header` and treat the file as a raw splat.
  */
 export function ascii_ply_to_binary(
 	bytes: Uint8Array,
