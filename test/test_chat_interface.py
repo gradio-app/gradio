@@ -304,12 +304,9 @@ class TestInit:
         assert non_streaming_history == expected
         assert original_history == []
 
-        streaming_history = None
-        async for _, streaming_history in gr.ChatInterface(
-            mutating_stream
-        )._stream_fn("hi", original_history):
-            pass
-        assert streaming_history == expected
+        stream = gr.ChatInterface(mutating_stream)._stream_fn("hi", original_history)
+        streamed = [chunk async for chunk in stream]
+        assert streamed[-1][1] == expected
         assert original_history == []
 
     def test_custom_chatbot_with_events(self):
