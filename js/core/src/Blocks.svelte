@@ -488,6 +488,8 @@
 
 		app_tree.ready.then(() => {
 			ready = true;
+			reset_resize_growth(resize_state);
+			void tick().then(handle_resize);
 			dep_manager.dispatch_load_events();
 		});
 
