@@ -2553,6 +2553,39 @@ def test_server_fn_passes_request():
     assert response.json()["_url"].endswith("/gradio_api/component_server")
 
 
+def test_server_fn_forwards_x_ip_token_via_local_context():
+    """/component_server must set LocalContext.request so gradio_client.Client
+    can forward the caller's x-ip-token to downstream ZeroGPU Spaces."""
+    import requests
+
+    from gradio.components.base import server
+    from gradio.context import LocalContext
+
+    def get_ip_token(self, _data):
+        req = LocalContext.request.get(None)
+        return req.headers.get("x-ip-token") if req else None
+
+    tb = gr.Textbox()
+    tb.get_ip_token = server(get_ip_token)  # type: ignore
+    iface = gr.Interface(lambda x: x, inputs=tb, outputs="text")
+    component_id = next(
+        c["id"] for c in iface.config["components"] if c["type"] == "textbox"  # type: ignore
+    )
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+    response = requests.post(
+        f"{local_url}/gradio_api/component_server",
+        json={
+            "session_hash": "foo",
+            "component_id": component_id,
+            "fn_name": "get_ip_token",
+            "data": json.dumps({}),
+        },
+        headers={"x-ip-token": "test-token"},
+    )
+    assert response.status_code == 200
+    assert response.json() == "test-token"
+
+
 def test_slugify():
     items = (
         ("Hello, World!", "hello-world"),

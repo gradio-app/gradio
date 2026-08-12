@@ -71,7 +71,7 @@ from gradio import (
     utils,
 )
 from gradio.brotli_middleware import BrotliMiddleware
-from gradio.context import Context
+from gradio.context import Context, LocalContext
 from gradio.data_classes import (
     CancelBody,
     ComponentServerBlobBody,
@@ -1718,12 +1718,18 @@ class App(FastAPI):
                 request,  # type: ignore
                 None,
             )
-            if inspect.iscoroutinefunction(fn):
-                return await fn(*processed_input)
-            else:
+            # So `gradio_client.Client` in a server fn can forward `x-ip-token`
+            # (ZeroGPU quota) — regular event handlers get this via
+            # `get_function_with_locals`, this path bypasses that wrapping.
+            LocalContext.request.set(request)  # type: ignore
+            try:
+                if inspect.iscoroutinefunction(fn):
+                    return await fn(*processed_input)
                 return await anyio.to_thread.run_sync(
                     fn, *processed_input, limiter=app.get_blocks().limiter
                 )
+            finally:
+                LocalContext.request.set(None)
 
         @router.get(
             "/queue/status",
