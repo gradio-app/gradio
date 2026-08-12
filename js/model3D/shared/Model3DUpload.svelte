@@ -6,7 +6,7 @@
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type Canvas3D from "./Canvas3D.svelte";
-	import { create_renderer } from "./renderer.svelte";
+	import { create_renderer } from "./renderer.svelte.js";
 
 	let {
 		value = $bindable(),

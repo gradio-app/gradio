@@ -16,9 +16,19 @@ export function create_renderer(get_value: () => FileData | null | undefined) {
 	let data = $state<Uint8Array<ArrayBuffer>>();
 	let gsplat_component = $state<typeof Canvas3DGS>();
 	let babylon_component = $state<typeof Canvas3D>();
+	// Deliberately not reactive: the effect reads it to recognise a value it has
+	// already resolved, and tracking it would make the effect re-run itself.
+	let resolved: string | undefined;
 
 	$effect(() => {
 		const file = get_value();
+		const key = file ? `${file.path}\n${file.url ?? ""}` : "";
+		// The same file arriving again would otherwise tear the canvas down and
+		// fetch the header a second time, which for Babylon means discarding an
+		// engine and building a new one.
+		if (key === resolved) return;
+
+		resolved = undefined;
 		renderer = undefined;
 		data = undefined;
 		if (!file) return;
@@ -29,6 +39,9 @@ export function create_renderer(get_value: () => FileData | null | undefined) {
 		let stale = false;
 		const use = (source: PlySource): void => {
 			if (stale) return;
+			// Only now, so an effect re-run while the header is still in flight
+			// starts over rather than settling on nothing.
+			resolved = key;
 			renderer = source.renderer;
 			data = source.renderer === "babylon" ? source.data : undefined;
 			if (source.renderer === "gsplat") {

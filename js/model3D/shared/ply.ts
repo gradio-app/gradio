@@ -87,7 +87,10 @@ const EMIT_TYPE: Record<ScalarType, ScalarType> = {
 };
 
 // Babylon reads a face as a uchar length followed by three 32-bit indices and
-// ignores what the header declares, so lists are written to match that.
+// ignores what the header declares, so lists are written to match that. Its
+// header parser never looks at faces, so unlike the vertex layout this pairing
+// has no test holding it in place; it was checked by eye against a rendered
+// mesh.
 const LIST_COUNT_TYPE: ScalarType = "uchar";
 const LIST_ENTRY_TYPE: ScalarType = "int";
 
@@ -205,6 +208,10 @@ export function is_gaussian_splat_ply(header: PlyHeader): boolean {
 function binary_header_text(header: PlyHeader): string {
 	const lines = ["ply", "format binary_little_endian 1.0"];
 	for (const element of header.elements) {
+		// Skipped in the body as well, so declaring it would describe rows that
+		// aren't there.
+		if (element.properties.length === 0) continue;
+
 		lines.push(`element ${element.name} ${element.count}`);
 		for (const property of element.properties) {
 			lines.push(
