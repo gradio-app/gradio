@@ -68,6 +68,28 @@
 	);
 	const choices = $derived(widgetPort?.choices ?? null);
 	const hasChoices = $derived(!!choices?.length);
+
+	// When the schema is ambiguous (any/json/file) but the runtime value carries
+	// a media MIME, render the media instead of a JSON blob.
+	const effectiveWidgetType = $derived<PortType>(
+		((): PortType => {
+			if (!isReadonly) return widgetType;
+			if (
+				widgetType !== "any" &&
+				widgetType !== "json" &&
+				widgetType !== "file"
+			)
+				return widgetType;
+			const v = node.data?.[widgetPortId];
+			if (!v || typeof v !== "object" || Array.isArray(v)) return widgetType;
+			const mime = (v as FileValue).mime;
+			if (typeof mime !== "string") return widgetType;
+			if (mime.startsWith("video/")) return "video";
+			if (mime.startsWith("image/")) return "image";
+			if (mime.startsWith("audio/")) return "audio";
+			return widgetType;
+		})()
+	);
 	const multiselect = $derived(!!widgetPort?.multiselect);
 
 	let fileInputEl: HTMLInputElement | undefined = $state();
@@ -239,7 +261,8 @@
 	class="widget-zone nodrag nopan nowheel"
 	class:fill={fillHeight}
 	class:native-resize={nativeTextareaResize}
-	class:text-full={(widgetType === "text" || widgetType === "json") &&
+	class:text-full={(effectiveWidgetType === "text" ||
+		effectiveWidgetType === "json") &&
 		!hasChoices}
 	onmousedown={(e) => e.stopPropagation()}
 	onpointerdown={(e) => e.stopPropagation()}
@@ -282,18 +305,18 @@
 				</label>
 			{/each}
 		</div>
-	{:else if widgetType === "text" || widgetType === "json"}
+	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json"}
 		<div class="widget-text-wrap">
 			<div class="widget-gradio-wrap">
 				<BaseTextbox
 					value={getTextValue()}
 					label="text"
 					show_label={false}
-					lines={widgetType === "json" ? 4 : 3}
+					lines={effectiveWidgetType === "json" ? 4 : 3}
 					max_lines={8}
 					placeholder={isReadonly
 						? "Waiting for output..."
-						: widgetType === "json"
+						: effectiveWidgetType === "json"
 							? '{"key": "value"}'
 							: "Enter text..."}
 					disabled={isReadonly}
@@ -304,7 +327,7 @@
 				/>
 			</div>
 		</div>
-	{:else if widgetType === "number"}
+	{:else if effectiveWidgetType === "number"}
 		<div class="widget-number-wrap">
 			{#if isReadonly}
 				<div class="widget-text-display">
@@ -320,7 +343,7 @@
 				/>
 			{/if}
 		</div>
-	{:else if widgetType === "boolean"}
+	{:else if effectiveWidgetType === "boolean"}
 		<div class="widget-bool-wrap">
 			<label class="widget-checkbox-row">
 				<input
@@ -335,7 +358,7 @@
 				>
 			</label>
 		</div>
-	{:else if widgetType === "html"}
+	{:else if effectiveWidgetType === "html"}
 		{#if htmlValue}
 			<div
 				class="widget-html-preview"
@@ -365,11 +388,11 @@
 		{:else}
 			<div class="widget-placeholder">Waiting for output...</div>
 		{/if}
-	{:else if widgetType === "image" || widgetType === "audio" || widgetType === "video" || widgetType === "file" || widgetType === "gallery" || widgetType === "model3d"}
+	{:else if effectiveWidgetType === "image" || effectiveWidgetType === "audio" || effectiveWidgetType === "video" || effectiveWidgetType === "file" || effectiveWidgetType === "gallery" || effectiveWidgetType === "model3d"}
 		{@const fileVal = getFileValue()}
 		{#if fileVal}
 			<div class="widget-preview">
-				{#if (widgetType === "image" || widgetType === "gallery") && isReadonly}
+				{#if (effectiveWidgetType === "image" || effectiveWidgetType === "gallery") && isReadonly}
 					<div class="widget-gradio-wrap widget-gradio-image">
 						<BaseStaticImage
 							value={{
@@ -384,13 +407,13 @@
 							buttons={[]}
 						/>
 					</div>
-				{:else if widgetType === "image" || widgetType === "gallery"}
+				{:else if effectiveWidgetType === "image" || effectiveWidgetType === "gallery"}
 					<img class="widget-img" src={fileVal.url} alt={fileVal.name} />
-				{:else if widgetType === "audio"}
+				{:else if effectiveWidgetType === "audio"}
 					<div class="widget-audio-shell">
 						<audio class="widget-audio" controls src={fileVal.url}></audio>
 					</div>
-				{:else if widgetType === "video"}
+				{:else if effectiveWidgetType === "video"}
 					<video class="widget-video" controls src={fileVal.url}></video>
 				{:else}
 					<div class="widget-file-info">
@@ -398,7 +421,7 @@
 					</div>
 				{/if}
 				<div class="widget-preview-actions">
-					{#if (widgetType === "image" || widgetType === "gallery") && wf?.onviewfullscreen}
+					{#if (effectiveWidgetType === "image" || effectiveWidgetType === "gallery") && wf?.onviewfullscreen}
 						<button
 							class="widget-action"
 							onclick={(e) => {
