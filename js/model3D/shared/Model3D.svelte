@@ -4,9 +4,8 @@
 	import { File, Download, Undo } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
-	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
-	import { resolve_ply_source, type PlySource } from "./ply";
+	import { create_renderer } from "./renderer.svelte";
 
 	let {
 		value,
@@ -33,57 +32,11 @@
 	} = $props();
 
 	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
-	let use_3dgs = $state(false);
-	let ply_data = $state<Uint8Array<ArrayBuffer>>();
-	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
-	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3D | undefined>();
 
-	async function loadCanvas3D(): Promise<typeof Canvas3D> {
-		const module = await import("./Canvas3D.svelte");
-		return module.default;
-	}
-	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
-		const module = await import("./Canvas3DGS.svelte");
-		return module.default;
-	}
-
-	$effect(() => {
-		const file = value;
-		if (!file) return;
-
-		const is_splat = file.path.endsWith(".splat");
-		const is_ply = file.path.endsWith(".ply");
-		// Assume a .ply is a splat until its header says otherwise, so the
-		// toolbar doesn't change once the header has been read.
-		use_3dgs = is_splat || is_ply;
-
-		let stale = false;
-		const use = (source: PlySource): void => {
-			if (stale) return;
-			use_3dgs = source.renderer === "gsplat";
-			ply_data = source.renderer === "babylon" ? source.data : undefined;
-			if (use_3dgs) {
-				loadCanvas3DGS().then((component) => {
-					Canvas3DGSComponent = component;
-				});
-			} else {
-				loadCanvas3D().then((component) => {
-					Canvas3DComponent = component;
-				});
-			}
-		};
-
-		if (is_ply && file.url) {
-			resolve_ply_source(file.url).then(use);
-		} else {
-			use({ renderer: is_splat || is_ply ? "gsplat" : "babylon" });
-		}
-
-		return () => {
-			stale = true;
-		};
-	});
+	const model = create_renderer(() => value);
+	const GaussianCanvas = $derived(model.gsplat_component);
+	const BabylonCanvas = $derived(model.babylon_component);
 
 	function handle_undo(): void {
 		canvas3d?.reset_camera_position();
@@ -109,7 +62,7 @@
 {#if value}
 	<div class="model3D" data-testid="model3d">
 		<IconButtonWrapper>
-			{#if !use_3dgs}
+			{#if model.renderer === "babylon"}
 				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->
 				<IconButton
 					Icon={Undo}
@@ -128,10 +81,10 @@
 			</a>
 		</IconButtonWrapper>
 
-		{#if use_3dgs}
-			<Canvas3DGSComponent {value} {zoom_speed} {pan_speed} />
-		{:else}
-			<Canvas3DComponent
+		{#if model.renderer === "gsplat" && GaussianCanvas}
+			<GaussianCanvas {value} {zoom_speed} {pan_speed} />
+		{:else if model.renderer === "babylon" && BabylonCanvas}
+			<BabylonCanvas
 				bind:this={canvas3d}
 				{value}
 				{display_mode}
@@ -139,7 +92,7 @@
 				{camera_position}
 				{zoom_speed}
 				{pan_speed}
-				data={ply_data}
+				data={model.data}
 			/>
 		{/if}
 	</div>
