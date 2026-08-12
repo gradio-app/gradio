@@ -17,7 +17,7 @@ import sys
 import time
 import traceback
 import warnings
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -230,7 +230,8 @@ class App(FastAPI):
 
     def __init__(
         self,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         **kwargs,
     ):
         self.tokens = {}
@@ -365,7 +366,8 @@ class App(FastAPI):
         blocks: gradio.Blocks,
         app: App | None = None,
         app_kwargs: dict[str, Any] | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         strict_cors: bool = True,
         mcp_server: bool | None = None,
         debug: bool = False,
@@ -384,6 +386,8 @@ class App(FastAPI):
             app.router.lifespan_context = create_lifespan_handler(
                 app_kwargs.get("lifespan", None), *delete_cache
             )
+            if auth_dependency is not None:
+                app.auth_dependency = auth_dependency
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
@@ -403,9 +407,12 @@ class App(FastAPI):
 
         @router.get("/user")
         @router.get("/user/")
-        def get_current_user(request: fastapi.Request) -> str | None:
+        async def get_current_user(request: fastapi.Request) -> str | None:
             if app.auth_dependency is not None:
-                return app.auth_dependency(request)
+                user = app.auth_dependency(request)
+                if inspect.isawaitable(user):
+                    user = await user
+                return user
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -2504,7 +2511,8 @@ def mount_gradio_app(
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
     auth_message: str | None = None,
-    auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+    auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+    | None = None,
     root_path: str | None = None,
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
