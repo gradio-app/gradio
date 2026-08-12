@@ -25,7 +25,6 @@ import {
 	SSE_DATA_URL,
 	RESET_URL,
 	CANCEL_URL,
-	ACK_URL,
 	WS_PROTOCOL_MSG
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
@@ -84,7 +83,6 @@ export function submit(
 			? []
 			: map_data_to_params(data, endpoint_info);
 
-		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
 		if (protocol === "ws") {
 			throw new Error(WS_PROTOCOL_MSG);
@@ -122,7 +120,7 @@ export function submit(
 			config.run_history !== false && this.options.record_history !== false;
 		const history_scope = { app_id: config.app_id, username: config.username };
 		const history_run_id =
-			!history_enabled || !is_documented_endpoint
+			resume_event_id || !history_enabled || !is_documented_endpoint
 				? null
 				: start_run_history({
 						...history_scope,
@@ -210,13 +208,10 @@ export function submit(
 			if (!event_id_final) return;
 			if (!options.resume_sessions) return;
 			const response = await that
-				.fetch(`${config!.root}${api_prefix}/${ACK_URL}`, {
+				.fetch(`${config!.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
-					body: JSON.stringify({
-						event_id: event_id_final,
-						session_hash
-					})
+					body: JSON.stringify({ event_id: event_id_final })
 				})
 				.catch(() => null);
 			if (response?.ok) clear_resumable_event(event_id_final);

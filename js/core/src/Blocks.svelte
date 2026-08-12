@@ -461,11 +461,6 @@
 			window.parentIFrame?.autoResize(false);
 		}
 
-		is_mobile_device =
-			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
-			);
-
 		refresh_run_count();
 		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
 

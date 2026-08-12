@@ -53,11 +53,6 @@ class CancelBody(BaseModel):
     event_id: str
 
 
-class QueueAckBody(BaseModel):
-    session_hash: str
-    event_id: str
-
-
 class QueueCloseBody(BaseModel):
     session_hash: str
 
