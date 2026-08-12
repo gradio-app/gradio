@@ -11,7 +11,8 @@
 		clear_color,
 		camera_position,
 		zoom_speed,
-		pan_speed
+		pan_speed,
+		data
 	}: {
 		value: FileData;
 		display_mode: "solid" | "point_cloud" | "wireframe";
@@ -19,6 +20,8 @@
 		camera_position: [number | null, number | null, number | null];
 		zoom_speed: number;
 		pan_speed: number;
+		/** Already-decoded bytes to load instead of fetching `value.url`. */
+		data?: Uint8Array<ArrayBuffer>;
 	} = $props();
 
 	let url = $derived(value.url);
@@ -64,7 +67,9 @@
 
 	$effect(() => {
 		if (mounted) {
-			void load_model(url);
+			// Babylon picks its loader from the filename, so decoded bytes are
+			// handed over as a named file rather than a bare buffer.
+			void load_model(data ? new File([data], "model.ply") : url);
 		}
 	});
 
@@ -74,13 +79,13 @@
 		viewerDetails.scene.forceWireframe = wireframe;
 	}
 
-	async function load_model(url: string | undefined): Promise<void> {
+	async function load_model(source: string | File | undefined): Promise<void> {
 		const currentViewer = viewer;
 		if (!currentViewer) return;
 
-		if (url) {
+		if (source) {
 			try {
-				await currentViewer.loadModel(url, {
+				await currentViewer.loadModel(source, {
 					pluginOptions: {
 						obj: {
 							importVertexColors: true

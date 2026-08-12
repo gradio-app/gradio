@@ -17,6 +17,7 @@ import {
 	download_file,
 	TEST_GLTF,
 	TEST_PLY,
+	TEST_PLY_MESH,
 	TEST_SPLAT
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
@@ -199,6 +200,19 @@ describe("Static mode", () => {
 			expect(getByTestId("model3d")).toBeInTheDocument();
 		});
 		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
+	});
+
+	test(".ply mesh value shows undo button (Canvas3D branch)", async () => {
+		const { getByLabelText } = await render(Model3D, {
+			...base_props,
+			value: TEST_PLY_MESH
+		});
+
+		// A .ply is only a Gaussian splat if its header says so; a triangle mesh
+		// has to go to Babylon, which gsplat cannot render.
+		await waitFor(() => {
+			expect(getByLabelText("Undo")).toBeInTheDocument();
+		});
 	});
 
 	test(".gltf value shows undo button (Canvas3D branch)", async () => {

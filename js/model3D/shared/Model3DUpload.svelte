@@ -7,6 +7,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
+	import { resolve_ply_source, type PlySource } from "./ply";
 
 	let {
 		value = $bindable(),
@@ -55,6 +56,7 @@
 	} = $props();
 
 	let use_3dgs = $state(false);
+	let ply_data = $state<Uint8Array<ArrayBuffer>>();
 	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
 	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3D | undefined>();
@@ -70,8 +72,20 @@
 	}
 
 	$effect(() => {
-		if (value) {
-			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
+		const file = value;
+		if (!file) return;
+
+		const is_splat = file.path.endsWith(".splat");
+		const is_ply = file.path.endsWith(".ply");
+		// Assume a .ply is a splat until its header says otherwise, so the
+		// toolbar doesn't change once the header has been read.
+		use_3dgs = is_splat || is_ply;
+
+		let stale = false;
+		const use = (source: PlySource): void => {
+			if (stale) return;
+			use_3dgs = source.renderer === "gsplat";
+			ply_data = source.renderer === "babylon" ? source.data : undefined;
 			if (use_3dgs) {
 				loadCanvas3DGS().then((component) => {
 					Canvas3DGSComponent = component;
@@ -81,7 +95,17 @@
 					Canvas3DComponent = component;
 				});
 			}
+		};
+
+		if (is_ply && file.url) {
+			resolve_ply_source(file.url).then(use);
+		} else {
+			use({ renderer: is_splat || is_ply ? "gsplat" : "babylon" });
 		}
+
+		return () => {
+			stale = true;
+		};
 	});
 
 	$effect(() => {
@@ -149,6 +173,7 @@
 				{camera_position}
 				{zoom_speed}
 				{pan_speed}
+				data={ply_data}
 			/>
 		{/if}
 	</div>
