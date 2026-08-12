@@ -23,9 +23,8 @@ export function create_renderer(get_value: () => FileData | null | undefined) {
 	$effect(() => {
 		const file = get_value();
 		const key = file ? `${file.path}\n${file.url ?? ""}` : "";
-		// The same file arriving again would otherwise tear the canvas down and
-		// fetch the header a second time, which for Babylon means discarding an
-		// engine and building a new one.
+		// Re-resolving a value already on screen would tear the canvas down and
+		// cost Babylon an engine.
 		if (key === resolved) return;
 
 		resolved = undefined;
