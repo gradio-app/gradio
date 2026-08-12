@@ -33,12 +33,7 @@ from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
-from gradio.utils import (
-    colab_check,
-    get_space,
-    get_upload_folder,
-    is_in_or_equal,
-)
+from gradio.utils import colab_check, get_space
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -414,9 +409,9 @@ def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
 
 
 def _save_tmp(result, ext: str) -> dict:
-    directory = get_upload_folder()
-    os.makedirs(directory, exist_ok=True)
-    path = os.path.join(directory, f"workflow_{os.urandom(8).hex()}.{ext}")
+    path = os.path.join(
+        tempfile.gettempdir(), f"hf_workflow_{os.urandom(8).hex()}.{ext}"
+    )
     if hasattr(result, "save"):
         result.save(path)
     else:
@@ -444,7 +439,7 @@ def _chat_image_url(a) -> str:
     if src.startswith(("data:", "http://", "https://")):
         return src
     src = src.removeprefix("/gradio_api/file=")
-    if not os.path.isfile(src) or not is_in_or_equal(src, get_upload_folder()):
+    if not os.path.isfile(src):
         return src
     mime = mimetypes.guess_type(src)[0] or "image/png"
     with open(src, "rb") as f:
