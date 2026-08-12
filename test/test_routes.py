@@ -307,6 +307,39 @@ class TestRoutes:
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
         io.close()
 
+    def test_get_allowed_paths_relative_to_allowed_root(self):
+        # A relative request path used to be resolved only against the server's
+        # working directory, so `allowed_paths` silently stopped working whenever the
+        # app was not started from the directory the path was written against -- a
+        # Docker WORKDIR with the data volume mounted elsewhere being the common
+        # case. See https://github.com/gradio-app/gradio/issues/10180.
+        with tempfile.TemporaryDirectory() as temp_dir:
+            allowed_file = Path(temp_dir) / "images" / "0.jpg"
+            allowed_file.parent.mkdir(parents=True, exist_ok=True)
+            allowed_file.write_text("hello")
+            # the working directory of the test process is not the allowed root
+            assert not (Path.cwd() / "images" / "0.jpg").exists()
+
+            outside_file = Path(temp_dir).parent / "outside_10180.txt"
+            outside_file.write_text("secret")
+
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(prevent_thread_lock=True, allowed_paths=[temp_dir])
+            try:
+                client = TestClient(app)
+                file_response = client.get(f"{API_PREFIX}/file=images/0.jpg")
+                assert file_response.status_code == 200
+                assert file_response.text == "hello"
+
+                # ...but a relative path that escapes the allowed root is not served
+                escaping_response = client.get(
+                    f"{API_PREFIX}/file=../{outside_file.name}"
+                )
+                assert escaping_response.status_code == 403
+            finally:
+                io.close()
+                outside_file.unlink()
+
     def test_response_attachment_format(self, media_data):
         image_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".png")
         image_file.write(media_data.BASE64_IMAGE)
