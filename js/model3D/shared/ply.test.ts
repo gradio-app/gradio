@@ -1,4 +1,5 @@
 import { test, describe, expect } from "vitest";
+import { GaussianSplattingMesh } from "@babylonjs/core/Meshes/GaussianSplatting/gaussianSplattingMesh";
 
 import {
 	ascii_ply_to_binary,
@@ -130,12 +131,24 @@ describe("ascii_ply_to_binary", () => {
 		expect(result.byteLength).toBe(new_header.byte_length + face + 13);
 	});
 
-	test("stops at the end of the body, not at the declared count", () => {
+	test("rejects a list length that cannot describe a face", () => {
 		const malicious = MESH_PLY.replace("3 0 1 2", "9999999999 0 1 2");
 		const bytes = encode(malicious);
 		expect(() =>
 			ascii_ply_to_binary(bytes, parse_ply_header(bytes)!)
-		).toThrowError(/Truncated/);
+		).toThrowError(/Unsupported PLY list length/);
+	});
+
+	test("does not walk the rows of an element with no properties", () => {
+		// Nothing is read per row here, so the row loop consumes no tokens and
+		// cannot be stopped by the body running out. Without the skip this spins
+		// for hours on a 61 byte file.
+		const bytes = encode(
+			"ply\nformat ascii 1.0\nelement vertex 900000000000\nend_header\n"
+		);
+		const result = ascii_ply_to_binary(bytes, parse_ply_header(bytes)!);
+
+		expect(result.byteLength).toBe(parse_ply_header(result)!.byte_length);
 	});
 
 	test("throws when the body has fewer rows than the header promises", () => {
@@ -144,6 +157,48 @@ describe("ascii_ply_to_binary", () => {
 		expect(() =>
 			ascii_ply_to_binary(bytes, parse_ply_header(bytes)!)
 		).toThrowError(/Truncated/);
+	});
+});
+
+describe("what Babylon makes of the transcoded output", () => {
+	// Asserting on our own bytes only covers half the job: Babylon's PLY reader
+	// accepts one narrow dialect, and the gap between "we wrote it correctly" and
+	// "it can read it" is where every case below used to fail.
+	const parse = (text: string): { rowVertexLength: number } | null => {
+		const bytes = encode(text);
+		const binary = ascii_ply_to_binary(bytes, parse_ply_header(bytes)!);
+		return GaussianSplattingMesh.ParseHeader(binary.buffer);
+	};
+
+	test("reads a mesh", () => {
+		expect(parse(MESH_PLY)?.rowVertexLength).toBe(3 * 4 + 3);
+	});
+
+	test("reads a source written with CRLF line endings", () => {
+		// Babylon looks for a literal "end_header\n", so a copied CRLF header
+		// makes it give up and treat the file as a raw splat.
+		expect(parse(MESH_PLY.replace(/\n/g, "\r\n"))?.rowVertexLength).toBe(
+			3 * 4 + 3
+		);
+	});
+
+	test("reads a source written with alias type names", () => {
+		// Babylon's size table has no `float32` or `uint8`, so copying those
+		// spellings through leaves it computing NaN offsets.
+		const aliased = MESH_PLY.replace(
+			/property float /g,
+			"property float32 "
+		).replace(/property uchar /g, "property uint8 ");
+
+		expect(parse(aliased)?.rowVertexLength).toBe(3 * 4 + 3);
+	});
+
+	test("reads a source using a type Babylon has no size for", () => {
+		// `char` is a normal PLY type that Babylon's table simply omits, so it
+		// has to be widened to one that is in there.
+		const chars = MESH_PLY.replace(/property float /g, "property char ");
+
+		expect(parse(chars)?.rowVertexLength).toBe(3 * 4 + 3);
 	});
 });
 

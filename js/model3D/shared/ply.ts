@@ -71,6 +71,29 @@ const SPLAT_COLOR_PROPERTIES = [
 	"f_dc_2"
 ];
 
+/**
+ * Babylon's PLY reader has byte sizes and value getters for these types only,
+ * so the rest are widened to one that holds the same values. `short` is not the
+ * missing 2-byte case it looks like: it has a size but no getter, so a file
+ * using it loses its coordinates rather than failing outright. The body is
+ * written here as well, so widening keeps the file consistent.
+ */
+const EMIT_TYPE: Record<ScalarType, ScalarType> = {
+	char: "int",
+	short: "int",
+	ushort: "uint",
+	uchar: "uchar",
+	int: "int",
+	uint: "uint",
+	float: "float",
+	double: "double"
+};
+
+// Babylon reads a face as a uchar length followed by three 32-bit indices and
+// ignores what the header declares, so lists are written to match that.
+const LIST_COUNT_TYPE: ScalarType = "uchar";
+const LIST_ENTRY_TYPE: ScalarType = "int";
+
 /** How far into a file to look for `end_header` before giving up. */
 const HEADER_SCAN_LIMIT = 64 * 1024;
 
@@ -95,7 +118,6 @@ export interface PlyHeader {
 	format: PlyFormat;
 	/** Size of the header in bytes, including the `end_header` line. */
 	byte_length: number;
-	text: string;
 	elements: PlyElement[];
 }
 
@@ -159,14 +181,13 @@ export function parse_ply_header(bytes: Uint8Array): PlyHeader | null {
 		}
 	}
 
-	if (!format || elements.some((element) => !Number.isFinite(element.count))) {
-		return null;
-	}
+	const bad_count = (element: PlyElement): boolean =>
+		!Number.isSafeInteger(element.count) || element.count < 0;
+	if (!format || elements.some(bad_count)) return null;
 
 	return {
 		format,
 		byte_length: new TextEncoder().encode(header_text).length,
-		text: header_text,
 		elements
 	};
 }
@@ -189,7 +210,29 @@ export function is_gaussian_splat_ply(header: PlyHeader): boolean {
 	);
 }
 
-/** Rewrites an ASCII PLY as little-endian binary, keeping the same layout. */
+function binary_header_text(header: PlyHeader): string {
+	const lines = ["ply", "format binary_little_endian 1.0"];
+	for (const element of header.elements) {
+		lines.push(`element ${element.name} ${element.count}`);
+		for (const property of element.properties) {
+			lines.push(
+				property.kind === "list"
+					? `property list ${LIST_COUNT_TYPE} ${LIST_ENTRY_TYPE} ${property.name}`
+					: `property ${EMIT_TYPE[property.type]} ${property.name}`
+			);
+		}
+	}
+	lines.push("end_header");
+	return lines.join("\n") + "\n";
+}
+
+/**
+ * Rewrites an ASCII PLY as little-endian binary. The header is rebuilt from the
+ * parsed elements rather than copied from the source, so the line endings, type
+ * spellings and list layout all come out in the one dialect Babylon reads. A
+ * copied header keeps whatever the writing tool used, and CRLF alone is enough
+ * for Babylon to miss `end_header` and treat the whole file as a raw splat.
+ */
 export function ascii_ply_to_binary(
 	bytes: Uint8Array,
 	header: PlyHeader
@@ -199,23 +242,27 @@ export function ascii_ply_to_binary(
 	const out = new ByteWriter();
 
 	for (const element of header.elements) {
+		// An element with no properties reads and writes nothing, so iterating its
+		// rows would consume no tokens and a large count would only spin.
+		if (element.properties.length === 0) continue;
+
 		for (let row = 0; row < element.count; row++) {
 			for (const property of element.properties) {
 				if (property.kind === "scalar") {
-					out.write(property.type, next());
-				} else {
-					const count = next();
-					out.write(property.count_type, count);
-					for (let i = 0; i < count; i++)
-						out.write(property.entry_type, next());
+					out.write(EMIT_TYPE[property.type], next());
+					continue;
 				}
+				const count = next();
+				if (!Number.isInteger(count) || count < 0 || count > 255) {
+					throw new Error(`Unsupported PLY list length: ${count}`);
+				}
+				out.write(LIST_COUNT_TYPE, count);
+				for (let i = 0; i < count; i++) out.write(LIST_ENTRY_TYPE, next());
 			}
 		}
 	}
 
-	const new_header = new TextEncoder().encode(
-		header.text.replace(/^format\s+ascii\s+/m, "format binary_little_endian ")
-	);
+	const new_header = new TextEncoder().encode(binary_header_text(header));
 	const result = new Uint8Array(new_header.length + out.length);
 	result.set(new_header);
 	result.set(out.bytes(), new_header.length);
