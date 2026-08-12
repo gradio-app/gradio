@@ -223,16 +223,20 @@ export function ascii_ply_to_binary(
 }
 
 /**
- * Reads enough of `url` to work out how the file should be rendered. Falls back
- * to gsplat, the historical behaviour for `.ply`, when the header can't be read.
+ * Reads enough of `url` to work out how the file should be rendered. Never
+ * rejects: a failed request, an interrupted stream or a body that can't be
+ * transcoded all fall back to gsplat, the historical behaviour for `.ply`.
  */
 export async function resolve_ply_source(url: string): Promise<PlySource> {
-	let response: Response;
 	try {
-		response = await fetch(url);
+		return await read_ply_source(url);
 	} catch {
 		return { renderer: "gsplat" };
 	}
+}
+
+async function read_ply_source(url: string): Promise<PlySource> {
+	const response = await fetch(url);
 	if (!response.ok) return { renderer: "gsplat" };
 
 	const reader = response.body?.getReader();
@@ -281,7 +285,7 @@ export async function resolve_ply_source(url: string): Promise<PlySource> {
 }
 
 function classify(bytes: Uint8Array): PlySource {
-	const header = parse_ply_header(bytes);
+	const header = parse_ply_header(bytes.subarray(0, HEADER_SCAN_LIMIT));
 	if (!header || is_gaussian_splat_ply(header)) return { renderer: "gsplat" };
 	if (header.format !== "ascii") return { renderer: "babylon" };
 	return { renderer: "babylon", data: ascii_ply_to_binary(bytes, header) };

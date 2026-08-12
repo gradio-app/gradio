@@ -3,7 +3,8 @@ import { test, describe, expect } from "vitest";
 import {
 	ascii_ply_to_binary,
 	is_gaussian_splat_ply,
-	parse_ply_header
+	parse_ply_header,
+	resolve_ply_source
 } from "./ply";
 
 const encode = (text: string): Uint8Array => new TextEncoder().encode(text);
@@ -135,5 +136,34 @@ describe("ascii_ply_to_binary", () => {
 		expect(() =>
 			ascii_ply_to_binary(bytes, parse_ply_header(bytes)!)
 		).toThrowError(/Truncated/);
+	});
+});
+
+describe("resolve_ply_source", () => {
+	const serve = (text: string): string =>
+		URL.createObjectURL(new Blob([encode(text)]));
+
+	test("routes an ASCII mesh to Babylon with transcoded bytes", async () => {
+		const source = await resolve_ply_source(serve(MESH_PLY));
+
+		expect(source.renderer).toBe("babylon");
+		const data = source.renderer === "babylon" ? source.data : undefined;
+		expect(parse_ply_header(data!)!.format).toBe("binary_little_endian");
+	});
+
+	test("routes a splat to gsplat without transcoding", async () => {
+		expect(await resolve_ply_source(serve(SPLAT_PLY))).toEqual({
+			renderer: "gsplat"
+		});
+	});
+
+	test("falls back to gsplat when the body can't be transcoded", async () => {
+		const truncated = MESH_PLY.replace("element vertex 3", "element vertex 4");
+
+		// A throw here used to reach the caller as an unhandled rejection, which
+		// left the canvas blank: the same failure this module exists to prevent.
+		expect(await resolve_ply_source(serve(truncated))).toEqual({
+			renderer: "gsplat"
+		});
 	});
 });
