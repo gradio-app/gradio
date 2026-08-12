@@ -81,7 +81,6 @@ from gradio.data_classes import (
     JsonData,
     PredictBody,
     PredictBodyInternal,
-    QueueAckBody,
     QueueCloseBody,
     ResetBody,
     SimplePredictBody,
@@ -1212,10 +1211,10 @@ class App(FastAPI):
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)
 
-        @router.post("/reset/")
-        @router.post("/reset")
-        async def reset_iterator(body: ResetBody):  # noqa: ARG001
-            # No-op, all the cancelling/reset logic handled by /cancel
+        @router.post("/reset/", dependencies=[Depends(login_check)])
+        @router.post("/reset", dependencies=[Depends(login_check)])
+        async def reset_iterator(body: ResetBody):
+            await app.get_blocks()._queue.acknowledge_event(body.event_id)
             return {"success": True}
 
         @router.get("/heartbeat/{session_hash}")
@@ -1251,9 +1250,6 @@ class App(FastAPI):
                         if app.get_blocks()._queue.pending_event_ids_session.get(
                             session_hash
                         ):
-                            await app.get_blocks()._queue.mark_session_detached(
-                                session_hash, stream_closed=False
-                            )
                             return
 
                         req = Request(request, username, session_hash=session_hash)
@@ -1484,13 +1480,6 @@ class App(FastAPI):
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
-        @router.post("/queue/ack", dependencies=[Depends(login_check)])
-        async def acknowledge_queue_event(body: QueueAckBody):
-            await app.get_blocks()._queue.acknowledge_event(
-                body.session_hash, body.event_id
-            )
-            return {"success": True}
-
         @router.post("/queue/close", dependencies=[Depends(login_check)])
         async def close_queue_session(body: QueueCloseBody):
             app.get_blocks()._queue.mark_session_closing(body.session_hash)
@@ -1571,14 +1560,21 @@ class App(FastAPI):
                         await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
-                blocks._queue.mark_session_attached(session_hash)
+                if acknowledgements:
+                    blocks._queue.mark_session_attached(session_hash)
                 heartbeat_task = asyncio.create_task(heartbeat())
-                delivered_completed_event_ids: set[str] = set()
                 remaining_resume_event_ids = set(resume_event_ids or [])
+
+                async def close_session() -> None:
+                    if acknowledgements:
+                        await blocks._queue.mark_session_detached(session_hash)
+                    else:
+                        await blocks._queue.delete_session(session_hash)
+
                 try:
                     while True:
                         if await request.is_disconnected():
-                            await blocks._queue.mark_session_detached(session_hash)
+                            await close_session()
                             heartbeat_task.cancel()
                             return
 
@@ -1618,17 +1614,14 @@ class App(FastAPI):
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
-                                delivered_completed_event_ids.add(message.event_id)
                                 remaining_resume_event_ids.discard(message.event_id)
                                 # It's possible that the event_id has already been removed
                                 # for example, the user sent two duplicate `/cancel` requests.
                                 # The first one would have removed the event_id from pending_event_ids_session
-                                if not acknowledgements and (
+                                if (
                                     message.event_id
-                                    in (
-                                        blocks._queue.pending_event_ids_session[
-                                            session_hash
-                                        ]
+                                    in blocks._queue.pending_event_ids_session.get(
+                                        session_hash, set()
                                     )
                                 ):
                                     blocks._queue.pending_event_ids_session[
@@ -1637,14 +1630,8 @@ class App(FastAPI):
                             all_events_delivered = (
                                 not remaining_resume_event_ids
                                 if resume_event_ids
-                                else (
-                                    blocks._queue.pending_event_ids_session.get(
-                                        session_hash, set()
-                                    ).issubset(delivered_completed_event_ids)
-                                    if acknowledgements
-                                    else not blocks._queue.pending_event_ids_session.get(
-                                        session_hash, set()
-                                    )
+                                else not blocks._queue.pending_event_ids_session.get(
+                                    session_hash, set()
                                 )
                             )
                             if message.msg == ServerMessage.server_stopped or (
@@ -1666,14 +1653,13 @@ class App(FastAPI):
                                         session_hash
                                     )
                                 else:
-                                    blocks._queue.close_session_stream(session_hash)
-                                    blocks._queue.message_history_per_session.pop(
+                                    blocks._queue.resumable_sessions.pop(
                                         session_hash, None
                                     )
                                 heartbeat_task.cancel()
                                 return
                 except asyncio.CancelledError:
-                    await blocks._queue.mark_session_detached(session_hash)
+                    await close_session()
                     heartbeat_task.cancel()
                     raise
                 except BaseException as e:
@@ -1682,7 +1668,7 @@ class App(FastAPI):
                         session_not_found=isinstance(e, HTTPException),
                     )
                     response = process_msg(message)
-                    await blocks._queue.mark_session_detached(session_hash)
+                    await close_session()
                     if response is not None:
                         yield response
                     heartbeat_task.cancel()

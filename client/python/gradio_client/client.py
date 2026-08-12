@@ -321,7 +321,7 @@ class Client:
                                 if resp["msg"] == ServerMessage.process_completed:
                                     self.pending_event_ids.discard(event_id)
                                     if self.resume_sessions:
-                                        self._acknowledge_event(event_id, session_hash)
+                                        self._acknowledge_event(event_id)
                                 if (
                                     len(self.pending_event_ids) == 0
                                     and protocol != "sse_v3"
@@ -387,17 +387,12 @@ class Client:
                 self.streaming_future = self.executor.submit(open_stream)
                 self.streaming_future.add_done_callback(close_stream)
 
-    def _acknowledge_event(
-        self, event_id: str, session_hash: str | None = None
-    ) -> None:
+    def _acknowledge_event(self, event_id: str) -> None:
         self.pending_event_ids.discard(event_id)
         try:
             response = httpx.post(
-                urllib.parse.urljoin(self.src_prefixed, utils.ACK_URL),
-                json={
-                    "event_id": event_id,
-                    "session_hash": session_hash or self.session_hash,
-                },
+                self.reset_url,
+                json={"event_id": event_id},
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,

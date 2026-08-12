@@ -1067,24 +1067,24 @@ class TestAuthenticatedRoutes:
         response = client.get("/monitoring/summary")
         assert response.status_code == 401
 
-    def test_queue_ack_route(self):
+    def test_queue_reset_route(self):
         io = Interface(lambda x: x, "text", "text")
         app, _, _ = io.launch(
             auth=("test", "correct_password"),
             prevent_thread_lock=True,
         )
         client = TestClient(app)
-        body = {"session_hash": "session", "event_id": "event"}
+        body = {"event_id": "event"}
 
         try:
-            response = client.post(f"{API_PREFIX}/queue/ack", json=body)
+            response = client.post(f"{API_PREFIX}/reset", json=body)
             assert response.status_code == 401
 
             client.post(
                 "/login",
                 data={"username": "test", "password": "correct_password"},
             )
-            response = client.post(f"{API_PREFIX}/queue/ack", json=body)
+            response = client.post(f"{API_PREFIX}/reset", json=body)
             assert response.status_code == 200
         finally:
             io.close()

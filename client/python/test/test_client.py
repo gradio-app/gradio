@@ -306,7 +306,7 @@ class TestClientPredictions:
         assert requests[1].url.params["acknowledgements"] == "true"
         assert not client.pending_event_ids
         assert client.pending_messages_per_event["event-1"][0]["success"] is True
-        client._acknowledge_event.assert_called_once_with("event-1", "session-1")
+        client._acknowledge_event.assert_called_once_with("event-1")
 
     @pytest.mark.flaky
     def test_intermediate_outputs(self, count_generator_demo):

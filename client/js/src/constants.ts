@@ -15,7 +15,6 @@ export const HEARTBEAT_URL = `heartbeat`;
 export const COMPONENT_SERVER_URL = `component_server`;
 export const RESET_URL = `reset`;
 export const CANCEL_URL = `cancel`;
-export const ACK_URL = `queue/ack`;
 export const CLOSE_URL = `queue/close`;
 export const APP_ID_URL = `app_id`;
 
