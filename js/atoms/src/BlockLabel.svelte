@@ -16,8 +16,8 @@
 	} = $props();
 </script>
 
+<!-- svelte-ignore a11y_label_has_associated_control -->
 <label
-	for=""
 	class:hide={!show_label}
 	class:sr-only={!show_label}
 	class:float

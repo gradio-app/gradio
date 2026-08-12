@@ -92,6 +92,21 @@ with gr.Blocks() as demo:
                 [num_load_btn_6],
                 [del_file_data, num_load_btn_6],
             )
+    with gr.Row():
+        with gr.Column():
+            file_component_compound = gr.File(
+                label="Upload Compound Extension File", file_types=[".nii.gz"]
+            )
+        with gr.Column():
+            output_file_7 = gr.File(label="Upload Compound Extension File Output")
+            num_load_btn_7 = gr.Number(
+                label="# Load Upload Compound Extension File", value=0
+            )
+            file_component_compound.upload(
+                lambda s, n: (s, n + 1),
+                [file_component_compound, num_load_btn_7],
+                [output_file_7, num_load_btn_7],
+            )
     # f = gr.File(label="Upload many File", file_count="multiple")
     # # f.delete(delete_file)
     # f.delete(delete_file, inputs=None, outputs=None)

@@ -1,10 +1,12 @@
 import dataclasses
+import subprocess
 from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
 
 import gradio as gr
-from gradio.cli.commands.reload import _setup_config
+from gradio.cli.commands.reload import _setup_config, build_app
 from gradio.http_server import Server
 
 
@@ -52,6 +54,68 @@ class TestReload:
     def test_config_watch_app(self, config):
         demo_dir = str(Path("demo/calculator/run.py").resolve().parent)
         assert demo_dir in config.watch_dirs
+
+
+class TestReloadCliArgs:
+    """`gradio app.py -- --name Gretel` forwards `--name Gretel` to the script."""
+
+    @pytest.fixture
+    def run_cli(self, monkeypatch):
+        """Run the reload CLI without launching anything.
+
+        Returns the CliRunner result plus the argv and env the app would have
+        been launched with.
+        """
+        launched: list[tuple[list[str], dict]] = []
+
+        class FakePopen:
+            def __init__(self, args, **kwargs):
+                launched.append((args, kwargs))
+
+            def poll(self):
+                return 0
+
+            def wait(self):
+                return 0
+
+        monkeypatch.setattr(subprocess, "Popen", FakePopen)
+
+        def invoke(*args: str):
+            result = CliRunner().invoke(build_app(), list(args))
+            argv, kwargs = launched[-1] if launched else ([], {})
+            return result, argv, kwargs
+
+        return invoke
+
+    def test_args_after_separator_are_forwarded_to_the_app(self, run_cli):
+        result, argv, _ = run_cli(
+            "demo/calculator/run.py", "--", "--verbose", "--name", "Gretel"
+        )
+        assert result.exit_code == 0, result.output
+        assert argv[-3:] == ["--verbose", "--name", "Gretel"]
+
+    def test_gradio_and_the_app_can_use_the_same_option_name(self, run_cli):
+        result, argv, kwargs = run_cli(
+            "demo/calculator/run.py",
+            "--demo-name",
+            "mine",
+            "--",
+            "--demo-name",
+            "theirs",
+        )
+        assert result.exit_code == 0, result.output
+        assert kwargs["env"]["GRADIO_WATCH_DEMO_NAME"] == "mine"
+        assert argv[-2:] == ["--demo-name", "theirs"]
+
+    def test_unknown_option_is_an_error_not_silently_forwarded(self, run_cli):
+        """Nothing is swept up implicitly, so adding an option to the reload CLI
+        later cannot change what an existing command means."""
+        result, _, _ = run_cli("demo/calculator/run.py", "--name", "Gretel")
+        assert result.exit_code != 0
+        # Rich wraps the message across panel lines.
+        assert "No such option" in " ".join(
+            result.output.replace("\u2502", " ").split()
+        )
 
 
 def test_reassign_pending_event_fns():

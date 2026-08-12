@@ -39,6 +39,7 @@ import {
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
+import { clear_run_history } from "./utils/run_history";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
@@ -483,6 +484,15 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
+
+		// Opting out also purges, so an app that turns the feature off does not
+		// leave behind what it stored while it was on.
+		if (_config.run_history === false) {
+			clear_run_history({
+				app_id: _config.app_id,
+				username: _config.username
+			});
+		}
 
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
