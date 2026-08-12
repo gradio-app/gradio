@@ -748,6 +748,14 @@ TEXT_FILE_EXTENSIONS = (
 IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 
 
+def _is_text_encoded_file(path: str) -> bool:
+    return not is_http_url_like(path) and path.lower().endswith(TEXT_FILE_EXTENSIONS)
+
+
+def _text_encoded_file_as_prompt(path: str) -> str:
+    return f"\n## {Path(path).name}\n{Path(path).read_text()}"
+
+
 def format_conversation(
     history: list[NormalizedMessageDict], new_message: str | MultimodalValue
 ) -> list[dict]:
@@ -760,14 +768,22 @@ def format_conversation(
                     f"Invalid message format: {message['content']}. Each element must have a type key."
                 )
             elif content["type"] == "file":
-                new_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": encode_url_or_file_to_base64(content["file"]["path"])  # type: ignore
-                        },
-                    }
-                )
+                path = content["file"]["path"]  # type: ignore
+                if _is_text_encoded_file(path):
+                    # Appended to the prompt as text, the same as when the message was
+                    # first sent. Base64-encoding a text file as `image_url` (which is
+                    # what used to happen once the turn was in the history) makes a
+                    # non-multimodal model reject every subsequent request. See #11331.
+                    new_content.append(
+                        {"type": "text", "text": _text_encoded_file_as_prompt(path)}
+                    )
+                else:
+                    new_content.append(
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_url_or_file_to_base64(path)},
+                        }
+                    )
             else:
                 new_content.append(content)
         message["content"] = new_content
@@ -780,7 +796,7 @@ def format_conversation(
         files = new_message.get("files", [])
     image_files, text_encoded = [], []
     for file in files:
-        if file.lower().endswith(TEXT_FILE_EXTENSIONS):
+        if _is_text_encoded_file(file):
             text_encoded.append(file)
         else:
             image_files.append(file)
@@ -799,12 +815,7 @@ def format_conversation(
         )
     if text or text_encoded:
         text = text or ""
-        text += "\n".join(
-            [
-                f"\n## {Path(file).name}\n{Path(file).read_text()}"
-                for file in text_encoded
-            ]
-        )
+        text += "\n".join([_text_encoded_file_as_prompt(file) for file in text_encoded])
         conversation.append(
             {"role": "user", "content": [{"type": "text", "text": text}]}
         )
