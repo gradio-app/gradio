@@ -81,13 +81,6 @@ export function createSvelteVirtualizer<
 		});
 
 		if (current_count !== prev_count) {
-			// `virtualItems()` only recomputes when `version` changes, and
-			// `setOptions()` does not notify on its own, so a row count change alone
-			// left the rendered window frozen: rows that arrived after the first
-			// render stayed invisible until an unrelated scroll or resize forced a
-			// recalculation. Bumping `version` re-reads the window while keeping the
-			// measured row sizes that `measure()` would throw away.
-			// See https://github.com/gradio-app/gradio/issues/13611 and #13272.
 			version += 1;
 		}
 		prev_count = current_count;
