@@ -413,6 +413,48 @@ def test_load_chat_with_streaming(mock_openai):
     assert responses == ["Hello", "Hello World", "Hello World!"]
 
 
+def test_format_conversation_replays_text_files_as_text(tmp_path):
+    # A pasted long prompt arrives as a text file, which is inlined into the prompt on
+    # the turn it is sent. Once that turn was in the history it used to be re-sent as
+    # `image_url`, so every later message made a non-multimodal model reject the
+    # request. See https://github.com/gradio-app/gradio/issues/11331.
+    from gradio.external import format_conversation
+
+    text_file = tmp_path / "pasted_text.txt"
+    text_file.write_text("a very long pasted prompt")
+    image_file = tmp_path / "photo.png"
+    image_file.write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    history = [
+        {
+            "role": "user",
+            "content": [{"type": "file", "file": {"path": str(text_file)}}],
+        },
+        {"role": "assistant", "content": [{"type": "text", "text": "ok"}]},
+        {
+            "role": "user",
+            "content": [{"type": "file", "file": {"path": str(image_file)}}],
+        },
+        {"role": "assistant", "content": [{"type": "text", "text": "ok"}]},
+    ]
+
+    conversation = format_conversation(history, "and now a short one")  # type: ignore
+
+    # the text file is inlined as text, the same as when it was first sent...
+    assert conversation[0]["content"] == [
+        {"type": "text", "text": "\n## pasted_text.txt\na very long pasted prompt"}
+    ]
+    # ...while an image is still sent as an image
+    image_content = conversation[2]["content"][0]
+    assert image_content["type"] == "image_url"
+    assert image_content["image_url"]["url"].startswith("data:image/png;base64,")
+
+    assert conversation[-1] == {
+        "role": "user",
+        "content": [{"type": "text", "text": "and now a short one"}],
+    }
+
+
 def test_load_chat_textbox_override():
     from gradio import ChatInterface
 
