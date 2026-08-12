@@ -471,7 +471,12 @@
 		refresh_run_count();
 		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
 
-		mutation_observer = new MutationObserver(handle_resize);
+		mutation_observer = new MutationObserver((records) => {
+			if (records.some((record) => record.type === "childList")) {
+				reset_resize_growth(resize_state);
+			}
+			handle_resize();
+		});
 		const res = new ResizeObserver(handle_resize);
 
 		mutation_observer.observe(root_container, {
@@ -488,8 +493,6 @@
 
 		app_tree.ready.then(() => {
 			ready = true;
-			reset_resize_growth(resize_state);
-			void tick().then(handle_resize);
 			dep_manager.dispatch_load_events();
 		});
 
