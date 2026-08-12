@@ -870,24 +870,6 @@ class ChatInterface(Blocks):
             message,
         )
 
-    @staticmethod
-    def _history_for_fn(history: list[MessageDict]) -> list[MessageDict]:
-        """
-        The list of past messages handed to the chat function.
-
-        This is a copy so that appending to (or otherwise mutating) it inside the chat
-        function does not change the conversation. Whether such a mutation had any
-        effect used to depend on whether the chat function was a generator: a
-        non-streaming function ran before the history was copied, so its mutations
-        survived, while a streaming function's body did not start until after the copy
-        had been taken, so its mutations were silently dropped. See #10823. Messages are
-        returned/yielded by the chat function, so `history` is only ever an input.
-
-        Shallow on purpose, matching `_append_message_to_history`: messages can hold
-        values that are not deep-copyable.
-        """
-        return list(history)
-
     def _append_message_to_history(
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
@@ -943,7 +925,9 @@ class ChatInterface(Blocks):
         history: list[MessageDict],
         *args,
     ) -> tuple:
-        inputs = [message, self._history_for_fn(history)] + list(args)
+        # `list(history)` so that mutating it inside the chat function does not change
+        # the conversation. Shallow, matching `_append_message_to_history`. See #10823.
+        inputs = [message, list(history)] + list(args)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
@@ -967,7 +951,9 @@ class ChatInterface(Blocks):
         tuple,
         None,
     ]:
-        inputs = [message, self._history_for_fn(history)] + list(args)
+        # `list(history)` for the same reason as in `_submit_fn`: the generator's body
+        # must not be able to change the conversation by mutating it. See #10823.
+        inputs = [message, list(history)] + list(args)
         if self.is_async:
             generator = self.fn(*inputs)
         else:
