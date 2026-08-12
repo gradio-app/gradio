@@ -369,6 +369,7 @@ class App(FastAPI):
         strict_cors: bool = True,
         mcp_server: bool | None = None,
         debug: bool = False,
+        parent_app: fastapi.FastAPI | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -390,7 +391,11 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
+        app.add_middleware(
+            CustomCORSMiddleware,  # type: ignore
+            strict_cors=strict_cors,
+            parent_app=parent_app,
+        )
         app.add_middleware(
             BrotliMiddleware,  # type: ignore
             quality=4,
@@ -2528,7 +2533,7 @@ def mount_gradio_app(
     """Mount a gradio.Blocks to an existing FastAPI application.
 
     Parameters:
-        app: The parent FastAPI application.
+        app: The parent FastAPI application. If it configures its own `CORSMiddleware`, Gradio will not add its own CORS headers to the mounted app, so that your `allow_origins` policy is the one that applies.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted, e.g. "/gradio".
         server_name: The server name on which the Gradio app will be run.
@@ -2650,6 +2655,7 @@ def mount_gradio_app(
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
         mcp_server=mcp_server,
+        parent_app=app,
     )
     old_lifespan = app.router.lifespan_context
 
