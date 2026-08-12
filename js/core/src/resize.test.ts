@@ -1,5 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
-import { create_resize_state, next_frame_height, FRAME_SLACK } from "./resize";
+import {
+	create_resize_state,
+	next_frame_height,
+	FRAME_SLACK,
+	IFRAME_RESIZER_READY_EVENT,
+	reset_resize_growth,
+	setup_iframe_resizer
+} from "./resize";
 import type { ResizeState } from "./resize";
 
 interface Content {
@@ -197,5 +204,71 @@ describe("next_frame_height", () => {
 			frame.apply();
 		}
 		expect(frame.reports.length).toBeLessThanOrEqual(5);
+	});
+
+	test("resumes growing when the UI reveals content after the limiter trips", () => {
+		const frame = new Frame(800);
+		let needs = 900;
+		const creeping: Content = () => {
+			needs += 100;
+			return { stretched_bottom: needs, unstretched_bottom: needs };
+		};
+
+		for (let i = 0; i < 20; i++) {
+			frame.tick(creeping);
+			frame.apply();
+		}
+
+		const revealed = rigid(frame.viewport + 300);
+		expect(frame.tick(revealed)).toBe(null);
+
+		reset_resize_growth(frame.state);
+		expect(frame.tick(revealed)).toBeGreaterThan(frame.viewport);
+	});
+});
+
+describe("setup_iframe_resizer", () => {
+	test("connects when iframe-resizer becomes ready after the app", () => {
+		const target = new EventTarget();
+		const handle_resize = vi.fn();
+		const autoResize = vi.fn();
+		let parent_iframe: Window["parentIFrame"];
+		const disconnect = setup_iframe_resizer(
+			target,
+			() => parent_iframe,
+			handle_resize
+		);
+
+		expect(handle_resize).not.toHaveBeenCalled();
+		parent_iframe = {
+			autoResize,
+			size: vi.fn(),
+			scrollTo: vi.fn(),
+			getPageInfo: vi.fn()
+		};
+		target.dispatchEvent(new Event(IFRAME_RESIZER_READY_EVENT));
+
+		expect(autoResize).toHaveBeenCalledWith(false);
+		expect(handle_resize).toHaveBeenCalledOnce();
+
+		disconnect();
+		target.dispatchEvent(new Event(IFRAME_RESIZER_READY_EVENT));
+		expect(handle_resize).toHaveBeenCalledOnce();
+	});
+
+	test("connects immediately when iframe-resizer is already ready", () => {
+		const autoResize = vi.fn();
+		const handle_resize = vi.fn();
+		const parent_iframe: NonNullable<Window["parentIFrame"]> = {
+			autoResize,
+			size: vi.fn(),
+			scrollTo: vi.fn(),
+			getPageInfo: vi.fn()
+		};
+
+		setup_iframe_resizer(new EventTarget(), () => parent_iframe, handle_resize);
+
+		expect(autoResize).toHaveBeenCalledWith(false);
+		expect(handle_resize).toHaveBeenCalledOnce();
 	});
 });

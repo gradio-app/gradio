@@ -212,6 +212,12 @@ export interface Config {
 	pwa?: boolean;
 	i18n_translations?: Record<string, Record<string, string>> | null;
 	mcp_server?: boolean;
+	/**
+	 * Whether the app permits its runs being saved in the browser. Set from
+	 * `run_history` on `launch()`; absent on apps served by older versions of
+	 * Gradio, which is treated as permitted.
+	 */
+	run_history?: boolean;
 }
 
 // todo: DRY up types
@@ -349,6 +355,14 @@ export interface ClientOptions {
 	 * endpoints that declare they need it.
 	 */
 	oauth_token?: string;
+	/**
+	 * Whether to save each call's inputs and outputs in this browser's local
+	 * storage, so they can be reviewed on the app's run history page. Defaults
+	 * to true, and only ever applies in a browser: in Node there is no storage
+	 * to write to and nothing is recorded. The app can turn it off for everyone
+	 * with `run_history=False` on `launch()`, which takes precedence over this.
+	 */
+	record_history?: boolean;
 }
 
 export interface FileData {

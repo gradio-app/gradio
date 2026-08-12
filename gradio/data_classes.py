@@ -430,6 +430,7 @@ class BlocksConfigDict(TypedDict):
     i18n_translations: NotRequired[dict[str, dict[str, str]] | None]
     mcp_server: NotRequired[bool]
     footer_links: list[str | dict[str, str]]
+    run_history: NotRequired[bool]
 
 
 class MediaStreamChunk(TypedDict):

@@ -1,5 +1,6 @@
 """Contains tests for networking.py and app.py"""
 
+import asyncio
 import functools
 import inspect
 import json
@@ -11,6 +12,8 @@ import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from threading import Thread
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import gradio_client as grc
 import httpx
@@ -35,7 +38,10 @@ from gradio import (
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
+    _delete_state_handler,
+    _lifespan_handler,
     compare_passwords_securely,
+    create_lifespan_handler,
     get_api_call_path,
     get_request_origin,
     get_root_url,
@@ -58,6 +64,23 @@ class TestRoutes:
     def test_get_main_route(self, test_client):
         response = test_client.get("/")
         assert response.status_code == 200
+
+    def test_get_run_history_route(self, test_client):
+        response = test_client.get(f"{API_PREFIX}/runs")
+        assert response.status_code == 200
+        assert "<gradio-app" in response.text
+        assert '<base href="../"' in response.text
+        assert '"root":"http://testserver"' in response.text
+
+    def test_run_history_route_disabled(self):
+        io = Interface(lambda x: x + x, "text", "text", api_name="predict")
+        app, _, _ = io.launch(prevent_thread_lock=True, run_history=False)
+        try:
+            assert io.config["run_history"] is False
+            assert "runs" not in io.config["footer_links"]
+            assert TestClient(app).get(f"{API_PREFIX}/runs").status_code == 404
+        finally:
+            io.close()
 
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
@@ -901,6 +924,61 @@ class TestApp:
     def test_create_app_debug_flag_forwarded(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"), debug=True)
         assert app.debug is True
+
+
+class TestLifespanHandlers:
+    @staticmethod
+    def _fake_app():
+        blocks = SimpleNamespace(blocks={}, temp_file_sets=[])
+        return SimpleNamespace(
+            state_holder=SimpleNamespace(delete_all_expired_state=lambda: None),
+            get_blocks=lambda: blocks,
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "make_handler",
+        [
+            _delete_state_handler,
+            lambda app: _lifespan_handler(app, 1, 1),
+            create_lifespan_handler(None, 1, 1),
+        ],
+        ids=["delete_state", "lifespan", "combined"],
+    )
+    async def test_background_tasks_do_not_leak(self, make_handler):
+        """Each handler starts a `while True` task; leaving it running would leak
+        one task (and the `App` it closes over) per launch."""
+        pending_before = len(asyncio.all_tasks())
+        for _ in range(3):
+            async with make_handler(self._fake_app()):
+                await asyncio.sleep(0)  # let the background task start
+        await asyncio.sleep(0)  # let the cancellations be delivered
+        assert len(asyncio.all_tasks()) == pending_before
+
+    @pytest.mark.asyncio
+    async def test_failing_background_task_does_not_break_shutdown(self):
+        """The background tasks used to be fire-and-forget, so an error inside one
+        was only logged. Awaiting them on shutdown must not surface that error or
+        skip the final cleanup."""
+        app = self._fake_app()
+        deleted = []
+        app.get_blocks().temp_file_sets.append(set())
+
+        def boom():
+            raise RuntimeError("state cleanup blew up")
+
+        app.state_holder.delete_all_expired_state = boom
+
+        with patch(
+            "gradio.route_utils.delete_files_created_by_app",
+            side_effect=lambda *a, **kw: deleted.append(kw.get("age", "unset")),
+        ):
+            async with create_lifespan_handler(None, 1, 1)(app):
+                await asyncio.sleep(0)  # let _delete_state raise
+
+        # Shutdown completed without propagating the error, and the final
+        # "delete everything" cleanup still ran.
+        assert deleted == [None]
 
 
 class TestAuthenticatedRoutes:

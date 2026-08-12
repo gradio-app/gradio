@@ -222,15 +222,13 @@
 
 	async function load_files_from_upload(files: File[]): Promise<void> {
 		const files_to_load = files.filter((file) => {
-			const file_extension = "." + file.name.toLowerCase().split(".").pop();
-			if (
-				file_extension &&
-				is_valid_mimetype(accept_file_types, file_extension, file.type)
-			) {
+			const file_name = file.name.toLowerCase();
+			const file_extension = "." + file_name.split(".").pop();
+			if (is_valid_mimetype(accept_file_types, file_name, file.type)) {
 				return true;
 			}
 			if (
-				file_extension && Array.isArray(filetype)
+				Array.isArray(filetype)
 					? filetype.includes(file_extension)
 					: file_extension === filetype
 			) {

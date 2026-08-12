@@ -2,7 +2,12 @@
 	import { tick, onMount, setContext, settled, untrack } from "svelte";
 	import type { Component } from "svelte";
 	import { _ } from "svelte-i18n";
-	import { Client } from "@gradio/client";
+	import {
+		Client,
+		on_run_history_change,
+		read_run_history,
+		run_history_url
+	} from "@gradio/client";
 	import { writable } from "svelte/store";
 
 	import type {
@@ -22,13 +27,19 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import history_logo from "./api_docs/img/history-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AppTree } from "./init.svelte";
 
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
-	import { create_resize_state, next_frame_height } from "./resize";
+	import {
+		create_resize_state,
+		next_frame_height,
+		reset_resize_growth,
+		setup_iframe_resizer
+	} from "./resize";
 	type AddNewMessage = (
 		title: string,
 		message: string,
@@ -56,6 +67,7 @@
 		js,
 		fill_height,
 		username,
+		run_history = true,
 		api_prefix,
 		max_file_size,
 		initial_layout,
@@ -84,6 +96,7 @@
 		js: string | null;
 		fill_height: boolean;
 		username: string | null;
+		run_history?: boolean;
 		api_prefix: string;
 		max_file_size: number | undefined;
 		initial_layout: ComponentMeta | undefined;
@@ -126,6 +139,7 @@
 		} else if (event === "info") {
 			new_message("Info", data as string, -1, event, 10, true);
 		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
+			reset_resize_growth(resize_state);
 			const id_ =
 				event === "gradio_expand"
 					? id
@@ -199,6 +213,12 @@
 		if (!api_recorder_visible) return;
 		api_calls = [...api_calls, last_api_call];
 	};
+
+	let run_count = $state(0);
+
+	function refresh_run_count(): void {
+		run_count = read_run_history(app.config).length;
+	}
 
 	function handle_connection_lost(): void {
 		messages = messages.filter((m) => m.type !== "error");
@@ -441,6 +461,14 @@
 			window.parentIFrame?.autoResize(false);
 		}
 
+		is_mobile_device =
+			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+				navigator.userAgent
+			);
+
+		refresh_run_count();
+		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
+
 		mutation_observer = new MutationObserver(handle_resize);
 		const res = new ResizeObserver(handle_resize);
 
@@ -450,6 +478,11 @@
 			attributes: true
 		});
 		res.observe(root_container);
+		const disconnect_iframe_resizer = setup_iframe_resizer(
+			window,
+			() => window.parentIFrame,
+			handle_resize
+		);
 
 		app_tree.ready.then(() => {
 			ready = true;
@@ -467,9 +500,11 @@
 		}
 
 		return () => {
+			disconnect_iframe_resizer();
 			mutation_observer?.disconnect();
 			mutation_observer = null;
 			res.disconnect();
+			unsubscribe_run_history();
 			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
 	});
@@ -503,6 +538,17 @@
 			bind:clientHeight={footer_height}
 			aria-label="Gradio footer navigation"
 		>
+			{#if run_history && footer_links.includes("runs") && run_count > 0}
+				<a
+					href={run_history_url(root, api_prefix)}
+					class="run-history"
+					title={$reactive_formatter("common.runs_description")}
+				>
+					{$reactive_formatter("common.runs")}
+					<img src={history_logo} alt={$reactive_formatter("common.runs")} />
+				</a>
+				<div class="divider">·</div>
+			{/if}
 			{#if footer_links.includes("api")}
 				<button
 					onclick={() => {
@@ -647,6 +693,8 @@
 					}}
 					pwa_enabled={app.config.pwa}
 					{root}
+					run_history_scope={app.config}
+					run_history_enabled={run_history}
 					{space_id}
 					i18n={$reactive_formatter}
 				/>
@@ -691,7 +739,8 @@
 
 	.show-api,
 	.settings,
-	.record {
+	.record,
+	.run-history {
 		display: flex;
 		align-items: center;
 	}
@@ -705,7 +754,8 @@
 		width: var(--size-3);
 	}
 
-	.settings img {
+	.settings img,
+	.run-history img {
 		margin-right: var(--size-1);
 		margin-left: var(--size-1);
 		width: var(--size-4);
@@ -724,7 +774,8 @@
 
 	.built-with:hover,
 	.settings:hover,
-	.record:hover {
+	.record:hover,
+	.run-history:hover {
 		color: var(--body-text-color);
 	}
 

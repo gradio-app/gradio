@@ -5,6 +5,7 @@ from __future__ import annotations
 import dataclasses
 import io
 import json
+import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -310,6 +311,17 @@ class Audio(
                 sample_rate, data = processing_utils.audio_from_file(str(value))
                 file_path = processing_utils.save_audio_to_cache(
                     data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
+                )
+            elif (
+                not client_utils.is_http_url_like(value)
+                and processing_utils.ffmpeg_installed()
+                and not processing_utils.audio_is_playable(str(value))
+            ):
+                warnings.warn(
+                    "Audio does not have browser-compatible container or codec. Converting to wav."
+                )
+                file_path = processing_utils.convert_audio_to_playable(
+                    str(value), cache_dir=self.GRADIO_CACHE
                 )
             else:
                 file_path = str(value)
