@@ -10,7 +10,11 @@ import {
 import type { ResizeState } from "./resize";
 
 interface Content {
-	(viewport: number): { stretched_bottom: number; unstretched_bottom: number };
+	(viewport: number): {
+		stretched_bottom: number;
+		unstretched_bottom: number;
+		document_height?: number;
+	};
 }
 
 /** `fill_height` content: fills the frame when it fits, overflows when it does not. */
@@ -51,6 +55,8 @@ class Frame {
 			stretched_bottom: m.stretched_bottom,
 			measure_unstretched_bottom: () => m.unstretched_bottom,
 			footer_height: this.footer,
+			document_height:
+				m.document_height ?? m.stretched_bottom + this.footer + FRAME_SLACK,
 			viewport: this.viewport
 		});
 		if (next !== null) {
@@ -172,17 +178,18 @@ describe("next_frame_height", () => {
 			stretched_bottom: 108,
 			measure_unstretched_bottom: measure,
 			footer_height: 21,
+			document_height: 161,
 			viewport: 800
 		});
 		expect(measure).not.toHaveBeenCalled();
 	});
 
 	// gradio-app/gradio#12089
-	test("does not grow for content sized in viewport units", () => {
+	test("grows only once for viewport-sized content with a footer", () => {
 		const frame = new Frame(800);
 		frame.settle(viewport_sized);
-		expect(frame.viewport).toBe(800);
-		expect(frame.reports).toEqual([]);
+		expect(frame.viewport).toBe(853);
+		expect(frame.reports).toEqual([853]);
 	});
 
 	// gradio-app/gradio#12992 (`fill_height` with `footer_links=[]`)
@@ -226,24 +233,20 @@ describe("next_frame_height", () => {
 		expect(frame.tick(revealed)).toBeGreaterThan(frame.viewport);
 	});
 
-	test("reports the settled layout after initial rendering trips the limiter", () => {
+	test("exposes the footer below viewport-filling initial content", () => {
 		const frame = new Frame(670);
-		let needs = 700;
-		const rendering: Content = () => {
-			needs += 100;
-			return { stretched_bottom: needs, unstretched_bottom: needs };
-		};
-
-		for (let i = 0; i < 20; i++) {
-			frame.tick(rendering);
-			frame.apply();
-		}
-
-		const settled = rigid(frame.viewport + 300);
-		expect(frame.tick(settled)).toBe(null);
-
-		reset_resize_growth(frame.state);
-		expect(frame.tick(settled)).toBeGreaterThan(frame.viewport);
+		frame.state.consecutive_grows = 5;
+		expect(
+			frame.tick(() => ({
+				stretched_bottom: 654,
+				unstretched_bottom: 654,
+				document_height: 723
+			}))
+		).toBe(723);
+		frame.apply();
+		expect(frame.tick(viewport_sized)).toBe(null);
+		expect(frame.viewport).toBe(723);
+		expect(frame.reports).toEqual([723]);
 	});
 });
 

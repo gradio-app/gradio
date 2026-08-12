@@ -448,6 +448,7 @@
 			stretched_bottom: el.getBoundingClientRect().bottom,
 			measure_unstretched_bottom: () => measure_unstretched_bottom(el),
 			footer_height,
+			document_height: document.documentElement.scrollHeight,
 			viewport: window.innerHeight
 		});
 
@@ -471,12 +472,7 @@
 		refresh_run_count();
 		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
 
-		mutation_observer = new MutationObserver((records) => {
-			if (records.some((record) => record.type === "childList")) {
-				reset_resize_growth(resize_state);
-			}
-			handle_resize();
-		});
+		mutation_observer = new MutationObserver(handle_resize);
 		const res = new ResizeObserver(handle_resize);
 
 		mutation_observer.observe(root_container, {
@@ -493,6 +489,8 @@
 
 		app_tree.ready.then(() => {
 			ready = true;
+			reset_resize_growth(resize_state);
+			void settled().then(handle_resize);
 			dep_manager.dispatch_load_events();
 		});
 
