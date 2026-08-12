@@ -480,7 +480,7 @@
 			subtree: true,
 			attributes: true
 		});
-		res.observe(root_container);
+		res.observe(root_container.parentElement ?? root_container);
 		const disconnect_iframe_resizer = setup_iframe_resizer(
 			window,
 			() => window.parentIFrame,

@@ -294,4 +294,29 @@ describe("setup_iframe_resizer", () => {
 		expect(autoResize).toHaveBeenCalledWith(false);
 		expect(handle_resize).toHaveBeenCalledOnce();
 	});
+
+	test("retries when readiness is not yet readable", () => {
+		let retry: FrameRequestCallback | undefined;
+		vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+			retry = callback;
+			return 1;
+		});
+		vi.stubGlobal("cancelAnimationFrame", vi.fn());
+		const autoResize = vi.fn();
+		const handle_resize = vi.fn();
+		let parent_iframe: Window["parentIFrame"];
+
+		setup_iframe_resizer(new EventTarget(), () => parent_iframe, handle_resize);
+		parent_iframe = {
+			autoResize,
+			size: vi.fn(),
+			scrollTo: vi.fn(),
+			getPageInfo: vi.fn()
+		};
+		retry?.(0);
+
+		expect(autoResize).toHaveBeenCalledWith(false);
+		expect(handle_resize).toHaveBeenCalledOnce();
+		vi.unstubAllGlobals();
+	});
 });

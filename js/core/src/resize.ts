@@ -49,16 +49,27 @@ export function setup_iframe_resizer(
 	get_parent_iframe: () => Window["parentIFrame"],
 	handle_resize: () => void
 ): () => void {
+	let retry_frame: number | null = null;
+	let retry_count = 0;
+	let connected = false;
 	const connect = (): void => {
+		if (connected) return;
 		const parent_iframe = get_parent_iframe();
-		if (!parent_iframe) return;
+		if (!parent_iframe) {
+			if (retry_count++ < 60) retry_frame = requestAnimationFrame(connect);
+			return;
+		}
+		connected = true;
 		parent_iframe.autoResize(false);
 		handle_resize();
 	};
 
 	target.addEventListener(IFRAME_RESIZER_READY_EVENT, connect);
 	connect();
-	return () => target.removeEventListener(IFRAME_RESIZER_READY_EVENT, connect);
+	return () => {
+		target.removeEventListener(IFRAME_RESIZER_READY_EVENT, connect);
+		if (retry_frame !== null) cancelAnimationFrame(retry_frame);
+	};
 }
 
 /** The height to ask the parent frame for, or `null` to leave it alone. */
