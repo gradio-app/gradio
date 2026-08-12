@@ -724,23 +724,31 @@ class TestCallSpaceValidation:
 class TestChatImageUrl:
     """`_chat_image_url` reads bytes off disk, so it must only read app-owned files."""
 
-    def test_inlines_app_owned_files(self, tmp_path, monkeypatch):
+    def test_inlines_files_in_the_gradio_cache(self, tmp_path, monkeypatch):
         from gradio.workflow import _chat_image_url
 
-        app_temp = tmp_path / "gradio_temp"
-        app_temp.mkdir()
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(app_temp))
-        owned = app_temp / "uploaded.png"
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        owned = tmp_path / "cache" / "uploaded.png"
         owned.write_bytes(b"owned-bytes")
 
         assert _chat_image_url({"path": str(owned)}).startswith("data:")
 
-    def test_does_not_read_files_the_app_does_not_own(self, tmp_path, monkeypatch):
+    def test_inlines_operator_outputs(self, tmp_path, monkeypatch):
+        from gradio.workflow import _save_tmp
+
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         from gradio.workflow import _chat_image_url
 
-        app_temp = tmp_path / "gradio_temp"
-        app_temp.mkdir()
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(app_temp))
+        saved = _save_tmp(b"operator-output", "png")
+
+        assert _chat_image_url({"path": saved["path"]}).startswith("data:")
+
+    def test_does_not_read_files_outside_the_cache(self, tmp_path, monkeypatch):
+        from gradio.workflow import _chat_image_url
+
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
         outside = tmp_path / "elsewhere" / "private.png"
         outside.parent.mkdir()
         outside.write_bytes(b"must-not-be-read")
