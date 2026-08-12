@@ -626,15 +626,22 @@ class TestRoutes:
             return request.headers.get("user")
 
         server = gr.Server()
-        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+
+        @server.api(name="echo")
+        def echo(x: str) -> str:
+            return x
+
         app, _, _ = server.launch(
-            demo, auth_dependency=block_anonymous, prevent_thread_lock=True
+            auth_dependency=block_anonymous, prevent_thread_lock=True
         )
 
         with TestClient(app) as client:
-            assert not client.get("/", headers={}).is_success
-            assert client.get("/", headers={"user": "abubakar"}).is_success
-        demo.close()
+            assert (
+                client.get(f"{API_PREFIX}/login_check", headers={}).status_code == 401
+            )
+            assert client.get(
+                f"{API_PREFIX}/login_check", headers={"user": "abubakar"}
+            ).is_success
 
     def test_mount_gradio_app_with_auth_dependency(self):
         app = FastAPI()
