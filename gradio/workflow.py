@@ -33,7 +33,7 @@ from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
-from gradio.utils import colab_check, get_space
+from gradio.utils import colab_check, get_space, is_in_or_equal
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -424,6 +424,25 @@ def _img_url(a) -> str:
     return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
 
 
+def _is_app_owned_file(path: str) -> bool:
+    """True for files this app received or produced, and only those.
+
+    Inlining reads bytes off disk, so the set of readable paths has to be the set
+    the app itself put there: uploads and component outputs in the Gradio cache
+    and upload folders, plus the operator outputs written by `_save_tmp`. A path
+    that merely happens to be readable by this process is not the app's to send.
+    """
+    from gradio import utils
+
+    if is_in_or_equal(path, utils.get_cache_folder()) or is_in_or_equal(
+        path, utils.get_upload_folder()
+    ):
+        return True
+    return os.path.basename(path).startswith("hf_workflow_") and is_in_or_equal(
+        path, tempfile.gettempdir()
+    )
+
+
 def _chat_image_url(a) -> str:
     """Return an image reference a provider can actually resolve.
 
@@ -432,6 +451,9 @@ def _chat_image_url(a) -> str:
     `/gradio_api/file=` URL is meaningless there, so those are inlined as a
     data URI. Absolute http(s) URLs are passed through, though note the
     provider still has to be able to fetch them.
+
+    Only app-owned files are inlined; any other local path is passed through
+    unread, exactly as a non-existent one already was.
     """
     src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
     if not isinstance(src, str) or not src:
@@ -439,7 +461,7 @@ def _chat_image_url(a) -> str:
     if src.startswith(("data:", "http://", "https://")):
         return src
     src = src.removeprefix("/gradio_api/file=")
-    if not os.path.isfile(src):
+    if not os.path.isfile(src) or not _is_app_owned_file(src):
         return src
     mime = mimetypes.guess_type(src)[0] or "image/png"
     with open(src, "rb") as f:

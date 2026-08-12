@@ -719,3 +719,42 @@ class TestCallSpaceValidation:
         assert re.fullmatch(pattern, "owner/repo")
         assert re.fullmatch(pattern, "my-org/my-space")
         assert re.fullmatch(pattern, "http://host/path") is None
+
+
+class TestChatImageUrl:
+    """`_chat_image_url` reads bytes off disk, so it must only read app-owned files."""
+
+    def test_inlines_app_owned_files(self, tmp_path, monkeypatch):
+        from gradio.workflow import _chat_image_url
+
+        app_temp = tmp_path / "gradio_temp"
+        app_temp.mkdir()
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(app_temp))
+        owned = app_temp / "uploaded.png"
+        owned.write_bytes(b"owned-bytes")
+
+        assert _chat_image_url({"path": str(owned)}).startswith("data:")
+
+    def test_does_not_read_files_the_app_does_not_own(self, tmp_path, monkeypatch):
+        from gradio.workflow import _chat_image_url
+
+        app_temp = tmp_path / "gradio_temp"
+        app_temp.mkdir()
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(app_temp))
+        outside = tmp_path / "elsewhere" / "private.png"
+        outside.parent.mkdir()
+        outside.write_bytes(b"must-not-be-read")
+
+        # passed through unread, exactly as a non-existent path already was
+        assert _chat_image_url({"path": str(outside)}) == str(outside)
+
+    def test_passes_through_remote_and_data_urls(self):
+        from gradio.workflow import _chat_image_url
+
+        assert (
+            _chat_image_url("https://example.com/a.png") == "https://example.com/a.png"
+        )
+        assert (
+            _chat_image_url("data:image/png;base64,AAAA")
+            == "data:image/png;base64,AAAA"
+        )
