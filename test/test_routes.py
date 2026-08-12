@@ -795,11 +795,11 @@ class TestRoutes:
 
         app = FastAPI()
         if add_middleware_first:
-            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
             app = gr.mount_gradio_app(app, demo, path="/")
         else:
             app = gr.mount_gradio_app(app, demo, path="/")
-            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
 
         client = TestClient(app)
         # a non-localhost host, otherwise Gradio's localhost strictness rejects every
