@@ -1386,23 +1386,47 @@ def file_fetch(
     if starts_with_protocol(path_or_url):
         raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-    abs_path = utils.abspath(path_or_url)
-    try:
-        if abs_path.is_dir() or not abs_path.exists():
-            raise HTTPException(403, f"File not allowed: {path_or_url}.")
-    except Exception as e:
-        raise HTTPException(403, f"File not allowed: {path_or_url}.") from e
-
     from gradio.data_classes import _StaticFiles
 
-    allowed, reason = utils.is_allowed_file(
-        abs_path,
-        blocked_paths=blocks_or_config.blocked_paths,
-        allowed_paths=blocks_or_config.allowed_paths + _StaticFiles.all_paths,
-        created_paths=[upload_dir, str(utils.get_cache_folder())],
-    )
-    if not allowed:
-        raise HTTPException(403, f"File not allowed: {path_or_url}.")
+    allowed_paths = blocks_or_config.allowed_paths + _StaticFiles.all_paths
+
+    # A relative request path is resolved against the server's working directory,
+    # which is not necessarily the directory the path was written against. A Docker
+    # WORKDIR with the data volume mounted somewhere else is the common case: the
+    # app works when started from inside the data directory and 403s otherwise
+    # (#10180). So if the working directory does not yield a servable file, fall
+    # back to resolving the path against each allowed root. `is_allowed_file()`
+    # still has the final say for every candidate, so this cannot widen what is
+    # servable, only stop it from depending on the working directory.
+    candidates = [utils.abspath(path_or_url)]
+    if not os.path.isabs(str(path_or_url)):
+        candidates += [
+            utils.abspath(Path(allowed_path) / str(path_or_url))
+            for allowed_path in allowed_paths
+        ]
+
+    abs_path: Path | None = None
+    reason = None
+    error: Exception | None = None
+    for candidate in candidates:
+        try:
+            if candidate.is_dir() or not candidate.exists():
+                continue
+        except Exception as e:  # noqa: PERF203
+            error = error or e
+            continue
+        candidate_allowed, candidate_reason = utils.is_allowed_file(
+            candidate,
+            blocked_paths=blocks_or_config.blocked_paths,
+            allowed_paths=allowed_paths,
+            created_paths=[upload_dir, str(utils.get_cache_folder())],
+        )
+        if candidate_allowed:
+            abs_path, reason = candidate, candidate_reason
+            break
+
+    if abs_path is None:
+        raise HTTPException(403, f"File not allowed: {path_or_url}.") from error
 
     mime_type, _ = mimetypes.guess_type(abs_path)
     if mime_type in XSS_SAFE_MIMETYPES or reason == "allowed":
