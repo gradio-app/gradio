@@ -926,8 +926,6 @@ class CustomCORSMiddleware:
         parent_app: Any | None = None,
     ) -> None:
         self.app = app
-        # The app a Gradio app was mounted into, if any. Used to detect a
-        # developer-configured CORS policy that this middleware must not override.
         self.parent_app = parent_app
         self._parent_configures_cors: bool | None = None
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
@@ -946,15 +944,6 @@ class CustomCORSMiddleware:
             self.localhost_aliases.append("null")
 
     def parent_configures_cors(self) -> bool:
-        """
-        True if the app this Gradio app was mounted into configures its own
-        `CORSMiddleware`.
-
-        Computed on the first request rather than at mount time so that it does not
-        depend on whether `add_middleware()` was called before or after
-        `mount_gradio_app()` -- by the time a request arrives, the parent's
-        middleware list is final either way.
-        """
         if self._parent_configures_cors is None:
             from starlette.middleware.cors import CORSMiddleware
 
@@ -969,12 +958,6 @@ class CustomCORSMiddleware:
             await self.app(scope, receive, send)
             return
         if self.parent_configures_cors():
-            # A developer who mounted this app into a FastAPI app of their own and
-            # configured `CORSMiddleware` there has taken explicit control of CORS.
-            # Adding our headers here would silently override their policy: this
-            # middleware runs inside theirs, so it sets `Access-Control-Allow-Origin`
-            # first and `CORSMiddleware` never overwrites a header that is already
-            # present -- their `allow_origins` list would have no effect. See #10276.
             await self.app(scope, receive, send)
             return
         headers = Headers(scope=scope)

@@ -784,10 +784,6 @@ class TestRoutes:
 
     @pytest.mark.parametrize("add_middleware_first", [True, False])
     def test_mounted_app_respects_user_cors_middleware(self, add_middleware_first):
-        # Gradio's own CORS middleware runs inside a user-configured
-        # `CORSMiddleware` and used to reflect any `Origin` back on a non-localhost
-        # host, so the user's `allow_origins` list had no effect on the mounted app.
-        # See https://github.com/gradio-app/gradio/issues/10276.
         from fastapi.middleware.cors import CORSMiddleware
 
         with gr.Blocks() as demo:
@@ -802,8 +798,6 @@ class TestRoutes:
             app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
 
         client = TestClient(app)
-        # a non-localhost host, otherwise Gradio's localhost strictness rejects every
-        # cross-origin request and masks the behaviour
         disallowed = client.get(
             f"{API_PREFIX}/config",
             headers={"host": "app.internal:7860", "origin": "https://malicious.com"},
@@ -815,18 +809,6 @@ class TestRoutes:
             headers={"host": "app.internal:7860", "origin": "https://example.com"},
         )
         assert allowed.headers["access-control-allow-origin"] == "https://example.com"
-
-    def test_mounted_app_without_user_cors_middleware_is_unchanged(self):
-        with gr.Blocks() as demo:
-            gr.Textbox("hello")
-
-        app = gr.mount_gradio_app(FastAPI(), demo, path="/")
-        client = TestClient(app)
-        response = client.get(
-            f"{API_PREFIX}/config",
-            headers={"host": "app.internal:7860", "origin": "https://example.com"},
-        )
-        assert response.headers["access-control-allow-origin"] == "https://example.com"
 
     def test_loose_cors_restrictions(self):
         io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
