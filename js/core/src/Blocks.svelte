@@ -448,6 +448,7 @@
 			stretched_bottom: el.getBoundingClientRect().bottom,
 			measure_unstretched_bottom: () => measure_unstretched_bottom(el),
 			footer_height,
+			document_height: document.documentElement.scrollHeight,
 			viewport: window.innerHeight
 		});
 
@@ -479,7 +480,7 @@
 			subtree: true,
 			attributes: true
 		});
-		res.observe(root_container);
+		res.observe(root_container.parentElement ?? root_container);
 		const disconnect_iframe_resizer = setup_iframe_resizer(
 			window,
 			() => window.parentIFrame,
@@ -488,6 +489,8 @@
 
 		app_tree.ready.then(() => {
 			ready = true;
+			reset_resize_growth(resize_state);
+			void settled().then(handle_resize);
 			dep_manager.dispatch_load_events();
 		});
 
