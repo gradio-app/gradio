@@ -1730,12 +1730,19 @@ class App(FastAPI):
                 request,  # type: ignore
                 None,
             )
+            fn = utils.get_function_with_locals(
+                fn,
+                app.get_blocks(),
+                event_id=None,
+                in_event_listener=False,
+                request=request,  # type: ignore
+                state=state,
+            )
             if inspect.iscoroutinefunction(fn):
                 return await fn(*processed_input)
-            else:
-                return await anyio.to_thread.run_sync(
-                    fn, *processed_input, limiter=app.get_blocks().limiter
-                )
+            return await anyio.to_thread.run_sync(
+                fn, *processed_input, limiter=app.get_blocks().limiter
+            )
 
         @router.get(
             "/queue/status",
