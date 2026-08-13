@@ -345,3 +345,38 @@ def test_analytics_summary(monkeypatch):
         event_analytics = tc.get("/monitoring/summary").json()
         assert "predict" in event_analytics["functions"]
         assert event_analytics["functions"]["predict"]["total_requests"] == 4
+
+
+class TestQueueDoesNotAccumulate:
+    def test_finished_events_are_not_retained(self, connect):
+        # Every `Event` pins the `fastapi.Request` it came from and the request payload,
+        # so keeping them after the event is over grows the process once per call.
+        # See https://github.com/gradio-app/gradio/issues/11602.
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        assert demo._queue.event_ids_to_events == {}
+
+    def test_event_analytics_is_bounded(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        demo._queue.ANALYTICS_MAX_EVENTS = 3
+        with connect(demo) as client:
+            for _ in range(8):
+                client.predict("a", api_name="/lambda")
+
+        assert len(demo._queue.event_analytics) == 3
+        # The summary is driven off events seen, not the size of the history, so it
+        # keeps updating after the history stops growing.
+        assert demo._queue.cached_event_analytics_summary["functions"]["lambda"][
+            "total_requests"
+        ]

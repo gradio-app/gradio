@@ -1141,7 +1141,7 @@ class App(FastAPI):
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1174,7 +1174,7 @@ class App(FastAPI):
                 return Response(status_code=400, content="Unsupported file extension")
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1196,7 +1196,7 @@ class App(FastAPI):
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1287,6 +1287,14 @@ class App(FastAPI):
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
                         caching.clear_session_caches(session_hash)
+                        # The tab is gone, so no one will read these streams again.
+                        for run in (
+                            app.get_blocks()
+                            .pending_streams.pop(session_hash, {})
+                            .values()
+                        ):
+                            for stream in run.values():
+                                stream.end_stream()
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(

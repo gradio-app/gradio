@@ -40,13 +40,38 @@ class StateHolder:
             if session_id in self.session_data:
                 self.session_data.move_to_end(session_id)
             if len(self.session_data) > self.capacity:
-                self.session_data.popitem(last=False)
+                evicted, _ = self.session_data.popitem(last=False)
+                self.time_last_used.pop(evicted, None)
 
     def delete_all_expired_state(
         self,
     ):
-        for session_id in self.session_data:
+        # Over a copy: dropping a finished session below mutates `session_data`.
+        for session_id in list(self.session_data):
             self.delete_state(session_id, expired_only=True)
+            self._drop_if_finished(session_id)
+
+    def _drop_if_finished(self, session_id: str):
+        """Forget a closed session once its state has outlived `STATE_TTL_WHEN_CLOSED`.
+
+        Deleting the state values is not enough on its own: the `SessionState` also
+        holds a copy of the blocks config and a config dict for every component in the
+        app, and `time_last_used` holds an entry per session id ever seen. Neither was
+        ever removed, so both grew for the life of the process.
+        """
+        session_state = self.session_data.get(session_id)
+        if session_state is None or not session_state.is_closed:
+            return
+        last_used = self.time_last_used.get(session_id)
+        if (
+            last_used is not None
+            and (datetime.datetime.now() - last_used).total_seconds()
+            <= session_state.STATE_TTL_WHEN_CLOSED
+        ):
+            return
+        with self.lock:
+            self.session_data.pop(session_id, None)
+            self.time_last_used.pop(session_id, None)
 
     def delete_state(self, session_id: str, expired_only: bool = False):
         if session_id not in self.session_data:

@@ -149,8 +149,15 @@ class Queue:
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
+        # Kept in insertion order and trimmed to the most recent
+        # `ANALYTICS_MAX_EVENTS`. The monitoring dashboard holds a reference to this
+        # exact dict, so entries are evicted in place rather than by rebinding it.
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
+        self.ANALYTICS_MAX_EVENTS = int(
+            os.getenv("GRADIO_ANALYTICS_MAX_EVENTS", "10000")
+        )
         self.cached_event_analytics_summary = {"functions": {}}
+        self.events_recorded = 0
         self.event_count_at_last_cache = 0
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
@@ -177,12 +184,14 @@ class Queue:
             raise e
 
     def compute_analytics_summary(self, event_analytics):
+        # Counted against events seen rather than `len(event_analytics)`, which stops
+        # rising once the history is full and would freeze the summary.
         if (
-            len(event_analytics) - self.event_count_at_last_cache
+            self.events_recorded - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
             df = self._get_df(event_analytics)
-            self.event_count_at_last_cache = len(event_analytics)
+            self.event_count_at_last_cache = self.events_recorded
             grouped = df.groupby("function")
             metrics = {"functions": {}}
             for fn_name, fn_df in grouped:
@@ -462,6 +471,9 @@ class Queue:
             "function": fn.api_name,
             "session_hash": body.session_hash,
         }
+        self.events_recorded += 1
+        while len(self.event_analytics) > self.ANALYTICS_MAX_EVENTS:
+            self.event_analytics.pop(next(iter(self.event_analytics)))
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
         return True, event._id, "success"
@@ -541,7 +553,8 @@ class Queue:
                     fn = events[0].fn
                     event_queue.start_times_per_fn[fn].add(start_time)
                     for event in events:
-                        self.event_analytics[event._id]["status"] = "processing"
+                        if (a := self.event_analytics.get(event._id)) is not None:
+                            a["status"] = "processing"
                     process_event_task = run_coro_in_background(
                         self.process_events, events, batch, start_time, fn
                     )
@@ -1047,7 +1060,8 @@ class Queue:
                 if not response.get("used_cache"):
                     self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
-                    self.event_analytics[event._id]["process_time"] = duration
+                    if (a := self.event_analytics.get(event._id)) is not None:
+                        a["process_time"] = duration
         except Exception as e:
             if not isinstance(e, Error) or e.print_exception:
                 traceback.print_exc()
@@ -1081,13 +1095,21 @@ class Queue:
                 # to start "from scratch"
                 await self.reset_iterators(event._id)
 
-                if event in awake_events:
-                    self.event_analytics[event._id]["status"] = (
-                        "success" if success else "failed"
+                if (a := self.event_analytics.get(event._id)) is not None:
+                    a["status"] = (
+                        ("success" if success else "failed")
+                        if event in awake_events
+                        else "cancelled"
                     )
-                else:
-                    self.event_analytics[event._id]["status"] = "cancelled"
                 await run_sync(self.compute_analytics_summary, self.event_analytics)
+
+                # The event is over, and nothing looks one up by id afterwards: the
+                # `/stream/{event_id}` routes only feed an event that is still running,
+                # and `/queue/data/{event_id}` falls back to the id as the session hash,
+                # which is what it is for a client that sent no session hash. Holding on
+                # would pin this event's `fastapi.Request` and its request payload for
+                # the life of the process.
+                self.event_ids_to_events.pop(event._id, None)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
