@@ -5,8 +5,8 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
-	import type Canvas3DGS from "./Canvas3DGS.svelte";
 	import type Canvas3D from "./Canvas3D.svelte";
+	import { create_renderer } from "./renderer.svelte.js";
 
 	let {
 		value = $bindable(),
@@ -54,35 +54,12 @@
 		children?: Snippet;
 	} = $props();
 
-	let use_3dgs = $state(false);
-	let Canvas3DGSComponent = $state<typeof Canvas3DGS>();
-	let Canvas3DComponent = $state<typeof Canvas3D>();
 	let canvas3d = $state<Canvas3D | undefined>();
 	let dragging = $state(false);
 
-	async function loadCanvas3D(): Promise<typeof Canvas3D> {
-		const module = await import("./Canvas3D.svelte");
-		return module.default;
-	}
-	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
-		const module = await import("./Canvas3DGS.svelte");
-		return module.default;
-	}
-
-	$effect(() => {
-		if (value) {
-			use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
-			if (use_3dgs) {
-				loadCanvas3DGS().then((component) => {
-					Canvas3DGSComponent = component;
-				});
-			} else {
-				loadCanvas3D().then((component) => {
-					Canvas3DComponent = component;
-				});
-			}
-		}
-	});
+	const model = create_renderer(() => value);
+	const GaussianCanvas = $derived(model.gsplat_component);
+	const BabylonCanvas = $derived(model.babylon_component);
 
 	$effect(() => {
 		ondrag?.(dragging);
@@ -132,16 +109,16 @@
 {:else}
 	<div class="input-model">
 		<ModifyUpload
-			undoable={!use_3dgs}
+			undoable={model.renderer === "babylon"}
 			onclear={handle_clear}
 			{i18n}
 			onundo={handle_undo}
 		/>
 
-		{#if use_3dgs}
-			<Canvas3DGSComponent {value} {zoom_speed} {pan_speed} />
-		{:else}
-			<Canvas3DComponent
+		{#if model.renderer === "gsplat" && GaussianCanvas}
+			<GaussianCanvas {value} {zoom_speed} {pan_speed} />
+		{:else if model.renderer === "babylon" && BabylonCanvas}
+			<BabylonCanvas
 				bind:this={canvas3d}
 				{value}
 				{display_mode}
@@ -149,6 +126,7 @@
 				{camera_position}
 				{zoom_speed}
 				{pan_speed}
+				data={model.data}
 			/>
 		{/if}
 	</div>

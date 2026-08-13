@@ -21,6 +21,12 @@ export const TEST_WAV = fixture("audio_sample.wav", "audio/wav", 16136);
 export const TEST_PDF = fixture("sample_file.pdf", "application/pdf", 10558);
 export const TEST_GLTF = fixture("Box.gltf", "model/gltf+json", 5249);
 export const TEST_PLY = fixture("model.ply", "application/octet-stream", 413);
+/** A plain triangle mesh, as opposed to the Gaussian splat in `TEST_PLY`. */
+export const TEST_PLY_MESH = fixture(
+	"mesh.ply",
+	"application/octet-stream",
+	292
+);
 export const TEST_SPLAT = fixture(
 	"model.splat",
 	"application/octet-stream",

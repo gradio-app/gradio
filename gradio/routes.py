@@ -17,7 +17,7 @@ import sys
 import time
 import traceback
 import warnings
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -230,7 +230,8 @@ class App(FastAPI):
 
     def __init__(
         self,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         **kwargs,
     ):
         self.tokens = {}
@@ -365,10 +366,12 @@ class App(FastAPI):
         blocks: gradio.Blocks,
         app: App | None = None,
         app_kwargs: dict[str, Any] | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         strict_cors: bool = True,
         mcp_server: bool | None = None,
         debug: bool = False,
+        parent_app: fastapi.FastAPI | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -384,13 +387,19 @@ class App(FastAPI):
             app.router.lifespan_context = create_lifespan_handler(
                 app_kwargs.get("lifespan", None), *delete_cache
             )
+            if auth_dependency is not None:
+                app.auth_dependency = auth_dependency
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
+        app.add_middleware(
+            CustomCORSMiddleware,  # type: ignore
+            strict_cors=strict_cors,
+            parent_app=parent_app,
+        )
         app.add_middleware(
             BrotliMiddleware,  # type: ignore
             quality=4,
@@ -403,9 +412,12 @@ class App(FastAPI):
 
         @router.get("/user")
         @router.get("/user/")
-        def get_current_user(request: fastapi.Request) -> str | None:
+        async def get_current_user(request: fastapi.Request) -> str | None:
             if app.auth_dependency is not None:
-                return app.auth_dependency(request)
+                user = app.auth_dependency(request)
+                if inspect.isawaitable(user):
+                    user = await user
+                return user
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -2504,7 +2516,8 @@ def mount_gradio_app(
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
     auth_message: str | None = None,
-    auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+    auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+    | None = None,
     root_path: str | None = None,
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
@@ -2528,7 +2541,7 @@ def mount_gradio_app(
     """Mount a gradio.Blocks to an existing FastAPI application.
 
     Parameters:
-        app: The parent FastAPI application.
+        app: The parent FastAPI application. If it configures its own `CORSMiddleware`, Gradio will not add its own CORS headers to the mounted app, so that your `allow_origins` policy is the one that applies.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted, e.g. "/gradio".
         server_name: The server name on which the Gradio app will be run.
@@ -2650,6 +2663,7 @@ def mount_gradio_app(
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
         mcp_server=mcp_server,
+        parent_app=app,
     )
     old_lifespan = app.router.lifespan_context
 
