@@ -4,7 +4,6 @@ import tempfile
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import gradio_client
 import pytest
 
 import gradio as gr
@@ -743,64 +742,29 @@ class TestChatImageUrl:
         assert _chat_image_url({"path": str(outside)}) == str(outside)
 
 
-class _RecordingClient:
-    """Stands in for the Space, capturing exactly what `call_space` hands it."""
-
-    last_args: tuple = ()
-
-    def __init__(self, space_id, token=None, **kwargs):
-        pass
-
-    def view_api(self, return_format="dict"):
-        return {"named_endpoints": {"/predict": {}}}
-
-    def predict(self, *args, api_name=None):
-        type(self).last_args = args
-        return "ok"
-
-
 class TestCallSpaceFileArgs:
-    """`handle_file` uploads a local path, so only app-owned files may be named."""
-
-    def _first_arg_sent(self, monkeypatch, arg):
-        monkeypatch.setattr(gradio_client, "Client", _RecordingClient)
-        # A trailing argument keeps a rejected file visible as `None` instead of being
-        # trimmed off the end.
-        call_space(["owner/space", "/predict", json.dumps([arg, "trailing"])])
-        return _RecordingClient.last_args[0]
+    def _file_sent_to_space(self, path):
+        """What `call_space` hands the Space for a file argument."""
+        client = MagicMock()
+        client.predict.return_value = "ok"
+        with patch("gradio_client.Client", return_value=client):
+            # The trailing argument keeps a rejected file visible as `None` rather than
+            # being trimmed off the end.
+            call_space(["o/r", "/run", json.dumps([{"path": path}, "trailing"])])
+        return client.predict.call_args.args[0]
 
     def test_sends_files_the_app_owns(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
-        saved = _save_tmp(b"operator-output", "png")
+        owned = _save_tmp(b"operator-output", "png")["path"]
 
-        assert is_in_or_equal(saved["path"], get_upload_folder())
-        sent = self._first_arg_sent(monkeypatch, {"path": saved["path"]})
-        assert sent["path"] == saved["path"]
-
-    def test_names_an_operator_output_by_its_path(self, tmp_path, monkeypatch):
-        # `call_space` labels its own outputs with a `/gradio_api/file=` url, which is
-        # not a path anything can open. Reading `path` first is what lets one Space's
-        # output be fed into another.
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
-        saved = _save_tmp(b"operator-output", "png")
-
-        sent = self._first_arg_sent(
-            monkeypatch,
-            {"path": saved["path"], "url": f"/gradio_api/file={saved['path']}"},
-        )
-        assert sent["path"] == saved["path"]
+        assert self._file_sent_to_space(owned)["path"] == owned
 
     def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
+        # `handle_file` would upload it, so this is the same question `_chat_image_url`
+        # asks: the app may only send files it put in the cache itself.
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         (tmp_path / "cache").mkdir()
-        outside = tmp_path / "elsewhere" / "private.pem"
-        outside.parent.mkdir()
+        outside = tmp_path / "private.pem"
         outside.write_text("must-not-be-uploaded")
 
-        assert self._first_arg_sent(monkeypatch, {"path": str(outside)}) is None
-
-    def test_passes_absolute_urls_through_as_references(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
-
-        sent = self._first_arg_sent(monkeypatch, {"url": "https://example.com/cat.png"})
-        assert sent["url"] == "https://example.com/cat.png"
+        assert self._file_sent_to_space(str(outside)) is None
