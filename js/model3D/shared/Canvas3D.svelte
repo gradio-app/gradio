@@ -127,12 +127,18 @@
 		currentViewer: Viewer,
 		source: string | File
 	): Promise<void> {
-		if (typeof source !== "string" || !value.path.endsWith(".obj")) return;
+		if (typeof source !== "string") return;
+		if (!value.path.toLowerCase().endsWith(".obj")) return;
+
 		const meshes = viewerDetails?.model?.assetContainer.meshes ?? [];
 		if (has_drawable_geometry(meshes)) return;
 
 		const points = await resolve_obj_point_cloud(source);
-		if (!points || !mounted || currentViewer !== viewer) return;
+		// `value` can change while the file is in flight. Babylon aborts an
+		// in-flight load on the next one, so loading here would undo the newer
+		// model rather than the other way round.
+		if (!points || !mounted || currentViewer !== viewer || source !== url)
+			return;
 		await currentViewer.loadModel(
 			new File([points], "model.ply"),
 			LOAD_OPTIONS

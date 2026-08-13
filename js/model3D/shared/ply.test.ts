@@ -75,6 +75,19 @@ describe("parse_ply_header", () => {
 		expect(parse_ply_header(encode("not a ply file"))).toBeNull();
 	});
 
+	test("does not end the header at `end_header` inside a comment", () => {
+		const commented = MESH_PLY.replace(
+			"element vertex 3",
+			"comment end_header comes later\nelement vertex 3"
+		);
+		const header = parse_ply_header(encode(commented))!;
+
+		expect(header.elements.map((element) => element.name)).toEqual([
+			"vertex",
+			"face"
+		]);
+	});
+
 	test("returns null when the header is truncated", () => {
 		expect(parse_ply_header(encode("ply\nformat ascii 1.0\n"))).toBeNull();
 	});

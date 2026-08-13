@@ -43,11 +43,17 @@ export function obj_point_cloud_to_ply(
 		}
 
 		positions.push(x, y, z);
-		colors.push(
-			color_byte(parts[4]),
-			color_byte(parts[5]),
-			color_byte(parts[6])
-		);
+		// Babylon takes a colour only from a line carrying all three components,
+		// so the `w` of a legal `v x y z w` line must not become red.
+		if (parts.length >= 7) {
+			colors.push(
+				color_byte(parts[4]),
+				color_byte(parts[5]),
+				color_byte(parts[6])
+			);
+		} else {
+			colors.push(DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR);
+		}
 	}
 
 	if (positions.length === 0) return null;
@@ -71,9 +77,9 @@ export async function resolve_obj_point_cloud(
  * An OBJ vertex colour has no declared range, so Babylon reads a component above
  * 1 as 0-255 and the rest as 0-1. Both paths have to agree on that.
  */
-function color_byte(token: string | undefined): number {
+function color_byte(token: string): number {
 	const value = Number(token);
-	if (token === undefined || !Number.isFinite(value)) return DEFAULT_COLOR;
+	if (!Number.isFinite(value)) return DEFAULT_COLOR;
 	return Math.max(
 		0,
 		Math.min(255, Math.round(value > 1 ? value : value * 255))

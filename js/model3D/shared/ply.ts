@@ -88,7 +88,8 @@ const EMIT_TYPE: Record<ScalarType, ScalarType> = {
 
 // Babylon reads a face as a uchar length followed by three 32-bit indices and
 // ignores what the header declares, so lists are written to match that. Its
-// header parser never looks at faces, so no test covers this pairing.
+// header parser never looks at faces, so no test covers Babylon's side of this
+// pairing.
 const LIST_COUNT_TYPE: ScalarType = "uchar";
 const LIST_ENTRY_TYPE: ScalarType = "int";
 
@@ -127,12 +128,12 @@ export function parse_ply_header(bytes: Uint8Array): PlyHeader | null {
 	const text = new TextDecoder().decode(bytes);
 	if (!text.startsWith("ply")) return null;
 
-	const end = text.indexOf("end_header");
-	if (end < 0) return null;
-	const line_end = text.indexOf("\n", end);
-	if (line_end < 0) return null;
+	// Matched as a line of its own: `end_header` is also legal inside a comment,
+	// and taking that as the end would put `byte_length` inside the header.
+	const end = /(?:^|\n)end_header[ \t]*\r?\n/.exec(text);
+	if (!end) return null;
 
-	const header_text = text.slice(0, line_end + 1);
+	const header_text = text.slice(0, end.index + end[0].length);
 	const elements: PlyElement[] = [];
 	let format: PlyFormat | null = null;
 

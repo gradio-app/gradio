@@ -78,6 +78,16 @@ describe("obj_point_cloud_to_ply", () => {
 		]);
 	});
 
+	test("does not read the `w` of `v x y z w` as a colour", () => {
+		// A fourth coordinate is legal, and Babylon takes a colour only from a line
+		// carrying all three components, so this has to stay grey to match it.
+		const body = body_of(obj_point_cloud_to_ply("v 1 2 3 1.0\n")!);
+
+		expect([body.getUint8(12), body.getUint8(13), body.getUint8(14)]).toEqual([
+			128, 128, 128
+		]);
+	});
+
 	test("returns null for a file that has faces", () => {
 		// Points would paper over a mesh that failed to load for some other
 		// reason, so only a face-less file is converted.
