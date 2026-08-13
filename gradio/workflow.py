@@ -567,17 +567,15 @@ def get_write_access(
 
 
 def get_oauth_available(_data=None) -> str:
-    """Whether OAuth sign-in is actually wired up. On a Space this requires
-    `hf_oauth: true` in the README metadata, which provisions OAUTH_CLIENT_ID
-    and causes the `/login/huggingface` route to be mounted (mirrors the gate
-    that adds the LoginButton in `__init__`). Without it, sign-in would 404, so
-    the frontend hides the login button and explains the fix on the read-only
-    badge. OAuth is not used locally (the write-token model is used instead)."""
-    return (
-        "true"
-        if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
-        else "false"
-    )
+    """Whether `hf_oauth: true` is set in the Space's README."""
+    if get_space() is None:
+        return "false"
+    try:
+        with open("README.md", encoding="utf-8") as f:
+            head = f.read(4096)
+    except OSError:
+        return "false"
+    return "true" if re.search(r"^hf_oauth:\s*true\b", head, re.MULTILINE) else "false"
 
 
 def call_space(
