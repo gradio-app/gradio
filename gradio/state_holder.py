@@ -48,22 +48,6 @@ class StateHolder:
     ):
         for session_id in list(self.session_data):
             self.delete_state(session_id, expired_only=True)
-            self._drop_if_finished(session_id)
-
-    def _drop_if_finished(self, session_id: str):
-        session_state = self.session_data.get(session_id)
-        if session_state is None or not session_state.is_closed:
-            return
-        last_used = self.time_last_used.get(session_id)
-        if (
-            last_used is not None
-            and (datetime.datetime.now() - last_used).total_seconds()
-            <= session_state.STATE_TTL_WHEN_CLOSED
-        ):
-            return
-        with self.lock:
-            self.session_data.pop(session_id, None)
-            self.time_last_used.pop(session_id, None)
 
     def delete_state(self, session_id: str, expired_only: bool = False):
         if session_id not in self.session_data:

@@ -1107,9 +1107,6 @@ class Queue:
                 )
 
                 self.event_ids_to_events.pop(event._id, None)
-                self.pending_event_ids_session.get(event.session_hash, set()).discard(
-                    event._id
-                )
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
