@@ -767,10 +767,16 @@
 	.widget-checkbox {
 		width: 16px;
 		height: 16px;
-		accent-color: var(--accent);
+		border-radius: 3px;
+		border-color: #3a3b48;
 		cursor: pointer;
-		appearance: auto;
-		-webkit-appearance: checkbox;
+	}
+	.widget-checkbox:checked {
+		background-color: var(--accent);
+		border-color: var(--accent);
+	}
+	:global(body:not(.dark)) .widget-checkbox {
+		border-color: #d0d2dc;
 	}
 
 	.widget-checkbox-label {
