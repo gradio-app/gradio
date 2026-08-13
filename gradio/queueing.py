@@ -157,9 +157,10 @@ class Queue:
             default_concurrency_limit
         )
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
-        self.ANALYTICS_MAX_EVENTS = int(
-            os.getenv("GRADIO_ANALYTICS_MAX_EVENTS", "10000")
+        self.ANALYTICS_MAX_EVENTS = max(
+            1, int(os.getenv("GRADIO_ANALYTICS_MAX_EVENTS", "10000"))
         )
+        self.events_recorded_per_fn: defaultdict[str | None, int] = defaultdict(int)
         self.cached_event_analytics_summary = {"functions": {}}
         self.events_recorded = 0
         self.event_count_at_last_cache = 0
@@ -168,31 +169,29 @@ class Queue:
         )
 
     @staticmethod
-    def _get_df(event_analytics):
+    def _get_df(records):
         import pandas as pd
 
         try:
             with pd.option_context("future.no_silent_downcasting", True):
                 return (
-                    pd.DataFrame(list(event_analytics.values()))
-                    .fillna(value=np.nan)
-                    .infer_objects(copy=False)  # type: ignore
+                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
                 )
         except Exception as e:
             if "No such keys(s)" in str(e):
                 return (
-                    pd.DataFrame(list(event_analytics.values()))
-                    .fillna(value=np.nan)
-                    .infer_objects(copy=False)  # type: ignore
+                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
                 )
             raise e
 
-    def compute_analytics_summary(self, event_analytics):
+    def compute_analytics_summary(self, records):
+        if not records:
+            return self.cached_event_analytics_summary
         if (
             self.events_recorded - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            df = self._get_df(event_analytics)
+            df = self._get_df(records)
             self.event_count_at_last_cache = self.events_recorded
             grouped = df.groupby("function")
             metrics = {"functions": {}}
@@ -210,7 +209,9 @@ class Queue:
                         "90th": percentiles[1],  # type: ignore
                         "99th": percentiles[2],  # type: ignore
                     },
-                    "total_requests": fn_df.shape[0],
+                    "total_requests": self.events_recorded_per_fn.get(
+                        fn_name, fn_df.shape[0]
+                    ),
                 }
             self.cached_event_analytics_summary = metrics
         return self.cached_event_analytics_summary
@@ -474,6 +475,7 @@ class Queue:
             "session_hash": body.session_hash,
         }
         self.events_recorded += 1
+        self.events_recorded_per_fn[fn.api_name] += 1
         while len(self.event_analytics) > self.ANALYTICS_MAX_EVENTS:
             self.event_analytics.pop(next(iter(self.event_analytics)))
 
@@ -907,7 +909,10 @@ class Queue:
                             success=False,
                         ),
                     )
-                    await run_sync(self.compute_analytics_summary, self.event_analytics)
+                    await run_sync(
+                        self.compute_analytics_summary,
+                        list(self.event_analytics.values()),
+                    )
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
@@ -1096,7 +1101,10 @@ class Queue:
                         if event in awake_events
                         else "cancelled"
                     )
-                await run_sync(self.compute_analytics_summary, self.event_analytics)
+                await run_sync(
+                    self.compute_analytics_summary,
+                    list(self.event_analytics.values()),
+                )
 
                 self.event_ids_to_events.pop(event._id, None)
                 self.pending_event_ids_session.get(event.session_hash, set()).discard(

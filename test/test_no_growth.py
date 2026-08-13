@@ -62,9 +62,9 @@ class TestServerDoesNotGrowPerRequest:
             after = census(owners)
 
         grew = {
-            key: (before[key], after.get(key, 0))
-            for key in before
-            if after.get(key, 0) > before[key]
+            key: (before.get(key, 0), after.get(key, 0))
+            for key in before.keys() | after.keys()
+            if after.get(key, 0) > before.get(key, 0)
         }
         assert not grew, (
             "these grew over an identical batch of requests on the same session: "

@@ -396,6 +396,10 @@ class TestQueueDoesNotAccumulate:
                 client.predict("a", api_name="/lambda")
 
         assert len(demo._queue.event_analytics) == 3
-        assert demo._queue.cached_event_analytics_summary["functions"]["lambda"][
-            "total_requests"
-        ]
+        assert demo._queue.events_recorded == 8
+        assert (
+            demo._queue.cached_event_analytics_summary["functions"]["lambda"][
+                "total_requests"
+            ]
+            == 8
+        )
