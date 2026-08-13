@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Render mesh and point-cloud PLY files in `gr.Model3D`
+fix:Render the PLY and OBJ files `gr.Model3D` showed as a blank canvas
