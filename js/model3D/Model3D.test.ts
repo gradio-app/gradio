@@ -190,6 +190,20 @@ describe("Static mode", () => {
 		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
 	});
 
+	test("an upper-case .PLY has its header read too", async () => {
+		// Babylon lowercases the extension when it picks a loader, so a `.PLY`
+		// that skipped the header read here would reach the splat loader anyway.
+		const { queryByLabelText, getByTestId } = await render(Model3D, {
+			...base_props,
+			value: { ...TEST_PLY, path: TEST_PLY.path.replace(".ply", ".PLY") }
+		});
+
+		await waitFor(() => {
+			expect(getByTestId("model3d")).toBeInTheDocument();
+		});
+		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
+	});
+
 	test(".splat value skips undo button (Canvas3DGS branch)", async () => {
 		const { queryByLabelText, getByTestId } = await render(Model3D, {
 			...base_props,

@@ -32,8 +32,12 @@ export function create_renderer(get_value: () => FileData | null | undefined) {
 		data = undefined;
 		if (!file) return;
 
-		const is_splat = file.path.endsWith(".splat");
-		const is_ply = file.path.endsWith(".ply");
+		// Babylon lowercases the extension before it picks a loader, so an
+		// upper-case one has to be recognised here too or it reaches the splat
+		// loader without its header ever being read.
+		const path = file.path.toLowerCase();
+		const is_splat = path.endsWith(".splat");
+		const is_ply = path.endsWith(".ply");
 
 		let stale = false;
 		const use = (source: PlySource): void => {
