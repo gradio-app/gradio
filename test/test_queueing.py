@@ -363,6 +363,34 @@ class TestQueueDoesNotAccumulate:
 
         assert demo._queue.event_ids_to_events == {}
 
+    def test_finished_tasks_are_not_retained(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        # The queue keeps a reference to the task it starts so it can cancel it on
+        # shutdown; a task that has finished is not a task it needs to cancel.
+        assert demo._queue._asyncio_tasks == set()
+
+    def test_completing_an_event_does_not_mark_its_iterator_for_reset(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        # Only the /reset route, which runs while a job is still going, has a reason to
+        # record an id here.
+        assert demo._queue.server_app.iterators_to_reset == set()
+
     def test_event_analytics_is_bounded(self, connect):
         with gr.Blocks() as demo:
             box = gr.Textbox()

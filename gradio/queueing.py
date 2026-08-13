@@ -145,7 +145,9 @@ class Queue:
         )
         self.max_size = max_size
         self.blocks = blocks
-        self._asyncio_tasks: list[asyncio.Task] = []
+        # A set so a finished task can drop itself; the list this replaced held every
+        # task the queue had ever started until shutdown.
+        self._asyncio_tasks: set[asyncio.Task] = set()
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
@@ -490,9 +492,9 @@ class Queue:
                     pass
 
     def _cancel_asyncio_tasks(self):
-        for task in self._asyncio_tasks:
+        for task in list(self._asyncio_tasks):
             task.cancel()
-        self._asyncio_tasks = []
+        self._asyncio_tasks.clear()
 
     def set_server_app(self, app: routes.App):
         self.server_app = app
@@ -566,7 +568,8 @@ class Queue:
                         batch,
                     )
 
-                    self._asyncio_tasks.append(process_event_task)
+                    self._asyncio_tasks.add(process_event_task)
+                    process_event_task.add_done_callback(self._asyncio_tasks.discard)
                     if self.live_updates:
                         self.broadcast_estimations(concurrency_id)
                 else:
@@ -1125,7 +1128,12 @@ class Queue:
             except Exception:
                 pass
             del app.iterators[event_id]
-            app.iterators_to_reset.add(event_id)
+            # Deliberately not added to `app.iterators_to_reset` here. That set exists so
+            # that a job which is being cancelled does not restore its iterator and
+            # overwrite the state, and it is the `/reset` route -- which runs while the
+            # job is still going -- that has to record it. This is the only caller, and
+            # it runs once the event is already over, so an entry added here can never be
+            # read, and the set grew once per request for the life of the process.
         return
 
 
