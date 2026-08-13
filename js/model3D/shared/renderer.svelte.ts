@@ -32,9 +32,8 @@ export function create_renderer(get_value: () => FileData | null | undefined) {
 		data = undefined;
 		if (!file) return;
 
-		// Babylon lowercases the extension before it picks a loader, so an
-		// upper-case one has to be recognised here too or it reaches the splat
-		// loader without its header ever being read.
+		// Babylon lowercases the extension to pick a loader, so an upper-case one
+		// left unmatched here reaches the splat loader with its header unread.
 		const path = file.path.toLowerCase();
 		const is_splat = path.endsWith(".splat");
 		const is_ply = path.endsWith(".ply");
