@@ -1099,11 +1099,9 @@ class Queue:
                 await run_sync(self.compute_analytics_summary, self.event_analytics)
 
                 self.event_ids_to_events.pop(event._id, None)
-                pending = self.pending_event_ids_session.get(event.session_hash)
-                if pending is not None:
-                    pending.discard(event._id)
-                    if not pending:
-                        self.pending_event_ids_session.pop(event.session_hash, None)
+                self.pending_event_ids_session.get(event.session_hash, set()).discard(
+                    event._id
+                )
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
