@@ -2,8 +2,17 @@
 	import { onMount } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import type { Viewer, ViewerDetails } from "@babylonjs/viewer";
+	import { has_drawable_geometry, resolve_obj_point_cloud } from "./obj.js";
 
 	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
+
+	const LOAD_OPTIONS = {
+		pluginOptions: {
+			obj: {
+				importVertexColors: true
+			}
+		}
+	};
 
 	let {
 		value,
@@ -11,7 +20,8 @@
 		clear_color,
 		camera_position,
 		zoom_speed,
-		pan_speed
+		pan_speed,
+		data
 	}: {
 		value: FileData;
 		display_mode: "solid" | "point_cloud" | "wireframe";
@@ -19,6 +29,8 @@
 		camera_position: [number | null, number | null, number | null];
 		zoom_speed: number;
 		pan_speed: number;
+		/** Already-decoded bytes to load instead of fetching `value.url`. */
+		data?: Uint8Array<ArrayBuffer>;
 	} = $props();
 
 	let url = $derived(value.url);
@@ -64,7 +76,9 @@
 
 	$effect(() => {
 		if (mounted) {
-			void load_model(url);
+			// Babylon picks its loader from the filename, so decoded bytes are
+			// handed over as a named file rather than a bare buffer.
+			void load_model(data ? new File([data], "model.ply") : url);
 		}
 	});
 
@@ -74,19 +88,16 @@
 		viewerDetails.scene.forceWireframe = wireframe;
 	}
 
-	async function load_model(url: string | undefined): Promise<void> {
+	async function load_model(source: string | File | undefined): Promise<void> {
 		const currentViewer = viewer;
 		if (!currentViewer) return;
 
-		if (url) {
+		if (source) {
 			try {
-				await currentViewer.loadModel(url, {
-					pluginOptions: {
-						obj: {
-							importVertexColors: true
-						}
-					}
-				});
+				await currentViewer.loadModel(source, LOAD_OPTIONS);
+				if (mounted && currentViewer === viewer) {
+					await load_as_point_cloud(currentViewer, source);
+				}
 			} catch (error) {
 				if (mounted && currentViewer === viewer) {
 					console.error(error);
@@ -106,6 +117,32 @@
 		} else {
 			currentViewer.resetModel();
 		}
+	}
+
+	/**
+	 * A face-less OBJ can load without error and leave nothing to draw, so it is
+	 * reloaded as a point cloud. See obj.ts.
+	 */
+	async function load_as_point_cloud(
+		currentViewer: Viewer,
+		source: string | File
+	): Promise<void> {
+		if (typeof source !== "string") return;
+		if (!value.path.toLowerCase().endsWith(".obj")) return;
+
+		const meshes = viewerDetails?.model?.assetContainer.meshes ?? [];
+		if (has_drawable_geometry(meshes)) return;
+
+		const points = await resolve_obj_point_cloud(source);
+		// `value` can change while the file is in flight. Babylon aborts an
+		// in-flight load on the next one, so loading here would undo the newer
+		// model rather than the other way round.
+		if (!points || !mounted || currentViewer !== viewer || source !== url)
+			return;
+		await currentViewer.loadModel(
+			new File([points], "model.ply"),
+			LOAD_OPTIONS
+		);
 	}
 
 	export function update_camera(
