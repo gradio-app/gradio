@@ -818,6 +818,34 @@ class TestRoutes:
 
         io.close()
 
+    @pytest.mark.parametrize("add_middleware_first", [True, False])
+    def test_mounted_app_respects_user_cors_middleware(self, add_middleware_first):
+        from fastapi.middleware.cors import CORSMiddleware
+
+        with gr.Blocks() as demo:
+            gr.Textbox("hello")
+
+        app = FastAPI()
+        if add_middleware_first:
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+            app = gr.mount_gradio_app(app, demo, path="/")
+        else:
+            app = gr.mount_gradio_app(app, demo, path="/")
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+
+        client = TestClient(app)
+        disallowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://malicious.com"},
+        )
+        assert "access-control-allow-origin" not in disallowed.headers
+
+        allowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://example.com"},
+        )
+        assert allowed.headers["access-control-allow-origin"] == "https://example.com"
+
     def test_loose_cors_restrictions(self):
         io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
         app, _, _ = io.launch(prevent_thread_lock=True, strict_cors=False)
