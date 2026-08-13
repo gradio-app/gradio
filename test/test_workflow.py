@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -20,6 +21,7 @@ from gradio.workflow import (
     _request_has_write_token,
     _resolve_token,
     _save_tmp,
+    _space_file_arg,
     _workflow_from_bind,
     call_model,
     call_space,
@@ -740,3 +742,51 @@ class TestChatImageUrl:
         outside.write_bytes(b"must-not-be-read")
 
         assert _chat_image_url({"path": str(outside)}) == str(outside)
+
+
+class TestSpaceFileArg:
+    """`handle_file()` marks a path for upload, so the same ownership question applies."""
+
+    def test_sends_files_the_app_owns(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+
+        assert is_in_or_equal(saved["path"], get_upload_folder())
+        assert _space_file_arg(saved["path"]) == {
+            "path": saved["path"],
+            "meta": {"_type": "gradio.FileData"},
+            "orig_name": Path(saved["path"]).name,
+        }
+
+    def test_sends_cache_files_named_by_a_gradio_api_url(self, tmp_path, monkeypatch):
+        # What a component or operator output looks like by the time it reaches a
+        # downstream `call_space`. Before the prefix was stripped, `handle_file()` raised
+        # on it, so chaining one of these into a Space could not work at all.
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+
+        assert (
+            _space_file_arg(f"/gradio_api/file={saved['path']}")["path"]
+            == (saved["path"])
+        )
+
+    def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "elsewhere" / "private.pem"
+        outside.parent.mkdir()
+        outside.write_text("must-not-be-uploaded")
+
+        # Passed through unread, so the Space receives a string it cannot resolve --
+        # the same outcome a path that does not exist already had.
+        assert _space_file_arg(str(outside)) == str(outside)
+
+    def test_passes_absolute_urls_through_as_references(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+
+        assert _space_file_arg("https://example.com/cat.png") == {
+            "path": "https://example.com/cat.png",
+            "url": "https://example.com/cat.png",
+            "orig_name": "cat.png",
+            "meta": {"_type": "gradio.FileData"},
+        }
