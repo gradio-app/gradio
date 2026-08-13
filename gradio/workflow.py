@@ -615,8 +615,9 @@ def call_space(
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
                 src = arg.get("path") or arg.get("url", "")
-                sendable = src.startswith(("http://", "https://")) or is_in_or_equal(
-                    src, get_upload_folder()
+                sendable = isinstance(src, str) and (
+                    src.startswith(("http://", "https://"))
+                    or is_in_or_equal(src, get_upload_folder())
                 )
                 processed.append(handle_file(src) if src and sendable else None)
             else:
