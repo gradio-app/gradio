@@ -488,20 +488,19 @@ def test_format_conversation_replays_remote_text_files_as_text(monkeypatch):
 
     monkeypatch.setattr(httpx, "get", fake_get)
 
-    conversation = format_conversation(
-        [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "file",
-                        "file": {"path": "https://example.com/files/notes.txt"},
-                    }
-                ],
-            }
-        ],  # type: ignore
-        "and now a short one",
-    )
+    history = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "file",
+                    "file": {"path": "https://example.com/files/notes.txt"},
+                }
+            ],
+        }
+    ]
+
+    conversation = format_conversation(history, "and now a short one")  # type: ignore
 
     assert conversation[0]["content"] == [
         {"type": "text", "text": "\n## notes.txt\nremote notes"}
