@@ -2,8 +2,17 @@
 	import { onMount } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import type { Viewer, ViewerDetails } from "@babylonjs/viewer";
+	import { has_drawable_geometry, resolve_obj_point_cloud } from "./obj.js";
 
 	let BABYLON_VIEWER: typeof import("@babylonjs/viewer");
+
+	const LOAD_OPTIONS = {
+		pluginOptions: {
+			obj: {
+				importVertexColors: true
+			}
+		}
+	};
 
 	let {
 		value,
@@ -85,13 +94,10 @@
 
 		if (source) {
 			try {
-				await currentViewer.loadModel(source, {
-					pluginOptions: {
-						obj: {
-							importVertexColors: true
-						}
-					}
-				});
+				await currentViewer.loadModel(source, LOAD_OPTIONS);
+				if (mounted && currentViewer === viewer) {
+					await load_as_point_cloud(currentViewer, source);
+				}
 			} catch (error) {
 				if (mounted && currentViewer === viewer) {
 					console.error(error);
@@ -111,6 +117,26 @@
 		} else {
 			currentViewer.resetModel();
 		}
+	}
+
+	/**
+	 * A face-less OBJ can load without error and leave nothing to draw, so it is
+	 * reloaded as a point cloud. See obj.ts.
+	 */
+	async function load_as_point_cloud(
+		currentViewer: Viewer,
+		source: string | File
+	): Promise<void> {
+		if (typeof source !== "string" || !value.path.endsWith(".obj")) return;
+		const meshes = viewerDetails?.model?.assetContainer.meshes ?? [];
+		if (has_drawable_geometry(meshes)) return;
+
+		const points = await resolve_obj_point_cloud(source);
+		if (!points || !mounted || currentViewer !== viewer) return;
+		await currentViewer.loadModel(
+			new File([points], "model.ply"),
+			LOAD_OPTIONS
+		);
 	}
 
 	export function update_camera(
