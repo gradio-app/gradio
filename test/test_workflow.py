@@ -10,13 +10,16 @@ import gradio as gr
 import gradio.workflow as workflow_module
 from gradio.oauth import OAuthToken
 from gradio.route_utils import Request
+from gradio.utils import get_upload_folder, is_in_or_equal
 from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
+    _chat_image_url,
     _dispatch_model_endpoint,
     _get_locally_saved_hf_token,
     _request_has_write_token,
     _resolve_token,
+    _save_tmp,
     _workflow_from_bind,
     call_model,
     call_space,
@@ -719,3 +722,21 @@ class TestCallSpaceValidation:
         assert re.fullmatch(pattern, "owner/repo")
         assert re.fullmatch(pattern, "my-org/my-space")
         assert re.fullmatch(pattern, "http://host/path") is None
+
+
+class TestChatImageUrl:
+    def test_operator_outputs_land_in_the_cache_and_inline(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+
+        assert is_in_or_equal(saved["path"], get_upload_folder())
+        assert _chat_image_url({"path": saved["path"]}).startswith("data:")
+
+    def test_does_not_read_files_outside_the_cache(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "elsewhere" / "private.png"
+        outside.parent.mkdir()
+        outside.write_bytes(b"must-not-be-read")
+
+        assert _chat_image_url({"path": str(outside)}) == str(outside)

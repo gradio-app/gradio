@@ -923,8 +923,11 @@ class CustomCORSMiddleware:
         self,
         app: ASGIApp,
         strict_cors: bool = True,
+        parent_app: Any | None = None,
     ) -> None:
         self.app = app
+        self.parent_app = parent_app
+        self._parent_configures_cors: bool | None = None
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
         self.preflight_headers = {
             "Access-Control-Allow-Methods": ", ".join(self.all_methods),
@@ -940,8 +943,21 @@ class CustomCORSMiddleware:
             # also be used maliciously for CSRF attacks, so it is not allowed by default.
             self.localhost_aliases.append("null")
 
+    def parent_configures_cors(self) -> bool:
+        if self._parent_configures_cors is None:
+            from starlette.middleware.cors import CORSMiddleware
+
+            self._parent_configures_cors = any(
+                middleware.cls is CORSMiddleware
+                for middleware in getattr(self.parent_app, "user_middleware", [])
+            )
+        return self._parent_configures_cors
+
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        if self.parent_configures_cors():
             await self.app(scope, receive, send)
             return
         headers = Headers(scope=scope)
