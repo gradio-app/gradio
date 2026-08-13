@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 
 import anyio
 import httpx
+from gradio_client import Client, handle_file
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
@@ -585,8 +586,6 @@ def call_space(
 ) -> str:
     space_id = data[0] if data else ""
     try:
-        from gradio_client import Client, handle_file
-
         endpoint = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
         hf_token = _resolve_token(data, 3, token, request)
@@ -615,9 +614,6 @@ def call_space(
         processed = []
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
-                # `handle_file` uploads a local path to the Space, so only files the app
-                # itself put in the cache may be named here. `path` before `url`, like
-                # `_chat_image_url`, so an app-owned file arrives as its real path.
                 src = arg.get("path") or arg.get("url", "")
                 sendable = src.startswith(("http://", "https://")) or is_in_or_equal(
                     src, get_upload_folder()

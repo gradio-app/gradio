@@ -747,9 +747,7 @@ class TestCallSpaceFileArgs:
         """What `call_space` hands the Space for a file argument."""
         client = MagicMock()
         client.predict.return_value = "ok"
-        with patch("gradio_client.Client", return_value=client):
-            # The trailing argument keeps a rejected file visible as `None` rather than
-            # being trimmed off the end.
+        with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([{"path": path}, "trailing"])])
         return client.predict.call_args.args[0]
 
@@ -760,8 +758,6 @@ class TestCallSpaceFileArgs:
         assert self._file_sent_to_space(owned)["path"] == owned
 
     def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
-        # `handle_file` would upload it, so this is the same question `_chat_image_url`
-        # asks: the app may only send files it put in the cache itself.
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         (tmp_path / "cache").mkdir()
         outside = tmp_path / "private.pem"
