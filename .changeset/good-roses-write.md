@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:workflow: 
+feat:workflow: fix oauth logic check
