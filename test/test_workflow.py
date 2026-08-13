@@ -1,10 +1,10 @@
 import json
 import os
 import tempfile
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import gradio_client
 import pytest
 
 import gradio as gr
@@ -21,7 +21,6 @@ from gradio.workflow import (
     _request_has_write_token,
     _resolve_token,
     _save_tmp,
-    _space_file_arg,
     _workflow_from_bind,
     call_model,
     call_space,
@@ -744,31 +743,52 @@ class TestChatImageUrl:
         assert _chat_image_url({"path": str(outside)}) == str(outside)
 
 
-class TestSpaceFileArg:
-    """`handle_file()` marks a path for upload, so the same ownership question applies."""
+class _RecordingClient:
+    """Stands in for the Space, capturing exactly what `call_space` hands it."""
+
+    last_args: tuple = ()
+
+    def __init__(self, space_id, token=None, **kwargs):
+        pass
+
+    def view_api(self, return_format="dict"):
+        return {"named_endpoints": {"/predict": {}}}
+
+    def predict(self, *args, api_name=None):
+        type(self).last_args = args
+        return "ok"
+
+
+class TestCallSpaceFileArgs:
+    """`handle_file` uploads a local path, so only app-owned files may be named."""
+
+    def _first_arg_sent(self, monkeypatch, arg):
+        monkeypatch.setattr(gradio_client, "Client", _RecordingClient)
+        # A trailing argument keeps a rejected file visible as `None` instead of being
+        # trimmed off the end.
+        call_space(["owner/space", "/predict", json.dumps([arg, "trailing"])])
+        return _RecordingClient.last_args[0]
 
     def test_sends_files_the_app_owns(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         saved = _save_tmp(b"operator-output", "png")
 
         assert is_in_or_equal(saved["path"], get_upload_folder())
-        assert _space_file_arg(saved["path"]) == {
-            "path": saved["path"],
-            "meta": {"_type": "gradio.FileData"},
-            "orig_name": Path(saved["path"]).name,
-        }
+        sent = self._first_arg_sent(monkeypatch, {"path": saved["path"]})
+        assert sent["path"] == saved["path"]
 
-    def test_sends_cache_files_named_by_a_gradio_api_url(self, tmp_path, monkeypatch):
-        # What a component or operator output looks like by the time it reaches a
-        # downstream `call_space`. Before the prefix was stripped, `handle_file()` raised
-        # on it, so chaining one of these into a Space could not work at all.
+    def test_names_an_operator_output_by_its_path(self, tmp_path, monkeypatch):
+        # `call_space` labels its own outputs with a `/gradio_api/file=` url, which is
+        # not a path anything can open. Reading `path` first is what lets one Space's
+        # output be fed into another.
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         saved = _save_tmp(b"operator-output", "png")
 
-        assert (
-            _space_file_arg(f"/gradio_api/file={saved['path']}")["path"]
-            == (saved["path"])
+        sent = self._first_arg_sent(
+            monkeypatch,
+            {"path": saved["path"], "url": f"/gradio_api/file={saved['path']}"},
         )
+        assert sent["path"] == saved["path"]
 
     def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
@@ -777,16 +797,10 @@ class TestSpaceFileArg:
         outside.parent.mkdir()
         outside.write_text("must-not-be-uploaded")
 
-        # Passed through unread, so the Space receives a string it cannot resolve --
-        # the same outcome a path that does not exist already had.
-        assert _space_file_arg(str(outside)) == str(outside)
+        assert self._first_arg_sent(monkeypatch, {"path": str(outside)}) is None
 
     def test_passes_absolute_urls_through_as_references(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
 
-        assert _space_file_arg("https://example.com/cat.png") == {
-            "path": "https://example.com/cat.png",
-            "url": "https://example.com/cat.png",
-            "orig_name": "cat.png",
-            "meta": {"_type": "gradio.FileData"},
-        }
+        sent = self._first_arg_sent(monkeypatch, {"url": "https://example.com/cat.png"})
+        assert sent["url"] == "https://example.com/cat.png"

@@ -451,26 +451,6 @@ def _chat_image_url(a) -> str:
         return f"data:{mime};base64,{base64.b64encode(f.read()).decode()}"
 
 
-def _space_file_arg(src: str):
-    """Return a `handle_file()` reference for a Space argument, if it may be sent.
-
-    `handle_file()` marks a local path for upload and `client.predict()` then posts its
-    bytes to the Space, so this is the same question `_chat_image_url` asks: only files
-    the app itself put in the Gradio cache — uploads, component outputs, operator
-    outputs — may leave the process. Any other local path is passed through unread,
-    which is what already happened for one that does not exist. Absolute http(s) URLs
-    are passed through as references for the Space to fetch.
-    """
-    from gradio_client import handle_file
-
-    if src.startswith(("http://", "https://")):
-        return handle_file(src)
-    path = src.removeprefix("/gradio_api/file=")
-    if os.path.isfile(path) and is_in_or_equal(path, get_upload_folder()):
-        return handle_file(path)
-    return src
-
-
 def _classify_error(e: Exception) -> dict:
     http_status: int | None = None
     response = getattr(e, "response", None)
@@ -605,7 +585,7 @@ def call_space(
 ) -> str:
     space_id = data[0] if data else ""
     try:
-        from gradio_client import Client
+        from gradio_client import Client, handle_file
 
         endpoint = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
@@ -635,8 +615,14 @@ def call_space(
         processed = []
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
-                url = arg.get("url") or arg.get("path", "")
-                processed.append(_space_file_arg(url) if url else None)
+                # `handle_file` uploads a local path to the Space, so only files the app
+                # itself put in the cache may be named here. `path` before `url`, like
+                # `_chat_image_url`, so an app-owned file arrives as its real path.
+                src = arg.get("path") or arg.get("url", "")
+                sendable = src.startswith(("http://", "https://")) or is_in_or_equal(
+                    src, get_upload_folder()
+                )
+                processed.append(handle_file(src) if src and sendable else None)
             else:
                 processed.append(arg)
         while processed and processed[-1] is None:
