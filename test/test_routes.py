@@ -607,6 +607,42 @@ class TestRoutes:
             assert not client.get("/", headers={}).is_success
             assert client.get("/", headers={"user": "abubakar"}).is_success
 
+    def test_gradio_app_with_async_auth_dependency(self):
+        async def block_anonymous(request: Request):
+            return request.headers.get("user")
+
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app, _, _ = demo.launch(
+            auth_dependency=block_anonymous, prevent_thread_lock=True
+        )
+
+        with TestClient(app) as client:
+            assert not client.get("/", headers={}).is_success
+            assert client.get("/", headers={"user": "abubakar"}).is_success
+        demo.close()
+
+    def test_server_mode_with_auth_dependency(self):
+        def block_anonymous(request: Request):
+            return request.headers.get("user")
+
+        server = gr.Server()
+
+        @server.api(name="echo")
+        def echo(x: str) -> str:
+            return x
+
+        app, _, _ = server.launch(
+            auth_dependency=block_anonymous, prevent_thread_lock=True
+        )
+
+        with TestClient(app) as client:
+            assert (
+                client.get(f"{API_PREFIX}/login_check", headers={}).status_code == 401
+            )
+            assert client.get(
+                f"{API_PREFIX}/login_check", headers={"user": "abubakar"}
+            ).is_success
+
     def test_mount_gradio_app_with_auth_dependency(self):
         app = FastAPI()
 
@@ -781,6 +817,34 @@ class TestRoutes:
         assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
 
         io.close()
+
+    @pytest.mark.parametrize("add_middleware_first", [True, False])
+    def test_mounted_app_respects_user_cors_middleware(self, add_middleware_first):
+        from fastapi.middleware.cors import CORSMiddleware
+
+        with gr.Blocks() as demo:
+            gr.Textbox("hello")
+
+        app = FastAPI()
+        if add_middleware_first:
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+            app = gr.mount_gradio_app(app, demo, path="/")
+        else:
+            app = gr.mount_gradio_app(app, demo, path="/")
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+
+        client = TestClient(app)
+        disallowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://malicious.com"},
+        )
+        assert "access-control-allow-origin" not in disallowed.headers
+
+        allowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://example.com"},
+        )
+        assert allowed.headers["access-control-allow-origin"] == "https://example.com"
 
     def test_loose_cors_restrictions(self):
         io = gr.Interface(lambda s: s.name, gr.File(), gr.File())

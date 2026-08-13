@@ -302,6 +302,7 @@ export {
 	TEST_PDF,
 	TEST_GLTF,
 	TEST_PLY,
+	TEST_PLY_MESH,
 	TEST_SPLAT
 } from "./fixtures.js";
 export * from "@testing-library/dom";
