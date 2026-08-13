@@ -138,25 +138,7 @@
 		void auth.init();
 	});
 
-	let oauthHintShown = false;
-	$effect(() => {
-		if (
-			!oauthHintShown &&
-			auth.isHFSpace &&
-			auth.writeAccessKnown &&
-			!auth.canWrite &&
-			!auth.oauthAvailable
-		) {
-			oauthHintShown = true;
-			showToast(
-				"Sign-in has not been enabled on this Space. The author should add `hf_oauth: true` to the README so users can run workflows on their own inference quota, and authors can edit.",
-				0,
-				"warning"
-			);
-		}
-	});
-
-	$effect(() => {
+$effect(() => {
 		if (!initialValue) return;
 		try {
 			const parsed = JSON.parse(initialValue);
