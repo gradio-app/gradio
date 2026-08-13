@@ -615,8 +615,14 @@ def call_space(
         processed = []
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
-                url = arg.get("url") or arg.get("path", "")
-                processed.append(handle_file(url) if url else None)
+                # `handle_file` uploads a local path to the Space, so only files the app
+                # itself put in the cache may be named here. `path` before `url`, like
+                # `_chat_image_url`, so an app-owned file arrives as its real path.
+                src = arg.get("path") or arg.get("url", "")
+                sendable = src.startswith(("http://", "https://")) or is_in_or_equal(
+                    src, get_upload_folder()
+                )
+                processed.append(handle_file(src) if src and sendable else None)
             else:
                 processed.append(arg)
         while processed and processed[-1] is None:
