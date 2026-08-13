@@ -743,24 +743,26 @@ class TestChatImageUrl:
 
 
 class TestCallSpaceFileArgs:
-    def _file_sent_to_space(self, path):
-        """What `call_space` hands the Space for a file argument."""
-        client = MagicMock()
-        client.predict.return_value = "ok"
-        with patch("gradio.workflow.Client", return_value=client):
-            call_space(["o/r", "/run", json.dumps([{"path": path}, "trailing"])])
-        return client.predict.call_args.args[0]
-
     def test_sends_files_the_app_owns(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         owned = _save_tmp(b"operator-output", "png")["path"]
+        client = MagicMock()
+        client.predict.return_value = "ok"
 
-        assert self._file_sent_to_space(owned)["path"] == owned
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([{"path": owned}])])
+
+        assert client.predict.call_args.args[0]["path"] == owned
 
     def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         (tmp_path / "cache").mkdir()
         outside = tmp_path / "private.pem"
         outside.write_text("must-not-be-uploaded")
+        client = MagicMock()
+        client.predict.return_value = "ok"
 
-        assert self._file_sent_to_space(str(outside)) is None
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([{"path": str(outside)}, "keep"])])
+
+        assert client.predict.call_args.args[0] is None
