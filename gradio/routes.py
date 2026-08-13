@@ -1123,7 +1123,9 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             event.data = body
             event.signal.set()
@@ -1131,7 +1133,9 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
@@ -1287,7 +1291,6 @@ class App(FastAPI):
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
                         caching.clear_session_caches(session_hash)
-                        # The tab is gone, so no one will read these streams again.
                         for run in (
                             app.get_blocks()
                             .pending_streams.pop(session_hash, {})
@@ -1300,9 +1303,11 @@ class App(FastAPI):
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(
                             session_hash, []
                         ):
-                            event = app.get_blocks()._queue.event_ids_to_events[
+                            event = app.get_blocks()._queue.event_ids_to_events.get(
                                 event_id
-                            ]
+                            )
+                            if event is None:
+                                continue
                             event.run_time = math.inf
                             event.signal.set()
                         return

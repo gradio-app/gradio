@@ -23,6 +23,13 @@ from gradio.data_classes import (
 )
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
+from gradio.profiling import (
+    PROFILING_ENABLED,
+    RequestTrace,
+    collector,
+    get_current_trace,
+    set_current_trace,
+)
 from gradio.server_messages import (
     EstimationMessage,
     EventMessage,
@@ -145,15 +152,10 @@ class Queue:
         )
         self.max_size = max_size
         self.blocks = blocks
-        # A set so a finished task can drop itself; the list this replaced held every
-        # task the queue had ever started until shutdown.
         self._asyncio_tasks: set[asyncio.Task] = set()
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
-        # Kept in insertion order and trimmed to the most recent
-        # `ANALYTICS_MAX_EVENTS`. The monitoring dashboard holds a reference to this
-        # exact dict, so entries are evicted in place rather than by rebinding it.
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
         self.ANALYTICS_MAX_EVENTS = int(
             os.getenv("GRADIO_ANALYTICS_MAX_EVENTS", "10000")
@@ -186,8 +188,6 @@ class Queue:
             raise e
 
     def compute_analytics_summary(self, event_analytics):
-        # Counted against events seen rather than `len(event_analytics)`, which stops
-        # rising once the history is full and would freeze the summary.
         if (
             self.events_recorded - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
@@ -864,12 +864,6 @@ class Queue:
             )
             first_iteration = 0
 
-            from gradio.profiling import (
-                PROFILING_ENABLED,
-                RequestTrace,
-                set_current_trace,
-            )
-
             if PROFILING_ENABLED:
                 trace = RequestTrace(
                     event_id=events[0]._id,
@@ -1069,8 +1063,6 @@ class Queue:
             if not isinstance(e, Error) or e.print_exception:
                 traceback.print_exc()
         finally:
-            from gradio.profiling import PROFILING_ENABLED, collector, get_current_trace
-
             if PROFILING_ENABLED:
                 trace = get_current_trace()
                 if trace is not None:
@@ -1106,13 +1098,12 @@ class Queue:
                     )
                 await run_sync(self.compute_analytics_summary, self.event_analytics)
 
-                # The event is over, and nothing looks one up by id afterwards: the
-                # `/stream/{event_id}` routes only feed an event that is still running,
-                # and `/queue/data/{event_id}` falls back to the id as the session hash,
-                # which is what it is for a client that sent no session hash. Holding on
-                # would pin this event's `fastapi.Request` and its request payload for
-                # the life of the process.
                 self.event_ids_to_events.pop(event._id, None)
+                pending = self.pending_event_ids_session.get(event.session_hash)
+                if pending is not None:
+                    pending.discard(event._id)
+                    if not pending:
+                        self.pending_event_ids_session.pop(event.session_hash, None)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
@@ -1128,12 +1119,6 @@ class Queue:
             except Exception:
                 pass
             del app.iterators[event_id]
-            # Deliberately not added to `app.iterators_to_reset` here. That set exists so
-            # that a job which is being cancelled does not restore its iterator and
-            # overwrite the state, and it is the `/reset` route -- which runs while the
-            # job is still going -- that has to record it. This is the only caller, and
-            # it runs once the event is already over, so an entry added here can never be
-            # read, and the set grew once per request for the life of the process.
         return
 
 

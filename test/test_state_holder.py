@@ -18,9 +18,7 @@ def _demo() -> gr.Blocks:
 
 
 class TestStateHolderDoesNotAccumulate:
-    """A `SessionState` holds a copy of the blocks config and a config dict for every
-    component, so keeping one per session ever seen grows the process for its lifetime.
-    See https://github.com/gradio-app/gradio/issues/11602."""
+    """See https://github.com/gradio-app/gradio/issues/11602."""
 
     def test_open_session_is_kept(self):
         holder = _holder(_demo())

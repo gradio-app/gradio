@@ -46,19 +46,11 @@ class StateHolder:
     def delete_all_expired_state(
         self,
     ):
-        # Over a copy: dropping a finished session below mutates `session_data`.
         for session_id in list(self.session_data):
             self.delete_state(session_id, expired_only=True)
             self._drop_if_finished(session_id)
 
     def _drop_if_finished(self, session_id: str):
-        """Forget a closed session once its state has outlived `STATE_TTL_WHEN_CLOSED`.
-
-        Deleting the state values is not enough on its own: the `SessionState` also
-        holds a copy of the blocks config and a config dict for every component in the
-        app, and `time_last_used` holds an entry per session id ever seen. Neither was
-        ever removed, so both grew for the life of the process.
-        """
         session_state = self.session_data.get(session_id)
         if session_state is None or not session_state.is_closed:
             return
