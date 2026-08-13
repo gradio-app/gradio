@@ -1478,7 +1478,7 @@
 		background-color: var(--accent);
 		border-color: var(--accent);
 	}
-	:global(body:not(.dark)) .wf-node input[type="checkbox"] {
+	:global(body:not(.dark)) .wf-node input[type="checkbox"]:not(:checked) {
 		border-color: #d0d2dc;
 	}
 

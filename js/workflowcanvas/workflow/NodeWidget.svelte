@@ -775,7 +775,7 @@
 		background-color: var(--accent);
 		border-color: var(--accent);
 	}
-	:global(body:not(.dark)) .widget-checkbox {
+	:global(body:not(.dark)) .widget-checkbox:not(:checked) {
 		border-color: #d0d2dc;
 	}
 
