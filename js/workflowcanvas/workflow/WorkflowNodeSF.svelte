@@ -1467,7 +1467,9 @@
 		overflow-y: auto;
 	}
 
-	.inline-choices input[type="checkbox"] {
+	.inline-choices input[type="checkbox"],
+	.inline-checkbox input[type="checkbox"],
+	.inline-checkbox-inrow input[type="checkbox"] {
 		width: 14px;
 		height: 14px;
 		accent-color: var(--accent);

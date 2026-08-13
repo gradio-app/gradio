@@ -769,6 +769,8 @@
 		height: 16px;
 		accent-color: var(--accent);
 		cursor: pointer;
+		appearance: auto;
+		-webkit-appearance: checkbox;
 	}
 
 	.widget-checkbox-label {
