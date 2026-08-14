@@ -1,4 +1,5 @@
 ---
+"@gradio/workflowcanvas": minor
 "gradio": minor
 ---
 
