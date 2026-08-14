@@ -567,15 +567,12 @@ def get_write_access(
 
 
 def get_oauth_available(_data=None) -> str:
-    """Whether `hf_oauth: true` is set in the Space's README."""
-    if get_space() is None:
-        return "false"
-    try:
-        with open("README.md", encoding="utf-8") as f:
-            head = f.read(4096)
-    except OSError:
-        return "false"
-    return "true" if re.search(r"^hf_oauth:\s*true\b", head, re.MULTILINE) else "false"
+    """True on a Space with `hf_oauth: true` (i.e. OAUTH_CLIENT_ID is set)."""
+    return (
+        "true"
+        if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
+        else "false"
+    )
 
 
 def call_space(
