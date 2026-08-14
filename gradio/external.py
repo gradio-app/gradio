@@ -748,6 +748,25 @@ TEXT_FILE_EXTENSIONS = (
 IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 
 
+_TEXT_FILE_EXTENSIONS_LOWERCASE = tuple(ext.lower() for ext in TEXT_FILE_EXTENSIONS)
+
+
+def _is_text_encoded_file(path: str) -> bool:
+    # Matched case-insensitively on both sides, the way `MultimodalTextbox` matches
+    # `file_types`, so that the `.R` and `.Rmd` entries above cover `plot.r` too.
+    return path.lower().endswith(_TEXT_FILE_EXTENSIONS_LOWERCASE)
+
+
+def _text_encoded_file_as_prompt(path: str) -> str:
+    if is_http_url_like(path):
+        response = httpx.get(path)
+        response.raise_for_status()
+        name, contents = Path(httpx.URL(path).path).name, response.text
+    else:
+        name, contents = Path(path).name, Path(path).read_text()
+    return f"\n## {name}\n{contents}"
+
+
 def format_conversation(
     history: list[NormalizedMessageDict], new_message: str | MultimodalValue
 ) -> list[dict]:
@@ -760,18 +779,28 @@ def format_conversation(
                     f"Invalid message format: {message['content']}. Each element must have a type key."
                 )
             elif content["type"] == "file":
-                new_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": encode_url_or_file_to_base64(content["file"]["path"])  # type: ignore
-                        },
-                    }
-                )
+                path = content["file"]["path"]  # type: ignore
+                if _is_text_encoded_file(path):
+                    # Appended to the prompt as text, the same as when the message was
+                    # first sent. Base64-encoding a text file as `image_url` (which is
+                    # what used to happen once the turn was in the history) makes a
+                    # non-multimodal model reject every subsequent request. See #11331.
+                    new_content.append(
+                        {"type": "text", "text": _text_encoded_file_as_prompt(path)}
+                    )
+                else:
+                    new_content.append(
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_url_or_file_to_base64(path)},
+                        }
+                    )
             else:
                 new_content.append(content)
-        message["content"] = new_content
-        conversation.append(message)
+        # A new dict rather than `message["content"] = new_content`: these are the dicts
+        # in `chatbot_state`, and rewriting them there replaces the attachment shown in
+        # the transcript (and saved by `save_history`) with what was sent to the model.
+        conversation.append({**message, "content": new_content})
     if isinstance(new_message, str):
         text = new_message
         files = []
@@ -780,7 +809,7 @@ def format_conversation(
         files = new_message.get("files", [])
     image_files, text_encoded = [], []
     for file in files:
-        if file.lower().endswith(TEXT_FILE_EXTENSIONS):
+        if _is_text_encoded_file(file):
             text_encoded.append(file)
         else:
             image_files.append(file)
@@ -799,12 +828,7 @@ def format_conversation(
         )
     if text or text_encoded:
         text = text or ""
-        text += "\n".join(
-            [
-                f"\n## {Path(file).name}\n{Path(file).read_text()}"
-                for file in text_encoded
-            ]
-        )
+        text += "\n".join([_text_encoded_file_as_prompt(file) for file in text_encoded])
         conversation.append(
             {"role": "user", "content": [{"type": "text", "text": text}]}
         )

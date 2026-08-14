@@ -925,7 +925,10 @@ class ChatInterface(Blocks):
         history: list[MessageDict],
         *args,
     ) -> tuple:
-        inputs = [message, history] + list(args)
+        # `list(history)` so that appending to it inside the chat function does not
+        # change the conversation. Shallow, matching `_append_message_to_history`, so
+        # editing one of the messages in place still shows through. See #10823.
+        inputs = [message, list(history)] + list(args)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
@@ -949,7 +952,9 @@ class ChatInterface(Blocks):
         tuple,
         None,
     ]:
-        inputs = [message, history] + list(args)
+        # `list(history)` for the same reason as in `_submit_fn`: appending to it in the
+        # generator's body must not be able to change the conversation. See #10823.
+        inputs = [message, list(history)] + list(args)
         if self.is_async:
             generator = self.fn(*inputs)
         else:
