@@ -12,8 +12,8 @@
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
-	import DownloadIcon from "./icons/DownloadIcon.svelte";
-	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
+	import UploadIcon from "./icons/UploadIcon.svelte";
+	import { uploadFile } from "@huggingface/hub";
 
 	import {
 		MODALITIES,
@@ -338,8 +338,19 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
-	let showExportMenu = $state(false);
 	let showApiPanel = $state(false);
+	let saveToSpaceConfirm = $state(false);
+	let savingToSpace = $state(false);
+	let spaceId = $state("");
+	$effect(() => {
+		if (!server?.get_space_id) return;
+		void server
+			.get_space_id()
+			.then((id: string) => {
+				spaceId = id || "";
+			})
+			.catch(() => {});
+	});
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -391,36 +402,35 @@
 		toasts = toasts.filter((t) => t.id !== id);
 	}
 
-	function serializedWorkflow(): string {
-		return JSON.stringify(sanitize_for_save($workflow), null, 2);
-	}
-
-	async function copyWorkflowJson(): Promise<void> {
+	async function saveToSpace(): Promise<void> {
+		saveToSpaceConfirm = false;
+		if (!spaceId || !auth.token || savingToSpace) return;
+		savingToSpace = true;
+		const serialized = JSON.stringify(sanitize_for_save($workflow), null, 2);
 		try {
-			await navigator.clipboard.writeText(serializedWorkflow());
-			showToast("Copied workflow JSON to clipboard", 2000, "success");
-		} catch {
+			await uploadFile({
+				repo: { type: "space", name: spaceId },
+				accessToken: auth.token,
+				file: {
+					path: "workflow.json",
+					content: new Blob([serialized], { type: "application/json" })
+				},
+				commitTitle: "Update workflow.json from canvas"
+			});
 			showToast(
-				"Couldn't copy to clipboard — use Download instead",
-				3500,
-				"warning"
+				`Committed workflow.json to ${spaceId} — the Space will restart.`,
+				4000,
+				"success"
 			);
+		} catch (e: any) {
+			const msg =
+				e?.message?.includes("403") || e?.statusCode === 403
+					? "Your token doesn't have write access to this Space repo."
+					: `Save failed: ${e?.message ?? e}`;
+			showToast(msg, 5000, "warning");
+		} finally {
+			savingToSpace = false;
 		}
-	}
-
-	function downloadWorkflowJson(): void {
-		const blob = new Blob([serializedWorkflow()], {
-			type: "application/json"
-		});
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		const safeName = ($workflow.name || "workflow").replace(/[^\w.-]+/g, "_");
-		a.download = `${safeName}.json`;
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
-		URL.revokeObjectURL(url);
 	}
 
 	// v1 shape for read paths; writes go through v2 store actions.
@@ -1820,9 +1830,6 @@
 		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
 			showUserMenu = false;
 		}
-		if (showExportMenu && !target?.closest(".toolbar-export-wrap")) {
-			showExportMenu = false;
-		}
 		if (showAccessInfo && !target?.closest(".access-info-wrap")) {
 			showAccessInfo = false;
 		}
@@ -2360,43 +2367,16 @@
 				<CodeIcon />
 				View API
 			</button>
-			{#if auth.isHFSpace}
-				<div class="toolbar-export-wrap">
-					<button
-						class="tool-btn"
-						class:open={showExportMenu}
-						onclick={() => (showExportMenu = !showExportMenu)}
-						title="Export this workflow"
-					>
-						<DownloadIcon />
-						Export
-						<ChevronDownIcon />
-					</button>
-					{#if showExportMenu}
-						<div class="toolbar-export-menu">
-							<button
-								class="toolbar-export-menu-btn"
-								onclick={() => {
-									showExportMenu = false;
-									void copyWorkflowJson();
-								}}
-							>
-								<CodeIcon />
-								Copy JSON
-							</button>
-							<button
-								class="toolbar-export-menu-btn"
-								onclick={() => {
-									showExportMenu = false;
-									downloadWorkflowJson();
-								}}
-							>
-								<DownloadIcon />
-								Download .json
-							</button>
-						</div>
-					{/if}
-				</div>
+			{#if auth.isHFSpace && auth.canWrite && spaceId && auth.token}
+				<button
+					class="tool-btn"
+					disabled={savingToSpace}
+					onclick={() => (saveToSpaceConfirm = true)}
+					title="Commit workflow.json to this Space's repo (will restart the Space)"
+				>
+					<UploadIcon />
+					{savingToSpace ? "Saving…" : "Save to Space"}
+				</button>
 			{/if}
 			{#if saveIndicator && !auth.isHFSpace}
 				<span
@@ -2889,6 +2869,41 @@
 		</div>
 	{/if}
 
+	{#if saveToSpaceConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="wf-modal-backdrop"
+			onclick={() => (saveToSpaceConfirm = false)}
+		>
+			<div
+				class="wf-modal"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="wf-save-space-title"
+				onclick={(e) => e.stopPropagation()}
+			>
+				<div class="wf-modal-title" id="wf-save-space-title">
+					Save to Space?
+				</div>
+				<div class="wf-modal-body">
+					This will commit <strong>workflow.json</strong> to
+					<strong>{spaceId}</strong>. The Space will
+					<strong>restart</strong> to pick up the change.
+				</div>
+				<div class="wf-modal-actions">
+					<button
+						class="wf-modal-btn"
+						onclick={() => (saveToSpaceConfirm = false)}>Cancel</button
+					>
+					<button class="wf-modal-btn wf-modal-btn-danger" onclick={saveToSpace}
+						>Save & restart</button
+					>
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	{#if showApiPanel}
 		<WorkflowApiPanel
 			{server}
@@ -3132,17 +3147,6 @@
 	:global(body:not(.dark) .toolbar-user-menu-btn:hover) {
 		background: #f0f1f5;
 		border-color: #d0d2dc;
-	}
-	:global(body:not(.dark) .toolbar-export-menu) {
-		background: #ffffff;
-		border-color: #e2e4ea;
-		box-shadow: 0 8px 24px rgba(20, 22, 30, 0.08);
-	}
-	:global(body:not(.dark) .toolbar-export-menu-btn) {
-		color: #1a1b25;
-	}
-	:global(body:not(.dark) .toolbar-export-menu-btn:hover) {
-		background: #f0f1f5;
 	}
 	:global(body:not(.dark) .toolbar-token-input) {
 		background: #ffffff;
