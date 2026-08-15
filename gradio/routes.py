@@ -1529,8 +1529,25 @@ class App(FastAPI):
                     return None
                 return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
-            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            session_hash = event.session_hash if event else event_id
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(event_id)
+            if event is not None:
+                session_hash = event.session_hash
+            else:
+                # A finished event is no longer held, but this route is normally
+                # called after it finishes. `pending_event_ids_session` keeps the
+                # id until the completion message is delivered, which is exactly
+                # this window. Falling back to the event id only works for a
+                # caller who sent no session hash of their own, since `Event`
+                # defaults `session_hash` to its own id.
+                session_hash = next(
+                    (
+                        s
+                        for s, ids in queue.pending_event_ids_session.items()
+                        if event_id in ids
+                    ),
+                    event_id,
+                )
             return await queue_data_helper(request, session_hash, process_msg)
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])
