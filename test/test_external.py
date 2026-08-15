@@ -1,3 +1,4 @@
+import copy
 import os
 import tempfile
 import textwrap
@@ -5,6 +6,7 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+import httpx
 import huggingface_hub
 import pytest
 
@@ -411,6 +413,98 @@ def test_load_chat_with_streaming(mock_openai):
     response_stream = chat.fn("Hi!", None)
     responses = list(response_stream)
     assert responses == ["Hello", "Hello World", "Hello World!"]
+
+
+def test_format_conversation_replays_text_files_as_text(tmp_path):
+    # A pasted long prompt arrives as a text file, which is inlined into the prompt on
+    # the turn it is sent. Once that turn was in the history it used to be re-sent as
+    # `image_url`, so every later message made a non-multimodal model reject the
+    # request. See https://github.com/gradio-app/gradio/issues/11331.
+    from gradio.external import format_conversation
+
+    text_file = tmp_path / "pasted_text.txt"
+    text_file.write_text("a very long pasted prompt")
+    image_file = tmp_path / "photo.png"
+    image_file.write_bytes(b"\x89PNG\r\n\x1a\n")
+    # `.R` is in `TEXT_FILE_EXTENSIONS` and `MultimodalTextbox` matches extensions
+    # case-insensitively, so both spellings have to be inlined as text here.
+    r_file = tmp_path / "plot.r"
+    r_file.write_text("plot(1:10)")
+
+    history = [
+        {
+            "role": "user",
+            "content": [{"type": "file", "file": {"path": str(text_file)}}],
+        },
+        {"role": "assistant", "content": [{"type": "text", "text": "ok"}]},
+        {
+            "role": "user",
+            "content": [{"type": "file", "file": {"path": str(image_file)}}],
+        },
+        {"role": "assistant", "content": [{"type": "text", "text": "ok"}]},
+        {
+            "role": "user",
+            "content": [{"type": "file", "file": {"path": str(r_file)}}],
+        },
+        {"role": "assistant", "content": [{"type": "text", "text": "ok"}]},
+    ]
+    history_before = copy.deepcopy(history)
+
+    conversation = format_conversation(history, "and now a short one")  # type: ignore
+
+    # the text file is inlined as text, the same as when it was first sent...
+    assert conversation[0]["content"] == [
+        {"type": "text", "text": "\n## pasted_text.txt\na very long pasted prompt"}
+    ]
+    # ...while an image is still sent as an image
+    image_content = conversation[2]["content"][0]
+    assert image_content["type"] == "image_url"
+    assert image_content["image_url"]["url"].startswith("data:image/png;base64,")
+
+    assert conversation[4]["content"] == [
+        {"type": "text", "text": "\n## plot.r\nplot(1:10)"}
+    ]
+
+    assert conversation[-1] == {
+        "role": "user",
+        "content": [{"type": "text", "text": "and now a short one"}],
+    }
+
+    # The messages passed in are the ones in `chatbot_state`, so rewriting them in place
+    # would replace the attachments in the transcript with what was sent to the model.
+    assert history == history_before
+
+
+def test_format_conversation_replays_remote_text_files_as_text(monkeypatch):
+    # A text file that is a URL rather than a local upload has to be inlined as text
+    # too, rather than base64-encoded into `image_url` like an image would be.
+    from gradio.external import format_conversation
+
+    def fake_get(url, *args, **kwargs):
+        assert url == "https://example.com/files/notes.txt"
+        return httpx.Response(
+            200, text="remote notes", request=httpx.Request("GET", url)
+        )
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    history = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "file",
+                    "file": {"path": "https://example.com/files/notes.txt"},
+                }
+            ],
+        }
+    ]
+
+    conversation = format_conversation(history, "and now a short one")  # type: ignore
+
+    assert conversation[0]["content"] == [
+        {"type": "text", "text": "\n## notes.txt\nremote notes"}
+    ]
 
 
 def test_load_chat_textbox_override():
