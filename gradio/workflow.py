@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 import anyio
 import httpx
 from gradio_client import Client, handle_file
+from gradio_client import utils as client_utils
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
@@ -426,8 +427,37 @@ def _save_tmp(result, ext: str) -> dict:
     return {"path": path, "url": f"/gradio_api/file={path}", "is_file": True}
 
 
-def _img_url(a) -> str:
-    return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
+def _file_ref(a) -> str:
+    """Normalize a file-shaped argument down to one reference string.
+
+    `path` wins over `url` so a file that names both is chained by the local
+    copy rather than by a `/gradio_api/file=` URL only this app can serve. A
+    canvas file value carries no `path` at all (`FileValue` in
+    `js/workflowcanvas/workflow/workflow-types.ts`), so the prefix comes off
+    here and callers get the local path either way.
+    """
+    src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
+    if not isinstance(src, str) or not src:
+        return ""
+    if src.startswith(("data:", "http://", "https://")):
+        return src
+    return src.removeprefix("/gradio_api/file=")
+
+
+def _sendable_ref(a) -> str:
+    """Return the reference for `a` only if it is this app's to send, else "".
+
+    The arguments to an operator arrive as the caller's own JSON, so a
+    file-shaped one names whatever path they choose. Two references are safe to
+    forward: a `data:` or absolute http(s) URL, which this process never reads
+    off disk, and a path under the upload folder, which holds only what the app
+    itself wrote. Every other path is someone else's file, so it is refused
+    rather than read.
+    """
+    src = _file_ref(a)
+    if src.startswith(("data:", "http://", "https://")):
+        return src
+    return src if src and is_in_or_equal(src, get_upload_folder()) else ""
 
 
 def _chat_image_url(a) -> str:
@@ -439,12 +469,9 @@ def _chat_image_url(a) -> str:
     data URI. Absolute http(s) URLs are passed through, though note the
     provider still has to be able to fetch them.
     """
-    src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
-    if not isinstance(src, str) or not src:
-        return ""
-    if src.startswith(("data:", "http://", "https://")):
+    src = _file_ref(a)
+    if not src or src.startswith(("data:", "http://", "https://")):
         return src
-    src = src.removeprefix("/gradio_api/file=")
     if not os.path.isfile(src) or not is_in_or_equal(src, get_upload_folder()):
         return src
     mime = mimetypes.guess_type(src)[0] or "image/png"
@@ -614,14 +641,20 @@ def call_space(
         processed = []
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
-                src = arg.get("path") or arg.get("url", "")
-                sendable = isinstance(src, str) and (
-                    src.startswith(("http://", "https://"))
-                    or is_in_or_equal(src, get_upload_folder())
-                )
-                processed.append(handle_file(src) if src and sendable else None)
+                src = _sendable_ref(arg)
+                processed.append(handle_file(src) if src else None)
             else:
                 processed.append(arg)
+        # The loop only sees top-level arguments, but the client uploads every
+        # file-shaped dict it can reach, however deeply nested, and the caller
+        # writes the `meta` marker that decides what counts (`process_input_files`
+        # in `gradio_client/client.py`). So the same rule has to run over the
+        # whole payload, against the client's own predicate.
+        processed = client_utils.traverse(
+            processed,
+            lambda f: f if _sendable_ref(f) else None,
+            client_utils.is_file_obj_with_meta,
+        )
         while processed and processed[-1] is None:
             processed.pop()
         result = client.predict(*processed, api_name=endpoint)
@@ -947,8 +980,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     ]
     clean: dict = {}
     # Chat images are dereferenced by the provider, not locally, so they need a
-    # different reference than the task endpoints' server-side reads.
-    to_url = _chat_image_url if endpoint == "chat_completion" else _img_url
+    # different reference than the task endpoints, which hand the reference to
+    # huggingface_hub and let it read the bytes off disk.
+    to_url = _chat_image_url if endpoint == "chat_completion" else _sendable_ref
     for k, v in kwargs.items():
         if v is None or v == "":
             continue
@@ -1100,7 +1134,7 @@ def call_model(
             resp = httpx.post(
                 f"https://api-inference.huggingface.co/models/{model_id}",
                 headers=headers,
-                json={"inputs": _img_url(a0)},
+                json={"inputs": _sendable_ref(a0)},
                 timeout=60,
             )
             resp.raise_for_status()
