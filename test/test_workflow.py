@@ -755,6 +755,19 @@ class TestCallSpaceFileArgs:
 
         assert client.predict.call_args.args[0]["path"] == owned
 
+    def test_sends_an_operator_output_by_its_path(self, tmp_path, monkeypatch):
+        # An operator output carries both keys; the local path is the one the
+        # target Space can be handed, not the URL only this app can serve.
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([saved])])
+
+        assert client.predict.call_args.args[0]["path"] == saved["path"]
+
     def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         (tmp_path / "cache").mkdir()
