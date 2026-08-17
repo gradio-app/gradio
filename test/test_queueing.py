@@ -1,6 +1,7 @@
 import asyncio
 import json
 import sys
+import threading
 import time
 from unittest.mock import patch
 
@@ -403,3 +404,193 @@ class TestQueueDoesNotAccumulate:
             ]
             == 8
         )
+
+
+def join(test_client, session_hash: str, fn_index: int = 0) -> str:
+    response = test_client.post(
+        f"{API_PREFIX}/queue/join",
+        json={
+            "data": [],
+            "fn_index": fn_index,
+            "event_data": None,
+            "session_hash": session_hash,
+            "trigger_id": None,
+        },
+    )
+    assert response.status_code == 200
+    return response.json()["event_id"]
+
+
+def slow_demo(started: threading.Event | None = None):
+    with gr.Blocks() as demo:
+        start = gr.Button()
+
+        def slow():
+            if started is not None:
+                started.set()
+            time.sleep(30)
+
+        start.click(slow)
+
+    demo.queue(default_concurrency_limit=1)
+    return demo
+
+
+def test_losing_a_stream_does_not_remove_the_event():
+    """A dropped connection is not a departure: the work is kept for a reconnection."""
+    started = threading.Event()
+    demo = slow_demo(started)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "dropped")
+        assert started.wait(timeout=2)
+
+        # The stream opens and is then lost, which is what a backgrounded phone or a
+        # few seconds without signal looks like from the server.
+        stream = object()
+        demo._queue.attach_stream("dropped", stream)
+        asyncio.run(
+            demo._queue.schedule_cancel(
+                "dropped", after=demo._queue.cancel_after_disconnect, stream=stream
+            )
+        )
+
+        event = demo._queue.event_ids_to_events[event_id]
+        assert event.cancel_at is not None
+        assert event.cancel_at > time.monotonic() + 60
+        assert event.alive is True
+
+        asyncio.run(demo._queue.run_due_cancellations())
+        assert event_id in demo._queue.event_ids_to_events
+        assert event.alive is True
+    finally:
+        demo.close()
+
+
+def test_reconnecting_clears_a_scheduled_cancellation():
+    demo = slow_demo()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "returning")
+        first = object()
+        demo._queue.attach_stream("returning", first)
+        asyncio.run(demo._queue.schedule_cancel("returning", after=3600, stream=first))
+        assert demo._queue.event_ids_to_events[event_id].cancel_at is not None
+
+        demo._queue.attach_stream("returning", object())
+        assert demo._queue.event_ids_to_events[event_id].cancel_at is None
+    finally:
+        demo.close()
+
+
+def test_a_replaced_stream_cannot_condemn_the_new_one():
+    """A refresh reconnects before the server notices the previous stream dropped."""
+    demo = slow_demo()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "refreshed")
+        old_stream, new_stream = object(), object()
+        demo._queue.attach_stream("refreshed", old_stream)
+        demo._queue.attach_stream("refreshed", new_stream)
+
+        asyncio.run(
+            demo._queue.schedule_cancel("refreshed", after=0, stream=old_stream)
+        )
+
+        assert demo._queue.event_ids_to_events[event_id].cancel_at is None
+        assert demo._queue.attached_streams["refreshed"] is new_stream
+    finally:
+        demo.close()
+
+
+def test_closing_the_page_stops_the_event_and_unloads():
+    started = threading.Event()
+    unloaded = threading.Event()
+
+    with gr.Blocks() as demo:
+        start = gr.Button()
+
+        def slow():
+            started.set()
+            time.sleep(30)
+
+        start.click(slow)
+        demo.unload(unloaded.set)
+
+    demo.queue(default_concurrency_limit=1)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "departed")
+        assert started.wait(timeout=2)
+
+        response = test_client.post(
+            f"{API_PREFIX}/queue/close", json={"session_hash": "departed"}
+        )
+        assert response.status_code == 200
+        event = demo._queue.event_ids_to_events[event_id]
+        assert event.cancel_at is not None
+        assert event.cancel_at <= time.monotonic()
+
+        # The sweep is throttled, so the queue loop may not have run it yet.
+        demo._queue.last_cancellation_sweep = 0
+        asyncio.run(demo._queue.run_due_cancellations())
+
+        assert event.alive is False
+        assert event.run_time == float("inf")
+        assert event.signal.is_set()
+        assert unloaded.wait(timeout=2)
+        assert app.state_holder.session_data["departed"].is_closed is True
+    finally:
+        demo.close()
+
+
+def test_cancel_route_still_completes_a_queued_event():
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        def slow():
+            time.sleep(30)
+            return "done"
+
+        start.click(slow, None, output)
+
+    demo.queue(default_concurrency_limit=1)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        first = join(test_client, "cancels")
+        second = join(test_client, "cancels")
+        for _ in range(50):
+            if len(demo._queue) == 1:
+                break
+            time.sleep(0.1)
+        assert len(demo._queue) == 1
+
+        response = test_client.post(
+            f"{API_PREFIX}/cancel",
+            json={"session_hash": "cancels", "fn_index": 0, "event_id": second},
+        )
+        assert response.status_code == 200
+        assert second not in demo._queue.event_ids_to_events
+        assert len(demo._queue) == 0
+        assert first in demo._queue.event_ids_to_events
+
+        # The client is told the cancelled job finished so that it stops waiting.
+        messages = demo._queue.pending_messages_per_session["cancels"]
+        completed = [messages.get_nowait() for _ in range(messages.qsize())]
+        assert any(
+            message.event_id == second and message.msg == "process_completed"
+            for message in completed
+        )
+    finally:
+        demo.close()

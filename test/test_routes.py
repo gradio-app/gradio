@@ -1131,6 +1131,28 @@ class TestAuthenticatedRoutes:
         response = client.get("/monitoring/summary")
         assert response.status_code == 401
 
+    def test_queue_close_route(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+        body = {"session_hash": "session"}
+
+        try:
+            response = client.post(f"{API_PREFIX}/queue/close", json=body)
+            assert response.status_code == 401
+
+            client.post(
+                "/login",
+                data={"username": "test", "password": "correct_password"},
+            )
+            response = client.post(f"{API_PREFIX}/queue/close", json=body)
+            assert response.status_code == 200
+        finally:
+            io.close()
+
 
 class TestConfigUsername:
     """`/config` reports who is logged in. Resolving the user is async, so a

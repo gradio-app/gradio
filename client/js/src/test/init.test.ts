@@ -16,6 +16,7 @@ import {
 } from "./test_data";
 import { initialise_server } from "./server";
 import { SPACE_NOT_FOUND_MSG } from "../constants";
+import { http, HttpResponse } from "msw";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -120,6 +121,61 @@ describe("Client class", () => {
 			const app = Client.connect(broken_app_reference);
 			await expect(app).rejects.toThrowError();
 		});
+	});
+
+	describe("close", () => {
+		test.skipIf(typeof window === "undefined")(
+			"reports a deliberate departure to the server",
+			async () => {
+				const app = await Client.connect(secret_direct_app_reference, {
+					token: "hf_123"
+				});
+				let received_session_hash: string | undefined;
+				let received_authorization: string | null = null;
+				let resolve_request: () => void = () => {};
+				const request_received = new Promise<void>((resolve) => {
+					resolve_request = resolve;
+				});
+				server.resetHandlers(
+					http.post(
+						`${secret_direct_app_reference}/queue/close`,
+						async ({ request }) => {
+							const body = (await request.json()) as { session_hash: string };
+							received_session_hash = body.session_hash;
+							received_authorization = request.headers.get("Authorization");
+							resolve_request();
+							return HttpResponse.json({ success: true });
+						}
+					)
+				);
+
+				app.close();
+				await request_received;
+
+				expect(received_session_hash).toBe(app.session_hash);
+				expect(received_authorization).toBe("Bearer hf_123");
+			}
+		);
+
+		test.skipIf(typeof window === "undefined")(
+			"only reports the departure once",
+			async () => {
+				const app = await Client.connect(direct_app_reference);
+				let requests = 0;
+				server.resetHandlers(
+					http.post(`${direct_app_reference}/queue/close`, () => {
+						requests += 1;
+						return HttpResponse.json({ success: true });
+					})
+				);
+
+				app.close();
+				app.close();
+				await new Promise((resolve) => setTimeout(resolve, 50));
+
+				expect(requests).toBe(1);
+			}
+		);
 	});
 
 	describe("duplicate", () => {

@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 import fastapi
 import numpy as np
 from anyio.to_thread import run_sync
+from fastapi import BackgroundTasks
 
 from gradio import route_utils, routes
 from gradio.caching import CacheMissError, ProbeCache
@@ -43,6 +44,7 @@ from gradio.server_messages import (
 )
 from gradio.utils import (
     LRUCache,
+    cancel_tasks,
     error_payload,
     run_coro_in_background,
     safe_aclose_iterator,
@@ -80,6 +82,10 @@ class Event:
         self.run_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
+        # When this event should be stopped, as a `time.monotonic()` deadline. None
+        # means nobody has asked for it to stop. `/cancel` sets it to now; losing the
+        # client sets it further out, so that a reconnection can clear it again.
+        self.cancel_at: float | None = None
 
     @property
     def streaming(self):
@@ -94,6 +100,12 @@ class Event:
         if self.fn.time_limit is None:
             return False
         return self.run_time >= self.fn.time_limit
+
+
+# How often due cancellations are looked for. The queue loop spins far faster than
+# this when it is idle, and a deadline measured in seconds does not need millisecond
+# resolution, so the sweep is throttled rather than run on every pass.
+CANCELLATION_SWEEP_INTERVAL = 0.05
 
 
 class EventQueue:
@@ -134,6 +146,14 @@ class Queue:
         )
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.event_ids_to_events: dict[str, Event] = {}
+        # The queue stream currently listening to each session. Identifies the
+        # connection so that a stale stream disconnecting after a reconnect does not
+        # condemn the events the new stream is watching.
+        self.attached_streams: dict[str, object] = {}
+        # Sessions whose client has gone and whose `unload` handlers still have to
+        # run, once whatever they left behind has stopped. Holds the request and
+        # username the handlers need, because the events are gone by then.
+        self.sessions_awaiting_close: dict[str, tuple[fastapi.Request, str | None]] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
@@ -164,6 +184,18 @@ class Queue:
         self.cached_event_analytics_summary = {"functions": {}}
         self.events_recorded = 0
         self.event_count_at_last_cache = 0
+        # How long a job outlives the loss of its client. A dropped connection is not
+        # evidence that anybody left: a phone backgrounding the page, a lost signal,
+        # or a laptop going to sleep all look identical to a closed tab from here, so
+        # the work is kept until the client has had a fair chance to come back.
+        self.cancel_after_disconnect = max(
+            0.0, float(os.getenv("GRADIO_QUEUE_DISCONNECT_TTL", "3600"))
+        )
+        # A deliberate exit is acted on at once. This becomes a short grace period
+        # once a reloading page can reattach to the work it left behind, since a
+        # reload is indistinguishable from a close at the moment the client reports it.
+        self.cancel_after_close = 0.0
+        self.last_cancellation_sweep = 0.0
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
@@ -493,6 +525,144 @@ class Queue:
                 except ValueError:
                     pass
 
+    def session_events(self, session_hash: str) -> list[Event]:
+        """Every queued or running event belonging to a session."""
+        return [
+            event
+            for event in self.event_ids_to_events.values()
+            if event.session_hash == session_hash
+        ]
+
+    def attach_stream(self, session_hash: str, stream: object) -> None:
+        """
+        A queue stream is listening to this session, so nothing of its own is
+        condemned. Called for every connection, which is what reprieves a session
+        whose events were scheduled for cancellation when an earlier one dropped.
+        """
+        self.attached_streams[session_hash] = stream
+        self.sessions_awaiting_close.pop(session_hash, None)
+        for event in self.session_events(session_hash):
+            event.cancel_at = None
+
+    async def schedule_cancel(
+        self,
+        session_hash: str,
+        *,
+        after: float,
+        request: fastapi.Request | None = None,
+        username: str | None = None,
+        stream: object | None = None,
+        background_tasks: BackgroundTasks | None = None,
+    ) -> None:
+        """
+        Stops everything a session left behind, `after` seconds from now. Keeps any
+        earlier deadline already set, so a deliberate exit is not pushed back by a
+        connection dropping afterwards.
+
+        Parameters:
+            after: Seconds to wait. Zero stops the events on the next queue pass.
+            request: When given, the session's `unload` handlers run once its events
+                have stopped. Omit to stop the events but leave the session in place.
+            stream: The connection that went away. The call is ignored if a later
+                connection has already taken the session over, which is what happens
+                when a client reconnects before the server notices the old stream.
+            background_tasks: Passed on to the `unload` handlers when the caller's own
+                task has been cancelled and cannot await them.
+        """
+        if stream is not None:
+            if self.attached_streams.get(session_hash) is not stream:
+                return
+            del self.attached_streams[session_hash]
+        events = self.session_events(session_hash)
+        if request is not None:
+            if not events:
+                await self.close_session(
+                    session_hash, request, username, background_tasks
+                )
+                return
+            self.sessions_awaiting_close[session_hash] = (request, username)
+        deadline = time.monotonic() + after
+        for event in events:
+            event.cancel_at = (
+                deadline if event.cancel_at is None else min(event.cancel_at, deadline)
+            )
+
+    async def cancel_events(self, events: list[Event], *, notify: bool) -> None:
+        """
+        Stops events, whether they are still waiting in the queue or already running.
+
+        Parameters:
+            notify: Whether to tell the client that the event has finished. True when
+                somebody pressed stop and is waiting to be released, false when the
+                event is being stopped precisely because nobody is listening.
+        """
+        if not events:
+            return
+        await cancel_tasks({f"{e.session_hash}_{e.fn._id}" for e in events})
+        for event in events:
+            event.alive = False
+            event.cancel_at = None
+            # Releases a streaming event blocked waiting for its next input rather
+            # than leaving it to sit there until its time limit runs out.
+            event.run_time = float("inf")
+            event.signal.set()
+            await self.remove_from_queue(event._id)
+            was_pending = event._id in self.pending_event_ids_session.get(
+                event.session_hash, set()
+            )
+            session_open = event.session_hash in self.pending_messages_per_session
+            if notify and was_pending and session_open:
+                # Completes the job so that the client stops waiting on it.
+                self.pending_messages_per_session[event.session_hash].put_nowait(
+                    ProcessCompletedMessage(output={}, success=True, event_id=event._id)
+                )
+            if self.server_app is not None:
+                await self.server_app.close_iterator(event._id)
+
+    async def close_session(
+        self,
+        session_hash: str,
+        request: fastapi.Request,
+        username: str | None,
+        background_tasks: BackgroundTasks | None = None,
+    ) -> None:
+        """Runs a session's `unload` handlers and drops what the queue holds for it."""
+        self.sessions_awaiting_close.pop(session_hash, None)
+        self.attached_streams.pop(session_hash, None)
+        self.pending_event_ids_session.pop(session_hash, None)
+        if self.server_app is None:
+            return
+        try:
+            await routes.close_session(
+                self.server_app, session_hash, request, username, background_tasks
+            )
+        except Exception:
+            traceback.print_exc()
+
+    async def run_due_cancellations(self) -> None:
+        """Stops events whose deadline has passed, then closes emptied sessions."""
+        now = time.monotonic()
+        if now - self.last_cancellation_sweep < CANCELLATION_SWEEP_INTERVAL:
+            return
+        self.last_cancellation_sweep = now
+        await self.cancel_events(
+            [
+                event
+                for event in self.event_ids_to_events.values()
+                if event.cancel_at is not None and event.cancel_at <= now
+            ],
+            notify=False,
+        )
+        for session_hash, (request, username) in list(
+            self.sessions_awaiting_close.items()
+        ):
+            # Cancelled events are not waited on: stopping them is all that can be
+            # done, and a blocking call cannot be interrupted, so holding the
+            # `unload` handlers until it returns on its own would only delay the
+            # cleanup that used to happen the moment the client disappeared.
+            if not any(event.alive for event in self.session_events(session_hash)):
+                await self.close_session(session_hash, request, username)
+
     def _cancel_asyncio_tasks(self):
         for task in list(self._asyncio_tasks):
             task.cancel()
@@ -536,6 +706,7 @@ class Queue:
     async def start_processing(self) -> None:
         try:
             while not self.stopped:
+                await self.run_due_cancellations()
                 if len(self) == 0:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
@@ -645,34 +816,6 @@ class Queue:
                     title=title,
                 )
                 self.send_message(event, log_message)
-
-    async def clean_events(
-        self, *, session_hash: str | None = None, event_id: str | None = None
-    ) -> None:
-        for job_set in self.active_jobs:
-            if job_set:
-                for job in job_set:
-                    if job.session_hash == session_hash or job._id == event_id:
-                        job.alive = False
-
-        async with self.delete_lock:
-            events_to_remove: list[Event] = []
-            for event_queue in self.event_queue_per_concurrency_id.values():
-                for event in event_queue.queue:
-                    if event.session_hash == session_hash or event._id == event_id:
-                        events_to_remove.append(event)
-
-            for event in events_to_remove:
-                self.event_queue_per_concurrency_id[event.concurrency_id].queue.remove(
-                    event
-                )
-                self.event_ids_to_events.pop(event._id, None)
-
-            if session_hash and session_hash in self.pending_event_ids_session:
-                removed_ids = {e._id for e in events_to_remove}
-                self.pending_event_ids_session[session_hash] -= removed_ids
-                if not self.pending_event_ids_session[session_hash]:
-                    self.pending_event_ids_session.pop(session_hash, None)
 
     async def notify_clients(self) -> None:
         """

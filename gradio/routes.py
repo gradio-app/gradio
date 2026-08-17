@@ -81,6 +81,7 @@ from gradio.data_classes import (
     JsonData,
     PredictBody,
     PredictBodyInternal,
+    QueueCloseBody,
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
@@ -289,6 +290,21 @@ class App(FastAPI):
         if self.blocks is None:
             raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
+
+    async def close_iterator(self, event_id: str) -> None:
+        """
+        Ends an event's iterator, so that the generator behind it is closed and a
+        later run of the same event starts from scratch.
+        """
+        if event_id not in self.iterators:
+            return
+        async with self.lock:
+            try:
+                await safe_aclose_iterator(self.iterators[event_id])
+            except Exception:
+                pass
+            del self.iterators[event_id]
+            self.iterators_to_reset.add(event_id)
 
     def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
@@ -1266,54 +1282,21 @@ class App(FastAPI):
                         if not stop_stream_task.done():
                             stop_stream_task.cancel()
 
-                        req = Request(request, username, session_hash=session_hash)
-                        root_path = route_utils.get_root_url(
+                        # Losing the heartbeat is not proof that anybody left, so
+                        # the session's work is given time to be reclaimed and the
+                        # `unload` handlers run once it has stopped. With nothing in
+                        # flight there is nothing to wait for, and `schedule_cancel`
+                        # closes the session straight away.
+                        queue = app.get_blocks()._queue
+                        await queue.schedule_cancel(
+                            session_hash,
+                            after=queue.cancel_after_disconnect,
                             request=request,
-                            route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
-                            root_path=app.root_path,
+                            username=username,
+                            # The task running this loop has been cancelled, so
+                            # anything awaited here has to be quick.
+                            background_tasks=background_tasks,
                         )
-                        body = PredictBodyInternal(
-                            session_hash=session_hash, data=[], request=request
-                        )
-                        unload_fn_indices = [
-                            i
-                            for i, dep in app.get_blocks().fns.items()
-                            if any(t for t in dep.targets if t[1] == "unload")
-                        ]
-                        for fn_index in unload_fn_indices:
-                            # The task running this loop has been cancelled
-                            # so we add tasks in the background
-                            background_tasks.add_task(
-                                route_utils.call_process_api,
-                                app=app,
-                                body=body,
-                                gr_request=req,
-                                fn=app.get_blocks().fns[fn_index],
-                                root_path=root_path,
-                            )
-                        # This will mark the state to be deleted in an hour
-                        if session_hash in app.state_holder.session_data:
-                            app.state_holder.session_data[session_hash].is_closed = True
-                        caching.clear_session_caches(session_hash)
-                        for run in (
-                            app.get_blocks()
-                            .pending_streams.pop(session_hash, {})
-                            .values()
-                        ):
-                            for stream in run.values():
-                                stream.end_stream()
-                        for (
-                            event_id
-                        ) in app.get_blocks()._queue.pending_event_ids_session.get(
-                            session_hash, []
-                        ):
-                            event = app.get_blocks()._queue.event_ids_to_events.get(
-                                event_id
-                            )
-                            if event is None:
-                                continue
-                            event.run_time = math.inf
-                            event.signal.set()
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")
@@ -1475,32 +1458,37 @@ class App(FastAPI):
 
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
-            await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
-            blocks = app.get_blocks()
-            # Need to complete the job so that the client disconnects
-            session_open = (
-                body.session_hash in blocks._queue.pending_messages_per_session
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(body.event_id)
+            if event is not None:
+                await queue.cancel_events([event], notify=True)
+            else:
+                # The event has already finished or been cancelled. Stop anything
+                # still running for it and reset its iterator, as this route has
+                # always done for a repeated or late cancellation.
+                await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+                await app.close_iterator(body.event_id)
+            return {"success": True}
+
+        @router.post("/queue/close", dependencies=[Depends(login_check)])
+        async def close_queue_session(
+            body: QueueCloseBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            """
+            Reports that somebody deliberately left the page. Unlike a dropped
+            connection, which the server cannot tell apart from a backgrounded tab or
+            a lost signal, this is a statement of intent, so the session's work is
+            stopped rather than kept for them.
+            """
+            queue = app.get_blocks()._queue
+            await queue.schedule_cancel(
+                body.session_hash,
+                after=queue.cancel_after_close,
+                request=request,
+                username=username,
             )
-            event_running = (
-                body.event_id
-                in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
-            )
-            await blocks._queue.remove_from_queue(body.event_id)
-            if session_open and event_running:
-                message = ProcessCompletedMessage(
-                    output={}, success=True, event_id=body.event_id
-                )
-                blocks._queue.pending_messages_per_session[
-                    body.session_hash
-                ].put_nowait(message)
-            if body.event_id in app.iterators:
-                async with app.lock:
-                    try:
-                        await safe_aclose_iterator(app.iterators[body.event_id])
-                    except Exception:
-                        pass
-                    del app.iterators[body.event_id]
-                    app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
         @router.get(
@@ -1582,11 +1570,23 @@ class App(FastAPI):
                         await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
+                # Identifies this connection so that a stale stream disconnecting
+                # after a reconnect cannot condemn the new stream's events.
+                stream_token = object()
+                blocks._queue.attach_stream(session_hash, stream_token)
                 heartbeat_task = asyncio.create_task(heartbeat())
+
+                async def stream_lost() -> None:
+                    await blocks._queue.schedule_cancel(
+                        session_hash,
+                        after=blocks._queue.cancel_after_disconnect,
+                        stream=stream_token,
+                    )
+
                 try:
                     while True:
                         if await request.is_disconnected():
-                            await blocks._queue.clean_events(session_hash=session_hash)
+                            await stream_lost()
                             heartbeat_task.cancel()
                             return
 
@@ -1659,7 +1659,7 @@ class App(FastAPI):
                     response = process_msg(message)
                     if isinstance(e, asyncio.CancelledError):
                         del blocks._queue.pending_messages_per_session[session_hash]
-                        await blocks._queue.clean_events(session_hash=session_hash)
+                        await stream_lost()
                     if response is not None:
                         yield response
                     heartbeat_task.cancel()
@@ -2448,6 +2448,66 @@ Existing code:
 ########
 # Helper functions
 ########
+
+
+async def close_session(
+    app: App,
+    session_hash: str,
+    request: fastapi.Request,
+    username: str | None,
+    background_tasks: BackgroundTasks | None = None,
+) -> None:
+    """
+    Runs a session's `unload` handlers and releases everything held for it. Called by
+    the heartbeat connection when it drops with nothing in flight, and by the queue
+    once work that outlived its client has stopped.
+
+    Parameters:
+        background_tasks: When given, the `unload` handlers are scheduled here instead
+            of awaited, which is required when the calling task has been cancelled.
+    """
+    blocks = app.get_blocks()
+    req = Request(request, username, session_hash=session_hash)
+    root_path = route_utils.get_root_url(
+        request=request,
+        route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
+        root_path=app.root_path,
+    )
+    body = PredictBodyInternal(session_hash=session_hash, data=[], request=request)
+    unload_fns = [
+        fn for fn in blocks.fns.values() if any(t[1] == "unload" for t in fn.targets)
+    ]
+    if background_tasks is not None:
+        for fn in unload_fns:
+            background_tasks.add_task(
+                route_utils.call_process_api,
+                app=app,
+                body=body,
+                gr_request=req,
+                fn=fn,
+                root_path=root_path,
+            )
+    else:
+        await asyncio.gather(
+            *(
+                route_utils.call_process_api(
+                    app=app,
+                    body=body,
+                    gr_request=req,
+                    fn=fn,
+                    root_path=root_path,
+                )
+                for fn in unload_fns
+            ),
+            return_exceptions=True,
+        )
+    # This will mark the state to be deleted in an hour
+    if session_hash in app.state_holder.session_data:
+        app.state_holder.session_data[session_hash].is_closed = True
+    caching.clear_session_caches(session_hash)
+    for run in blocks.pending_streams.pop(session_hash, {}).values():
+        for stream in run.values():
+            stream.end_stream()
 
 
 def load_system_prompt(starter_queries: bool = False):
