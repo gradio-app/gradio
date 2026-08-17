@@ -106,6 +106,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	// Defaults to false so a broken "Sign in" button never flashes before the
 	// server confirms it — only shown once known to work.
 	let oauthAvailable = $state(false);
+	let oauthAvailableKnown = $state(false);
 
 	function clearIdentity(): void {
 		user = "";
@@ -144,14 +145,13 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 
 	async function refreshOAuthAvailable(): Promise<void> {
 		const s = getServer();
-		if (!s?.get_oauth_available) {
-			oauthAvailable = false;
-			return;
-		}
+		if (!s?.get_oauth_available) return;
 		try {
 			oauthAvailable = (await s.get_oauth_available()) === "true";
+			oauthAvailableKnown = true;
 		} catch {
 			oauthAvailable = false;
+			oauthAvailableKnown = true;
 		}
 	}
 
@@ -301,6 +301,10 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		get oauthAvailable() {
 			return oauthAvailable;
 		},
+		get oauthAvailableKnown() {
+			return oauthAvailableKnown;
+		},
+		refreshOAuthAvailable,
 		init,
 		setPAT,
 		signIn,
