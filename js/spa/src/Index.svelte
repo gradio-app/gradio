@@ -86,6 +86,7 @@
 	import { onMount, onDestroy } from "svelte";
 	import {
 		consume_run_history_replay,
+		on_deliberate_exit,
 		type SpaceStatus,
 		type StoredRun
 	} from "@gradio/client";
@@ -412,9 +413,7 @@
 			events: ["data", "log", "status", "render"],
 			query_params
 		});
-		window.addEventListener("beforeunload", () => {
-			app.close();
-		});
+		on_deliberate_exit(() => app.close());
 
 		if (!app.config && !config?.auth_required) {
 			throw new Error("Could not resolve app config");

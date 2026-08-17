@@ -81,7 +81,7 @@
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
 	import { _ } from "svelte-i18n";
-	import { Client } from "@gradio/client";
+	import { Client, on_deliberate_exit } from "@gradio/client";
 	import { page } from "$app/state";
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
@@ -265,9 +265,7 @@
 	}
 
 	onMount(async () => {
-		window.addEventListener("beforeunload", () => {
-			app?.close();
-		});
+		on_deliberate_exit(() => app?.close());
 		//@ts-ignore
 		config = data.config;
 		window.gradio_config = data.config;
