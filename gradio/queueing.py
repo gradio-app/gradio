@@ -84,8 +84,18 @@ class Event:
         self.signal = asyncio.Event()
         # When this event should be stopped, as a `time.monotonic()` deadline. None
         # means nobody has asked for it to stop. `/cancel` sets it to now; losing the
-        # client sets it further out, so that a reconnection can clear it again.
+        # client sets it further out, so that a reconnection can clear it again. Once
+        # the event has finished, the same deadline says when to stop keeping its
+        # output for a client that has not collected it.
         self.cancel_at: float | None = None
+        # Everything sent for this event, so that a client which reconnects part way
+        # through is not left with a hole in the middle of its output.
+        self.messages: list[EventMessage] = []
+        # Cleared if the output grows past what is worth keeping. Streamed output is
+        # sent as diffs against what came before, so a buffer missing its earliest
+        # messages cannot be replayed at all: better to admit the output is gone than
+        # to rebuild it from the middle.
+        self.replayable = True
 
     @property
     def streaming(self):
@@ -101,6 +111,12 @@ class Event:
             return False
         return self.run_time >= self.fn.time_limit
 
+
+# The most messages kept for one event, and the most finished events kept at once.
+# Both are generous enough not to be reached by ordinary use and exist so that a
+# pathological app cannot grow the queue's memory without limit.
+MAX_REPLAYED_MESSAGES = 5000
+MAX_FINISHED_EVENTS = 200
 
 # How often due cancellations are looked for. The queue loop spins far faster than
 # this when it is idle, and a deadline measured in seconds does not need millisecond
@@ -150,6 +166,15 @@ class Queue:
         # connection so that a stale stream disconnecting after a reconnect does not
         # condemn the events the new stream is watching.
         self.attached_streams: dict[str, object] = {}
+        # Events that have finished but whose output nobody has collected yet, kept
+        # so that a client which reloads mid-job can still ask for its result. Bounded
+        # like `pending_messages_per_session`, since an abandoned result is only ever
+        # released by its deadline.
+        self.finished_events: LRUCache[str, Event] = LRUCache(MAX_FINISHED_EVENTS)
+        # Streams following a single event, by event id. A client that lost its page
+        # reattaches to the work rather than to the session it was submitted from, so
+        # its output has to reach it without going through that session's queue.
+        self.event_subscribers: dict[str, list[AsyncQueue[EventMessage]]] = {}
         # Sessions whose client has gone and whose `unload` handlers still have to
         # run, once whatever they left behind has stopped. Holds the request and
         # username the handlers need, because the events are gone by then.
@@ -288,8 +313,68 @@ class Queue:
         if not event.alive:
             return
         event_message.event_id = event._id
+        self.retain_message(event, event_message)
+        self.publish(event._id, event_message)
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
+
+    def retain_message(self, event: Event, message: EventMessage) -> None:
+        """Keeps a copy of an event's output so that it can be replayed."""
+        if not event.replayable:
+            return
+        if len(event.messages) >= MAX_REPLAYED_MESSAGES:
+            event.replayable = False
+            event.messages.clear()
+            return
+        event.messages.append(message)
+
+    def publish(self, event_id: str, message: EventMessage) -> None:
+        """Hands a message to every stream following this event on its own."""
+        for subscriber in self.event_subscribers.get(event_id, ()):
+            subscriber.put_nowait(message)
+
+    def find_event(self, event_id: str) -> Event | None:
+        """The event, whether it is still queued or running, or has finished."""
+        return self.event_ids_to_events.get(event_id) or self.finished_events.get(
+            event_id
+        )
+
+    def subscribe_to_event(
+        self, event_id: str
+    ) -> tuple[list[EventMessage], AsyncQueue[EventMessage]] | None:
+        """
+        Follows one event, wherever it was submitted from. Returns what it has already
+        sent along with a queue carrying whatever it sends next, or None if the event
+        is unknown or its output can no longer be replayed.
+
+        The snapshot and the subscription are taken together without awaiting, so a
+        message sent in between cannot fall down the gap between them.
+        """
+        event = self.find_event(event_id)
+        if event is None or not event.replayable:
+            return None
+        subscriber: AsyncQueue[EventMessage] = AsyncQueue()
+        self.event_subscribers.setdefault(event_id, []).append(subscriber)
+        # Somebody is watching this event again, so it is no longer abandoned.
+        event.cancel_at = None
+        return list(event.messages), subscriber
+
+    def unsubscribe_from_event(
+        self, event_id: str, subscriber: AsyncQueue[EventMessage]
+    ) -> None:
+        subscribers = self.event_subscribers.get(event_id)
+        if subscribers is None:
+            return
+        if subscriber in subscribers:
+            subscribers.remove(subscriber)
+        if subscribers:
+            return
+        del self.event_subscribers[event_id]
+        # The last stream following it has gone, so its output goes back to being
+        # kept only until the deadline.
+        event = self.find_event(event_id)
+        if event is not None and event.cancel_at is None:
+            event.cancel_at = time.monotonic() + self.cancel_after_disconnect
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -427,6 +512,9 @@ class Queue:
                 self.pending_messages_per_session[body.session_hash] = AsyncQueue()
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
+        # Submitting again is proof that the client is present and past whatever it
+        # ran before, so nothing of this session's is still waiting to be collected.
+        self.discard_finished_events(body.session_hash)
         self.pending_event_ids_session[body.session_hash].add(event._id)
         self.event_ids_to_events[event._id] = event
         body.event_id = event._id if not fn.batch else None
@@ -598,7 +686,9 @@ class Queue:
         """
         if not events:
             return
-        await cancel_tasks({f"{e.session_hash}_{e.fn._id}" for e in events})
+        # Marked before anything is awaited: `cancel_tasks` waits for the tasks it
+        # cancels to unwind, and an event that still looked alive as it unwound would
+        # have its output kept for a client that is not coming back for it.
         for event in events:
             event.alive = False
             event.cancel_at = None
@@ -606,18 +696,48 @@ class Queue:
             # than leaving it to sit there until its time limit runs out.
             event.run_time = float("inf")
             event.signal.set()
+        await cancel_tasks({f"{e.session_hash}_{e.fn._id}" for e in events})
+        for event in events:
             await self.remove_from_queue(event._id)
             was_pending = event._id in self.pending_event_ids_session.get(
                 event.session_hash, set()
             )
             session_open = event.session_hash in self.pending_messages_per_session
-            if notify and was_pending and session_open:
-                # Completes the job so that the client stops waiting on it.
-                self.pending_messages_per_session[event.session_hash].put_nowait(
-                    ProcessCompletedMessage(output={}, success=True, event_id=event._id)
+            if notify:
+                # Completes the job so that anyone waiting on it stops.
+                completed = ProcessCompletedMessage(
+                    output={}, success=True, event_id=event._id
                 )
+                self.publish(event._id, completed)
+                if was_pending and session_open:
+                    self.pending_messages_per_session[event.session_hash].put_nowait(
+                        completed
+                    )
             if self.server_app is not None:
                 await self.server_app.close_iterator(event._id)
+
+    def retain_finished_event(self, event: Event) -> None:
+        """
+        Keeps a finished event's output for a client that has not received it. A
+        cancelled event is not kept: it was stopped precisely because nobody was
+        coming back for it.
+        """
+        if not event.alive or not event.replayable or not event.messages:
+            return
+        # The inputs are not replayed and an upload can be large, so they go now.
+        event.data = None
+        if event.cancel_at is None and not self.event_subscribers.get(event._id):
+            event.cancel_at = time.monotonic() + self.cancel_after_disconnect
+        self.finished_events[event._id] = event
+
+    def discard_finished_events(self, session_hash: str) -> None:
+        for event_id in [
+            event_id
+            for event_id, event in self.finished_events.items()
+            if event.session_hash == session_hash
+            and not self.event_subscribers.get(event_id)
+        ]:
+            self.finished_events.pop(event_id, None)
 
     async def close_session(
         self,
@@ -653,6 +773,14 @@ class Queue:
             ],
             notify=False,
         )
+        # For an event that has already finished there is nothing left to stop, so
+        # the same deadline simply means its output is not worth keeping any longer.
+        for event_id in [
+            event_id
+            for event_id, event in self.finished_events.items()
+            if event.cancel_at is not None and event.cancel_at <= now
+        ]:
+            self.finished_events.pop(event_id, None)
         for session_hash, (request, username) in list(
             self.sessions_awaiting_close.items()
         ):
@@ -1250,6 +1378,7 @@ class Queue:
                 )
 
                 self.event_ids_to_events.pop(event._id, None)
+                self.retain_finished_event(event)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route

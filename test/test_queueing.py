@@ -10,7 +10,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio import queueing
 from gradio.route_utils import API_PREFIX
+from gradio.server_messages import ProcessGeneratingMessage
 
 
 class TestQueueing:
@@ -196,7 +198,10 @@ def test_heartbeat_task_cancelled_after_stream_completes():
 
     def tracking_create_task(coro, **kwargs):
         task = original_create_task(coro, **kwargs)
-        heartbeat_tasks.append(task)
+        # `asyncio` is shared process-wide, so this patch also sees tasks created by
+        # servers that earlier tests left running. Only collect the heartbeats.
+        if getattr(coro, "__qualname__", "").endswith("heartbeat"):
+            heartbeat_tasks.append(task)
         return task
 
     with patch("gradio.routes.asyncio.create_task", side_effect=tracking_create_task):
@@ -428,7 +433,7 @@ def slow_demo(started: threading.Event | None = None):
         def slow():
             if started is not None:
                 started.set()
-            time.sleep(30)
+            time.sleep(5)
 
         start.click(slow)
 
@@ -462,7 +467,7 @@ def test_losing_a_stream_does_not_remove_the_event():
         assert event.cancel_at > time.monotonic() + 60
         assert event.alive is True
 
-        asyncio.run(demo._queue.run_due_cancellations())
+        time.sleep(0.2)
         assert event_id in demo._queue.event_ids_to_events
         assert event.alive is True
     finally:
@@ -531,19 +536,20 @@ def test_closing_the_page_stops_the_event_and_unloads():
         event_id = join(test_client, "departed")
         assert started.wait(timeout=2)
 
+        event = demo._queue.event_ids_to_events[event_id]
         response = test_client.post(
             f"{API_PREFIX}/queue/close", json={"session_hash": "departed"}
         )
         assert response.status_code == 200
-        event = demo._queue.event_ids_to_events[event_id]
         assert event.cancel_at is not None
         assert event.cancel_at <= time.monotonic()
 
-        # The sweep is throttled, so the queue loop may not have run it yet.
-        demo._queue.last_cancellation_sweep = 0
-        asyncio.run(demo._queue.run_due_cancellations())
-
-        assert event.alive is False
+        # The queue's own loop performs the cancellation. Driving it from a second
+        # event loop here would race the real one.
+        deadline = time.monotonic() + 5
+        while event.alive:
+            assert time.monotonic() < deadline, "the event was never stopped"
+            time.sleep(0.02)
         assert event.run_time == float("inf")
         assert event.signal.is_set()
         assert unloaded.wait(timeout=2)
@@ -592,5 +598,185 @@ def test_cancel_route_still_completes_a_queued_event():
             message.event_id == second and message.msg == "process_completed"
             for message in completed
         )
+    finally:
+        demo.close()
+
+
+def read_sse(response) -> list[dict]:
+    return [
+        json.loads(line[5:])
+        for line in response.iter_lines()
+        if line.startswith("data:")
+    ]
+
+
+def test_finished_output_can_be_collected_by_event_id():
+    """A page that reloads mid-job asks for the job, not for the session it left."""
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+        start.click(lambda: "done", None, output)
+
+    demo.queue()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "left_the_page")
+        deadline = time.monotonic() + 5
+        while event_id not in demo._queue.finished_events:
+            assert time.monotonic() < deadline
+            time.sleep(0.01)
+
+        # A brand new session hash, as a reloaded page would have: the result is
+        # reached through the event, so nothing of the old session is inherited.
+        messages = read_sse(test_client.get(f"{API_PREFIX}/queue/event/{event_id}"))
+        completed = [m for m in messages if m["msg"] == "process_completed"]
+        assert completed and completed[0]["output"]["data"] == ["done"]
+        assert messages[-1]["msg"] == "close_stream"
+    finally:
+        demo.close()
+
+
+def test_collecting_by_event_id_leaves_session_state_alone():
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+        start.click(lambda: "done", None, output)
+
+    demo.queue()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "old_session")
+        deadline = time.monotonic() + 5
+        while event_id not in demo._queue.finished_events:
+            assert time.monotonic() < deadline
+            time.sleep(0.01)
+
+        # A reloaded page has a new session hash, so collecting its old result must
+        # not bring the session it was submitted from back into use, nor open a new
+        # one: a reload is entitled to have its `gr.State` cleared.
+        sessions_before = set(app.state_holder.session_data)
+        read_sse(test_client.get(f"{API_PREFIX}/queue/event/{event_id}"))
+
+        assert set(app.state_holder.session_data) == sessions_before
+    finally:
+        demo.close()
+
+
+def test_an_unknown_event_is_reported_rather_than_hanging():
+    with gr.Blocks() as demo:
+        gr.Button().click(lambda: None)
+
+    demo.queue()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        messages = read_sse(test_client.get(f"{API_PREFIX}/queue/event/nope"))
+        assert messages[0]["session_not_found"] is True
+        assert messages[-1]["msg"] == "close_stream"
+    finally:
+        demo.close()
+
+
+def test_following_an_event_clears_its_deadline():
+    demo = slow_demo()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "reattached")
+        stream = object()
+        demo._queue.attach_stream("reattached", stream)
+        asyncio.run(
+            demo._queue.schedule_cancel("reattached", after=3600, stream=stream)
+        )
+        assert demo._queue.event_ids_to_events[event_id].cancel_at is not None
+
+        subscription = demo._queue.subscribe_to_event(event_id)
+        assert subscription is not None
+        assert demo._queue.event_ids_to_events[event_id].cancel_at is None
+
+        # Losing the follower puts the event back on the clock.
+        demo._queue.unsubscribe_from_event(event_id, subscription[1])
+        assert demo._queue.event_ids_to_events[event_id].cancel_at is not None
+    finally:
+        demo.close()
+
+
+def test_a_cancelled_event_is_not_kept_for_collection():
+    demo = slow_demo()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        event_id = join(test_client, "gave_up")
+        response = test_client.post(
+            f"{API_PREFIX}/queue/close", json={"session_hash": "gave_up"}
+        )
+        assert response.status_code == 200
+
+        event = demo._queue.event_ids_to_events[event_id]
+        deadline = time.monotonic() + 5
+        while event.alive:
+            assert time.monotonic() < deadline, "the event was never stopped"
+            time.sleep(0.02)
+        # A blocking call cannot be abandoned, so the event unwinds whenever it
+        # returns. Whenever that is, its output is not kept: it was stopped because
+        # nobody was coming back for it.
+        demo._queue.retain_finished_event(event)
+        assert event_id not in demo._queue.finished_events
+    finally:
+        demo.close()
+
+
+def test_output_stops_being_replayable_once_it_grows_too_large(monkeypatch):
+    monkeypatch.setattr(queueing, "MAX_REPLAYED_MESSAGES", 2)
+    with gr.Blocks() as demo:
+        gr.Button().click(lambda: None)
+
+    demo.queue()
+    event = next(iter(demo._queue.event_ids_to_events.values()), None)
+    assert event is None
+
+    class FakeEvent:
+        replayable = True
+        messages: list = []
+
+    fake = FakeEvent()
+    fake.messages = []
+    for _ in range(3):
+        demo._queue.retain_message(
+            fake,  # type: ignore[arg-type]
+            ProcessGeneratingMessage(output={"data": ["1"]}, success=True),
+        )
+
+    # A partial buffer cannot rebuild diffed output, so it is dropped entirely.
+    assert fake.replayable is False
+    assert fake.messages == []
+
+
+def test_submitting_again_releases_the_previous_result():
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+        start.click(lambda: "done", None, output)
+
+    demo.queue()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        first = join(test_client, "keeps_going")
+        deadline = time.monotonic() + 5
+        while first not in demo._queue.finished_events:
+            assert time.monotonic() < deadline
+            time.sleep(0.01)
+
+        join(test_client, "keeps_going")
+        assert first not in demo._queue.finished_events
     finally:
         demo.close()
