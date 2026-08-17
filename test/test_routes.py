@@ -1740,6 +1740,31 @@ class TestSimpleAPIRoutes:
             btn3.click(fn_3, None, [output, output2], api_name="fn3")
         return demo
 
+    def test_simple_route_collects_a_result_under_the_callers_session_hash(self):
+        # `/call` accepts a session hash of the caller's choosing, and the GET
+        # that collects the result routinely arrives after the event has
+        # finished. The route has to recover that hash from somewhere the
+        # finished event no longer is.
+        demo = self.get_demo()
+        demo.launch(prevent_thread_lock=True)
+
+        response = requests.post(
+            f"{demo.local_api_url}call/fn1",
+            json={"data": ["world"], "session_hash": "a-session-of-my-own"},
+        )
+        assert response.status_code == 200, "Failed to call fn1"
+        event_id = response.json()["event_id"]
+
+        time.sleep(2)  # fn1 is fast, so it is done well before the GET
+
+        output = []
+        response = requests.get(f"{demo.local_api_url}call/fn1/{event_id}", stream=True)
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == ["event: complete", 'data: ["Hello, world!"]']
+
     def test_successful_simple_route(self):
         demo = self.get_demo()
         demo.launch(prevent_thread_lock=True)

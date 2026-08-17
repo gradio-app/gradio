@@ -2141,7 +2141,14 @@ Received inputs:
                 and not utils.is_prop_update(data[i])
             ):
                 if final:
-                    stream_run[output_id].end_stream()
+                    # Nothing to finalize if this output never opened a stream —
+                    # the session may have been dropped on disconnect, or every
+                    # chunk before this one may have been a prop update. Falling
+                    # through would leave `first_chunk` true and build a fresh
+                    # stream that nothing ever ends.
+                    if (existing := stream_run.get(output_id)) is None:
+                        continue
+                    existing.end_stream()
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
