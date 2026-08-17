@@ -271,7 +271,7 @@ job = client.resume_jobs([saved_job], session_hash=saved_session)[0]
 print(job.result())  # 9.0
 ```
 
-The server retains an interrupted job for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (10 minutes by default). The result is acknowledged and removed from the resume buffer after the resumed client receives it.
+The server retains an interrupted job for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (1 hour by default). The result is acknowledged and removed from the resume buffer after the resumed client receives it.
 
 ## Cancelling Jobs
 

@@ -243,7 +243,7 @@ Environment variables in Gradio provide a way to customize your applications and
 ### 26. `GRADIO_QUEUE_SESSION_RESUME_TTL`
 
 - **Description**: Sets how many seconds an active queued job remains available for reconnection after an unexpected connection loss. Set this to `0` to cancel disconnected jobs instead of allowing them to resume. Deliberately closing or navigating away from a page uses a shorter grace period so a refresh can reconnect without leaving abandoned jobs running.
-- **Default**: `600`
+- **Default**: `3600`
 - **Example**:
   ```sh
   export GRADIO_QUEUE_SESSION_RESUME_TTL=60

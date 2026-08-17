@@ -10,12 +10,10 @@ interface ResumableSession {
 	root: string;
 	session_hash: string;
 	events: ResumableJob[];
-	expires_at: number;
 }
 
 const STORAGE_KEY = "gradio_active_session";
 const COOKIE_NAME = "gradio_active_session";
-const RESUME_TTL_SECONDS = 600;
 
 function read_session(): ResumableSession | null {
 	if (typeof sessionStorage === "undefined") return null;
@@ -23,12 +21,7 @@ function read_session(): ResumableSession | null {
 	try {
 		const value = sessionStorage.getItem(STORAGE_KEY);
 		if (!value) return null;
-		const session = JSON.parse(value) as ResumableSession;
-		if (session.expires_at <= Date.now()) {
-			sessionStorage.removeItem(STORAGE_KEY);
-			return null;
-		}
-		return session;
+		return JSON.parse(value) as ResumableSession;
 	} catch {
 		return null;
 	}
@@ -57,7 +50,7 @@ function write_session(session: ResumableSession): void {
 	try {
 		sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
 		if (typeof document !== "undefined") {
-			document.cookie = `${COOKIE_NAME}=${encodeURIComponent(session.session_hash)}; Path=${cookie_path(session.root)}; Max-Age=${RESUME_TTL_SECONDS}; SameSite=Lax`;
+			document.cookie = `${COOKIE_NAME}=${encodeURIComponent(session.session_hash)}; Path=${cookie_path(session.root)}; SameSite=Lax`;
 		}
 	} catch {
 		return;
@@ -131,8 +124,7 @@ export function track_resumable_event(
 		app_id: config.app_id,
 		root: config.root,
 		session_hash,
-		events: [...events, event],
-		expires_at: Date.now() + RESUME_TTL_SECONDS * 1000
+		events: [...events, event]
 	});
 }
 
