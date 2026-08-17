@@ -1154,6 +1154,39 @@ class TestAuthenticatedRoutes:
             io.close()
 
 
+class TestConfigUsername:
+    """`/config` reports who is logged in. Resolving the user is async, so a
+    caller that does not await it gets a coroutine, which `ORJSONResponse`
+    stringifies rather than rejects. See
+    https://github.com/gradio-app/gradio/issues/13758."""
+
+    def test_username_is_none_without_auth(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            assert client.get("/config").json()["username"] is None
+
+    def test_username_is_the_logged_in_user(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth=("admin", "password"), prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            client.post("/login", data={"username": "admin", "password": "password"})
+            assert client.get("/config").json()["username"] == "admin"
+
+    def test_username_comes_from_an_async_auth_dependency(self):
+        async def whoever_asked(request: Request):
+            return request.headers.get("user")
+
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth_dependency=whoever_asked, prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            response = client.get("/config", headers={"user": "abubakar"})
+            assert response.json()["username"] == "abubakar"
+
+
 class TestQueueRoutes:
     @pytest.mark.asyncio
     async def test_queue_join_routes_sets_app_if_none_set(self):
@@ -1761,6 +1794,31 @@ class TestSimpleAPIRoutes:
             btn2.click(fn_2, input, output2, api_name="fn2")
             btn3.click(fn_3, None, [output, output2], api_name="fn3")
         return demo
+
+    def test_simple_route_collects_a_result_under_the_callers_session_hash(self):
+        # `/call` accepts a session hash of the caller's choosing, and the GET
+        # that collects the result routinely arrives after the event has
+        # finished. The route has to recover that hash from somewhere the
+        # finished event no longer is.
+        demo = self.get_demo()
+        demo.launch(prevent_thread_lock=True)
+
+        response = requests.post(
+            f"{demo.local_api_url}call/fn1",
+            json={"data": ["world"], "session_hash": "a-session-of-my-own"},
+        )
+        assert response.status_code == 200, "Failed to call fn1"
+        event_id = response.json()["event_id"]
+
+        time.sleep(2)  # fn1 is fast, so it is done well before the GET
+
+        output = []
+        response = requests.get(f"{demo.local_api_url}call/fn1/{event_id}", stream=True)
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == ["event: complete", 'data: ["Hello, world!"]']
 
     def test_successful_simple_route(self):
         demo = self.get_demo()
@@ -2637,6 +2695,41 @@ def test_server_fn_passes_request():
     response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
     assert response.status_code == 200
     assert response.json()["_url"].endswith("/gradio_api/component_server")
+
+
+def test_server_fn_forwards_x_ip_token_via_local_context():
+    """/component_server must set LocalContext.request so gradio_client.Client
+    can forward the caller's x-ip-token to downstream ZeroGPU Spaces."""
+    import requests
+
+    from gradio.components.base import server
+    from gradio.context import LocalContext
+
+    def get_ip_token(self, _data):
+        req = LocalContext.request.get(None)
+        return req.headers.get("x-ip-token") if req else None
+
+    tb = gr.Textbox()
+    tb.get_ip_token = server(get_ip_token)  # type: ignore
+    iface = gr.Interface(lambda x: x, inputs=tb, outputs="text")
+    component_id = next(
+        c["id"]
+        for c in iface.config["components"]
+        if c["type"] == "textbox"  # type: ignore
+    )
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+    response = requests.post(
+        f"{local_url}/gradio_api/component_server",
+        json={
+            "session_hash": "foo",
+            "component_id": component_id,
+            "fn_name": "get_ip_token",
+            "data": json.dumps({}),
+        },
+        headers={"x-ip-token": "test-token"},
+    )
+    assert response.status_code == 200
+    assert response.json() == "test-token"
 
 
 def test_slugify():
