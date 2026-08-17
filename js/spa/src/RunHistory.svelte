@@ -2,19 +2,10 @@
 	import { onMount } from "svelte";
 	import {
 		clear_run_history,
-		delete_record_from_bucket,
 		delete_run_history,
-		get_bucket_sync_config,
-		list_bucket_records,
-		list_user_buckets,
-		merge_runs,
 		on_run_history_change,
-		push_record_to_bucket,
 		read_run_history,
-		set_bucket_sync_config,
 		stage_run_history_replay,
-		type BucketInfo,
-		type BucketSyncConfig,
 		type RunHistoryScope,
 		type StoredRun,
 		type StoredRunComponent
@@ -35,16 +26,6 @@
 	let app_url = $derived(new URL(root, window.location.href).href);
 	let runs: StoredRun[] = $state([]);
 
-	// Optional durable persistence to an HF Hub bucket. Off by default; user
-	// opts in via the settings panel below. See gradio/history.py + the
-	// /gradio_api/history/* routes for the backend.
-	let bucket_config: BucketSyncConfig = $state({ enabled: false, bucket_id: "" });
-	let bucket_records: StoredRun[] = $state([]);
-	let user_buckets: BucketInfo[] = $state([]);
-	let bucket_settings_open = $state(false);
-	let bucket_draft = $state("");
-	let pushed_ids = new Set<string>();
-
 	let groups = $derived.by(() => {
 		const grouped = new Map<string, StoredRun[]>();
 		for (const run of runs) {
@@ -56,53 +37,10 @@
 	});
 
 	function refresh(): void {
-		const local = read_run_history(scope);
-		if (bucket_config.enabled && bucket_config.bucket_id) {
-			// Fire-and-forget mirror of any newly terminal local runs. Deduped
-			// by id so a listener re-firing on unrelated changes doesn't spam.
-			for (const run of local) {
-				if (run.status === "running" || pushed_ids.has(run.id)) continue;
-				push_record_to_bucket(root, bucket_config.bucket_id, run);
-				pushed_ids.add(run.id);
-			}
-			runs = merge_runs(local, bucket_records);
-		} else {
-			runs = local;
-		}
+		runs = read_run_history(scope);
 	}
 
-	async function refresh_bucket_records(): Promise<void> {
-		if (!bucket_config.enabled || !bucket_config.bucket_id) {
-			bucket_records = [];
-			return;
-		}
-		bucket_records = await list_bucket_records(root, bucket_config.bucket_id);
-		refresh();
-	}
-
-	async function enable_bucket_sync(): Promise<void> {
-		const bucket_id = bucket_draft.trim();
-		if (!bucket_id) return;
-		bucket_config = { enabled: true, bucket_id };
-		set_bucket_sync_config(scope, bucket_config);
-		bucket_settings_open = false;
-		await refresh_bucket_records();
-	}
-
-	function disable_bucket_sync(): void {
-		bucket_config = { enabled: false, bucket_id: bucket_config.bucket_id };
-		set_bucket_sync_config(scope, bucket_config);
-		bucket_records = [];
-		refresh();
-	}
-
-	onMount(async () => {
-		bucket_config = get_bucket_sync_config(scope);
-		bucket_draft = bucket_config.bucket_id;
-		user_buckets = await list_user_buckets(root);
-		if (bucket_config.enabled) {
-			bucket_records = await list_bucket_records(root, bucket_config.bucket_id);
-		}
+	onMount(() => {
 		refresh();
 		return on_run_history_change(refresh);
 	});
@@ -205,24 +143,12 @@
 
 	function clear_all(): void {
 		if (!window.confirm("Clear all saved runs for this app?")) return;
-		if (bucket_config.enabled && bucket_config.bucket_id) {
-			for (const run of runs) {
-				delete_record_from_bucket(root, bucket_config.bucket_id, run);
-			}
-		}
-		bucket_records = [];
-		pushed_ids.clear();
 		clear_run_history(scope);
 		refresh();
 	}
 
 	function delete_run(run: StoredRun): void {
 		if (!window.confirm("Delete this saved run?")) return;
-		if (bucket_config.enabled && bucket_config.bucket_id) {
-			delete_record_from_bucket(root, bucket_config.bucket_id, run);
-		}
-		bucket_records = bucket_records.filter((r) => r.id !== run.id);
-		pushed_ids.delete(run.id);
 		delete_run_history(scope, run.id);
 		refresh();
 	}
@@ -236,67 +162,16 @@
 			<h1>Run history ({runs.length})</h1>
 			<div class="storage-copy">
 				<span>saved in</span>
-				<span>
-					<code class="storage-code">Local Storage</code>{#if bucket_config.enabled}
-						+ <a
-							class="bucket-link"
-							href="https://huggingface.co/buckets/{bucket_config.bucket_id}"
-							target="_blank"
-							rel="noopener noreferrer">HF Bucket</a
-						>
-					{/if}, privately in this browser{#if bucket_config.enabled}
-						and mirrored to <code class="storage-code">{bucket_config.bucket_id}</code
-						>{/if}.
-				</span>
-			</div>
-		</div>
-		<div class="header-actions">
-			<button
-				class="clear"
-				onclick={() => (bucket_settings_open = !bucket_settings_open)}
-				aria-expanded={bucket_settings_open}
-			>
-				{bucket_config.enabled ? "Bucket settings" : "Enable durable sync"}
-			</button>
-			{#if runs.length}
-				<button class="clear" onclick={clear_all}>Clear history</button>
-			{/if}
-		</div>
-	</header>
-
-	{#if bucket_settings_open}
-		<section class="bucket-settings">
-			<h2>Sync to HF Bucket</h2>
-			<p class="bucket-desc">
-				Mirror runs from this browser to a private HF Hub bucket so they
-				persist across devices. Requires you to be logged in with an HF
-				account that has <code>write-repos</code> scope.
-			</p>
-			<label class="bucket-picker">
-				<span>Bucket</span>
-				<input
-					list="bucket-options"
-					placeholder="username/my-run-history"
-					bind:value={bucket_draft}
-				/>
-				{#if user_buckets.length}
-					<datalist id="bucket-options">
-						{#each user_buckets as bucket}
-							<option value={bucket.id}>{bucket.id}</option>
-						{/each}
-					</datalist>
-				{/if}
-			</label>
-			<div class="bucket-actions">
-				<button class="primary" onclick={enable_bucket_sync}
-					>{bucket_config.enabled ? "Update" : "Enable sync"}</button
+				<span
+					><code class="storage-code">Local Storage</code>, privately in this
+					browser.</span
 				>
-				{#if bucket_config.enabled}
-					<button onclick={disable_bucket_sync}>Disable sync</button>
-				{/if}
 			</div>
-		</section>
-	{/if}
+		</div>
+		{#if runs.length}
+			<button class="clear" onclick={clear_all}>Clear history</button>
+		{/if}
+	</header>
 
 	{#if groups.length === 0}
 		<section class="empty">
@@ -492,70 +367,6 @@
 	}
 	.clear {
 		padding: 8px 12px;
-	}
-	.header-actions {
-		display: flex;
-		gap: 8px;
-		flex-shrink: 0;
-	}
-	.bucket-link {
-		color: var(--color-accent, #ea580c);
-		text-decoration: underline;
-	}
-	.bucket-settings {
-		margin: 16px 0 24px;
-		padding: 16px 20px;
-		background: var(--background-fill-secondary, #fafafa);
-		border: 1px solid var(--border-color-primary, #e5e5e5);
-		border-radius: 8px;
-	}
-	.bucket-settings h2 {
-		margin: 0 0 6px;
-		font-size: 15px;
-		font-weight: 600;
-	}
-	.bucket-desc {
-		margin: 0 0 12px;
-		font-size: 13px;
-		color: var(--body-text-color-subdued, #71717a);
-		line-height: 1.5;
-	}
-	.bucket-picker {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		margin-bottom: 12px;
-	}
-	.bucket-picker span {
-		font-size: 13px;
-		font-weight: 500;
-		min-width: 56px;
-	}
-	.bucket-picker input {
-		flex: 1;
-		font-family: var(--font-mono, monospace);
-		font-size: 13px;
-		padding: 6px 10px;
-		border: 1px solid var(--border-color-primary, #e5e5e5);
-		border-radius: 6px;
-		background: var(--background-fill-primary, #fff);
-	}
-	.bucket-actions {
-		display: flex;
-		gap: 8px;
-	}
-	.bucket-actions button {
-		padding: 6px 12px;
-		font-size: 13px;
-		border-radius: 6px;
-		border: 1px solid var(--border-color-primary, #e5e5e5);
-		background: var(--background-fill-primary, #fff);
-		cursor: pointer;
-	}
-	.bucket-actions button.primary {
-		background: var(--color-accent, #ea580c);
-		border-color: var(--color-accent, #ea580c);
-		color: #fff;
 	}
 	.load {
 		display: inline-flex;
