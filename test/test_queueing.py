@@ -423,3 +423,61 @@ def test_analytics_summary(monkeypatch):
         event_analytics = tc.get("/monitoring/summary").json()
         assert "predict" in event_analytics["functions"]
         assert event_analytics["functions"]["predict"]["total_requests"] == 4
+
+
+class TestQueueDoesNotAccumulate:
+    def test_finished_events_are_not_retained(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        assert demo._queue.event_ids_to_events == {}
+
+    def test_finished_tasks_are_not_retained(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        assert demo._queue._asyncio_tasks == set()
+
+    def test_completing_an_event_does_not_mark_its_iterator_for_reset(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        assert demo._queue.server_app.iterators_to_reset == set()
+
+    def test_event_analytics_is_bounded(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        demo._queue.ANALYTICS_MAX_EVENTS = 3
+        with connect(demo) as client:
+            for _ in range(8):
+                client.predict("a", api_name="/lambda")
+
+        assert len(demo._queue.event_analytics) == 3
+        assert demo._queue.events_recorded == 8
+        assert (
+            demo._queue.cached_event_analytics_summary["functions"]["lambda"][
+                "total_requests"
+            ]
+            == 8
+        )

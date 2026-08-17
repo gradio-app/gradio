@@ -1660,6 +1660,26 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
+class TestHandleStreamingOutputs:
+    @pytest.mark.asyncio
+    async def test_final_chunk_with_no_open_stream_is_a_no_op(self):
+        # The session's streams may be gone by the time the final chunk lands —
+        # a disconnect drops them — and a generator that sends only prop updates
+        # never opens one at all. Neither should cost the caller their output.
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            audio = gr.Audio(streaming=True, autoplay=True)
+            box.submit(lambda x: x, box, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+        data = await demo.handle_streaming_outputs(
+            block_fn, [b"final"], session_hash="s", run=0, final=True
+        )
+
+        assert data == [b"final"]
+        assert demo.pending_streams["s"][0] == {}
+
+
 class TestGetAPIInfo:
     def test_many_endpoints(self):
         with gr.Blocks() as demo:
