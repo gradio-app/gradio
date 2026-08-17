@@ -16,7 +16,7 @@ import {
 } from "./test_data";
 import { initialise_server } from "./server";
 import { SPACE_NOT_FOUND_MSG } from "../constants";
-import { track_resumable_event } from "../utils/session";
+import { get_resumable_events, track_resumable_event } from "../utils/session";
 import { http, HttpResponse } from "msw";
 
 const app_reference = "hmb/hello_world";
@@ -159,6 +159,32 @@ describe("Client class", () => {
 
 			await Promise.all(submissions.map((submission) => submission.return()));
 		});
+
+		test.skipIf(typeof sessionStorage === "undefined")(
+			"clears a resumable event rejected by the server",
+			async () => {
+				const app = await Client.connect(direct_app_reference);
+				app.stream_status.open = true;
+				track_resumable_event(app.config!, app.session_hash, {
+					event_id: "expired-event",
+					fn_index: 0
+				});
+
+				const submission = app.resume_jobs([
+					{ event_id: "expired-event", fn_index: 0 }
+				])[0];
+				await submission.wait_for_id();
+				await app.event_callbacks["expired-event"]({
+					msg: "unexpected_error",
+					event_id: "expired-event",
+					message: "Session event not found.",
+					session_not_found: true
+				});
+
+				expect(get_resumable_events(app.config!, app.session_hash)).toEqual([]);
+				await submission.return();
+			}
+		);
 
 		test.skipIf(typeof window === "undefined")(
 			"notifies the server when a resumable client closes",

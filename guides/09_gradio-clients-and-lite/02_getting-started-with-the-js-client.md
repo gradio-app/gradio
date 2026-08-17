@@ -314,7 +314,7 @@ for (const job of resumed_jobs) {
 }
 ```
 
-New calls made with `app.submit()` are tracked automatically. Call `app.resume_jobs()` after reconnecting the page to reattach to those same event IDs rather than submitting duplicate work. The server keeps disconnected jobs for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (10 minutes by default).
+New calls made with `app.submit()` are tracked automatically. Call `app.resume_jobs()` after reconnecting the page to reattach to those same event IDs rather than submitting duplicate work. The browser keeps active event IDs for the current tab until the server acknowledges or rejects them, while the server keeps disconnected jobs for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (1 hour by default).
 
 ## Cancelling Jobs
 

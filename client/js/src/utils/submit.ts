@@ -277,6 +277,9 @@ export function submit(
 					) {
 						if (type === "unexpected_error") {
 							unclosed_events.delete(queue_event_id);
+							if (status?.session_not_found) {
+								clear_resumable_event(queue_event_id);
+							}
 						}
 						console.error("Unexpected error", status?.message);
 						const broken = type === "broken_connection";

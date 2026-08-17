@@ -56,7 +56,7 @@ from gradio_client.utils import (
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
-SESSION_RESUME_TTL_SECONDS = 600
+SESSION_RESUME_TTL_SECONDS = 3600
 
 
 class ResumableJob(TypedDict):

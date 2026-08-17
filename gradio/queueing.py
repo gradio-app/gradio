@@ -167,7 +167,7 @@ class Queue:
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
         self.cached_event_analytics_summary = {"functions": {}}
         self.event_count_at_last_cache = 0
-        self.resume_ttl = float(os.getenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "600"))
+        self.resume_ttl = float(os.getenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "3600"))
         self.close_grace_period = max(0.0, min(5.0, self.resume_ttl))
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")

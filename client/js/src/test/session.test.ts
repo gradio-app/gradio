@@ -79,6 +79,24 @@ describe("resumable sessions", () => {
 		expect(get_resumable_session_hash()).toBeNull();
 	});
 
+	it("keeps active events until the server resolves them", () => {
+		vi.useFakeTimers();
+		try {
+			track_resumable_event(config, "session-1", {
+				event_id: "event-1",
+				fn_index: 3
+			});
+
+			vi.advanceTimersByTime(2 * 60 * 60 * 1000);
+
+			expect(get_resumable_events(config, "session-1")).toEqual([
+				{ event_id: "event-1", fn_index: 3 }
+			]);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
 	it("reads the active session cookie during server rendering", () => {
 		expect(
 			get_resumable_session_hash("other=value; gradio_active_session=session-2")
