@@ -1132,6 +1132,39 @@ class TestAuthenticatedRoutes:
         assert response.status_code == 401
 
 
+class TestConfigUsername:
+    """`/config` reports who is logged in. Resolving the user is async, so a
+    caller that does not await it gets a coroutine, which `ORJSONResponse`
+    stringifies rather than rejects. See
+    https://github.com/gradio-app/gradio/issues/13758."""
+
+    def test_username_is_none_without_auth(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            assert client.get("/config").json()["username"] is None
+
+    def test_username_is_the_logged_in_user(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth=("admin", "password"), prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            client.post("/login", data={"username": "admin", "password": "password"})
+            assert client.get("/config").json()["username"] == "admin"
+
+    def test_username_comes_from_an_async_auth_dependency(self):
+        async def whoever_asked(request: Request):
+            return request.headers.get("user")
+
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth_dependency=whoever_asked, prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            response = client.get("/config", headers={"user": "abubakar"})
+            assert response.json()["username"] == "abubakar"
+
+
 class TestQueueRoutes:
     @pytest.mark.asyncio
     async def test_queue_join_routes_sets_app_if_none_set(self):
