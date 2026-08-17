@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Detect when someone deliberately leaves the page
+feat:Keep queued work when the connection drops, and collect its result by job id
