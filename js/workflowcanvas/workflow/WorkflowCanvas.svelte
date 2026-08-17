@@ -138,6 +138,12 @@
 		void auth.init();
 	});
 
+	$effect(() => {
+		if (server?.get_oauth_available && !auth.oauthAvailableKnown) {
+			void auth.refreshOAuthAvailable();
+		}
+	});
+
 	let oauthHintShown = false;
 	$effect(() => {
 		if (
@@ -145,6 +151,7 @@
 			auth.isHFSpace &&
 			auth.writeAccessKnown &&
 			!auth.canWrite &&
+			auth.oauthAvailableKnown &&
 			!auth.oauthAvailable
 		) {
 			oauthHintShown = true;
