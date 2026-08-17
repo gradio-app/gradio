@@ -137,8 +137,36 @@
 		border: 1px solid #2a2b38;
 		border-radius: 10px;
 		padding: 20px;
-		width: 360px;
+		width: 440px;
 		max-width: 95vw;
+	}
+
+	.connect-hint {
+		font-size: 12px;
+		color: #7c7f99;
+		margin: 0 0 8px;
+		line-height: 1.5;
+	}
+
+	.connect-hint code {
+		font-family: monospace;
+		font-size: 11.5px;
+		background: #0c0d10;
+		border: 1px solid #2a2b38;
+		border-radius: 4px;
+		padding: 1px 5px;
+		color: #c8cad8;
+		word-break: break-all;
+	}
+
+	:global(body:not(.dark)) .connect-hint {
+		color: #6b7280;
+	}
+
+	:global(body:not(.dark)) .connect-hint code {
+		background: #f9fafb;
+		border-color: #e5e7eb;
+		color: #374151;
 	}
 
 	:global(body:not(.dark)) .connect-panel {
