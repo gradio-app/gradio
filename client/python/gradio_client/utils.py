@@ -384,6 +384,7 @@ def get_pred_from_sse_v1plus(
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, deque[Message | None]],
+    pending_lock: Lock,
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
@@ -394,7 +395,12 @@ def get_pred_from_sse_v1plus(
         check_for_cancel, helper, headers, cookies, ssl_verify
     )
     future_sse = executor.submit(
-        stream_sse_v1plus, helper, pending_messages_per_event, event_id, protocol
+        stream_sse_v1plus,
+        helper,
+        pending_messages_per_event,
+        pending_lock,
+        event_id,
+        protocol,
     )
     done, _ = concurrent.futures.wait(
         [future_cancel, future_sse],  # type: ignore
@@ -508,6 +514,7 @@ def stream_sse_v0(
 def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, deque[Message | None]],
+    pending_lock: Lock,
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
@@ -577,7 +584,8 @@ def stream_sse_v1plus(
                 helper.job.latest_status = status_update
                 helper.updates.put_nowait(status_update)
             if msg["msg"] == ServerMessage.process_completed:
-                del pending_messages_per_event[event_id]
+                with pending_lock:
+                    del pending_messages_per_event[event_id]
                 if not msg.get("success", True):
                     # Create a new copy of the error dict so we
                     # can preserve the error message (it gets popped later)

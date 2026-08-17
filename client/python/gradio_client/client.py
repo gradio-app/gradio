@@ -935,6 +935,9 @@ class Client:
     def __del__(self):
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
+        if hasattr(self, "helper_executor"):
+            # Not wait=True: the SSE reader runs here and outlives the requests.
+            self.helper_executor.shutdown(wait=False)
 
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.token).host  # type: ignore
@@ -1433,6 +1436,7 @@ class Endpoint:
             self.client.headers,
             self.client.cookies,
             self.client.pending_messages_per_event,
+            self.client.pending_lock,
             event_id,
             protocol,
             self.client.ssl_verify,
