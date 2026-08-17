@@ -125,11 +125,16 @@ class BucketHistory:
                 value = output.get("value")
                 port_type = output.get("type", "text")
                 if port_type in MEDIA_PORT_TYPES and isinstance(value, str):
-                    fs_path = (
+                    from urllib.parse import unquote, urlparse
+
+                    raw = (
                         value[len("/gradio_api/file=") :]
                         if value.startswith("/gradio_api/file=")
                         else value
                     )
+                    # Strip any query string and percent-decode so filenames
+                    # with spaces / unicode round-trip correctly.
+                    fs_path = unquote(urlparse(raw).path or raw)
                     hub_url = self._upload_media(record["id"], sid, fs_path, port_type)
                     if hub_url:
                         record["outputs"][sid]["bucket_url"] = hub_url

@@ -345,11 +345,10 @@
 	let historyRefreshCount = $state(0);
 
 	// Root URL for the /gradio_api/history/* routes. Prefers the client's
-	// configured root (correct for tunnels / mounted-at-path deployments),
-	// falls back to the page origin.
-	const historyRoot = $derived(
-		gradio_client?.config?.root ?? window.location.origin
-	);
+	// configured root (correct for tunnels / mount_gradio_app subpaths).
+	// Falls back to empty string so relative URL resolution uses the current
+	// page's base — origin would drop any mount subpath and 404 the routes.
+	const historyRoot = $derived(gradio_client?.config?.root ?? "");
 
 	// Per-workflow bucket id, persisted in localStorage keyed by workflow name.
 	const bucketStorageKey = $derived(
@@ -1773,7 +1772,7 @@
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
 
 		// Push a run record to the bucket if configured. Fire-and-forget.
-		if (bucketId && !hasErrors) {
+		if (bucketId) {
 			try {
 				const now = new Date().toISOString();
 				const inputs: Record<string, unknown> = {};
@@ -1805,7 +1804,7 @@
 					id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
 					timestamp: now,
 					started_at: now,
-					status: "completed",
+					status: hasErrors ? "failed" : "completed",
 					subgraph: $workflow.name || "workflow",
 					subject_ids: wfToRun.subjects.map((s) => s.id),
 					inputs,
