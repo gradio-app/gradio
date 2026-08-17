@@ -307,9 +307,24 @@ class Queue:
 
     async def acknowledge_event(self, event_id: str) -> None:
         event = self.event_ids_to_events.get(event_id)
-        if event is None:
+        session_hash = (
+            event.session_hash
+            if event is not None
+            else next(
+                (
+                    current_session_hash
+                    for current_session_hash, resumable in self.resumable_sessions.items()
+                    if event_id
+                    in self.pending_event_ids_session.get(current_session_hash, set())
+                    or any(
+                        message.event_id == event_id for message in resumable.history
+                    )
+                ),
+                None,
+            )
+        )
+        if session_hash is None:
             return
-        session_hash = event.session_hash
         pending_ids = self.pending_event_ids_session.get(session_hash)
         if pending_ids is not None:
             pending_ids.discard(event_id)
