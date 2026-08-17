@@ -202,6 +202,11 @@ class Client:
 
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+        # A prediction blocks its thread until two helpers run on its behalf, so
+        # sharing one pool deadlocks it once max_workers predictions are in flight.
+        self.helper_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2 * max_workers + 1
+        )
 
         self.analytics_enabled = (
             analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
@@ -218,6 +223,7 @@ class Client:
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
+        self.pending_lock = threading.Lock()
 
     def close(self):
         self._kill_heartbeat.set()
@@ -281,24 +287,30 @@ class Client:
                                     resp.get("message", "")
                                     == ServerMessage.server_stopped
                                 ):
-                                    for (
-                                        pending_messages
-                                    ) in self.pending_messages_per_event.values():
+                                    with self.pending_lock:
+                                        pending = list(
+                                            self.pending_messages_per_event.values()
+                                        )
+                                    for pending_messages in pending:
                                         pending_messages.append(resp)
                                     return
                                 elif resp["msg"] == ServerMessage.close_stream:
                                     self.stream_open = False
                                     return
                                 event_id = resp["event_id"]
-                                if event_id not in self.pending_messages_per_event:
-                                    self.pending_messages_per_event[event_id] = deque()
-                                self.pending_messages_per_event[event_id].append(resp)
-                                if resp["msg"] == ServerMessage.process_completed:
-                                    self.pending_event_ids.remove(event_id)
-                                if (
-                                    len(self.pending_event_ids) == 0
-                                    and protocol != "sse_v3"
-                                ):
+                                with self.pending_lock:
+                                    if event_id not in self.pending_messages_per_event:
+                                        self.pending_messages_per_event[event_id] = (
+                                            deque()
+                                        )
+                                    self.pending_messages_per_event[event_id].append(
+                                        resp
+                                    )
+                                    if resp["msg"] == ServerMessage.process_completed:
+                                        # The submitting thread may not have got here yet.
+                                        self.pending_event_ids.discard(event_id)
+                                    no_pending_events = len(self.pending_event_ids) == 0
+                                if no_pending_events and protocol != "sse_v3":
                                     self.stream_open = False
                                     return
                             else:
@@ -334,6 +346,12 @@ class Client:
         resp = req.json()
         event_id = resp["event_id"]
 
+        # Must precede the stream opening below: the server starts emitting
+        # messages for this event as soon as the POST above is handled.
+        with self.pending_lock:
+            self.pending_event_ids.add(event_id)
+            self.pending_messages_per_event.setdefault(event_id, deque())
+
         if not self.stream_open:
             self.stream_open = True
 
@@ -344,11 +362,13 @@ class Client:
 
             def close_stream(_):
                 self.stream_open = False
-                for _, pending_messages in self.pending_messages_per_event.items():
+                with self.pending_lock:
+                    pending = list(self.pending_messages_per_event.values())
+                for pending_messages in pending:
                     pending_messages.append(None)
 
             if self.streaming_future is None or self.streaming_future.done():
-                self.streaming_future = self.executor.submit(open_stream)
+                self.streaming_future = self.helper_executor.submit(open_stream)
                 self.streaming_future.add_done_callback(close_stream)
 
         return event_id
@@ -1207,8 +1227,6 @@ class Endpoint:
                 event_id = self.client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
-                self.client.pending_event_ids.add(event_id)
-                self.client.pending_messages_per_event[event_id] = deque()
                 helper.event_id = event_id
                 result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
@@ -1401,7 +1419,7 @@ class Endpoint:
                 self.client.headers,
                 self.client.cookies,
                 self.client.ssl_verify,
-                self.client.executor,
+                self.client.helper_executor,
             )
 
     def _sse_fn_v1plus(
@@ -1418,7 +1436,7 @@ class Endpoint:
             event_id,
             protocol,
             self.client.ssl_verify,
-            self.client.executor,
+            self.client.helper_executor,
         )
 
 
