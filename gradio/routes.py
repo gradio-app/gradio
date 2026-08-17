@@ -1123,7 +1123,9 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             event.data = body
             event.signal.set()
@@ -1131,7 +1133,9 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
@@ -1141,7 +1145,7 @@ class App(FastAPI):
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1174,7 +1178,7 @@ class App(FastAPI):
                 return Response(status_code=400, content="Unsupported file extension")
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1196,7 +1200,7 @@ class App(FastAPI):
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1287,14 +1291,23 @@ class App(FastAPI):
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
                         caching.clear_session_caches(session_hash)
+                        for run in (
+                            app.get_blocks()
+                            .pending_streams.pop(session_hash, {})
+                            .values()
+                        ):
+                            for stream in run.values():
+                                stream.end_stream()
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(
                             session_hash, []
                         ):
-                            event = app.get_blocks()._queue.event_ids_to_events[
+                            event = app.get_blocks()._queue.event_ids_to_events.get(
                                 event_id
-                            ]
+                            )
+                            if event is None:
+                                continue
                             event.run_time = math.inf
                             event.signal.set()
                         return
@@ -1516,8 +1529,25 @@ class App(FastAPI):
                     return None
                 return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
-            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            session_hash = event.session_hash if event else event_id
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(event_id)
+            if event is not None:
+                session_hash = event.session_hash
+            else:
+                # A finished event is no longer held, but this route is normally
+                # called after it finishes. `pending_event_ids_session` keeps the
+                # id until the completion message is delivered, which is exactly
+                # this window. Falling back to the event id only works for a
+                # caller who sent no session hash of their own, since `Event`
+                # defaults `session_hash` to its own id.
+                session_hash = next(
+                    (
+                        s
+                        for s, ids in queue.pending_event_ids_session.items()
+                        if event_id in ids
+                    ),
+                    event_id,
+                )
             return await queue_data_helper(request, session_hash, process_msg)
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])

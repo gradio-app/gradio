@@ -430,7 +430,7 @@ async def call_process_api(
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
             pending_streams: dict[int, MediaStream] = (
-                app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                app.get_blocks().pending_streams.get(session_hash, {}).get(run_id, {})
             )
             for stream in pending_streams.values():
                 stream.end_stream()
