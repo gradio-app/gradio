@@ -17,6 +17,17 @@ export {
 	type StoredRunComponent,
 	type StoredRun
 } from "./utils/run_history";
+export {
+	delete_record_from_bucket,
+	get_bucket_sync_config,
+	list_bucket_records,
+	list_user_buckets,
+	merge_runs,
+	push_record_to_bucket,
+	set_bucket_sync_config,
+	type BucketInfo,
+	type BucketSyncConfig
+} from "./utils/bucket_sync";
 
 export type {
 	SpaceStatus,

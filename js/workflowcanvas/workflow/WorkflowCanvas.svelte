@@ -8,6 +8,9 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
+	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
+	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
+	import { push_record_to_bucket } from "@gradio/client";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -337,6 +340,37 @@
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
 	let showApiPanel = $state(false);
+	let showHistoryPanel = $state(false);
+	let showHistoryConnect = $state(false);
+	let historyRefreshCount = $state(0);
+
+	// Root URL for the /gradio_api/history/* routes. Prefers the client's
+	// configured root (correct for tunnels / mounted-at-path deployments),
+	// falls back to the page origin.
+	const historyRoot = $derived(
+		gradio_client?.config?.root ?? window.location.origin
+	);
+
+	// Per-workflow bucket id, persisted in localStorage keyed by workflow name.
+	const bucketStorageKey = $derived(
+		`gradio:workflow-history:bucket:${$workflow.name || "default"}`
+	);
+	let bucketId = $state<string>("");
+	$effect(() => {
+		try {
+			bucketId = window.localStorage.getItem(bucketStorageKey) ?? "";
+		} catch {
+			bucketId = "";
+		}
+	});
+	function setBucketId(id: string): void {
+		bucketId = id;
+		try {
+			if (id) window.localStorage.setItem(bucketStorageKey, id);
+			else window.localStorage.removeItem(bucketStorageKey);
+		} catch {}
+	}
+
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -1737,6 +1771,58 @@
 		abortController = null;
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
+
+		// Push a run record to the bucket if configured. Fire-and-forget.
+		if (bucketId && !hasErrors) {
+			try {
+				const now = new Date().toISOString();
+				const inputs: Record<string, unknown> = {};
+				for (const ref of wfToRun.references) {
+					const node = legacyView.nodes.find((n) => n.id === ref.id);
+					const outPort = node?.outputs?.[0];
+					if (!node || !outPort) continue;
+					const value = node.data?.[outPort.id] ?? null;
+					inputs[ref.id] = {
+						value,
+						type: outPort.type,
+						label: node.label,
+						port_id: outPort.id
+					};
+				}
+				const outputs: Record<string, unknown> = {};
+				for (const subj of wfToRun.subjects) {
+					const node = legacyView.nodes.find((n) => n.id === subj.id);
+					const inPort = node?.inputs?.[0];
+					if (!node || !inPort) continue;
+					const value = node.data?.[inPort.id] ?? null;
+					outputs[subj.id] = {
+						value,
+						type: inPort.type,
+						label: node.label
+					};
+				}
+				const record: any = {
+					id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
+					timestamp: now,
+					started_at: now,
+					status: "completed",
+					subgraph: $workflow.name || "workflow",
+					subject_ids: wfToRun.subjects.map((s) => s.id),
+					inputs,
+					outputs,
+					user: null
+				};
+				push_record_to_bucket(historyRoot, bucketId, record);
+				if (showHistoryPanel) {
+					setTimeout(() => {
+						historyRefreshCount++;
+					}, 1500);
+				}
+			} catch {
+				// history push is best-effort
+			}
+		}
+
 		showToast(
 			hasErrors ? "Workflow finished with errors" : "Workflow complete",
 			hasErrors ? 5000 : 3000,
@@ -2322,6 +2408,23 @@
 				<CodeIcon />
 				View API
 			</button>
+			{#if bucketId}
+				<button
+					class="tool-btn history-btn"
+					onclick={() => (showHistoryPanel = true)}
+					title="Browse generation history"
+				>
+					History
+				</button>
+			{:else}
+				<button
+					class="tool-btn connect-bucket-btn"
+					onclick={() => (showHistoryConnect = true)}
+					title="Connect a HF Hub bucket to persist generation history"
+				>
+					Connect bucket
+				</button>
+			{/if}
 			{#if saveIndicator}
 				<span
 					class="save-indicator"
@@ -2818,6 +2921,42 @@
 			{server}
 			workflowName={$workflow.name}
 			onClose={() => (showApiPanel = false)}
+		/>
+	{/if}
+
+	{#if showHistoryConnect}
+		<WorkflowHistoryConnect
+			root={historyRoot}
+			workflowName={$workflow.name}
+			onconnected={(id) => {
+				setBucketId(id);
+				showHistoryConnect = false;
+				showHistoryPanel = true;
+			}}
+			onclose={() => (showHistoryConnect = false)}
+		/>
+	{/if}
+
+	{#if showHistoryPanel && bucketId}
+		<WorkflowHistoryPanel
+			root={historyRoot}
+			{bucketId}
+			triggerRefresh={historyRefreshCount}
+			onclose={() => (showHistoryPanel = false)}
+			onchange={() => {
+				showHistoryPanel = false;
+				showHistoryConnect = true;
+			}}
+			onload={(inputs) => {
+				for (const [nodeId, input] of Object.entries(
+					inputs as Record<string, any>
+				)) {
+					const portId: string = (input as any).port_id ?? "out_0";
+					const value = (input as any).value;
+					updateNodeData(nodeId, portId, value);
+				}
+				showHistoryPanel = false;
+			}}
 		/>
 	{/if}
 
