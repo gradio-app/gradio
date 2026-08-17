@@ -43,28 +43,7 @@
 	let user_buckets: BucketInfo[] = $state([]);
 	let bucket_settings_open = $state(false);
 	let bucket_draft = $state("");
-	// Persisted so remounts + cross-tab storage-event refreshes don't
-	// re-push every local run to the bucket on each visit.
-	let pushed_ids_key = $derived(
-		`gradio:run-history:pushed:v1:${scope?.app_id ?? ""}:${scope?.username ?? ""}`
-	);
-	function load_pushed_ids(): Set<string> {
-		try {
-			const raw = window.localStorage.getItem(pushed_ids_key);
-			return new Set(raw ? JSON.parse(raw) : []);
-		} catch {
-			return new Set();
-		}
-	}
-	function persist_pushed_ids(): void {
-		try {
-			window.localStorage.setItem(
-				pushed_ids_key,
-				JSON.stringify([...pushed_ids])
-			);
-		} catch {}
-	}
-	let pushed_ids = load_pushed_ids();
+	let pushed_ids = new Set<string>();
 
 	let groups = $derived.by(() => {
 		const grouped = new Map<string, StoredRun[]>();
@@ -81,14 +60,11 @@
 		if (bucket_config.enabled && bucket_config.bucket_id) {
 			// Fire-and-forget mirror of any newly terminal local runs. Deduped
 			// by id so a listener re-firing on unrelated changes doesn't spam.
-			let touched = false;
 			for (const run of local) {
 				if (run.status === "running" || pushed_ids.has(run.id)) continue;
 				push_record_to_bucket(root, bucket_config.bucket_id, run);
 				pushed_ids.add(run.id);
-				touched = true;
 			}
-			if (touched) persist_pushed_ids();
 			runs = merge_runs(local, bucket_records);
 		} else {
 			runs = local;
@@ -120,19 +96,14 @@
 		refresh();
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		bucket_config = get_bucket_sync_config(scope);
 		bucket_draft = bucket_config.bucket_id;
-		void (async () => {
-			user_buckets = await list_user_buckets(root);
-			if (bucket_config.enabled) {
-				bucket_records = await list_bucket_records(
-					root,
-					bucket_config.bucket_id
-				);
-			}
-			refresh();
-		})();
+		user_buckets = await list_user_buckets(root);
+		if (bucket_config.enabled) {
+			bucket_records = await list_bucket_records(root, bucket_config.bucket_id);
+		}
+		refresh();
 		return on_run_history_change(refresh);
 	});
 
@@ -241,7 +212,6 @@
 		}
 		bucket_records = [];
 		pushed_ids.clear();
-		persist_pushed_ids();
 		clear_run_history(scope);
 		refresh();
 	}
@@ -253,7 +223,6 @@
 		}
 		bucket_records = bucket_records.filter((r) => r.id !== run.id);
 		pushed_ids.delete(run.id);
-		persist_pushed_ids();
 		delete_run_history(scope, run.id);
 		refresh();
 	}
