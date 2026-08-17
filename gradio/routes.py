@@ -66,7 +66,6 @@ from starlette.responses import RedirectResponse
 import gradio
 from gradio import (
     caching,
-    oauth,
     route_utils,
     themes,
     utils,
@@ -725,120 +724,6 @@ class App(FastAPI):
             if not getattr(app.get_blocks(), "run_history", True):
                 raise HTTPException(status_code=404, detail="Not found")
             return main(request, user)
-
-        _bucket_repo_re = re.compile(
-            r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$"
-        )
-
-        def _oauth_token(request: fastapi.Request) -> str | None:
-            try:
-                info = oauth._get_valid_oauth_info_from_session(request.session)
-            except Exception:
-                return None
-            return info.get("access_token") if info else None
-
-        async def _history_body(request: fastapi.Request) -> dict:
-            try:
-                data = await request.json()
-                return data if isinstance(data, dict) else {}
-            except Exception:
-                return {}
-
-        def _bucket_for(request: fastapi.Request, bucket_id: str):
-            """Return a cached ``BucketHistory`` for the caller's OAuth token
-            and the requested bucket, or None if unauthenticated / invalid.
-
-            Path segments equal to ``.`` or ``..`` are rejected on top of the
-            regex to prevent path traversal through the Hub client.
-            """
-            hf_token = _oauth_token(request)
-            if not hf_token or not _bucket_repo_re.fullmatch(bucket_id or ""):
-                return None
-            if any(seg in {"", ".", ".."} for seg in bucket_id.split("/")):
-                return None
-            from gradio.history import BucketHistory
-
-            cache = app.state.bucket_history_cache
-            key = (hf_token, bucket_id)
-            if key in cache:
-                cache.move_to_end(key)
-                return cache[key]
-            cache[key] = BucketHistory(bucket_id, token=hf_token)
-            if len(cache) > 256:
-                cache.popitem(last=False)
-            return cache[key]
-
-        from collections import OrderedDict
-
-        app.state.bucket_history_cache = OrderedDict()
-
-        @app.post("/gradio_api/history/list")
-        async def _history_list(request: fastapi.Request):
-            body = await _history_body(request)
-            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
-            if wh is None:
-                return JSONResponse({"records": []})
-            try:
-                limit = int(body.get("limit", 50) or 0)
-            except Exception:
-                limit = 50
-            if limit == 0:
-                return JSONResponse({"records": []})
-            records = wh.list(limit=limit, subgraph=body.get("subgraph") or None)
-            return JSONResponse({"records": records})
-
-        @app.post("/gradio_api/history/push")
-        async def _history_push(request: fastapi.Request):
-            body = await _history_body(request)
-            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
-            if wh is None:
-                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
-            record = body.get("record") or {}
-            if isinstance(record, str):
-                try:
-                    record = orjson.loads(record)
-                except Exception:
-                    return JSONResponse({"ok": False, "reason": "invalid_record"})
-            if not isinstance(record, dict) or not record.get("id"):
-                return JSONResponse({"ok": False, "reason": "invalid_record"})
-            wh.push(record)
-            return JSONResponse({"ok": True})
-
-        _record_id_re = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
-        _timestamp_re = re.compile(
-            r"^\d{4}-\d{2}-\d{2}T\d{2}[:-]\d{2}[:-]\d{2}(?:\.\d{1,6})?Z$"
-        )
-
-        @app.post("/gradio_api/history/delete")
-        async def _history_delete(request: fastapi.Request):
-            body = await _history_body(request)
-            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
-            if wh is None:
-                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
-            record_id = str(body.get("id") or "")
-            timestamp = str(body.get("timestamp") or "")
-            if not _record_id_re.fullmatch(record_id) or not _timestamp_re.fullmatch(
-                timestamp
-            ):
-                return JSONResponse({"ok": False, "reason": "invalid_fields"})
-            return JSONResponse({"ok": wh.delete(record_id, timestamp)})
-
-        @app.get("/gradio_api/history/buckets")
-        async def _history_buckets(request: fastapi.Request):
-            """List the authenticated user's own buckets (for a picker UI)."""
-            hf_token = _oauth_token(request)
-            if not hf_token:
-                return JSONResponse({"buckets": []})
-            try:
-                from huggingface_hub import HfApi as _HfApi
-
-                buckets = [
-                    {"id": b.id, "private": getattr(b, "private", True)}
-                    for b in _HfApi(token=hf_token).list_buckets(token=hf_token)
-                ]
-                return JSONResponse({"buckets": buckets})
-            except Exception:
-                return JSONResponse({"buckets": []})
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):
