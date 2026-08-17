@@ -760,17 +760,20 @@ class App(FastAPI):
 
             cache = app.state.bucket_history_cache
             key = (hf_token, bucket_id)
-            if key in cache:
-                cache.move_to_end(key)
+            with app.state.bucket_history_cache_lock:
+                if key in cache:
+                    cache.move_to_end(key)
+                    return cache[key]
+                cache[key] = BucketHistory(bucket_id, token=hf_token)
+                if len(cache) > 256:
+                    cache.popitem(last=False)
                 return cache[key]
-            cache[key] = BucketHistory(bucket_id, token=hf_token)
-            if len(cache) > 256:
-                cache.popitem(last=False)
-            return cache[key]
 
+        import threading as _threading
         from collections import OrderedDict
 
         app.state.bucket_history_cache = OrderedDict()
+        app.state.bucket_history_cache_lock = _threading.Lock()
 
         @app.post("/gradio_api/history/list")
         async def _history_list(request: fastapi.Request):

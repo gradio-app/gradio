@@ -146,10 +146,12 @@ export function delete_record_from_bucket(
  * shared id and sorting newest-first by `started_at`.
  */
 export function merge_runs(local: StoredRun[], remote: StoredRun[]): StoredRun[] {
+	const freshness = (r: StoredRun): string =>
+		r.completed_at ?? r.started_at ?? "";
 	const by_id = new Map<string, StoredRun>();
 	for (const r of [...remote, ...local]) {
 		const existing = by_id.get(r.id);
-		if (!existing || (r.completed_at ?? "") > (existing.completed_at ?? "")) {
+		if (!existing || freshness(r) > freshness(existing)) {
 			by_id.set(r.id, r);
 		}
 	}
