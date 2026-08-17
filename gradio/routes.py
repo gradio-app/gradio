@@ -1542,6 +1542,70 @@ class App(FastAPI):
                 )
             return await queue_data_helper(request, session_hash, process_msg)
 
+        @router.get("/queue/event/{event_id}", dependencies=[Depends(login_check)])
+        async def queue_event_data(request: fastapi.Request, event_id: str):
+            """
+            Follows a single job, wherever it was submitted from. A client that lost
+            its page reattaches here rather than to `/queue/data`, because the session
+            it submitted from is gone: reclaiming that session would carry its
+            `gr.State` into a page that has otherwise started fresh. The event id is
+            enough on its own, being server-issued and unguessable.
+            """
+            blocks = app.get_blocks()
+
+            def process_msg(message: EventMessage) -> str:
+                return f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+
+            def is_final(message: EventMessage) -> bool:
+                return isinstance(
+                    message, (ProcessCompletedMessage, UnexpectedErrorMessage)
+                )
+
+            subscription = blocks._queue.subscribe_to_event(event_id)
+
+            async def event_stream():
+                if subscription is None:
+                    yield process_msg(
+                        UnexpectedErrorMessage(
+                            event_id=event_id,
+                            message="Event not found.",
+                            session_not_found=True,
+                        )
+                    )
+                    yield process_msg(CloseStreamMessage())
+                    return
+
+                replayed, subscriber = subscription
+                heartbeat_rate = utils.get_heartbeat_rate()
+                try:
+                    for message in replayed:
+                        yield process_msg(message)
+                        if is_final(message):
+                            yield process_msg(CloseStreamMessage())
+                            return
+                    while True:
+                        if await request.is_disconnected():
+                            return
+                        try:
+                            message = await asyncio.wait_for(
+                                subscriber.get(), timeout=heartbeat_rate
+                            )
+                        except (TimeoutError, asyncio.TimeoutError):
+                            yield process_msg(HeartbeatMessage())
+                            continue
+                        yield process_msg(message)
+                        if is_final(message):
+                            break
+                    yield process_msg(CloseStreamMessage())
+                finally:
+                    blocks._queue.unsubscribe_from_event(event_id, subscriber)
+
+            return StreamingResponse(
+                event_stream(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+            )
+
         @router.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(
             request: fastapi.Request,
