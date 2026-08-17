@@ -38,6 +38,7 @@ import { clear_run_history } from "./utils/run_history";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
+	CLOSE_URL,
 	CONFIG_ERROR_MSG,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
@@ -322,8 +323,39 @@ export class Client {
 	}
 
 	close(): void {
+		if (!this.closed) {
+			this.report_departure();
+		}
 		this.closed = true;
 		close_stream(this.stream_status, this.abort_controller);
+	}
+
+	/**
+	 * Tells the server that this client is deliberately leaving, so that the work it
+	 * submitted is stopped rather than kept for a reconnection. Sent with `keepalive`
+	 * so that it survives the page being torn down, which also rules out
+	 * `navigator.sendBeacon`, since that cannot carry an `Authorization` header.
+	 *
+	 * Best effort by design: the request is dropped on a crash or a force quit, and
+	 * the server falls back to stopping the work once its own deadline passes.
+	 */
+	private report_departure(): void {
+		if (!this.config || typeof window === "undefined") return;
+
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json"
+		};
+		if (this.options.token) {
+			headers.Authorization = `Bearer ${this.options.token}`;
+		}
+
+		void this.fetch(`${this.config.root}${this.api_prefix}/${CLOSE_URL}`, {
+			method: "POST",
+			headers,
+			body: JSON.stringify({ session_hash: this.session_hash }),
+			credentials: this.options.credentials ?? "same-origin",
+			keepalive: true
+		}).catch(() => {});
 	}
 
 	/**
