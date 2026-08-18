@@ -47,9 +47,10 @@
 	let bucket_settings_open = $state(false);
 	let bucket_draft = $state("");
 	// Persisted so remounts + cross-tab storage-event refreshes don't
-	// re-push every local run to the bucket on each visit.
+	// re-push every local run to the bucket on each visit. Keyed by
+	// bucket_id so switching buckets starts a fresh dedup set.
 	let pushed_ids_key = $derived(
-		`gradio:run-history:pushed:v1:${scope?.app_id ?? ""}:${scope?.username ?? ""}`
+		`gradio:run-history:pushed:v1:${scope?.app_id ?? ""}:${scope?.username ?? ""}:${bucket_config.bucket_id}`
 	);
 	function load_pushed_ids(): Set<string> {
 		try {
@@ -67,7 +68,12 @@
 			);
 		} catch {}
 	}
-	let pushed_ids = load_pushed_ids();
+	let pushed_ids = $state<Set<string>>(new Set());
+	$effect(() => {
+		// Reload whenever the bucket changes.
+		void pushed_ids_key;
+		pushed_ids = load_pushed_ids();
+	});
 
 	let groups = $derived.by(() => {
 		const grouped = new Map<string, StoredRun[]>();
@@ -306,7 +312,7 @@
 			<p class="bucket-desc">
 				Mirror runs from this browser to a private HF Hub bucket so they persist
 				across devices. Requires you to be logged in with an HF account that has <code
-					>write-repos</code
+					>manage-repos</code
 				> scope.
 			</p>
 			<label class="bucket-picker">

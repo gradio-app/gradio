@@ -103,15 +103,20 @@ class BucketHistory:
 
     def ensure_repo(self) -> tuple[bool, str | None]:
         """Ensure the bucket exists. Returns ``(ok, reason)`` where reason is
-        ``"no_permission"``, ``"unknown"``, or ``None`` on success."""
+        ``"no_permission"``, ``"unknown"``, or ``None`` on success.
+
+        A cached ``no_permission`` short-circuits future attempts (the OAuth
+        scope won't change mid-session); transient failures are retried.
+        """
         with self._repo_lock:
             if self._repo_ready:
                 return True, None
-            if getattr(self, "_ensure_reason", None) is not None:
+            if self._ensure_reason == "no_permission":
                 return False, self._ensure_reason
             try:
                 self._api.create_bucket(self.repo_id, private=True, exist_ok=True)
                 self._repo_ready = True
+                self._ensure_reason = None
                 return True, None
             except Exception as e:
                 status = getattr(getattr(e, "response", None), "status_code", None)
@@ -129,7 +134,9 @@ class BucketHistory:
     def _push_sync(self, record: dict) -> None:
         """Called in a daemon thread — uploads media then writes the record."""
         try:
-            self.ensure_repo()
+            ok, _ = self.ensure_repo()
+            if not ok:
+                return
 
             for sid, output in list(record.get("outputs", {}).items()):
                 value = output.get("value")
