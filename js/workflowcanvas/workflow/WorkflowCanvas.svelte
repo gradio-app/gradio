@@ -127,7 +127,11 @@
 	// Serialized form of what's currently persisted on the server. Autosave
 	// compares against this so loading the workflow into the store on page load
 	// (and any no-op change) doesn't trigger a redundant save + "Saved" flash.
-	let lastSavedSerialized: string | null = null;
+	let lastSavedSerialized = $state<string | null>(null);
+	const isDirty = $derived(
+		lastSavedSerialized !== null &&
+			JSON.stringify(sanitize_for_save($workflow)) !== lastSavedSerialized
+	);
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -2367,17 +2371,6 @@
 				<CodeIcon />
 				View API
 			</button>
-			{#if auth.isHFSpace && auth.canWrite && spaceId && auth.token}
-				<button
-					class="tool-btn"
-					disabled={savingToSpace}
-					onclick={() => (saveToSpaceConfirm = true)}
-					title="Commit workflow.json to this Space's repo (will restart the Space)"
-				>
-					<UploadIcon />
-					{savingToSpace ? "Saving…" : "Save to Space"}
-				</button>
-			{/if}
 			{#if saveIndicator && !auth.isHFSpace}
 				<span
 					class="save-indicator"
@@ -2462,6 +2455,17 @@
 			{/if}
 			{#if !readOnly}
 				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
+				{#if auth.isHFSpace && auth.canWrite && spaceId && auth.token && isDirty}
+					<button
+						class="tool-btn save-space-btn"
+						disabled={savingToSpace}
+						onclick={() => (saveToSpaceConfirm = true)}
+						title="Commit workflow.json to this Space's repo (will restart the Space)"
+					>
+						<UploadIcon />
+						{savingToSpace ? "Saving…" : "Unsaved · Save"}
+					</button>
+				{/if}
 				{#if auth.writeAccessKnown}
 					<span
 						class="access-badge access-write"
@@ -3169,6 +3173,14 @@
 		color: #0f9d76;
 		background: rgba(15, 157, 118, 0.08);
 		border-color: rgba(15, 157, 118, 0.25);
+	}
+	.save-space-btn {
+		color: #ff9350;
+		border-color: rgba(255, 147, 80, 0.4);
+	}
+	.save-space-btn:hover:not(:disabled) {
+		background: rgba(255, 147, 80, 0.12);
+		border-color: rgba(255, 147, 80, 0.6);
 	}
 	:global(body:not(.dark) button.access-badge.access-readonly:hover),
 	:global(body:not(.dark) button.access-badge.access-readonly.open) {
