@@ -6,7 +6,12 @@ import json
 import threading
 from unittest.mock import MagicMock, patch
 
+import pytest
+from fastapi.testclient import TestClient
+
+import gradio as gr
 from gradio.history import BucketHistory, build_history_record
+from gradio.interface import close_all
 
 # ─── build_history_record ─────────────────────────────────────────────────────
 
@@ -262,12 +267,6 @@ def test_ensure_repo_creates_bucket():
 
 
 # ─── /gradio_api/history/* routes ─────────────────────────────────────────────
-
-import pytest
-from fastapi.testclient import TestClient
-
-import gradio as gr
-from gradio.interface import close_all
 
 
 @pytest.fixture
