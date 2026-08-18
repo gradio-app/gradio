@@ -1771,7 +1771,8 @@
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
 
-		// Push a run record to the bucket if configured. Fire-and-forget.
+		// Push a run record to the bucket if configured. Awaited so the
+		// history panel refresh sees the new record on the next fetch.
 		if (bucketId) {
 			try {
 				const now = new Date().toISOString();
@@ -1814,12 +1815,8 @@
 					outputs,
 					user: null
 				};
-				push_record_to_bucket(historyRoot, bucketId, record);
-				if (showHistoryPanel) {
-					setTimeout(() => {
-						historyRefreshCount++;
-					}, 1500);
-				}
+				await push_record_to_bucket(historyRoot, bucketId, record);
+				if (showHistoryPanel) historyRefreshCount++;
 			} catch {
 				// history push is best-effort
 			}

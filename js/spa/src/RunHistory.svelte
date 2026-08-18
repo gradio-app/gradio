@@ -87,7 +87,7 @@
 			let touched = false;
 			for (const run of local) {
 				if (run.status === "running" || pushed_ids.has(run.id)) continue;
-				push_record_to_bucket(root, bucket_config.bucket_id, run);
+				void push_record_to_bucket(root, bucket_config.bucket_id, run);
 				pushed_ids.add(run.id);
 				touched = true;
 			}

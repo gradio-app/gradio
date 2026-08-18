@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import {
 		ensure_bucket,
+		is_valid_bucket_id,
 		list_user_buckets,
 		type BucketInfo
 	} from "@gradio/client";
@@ -32,18 +33,9 @@
 			: "workflow-history"
 	);
 
-	function isValidBucketId(id: string): boolean {
-		// user/name — mirrors gradio.routes._bucket_repo_re, sans .. segments
-		if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$/.test(id))
-			return false;
-		return !id
-			.split("/")
-			.some((seg) => seg === "" || seg === "." || seg === "..");
-	}
-
 	async function connect(bucketId: string) {
 		error = null;
-		if (!isValidBucketId(bucketId)) {
+		if (!is_valid_bucket_id(bucketId)) {
 			error = "Invalid bucket ID — expected `username/bucket-name`.";
 			return;
 		}

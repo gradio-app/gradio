@@ -14,9 +14,11 @@ import mimetypes
 import os
 import secrets
 import sys
+import threading
 import time
 import traceback
 import warnings
+from collections import OrderedDict
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
@@ -737,9 +739,23 @@ class App(FastAPI):
                 return None
             return info.get("access_token") if info else None
 
+        # Cap history bodies at 2 MiB — records are tiny JSON, media is
+        # uploaded through the Hub client directly, so anything larger is
+        # malformed or malicious.
+        history_max_body = 2 * 1024 * 1024
+
         async def _history_body(request: fastapi.Request) -> dict:
+            declared = request.headers.get("content-length")
+            if declared and declared.isdigit() and int(declared) > history_max_body:
+                return {}
             try:
-                data = await request.json()
+                raw = await request.body()
+            except Exception:
+                return {}
+            if len(raw) > history_max_body:
+                return {}
+            try:
+                data = orjson.loads(raw)
                 return data if isinstance(data, dict) else {}
             except Exception:
                 return {}
@@ -769,11 +785,8 @@ class App(FastAPI):
                     cache.popitem(last=False)
                 return cache[key]
 
-        import threading as _threading
-        from collections import OrderedDict
-
         app.state.bucket_history_cache = OrderedDict()
-        app.state.bucket_history_cache_lock = _threading.Lock()
+        app.state.bucket_history_cache_lock = threading.Lock()
 
         @app.post("/gradio_api/history/list")
         async def _history_list(request: fastapi.Request):

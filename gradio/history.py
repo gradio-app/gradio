@@ -98,7 +98,7 @@ class BucketHistory:
                 self._cache = None
             return True
         except Exception:
-            logger.debug("BucketHistory: delete failed", exc_info=True)
+            logger.warning("BucketHistory: delete failed", exc_info=True)
             return False
 
     def ensure_repo(self) -> tuple[bool, str | None]:

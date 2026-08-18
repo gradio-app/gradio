@@ -4,6 +4,22 @@ import type { RunHistoryScope, StoredRun } from "./run_history";
 
 const CONFIG_PREFIX = "gradio:run-history:bucket:v2:";
 
+// Mirrors gradio.routes._bucket_repo_re. Kept in one place so UI and server
+// agree on what counts as a well-formed bucket id.
+const BUCKET_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$/;
+
+export function is_valid_bucket_id(id: string): boolean {
+	if (!BUCKET_ID_RE.test(id)) return false;
+	return !id.split("/").some((seg) => seg === "" || seg === "." || seg === "..");
+}
+
+interface BucketResponse {
+	ok?: boolean;
+	reason?: string;
+	detail?: string;
+	records?: StoredRun[];
+}
+
 export interface BucketSyncConfig {
 	enabled: boolean;
 	bucket_id: string;
@@ -65,7 +81,11 @@ function history_url(root: string, path: string): string {
 	return `${root.replace(/\/+$/, "")}/gradio_api/history/${path}`;
 }
 
-async function post(root: string, path: string, body: unknown): Promise<any> {
+async function post(
+	root: string,
+	path: string,
+	body: unknown
+): Promise<BucketResponse> {
 	const res = await fetch(history_url(root, path), {
 		method: "POST",
 		credentials: "include",
@@ -125,17 +145,20 @@ export async function list_bucket_records(
 	}
 }
 
-/** Mirror a completed run to the bucket. Fire-and-forget; failures are silent. */
-export function push_record_to_bucket(
+/** Mirror a completed run to the bucket. Await to know the server has
+ *  accepted it; drop the promise for fire-and-forget. Failures are logged. */
+export async function push_record_to_bucket(
 	root: string,
 	bucket_id: string,
 	record: StoredRun
-): void {
+): Promise<void> {
 	if (!bucket_id || !record?.id) return;
 	if (record.status === "running") return;
-	post(root, "push", { bucket_id, record }).catch((e) => {
+	try {
+		await post(root, "push", { bucket_id, record });
+	} catch (e) {
 		console.warn("[bucket] push failed:", e);
-	});
+	}
 }
 
 /** Mirror a deletion to the bucket. Fire-and-forget. */

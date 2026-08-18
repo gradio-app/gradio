@@ -21,6 +21,7 @@ export {
 	delete_record_from_bucket,
 	ensure_bucket,
 	get_bucket_sync_config,
+	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets,
 	merge_runs,

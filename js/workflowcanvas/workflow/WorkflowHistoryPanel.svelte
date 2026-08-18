@@ -16,6 +16,7 @@
 		value: any;
 		type: string;
 		label: string;
+		bucket_url?: string;
 	}
 
 	interface HistoryRecord {
@@ -68,20 +69,17 @@
 			: records
 	);
 
-	function formatRelativeTime(iso: string): string {
-		try {
-			const diff = Date.now() - new Date(iso).getTime();
-			const secs = Math.floor(diff / 1000);
-			if (secs < 60) return "just now";
-			const mins = Math.floor(secs / 60);
-			if (mins < 60) return `${mins}m ago`;
-			const hrs = Math.floor(mins / 60);
-			if (hrs < 24) return `${hrs}h ago`;
-			const days = Math.floor(hrs / 24);
-			return `${days}d ago`;
-		} catch {
-			return iso.slice(0, 10);
-		}
+	function formatRelativeTime(iso: string | undefined): string {
+		if (!iso) return "";
+		const ts = new Date(iso).getTime();
+		if (Number.isNaN(ts)) return iso.slice(0, 10);
+		const secs = Math.floor((Date.now() - ts) / 1000);
+		if (secs < 60) return "just now";
+		const mins = Math.floor(secs / 60);
+		if (mins < 60) return `${mins}m ago`;
+		const hrs = Math.floor(mins / 60);
+		if (hrs < 24) return `${hrs}h ago`;
+		return `${Math.floor(hrs / 24)}d ago`;
 	}
 
 	function primaryOutput(record: HistoryRecord): HistoryOutput | null {
@@ -245,13 +243,14 @@
 					{#each filtered as record (record.id)}
 						{@const out = primaryOutput(record)}
 						{@const summary = inputSummary(record)}
+						{@const media_src = out?.bucket_url ?? (typeof out?.value === "string" ? out.value : null)}
 						<div class="history-card">
 							<div class="card-preview">
-								{#if out && MEDIA_TYPES.has(out.type) && typeof out.value === "string" && !out.value.startsWith("https://huggingface.co/buckets/")}
+								{#if out && MEDIA_TYPES.has(out.type) && media_src}
 									{#if out.type === "image"}
 										<img
 											class="preview-img"
-											src={out.value}
+											src={media_src}
 											alt={out.label}
 											loading="lazy"
 										/>
@@ -260,7 +259,7 @@
 									{:else}
 										<div class="preview-icon">video</div>
 									{/if}
-								{:else if out && out.value !== null && out.value !== undefined && !String(out.value).startsWith("https://huggingface.co/buckets/")}
+								{:else if out && out.value !== null && out.value !== undefined}
 									<div class="preview-text">
 										{typeof out.value === "string"
 											? out.value.slice(0, 120)
@@ -273,7 +272,7 @@
 
 							<div class="card-meta">
 								<div class="card-time">
-									{formatRelativeTime(record.timestamp)}
+									{formatRelativeTime(record.timestamp ?? record.started_at)}
 								</div>
 								{#if summary}
 									<div class="card-inputs">{summary}</div>
