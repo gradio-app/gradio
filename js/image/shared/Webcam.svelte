@@ -398,10 +398,10 @@
 		background-color: var(--block-background-fill);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
-		padding: var(--size-2);
+		padding: var(--size-1-5);
 		display: flex;
 		align-items: center;
-		gap: var(--size-4);
+		gap: var(--size-2);
 		bottom: var(--size-2);
 		left: 50%;
 		transform: translate(-50%, 0);
@@ -412,39 +412,40 @@
 
 	.button-wrap button {
 		display: flex;
-		min-height: var(--size-11);
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
 	}
 
 	.capture-button {
+		min-height: var(--size-10);
 		padding: 0 var(--size-2);
 	}
 
 	.capture-button.photo-capture {
-		width: var(--size-14);
-		height: var(--size-14);
-		padding: 0;
-		border-radius: var(--radius-full);
-	}
-
-	.photo-capture .icon {
-		width: var(--size-6);
-		height: var(--size-6);
-	}
-
-	.device-select-button {
 		width: var(--size-11);
 		height: var(--size-11);
 		padding: 0;
 		border-radius: var(--radius-full);
 	}
 
-	.device-select-icon {
-		display: flex;
+	.photo-capture .icon {
 		width: var(--size-5);
 		height: var(--size-5);
+	}
+
+	.device-select-button {
+		min-width: var(--size-10);
+		width: var(--size-10);
+		height: var(--size-10);
+		padding: 0;
+		border-radius: var(--radius-full);
+	}
+
+	.device-select-icon {
+		display: flex;
+		width: var(--size-4);
+		height: var(--size-4);
 		align-items: center;
 		justify-content: center;
 	}
@@ -497,7 +498,7 @@
 		max-width: calc(100vw - var(--size-4));
 		font-size: var(--text-md);
 		position: absolute;
-		bottom: calc(100% + var(--size-2));
+		bottom: calc(100% + var(--size-1-5));
 		background-color: var(--block-background-fill);
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
