@@ -750,6 +750,8 @@ class Queue:
         self.sessions_awaiting_close.pop(session_hash, None)
         self.attached_streams.pop(session_hash, None)
         self.pending_event_ids_session.pop(session_hash, None)
+        # Nobody is coming back to read these now.
+        self.pending_messages_per_session.pop(session_hash, None)
         if self.server_app is None:
             return
         try:

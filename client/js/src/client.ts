@@ -33,7 +33,13 @@ import {
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
-import { open_stream, readable_stream, close_stream } from "./utils/stream";
+import {
+	open_stream,
+	readable_stream,
+	close_stream,
+	MAX_RECONNECT_DELAY,
+	RECONNECT_DELAY
+} from "./utils/stream";
 import { clear_run_history } from "./utils/run_history";
 import {
 	API_INFO_ERROR_MSG,
@@ -67,6 +73,9 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	/** Attempts made so far to reopen a stream that broke, for the backoff. */
+	reconnect_attempts = 0;
+	private reconnect_timer: ReturnType<typeof setTimeout> | null = null;
 	heartbeat_event: EventSource | null = null;
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
@@ -322,11 +331,54 @@ export class Client {
 		return "connected";
 	}
 
+	/**
+	 * Reopens the stream after a backoff, unless the client has been closed or has
+	 * nothing outstanding to hear about.
+	 */
+	reopen_stream_later(): void {
+		if (this.closed || this.reconnect_timer || !this.unclosed_events.size) {
+			return;
+		}
+		const delay = Math.min(
+			RECONNECT_DELAY * 2 ** this.reconnect_attempts,
+			MAX_RECONNECT_DELAY
+		);
+		this.reconnect_attempts += 1;
+		this.reconnect_timer = setTimeout(() => {
+			this.reconnect_timer = null;
+			if (this.closed || !this.unclosed_events.size) return;
+			void this.open_stream().catch(() => this.reopen_stream_later());
+		}, delay);
+	}
+
+	clear_reconnect(): void {
+		if (this.reconnect_timer) {
+			clearTimeout(this.reconnect_timer);
+			this.reconnect_timer = null;
+		}
+	}
+
+	/**
+	 * Reopens the stream if it is not running while jobs are still outstanding. A
+	 * page restored from the back/forward cache, or a phone returning to a
+	 * backgrounded tab, comes back with its connections already closed and no error
+	 * ever delivered, so nothing else would notice.
+	 */
+	resume_stream(): void {
+		if (this.closed || this.stream_status.open || !this.unclosed_events.size) {
+			return;
+		}
+		this.reconnect_attempts = 0;
+		this.clear_reconnect();
+		void this.open_stream().catch(() => this.reopen_stream_later());
+	}
+
 	close(): void {
 		if (!this.closed) {
 			this.report_departure();
 		}
 		this.closed = true;
+		this.clear_reconnect();
 		close_stream(this.stream_status, this.abort_controller);
 	}
 

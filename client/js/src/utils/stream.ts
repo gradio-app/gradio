@@ -2,6 +2,10 @@ import { BROKEN_CONNECTION_MSG, SSE_URL } from "../constants";
 import type { Client } from "../client";
 import { stream } from "fetch-event-stream";
 
+/** Backoff between attempts to reopen a broken stream, and its ceiling. */
+export const RECONNECT_DELAY = 500;
+export const MAX_RECONNECT_DELAY = 5000;
+
 export async function open_stream(this: Client): Promise<void> {
 	let {
 		event_callbacks,
@@ -18,6 +22,11 @@ export async function open_stream(this: Client): Promise<void> {
 		throw new Error("Could not resolve app config");
 	}
 
+	if (stream_status.open) {
+		return;
+	}
+
+	this.clear_reconnect();
 	stream_status.open = true;
 
 	let stream: EventSource | null = null;
@@ -38,10 +47,19 @@ export async function open_stream(this: Client): Promise<void> {
 		return;
 	}
 
+	const abort_controller = this.abort_controller;
+	that.stream_instance = stream;
+
 	stream.onmessage = async function (event: MessageEvent) {
+		// A stream that has already been replaced must not speak for the client.
+		if (that.stream_instance !== stream) {
+			return;
+		}
+		that.reconnect_attempts = 0;
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_status, that.abort_controller);
+			that.stream_instance = null;
+			close_stream(stream_status, abort_controller);
 			return;
 		}
 		const event_id = _data.event_id;
@@ -82,15 +100,29 @@ export async function open_stream(this: Client): Promise<void> {
 		}
 	};
 	stream.onerror = async function (e) {
+		if (that.stream_instance !== stream) {
+			return;
+		}
 		console.error(e);
-		await Promise.all(
-			Object.keys(event_callbacks).map((event_id) =>
-				event_callbacks[event_id]({
-					msg: "broken_connection",
-					message: BROKEN_CONNECTION_MSG
-				})
-			)
-		);
+		that.stream_instance = null;
+		close_stream(stream_status, abort_controller);
+
+		// A broken connection is not the end of the jobs behind it. The server keeps
+		// them, and keeps their output, for long enough to come back for, so the
+		// stream is reopened rather than every listener being told it is over.
+		if (that.closed || unclosed_events.size === 0) {
+			await Promise.all(
+				Object.keys(event_callbacks).map((event_id) =>
+					event_callbacks[event_id]({
+						msg: "broken_connection",
+						message: BROKEN_CONNECTION_MSG
+					})
+				)
+			);
+			return;
+		}
+
+		that.reopen_stream_later();
 	};
 }
 

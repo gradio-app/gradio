@@ -62,10 +62,11 @@ describe("open_stream", () => {
 		if (!app.stream_instance?.onmessage || !app.stream_instance?.onerror) {
 			throw new Error("stream instance is not defined");
 		}
+		const stream = app.stream_instance;
 
 		const message = { msg: "hello jerry" };
 
-		app.stream_instance.onmessage({
+		stream.onmessage({
 			data: JSON.stringify(message)
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(true);
@@ -74,14 +75,73 @@ describe("open_stream", () => {
 		expect(app.pending_stream_messages).toEqual({});
 
 		const close_stream_message = { msg: "close_stream" };
-		app.stream_instance.onmessage({
+		stream.onmessage({
 			data: JSON.stringify(close_stream_message)
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
+		expect(app.stream_instance).toBeNull();
 
-		app.stream_instance.onerror({
+		// A stream that has already been closed no longer speaks for the client, so
+		// an error arriving late on it must not reopen anything.
+		stream.onerror?.({
 			data: JSON.stringify("404")
 		} as MessageEvent);
 		expect(app.stream_status.open).toBe(false);
+		expect(app.stream).toHaveBeenCalledTimes(1);
+	});
+
+	it("reopens the stream when a job is still outstanding", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		app.event_callbacks["event-1"] = vi.fn().mockResolvedValue(undefined);
+		app.unclosed_events.add("event-1");
+
+		await app.open_stream();
+		const stream = app.stream_instance;
+		if (!stream?.onerror) {
+			throw new Error("stream instance is not defined");
+		}
+
+		stream.onerror({ data: JSON.stringify("network error") } as MessageEvent);
+
+		// The job is not lost with the connection, so nothing is told it broke.
+		expect(app.stream_status.open).toBe(false);
+		expect(app.event_callbacks["event-1"]).not.toHaveBeenCalled();
+		expect(app.stream).toHaveBeenCalledTimes(1);
+
+		await vi.advanceTimersByTimeAsync(500);
+		expect(app.stream).toHaveBeenCalledTimes(2);
+		expect(app.stream_status.open).toBe(true);
+	});
+
+	it("tells listeners the connection broke when nothing is outstanding", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const callback = vi.fn().mockResolvedValue(undefined);
+		app.event_callbacks["event-1"] = callback;
+
+		await app.open_stream();
+		const stream = app.stream_instance;
+		if (!stream?.onerror) {
+			throw new Error("stream instance is not defined");
+		}
+
+		await stream.onerror({ data: JSON.stringify("boom") } as MessageEvent);
+
+		expect(callback).toHaveBeenCalledWith(
+			expect.objectContaining({ msg: "broken_connection" })
+		);
+		expect(app.stream).toHaveBeenCalledTimes(1);
+	});
+
+	it("reopens a stale stream when the page comes back", async () => {
+		app.event_callbacks["event-1"] = vi.fn().mockResolvedValue(undefined);
+		app.unclosed_events.add("event-1");
+
+		await app.open_stream();
+		app.stream_status.open = false;
+		app.stream_instance = null;
+
+		app.resume_stream();
+		await vi.waitFor(() => expect(app.stream).toHaveBeenCalledTimes(2));
 	});
 });

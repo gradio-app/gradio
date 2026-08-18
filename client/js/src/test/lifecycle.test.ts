@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { is_deliberate_exit, on_deliberate_exit } from "../utils/lifecycle";
+import {
+	is_deliberate_exit,
+	on_deliberate_exit,
+	on_page_return
+} from "../utils/lifecycle";
 
 const in_browser =
 	typeof window !== "undefined" && typeof document !== "undefined";
@@ -82,6 +86,50 @@ describe.skipIf(!in_browser)("on_deliberate_exit", () => {
 		expect(
 			is_deliberate_exit({ persisted: false } as PageTransitionEvent)
 		).toBe(false);
+	});
+});
+
+describe.skipIf(!in_browser)("on_page_return", () => {
+	afterEach(() => {
+		Reflect.deleteProperty(document, "visibilityState");
+	});
+
+	it("fires when a page is restored from the back/forward cache", () => {
+		const callback = vi.fn();
+		const stop = on_page_return(callback);
+
+		const event = new Event("pageshow");
+		Object.defineProperty(event, "persisted", { value: true });
+		window.dispatchEvent(event);
+
+		expect(callback).toHaveBeenCalledTimes(1);
+		stop();
+	});
+
+	it("ignores an ordinary page load", () => {
+		const callback = vi.fn();
+		const stop = on_page_return(callback);
+
+		const event = new Event("pageshow");
+		Object.defineProperty(event, "persisted", { value: false });
+		window.dispatchEvent(event);
+
+		expect(callback).not.toHaveBeenCalled();
+		stop();
+	});
+
+	it("fires when a backgrounded page is brought forward", () => {
+		const callback = vi.fn();
+		const stop = on_page_return(callback);
+
+		set_visibility("hidden");
+		document.dispatchEvent(new Event("visibilitychange"));
+		expect(callback).not.toHaveBeenCalled();
+
+		set_visibility("visible");
+		document.dispatchEvent(new Event("visibilitychange"));
+		expect(callback).toHaveBeenCalledTimes(1);
+		stop();
 	});
 });
 
