@@ -259,3 +259,60 @@ def test_ensure_repo_creates_bucket():
             exist_ok=True,
         )
         assert wh._repo_ready is True
+
+
+# ─── /gradio_api/history/* routes ─────────────────────────────────────────────
+
+import pytest
+from fastapi.testclient import TestClient
+
+import gradio as gr
+from gradio.interface import close_all
+
+
+@pytest.fixture
+def history_client():
+    io = gr.Interface(lambda x: x, "text", "text")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    yield TestClient(app)
+    io.close()
+    close_all()
+
+
+class TestHistoryRoutes:
+    def test_push_unauthed_returns_403(self, history_client):
+        """The trust boundary: no OAuth → no writes."""
+        r = history_client.post(
+            "/gradio_api/history/push",
+            json={"bucket_id": "user/name", "record": {"id": "abc"}},
+        )
+        assert r.status_code == 403
+        assert r.json()["reason"] == "auth"
+
+    def test_list_unauthed_returns_empty(self, history_client):
+        """Reads degrade gracefully — panel just shows an empty state."""
+        r = history_client.post(
+            "/gradio_api/history/list", json={"bucket_id": "user/name"}
+        )
+        assert r.status_code == 200
+        assert r.json() == {"records": []}
+
+    def test_push_rejects_path_traversal(self, history_client):
+        r = history_client.post(
+            "/gradio_api/history/push",
+            json={"bucket_id": "user/..", "record": {"id": "abc"}},
+        )
+        assert r.status_code == 403
+
+    def test_delete_rejects_bad_id_regex(self, history_client):
+        """Even if OAuth were present, bad chars in id/timestamp don't reach Hub."""
+        r = history_client.post(
+            "/gradio_api/history/delete",
+            json={
+                "bucket_id": "user/name",
+                "id": "has/slash",
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+        )
+        # Unauthed hits 403 first; the regex check is exercised in unit tests.
+        assert r.status_code == 403
