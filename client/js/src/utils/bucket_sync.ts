@@ -1,9 +1,4 @@
-// Client-side wrappers for the `/gradio_api/history/*` bucket routes plus
-// per-app configuration in localStorage. Callers opt into durable bucket
-// storage; when configured, run records are mirrored to a private HF Hub
-// bucket alongside the localStorage history.
-//
-// See #13638 for the backend primitive that serves these routes.
+// Client wrappers for /gradio_api/history/* + per-app config in localStorage.
 
 import type { RunHistoryScope, StoredRun } from "./run_history";
 
@@ -95,6 +90,25 @@ export async function list_user_buckets(root: string): Promise<BucketInfo[]> {
 	}
 }
 
+/** Verify (or auto-create) a bucket. Reason is `auth` | `no_permission` | `unknown` | `network`. */
+export async function ensure_bucket(
+	root: string,
+	bucket_id: string
+): Promise<{ ok: boolean; reason?: string; detail?: string }> {
+	if (!bucket_id) return { ok: false, reason: "invalid_bucket" };
+	try {
+		const res = await fetch(history_url(root, "ensure"), {
+			method: "POST",
+			credentials: "include",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ bucket_id })
+		});
+		return await res.json();
+	} catch (e: any) {
+		return { ok: false, reason: "network", detail: String(e) };
+	}
+}
+
 /** Fetch records from a bucket. Silently returns [] on any failure. */
 export async function list_bucket_records(
 	root: string,
@@ -105,7 +119,8 @@ export async function list_bucket_records(
 	try {
 		const data = await post(root, "list", { bucket_id, limit });
 		return Array.isArray(data?.records) ? data.records : [];
-	} catch {
+	} catch (e) {
+		console.warn("[bucket] list failed:", e);
 		return [];
 	}
 }
@@ -117,11 +132,10 @@ export function push_record_to_bucket(
 	record: StoredRun
 ): void {
 	if (!bucket_id || !record?.id) return;
-	// Only push terminal records — the bucket represents durable outcomes,
-	// not in-progress state. The route accepts anything with an id but
-	// mirroring "running" records adds noise.
 	if (record.status === "running") return;
-	post(root, "push", { bucket_id, record }).catch(() => {});
+	post(root, "push", { bucket_id, record }).catch((e) => {
+		console.warn("[bucket] push failed:", e);
+	});
 }
 
 /** Mirror a deletion to the bucket. Fire-and-forget. */
@@ -131,9 +145,6 @@ export function delete_record_from_bucket(
 	record: Pick<StoredRun, "id" | "started_at">
 ): void {
 	if (!bucket_id || !record?.id) return;
-	// The backend derives the bucket path from (id, timestamp); it uses the
-	// record's own timestamp so we send `started_at` — the record's canonical
-	// creation time.
 	post(root, "delete", {
 		bucket_id,
 		id: record.id,

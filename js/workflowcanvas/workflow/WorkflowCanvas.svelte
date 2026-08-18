@@ -1775,14 +1775,18 @@
 		if (bucketId) {
 			try {
 				const now = new Date().toISOString();
+				// FileData -> URL string, so the server-side media upload path fires.
+				const unwrap = (v: unknown): unknown =>
+					v && typeof v === "object" && !Array.isArray(v) && "url" in v
+						? (v as { url: string }).url
+						: v;
 				const inputs: Record<string, unknown> = {};
 				for (const ref of wfToRun.references) {
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
-					const value = node.data?.[outPort.id] ?? null;
 					inputs[ref.id] = {
-						value,
+						value: unwrap(node.data?.[outPort.id] ?? null),
 						type: outPort.type,
 						label: node.label,
 						port_id: outPort.id
@@ -1793,9 +1797,8 @@
 					const node = legacyView.nodes.find((n) => n.id === subj.id);
 					const inPort = node?.inputs?.[0];
 					if (!node || !inPort) continue;
-					const value = node.data?.[inPort.id] ?? null;
 					outputs[subj.id] = {
-						value,
+						value: unwrap(node.data?.[inPort.id] ?? null),
 						type: inPort.type,
 						label: node.label
 					};

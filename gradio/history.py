@@ -48,6 +48,7 @@ class BucketHistory:
         self._token = token or hf_get_token()
         self._api = HfApi(token=self._token)
         self._repo_ready = False
+        self._ensure_reason: str | None = None
         self._repo_lock = threading.Lock()
         self._cache_lock = threading.Lock()
         self._cache: list[dict] | None = None
@@ -100,26 +101,35 @@ class BucketHistory:
             logger.debug("BucketHistory: delete failed", exc_info=True)
             return False
 
-    def ensure_repo(self) -> None:
+    def ensure_repo(self) -> tuple[bool, str | None]:
+        """Ensure the bucket exists. Returns ``(ok, reason)`` where reason is
+        ``"no_permission"``, ``"unknown"``, or ``None`` on success."""
         with self._repo_lock:
             if self._repo_ready:
-                return
+                return True, None
+            if getattr(self, "_ensure_reason", None) is not None:
+                return False, self._ensure_reason
             try:
                 self._api.create_bucket(self.repo_id, private=True, exist_ok=True)
                 self._repo_ready = True
-            except Exception:
+                return True, None
+            except Exception as e:
+                status = getattr(getattr(e, "response", None), "status_code", None)
+                reason = "no_permission" if status == 403 else "unknown"
+                self._ensure_reason = reason
                 logger.warning(
-                    "BucketHistory: could not create bucket %s",
+                    "BucketHistory: could not create bucket %s "
+                    "(add hf_oauth_scopes: [manage-repos] to the Space README, "
+                    "or create the bucket manually)",
                     self.repo_id,
                     exc_info=True,
                 )
+                return False, reason
 
     def _push_sync(self, record: dict) -> None:
         """Called in a daemon thread — uploads media then writes the record."""
         try:
             self.ensure_repo()
-            if not self._repo_ready:
-                return
 
             for sid, output in list(record.get("outputs", {}).items()):
                 value = output.get("value")
@@ -132,8 +142,6 @@ class BucketHistory:
                         if value.startswith("/gradio_api/file=")
                         else value
                     )
-                    # Strip any query string and percent-decode so filenames
-                    # with spaces / unicode round-trip correctly.
                     fs_path = unquote(urlparse(raw).path or raw)
                     hub_url = self._upload_media(record["id"], sid, fs_path, port_type)
                     if hub_url:
@@ -155,7 +163,7 @@ class BucketHistory:
                 self._cache = None
 
         except Exception:
-            logger.debug("BucketHistory: push failed", exc_info=True)
+            logger.warning("BucketHistory: push failed", exc_info=True)
 
     def _upload_media(
         self, gen_id: str, sid: str, value: str, port_type: str

@@ -807,6 +807,17 @@ class App(FastAPI):
             wh.push(record)
             return JSONResponse({"ok": True})
 
+        @app.post("/gradio_api/history/ensure")
+        async def _history_ensure(request: fastapi.Request):
+            """Synchronously verify or create the bucket so the UI can surface
+            auth / permission errors before the user pushes."""
+            body = await _history_body(request)
+            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
+            if wh is None:
+                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
+            ok, reason = wh.ensure_repo()
+            return JSONResponse({"ok": ok} if ok else {"ok": False, "reason": reason})
+
         _record_id_re = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
         _timestamp_re = re.compile(
             r"^\d{4}-\d{2}-\d{2}T\d{2}[:-]\d{2}[:-]\d{2}(?:\.\d{1,6})?Z$"

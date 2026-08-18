@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { list_user_buckets, type BucketInfo } from "@gradio/client";
+	import {
+		ensure_bucket,
+		list_user_buckets,
+		type BucketInfo
+	} from "@gradio/client";
 
 	let {
 		root,
@@ -34,15 +38,26 @@
 		return !id.split("/").some((seg) => seg === "" || seg === "." || seg === "..");
 	}
 
-	function connect(bucketId: string) {
+	async function connect(bucketId: string) {
 		error = null;
 		if (!isValidBucketId(bucketId)) {
 			error = "Invalid bucket ID — expected `username/bucket-name`.";
 			return;
 		}
 		connecting = true;
-		onconnected(bucketId);
+		const result = await ensure_bucket(root, bucketId);
 		connecting = false;
+		if (!result.ok) {
+			if (result.reason === "auth") {
+				error = "Sign in with 🤗 first to connect a bucket.";
+			} else if (result.reason === "no_permission") {
+				error = `Cannot access or create "${bucketId}". Either create it at https://huggingface.co/new-bucket, or add \`hf_oauth_scopes: [manage-repos]\` to the Space README.`;
+			} else {
+				error = `Could not connect: ${result.detail ?? result.reason ?? "unknown error"}`;
+			}
+			return;
+		}
+		onconnected(bucketId);
 	}
 
 	onMount(async () => {
