@@ -216,10 +216,12 @@ class Queue:
         self.cancel_after_disconnect = max(
             0.0, float(os.getenv("GRADIO_QUEUE_DISCONNECT_TTL", "3600"))
         )
-        # A deliberate exit is acted on at once. This becomes a short grace period
-        # once a reloading page can reattach to the work it left behind, since a
-        # reload is indistinguishable from a close at the moment the client reports it.
-        self.cancel_after_close = 0.0
+        # A reload reports itself exactly like a close — the client cannot tell them
+        # apart when the page is being torn down — so a deliberate exit is given long
+        # enough for a reloading page to come back and claim its work, and no longer.
+        self.cancel_after_close = max(
+            0.0, float(os.getenv("GRADIO_QUEUE_CLOSE_GRACE_PERIOD", "15"))
+        )
         self.last_cancellation_sweep = 0.0
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")

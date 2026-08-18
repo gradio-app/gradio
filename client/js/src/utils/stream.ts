@@ -1,4 +1,4 @@
-import { BROKEN_CONNECTION_MSG, SSE_URL } from "../constants";
+import { BROKEN_CONNECTION_MSG, EVENT_URL, SSE_URL } from "../constants";
 import type { Client } from "../client";
 import { stream } from "fetch-event-stream";
 
@@ -124,6 +124,52 @@ export async function open_stream(this: Client): Promise<void> {
 
 		that.reopen_stream_later();
 	};
+}
+
+/**
+ * Follows a single job on its own stream, feeding its messages to `on_message`.
+ *
+ * Used by a page that reloaded: the session it submitted from is gone, so the job is
+ * reached by its own id instead. Returns a function that stops following it.
+ */
+export function follow_event(
+	client: Client,
+	event_id: string,
+	on_message: (data: any) => void | Promise<void>
+): () => void {
+	const { config } = client;
+	if (!config) {
+		throw new Error("Could not resolve app config");
+	}
+
+	const url = new URL(
+		`${config.root}${client.api_prefix}/${EVENT_URL}/${event_id}`
+	);
+	if (client.jwt) {
+		url.searchParams.set("__sign", client.jwt);
+	}
+
+	// Its own controller, so that closing this stream leaves the session's alone.
+	const controller = new AbortController();
+	const stream = readable_stream(url.toString(), { signal: controller.signal });
+
+	stream.onmessage = async function (event: MessageEvent) {
+		const data = JSON.parse(event.data);
+		if (data.msg === "close_stream") {
+			controller.abort();
+			return;
+		}
+		await on_message(data);
+	};
+	stream.onerror = async function (e) {
+		console.error(e);
+		await on_message({
+			msg: "broken_connection",
+			message: BROKEN_CONNECTION_MSG
+		});
+	};
+
+	return () => controller.abort();
 }
 
 export function close_stream(

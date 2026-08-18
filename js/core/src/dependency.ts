@@ -6,7 +6,7 @@ import type {
 	Payload
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
-import { Client, type client_return } from "@gradio/client";
+import { Client, type client_return, type PendingJob } from "@gradio/client";
 import {
 	LoadingStatusState,
 	type LoadingStatusArgs
@@ -917,8 +917,77 @@ export class DependencyManager {
 		}
 	}
 
-	dispatch_load_events() {
+	/**
+	 * Jobs left outstanding by a page that reloaded, limited to those this app still
+	 * has a matching function for. A job belonging to a function that is no longer
+	 * part of the layout has nowhere to put its output, so it is dropped.
+	 */
+	pending_jobs(): PendingJob[] {
+		return this.client
+			.pending_jobs()
+			.filter(({ fn_index }) => this.dependencies_by_fn.has(fn_index));
+	}
+
+	/**
+	 * Picks outstanding jobs back up and shows their progress and output as if they
+	 * had been started here. Kept separate from `dispatch`, which submits new work:
+	 * there is nothing to send, no inputs to validate, and no queue to wait behind.
+	 */
+	async reattach(jobs: PendingJob[] = this.pending_jobs()): Promise<void> {
+		const submissions = this.client.reattach_jobs(jobs);
+		await Promise.all(
+			jobs.map(async ({ fn_index }, index) => {
+				const dep = this.dependencies_by_fn.get(fn_index);
+				const submission = submissions[index];
+				if (!dep || !submission) return;
+
+				this.submissions.set(fn_index, submission);
+				this.loading_stati.update({
+					status: "pending",
+					fn_index,
+					stream_state: null
+				});
+				await this.update_loading_stati_state();
+
+				try {
+					for await (const result of submission) {
+						if (result === null) continue;
+						if (result.type === "data") {
+							await this.handle_data(dep.outputs, result.data);
+						} else if (result.type === "log") {
+							this.handle_log(result);
+						} else if (result.type === "status") {
+							this.loading_stati.update({
+								status: result.stage,
+								fn_index,
+								stream_state: null,
+								queue: result.queue,
+								size: result.size,
+								position: result.position,
+								eta: result.eta,
+								progress_data: result.progress_data,
+								time_limit: result.time_limit,
+								used_cache: result.used_cache,
+								cache_duration: result.cache_duration,
+								avg_time: result.avg_time
+							});
+							await this.update_loading_stati_state();
+							if (result.stage === "complete" || result.stage === "error") {
+								this.dispatch_state_change_events(result);
+								break;
+							}
+						}
+					}
+				} finally {
+					this.clear_submission(fn_index, submission);
+				}
+			})
+		);
+	}
+
+	dispatch_load_events(skipped_fn_indices: Set<number> = new Set()) {
 		this.dependencies_by_fn.forEach((dep) => {
+			if (skipped_fn_indices.has(dep.id)) return;
 			dep.targets.forEach(([target_id, event_name]) => {
 				if (event_name === "load") {
 					this.dispatch({

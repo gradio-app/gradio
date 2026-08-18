@@ -22,6 +22,7 @@ import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
 import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
+import { read_pending_jobs, type PendingJob } from "./utils/jobs";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
@@ -329,6 +330,35 @@ export class Client {
 			return "changed";
 		}
 		return "connected";
+	}
+
+	/** Jobs submitted before this page loaded whose result never arrived. */
+	pending_jobs(): PendingJob[] {
+		if (!this.config) return [];
+		return read_pending_jobs(this.config);
+	}
+
+	/**
+	 * Picks previously submitted jobs back up, one stream each. The jobs keep running
+	 * under the session they were submitted from — that is where their `gr.State`
+	 * lives — while this page keeps the new session, and cleared state, that reloading
+	 * gave it. Only the output crosses over.
+	 */
+	reattach_jobs(
+		jobs: PendingJob[] = this.pending_jobs()
+	): SubmitIterable<GradioEvent>[] {
+		return jobs.map(({ fn_index, event_id }) =>
+			submit.call(
+				this,
+				fn_index,
+				{},
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				event_id
+			)
+		);
 	}
 
 	/**

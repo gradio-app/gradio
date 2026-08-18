@@ -178,6 +178,54 @@ describe("Client class", () => {
 		);
 	});
 
+	describe("reattach_jobs", () => {
+		// Reattaching is a browser affair: the jobs to come back for are remembered in
+		// `sessionStorage`, which does not exist outside one.
+		test.skipIf(typeof window === "undefined")(
+			"collects a job's output from the job's own stream",
+			async () => {
+				const app = await Client.connect(direct_app_reference, {
+					events: ["data", "status"]
+				});
+				let requested_url = "";
+				// Reattaching asks for the job by id, never by session hash: the session it
+				// was submitted from keeps its own `gr.State`, and this page has started a
+				// new one.
+				server.resetHandlers(
+					http.get(
+						`${direct_app_reference}/queue/event/:event_id`,
+						({ request }) => {
+							requested_url = new URL(request.url).pathname;
+							return new HttpResponse(
+								'data: {"msg":"process_completed","event_id":"event-1",' +
+									'"output":{"data":["done"]},"success":true}\n\n' +
+									'data: {"msg":"close_stream"}\n\n',
+								{ headers: { "Content-Type": "text/event-stream" } }
+							);
+						}
+					)
+				);
+
+				const submission = app.reattach_jobs([
+					{ event_id: "event-1", fn_index: 0 }
+				])[0];
+
+				const seen: string[] = [];
+				for await (const event of submission) {
+					seen.push(event.type);
+					if (event.type === "data") {
+						expect(event.data).toEqual(["done"]);
+					}
+					if (event.type === "status" && event.stage === "complete") break;
+				}
+
+				expect(requested_url).toBe("/queue/event/event-1");
+				expect(seen).toContain("data");
+				await submission.return();
+			}
+		);
+	});
+
 	describe("duplicate", () => {
 		test("backwards compatibility of duplicate using deprecated syntax", async () => {
 			const app = await duplicate("gradio/hello_world", {
