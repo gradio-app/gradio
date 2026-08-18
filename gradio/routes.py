@@ -1722,7 +1722,8 @@ class App(FastAPI):
                     )
                     response = process_msg(message)
                     if isinstance(e, asyncio.CancelledError):
-                        del blocks._queue.pending_messages_per_session[session_hash]
+                        # The session's undelivered messages are left in place: the
+                        # client is expected to reopen this stream and drain them.
                         await stream_lost()
                     if response is not None:
                         yield response

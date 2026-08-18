@@ -31,6 +31,34 @@
  */
 
 /**
+ * Calls `callback` when the page comes back into use, either restored from the
+ * back/forward cache or brought to the foreground again.
+ *
+ * A page that was frozen or cached has had its connections closed underneath it
+ * without any error being delivered, so anything that was streaming has to be
+ * checked rather than trusted. Returns a function that stops listening.
+ */
+export function on_page_return(callback: () => void): () => void {
+	if (typeof window === "undefined" || typeof document === "undefined") {
+		return () => {};
+	}
+
+	const handle_pageshow = (event: Event): void => {
+		if ((event as PageTransitionEvent).persisted) callback();
+	};
+	const handle_visibility = (): void => {
+		if (document.visibilityState === "visible") callback();
+	};
+
+	window.addEventListener("pageshow", handle_pageshow);
+	document.addEventListener("visibilitychange", handle_visibility);
+	return () => {
+		window.removeEventListener("pageshow", handle_pageshow);
+		document.removeEventListener("visibilitychange", handle_visibility);
+	};
+}
+
+/**
  * Whether a `pagehide` event represents someone deliberately leaving the page.
  */
 export function is_deliberate_exit(event: PageTransitionEvent): boolean {

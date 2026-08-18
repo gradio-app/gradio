@@ -87,6 +87,7 @@
 	import {
 		consume_run_history_replay,
 		on_deliberate_exit,
+		on_page_return,
 		type SpaceStatus,
 		type StoredRun
 	} from "@gradio/client";
@@ -414,6 +415,7 @@
 			query_params
 		});
 		on_deliberate_exit(() => app.close());
+		on_page_return(() => app.resume_stream());
 
 		if (!app.config && !config?.auth_required) {
 			throw new Error("Could not resolve app config");
