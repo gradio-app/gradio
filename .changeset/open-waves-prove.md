@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix mobile image webcam controls and add regression coverage
+fix:Fix mobile image-related issues
