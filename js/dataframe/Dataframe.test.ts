@@ -515,8 +515,13 @@ describe("Keyboard accessibility", () => {
 
 		first_cell.focus();
 		await event.keyboard("{Enter}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
 		await event.tab();
-		expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus();
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
 		expect(getByTestId("cell-0-1")).toHaveAttribute("tabindex", "0");
 
 		last_cell.focus();
@@ -526,6 +531,9 @@ describe("Keyboard accessibility", () => {
 
 		first_cell.focus();
 		await event.keyboard("{Enter}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
 		await event.tab({ shift: true });
 		expect(before).toHaveFocus();
 	});
