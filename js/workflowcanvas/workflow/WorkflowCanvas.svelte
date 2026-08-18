@@ -186,8 +186,11 @@
 		const wf = $workflow;
 		// Wait for the write-access answer before autosaving — the optimistic
 		// editable window would otherwise fire saves the backend rejects.
+		// On HF Spaces, saving is manual via "Save to Space"; skip autosave so
+		// the "Unsaved · Save" affordance stays visible until the user commits.
 		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
 			return;
+		if (auth.isHFSpace) return;
 		const serialized = JSON.stringify(sanitize_for_save(wf));
 		if (lastSavedSerialized === null) {
 			// No persisted baseline yet (e.g. a brand-new workflow with no saved
