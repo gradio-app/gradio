@@ -39,7 +39,10 @@
 	}: {
 		root: string;
 		bucketId: string;
-		onload?: (inputs: Record<string, HistoryInput>) => void;
+		onload?: (record: {
+			inputs: Record<string, HistoryInput>;
+			outputs: Record<string, HistoryOutput>;
+		}) => void;
 		onclose: () => void;
 		onchange?: () => void;
 		triggerRefresh?: number;
@@ -95,7 +98,7 @@
 	}
 
 	function handleLoad(record: HistoryRecord): void {
-		if (onload) onload(record.inputs);
+		if (onload) onload({ inputs: record.inputs, outputs: record.outputs });
 	}
 
 	async function fetchRecords() {
@@ -279,9 +282,9 @@
 									<button
 										class="card-load-btn"
 										onclick={() => handleLoad(record)}
-										title="Load these inputs back into the canvas"
+										title="Load inputs and outputs back into the canvas"
 									>
-										Load inputs
+										Load
 									</button>
 								{/if}
 								{#if pendingDelete === record.id}

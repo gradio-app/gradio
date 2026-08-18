@@ -2949,13 +2949,19 @@
 				showHistoryPanel = false;
 				showHistoryConnect = true;
 			}}
-			onload={(inputs) => {
+			onload={({ inputs, outputs }) => {
 				for (const [nodeId, input] of Object.entries(
 					inputs as Record<string, any>
 				)) {
 					const portId: string = (input as any).port_id ?? "out_0";
-					const value = (input as any).value;
-					updateNodeData(nodeId, portId, value);
+					updateNodeData(nodeId, portId, (input as any).value);
+				}
+				for (const [nodeId, output] of Object.entries(
+					outputs as Record<string, any>
+				)) {
+					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
+					updateNodeData(nodeId, inPortId, (output as any).value);
 				}
 				showHistoryPanel = false;
 			}}
