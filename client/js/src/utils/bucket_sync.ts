@@ -10,7 +10,9 @@ const BUCKET_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$/;
 
 export function is_valid_bucket_id(id: string): boolean {
 	if (!BUCKET_ID_RE.test(id)) return false;
-	return !id.split("/").some((seg) => seg === "" || seg === "." || seg === "..");
+	return !id
+		.split("/")
+		.some((seg) => seg === "" || seg === "." || seg === "..");
 }
 
 interface BucketResponse {

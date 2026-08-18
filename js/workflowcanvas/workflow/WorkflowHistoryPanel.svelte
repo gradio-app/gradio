@@ -243,7 +243,9 @@
 					{#each filtered as record (record.id)}
 						{@const out = primaryOutput(record)}
 						{@const summary = inputSummary(record)}
-						{@const media_src = out?.bucket_url ?? (typeof out?.value === "string" ? out.value : null)}
+						{@const media_src =
+							out?.bucket_url ??
+							(typeof out?.value === "string" ? out.value : null)}
 						<div class="history-card">
 							<div class="card-preview">
 								{#if out && MEDIA_TYPES.has(out.type) && media_src}
