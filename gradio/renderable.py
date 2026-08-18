@@ -7,7 +7,7 @@ from gradio_client.documentation import document
 
 from gradio.blocks import Block
 from gradio.components import Component
-from gradio.context import Context, LocalContext
+from gradio.context import LocalContext, get_blocks_context, get_render_context
 from gradio.events import EventListener, EventListenerMethod
 from gradio.layouts import Column, Row
 
@@ -28,24 +28,26 @@ class Renderable:
         queue: bool,
         show_progress: Literal["full", "minimal", "hidden"],
     ):
-        if Context.root_block is None:
+        blocks_config = get_blocks_context()
+        if blocks_config is None:
             raise ValueError("Reactive render must be inside a Blocks context.")
+        root_block = blocks_config.root_block
 
-        self._id = len(Context.root_block.renderables)
-        Context.root_block.renderables.append(self)
-        self.ContainerClass = Row if isinstance(Context.block, Row) else Column
+        self._id = len(root_block.renderables)
+        root_block.renderables.append(self)
+        self.ContainerClass = Row if isinstance(get_render_context(), Row) else Column
         self.container = self.ContainerClass(show_progress=True)
         self.container_id = self.container._id
 
         self.fn = fn
         self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
-        self.page = Context.root_block.current_page
+        self.page = root_block.current_page
         self.key_to_id_map: dict[int | str | tuple[str | int, ...], int] = {}
         self.render_iteration = 0
 
         self.triggers = [EventListenerMethod(*t) for t in triggers]
-        Context.root_block.default_config.set_event_trigger(
+        blocks_config.set_event_trigger(
             self.triggers,
             self.apply,
             self.inputs,
@@ -149,15 +151,17 @@ def render(
     """
     new_triggers = cast(Union[list[EventListener], EventListener, None], triggers)
 
-    if Context.root_block is None:
+    blocks_config = get_blocks_context()
+    if blocks_config is None:
         raise ValueError("Reactive render must be inside a Blocks context.")
+    root_block = blocks_config.root_block
 
     inputs = (
         [inputs] if isinstance(inputs, Component) else [] if inputs is None else inputs
     )
     _triggers: list[tuple[Block | None, str]] = []
     if new_triggers is None:
-        _triggers = [(Context.root_block, "load")]
+        _triggers = [(root_block, "load")]
         for input in inputs:
             if hasattr(input, "change"):
                 _triggers.append((input, "change"))
