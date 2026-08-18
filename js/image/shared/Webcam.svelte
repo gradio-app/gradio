@@ -289,6 +289,8 @@
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video
 		bind:this={video_source}
+		data-testid="webcam-video"
+		playsinline
 		class:flip={mirror_webcam}
 		class:hide={!webcam_accessed || (webcam_accessed && !!value)}
 	/>

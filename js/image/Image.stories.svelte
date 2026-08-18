@@ -1,6 +1,7 @@
 <script module>
 	import { defineMeta } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
+	import { userEvent, within } from "storybook/test";
 	import { allModes } from "../storybook/modes";
 	import { wrapProps } from "../storybook/wrapProps";
 
@@ -41,6 +42,35 @@
 		<div
 			class="image-container"
 			style="width: 300px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
+		>
+			<StaticImage {...wrapProps(args)} />
+		</div>
+	{/snippet}
+</Story>
+
+<Story
+	name="Mobile fullscreen"
+	args={{
+		value: {
+			path: cheetah,
+			url: cheetah,
+			orig_name: "cheetah.jpg"
+		},
+		interactive: false,
+		show_label: true,
+		label: "Fullscreen image",
+		buttons: ["fullscreen"],
+		webcam_options: { mirror: true, constraints: null }
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await userEvent.click(canvas.getByRole("button", { name: "Fullscreen" }));
+	}}
+>
+	{#snippet template(args)}
+		<div
+			class="image-container"
+			style="width: 300px; height: 400px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
 		>
 			<StaticImage {...wrapProps(args)} />
 		</div>

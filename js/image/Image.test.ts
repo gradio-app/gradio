@@ -195,6 +195,16 @@ describe("Props: sources", () => {
 		await fireEvent.click(getByLabelText("Upload file"));
 		expect(getByLabelText("image.drop_to_upload")).toBeVisible();
 	});
+
+	test("webcam video stays inline so capture controls remain visible on iOS", async () => {
+		const { getByTestId } = await render(Image, {
+			...default_props,
+			sources: ["webcam"]
+		});
+
+		const video = getByTestId("webcam-video") as HTMLVideoElement;
+		expect(video.playsInline).toBe(true);
+	});
 });
 
 describe("Props: interactive", () => {
