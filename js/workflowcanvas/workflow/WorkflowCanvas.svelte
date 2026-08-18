@@ -104,20 +104,20 @@
 	// server independently rejects unauthorized saves — this is UX, not the
 	// security boundary. Stays editable until the server answers so the owner
 	// doesn't see controls flash out and back in.
-	const readOnly = $derived(auth.writeAccessKnown && !auth.canWrite);
-
-	// Why this session can't edit — surfaced on the "Run only" badge (hover and
-	// click). Differs by deployment: locally the fix is opening the write-token
-	// edit link; on a Space it's signing in as an account that owns the Space —
-	// unless the Space has no OAuth enabled, in which case no one can sign in to
-	// edit and the developer must enable it.
-	const readOnlyReason = $derived(
-		auth.isHFSpace
-			? auth.oauthAvailable
-				? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that owns this Space (or has write access to it) to make changes. Alternatively, duplicate this Space under your own account to edit your own copy."
-				: "Run-only: editing is disabled because this Space doesn't have OAuth enabled, so the owner can't sign in to authenticate. To allow editing, add `hf_oauth: true` to the Space's README metadata and redeploy. Alternatively, duplicate this Space under your own account to edit your own copy."
-			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes."
+	//
+	// On Spaces the gate is dropped entirely: saving is manual via
+	// "Save to Space" (or "Save as copy" for non-owners), so a non-owner's
+	// edits are ephemeral anyway and there's no file state to protect.
+	const readOnly = $derived(
+		!auth.isHFSpace && auth.writeAccessKnown && !auth.canWrite
 	);
+
+	// Why this local session can't edit — surfaced on the "Run only" badge
+	// (hover and click). Spaces never hit read-only (edits are ephemeral until
+	// "Save to Space"), so this is only shown when a local session lacks the
+	// write token.
+	const readOnlyReason =
+		"Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes.";
 
 	// Flash a brief "Saved" confirmation after each successful autosave. The
 	// timer is cleared on each new save so rapid edits coalesce into a single
@@ -162,7 +162,7 @@
 		) {
 			oauthHintShown = true;
 			showToast(
-				"Sign-in has not been enabled on this Space. The author should add `hf_oauth: true` to the README so users can run workflows on their own inference quota, and authors can edit.",
+				"Sign-in has not been enabled on this Space. The author should add `hf_oauth: true` to the README so users can run workflows on their own inference quota.",
 				0,
 				"warning"
 			);
@@ -2510,8 +2510,17 @@
 			{/if}
 			{#if !readOnly}
 				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-				{#if auth.isHFSpace && spaceId && auth.token && isDirty}
-					{#if auth.canWrite}
+				{#if auth.isHFSpace && spaceId && isDirty}
+					{#if !auth.token && auth.oauthAvailable}
+						<button
+							class="tool-btn save-space-btn"
+							onclick={auth.signIn}
+							title="Sign in with Hugging Face to save your changes"
+						>
+							<UploadIcon />
+							Unsaved · Sign in to save
+						</button>
+					{:else if auth.canWrite}
 						<button
 							class="tool-btn save-space-btn"
 							disabled={savingToSpace}
@@ -2555,21 +2564,17 @@
 					>
 					{#if showAccessInfo}
 						<div class="access-info-popover">
-							{#if auth.isHFSpace}
-								{readOnlyReason}
-							{:else}
-								<!-- Mirrors the local-session readOnlyReason string (used for the
-								     hover title), with "access token" rendered as a link. -->
-								Run-only: you can run this workflow but not edit it. This session
-								is missing the write token — open the edit link printed in the terminal
-								to make changes. That link also signs this session in with your locally
-								saved Hugging Face token; without it, paste an
-								<a
-									href="https://huggingface.co/settings/tokens"
-									target="_blank"
-									rel="noopener noreferrer">access token</a
-								> to run nodes.
-							{/if}
+							<!-- Mirrors readOnlyReason (used for the hover title), with
+							     "access token" rendered as a link. -->
+							Run-only: you can run this workflow but not edit it. This session
+							is missing the write token — open the edit link printed in the terminal
+							to make changes. That link also signs this session in with your locally
+							saved Hugging Face token; without it, paste an
+							<a
+								href="https://huggingface.co/settings/tokens"
+								target="_blank"
+								rel="noopener noreferrer">access token</a
+							> to run nodes.
 						</div>
 					{/if}
 				</div>
