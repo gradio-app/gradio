@@ -156,7 +156,10 @@ export function delete_record_from_bucket(
  * Merge local runs with bucket records, preferring the newer version of any
  * shared id and sorting newest-first by `started_at`.
  */
-export function merge_runs(local: StoredRun[], remote: StoredRun[]): StoredRun[] {
+export function merge_runs(
+	local: StoredRun[],
+	remote: StoredRun[]
+): StoredRun[] {
 	const freshness = (r: StoredRun): string =>
 		r.completed_at ?? r.started_at ?? "";
 	const by_id = new Map<string, StoredRun>();

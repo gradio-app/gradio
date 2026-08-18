@@ -38,7 +38,10 @@
 	// Optional durable persistence to an HF Hub bucket. Off by default; user
 	// opts in via the settings panel below. See gradio/history.py + the
 	// /gradio_api/history/* routes for the backend.
-	let bucket_config: BucketSyncConfig = $state({ enabled: false, bucket_id: "" });
+	let bucket_config: BucketSyncConfig = $state({
+		enabled: false,
+		bucket_id: ""
+	});
 	let bucket_records: StoredRun[] = $state([]);
 	let user_buckets: BucketInfo[] = $state([]);
 	let bucket_settings_open = $state(false);
@@ -268,7 +271,8 @@
 			<div class="storage-copy">
 				<span>saved in</span>
 				<span>
-					<code class="storage-code">Local Storage</code>{#if bucket_config.enabled}
+					<code class="storage-code">Local Storage</code
+					>{#if bucket_config.enabled}
 						+ <a
 							class="bucket-link"
 							href="https://huggingface.co/buckets/{bucket_config.bucket_id}"
@@ -276,7 +280,8 @@
 							rel="noopener noreferrer">HF Bucket</a
 						>
 					{/if}, privately in this browser{#if bucket_config.enabled}
-						and mirrored to <code class="storage-code">{bucket_config.bucket_id}</code
+						and mirrored to <code class="storage-code"
+							>{bucket_config.bucket_id}</code
 						>{/if}.
 				</span>
 			</div>
@@ -299,9 +304,10 @@
 		<section class="bucket-settings">
 			<h2>Sync to HF Bucket</h2>
 			<p class="bucket-desc">
-				Mirror runs from this browser to a private HF Hub bucket so they
-				persist across devices. Requires you to be logged in with an HF
-				account that has <code>write-repos</code> scope.
+				Mirror runs from this browser to a private HF Hub bucket so they persist
+				across devices. Requires you to be logged in with an HF account that has <code
+					>write-repos</code
+				> scope.
 			</p>
 			<label class="bucket-picker">
 				<span>Bucket</span>
