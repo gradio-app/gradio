@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: allow exporting workflow file when on hf spaces
+feat:Allow saving Workflow to the Space itself
