@@ -398,7 +398,7 @@
 		background-color: var(--block-background-fill);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
-		padding: var(--size-1-5);
+		padding: var(--size-1);
 		display: flex;
 		align-items: center;
 		gap: var(--size-2);
