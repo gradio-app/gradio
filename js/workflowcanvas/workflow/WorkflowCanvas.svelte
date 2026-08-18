@@ -355,7 +355,12 @@
 	let showApiPanel = $state(false);
 	let saveToSpaceConfirm = $state(false);
 	let savingToSpace = $state(false);
+	let saveAsCopyConfirm = $state(false);
+	let savingAsCopy = $state(false);
 	let spaceId = $state("");
+	const copyRepo = $derived(
+		auth.user && spaceId ? `${auth.user}/${spaceId.split("/")[1]}` : ""
+	);
 	$effect(() => {
 		if (!server?.get_space_id) return;
 		void server
@@ -414,6 +419,46 @@
 
 	function dismissToast(id: number): void {
 		toasts = toasts.filter((t) => t.id !== id);
+	}
+
+	async function saveAsCopy(): Promise<void> {
+		saveAsCopyConfirm = false;
+		if (!spaceId || !auth.token || !copyRepo || savingAsCopy) return;
+		savingAsCopy = true;
+		try {
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${spaceId}/duplicate`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${auth.token}`,
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({ repository: copyRepo, private: false })
+				}
+			);
+			if (!res.ok && res.status !== 409) {
+				throw new Error(`${res.status} ${await res.text()}`);
+			}
+			const serialized = JSON.stringify(sanitize_for_save($workflow), null, 2);
+			await uploadFile({
+				repo: { type: "space", name: copyRepo },
+				accessToken: auth.token,
+				file: {
+					path: "workflow.json",
+					content: new Blob([serialized], { type: "application/json" })
+				},
+				commitTitle: "Fork workflow.json from canvas"
+			});
+			showToast(`Forked to ${copyRepo} — redirecting…`, 2500, "success");
+			setTimeout(() => {
+				window.location.href = `https://huggingface.co/spaces/${copyRepo}`;
+			}, 1500);
+		} catch (e: any) {
+			showToast(`Fork failed: ${e?.message ?? e}`, 5000, "warning");
+		} finally {
+			savingAsCopy = false;
+		}
 	}
 
 	async function saveToSpace(): Promise<void> {
@@ -2465,16 +2510,28 @@
 			{/if}
 			{#if !readOnly}
 				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-				{#if auth.isHFSpace && auth.canWrite && spaceId && auth.token && isDirty}
-					<button
-						class="tool-btn save-space-btn"
-						disabled={savingToSpace}
-						onclick={() => (saveToSpaceConfirm = true)}
-						title="Commit workflow.json to this Space's repo (will restart the Space)"
-					>
-						<UploadIcon />
-						{savingToSpace ? "Saving…" : "Unsaved · Save"}
-					</button>
+				{#if auth.isHFSpace && spaceId && auth.token && isDirty}
+					{#if auth.canWrite}
+						<button
+							class="tool-btn save-space-btn"
+							disabled={savingToSpace}
+							onclick={() => (saveToSpaceConfirm = true)}
+							title="Commit workflow.json to this Space's repo (will restart the Space)"
+						>
+							<UploadIcon />
+							{savingToSpace ? "Saving…" : "Unsaved · Save"}
+						</button>
+					{:else if auth.user}
+						<button
+							class="tool-btn save-space-btn"
+							disabled={savingAsCopy}
+							onclick={() => (saveAsCopyConfirm = true)}
+							title="Duplicate this Space under your account and save your edits there"
+						>
+							<UploadIcon />
+							{savingAsCopy ? "Forking…" : "Unsaved · Save as copy"}
+						</button>
+					{/if}
 				{/if}
 				{#if auth.writeAccessKnown}
 					<span
@@ -2909,6 +2966,38 @@
 					>
 					<button class="wf-modal-btn wf-modal-btn-danger" onclick={saveToSpace}
 						>Save & restart</button
+					>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	{#if saveAsCopyConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="wf-modal-backdrop" onclick={() => (saveAsCopyConfirm = false)}>
+			<div
+				class="wf-modal"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="wf-save-copy-title"
+				onclick={(e) => e.stopPropagation()}
+			>
+				<div class="wf-modal-title" id="wf-save-copy-title">
+					Save as your own copy?
+				</div>
+				<div class="wf-modal-body">
+					You don't have write access to <strong>{spaceId}</strong>. Save your
+					edits to a new Space at <strong>{copyRepo}</strong>? You'll be
+					redirected there once it's ready.
+				</div>
+				<div class="wf-modal-actions">
+					<button
+						class="wf-modal-btn"
+						onclick={() => (saveAsCopyConfirm = false)}>Cancel</button
+					>
+					<button class="wf-modal-btn wf-modal-btn-danger" onclick={saveAsCopy}
+						>Duplicate & save</button
 					>
 				</div>
 			</div>
