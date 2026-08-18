@@ -106,6 +106,34 @@ describe("Dataframe rendering", () => {
 		expect(rows.length).toBe(3);
 	});
 
+	test("resets inherited table padding so headers align with body cells", async () => {
+		const global_style = document.createElement("style");
+		global_style.textContent = "table { padding: 10px; }";
+		document.head.appendChild(global_style);
+
+		try {
+			const { container } = await render(Dataframe, default_props);
+			await wait();
+
+			const header_table = container.querySelector(
+				".header-table"
+			) as HTMLTableElement;
+			const first_header = get_header_cells(container)[0];
+			const first_body_cell = get_cell(container, 0, 0)!;
+			const header_rect = first_header.getBoundingClientRect();
+			const body_rect = first_body_cell.getBoundingClientRect();
+
+			expect(getComputedStyle(header_table).padding).toBe("0px");
+			expect(header_table.getBoundingClientRect().height).toBe(
+				header_rect.height
+			);
+			expect(header_rect.left).toBeCloseTo(body_rect.left);
+			expect(header_rect.right).toBeCloseTo(body_rect.right);
+		} finally {
+			global_style.remove();
+		}
+	});
+
 	test("renders label when show_label is true", async () => {
 		const { container } = await render(Dataframe, {
 			...default_props,

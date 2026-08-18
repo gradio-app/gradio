@@ -1,5 +1,33 @@
 # gradio
 
+## 6.24.0
+
+### Features
+
+- [#13750](https://github.com/gradio-app/gradio/pull/13750) [`e0f0790`](https://github.com/gradio-app/gradio/commit/e0f0790b6fbe591cfb6de968316596806f5b59dc) - Workflow: only inline app-owned files, and keep opened HTML off the app origin.  Thanks @abidlabs!
+- [#13718](https://github.com/gradio-app/gradio/pull/13718) [`a9e8382`](https://github.com/gradio-app/gradio/commit/a9e8382c4f68e938b5fceef299d7539434c6063f) - Add browser-local run history and loading.  Thanks @abidlabs!
+- [#13751](https://github.com/gradio-app/gradio/pull/13751) [`1c8aa23`](https://github.com/gradio-app/gradio/commit/1c8aa23263ef1d3a641690395b8f0d816b593cc3) - Fix initial Spaces iframe resize after app render.  Thanks @dawoodkhan82!
+- [#13749](https://github.com/gradio-app/gradio/pull/13749) [`5019a24`](https://github.com/gradio-app/gradio/commit/5019a2402779d40d7c0b42817fc73bd2df3d8022) - Await `auth_dependency` and apply it when routes are built on an existing app.  Thanks @abidlabs!
+
+## 6.23.1
+
+### Fixes
+
+- [#13708](https://github.com/gradio-app/gradio/pull/13708) [`3458ea4`](https://github.com/gradio-app/gradio/commit/3458ea4db41e6d08d4363ad05df99ba3a4110082) - Fix processing timer and other inherited text unreadable in dark mode.  Thanks @hysts!
+
+## 6.23.0
+
+### Features
+
+- [#13632](https://github.com/gradio-app/gradio/pull/13632) [`a0800b9`](https://github.com/gradio-app/gradio/commit/a0800b9e4692a22f9bc6095a8d57be49fa38213c) - workflow: add oauth hint.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13695](https://github.com/gradio-app/gradio/pull/13695) [`03d7c53`](https://github.com/gradio-app/gradio/commit/03d7c53b5e45fe97fe24d10dd115e7d7bb9f0615) - Let embedded apps shrink back after stretched content stops needing the room.  Thanks @hysts!
+- [#13698](https://github.com/gradio-app/gradio/pull/13698) [`f3c286b`](https://github.com/gradio-app/gradio/commit/f3c286bed621400e61e42c998ac017f9553683c5) - Emit a `required` array in MCP tool input schemas.  Thanks @hysts!
+- [#13704](https://github.com/gradio-app/gradio/pull/13704) [`b97d910`](https://github.com/gradio-app/gradio/commit/b97d91008b8378823f990c6661a15b428b5434c7) - Recalculate the sidebar overlap amount on resize.  Thanks @hysts!
+- [#13699](https://github.com/gradio-app/gradio/pull/13699) [`8f6f292`](https://github.com/gradio-app/gradio/commit/8f6f29260b2371363af1ac57b35210b4fee2dd5e) - Fix SSR apps hanging on Ctrl+C at "Stopping Node.js server...".  Thanks @hysts!
+
 ## 6.22.0
 
 ### Features

@@ -17,7 +17,7 @@ import warnings
 import weakref
 import webbrowser
 from collections import defaultdict
-from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
+from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -1123,6 +1123,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.custom_mount_path: str | None = None
         self.pwa = False
         self.mcp_server = False
+        self.run_history = True
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -2140,7 +2141,14 @@ Received inputs:
                 and not utils.is_prop_update(data[i])
             ):
                 if final:
-                    stream_run[output_id].end_stream()
+                    # Nothing to finalize if this output never opened a stream —
+                    # the session may have been dropped on disconnect, or every
+                    # chunk before this one may have been a prop update. Falling
+                    # through would leave `first_chunk` true and build a fresh
+                    # stream that nothing ever ends.
+                    if (existing := stream_run.get(output_id)) is None:
+                        continue
+                    existing.end_stream()
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
@@ -2437,6 +2445,7 @@ Received inputs:
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "footer_links": getattr(self, "footer_links", []),
+            "run_history": getattr(self, "run_history", True),
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": getattr(self, "stylesheets", []),
@@ -2663,8 +2672,11 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+        footer_links: list[
+            Literal["api", "gradio", "settings", "runs"] | dict[str, str]
+        ]
         | None = None,
+        run_history: bool | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2673,7 +2685,8 @@ Received inputs:
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         share_server_tls_certificate: str | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
@@ -2716,7 +2729,8 @@ Received inputs:
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
-            footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
+            footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+            run_history: If True, each user's browser saves the inputs and outputs of their own calls to this app, which they can review and reload from the run history page at /gradio_api/runs. The runs are kept in that browser's local storage, are scoped to the logged-in user if the app uses `auth`, and are never sent to the server. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
@@ -2820,9 +2834,18 @@ Received inputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-        self.footer_links = (
-            footer_links if footer_links is not None else ["api", "gradio", "settings"]
+        self.run_history = (
+            os.environ.get("GRADIO_RUN_HISTORY", "True").lower() == "true"
+            if run_history is None
+            else run_history
         )
+        self.footer_links = (
+            footer_links
+            if footer_links is not None
+            else ["api", "gradio", "settings", "runs"]
+        )
+        if not self.run_history:
+            self.footer_links = [link for link in self.footer_links if link != "runs"]
 
         if allowed_paths:
             self.allowed_paths = allowed_paths

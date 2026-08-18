@@ -1536,6 +1536,7 @@
 	/* Header table: auto-sizes columns by content, sticky */
 	.header-table {
 		width: 100%;
+		padding: 0;
 		color: var(--body-text-color);
 		font-size: var(--input-text-size);
 		line-height: var(--line-md);

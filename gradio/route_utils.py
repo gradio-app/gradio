@@ -430,7 +430,7 @@ async def call_process_api(
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
             pending_streams: dict[int, MediaStream] = (
-                app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                app.get_blocks().pending_streams.get(session_hash, {}).get(run_id, {})
             )
             for stream in pending_streams.values():
                 stream.end_stream()
@@ -923,8 +923,11 @@ class CustomCORSMiddleware:
         self,
         app: ASGIApp,
         strict_cors: bool = True,
+        parent_app: Any | None = None,
     ) -> None:
         self.app = app
+        self.parent_app = parent_app
+        self._parent_configures_cors: bool | None = None
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
         self.preflight_headers = {
             "Access-Control-Allow-Methods": ", ".join(self.all_methods),
@@ -940,8 +943,21 @@ class CustomCORSMiddleware:
             # also be used maliciously for CSRF attacks, so it is not allowed by default.
             self.localhost_aliases.append("null")
 
+    def parent_configures_cors(self) -> bool:
+        if self._parent_configures_cors is None:
+            from starlette.middleware.cors import CORSMiddleware
+
+            self._parent_configures_cors = any(
+                middleware.cls is CORSMiddleware
+                for middleware in getattr(self.parent_app, "user_middleware", [])
+            )
+        return self._parent_configures_cors
+
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        if self.parent_configures_cors():
             await self.app(scope, receive, send)
             return
         headers = Headers(scope=scope)
@@ -1209,15 +1225,57 @@ XSS_SAFE_MIMETYPES = {
     "image/png",
     "image/gif",
     "image/webp",
+    "audio/aac",
+    "audio/aiff",
+    "audio/flac",
+    "audio/mp4",
     "audio/mpeg",
-    "audio/wav",
     "audio/ogg",
+    "audio/wav",
+    "audio/webm",
+    "audio/x-aiff",
+    "audio/x-flac",
+    "audio/x-m4a",
+    "audio/x-matroska",
+    "audio/x-wav",
     "video/mp4",
-    "video/webm",
+    "video/mpeg",
     "video/ogg",
+    "video/quicktime",
+    "video/webm",
+    "video/x-matroska",
+    "video/x-msvideo",
     "text/plain",
     "application/json",
 }
+
+MEDIA_MIMETYPE_OVERRIDES = {
+    ".aac": "audio/aac",
+    ".aif": "audio/aiff",
+    ".aifc": "audio/aiff",
+    ".aiff": "audio/aiff",
+    ".flac": "audio/flac",
+    ".m4a": "audio/mp4",
+    ".m4b": "audio/mp4",
+    ".mka": "audio/x-matroska",
+    ".wav": "audio/wav",
+    ".weba": "audio/webm",
+    ".avi": "video/x-msvideo",
+    ".m4v": "video/mp4",
+    ".mkv": "video/x-matroska",
+    ".mov": "video/quicktime",
+}
+
+
+def register_media_mimetypes() -> None:
+    """Teach `mimetypes` the media types in `MEDIA_MIMETYPE_OVERRIDES`.
+
+    Must be called after `mimetypes.init()`, which rebuilds the database from
+    scratch and would otherwise discard these entries.
+    """
+    for extension, mime_type in MEDIA_MIMETYPE_OVERRIDES.items():
+        mimetypes.add_type(mime_type, extension)
+
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"

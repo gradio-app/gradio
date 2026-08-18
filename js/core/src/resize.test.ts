@@ -1,9 +1,20 @@
 import { describe, expect, test, vi } from "vitest";
-import { create_resize_state, next_frame_height, FRAME_SLACK } from "./resize";
+import {
+	create_resize_state,
+	next_frame_height,
+	FRAME_SLACK,
+	IFRAME_RESIZER_READY_EVENT,
+	reset_resize_growth,
+	setup_iframe_resizer
+} from "./resize";
 import type { ResizeState } from "./resize";
 
 interface Content {
-	(viewport: number): { stretched_bottom: number; unstretched_bottom: number };
+	(viewport: number): {
+		stretched_bottom: number;
+		unstretched_bottom: number;
+		document_height?: number;
+	};
 }
 
 /** `fill_height` content: fills the frame when it fits, overflows when it does not. */
@@ -44,6 +55,8 @@ class Frame {
 			stretched_bottom: m.stretched_bottom,
 			measure_unstretched_bottom: () => m.unstretched_bottom,
 			footer_height: this.footer,
+			document_height:
+				m.document_height ?? m.stretched_bottom + this.footer + FRAME_SLACK,
 			viewport: this.viewport
 		});
 		if (next !== null) {
@@ -165,17 +178,18 @@ describe("next_frame_height", () => {
 			stretched_bottom: 108,
 			measure_unstretched_bottom: measure,
 			footer_height: 21,
+			document_height: 161,
 			viewport: 800
 		});
 		expect(measure).not.toHaveBeenCalled();
 	});
 
 	// gradio-app/gradio#12089
-	test("does not grow for content sized in viewport units", () => {
+	test("grows only once for viewport-sized content with a footer", () => {
 		const frame = new Frame(800);
 		frame.settle(viewport_sized);
-		expect(frame.viewport).toBe(800);
-		expect(frame.reports).toEqual([]);
+		expect(frame.viewport).toBe(853);
+		expect(frame.reports).toEqual([853]);
 	});
 
 	// gradio-app/gradio#12992 (`fill_height` with `footer_links=[]`)
@@ -197,5 +211,112 @@ describe("next_frame_height", () => {
 			frame.apply();
 		}
 		expect(frame.reports.length).toBeLessThanOrEqual(5);
+	});
+
+	test("resumes growing when the UI reveals content after the limiter trips", () => {
+		const frame = new Frame(800);
+		let needs = 900;
+		const creeping: Content = () => {
+			needs += 100;
+			return { stretched_bottom: needs, unstretched_bottom: needs };
+		};
+
+		for (let i = 0; i < 20; i++) {
+			frame.tick(creeping);
+			frame.apply();
+		}
+
+		const revealed = rigid(frame.viewport + 300);
+		expect(frame.tick(revealed)).toBe(null);
+
+		reset_resize_growth(frame.state);
+		expect(frame.tick(revealed)).toBeGreaterThan(frame.viewport);
+	});
+
+	test("exposes the footer below viewport-filling initial content", () => {
+		const frame = new Frame(670);
+		frame.state.consecutive_grows = 5;
+		expect(
+			frame.tick(() => ({
+				stretched_bottom: 654,
+				unstretched_bottom: 654,
+				document_height: 723
+			}))
+		).toBe(723);
+		frame.apply();
+		expect(frame.tick(viewport_sized)).toBe(null);
+		expect(frame.viewport).toBe(723);
+		expect(frame.reports).toEqual([723]);
+	});
+});
+
+describe("setup_iframe_resizer", () => {
+	test("connects when iframe-resizer becomes ready after the app", () => {
+		const target = new EventTarget();
+		const handle_resize = vi.fn();
+		const autoResize = vi.fn();
+		let parent_iframe: Window["parentIFrame"];
+		const disconnect = setup_iframe_resizer(
+			target,
+			() => parent_iframe,
+			handle_resize
+		);
+
+		expect(handle_resize).not.toHaveBeenCalled();
+		parent_iframe = {
+			autoResize,
+			size: vi.fn(),
+			scrollTo: vi.fn(),
+			getPageInfo: vi.fn()
+		};
+		target.dispatchEvent(new Event(IFRAME_RESIZER_READY_EVENT));
+
+		expect(autoResize).toHaveBeenCalledWith(false);
+		expect(handle_resize).toHaveBeenCalledOnce();
+
+		disconnect();
+		target.dispatchEvent(new Event(IFRAME_RESIZER_READY_EVENT));
+		expect(handle_resize).toHaveBeenCalledOnce();
+	});
+
+	test("connects immediately when iframe-resizer is already ready", () => {
+		const autoResize = vi.fn();
+		const handle_resize = vi.fn();
+		const parent_iframe: NonNullable<Window["parentIFrame"]> = {
+			autoResize,
+			size: vi.fn(),
+			scrollTo: vi.fn(),
+			getPageInfo: vi.fn()
+		};
+
+		setup_iframe_resizer(new EventTarget(), () => parent_iframe, handle_resize);
+
+		expect(autoResize).toHaveBeenCalledWith(false);
+		expect(handle_resize).toHaveBeenCalledOnce();
+	});
+
+	test("retries when readiness is not yet readable", () => {
+		let retry: FrameRequestCallback | undefined;
+		vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+			retry = callback;
+			return 1;
+		});
+		vi.stubGlobal("cancelAnimationFrame", vi.fn());
+		const autoResize = vi.fn();
+		const handle_resize = vi.fn();
+		let parent_iframe: Window["parentIFrame"];
+
+		setup_iframe_resizer(new EventTarget(), () => parent_iframe, handle_resize);
+		parent_iframe = {
+			autoResize,
+			size: vi.fn(),
+			scrollTo: vi.fn(),
+			getPageInfo: vi.fn()
+		};
+		retry?.(0);
+
+		expect(autoResize).toHaveBeenCalledWith(false);
+		expect(handle_resize).toHaveBeenCalledOnce();
+		vi.unstubAllGlobals();
 	});
 });

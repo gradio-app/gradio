@@ -80,8 +80,8 @@ export function createSvelteVirtualizer<
 			}
 		});
 
-		if (prev_count === 0 && current_count > 0) {
-			virtualizer.measure();
+		if (current_count !== prev_count) {
+			version += 1;
 		}
 		prev_count = current_count;
 	});
