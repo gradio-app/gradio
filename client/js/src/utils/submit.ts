@@ -27,7 +27,8 @@ import {
 	CANCEL_URL,
 	WS_PROTOCOL_MSG
 } from "../constants";
-import { apply_diff_stream, close_stream } from "./stream";
+import { apply_diff_stream, close_stream, follow_event } from "./stream";
+import { clear_pending_job, track_pending_job } from "./jobs";
 import { Client } from "../client";
 import {
 	start_run_history,
@@ -42,7 +43,13 @@ export function submit(
 	event_data?: unknown,
 	trigger_id?: number | null,
 	all_events?: boolean,
-	additional_headers?: Record<string, string>
+	additional_headers?: Record<string, string>,
+	/**
+	 * Picks an existing job back up instead of submitting a new one, for a page that
+	 * reloaded while it was running. Nothing is sent: the job is already queued, and
+	 * its output is followed on its own stream.
+	 */
+	reattach_event_id?: string
 ): SubmitIterable<GradioEvent> {
 	try {
 		const { token } = this.options;
@@ -77,7 +84,9 @@ export function submit(
 			config
 		);
 
-		let resolved_data = map_data_to_params(data, endpoint_info);
+		let resolved_data = reattach_event_id
+			? []
+			: map_data_to_params(data, endpoint_info);
 		let protocol = config.protocol ?? "ws";
 		if (protocol === "ws") {
 			throw new Error(WS_PROTOCOL_MSG);
@@ -115,7 +124,7 @@ export function submit(
 			config.run_history !== false && this.options.record_history !== false;
 		const history_scope = { app_id: config.app_id, username: config.username };
 		const history_run_id =
-			!history_enabled || !is_documented_endpoint
+			reattach_event_id || !history_enabled || !is_documented_endpoint
 				? null
 				: start_run_history({
 						...history_scope,
@@ -227,11 +236,184 @@ export function submit(
 			});
 		}
 
+		let stop_following: (() => void) | undefined;
+
+		/**
+		 * Wires up everything that turns queue messages for one event into the events
+		 * this iterator publishes. Used both for an event just submitted and for one
+		 * being picked back up after the page that submitted it went away.
+		 */
+		async function register_queue_event(queue_event_id: string): Promise<void> {
+			event_id = queue_event_id;
+			event_id_final = queue_event_id;
+			let callback = async function (_data: object): Promise<void> {
+				try {
+					const { type, status, data, original_msg } = handle_message(
+						_data,
+						last_status[fn_index]
+					);
+
+					if (type == "heartbeat") {
+						return;
+					}
+
+					if (type === "update" && status && !complete) {
+						// call 'status' listeners
+						fire_event({
+							type: "status",
+							endpoint: _endpoint,
+							fn_index,
+							time: new Date(),
+							original_msg: original_msg,
+							...status
+						});
+					} else if (type === "complete") {
+						complete = status;
+					} else if (
+						type == "unexpected_error" ||
+						type == "broken_connection"
+					) {
+						if (type === "unexpected_error") {
+							// The server no longer knows about this job, so there is
+							// nothing to come back for.
+							unclosed_events.delete(queue_event_id);
+							clear_pending_job(queue_event_id);
+						}
+						console.error("Unexpected error", status?.message);
+						const broken = type === "broken_connection";
+						fire_event({
+							type: "status",
+							stage: "error",
+							message: status?.message || "An Unexpected Error Occurred!",
+							queue: true,
+							endpoint: _endpoint,
+							broken,
+							session_not_found: status?.session_not_found,
+							fn_index,
+							time: new Date()
+						});
+					} else if (type === "log") {
+						fire_event({
+							type: "log",
+							title: data.title,
+							log: data.log,
+							level: data.level,
+							endpoint: _endpoint,
+							duration: data.duration,
+							visible: data.visible,
+							fn_index
+						});
+						return;
+					} else if (type === "generating" || type === "streaming") {
+						fire_event({
+							type: "status",
+							time: new Date(),
+							...status,
+							stage: status?.stage!,
+							queue: true,
+							endpoint: _endpoint,
+							fn_index
+						});
+						if (
+							data &&
+							dependency.connection !== "stream" &&
+							["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
+						) {
+							apply_diff_stream(pending_diff_streams, event_id!, data);
+						}
+					}
+					if (data) {
+						fire_event({
+							type: "data",
+							time: new Date(),
+							data: handle_payload(
+								data.data,
+								dependency,
+								config!.components,
+								"output",
+								options.with_null_state
+							),
+							endpoint: _endpoint,
+							fn_index
+						});
+						if (data.render_config) {
+							await handle_render_config(data.render_config);
+						}
+
+						if (complete) {
+							fire_event({
+								type: "status",
+								time: new Date(),
+								...complete,
+								stage: status?.stage!,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index
+							});
+							close();
+						}
+					}
+
+					if (status?.stage === "complete" || status?.stage === "error") {
+						clear_pending_job(queue_event_id);
+						if (event_callbacks[event_id!]) {
+							delete event_callbacks[event_id!];
+						}
+						if (event_id! in pending_diff_streams) {
+							delete pending_diff_streams[event_id!];
+						}
+						close();
+					}
+				} catch (e) {
+					console.error("Unexpected client exception", e);
+					fire_event({
+						type: "status",
+						stage: "error",
+						message: "An Unexpected Error Occurred!",
+						queue: true,
+						endpoint: _endpoint,
+						fn_index,
+						time: new Date()
+					});
+					if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
+						close_stream(stream_status, that.abort_controller);
+						stream_status.open = false;
+						close();
+					}
+				}
+			};
+
+			if (queue_event_id in pending_stream_messages) {
+				pending_stream_messages[queue_event_id].forEach((msg) => callback(msg));
+				delete pending_stream_messages[queue_event_id];
+			}
+			// @ts-ignore
+			event_callbacks[queue_event_id] = callback;
+			unclosed_events.add(queue_event_id);
+			if (reattach_event_id) {
+				stop_following = follow_event(that, queue_event_id, callback);
+			} else if (!stream_status.open) {
+				await that.open_stream();
+			}
+		}
+
 		const job = this.handle_blob(
 			config.root,
 			resolved_data,
 			endpoint_info
 		).then(async (_payload) => {
+			if (reattach_event_id) {
+				fire_event({
+					type: "status",
+					stage: "pending",
+					queue: true,
+					endpoint: _endpoint,
+					fn_index,
+					time: new Date()
+				});
+				await register_queue_event(reattach_event_id);
+				return;
+			}
 			let input_data = handle_payload(
 				_payload,
 				dependency,
@@ -548,148 +730,16 @@ export function submit(
 						});
 						close();
 					} else {
-						event_id = response.event_id as string;
-						event_id_final = event_id;
-						let callback = async function (_data: object): Promise<void> {
-							try {
-								const { type, status, data, original_msg } = handle_message(
-									_data,
-									last_status[fn_index]
-								);
-
-								if (type == "heartbeat") {
-									return;
-								}
-
-								if (type === "update" && status && !complete) {
-									// call 'status' listeners
-									fire_event({
-										type: "status",
-										endpoint: _endpoint,
-										fn_index,
-										time: new Date(),
-										original_msg: original_msg,
-										...status
-									});
-								} else if (type === "complete") {
-									complete = status;
-								} else if (
-									type == "unexpected_error" ||
-									type == "broken_connection"
-								) {
-									console.error("Unexpected error", status?.message);
-									const broken = type === "broken_connection";
-									fire_event({
-										type: "status",
-										stage: "error",
-										message: status?.message || "An Unexpected Error Occurred!",
-										queue: true,
-										endpoint: _endpoint,
-										broken,
-										session_not_found: status?.session_not_found,
-										fn_index,
-										time: new Date()
-									});
-								} else if (type === "log") {
-									fire_event({
-										type: "log",
-										title: data.title,
-										log: data.log,
-										level: data.level,
-										endpoint: _endpoint,
-										duration: data.duration,
-										visible: data.visible,
-										fn_index
-									});
-									return;
-								} else if (type === "generating" || type === "streaming") {
-									fire_event({
-										type: "status",
-										time: new Date(),
-										...status,
-										stage: status?.stage!,
-										queue: true,
-										endpoint: _endpoint,
-										fn_index
-									});
-									if (
-										data &&
-										dependency.connection !== "stream" &&
-										["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
-									) {
-										apply_diff_stream(pending_diff_streams, event_id!, data);
-									}
-								}
-								if (data) {
-									fire_event({
-										type: "data",
-										time: new Date(),
-										data: handle_payload(
-											data.data,
-											dependency,
-											config.components,
-											"output",
-											options.with_null_state
-										),
-										endpoint: _endpoint,
-										fn_index
-									});
-									if (data.render_config) {
-										await handle_render_config(data.render_config);
-									}
-
-									if (complete) {
-										fire_event({
-											type: "status",
-											time: new Date(),
-											...complete,
-											stage: status?.stage!,
-											queue: true,
-											endpoint: _endpoint,
-											fn_index
-										});
-										close();
-									}
-								}
-
-								if (status?.stage === "complete" || status?.stage === "error") {
-									if (event_callbacks[event_id!]) {
-										delete event_callbacks[event_id!];
-									}
-									if (event_id! in pending_diff_streams) {
-										delete pending_diff_streams[event_id!];
-									}
-									close();
-								}
-							} catch (e) {
-								console.error("Unexpected client exception", e);
-								fire_event({
-									type: "status",
-									stage: "error",
-									message: "An Unexpected Error Occurred!",
-									queue: true,
-									endpoint: _endpoint,
-									fn_index,
-									time: new Date()
-								});
-								if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
-									close_stream(stream_status, that.abort_controller);
-									stream_status.open = false;
-									close();
-								}
-							}
-						};
-
-						if (event_id in pending_stream_messages) {
-							pending_stream_messages[event_id].forEach((msg) => callback(msg));
-							delete pending_stream_messages[event_id];
+						const queued_event_id = response.event_id as string;
+						// A streamed input cannot be picked up again, since the input
+						// stream does not survive the page, so it is not remembered.
+						if (dependency.connection !== "stream") {
+							track_pending_job(config, {
+								event_id: queued_event_id,
+								fn_index
+							});
 						}
-						// @ts-ignore
-						event_callbacks[event_id] = callback;
-						unclosed_events.add(event_id);
-						if (!stream_status.open) {
-							await this.open_stream();
-						}
+						await register_queue_event(queued_event_id);
 					}
 				});
 			}
@@ -718,6 +768,9 @@ export function submit(
 		) => void)[] = [];
 
 		function close(): void {
+			// A reattached job has a stream of its own, which nothing else would close.
+			stop_following?.();
+			stop_following = undefined;
 			done = true;
 			while (resolvers.length > 0)
 				(resolvers.shift() as (typeof resolvers)[0])({

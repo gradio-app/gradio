@@ -10,6 +10,7 @@ export {
 	on_deliberate_exit,
 	on_page_return
 } from "./utils/lifecycle";
+export type { PendingJob } from "./utils/jobs";
 export {
 	clear_run_history,
 	consume_run_history_replay,

@@ -491,7 +491,14 @@
 			ready = true;
 			reset_resize_growth(resize_state);
 			void settled().then(handle_resize);
-			dep_manager.dispatch_load_events();
+			// A job picked back up should not have its load handler fired underneath it.
+			const pending_jobs = dep_manager.pending_jobs();
+			dep_manager.dispatch_load_events(
+				new Set(pending_jobs.map(({ fn_index }) => fn_index))
+			);
+			if (pending_jobs.length) {
+				void dep_manager.reattach(pending_jobs);
+			}
 		});
 
 		if (vibe_mode) {

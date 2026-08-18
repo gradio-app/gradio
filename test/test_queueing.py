@@ -541,11 +541,13 @@ def test_closing_the_page_stops_the_event_and_unloads():
             f"{API_PREFIX}/queue/close", json={"session_hash": "departed"}
         )
         assert response.status_code == 200
+        # Long enough for a reloading page to come back and claim the job, short
+        # enough that an abandoned tab stops holding compute.
         assert event.cancel_at is not None
-        assert event.cancel_at <= time.monotonic()
+        assert 0 < event.cancel_at - time.monotonic() <= 15
 
-        # The queue's own loop performs the cancellation. Driving it from a second
-        # event loop here would race the real one.
+        # Brought forward here rather than waiting out the grace period.
+        event.cancel_at = time.monotonic()
         deadline = time.monotonic() + 5
         while event.alive:
             assert time.monotonic() < deadline, "the event was never stopped"
@@ -720,6 +722,7 @@ def test_a_cancelled_event_is_not_kept_for_collection():
         assert response.status_code == 200
 
         event = demo._queue.event_ids_to_events[event_id]
+        event.cancel_at = time.monotonic()
         deadline = time.monotonic() + 5
         while event.alive:
             assert time.monotonic() < deadline, "the event was never stopped"
