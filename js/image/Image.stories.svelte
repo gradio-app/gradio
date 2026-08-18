@@ -149,52 +149,83 @@
 		webcam_options: { mirror: true, constraints: null }
 	}}
 	play={async ({ canvasElement }) => {
-		const stream = new MediaStream();
-		Object.defineProperty(stream, "getTracks", {
-			value: () => [
-				{
-					getSettings: () => ({ deviceId: "front-camera" }),
-					stop: () => {}
-				}
-			]
-		});
-		Object.defineProperty(navigator, "mediaDevices", {
-			configurable: true,
-			value: {
-				getUserMedia: async () => stream,
-				enumerateDevices: async () => [
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const play_descriptor = Object.getOwnPropertyDescriptor(
+			HTMLMediaElement.prototype,
+			"play"
+		);
+
+		try {
+			const stream = new MediaStream();
+			Object.defineProperty(stream, "getTracks", {
+				value: () => [
 					{
-						deviceId: "front-camera",
-						groupId: "mobile-cameras",
-						kind: "videoinput",
-						label: "Front camera"
-					},
-					{
-						deviceId: "rear-camera",
-						groupId: "mobile-cameras",
-						kind: "videoinput",
-						label: "Rear camera"
+						getSettings: () => ({ deviceId: "front-camera" }),
+						stop: () => {}
 					}
 				]
-			}
-		});
-		Object.defineProperty(HTMLMediaElement.prototype, "play", {
-			configurable: true,
-			value: async () => {}
-		});
+			});
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async () => stream,
+					enumerateDevices: async () => [
+						{
+							deviceId: "front-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Front camera"
+						},
+						{
+							deviceId: "rear-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Rear camera"
+						}
+					]
+				}
+			});
+			Object.defineProperty(HTMLMediaElement.prototype, "play", {
+				configurable: true,
+				value: async () => {}
+			});
 
-		const canvas = within(canvasElement);
-		await userEvent.click(
-			canvas.getByRole("button", { name: "Click to Access Webcam" })
-		);
-		await waitFor(() => {
-			expect(
-				canvas.getByRole("button", { name: "capture photo" })
-			).toBeInTheDocument();
-			expect(
-				canvas.getByRole("button", { name: "select input source" })
-			).toBeInTheDocument();
-		});
+			const canvas = within(canvasElement);
+			await userEvent.click(
+				canvas.getByRole("button", { name: "Click to Access Webcam" })
+			);
+			await waitFor(() => {
+				expect(
+					canvas.getByRole("button", { name: "capture photo" })
+				).toBeInTheDocument();
+				expect(
+					canvas.getByRole("button", { name: "select input source" })
+				).toBeInTheDocument();
+			});
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+
+			if (play_descriptor) {
+				Object.defineProperty(
+					HTMLMediaElement.prototype,
+					"play",
+					play_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(HTMLMediaElement.prototype, "play");
+			}
+		}
 	}}
 >
 	{#snippet template(args)}
