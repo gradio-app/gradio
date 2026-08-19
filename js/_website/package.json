@@ -15,7 +15,7 @@
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.57.1",
+		"@sveltejs/kit": "^2.70.3",
 		"@tailwindcss/forms": "^0.5.10",
 		"@tailwindcss/typography": "^0.5.19",
 		"@types/prismjs": "^1.26.5",
@@ -36,10 +36,10 @@
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
 		"@sindresorhus/slugify": "^3.0.0",
-		"@sveltejs/adapter-vercel": "^5.10.3",
+		"@sveltejs/adapter-vercel": "^6.3.4",
 		"hast-util-to-string": "^3.0.1",
 		"mdsvex": "^0.12.6",
-		"postcss": "^8.5.6",
+		"postcss": "^8.5.26",
 		"prism-svelte": "^0.5.0",
 		"wrangler": "^4.42.1"
 	}
