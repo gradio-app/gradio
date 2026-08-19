@@ -40,6 +40,7 @@ import gradio_client.utils as client_utils
 import httpx
 import safehttpx
 from gradio_client.documentation import document
+from python_multipart.exceptions import MultipartParseError
 from python_multipart.multipart import MultipartParser, parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import (
@@ -829,11 +830,21 @@ class GradioMultiPartParser:
                     await part.file.seek(0)
                 self._file_parts_to_write.clear()
                 self._file_parts_to_finish.clear()
-        except MultiPartException as exc:
+        except (MultiPartException, MultipartParseError) as exc:
             # Close all the files if there was an error.
             for file in self._files_to_close_on_error:
                 file.close()
                 Path(file.name).unlink()
+            if isinstance(exc, MultipartParseError):
+                # python_multipart enforces its own per-part header limits and
+                # aborts the parse before our header callbacks run, so surface it
+                # as a MultiPartException like every other parse failure here.
+                message = str(exc)
+                raise MultiPartException(
+                    "Headers exceeded maximum allowed size."
+                    if "header" in message.lower()
+                    else f"Could not parse multipart request: {message}"
+                ) from exc
             raise exc
 
         parser.finalize()
