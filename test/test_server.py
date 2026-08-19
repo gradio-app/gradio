@@ -1,4 +1,6 @@
 import inspect
+import time
+from collections.abc import Iterator
 from contextlib import asynccontextmanager
 
 import pytest
@@ -55,6 +57,47 @@ class TestServer:
                 assert client_g.predict("hi", api_name="/echo") == "hi"
             finally:
                 client_g.close()
+        finally:
+            gr.close_all()
+
+    def test_server_stream_can_resume_with_python_client(self):
+        server = gr.Server()
+
+        @server.api(name="count")
+        def count(limit: int) -> Iterator[str]:
+            for value in range(limit):
+                time.sleep(0.02)
+                yield str(value)
+
+        app, local_url, _ = server.launch(prevent_thread_lock=True)
+        session_hash = "server-resume-session"
+        try:
+            with TestClient(app) as test_client:
+                response = test_client.post(
+                    f"{API_PREFIX}/queue/join",
+                    json={
+                        "data": [3],
+                        "fn_index": 0,
+                        "event_data": None,
+                        "session_hash": session_hash,
+                        "trigger_id": None,
+                    },
+                )
+                event_id = response.json()["event_id"]
+
+            client = Client(local_url)
+            try:
+                job = client.resume_jobs(
+                    [{"event_id": event_id, "fn_index": 0}],
+                    session_hash=session_hash,
+                )[0]
+                deadline = time.monotonic() + 5
+                while not job.done() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                assert job.done()
+                assert job.outputs() == ["0", "1", "2"]
+            finally:
+                client.close()
         finally:
             gr.close_all()
 

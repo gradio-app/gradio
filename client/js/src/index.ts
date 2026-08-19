@@ -5,6 +5,7 @@ export { submit } from "./utils/submit";
 export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
+export type { ResumableJob } from "./utils/session";
 export {
 	clear_run_history,
 	consume_run_history_replay,

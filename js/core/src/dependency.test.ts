@@ -83,3 +83,26 @@ describe("DependencyManager.reload", () => {
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
 	});
 });
+
+describe("DependencyManager.dispatch_load_events", () => {
+	test("dispatches load handlers that are not already being resumed", () => {
+		const resumed_load = dependency(0, "resumed_load", []);
+		resumed_load.targets = [[1, "load"]];
+		const normal_load = dependency(1, "normal_load", []);
+		normal_load.targets = [[2, "load"]];
+		const dependency_manager = manager([resumed_load, normal_load]);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		dependency_manager.dispatch_load_events(new Set([0]));
+
+		expect(dispatch).toHaveBeenCalledTimes(1);
+		expect(dispatch).toHaveBeenCalledWith({
+			type: "fn",
+			fn_index: 1,
+			event_data: null,
+			target_id: 2
+		});
+	});
+});

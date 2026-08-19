@@ -265,8 +265,8 @@
 	}
 
 	onMount(async () => {
-		window.addEventListener("beforeunload", () => {
-			app?.close();
+		window.addEventListener("pagehide", (event) => {
+			if (!event.persisted) app?.close();
 		});
 		//@ts-ignore
 		config = data.config;
