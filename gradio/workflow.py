@@ -566,12 +566,42 @@ def get_write_access(
     return "true" if has_write_access(request, token) else "false"
 
 
+def get_space_id(_data=None) -> str:
+    """Return this Space's repo id (`owner/name`) for the "Save to Space" button.
+    Empty locally — the button is hidden there anyway."""
+    return os.getenv("SPACE_ID") or ""
+
+
 def get_oauth_available(_data=None) -> str:
     """True on a Space with `hf_oauth: true` (i.e. OAUTH_CLIENT_ID is set)."""
     return (
         "true"
         if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
         else "false"
+    )
+
+
+WORKFLOW_OAUTH_SCOPES: dict[str, str] = {
+    "inference-api": "run nodes on the signed-in user's own inference quota",
+    "write-repos": "save the workflow back to this Space",
+}
+
+
+def get_oauth_scopes(_data=None) -> str:
+    """Which of `WORKFLOW_OAUTH_SCOPES` the Space's OAuth app was granted, and
+    which are missing. Empty off-Spaces and when OAuth is disabled."""
+    if get_space() is None or not os.getenv("OAUTH_CLIENT_ID"):
+        return json.dumps({"granted": [], "missing": {}})
+    granted = (os.getenv("OAUTH_SCOPES") or "").split()
+    return json.dumps(
+        {
+            "granted": granted,
+            "missing": {
+                scope: why
+                for scope, why in WORKFLOW_OAUTH_SCOPES.items()
+                if scope not in granted
+            },
+        }
     )
 
 
@@ -1872,6 +1902,8 @@ class Workflow(Blocks):
             get_token,
             get_write_access,
             get_oauth_available,
+            get_oauth_scopes,
+            get_space_id,
             call_space,
             call_model,
             fetch_dataset,
