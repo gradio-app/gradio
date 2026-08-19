@@ -38,7 +38,7 @@
 		"@sindresorhus/slugify": "^3.0.0",
 		"@sveltejs/adapter-vercel": "^6.3.4",
 		"hast-util-to-string": "^3.0.1",
-		"mdsvex": "^0.12.6",
+		"mdsvex": "^0.12.8",
 		"postcss": "^8.5.26",
 		"prism-svelte": "^0.5.0",
 		"wrangler": "^4.42.1"

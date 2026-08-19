@@ -491,8 +491,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       mdsvex:
-        specifier: ^0.12.6
-        version: 0.12.6(svelte@5.56.9(@typescript-eslint/types@8.67.0))
+        specifier: ^0.12.8
+        version: 0.12.8(svelte@5.56.9(@typescript-eslint/types@8.67.0))
       postcss:
         specifier: ^8.5.26
         version: 8.5.26
@@ -7002,8 +7002,8 @@ packages:
   mdn-data@2.12.2:
     resolution: {integrity: sha512-IEn+pegP1aManZuckezWCO+XZQDplx1366JoVhTpMpBB1sPey/SbveZQUosKiKiGYjg1wH4pMlNgXbCiYgihQA==}
 
-  mdsvex@0.12.6:
-    resolution: {integrity: sha512-pupx2gzWh3hDtm/iDW4WuCpljmyHbHi34r7ktOqpPGvyiM4MyfNgdJ3qMizXdgCErmvYC9Nn/qyjePy+4ss9Wg==}
+  mdsvex@0.12.8:
+    resolution: {integrity: sha512-v2sbRA9QWf0tpYWfREI5Kq7OqqrqoUzfmMKbgdOoWGfPDLc1JYU4EgDDF0N9WFhmjFW5agKrYwo/mDVutBKWKw==}
     peerDependencies:
       svelte: ^3.56.0 || ^4.0.0 || ^5.0.0-next.120
 
@@ -11029,7 +11029,7 @@ snapshots:
 
   '@types/mdast@4.0.4':
     dependencies:
-      '@types/unist': 2.0.11
+      '@types/unist': 3.0.3
 
   '@types/mdx@2.0.13': {}
 
@@ -13146,7 +13146,7 @@ snapshots:
 
   mdn-data@2.12.2: {}
 
-  mdsvex@0.12.6(svelte@5.56.9(@typescript-eslint/types@8.67.0)):
+  mdsvex@0.12.8(svelte@5.56.9(@typescript-eslint/types@8.67.0)):
     dependencies:
       '@types/mdast': 4.0.4
       '@types/unist': 2.0.11
