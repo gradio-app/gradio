@@ -1,6 +1,7 @@
 {
 	"gradio": [
 		"client/python/**",
+		"demo/**",
 		"gradio/**",
 		"requirements.txt",
 		".github/**",
