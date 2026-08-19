@@ -494,8 +494,7 @@
 		appearance: none;
 		color: var(--button-secondary-text-color);
 		background-color: transparent;
-		width: var(--size-52);
-		max-width: calc(100vw - var(--size-4));
+		width: min(var(--size-52), 100%);
 		font-size: var(--text-md);
 		position: absolute;
 		bottom: calc(100% + var(--size-1-5));

@@ -205,6 +205,118 @@ describe("Props: sources", () => {
 		const video = getByTestId("webcam-video") as HTMLVideoElement;
 		expect(video.playsInline).toBe(true);
 	});
+
+	test("camera source selector stays within a narrow Image", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const play_descriptor = Object.getOwnPropertyDescriptor(
+			HTMLMediaElement.prototype,
+			"play"
+		);
+		const root_style = document.documentElement.style;
+		const size_4 = root_style.getPropertyValue("--size-4");
+		const size_52 = root_style.getPropertyValue("--size-52");
+
+		try {
+			root_style.setProperty("--size-4", "1rem");
+			root_style.setProperty("--size-52", "13rem");
+			const stream = new MediaStream();
+			Object.defineProperty(stream, "getTracks", {
+				value: () => [
+					{
+						getSettings: () => ({ deviceId: "front-camera" }),
+						stop: () => {}
+					}
+				]
+			});
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async () => stream,
+					enumerateDevices: async () => [
+						{
+							deviceId: "front-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Front camera"
+						},
+						{
+							deviceId: "rear-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Rear camera"
+						}
+					]
+				}
+			});
+			Object.defineProperty(HTMLMediaElement.prototype, "play", {
+				configurable: true,
+				value: async () => {}
+			});
+
+			const { getByRole, getByTestId } = await render(Image, {
+				...default_props,
+				sources: ["webcam"],
+				width: 160
+			});
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			const device_select = await waitFor(() =>
+				getByRole("button", { name: "select input source" })
+			);
+			await fireEvent.click(device_select);
+
+			const selector = getByRole("combobox", {
+				name: "select source"
+			});
+			expect(selector).toBeVisible();
+
+			const component_bounds = getByTestId("image").getBoundingClientRect();
+			const selector_bounds = selector.getBoundingClientRect();
+
+			expect(selector_bounds.width).toBeGreaterThan(0);
+			expect(selector_bounds.width).toBeLessThanOrEqual(component_bounds.width);
+			expect(selector_bounds.left).toBeGreaterThanOrEqual(
+				component_bounds.left
+			);
+			expect(selector_bounds.right).toBeLessThanOrEqual(component_bounds.right);
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+
+			if (play_descriptor) {
+				Object.defineProperty(
+					HTMLMediaElement.prototype,
+					"play",
+					play_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(HTMLMediaElement.prototype, "play");
+			}
+
+			if (size_4) {
+				root_style.setProperty("--size-4", size_4);
+			} else {
+				root_style.removeProperty("--size-4");
+			}
+			if (size_52) {
+				root_style.setProperty("--size-52", size_52);
+			} else {
+				root_style.removeProperty("--size-52");
+			}
+		}
+	});
 });
 
 describe("Props: interactive", () => {
