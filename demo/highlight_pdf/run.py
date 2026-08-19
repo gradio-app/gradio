@@ -1,5 +1,5 @@
 import gradio as gr
-from gradio_pdf import PDF  # type: ignore[unresolved-import]
+from gradio_pdf import PDF
 import pymupdf  # type: ignore
 import os
 from pathlib import Path

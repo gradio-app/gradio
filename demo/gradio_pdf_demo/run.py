@@ -1,5 +1,5 @@
 import gradio as gr
-from gradio_pdf import PDF  # type: ignore[unresolved-import]
+from gradio_pdf import PDF
 from pathlib import Path
 
 current_dir = Path(__file__).parent
