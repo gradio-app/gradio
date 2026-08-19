@@ -581,6 +581,30 @@ def get_oauth_available(_data=None) -> str:
     )
 
 
+WORKFLOW_OAUTH_SCOPES: dict[str, str] = {
+    "inference-api": "run nodes on the signed-in user's own inference quota",
+    "write-repos": "save the workflow back to this Space",
+}
+
+
+def get_oauth_scopes(_data=None) -> str:
+    """Which of `WORKFLOW_OAUTH_SCOPES` the Space's OAuth app was granted, and
+    which are missing. Empty off-Spaces and when OAuth is disabled."""
+    if get_space() is None or not os.getenv("OAUTH_CLIENT_ID"):
+        return json.dumps({"granted": [], "missing": {}})
+    granted = (os.getenv("OAUTH_SCOPES") or "").split()
+    return json.dumps(
+        {
+            "granted": granted,
+            "missing": {
+                scope: why
+                for scope, why in WORKFLOW_OAUTH_SCOPES.items()
+                if scope not in granted
+            },
+        }
+    )
+
+
 def call_space(
     data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
 ) -> str:
@@ -1878,6 +1902,7 @@ class Workflow(Blocks):
             get_token,
             get_write_access,
             get_oauth_available,
+            get_oauth_scopes,
             get_space_id,
             call_space,
             call_model,
