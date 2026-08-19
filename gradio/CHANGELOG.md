@@ -1,5 +1,27 @@
 # gradio
 
+## 6.25.0
+
+### Features
+
+- [#13747](https://github.com/gradio-app/gradio/pull/13747) [`612abdf`](https://github.com/gradio-app/gradio/commit/612abdff732ddb68b1dc5e9f32b1b42e02eb8e78) - workflow: forward x-ip-token so zerogpu spaces bill the caller.  Thanks @hannahblair!
+- [#13754](https://github.com/gradio-app/gradio/pull/13754) [`a79d94a`](https://github.com/gradio-app/gradio/commit/a79d94a031ac08fed050582f3a12b20a0f092453) - workflow: fix oauth logic check.  Thanks @hannahblair!
+- [#13753](https://github.com/gradio-app/gradio/pull/13753) [`b7ed7cf`](https://github.com/gradio-app/gradio/commit/b7ed7cf7e86382532d88c345118c12f72a31a377) - workflow: fix checkbox visibility.  Thanks @hannahblair!
+- [#13715](https://github.com/gradio-app/gradio/pull/13715) [`e9dabaa`](https://github.com/gradio-app/gradio/commit/e9dabaa18afea53329cc99282f28c69c70e237c5) - Allow saving Workflow to the Space itself.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13765](https://github.com/gradio-app/gradio/pull/13765) [`c6b9cc3`](https://github.com/gradio-app/gradio/commit/c6b9cc33c9f3932014f51467f7219bb1c4ac7a4b) - Fix nested reactive render contexts.  Thanks @abidlabs!
+- [#13745](https://github.com/gradio-app/gradio/pull/13745) [`3706565`](https://github.com/gradio-app/gradio/commit/3706565c713e6959d5078305712b5c1a4f87dda5) - Render the PLY and OBJ files `gr.Model3D` showed as a blank canvas.  Thanks @hysts!
+- [#13742](https://github.com/gradio-app/gradio/pull/13742) [`3f52f17`](https://github.com/gradio-app/gradio/commit/3f52f1737f1d68f6e1cda7bb8b498da9e4111799) - Fix two chat-history bugs in `gr.ChatInterface` and `gr.load_chat`.  Thanks @abidlabs!
+- [#13741](https://github.com/gradio-app/gradio/pull/13741) [`1e24f6e`](https://github.com/gradio-app/gradio/commit/1e24f6ee916b8b7df08ba45ab4998ca4165da20c) - Respect a user-configured `CORSMiddleware` on mounted Gradio apps.  Thanks @abidlabs!
+- [#13767](https://github.com/gradio-app/gradio/pull/13767) [`b6beeac`](https://github.com/gradio-app/gradio/commit/b6beeac899c0783303a974491fe4d3c3a26bfe60) - Return 413 instead of 500 when a multipart upload's headers exceed the maximum allowed size.  Thanks @abidlabs!
+- [#13767](https://github.com/gradio-app/gradio/pull/13767) [`b6beeac`](https://github.com/gradio-app/gradio/commit/b6beeac899c0783303a974491fe4d3c3a26bfe60) - workflow: warn when a Space's OAuth app is missing the scopes the canvas needs.  Thanks @abidlabs!
+- [#13756](https://github.com/gradio-app/gradio/pull/13756) [`dbfa0c1`](https://github.com/gradio-app/gradio/commit/dbfa0c189264371d3f67469e675b998f490b02bc) - Stop the server from accumulating per-request and per-session state.  Thanks @abidlabs!
+- [#13764](https://github.com/gradio-app/gradio/pull/13764) [`fb02661`](https://github.com/gradio-app/gradio/commit/fb0266119af98eae52e8abcab735d643254ad0d4) - Fix mobile image-related issues.  Thanks @abidlabs!
+- [#13759](https://github.com/gradio-app/gradio/pull/13759) [`6919dd4`](https://github.com/gradio-app/gradio/commit/6919dd4f663d1c590a5e248887956b3a2b08a95e) - Resolve the `/config` username through the auth dependency.  Thanks @abidlabs!
+- [#13744](https://github.com/gradio-app/gradio/pull/13744) [`ca9dec0`](https://github.com/gradio-app/gradio/commit/ca9dec0e2e07d33cf3551f5062ff35ab9acf3026) - Re-read the Dataframe virtual window whenever the row count changes.  Thanks @abidlabs!
+
 ## 6.24.0
 
 ### Features
