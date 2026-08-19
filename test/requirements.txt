@@ -259,8 +259,9 @@ regex==2026.7.19
     # via
     #   diffusers
     #   transformers
-requests==2.34.2
+requests==2.33.1
     # via
+    #   -r test/requirements.in
     #   diffusers
     #   docker
 respx==0.23.1
