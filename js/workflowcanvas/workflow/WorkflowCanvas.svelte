@@ -98,40 +98,45 @@
 
 	const auth = createHFAuth(() => server);
 
-	// Sessions without the write token (share-link visitors, tunnelled
-	// requests) get a view-only canvas: they can run the workflow and fill in
-	// input values, but not change its structure or persist anything. The
-	// server independently rejects unauthorized saves — this is UX, not the
-	// security boundary. Stays editable until the server answers so the owner
-	// doesn't see controls flash out and back in.
-	//
-	// On Spaces the gate is dropped entirely: saving is manual via
-	// "Save to Space" (or "Save as copy" for non-owners), so a non-owner's
-	// edits are ephemeral anyway and there's no file state to protect.
+	// Server independently rejects unauthorized saves — this is UX only.
+	// Optimistically editable until the server answers so the owner doesn't
+	// see controls flash out. `spaceId` covers preview hosts where the
+	// hostname check misses. Spaces bypass the gate entirely: saving is
+	// manual via "Save to Space" / "Save as copy" and edits are ephemeral.
+	const onSpace = $derived(auth.isHFSpace || !!spaceId);
 	const readOnly = $derived(
-		!auth.isHFSpace && auth.writeAccessKnown && !auth.canWrite
+		!onSpace && auth.writeAccessKnown && !auth.canWrite
 	);
 
-	// Why this local session can't edit — surfaced on the "Run only" badge
-	// (hover and click). Spaces never hit read-only (edits are ephemeral until
-	// "Save to Space"), so this is only shown when a local session lacks the
-	// write token.
 	const readOnlyReason =
 		"Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes.";
 
-	// Flash a brief "Saved" confirmation after each successful autosave. The
-	// timer is cleared on each new save so rapid edits coalesce into a single
-	// lingering checkmark rather than flickering.
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
-	// Serialized form of what's currently persisted on the server. Autosave
-	// compares against this so loading the workflow into the store on page load
-	// (and any no-op change) doesn't trigger a redundant save + "Saved" flash.
 	let lastSavedSerialized = $state<string | null>(null);
+	// Post-load hydration (model port schemas, role reconciliation) mutates
+	// the workflow without user input and would otherwise flip dirty. Gate
+	// on a real gesture and re-baseline when it arrives.
+	let userInteracted = $state(false);
 	const isDirty = $derived(
-		lastSavedSerialized !== null &&
+		userInteracted &&
+			lastSavedSerialized !== null &&
 			JSON.stringify(sanitize_for_save($workflow)) !== lastSavedSerialized
 	);
+	$effect(() => {
+		if (userInteracted) return;
+		const flip = (): void => {
+			if (userInteracted) return;
+			userInteracted = true;
+			lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
+		};
+		window.addEventListener("pointerdown", flip, { capture: true });
+		window.addEventListener("keydown", flip, { capture: true });
+		return () => {
+			window.removeEventListener("pointerdown", flip, { capture: true });
+			window.removeEventListener("keydown", flip, { capture: true });
+		};
+	});
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -154,7 +159,7 @@
 	$effect(() => {
 		if (
 			!oauthHintShown &&
-			auth.isHFSpace &&
+			onSpace &&
 			auth.writeAccessKnown &&
 			!auth.canWrite &&
 			auth.oauthAvailableKnown &&
@@ -174,16 +179,11 @@
 		try {
 			const parsed = JSON.parse(initialValue);
 			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
-			// Migration handles both v1 (legacy workflow.json files) and v2.
-			// Reconcile on load as well as on edit: files written before roles were
-			// derived can carry a wired-up component still filed under `references`,
-			// which renders as an output tile but generates no API endpoint. The
-			// baseline below means the heal isn't a save on its own, but the first
-			// store write after mount (port hydration, a drag, an edit) carries it
-			// to disk — so a stale file corrects itself in practice.
+			// Reconcile on load: files written before roles were derived can carry
+			// a wired-up component still filed under `references`. The first store
+			// write after mount carries the heal to disk.
 			const v2 = reconcileComponentRoles(migrateToV2(parsed));
 			workflow.set(v2);
-			// Baseline the persisted state so the load itself isn't autosaved.
 			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
 			if (shouldAutoLayout) requestAnimationFrame(autoLayout);
 		} catch {}
@@ -191,21 +191,16 @@
 
 	$effect(() => {
 		const wf = $workflow;
-		// Wait for the write-access answer before autosaving — the optimistic
-		// editable window would otherwise fire saves the backend rejects.
-		// On HF Spaces, saving is manual via "Save to Space"; skip autosave so
-		// the "Unsaved · Save" affordance stays visible until the user commits.
+		// Wait for write-access to avoid saves the backend rejects. Spaces
+		// use manual "Save to Space", so autosave is skipped.
 		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
 			return;
-		if (auth.isHFSpace) return;
+		if (onSpace) return;
 		const serialized = JSON.stringify(sanitize_for_save(wf));
 		if (lastSavedSerialized === null) {
-			// No persisted baseline yet (e.g. a brand-new workflow with no saved
-			// file): adopt the current state instead of saving it on load.
 			lastSavedSerialized = serialized;
 			return;
 		}
-		// Nothing changed since the last save/load — don't re-save or flash.
 		if (serialized === lastSavedSerialized) return;
 		const timer = setTimeout(() => {
 			server
@@ -219,10 +214,6 @@
 		return () => clearTimeout(timer);
 	});
 
-	// Pull the bind=[…] list from the server once on mount so the
-	// Functions button in the bottom bar can offer them as add-able
-	// nodes. Silently no-op if the server doesn't expose it (older
-	// gradio backends).
 	$effect(() => {
 		if (!server?.list_bound_fns) return;
 		void server
@@ -277,8 +268,6 @@
 		return () => clearTimeout(timer);
 	});
 
-	// Pointer interaction state: track which kind of drag is happening so
-	// pointermove/up know what to do. Mutually exclusive — at most one mode.
 	type DragMode =
 		| { kind: "pan"; startX: number; startY: number; vx: number; vy: number }
 		| {
@@ -370,15 +359,9 @@
 			})
 			.catch(() => {});
 	});
-	// Popover shown when the "Run only" badge is clicked, explaining why editing
-	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
 
-	// Human-readable explanation of how the current user is authenticated,
-	// shown in the popover when they click their avatar. The "local" case also
-	// tells them logout happens from the CLI, since the UI can't clear a token
-	// it never stored (it's the host's `huggingface-cli login` token).
 	const authExplanation = $derived.by(() => {
 		if (auth.source === "local")
 			return "Signed in with the Hugging Face token saved on this machine (via `huggingface-cli login`). To sign out, run `huggingface-cli logout` in your terminal.";
@@ -2426,7 +2409,7 @@
 				<CodeIcon />
 				View API
 			</button>
-			{#if saveIndicator && !auth.isHFSpace}
+			{#if saveIndicator && !onSpace}
 				<span
 					class="save-indicator"
 					in:fade={{ duration: 120 }}
@@ -2479,7 +2462,7 @@
 							</div>
 						{/if}
 					</div>
-				{:else if auth.isHFSpace}
+				{:else if onSpace}
 					<button
 						class="toolbar-login-btn"
 						onclick={auth.signIn}
@@ -2510,7 +2493,7 @@
 			{/if}
 			{#if !readOnly}
 				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-				{#if auth.isHFSpace && spaceId && isDirty}
+				{#if onSpace && spaceId && isDirty}
 					{#if !auth.token && auth.oauthAvailable}
 						<button
 							class="tool-btn save-space-btn"
@@ -2566,8 +2549,8 @@
 						<div class="access-info-popover">
 							<!-- Mirrors readOnlyReason (used for the hover title), with
 							     "access token" rendered as a link. -->
-							Run-only: you can run this workflow but not edit it. This session
-							is missing the write token — open the edit link printed in the terminal
+							Run-only: you can run this workflow but not edit it. This session is
+							missing the write token — open the edit link printed in the terminal
 							to make changes. That link also signs this session in with your locally
 							saved Hugging Face token; without it, paste an
 							<a
