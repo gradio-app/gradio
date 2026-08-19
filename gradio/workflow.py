@@ -205,8 +205,11 @@ def _workflow_from_bind(
     edges: list[tuple[str, str]] | None = None,
     name: str = "My Workflow",
 ) -> str:
+    # No coordinates: where a node sits is per-viewer state the canvas keeps in
+    # each visitor's localStorage, so a generated workflow just declares the
+    # graph and lets the canvas auto-arrange it on first open.
     nodes = []
-    for i, (fn_name, fn) in enumerate(bound.items()):
+    for fn_name, fn in bound.items():
         try:
             sig = inspect.signature(fn)
         except (ValueError, TypeError):
@@ -243,10 +246,7 @@ def _workflow_from_bind(
                 "fn": fn_name,
                 "kind": "transform",
                 "label": fn_name,
-                "x": 80 + i * 280,
-                "y": 150,
                 "width": 220,
-                "height": 80 + max(len(inputs), len(outputs)) * 36,
                 "inputs": inputs,
                 "outputs": outputs,
                 "data": {},

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { setContext } from "svelte";
+	import { get } from "svelte/store";
 	import { fade } from "svelte/transition";
 
 	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
@@ -38,14 +39,11 @@
 		hydrate_endpoints,
 		init_model_node_ports,
 		sanitize_for_save,
+		structural_signature,
 		revoke_blob_urls,
 		reconcileComponentRoles
 	} from "./workflow-store";
-	import {
-		hasMissingNodeGeometry,
-		migrateToV2,
-		toLegacyShape
-	} from "./workflow-migration";
+	import { migrateToV2, toLegacyShape } from "./workflow-migration";
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
@@ -70,6 +68,14 @@
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
+	import {
+		apply_layout,
+		extract_layout,
+		layout_is_unseen,
+		load_layout,
+		save_layout
+	} from "./layout-persistence";
+	import { create_history } from "./workflow-history";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -124,13 +130,15 @@
 	// lingering checkmark rather than flickering.
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
-	// Serialized form of what's currently persisted on the server. Autosave
-	// compares against this so loading the workflow into the store on page load
-	// (and any no-op change) doesn't trigger a redundant save + "Saved" flash.
-	let lastSavedSerialized = $state<string | null>(null);
+	// Signature of what's currently persisted on the server. Autosave compares
+	// against this so loading the workflow into the store on page load (and any
+	// no-op change) doesn't trigger a redundant save + "Saved" flash. It ignores
+	// node geometry, which is why rearranging the canvas — the one thing every
+	// visitor is free to do — never reads as an unsaved change.
+	let lastSavedSignature = $state<string | null>(null);
 	const isDirty = $derived(
-		lastSavedSerialized !== null &&
-			JSON.stringify(sanitize_for_save($workflow)) !== lastSavedSerialized
+		lastSavedSignature !== null &&
+			structural_signature($workflow) !== lastSavedSignature
 	);
 	function flashSaved(): void {
 		saveIndicator = true;
@@ -191,24 +199,88 @@
 		);
 	});
 
+	// Undo / redo. An entry is opened once the store stops changing, so a drag or
+	// a burst of typing collapses into one step rather than hundreds.
+	const history = create_history();
+	// Gates both the recorder and the layout mirror on the load below, so the
+	// store's placeholder default can't be filed as an edit or written over a
+	// real saved layout in the frame before `initialValue` is applied.
+	let layoutReady = $state(false);
+	// Set while an undo/redo is being applied, so the recorder doesn't file the
+	// restored state as a fresh edit.
+	let restoringHistory = false;
+
 	$effect(() => {
-		if (!initialValue) return;
+		const wf = $workflow;
+		if (!layoutReady) return;
+		if (restoringHistory) {
+			restoringHistory = false;
+			return;
+		}
+		const timer = setTimeout(() => history.record(wf), 350);
+		return () => clearTimeout(timer);
+	});
+
+	function undoEdit(): void {
+		const restored = history.undo($workflow);
+		if (!restored) return;
+		restoringHistory = true;
+		workflow.set(restored);
+	}
+
+	function redoEdit(): void {
+		const restored = history.redo($workflow);
+		if (!restored) return;
+		restoringHistory = true;
+		workflow.set(restored);
+	}
+
+	$effect(() => {
+		// A viewer who has arranged this workflow before gets their own layout
+		// back; one who hasn't gets it auto-arranged and fitted, since the file
+		// carries no coordinates to fall back on.
+		let firstVisit = false;
 		try {
-			const parsed = JSON.parse(initialValue);
-			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
-			// Migration handles both v1 (legacy workflow.json files) and v2.
-			// Reconcile on load as well as on edit: files written before roles were
-			// derived can carry a wired-up component still filed under `references`,
-			// which renders as an output tile but generates no API endpoint. The
-			// baseline below means the heal isn't a save on its own, but the first
-			// store write after mount (port hydration, a drag, an edit) carries it
-			// to disk — so a stale file corrects itself in practice.
-			const v2 = reconcileComponentRoles(migrateToV2(parsed));
-			workflow.set(v2);
-			// Baseline the persisted state so the load itself isn't autosaved.
-			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
-			if (shouldAutoLayout) requestAnimationFrame(autoLayout);
+			if (initialValue) {
+				const parsed = JSON.parse(initialValue);
+				// Migration handles both v1 (legacy workflow.json files) and v2.
+				// Reconcile on load as well as on edit: files written before roles were
+				// derived can carry a wired-up component still filed under `references`,
+				// which renders as an output tile but generates no API endpoint. The
+				// baseline below means the heal isn't a save on its own, but the first
+				// store write after mount (port hydration, an edit) carries it to disk
+				// — so a stale file corrects itself in practice.
+				const v2 = reconcileComponentRoles(migrateToV2(parsed));
+				const stored = load_layout(v2.name);
+				firstVisit = layout_is_unseen(v2, stored);
+				workflow.set(apply_layout(v2, stored));
+			}
 		} catch {}
+		const loaded = get(workflow);
+		// Baseline the persisted state so the load itself isn't autosaved.
+		lastSavedSignature = structural_signature(loaded);
+		history.reset(loaded);
+		layoutReady = true;
+		if (firstVisit) {
+			requestAnimationFrame(() => {
+				autoLayout();
+				// Cards measure their real height on mount, so fit on a second frame
+				// or the viewport is computed from placeholder heights.
+				requestAnimationFrame(zoomToFit);
+			});
+		}
+	});
+
+	// Mirror node geometry into this viewer's localStorage — the only place it is
+	// ever persisted.
+	$effect(() => {
+		const wf = $workflow;
+		if (!layoutReady) return;
+		const timer = setTimeout(
+			() => save_layout(wf.name, extract_layout(wf)),
+			250
+		);
+		return () => clearTimeout(timer);
 	});
 
 	$effect(() => {
@@ -220,20 +292,22 @@
 		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
 			return;
 		if (auth.isHFSpace) return;
-		const serialized = JSON.stringify(sanitize_for_save(wf));
-		if (lastSavedSerialized === null) {
+		const signature = structural_signature(wf);
+		if (lastSavedSignature === null) {
 			// No persisted baseline yet (e.g. a brand-new workflow with no saved
 			// file): adopt the current state instead of saving it on load.
-			lastSavedSerialized = serialized;
+			lastSavedSignature = signature;
 			return;
 		}
 		// Nothing changed since the last save/load — don't re-save or flash.
-		if (serialized === lastSavedSerialized) return;
+		// Rearranging the canvas doesn't move the signature, so a drag never
+		// reaches the server.
+		if (signature === lastSavedSignature) return;
 		const timer = setTimeout(() => {
 			server
-				.save_workflow([serialized])
+				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
 				.then(() => {
-					lastSavedSerialized = serialized;
+					lastSavedSignature = signature;
 					flashSaved();
 				})
 				.catch(() => {});
@@ -442,7 +516,8 @@
 		saveToSpaceConfirm = false;
 		if (!spaceId || !auth.token || savingToSpace) return;
 		savingToSpace = true;
-		const serialized = JSON.stringify(sanitize_for_save($workflow), null, 2);
+		const saved = $workflow;
+		const serialized = JSON.stringify(sanitize_for_save(saved), null, 2);
 		try {
 			await uploadFile({
 				repo: { type: "space", name: spaceId },
@@ -453,6 +528,7 @@
 				},
 				commitTitle: "Update workflow.json from canvas"
 			});
+			lastSavedSignature = structural_signature(saved);
 			showToast(
 				`Committed workflow.json to ${spaceId} — the Space will restart.`,
 				4000,
@@ -804,8 +880,11 @@
 		};
 	}
 
+	// No `readOnly` guard: where a card sits is this viewer's own business, kept
+	// in their localStorage rather than the workflow file, so dragging one needs
+	// no write access and marks nothing dirty.
 	function startNodeDrag(e: PointerEvent, nodeId: string): void {
-		if (e.button !== 0 || readOnly) return;
+		if (e.button !== 0) return;
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
@@ -1587,6 +1666,7 @@
 		});
 	}
 
+	// Layout only — safe for read-only viewers, same as dragging a card by hand.
 	function autoLayout(): void {
 		const sorted = topoSort(legacyView.nodes, $workflow.edges);
 		const edges = $workflow.edges;
@@ -2043,6 +2123,19 @@
 				for (const id of node_ids) removeNode(id);
 				for (const id of edge_ids) removeEdge(id);
 			});
+		}
+		// Placed after the INPUT/TEXTAREA bail-out above so typing in a widget
+		// still gets the browser's own undo stack.
+		if (e.key.toLowerCase() === "z" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			if (e.shiftKey) redoEdit();
+			else undoEdit();
+			return;
+		}
+		if (e.key.toLowerCase() === "y" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			redoEdit();
+			return;
 		}
 		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
 			e.preventDefault();
@@ -2764,6 +2857,10 @@
 				</div>
 				<div class="shortcut-row">
 					<kbd>Cmd+D</kbd> <span>Duplicate node</span>
+				</div>
+				<div class="shortcut-row"><kbd>Cmd+Z</kbd> <span>Undo</span></div>
+				<div class="shortcut-row">
+					<kbd>Cmd+Y</kbd> <span>Redo</span>
 				</div>
 				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
 				<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>

@@ -9,6 +9,8 @@ import type {
 	Port,
 	PortType,
 	ReferenceNode,
+	SavedNode,
+	SavedWorkflow,
 	SubjectNode,
 	WFEdge,
 	Workflow
@@ -49,8 +51,10 @@ const DEFAULT: Workflow = {
 // `workflow.json` (server function `save_workflow` writes; `initialValue`
 // reads). The frontend store seeds with DEFAULT and is overwritten on mount
 // by the file's contents — see `WorkflowCanvas.svelte` `$effect` reading
-// `initialValue`. No localStorage persistence for the workflow body;
-// `hf_token` and other auth bits persist separately in `hf-auth.svelte.ts`.
+// `initialValue`. No localStorage persistence for the workflow body, though the
+// per-viewer parts of it do live there: node geometry in
+// `layout-persistence.ts`, pan/zoom in `viewport-persistence.ts`, and `hf_token`
+// and other auth bits in `hf-auth.svelte.ts`.
 export const workflow = writable<Workflow>(DEFAULT);
 
 // Re-export read helpers so callers import them from one place
@@ -65,6 +69,13 @@ export { allNodes, findNode, isV2, migrateToV2 };
  * Endpoint catalogs are also session metadata: the canvas hydrates them from
  * the backend, so persisting them would duplicate every supported task into
  * every operator node.
+ *
+ * Node geometry is dropped for a different reason: where a card sits is the
+ * viewer's business, not the workflow's. Every visitor arranges the canvas to
+ * their own taste and that arrangement lives in their localStorage
+ * (`layout-persistence.ts`), so writing one person's coordinates into the file
+ * would both overwrite everyone else's and turn a harmless drag into an edit
+ * that needs a login to save.
  */
 function is_session_url(v: unknown): boolean {
 	const url = (v as { url?: string } | null)?.url;
@@ -85,17 +96,52 @@ export function revoke_blob_urls(
 	}
 }
 
-export function sanitize_for_save(wf: Workflow): Workflow {
-	return mapAllRoles(wf, (n) => {
-		const cleaned: NodeData = {};
-		for (const [k, v] of Object.entries(n.data ?? {})) {
-			if (!is_session_url(v)) cleaned[k] = v as NodeDataValue;
-		}
-		if (n.role === "operator") {
-			const { endpoints: _endpoints, ...persisted } = n;
-			return { ...persisted, data: cleaned };
-		}
-		return { ...n, data: cleaned };
+function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
+	const cleaned: NodeData = {};
+	for (const [k, v] of Object.entries(node.data ?? {})) {
+		if (!is_session_url(v)) cleaned[k] = v as NodeDataValue;
+	}
+	const {
+		x: _x,
+		y: _y,
+		height: _height,
+		manual_height: _manual_height,
+		...persisted
+	} = node;
+	// Only operators carry a catalog, so it can't be destructured off the
+	// generic alongside the geometry.
+	delete (persisted as { endpoints?: unknown }).endpoints;
+	return { ...persisted, data: cleaned };
+}
+
+export function sanitize_for_save(wf: Workflow): SavedWorkflow {
+	return {
+		...wf,
+		references: wf.references.map(sanitize_node),
+		operators: wf.operators.map(sanitize_node),
+		subjects: wf.subjects.map(sanitize_node)
+	};
+}
+
+/**
+ * What "this workflow has unsaved changes" means. `sanitize_for_save` already
+ * drops per-viewer position and height; `width` is dropped here too because a
+ * resize is a view preference the viewer keeps locally, even though the file
+ * still carries whatever width the node's source reported when it was added.
+ * The upshot is that dragging and resizing cards leave this string untouched,
+ * so the "Unsaved · Save" button only appears once the graph itself changes.
+ */
+export function structural_signature(wf: Workflow): string {
+	const saved = sanitize_for_save(wf);
+	const drop_width = <T extends { width: number }>(node: T): unknown => {
+		const { width: _width, ...rest } = node;
+		return rest;
+	};
+	return JSON.stringify({
+		...saved,
+		references: saved.references.map(drop_width),
+		operators: saved.operators.map(drop_width),
+		subjects: saved.subjects.map(drop_width)
 	});
 }
 
