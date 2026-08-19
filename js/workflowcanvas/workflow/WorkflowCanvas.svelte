@@ -155,6 +155,12 @@
 		}
 	});
 
+	$effect(() => {
+		if (server?.get_oauth_scopes && !auth.scopesKnown) {
+			void auth.refreshOAuthScopes();
+		}
+	});
+
 	let oauthHintShown = false;
 	$effect(() => {
 		if (
@@ -172,6 +178,22 @@
 				"warning"
 			);
 		}
+	});
+
+	let scopeHintShown = false;
+	$effect(() => {
+		const missing = Object.entries(auth.missingScopes);
+		if (scopeHintShown || auth.source !== "oauth" || missing.length === 0)
+			return;
+		scopeHintShown = true;
+		const detail = missing.map(([s, why]) => `\`${s}\` (to ${why})`).join(", ");
+		showToast(
+			`This Space's sign-in is missing ${detail}. The author should add ${missing
+				.map(([s]) => s)
+				.join(" and ")} under \`hf_oauth_scopes\` in the README and redeploy.`,
+			0,
+			"warning"
+		);
 	});
 
 	$effect(() => {
@@ -2506,9 +2528,11 @@
 					{:else if auth.canWrite}
 						<button
 							class="tool-btn save-space-btn"
-							disabled={savingToSpace}
+							disabled={savingToSpace || !auth.hasScope("write-repos")}
 							onclick={() => (saveToSpaceConfirm = true)}
-							title="Commit workflow.json to this Space's repo (will restart the Space)"
+							title={auth.hasScope("write-repos")
+								? "Commit workflow.json to this Space's repo (will restart the Space)"
+								: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
 						>
 							<UploadIcon />
 							{savingToSpace ? "Saving…" : "Unsaved · Save"}
