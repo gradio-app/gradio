@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/workflowcanvas",
-	"version": "0.8.1",
+	"version": "0.9.0",
 	"description": "Gradio Workflow Canvas component",
 	"type": "module",
 	"author": "",
