@@ -461,7 +461,7 @@
 			});
 			showToast(`Forked to ${copyRepo} — redirecting…`, 2500, "success");
 			setTimeout(() => {
-				window.location.href = `https://huggingface.co/spaces/${copyRepo}`;
+				(window.top ?? window).location.href = `https://huggingface.co/spaces/${copyRepo}`;
 			}, 1500);
 		} catch (e: any) {
 			showToast(`Fork failed: ${e?.message ?? e}`, 5000, "warning");
