@@ -459,11 +459,8 @@
 				},
 				commitTitle: "Fork workflow.json from canvas"
 			});
-			showToast(`Forked to ${copyRepo} — redirecting…`, 2500, "success");
-			setTimeout(() => {
-				(window.top ?? window).location.href =
-					`https://huggingface.co/spaces/${copyRepo}`;
-			}, 1500);
+			showToast(`Forked to ${copyRepo} — opening in a new tab…`, 2500, "success");
+			window.open(`https://huggingface.co/spaces/${copyRepo}`, "_blank");
 		} catch (e: any) {
 			showToast(`Fork failed: ${e?.message ?? e}`, 5000, "warning");
 		} finally {
