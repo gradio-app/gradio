@@ -439,7 +439,11 @@
 						Authorization: `Bearer ${auth.token}`,
 						"Content-Type": "application/json"
 					},
-					body: JSON.stringify({ repository: copyRepo, private: false })
+					body: JSON.stringify({
+						repository: copyRepo,
+						private: false,
+						hardware: "cpu-basic"
+					})
 				}
 			);
 			if (!res.ok && res.status !== 409) {
