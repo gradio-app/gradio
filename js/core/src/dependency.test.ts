@@ -30,10 +30,13 @@ function dependency(
 	} as DependencyConfig;
 }
 
-function manager(dependencies: DependencyConfig[]): DependencyManager {
+function manager(
+	dependencies: DependencyConfig[],
+	client = {} as Client
+): DependencyManager {
 	return new DependencyManager(
 		dependencies,
-		{} as Client,
+		client,
 		vi.fn().mockResolvedValue(undefined),
 		vi.fn().mockResolvedValue(null),
 		vi.fn(),
@@ -81,5 +84,49 @@ describe("DependencyManager.reload", () => {
 
 		expect(active_dependency.outputs).toEqual([32]);
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
+	});
+});
+
+describe("DependencyManager render results", () => {
+	test("dispatches load events added by a reactive render", async () => {
+		const outer_dependency = dependency(0, "outer_render", []);
+		const nested_dependency = dependency(1, "nested_render", []);
+		nested_dependency.targets = [[42, "load"]];
+
+		const render_submission = {
+			async *[Symbol.asyncIterator]() {
+				yield {
+					type: "render",
+					data: {
+						layout: { id: 42, children: [] },
+						components: [],
+						render_id: 0,
+						dependencies: [nested_dependency]
+					}
+				};
+			},
+			cancel: vi.fn()
+		} as ReturnType<Client["submit"]>;
+		const nested_submission = {
+			async *[Symbol.asyncIterator]() {},
+			cancel: vi.fn()
+		} as ReturnType<Client["submit"]>;
+		const submit = vi
+			.fn()
+			.mockReturnValueOnce(render_submission)
+			.mockReturnValueOnce(nested_submission);
+		const dependency_manager = manager([outer_dependency], {
+			submit
+		} as unknown as Client);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: outer_dependency.id,
+			event_data: null
+		});
+
+		await vi.waitFor(() => {
+			expect(submit.mock.calls.map(([fn_index]) => fn_index)).toEqual([0, 1]);
+		});
 	});
 });

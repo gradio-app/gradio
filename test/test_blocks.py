@@ -2367,13 +2367,20 @@ def test_nested_render_uses_local_blocks_context():
         def render_user(user):
             create_nested_app(user)
 
-    outer_render = demo.renderables[0]
-    blocks_config = demo.default_config
+    outer_render = next(
+        renderable for renderable in demo.renderables if renderable.fn is render_user
+    )
+    root_renderable_count = len(demo.renderables)
+    blocks_config = copy.copy(demo.default_config)
     token = LocalContext.blocks_config.set(blocks_config)
     try:
         outer_render.apply("User1")
 
-        inner_render = demo.renderables[1]
+        inner_render = next(
+            renderable
+            for renderable in blocks_config.renderables
+            if renderable is not outer_render
+        )
         outer_config = blocks_config.get_config(outer_render)
         assert any(
             dependency["render_id"] == inner_render._id
@@ -2387,5 +2394,35 @@ def test_nested_render_uses_local_blocks_context():
             for component in inner_config["components"]
             if component["type"] == "button"
         ] == ["hello", "world"]
+
+        outer_render.apply("User2")
+        assert len(demo.renderables) == root_renderable_count
     finally:
         LocalContext.blocks_config.reset(token)
+
+
+def test_blocks_render_inside_reactive_render_registers_components():
+    with gr.Blocks() as prebuilt:
+        markdown = gr.Markdown("Prebuilt content")
+
+    with gr.Blocks() as demo:
+
+        @gr.render()
+        def render_prebuilt():
+            prebuilt.render()
+
+    renderable = next(
+        renderable
+        for renderable in demo.renderables
+        if renderable.fn is render_prebuilt
+    )
+    blocks_config = copy.copy(demo.default_config)
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        renderable.apply()
+        config = blocks_config.get_config(renderable)
+    finally:
+        LocalContext.blocks_config.reset(token)
+
+    component_ids = {component["id"] for component in config["components"]}
+    assert markdown._id in component_ids

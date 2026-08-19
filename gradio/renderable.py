@@ -33,8 +33,8 @@ class Renderable:
             raise ValueError("Reactive render must be inside a Blocks context.")
         root_block = blocks_config.root_block
 
-        self._id = len(root_block.renderables)
-        root_block.renderables.append(self)
+        self._id = len(blocks_config.renderables)
+        blocks_config.renderables.append(self)
         self.ContainerClass = Row if isinstance(get_render_context(), Row) else Column
         self.container = self.ContainerClass(show_progress=True)
         self.container_id = self.container._id
