@@ -6,6 +6,7 @@ wants an append-only record store backed by a private HF Hub bucket.
 
 from __future__ import annotations
 
+import builtins
 import json
 import logging
 import os
@@ -58,7 +59,7 @@ class BucketHistory:
         """Persist *record* to Hub in a background thread (non-blocking)."""
         threading.Thread(target=self._push_sync, args=(record,), daemon=True).start()
 
-    def list(self, limit: int = 50, subgraph: str | None = None) -> list[dict]:
+    def list(self, limit: int = 50, subgraph: str | None = None) -> builtins.list[dict]:
         """Return recent records, newest first.
 
         Results are cached for ``_LIST_CACHE_TTL`` seconds to avoid
@@ -200,7 +201,7 @@ class BucketHistory:
             logger.debug("BucketHistory: media upload failed", exc_info=True)
             return None
 
-    def _fetch_records(self) -> list[dict]:
+    def _fetch_records(self) -> builtins.list[dict]:
         """Download record files from the bucket and sort newest-first."""
         try:
             all_items = sorted(
