@@ -23,7 +23,7 @@
 		modalityForPort
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
-	import { fetchSpaceApi } from "./space-api";
+	import { fetchSpaceApi, fork_repo_candidates } from "./space-api";
 	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import {
 		workflow,
@@ -98,6 +98,9 @@
 
 	const auth = createHFAuth(() => server);
 
+	// Set from the server's `get_space_id` below; drives both the "on a Space"
+	// checks and the fork target.
+	let spaceId = $state("");
 	// Server independently rejects unauthorized saves — this is UX only.
 	// Optimistically editable until the server answers so the owner doesn't
 	// see controls flash out. `spaceId` covers preview hosts where the
@@ -114,6 +117,9 @@
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
 	let lastSavedSerialized = $state<string | null>(null);
+	// Post-load hydration (model port schemas, role reconciliation) mutates
+	// the workflow without user input and would otherwise flip dirty. Gate on
+	// a real gesture and re-baseline when it arrives.
 	let userInteracted = $state(false);
 	const isDirty = $derived(
 		userInteracted &&
@@ -131,11 +137,16 @@
 			userInteracted = true;
 			lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
 		};
-		window.addEventListener("pointerdown", flip, { capture: true });
-		window.addEventListener("keydown", flip, { capture: true });
+		// `drop` and `paste` are here because an edit can arrive without a
+		// pointerdown in this window (a node dragged in from another window, a
+		// context-menu paste); without them that edit would be folded into the
+		// baseline and never offered as unsaved.
+		const gestures = ["pointerdown", "keydown", "drop", "paste"] as const;
+		for (const g of gestures)
+			window.addEventListener(g, flip, { capture: true });
 		return () => {
-			window.removeEventListener("pointerdown", flip, { capture: true });
-			window.removeEventListener("keydown", flip, { capture: true });
+			for (const g of gestures)
+				window.removeEventListener(g, flip, { capture: true });
 		};
 	});
 	function flashSaved(): void {
@@ -207,9 +218,22 @@
 			// write after mount carries the heal to disk.
 			const v2 = reconcileComponentRoles(migrateToV2(parsed));
 			workflow.set(v2);
+			// Baseline the persisted state so the load itself isn't autosaved.
 			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
 			if (shouldAutoLayout) requestAnimationFrame(autoLayout);
 		} catch {}
+	});
+
+	let pendingEditsRestored = false;
+	$effect(() => {
+		if (pendingEditsRestored) return;
+		pendingEditsRestored = true;
+		const stashed = readPendingEdits();
+		if (!stashed) return;
+		workflow.set(reconcileComponentRoles(migrateToV2(stashed)));
+		// Leave `lastSavedSerialized` at the on-disk baseline set above so the
+		// restored edits still read as unsaved.
+		userInteracted = true;
 	});
 
 	$effect(() => {
@@ -221,9 +245,12 @@
 		if (onSpace) return;
 		const serialized = JSON.stringify(sanitize_for_save(wf));
 		if (lastSavedSerialized === null) {
+			// No persisted baseline yet (e.g. a brand-new workflow with no saved
+			// file): adopt the current state instead of saving it on load.
 			lastSavedSerialized = serialized;
 			return;
 		}
+		// Nothing changed since the last save/load — don't re-save or flash.
 		if (serialized === lastSavedSerialized) return;
 		const timer = setTimeout(() => {
 			server
@@ -237,6 +264,10 @@
 		return () => clearTimeout(timer);
 	});
 
+	// Pull the bind=[…] list from the server once on mount so the
+	// Functions button in the bottom bar can offer them as add-able
+	// nodes. Silently no-op if the server doesn't expose it (older
+	// gradio backends).
 	$effect(() => {
 		if (!server?.list_bound_fns) return;
 		void server
@@ -291,6 +322,8 @@
 		return () => clearTimeout(timer);
 	});
 
+	// Pointer interaction state: track which kind of drag is happening so
+	// pointermove/up know what to do. Mutually exclusive — at most one mode.
 	type DragMode =
 		| { kind: "pan"; startX: number; startY: number; vx: number; vy: number }
 		| {
@@ -369,10 +402,8 @@
 	let savingToSpace = $state(false);
 	let saveAsCopyConfirm = $state(false);
 	let savingAsCopy = $state(false);
-	let spaceId = $state("");
-	const copyRepo = $derived(
-		auth.user && spaceId ? `${auth.user}/${spaceId.split("/")[1]}` : ""
-	);
+	const copyCandidates = $derived(fork_repo_candidates(auth.user, spaceId));
+	const copyRepo = $derived(copyCandidates[0] ?? "");
 	$effect(() => {
 		if (!server?.get_space_id) return;
 		void server
@@ -382,9 +413,15 @@
 			})
 			.catch(() => {});
 	});
+	// Popover shown when the "Run only" badge is clicked, explaining why editing
+	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
 
+	// Human-readable explanation of how the current user is authenticated,
+	// shown in the popover when they click their avatar. The "local" case also
+	// tells them logout happens from the CLI, since the UI can't clear a token
+	// it never stored (it's the host's `huggingface-cli login` token).
 	const authExplanation = $derived.by(() => {
 		if (auth.source === "local")
 			return "Signed in with the Hugging Face token saved on this machine (via `huggingface-cli login`). To sign out, run `huggingface-cli logout` in your terminal.";
@@ -427,11 +464,80 @@
 		toasts = toasts.filter((t) => t.id !== id);
 	}
 
+	// Signing in is a full-page redirect and the workflow body isn't
+	// persisted anywhere, so stash it for the round trip and restore it on the
+	// way back — otherwise "Sign in to save" throws away the very edits it
+	// offers to save. Keyed by host+path so one Space's edits can't land on
+	// another's canvas.
+	const PENDING_EDITS_KEY = "gradio_workflow_pending_edits";
+	function pendingEditsScope(): string {
+		return `${window.location.host}${window.location.pathname}`;
+	}
+	function signInPreservingEdits(): void {
+		try {
+			sessionStorage.setItem(
+				PENDING_EDITS_KEY,
+				JSON.stringify({
+					scope: pendingEditsScope(),
+					workflow: sanitize_for_save($workflow)
+				})
+			);
+		} catch {}
+		auth.signIn();
+	}
+	function readPendingEdits(): unknown | null {
+		try {
+			const raw = sessionStorage.getItem(PENDING_EDITS_KEY);
+			sessionStorage.removeItem(PENDING_EDITS_KEY);
+			const parsed = raw ? JSON.parse(raw) : null;
+			return parsed?.scope === pendingEditsScope() ? parsed.workflow : null;
+		} catch {
+			return null;
+		}
+	}
+
+	/**
+	 * First candidate name not already taken under the user's account, so a
+	 * fork never commits into an existing Space — including the source itself,
+	 * when the user owns it. Null if every candidate is taken.
+	 */
+	async function firstFreeForkRepo(): Promise<string | null> {
+		for (const candidate of copyCandidates) {
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${candidate}`,
+				{ headers: { Authorization: `Bearer ${auth.token}` } }
+			);
+			if (res.status === 404) return candidate;
+		}
+		return null;
+	}
+
+	/** Whether the source Space is private, so the fork can match it. */
+	async function sourceIsPrivate(): Promise<boolean> {
+		try {
+			const res = await fetch(`https://huggingface.co/api/spaces/${spaceId}`, {
+				headers: { Authorization: `Bearer ${auth.token}` }
+			});
+			// Default to private when the metadata read fails: publishing a
+			// private Space's contents is the worse way to be wrong.
+			return res.ok ? (await res.json())?.private === true : true;
+		} catch {
+			return true;
+		}
+	}
+
 	async function saveAsCopy(): Promise<void> {
 		saveAsCopyConfirm = false;
 		if (!spaceId || !auth.token || !copyRepo || savingAsCopy) return;
 		savingAsCopy = true;
 		try {
+			const target = await firstFreeForkRepo();
+			if (!target) {
+				throw new Error(
+					`you already have Spaces named ${copyRepo} and every fallback name — rename or delete one and try again`
+				);
+			}
+			const isPrivate = await sourceIsPrivate();
 			const res = await fetch(
 				`https://huggingface.co/api/spaces/${spaceId}/duplicate`,
 				{
@@ -441,18 +547,21 @@
 						"Content-Type": "application/json"
 					},
 					body: JSON.stringify({
-						repository: copyRepo,
-						private: false,
+						repository: target,
+						private: isPrivate,
+						// The canvas itself only needs CPU — never fork onto
+						// (billable) accelerated hardware on the user's behalf.
 						hardware: "cpu-basic"
 					})
 				}
 			);
-			if (!res.ok && res.status !== 409) {
+			if (!res.ok) {
 				throw new Error(`${res.status} ${await res.text()}`);
 			}
-			const serialized = JSON.stringify(sanitize_for_save($workflow), null, 2);
+			const state = sanitize_for_save($workflow);
+			const serialized = JSON.stringify(state, null, 2);
 			await uploadFile({
-				repo: { type: "space", name: copyRepo },
+				repo: { type: "space", name: target },
 				accessToken: auth.token,
 				file: {
 					path: "workflow.json",
@@ -460,14 +569,16 @@
 				},
 				commitTitle: "Fork workflow.json from canvas"
 			});
-			showToast(
-				`Forked to ${copyRepo} — opening in a new tab…`,
-				2500,
-				"success"
-			);
-			window.open(`https://huggingface.co/spaces/${copyRepo}`, "_blank");
+			lastSavedSerialized = JSON.stringify(state);
+			// A link in the toast rather than window.open(): by this point the
+			// click's transient activation has expired, so a popup would be
+			// blocked.
+			showToast(`Saved a copy to ${target}.`, 0, "success", {
+				label: "Open Space",
+				href: `https://huggingface.co/spaces/${target}`
+			});
 		} catch (e: any) {
-			showToast(`Fork failed: ${e?.message ?? e}`, 5000, "warning");
+			showToast(`Saving a copy failed: ${e?.message ?? e}`, 5000, "warning");
 		} finally {
 			savingAsCopy = false;
 		}
@@ -477,7 +588,8 @@
 		saveToSpaceConfirm = false;
 		if (!spaceId || !auth.token || savingToSpace) return;
 		savingToSpace = true;
-		const serialized = JSON.stringify(sanitize_for_save($workflow), null, 2);
+		const state = sanitize_for_save($workflow);
+		const serialized = JSON.stringify(state, null, 2);
 		try {
 			await uploadFile({
 				repo: { type: "space", name: spaceId },
@@ -488,6 +600,7 @@
 				},
 				commitTitle: "Update workflow.json from canvas"
 			});
+			lastSavedSerialized = JSON.stringify(state);
 			showToast(
 				`Committed workflow.json to ${spaceId} — the Space will restart.`,
 				4000,
@@ -2494,7 +2607,7 @@
 				{:else if onSpace}
 					<button
 						class="toolbar-login-btn"
-						onclick={auth.signIn}
+						onclick={signInPreservingEdits}
 						disabled={!auth.oauthAvailable}
 						title={auth.oauthAvailable
 							? undefined
@@ -2526,7 +2639,7 @@
 					{#if !auth.token && auth.oauthAvailable}
 						<button
 							class="tool-btn save-space-btn"
-							onclick={auth.signIn}
+							onclick={signInPreservingEdits}
 							title="Sign in with Hugging Face to save your changes"
 						>
 							<UploadIcon />
@@ -2549,9 +2662,11 @@
 						{#if auth.user}
 							<button
 								class="tool-btn save-space-btn"
-								disabled={savingAsCopy}
+								disabled={savingAsCopy || !auth.hasScope("write-repos")}
 								onclick={() => (saveAsCopyConfirm = true)}
-								title="Duplicate this Space under your account and save your edits there"
+								title={auth.hasScope("write-repos")
+									? "Duplicate this Space under your account and save your edits there"
+									: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
 							>
 								<UploadIcon />
 								{savingAsCopy
@@ -2563,10 +2678,12 @@
 						{/if}
 					{/if}
 				{/if}
-				{#if auth.writeAccessKnown}
+				{#if auth.writeAccessKnown && auth.canWrite}
 					<span
 						class="access-badge access-write"
-						title="You have write access — changes you make are saved automatically."
+						title={onSpace
+							? "You have write access — use Save to commit your changes to this Space."
+							: "You have write access — changes you make are saved automatically."}
 						>Write access</span
 					>
 				{/if}
@@ -3013,9 +3130,10 @@
 					Save as your own copy?
 				</div>
 				<div class="wf-modal-body">
-					You don't have write access to <strong>{spaceId}</strong>. Save your
-					edits to a new Space at <strong>{copyRepo}</strong>? You'll be
-					redirected there once it's ready.
+					Save your edits to a new Space under your account, copied from
+					<strong>{spaceId}</strong>. It'll be created as
+					<strong>{copyRepo}</strong> (or the next free name, if you already have
+					that one) and match the original's visibility.
 				</div>
 				<div class="wf-modal-actions">
 					<button

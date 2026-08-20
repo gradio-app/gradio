@@ -42,6 +42,25 @@ export function normalize_space_id(raw: string): string | null {
 	return null;
 }
 
+/**
+ * Candidate repo names for a "save as copy" fork of `spaceId` under `user`,
+ * in the order they should be tried: the source's own name first, then
+ * `name-2`, `name-3`… The fallbacks matter because a fork must never land on
+ * a repo that already exists — including the source itself, when the user
+ * owns it. Empty when either input is unusable.
+ */
+export function fork_repo_candidates(
+	user: string,
+	spaceId: string,
+	limit = 10
+): string[] {
+	const name = normalize_space_id(spaceId)?.split("/")[1];
+	if (!user || !name) return [];
+	return Array.from({ length: limit }, (_, i) =>
+		i === 0 ? `${user}/${name}` : `${user}/${name}-${i + 1}`
+	);
+}
+
 export function componentToPortType(
 	component: string,
 	type?: string,
