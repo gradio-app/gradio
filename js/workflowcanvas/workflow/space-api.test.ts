@@ -3,7 +3,8 @@ import {
 	canonicalizePort,
 	extract_choices,
 	normalizeOperatorPorts,
-	normalize_space_id
+	normalize_space_id,
+	fork_repo_candidates
 } from "./space-api";
 import { MODALITIES } from "./workflow-modalities";
 import type { Port } from "./workflow-types";
@@ -224,5 +225,23 @@ describe("extract_choices", () => {
 		expect(extract_choices(undefined)).toBeNull();
 		expect(extract_choices(null)).toBeNull();
 		expect(extract_choices("string")).toBeNull();
+	});
+});
+
+describe("fork_repo_candidates", () => {
+	test("offers the source name first, then numbered fallbacks", () => {
+		const candidates = fork_repo_candidates("bob", "alice/my-wf", 3);
+		expect(candidates).toEqual(["bob/my-wf", "bob/my-wf-2", "bob/my-wf-3"]);
+	});
+
+	test("offers a fallback for an owner forking their own Space", () => {
+		const candidates = fork_repo_candidates("alice", "alice/my-wf", 2);
+		expect(candidates).toEqual(["alice/my-wf", "alice/my-wf-2"]);
+	});
+
+	test("returns nothing when the user or space id is unusable", () => {
+		expect(fork_repo_candidates("", "alice/my-wf")).toEqual([]);
+		expect(fork_repo_candidates("bob", "")).toEqual([]);
+		expect(fork_repo_candidates("bob", "not-a-repo-id")).toEqual([]);
 	});
 });
