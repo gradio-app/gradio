@@ -10,8 +10,8 @@
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import CheckIcon from "./icons/CheckIcon.svelte";
+	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
-	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
 	import UploadIcon from "./icons/UploadIcon.svelte";
 	import { uploadFile } from "@huggingface/hub";
@@ -40,7 +40,6 @@
 		init_model_node_ports,
 		sanitize_for_save,
 		structural_signature,
-		revoke_blob_urls,
 		reconcileComponentRoles
 	} from "./workflow-store";
 	import { migrateToV2, toLegacyShape } from "./workflow-migration";
@@ -114,9 +113,6 @@
 	const readOnly = $derived(
 		!onSpace && auth.writeAccessKnown && !auth.canWrite
 	);
-
-	const readOnlyReason =
-		"Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes.";
 
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
@@ -446,6 +442,7 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	let showSaveMenu = $state(false);
 	let showApiPanel = $state(false);
 	let saveToSpaceConfirm = $state(false);
 	let savingToSpace = $state(false);
@@ -462,9 +459,6 @@
 			})
 			.catch(() => {});
 	});
-	// Popover shown when the "Run only" badge is clicked, explaining why editing
-	// is disabled and how to enable it.
-	let showAccessInfo = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
 
 	// Human-readable explanation of how the current user is authenticated,
@@ -661,7 +655,6 @@
 
 	const nodeCount = $derived(legacyView.nodes.length);
 	const hasTransforms = $derived($workflow.operators.length > 0);
-	const edgeCount = $derived($workflow.edges.length);
 	const subgraphCount = $derived(
 		countSubgraphs(legacyView.nodes, $workflow.edges)
 	);
@@ -1744,33 +1737,6 @@
 		await addTemplateToCanvas(template, x, y);
 	}
 
-	function revokeAllBlobUrls(nodes: WFNode[]): void {
-		for (const node of nodes) revoke_blob_urls(node.data);
-	}
-
-	let clearConfirm = $state(false);
-
-	function clearWorkflow(): void {
-		if (legacyView.nodes.length === 0 || readOnly) return;
-		clearConfirm = true;
-	}
-
-	function confirmClearWorkflow(): void {
-		clearConfirm = false;
-		if (readOnly) return;
-		revokeAllBlobUrls(legacyView.nodes);
-		workflow.set({
-			schema_version: "2",
-			name: $workflow.name,
-			runtime: { default: "client" },
-			references: [],
-			operators: [],
-			subjects: [],
-			edges: [],
-			view: { default: "canvas" }
-		});
-	}
-
 	// Layout only — safe for read-only viewers, same as dragging a card by hand.
 	function autoLayout(): void {
 		const sorted = topoSort(legacyView.nodes, $workflow.edges);
@@ -2051,8 +2017,8 @@
 		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
 			showUserMenu = false;
 		}
-		if (showAccessInfo && !target?.closest(".access-info-wrap")) {
-			showAccessInfo = false;
+		if (showSaveMenu && !target?.closest(".save-menu-wrap")) {
+			showSaveMenu = false;
 		}
 	}
 
@@ -2270,11 +2236,7 @@
 			pendingDrop = null;
 			dropChoice = null;
 			doubleClickMenu = null;
-			clearConfirm = false;
-		}
-		if (e.key === "Enter" && clearConfirm && !readOnly) {
-			e.preventDefault();
-			confirmClearWorkflow();
+			showSaveMenu = false;
 		}
 	}
 
@@ -2683,89 +2645,106 @@
 					</form>
 				{/if}
 			{/if}
-			{#if !readOnly}
-				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-				{#if onSpace && spaceId && isDirty}
-					{#if !auth.token && auth.oauthAvailable}
+			{#if !readOnly && onSpace && spaceId && isDirty}
+				{#if !auth.token && auth.oauthAvailable}
+					<button
+						class="tool-btn save-space-btn"
+						onclick={signInPreservingEdits}
+						title="Sign in with Hugging Face to save your changes"
+					>
+						<UploadIcon />
+						Unsaved · Sign in to save
+					</button>
+				{:else if auth.canWrite && auth.user}
+					<div class="save-menu-wrap">
 						<button
-							class="tool-btn save-space-btn"
-							onclick={signInPreservingEdits}
-							title="Sign in with Hugging Face to save your changes"
+							class="tool-btn save-space-btn save-menu-trigger"
+							disabled={savingToSpace || savingAsCopy}
+							onclick={(e) => {
+								e.stopPropagation();
+								showSaveMenu = !showSaveMenu;
+							}}
+							aria-haspopup="menu"
+							aria-expanded={showSaveMenu}
 						>
 							<UploadIcon />
-							Unsaved · Sign in to save
-						</button>
-					{:else}
-						{#if auth.canWrite}
-							<button
-								class="tool-btn save-space-btn"
-								disabled={savingToSpace || !auth.hasScope("write-repos")}
-								onclick={() => (saveToSpaceConfirm = true)}
-								title={auth.hasScope("write-repos")
-									? "Commit workflow.json to this Space's repo (will restart the Space)"
-									: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
-							>
-								<UploadIcon />
-								{savingToSpace ? "Saving…" : "Unsaved · Save"}
-							</button>
-						{/if}
-						{#if auth.user}
-							<button
-								class="tool-btn save-space-btn"
-								disabled={savingAsCopy || !auth.hasScope("write-repos")}
-								onclick={() => (saveAsCopyConfirm = true)}
-								title={auth.hasScope("write-repos")
-									? "Duplicate this Space under your account and save your edits there"
-									: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
-							>
-								<UploadIcon />
-								{savingAsCopy
+							{savingToSpace
+								? "Saving…"
+								: savingAsCopy
 									? "Forking…"
-									: auth.canWrite
-										? "Save as copy"
-										: "Unsaved · Save as copy"}
-							</button>
+									: "Unsaved · Save"}
+							<span class="save-menu-chevron"><ChevronDownIcon /></span>
+						</button>
+						{#if showSaveMenu}
+							<div
+								class="save-menu"
+								role="menu"
+								aria-label="Save workflow options"
+							>
+								<button
+									class="save-menu-item"
+									role="menuitem"
+									disabled={!auth.hasScope("write-repos")}
+									onclick={() => {
+										showSaveMenu = false;
+										saveToSpaceConfirm = true;
+									}}
+									title={auth.hasScope("write-repos")
+										? "Commit workflow.json to this Space's repo (will restart the Space)"
+										: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								>
+									<span class="save-menu-item-label">Save changes</span>
+									<span class="save-menu-item-detail">Update this Space</span>
+								</button>
+								<button
+									class="save-menu-item"
+									role="menuitem"
+									disabled={!auth.hasScope("write-repos")}
+									onclick={() => {
+										showSaveMenu = false;
+										saveAsCopyConfirm = true;
+									}}
+									title={auth.hasScope("write-repos")
+										? "Duplicate this Space under your account and save your edits there"
+										: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								>
+									<span class="save-menu-item-label">Save as copy</span>
+									<span class="save-menu-item-detail"
+										>Duplicate to your account</span
+									>
+								</button>
+							</div>
 						{/if}
-					{/if}
-				{/if}
-				{#if auth.writeAccessKnown && auth.canWrite}
-					<span
-						class="access-badge access-write"
-						title={onSpace
-							? "You have write access — use Save to commit your changes to this Space."
-							: "You have write access — changes you make are saved automatically."}
-						>Write access</span
-					>
-				{/if}
-			{:else}
-				<div class="access-info-wrap">
+					</div>
+				{:else if auth.canWrite}
 					<button
-						class="access-badge access-readonly"
-						class:open={showAccessInfo}
-						title={readOnlyReason}
-						aria-label="Why is this read-only?"
-						onclick={(e) => {
-							e.stopPropagation();
-							showAccessInfo = !showAccessInfo;
-						}}
-						>Run only<span class="access-info-icon"><InfoIcon /></span></button
+						class="tool-btn save-space-btn"
+						disabled={savingToSpace || !auth.hasScope("write-repos")}
+						onclick={() => (saveToSpaceConfirm = true)}
+						title={auth.hasScope("write-repos")
+							? "Commit workflow.json to this Space's repo (will restart the Space)"
+							: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
 					>
-					{#if showAccessInfo}
-						<div class="access-info-popover">
-							<!-- Mirrors readOnlyReason (used for the hover title), with
-							     "access token" rendered as a link. -->
-							Run-only: you can run this workflow but not edit it. This session is
-							missing the write token — open the edit link printed in the terminal
-							to make changes. That link also signs this session in with your locally
-							saved Hugging Face token; without it, paste an
-							<a
-								href="https://huggingface.co/settings/tokens"
-								target="_blank"
-								rel="noopener noreferrer">access token</a
-							> to run nodes.
-						</div>
-					{/if}
-				</div>
+						<UploadIcon />
+						{savingToSpace ? "Saving…" : "Unsaved · Save"}
+					</button>
+				{:else if auth.user}
+					<button
+						class="tool-btn save-space-btn"
+						disabled={savingAsCopy || !auth.hasScope("write-repos")}
+						onclick={() => (saveAsCopyConfirm = true)}
+						title={auth.hasScope("write-repos")
+							? "Duplicate this Space under your account and save your edits there"
+							: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+					>
+						<UploadIcon />
+						{savingAsCopy
+							? "Forking…"
+							: auth.canWrite
+								? "Save as copy"
+								: "Unsaved · Save as copy"}
+					</button>
+				{/if}
 			{/if}
 		</div>
 	</div>
@@ -3106,37 +3085,6 @@
 		</div>
 	{/if}
 
-	{#if clearConfirm}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="wf-modal-backdrop" onclick={() => (clearConfirm = false)}>
-			<div
-				class="wf-modal"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="wf-modal-title"
-				onclick={(e) => e.stopPropagation()}
-			>
-				<div class="wf-modal-title" id="wf-modal-title">Clear workflow?</div>
-				<div class="wf-modal-body">
-					This will remove <strong>{nodeCount}</strong>
-					{nodeCount === 1 ? "node" : "nodes"} and
-					<strong>{edgeCount}</strong>
-					{edgeCount === 1 ? "edge" : "edges"}. This can't be undone.
-				</div>
-				<div class="wf-modal-actions">
-					<button class="wf-modal-btn" onclick={() => (clearConfirm = false)}
-						>Cancel</button
-					>
-					<button
-						class="wf-modal-btn wf-modal-btn-danger"
-						onclick={confirmClearWorkflow}>Clear</button
-					>
-				</div>
-			</div>
-		</div>
-	{/if}
-
 	{#if saveToSpaceConfirm}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -3461,34 +3409,29 @@
 	:global(body:not(.dark) .toolbar-divider) {
 		background: #e2e4ea;
 	}
-	:global(body:not(.dark) .access-badge.access-readonly) {
-		color: #6b6e78;
-		background: #f0f1f5;
-		border-color: #e2e4ea;
+	:global(body:not(.dark) .tool-btn.save-space-btn) {
+		color: #d95f0b;
+		border-color: rgba(217, 95, 11, 0.55);
 	}
-	:global(body:not(.dark) .access-badge.access-write) {
-		color: #0f9d76;
-		background: rgba(15, 157, 118, 0.08);
-		border-color: rgba(15, 157, 118, 0.25);
+	:global(body:not(.dark) .tool-btn.save-space-btn:hover:not(:disabled)) {
+		color: #d95f0b;
+		background: rgba(217, 95, 11, 0.1);
+		border-color: rgba(217, 95, 11, 0.75);
 	}
-	.save-space-btn {
-		color: #ff9350;
-		border-color: rgba(255, 147, 80, 0.4);
-	}
-	.save-space-btn:hover:not(:disabled) {
-		background: rgba(255, 147, 80, 0.12);
-		border-color: rgba(255, 147, 80, 0.6);
-	}
-	:global(body:not(.dark) button.access-badge.access-readonly:hover),
-	:global(body:not(.dark) button.access-badge.access-readonly.open) {
-		color: #3e4050;
-		border-color: #d0d2dc;
-	}
-	:global(body:not(.dark) .access-info-popover) {
+	:global(body:not(.dark) .save-menu) {
 		background: #ffffff;
 		border-color: #e2e4ea;
-		color: #6b6e78;
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	}
+	:global(body:not(.dark) .save-menu-item) {
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .save-menu-item:hover:not(:disabled)),
+	:global(body:not(.dark) .save-menu-item:focus-visible) {
+		background: #f0f1f5;
+	}
+	:global(body:not(.dark) .save-menu-item-detail) {
+		color: #6b6e78;
 	}
 	:global(body:not(.dark) .save-indicator) {
 		color: #0f9d76;
