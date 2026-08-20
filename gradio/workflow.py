@@ -587,6 +587,41 @@ WORKFLOW_OAUTH_SCOPES: dict[str, str] = {
 }
 
 
+def _missing_workflow_oauth_scopes() -> dict[str, str]:
+    granted = set((os.getenv("OAUTH_SCOPES") or "").split())
+    return {
+        scope: why
+        for scope, why in WORKFLOW_OAUTH_SCOPES.items()
+        if scope not in granted
+    }
+
+
+def _warn_workflow_oauth_configuration() -> None:
+    if get_space() is None:
+        return
+    if not os.getenv("OAUTH_CLIENT_ID"):
+        warnings.warn(
+            "Workflow OAuth is not enabled for this Space. Add `hf_oauth: true` "
+            "to the README metadata so users can run workflows on their own "
+            "inference quota.",
+            UserWarning,
+            stacklevel=3,
+        )
+        return
+
+    missing = _missing_workflow_oauth_scopes()
+    if not missing:
+        return
+    detail = ", ".join(f"`{scope}` (to {why})" for scope, why in missing.items())
+    scopes = " and ".join(f"`{scope}`" for scope in missing)
+    warnings.warn(
+        f"Workflow OAuth is missing {detail}. Add {scopes} under "
+        "`hf_oauth_scopes` in the README metadata and redeploy.",
+        UserWarning,
+        stacklevel=3,
+    )
+
+
 def get_oauth_scopes(_data=None) -> str:
     """Which of `WORKFLOW_OAUTH_SCOPES` the Space's OAuth app was granted, and
     which are missing. Empty off-Spaces and when OAuth is disabled."""
@@ -596,11 +631,7 @@ def get_oauth_scopes(_data=None) -> str:
     return json.dumps(
         {
             "granted": granted,
-            "missing": {
-                scope: why
-                for scope, why in WORKFLOW_OAUTH_SCOPES.items()
-                if scope not in granted
-            },
+            "missing": _missing_workflow_oauth_scopes(),
         }
     )
 
@@ -1727,6 +1758,7 @@ class Workflow(Blocks):
             "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
             UserWarning,
         )
+        _warn_workflow_oauth_configuration()
 
         super().__init__(mode="workflow")
         self._build()
