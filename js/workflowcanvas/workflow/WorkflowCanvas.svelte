@@ -3286,8 +3286,7 @@
 				)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
-					const value =
-						(output as any).bucket_url ?? (output as any).value;
+					const value = (output as any).bucket_url ?? (output as any).value;
 					updateNodeData(nodeId, inPortId, value);
 				}
 				showHistoryPanel = false;
