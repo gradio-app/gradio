@@ -11,16 +11,19 @@ from transformers import (
     FillMaskPipeline,
     ImageClassificationPipeline,
     ObjectDetectionPipeline,
-    QuestionAnsweringPipeline,  # ty: ignore[unresolved-import]
     TextClassificationPipeline,
     TextGenerationPipeline,
-    VisualQuestionAnsweringPipeline,  # ty: ignore[unresolved-import]
     ZeroShotClassificationPipeline,
 )
 
 import gradio as gr
 from gradio.pipelines_utils import (
     handle_transformers_pipeline,
+)
+
+QuestionAnsweringPipeline = getattr(transformers, "QuestionAnsweringPipeline", None)
+VisualQuestionAnsweringPipeline = getattr(
+    transformers, "VisualQuestionAnsweringPipeline", None
 )
 
 
@@ -92,6 +95,10 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info["inputs"].label == "Input Image"
         assert pipeline_info["outputs"].label == "Classification"
 
+    @pytest.mark.skipif(
+        QuestionAnsweringPipeline is None,
+        reason="QuestionAnsweringPipeline is unavailable in this transformers version",
+    )
     def test_question_answering_pipeline(self):
         pipe = MagicMock(spec=QuestionAnsweringPipeline)
         pipeline_info = handle_transformers_pipeline(pipe)
@@ -134,6 +141,10 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info["inputs"][1].label == "Question"
         assert pipeline_info["outputs"].label == "Label"
 
+    @pytest.mark.skipif(
+        VisualQuestionAnsweringPipeline is None,
+        reason="VisualQuestionAnsweringPipeline is unavailable in this transformers version",
+    )
     def test_visual_question_answering_pipeline(self):
         pipe = MagicMock(spec=VisualQuestionAnsweringPipeline)
         pipeline_info = handle_transformers_pipeline(pipe)
