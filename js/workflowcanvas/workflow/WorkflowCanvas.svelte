@@ -2532,28 +2532,35 @@
 							<UploadIcon />
 							Unsaved · Sign in to save
 						</button>
-					{:else if auth.canWrite}
-						<button
-							class="tool-btn save-space-btn"
-							disabled={savingToSpace || !auth.hasScope("write-repos")}
-							onclick={() => (saveToSpaceConfirm = true)}
-							title={auth.hasScope("write-repos")
-								? "Commit workflow.json to this Space's repo (will restart the Space)"
-								: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
-						>
-							<UploadIcon />
-							{savingToSpace ? "Saving…" : "Unsaved · Save"}
-						</button>
-					{:else if auth.user}
-						<button
-							class="tool-btn save-space-btn"
-							disabled={savingAsCopy}
-							onclick={() => (saveAsCopyConfirm = true)}
-							title="Duplicate this Space under your account and save your edits there"
-						>
-							<UploadIcon />
-							{savingAsCopy ? "Forking…" : "Unsaved · Save as copy"}
-						</button>
+					{:else}
+						{#if auth.canWrite}
+							<button
+								class="tool-btn save-space-btn"
+								disabled={savingToSpace || !auth.hasScope("write-repos")}
+								onclick={() => (saveToSpaceConfirm = true)}
+								title={auth.hasScope("write-repos")
+									? "Commit workflow.json to this Space's repo (will restart the Space)"
+									: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+							>
+								<UploadIcon />
+								{savingToSpace ? "Saving…" : "Unsaved · Save"}
+							</button>
+						{/if}
+						{#if auth.user}
+							<button
+								class="tool-btn save-space-btn"
+								disabled={savingAsCopy}
+								onclick={() => (saveAsCopyConfirm = true)}
+								title="Duplicate this Space under your account and save your edits there"
+							>
+								<UploadIcon />
+								{savingAsCopy
+									? "Forking…"
+									: auth.canWrite
+										? "Save as copy"
+										: "Unsaved · Save as copy"}
+							</button>
+						{/if}
 					{/if}
 				{/if}
 				{#if auth.writeAccessKnown}
