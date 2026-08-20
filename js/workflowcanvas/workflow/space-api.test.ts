@@ -235,8 +235,6 @@ describe("fork_repo_candidates", () => {
 	});
 
 	test("offers a fallback for an owner forking their own Space", () => {
-		// The first candidate is the source itself, which the caller's existence
-		// check rejects — so there has to be something after it.
 		const candidates = fork_repo_candidates("alice", "alice/my-wf", 2);
 		expect(candidates).toEqual(["alice/my-wf", "alice/my-wf-2"]);
 	});

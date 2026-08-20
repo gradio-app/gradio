@@ -98,8 +98,6 @@
 
 	const auth = createHFAuth(() => server);
 
-	// Set from the server's `get_space_id` below; drives both the "on a Space"
-	// checks and the fork target.
 	let spaceId = $state("");
 	// Server independently rejects unauthorized saves — this is UX only.
 	// Optimistically editable until the server answers so the owner doesn't
@@ -137,10 +135,6 @@
 			userInteracted = true;
 			lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
 		};
-		// `drop` and `paste` are here because an edit can arrive without a
-		// pointerdown in this window (a node dragged in from another window, a
-		// context-menu paste); without them that edit would be folded into the
-		// baseline and never offered as unsaved.
 		const gestures = ["pointerdown", "keydown", "drop", "paste"] as const;
 		for (const g of gestures)
 			window.addEventListener(g, flip, { capture: true });
@@ -231,8 +225,6 @@
 		const stashed = readPendingEdits();
 		if (!stashed) return;
 		workflow.set(reconcileComponentRoles(migrateToV2(stashed)));
-		// Leave `lastSavedSerialized` at the on-disk baseline set above so the
-		// restored edits still read as unsaved.
 		userInteracted = true;
 	});
 
@@ -464,11 +456,6 @@
 		toasts = toasts.filter((t) => t.id !== id);
 	}
 
-	// Signing in is a full-page redirect and the workflow body isn't
-	// persisted anywhere, so stash it for the round trip and restore it on the
-	// way back — otherwise "Sign in to save" throws away the very edits it
-	// offers to save. Keyed by host+path so one Space's edits can't land on
-	// another's canvas.
 	const PENDING_EDITS_KEY = "gradio_workflow_pending_edits";
 	function pendingEditsScope(): string {
 		return `${window.location.host}${window.location.pathname}`;
@@ -496,11 +483,6 @@
 		}
 	}
 
-	/**
-	 * First candidate name not already taken under the user's account, so a
-	 * fork never commits into an existing Space — including the source itself,
-	 * when the user owns it. Null if every candidate is taken.
-	 */
 	async function firstFreeForkRepo(): Promise<string | null> {
 		for (const candidate of copyCandidates) {
 			const res = await fetch(
@@ -512,14 +494,11 @@
 		return null;
 	}
 
-	/** Whether the source Space is private, so the fork can match it. */
 	async function sourceIsPrivate(): Promise<boolean> {
 		try {
 			const res = await fetch(`https://huggingface.co/api/spaces/${spaceId}`, {
 				headers: { Authorization: `Bearer ${auth.token}` }
 			});
-			// Default to private when the metadata read fails: publishing a
-			// private Space's contents is the worse way to be wrong.
 			return res.ok ? (await res.json())?.private === true : true;
 		} catch {
 			return true;
@@ -549,8 +528,6 @@
 					body: JSON.stringify({
 						repository: target,
 						private: isPrivate,
-						// The canvas itself only needs CPU — never fork onto
-						// (billable) accelerated hardware on the user's behalf.
 						hardware: "cpu-basic"
 					})
 				}
@@ -570,9 +547,6 @@
 				commitTitle: "Fork workflow.json from canvas"
 			});
 			lastSavedSerialized = JSON.stringify(state);
-			// A link in the toast rather than window.open(): by this point the
-			// click's transient activation has expired, so a popup would be
-			// blocked.
 			showToast(`Saved a copy to ${target}.`, 0, "success", {
 				label: "Open Space",
 				href: `https://huggingface.co/spaces/${target}`
