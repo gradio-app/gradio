@@ -2038,7 +2038,12 @@
 					user: null
 				};
 				await push_record_to_bucket(historyRoot, bucketId, record);
-				if (showHistoryPanel) historyRefreshCount++;
+				if (showHistoryPanel) {
+					historyRefreshCount++;
+					setTimeout(() => {
+						if (showHistoryPanel) historyRefreshCount++;
+					}, 2500);
+				}
 			} catch {
 				// history push is best-effort
 			}
