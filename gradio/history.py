@@ -196,7 +196,7 @@ class BucketHistory:
                     bucket_id=self.repo_id,
                     add=[(fh.read(), path_in_repo)],
                 )
-            return f"https://huggingface.co/buckets/{self.repo_id}/{path_in_repo}"
+            return f"https://huggingface.co/buckets/{self.repo_id}/resolve/{path_in_repo}"
         except Exception:
             logger.debug("BucketHistory: media upload failed", exc_info=True)
             return None
