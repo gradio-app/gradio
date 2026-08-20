@@ -541,7 +541,16 @@
 
 	async function saveAsCopy(): Promise<void> {
 		saveAsCopyConfirm = false;
-		if (!spaceId || !auth.token || !copyRepo || savingAsCopy) return;
+		if (savingAsCopy) return;
+		if (!auth.token) {
+			showToast(
+				"Not signed in on this canvas — refresh the page (or open this Space directly at *.hf.space) so the login is visible here.",
+				6000,
+				"warning"
+			);
+			return;
+		}
+		if (!spaceId || !copyRepo) return;
 		savingAsCopy = true;
 		try {
 			const target = await firstFreeForkRepo();
@@ -594,7 +603,16 @@
 
 	async function saveToSpace(): Promise<void> {
 		saveToSpaceConfirm = false;
-		if (!spaceId || !auth.token || savingToSpace) return;
+		if (savingToSpace) return;
+		if (!auth.token) {
+			showToast(
+				"Not signed in on this canvas — refresh the page (or open this Space directly at *.hf.space) so the login is visible here.",
+				6000,
+				"warning"
+			);
+			return;
+		}
+		if (!spaceId) return;
 		savingToSpace = true;
 		const state = sanitize_for_save($workflow);
 		const serialized = JSON.stringify(state, null, 2);
@@ -3268,7 +3286,9 @@
 				)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
-					updateNodeData(nodeId, inPortId, (output as any).value);
+					const value =
+						(output as any).bucket_url ?? (output as any).value;
+					updateNodeData(nodeId, inPortId, value);
 				}
 				showHistoryPanel = false;
 			}}
