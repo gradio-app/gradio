@@ -403,8 +403,9 @@
 	.connect-error {
 		margin-top: 10px;
 		font-size: 11px;
-		color: #ef4444;
-		background: rgba(239, 68, 68, 0.1);
+		color: #c8cad8;
+		background: #1e1f2a;
+		border: 1px solid #2a2b38;
 		border-radius: 5px;
 		padding: 6px 10px;
 	}
