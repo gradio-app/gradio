@@ -39,6 +39,37 @@ export function isV2(wf: unknown): wf is Workflow {
 	);
 }
 
+function serializedNodes(raw: unknown): Record<string, unknown>[] {
+	if (!raw || typeof raw !== "object") return [];
+	const workflow = raw as Record<string, unknown>;
+	const collections = Array.isArray(workflow.nodes)
+		? [workflow.nodes]
+		: [workflow.references, workflow.operators, workflow.subjects];
+	return collections
+		.filter(Array.isArray)
+		.flat()
+		.filter((node): node is Record<string, unknown> => {
+			return !!node && typeof node === "object";
+		});
+}
+
+/**
+ * Whether the *file* left any node's position unspecified. Geometry is no longer
+ * written back (see `layout-persistence.ts`), but a file that carries a complete
+ * arrangement still describes how its author meant the graph to be read, so the
+ * canvas honours it for a viewer who has never arranged this workflow rather
+ * than auto-laying it out.
+ */
+export function hasMissingNodeGeometry(raw: unknown): boolean {
+	const nodes = serializedNodes(raw);
+	if (!nodes.length) return true;
+	return nodes.some((node) =>
+		["x", "y"].some(
+			(key) => typeof node[key] !== "number" || !Number.isFinite(node[key])
+		)
+	);
+}
+
 function normalizeNodeGeometry<T extends AnyNode>(node: T): T {
 	return {
 		...node,

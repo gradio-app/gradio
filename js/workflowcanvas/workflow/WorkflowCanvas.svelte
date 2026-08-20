@@ -42,7 +42,11 @@
 		structural_signature,
 		reconcileComponentRoles
 	} from "./workflow-store";
-	import { migrateToV2, toLegacyShape } from "./workflow-migration";
+	import {
+		hasMissingNodeGeometry,
+		migrateToV2,
+		toLegacyShape
+	} from "./workflow-migration";
 	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
@@ -67,10 +71,12 @@
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
+	import type { Viewport } from "./viewport-persistence";
 	import {
 		apply_layout,
 		extract_layout,
 		layout_is_unseen,
+		layout_signature,
 		load_layout,
 		save_layout
 	} from "./layout-persistence";
@@ -185,6 +191,40 @@
 		);
 	});
 
+	// A stable identity for this workflow, from the server: the repo id on a
+	// Space, a hash of the graph file's path locally. Everything per-viewer is
+	// keyed by it. The workflow's name is the fallback for backends that don't
+	// offer one, but it's a poor key — it's editable from the canvas, and two
+	// unrelated workflows served from the same origin (same host and port, one
+	// after the other) can share it, which would apply one's arrangement to the
+	// other's nodes. `null` means the answer hasn't arrived yet.
+	let layoutKey = $state<string | null>(null);
+	let keySettled = false;
+	function settleKey(key: string): void {
+		if (keySettled) return;
+		keySettled = true;
+		layoutKey = key;
+	}
+	$effect(() => {
+		if (!server?.get_workflow_key) {
+			settleKey("");
+			return;
+		}
+		// The graph isn't applied until the key settles, so a stalled call must not
+		// hold the canvas empty: time out into the name fallback, which is what
+		// backends without `get_workflow_key` use anyway.
+		const timer = setTimeout(() => settleKey(""), 1500);
+		void server
+			.get_workflow_key()
+			.then((key: string) => settleKey(key || ""))
+			.catch(() => settleKey(""))
+			.finally(() => clearTimeout(timer));
+		return () => clearTimeout(timer);
+	});
+	function layoutScope(fallback: string): string {
+		return layoutKey || fallback;
+	}
+
 	// Undo / redo. An entry is opened once the store stops changing, so a drag or
 	// a burst of typing collapses into one step rather than hundreds.
 	const history = create_history();
@@ -195,10 +235,21 @@
 	// Set while an undo/redo is being applied, so the recorder doesn't file the
 	// restored state as a fresh edit.
 	let restoringHistory = false;
+	// No entry opens until the backend's endpoint catalog has landed (or failed
+	// to). Hydration rewrites each model node's ports and derives its `endpoint`
+	// with nobody having touched anything, and an entry taken before that would
+	// make the user's first Cmd+Z rewind the hydration instead of whatever they
+	// actually did.
+	let hydrationSettled = $state(false);
+	function settleHydration(): void {
+		if (hydrationSettled) return;
+		hydrationSettled = true;
+		history.reset(get(workflow));
+	}
 
 	$effect(() => {
 		const wf = $workflow;
-		if (!layoutReady) return;
+		if (!layoutReady || !hydrationSettled) return;
 		if (restoringHistory) {
 			restoringHistory = false;
 			return;
@@ -207,7 +258,13 @@
 		return () => clearTimeout(timer);
 	});
 
+	// The recorder is debounced, so an undo fired within 350ms of an edit would
+	// otherwise step straight past that edit — and drop it from the timeline in
+	// both directions. Close the pending entry first; `record` is a no-op when
+	// nothing is pending. On redo it also correctly discards the redo branch if
+	// the user has since edited.
 	function undoEdit(): void {
+		history.record($workflow);
 		const restored = history.undo($workflow);
 		if (!restored) return;
 		restoringHistory = true;
@@ -215,17 +272,27 @@
 	}
 
 	function redoEdit(): void {
+		history.record($workflow);
 		const restored = history.redo($workflow);
 		if (!restored) return;
 		restoringHistory = true;
 		workflow.set(restored);
 	}
 
+	let loadedOnce = false;
 	$effect(() => {
+		// Wait for this workflow's identity before reading stored layout — keying
+		// it by the wrong thing would drop another workflow's arrangement onto
+		// these nodes.
+		if (layoutKey === null || loadedOnce) return;
+		loadedOnce = true;
 		// A viewer who has arranged this workflow before gets their own layout
-		// back; one who hasn't gets it auto-arranged and fitted, since the file
-		// carries no coordinates to fall back on.
-		let firstVisit = false;
+		// back. A first-time viewer gets the file's own arrangement when it has
+		// one — an author publishing a workflow still decides how it reads on
+		// first open, and since geometry is never written back, nothing a viewer
+		// does can overwrite that. Only a file with no coordinates is
+		// auto-arranged and fitted.
+		let autoArrange = false;
 		try {
 			if (initialValue) {
 				const parsed = JSON.parse(initialValue);
@@ -233,13 +300,15 @@
 				// Reconcile on load as well as on edit: files written before roles were
 				// derived can carry a wired-up component still filed under `references`,
 				// which renders as an output tile but generates no API endpoint. The
-				// baseline below means the heal isn't a save on its own, but the first
-				// store write after mount (port hydration, an edit) carries it to disk
-				// — so a stale file corrects itself in practice.
+				// baseline below means the heal isn't a save on its own, but the
+				// first real edit carries it to disk — so a stale file corrects
+				// itself in practice.
 				const v2 = reconcileComponentRoles(migrateToV2(parsed));
-				const stored = load_layout(v2.name);
-				firstVisit = layout_is_unseen(v2, stored);
-				workflow.set(apply_layout(v2, stored));
+				const stored = load_layout(layoutScope(v2.name));
+				const unseen = layout_is_unseen(v2, stored);
+				const authored = unseen && !hasMissingNodeGeometry(parsed);
+				autoArrange = unseen && !authored;
+				workflow.set(apply_layout(v2, stored, { park_unplaced: !authored }));
 			}
 		} catch {}
 		const loaded = get(workflow);
@@ -247,36 +316,55 @@
 		lastSavedSignature = structural_signature(loaded);
 		history.reset(loaded);
 		layoutReady = true;
-		if (firstVisit) {
+		if (autoArrange) {
 			requestAnimationFrame(() => {
 				autoLayout();
+				markArrangedBaseline();
 				// Cards measure their real height on mount, so fit on a second frame
 				// or the viewport is computed from placeholder heights.
 				requestAnimationFrame(zoomToFit);
 			});
+		} else {
+			markArrangedBaseline();
 		}
 	});
+
+	// The arrangement this canvas started from — the file's own, or the one
+	// `autoLayout` produced. Nothing is written to storage until the viewer moves
+	// away from it, so a viewer who only ever runs the workflow keeps tracking the
+	// file and sees the author's later changes to how it's laid out.
+	let arrangedBaseline = $state<string | null>(null);
+	function markArrangedBaseline(): void {
+		arrangedBaseline = layout_signature(extract_layout(get(workflow)));
+	}
 
 	// Mirror node geometry into this viewer's localStorage — the only place it is
 	// ever persisted.
 	$effect(() => {
 		const wf = $workflow;
-		if (!layoutReady) return;
-		const timer = setTimeout(
-			() => save_layout(wf.name, extract_layout(wf)),
-			250
-		);
+		if (!layoutReady || arrangedBaseline === null) return;
+		const layout = extract_layout(wf);
+		if (layout_signature(layout) === arrangedBaseline) return;
+		const scope = layoutScope(wf.name);
+		const timer = setTimeout(() => save_layout(scope, layout), 250);
 		return () => clearTimeout(timer);
 	});
 
 	let pendingEditsRestored = false;
 	$effect(() => {
-		if (pendingEditsRestored) return;
+		if (layoutKey === null || pendingEditsRestored) return;
 		pendingEditsRestored = true;
 		const stashed = readPendingEdits();
 		if (!stashed) return;
 		const restored = reconcileComponentRoles(migrateToV2(stashed));
-		workflow.set(apply_layout(restored, load_layout(restored.name)));
+		// The stash carries no geometry (`sanitize_for_save` strips it), so take it
+		// from what's already on screen and fall back to storage — otherwise
+		// signing in to save would scatter the cards the viewer was looking at.
+		const geometry = {
+			...load_layout(layoutScope(restored.name)),
+			...extract_layout(get(workflow))
+		};
+		workflow.set(apply_layout(restored, geometry));
 	});
 
 	$effect(() => {
@@ -329,11 +417,36 @@
 	});
 
 	$effect(() => {
-		if (!server?.get_model_endpoints) return;
-		void fetchModelEndpoints(server).then((schemas) => {
-			if (schemas.length)
+		// After the load, not alongside it: `init_model_node_ports` maps over
+		// whatever operators are in the store when it runs, so hydrating before
+		// `initialValue` is applied would leave the file's own model nodes
+		// un-hydrated for the rest of the session.
+		if (!layoutReady) return;
+		if (!server?.get_model_endpoints) {
+			settleHydration();
+			return;
+		}
+		// A stalled catalog fetch must not leave undo disabled forever.
+		const timer = setTimeout(settleHydration, 1500);
+		void fetchModelEndpoints(server)
+			.then((schemas) => {
+				if (!schemas.length) return;
+				// Hydration is part of the load, not an edit: fold it into the
+				// baseline instead of reporting it as unsaved — on a Space that would
+				// otherwise put "Unsaved · Save" on a canvas the visitor never
+				// touched. If something *has* changed since the load, the user's edit
+				// owns the baseline and we leave it alone.
+				const untouched =
+					structural_signature(get(workflow)) === lastSavedSignature;
 				init_model_node_ports(schemas, PIPELINE_TAG_TO_ENDPOINT);
-		});
+				if (untouched) lastSavedSignature = structural_signature(get(workflow));
+			})
+			.catch(() => {})
+			.finally(() => {
+				clearTimeout(timer);
+				settleHydration();
+			});
+		return () => clearTimeout(timer);
 	});
 
 	$effect(() => {
@@ -350,20 +463,21 @@
 	}
 
 	// ─── Canvas state ───────────────────────────────────────────────────────────
-	let viewport = $state(load_viewport($workflow.name));
-
-	let lastViewportName = $state($workflow.name);
+	// Keyed by the same stable identity as the layout, so renaming a workflow no
+	// longer throws away the viewer's pan/zoom.
+	let viewport = $state<Viewport>({ x: 0, y: 0, zoom: 1 });
+	let viewportLoaded = false;
 	$effect(() => {
-		if ($workflow.name !== lastViewportName) {
-			lastViewportName = $workflow.name;
-			viewport = load_viewport($workflow.name);
-		}
+		if (layoutKey === null || viewportLoaded) return;
+		viewportLoaded = true;
+		viewport = load_viewport(layoutScope($workflow.name));
 	});
 
 	$effect(() => {
-		const name = $workflow.name;
+		if (layoutKey === null) return;
+		const scope = layoutScope($workflow.name);
 		const v = viewport;
-		const timer = setTimeout(() => save_viewport(name, v), 250);
+		const timer = setTimeout(() => save_viewport(scope, v), 250);
 		return () => clearTimeout(timer);
 	});
 

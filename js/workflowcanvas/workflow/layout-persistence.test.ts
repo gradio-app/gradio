@@ -3,6 +3,7 @@ import {
 	apply_layout,
 	extract_layout,
 	layout_is_unseen,
+	layout_signature,
 	layout_storage_key,
 	load_layout,
 	save_layout
@@ -219,5 +220,77 @@ describe("apply_layout", () => {
 		expect(out.edges).toBe(w.edges);
 		expect(out.operators[0].kind).toBe("space");
 		expect(out.references[0].role).toBe("reference");
+	});
+});
+
+describe("apply_layout — park_unplaced: false", () => {
+	test("leaves the file's own arrangement alone for a first-time viewer", () => {
+		const applied = apply_layout(
+			wf(
+				[reference("a", { x: 500, y: 600 })],
+				[operator("b", { x: 900, y: 120 })]
+			),
+			{},
+			{ park_unplaced: false }
+		);
+		expect(applied.references[0]).toMatchObject({ x: 500, y: 600 });
+		expect(applied.operators[0]).toMatchObject({ x: 900, y: 120 });
+	});
+
+	test("still lets a stored entry win over the file", () => {
+		const applied = apply_layout(
+			wf([reference("a", { x: 500, y: 600 })]),
+			{ a: { x: 10, y: 20, width: 200, height: 100 } },
+			{ park_unplaced: false }
+		);
+		expect(applied.references[0]).toMatchObject({ x: 10, y: 20 });
+	});
+});
+
+describe("apply_layout — parking several unseen nodes", () => {
+	test("spreads them down a column instead of a 28px diagonal", () => {
+		const applied = apply_layout(
+			wf(
+				[reference("known", { x: 0, y: 0 })],
+				[operator("new1"), operator("new2"), operator("new3")]
+			),
+			{ known: { x: 0, y: 0, width: 200, height: 100 } }
+		);
+		const ys = applied.operators.map((n) => n.y);
+		const gaps = ys.slice(1).map((y, i) => y - ys[i]);
+		expect(new Set(ys).size).toBe(3);
+		for (const gap of gaps) expect(gap).toBeGreaterThanOrEqual(150);
+	});
+});
+
+describe("layout_signature", () => {
+	test("ignores a measured height, so mounting isn't a rearrangement", () => {
+		const before = { a: { x: 1, y: 2, width: 200, height: 100 } };
+		const after = { a: { x: 1, y: 2, width: 200, height: 173 } };
+		expect(layout_signature(after)).toBe(layout_signature(before));
+	});
+
+	test("catches a move, a resize and a pin", () => {
+		const base = { a: { x: 1, y: 2, width: 200, height: 100 } };
+		const moved = { a: { x: 40, y: 2, width: 200, height: 100 } };
+		const wider = { a: { x: 1, y: 2, width: 260, height: 100 } };
+		const pinned = {
+			a: { x: 1, y: 2, width: 200, height: 100, manual_height: 100 }
+		};
+		expect(layout_signature(moved)).not.toBe(layout_signature(base));
+		expect(layout_signature(wider)).not.toBe(layout_signature(base));
+		expect(layout_signature(pinned)).not.toBe(layout_signature(base));
+	});
+
+	test("is order-independent", () => {
+		const one = {
+			a: { x: 1, y: 1, width: 200, height: 100 },
+			b: { x: 2, y: 2, width: 200, height: 100 }
+		};
+		const other = {
+			b: { x: 2, y: 2, width: 200, height: 100 },
+			a: { x: 1, y: 1, width: 200, height: 100 }
+		};
+		expect(layout_signature(other)).toBe(layout_signature(one));
 	});
 });

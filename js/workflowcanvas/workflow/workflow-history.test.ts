@@ -289,3 +289,113 @@ describe("create_history", () => {
 		expect(history.can_redo()).toBe(false);
 	});
 });
+
+describe("hydration and the undo stack", () => {
+	test("ignores ports written by endpoint hydration", () => {
+		const before = wf({ operators: [operator("m", { endpoint: "predict" })] });
+		const hydrated = wf({
+			operators: [
+				operator("m", {
+					endpoint: "predict",
+					inputs: [{ id: "prompt", label: "Prompt", type: "text" }],
+					outputs: [{ id: "out", label: "Image", type: "image" }],
+					endpoints: [
+						{
+							name: "predict",
+							inputs: [{ id: "prompt", label: "Prompt", type: "text" }],
+							outputs: [{ id: "out", label: "Image", type: "image" }]
+						}
+					]
+				})
+			]
+		});
+		expect(history_signature(hydrated)).toBe(history_signature(before));
+	});
+
+	test("hydration opens no entry, so the first undo is the user's own edit", () => {
+		const history = create_history();
+		const loaded = wf({ operators: [operator("m", { endpoint: "predict" })] });
+		history.reset(loaded);
+		history.record(
+			wf({
+				operators: [
+					operator("m", {
+						endpoint: "predict",
+						inputs: [{ id: "prompt", label: "Prompt", type: "text" }]
+					})
+				]
+			})
+		);
+		expect(history.can_undo()).toBe(false);
+	});
+
+	test("switching endpoint is still one step, ports and all", () => {
+		const history = create_history();
+		const first = wf({
+			operators: [
+				operator("m", {
+					endpoint: "a",
+					inputs: [{ id: "in_a", label: "A", type: "text" }]
+				})
+			]
+		});
+		history.reset(first);
+		const second = wf({
+			operators: [
+				operator("m", {
+					endpoint: "b",
+					inputs: [{ id: "in_b", label: "B", type: "text" }]
+				})
+			]
+		});
+		history.record(second);
+		const undone = history.undo(second);
+		expect(undone?.operators[0].endpoint).toBe("a");
+		expect(undone?.operators[0].inputs[0].id).toBe("in_a");
+	});
+});
+
+describe("snapshots", () => {
+	test("undoing a delete brings the node back without its revoked outputs", () => {
+		const history = create_history();
+		const withNode = wf({
+			references: [reference("a", { data: { out: { url: "blob:gone" } } })]
+		});
+		history.reset(withNode);
+		const deleted = wf({ references: [] });
+		history.record(deleted);
+		const undone = history.undo(deleted);
+		expect(undone?.references).toHaveLength(1);
+		expect(undone?.references[0].data).toEqual({});
+	});
+
+	test("an undone edit still keeps a surviving node's live outputs", () => {
+		const history = create_history();
+		const before = wf({ references: [reference("a", { label: "before" })] });
+		history.reset(before);
+		const after = wf({
+			references: [
+				reference("a", { label: "after", data: { out: "generated" } })
+			]
+		});
+		history.record(after);
+		const undone = history.undo(after);
+		expect(undone?.references[0].label).toBe("before");
+		expect(undone?.references[0].data).toEqual({ out: "generated" });
+	});
+});
+
+describe("undo racing the debounced recorder", () => {
+	test("flushing the pending entry first keeps the timeline in order", () => {
+		const history = create_history();
+		const at = (x: number): Workflow =>
+			wf({ references: [reference("a", { x })] });
+		history.reset(at(0));
+		history.record(at(100));
+		// The second drag has not been recorded yet — this is what `undoEdit` does
+		// before calling undo.
+		history.record(at(200));
+		const undone = history.undo(at(200));
+		expect(undone?.references[0].x).toBe(100);
+	});
+});

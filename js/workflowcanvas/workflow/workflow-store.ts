@@ -125,11 +125,16 @@ export function sanitize_for_save(wf: Workflow): SavedWorkflow {
 
 /**
  * What "this workflow has unsaved changes" means. `sanitize_for_save` already
- * drops per-viewer position and height; `width` is dropped here too because a
- * resize is a view preference the viewer keeps locally, even though the file
- * still carries whatever width the node's source reported when it was added.
- * The upshot is that dragging and resizing cards leave this string untouched,
- * so the "Unsaved · Save" button only appears once the graph itself changes.
+ * drops per-viewer position and height, so dragging a card can't show up here.
+ *
+ * `width` is the deliberate half-and-half: it stays in the file, because it is
+ * measured from the node's source when the node is added and a fresh viewer with
+ * nothing stored should see a card wide enough for its ports — but it is dropped
+ * from this signature, so a viewer resizing a card neither marks the workflow
+ * dirty nor needs write access. The rule that follows is: a card's width in the
+ * file is the *default* every viewer starts from, each viewer's own resize lives
+ * in their localStorage, and a writer's current width rides along the next time
+ * a real edit saves. Anyone can resize; only writers move the default.
  */
 export function structural_signature(wf: Workflow): string {
 	const saved = sanitize_for_save(wf);

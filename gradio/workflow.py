@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import inspect
 import json
 import logging
@@ -570,6 +571,25 @@ def get_space_id(_data=None) -> str:
     """Return this Space's repo id (`owner/name`) for the "Save to Space" button.
     Empty locally — the button is hidden there anyway."""
     return os.getenv("SPACE_ID") or ""
+
+
+def _workflow_key(workflow_file: str) -> str:
+    """A stable identity for this workflow, used by the canvas to key the
+    per-viewer layout and viewport it keeps in localStorage.
+
+    The workflow's *name* can't do that job: it is editable from the canvas, and
+    two unrelated workflows served from the same origin (same host and port, one
+    after the other) can share it — so one workflow's arrangement would be
+    applied to the other's nodes. What is needed is something stable across
+    restarts and across edits to the graph: on a Space the repo id, and locally
+    the graph file's path. The path is hashed rather than sent as-is so a
+    viewer's browser storage doesn't carry the author's directory layout.
+    """
+    space = os.getenv("SPACE_ID")
+    if space:
+        return f"space:{space}"
+    digest = hashlib.sha256(os.path.abspath(workflow_file).encode("utf-8")).hexdigest()
+    return f"file:{digest[:16]}"
 
 
 def get_oauth_available(_data=None) -> str:
@@ -1930,12 +1950,16 @@ class Workflow(Blocks):
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
 
+        def get_workflow_key(_data=None) -> str:
+            return _workflow_key(workflow_file)
+
         server_functions = [
             get_token,
             get_write_access,
             get_oauth_available,
             get_oauth_scopes,
             get_space_id,
+            get_workflow_key,
             call_space,
             call_model,
             fetch_dataset,

@@ -21,6 +21,10 @@
 					"type": "text"
 				}
 			],
+			"x": 80,
+			"y": 280,
+			"width": 220,
+			"height": 161,
 			"data": {
 				"out": "A cinematic photo of a red fox in a misty forest at dawn"
 			}
@@ -51,6 +55,10 @@
 					"output_index": 0
 				}
 			],
+			"x": 420,
+			"y": 120,
+			"width": 220,
+			"height": 115,
 			"data": {}
 		},
 		{
@@ -77,6 +85,10 @@
 					"output_index": 0
 				}
 			],
+			"x": 420,
+			"y": 440,
+			"width": 220,
+			"height": 115,
 			"data": {}
 		}
 	],
@@ -100,6 +112,10 @@
 					"type": "image"
 				}
 			],
+			"x": 760,
+			"y": 120,
+			"width": 220,
+			"height": 105,
 			"data": {}
 		},
 		{
@@ -121,6 +137,10 @@
 					"type": "image"
 				}
 			],
+			"x": 760,
+			"y": 440,
+			"width": 220,
+			"height": 105,
 			"data": {}
 		}
 	],

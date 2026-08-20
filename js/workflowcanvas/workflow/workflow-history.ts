@@ -30,8 +30,16 @@ const DEFAULT_LIMIT = 100;
 
 /**
  * The part of a workflow a user could have deliberately changed. Cast to
- * `OperatorNode` purely to destructure `endpoints` off nodes that may not
- * declare it — the result is only ever serialised, never used as a node.
+ * `OperatorNode` purely to destructure operator-only fields off nodes that may
+ * not declare them — the result is only ever serialised, never used as a node.
+ *
+ * `inputs` / `outputs` are excluded for the same reason as `endpoints`: all
+ * three are written by `init_model_node_ports` when the backend's endpoint
+ * catalog arrives after mount, so counting them would make the user's first
+ * Cmd+Z rewind that hydration instead of whatever they actually just did. The
+ * chosen `endpoint` stays in, so *switching* endpoints is still one undo step —
+ * and since snapshots carry whole nodes, undoing that switch still restores the
+ * ports that went with it.
  */
 export function history_signature(wf: Workflow): string {
 	const node_signature = (node: AnyNode): unknown => {
@@ -39,6 +47,8 @@ export function history_signature(wf: Workflow): string {
 			data: _data,
 			height: _height,
 			endpoints: _endpoints,
+			inputs: _inputs,
+			outputs: _outputs,
 			...rest
 		} = node as OperatorNode;
 		return rest;
@@ -92,6 +102,26 @@ export interface WorkflowHistory {
 	can_redo(): boolean;
 }
 
+/**
+ * A workflow as it goes onto the stacks, with node `data` dropped.
+ *
+ * Nothing reads a snapshot's `data`: `carry_live_values` takes it from the
+ * current workflow for every node that still exists, and a node the snapshot is
+ * bringing back from deletion has had its blob URLs revoked by `removeNode`
+ * already — restoring those would show a broken image rather than the output.
+ * Dropping it also keeps a hundred entries from pinning a hundred copies of
+ * every generated image in memory.
+ */
+function snapshot(wf: Workflow): Workflow {
+	const strip = <T extends AnyNode>(node: T): T => ({ ...node, data: {} });
+	return {
+		...wf,
+		references: wf.references.map((n) => strip<ReferenceNode>(n)),
+		operators: wf.operators.map((n) => strip<OperatorNode>(n)),
+		subjects: wf.subjects.map((n) => strip<SubjectNode>(n))
+	};
+}
+
 export function create_history(limit: number = DEFAULT_LIMIT): WorkflowHistory {
 	let past: Workflow[] = [];
 	let future: Workflow[] = [];
@@ -121,7 +151,7 @@ export function create_history(limit: number = DEFAULT_LIMIT): WorkflowHistory {
 				present = wf;
 				return;
 			}
-			past.push(present);
+			past.push(snapshot(present));
 			if (past.length > limit) past.shift();
 			future = [];
 			adopt(wf);
@@ -129,7 +159,7 @@ export function create_history(limit: number = DEFAULT_LIMIT): WorkflowHistory {
 		undo(current) {
 			const previous = past.pop();
 			if (!previous) return null;
-			future.push(current);
+			future.push(snapshot(current));
 			const restored = carry_live_values(previous, current);
 			adopt(restored);
 			return restored;
@@ -137,7 +167,7 @@ export function create_history(limit: number = DEFAULT_LIMIT): WorkflowHistory {
 		redo(current) {
 			const next = future.pop();
 			if (!next) return null;
-			past.push(current);
+			past.push(snapshot(current));
 			const restored = carry_live_values(next, current);
 			adopt(restored);
 			return restored;

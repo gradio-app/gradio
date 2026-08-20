@@ -9,11 +9,15 @@
  * mirrored here into localStorage instead, keyed by workflow name — the same
  * scheme `viewport-persistence.ts` uses for pan/zoom.
  *
- * A viewer with nothing stored is a first-time viewer: the canvas auto-arranges
- * and fits the graph rather than trusting whatever coordinates happen to be in
- * the file. A viewer with *some* nodes stored has arranged this workflow before
- * and has since been shown new ones — those get a free spot clear of the cards
- * they already placed, and the rest of their arrangement is left alone.
+ * A viewer with nothing stored is a first-time viewer. If the file carries a
+ * complete arrangement, that is what they see — an author publishing a workflow
+ * still gets to say how it reads on first open, and `sanitize_for_save` means
+ * nothing the viewer then does can overwrite it. Only when the file has no
+ * coordinates does the canvas auto-arrange and fit.
+ *
+ * A viewer with *some* nodes stored has arranged this workflow before and has
+ * since been shown new ones — those get a free spot clear of the cards they
+ * already placed, and the rest of their arrangement is left alone.
  */
 
 import { allNodes } from "./workflow-migration";
@@ -38,6 +42,8 @@ export type WorkflowLayout = Record<string, NodeLayout>;
 
 /** Horizontal clearance given to a node the viewer has never placed. */
 const UNPLACED_GAP = 280;
+/** Vertical stride between several never-placed nodes, so they don't overlap. */
+const UNPLACED_ROW = 180;
 
 export function layout_storage_key(name: string): string {
 	return `gradio_workflow_layout:${name}`;
@@ -108,6 +114,26 @@ export function extract_layout(wf: Workflow): WorkflowLayout {
 }
 
 /** True when the viewer has never arranged any of this workflow's nodes. */
+/**
+ * A layout reduced to what the viewer can deliberately change: position, width
+ * and a pinned height. Measured `height` is left out because a `ResizeObserver`
+ * writes it moments after mount, which would otherwise read as a rearrangement.
+ *
+ * The canvas compares this against the arrangement it started from, so a viewer
+ * who never moves anything stores nothing — and keeps seeing the file's own
+ * arrangement, including changes the author makes to it later.
+ */
+export function layout_signature(layout: WorkflowLayout): string {
+	return JSON.stringify(
+		Object.keys(layout)
+			.sort()
+			.map((id) => {
+				const entry = layout[id];
+				return [id, entry.x, entry.y, entry.width, entry.manual_height ?? null];
+			})
+	);
+}
+
 export function layout_is_unseen(
 	wf: Workflow,
 	layout: WorkflowLayout
@@ -127,25 +153,46 @@ function map_nodes(
 	};
 }
 
-export function apply_layout(wf: Workflow, layout: WorkflowLayout): Workflow {
+export interface ApplyLayoutOptions {
+	/**
+	 * What to do with a node the viewer has no stored entry for. `true` (the
+	 * default) parks it clear of the cards they *have* arranged — right for a
+	 * node that appeared in the workflow since their last visit. `false` leaves
+	 * the node where it already is, which is what a first-time viewer of a file
+	 * that carries its author's arrangement should see.
+	 */
+	park_unplaced?: boolean;
+}
+
+export function apply_layout(
+	wf: Workflow,
+	layout: WorkflowLayout,
+	{ park_unplaced = true }: ApplyLayoutOptions = {}
+): Workflow {
 	const placed = allNodes(wf)
 		.map((node) => layout[node.id])
 		.filter((entry): entry is NodeLayout => entry !== undefined)
 		.map(({ x, y }) => ({ x, y }));
 
 	// Nodes with no stored entry are ones this viewer has never seen. Park them
-	// to the right of everything they *have* arranged; the file's own
-	// coordinates are meaningless now that geometry isn't saved, so falling back
-	// to them would stack every new node on the origin.
+	// to the right of everything they *have* arranged, in a column so a handful
+	// arriving at once don't land in a near-perfect stack.
 	const unplaced_origin = {
 		x: placed.length ? Math.max(...placed.map((p) => p.x)) + UNPLACED_GAP : 80,
 		y: placed.length ? Math.min(...placed.map((p) => p.y)) : 80
 	};
+	let unplaced_seen = 0;
 
 	return map_nodes(wf, <T extends AnyNode>(node: T): T => {
 		const stored = layout[node.id];
 		if (!stored) {
-			const spot = findFreeSpot(placed, unplaced_origin.x, unplaced_origin.y);
+			if (!park_unplaced) return node;
+			const spot = findFreeSpot(
+				placed,
+				unplaced_origin.x,
+				unplaced_origin.y + unplaced_seen * UNPLACED_ROW
+			);
+			unplaced_seen += 1;
 			placed.push(spot);
 			return { ...node, x: spot.x, y: spot.y };
 		}

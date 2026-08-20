@@ -23,6 +23,7 @@ from gradio.workflow import (
     _save_tmp,
     _warn_workflow_oauth_configuration,
     _workflow_from_bind,
+    _workflow_key,
     call_model,
     call_space,
     get_model_endpoints,
@@ -323,6 +324,33 @@ class TestOAuthAvailable:
         monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
         monkeypatch.setenv("OAUTH_CLIENT_ID", "client-id")
         assert get_oauth_available() == "true"
+
+
+class TestWorkflowKey:
+    """The canvas keys each viewer's layout and viewport by this, so it has to be
+    stable across restarts and graph edits, and distinct per workflow."""
+
+    def test_uses_the_space_repo_id_on_spaces(self, monkeypatch):
+        monkeypatch.setenv("SPACE_ID", "owner/space")
+        assert _workflow_key("/anywhere/workflow.json") == "space:owner/space"
+
+    def test_is_stable_across_restarts_locally(self, monkeypatch):
+        monkeypatch.delenv("SPACE_ID", raising=False)
+        assert _workflow_key("/a/workflow.json") == _workflow_key("/a/workflow.json")
+
+    def test_distinguishes_two_workflows_in_different_directories(self, monkeypatch):
+        monkeypatch.delenv("SPACE_ID", raising=False)
+        assert _workflow_key("/a/workflow.json") != _workflow_key("/b/workflow.json")
+
+    def test_does_not_leak_the_path(self, monkeypatch):
+        monkeypatch.delenv("SPACE_ID", raising=False)
+        assert "secret" not in _workflow_key("/home/secret/workflow.json")
+
+    def test_ignores_the_working_directory(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("SPACE_ID", raising=False)
+        graph = tmp_path / "workflow.json"
+        monkeypatch.chdir(tmp_path)
+        assert _workflow_key("workflow.json") == _workflow_key(str(graph))
 
 
 class TestOAuthConfigurationWarning:

@@ -127,7 +127,7 @@ A workflow is a JSON file with three node collections:
 }
 ```
 
-Node `data` may be omitted.
+Node `data` may be omitted, and so may geometry. Include `x` and `y` on every node to control how the graph is arranged when someone opens it for the first time; leave them out and the canvas auto-arranges it. Either way the arrangement is only a starting point: each visitor is free to drag and resize cards, that arrangement is saved in their own browser rather than in the file, and `workflow.json` is never rewritten with it. `height` is measured from the rendered card. `width` is the default every viewer starts from — anyone can resize a card locally, and a writer's resize becomes the new default the next time an edit is saved.
 
 | Collection | Role |
 |---|---|
