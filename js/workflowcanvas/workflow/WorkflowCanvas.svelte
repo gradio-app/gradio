@@ -114,15 +114,16 @@
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
 	let lastSavedSerialized = $state<string | null>(null);
-	// Post-load hydration (model port schemas, role reconciliation) mutates
-	// the workflow without user input and would otherwise flip dirty. Gate
-	// on a real gesture and re-baseline when it arrives.
 	let userInteracted = $state(false);
 	const isDirty = $derived(
 		userInteracted &&
 			lastSavedSerialized !== null &&
 			JSON.stringify(sanitize_for_save($workflow)) !== lastSavedSerialized
 	);
+	$effect(() => {
+		if (userInteracted) return;
+		lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
+	});
 	$effect(() => {
 		if (userInteracted) return;
 		const flip = (): void => {
