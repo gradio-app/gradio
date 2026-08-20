@@ -7,7 +7,7 @@
       "id": "ref_text", "label": "Text", "role": "reference", "asset_type": "text",
       "inputs": [{ "id": "in", "label": "Text", "type": "text" }],
       "outputs": [{ "id": "out", "label": "Text", "type": "text" }],
-      "x": 80, "y": 120, "width": 220, "height": 120, "data": {}
+      "data": {}
     }
   ],
   "operators": [
@@ -15,13 +15,13 @@
       "id": "op_loud", "label": "shout", "role": "operator", "kind": "fn", "fn": "shout",
       "inputs": [{ "id": "in_text", "label": "text", "type": "text", "required": true }],
       "outputs": [{ "id": "out_0", "label": "output", "type": "text", "output_index": 0 }],
-      "x": 380, "y": 40, "width": 220, "height": 120, "data": {}
+      "data": {}
     },
     {
       "id": "op_rev", "label": "reverse", "role": "operator", "kind": "fn", "fn": "reverse",
       "inputs": [{ "id": "in_text", "label": "text", "type": "text", "required": true }],
       "outputs": [{ "id": "out_0", "label": "output", "type": "text", "output_index": 0 }],
-      "x": 380, "y": 240, "width": 220, "height": 120, "data": {}
+      "data": {}
     }
   ],
   "subjects": [
@@ -29,13 +29,13 @@
       "id": "sub_loud", "label": "Loud", "role": "subject", "asset_type": "text",
       "inputs": [{ "id": "in", "label": "Text", "type": "text" }],
       "outputs": [{ "id": "out", "label": "Text", "type": "text" }],
-      "x": 700, "y": 40, "width": 220, "height": 107, "data": {}
+      "data": {}
     },
     {
       "id": "sub_rev", "label": "Reversed", "role": "subject", "asset_type": "text",
       "inputs": [{ "id": "in", "label": "Text", "type": "text" }],
       "outputs": [{ "id": "out", "label": "Text", "type": "text" }],
-      "x": 700, "y": 240, "width": 220, "height": 107, "data": {}
+      "data": {}
     }
   ],
   "edges": [

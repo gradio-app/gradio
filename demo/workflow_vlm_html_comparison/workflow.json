@@ -21,10 +21,6 @@
 					"type": "image"
 				}
 			],
-			"x": 60,
-			"y": 200,
-			"width": 220,
-			"height": 122,
 			"data": {}
 		},
 		{
@@ -46,10 +42,6 @@
 					"type": "text"
 				}
 			],
-			"x": 60,
-			"y": 420,
-			"width": 220,
-			"height": 165,
 			"data": {
 				"out": "Recreate this webpage as a single self-contained HTML file with inline CSS. Match the layout, colors, spacing, and text as closely as you can. Output only HTML, with no explanation."
 			}
@@ -82,10 +74,6 @@
 					"output_index": 0
 				}
 			],
-			"x": 400,
-			"y": 120,
-			"width": 220,
-			"height": 139,
 			"data": {},
 			"model_id": "thinkingmachines/Inkling",
 			"pipeline_tag": "image-text-to-text",
@@ -117,10 +105,6 @@
 					"output_index": 0
 				}
 			],
-			"x": 400,
-			"y": 500,
-			"width": 220,
-			"height": 139,
 			"data": {},
 			"model_id": "moonshotai/Kimi-K2.7-Code",
 			"pipeline_tag": "image-text-to-text",
@@ -147,10 +131,6 @@
 					"type": "image"
 				}
 			],
-			"x": 740,
-			"y": 220,
-			"width": 220,
-			"height": 116,
 			"data": {}
 		},
 		{
@@ -174,10 +154,6 @@
 					"type": "image"
 				}
 			],
-			"x": 740,
-			"y": 600,
-			"width": 220,
-			"height": 116,
 			"data": {}
 		}
 	],
@@ -201,10 +177,6 @@
 					"type": "text"
 				}
 			],
-			"x": 1080,
-			"y": 60,
-			"width": 220,
-			"height": 161,
 			"data": {
 				"in": ""
 			}
@@ -228,10 +200,6 @@
 					"type": "image"
 				}
 			],
-			"x": 1080,
-			"y": 260,
-			"width": 220,
-			"height": 105,
 			"data": {}
 		},
 		{
@@ -253,10 +221,6 @@
 					"type": "text"
 				}
 			],
-			"x": 1080,
-			"y": 440,
-			"width": 220,
-			"height": 161,
 			"data": {
 				"in": ""
 			}
@@ -280,10 +244,6 @@
 					"type": "image"
 				}
 			],
-			"x": 1080,
-			"y": 640,
-			"width": 220,
-			"height": 105,
 			"data": {}
 		}
 	],
