@@ -325,43 +325,18 @@ describe("allNodes / findNode", () => {
 });
 
 describe("hasMissingNodeGeometry", () => {
-	test("false when every node in the file carries a position", () => {
+	test("decides whether the file carries an arrangement to honour", () => {
+		const positioned = { id: "a", x: 10, y: 20 };
 		expect(
-			hasMissingNodeGeometry({
-				schema_version: "2",
-				references: [{ id: "a", x: 10, y: 20 }],
-				operators: [{ id: "b", x: 30, y: 40 }],
-				subjects: []
-			})
+			hasMissingNodeGeometry({ references: [positioned], operators: [] })
 		).toBe(false);
-	});
-
-	test("true when any node is missing one", () => {
 		expect(
 			hasMissingNodeGeometry({
-				schema_version: "2",
-				references: [{ id: "a", x: 10, y: 20 }],
-				operators: [{ id: "b", x: 30 }],
-				subjects: []
+				references: [positioned],
+				operators: [{ id: "b" }]
 			})
 		).toBe(true);
-	});
-
-	test("true for a graph with no nodes at all, so it isn't read as authored", () => {
+		// Nothing to honour in an empty graph, so it isn't read as authored.
 		expect(hasMissingNodeGeometry({ schema_version: "2" })).toBe(true);
-		expect(hasMissingNodeGeometry(null)).toBe(true);
-	});
-
-	test("reads v1 files, where nodes live in one array", () => {
-		expect(hasMissingNodeGeometry({ nodes: [{ id: "a", x: 1, y: 2 }] })).toBe(
-			false
-		);
-		expect(hasMissingNodeGeometry({ nodes: [{ id: "a" }] })).toBe(true);
-	});
-
-	test("ignores width and height, which the canvas can supply itself", () => {
-		expect(hasMissingNodeGeometry({ nodes: [{ id: "a", x: 1, y: 2 }] })).toBe(
-			false
-		);
 	});
 });

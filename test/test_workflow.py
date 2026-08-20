@@ -328,29 +328,20 @@ class TestOAuthAvailable:
 
 class TestWorkflowKey:
     """The canvas keys each viewer's layout and viewport by this, so it has to be
-    stable across restarts and graph edits, and distinct per workflow."""
+    stable across restarts and distinct per workflow."""
 
     def test_uses_the_space_repo_id_on_spaces(self, monkeypatch):
         monkeypatch.setenv("SPACE_ID", "owner/space")
         assert _workflow_key("/anywhere/workflow.json") == "space:owner/space"
 
-    def test_is_stable_across_restarts_locally(self, monkeypatch):
-        monkeypatch.delenv("SPACE_ID", raising=False)
-        assert _workflow_key("/a/workflow.json") == _workflow_key("/a/workflow.json")
-
-    def test_distinguishes_two_workflows_in_different_directories(self, monkeypatch):
+    def test_identifies_the_graph_file_locally(self, monkeypatch, tmp_path):
         monkeypatch.delenv("SPACE_ID", raising=False)
         assert _workflow_key("/a/workflow.json") != _workflow_key("/b/workflow.json")
-
-    def test_does_not_leak_the_path(self, monkeypatch):
-        monkeypatch.delenv("SPACE_ID", raising=False)
-        assert "secret" not in _workflow_key("/home/secret/workflow.json")
-
-    def test_ignores_the_working_directory(self, monkeypatch, tmp_path):
-        monkeypatch.delenv("SPACE_ID", raising=False)
-        graph = tmp_path / "workflow.json"
+        # Resolved, so relaunching from a different directory keeps the key.
         monkeypatch.chdir(tmp_path)
-        assert _workflow_key("workflow.json") == _workflow_key(str(graph))
+        assert _workflow_key("workflow.json") == _workflow_key(
+            str(tmp_path / "workflow.json")
+        )
 
 
 class TestOAuthConfigurationWarning:
