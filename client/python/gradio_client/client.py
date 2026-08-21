@@ -205,8 +205,11 @@ class Client:
         # A prediction blocks its thread until two helpers run on its behalf, so
         # sharing one pool deadlocks it once max_workers predictions are in flight.
         self.helper_executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=2 * max_workers + 1
+            max_workers=2 * max_workers
         )
+        # Helpers only finish once the reader has delivered their messages, so it
+        # gets a thread of its own instead of queueing behind them.
+        self.stream_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         self.analytics_enabled = (
             analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
@@ -224,6 +227,8 @@ class Client:
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
         self.pending_lock = threading.Lock()
+        self.stream_epoch = 0
+        self.pending_event_epoch: dict[str, int] = {}
 
     def close(self):
         self._kill_heartbeat.set()
@@ -295,7 +300,8 @@ class Client:
                                         pending_messages.append(resp)
                                     return
                                 elif resp["msg"] == ServerMessage.close_stream:
-                                    self.stream_open = False
+                                    with self.pending_lock:
+                                        self.stream_open = False
                                     return
                                 event_id = resp["event_id"]
                                 with self.pending_lock:
@@ -309,9 +315,13 @@ class Client:
                                     if resp["msg"] == ServerMessage.process_completed:
                                         # The submitting thread may not have got here yet.
                                         self.pending_event_ids.discard(event_id)
-                                    no_pending_events = len(self.pending_event_ids) == 0
-                                if no_pending_events and protocol != "sse_v3":
-                                    self.stream_open = False
+                                    close = (
+                                        len(self.pending_event_ids) == 0
+                                        and protocol != "sse_v3"
+                                    )
+                                    if close:
+                                        self.stream_open = False
+                                if close:
                                     return
                             else:
                                 raise ValueError(f"Unexpected SSE line: '{line}'")
@@ -346,14 +356,27 @@ class Client:
         resp = req.json()
         event_id = resp["event_id"]
 
-        # Must precede the stream opening below: the server starts emitting
-        # messages for this event as soon as the POST above is handled.
+        # Registering must precede opening the stream (the server emits messages
+        # as soon as the POST is handled) and share its lock, so the epoch tagged
+        # here is that of the reader which ends up serving this event.
         with self.pending_lock:
             self.pending_event_ids.add(event_id)
             self.pending_messages_per_event.setdefault(event_id, deque())
+            self.pending_event_epoch = {
+                eid: tagged
+                for eid, tagged in self.pending_event_epoch.items()
+                if eid in self.pending_messages_per_event
+            }
+            open_reader = not self.stream_open and (
+                self.streaming_future is None or self.streaming_future.done()
+            )
+            if open_reader:
+                self.stream_open = True
+                self.stream_epoch += 1
+            epoch = self.stream_epoch
+            self.pending_event_epoch[event_id] = epoch
 
-        if not self.stream_open:
-            self.stream_open = True
+        if open_reader:
 
             def open_stream():
                 return self.stream_messages(
@@ -361,15 +384,20 @@ class Client:
                 )
 
             def close_stream(_):
-                self.stream_open = False
                 with self.pending_lock:
-                    pending = list(self.pending_messages_per_event.values())
+                    self.stream_open = False
+                    pending = [
+                        messages
+                        for eid, messages in self.pending_messages_per_event.items()
+                        if self.pending_event_epoch.get(eid, epoch) <= epoch
+                    ]
                 for pending_messages in pending:
                     pending_messages.append(None)
 
-            if self.streaming_future is None or self.streaming_future.done():
-                self.streaming_future = self.helper_executor.submit(open_stream)
-                self.streaming_future.add_done_callback(close_stream)
+            # Submitted outside the lock: add_done_callback runs close_stream
+            # inline when the future is already done, and it takes the lock.
+            self.streaming_future = self.stream_executor.submit(open_stream)
+            self.streaming_future.add_done_callback(close_stream)
 
         return event_id
 
@@ -935,9 +963,12 @@ class Client:
     def __del__(self):
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
+        # Not wait=True: garbage collecting a client should not block on a reader
+        # that is still waiting on the server.
         if hasattr(self, "helper_executor"):
-            # Not wait=True: the SSE reader runs here and outlives the requests.
             self.helper_executor.shutdown(wait=False)
+        if hasattr(self, "stream_executor"):
+            self.stream_executor.shutdown(wait=False)
 
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.token).host  # type: ignore
