@@ -728,156 +728,146 @@ class App(FastAPI):
                 raise HTTPException(status_code=404, detail="Not found")
             return main(request, user)
 
-        _bucket_repo_re = re.compile(
-            r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$"
-        )
-
-        def _oauth_token(request: fastapi.Request) -> str | None:
-            try:
-                info = oauth._get_valid_oauth_info_from_session(request.session)
-            except Exception:
-                return None
-            return info.get("access_token") if info else None
-
-        # Cap history bodies at 2 MiB — records are tiny JSON, media is
-        # uploaded through the Hub client directly, so anything larger is
-        # malformed or malicious.
-        history_max_body = 2 * 1024 * 1024
-
-        async def _history_body(request: fastapi.Request) -> dict:
-            declared = request.headers.get("content-length")
-            if declared and declared.isdigit() and int(declared) > history_max_body:
-                return {}
-            try:
-                raw = await request.body()
-            except Exception:
-                return {}
-            if len(raw) > history_max_body:
-                return {}
-            try:
-                data = orjson.loads(raw)
-                return data if isinstance(data, dict) else {}
-            except Exception:
-                return {}
-
-        def _bucket_for(request: fastapi.Request, bucket_id: str):
-            """Return a cached ``BucketHistory`` for the caller's OAuth token
-            and the requested bucket, or None if unauthenticated / invalid.
-
-            Path segments equal to ``.`` or ``..`` are rejected on top of the
-            regex to prevent path traversal through the Hub client.
-            """
-            hf_token = _oauth_token(request)
-            if not hf_token or not _bucket_repo_re.fullmatch(bucket_id or ""):
-                return None
-            if any(seg in {"", ".", ".."} for seg in bucket_id.split("/")):
-                return None
-            from gradio.history import BucketHistory
-
-            cache = app.state.bucket_history_cache
-            key = (hf_token, bucket_id)
-            with app.state.bucket_history_cache_lock:
-                if key in cache:
-                    cache.move_to_end(key)
-                    return cache[key]
-                cache[key] = BucketHistory(bucket_id, token=hf_token)
-                if len(cache) > 256:
-                    cache.popitem(last=False)
-                return cache[key]
+        # /run-history/*: bucket is set once via /connect and stored in the
+        # session; subsequent routes derive it from there.
+        _HISTORY_MAX_BODY = 2 * 1024 * 1024
+        _RECORD_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
         app.state.bucket_history_cache = OrderedDict()
         app.state.bucket_history_cache_lock = threading.Lock()
 
-        app.state.push_last_at = OrderedDict()
-        app.state.push_last_at_lock = threading.Lock()
+        def _bucket_from_session(request: fastapi.Request, token: str):
+            from gradio.history import bucket_for_token
 
-        @app.post("/gradio_api/history/list")
-        async def _history_list(request: fastapi.Request):
-            body = await _history_body(request)
-            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
-            if wh is None:
-                return JSONResponse({"records": []})
+            bucket_id = (request.session.get("history") or {}).get("bucket_id")
+            if not bucket_id:
+                raise fastapi.HTTPException(409, "no bucket connected")
             try:
-                limit = int(body.get("limit", 50) or 0)
-            except Exception:
-                limit = 50
-            if limit == 0:
-                return JSONResponse({"records": []})
-            records = wh.list(limit=limit, subgraph=body.get("subgraph") or None)
+                return bucket_for_token(
+                    app.state.bucket_history_cache,
+                    app.state.bucket_history_cache_lock,
+                    token,
+                    bucket_id,
+                )
+            except ValueError as exc:
+                raise fastapi.HTTPException(422, "invalid bucket id") from exc
+
+        @router.post("/run-history/connect")
+        async def _run_history_connect(
+            request: fastapi.Request,
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            from gradio.history import bucket_for_token
+
+            body = await route_utils.bounded_json_body(request, _HISTORY_MAX_BODY)
+            bucket_id = str(body.get("bucket_id") or "")
+            try:
+                wh = bucket_for_token(
+                    app.state.bucket_history_cache,
+                    app.state.bucket_history_cache_lock,
+                    token,
+                    bucket_id,
+                )
+            except ValueError as exc:
+                raise fastapi.HTTPException(422, "invalid bucket id") from exc
+            ok, reason = await anyio.to_thread.run_sync(wh.ensure_repo)
+            if not ok:
+                status = 403 if reason == "no_permission" else 502
+                raise fastapi.HTTPException(status, reason or "hub error")
+            request.session["history"] = {"bucket_id": bucket_id}
+            return JSONResponse({"bucket_id": bucket_id})
+
+        @router.post("/run-history/disconnect")
+        async def _run_history_disconnect(
+            request: fastapi.Request,
+            _: str = Depends(oauth.require_oauth_token),
+        ):
+            request.session.pop("history", None)
+            return JSONResponse({"ok": True})
+
+        @router.get("/run-history/buckets")
+        async def _run_history_buckets(
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            from huggingface_hub import HfApi as _HfApi
+
+            def _list():
+                return [
+                    {"id": b.id, "private": getattr(b, "private", True)}
+                    for b in _HfApi(token=token).list_buckets(token=token)
+                ]
+
+            try:
+                buckets = await anyio.to_thread.run_sync(_list)
+            except Exception as exc:
+                raise fastapi.HTTPException(502, "hub error") from exc
+            return JSONResponse({"buckets": buckets})
+
+        @router.get("/run-history/records")
+        async def _run_history_records(
+            request: fastapi.Request,
+            limit: int = 50,
+            subgraph: str | None = None,
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            wh = _bucket_from_session(request, token)
+            if limit < 1 or limit > 200:
+                raise fastapi.HTTPException(422, "limit out of range")
+            try:
+                records = await anyio.to_thread.run_sync(
+                    lambda: wh.list(limit=limit, subgraph=subgraph or None)
+                )
+            except Exception as exc:
+                raise fastapi.HTTPException(502, "hub error") from exc
             return JSONResponse({"records": records})
 
-        @app.post("/gradio_api/history/push")
-        async def _history_push(request: fastapi.Request):
-            body = await _history_body(request)
-            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
-            if wh is None:
-                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
-            from gradio.history import push_rate_limited
-
-            hf_token = _oauth_token(request)
-            if hf_token and push_rate_limited(
-                app.state.push_last_at, app.state.push_last_at_lock, hf_token
-            ):
-                return JSONResponse(
-                    {"ok": False, "reason": "rate_limited"}, status_code=429
-                )
-            record = body.get("record") or {}
+        @router.post("/run-history/records")
+        async def _run_history_push(
+            request: fastapi.Request,
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            wh = _bucket_from_session(request, token)
+            body = await route_utils.bounded_json_body(request, _HISTORY_MAX_BODY)
+            record = body.get("record") or body
             if isinstance(record, str):
                 try:
                     record = orjson.loads(record)
-                except Exception:
-                    return JSONResponse({"ok": False, "reason": "invalid_record"})
+                except Exception as exc:
+                    raise fastapi.HTTPException(422, "invalid record") from exc
             if not isinstance(record, dict) or not record.get("id"):
-                return JSONResponse({"ok": False, "reason": "invalid_record"})
-            wh.push(record)
-            return JSONResponse({"ok": True})
+                raise fastapi.HTTPException(422, "invalid record")
+            if not _RECORD_ID_RE.fullmatch(str(record["id"])):
+                raise fastapi.HTTPException(422, "invalid record id")
+            ok, reason = await anyio.to_thread.run_sync(wh.push_sync, record)
+            if not ok:
+                status = 403 if reason == "no_permission" else 502
+                raise fastapi.HTTPException(status, reason or "hub error")
+            return JSONResponse({"ok": True, "id": record["id"]})
 
-        @app.post("/gradio_api/history/ensure")
-        async def _history_ensure(request: fastapi.Request):
-            """Synchronously verify or create the bucket so the UI can surface
-            auth / permission errors before the user pushes."""
-            body = await _history_body(request)
-            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
-            if wh is None:
-                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
-            ok, reason = wh.ensure_repo()
-            return JSONResponse({"ok": ok} if ok else {"ok": False, "reason": reason})
-
-        _record_id_re = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
-        _timestamp_re = re.compile(
-            r"^\d{4}-\d{2}-\d{2}T\d{2}[:-]\d{2}[:-]\d{2}(?:\.\d{1,6})?Z$"
-        )
-
-        @app.post("/gradio_api/history/delete")
-        async def _history_delete(request: fastapi.Request):
-            body = await _history_body(request)
-            wh = _bucket_for(request, str(body.get("bucket_id") or ""))
-            if wh is None:
-                return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
-            record_id = str(body.get("id") or "")
-            timestamp = str(body.get("timestamp") or "")
-            if not _record_id_re.fullmatch(record_id) or not _timestamp_re.fullmatch(
-                timestamp
-            ):
-                return JSONResponse({"ok": False, "reason": "invalid_fields"})
-            return JSONResponse({"ok": wh.delete(record_id, timestamp)})
-
-        @app.get("/gradio_api/history/buckets")
-        async def _history_buckets(request: fastapi.Request):
-            """List the authenticated user's own buckets (for a picker UI)."""
-            hf_token = _oauth_token(request)
-            if not hf_token:
-                return JSONResponse({"buckets": []})
+        @router.delete("/run-history/records/{record_id}")
+        async def _run_history_delete(
+            request: fastapi.Request,
+            record_id: str,
+            timestamp: str,
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            wh = _bucket_from_session(request, token)
+            if not _RECORD_ID_RE.fullmatch(record_id):
+                raise fastapi.HTTPException(422, "invalid record id")
+            _timestamp_re = re.compile(
+                r"^\d{4}-\d{2}-\d{2}T\d{2}[:-]\d{2}[:-]\d{2}(?:\.\d{1,6})?Z$"
+            )
+            if not _timestamp_re.fullmatch(timestamp):
+                raise fastapi.HTTPException(422, "invalid timestamp")
             try:
-                from huggingface_hub import HfApi as _HfApi
-
-                buckets = [
-                    {"id": b.id, "private": getattr(b, "private", True)}
-                    for b in _HfApi(token=hf_token).list_buckets(token=hf_token)
-                ]
-                return JSONResponse({"buckets": buckets})
-            except Exception:
-                return JSONResponse({"buckets": []})
+                ok = await anyio.to_thread.run_sync(
+                    lambda: wh.delete(record_id, timestamp)
+                )
+            except Exception as exc:
+                raise fastapi.HTTPException(502, "hub error") from exc
+            if not ok:
+                raise fastapi.HTTPException(502, "hub error")
+            return JSONResponse({"ok": True})
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):

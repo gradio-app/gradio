@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import {
-		ensure_bucket,
+		connect_bucket,
 		is_valid_bucket_id,
 		list_user_buckets,
 		type BucketInfo
@@ -11,12 +11,16 @@
 		root,
 		workflowName = "",
 		username = "",
+		signedIn = true,
+		onsignin,
 		onconnected,
 		onclose
 	}: {
 		root: string;
 		workflowName?: string;
 		username?: string;
+		signedIn?: boolean;
+		onsignin?: () => void;
 		onconnected: (bucketId: string) => void;
 		onclose: () => void;
 	} = $props();
@@ -48,15 +52,17 @@
 			return;
 		}
 		connecting = true;
-		const result = await ensure_bucket(root, bucketId);
+		const result = await connect_bucket(root, bucketId);
 		connecting = false;
 		if (!result.ok) {
-			if (result.reason === "auth") {
+			if (result.status === 401) {
 				error = "Sign in with 🤗 first to connect a bucket.";
-			} else if (result.reason === "no_permission") {
+			} else if (result.status === 403) {
 				error = `Cannot access or create "${bucketId}". Either create it at https://huggingface.co/new-bucket, or add \`hf_oauth_scopes: [manage-repos]\` to the Space README.`;
+			} else if (result.status === 422) {
+				error = "Invalid bucket ID — expected `username/bucket-name`.";
 			} else {
-				error = `Could not connect: ${result.detail ?? result.reason ?? "unknown error"}`;
+				error = `Could not connect: ${result.detail ?? result.status}`;
 			}
 			return;
 		}
@@ -64,6 +70,7 @@
 	}
 
 	onMount(async () => {
+		if (!signedIn) return;
 		try {
 			existingBuckets = await list_user_buckets(root);
 		} catch {
@@ -93,48 +100,60 @@
 			outputs from the History panel.
 		</p>
 
-		{#if existingBuckets.length > 0}
-			<div class="bucket-list">
-				{#each existingBuckets as bucket}
-					<button
-						class="bucket-item"
-						disabled={connecting}
-						onclick={() => connect(bucket.id)}
-					>
-						<span class="bucket-id">{bucket.id}</span>
-					</button>
-				{/each}
+		{#if !signedIn}
+			<div class="connect-signin">
+				<p class="connect-hint">
+					Sign in with your Hugging Face account to save history to a private
+					bucket under your name.
+				</p>
+				<button class="connect-btn" onclick={() => onsignin?.()}>
+					Sign in with 🤗
+				</button>
 			</div>
-			<div class="connect-divider"><span>or use a new bucket</span></div>
-		{/if}
+		{:else}
+			{#if existingBuckets.length > 0}
+				<div class="bucket-list">
+					{#each existingBuckets as bucket}
+						<button
+							class="bucket-item"
+							disabled={connecting}
+							onclick={() => connect(bucket.id)}
+						>
+							<span class="bucket-id">{bucket.id}</span>
+						</button>
+					{/each}
+				</div>
+				<div class="connect-divider"><span>or use a new bucket</span></div>
+			{/if}
 
-		<p class="connect-hint">
-			Suggested: <code>{suggestedId}</code>. A new bucket is auto-created on
-			first use.
-		</p>
+			<p class="connect-hint">
+				Suggested: <code>{suggestedId}</code>. A new bucket is auto-created on
+				first use.
+			</p>
 
-		<div class="connect-manual">
-			<input
-				class="connect-input"
-				type="text"
-				placeholder={suggestedId}
-				bind:value={repoInput}
-				disabled={connecting}
-				onkeydown={(e) => {
-					if (e.key === "Enter" && repoInput.trim()) connect(repoInput.trim());
-				}}
-			/>
-			<button
-				class="connect-btn"
-				disabled={connecting || !repoInput.trim()}
-				onclick={() => connect(repoInput.trim())}
-			>
-				{connecting ? "..." : "Connect"}
-			</button>
-		</div>
+			<div class="connect-manual">
+				<input
+					class="connect-input"
+					type="text"
+					placeholder={suggestedId}
+					bind:value={repoInput}
+					disabled={connecting}
+					onkeydown={(e) => {
+						if (e.key === "Enter" && repoInput.trim()) connect(repoInput.trim());
+					}}
+				/>
+				<button
+					class="connect-btn"
+					disabled={connecting || !repoInput.trim()}
+					onclick={() => connect(repoInput.trim())}
+				>
+					{connecting ? "..." : "Connect"}
+				</button>
+			</div>
 
-		{#if error}
-			<div class="connect-error">{error}</div>
+			{#if error}
+				<div class="connect-error">{error}</div>
+			{/if}
 		{/if}
 	</div>
 </div>

@@ -100,11 +100,7 @@
 	}
 
 	async function fetchRecords() {
-		records = (await list_bucket_records(
-			root,
-			bucketId,
-			50
-		)) as HistoryRecord[];
+		records = (await list_bucket_records(root, 50)) as HistoryRecord[];
 	}
 
 	async function refresh() {
@@ -293,7 +289,7 @@
 										class="card-delete-confirm"
 										onclick={() => {
 											pendingDelete = null;
-											delete_record_from_bucket(root, bucketId, {
+											delete_record_from_bucket(root, {
 												id: record.id,
 												started_at: record.timestamp ?? record.started_at ?? ""
 											});

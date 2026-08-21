@@ -1,10 +1,9 @@
-"""Unit tests for gradio.history.BucketHistory."""
+"""Unit tests for gradio.history.BucketHistory + /run-history routes."""
 
 from __future__ import annotations
 
 import json
 import threading
-import time
 from collections import OrderedDict
 from unittest.mock import MagicMock, patch
 
@@ -12,7 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
-from gradio.history import PUSH_MIN_INTERVAL, BucketHistory, push_rate_limited
+from gradio.history import BucketHistory, bucket_for_token, validate_bucket_id
 from gradio.interface import close_all
 
 
@@ -23,6 +22,7 @@ def _make_history(repo_id="user/test-history"):
     wh._token = "tok"
     wh._api = mock_api
     wh._repo_ready = True
+    wh._ensure_reason = None
     wh._repo_lock = threading.Lock()
     wh._cache_lock = threading.Lock()
     wh._cache = None
@@ -50,7 +50,9 @@ def test_push_uploads_record_to_bucket():
         },
         "user": None,
     }
-    wh._push_sync(record)
+    ok, reason = wh.push_sync(record)
+    assert ok is True
+    assert reason is None
 
     mock_api.batch_bucket_files.assert_called_once()
     call_kwargs = mock_api.batch_bucket_files.call_args.kwargs
@@ -77,7 +79,8 @@ def test_push_uploads_image_to_media(tmp_path):
         "outputs": {"subj_img": {"value": img_path, "type": "image", "label": "Image"}},
         "user": None,
     }
-    wh._push_sync(record)
+    ok, _ = wh.push_sync(record)
+    assert ok is True
 
     # Two batch_bucket_files calls: media upload + record upload
     assert mock_api.batch_bucket_files.call_count == 2
@@ -85,8 +88,6 @@ def test_push_uploads_image_to_media(tmp_path):
     media_path = media_call.kwargs["add"][0][1]
     assert media_path.startswith("media/")
 
-    # value stays as the local path (for in-session display via Gradio file server);
-    # bucket_url holds the durable Hub URL.
     record_call = mock_api.batch_bucket_files.call_args_list[1]
     record_bytes = record_call.kwargs["add"][0][0]
     saved = json.loads(record_bytes.decode())
@@ -111,13 +112,21 @@ def test_push_skips_media_upload_for_urls():
         },
         "user": None,
     }
-    wh._push_sync(record)
+    wh.push_sync(record)
 
     # Only one batch_bucket_files call (record only — no media upload for URLs)
     assert mock_api.batch_bucket_files.call_count == 1
     record_bytes = mock_api.batch_bucket_files.call_args.kwargs["add"][0][0]
     saved = json.loads(record_bytes.decode())
     assert saved["outputs"]["subj_img"]["value"] == "https://example.com/img.png"
+
+
+def test_push_reports_hub_failure():
+    wh, mock_api = _make_history()
+    mock_api.batch_bucket_files.side_effect = RuntimeError("hub down")
+    ok, reason = wh.push_sync({"id": "x", "outputs": {}})
+    assert ok is False
+    assert reason == "hub"
 
 
 def test_list_returns_cached_results():
@@ -171,13 +180,42 @@ def test_ensure_repo_creates_bucket():
         assert wh._repo_ready is True
 
 
-def test_push_rate_limited():
-    store, lock = OrderedDict(), threading.Lock()
-    assert push_rate_limited(store, lock, "alice") is False
-    assert push_rate_limited(store, lock, "alice") is True  # rapid repeat
-    assert push_rate_limited(store, lock, "bob") is False  # per-token
-    time.sleep(PUSH_MIN_INTERVAL + 0.05)
-    assert push_rate_limited(store, lock, "alice") is False  # after interval
+def test_validate_bucket_id_rejects_path_traversal():
+    validate_bucket_id("user/name")  # ok
+    with pytest.raises(ValueError):
+        validate_bucket_id("user/..")
+    with pytest.raises(ValueError):
+        validate_bucket_id("../etc")
+    with pytest.raises(ValueError):
+        validate_bucket_id("user/./x")
+    with pytest.raises(ValueError):
+        validate_bucket_id("")
+    with pytest.raises(ValueError):
+        validate_bucket_id("noslash")
+
+
+def test_bucket_for_token_caches_by_key():
+    cache: OrderedDict = OrderedDict()
+    lock = threading.Lock()
+    with patch("gradio.history.HfApi"):
+        wh1 = bucket_for_token(cache, lock, "tok", "user/a")
+        wh2 = bucket_for_token(cache, lock, "tok", "user/a")
+        wh3 = bucket_for_token(cache, lock, "tok", "user/b")
+    assert wh1 is wh2  # same key → cached
+    assert wh1 is not wh3  # different bucket → different instance
+    assert len(cache) == 2
+
+
+def test_bucket_for_token_evicts_lru():
+    cache: OrderedDict = OrderedDict()
+    lock = threading.Lock()
+    with patch("gradio.history.HfApi"):
+        first = bucket_for_token(cache, lock, "tok", "user/a", max_entries=2)
+        bucket_for_token(cache, lock, "tok", "user/b", max_entries=2)
+        bucket_for_token(cache, lock, "tok", "user/c", max_entries=2)
+    # user/a was oldest and should have been evicted
+    assert ("tok", "user/a") not in cache
+    assert first not in cache.values()
 
 
 @pytest.fixture
@@ -189,40 +227,29 @@ def history_client():
     close_all()
 
 
-class TestHistoryRoutes:
-    def test_push_unauthed_returns_403(self, history_client):
-        """The trust boundary: no OAuth → no writes."""
+class TestRunHistoryRoutes:
+    def test_connect_without_session_returns_401(self, history_client):
         r = history_client.post(
-            "/gradio_api/history/push",
-            json={"bucket_id": "user/name", "record": {"id": "abc"}},
+            "/gradio_api/run-history/connect", json={"bucket_id": "user/name"}
         )
-        assert r.status_code == 403
-        assert r.json()["reason"] == "auth"
+        assert r.status_code == 401
 
-    def test_list_unauthed_returns_empty(self, history_client):
-        """Reads degrade gracefully — panel just shows an empty state."""
-        r = history_client.post(
-            "/gradio_api/history/list", json={"bucket_id": "user/name"}
-        )
-        assert r.status_code == 200
-        assert r.json() == {"records": []}
+    def test_records_without_session_returns_401(self, history_client):
+        r = history_client.get("/gradio_api/run-history/records")
+        assert r.status_code == 401
 
-    def test_push_rejects_path_traversal(self, history_client):
+    def test_push_without_session_returns_401(self, history_client):
         r = history_client.post(
-            "/gradio_api/history/push",
-            json={"bucket_id": "user/..", "record": {"id": "abc"}},
+            "/gradio_api/run-history/records", json={"record": {"id": "abc"}}
         )
-        assert r.status_code == 403
+        assert r.status_code == 401
 
-    def test_delete_rejects_bad_id_regex(self, history_client):
-        """Even if OAuth were present, bad chars in id/timestamp don't reach Hub."""
-        r = history_client.post(
-            "/gradio_api/history/delete",
-            json={
-                "bucket_id": "user/name",
-                "id": "has/slash",
-                "timestamp": "2026-01-01T00:00:00Z",
-            },
+    def test_delete_without_session_returns_401(self, history_client):
+        r = history_client.delete(
+            "/gradio_api/run-history/records/abc?timestamp=2026-01-01T00:00:00Z"
         )
-        # Unauthed hits 403 first; the regex check is exercised in unit tests.
-        assert r.status_code == 403
+        assert r.status_code == 401
+
+    def test_buckets_without_session_returns_401(self, history_client):
+        r = history_client.get("/gradio_api/run-history/buckets")
+        assert r.status_code == 401

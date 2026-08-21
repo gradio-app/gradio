@@ -255,6 +255,18 @@ def _get_valid_oauth_info_from_session(
     return oauth_info
 
 
+def require_oauth_token(request: fastapi.Request) -> str:
+    """FastAPI dependency: return the caller's HF OAuth access token or 401."""
+    try:
+        info = _get_valid_oauth_info_from_session(request.session)
+    except Exception:
+        info = None
+    token = info.get("access_token") if info else None
+    if not token:
+        raise fastapi.HTTPException(401, "oauth session required")
+    return token
+
+
 @dataclass
 class OAuthProfile(typing.Dict):  # inherit from Dict for backward compatibility
     """

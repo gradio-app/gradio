@@ -11,11 +11,12 @@ import json
 import logging
 import os
 import pathlib
+import re
 import secrets
 import tempfile
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from collections import OrderedDict
 from datetime import datetime, timezone
 
 from huggingface_hub import HfApi
@@ -29,26 +30,37 @@ _LIST_CACHE_TTL = 10.0
 
 _MAX_FILES_SCAN = 50
 
-# Bounded so a burst of runs can't spawn unbounded threads.
-_PUSH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="bucket-push")
-
-PUSH_MIN_INTERVAL = 0.5
-_PUSH_STORE_CAP = 1024
+BUCKET_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$")
 
 
-def push_rate_limited(store, lock, token: str) -> bool:
-    """True if *token* pushed within ``PUSH_MIN_INTERVAL`` seconds ago."""
-    now = time.monotonic()
+def validate_bucket_id(bucket_id: str) -> None:
+    """Raise ``ValueError`` if *bucket_id* isn't a well-formed `user/name`."""
+    if not BUCKET_ID_RE.fullmatch(bucket_id or ""):
+        raise ValueError("invalid bucket id")
+    if any(seg in {"", ".", ".."} for seg in bucket_id.split("/")):
+        raise ValueError("invalid bucket id")
+
+
+def bucket_for_token(
+    cache: "OrderedDict[tuple[str, str], BucketHistory]",
+    lock: threading.Lock,
+    token: str,
+    bucket_id: str,
+    max_entries: int = 256,
+) -> "BucketHistory":
+    """LRU-cached ``BucketHistory`` keyed by ``(token, bucket_id)``."""
+    validate_bucket_id(bucket_id)
+    key = (token, bucket_id)
     with lock:
-        prev = store.get(token)
-        if prev is not None and now - prev < PUSH_MIN_INTERVAL:
-            store.move_to_end(token)
-            return True
-        store[token] = now
-        store.move_to_end(token)
-        if len(store) > _PUSH_STORE_CAP:
-            store.popitem(last=False)
-        return False
+        wh = cache.get(key)
+        if wh is not None:
+            cache.move_to_end(key)
+            return wh
+        wh = BucketHistory(bucket_id, token=token)
+        cache[key] = wh
+        if len(cache) > max_entries:
+            cache.popitem(last=False)
+        return wh
 
 
 class BucketHistory:
@@ -76,9 +88,9 @@ class BucketHistory:
         self._cache: list[dict] | None = None
         self._cache_at: float = 0.0
 
-    def push(self, record: dict) -> None:
-        """Persist *record* to Hub on a shared background pool (non-blocking)."""
-        _PUSH_POOL.submit(self._push_sync, record)
+    def push_sync(self, record: dict) -> tuple[bool, str | None]:
+        """Persist *record* to Hub. Returns ``(ok, reason)``. Blocks on I/O."""
+        return self._push_sync(record)
 
     def list(self, limit: int = 50, subgraph: str | None = None) -> builtins.list[dict]:
         """Return recent records, newest first.
@@ -153,12 +165,12 @@ class BucketHistory:
                 )
                 return False, reason
 
-    def _push_sync(self, record: dict) -> None:
-        """Called in a daemon thread — uploads media then writes the record."""
+    def _push_sync(self, record: dict) -> tuple[bool, str | None]:
+        """Upload media, then write the record. Returns ``(ok, reason)``."""
         try:
-            ok, _ = self.ensure_repo()
+            ok, reason = self.ensure_repo()
             if not ok:
-                return
+                return False, reason
 
             for sid, output in list(record.get("outputs", {}).items()):
                 value = output.get("value")
@@ -197,9 +209,11 @@ class BucketHistory:
             )
             with self._cache_lock:
                 self._cache = None
+            return True, None
 
         except Exception:
             logger.warning("BucketHistory: push failed", exc_info=True)
+            return False, "hub"
 
     def _upload_media(
         self, gen_id: str, sid: str, value: str, port_type: str

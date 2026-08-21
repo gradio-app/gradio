@@ -2017,7 +2017,7 @@
 					outputs,
 					user: null
 				};
-				await push_record_to_bucket(historyRoot, bucketId, record);
+				await push_record_to_bucket(historyRoot, record);
 				if (showHistoryPanel) {
 					setTimeout(() => {
 						if (showHistoryPanel) historyRefreshCount++;
@@ -2625,9 +2625,9 @@
 				<button
 					class="tool-btn connect-bucket-btn"
 					onclick={() => (showHistoryConnect = true)}
-					title="Connect a HF Hub bucket to persist generation history"
+					title="Save generations to a private HF bucket so they persist"
 				>
-					Connect bucket
+					Connect history
 				</button>
 			{/if}
 			{#if saveIndicator && !onSpace}
@@ -3238,6 +3238,8 @@
 			root={historyRoot}
 			workflowName={$workflow.name}
 			username={auth.user ?? ""}
+			signedIn={!!auth.token}
+			onsignin={auth.signIn}
 			onconnected={(id) => {
 				setBucketId(id);
 				showHistoryConnect = false;

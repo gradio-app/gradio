@@ -36,6 +36,7 @@ from urllib.parse import urlparse
 
 import anyio
 import fastapi
+import orjson
 import gradio_client.utils as client_utils
 import httpx
 import safehttpx
@@ -86,6 +87,23 @@ API_PREFIX = "/gradio_api"
 
 
 mimetypes.init()
+
+
+async def bounded_json_body(request: fastapi.Request, max_bytes: int) -> dict:
+    """Parse a JSON body, capped at *max_bytes*. Raises 413 / 422."""
+    declared = request.headers.get("content-length")
+    if declared and declared.isdigit() and int(declared) > max_bytes:
+        raise fastapi.HTTPException(413, "body too large")
+    raw = await request.body()
+    if len(raw) > max_bytes:
+        raise fastapi.HTTPException(413, "body too large")
+    try:
+        data = orjson.loads(raw)
+    except Exception as exc:
+        raise fastapi.HTTPException(422, "invalid json") from exc
+    if not isinstance(data, dict):
+        raise fastapi.HTTPException(422, "expected json object")
+    return data
 
 
 class Obj:
