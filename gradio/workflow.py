@@ -1067,14 +1067,14 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             else:
                 raise
     else:
+        from huggingface_hub.inference._providers import get_provider_helper
+
         try:
             result = fn(**clean)
         except ValueError as exc:
             m = PROVIDER_TASK_MISMATCH_RE.search(str(exc))
             if not m:
                 raise
-            from huggingface_hub.inference._providers import get_provider_helper
-
             helper = get_provider_helper(
                 m.group(2),  # ty: ignore[invalid-argument-type]
                 task=m.group(1),
@@ -1083,12 +1083,15 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             helper.task = m.group(3)
             result = run_via_helper(client, helper, fn, endpoint, clean)
         except KeyError:
+            # ponytail: fal_ai image_to_video response-shape drift lands as a
+            # KeyError from the client's default key path. Retry via the helper
+            # which uses fal_ai_video_fallback. Narrow when upstream stabilises.
             if endpoint != "image_to_video":
                 raise
-            from huggingface_hub.inference._providers import get_provider_helper
-
             helper = get_provider_helper(
-                client.provider, task="image-to-video", model=client.model
+                client.provider or "auto",
+                task="image-to-video",
+                model=client.model,
             )
             result = run_via_helper(client, helper, fn, endpoint, clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)

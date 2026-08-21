@@ -20,23 +20,13 @@ PROVIDER_TASK_MISMATCH_RE = re.compile(
 )
 
 
-def fal_ai_video_fallback(helper, response, request_params) -> bytes:
-    from huggingface_hub.inference._providers.fal_ai import FalAIQueueTask
-
-    output = FalAIQueueTask.get_response(helper, response, request_params)
-    d = output if isinstance(output, dict) else {}
-    videos = d.get("videos") if isinstance(d.get("videos"), list) else None
-    url = (
-        (d.get("video") or {}).get("url")
-        or d.get("video_url")
-        or (videos[0].get("url") if videos else None)
-    )
-    if not url:
-        raise ValueError(f"Unexpected fal-ai response shape: {output}")
-    return httpx.get(url, timeout=60).content
-
-
 def run_via_helper(client, helper, fn, endpoint: str, clean: dict):
+    """Bypass the per-task client method by calling the provider helper directly.
+
+    Preserves the input key the client method uses (first positional param) and
+    forwards remaining kwargs as parameters. Handles fal_ai image_to_video's
+    URL-in-response quirk inline.
+    """
     from huggingface_hub.inference._providers.fal_ai import FalAIQueueTask
 
     input_key = next(iter(inspect.signature(fn).parameters), "inputs")
@@ -48,6 +38,19 @@ def run_via_helper(client, helper, fn, endpoint: str, clean: dict):
         api_key=client.token,
     )
     response = client._inner_post(req)
-    if endpoint == "image_to_video" and isinstance(helper, FalAIQueueTask):
-        return fal_ai_video_fallback(helper, response, req)
-    return helper.get_response(response, req)
+    if endpoint != "image_to_video" or not isinstance(helper, FalAIQueueTask):
+        return helper.get_response(response, req)
+
+    # fal_ai returns a JSON envelope with a hosted video URL; the client's
+    # default get_response tries to read raw bytes at a fixed key and KeyErrors.
+    output = FalAIQueueTask.get_response(helper, response, req)
+    d = output if isinstance(output, dict) else {}
+    videos = d.get("videos") if isinstance(d.get("videos"), list) else None
+    url = (
+        (d.get("video") or {}).get("url")
+        or d.get("video_url")
+        or (videos[0].get("url") if videos else None)
+    )
+    if not url:
+        raise ValueError(f"Unexpected fal-ai response shape: {output}")
+    return httpx.get(url, timeout=60).content

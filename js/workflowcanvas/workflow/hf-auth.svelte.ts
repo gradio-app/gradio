@@ -147,16 +147,14 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 
 	async function refreshOAuthAvailable(): Promise<void> {
 		const s = getServer();
-		if (!s?.get_oauth_available) {
+		if (!s?.get_oauth_available) return;
+		try {
+			oauthAvailable = (await s.get_oauth_available()) === "true";
+			oauthAvailableKnown = true;
+		} catch {
 			oauthAvailable = false;
-		} else {
-			try {
-				oauthAvailable = (await s.get_oauth_available()) === "true";
-			} catch {
-				oauthAvailable = false;
-			}
+			oauthAvailableKnown = true;
 		}
-		oauthAvailableKnown = true;
 	}
 
 	async function refreshOAuthScopes(): Promise<void> {

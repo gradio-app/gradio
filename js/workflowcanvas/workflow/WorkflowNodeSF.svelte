@@ -817,15 +817,14 @@
 						</div>
 					{:else}
 						<button
-							class="custom-param-btn"
+							class="ports-toggle"
 							onclick={(e) => {
 								e.stopPropagation();
 								showCustomParamForm = true;
 							}}
 							title="Add a param the default schema doesn't include (e.g. provider-specific overrides)"
 						>
-							<span class="custom-param-btn-icon" aria-hidden="true">+</span> Add
-							param
+							+ Add param
 						</button>
 					{/if}
 				</div>
@@ -1505,33 +1504,6 @@
 		color: #8b8d98;
 	}
 
-	.custom-param-btn {
-		display: block;
-		width: 100%;
-		padding: 4px 12px;
-		border: none;
-		background: transparent;
-		font-family: "JetBrains Mono", monospace;
-		font-size: 9px;
-		font-weight: 600;
-		color: #3e3f4d;
-		cursor: pointer;
-		text-align: left;
-		letter-spacing: 0.03em;
-		transition: color 0.15s;
-	}
-
-	.custom-param-btn:hover {
-		color: #8b8d98;
-	}
-
-	/* Fixed-width slot so the "+" aligns with .ports-toggle's "▾" one row up. */
-	.custom-param-btn-icon {
-		display: inline-block;
-		width: 0.8em;
-		text-align: left;
-	}
-
 	/* Padding mirrors .port-inline-config so the input's left edge lines up
 	   with the other inline text inputs (Prompt / Scheduler etc.). */
 	.custom-param-form {
@@ -1818,14 +1790,6 @@
 
 	:global(body:not(.dark)) .inline-checkbox {
 		color: #6b6e78;
-	}
-
-	:global(body:not(.dark)) .custom-param-btn {
-		color: #8b8d98;
-	}
-
-	:global(body:not(.dark)) .custom-param-btn:hover {
-		color: #3e3f4d;
 	}
 
 	:global(body:not(.dark)) .custom-param-input,
