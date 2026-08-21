@@ -30,6 +30,7 @@
 		i18n,
 		wrap_text = false,
 		onclick,
+		onfocus,
 		on_menu_click,
 		on_end_edit,
 		on_select_all
@@ -54,8 +55,9 @@
 		i18n: I18nFormatter;
 		wrap_text?: boolean;
 		onclick: (event: MouseEvent, col: number) => void;
+		onfocus: (col: number) => void;
 		on_menu_click: (event: MouseEvent, col: number) => void;
-		on_end_edit: (key: string) => void;
+		on_end_edit: (event: KeyboardEvent) => void;
 		on_select_all?: (col: number, checked: boolean) => void;
 	} = $props();
 
@@ -71,6 +73,11 @@
 	class:filtered={is_filtered}
 	class:first-column={is_first_column}
 	data-heading={col_idx}
+	data-testid={`header-${col_idx}`}
+	role="columnheader"
+	aria-colindex={col_idx + 1}
+	tabindex={is_selected ? 0 : -1}
+	onfocus={() => onfocus(col_idx)}
 	onclick={(e) => onclick(e, col_idx)}
 	onmousedown={(e) => {
 		e.preventDefault();
@@ -94,6 +101,7 @@
 						indeterminate={select_all_state === "indeterminate"}
 						label={`Toggle all: ${value}`}
 						interactive={true}
+						tab_index={-1}
 						on_select={() =>
 							on_select_all?.(col_idx, select_all_state !== "checked")}
 					/>
@@ -106,7 +114,8 @@
 				edit={is_editing}
 				onkeydown={(event) => {
 					if (["Enter", "Escape", "Tab"].includes(event.key)) {
-						on_end_edit(event.key);
+						event.stopPropagation();
+						on_end_edit(event);
 					}
 				}}
 				header
@@ -148,7 +157,10 @@
 			</span>
 		{/if}
 		{#if show_menu_button}
-			<CellMenuButton on_click={(e) => on_menu_click(e, col_idx)} />
+			<CellMenuButton
+				on_click={(e) => on_menu_click(e, col_idx)}
+				tab_index={-1}
+			/>
 		{/if}
 	</div>
 </th>

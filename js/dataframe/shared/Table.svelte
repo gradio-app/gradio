@@ -270,6 +270,129 @@
 
 	let parent: HTMLDivElement;
 
+	let keyboard_active = $derived.by((): CellCoordinate | false => {
+		if (selected) {
+			const selected_row = selected[0];
+			const is_visible = rows.some(
+				(row) => row.original._index === selected_row
+			);
+			if (is_visible) return selected;
+		}
+		if (rows.length > 0 && resolved_headers.length > 0) {
+			return [rows[0].original._index, 0];
+		}
+		return false;
+	});
+
+	function visible_row_position(row_index: number): number {
+		return rows.findIndex((row) => row.original._index === row_index);
+	}
+
+	function is_active_cell(row: number, col: number): boolean {
+		return !!(
+			keyboard_active &&
+			keyboard_active[0] === row &&
+			keyboard_active[1] === col &&
+			selected_header === false
+		);
+	}
+
+	async function focus_cell(coord: CellCoordinate): Promise<void> {
+		await tick();
+		parent
+			?.querySelector<HTMLElement>(
+				`[data-testid="cell-${coord[0]}-${coord[1]}"]`
+			)
+			?.focus();
+	}
+
+	async function focus_header(col: number): Promise<void> {
+		await tick();
+		parent
+			?.querySelector<HTMLElement>(`[data-testid="header-${col}"]`)
+			?.focus();
+	}
+
+	function set_active_cell(coord: CellCoordinate, move_focus = true): void {
+		selected = coord;
+		selected_cells = [coord];
+		selected_header = false;
+		header_edit = false;
+		const row_position = visible_row_position(coord[0]);
+		if (row_position >= 0) {
+			virtualizer.instance.scrollToIndex(row_position, { align: "auto" });
+		}
+		if (move_focus) focus_cell(coord);
+	}
+
+	function handle_cell_focus(row: number, col: number): void {
+		if (editing) return;
+		if (selected && selected[0] === row && selected[1] === col) return;
+		set_active_cell([row, col], false);
+	}
+
+	function handle_header_focus(col: number): void {
+		if (header_edit !== false) return;
+		selected = false;
+		selected_cells = [];
+		selected_header = col;
+	}
+
+	function dispatch_select(row: number, col: number): void {
+		onselect?.({
+			index: [row, col],
+			value: values?.[row]?.[col],
+			row_value: values?.[row] ?? [],
+			col_value: values?.map((value_row) => value_row[col]) ?? []
+		} as any);
+	}
+
+	function adjacent_visible_cell(
+		coord: CellCoordinate,
+		backwards: boolean
+	): CellCoordinate | false {
+		const [row, col] = coord;
+		const row_position = visible_row_position(row);
+		if (row_position === -1) return false;
+
+		if (backwards) {
+			if (col > 0) return [row, col - 1];
+			if (row_position > 0) {
+				return [
+					rows[row_position - 1].original._index,
+					resolved_headers.length - 1
+				];
+			}
+			return false;
+		}
+
+		if (col < resolved_headers.length - 1) return [row, col + 1];
+		if (row_position < rows.length - 1) {
+			return [rows[row_position + 1].original._index, 0];
+		}
+		return false;
+	}
+
+	function focus_outside_grid(backwards: boolean): void {
+		tick().then(() => {
+			const candidates = Array.from(
+				document.querySelectorAll<HTMLElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+				)
+			).filter(
+				(element) =>
+					!parent.contains(element) && element.getClientRects().length > 0
+			);
+			const position = backwards
+				? Node.DOCUMENT_POSITION_PRECEDING
+				: Node.DOCUMENT_POSITION_FOLLOWING;
+			const ordered = backwards ? candidates.reverse() : candidates;
+			ordered
+				.find((element) => parent.compareDocumentPosition(element) & position)
+				?.focus();
+		});
+	}
+
 	function get_dtype(col: number): Datatype {
 		return Array.isArray(datatype) ? (datatype[col] ?? "str") : datatype;
 	}
@@ -418,16 +541,8 @@
 		// click selects, does NOT enter edit mode (double-click or typing does)
 		editing = false;
 
-		onselect?.({
-			index: coord,
-			value: values?.[row]?.[col],
-			row_value: values?.[row] ?? [],
-			col_value: values?.map((r) => r[col]) ?? []
-		} as any);
-
-		if (!col_is_static) {
-			tick().then(() => parent?.focus());
-		}
+		dispatch_select(row, col);
+		focus_cell(coord);
 	}
 
 	function handle_cell_dblclick(
@@ -484,13 +599,18 @@
 		active_header_menu = null;
 		selected_header = col;
 		header_edit = editable ? col : false;
-		parent?.focus();
+		if (!editable) focus_header(col);
 	}
 
-	function end_header_edit(key: string): void {
-		if (["Escape", "Enter", "Tab"].includes(key)) {
+	function end_header_edit(event: KeyboardEvent): void {
+		if (["Escape", "Enter", "Tab"].includes(event.key)) {
+			event.preventDefault();
 			header_edit = false;
-			parent?.focus();
+			if (event.key === "Tab") {
+				focus_outside_grid(event.shiftKey);
+			} else if (selected_header !== false) {
+				focus_header(selected_header);
+			}
 		}
 	}
 
@@ -684,135 +804,200 @@
 	function handle_keydown(e: KeyboardEvent): void {
 		if (!selected && selected_header === false) return;
 
-		const num_rows = rows.length;
 		const num_cols = resolved_headers.length;
 
-		if (selected) {
-			const [row, col] = selected;
-
-			if (
-				editing &&
-				(e.key === "ArrowUp" ||
-					e.key === "ArrowDown" ||
-					e.key === "ArrowLeft" ||
-					e.key === "ArrowRight")
-			) {
-				return;
-			}
-
+		if (selected_header !== false) {
+			if (header_edit !== false) return;
+			const col = selected_header;
 			switch (e.key) {
-				case "ArrowUp":
+				case "ArrowDown": {
 					e.preventDefault();
-					if (row > 0) {
-						selected = [row - 1, col];
-						selected_cells = [selected];
-						virtualizer.instance.scrollToIndex(row - 1, { align: "auto" });
-					}
+					const first_row = rows[0]?.original._index;
+					if (first_row !== undefined) set_active_cell([first_row, col]);
 					break;
-				case "ArrowDown":
-					e.preventDefault();
-					if (row < num_rows - 1) {
-						selected = [row + 1, col];
-						selected_cells = [selected];
-						virtualizer.instance.scrollToIndex(row + 1, { align: "auto" });
-					}
-					break;
+				}
 				case "ArrowLeft":
 					e.preventDefault();
 					if (col > 0) {
-						selected = [row, col - 1];
-						selected_cells = [selected];
+						selected_header = col - 1;
+						focus_header(col - 1);
 					}
 					break;
 				case "ArrowRight":
 					e.preventDefault();
 					if (col < num_cols - 1) {
-						selected = [row, col + 1];
-						selected_cells = [selected];
+						selected_header = col + 1;
+						focus_header(col + 1);
 					}
 					break;
-				case "Tab": {
+				case "Enter":
+				case "F2":
 					e.preventDefault();
-					const was_editing = !!editing;
-					if (e.shiftKey) {
-						if (col > 0) selected = [row, col - 1];
-						else if (row > 0) selected = [row - 1, num_cols - 1];
-					} else {
-						if (col < num_cols - 1) selected = [row, col + 1];
-						else if (row < num_rows - 1) selected = [row + 1, 0];
+					if (editable && !static_columns.includes(col)) header_edit = col;
+					break;
+				case " ":
+				case "Spacebar":
+					if (editable && get_dtype(col) === "bool") {
+						e.preventDefault();
+						handle_select_all(col, get_select_all_state(col) !== "checked");
 					}
-					selected_cells = [selected];
-					if (was_editing) {
-						const tab_col = (selected as CellCoordinate)[1];
-						const tab_static =
-							static_columns.includes(tab_col) ||
-							static_columns.includes(resolved_headers[tab_col]);
-						editing = editable && !tab_static ? selected : false;
-					} else {
-						editing = false;
-					}
-					if (!editing) tick().then(() => parent?.focus());
+					break;
+			}
+			return;
+		}
+
+		if (!selected) return;
+		const [row, col] = selected;
+		const row_position = visible_row_position(row);
+		if (row_position === -1) return;
+
+		if (
+			editing &&
+			(e.key === "ArrowUp" ||
+				e.key === "ArrowDown" ||
+				e.key === "ArrowLeft" ||
+				e.key === "ArrowRight" ||
+				e.key === "Home" ||
+				e.key === "End")
+		) {
+			return;
+		}
+
+		switch (e.key) {
+			case "ArrowUp": {
+				e.preventDefault();
+				if (row_position > 0) {
+					set_active_cell([rows[row_position - 1].original._index, col]);
+				} else {
+					selected = false;
+					selected_cells = [];
+					selected_header = col;
+					focus_header(col);
+				}
+				break;
+			}
+			case "ArrowDown":
+				e.preventDefault();
+				if (row_position < rows.length - 1) {
+					set_active_cell([rows[row_position + 1].original._index, col]);
+				}
+				break;
+			case "ArrowLeft":
+				e.preventDefault();
+				if (col > 0) set_active_cell([row, col - 1]);
+				break;
+			case "ArrowRight":
+				e.preventDefault();
+				if (col < num_cols - 1) set_active_cell([row, col + 1]);
+				break;
+			case "Home":
+				e.preventDefault();
+				set_active_cell(
+					e.ctrlKey || e.metaKey ? [rows[0].original._index, 0] : [row, 0]
+				);
+				break;
+			case "End":
+				e.preventDefault();
+				set_active_cell(
+					e.ctrlKey || e.metaKey
+						? [rows[rows.length - 1].original._index, num_cols - 1]
+						: [row, num_cols - 1]
+				);
+				break;
+			case "Tab": {
+				if (!editing) return;
+				e.preventDefault();
+				const next_cell = adjacent_visible_cell([row, col], e.shiftKey);
+				editing = false;
+				if (!next_cell) {
+					focus_outside_grid(e.shiftKey);
 					break;
 				}
-				case "Enter":
-					if (editing && e.shiftKey) {
-						// shift+enter inserts newline in textarea — don't intercept
-						return;
-					}
-					e.preventDefault();
-					if (editing) {
-						editing = false;
-						if (row < num_rows - 1) {
-							selected = [row + 1, col];
-							selected_cells = [selected];
-						}
-						tick().then(() => parent?.focus());
-					} else if (editable) {
-						const enter_static =
-							static_columns.includes(col) ||
-							static_columns.includes(resolved_headers[col]);
-						if (!enter_static) {
-							editing = [row, col];
-						}
-					}
-					break;
-				case "Escape":
+				set_active_cell(next_cell, false);
+				const next_col = next_cell[1];
+				const next_is_static =
+					static_columns.includes(next_col) ||
+					static_columns.includes(resolved_headers[next_col]);
+				if (editable && !next_is_static && get_dtype(next_col) !== "bool") {
+					editing = next_cell;
+				} else {
+					focus_cell(next_cell);
+				}
+				break;
+			}
+			case "Enter":
+				if (editing && e.shiftKey) return;
+				e.preventDefault();
+				if (editing) {
 					editing = false;
-					tick().then(() => parent?.focus());
-					break;
-				case "Delete":
-				case "Backspace":
-					if (!editing && editable) {
-						e.preventDefault();
-						const new_values = values.map((r) => [...r]);
-						selected_cells.forEach(([r, c]) => {
-							if (!static_columns.includes(c)) {
-								new_values[r][c] = "";
-							}
-						});
-						values = new_values;
-						push_change(new_values);
-					}
-					break;
-				default:
-					// start editing on printable character
-					if (
-						editable &&
-						!editing &&
-						e.key.length === 1 &&
-						!e.ctrlKey &&
-						!e.metaKey &&
-						!static_columns.includes(col)
-					) {
+					focus_cell([row, col]);
+				} else {
+					dispatch_select(row, col);
+					const enter_static =
+						static_columns.includes(col) ||
+						static_columns.includes(resolved_headers[col]);
+					if (editable && !enter_static && get_dtype(col) !== "bool") {
 						editing = [row, col];
 					}
-					break;
-			}
-
-			if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-				handle_copy();
-			}
+				}
+				break;
+			case "F2":
+				e.preventDefault();
+				if (editing) {
+					editing = false;
+					focus_cell([row, col]);
+				} else if (
+					editable &&
+					!static_columns.includes(col) &&
+					get_dtype(col) !== "bool"
+				) {
+					editing = [row, col];
+				}
+				break;
+			case " ":
+			case "Spacebar":
+				if (!editing) {
+					e.preventDefault();
+					dispatch_select(row, col);
+				}
+				break;
+			case "Escape":
+				if (editing) {
+					e.preventDefault();
+					editing = false;
+					focus_cell([row, col]);
+				}
+				break;
+			case "Delete":
+			case "Backspace":
+				if (!editing && editable) {
+					e.preventDefault();
+					const new_values = values.map((value_row) => [...value_row]);
+					selected_cells.forEach(([selected_row, selected_col]) => {
+						if (!static_columns.includes(selected_col)) {
+							new_values[selected_row][selected_col] = "";
+						}
+					});
+					values = new_values;
+					push_change(new_values);
+				}
+				break;
+			default:
+				if (
+					editable &&
+					!editing &&
+					e.key.length === 1 &&
+					!e.ctrlKey &&
+					!e.metaKey &&
+					!static_columns.includes(col) &&
+					get_dtype(col) !== "bool"
+				) {
+					editing = [row, col];
+				}
+				break;
 		}
+
+		if ((e.ctrlKey || e.metaKey) && e.key === "c") handle_copy();
 	}
 
 	function handle_scroll(): void {
@@ -888,10 +1073,12 @@
 	let disable_scroll = $derived(
 		active_cell_menu !== null || active_header_menu !== null
 	);
-	let selected_index = $derived(selected !== false ? selected[0] : false);
+	let selected_index = $derived(
+		selected !== false ? visible_row_position(selected[0]) : false
+	);
 
 	$effect(() => {
-		if (typeof selected_index === "number") {
+		if (typeof selected_index === "number" && selected_index >= 0) {
 			virtualizer.instance.scrollToIndex(selected_index, { align: "auto" });
 		}
 	});
@@ -947,7 +1134,11 @@
 		class:menu-open={active_cell_menu || active_header_menu}
 		onkeydown={handle_keydown}
 		role="grid"
-		tabindex="0"
+		aria-label={label || "Dataframe"}
+		aria-rowcount={rows.length + 1}
+		aria-colcount={resolved_headers.length}
+		aria-readonly={!editable}
+		tabindex={rows.length === 0 ? 0 : -1}
 		style="--df-max-col-width: {viewport_width}px;"
 	>
 		<Upload
@@ -961,6 +1152,8 @@
 			onload={on_file_upload}
 			bind:dragging
 			aria_label={i18n("dataframe.drop_to_upload")}
+			tab_index={-1}
+			container_element="div"
 		>
 			<div
 				class="virtual-table-viewport"
@@ -969,7 +1162,6 @@
 				bind:clientWidth={viewport_width}
 				onscroll={handle_scroll}
 				style="max-height: {max_height}px;"
-				role="grid"
 			>
 				{#if label && label.length !== 0}
 					<span class="sr-only">{label}</span>
@@ -977,7 +1169,7 @@
 				<!-- header row: uses table layout to auto-size columns by content -->
 				<table class="header-table" bind:this={header_table_el}>
 					<thead>
-						<tr bind:this={header_row_el}>
+						<tr bind:this={header_row_el} role="row" aria-rowindex="1">
 							{#if show_row_numbers}
 								<th class="row-number-header">&nbsp;</th>
 							{/if}
@@ -1007,6 +1199,7 @@
 										{i18n}
 										wrap_text={wrap}
 										onclick={handle_header_click}
+										onfocus={handle_header_focus}
 										on_menu_click={toggle_header_menu}
 										on_end_edit={end_header_edit}
 										on_select_all={handle_select_all}
@@ -1061,6 +1254,8 @@
 								class="virtual-row"
 								class:row-odd={virtual_row.index % 2 !== 0}
 								data-index={virtual_row.index}
+								role="row"
+								aria-rowindex={virtual_row.index + 2}
 								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtual_row.start}px);{selected_cells.some(
 									([r]) => r === row_idx
 								)
@@ -1097,6 +1292,8 @@
 											[row_idx, col_idx],
 											selected_cells
 										)}
+										is_active={is_active_cell(row_idx, col_idx)}
+										aria_row_index={virtual_row.index + 2}
 										is_editing={!!(
 											editing &&
 											editing[0] === row_idx &&
@@ -1136,11 +1333,12 @@
 											e.preventDefault();
 											toggle_cell_menu(e, row_idx, col_idx);
 										}}
+										onfocus={() => handle_cell_focus(row_idx, col_idx)}
 										onblur={handle_blur}
 										on_menu_click={(e) => toggle_cell_menu(e, row_idx, col_idx)}
 										on_select_column={(c) => {
 											selected_cells = rows.map(
-												(_, r) => [r, c] as CellCoordinate
+												(row) => [row.original._index, c] as CellCoordinate
 											);
 											selected = selected_cells[0];
 										}}
