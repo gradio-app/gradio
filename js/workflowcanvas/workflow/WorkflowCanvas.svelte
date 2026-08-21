@@ -3237,6 +3237,7 @@
 		<WorkflowHistoryConnect
 			root={historyRoot}
 			workflowName={$workflow.name}
+			username={auth.user ?? ""}
 			onconnected={(id) => {
 				setBucketId(id);
 				showHistoryConnect = false;

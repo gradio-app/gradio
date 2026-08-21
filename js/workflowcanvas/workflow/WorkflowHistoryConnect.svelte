@@ -10,19 +10,16 @@
 	let {
 		root,
 		workflowName = "",
+		username = "",
 		onconnected,
 		onclose
 	}: {
 		root: string;
 		workflowName?: string;
+		username?: string;
 		onconnected: (bucketId: string) => void;
 		onclose: () => void;
 	} = $props();
-
-	let repoInput = $state("");
-	let connecting = $state(false);
-	let error = $state<string | null>(null);
-	let existingBuckets = $state<BucketInfo[]>([]);
 
 	const suggestedName = $derived(
 		workflowName
@@ -32,6 +29,17 @@
 					.replace(/^-|-$/g, "") + "-history"
 			: "workflow-history"
 	);
+	const suggestedId = $derived(
+		username ? `${username}/${suggestedName}` : `username/${suggestedName}`
+	);
+
+	let repoInput = $state("");
+	$effect(() => {
+		if (!repoInput && username) repoInput = `${username}/${suggestedName}`;
+	});
+	let connecting = $state(false);
+	let error = $state<string | null>(null);
+	let existingBuckets = $state<BucketInfo[]>([]);
 
 	async function connect(bucketId: string) {
 		error = null;
@@ -101,15 +109,15 @@
 		{/if}
 
 		<p class="connect-hint">
-			Suggested: <code>username/{suggestedName}</code>. A new bucket is
-			auto-created on first use.
+			Suggested: <code>{suggestedId}</code>. A new bucket is auto-created on
+			first use.
 		</p>
 
 		<div class="connect-manual">
 			<input
 				class="connect-input"
 				type="text"
-				placeholder="username/{suggestedName}"
+				placeholder={suggestedId}
 				bind:value={repoInput}
 				disabled={connecting}
 				onkeydown={(e) => {
