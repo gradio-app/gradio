@@ -42,12 +42,12 @@ def validate_bucket_id(bucket_id: str) -> None:
 
 
 def bucket_for_token(
-    cache: "OrderedDict[tuple[str, str], BucketHistory]",
+    cache: OrderedDict[tuple[str, str], BucketHistory],
     lock: threading.Lock,
     token: str,
     bucket_id: str,
     max_entries: int = 256,
-) -> "BucketHistory":
+) -> BucketHistory:
     """LRU-cached ``BucketHistory`` keyed by ``(token, bucket_id)``."""
     validate_bucket_id(bucket_id)
     key = (token, bucket_id)

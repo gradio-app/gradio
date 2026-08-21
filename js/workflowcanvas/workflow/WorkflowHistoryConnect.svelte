@@ -139,7 +139,8 @@
 					bind:value={repoInput}
 					disabled={connecting}
 					onkeydown={(e) => {
-						if (e.key === "Enter" && repoInput.trim()) connect(repoInput.trim());
+						if (e.key === "Enter" && repoInput.trim())
+							connect(repoInput.trim());
 					}}
 				/>
 				<button

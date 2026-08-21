@@ -36,9 +36,9 @@ from urllib.parse import urlparse
 
 import anyio
 import fastapi
-import orjson
 import gradio_client.utils as client_utils
 import httpx
+import orjson
 import safehttpx
 from gradio_client.documentation import document
 from python_multipart.exceptions import MultipartParseError

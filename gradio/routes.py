@@ -730,8 +730,8 @@ class App(FastAPI):
 
         # /run-history/*: bucket is set once via /connect and stored in the
         # session; subsequent routes derive it from there.
-        _HISTORY_MAX_BODY = 2 * 1024 * 1024
-        _RECORD_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+        history_max_body = 2 * 1024 * 1024
+        record_id_re = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
         app.state.bucket_history_cache = OrderedDict()
         app.state.bucket_history_cache_lock = threading.Lock()
@@ -759,7 +759,7 @@ class App(FastAPI):
         ):
             from gradio.history import bucket_for_token
 
-            body = await route_utils.bounded_json_body(request, _HISTORY_MAX_BODY)
+            body = await route_utils.bounded_json_body(request, history_max_body)
             bucket_id = str(body.get("bucket_id") or "")
             try:
                 wh = bucket_for_token(
@@ -827,7 +827,7 @@ class App(FastAPI):
             token: str = Depends(oauth.require_oauth_token),
         ):
             wh = _bucket_from_session(request, token)
-            body = await route_utils.bounded_json_body(request, _HISTORY_MAX_BODY)
+            body = await route_utils.bounded_json_body(request, history_max_body)
             record = body.get("record") or body
             if isinstance(record, str):
                 try:
@@ -836,7 +836,7 @@ class App(FastAPI):
                     raise fastapi.HTTPException(422, "invalid record") from exc
             if not isinstance(record, dict) or not record.get("id"):
                 raise fastapi.HTTPException(422, "invalid record")
-            if not _RECORD_ID_RE.fullmatch(str(record["id"])):
+            if not record_id_re.fullmatch(str(record["id"])):
                 raise fastapi.HTTPException(422, "invalid record id")
             ok, reason = await anyio.to_thread.run_sync(wh.push_sync, record)
             if not ok:
@@ -852,7 +852,7 @@ class App(FastAPI):
             token: str = Depends(oauth.require_oauth_token),
         ):
             wh = _bucket_from_session(request, token)
-            if not _RECORD_ID_RE.fullmatch(record_id):
+            if not record_id_re.fullmatch(record_id):
                 raise fastapi.HTTPException(422, "invalid record id")
             _timestamp_re = re.compile(
                 r"^\d{4}-\d{2}-\d{2}T\d{2}[:-]\d{2}[:-]\d{2}(?:\.\d{1,6})?Z$"
