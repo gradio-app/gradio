@@ -1,4 +1,4 @@
-"""Handy utility functions."""
+"""Utility helpers shared across Gradio."""
 
 import asyncio
 import copy

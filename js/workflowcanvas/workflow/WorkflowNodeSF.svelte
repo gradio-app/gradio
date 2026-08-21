@@ -1724,13 +1724,19 @@
 		overflow-y: auto;
 	}
 
-	.inline-choices input[type="checkbox"] {
+	.wf-node input[type="checkbox"] {
 		width: 14px;
 		height: 14px;
-		accent-color: var(--accent);
+		border-radius: 3px;
+		border-color: #3a3b48;
 		cursor: pointer;
-		appearance: auto;
-		-webkit-appearance: checkbox;
+	}
+	.wf-node input[type="checkbox"]:checked {
+		background-color: var(--accent);
+		border-color: var(--accent);
+	}
+	:global(body:not(.dark)) .wf-node input[type="checkbox"]:not(:checked) {
+		border-color: #d0d2dc;
 	}
 
 	/* Light mode */

@@ -17,7 +17,7 @@ import sys
 import time
 import traceback
 import warnings
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -115,6 +115,7 @@ from gradio.route_utils import (  # noqa: F401
     file_fetch,
     file_response,
     move_uploaded_files_to_cache,
+    register_media_mimetypes,
     routes_safe_join,
     secure_url_stream_response,
     upload_fn,
@@ -147,6 +148,7 @@ import shutil
 import tempfile
 
 mimetypes.init()
+register_media_mimetypes()
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t  # type: ignore
@@ -228,7 +230,8 @@ class App(FastAPI):
 
     def __init__(
         self,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         **kwargs,
     ):
         self.tokens = {}
@@ -363,10 +366,12 @@ class App(FastAPI):
         blocks: gradio.Blocks,
         app: App | None = None,
         app_kwargs: dict[str, Any] | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         strict_cors: bool = True,
         mcp_server: bool | None = None,
         debug: bool = False,
+        parent_app: fastapi.FastAPI | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -382,13 +387,19 @@ class App(FastAPI):
             app.router.lifespan_context = create_lifespan_handler(
                 app_kwargs.get("lifespan", None), *delete_cache
             )
+            if auth_dependency is not None:
+                app.auth_dependency = auth_dependency
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
+        app.add_middleware(
+            CustomCORSMiddleware,  # type: ignore
+            strict_cors=strict_cors,
+            parent_app=parent_app,
+        )
         app.add_middleware(
             BrotliMiddleware,  # type: ignore
             quality=4,
@@ -401,9 +412,12 @@ class App(FastAPI):
 
         @router.get("/user")
         @router.get("/user/")
-        def get_current_user(request: fastapi.Request) -> str | None:
+        async def get_current_user(request: fastapi.Request) -> str | None:
             if app.auth_dependency is not None:
-                return app.auth_dependency(request)
+                user = app.auth_dependency(request)
+                if inspect.isawaitable(user):
+                    user = await user
+                return user
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -614,9 +628,10 @@ class App(FastAPI):
         ):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
+            is_run_history = request.url.path.rstrip("/").endswith(f"{API_PREFIX}/runs")
             root = route_utils.get_root_url(
                 request=request,
-                route_path=f"/{page}",
+                route_path=f"{API_PREFIX}/runs" if is_run_history else f"/{page}",
                 root_path=app.root_path
                 or request.scope.get("root_path")
                 or blocks.custom_mount_path,
@@ -678,6 +693,11 @@ class App(FastAPI):
                     request=request,
                     name=template,
                     context={
+                        "base_url": (
+                            "../../" if request.url.path.endswith("/") else "../"
+                        )
+                        if is_run_history
+                        else "./",
                         "config": config,
                         "gradio_api_info": gradio_api_info,
                     },
@@ -694,6 +714,16 @@ class App(FastAPI):
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
+
+        @router.get("/runs", response_class=HTMLResponse)
+        @router.get("/runs/", response_class=HTMLResponse)
+        def run_history(
+            request: fastapi.Request,
+            user: str = Depends(get_current_user),
+        ):
+            if not getattr(app.get_blocks(), "run_history", True):
+                raise HTTPException(status_code=404, detail="Not found")
+            return main(request, user)
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):
@@ -957,7 +987,11 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config(request: fastapi.Request, deep_link: str = ""):
+        def get_config(
+            request: fastapi.Request,
+            user: str = Depends(get_current_user),
+            deep_link: str = "",
+        ):
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request,
@@ -966,7 +1000,7 @@ class App(FastAPI):
                 or request.scope.get("root_path")
                 or blocks.custom_mount_path,
             )
-            config["username"] = get_current_user(request)
+            config["username"] = user
             if deep_link:
                 components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
@@ -1093,7 +1127,9 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             event.data = body
             event.signal.set()
@@ -1101,7 +1137,9 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
@@ -1111,7 +1149,7 @@ class App(FastAPI):
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1144,7 +1182,7 @@ class App(FastAPI):
                 return Response(status_code=400, content="Unsupported file extension")
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1166,7 +1204,7 @@ class App(FastAPI):
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1257,14 +1295,23 @@ class App(FastAPI):
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
                         caching.clear_session_caches(session_hash)
+                        for run in (
+                            app.get_blocks()
+                            .pending_streams.pop(session_hash, {})
+                            .values()
+                        ):
+                            for stream in run.values():
+                                stream.end_stream()
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(
                             session_hash, []
                         ):
-                            event = app.get_blocks()._queue.event_ids_to_events[
+                            event = app.get_blocks()._queue.event_ids_to_events.get(
                                 event_id
-                            ]
+                            )
+                            if event is None:
+                                continue
                             event.run_time = math.inf
                             event.signal.set()
                         return
@@ -1486,8 +1533,25 @@ class App(FastAPI):
                     return None
                 return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
-            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            session_hash = event.session_hash if event else event_id
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(event_id)
+            if event is not None:
+                session_hash = event.session_hash
+            else:
+                # A finished event is no longer held, but this route is normally
+                # called after it finishes. `pending_event_ids_session` keeps the
+                # id until the completion message is delivered, which is exactly
+                # this window. Falling back to the event id only works for a
+                # caller who sent no session hash of their own, since `Event`
+                # defaults `session_hash` to its own id.
+                session_hash = next(
+                    (
+                        s
+                        for s, ids in queue.pending_event_ids_session.items()
+                        if event_id in ids
+                    ),
+                    event_id,
+                )
             return await queue_data_helper(request, session_hash, process_msg)
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])
@@ -1700,12 +1764,19 @@ class App(FastAPI):
                 request,  # type: ignore
                 None,
             )
+            fn = utils.get_function_with_locals(
+                fn,
+                app.get_blocks(),
+                event_id=None,
+                in_event_listener=False,
+                request=request,  # type: ignore
+                state=state,
+            )
             if inspect.iscoroutinefunction(fn):
                 return await fn(*processed_input)
-            else:
-                return await anyio.to_thread.run_sync(
-                    fn, *processed_input, limiter=app.get_blocks().limiter
-                )
+            return await anyio.to_thread.run_sync(
+                fn, *processed_input, limiter=app.get_blocks().limiter
+            )
 
         @router.get(
             "/queue/status",
@@ -2479,13 +2550,15 @@ def mount_gradio_app(
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
     footer_links: (
-        list[Literal["api", "gradio", "settings"] | dict[str, str]] | None
+        list[Literal["api", "gradio", "settings", "runs"] | dict[str, str]] | None
     ) = None,
+    run_history: bool | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
     auth_message: str | None = None,
-    auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+    auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+    | None = None,
     root_path: str | None = None,
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
@@ -2509,7 +2582,7 @@ def mount_gradio_app(
     """Mount a gradio.Blocks to an existing FastAPI application.
 
     Parameters:
-        app: The parent FastAPI application.
+        app: The parent FastAPI application. If it configures its own `CORSMiddleware`, Gradio will not add its own CORS headers to the mounted app, so that your `allow_origins` policy is the one that applies.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted, e.g. "/gradio".
         server_name: The server name on which the Gradio app will be run.
@@ -2524,7 +2597,8 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
+        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+        run_history: If True, each user's browser saves the inputs and outputs of their own calls to this app, which they can review and reload from the run history page at /gradio_api/runs. The runs are kept in that browser's local storage, are scoped to the logged-in user if the app uses `auth`, and are never sent to the server. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
@@ -2554,8 +2628,15 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
+    blocks.run_history = (
+        os.environ.get("GRADIO_RUN_HISTORY", "True").lower() == "true"
+        if run_history is None
+        else run_history
+    )
     if footer_links is None:
-        footer_links = ["api", "gradio", "settings"]
+        footer_links = ["api", "gradio", "settings", "runs"]
+    if not blocks.run_history:
+        footer_links = [link for link in footer_links if link != "runs"]
     blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
@@ -2623,6 +2704,7 @@ def mount_gradio_app(
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
         mcp_server=mcp_server,
+        parent_app=app,
     )
     old_lifespan = app.router.lifespan_context
 

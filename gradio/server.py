@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import Any, Literal
 
@@ -242,8 +242,11 @@ class Server(App):
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+        footer_links: list[
+            Literal["api", "gradio", "settings", "runs"] | dict[str, str]
+        ]
         | None = None,
+        run_history: bool | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -252,7 +255,8 @@ class Server(App):
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         share_server_tls_certificate: str | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
@@ -309,6 +313,7 @@ class Server(App):
             ssl_verify=ssl_verify,
             quiet=quiet,
             footer_links=footer_links,
+            run_history=run_history,
             allowed_paths=allowed_paths,
             blocked_paths=blocked_paths,
             root_path=root_path,

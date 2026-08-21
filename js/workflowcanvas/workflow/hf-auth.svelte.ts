@@ -107,6 +107,8 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	// server confirms it — only shown once known to work.
 	let oauthAvailable = $state(false);
 	let oauthAvailableKnown = $state(false);
+	let missingScopes = $state<Record<string, string>>({});
+	let scopesKnown = $state(false);
 
 	function clearIdentity(): void {
 		user = "";
@@ -157,12 +159,31 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		oauthAvailableKnown = true;
 	}
 
+	async function refreshOAuthScopes(): Promise<void> {
+		const s = getServer();
+		if (!s?.get_oauth_scopes) return;
+		try {
+			const parsed = JSON.parse((await s.get_oauth_scopes()) || "{}");
+			missingScopes = parsed?.missing ?? {};
+			scopesKnown = true;
+		} catch {
+			missingScopes = {};
+			scopesKnown = true;
+		}
+	}
+
+	function hasScope(scope: string): boolean {
+		if (source !== "oauth") return true;
+		return !(scope in missingScopes);
+	}
+
 	async function init(): Promise<void> {
 		isHFSpace = window.location.hostname.endsWith(".hf.space");
 
 		applyWriteTokenFromUrl();
 		void refreshWriteAccess();
 		void refreshOAuthAvailable();
+		void refreshOAuthScopes();
 
 		// The server's get_token returns the OAuth user's token on a Space, but
 		// the host's locally saved `huggingface-cli login` token when running
@@ -306,6 +327,15 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		get oauthAvailableKnown() {
 			return oauthAvailableKnown;
 		},
+		get missingScopes() {
+			return missingScopes;
+		},
+		get scopesKnown() {
+			return scopesKnown;
+		},
+		hasScope,
+		refreshOAuthAvailable,
+		refreshOAuthScopes,
 		init,
 		setPAT,
 		signIn,

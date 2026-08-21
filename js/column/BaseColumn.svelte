@@ -1,8 +1,10 @@
 <script lang="ts">
+	import type { Snippet } from "svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 	type Props = {
+		children?: Snippet;
 		scale?: number | null;
 		min_width?: number | null;
 		elem_id?: string;
@@ -16,7 +18,7 @@
 	};
 
 	let props: Props = $props();
-	let el;
+	let el: HTMLDivElement | undefined = $state();
 
 	let scale: number | null = $derived(props.scale ?? null);
 	let min_width: number = $derived(props.min_width ?? 0);
@@ -55,7 +57,7 @@
 				: null}
 		/>
 	{/if}
-	<slot />
+	{@render props.children?.()}
 </div>
 
 <style>

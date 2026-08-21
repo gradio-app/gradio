@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: add oauth hint
+feat:workflows: allow save as copy

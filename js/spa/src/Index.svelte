@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { writable } from "svelte/store";
 	import {
 		mount_css,
@@ -83,60 +83,114 @@
 </script>
 
 <script lang="ts">
-	import { onMount, createEventDispatcher, onDestroy } from "svelte";
-	import type { SpaceStatus } from "@gradio/client";
+	import { onMount, onDestroy } from "svelte";
+	import {
+		consume_run_history_replay,
+		type SpaceStatus,
+		type StoredRun
+	} from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "@gradio/core";
 	import { init } from "@huggingface/space-header";
+	import RunHistory from "./RunHistory.svelte";
 
-	let i18n_ready = false;
+	let i18n_ready = $state(false);
 	setupi18n().then(() => {
 		i18n_ready = true;
 	});
 
-	const dispatch = createEventDispatcher();
+	let {
+		autoscroll,
+		version,
+		initial_height,
+		app_mode,
+		is_embed,
+		theme_mode = "system",
+		control_page_title,
+		container,
+		info,
+		eager,
+		// These utilities are exported to be injectable for the Wasm version.
+		Client,
+		space,
+		src,
+		onloaded
+	}: {
+		autoscroll: boolean;
+		version: string;
+		initial_height: string;
+		app_mode: boolean;
+		is_embed: boolean;
+		theme_mode?: ThemeMode | null;
+		control_page_title: boolean;
+		container: boolean;
+		info: boolean;
+		eager: boolean;
+		Client: typeof ClientType;
+		space: string | null;
+		src: string | null;
+		onloaded?: () => void;
+	} = $props();
 
-	export let autoscroll: boolean;
-	export let version: string;
-	export let initial_height: string;
-	export let app_mode: boolean;
-	export let is_embed: boolean;
-	export let theme_mode: ThemeMode | null = "system";
-	export let control_page_title: boolean;
-	export let container: boolean;
-	export let info: boolean;
-	export let eager: boolean;
 	let stream: EventSource;
-	let pages: [string, string, boolean][] = [];
-	let current_page: string;
-	let root: string;
-
-	// These utilities are exported to be injectable for the Wasm version.
-	export let Client: typeof ClientType;
-
-	export let space: string | null;
-	export let src: string | null;
+	let pages: [string, string, boolean][] = $state([]);
+	let current_page: string = $state("");
+	let root: string = $state("");
 
 	let _id = id++;
 
-	let loader_status: "pending" | "error" | "complete" | "generating" =
-		"pending";
 	let app_id: string | null = null;
-	let wrapper: HTMLDivElement;
-	let ready = false;
-	let render_complete = false;
-	let config: Config;
-	let loading_text = "Loading...";
+	let wrapper: HTMLDivElement | undefined = $state();
+	let ready = $state(false);
+	let render_complete = $state(false);
+	let config: Config = $state()!;
+	let loading_text = $state("Loading...");
 
-	let active_theme_mode: ThemeMode;
-	let api_url: string;
+	let active_theme_mode: ThemeMode = $state("system");
+	let api_url = $state("");
+	let run_history = $state(false);
 
-	$: if (config?.app_id) {
-		app_id = config.app_id;
+	function restore_run(config: Config, run: StoredRun | null): void {
+		if (!run) return;
+		const dependency = config.dependencies.find(
+			(item) =>
+				item.id === run.fn_index ||
+				(typeof item.api_name === "string" &&
+					`/${item.api_name.replace(/^\//, "")}` === run.api_name)
+		);
+		if (!dependency) return;
+
+		const inputs = Array.isArray(run.inputs)
+			? run.inputs
+			: Object.values(run.inputs as Record<string, unknown>);
+		const outputs = Array.isArray(run.outputs)
+			? run.outputs
+			: run.outputs === null
+				? []
+				: [run.outputs];
+		const restore = (ids: number[], saved: unknown[]): void => {
+			for (const [index, id] of ids.entries()) {
+				const component = config.components.find((item) => item.id === id);
+				if (!component || index >= saved.length) continue;
+				// `gr.State` is held on the server and always saved as null, so
+				// writing it back would wipe out the component's real default.
+				if (component.type === "state") continue;
+				component.props.value = saved[index];
+			}
+		};
+
+		restore(dependency.inputs, inputs);
+		restore(dependency.outputs, outputs);
 	}
+
+	$effect(() => {
+		if (config?.app_id) {
+			app_id = config.app_id;
+		}
+	});
 
 	let css_text_stylesheet: HTMLStyleElement | null = null;
 	async function mount_custom_css(css_string: string | null): Promise<void> {
@@ -286,22 +340,22 @@
 		}
 	}
 
-	let status: SpaceStatus = {
+	let status: SpaceStatus = $state({
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
 		detail: "SLEEPING"
-	};
+	});
 
-	let app: ClientType;
-	let css_ready = false;
+	let app: ClientType = $state()!;
+	let css_ready = $state(false);
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
 	}
 	//@ts-ignore
 	const gradio_dev_mode = window.__GRADIO_DEV__;
 
-	let pending_deep_link_error = false;
+	let pending_deep_link_error = $state(false);
 
 	type AddNewMessage = (
 		title: string,
@@ -312,21 +366,30 @@
 		visible?: boolean
 	) => void;
 
-	let new_message_fn: AddNewMessage;
+	let new_message_fn: AddNewMessage = $state()!;
 
-	$: if (new_message_fn && pending_deep_link_error) {
-		new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
-		pending_deep_link_error = false;
-	}
+	$effect(() => {
+		if (new_message_fn && pending_deep_link_error) {
+			new_message_fn("Error", "Deep link was not valid", -1, "error", 10, true);
+			pending_deep_link_error = false;
+		}
+	});
 
-	let reload_count = 0;
+	let reload_count = $state(0);
 
 	onMount(async () => {
+		if (!wrapper) return;
 		active_theme_mode = handle_theme_mode(wrapper);
+		run_history = window.location.pathname
+			.replace(/\/$/, "")
+			.endsWith("/gradio_api/runs");
 
 		//@ts-ignore
 		const server_port = window.__GRADIO__SERVER_PORT__;
 
+		const app_path = run_history
+			? window.location.pathname.replace(/gradio_api\/runs\/?$/, "")
+			: window.location.pathname;
 		api_url =
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
@@ -334,7 +397,7 @@
 					}`
 				: space ||
 					src ||
-					new URL(location.pathname, location.origin).href.replace(/\/$/, "");
+					new URL(app_path, location.origin).href.replace(/\/$/, "");
 
 		const deep_link = new URLSearchParams(window.location.search).get(
 			"deep_link"
@@ -358,6 +421,7 @@
 		}
 
 		config = app.get_url_config() as unknown as Config;
+		restore_run(config, consume_run_history_replay(config));
 		window.__gradio_space__ = config.space_id;
 
 		if (app.config?.i18n_translations) {
@@ -379,7 +443,7 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
-		dispatch("loaded");
+		onloaded?.();
 
 		pages = config.pages;
 		current_page = config.current_page;
@@ -430,7 +494,7 @@
 						css_ready = true;
 						window.__is_colab__ = config.is_colab;
 						reload_count += 1;
-						dispatch("loaded");
+						onloaded?.();
 					} catch (error) {
 						new_message_fn(
 							"Error",
@@ -447,18 +511,23 @@
 		}
 	});
 
-	$: loader_status =
-		!ready && status.load_status !== "error"
-			? "pending"
-			: !ready && status.load_status === "error"
-				? "error"
-				: status.load_status;
+	let loader_status: "pending" | "error" | "complete" | "generating" = $derived(
+		run_history
+			? status.load_status
+			: !ready && status.load_status !== "error"
+				? "pending"
+				: !ready && status.load_status === "error"
+					? "error"
+					: status.load_status
+	);
 
-	$: config && (eager || $intersecting[_id]) && load_demo();
+	$effect(() => {
+		if (config && (eager || $intersecting[_id])) load_demo();
+	});
 
-	let Blocks: typeof import("@gradio/core/blocks").default;
+	let Blocks: typeof import("@gradio/core/blocks").default = $state()!;
 
-	let Login: typeof import("@gradio/core/login").default;
+	let Login: typeof import("@gradio/core/login").default = $state()!;
 
 	async function get_blocks(): Promise<void> {
 		Blocks = (await import("@gradio/core/blocks")).default;
@@ -484,9 +553,10 @@
 		readable_error: Record<error_types, string>;
 		title: (error: error_types) => string;
 		description: (error: error_types, site: string) => string;
-	};
+	} = $state()!;
 
-	$: if (i18n_ready) {
+	$effect(() => {
+		if (!i18n_ready) return;
 		loading_text = $_("common.loading") + "...";
 		discussion_message = {
 			readable_error: {
@@ -507,23 +577,27 @@
 				);
 			}
 		};
-	}
-
-	onMount(async () => {
-		intersecting.register(_id, wrapper);
 	});
 
-	$: if (render_complete) {
-		wrapper.dispatchEvent(
-			new CustomEvent("render", {
-				bubbles: true,
-				cancelable: false,
-				composed: true
-			})
-		);
-	}
+	onMount(async () => {
+		if (wrapper) intersecting.register(_id, wrapper);
+	});
 
-	$: app?.config && mount_space_header(app?.config?.space_id, is_embed);
+	$effect(() => {
+		if (render_complete && wrapper) {
+			wrapper.dispatchEvent(
+				new CustomEvent("render", {
+					bubbles: true,
+					cancelable: false,
+					composed: true
+				})
+			);
+		}
+	});
+
+	$effect(() => {
+		if (app?.config) mount_space_header(app?.config?.space_id, is_embed);
+	});
 	let spaceheader: HTMLElement | undefined;
 
 	async function mount_space_header(
@@ -560,7 +634,7 @@
 	bind:wrapper
 >
 	{#if i18n_ready}
-		{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
+		{#if !run_history && (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
 			<StatusTracker
 				absolute={!is_embed}
 				status={loader_status}
@@ -572,37 +646,42 @@
 				i18n={$_}
 				{autoscroll}
 			>
-				<div class="load-text" slot="additional-loading-text">
-					{#if gradio_dev_mode === "dev"}
-						<p>
-							If your custom component never loads, consult the troubleshooting <a
-								style="color: blue;"
-								href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
-								>guide</a
-							>.
-						</p>
-					{/if}
-				</div>
+				{#snippet additional_loading_text()}
+					<div class="load-text">
+						{#if gradio_dev_mode === "dev"}
+							<p>
+								If your custom component never loads, consult the
+								troubleshooting <a
+									style="color: blue;"
+									href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
+									>guide</a
+								>.
+							</p>
+						{/if}
+					</div>
+				{/snippet}
 				<!-- todo: translate message text -->
-				<div class="error" slot="error">
-					<p><strong>{status?.message || ""}</strong></p>
-					{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
-						<p>
-							Please <a
-								href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-									status?.detail
-								)}&description={discussion_message.description(
-									status?.detail,
-									location.origin
-								)}"
-							>
-								contact the author of the space</a
-							> to let them know.
-						</p>
-					{:else if i18n_ready}
-						<p>{$_("errors.contact_page_author")}</p>
-					{/if}
-				</div>
+				{#snippet error_details()}
+					<div class="error">
+						<p><strong>{status?.message || ""}</strong></p>
+						{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled && discussion_message}
+							<p>
+								Please <a
+									href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
+										status?.detail
+									)}&description={discussion_message.description(
+										status?.detail,
+										location.origin
+									)}"
+								>
+									contact the author of the space</a
+								> to let them know.
+							</p>
+						{:else if i18n_ready}
+							<p>{$_("errors.contact_page_author")}</p>
+						{/if}
+					</div>
+				{/snippet}
 			</StatusTracker>
 		{/if}
 		{#if config?.auth_required && Login}
@@ -613,6 +692,12 @@
 				i18n={i18n_ready ? $_ : (s: string) => s}
 				{app_mode}
 			/>
+		{:else if config && css_ready && run_history}
+			<RunHistory
+				root={api_url}
+				scope={config}
+				footer_links={config.footer_links}
+			/>
 		{:else if config && Blocks && css_ready}
 			<Blocks
 				{app}
@@ -621,7 +706,7 @@
 				fill_height={!is_embed && !!config.fill_height}
 				theme_mode={active_theme_mode}
 				{control_page_title}
-				target={wrapper}
+				target={wrapper!}
 				{autoscroll}
 				bind:render_complete
 				bind:add_new_message={new_message_fn}

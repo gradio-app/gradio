@@ -1,5 +1,6 @@
 <script lang="ts">
-	export let guides = [] as any[];
+	let { guides = [] as any[] } = $props();
+
 	const COLOR_SETS = [
 		["from-green-100", "to-green-50"],
 		["from-yellow-100", "to-yellow-50"],

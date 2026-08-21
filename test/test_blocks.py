@@ -1660,6 +1660,26 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
+class TestHandleStreamingOutputs:
+    @pytest.mark.asyncio
+    async def test_final_chunk_with_no_open_stream_is_a_no_op(self):
+        # The session's streams may be gone by the time the final chunk lands —
+        # a disconnect drops them — and a generator that sends only prop updates
+        # never opens one at all. Neither should cost the caller their output.
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            audio = gr.Audio(streaming=True, autoplay=True)
+            box.submit(lambda x: x, box, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+        data = await demo.handle_streaming_outputs(
+            block_fn, [b"final"], session_hash="s", run=0, final=True
+        )
+
+        assert data == [b"final"]
+        assert demo.pending_streams["s"][0] == {}
+
+
 class TestGetAPIInfo:
     def test_many_endpoints(self):
         with gr.Blocks() as demo:
@@ -2327,3 +2347,82 @@ def test_render_apply_does_not_raise_keyerror_when_fns_are_popped():
             renderable.fn = original_fn
     finally:
         LocalContext.blocks_config.reset(token)
+
+
+def test_nested_render_uses_local_blocks_context():
+    def create_nested_app(user):
+        with gr.Blocks():
+            gr.Textbox(user, label="User Profile")
+            search_box = gr.Textbox(label="Search Bar")
+
+            @gr.render(inputs=search_box)
+            def render_words(search):
+                for word in search.split():
+                    gr.Button(word, key=word)
+
+    with gr.Blocks() as demo:
+        user = gr.State("User1")
+
+        @gr.render(inputs=user)
+        def render_user(user):
+            create_nested_app(user)
+
+    outer_render = next(
+        renderable for renderable in demo.renderables if renderable.fn is render_user
+    )
+    root_renderable_count = len(demo.renderables)
+    blocks_config = copy.copy(demo.default_config)
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        outer_render.apply("User1")
+
+        inner_render = next(
+            renderable
+            for renderable in blocks_config.renderables
+            if renderable is not outer_render
+        )
+        outer_config = blocks_config.get_config(outer_render)
+        assert any(
+            dependency["render_id"] == inner_render._id
+            for dependency in outer_config["dependencies"]
+        )
+
+        inner_render.apply("hello world")
+        inner_config = blocks_config.get_config(inner_render)
+        assert [
+            component["props"].get("value")
+            for component in inner_config["components"]
+            if component["type"] == "button"
+        ] == ["hello", "world"]
+
+        outer_render.apply("User2")
+        assert len(demo.renderables) == root_renderable_count
+    finally:
+        LocalContext.blocks_config.reset(token)
+
+
+def test_blocks_render_inside_reactive_render_registers_components():
+    with gr.Blocks() as prebuilt:
+        markdown = gr.Markdown("Prebuilt content")
+
+    with gr.Blocks() as demo:
+
+        @gr.render()
+        def render_prebuilt():
+            prebuilt.render()
+
+    renderable = next(
+        renderable
+        for renderable in demo.renderables
+        if renderable.fn is render_prebuilt
+    )
+    blocks_config = copy.copy(demo.default_config)
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        renderable.apply()
+        config = blocks_config.get_config(renderable)
+    finally:
+        LocalContext.blocks_config.reset(token)
+
+    component_ids = {component["id"] for component in config["components"]}
+    assert markdown._id in component_ids

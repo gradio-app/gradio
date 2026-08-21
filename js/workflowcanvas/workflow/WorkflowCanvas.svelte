@@ -12,6 +12,8 @@
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
+	import UploadIcon from "./icons/UploadIcon.svelte";
+	import { uploadFile } from "@huggingface/hub";
 
 	import {
 		MODALITIES,
@@ -21,7 +23,7 @@
 		modalityForPort
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
-	import { fetchSpaceApi } from "./space-api";
+	import { fetchSpaceApi, fork_repo_candidates } from "./space-api";
 	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import {
 		workflow,
@@ -96,36 +98,51 @@
 
 	const auth = createHFAuth(() => server);
 
-	// Sessions without the write token (share-link visitors, tunnelled
-	// requests) get a view-only canvas: they can run the workflow and fill in
-	// input values, but not change its structure or persist anything. The
-	// server independently rejects unauthorized saves — this is UX, not the
-	// security boundary. Stays editable until the server answers so the owner
-	// doesn't see controls flash out and back in.
-	const readOnly = $derived(auth.writeAccessKnown && !auth.canWrite);
-
-	// Why this session can't edit — surfaced on the "Run only" badge (hover and
-	// click). Differs by deployment: locally the fix is opening the write-token
-	// edit link; on a Space it's signing in as an account that owns the Space —
-	// unless the Space has no OAuth enabled, in which case no one can sign in to
-	// edit and the developer must enable it.
-	const readOnlyReason = $derived(
-		auth.isHFSpace
-			? auth.oauthAvailable
-				? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that owns this Space (or has write access to it) to make changes. Alternatively, duplicate this Space under your own account to edit your own copy."
-				: "Run-only: editing is disabled because this Space doesn't have OAuth enabled, so the owner can't sign in to authenticate. To allow editing, add `hf_oauth: true` to the Space's README metadata and redeploy. Alternatively, duplicate this Space under your own account to edit your own copy."
-			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes."
+	let spaceId = $state("");
+	// Server independently rejects unauthorized saves — this is UX only.
+	// Optimistically editable until the server answers so the owner doesn't
+	// see controls flash out. `spaceId` covers preview hosts where the
+	// hostname check misses. Spaces bypass the gate entirely: saving is
+	// manual via "Save to Space" / "Save as copy" and edits are ephemeral.
+	const onSpace = $derived(auth.isHFSpace || !!spaceId);
+	const readOnly = $derived(
+		!onSpace && auth.writeAccessKnown && !auth.canWrite
 	);
 
-	// Flash a brief "Saved" confirmation after each successful autosave. The
-	// timer is cleared on each new save so rapid edits coalesce into a single
-	// lingering checkmark rather than flickering.
+	const readOnlyReason =
+		"Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes.";
+
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
-	// Serialized form of what's currently persisted on the server. Autosave
-	// compares against this so loading the workflow into the store on page load
-	// (and any no-op change) doesn't trigger a redundant save + "Saved" flash.
-	let lastSavedSerialized: string | null = null;
+	let lastSavedSerialized = $state<string | null>(null);
+	// Post-load hydration (model port schemas, role reconciliation) mutates
+	// the workflow without user input and would otherwise flip dirty. Gate on
+	// a real gesture and re-baseline when it arrives.
+	let userInteracted = $state(false);
+	const isDirty = $derived(
+		userInteracted &&
+			lastSavedSerialized !== null &&
+			JSON.stringify(sanitize_for_save($workflow)) !== lastSavedSerialized
+	);
+	$effect(() => {
+		if (userInteracted) return;
+		lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
+	});
+	$effect(() => {
+		if (userInteracted) return;
+		const flip = (): void => {
+			if (userInteracted) return;
+			userInteracted = true;
+			lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
+		};
+		const gestures = ["pointerdown", "keydown", "drop", "paste"] as const;
+		for (const g of gestures)
+			window.addEventListener(g, flip, { capture: true });
+		return () => {
+			for (const g of gestures)
+				window.removeEventListener(g, flip, { capture: true });
+		};
+	});
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -138,14 +155,27 @@
 		void auth.init();
 	});
 
+	$effect(() => {
+		if (server?.get_oauth_available && !auth.oauthAvailableKnown) {
+			void auth.refreshOAuthAvailable();
+		}
+	});
+
+	$effect(() => {
+		if (server?.get_oauth_scopes && !auth.scopesKnown) {
+			void auth.refreshOAuthScopes();
+		}
+	});
+
 	let oauthHintShown = false;
 	$effect(() => {
 		if (
 			!oauthHintShown &&
-			auth.isHFSpace &&
+			onSpace &&
 			auth.writeAccessKnown &&
 			auth.oauthAvailableKnown &&
 			!auth.canWrite &&
+			auth.oauthAvailableKnown &&
 			!auth.oauthAvailable
 		) {
 			oauthHintShown = true;
@@ -157,18 +187,30 @@
 		}
 	});
 
+	let scopeHintShown = false;
+	$effect(() => {
+		const missing = Object.entries(auth.missingScopes);
+		if (scopeHintShown || auth.source !== "oauth" || missing.length === 0)
+			return;
+		scopeHintShown = true;
+		const detail = missing.map(([s, why]) => `\`${s}\` (to ${why})`).join(", ");
+		showToast(
+			`This Space's sign-in is missing ${detail}. The author should add ${missing
+				.map(([s]) => s)
+				.join(" and ")} under \`hf_oauth_scopes\` in the README and redeploy.`,
+			0,
+			"warning"
+		);
+	});
+
 	$effect(() => {
 		if (!initialValue) return;
 		try {
 			const parsed = JSON.parse(initialValue);
 			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
-			// Migration handles both v1 (legacy workflow.json files) and v2.
-			// Reconcile on load as well as on edit: files written before roles were
-			// derived can carry a wired-up component still filed under `references`,
-			// which renders as an output tile but generates no API endpoint. The
-			// baseline below means the heal isn't a save on its own, but the first
-			// store write after mount (port hydration, a drag, an edit) carries it
-			// to disk — so a stale file corrects itself in practice.
+			// Reconcile on load: files written before roles were derived can carry
+			// a wired-up component still filed under `references`. The first store
+			// write after mount carries the heal to disk.
 			const v2 = reconcileComponentRoles(migrateToV2(parsed));
 			workflow.set(v2);
 			// Baseline the persisted state so the load itself isn't autosaved.
@@ -177,12 +219,23 @@
 		} catch {}
 	});
 
+	let pendingEditsRestored = false;
+	$effect(() => {
+		if (pendingEditsRestored) return;
+		pendingEditsRestored = true;
+		const stashed = readPendingEdits();
+		if (!stashed) return;
+		workflow.set(reconcileComponentRoles(migrateToV2(stashed)));
+		userInteracted = true;
+	});
+
 	$effect(() => {
 		const wf = $workflow;
-		// Wait for the write-access answer before autosaving — the optimistic
-		// editable window would otherwise fire saves the backend rejects.
+		// Wait for write-access to avoid saves the backend rejects. Spaces
+		// use manual "Save to Space", so autosave is skipped.
 		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
 			return;
+		if (onSpace) return;
 		const serialized = JSON.stringify(sanitize_for_save(wf));
 		if (lastSavedSerialized === null) {
 			// No persisted baseline yet (e.g. a brand-new workflow with no saved
@@ -338,6 +391,21 @@
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
 	let showApiPanel = $state(false);
+	let saveToSpaceConfirm = $state(false);
+	let savingToSpace = $state(false);
+	let saveAsCopyConfirm = $state(false);
+	let savingAsCopy = $state(false);
+	const copyCandidates = $derived(fork_repo_candidates(auth.user, spaceId));
+	const copyRepo = $derived(copyCandidates[0] ?? "");
+	$effect(() => {
+		if (!server?.get_space_id) return;
+		void server
+			.get_space_id()
+			.then((id: string) => {
+				spaceId = id || "";
+			})
+			.catch(() => {});
+	});
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -387,6 +455,141 @@
 
 	function dismissToast(id: number): void {
 		toasts = toasts.filter((t) => t.id !== id);
+	}
+
+	const PENDING_EDITS_KEY = "gradio_workflow_pending_edits";
+	function pendingEditsScope(): string {
+		return `${window.location.host}${window.location.pathname}`;
+	}
+	function signInPreservingEdits(): void {
+		try {
+			sessionStorage.setItem(
+				PENDING_EDITS_KEY,
+				JSON.stringify({
+					scope: pendingEditsScope(),
+					workflow: sanitize_for_save($workflow)
+				})
+			);
+		} catch {}
+		auth.signIn();
+	}
+	function readPendingEdits(): unknown | null {
+		try {
+			const raw = sessionStorage.getItem(PENDING_EDITS_KEY);
+			sessionStorage.removeItem(PENDING_EDITS_KEY);
+			const parsed = raw ? JSON.parse(raw) : null;
+			return parsed?.scope === pendingEditsScope() ? parsed.workflow : null;
+		} catch {
+			return null;
+		}
+	}
+
+	async function firstFreeForkRepo(): Promise<string | null> {
+		for (const candidate of copyCandidates) {
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${candidate}`,
+				{ headers: { Authorization: `Bearer ${auth.token}` } }
+			);
+			if (res.status === 404) return candidate;
+		}
+		return null;
+	}
+
+	async function sourceIsPrivate(): Promise<boolean> {
+		try {
+			const res = await fetch(`https://huggingface.co/api/spaces/${spaceId}`, {
+				headers: { Authorization: `Bearer ${auth.token}` }
+			});
+			return res.ok ? (await res.json())?.private === true : true;
+		} catch {
+			return true;
+		}
+	}
+
+	async function saveAsCopy(): Promise<void> {
+		saveAsCopyConfirm = false;
+		if (!spaceId || !auth.token || !copyRepo || savingAsCopy) return;
+		savingAsCopy = true;
+		try {
+			const target = await firstFreeForkRepo();
+			if (!target) {
+				throw new Error(
+					`you already have Spaces named ${copyRepo} and every fallback name — rename or delete one and try again`
+				);
+			}
+			const isPrivate = await sourceIsPrivate();
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${spaceId}/duplicate`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${auth.token}`,
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						repository: target,
+						private: isPrivate,
+						hardware: "cpu-basic"
+					})
+				}
+			);
+			if (!res.ok) {
+				throw new Error(`${res.status} ${await res.text()}`);
+			}
+			const state = sanitize_for_save($workflow);
+			const serialized = JSON.stringify(state, null, 2);
+			await uploadFile({
+				repo: { type: "space", name: target },
+				accessToken: auth.token,
+				file: {
+					path: "workflow.json",
+					content: new Blob([serialized], { type: "application/json" })
+				},
+				commitTitle: "Fork workflow.json from canvas"
+			});
+			lastSavedSerialized = JSON.stringify(state);
+			showToast(`Saved a copy to ${target}.`, 0, "success", {
+				label: "Open Space",
+				href: `https://huggingface.co/spaces/${target}`
+			});
+		} catch (e: any) {
+			showToast(`Saving a copy failed: ${e?.message ?? e}`, 5000, "warning");
+		} finally {
+			savingAsCopy = false;
+		}
+	}
+
+	async function saveToSpace(): Promise<void> {
+		saveToSpaceConfirm = false;
+		if (!spaceId || !auth.token || savingToSpace) return;
+		savingToSpace = true;
+		const state = sanitize_for_save($workflow);
+		const serialized = JSON.stringify(state, null, 2);
+		try {
+			await uploadFile({
+				repo: { type: "space", name: spaceId },
+				accessToken: auth.token,
+				file: {
+					path: "workflow.json",
+					content: new Blob([serialized], { type: "application/json" })
+				},
+				commitTitle: "Update workflow.json from canvas"
+			});
+			lastSavedSerialized = JSON.stringify(state);
+			showToast(
+				`Committed workflow.json to ${spaceId} — the Space will restart.`,
+				4000,
+				"success"
+			);
+		} catch (e: any) {
+			const msg =
+				e?.message?.includes("403") || e?.statusCode === 403
+					? "Your token doesn't have write access to this Space repo."
+					: `Save failed: ${e?.message ?? e}`;
+			showToast(msg, 5000, "warning");
+		} finally {
+			savingToSpace = false;
+		}
 	}
 
 	// v1 shape for read paths; writes go through v2 store actions.
@@ -2323,7 +2526,7 @@
 				<CodeIcon />
 				View API
 			</button>
-			{#if saveIndicator}
+			{#if saveIndicator && !onSpace}
 				<span
 					class="save-indicator"
 					in:fade={{ duration: 120 }}
@@ -2376,10 +2579,10 @@
 							</div>
 						{/if}
 					</div>
-				{:else if auth.isHFSpace}
+				{:else if onSpace}
 					<button
 						class="toolbar-login-btn"
-						onclick={auth.signIn}
+						onclick={signInPreservingEdits}
 						disabled={!auth.oauthAvailable}
 						title={auth.oauthAvailable
 							? undefined
@@ -2407,10 +2610,55 @@
 			{/if}
 			{#if !readOnly}
 				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-				{#if auth.writeAccessKnown}
+				{#if onSpace && spaceId && isDirty}
+					{#if !auth.token && auth.oauthAvailable}
+						<button
+							class="tool-btn save-space-btn"
+							onclick={signInPreservingEdits}
+							title="Sign in with Hugging Face to save your changes"
+						>
+							<UploadIcon />
+							Unsaved · Sign in to save
+						</button>
+					{:else}
+						{#if auth.canWrite}
+							<button
+								class="tool-btn save-space-btn"
+								disabled={savingToSpace || !auth.hasScope("write-repos")}
+								onclick={() => (saveToSpaceConfirm = true)}
+								title={auth.hasScope("write-repos")
+									? "Commit workflow.json to this Space's repo (will restart the Space)"
+									: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+							>
+								<UploadIcon />
+								{savingToSpace ? "Saving…" : "Unsaved · Save"}
+							</button>
+						{/if}
+						{#if auth.user}
+							<button
+								class="tool-btn save-space-btn"
+								disabled={savingAsCopy || !auth.hasScope("write-repos")}
+								onclick={() => (saveAsCopyConfirm = true)}
+								title={auth.hasScope("write-repos")
+									? "Duplicate this Space under your account and save your edits there"
+									: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+							>
+								<UploadIcon />
+								{savingAsCopy
+									? "Forking…"
+									: auth.canWrite
+										? "Save as copy"
+										: "Unsaved · Save as copy"}
+							</button>
+						{/if}
+					{/if}
+				{/if}
+				{#if auth.writeAccessKnown && auth.canWrite}
 					<span
 						class="access-badge access-write"
-						title="You have write access — changes you make are saved automatically."
+						title={onSpace
+							? "You have write access — use Save to commit your changes to this Space."
+							: "You have write access — changes you make are saved automatically."}
 						>Write access</span
 					>
 				{/if}
@@ -2429,21 +2677,17 @@
 					>
 					{#if showAccessInfo}
 						<div class="access-info-popover">
-							{#if auth.isHFSpace}
-								{readOnlyReason}
-							{:else}
-								<!-- Mirrors the local-session readOnlyReason string (used for the
-								     hover title), with "access token" rendered as a link. -->
-								Run-only: you can run this workflow but not edit it. This session
-								is missing the write token — open the edit link printed in the terminal
-								to make changes. That link also signs this session in with your locally
-								saved Hugging Face token; without it, paste an
-								<a
-									href="https://huggingface.co/settings/tokens"
-									target="_blank"
-									rel="noopener noreferrer">access token</a
-								> to run nodes.
-							{/if}
+							<!-- Mirrors readOnlyReason (used for the hover title), with
+							     "access token" rendered as a link. -->
+							Run-only: you can run this workflow but not edit it. This session is
+							missing the write token — open the edit link printed in the terminal
+							to make changes. That link also signs this session in with your locally
+							saved Hugging Face token; without it, paste an
+							<a
+								href="https://huggingface.co/settings/tokens"
+								target="_blank"
+								rel="noopener noreferrer">access token</a
+							> to run nodes.
 						</div>
 					{/if}
 				</div>
@@ -2814,6 +3058,71 @@
 		</div>
 	{/if}
 
+	{#if saveToSpaceConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="wf-modal-backdrop" onclick={() => (saveToSpaceConfirm = false)}>
+			<div
+				class="wf-modal"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="wf-save-space-title"
+				onclick={(e) => e.stopPropagation()}
+			>
+				<div class="wf-modal-title" id="wf-save-space-title">
+					Save to Space?
+				</div>
+				<div class="wf-modal-body">
+					This will commit <strong>workflow.json</strong> to
+					<strong>{spaceId}</strong>. The Space will
+					<strong>restart</strong> to pick up the change.
+				</div>
+				<div class="wf-modal-actions">
+					<button
+						class="wf-modal-btn"
+						onclick={() => (saveToSpaceConfirm = false)}>Cancel</button
+					>
+					<button class="wf-modal-btn wf-modal-btn-danger" onclick={saveToSpace}
+						>Save & restart</button
+					>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	{#if saveAsCopyConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="wf-modal-backdrop" onclick={() => (saveAsCopyConfirm = false)}>
+			<div
+				class="wf-modal"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="wf-save-copy-title"
+				onclick={(e) => e.stopPropagation()}
+			>
+				<div class="wf-modal-title" id="wf-save-copy-title">
+					Save as your own copy?
+				</div>
+				<div class="wf-modal-body">
+					Save your edits to a new Space under your account, copied from
+					<strong>{spaceId}</strong>. It'll be created as
+					<strong>{copyRepo}</strong> (or the next free name, if you already have
+					that one) and match the original's visibility.
+				</div>
+				<div class="wf-modal-actions">
+					<button
+						class="wf-modal-btn"
+						onclick={() => (saveAsCopyConfirm = false)}>Cancel</button
+					>
+					<button class="wf-modal-btn wf-modal-btn-danger" onclick={saveAsCopy}
+						>Duplicate & save</button
+					>
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	{#if showApiPanel}
 		<WorkflowApiPanel
 			{server}
@@ -3082,6 +3391,14 @@
 		color: #0f9d76;
 		background: rgba(15, 157, 118, 0.08);
 		border-color: rgba(15, 157, 118, 0.25);
+	}
+	.save-space-btn {
+		color: #ff9350;
+		border-color: rgba(255, 147, 80, 0.4);
+	}
+	.save-space-btn:hover:not(:disabled) {
+		background: rgba(255, 147, 80, 0.12);
+		border-color: rgba(255, 147, 80, 0.6);
 	}
 	:global(body:not(.dark) button.access-badge.access-readonly:hover),
 	:global(body:not(.dark) button.access-badge.access-readonly.open) {

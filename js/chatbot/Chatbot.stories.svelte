@@ -55,6 +55,16 @@
 			content: [{ type: "text", text: "Can you say nothing?" }]
 		}
 	];
+
+	const mobileScrollValue = Array.from({ length: 16 }, (_, index) => ({
+		role: index % 2 === 0 ? "user" : "assistant",
+		content: [
+			{
+				type: "text",
+				text: `Mobile scrolling message ${index + 1}: ${"long content ".repeat(8)}`
+			}
+		]
+	}));
 </script>
 
 {#snippet template(args)}
@@ -140,6 +150,16 @@
 <Story
 	name="Chatbot with percentage height"
 	args={{ layout: "panel", height: "50%", value: defaultValue }}
+	{template}
+/>
+<Story
+	name="Mobile scrolling conversation"
+	args={{
+		layout: "bubble",
+		height: 420,
+		autoscroll: true,
+		value: mobileScrollValue
+	}}
 	{template}
 />
 <Story

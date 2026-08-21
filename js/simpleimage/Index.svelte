@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseImageUploader } from "./shared/ImageUploader.svelte";
 	export { default as BaseStaticImage } from "./shared/ImagePreview.svelte";
 	export { default as BaseExample } from "./Example.svelte";
@@ -83,9 +81,9 @@
 			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 			bind:value={gradio.props.value}
 			root={gradio.shared.root}
-			on:clear={() => gradio.dispatch("clear")}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:upload={() => gradio.dispatch("upload")}
+			onclear={() => gradio.dispatch("clear")}
+			ondrag={(is_dragging) => (dragging = is_dragging)}
+			onupload={() => gradio.dispatch("upload")}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 		>

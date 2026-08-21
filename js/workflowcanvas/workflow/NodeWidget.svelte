@@ -117,7 +117,18 @@
 	);
 
 	function openHtmlInTab(html: string): void {
-		const blob = new Blob([html], { type: "text/html" });
+		// A Blob URL inherits the origin of whoever created it, so opening this
+		// HTML directly would run model-authored markup as the app itself. Host it
+		// in a sandboxed iframe instead, which is the same opaque origin the
+		// in-page preview gives it.
+		const srcdoc = html.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+		const wrapper =
+			`<!doctype html><html><head><meta charset="utf-8">` +
+			`<title>HTML preview</title>` +
+			`<style>html,body{margin:0;height:100%}iframe{border:0;width:100%;height:100%}</style>` +
+			`</head><body><iframe sandbox="allow-scripts" srcdoc="${srcdoc}"` +
+			` title="HTML preview"></iframe></body></html>`;
+		const blob = new Blob([wrapper], { type: "text/html" });
 		const url = URL.createObjectURL(blob);
 		window.open(url, "_blank", "noopener");
 		setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -767,8 +778,16 @@
 	.widget-checkbox {
 		width: 16px;
 		height: 16px;
-		accent-color: var(--accent);
+		border-radius: 3px;
+		border-color: #3a3b48;
 		cursor: pointer;
+	}
+	.widget-checkbox:checked {
+		background-color: var(--accent);
+		border-color: var(--accent);
+	}
+	:global(body:not(.dark)) .widget-checkbox:not(:checked) {
+		border-color: #d0d2dc;
 	}
 
 	.widget-checkbox-label {

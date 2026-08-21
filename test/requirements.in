@@ -20,7 +20,9 @@ pytest
 pytest-asyncio
 pytest-cov
 pytest-rerunfailures
+requests<2.34
 respx
+ruff==0.12.9
 scikit-image
 torch
 tqdm
