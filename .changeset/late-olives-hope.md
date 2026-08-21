@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Give the client's internal helper tasks their own thread pool
+fix:Give the client's internal helper tasks their own thread pool
