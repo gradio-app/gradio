@@ -1,8 +1,6 @@
-// Client wrappers for /gradio_api/history/* + per-app config in localStorage.
+// Client wrappers for /gradio_api/history/*.
 
-import type { RunHistoryScope, StoredRun } from "./run_history";
-
-const CONFIG_PREFIX = "gradio:run-history:bucket:v2:";
+import type { StoredRun } from "./run_history";
 
 // Mirrors gradio.routes._bucket_repo_re. Kept in one place so UI and server
 // agree on what counts as a well-formed bucket id.
@@ -22,61 +20,9 @@ interface BucketResponse {
 	records?: StoredRun[];
 }
 
-export interface BucketSyncConfig {
-	enabled: boolean;
-	bucket_id: string;
-}
-
 export interface BucketInfo {
 	id: string;
 	private?: boolean;
-}
-
-function config_key(scope: RunHistoryScope | null | undefined): string | null {
-	if (typeof window === "undefined") return null;
-	const app_id = scope?.app_id;
-	if (app_id === null || app_id === undefined || app_id === "") return null;
-	try {
-		if (!window.localStorage) return null;
-		const user = scope?.username
-			? `:user:${encodeURIComponent(scope.username)}`
-			: "";
-		return `${CONFIG_PREFIX}${app_id}${user}`;
-	} catch {
-		return null;
-	}
-}
-
-/** Read the caller's bucket-sync preference for this app + user pair. */
-export function get_bucket_sync_config(
-	scope: RunHistoryScope | null | undefined
-): BucketSyncConfig {
-	const key = config_key(scope);
-	if (!key) return { enabled: false, bucket_id: "" };
-	try {
-		const raw = window.localStorage.getItem(key);
-		if (!raw) return { enabled: false, bucket_id: "" };
-		const parsed = JSON.parse(raw);
-		return {
-			enabled: Boolean(parsed?.enabled),
-			bucket_id: String(parsed?.bucket_id ?? "")
-		};
-	} catch {
-		return { enabled: false, bucket_id: "" };
-	}
-}
-
-export function set_bucket_sync_config(
-	scope: RunHistoryScope | null | undefined,
-	config: BucketSyncConfig
-): void {
-	const key = config_key(scope);
-	if (!key) return;
-	try {
-		window.localStorage.setItem(key, JSON.stringify(config));
-	} catch {
-		// nothing to do — this is opt-in, treat storage failure as "not configured"
-	}
 }
 
 function history_url(root: string, path: string): string {
@@ -177,26 +123,4 @@ export function delete_record_from_bucket(
 		id: record.id,
 		timestamp: record.started_at
 	}).catch(() => {});
-}
-
-/**
- * Merge local runs with bucket records, preferring the newer version of any
- * shared id and sorting newest-first by `started_at`.
- */
-export function merge_runs(
-	local: StoredRun[],
-	remote: StoredRun[]
-): StoredRun[] {
-	const freshness = (r: StoredRun): string =>
-		r.completed_at ?? r.started_at ?? "";
-	const by_id = new Map<string, StoredRun>();
-	for (const r of [...remote, ...local]) {
-		const existing = by_id.get(r.id);
-		if (!existing || freshness(r) > freshness(existing)) {
-			by_id.set(r.id, r);
-		}
-	}
-	return [...by_id.values()].sort((a, b) =>
-		(b.started_at ?? "").localeCompare(a.started_at ?? "")
-	);
 }
