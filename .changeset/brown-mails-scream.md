@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:add history to bucket integration + workflow UI
+feat:add history to bucket integration in workflow
