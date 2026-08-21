@@ -1081,19 +1081,17 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 model=client.model,
             )
             helper.task = m.group(3)
-            result = run_via_helper(client, helper, fn, endpoint, clean)
+            result = run_via_helper(client, helper, fn, clean)
         except KeyError:
-            # ponytail: fal_ai image_to_video response-shape drift lands as a
-            # KeyError from the client's default key path. Retry via the helper
-            # which uses fal_ai_video_fallback. Narrow when upstream stabilises.
-            if endpoint != "image_to_video":
-                raise
+            # Some providers return a URL-envelope response the client's
+            # default key path can't parse. Retry via the helper, which
+            # walks the envelope for a hosted URL and fetches the bytes.
             helper = get_provider_helper(
                 client.provider or "auto",
-                task="image-to-video",
+                task=endpoint.replace("_", "-"),
                 model=client.model,
             )
-            result = run_via_helper(client, helper, fn, endpoint, clean)
+            result = run_via_helper(client, helper, fn, clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
         return json.dumps([_save_tmp(result, ext)])

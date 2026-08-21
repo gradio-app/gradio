@@ -8,6 +8,7 @@ caller until upstream cuts a release. Prefer fixing upstream over adding here.
 from __future__ import annotations
 
 import inspect
+import json
 import re
 
 import httpx
@@ -20,15 +21,8 @@ PROVIDER_TASK_MISMATCH_RE = re.compile(
 )
 
 
-def run_via_helper(client, helper, fn, endpoint: str, clean: dict):
-    """Bypass the per-task client method by calling the provider helper directly.
-
-    Preserves the input key the client method uses (first positional param) and
-    forwards remaining kwargs as parameters. Handles fal_ai image_to_video's
-    URL-in-response quirk inline.
-    """
-    from huggingface_hub.inference._providers.fal_ai import FalAIQueueTask
-
+def run_via_helper(client, helper, fn, clean: dict):
+    """Bypass the client's per-task method. Falls back to URL-envelope fetch."""
     input_key = next(iter(inspect.signature(fn).parameters), "inputs")
     req = helper.prepare_request(
         inputs=clean.pop(input_key, None),
@@ -38,19 +32,33 @@ def run_via_helper(client, helper, fn, endpoint: str, clean: dict):
         api_key=client.token,
     )
     response = client._inner_post(req)
-    if endpoint != "image_to_video" or not isinstance(helper, FalAIQueueTask):
+    try:
         return helper.get_response(response, req)
+    except (KeyError, TypeError):
+        try:
+            output = json.loads(response) if isinstance(response, (bytes, bytearray)) else None
+        except Exception:
+            output = None
+        url = _extract_url(output)
+        if not url:
+            raise
+        return httpx.get(url, timeout=60).content
 
-    # fal_ai returns a JSON envelope with a hosted video URL; the client's
-    # default get_response tries to read raw bytes at a fixed key and KeyErrors.
-    output = FalAIQueueTask.get_response(helper, response, req)
-    d = output if isinstance(output, dict) else {}
-    videos = d.get("videos") if isinstance(d.get("videos"), list) else None
-    url = (
-        (d.get("video") or {}).get("url")
-        or d.get("video_url")
-        or (videos[0].get("url") if videos else None)
-    )
-    if not url:
-        raise ValueError(f"Unexpected fal-ai response shape: {output}")
-    return httpx.get(url, timeout=60).content
+
+def _extract_url(output):
+    """Common URL-envelope shapes: {media: {url}}, {media_url}, {medias: [{url}]}."""
+    if not isinstance(output, dict):
+        return None
+    for key in ("video", "image", "audio", "file"):
+        v = output.get(key)
+        if isinstance(v, dict) and isinstance(v.get("url"), str):
+            return v["url"]
+    for key in ("videos", "images", "audios", "files"):
+        v = output.get(key)
+        if isinstance(v, list) and v and isinstance(v[0], dict) and isinstance(v[0].get("url"), str):
+            return v[0]["url"]
+    for key in ("video_url", "image_url", "audio_url", "url"):
+        v = output.get(key)
+        if isinstance(v, str):
+            return v
+    return None
