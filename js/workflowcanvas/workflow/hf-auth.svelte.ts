@@ -36,18 +36,7 @@ function redirect_to(path: string): void {
 	const target = encodeURIComponent(
 		window.location.pathname + window.location.search
 	);
-	const url = `${window.location.origin}${path}?_target_url=${target}`;
-	const iframed = window.top !== window.self;
-	if (iframed) {
-		try {
-			window.top!.location.assign(url);
-			return;
-		} catch {
-			window.open(url, "_blank", "noopener");
-			return;
-		}
-	}
-	window.location.assign(url);
+	window.location.assign(`${path}?_target_url=${target}`);
 }
 
 type AuthSource = "" | "oauth" | "local" | "pat";
