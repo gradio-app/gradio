@@ -171,9 +171,6 @@ def test_ensure_repo_creates_bucket():
         assert wh._repo_ready is True
 
 
-# ─── push_rate_limited ────────────────────────────────────────────────────────
-
-
 def test_push_rate_limited():
     store, lock = OrderedDict(), threading.Lock()
     assert push_rate_limited(store, lock, "alice") is False
@@ -181,9 +178,6 @@ def test_push_rate_limited():
     assert push_rate_limited(store, lock, "bob") is False  # per-token
     time.sleep(PUSH_MIN_INTERVAL + 0.05)
     assert push_rate_limited(store, lock, "alice") is False  # after interval
-
-
-# ─── /gradio_api/history/* routes ─────────────────────────────────────────────
 
 
 @pytest.fixture
