@@ -39,10 +39,7 @@ from gradio.utils import (
     get_upload_folder,
     is_in_or_equal,
 )
-from gradio.workflow_provider_shims import (
-    PROVIDER_TASK_MISMATCH_RE,
-    run_via_helper,
-)
+from gradio.workflow_provider_shims import call_with_recovery
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -955,6 +952,34 @@ def get_model_endpoints(
     return json.dumps(endpoints)
 
 
+def _partition_params(fn, params: dict) -> dict:
+    """Route *params* per fn's signature: extra_body / **kwargs / reject."""
+    try:
+        sig = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return dict(params)
+    param_names = set(sig.parameters)
+    accepts_kwargs = any(
+        p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+    )
+    known: dict = {}
+    unknown: dict = {}
+    for k, v in params.items():
+        (known if k in param_names else unknown)[k] = v
+    if not unknown:
+        return known
+    if "extra_body" in param_names:
+        known["extra_body"] = {**(known.get("extra_body") or {}), **unknown}
+        return known
+    if accepts_kwargs:
+        known.update(unknown)
+        return known
+    raise ValueError(
+        f"Model doesn't accept parameter(s): {', '.join(sorted(unknown))}. "
+        "Remove those from the node or switch to a model that supports them."
+    )
+
+
 def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
     """Call client.<endpoint>(**kwargs) and serialize the result."""
     fn = getattr(client, endpoint, None)
@@ -1000,6 +1025,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             content.append({"type": "image_url", "image_url": {"url": image_url}})
         if not content:
             raise ValueError("Connect a prompt or an image to this model.")
+        extras = {k: v for k, v in clean.items() if k not in ("text", "image")}
+        extras.setdefault("max_tokens", _CHAT_MAX_TOKENS)
+        chat_params = _partition_params(client.chat_completion, extras)
         # Streamed, not buffered: the router's gateway times out a non-streaming
         # request at ~120s, which a vision model writing a whole file routinely
         # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
@@ -1009,8 +1037,8 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         finish_reason = None
         for chunk in client.chat_completion(
             [{"role": "user", "content": content}],
-            max_tokens=_CHAT_MAX_TOKENS,
             stream=True,
+            **chat_params,
         ):
             if not chunk.choices:
                 continue
@@ -1038,20 +1066,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 f"{model_name} returned no text (finish_reason={finish_reason})."
             )
         return json.dumps([text])
-    try:
-        fn_params = set(inspect.signature(fn).parameters)
-    except (TypeError, ValueError):
-        fn_params = set()
-    if "extra_body" in fn_params:
-        known: dict = {}
-        extras: dict = {}
-        for k, v in clean.items():
-            (known if k in fn_params else extras)[k] = v
-        if extras:
-            clean = {
-                **known,
-                "extra_body": {**(known.get("extra_body") or {}), **extras},
-            }
+    clean = _partition_params(fn, clean)
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
@@ -1067,31 +1082,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             else:
                 raise
     else:
-        from huggingface_hub.inference._providers import get_provider_helper
-
-        try:
-            result = fn(**clean)
-        except ValueError as exc:
-            m = PROVIDER_TASK_MISMATCH_RE.search(str(exc))
-            if not m:
-                raise
-            helper = get_provider_helper(
-                m.group(2),  # ty: ignore[invalid-argument-type]
-                task=m.group(1),
-                model=client.model,
-            )
-            helper.task = m.group(3)
-            result = run_via_helper(client, helper, fn, clean)
-        except KeyError:
-            # Some providers return a URL-envelope response the client's
-            # default key path can't parse. Retry via the helper, which
-            # walks the envelope for a hosted URL and fetches the bytes.
-            helper = get_provider_helper(
-                client.provider or "auto",
-                task=endpoint.replace("_", "-"),
-                model=client.model,
-            )
-            result = run_via_helper(client, helper, fn, clean)
+        result = call_with_recovery(client, fn, clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
         return json.dumps([_save_tmp(result, ext)])
