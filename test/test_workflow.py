@@ -20,6 +20,7 @@ from gradio.workflow import (
     _request_has_write_token,
     _resolve_token,
     _save_tmp,
+    _sendable_ref,
     _workflow_from_bind,
     call_model,
     call_space,
@@ -453,10 +454,10 @@ class TestDispatchModelEndpoint:
         _dispatch_model_endpoint(
             client,
             "visual_question_answering",
-            {"in_0": {"url": "/f/a.png"}, "in_1": "what is this?"},
+            {"in_0": {"url": "https://host/a.png"}, "in_1": "what is this?"},
         )
         client.visual_question_answering.assert_called_once_with(
-            image="/f/a.png", question="what is this?"
+            image="https://host/a.png", question="what is this?"
         )
 
     def test_list_kwargs_coerced_from_strings(self):
@@ -636,14 +637,14 @@ class TestCallModel:
                     [
                         "owner/m",
                         "image-classification",
-                        json.dumps([{"url": "/f/a.png"}]),
+                        json.dumps([{"url": "https://host/a.png"}]),
                         None,
                         "auto",
                     ]
                 )
             )
         mock_client.return_value.image_classification.assert_called_once_with(
-            image="/f/a.png"
+            image="https://host/a.png"
         )
         assert result == [[{"label": "cat", "score": 0.9}]]
 
@@ -740,3 +741,130 @@ class TestChatImageUrl:
         outside.write_bytes(b"must-not-be-read")
 
         assert _chat_image_url({"path": str(outside)}) == str(outside)
+
+
+class TestCallSpaceFileArgs:
+    def test_sends_files_the_app_owns(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        owned = _save_tmp(b"operator-output", "png")["path"]
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([{"path": owned}])])
+
+        assert client.predict.call_args.args[0]["path"] == owned
+
+    def test_sends_an_operator_output_by_its_path(self, tmp_path, monkeypatch):
+        # An operator output carries both keys; the local path is the one the
+        # target Space can be handed, not the URL only this app can serve.
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([saved])])
+
+        assert client.predict.call_args.args[0]["path"] == saved["path"]
+
+    def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "private.pem"
+        outside.write_text("must-not-be-uploaded")
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([{"path": str(outside)}, "keep"])])
+
+        assert client.predict.call_args.args[0] is None
+
+    def test_does_not_send_nested_files_the_app_does_not_own(
+        self, tmp_path, monkeypatch
+    ):
+        # The client uploads file-shaped dicts at any depth, so a nested one has
+        # to be refused too — the `meta` marker is the caller's to write.
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "private.pem"
+        outside.write_text("must-not-be-uploaded")
+        nested = [[{"path": str(outside), "meta": {"_type": "gradio.FileData"}}]]
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([nested, "keep"])])
+
+        assert client.predict.call_args.args[0] == [[None]]
+
+    def test_sends_nested_files_the_app_owns(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        owned = _save_tmp(b"operator-output", "png")["path"]
+        nested = [[{"path": owned, "meta": {"_type": "gradio.FileData"}}]]
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([nested])])
+
+        assert client.predict.call_args.args[0] == nested
+
+    def test_sends_a_canvas_file_value_carrying_only_a_url(self, tmp_path, monkeypatch):
+        # The canvas chains files as `{name, url, mime}` with no `path`, so the
+        # `/gradio_api/file=` prefix has to come off before the ownership check.
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([{"url": saved["url"]}])])
+
+        assert client.predict.call_args.args[0]["path"] == saved["path"]
+
+
+class TestSendableRef:
+    def test_passes_through_absolute_urls(self):
+        assert _sendable_ref({"url": "https://host/x.png"}) == "https://host/x.png"
+
+    def test_refuses_a_path_the_app_does_not_own(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "private.pem"
+        outside.write_text("must-not-be-read")
+
+        assert _sendable_ref({"path": str(outside)}) == ""
+        assert _sendable_ref(str(outside)) == ""
+
+    def test_refuses_a_non_string_path(self):
+        assert _sendable_ref({"path": 5}) == ""
+
+    def test_model_endpoints_do_not_receive_paths_the_app_does_not_own(
+        self, tmp_path, monkeypatch
+    ):
+        # huggingface_hub reads a local path off disk and sends the bytes, so an
+        # unowned one must not reach the task endpoints.
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "private.pem"
+        outside.write_text("must-not-be-read")
+        client = MagicMock()
+
+        _dispatch_model_endpoint(
+            client, "image_to_image", {"image": {"path": str(outside)}}
+        )
+
+        assert client.image_to_image.call_args.kwargs["image"] == ""
+
+    def test_model_endpoints_receive_files_the_app_owns(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+        client = MagicMock()
+
+        _dispatch_model_endpoint(
+            client, "image_to_image", {"image": {"url": saved["url"]}}
+        )
+
+        assert client.image_to_image.call_args.kwargs["image"] == saved["path"]
