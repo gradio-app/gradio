@@ -750,9 +750,10 @@ class TestPartitionParams:
     def test_all_known_params_pass_through(self):
         def fn(text, temperature): ...
 
-        assert _partition_params(
-            fn, {"text": "hi", "temperature": 0.9}
-        ) == {"text": "hi", "temperature": 0.9}
+        assert _partition_params(fn, {"text": "hi", "temperature": 0.9}) == {
+            "text": "hi",
+            "temperature": 0.9,
+        }
 
     def test_unknowns_route_to_extra_body_when_supported(self):
         def fn(text, extra_body=None): ...
