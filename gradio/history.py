@@ -166,7 +166,9 @@ class BucketHistory:
                 url = (
                     value
                     if isinstance(value, str)
-                    else value.get("url") if isinstance(value, dict) else None
+                    else value.get("url")
+                    if isinstance(value, dict)
+                    else None
                 )
                 if port_type in MEDIA_PORT_TYPES and isinstance(url, str):
                     from urllib.parse import unquote, urlparse

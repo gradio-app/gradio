@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
-from gradio.history import BucketHistory, PUSH_MIN_INTERVAL, push_rate_limited
+from gradio.history import PUSH_MIN_INTERVAL, BucketHistory, push_rate_limited
 from gradio.interface import close_all
 
 
@@ -232,4 +232,3 @@ class TestHistoryRoutes:
         )
         # Unauthed hits 403 first; the regex check is exercised in unit tests.
         assert r.status_code == 403
-

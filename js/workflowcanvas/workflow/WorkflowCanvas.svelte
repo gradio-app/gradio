@@ -3281,7 +3281,11 @@
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
 					const raw = output.bucket_url ?? output.value;
-					updateNodeData(nodeId, inPortId, wrap_history_value(raw, output.type));
+					updateNodeData(
+						nodeId,
+						inPortId,
+						wrap_history_value(raw, output.type)
+					);
 				}
 				showHistoryPanel = false;
 			}}

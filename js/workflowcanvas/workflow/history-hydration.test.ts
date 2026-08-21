@@ -33,8 +33,12 @@ describe("wrap_history_value", () => {
 	});
 
 	test("video and file also wrap", () => {
-		expect(widget_reads_file(wrap_history_value("/v.mp4", "video"))).not.toBeNull();
-		expect(widget_reads_file(wrap_history_value("/f.bin", "file"))).not.toBeNull();
+		expect(
+			widget_reads_file(wrap_history_value("/v.mp4", "video"))
+		).not.toBeNull();
+		expect(
+			widget_reads_file(wrap_history_value("/f.bin", "file"))
+		).not.toBeNull();
 	});
 
 	test("text value passes through as string", () => {
