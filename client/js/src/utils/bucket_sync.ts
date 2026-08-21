@@ -147,19 +147,21 @@ export async function list_bucket_records(
 	}
 }
 
-/** Mirror a completed run to the bucket. Await to know the server has
- *  accepted it; drop the promise for fire-and-forget. Failures are logged. */
+/** Mirror a completed run to the bucket. Returns true on server-accepted,
+ *  false on any failure (network, auth, rate limit). Failures are logged. */
 export async function push_record_to_bucket(
 	root: string,
 	bucket_id: string,
 	record: StoredRun
-): Promise<void> {
-	if (!bucket_id || !record?.id) return;
-	if (record.status === "running") return;
+): Promise<boolean> {
+	if (!bucket_id || !record?.id) return false;
+	if (record.status === "running") return false;
 	try {
-		await post(root, "push", { bucket_id, record });
+		const res = await post(root, "push", { bucket_id, record });
+		return res?.ok !== false;
 	} catch (e) {
 		console.warn("[bucket] push failed:", e);
+		return false;
 	}
 }
 

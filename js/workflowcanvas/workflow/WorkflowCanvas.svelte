@@ -404,9 +404,11 @@
 	// page's base — origin would drop any mount subpath and 404 the routes.
 	const historyRoot = $derived(gradio_client?.config?.root ?? "");
 
-	// Per-workflow bucket id, persisted in localStorage keyed by workflow name.
+	// Per-workflow bucket id, persisted in localStorage. Keyed by workflow
+	// `id` when available so renames don't drop the binding; falls back to
+	// `name` for un-ided workflows.
 	const bucketStorageKey = $derived(
-		`gradio:workflow-history:bucket:${$workflow.name || "default"}`
+		`gradio:workflow-history:bucket:${encodeURIComponent($workflow.id || $workflow.name || "default")}`
 	);
 	let bucketId = $state<string>("");
 	$effect(() => {
@@ -1981,18 +1983,13 @@
 		if (bucketId) {
 			try {
 				const now = new Date().toISOString();
-				// FileData -> URL string, so the server-side media upload path fires.
-				const unwrap = (v: unknown): unknown =>
-					v && typeof v === "object" && !Array.isArray(v) && "url" in v
-						? (v as { url: string }).url
-						: v;
 				const inputs: Record<string, unknown> = {};
 				for (const ref of wfToRun.references) {
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
 					inputs[ref.id] = {
-						value: unwrap(node.data?.[outPort.id] ?? null),
+						value: node.data?.[outPort.id] ?? null,
 						type: outPort.type,
 						label: node.label,
 						port_id: outPort.id
@@ -2004,7 +2001,7 @@
 					const inPort = node?.inputs?.[0];
 					if (!node || !inPort) continue;
 					outputs[subj.id] = {
-						value: unwrap(node.data?.[inPort.id] ?? null),
+						value: node.data?.[inPort.id] ?? null,
 						type: inPort.type,
 						label: node.label
 					};
@@ -3259,20 +3256,28 @@
 				showHistoryPanel = false;
 				showHistoryConnect = true;
 			}}
-			onload={({ inputs, outputs }) => {
-				for (const [nodeId, input] of Object.entries(
-					inputs as Record<string, any>
-				)) {
-					const portId: string = input.port_id ?? "out_0";
+			onload={({
+				inputs,
+				outputs
+			}: {
+				inputs: Record<
+					string,
+					{ value: unknown; type: string; port_id?: string }
+				>;
+				outputs: Record<
+					string,
+					{ value: unknown; type: string; bucket_url?: string }
+				>;
+			}) => {
+				for (const [nodeId, input] of Object.entries(inputs)) {
+					const portId = input.port_id ?? "out_0";
 					updateNodeData(
 						nodeId,
 						portId,
 						wrap_history_value(input.value, input.type)
 					);
 				}
-				for (const [nodeId, output] of Object.entries(
-					outputs as Record<string, any>
-				)) {
+				for (const [nodeId, output] of Object.entries(outputs)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
 					const raw = output.bucket_url ?? output.value;

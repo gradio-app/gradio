@@ -15,8 +15,8 @@ import secrets
 import tempfile
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from typing import Any
 
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
@@ -28,6 +28,27 @@ MEDIA_PORT_TYPES = {"image", "audio", "video"}
 _LIST_CACHE_TTL = 10.0
 
 _MAX_FILES_SCAN = 50
+
+# Bounded so a burst of runs can't spawn unbounded threads.
+_PUSH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="bucket-push")
+
+PUSH_MIN_INTERVAL = 0.5
+_PUSH_STORE_CAP = 1024
+
+
+def push_rate_limited(store, lock, token: str) -> bool:
+    """True if *token* pushed within ``PUSH_MIN_INTERVAL`` seconds ago."""
+    now = time.monotonic()
+    with lock:
+        prev = store.get(token)
+        if prev is not None and now - prev < PUSH_MIN_INTERVAL:
+            store.move_to_end(token)
+            return True
+        store[token] = now
+        store.move_to_end(token)
+        if len(store) > _PUSH_STORE_CAP:
+            store.popitem(last=False)
+        return False
 
 
 class BucketHistory:
@@ -56,8 +77,8 @@ class BucketHistory:
         self._cache_at: float = 0.0
 
     def push(self, record: dict) -> None:
-        """Persist *record* to Hub in a background thread (non-blocking)."""
-        threading.Thread(target=self._push_sync, args=(record,), daemon=True).start()
+        """Persist *record* to Hub on a shared background pool (non-blocking)."""
+        _PUSH_POOL.submit(self._push_sync, record)
 
     def list(self, limit: int = 50, subgraph: str | None = None) -> builtins.list[dict]:
         """Return recent records, newest first.
@@ -142,13 +163,18 @@ class BucketHistory:
             for sid, output in list(record.get("outputs", {}).items()):
                 value = output.get("value")
                 port_type = output.get("type", "text")
-                if port_type in MEDIA_PORT_TYPES and isinstance(value, str):
+                url = (
+                    value
+                    if isinstance(value, str)
+                    else value.get("url") if isinstance(value, dict) else None
+                )
+                if port_type in MEDIA_PORT_TYPES and isinstance(url, str):
                     from urllib.parse import unquote, urlparse
 
                     raw = (
-                        value[len("/gradio_api/file=") :]
-                        if value.startswith("/gradio_api/file=")
-                        else value
+                        url[len("/gradio_api/file=") :]
+                        if url.startswith("/gradio_api/file=")
+                        else url
                     )
                     fs_path = unquote(urlparse(raw).path or raw)
                     hub_url = self._upload_media(record["id"], sid, fs_path, port_type)
@@ -248,73 +274,3 @@ class BucketHistory:
         except Exception:
             logger.debug("BucketHistory: fetch failed", exc_info=True)
             return []
-
-
-def build_history_record(
-    gen_id: str,
-    subgraph: str,
-    graph: Any,
-    free_items: list[dict],
-    input_values: list[Any],
-    subject_ids: list[str],
-    results: list[Any],
-    user: str | None,
-) -> dict:
-    """Build a history record dict from a completed subgraph execution.
-
-    Args:
-        gen_id: UUID string for this generation.
-        subgraph: API name of the subgraph endpoint.
-        graph: ``WorkflowGraph`` instance (for node metadata).
-        free_items: List of free-input dicts from ``group_free_inputs()``.
-        input_values: Positional input values passed to the executor.
-        subject_ids: Subject node IDs in the same order as *results*.
-        results: Output values from ``WorkflowExecutor.run_many()``.
-        user: HF username (or None for anonymous).
-    """
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    inputs: dict[str, dict] = {}
-    for item, value in zip(free_items, input_values):
-        node = item["node"]
-        node_id = node["id"]
-        port_type = item.get("type", "text")
-        label = item.get("label") or node.get("label", node_id)
-        port = item.get("port") or {}
-        port_id = port.get("id", "out_0")
-        safe_value: Any
-        if isinstance(value, (str, int, float, bool)) or value is None:
-            safe_value = value
-        else:
-            safe_value = str(value)
-        inputs[node_id] = {
-            "value": safe_value,
-            "type": port_type,
-            "label": label,
-            "port_id": port_id,
-        }
-
-    outputs: dict[str, dict] = {}
-    for sid, result in zip(subject_ids, results):
-        node = graph.node_by_id.get(sid, {})
-        in_ports = node.get("inputs") or []
-        port_type = (in_ports[0].get("type") if in_ports else None) or node.get(
-            "asset_type", "text"
-        )
-        label = node.get("label", sid)
-        safe_result: Any
-        if isinstance(result, (str, int, float, bool)) or result is None:
-            safe_result = result
-        else:
-            safe_result = str(result)
-        outputs[sid] = {"value": safe_result, "type": port_type, "label": label}
-
-    return {
-        "id": gen_id,
-        "timestamp": ts,
-        "subgraph": subgraph,
-        "subject_ids": subject_ids,
-        "inputs": inputs,
-        "outputs": outputs,
-        "user": user,
-    }

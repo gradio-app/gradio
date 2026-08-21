@@ -1,114 +1,19 @@
-"""Unit tests for gradio.history.BucketHistory and build_history_record."""
+"""Unit tests for gradio.history.BucketHistory."""
 
 from __future__ import annotations
 
 import json
 import threading
+import time
+from collections import OrderedDict
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
-from gradio.history import BucketHistory, build_history_record
+from gradio.history import BucketHistory, PUSH_MIN_INTERVAL, push_rate_limited
 from gradio.interface import close_all
-
-# ─── build_history_record ─────────────────────────────────────────────────────
-
-
-class FakeGraph:
-    def __init__(self, nodes: dict):
-        self.node_by_id = nodes
-
-
-def test_build_history_record_text_inputs():
-    graph = FakeGraph(
-        {
-            "subj_0": {
-                "id": "subj_0",
-                "label": "Result",
-                "inputs": [{"id": "in_0", "type": "text"}],
-            }
-        }
-    )
-    free_items = [
-        {
-            "node": {"id": "ref_0", "label": "Prompt"},
-            "port": {"id": "out_0", "type": "text"},
-            "type": "text",
-            "label": "Prompt",
-        }
-    ]
-    record = build_history_record(
-        gen_id="abc123",
-        subgraph="generate",
-        graph=graph,
-        free_items=free_items,
-        input_values=["hello world"],
-        subject_ids=["subj_0"],
-        results=["world hello"],
-        user="alice",
-    )
-    assert record["id"] == "abc123"
-    assert record["subgraph"] == "generate"
-    assert record["user"] == "alice"
-    assert record["inputs"]["ref_0"]["value"] == "hello world"
-    assert record["inputs"]["ref_0"]["port_id"] == "out_0"
-    assert record["inputs"]["ref_0"]["type"] == "text"
-    assert record["outputs"]["subj_0"]["value"] == "world hello"
-    assert record["outputs"]["subj_0"]["type"] == "text"
-    assert "timestamp" in record
-
-
-def test_build_history_record_non_serializable_value():
-    graph = FakeGraph({"subj_0": {"id": "subj_0", "label": "Out", "inputs": []}})
-    free_items = [
-        {
-            "node": {"id": "ref_0", "label": "Input"},
-            "port": {"id": "out_0", "type": "text"},
-            "type": "text",
-            "label": "Input",
-        }
-    ]
-    record = build_history_record(
-        gen_id="x",
-        subgraph="sg",
-        graph=graph,
-        free_items=free_items,
-        input_values=[object()],
-        subject_ids=["subj_0"],
-        results=[None],
-        user=None,
-    )
-    assert isinstance(record["inputs"]["ref_0"]["value"], str)
-    assert record["outputs"]["subj_0"]["value"] is None
-    assert record["user"] is None
-
-
-def test_build_history_record_missing_port_uses_default():
-    graph = FakeGraph({"subj_0": {"id": "subj_0", "label": "Out", "inputs": []}})
-    free_items = [
-        {
-            "node": {"id": "ref_0", "label": "Input"},
-            "port": None,
-            "type": "text",
-            "label": "Input",
-        }
-    ]
-    record = build_history_record(
-        gen_id="x",
-        subgraph="sg",
-        graph=graph,
-        free_items=free_items,
-        input_values=["val"],
-        subject_ids=["subj_0"],
-        results=["out"],
-        user=None,
-    )
-    assert record["inputs"]["ref_0"]["port_id"] == "out_0"
-
-
-# ─── BucketHistory ──────────────────────────────────────────────────────────
 
 
 def _make_history(repo_id="user/test-history"):
@@ -266,6 +171,18 @@ def test_ensure_repo_creates_bucket():
         assert wh._repo_ready is True
 
 
+# ─── push_rate_limited ────────────────────────────────────────────────────────
+
+
+def test_push_rate_limited():
+    store, lock = OrderedDict(), threading.Lock()
+    assert push_rate_limited(store, lock, "alice") is False
+    assert push_rate_limited(store, lock, "alice") is True  # rapid repeat
+    assert push_rate_limited(store, lock, "bob") is False  # per-token
+    time.sleep(PUSH_MIN_INTERVAL + 0.05)
+    assert push_rate_limited(store, lock, "alice") is False  # after interval
+
+
 # ─── /gradio_api/history/* routes ─────────────────────────────────────────────
 
 
@@ -315,3 +232,4 @@ class TestHistoryRoutes:
         )
         # Unauthed hits 403 first; the regex check is exercised in unit tests.
         assert r.status_code == 403
+

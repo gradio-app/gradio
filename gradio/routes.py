@@ -788,6 +788,9 @@ class App(FastAPI):
         app.state.bucket_history_cache = OrderedDict()
         app.state.bucket_history_cache_lock = threading.Lock()
 
+        app.state.push_last_at = OrderedDict()
+        app.state.push_last_at_lock = threading.Lock()
+
         @app.post("/gradio_api/history/list")
         async def _history_list(request: fastapi.Request):
             body = await _history_body(request)
@@ -809,6 +812,15 @@ class App(FastAPI):
             wh = _bucket_for(request, str(body.get("bucket_id") or ""))
             if wh is None:
                 return JSONResponse({"ok": False, "reason": "auth"}, status_code=403)
+            from gradio.history import push_rate_limited
+
+            hf_token = _oauth_token(request)
+            if hf_token and push_rate_limited(
+                app.state.push_last_at, app.state.push_last_at_lock, hf_token
+            ):
+                return JSONResponse(
+                    {"ok": False, "reason": "rate_limited"}, status_code=429
+                )
             record = body.get("record") or {}
             if isinstance(record, str):
                 try:

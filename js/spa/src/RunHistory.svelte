@@ -50,7 +50,7 @@
 	// re-push every local run to the bucket on each visit. Keyed by
 	// bucket_id so switching buckets starts a fresh dedup set.
 	let pushed_ids_key = $derived(
-		`gradio:run-history:pushed:v1:${scope?.app_id ?? ""}:${scope?.username ?? ""}:${bucket_config.bucket_id}`
+		`gradio:run-history:pushed:v1:${encodeURIComponent(scope?.app_id ?? "")}:${encodeURIComponent(scope?.username ?? "")}:${encodeURIComponent(bucket_config.bucket_id)}`
 	);
 	function load_pushed_ids(): Set<string> {
 		try {
@@ -85,17 +85,28 @@
 		return Array.from(grouped.entries());
 	});
 
+	let sync_error = $state<string | null>(null);
+
 	function refresh(): void {
 		const local = read_run_history(scope);
 		if (bucket_config.enabled && bucket_config.bucket_id) {
-			// Fire-and-forget mirror of any newly terminal local runs. Deduped
-			// by id so a listener re-firing on unrelated changes doesn't spam.
 			let touched = false;
 			for (const run of local) {
 				if (run.status === "running" || pushed_ids.has(run.id)) continue;
-				void push_record_to_bucket(root, bucket_config.bucket_id, run);
 				pushed_ids.add(run.id);
 				touched = true;
+				void push_record_to_bucket(root, bucket_config.bucket_id, run).then(
+					(ok) => {
+						if (!ok) {
+							pushed_ids.delete(run.id);
+							persist_pushed_ids();
+							sync_error =
+								"Some runs failed to sync to the bucket. Check that your OAuth session has the `manage-repos` scope.";
+						} else if (sync_error) {
+							sync_error = null;
+						}
+					}
+				);
 			}
 			if (touched) persist_pushed_ids();
 			runs = merge_runs(local, bucket_records);
@@ -305,6 +316,17 @@
 			{/if}
 		</div>
 	</header>
+
+	{#if sync_error}
+		<div class="sync-error" role="alert">
+			<span>{sync_error}</span>
+			<button
+				class="sync-error-dismiss"
+				onclick={() => (sync_error = null)}
+				aria-label="Dismiss">×</button
+			>
+		</div>
+	{/if}
 
 	{#if bucket_settings_open}
 		<section class="bucket-settings">
@@ -535,6 +557,27 @@
 	}
 	.clear {
 		padding: 8px 12px;
+	}
+	.sync-error {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 8px 0 16px;
+		padding: 8px 12px;
+		font-size: 13px;
+		color: var(--body-text-color, #1f2937);
+		background: var(--background-fill-secondary, #fafafa);
+		border: 1px solid var(--color-accent, #ea580c);
+		border-radius: 6px;
+	}
+	.sync-error-dismiss {
+		margin-left: auto;
+		font-size: 18px;
+		line-height: 1;
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		color: inherit;
 	}
 	.header-actions {
 		display: flex;
