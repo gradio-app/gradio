@@ -357,24 +357,27 @@ class Client:
         event_id = resp["event_id"]
 
         # Registering must precede opening the stream (the server emits messages
-        # as soon as the POST is handled) and share its lock, so the epoch tagged
-        # here is that of the reader which ends up serving this event.
+        # as soon as the POST is handled) and share its lock with the decision to
+        # open a reader, so that this event is tagged with the epoch of the reader
+        # responsible for it.
         with self.pending_lock:
-            self.pending_event_ids.add(event_id)
-            self.pending_messages_per_event.setdefault(event_id, deque())
-            self.pending_event_epoch = {
-                eid: tagged
-                for eid, tagged in self.pending_event_epoch.items()
-                if eid in self.pending_messages_per_event
-            }
-            open_reader = not self.stream_open and (
-                self.streaming_future is None or self.streaming_future.done()
-            )
+            open_reader = not self.stream_open
             if open_reader:
                 self.stream_open = True
                 self.stream_epoch += 1
             epoch = self.stream_epoch
+            self.pending_event_ids.add(event_id)
+            self.pending_messages_per_event.setdefault(event_id, deque())
             self.pending_event_epoch[event_id] = epoch
+            # A completion the reader saw before its event was registered leaves
+            # both of these behind, since the id is re-added after the discard.
+            live = set(self.pending_messages_per_event)
+            self.pending_event_ids &= live
+            self.pending_event_epoch = {
+                eid: tagged
+                for eid, tagged in self.pending_event_epoch.items()
+                if eid in live
+            }
 
         if open_reader:
 
@@ -385,11 +388,14 @@ class Client:
 
             def close_stream(_):
                 with self.pending_lock:
-                    self.stream_open = False
+                    if self.stream_epoch == epoch:
+                        # A later submission may already have opened its own
+                        # reader, and that one is not ours to close.
+                        self.stream_open = False
                     pending = [
                         messages
                         for eid, messages in self.pending_messages_per_event.items()
-                        if self.pending_event_epoch.get(eid, epoch) <= epoch
+                        if self.pending_event_epoch.get(eid, epoch + 1) <= epoch
                     ]
                 for pending_messages in pending:
                     pending_messages.append(None)
