@@ -27,7 +27,6 @@
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
 	import { fetchSpaceApi, fork_repo_candidates } from "./space-api";
-	import { wrap_history_value } from "./history-hydration";
 	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import {
 		workflow,
@@ -3272,23 +3271,28 @@
 					{ value: unknown; type: string; bucket_url?: string }
 				>;
 			}) => {
+				// Widget's getFileValue() rejects bare URL strings; wrap them
+				// as `{url, name, mime}` for media ports so images/audio render.
+				const MEDIA = new Set(["image", "audio", "video", "file"]);
+				const MIME: Record<string, string> = {
+					image: "image/*",
+					audio: "audio/*",
+					video: "video/*",
+					file: ""
+				};
+				const wrap = (v: unknown, type: string): unknown =>
+					typeof v === "string" && MEDIA.has(type)
+						? { url: v, name: v.split("/").pop() ?? "", mime: MIME[type] ?? "" }
+						: v;
 				for (const [nodeId, input] of Object.entries(inputs)) {
 					const portId = input.port_id ?? "out_0";
-					updateNodeData(
-						nodeId,
-						portId,
-						wrap_history_value(input.value, input.type)
-					);
+					updateNodeData(nodeId, portId, wrap(input.value, input.type));
 				}
 				for (const [nodeId, output] of Object.entries(outputs)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
 					const raw = output.bucket_url ?? output.value;
-					updateNodeData(
-						nodeId,
-						inPortId,
-						wrap_history_value(raw, output.type)
-					);
+					updateNodeData(nodeId, inPortId, wrap(raw, output.type));
 				}
 				showHistoryPanel = false;
 			}}
