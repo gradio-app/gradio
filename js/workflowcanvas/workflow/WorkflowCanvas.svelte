@@ -8,6 +8,9 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
+	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
+	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
+	import { push_record_to_bucket } from "@gradio/client";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import InfoIcon from "./icons/InfoIcon.svelte";
@@ -390,6 +393,38 @@
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
 	let showApiPanel = $state(false);
+	let showHistoryPanel = $state(false);
+	let showHistoryConnect = $state(false);
+	let historyRefreshCount = $state(0);
+
+	// Root URL for the /gradio_api/history/* routes. Prefers the client's
+	// configured root (correct for tunnels / mount_gradio_app subpaths).
+	// Falls back to empty string so relative URL resolution uses the current
+	// page's base — origin would drop any mount subpath and 404 the routes.
+	const historyRoot = $derived(gradio_client?.config?.root ?? "");
+
+	// Per-workflow bucket id, persisted in localStorage. Keyed by workflow
+	// `id` when available so renames don't drop the binding; falls back to
+	// `name` for un-ided workflows.
+	const bucketStorageKey = $derived(
+		`gradio:workflow-history:bucket:${encodeURIComponent($workflow.id || $workflow.name || "default")}`
+	);
+	let bucketId = $state<string>("");
+	$effect(() => {
+		try {
+			bucketId = window.localStorage.getItem(bucketStorageKey) ?? "";
+		} catch {
+			bucketId = "";
+		}
+	});
+	function setBucketId(id: string): void {
+		bucketId = id;
+		try {
+			if (id) window.localStorage.setItem(bucketStorageKey, id);
+			else window.localStorage.removeItem(bucketStorageKey);
+		} catch {}
+	}
+
 	let saveToSpaceConfirm = $state(false);
 	let savingToSpace = $state(false);
 	let saveAsCopyConfirm = $state(false);
@@ -405,6 +440,7 @@
 			})
 			.catch(() => {});
 	});
+
 	// Popover shown when the "Run only" badge is clicked, explaining why editing
 	// is disabled and how to enable it.
 	let showAccessInfo = $state(false);
@@ -1940,6 +1976,57 @@
 		abortController = null;
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
+
+		// Push a run record to the bucket if configured. Awaited so the
+		// history panel refresh sees the new record on the next fetch.
+		if (bucketId) {
+			try {
+				const now = new Date().toISOString();
+				const inputs: Record<string, unknown> = {};
+				for (const ref of wfToRun.references) {
+					const node = legacyView.nodes.find((n) => n.id === ref.id);
+					const outPort = node?.outputs?.[0];
+					if (!node || !outPort) continue;
+					inputs[ref.id] = {
+						value: node.data?.[outPort.id] ?? null,
+						type: outPort.type,
+						label: node.label,
+						port_id: outPort.id
+					};
+				}
+				const outputs: Record<string, unknown> = {};
+				for (const subj of wfToRun.subjects) {
+					const node = legacyView.nodes.find((n) => n.id === subj.id);
+					const inPort = node?.inputs?.[0];
+					if (!node || !inPort) continue;
+					outputs[subj.id] = {
+						value: node.data?.[inPort.id] ?? null,
+						type: inPort.type,
+						label: node.label
+					};
+				}
+				const record: any = {
+					id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
+					timestamp: now,
+					started_at: now,
+					status: hasErrors ? "failed" : "completed",
+					subgraph: $workflow.name || "workflow",
+					subject_ids: wfToRun.subjects.map((s) => s.id),
+					inputs,
+					outputs,
+					user: null
+				};
+				await push_record_to_bucket(historyRoot, record);
+				if (showHistoryPanel) {
+					setTimeout(() => {
+						if (showHistoryPanel) historyRefreshCount++;
+					}, 2500);
+				}
+			} catch {
+				// history push is best-effort
+			}
+		}
+
 		showToast(
 			hasErrors ? "Workflow finished with errors" : "Workflow complete",
 			hasErrors ? 5000 : 3000,
@@ -2525,6 +2612,23 @@
 				<CodeIcon />
 				View API
 			</button>
+			{#if bucketId}
+				<button
+					class="tool-btn history-btn"
+					onclick={() => (showHistoryPanel = true)}
+					title="Browse generation history"
+				>
+					History
+				</button>
+			{:else}
+				<button
+					class="tool-btn connect-bucket-btn"
+					onclick={() => (showHistoryConnect = true)}
+					title="Save generations to a private HF bucket so they persist"
+				>
+					Connect history
+				</button>
+			{/if}
 			{#if saveIndicator && !onSpace}
 				<span
 					class="save-indicator"
@@ -2636,11 +2740,9 @@
 						{#if auth.user}
 							<button
 								class="tool-btn save-space-btn"
-								disabled={savingAsCopy || !auth.hasScope("write-repos")}
+								disabled={savingAsCopy}
 								onclick={() => (saveAsCopyConfirm = true)}
-								title={auth.hasScope("write-repos")
-									? "Duplicate this Space under your account and save your edits there"
-									: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								title="Duplicate this Space under your account and save your edits there"
 							>
 								<UploadIcon />
 								{savingAsCopy
@@ -3127,6 +3229,73 @@
 			{server}
 			workflowName={$workflow.name}
 			onClose={() => (showApiPanel = false)}
+		/>
+	{/if}
+
+	{#if showHistoryConnect}
+		<WorkflowHistoryConnect
+			root={historyRoot}
+			workflowName={$workflow.name}
+			username={auth.user ?? ""}
+			signedIn={!!auth.token}
+			onsignin={auth.signIn}
+			onconnected={(id) => {
+				setBucketId(id);
+				showHistoryConnect = false;
+				showHistoryPanel = true;
+			}}
+			onclose={() => (showHistoryConnect = false)}
+		/>
+	{/if}
+
+	{#if showHistoryPanel && bucketId}
+		<WorkflowHistoryPanel
+			root={historyRoot}
+			{bucketId}
+			triggerRefresh={historyRefreshCount}
+			onclose={() => (showHistoryPanel = false)}
+			onchange={() => {
+				showHistoryPanel = false;
+				showHistoryConnect = true;
+			}}
+			onload={({
+				inputs,
+				outputs
+			}: {
+				inputs: Record<
+					string,
+					{ value: unknown; type: string; port_id?: string }
+				>;
+				outputs: Record<
+					string,
+					{ value: unknown; type: string; bucket_url?: string }
+				>;
+			}) => {
+				// Widget's getFileValue() rejects bare URL strings; wrap them
+				// as `{url, name, mime}` for media ports so images/audio render.
+				const MEDIA = new Set(["image", "audio", "video", "file"]);
+				const MIME: Record<string, string> = {
+					image: "image/*",
+					audio: "audio/*",
+					video: "video/*",
+					file: ""
+				};
+				const wrap = (v: unknown, type: string): unknown =>
+					typeof v === "string" && MEDIA.has(type)
+						? { url: v, name: v.split("/").pop() ?? "", mime: MIME[type] ?? "" }
+						: v;
+				for (const [nodeId, input] of Object.entries(inputs)) {
+					const portId = input.port_id ?? "out_0";
+					updateNodeData(nodeId, portId, wrap(input.value, input.type));
+				}
+				for (const [nodeId, output] of Object.entries(outputs)) {
+					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
+					const raw = output.bucket_url ?? output.value;
+					updateNodeData(nodeId, inPortId, wrap(raw, output.type));
+				}
+				showHistoryPanel = false;
+			}}
 		/>
 	{/if}
 
