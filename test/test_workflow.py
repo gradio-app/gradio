@@ -17,6 +17,7 @@ from gradio.workflow import (
     _chat_image_url,
     _dispatch_model_endpoint,
     _get_locally_saved_hf_token,
+    _partition_params,
     _request_has_write_token,
     _resolve_token,
     _save_tmp,
@@ -28,6 +29,7 @@ from gradio.workflow import (
     get_token,
     has_write_access,
 )
+from gradio.workflow_provider_shims import call_with_recovery
 
 
 def _make_oauth(token: str) -> OAuthToken:
@@ -740,3 +742,121 @@ class TestChatImageUrl:
         outside.write_bytes(b"must-not-be-read")
 
         assert _chat_image_url({"path": str(outside)}) == str(outside)
+
+
+class TestPartitionParams:
+    """`_partition_params` centralises how custom-port values reach the client."""
+
+    def test_all_known_params_pass_through(self):
+        def fn(text, temperature): ...
+
+        assert _partition_params(fn, {"text": "hi", "temperature": 0.9}) == {
+            "text": "hi",
+            "temperature": 0.9,
+        }
+
+    def test_unknowns_route_to_extra_body_when_supported(self):
+        def fn(text, extra_body=None): ...
+
+        assert _partition_params(fn, {"text": "hi", "temperature": 0.9}) == {
+            "text": "hi",
+            "extra_body": {"temperature": 0.9},
+        }
+
+    def test_unknowns_merge_into_existing_extra_body(self):
+        def fn(text, extra_body=None): ...
+
+        assert _partition_params(
+            fn, {"text": "hi", "extra_body": {"a": 1}, "temp": 0.9}
+        ) == {"text": "hi", "extra_body": {"a": 1, "temp": 0.9}}
+
+    def test_unknowns_pass_through_when_fn_accepts_kwargs(self):
+        def fn(text, **kwargs): ...
+
+        assert _partition_params(fn, {"text": "hi", "temperature": 0.9}) == {
+            "text": "hi",
+            "temperature": 0.9,
+        }
+
+    def test_unknowns_rejected_when_unsupported(self):
+        def fn(text): ...
+
+        with pytest.raises(ValueError, match="doesn't accept parameter"):
+            _partition_params(fn, {"text": "hi", "temperature": 0.9})
+
+
+class TestChatCustomParams:
+    """Custom-port values must reach `chat_completion`, not be silently dropped."""
+
+    @staticmethod
+    def _chunks(content="ok", reasoning="", finish_reason="stop"):
+        return [
+            SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        delta=SimpleNamespace(
+                            content=content, reasoning_content=reasoning
+                        ),
+                        finish_reason=finish_reason,
+                    )
+                ]
+            )
+        ]
+
+    def test_temperature_reaches_chat_completion(self):
+        client = MagicMock()
+        client.chat_completion.return_value = self._chunks(content="ok")
+        _dispatch_model_endpoint(
+            client, "chat_completion", {"text": "hi", "temperature": 0.9}
+        )
+        kwargs = client.chat_completion.call_args.kwargs
+        # MagicMock() has a **kwargs-shaped signature, so temperature passes
+        # straight through (rather than being packed into extra_body).
+        assert kwargs.get("temperature") == 0.9
+
+    def test_max_tokens_default_applied_when_absent(self):
+        client = MagicMock()
+        client.chat_completion.return_value = self._chunks(content="ok")
+        _dispatch_model_endpoint(client, "chat_completion", {"text": "hi"})
+        assert (
+            client.chat_completion.call_args.kwargs["max_tokens"]
+            == workflow_module._CHAT_MAX_TOKENS
+        )
+
+    def test_max_tokens_override_respected(self):
+        client = MagicMock()
+        client.chat_completion.return_value = self._chunks(content="ok")
+        _dispatch_model_endpoint(
+            client, "chat_completion", {"text": "hi", "max_tokens": 42}
+        )
+        assert client.chat_completion.call_args.kwargs["max_tokens"] == 42
+
+
+class TestNoDoubleInference:
+    """Response-parser recovery must not re-post (double bill)."""
+
+    def test_keyerror_reuses_captured_response(self):
+        call_count = {"n": 0}
+        envelope = b'{"video": {"url": "https://example.com/out.mp4"}}'
+
+        def _inner_post(_req):
+            call_count["n"] += 1
+            return envelope
+
+        client = MagicMock()
+        client._inner_post = _inner_post
+        client.provider = "fal-ai"
+
+        def fn(**_kwargs):
+            client._inner_post({})
+            raise KeyError("bytes")
+
+        with patch(
+            "gradio.workflow_provider_shims._fetch_media_bytes",
+            return_value=b"video-bytes",
+        ) as fetch:
+            result = call_with_recovery(client, fn, {"prompt": "x"})
+
+        assert result == b"video-bytes"
+        assert call_count["n"] == 1  # no second POST
+        fetch.assert_called_once_with("https://example.com/out.mp4")

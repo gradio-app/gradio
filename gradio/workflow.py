@@ -39,6 +39,7 @@ from gradio.utils import (
     get_upload_folder,
     is_in_or_equal,
 )
+from gradio.workflow_provider_shims import call_with_recovery
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -915,17 +916,15 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "text-to-video": "text_to_video",
     "image-to-image": "image_to_image",
     "image-to-video": "image_to_video",
+    "image-text-to-video": "image_to_video",
     "image-classification": "image_classification",
     "object-detection": "object_detection",
     "image-segmentation": "image_segmentation",
-    "image-to-text": "image_to_text",
     "automatic-speech-recognition": "automatic_speech_recognition",
     "audio-classification": "audio_classification",
-    "visual-question-answering": "visual_question_answering",
-    "document-question-answering": "document_question_answering",
-    # Not visual_question_answering: the Hub routes every image-text-to-text
-    # model as `conversational`, and no provider serves the VQA task at all,
-    # so a task-specific call fails for every model carrying this tag.
+    "image-to-text": "chat_completion",
+    "visual-question-answering": "chat_completion",
+    "document-question-answering": "chat_completion",
     "image-text-to-text": "chat_completion",
 }
 
@@ -951,6 +950,34 @@ def get_model_endpoints(
         if getattr(InferenceClient, name, None) is not None
     ]
     return json.dumps(endpoints)
+
+
+def _partition_params(fn, params: dict) -> dict:
+    """Route *params* per fn's signature: extra_body / **kwargs / reject."""
+    try:
+        sig = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return dict(params)
+    param_names = set(sig.parameters)
+    accepts_kwargs = any(
+        p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+    )
+    known: dict = {}
+    unknown: dict = {}
+    for k, v in params.items():
+        (known if k in param_names else unknown)[k] = v
+    if not unknown:
+        return known
+    if "extra_body" in param_names:
+        known["extra_body"] = {**(known.get("extra_body") or {}), **unknown}
+        return known
+    if accepts_kwargs:
+        known.update(unknown)
+        return known
+    raise ValueError(
+        f"Model doesn't accept parameter(s): {', '.join(sorted(unknown))}. "
+        "Remove those from the node or switch to a model that supports them."
+    )
 
 
 def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
@@ -998,6 +1025,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             content.append({"type": "image_url", "image_url": {"url": image_url}})
         if not content:
             raise ValueError("Connect a prompt or an image to this model.")
+        extras = {k: v for k, v in clean.items() if k not in ("text", "image")}
+        extras.setdefault("max_tokens", _CHAT_MAX_TOKENS)
+        chat_params = _partition_params(client.chat_completion, extras)
         # Streamed, not buffered: the router's gateway times out a non-streaming
         # request at ~120s, which a vision model writing a whole file routinely
         # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
@@ -1007,8 +1037,8 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         finish_reason = None
         for chunk in client.chat_completion(
             [{"role": "user", "content": content}],
-            max_tokens=_CHAT_MAX_TOKENS,
             stream=True,
+            **chat_params,
         ):
             if not chunk.choices:
                 continue
@@ -1036,6 +1066,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 f"{model_name} returned no text (finish_reason={finish_reason})."
             )
         return json.dumps([text])
+    clean = _partition_params(fn, clean)
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
@@ -1051,7 +1082,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             else:
                 raise
     else:
-        result = fn(**clean)
+        result = call_with_recovery(client, fn, clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
         return json.dumps([_save_tmp(result, ext)])
@@ -1110,7 +1141,9 @@ def call_model(
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
         if isinstance(args, dict):
-            endpoint = pipeline_tag or ""
+            endpoint = (
+                _PIPELINE_TAG_TO_ENDPOINT.get(pipeline_tag or "") or pipeline_tag or ""
+            )
             return _dispatch_model_endpoint(client, endpoint, args)
 
         task = pipeline_tag or "text-generation"
@@ -1144,20 +1177,20 @@ def call_model(
             }
             return _dispatch_model_endpoint(client, endpoint, kwargs)
 
-        # Fallback for tasks not handled above: chat_completion (works for most
-        # text models across providers), then a raw POST as last resort.
-        try:
-            r = client.chat_completion(
-                [{"role": "user", "content": a0}], max_tokens=512
+        def _resolve(v):
+            return (
+                _img_url(v)
+                if isinstance(v, dict) and ("url" in v or "path" in v)
+                else v
             )
-            return json.dumps([r.choices[0].message.content])
-        except Exception:
-            pass
+
+        a1_missing = a1 is None or a1 == ""
+        payload = _resolve(a0) if a1_missing else [_resolve(a0), _resolve(a1)]
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
         fallback_resp = httpx.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
-            json={"inputs": a0 if not a1 else [a0, a1]},
+            json={"inputs": payload},
             timeout=60,
         )
         fallback_resp.raise_for_status()

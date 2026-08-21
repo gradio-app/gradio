@@ -1,0 +1,76 @@
+{
+  "schema_version": "2",
+  "name": "Ask About an Image",
+  "runtime": {"default": "client"},
+  "references": [
+    {
+      "id": "ref-image",
+      "role": "reference",
+      "label": "Image",
+      "asset_type": "image",
+      "inputs": [{"id": "in", "label": "Image", "type": "image"}],
+      "outputs": [{"id": "out", "label": "Image", "type": "image"}],
+      "x": 80,
+      "y": 100,
+      "width": 220,
+      "height": 220,
+      "data": {"in": null, "out": null}
+    },
+    {
+      "id": "ref-prompt",
+      "role": "reference",
+      "label": "Prompt",
+      "asset_type": "text",
+      "inputs": [{"id": "in", "label": "Prompt", "type": "text"}],
+      "outputs": [{"id": "out", "label": "Prompt", "type": "text"}],
+      "x": 80,
+      "y": 360,
+      "width": 220,
+      "height": 160,
+      "data": {"in": "What is happening in this image?", "out": "What is happening in this image?"}
+    }
+  ],
+  "operators": [
+    {
+      "id": "op-vlm",
+      "role": "operator",
+      "kind": "model",
+      "label": "Qwen2.5-VL",
+      "model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "endpoint": "chat_completion",
+      "pipeline_tag": "image-text-to-text",
+      "inputs": [
+        {"id": "image", "label": "Image", "type": "image", "required": true},
+        {"id": "text", "label": "Prompt", "type": "text", "required": true},
+        {"id": "temperature", "label": "Temperature", "type": "number", "required": false, "custom": true}
+      ],
+      "outputs": [{"id": "out_0", "label": "Text", "type": "text", "output_index": 0}],
+      "x": 380,
+      "y": 180,
+      "width": 260,
+      "height": 220,
+      "data": {"temperature": 0.7}
+    }
+  ],
+  "subjects": [
+    {
+      "id": "subj-answer",
+      "role": "subject",
+      "label": "Answer",
+      "asset_type": "text",
+      "inputs": [{"id": "in", "label": "Text", "type": "text"}],
+      "outputs": [{"id": "out", "label": "Text", "type": "text"}],
+      "x": 720,
+      "y": 200,
+      "width": 320,
+      "height": 200,
+      "data": {"in": ""}
+    }
+  ],
+  "edges": [
+    {"id": "e1", "from_node_id": "ref-image", "from_port_id": "out", "to_node_id": "op-vlm", "to_port_id": "image", "type": "image"},
+    {"id": "e2", "from_node_id": "ref-prompt", "from_port_id": "out", "to_node_id": "op-vlm", "to_port_id": "text", "type": "text"},
+    {"id": "e3", "from_node_id": "op-vlm", "from_port_id": "out_0", "to_node_id": "subj-answer", "to_port_id": "in", "type": "text"}
+  ],
+  "view": {"default": "canvas"}
+}
