@@ -27,6 +27,7 @@
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
 	import { fetchSpaceApi, fork_repo_candidates } from "./space-api";
+	import { wrap_history_value } from "./history-hydration";
 	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import {
 		workflow,
@@ -541,16 +542,7 @@
 
 	async function saveAsCopy(): Promise<void> {
 		saveAsCopyConfirm = false;
-		if (savingAsCopy) return;
-		if (!auth.token) {
-			showToast(
-				"Not signed in on this canvas — refresh the page (or open this Space directly at *.hf.space) so the login is visible here.",
-				6000,
-				"warning"
-			);
-			return;
-		}
-		if (!spaceId || !copyRepo) return;
+		if (!spaceId || !auth.token || !copyRepo || savingAsCopy) return;
 		savingAsCopy = true;
 		try {
 			const target = await firstFreeForkRepo();
@@ -603,16 +595,7 @@
 
 	async function saveToSpace(): Promise<void> {
 		saveToSpaceConfirm = false;
-		if (savingToSpace) return;
-		if (!auth.token) {
-			showToast(
-				"Not signed in on this canvas — refresh the page (or open this Space directly at *.hf.space) so the login is visible here.",
-				6000,
-				"warning"
-			);
-			return;
-		}
-		if (!spaceId) return;
+		if (!spaceId || !auth.token || savingToSpace) return;
 		savingToSpace = true;
 		const state = sanitize_for_save($workflow);
 		const serialized = JSON.stringify(state, null, 2);
@@ -2039,7 +2022,6 @@
 				};
 				await push_record_to_bucket(historyRoot, bucketId, record);
 				if (showHistoryPanel) {
-					historyRefreshCount++;
 					setTimeout(() => {
 						if (showHistoryPanel) historyRefreshCount++;
 					}, 2500);
@@ -2762,11 +2744,9 @@
 						{#if auth.user}
 							<button
 								class="tool-btn save-space-btn"
-								disabled={savingAsCopy || !auth.hasScope("write-repos")}
+								disabled={savingAsCopy}
 								onclick={() => (saveAsCopyConfirm = true)}
-								title={auth.hasScope("write-repos")
-									? "Duplicate this Space under your account and save your edits there"
-									: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								title="Duplicate this Space under your account and save your edits there"
 							>
 								<UploadIcon />
 								{savingAsCopy
@@ -3283,16 +3263,20 @@
 				for (const [nodeId, input] of Object.entries(
 					inputs as Record<string, any>
 				)) {
-					const portId: string = (input as any).port_id ?? "out_0";
-					updateNodeData(nodeId, portId, (input as any).value);
+					const portId: string = input.port_id ?? "out_0";
+					updateNodeData(
+						nodeId,
+						portId,
+						wrap_history_value(input.value, input.type)
+					);
 				}
 				for (const [nodeId, output] of Object.entries(
 					outputs as Record<string, any>
 				)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
-					const value = (output as any).bucket_url ?? (output as any).value;
-					updateNodeData(nodeId, inPortId, value);
+					const raw = output.bucket_url ?? output.value;
+					updateNodeData(nodeId, inPortId, wrap_history_value(raw, output.type));
 				}
 				showHistoryPanel = false;
 			}}
