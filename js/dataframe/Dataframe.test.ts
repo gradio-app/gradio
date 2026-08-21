@@ -6,6 +6,7 @@ import {
 	waitFor,
 	within
 } from "@self/tootils/render";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import { tick } from "svelte";
 
 import Dataframe from "./Index.svelte";
@@ -37,6 +38,15 @@ const default_props = {
 	max_height: 500
 };
 
+run_shared_prop_tests({
+	component: Dataframe,
+	name: "Dataframe",
+	base_props: default_props,
+	// Dataframe renders visible and screen-reader label copies; targeted tests below cover its label behavior.
+	has_label: false,
+	has_validation_error: false
+});
+
 function get_cell(container: HTMLElement, row: number, col: number) {
 	return container.querySelector(
 		`[data-row='${row}'][data-col='${col}']`
@@ -63,6 +73,27 @@ async function wait(ms = 50) {
 
 describe("Dataframe rendering", () => {
 	afterEach(() => cleanup());
+
+	test("tabbing skips dataframe containers and reaches individual cells", async () => {
+		const { getAllByRole, getByRole } = await render(Dataframe, default_props);
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "Alice" })).toBeVisible();
+		});
+
+		expect(getAllByRole("grid").every((grid) => grid.tabIndex === -1)).toBe(
+			true
+		);
+		expect(
+			getByRole("button", {
+				name: "dataframe.drop_to_upload"
+			})
+		).toHaveAttribute("tabindex", "-1");
+		expect(getByRole("button", { name: "Alice" })).toHaveAttribute(
+			"tabindex",
+			"0"
+		);
+	});
 
 	test("renders provided headers", async () => {
 		const { container } = await render(Dataframe, default_props);

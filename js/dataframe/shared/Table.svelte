@@ -947,7 +947,7 @@
 		class:menu-open={active_cell_menu || active_header_menu}
 		onkeydown={handle_keydown}
 		role="grid"
-		tabindex="0"
+		tabindex="-1"
 		style="--df-max-col-width: {viewport_width}px;"
 	>
 		<Upload
