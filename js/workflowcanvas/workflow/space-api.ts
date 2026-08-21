@@ -120,12 +120,8 @@ export function componentToPortType(
 			if (/model3d|mesh|glb|gltf|obj\b/.test(l)) return "model3d";
 			return "file";
 		}
-		if (
-			cleaned.includes("dict") ||
-			cleaned.includes("list") ||
-			cleaned.includes("any")
-		)
-			return "json";
+		if (cleaned === "any") return "any";
+		if (cleaned.includes("dict") || cleaned.includes("list")) return "json";
 	}
 
 	// Fallback: check the type field from the API
