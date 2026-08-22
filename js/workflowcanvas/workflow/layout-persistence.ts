@@ -113,7 +113,6 @@ export function extract_layout(wf: Workflow): WorkflowLayout {
 	return layout;
 }
 
-/** True when the viewer has never arranged any of this workflow's nodes. */
 /**
  * A layout reduced to what the viewer can deliberately change: position, width
  * and a pinned height. Measured `height` is left out because a `ResizeObserver`
@@ -134,6 +133,7 @@ export function layout_signature(layout: WorkflowLayout): string {
 	);
 }
 
+/** True when the viewer has never arranged any of this workflow's nodes. */
 export function layout_is_unseen(
 	wf: Workflow,
 	layout: WorkflowLayout
