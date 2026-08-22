@@ -202,6 +202,14 @@ class Client:
 
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+        # A prediction blocks its thread until two helpers run on its behalf, so
+        # sharing one pool deadlocks it once max_workers predictions are in flight.
+        self.helper_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2 * max_workers
+        )
+        # Helpers only finish once the reader has delivered their messages, so it
+        # gets a thread of its own instead of queueing behind them.
+        self.stream_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         self.analytics_enabled = (
             analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
@@ -218,6 +226,9 @@ class Client:
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
+        self.pending_lock = threading.Lock()
+        self.stream_epoch = 0
+        self.pending_event_epoch: dict[str, int] = {}
 
     def close(self):
         self._kill_heartbeat.set()
@@ -281,25 +292,36 @@ class Client:
                                     resp.get("message", "")
                                     == ServerMessage.server_stopped
                                 ):
-                                    for (
-                                        pending_messages
-                                    ) in self.pending_messages_per_event.values():
+                                    with self.pending_lock:
+                                        pending = list(
+                                            self.pending_messages_per_event.values()
+                                        )
+                                    for pending_messages in pending:
                                         pending_messages.append(resp)
                                     return
                                 elif resp["msg"] == ServerMessage.close_stream:
-                                    self.stream_open = False
+                                    with self.pending_lock:
+                                        self.stream_open = False
                                     return
                                 event_id = resp["event_id"]
-                                if event_id not in self.pending_messages_per_event:
-                                    self.pending_messages_per_event[event_id] = deque()
-                                self.pending_messages_per_event[event_id].append(resp)
-                                if resp["msg"] == ServerMessage.process_completed:
-                                    self.pending_event_ids.remove(event_id)
-                                if (
-                                    len(self.pending_event_ids) == 0
-                                    and protocol != "sse_v3"
-                                ):
-                                    self.stream_open = False
+                                with self.pending_lock:
+                                    if event_id not in self.pending_messages_per_event:
+                                        self.pending_messages_per_event[event_id] = (
+                                            deque()
+                                        )
+                                    self.pending_messages_per_event[event_id].append(
+                                        resp
+                                    )
+                                    if resp["msg"] == ServerMessage.process_completed:
+                                        # The submitting thread may not have got here yet.
+                                        self.pending_event_ids.discard(event_id)
+                                    close = (
+                                        len(self.pending_event_ids) == 0
+                                        and protocol != "sse_v3"
+                                    )
+                                    if close:
+                                        self.stream_open = False
+                                if close:
                                     return
                             else:
                                 raise ValueError(f"Unexpected SSE line: '{line}'")
@@ -334,8 +356,30 @@ class Client:
         resp = req.json()
         event_id = resp["event_id"]
 
-        if not self.stream_open:
-            self.stream_open = True
+        # Registering must precede opening the stream (the server emits messages
+        # as soon as the POST is handled) and share its lock with the decision to
+        # open a reader, so that this event is tagged with the epoch of the reader
+        # responsible for it.
+        with self.pending_lock:
+            open_reader = not self.stream_open
+            if open_reader:
+                self.stream_open = True
+                self.stream_epoch += 1
+            epoch = self.stream_epoch
+            self.pending_event_ids.add(event_id)
+            self.pending_messages_per_event.setdefault(event_id, deque())
+            self.pending_event_epoch[event_id] = epoch
+            # A completion the reader saw before its event was registered leaves
+            # both of these behind, since the id is re-added after the discard.
+            live = set(self.pending_messages_per_event)
+            self.pending_event_ids &= live
+            self.pending_event_epoch = {
+                eid: tagged
+                for eid, tagged in self.pending_event_epoch.items()
+                if eid in live
+            }
+
+        if open_reader:
 
             def open_stream():
                 return self.stream_messages(
@@ -343,13 +387,23 @@ class Client:
                 )
 
             def close_stream(_):
-                self.stream_open = False
-                for _, pending_messages in self.pending_messages_per_event.items():
+                with self.pending_lock:
+                    if self.stream_epoch == epoch:
+                        # A later submission may already have opened its own
+                        # reader, and that one is not ours to close.
+                        self.stream_open = False
+                    pending = [
+                        messages
+                        for eid, messages in self.pending_messages_per_event.items()
+                        if self.pending_event_epoch.get(eid, epoch + 1) <= epoch
+                    ]
+                for pending_messages in pending:
                     pending_messages.append(None)
 
-            if self.streaming_future is None or self.streaming_future.done():
-                self.streaming_future = self.executor.submit(open_stream)
-                self.streaming_future.add_done_callback(close_stream)
+            # Submitted outside the lock: add_done_callback runs close_stream
+            # inline when the future is already done, and it takes the lock.
+            self.streaming_future = self.stream_executor.submit(open_stream)
+            self.streaming_future.add_done_callback(close_stream)
 
         return event_id
 
@@ -915,6 +969,12 @@ class Client:
     def __del__(self):
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
+        # Not wait=True: garbage collecting a client should not block on a reader
+        # that is still waiting on the server.
+        if hasattr(self, "helper_executor"):
+            self.helper_executor.shutdown(wait=False)
+        if hasattr(self, "stream_executor"):
+            self.stream_executor.shutdown(wait=False)
 
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.token).host  # type: ignore
@@ -1207,8 +1267,6 @@ class Endpoint:
                 event_id = self.client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
-                self.client.pending_event_ids.add(event_id)
-                self.client.pending_messages_per_event[event_id] = deque()
                 helper.event_id = event_id
                 result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
@@ -1401,7 +1459,7 @@ class Endpoint:
                 self.client.headers,
                 self.client.cookies,
                 self.client.ssl_verify,
-                self.client.executor,
+                self.client.helper_executor,
             )
 
     def _sse_fn_v1plus(
@@ -1415,10 +1473,11 @@ class Endpoint:
             self.client.headers,
             self.client.cookies,
             self.client.pending_messages_per_event,
+            self.client.pending_lock,
             event_id,
             protocol,
             self.client.ssl_verify,
-            self.client.executor,
+            self.client.helper_executor,
         )
 
 
