@@ -77,6 +77,17 @@ def test_decode_base64_to_file(media_data):
     assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
 
 
+def test_encode_file_path():
+    assert (
+        utils.encode_file_path("/tmp/computer%20vision#Huggy.png")
+        == "/tmp/computer%2520vision%23Huggy.png"
+    )
+    assert (
+        utils.encode_file_path(r"C:\Users\me\report%20#final.txt")
+        == "C%3A%5CUsers%5Cme%5Creport%2520%23final.txt"
+    )
+
+
 @pytest.mark.parametrize(
     "path_or_url, file_types, expected_result",
     [
@@ -165,12 +176,25 @@ def test_get_mimetype(filename, expected_mimetype):
         # "$" is stripped as shell-dangerous first, which already defuses CONIN$/CONOUT$
         ("CONOUT$.txt", "CONOUT.txt"),
         ("COM\xb9.log", "_COM\xb9.log"),
+        # Sanitization must always produce a usable cross-platform filename
+        ("!!!", "file"),
+        (".", "file"),
+        ("..", "file"),
+        ("file.", "file"),
+        ("file ", "file"),
         ("config.txt", "config.txt"),
         ("console.log", "console.log"),
     ],
 )
 def test_strip_invalid_filename_characters(orig_filename, new_filename):
     assert utils.strip_invalid_filename_characters(orig_filename) == new_filename
+
+
+def test_strip_invalid_filename_characters_limits_long_extensions():
+    filename = utils.strip_invalid_filename_characters("a." + "x" * 300)
+
+    assert filename.startswith("file.")
+    assert len(filename.encode()) == 200
 
 
 class AsyncMock(MagicMock):

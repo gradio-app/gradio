@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 
 import anyio
 import httpx
+from gradio_client import utils as client_utils
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
@@ -422,7 +423,8 @@ def _save_tmp(result, ext: str) -> dict:
     else:
         with open(path, "wb") as f:
             f.write(result)
-    return {"path": path, "url": f"/gradio_api/file={path}", "is_file": True}
+    url = f"/gradio_api/file={client_utils.encode_file_path(path)}"
+    return {"path": path, "url": url, "is_file": True}
 
 
 def _img_url(a) -> str:
@@ -661,7 +663,7 @@ def call_space(
                 ):
                     return {
                         "path": path,
-                        "url": f"/gradio_api/file={path}",
+                        "url": f"/gradio_api/file={client_utils.encode_file_path(path)}",
                         "is_file": True,
                     }
                 return item
@@ -672,7 +674,7 @@ def call_space(
             ):
                 return {
                     "path": item,
-                    "url": f"/gradio_api/file={item}",
+                    "url": f"/gradio_api/file={client_utils.encode_file_path(item)}",
                     "is_file": True,
                 }
             if isinstance(item, (list, tuple)):

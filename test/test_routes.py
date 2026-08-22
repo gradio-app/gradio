@@ -112,6 +112,17 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    def test_upload_path_with_empty_sanitized_filename(self, test_client):
+        response = test_client.post(
+            f"{API_PREFIX}/upload",
+            files={"files": ("!!!", b"content", "text/plain")},
+        )
+
+        assert response.status_code == 200
+        uploaded = Path(response.json()[0])
+        assert uploaded.name == "file"
+        assert uploaded.read_bytes() == b"content"
+
     def test_custom_upload_path(self, gradio_temp_dir):
         io = Interface(lambda x: x + x, "text", "text")
         app, _, _ = io.launch(prevent_thread_lock=True)
