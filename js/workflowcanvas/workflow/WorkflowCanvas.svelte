@@ -254,6 +254,11 @@
 			restoringHistory = false;
 			return;
 		}
+		// Values first, entry after: `refresh` is synchronous so the state an
+		// entry will eventually be filed from is always the one on screen, which
+		// is what lets undoing a delete bring the card back with the text that was
+		// typed into it a moment earlier.
+		history.refresh(wf);
 		const timer = setTimeout(() => history.record(wf), 350);
 		return () => clearTimeout(timer);
 	});

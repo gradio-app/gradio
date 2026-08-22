@@ -96,11 +96,26 @@ export function revoke_blob_urls(
 	}
 }
 
-function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
+/**
+ * Drop session-bound media from a node's data, keeping every value that still
+ * means something outside the page that produced it — text, numbers, booleans,
+ * server-served file paths. Both places that need to put node data somewhere it
+ * will be read back later ask the same question: saving to `workflow.json`, and
+ * filing an undo entry (`snapshot` in `workflow-history.ts`), where a restored
+ * node has to come back with the text the user typed into it.
+ */
+export function strip_session_media(
+	data: Record<string, unknown> | undefined
+): NodeData {
 	const cleaned: NodeData = {};
-	for (const [k, v] of Object.entries(node.data ?? {})) {
+	for (const [k, v] of Object.entries(data ?? {})) {
 		if (!is_session_url(v)) cleaned[k] = v as NodeDataValue;
 	}
+	return cleaned;
+}
+
+function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
+	const cleaned = strip_session_media(node.data);
 	const {
 		x: _x,
 		y: _y,

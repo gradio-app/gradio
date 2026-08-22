@@ -14,10 +14,12 @@
  * the card back and leave the outputs on screen. So `undo` / `redo` carry `data`
  * and `endpoints` over from the current workflow for every node that exists on
  * both sides in the same role, and take them from the snapshot only for nodes
- * the snapshot is bringing back.
+ * the snapshot is bringing back — which is why entries keep the values a user
+ * typed rather than dropping `data` wholesale (see `snapshot`).
  */
 
 import { allNodes } from "./workflow-migration";
+import { strip_session_media } from "./workflow-store";
 import type {
 	AnyNode,
 	OperatorNode,
@@ -95,6 +97,16 @@ export interface WorkflowHistory {
 	reset(wf: Workflow): void;
 	/** Note the workflow's current state, opening a new entry if it differs. */
 	record(wf: Workflow): void;
+	/**
+	 * Take fresher values for the state already being tracked, without opening an
+	 * entry. Call it on every store write: `record` is debounced so a burst of
+	 * edits collapses into one step, but the entry that burst eventually files is
+	 * built from the *last state seen*, and a node deleted mid-burst exists
+	 * nowhere else. Without this, deleting a card within the debounce window
+	 * would file the state from before the last keystroke and undo would bring
+	 * the card back empty.
+	 */
+	refresh(wf: Workflow): void;
 	/** The workflow to apply, or `null` when there is nothing to go back to. */
 	undo(current: Workflow): Workflow | null;
 	redo(current: Workflow): Workflow | null;
@@ -103,17 +115,26 @@ export interface WorkflowHistory {
 }
 
 /**
- * A workflow as it goes onto the stacks, with node `data` dropped.
+ * A workflow as it goes onto the stacks, with session-bound media dropped from
+ * node `data` and everything else kept.
  *
- * Nothing reads a snapshot's `data`: `carry_live_values` takes it from the
- * current workflow for every node that still exists, and a node the snapshot is
- * bringing back from deletion has had its blob URLs revoked by `removeNode`
- * already — restoring those would show a broken image rather than the output.
- * Dropping it also keeps a hundred entries from pinning a hundred copies of
- * every generated image in memory.
+ * A snapshot's `data` is only ever read for nodes it is *bringing back* —
+ * `carry_live_values` takes the live values for every node that still exists —
+ * but that case is exactly a deleted node returning on Cmd+Z, or a node the
+ * user added coming back on redo. Both have to arrive with the prompt that was
+ * typed into them, so text, numbers and server-served file paths ride along.
+ *
+ * blob: and data: URLs do not: `removeNode` revokes the blob before the entry is
+ * filed, so restoring one would show a broken image rather than the output, and
+ * keeping base64 payloads would let a hundred entries pin a hundred copies of
+ * every generated image in memory. That is the same test `sanitize_for_save`
+ * applies, hence the shared helper.
  */
 function snapshot(wf: Workflow): Workflow {
-	const strip = <T extends AnyNode>(node: T): T => ({ ...node, data: {} });
+	const strip = <T extends AnyNode>(node: T): T => ({
+		...node,
+		data: strip_session_media(node.data)
+	});
 	return {
 		...wf,
 		references: wf.references.map((n) => strip<ReferenceNode>(n)),
@@ -155,6 +176,13 @@ export function create_history(limit: number = DEFAULT_LIMIT): WorkflowHistory {
 			if (past.length > limit) past.shift();
 			future = [];
 			adopt(wf);
+		},
+		refresh(wf) {
+			if (present === null) {
+				adopt(wf);
+				return;
+			}
+			if (history_signature(wf) === present_signature) present = wf;
 		},
 		undo(current) {
 			const previous = past.pop();
