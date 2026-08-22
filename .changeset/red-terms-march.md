@@ -4,4 +4,4 @@
 "gradio_client": minor
 ---
 
-feat:Fix uploaded file URLs with reserved filename characters
+feat:Fix file URLs and sanitize invalid uploaded filenames
