@@ -1,5 +1,11 @@
 # gradio_client
 
+## 2.6.1
+
+### Fixes
+
+- [#13760](https://github.com/gradio-app/gradio/pull/13760) [`7831e62`](https://github.com/gradio-app/gradio/commit/7831e62509a85a3cb38689655fe6ed98946d0d74) - Give the client's internal helper tasks their own thread pool.  Thanks @hysts!
+
 ## 2.6.0
 
 ### Features
