@@ -99,8 +99,9 @@
 		return Math.ceil(h);
 	}
 
+	// No `readOnly` guard: a card's size is view state kept in the viewer's own
+	// localStorage (`layout-persistence.ts`), so resizing needs no write access.
 	function startResize(e: PointerEvent): void {
-		if (readOnly) return;
 		e.preventDefault();
 		e.stopPropagation();
 		resizing = true;
@@ -151,7 +152,7 @@
 
 	/** Double-click the handle to release a pinned height back to fit-content. */
 	function resetHeight(): void {
-		if (readOnly || pinnedHeight === null) return;
+		if (pinnedHeight === null) return;
 		setNodeSize(node.id, node.width, null);
 	}
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
@@ -790,20 +791,18 @@
 		</div>
 	{/if}
 
-	{#if !readOnly}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="node-resize-handle nodrag nopan"
-			class:width-only={!canPinHeight}
-			onpointerdown={startResize}
-			ondblclick={resetHeight}
-			title={!canPinHeight
-				? "Drag to set width"
-				: pinnedHeight !== null
-					? "Drag to resize — double-click to fit height to content"
-					: "Drag to resize"}
-		></div>
-	{/if}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="node-resize-handle nodrag nopan"
+		class:width-only={!canPinHeight}
+		onpointerdown={startResize}
+		ondblclick={resetHeight}
+		title={!canPinHeight
+			? "Drag to set width"
+			: pinnedHeight !== null
+				? "Drag to resize — double-click to fit height to content"
+				: "Drag to resize"}
+	></div>
 </div>
 
 <style>
