@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import inspect
 import json
 import logging
@@ -206,8 +207,11 @@ def _workflow_from_bind(
     edges: list[tuple[str, str]] | None = None,
     name: str = "My Workflow",
 ) -> str:
+    # No coordinates: where a node sits is per-viewer state the canvas keeps in
+    # each visitor's localStorage, so a generated workflow just declares the
+    # graph and lets the canvas auto-arrange it on first open.
     nodes = []
-    for i, (fn_name, fn) in enumerate(bound.items()):
+    for fn_name, fn in bound.items():
         try:
             sig = inspect.signature(fn)
         except (ValueError, TypeError):
@@ -244,10 +248,7 @@ def _workflow_from_bind(
                 "fn": fn_name,
                 "kind": "transform",
                 "label": fn_name,
-                "x": 80 + i * 280,
-                "y": 150,
                 "width": 220,
-                "height": 80 + max(len(inputs), len(outputs)) * 36,
                 "inputs": inputs,
                 "outputs": outputs,
                 "data": {},
@@ -574,6 +575,25 @@ def get_space_id(_data=None) -> str:
     return os.getenv("SPACE_ID") or ""
 
 
+def _workflow_key(workflow_file: str) -> str:
+    """A stable identity for this workflow, used by the canvas to key the
+    per-viewer layout and viewport it keeps in localStorage.
+
+    The workflow's *name* can't do that job: it is editable from the canvas, and
+    two unrelated workflows served from the same origin (same host and port, one
+    after the other) can share it — so one workflow's arrangement would be
+    applied to the other's nodes. What is needed is something stable across
+    restarts and across edits to the graph: on a Space the repo id, and locally
+    the graph file's path. The path is hashed rather than sent as-is so a
+    viewer's browser storage doesn't carry the author's directory layout.
+    """
+    space = os.getenv("SPACE_ID")
+    if space:
+        return f"space:{space}"
+    digest = hashlib.sha256(os.path.abspath(workflow_file).encode("utf-8")).hexdigest()
+    return f"file:{digest[:16]}"
+
+
 def get_oauth_available(_data=None) -> str:
     """True on a Space with `hf_oauth: true` (i.e. OAUTH_CLIENT_ID is set)."""
     return (
@@ -589,6 +609,41 @@ WORKFLOW_OAUTH_SCOPES: dict[str, str] = {
 }
 
 
+def _missing_workflow_oauth_scopes() -> dict[str, str]:
+    granted = set((os.getenv("OAUTH_SCOPES") or "").split())
+    return {
+        scope: why
+        for scope, why in WORKFLOW_OAUTH_SCOPES.items()
+        if scope not in granted
+    }
+
+
+def _warn_workflow_oauth_configuration() -> None:
+    if get_space() is None:
+        return
+    if not os.getenv("OAUTH_CLIENT_ID"):
+        warnings.warn(
+            "Workflow OAuth is not enabled for this Space. Add `hf_oauth: true` "
+            "to the README metadata so users can run workflows on their own "
+            "inference quota.",
+            UserWarning,
+            stacklevel=3,
+        )
+        return
+
+    missing = _missing_workflow_oauth_scopes()
+    if not missing:
+        return
+    detail = ", ".join(f"`{scope}` (to {why})" for scope, why in missing.items())
+    scopes = " and ".join(f"`{scope}`" for scope in missing)
+    warnings.warn(
+        f"Workflow OAuth is missing {detail}. Add {scopes} under "
+        "`hf_oauth_scopes` in the README metadata and redeploy.",
+        UserWarning,
+        stacklevel=3,
+    )
+
+
 def get_oauth_scopes(_data=None) -> str:
     """Which of `WORKFLOW_OAUTH_SCOPES` the Space's OAuth app was granted, and
     which are missing. Empty off-Spaces and when OAuth is disabled."""
@@ -598,11 +653,7 @@ def get_oauth_scopes(_data=None) -> str:
     return json.dumps(
         {
             "granted": granted,
-            "missing": {
-                scope: why
-                for scope, why in WORKFLOW_OAUTH_SCOPES.items()
-                if scope not in granted
-            },
+            "missing": _missing_workflow_oauth_scopes(),
         }
     )
 
@@ -1729,6 +1780,7 @@ class Workflow(Blocks):
             "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
             UserWarning,
         )
+        _warn_workflow_oauth_configuration()
 
         super().__init__(mode="workflow")
         self._build()
@@ -1900,12 +1952,16 @@ class Workflow(Blocks):
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
 
+        def get_workflow_key(_data=None) -> str:
+            return _workflow_key(workflow_file)
+
         server_functions = [
             get_token,
             get_write_access,
             get_oauth_available,
             get_oauth_scopes,
             get_space_id,
+            get_workflow_key,
             call_space,
             call_model,
             fetch_dataset,

@@ -177,12 +177,11 @@ describe("migrateToV2 — v1 → v2 promotion", () => {
 			operators: [datasetOperator("d1")]
 		});
 		const result = migrateToV2(wf);
-		expect(hasMissingNodeGeometry(wf)).toBe(false);
 		expect(result.schema_version).toBe("2");
 		expect(result.operators).toHaveLength(1);
 	});
 
-	test("fills missing v2 geometry so the frontend can auto-arrange it", () => {
+	test("fills missing v2 geometry so the canvas has numbers to lay out", () => {
 		const operator = datasetOperator("d1") as unknown as Record<
 			string,
 			unknown
@@ -194,7 +193,6 @@ describe("migrateToV2 — v1 → v2 promotion", () => {
 			operators: [operator as unknown as OperatorNode]
 		});
 
-		expect(hasMissingNodeGeometry(raw)).toBe(true);
 		const result = migrateToV2(raw);
 		expect(result.operators[0]).toMatchObject({
 			x: 0,
@@ -323,5 +321,22 @@ describe("allNodes / findNode", () => {
 		const wf = makeV2({ operators: [datasetOperator("o42")] });
 		expect(findNode(wf, "o42")?.id).toBe("o42");
 		expect(findNode(wf, "missing")).toBeUndefined();
+	});
+});
+
+describe("hasMissingNodeGeometry", () => {
+	test("decides whether the file carries an arrangement to honour", () => {
+		const positioned = { id: "a", x: 10, y: 20 };
+		expect(
+			hasMissingNodeGeometry({ references: [positioned], operators: [] })
+		).toBe(false);
+		expect(
+			hasMissingNodeGeometry({
+				references: [positioned],
+				operators: [{ id: "b" }]
+			})
+		).toBe(true);
+		// Nothing to honour in an empty graph, so it isn't read as authored.
+		expect(hasMissingNodeGeometry({ schema_version: "2" })).toBe(true);
 	});
 });

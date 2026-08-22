@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { setContext } from "svelte";
+	import { get } from "svelte/store";
 	import { fade } from "svelte/transition";
 
 	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
@@ -9,8 +10,8 @@
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import CheckIcon from "./icons/CheckIcon.svelte";
+	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
-	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
 	import UploadIcon from "./icons/UploadIcon.svelte";
 	import { uploadFile } from "@huggingface/hub";
@@ -38,7 +39,7 @@
 		hydrate_endpoints,
 		init_model_node_ports,
 		sanitize_for_save,
-		revoke_blob_urls,
+		structural_signature,
 		reconcileComponentRoles
 	} from "./workflow-store";
 	import {
@@ -70,6 +71,16 @@
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
+	import type { Viewport } from "./viewport-persistence";
+	import {
+		apply_layout,
+		extract_layout,
+		layout_is_unseen,
+		layout_signature,
+		load_layout,
+		save_layout
+	} from "./layout-persistence";
+	import { create_history } from "./workflow-history";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -109,40 +120,18 @@
 		!onSpace && auth.writeAccessKnown && !auth.canWrite
 	);
 
-	const readOnlyReason =
-		"Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes.";
-
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
-	let lastSavedSerialized = $state<string | null>(null);
-	// Post-load hydration (model port schemas, role reconciliation) mutates
-	// the workflow without user input and would otherwise flip dirty. Gate on
-	// a real gesture and re-baseline when it arrives.
-	let userInteracted = $state(false);
+	// Signature of what's currently persisted on the server. Autosave compares
+	// against this so loading the workflow into the store on page load (and any
+	// no-op change) doesn't trigger a redundant save + "Saved" flash. It ignores
+	// node geometry, which is why rearranging the canvas — the one thing every
+	// visitor is free to do — never reads as an unsaved change.
+	let lastSavedSignature = $state<string | null>(null);
 	const isDirty = $derived(
-		userInteracted &&
-			lastSavedSerialized !== null &&
-			JSON.stringify(sanitize_for_save($workflow)) !== lastSavedSerialized
+		lastSavedSignature !== null &&
+			structural_signature($workflow) !== lastSavedSignature
 	);
-	$effect(() => {
-		if (userInteracted) return;
-		lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
-	});
-	$effect(() => {
-		if (userInteracted) return;
-		const flip = (): void => {
-			if (userInteracted) return;
-			userInteracted = true;
-			lastSavedSerialized = JSON.stringify(sanitize_for_save($workflow));
-		};
-		const gestures = ["pointerdown", "keydown", "drop", "paste"] as const;
-		for (const g of gestures)
-			window.addEventListener(g, flip, { capture: true });
-		return () => {
-			for (const g of gestures)
-				window.removeEventListener(g, flip, { capture: true });
-		};
-	});
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -202,30 +191,185 @@
 		);
 	});
 
+	// A stable identity for this workflow, from the server: the repo id on a
+	// Space, a hash of the graph file's path locally. Everything per-viewer is
+	// keyed by it. The workflow's name is the fallback for backends that don't
+	// offer one, but it's a poor key — it's editable from the canvas, and two
+	// unrelated workflows served from the same origin (same host and port, one
+	// after the other) can share it, which would apply one's arrangement to the
+	// other's nodes. `null` means the answer hasn't arrived yet.
+	let layoutKey = $state<string | null>(null);
+	let keySettled = false;
+	function settleKey(key: string): void {
+		if (keySettled) return;
+		keySettled = true;
+		layoutKey = key;
+	}
 	$effect(() => {
-		if (!initialValue) return;
+		if (!server?.get_workflow_key) {
+			settleKey("");
+			return;
+		}
+		// The graph isn't applied until the key settles, so a stalled call must not
+		// hold the canvas empty: time out into the name fallback, which is what
+		// backends without `get_workflow_key` use anyway.
+		const timer = setTimeout(() => settleKey(""), 1500);
+		void server
+			.get_workflow_key()
+			.then((key: string) => settleKey(key || ""))
+			.catch(() => settleKey(""))
+			.finally(() => clearTimeout(timer));
+		return () => clearTimeout(timer);
+	});
+	function layoutScope(fallback: string): string {
+		return layoutKey || fallback;
+	}
+
+	// Undo / redo. An entry is opened once the store stops changing, so a drag or
+	// a burst of typing collapses into one step rather than hundreds.
+	const history = create_history();
+	// Gates both the recorder and the layout mirror on the load below, so the
+	// store's placeholder default can't be filed as an edit or written over a
+	// real saved layout in the frame before `initialValue` is applied.
+	let layoutReady = $state(false);
+	// Set while an undo/redo is being applied, so the recorder doesn't file the
+	// restored state as a fresh edit.
+	let restoringHistory = false;
+	// No entry opens until the backend's endpoint catalog has landed (or failed
+	// to). Hydration rewrites each model node's ports and derives its `endpoint`
+	// with nobody having touched anything, and an entry taken before that would
+	// make the user's first Cmd+Z rewind the hydration instead of whatever they
+	// actually did.
+	let hydrationSettled = $state(false);
+	function settleHydration(): void {
+		if (hydrationSettled) return;
+		hydrationSettled = true;
+		history.reset(get(workflow));
+	}
+
+	$effect(() => {
+		const wf = $workflow;
+		if (!layoutReady || !hydrationSettled) return;
+		if (restoringHistory) {
+			restoringHistory = false;
+			return;
+		}
+		// Values first, entry after: `refresh` is synchronous so the state an
+		// entry will eventually be filed from is always the one on screen, which
+		// is what lets undoing a delete bring the card back with the text that was
+		// typed into it a moment earlier.
+		history.refresh(wf);
+		const timer = setTimeout(() => history.record(wf), 350);
+		return () => clearTimeout(timer);
+	});
+
+	// The recorder is debounced, so an undo fired within 350ms of an edit would
+	// otherwise step straight past that edit — and drop it from the timeline in
+	// both directions. Close the pending entry first; `record` is a no-op when
+	// nothing is pending. On redo it also correctly discards the redo branch if
+	// the user has since edited.
+	function undoEdit(): void {
+		history.record($workflow);
+		const restored = history.undo($workflow);
+		if (!restored) return;
+		restoringHistory = true;
+		workflow.set(restored);
+	}
+
+	function redoEdit(): void {
+		history.record($workflow);
+		const restored = history.redo($workflow);
+		if (!restored) return;
+		restoringHistory = true;
+		workflow.set(restored);
+	}
+
+	let loadedOnce = false;
+	$effect(() => {
+		// Wait for this workflow's identity before reading stored layout — keying
+		// it by the wrong thing would drop another workflow's arrangement onto
+		// these nodes.
+		if (layoutKey === null || loadedOnce) return;
+		loadedOnce = true;
+		// A viewer who has arranged this workflow before gets their own layout
+		// back. A first-time viewer gets the file's own arrangement when it has
+		// one — an author publishing a workflow still decides how it reads on
+		// first open, and since geometry is never written back, nothing a viewer
+		// does can overwrite that. Only a file with no coordinates is
+		// auto-arranged and fitted.
+		let autoArrange = false;
 		try {
-			const parsed = JSON.parse(initialValue);
-			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
-			// Reconcile on load: files written before roles were derived can carry
-			// a wired-up component still filed under `references`. The first store
-			// write after mount carries the heal to disk.
-			const v2 = reconcileComponentRoles(migrateToV2(parsed));
-			workflow.set(v2);
-			// Baseline the persisted state so the load itself isn't autosaved.
-			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
-			if (shouldAutoLayout) requestAnimationFrame(autoLayout);
+			if (initialValue) {
+				const parsed = JSON.parse(initialValue);
+				// Migration handles both v1 (legacy workflow.json files) and v2.
+				// Reconcile on load as well as on edit: files written before roles were
+				// derived can carry a wired-up component still filed under `references`,
+				// which renders as an output tile but generates no API endpoint. The
+				// baseline below means the heal isn't a save on its own, but the
+				// first real edit carries it to disk — so a stale file corrects
+				// itself in practice.
+				const v2 = reconcileComponentRoles(migrateToV2(parsed));
+				const stored = load_layout(layoutScope(v2.name));
+				const unseen = layout_is_unseen(v2, stored);
+				const authored = unseen && !hasMissingNodeGeometry(parsed);
+				autoArrange = unseen && !authored;
+				workflow.set(apply_layout(v2, stored, { park_unplaced: !authored }));
+			}
 		} catch {}
+		const loaded = get(workflow);
+		// Baseline the persisted state so the load itself isn't autosaved.
+		lastSavedSignature = structural_signature(loaded);
+		history.reset(loaded);
+		layoutReady = true;
+		if (autoArrange) {
+			requestAnimationFrame(() => {
+				autoLayout();
+				markArrangedBaseline();
+				// Cards measure their real height on mount, so fit on a second frame
+				// or the viewport is computed from placeholder heights.
+				requestAnimationFrame(zoomToFit);
+			});
+		} else {
+			markArrangedBaseline();
+		}
+	});
+
+	// The arrangement this canvas started from — the file's own, or the one
+	// `autoLayout` produced. Nothing is written to storage until the viewer moves
+	// away from it, so a viewer who only ever runs the workflow keeps tracking the
+	// file and sees the author's later changes to how it's laid out.
+	let arrangedBaseline = $state<string | null>(null);
+	function markArrangedBaseline(): void {
+		arrangedBaseline = layout_signature(extract_layout(get(workflow)));
+	}
+
+	// Mirror node geometry into this viewer's localStorage — the only place it is
+	// ever persisted.
+	$effect(() => {
+		const wf = $workflow;
+		if (!layoutReady || arrangedBaseline === null) return;
+		const layout = extract_layout(wf);
+		if (layout_signature(layout) === arrangedBaseline) return;
+		const scope = layoutScope(wf.name);
+		const timer = setTimeout(() => save_layout(scope, layout), 250);
+		return () => clearTimeout(timer);
 	});
 
 	let pendingEditsRestored = false;
 	$effect(() => {
-		if (pendingEditsRestored) return;
+		if (layoutKey === null || pendingEditsRestored) return;
 		pendingEditsRestored = true;
 		const stashed = readPendingEdits();
 		if (!stashed) return;
-		workflow.set(reconcileComponentRoles(migrateToV2(stashed)));
-		userInteracted = true;
+		const restored = reconcileComponentRoles(migrateToV2(stashed));
+		// The stash carries no geometry (`sanitize_for_save` strips it), so take it
+		// from what's already on screen and fall back to storage — otherwise
+		// signing in to save would scatter the cards the viewer was looking at.
+		const geometry = {
+			...load_layout(layoutScope(restored.name)),
+			...extract_layout(get(workflow))
+		};
+		workflow.set(apply_layout(restored, geometry));
 	});
 
 	$effect(() => {
@@ -235,20 +379,22 @@
 		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
 			return;
 		if (onSpace) return;
-		const serialized = JSON.stringify(sanitize_for_save(wf));
-		if (lastSavedSerialized === null) {
+		const signature = structural_signature(wf);
+		if (lastSavedSignature === null) {
 			// No persisted baseline yet (e.g. a brand-new workflow with no saved
 			// file): adopt the current state instead of saving it on load.
-			lastSavedSerialized = serialized;
+			lastSavedSignature = signature;
 			return;
 		}
 		// Nothing changed since the last save/load — don't re-save or flash.
-		if (serialized === lastSavedSerialized) return;
+		// Rearranging the canvas doesn't move the signature, so a drag never
+		// reaches the server.
+		if (signature === lastSavedSignature) return;
 		const timer = setTimeout(() => {
 			server
-				.save_workflow([serialized])
+				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
 				.then(() => {
-					lastSavedSerialized = serialized;
+					lastSavedSignature = signature;
 					flashSaved();
 				})
 				.catch(() => {});
@@ -276,11 +422,36 @@
 	});
 
 	$effect(() => {
-		if (!server?.get_model_endpoints) return;
-		void fetchModelEndpoints(server).then((schemas) => {
-			if (schemas.length)
+		// After the load, not alongside it: `init_model_node_ports` maps over
+		// whatever operators are in the store when it runs, so hydrating before
+		// `initialValue` is applied would leave the file's own model nodes
+		// un-hydrated for the rest of the session.
+		if (!layoutReady) return;
+		if (!server?.get_model_endpoints) {
+			settleHydration();
+			return;
+		}
+		// A stalled catalog fetch must not leave undo disabled forever.
+		const timer = setTimeout(settleHydration, 1500);
+		void fetchModelEndpoints(server)
+			.then((schemas) => {
+				if (!schemas.length) return;
+				// Hydration is part of the load, not an edit: fold it into the
+				// baseline instead of reporting it as unsaved — on a Space that would
+				// otherwise put "Unsaved · Save" on a canvas the visitor never
+				// touched. If something *has* changed since the load, the user's edit
+				// owns the baseline and we leave it alone.
+				const untouched =
+					structural_signature(get(workflow)) === lastSavedSignature;
 				init_model_node_ports(schemas, PIPELINE_TAG_TO_ENDPOINT);
-		});
+				if (untouched) lastSavedSignature = structural_signature(get(workflow));
+			})
+			.catch(() => {})
+			.finally(() => {
+				clearTimeout(timer);
+				settleHydration();
+			});
+		return () => clearTimeout(timer);
 	});
 
 	$effect(() => {
@@ -297,20 +468,21 @@
 	}
 
 	// ─── Canvas state ───────────────────────────────────────────────────────────
-	let viewport = $state(load_viewport($workflow.name));
-
-	let lastViewportName = $state($workflow.name);
+	// Keyed by the same stable identity as the layout, so renaming a workflow no
+	// longer throws away the viewer's pan/zoom.
+	let viewport = $state<Viewport>({ x: 0, y: 0, zoom: 1 });
+	let viewportLoaded = false;
 	$effect(() => {
-		if ($workflow.name !== lastViewportName) {
-			lastViewportName = $workflow.name;
-			viewport = load_viewport($workflow.name);
-		}
+		if (layoutKey === null || viewportLoaded) return;
+		viewportLoaded = true;
+		viewport = load_viewport(layoutScope($workflow.name));
 	});
 
 	$effect(() => {
-		const name = $workflow.name;
+		if (layoutKey === null) return;
+		const scope = layoutScope($workflow.name);
 		const v = viewport;
-		const timer = setTimeout(() => save_viewport(name, v), 250);
+		const timer = setTimeout(() => save_viewport(scope, v), 250);
 		return () => clearTimeout(timer);
 	});
 
@@ -389,6 +561,7 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	let showSaveMenu = $state(false);
 	let showApiPanel = $state(false);
 	let saveToSpaceConfirm = $state(false);
 	let savingToSpace = $state(false);
@@ -405,9 +578,6 @@
 			})
 			.catch(() => {});
 	});
-	// Popover shown when the "Run only" badge is clicked, explaining why editing
-	// is disabled and how to enable it.
-	let showAccessInfo = $state(false);
 	let nameInput: HTMLInputElement = $state()!;
 
 	// Human-readable explanation of how the current user is authenticated,
@@ -535,7 +705,8 @@
 			if (!res.ok) {
 				throw new Error(`${res.status} ${await res.text()}`);
 			}
-			const state = sanitize_for_save($workflow);
+			const saved = $workflow;
+			const state = sanitize_for_save(saved);
 			const serialized = JSON.stringify(state, null, 2);
 			await uploadFile({
 				repo: { type: "space", name: target },
@@ -546,7 +717,7 @@
 				},
 				commitTitle: "Fork workflow.json from canvas"
 			});
-			lastSavedSerialized = JSON.stringify(state);
+			lastSavedSignature = structural_signature(saved);
 			showToast(`Saved a copy to ${target}.`, 0, "success", {
 				label: "Open Space",
 				href: `https://huggingface.co/spaces/${target}`
@@ -562,7 +733,8 @@
 		saveToSpaceConfirm = false;
 		if (!spaceId || !auth.token || savingToSpace) return;
 		savingToSpace = true;
-		const state = sanitize_for_save($workflow);
+		const saved = $workflow;
+		const state = sanitize_for_save(saved);
 		const serialized = JSON.stringify(state, null, 2);
 		try {
 			await uploadFile({
@@ -574,7 +746,7 @@
 				},
 				commitTitle: "Update workflow.json from canvas"
 			});
-			lastSavedSerialized = JSON.stringify(state);
+			lastSavedSignature = structural_signature(saved);
 			showToast(
 				`Committed workflow.json to ${spaceId} — the Space will restart.`,
 				4000,
@@ -602,7 +774,6 @@
 
 	const nodeCount = $derived(legacyView.nodes.length);
 	const hasTransforms = $derived($workflow.operators.length > 0);
-	const edgeCount = $derived($workflow.edges.length);
 	const subgraphCount = $derived(
 		countSubgraphs(legacyView.nodes, $workflow.edges)
 	);
@@ -926,8 +1097,11 @@
 		};
 	}
 
+	// No `readOnly` guard: where a card sits is this viewer's own business, kept
+	// in their localStorage rather than the workflow file, so dragging one needs
+	// no write access and marks nothing dirty.
 	function startNodeDrag(e: PointerEvent, nodeId: string): void {
-		if (e.button !== 0 || readOnly) return;
+		if (e.button !== 0) return;
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
@@ -1682,33 +1856,7 @@
 		await addTemplateToCanvas(template, x, y);
 	}
 
-	function revokeAllBlobUrls(nodes: WFNode[]): void {
-		for (const node of nodes) revoke_blob_urls(node.data);
-	}
-
-	let clearConfirm = $state(false);
-
-	function clearWorkflow(): void {
-		if (legacyView.nodes.length === 0 || readOnly) return;
-		clearConfirm = true;
-	}
-
-	function confirmClearWorkflow(): void {
-		clearConfirm = false;
-		if (readOnly) return;
-		revokeAllBlobUrls(legacyView.nodes);
-		workflow.set({
-			schema_version: "2",
-			name: $workflow.name,
-			runtime: { default: "client" },
-			references: [],
-			operators: [],
-			subjects: [],
-			edges: [],
-			view: { default: "canvas" }
-		});
-	}
-
+	// Layout only — safe for read-only viewers, same as dragging a card by hand.
 	function autoLayout(): void {
 		const sorted = topoSort(legacyView.nodes, $workflow.edges);
 		const edges = $workflow.edges;
@@ -1988,8 +2136,8 @@
 		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
 			showUserMenu = false;
 		}
-		if (showAccessInfo && !target?.closest(".access-info-wrap")) {
-			showAccessInfo = false;
+		if (showSaveMenu && !target?.closest(".save-menu-wrap")) {
+			showSaveMenu = false;
 		}
 	}
 
@@ -2166,6 +2314,19 @@
 				for (const id of edge_ids) removeEdge(id);
 			});
 		}
+		// Placed after the INPUT/TEXTAREA bail-out above so typing in a widget
+		// still gets the browser's own undo stack.
+		if (e.key.toLowerCase() === "z" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			if (e.shiftKey) redoEdit();
+			else undoEdit();
+			return;
+		}
+		if (e.key.toLowerCase() === "y" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			redoEdit();
+			return;
+		}
 		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
 			e.preventDefault();
 			if (!readOnly) duplicateNode(selectedNodeId);
@@ -2194,11 +2355,7 @@
 			pendingDrop = null;
 			dropChoice = null;
 			doubleClickMenu = null;
-			clearConfirm = false;
-		}
-		if (e.key === "Enter" && clearConfirm && !readOnly) {
-			e.preventDefault();
-			confirmClearWorkflow();
+			showSaveMenu = false;
 		}
 	}
 
@@ -2607,89 +2764,106 @@
 					</form>
 				{/if}
 			{/if}
-			{#if !readOnly}
-				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-				{#if onSpace && spaceId && isDirty}
-					{#if !auth.token && auth.oauthAvailable}
+			{#if !readOnly && onSpace && spaceId && isDirty}
+				{#if !auth.token && auth.oauthAvailable}
+					<button
+						class="tool-btn save-space-btn"
+						onclick={signInPreservingEdits}
+						title="Sign in with Hugging Face to save your changes"
+					>
+						<UploadIcon />
+						Unsaved · Sign in to save
+					</button>
+				{:else if auth.canWrite && auth.user}
+					<div class="save-menu-wrap">
 						<button
-							class="tool-btn save-space-btn"
-							onclick={signInPreservingEdits}
-							title="Sign in with Hugging Face to save your changes"
+							class="tool-btn save-space-btn save-menu-trigger"
+							disabled={savingToSpace || savingAsCopy}
+							onclick={(e) => {
+								e.stopPropagation();
+								showSaveMenu = !showSaveMenu;
+							}}
+							aria-haspopup="menu"
+							aria-expanded={showSaveMenu}
 						>
 							<UploadIcon />
-							Unsaved · Sign in to save
-						</button>
-					{:else}
-						{#if auth.canWrite}
-							<button
-								class="tool-btn save-space-btn"
-								disabled={savingToSpace || !auth.hasScope("write-repos")}
-								onclick={() => (saveToSpaceConfirm = true)}
-								title={auth.hasScope("write-repos")
-									? "Commit workflow.json to this Space's repo (will restart the Space)"
-									: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
-							>
-								<UploadIcon />
-								{savingToSpace ? "Saving…" : "Unsaved · Save"}
-							</button>
-						{/if}
-						{#if auth.user}
-							<button
-								class="tool-btn save-space-btn"
-								disabled={savingAsCopy || !auth.hasScope("write-repos")}
-								onclick={() => (saveAsCopyConfirm = true)}
-								title={auth.hasScope("write-repos")
-									? "Duplicate this Space under your account and save your edits there"
-									: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
-							>
-								<UploadIcon />
-								{savingAsCopy
+							{savingToSpace
+								? "Saving…"
+								: savingAsCopy
 									? "Forking…"
-									: auth.canWrite
-										? "Save as copy"
-										: "Unsaved · Save as copy"}
-							</button>
+									: "Unsaved · Save"}
+							<span class="save-menu-chevron"><ChevronDownIcon /></span>
+						</button>
+						{#if showSaveMenu}
+							<div
+								class="save-menu"
+								role="menu"
+								aria-label="Save workflow options"
+							>
+								<button
+									class="save-menu-item"
+									role="menuitem"
+									disabled={!auth.hasScope("write-repos")}
+									onclick={() => {
+										showSaveMenu = false;
+										saveToSpaceConfirm = true;
+									}}
+									title={auth.hasScope("write-repos")
+										? "Commit workflow.json to this Space's repo (will restart the Space)"
+										: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								>
+									<span class="save-menu-item-label">Save changes</span>
+									<span class="save-menu-item-detail">Update this Space</span>
+								</button>
+								<button
+									class="save-menu-item"
+									role="menuitem"
+									disabled={!auth.hasScope("write-repos")}
+									onclick={() => {
+										showSaveMenu = false;
+										saveAsCopyConfirm = true;
+									}}
+									title={auth.hasScope("write-repos")
+										? "Duplicate this Space under your account and save your edits there"
+										: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								>
+									<span class="save-menu-item-label">Save as copy</span>
+									<span class="save-menu-item-detail"
+										>Duplicate to your account</span
+									>
+								</button>
+							</div>
 						{/if}
-					{/if}
-				{/if}
-				{#if auth.writeAccessKnown && auth.canWrite}
-					<span
-						class="access-badge access-write"
-						title={onSpace
-							? "You have write access — use Save to commit your changes to this Space."
-							: "You have write access — changes you make are saved automatically."}
-						>Write access</span
-					>
-				{/if}
-			{:else}
-				<div class="access-info-wrap">
+					</div>
+				{:else if auth.canWrite}
 					<button
-						class="access-badge access-readonly"
-						class:open={showAccessInfo}
-						title={readOnlyReason}
-						aria-label="Why is this read-only?"
-						onclick={(e) => {
-							e.stopPropagation();
-							showAccessInfo = !showAccessInfo;
-						}}
-						>Run only<span class="access-info-icon"><InfoIcon /></span></button
+						class="tool-btn save-space-btn"
+						disabled={savingToSpace || !auth.hasScope("write-repos")}
+						onclick={() => (saveToSpaceConfirm = true)}
+						title={auth.hasScope("write-repos")
+							? "Commit workflow.json to this Space's repo (will restart the Space)"
+							: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
 					>
-					{#if showAccessInfo}
-						<div class="access-info-popover">
-							<!-- Mirrors readOnlyReason (used for the hover title), with
-							     "access token" rendered as a link. -->
-							Run-only: you can run this workflow but not edit it. This session is
-							missing the write token — open the edit link printed in the terminal
-							to make changes. That link also signs this session in with your locally
-							saved Hugging Face token; without it, paste an
-							<a
-								href="https://huggingface.co/settings/tokens"
-								target="_blank"
-								rel="noopener noreferrer">access token</a
-							> to run nodes.
-						</div>
-					{/if}
-				</div>
+						<UploadIcon />
+						{savingToSpace ? "Saving…" : "Unsaved · Save"}
+					</button>
+				{:else if auth.user}
+					<button
+						class="tool-btn save-space-btn"
+						disabled={savingAsCopy || !auth.hasScope("write-repos")}
+						onclick={() => (saveAsCopyConfirm = true)}
+						title={auth.hasScope("write-repos")
+							? "Duplicate this Space under your account and save your edits there"
+							: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+					>
+						<UploadIcon />
+						{savingAsCopy
+							? "Forking…"
+							: auth.canWrite
+								? "Save as copy"
+								: "Unsaved · Save as copy"}
+					</button>
+				{/if}
 			{/if}
 		</div>
 	</div>
@@ -2915,6 +3089,10 @@
 				<div class="shortcut-row">
 					<kbd>Cmd+D</kbd> <span>Duplicate node</span>
 				</div>
+				<div class="shortcut-row"><kbd>Cmd+Z</kbd> <span>Undo</span></div>
+				<div class="shortcut-row">
+					<kbd>Cmd+Y</kbd> <span>Redo</span>
+				</div>
 				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
 				<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>
 				<div class="shortcut-row">
@@ -3023,37 +3201,6 @@
 					</button>
 				</div>
 			{/each}
-		</div>
-	{/if}
-
-	{#if clearConfirm}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="wf-modal-backdrop" onclick={() => (clearConfirm = false)}>
-			<div
-				class="wf-modal"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="wf-modal-title"
-				onclick={(e) => e.stopPropagation()}
-			>
-				<div class="wf-modal-title" id="wf-modal-title">Clear workflow?</div>
-				<div class="wf-modal-body">
-					This will remove <strong>{nodeCount}</strong>
-					{nodeCount === 1 ? "node" : "nodes"} and
-					<strong>{edgeCount}</strong>
-					{edgeCount === 1 ? "edge" : "edges"}. This can't be undone.
-				</div>
-				<div class="wf-modal-actions">
-					<button class="wf-modal-btn" onclick={() => (clearConfirm = false)}
-						>Cancel</button
-					>
-					<button
-						class="wf-modal-btn wf-modal-btn-danger"
-						onclick={confirmClearWorkflow}>Clear</button
-					>
-				</div>
-			</div>
 		</div>
 	{/if}
 
@@ -3381,34 +3528,29 @@
 	:global(body:not(.dark) .toolbar-divider) {
 		background: #e2e4ea;
 	}
-	:global(body:not(.dark) .access-badge.access-readonly) {
-		color: #6b6e78;
-		background: #f0f1f5;
-		border-color: #e2e4ea;
+	:global(body:not(.dark) .tool-btn.save-space-btn) {
+		color: #d95f0b;
+		border-color: rgba(217, 95, 11, 0.55);
 	}
-	:global(body:not(.dark) .access-badge.access-write) {
-		color: #0f9d76;
-		background: rgba(15, 157, 118, 0.08);
-		border-color: rgba(15, 157, 118, 0.25);
+	:global(body:not(.dark) .tool-btn.save-space-btn:hover:not(:disabled)) {
+		color: #d95f0b;
+		background: rgba(217, 95, 11, 0.1);
+		border-color: rgba(217, 95, 11, 0.75);
 	}
-	.save-space-btn {
-		color: #ff9350;
-		border-color: rgba(255, 147, 80, 0.4);
-	}
-	.save-space-btn:hover:not(:disabled) {
-		background: rgba(255, 147, 80, 0.12);
-		border-color: rgba(255, 147, 80, 0.6);
-	}
-	:global(body:not(.dark) button.access-badge.access-readonly:hover),
-	:global(body:not(.dark) button.access-badge.access-readonly.open) {
-		color: #3e4050;
-		border-color: #d0d2dc;
-	}
-	:global(body:not(.dark) .access-info-popover) {
+	:global(body:not(.dark) .save-menu) {
 		background: #ffffff;
 		border-color: #e2e4ea;
-		color: #6b6e78;
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	}
+	:global(body:not(.dark) .save-menu-item) {
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .save-menu-item:hover:not(:disabled)),
+	:global(body:not(.dark) .save-menu-item:focus-visible) {
+		background: #f0f1f5;
+	}
+	:global(body:not(.dark) .save-menu-item-detail) {
+		color: #6b6e78;
 	}
 	:global(body:not(.dark) .save-indicator) {
 		color: #0f9d76;
