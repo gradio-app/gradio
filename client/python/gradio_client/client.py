@@ -1413,7 +1413,7 @@ class Endpoint:
             if not url_path.startswith(("http://", "https://")):
                 url_path = self.root_url + url_path.lstrip("/")
         else:
-            url_path = self.root_url + "file=" + x["path"]
+            url_path = self.root_url + "file=" + utils.encode_file_path(x["path"])
 
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)

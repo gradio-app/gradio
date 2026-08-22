@@ -1105,11 +1105,11 @@ class TestEndpoints:
             client.endpoints[0]._download_file(stream_file_data)  # type: ignore
 
         # Test non-stream file still uses path-based URL construction
-        regular_file_data = {"path": "regular/file.txt", "is_stream": False}
+        regular_file_data = {"path": "regular/report%20#final.txt", "is_stream": False}
 
         def mock_stream_regular(*args, **kwargs):
             called_url = args[1]
-            assert called_url.endswith("file=regular/file.txt"), (
+            assert called_url.endswith("file=regular/report%2520%23final.txt"), (
                 f"Expected path-based URL, got: {called_url}"
             )
             return mock_response
