@@ -179,7 +179,6 @@ def test_get_mimetype(filename, expected_mimetype):
         # Sanitization must always produce a usable cross-platform filename
         ("!!!", "file"),
         (".", "file"),
-        ("..", "file"),
         ("file.", "file"),
         ("file ", "file"),
         ("config.txt", "config.txt"),

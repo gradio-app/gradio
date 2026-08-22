@@ -790,6 +790,9 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     # stem (e.g. "#.txt" → ".txt" → Path(".txt").suffix == "").
     if not name and ext:
         name = "file"
+    # Preserve the parent-directory marker so upload path validation rejects it.
+    if name + ext == "..":
+        return ".."
     # Windows strips trailing spaces and dots from path segments. Remove them
     # consistently on every platform so the returned upload path is portable.
     filename = (name + ext).rstrip(" .")
