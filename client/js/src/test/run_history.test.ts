@@ -349,15 +349,8 @@ describe.skipIf(!in_browser)("replaying a run", () => {
 
 		expect(apply_run_history_replay(config)).toBe(true);
 		expect(config.components.map((component) => component.props.value)).toEqual(
-			[
-				"prompt",
-				// `gr.State` is held on the server, so its default has to survive.
-				"server side",
-				stored.outputs[0],
-				"described"
-			]
+			["prompt", "server side", stored.outputs[0], "described"]
 		);
-		// The staged run is consumed, so a reload does not replay it again.
 		expect(apply_run_history_replay(make_config())).toBe(false);
 	});
 

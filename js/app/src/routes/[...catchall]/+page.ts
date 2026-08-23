@@ -155,10 +155,6 @@ export async function load({
 
 	let page_config = app.get_url_config(url.toString());
 
-	// The run history page stages the run to reload in session storage and then
-	// navigates here, so this is where a staged run gets written back into the
-	// config. It only exists in the browser, and this load runs again during
-	// hydration, so the values land before the client renders the app.
 	if (browser) {
 		apply_run_history_replay(page_config);
 	}

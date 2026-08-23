@@ -332,8 +332,6 @@ function restore_run_impl(config: ReplayTarget, run: StoredRun): boolean {
 	);
 	if (!dependency) return false;
 
-	// Both sides are saved as arrays aligned to the dependency, so these only
-	// have to cope with a history written by some other shape of payload.
 	const inputs = Array.isArray(run.inputs)
 		? run.inputs
 		: Object.values((run.inputs ?? {}) as Record<string, unknown>);
