@@ -1,7 +1,7 @@
 // import { type LayoutServerLoad } from "./$types";
 import { browser } from "$app/environment";
 
-import { Client } from "@gradio/client";
+import { apply_run_history_replay, Client } from "@gradio/client";
 
 import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
@@ -154,6 +154,14 @@ export async function load({
 	}
 
 	let page_config = app.get_url_config(url.toString());
+
+	// The run history page stages the run to reload in session storage and then
+	// navigates here, so this is where a staged run gets written back into the
+	// config. It only exists in the browser, and this load runs again during
+	// hydration, so the values land before the client renders the app.
+	if (browser) {
+		apply_run_history_replay(page_config);
+	}
 
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
 	return {

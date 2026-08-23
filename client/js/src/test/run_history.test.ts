@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import {
+	apply_run_history_replay,
 	clear_run_history,
 	consume_run_history_replay,
 	delete_run_history,
@@ -311,6 +312,79 @@ describe.skipIf(!in_browser)("run history", () => {
 
 		expect(read_run_history(other_scope)).toEqual([]);
 		expect(consume_run_history_replay(other_scope)).toBeNull();
+	});
+});
+
+describe.skipIf(!in_browser)("replaying a run", () => {
+	function make_config() {
+		return {
+			app_id,
+			components: [
+				{ id: 1, type: "textbox", props: { value: "default in" } },
+				{ id: 2, type: "state", props: { value: "server side" } },
+				{ id: 3, type: "image", props: { value: null } },
+				{ id: 4, type: "textbox", props: { value: "default out" } }
+			],
+			dependencies: [
+				{ id: 7, api_name: "transform", inputs: [1, 2], outputs: [3, 4] }
+			]
+		};
+	}
+
+	const stored = {
+		id: "run-1",
+		endpoint: "/transform",
+		api_name: "/transform",
+		fn_index: 7,
+		page: "/",
+		inputs: ["prompt", null],
+		outputs: [{ url: "http://localhost/image.webp" }, "described"],
+		status: "completed" as const,
+		started_at: new Date().toISOString()
+	};
+
+	test("writes the saved inputs and outputs back into the config", () => {
+		stage_run_history_replay(scope, stored);
+		const config = make_config();
+
+		expect(apply_run_history_replay(config)).toBe(true);
+		expect(config.components.map((component) => component.props.value)).toEqual(
+			[
+				"prompt",
+				// `gr.State` is held on the server, so its default has to survive.
+				"server side",
+				stored.outputs[0],
+				"described"
+			]
+		);
+		// The staged run is consumed, so a reload does not replay it again.
+		expect(apply_run_history_replay(make_config())).toBe(false);
+	});
+
+	test("matches the endpoint by api name when the fn index has moved", () => {
+		stage_run_history_replay(scope, { ...stored, fn_index: 99 });
+		const config = make_config();
+
+		expect(apply_run_history_replay(config)).toBe(true);
+		expect(config.components[3].props.value).toBe("described");
+	});
+
+	test("leaves the config alone when the endpoint is gone", () => {
+		stage_run_history_replay(scope, {
+			...stored,
+			fn_index: 99,
+			api_name: "/removed"
+		});
+		const config = make_config();
+
+		expect(apply_run_history_replay(config)).toBe(false);
+		expect(config.components.map((component) => component.props.value)).toEqual(
+			["default in", "server side", null, "default out"]
+		);
+	});
+
+	test("is a no-op when nothing was staged", () => {
+		expect(apply_run_history_replay(make_config())).toBe(false);
 	});
 });
 
