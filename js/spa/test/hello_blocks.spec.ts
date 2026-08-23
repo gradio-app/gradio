@@ -15,25 +15,27 @@ test.describe("i18n", () => {
 });
 
 test.describe("run history", () => {
-	test("loading a saved run restores its inputs and outputs", async ({
+	test("loading an earlier run restores that run, not the latest", async ({
 		page
 	}) => {
-		await page.getByLabel("Name").fill("run history");
+		await page.getByLabel("Name").fill("first");
 		await page.getByRole("button", { name: "Greet" }).click();
-		await expect(page.getByLabel("Output Box")).toHaveValue(
-			"Hello run history!"
-		);
+		await expect(page.getByLabel("Output Box")).toHaveValue("Hello first!");
 
-		await page.goto(new URL("/", page.url()).href);
-		await expect(page.getByLabel("Name")).toHaveValue("");
-		await expect(page.getByLabel("Output Box")).toHaveValue("");
+		await page.getByLabel("Name").fill("second");
+		await page.getByRole("button", { name: "Greet" }).click();
+		await expect(page.getByLabel("Output Box")).toHaveValue("Hello second!");
 
 		await page.goto(new URL("/gradio_api/runs", page.url()).href);
-		await page.getByRole("button", { name: "Load run" }).click();
+		const runs = page.locator("article.run");
+		await expect(runs).toHaveCount(2);
+		await expect(runs.first()).toContainText("Hello second!");
+		await runs
+			.filter({ hasText: "Hello first!" })
+			.getByRole("button", { name: "Load run" })
+			.click();
 
-		await expect(page.getByLabel("Name")).toHaveValue("run history");
-		await expect(page.getByLabel("Output Box")).toHaveValue(
-			"Hello run history!"
-		);
+		await expect(page.getByLabel("Name")).toHaveValue("first");
+		await expect(page.getByLabel("Output Box")).toHaveValue("Hello first!");
 	});
 });
