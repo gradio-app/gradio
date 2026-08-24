@@ -782,6 +782,7 @@
 	{#if ready}
 		{#if current_subtool !== "crop"}
 			<Controls
+				{i18n}
 				{changeable}
 				onset_zoom={(zoom) => handle_zoom_change(zoom)}
 				onzoom_in={() => zoom_in_out("in")}
@@ -806,6 +807,7 @@
 
 		{#if current_subtool !== "crop"}
 			<Toolbar
+				{i18n}
 				{sources}
 				{transforms}
 				background={background_image}
@@ -846,6 +848,7 @@
 
 		{#if current_subtool !== "crop" && !layer_options.disabled}
 			<SecondaryToolbar
+				{i18n}
 				enable_additional_layers={layer_options.allow_additional_layers}
 				layers={editor.layers}
 				onnew_layer={() => {
@@ -884,7 +887,7 @@
 		<div class="crop-confirm-button">
 			<IconButton
 				Icon={Check}
-				label="Confirm crop"
+				label={i18n("image_editor.confirm_crop")}
 				show_label={true}
 				size="large"
 				padded={true}

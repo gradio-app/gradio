@@ -1,8 +1,15 @@
 import { afterEach, describe, expect, test } from "vitest";
-import { cleanup, render, TEST_PNG, waitFor } from "@self/tootils/render";
+import {
+	cleanup,
+	fireEvent,
+	render,
+	TEST_PNG,
+	waitFor
+} from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import ImageEditor from "./Index.svelte";
+import ImageEditorTestWrapper from "./ImageEditorTestWrapper.svelte";
 
 const default_props = {
 	sources: ["upload"] as const,
@@ -49,5 +56,57 @@ describe("get_data / set_data", () => {
 		});
 
 		expect((await get_data()).value).toEqual(value);
+	});
+});
+
+describe("Internationalization", () => {
+	afterEach(() => cleanup());
+
+	test("canvas controls use translated accessible names", async () => {
+		const i18n = (key: string): string => key;
+		const { getByRole } = await render(ImageEditorTestWrapper, {
+			kind: "controls",
+			i18n
+		});
+
+		expect(getByRole("button", { name: "common.download" })).toBeVisible();
+		expect(getByRole("button", { name: "image_editor.pan" })).toBeVisible();
+		expect(
+			getByRole("button", { name: "image_editor.zoom_out" })
+		).toBeVisible();
+		expect(
+			getByRole("button", { name: "image_editor.save_changes" })
+		).toBeVisible();
+	});
+
+	test("editing tools use translated accessible names", async () => {
+		const i18n = (key: string): string => key;
+		const { getByRole } = await render(ImageEditorTestWrapper, {
+			kind: "toolbar",
+			i18n
+		});
+
+		expect(getByRole("button", { name: "image.image" })).toBeVisible();
+		expect(getByRole("button", { name: "image_editor.brush" })).toBeVisible();
+		expect(getByRole("button", { name: "image_editor.erase" })).toBeVisible();
+		expect(getByRole("button", { name: "image_editor.upload" })).toBeVisible();
+		expect(getByRole("button", { name: "image_editor.paste" })).toBeVisible();
+	});
+
+	test("layer controls use translated accessible names", async () => {
+		const i18n = (key: string): string => key;
+		const { getByRole } = await render(ImageEditorTestWrapper, {
+			kind: "layers",
+			i18n
+		});
+		const show_layers = getByRole("button", {
+			name: "image_editor.show_layers"
+		});
+
+		await fireEvent.click(show_layers);
+
+		expect(
+			getByRole("button", { name: "image_editor.add_layer" })
+		).toBeVisible();
 	});
 });
