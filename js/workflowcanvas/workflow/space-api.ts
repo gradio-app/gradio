@@ -49,12 +49,12 @@ export function componentToPortType(
 	labelHint?: string
 ): PortType | "__skip__" {
 	const c = component.toLowerCase();
-	if (pythonType) {
-		const cleaned = pythonType
-			.toLowerCase()
-			.replace(/^none\s*\|\s*/, "")
-			.replace(/\s*\|\s*none$/, "")
-			.trim();
+	const cleaned = pythonType
+		?.toLowerCase()
+		.replace(/^none\s*\|\s*/, "")
+		.replace(/\s*\|\s*none$/, "")
+		.trim();
+	if (cleaned) {
 		if (cleaned === "str" || cleaned === "string") return "text";
 		if (cleaned === "int" || cleaned === "integer" || cleaned === "float")
 			return "number";
@@ -90,12 +90,7 @@ export function componentToPortType(
 
 	// gr.api endpoints use component="Api" with python_type carrying the
 	// real hint — primitives already handled at the top of the function.
-	if (pythonType) {
-		const cleaned = pythonType
-			.toLowerCase()
-			.replace(/^none\s*\|\s*/, "")
-			.replace(/\s*\|\s*none$/, "")
-			.trim();
+	if (cleaned) {
 		if (
 			cleaned === "filepath" ||
 			cleaned === "file" ||
