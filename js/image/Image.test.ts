@@ -80,6 +80,28 @@ describe("Image", () => {
 		expect(img).toBeTruthy();
 		expect(img?.getAttribute("src")).toBe("https://example.com/test.png");
 	});
+
+	test("uses the provided alternative text for static images", async () => {
+		const { getByRole } = await render(Image, {
+			...default_props,
+			interactive: false,
+			value: { ...fake_value, alt_text: "Three vertical color bands" }
+		});
+
+		expect(
+			getByRole("img", { name: "Three vertical color bands" })
+		).toBeVisible();
+	});
+
+	test("treats static images without alternative text as decorative", async () => {
+		const { getByRole } = await render(Image, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		expect(getByRole("presentation")).toBeVisible();
+	});
 });
 
 describe("Props: label", () => {

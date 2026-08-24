@@ -91,6 +91,7 @@ class Image(StreamingInput, Component):
         webcam_options: WebcamOptions | None = None,
         placeholder: str | None = None,
         watermark: WatermarkOptions | None = None,
+        alt_text: str | None = None,
     ):
         """
         Parameters:
@@ -119,6 +120,7 @@ class Image(StreamingInput, Component):
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             watermark: If provided and this component is used to display a `value` image, the `watermark` image will be displayed on the bottom right of the `value` image, 10 pixels from the bottom and 10 pixels from the right. The watermark image will not be resized. Supports `PIL.Image`, `numpy.array`, `pathlib.Path`, and `str` filepaths. SVGs and GIFs are not supported as `watermark` images nor can they be watermarked.
+            alt_text: Alternative text for the image, used by screen readers. If not provided, the image is treated as decorative.
         """
         self.format = format
 
@@ -129,6 +131,7 @@ class Image(StreamingInput, Component):
         self.watermark = (
             watermark if isinstance(watermark, WatermarkOptions) else WatermarkOptions()
         )
+        self.alt_text = alt_text
 
         if isinstance(watermark, (str, Path, PIL.Image.Image, np.ndarray)):
             self.watermark.watermark = watermark
@@ -222,6 +225,7 @@ class Image(StreamingInput, Component):
             watermark=self.watermark,
             cache_dir=self.GRADIO_CACHE,
             format=self.format,
+            alt_text=self.alt_text,
         )
 
     def api_info_as_output(self) -> dict[str, Any]:
