@@ -18,14 +18,18 @@ export {
 	type StoredRun
 } from "./utils/run_history";
 export {
+	asset_url,
+	clear_records,
 	connect_bucket,
 	delete_record_from_bucket,
 	disconnect_bucket,
+	get_bucket_record,
 	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets,
 	push_record_to_bucket,
-	type BucketInfo
+	type BucketInfo,
+	type HistoryRecord
 } from "./utils/bucket_sync";
 
 export type {

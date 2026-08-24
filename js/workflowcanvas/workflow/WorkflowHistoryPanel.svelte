@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import {
+		asset_url,
 		delete_record_from_bucket,
-		list_bucket_records
+		list_bucket_records,
+		type HistoryRecord
 	} from "@gradio/client";
 
 	interface HistoryInput {
@@ -16,18 +18,6 @@
 		value: any;
 		type: string;
 		label: string;
-		bucket_url?: string;
-	}
-
-	interface HistoryRecord {
-		id: string;
-		timestamp?: string;
-		started_at?: string;
-		subgraph?: string;
-		subject_ids?: string[];
-		inputs: Record<string, HistoryInput>;
-		outputs: Record<string, HistoryOutput>;
-		user?: string | null;
 	}
 
 	let {
@@ -41,6 +31,7 @@
 		root: string;
 		bucketId: string;
 		onload?: (record: {
+			record_id: string;
 			inputs: Record<string, HistoryInput>;
 			outputs: Record<string, HistoryOutput>;
 		}) => void;
@@ -83,8 +74,37 @@
 	}
 
 	function primaryOutput(record: HistoryRecord): HistoryOutput | null {
-		const vals = Object.values(record.outputs);
+		const vals = Object.values(record.outputs) as HistoryOutput[];
 		return vals[0] ?? null;
+	}
+
+	function resolveMediaSrc(
+		record: HistoryRecord,
+		out: HistoryOutput | null
+	): string | null {
+		if (!out) return null;
+		// Asset marker: {"__asset__": "a001"} → proxied download URL.
+		if (
+			out.value &&
+			typeof out.value === "object" &&
+			typeof (out.value as any).__asset__ === "string"
+		) {
+			return asset_url(root, record.record_id, (out.value as any).__asset__);
+		}
+		// Nested FileData with __asset__ marker.
+		if (
+			out.value &&
+			typeof out.value === "object" &&
+			(out.value as any).value &&
+			typeof (out.value as any).value.__asset__ === "string"
+		) {
+			return asset_url(
+				root,
+				record.record_id,
+				(out.value as any).value.__asset__
+			);
+		}
+		return typeof out.value === "string" ? out.value : null;
 	}
 
 	function inputSummary(record: HistoryRecord): string {
@@ -96,7 +116,12 @@
 	}
 
 	function handleLoad(record: HistoryRecord): void {
-		if (onload) onload({ inputs: record.inputs, outputs: record.outputs });
+		if (onload)
+			onload({
+				record_id: record.record_id,
+				inputs: record.inputs as Record<string, HistoryInput>,
+				outputs: record.outputs as Record<string, HistoryOutput>
+			});
 	}
 
 	async function fetchRecords() {
@@ -236,12 +261,10 @@
 				</div>
 			{:else}
 				<div class="history-grid">
-					{#each filtered as record (record.id)}
+					{#each filtered as record (record.record_id)}
 						{@const out = primaryOutput(record)}
 						{@const summary = inputSummary(record)}
-						{@const media_src =
-							out?.bucket_url ??
-							(typeof out?.value === "string" ? out.value : null)}
+						{@const media_src = resolveMediaSrc(record, out)}
 						<div class="history-card">
 							<div class="card-preview">
 								{#if out && MEDIA_TYPES.has(out.type) && media_src}
@@ -270,7 +293,7 @@
 
 							<div class="card-meta">
 								<div class="card-time">
-									{formatRelativeTime(record.timestamp ?? record.started_at)}
+									{formatRelativeTime(record.created_at)}
 								</div>
 								{#if summary}
 									<div class="card-inputs">{summary}</div>
@@ -284,16 +307,17 @@
 										Load
 									</button>
 								{/if}
-								{#if pendingDelete === record.id}
+								{#if pendingDelete === record.record_id}
 									<button
 										class="card-delete-confirm"
 										onclick={() => {
 											pendingDelete = null;
 											delete_record_from_bucket(root, {
-												id: record.id,
-												started_at: record.timestamp ?? record.started_at ?? ""
+												record_id: record.record_id
 											});
-											records = records.filter((r) => r.id !== record.id);
+											records = records.filter(
+												(r) => r.record_id !== record.record_id
+											);
 										}}>Delete?</button
 									>
 									<button
@@ -303,7 +327,7 @@
 								{:else}
 									<button
 										class="card-delete-btn"
-										onclick={() => (pendingDelete = record.id)}
+										onclick={() => (pendingDelete = record.record_id)}
 										title="Delete this generation"
 										aria-label="Delete"
 									>

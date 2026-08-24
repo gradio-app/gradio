@@ -19,6 +19,7 @@ import time
 import traceback
 import warnings
 from collections import OrderedDict
+from dataclasses import asdict
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
@@ -728,26 +729,62 @@ class App(FastAPI):
                 raise HTTPException(status_code=404, detail="Not found")
             return main(request, user)
 
-        # /run-history/*: bucket is set once via /connect and stored in the
-        # session; subsequent routes derive it from there.
+        # /run-history/*: bucket is set once via /connect and derived from
+        # the session on every subsequent route.
         history_max_body = 2 * 1024 * 1024
-        record_id_re = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
-
         app.state.bucket_history_cache = OrderedDict()
         app.state.bucket_history_cache_lock = threading.Lock()
+        app.state.history_write_limiter = anyio.CapacityLimiter(8)
 
-        def _bucket_from_session(request: fastapi.Request, token: str):
+        def _history_owner_and_app(
+            request: fastapi.Request,
+        ) -> tuple[str, str]:
+            try:
+                info = oauth._get_valid_oauth_info_from_session(request.session)
+            except Exception:
+                info = None
+            userinfo = (info or {}).get("userinfo") or {}
+            owner_id = userinfo.get("sub") or userinfo.get("name")
+            if not isinstance(owner_id, str) or not owner_id:
+                raise fastapi.HTTPException(
+                    401, "oauth session missing subject identity"
+                )
+            app_key = str(getattr(app_id, "hash", None) or "app")
+            return owner_id, app_key
+
+        def _http_from_store_error(exc):
+            from gradio.history import (
+                HubError,
+                NotAuthorized,
+                NotFound,
+                PublicBucketError,
+            )
+
+            if isinstance(exc, NotAuthorized):
+                return fastapi.HTTPException(403, str(exc))
+            if isinstance(exc, PublicBucketError):
+                return fastapi.HTTPException(403, str(exc))
+            if isinstance(exc, NotFound):
+                return fastapi.HTTPException(404, str(exc))
+            if isinstance(exc, HubError):
+                return fastapi.HTTPException(502, str(exc))
+            return fastapi.HTTPException(500, str(exc))
+
+        def _store_from_session(request: fastapi.Request, token: str):
             from gradio.history import bucket_for_token
 
             bucket_id = (request.session.get("history") or {}).get("bucket_id")
             if not bucket_id:
                 raise fastapi.HTTPException(409, "no bucket connected")
+            owner_id, app_key = _history_owner_and_app(request)
             try:
                 return bucket_for_token(
                     app.state.bucket_history_cache,
                     app.state.bucket_history_cache_lock,
                     token,
                     bucket_id,
+                    owner_id=owner_id,
+                    app_key=app_key,
                 )
             except ValueError as exc:
                 raise fastapi.HTTPException(422, "invalid bucket id") from exc
@@ -761,19 +798,22 @@ class App(FastAPI):
 
             body = await route_utils.bounded_json_body(request, history_max_body)
             bucket_id = str(body.get("bucket_id") or "")
+            owner_id, app_key = _history_owner_and_app(request)
             try:
-                wh = bucket_for_token(
+                store = bucket_for_token(
                     app.state.bucket_history_cache,
                     app.state.bucket_history_cache_lock,
                     token,
                     bucket_id,
+                    owner_id=owner_id,
+                    app_key=app_key,
                 )
             except ValueError as exc:
                 raise fastapi.HTTPException(422, "invalid bucket id") from exc
-            ok, reason = await anyio.to_thread.run_sync(wh.ensure_repo)
-            if not ok:
-                status = 403 if reason == "no_permission" else 502
-                raise fastapi.HTTPException(status, reason or "hub error")
+            try:
+                await anyio.to_thread.run_sync(store.ensure_private_bucket)
+            except Exception as exc:
+                raise _http_from_store_error(exc) from exc
             request.session["history"] = {"bucket_id": bucket_id}
             return JSONResponse({"bucket_id": bucket_id})
 
@@ -807,67 +847,130 @@ class App(FastAPI):
         async def _run_history_records(
             request: fastapi.Request,
             limit: int = 50,
-            subgraph: str | None = None,
             token: str = Depends(oauth.require_oauth_token),
         ):
-            wh = _bucket_from_session(request, token)
+            store = _store_from_session(request, token)
             if limit < 1 or limit > 200:
                 raise fastapi.HTTPException(422, "limit out of range")
             try:
                 records = await anyio.to_thread.run_sync(
-                    lambda: wh.list(limit=limit, subgraph=subgraph or None)
+                    lambda: [asdict(r) for r in store.list_records(limit=limit)]
                 )
             except Exception as exc:
-                raise fastapi.HTTPException(502, "hub error") from exc
+                raise _http_from_store_error(exc) from exc
             return JSONResponse({"records": records})
+
+        @router.get("/run-history/records/{record_id}")
+        async def _run_history_get(
+            request: fastapi.Request,
+            record_id: str,
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            from gradio.history import validate_record_id
+
+            store = _store_from_session(request, token)
+            try:
+                validate_record_id(record_id)
+            except ValueError as exc:
+                raise fastapi.HTTPException(422, "invalid record id") from exc
+            try:
+                record = await anyio.to_thread.run_sync(store.get_record, record_id)
+            except Exception as exc:
+                raise _http_from_store_error(exc) from exc
+            return JSONResponse(asdict(record))
 
         @router.post("/run-history/records")
         async def _run_history_push(
             request: fastapi.Request,
             token: str = Depends(oauth.require_oauth_token),
         ):
-            wh = _bucket_from_session(request, token)
+            from gradio.history import HistoryRecord, now_utc_iso, validate_record_id
+
+            store = _store_from_session(request, token)
             body = await route_utils.bounded_json_body(request, history_max_body)
-            record = body.get("record") or body
-            if isinstance(record, str):
+            record_id = str(body.get("record_id") or body.get("id") or "")
+            try:
+                validate_record_id(record_id)
+            except ValueError as exc:
+                raise fastapi.HTTPException(422, "invalid record id") from exc
+
+            record = HistoryRecord(
+                record_id=record_id,
+                owner_id=store.owner_id,
+                app_key=store.app_key,
+                created_at=str(body.get("created_at") or now_utc_iso()),
+                inputs=body.get("inputs") or {},
+                outputs=body.get("outputs") or {},
+                subgraph=body.get("subgraph"),
+            )
+
+            limiter: anyio.CapacityLimiter = app.state.history_write_limiter
+            if limiter.borrowed_tokens >= limiter.total_tokens:
+                resp = JSONResponse(
+                    {"detail": "server busy"}, status_code=429
+                )
+                resp.headers["Retry-After"] = "2"
+                return resp
+            async with limiter:
                 try:
-                    record = orjson.loads(record)
+                    await anyio.to_thread.run_sync(store.save_record, record, None)
                 except Exception as exc:
-                    raise fastapi.HTTPException(422, "invalid record") from exc
-            if not isinstance(record, dict) or not record.get("id"):
-                raise fastapi.HTTPException(422, "invalid record")
-            if not record_id_re.fullmatch(str(record["id"])):
-                raise fastapi.HTTPException(422, "invalid record id")
-            ok, reason = await anyio.to_thread.run_sync(wh.push_sync, record)
-            if not ok:
-                status = 403 if reason == "no_permission" else 502
-                raise fastapi.HTTPException(status, reason or "hub error")
-            return JSONResponse({"ok": True, "id": record["id"]})
+                    raise _http_from_store_error(exc) from exc
+            return JSONResponse({"record_id": record_id})
 
         @router.delete("/run-history/records/{record_id}")
         async def _run_history_delete(
             request: fastapi.Request,
             record_id: str,
-            timestamp: str,
             token: str = Depends(oauth.require_oauth_token),
         ):
-            wh = _bucket_from_session(request, token)
-            if not record_id_re.fullmatch(record_id):
-                raise fastapi.HTTPException(422, "invalid record id")
-            _timestamp_re = re.compile(
-                r"^\d{4}-\d{2}-\d{2}T\d{2}[:-]\d{2}[:-]\d{2}(?:\.\d{1,6})?Z$"
-            )
-            if not _timestamp_re.fullmatch(timestamp):
-                raise fastapi.HTTPException(422, "invalid timestamp")
+            from gradio.history import validate_record_id
+
+            store = _store_from_session(request, token)
             try:
-                ok = await anyio.to_thread.run_sync(
-                    lambda: wh.delete(record_id, timestamp)
+                validate_record_id(record_id)
+            except ValueError as exc:
+                raise fastapi.HTTPException(422, "invalid record id") from exc
+            try:
+                await anyio.to_thread.run_sync(store.delete_record, record_id)
+            except Exception as exc:
+                raise _http_from_store_error(exc) from exc
+            return JSONResponse({"ok": True})
+
+        @router.delete("/run-history/records")
+        async def _run_history_clear(
+            request: fastapi.Request,
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            store = _store_from_session(request, token)
+            try:
+                await anyio.to_thread.run_sync(store.clear_records)
+            except Exception as exc:
+                raise _http_from_store_error(exc) from exc
+            return JSONResponse({"ok": True})
+
+        @router.get("/run-history/records/{record_id}/assets/{asset_id}")
+        async def _run_history_asset(
+            request: fastapi.Request,
+            record_id: str,
+            asset_id: str,
+            token: str = Depends(oauth.require_oauth_token),
+        ):
+            from gradio.history import validate_record_id
+
+            store = _store_from_session(request, token)
+            try:
+                validate_record_id(record_id)
+                validate_record_id(asset_id)
+            except ValueError as exc:
+                raise fastapi.HTTPException(422, "invalid id") from exc
+            try:
+                data, content_type = await anyio.to_thread.run_sync(
+                    store.get_asset_bytes, record_id, asset_id
                 )
             except Exception as exc:
-                raise fastapi.HTTPException(502, "hub error") from exc
-            if not ok:
-                raise fastapi.HTTPException(502, "hub error")
-            return JSONResponse({"ok": True})
+                raise _http_from_store_error(exc) from exc
+            return Response(content=data, media_type=content_type)
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):

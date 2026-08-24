@@ -2124,8 +2124,6 @@
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
 
-		// Push a run record to the bucket if configured. Awaited so the
-		// history panel refresh sees the new record on the next fetch.
 		if (bucketId) {
 			try {
 				const now = new Date().toISOString();
@@ -2152,16 +2150,12 @@
 						label: node.label
 					};
 				}
-				const record: any = {
-					id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
-					timestamp: now,
-					started_at: now,
-					status: hasErrors ? "failed" : "completed",
+				const record = {
+					record_id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
+					created_at: now,
 					subgraph: $workflow.name || "workflow",
-					subject_ids: wfToRun.subjects.map((s) => s.id),
 					inputs,
-					outputs,
-					user: null
+					outputs
 				};
 				await push_record_to_bucket(historyRoot, record);
 				if (showHistoryPanel) {
@@ -2169,9 +2163,7 @@
 						if (showHistoryPanel) historyRefreshCount++;
 					}, 2500);
 				}
-			} catch {
-				// history push is best-effort
-			}
+			} catch {}
 		}
 
 		showToast(
@@ -3407,20 +3399,17 @@
 				showHistoryConnect = true;
 			}}
 			onload={({
+				record_id,
 				inputs,
 				outputs
 			}: {
+				record_id: string;
 				inputs: Record<
 					string,
 					{ value: unknown; type: string; port_id?: string }
 				>;
-				outputs: Record<
-					string,
-					{ value: unknown; type: string; bucket_url?: string }
-				>;
+				outputs: Record<string, { value: unknown; type: string }>;
 			}) => {
-				// Widget's getFileValue() rejects bare URL strings; wrap them
-				// as `{url, name, mime}` for media ports so images/audio render.
 				const MEDIA = new Set(["image", "audio", "video", "file"]);
 				const MIME: Record<string, string> = {
 					image: "image/*",
@@ -3428,10 +3417,28 @@
 					video: "video/*",
 					file: ""
 				};
-				const wrap = (v: unknown, type: string): unknown =>
-					typeof v === "string" && MEDIA.has(type)
-						? { url: v, name: v.split("/").pop() ?? "", mime: MIME[type] ?? "" }
-						: v;
+				const assetUrl = (id: string): string =>
+					`${historyRoot.replace(/\/+$/, "")}/gradio_api/run-history/records/${encodeURIComponent(record_id)}/assets/${encodeURIComponent(id)}`;
+				const resolve = (v: unknown): unknown => {
+					if (
+						v &&
+						typeof v === "object" &&
+						typeof (v as any).__asset__ === "string"
+					) {
+						return assetUrl((v as any).__asset__);
+					}
+					return v;
+				};
+				const wrap = (v: unknown, type: string): unknown => {
+					const resolved = resolve(v);
+					return typeof resolved === "string" && MEDIA.has(type)
+						? {
+								url: resolved,
+								name: resolved.split("/").pop() ?? "",
+								mime: MIME[type] ?? ""
+							}
+						: resolved;
+				};
 				for (const [nodeId, input] of Object.entries(inputs)) {
 					const portId = input.port_id ?? "out_0";
 					updateNodeData(nodeId, portId, wrap(input.value, input.type));
@@ -3439,8 +3446,7 @@
 				for (const [nodeId, output] of Object.entries(outputs)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
-					const raw = output.bucket_url ?? output.value;
-					updateNodeData(nodeId, inPortId, wrap(raw, output.type));
+					updateNodeData(nodeId, inPortId, wrap(output.value, output.type));
 				}
 				showHistoryPanel = false;
 			}}

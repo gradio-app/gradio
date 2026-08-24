@@ -1,6 +1,7 @@
 import type { StoredRun } from "./run_history";
 
 const BUCKET_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$/;
+const RECORD_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
 export function is_valid_bucket_id(id: string): boolean {
 	if (!BUCKET_ID_RE.test(id)) return false;
@@ -12,6 +13,18 @@ export function is_valid_bucket_id(id: string): boolean {
 export interface BucketInfo {
 	id: string;
 	private?: boolean;
+}
+
+export interface HistoryRecord {
+	record_id: string;
+	owner_id: string;
+	app_key: string;
+	created_at: string;
+	inputs: Record<string, unknown>;
+	outputs: Record<string, unknown>;
+	assets: Record<string, string>;
+	schema_version: number;
+	subgraph?: string;
 }
 
 function url(root: string, path: string): string {
@@ -73,12 +86,10 @@ export async function list_user_buckets(root: string): Promise<BucketInfo[]> {
 
 export async function list_bucket_records(
 	root: string,
-	limit = 50,
-	subgraph?: string
-): Promise<StoredRun[]> {
+	limit = 50
+): Promise<HistoryRecord[]> {
 	try {
 		const params = new URLSearchParams({ limit: String(limit) });
-		if (subgraph) params.set("subgraph", subgraph);
 		const res = await fetch(`${url(root, "records")}?${params}`, {
 			credentials: "include"
 		});
@@ -91,33 +102,83 @@ export async function list_bucket_records(
 	}
 }
 
+export async function get_bucket_record(
+	root: string,
+	record_id: string
+): Promise<HistoryRecord | null> {
+	if (!RECORD_ID_RE.test(record_id)) return null;
+	try {
+		const res = await fetch(
+			`${url(root, "records")}/${encodeURIComponent(record_id)}`,
+			{ credentials: "include" }
+		);
+		if (!res.ok) return null;
+		return await res.json();
+	} catch {
+		return null;
+	}
+}
+
+export interface PushInput {
+	record_id: string;
+	inputs?: Record<string, unknown>;
+	outputs?: Record<string, unknown>;
+	subgraph?: string;
+	created_at?: string;
+}
+
 export async function push_record_to_bucket(
 	root: string,
-	record: StoredRun
-): Promise<boolean> {
-	if (!record?.id || record.status === "running") return false;
+	record: PushInput | StoredRun
+): Promise<{ ok: boolean; status: number; detail?: string }> {
+	const rid = (record as any).record_id ?? (record as any).id;
+	if (typeof rid !== "string" || !RECORD_ID_RE.test(rid)) {
+		return { ok: false, status: 422, detail: "invalid record id" };
+	}
+	if ((record as StoredRun)?.status === "running") {
+		return { ok: false, status: 0, detail: "still running" };
+	}
 	try {
 		const res = await fetch(url(root, "records"), {
 			method: "POST",
 			credentials: "include",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ record })
+			body: JSON.stringify({ ...(record as any), record_id: rid })
 		});
-		return res.ok;
-	} catch (e) {
-		console.warn("[run-history] push failed:", e);
-		return false;
+		return {
+			ok: res.ok,
+			status: res.status,
+			detail: res.ok ? undefined : await parse_error(res)
+		};
+	} catch (e: any) {
+		return { ok: false, status: 0, detail: String(e) };
 	}
 }
 
 export function delete_record_from_bucket(
 	root: string,
-	record: Pick<StoredRun, "id" | "started_at">
+	record: { record_id?: string; id?: string }
 ): void {
-	if (!record?.id || !record.started_at) return;
-	const params = new URLSearchParams({ timestamp: record.started_at });
-	fetch(`${url(root, "records")}/${encodeURIComponent(record.id)}?${params}`, {
+	const rid = record?.record_id ?? record?.id;
+	if (typeof rid !== "string" || !RECORD_ID_RE.test(rid)) return;
+	fetch(`${url(root, "records")}/${encodeURIComponent(rid)}`, {
 		method: "DELETE",
 		credentials: "include"
 	}).catch(() => {});
+}
+
+export function clear_records(root: string): Promise<Response> {
+	return fetch(url(root, "records"), {
+		method: "DELETE",
+		credentials: "include"
+	});
+}
+
+/** Backend-proxied download URL for a stored asset. Use as `<img src=…>`. */
+export function asset_url(
+	root: string,
+	record_id: string,
+	asset_id: string
+): string {
+	return `${url(root, "records")}/${encodeURIComponent(record_id)}/assets/${encodeURIComponent(asset_id)}`;
 }
