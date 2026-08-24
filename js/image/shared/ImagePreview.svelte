@@ -109,7 +109,7 @@
 			<div class:selectable class="image-frame">
 				<Image
 					src={value.url}
-					restProps={{ loading: "lazy", alt: "" }}
+					restProps={{ loading: "lazy", alt: value.alt_text ?? "" }}
 					{onload}
 				/>
 			</div>

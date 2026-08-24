@@ -57,6 +57,7 @@ class TestImage:
             "type": "pil",
             "placeholder": None,
             "watermark": {"position": "bottom-right", "watermark": None},
+            "alt_text": None,
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image()
@@ -107,6 +108,22 @@ class TestImage:
         assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)
         assert component.get_config().get("value") is None
+
+    def test_alt_text_is_included_in_postprocessed_image(self):
+        component = gr.Image(alt_text="A city bus")
+
+        image = component.postprocess("test/test_files/bus.png")
+
+        assert image is not None
+        assert image.alt_text == "A city bus"
+
+    def test_alt_text_is_included_for_svg_images(self):
+        component = gr.Image(alt_text="Gradio logo")
+
+        image = component.postprocess("test/test_files/file_icon.svg")
+
+        assert image is not None
+        assert image.alt_text == "Gradio logo"
 
     def test_images_upright_after_preprocess(self):
         component = gr.Image(type="pil")
