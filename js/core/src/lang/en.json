@@ -138,6 +138,31 @@
 		"use_brush": "Use brush",
 		"drop_to_upload": "Drop an image file here to upload"
 	},
+	"image_editor": {
+		"add_layer": "Add Layer",
+		"brush": "Brush",
+		"brush_size": "Brush Size",
+		"clear_canvas": "Clear canvas",
+		"color": "Color",
+		"confirm_crop": "Confirm crop",
+		"crop": "Crop",
+		"erase": "Erase",
+		"eraser_size": "Eraser Size",
+		"fit_to_screen": "Fit to screen",
+		"layers": "Layers",
+		"pan": "Pan",
+		"paste": "Paste",
+		"redo": "Redo",
+		"resize": "Resize",
+		"save_changes": "Save changes",
+		"select_draw_tool": "select the draw tool to start",
+		"show_layers": "Show Layers",
+		"upload": "Upload",
+		"upload_image": "Upload an image",
+		"webcam": "Webcam",
+		"zoom_in": "Zoom in",
+		"zoom_out": "Zoom out"
+	},
 	"label": {
 		"label": "Label"
 	},

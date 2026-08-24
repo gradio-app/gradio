@@ -11,8 +11,10 @@
 	} from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import type { Writable } from "svelte/store";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	let {
+		i18n,
 		layers,
 		enable_additional_layers = true,
 		enable_layers = true,
@@ -23,6 +25,7 @@
 		ondelete_layer,
 		ontoggle_layer_visibility
 	}: {
+		i18n: I18nFormatter;
 		layers: Writable<{
 			active_layer: string;
 			layers: {
@@ -68,14 +71,14 @@
 	>
 		<button
 			class="layer-title-button"
-			aria-label="Show Layers"
+			aria-label={i18n("image_editor.show_layers")}
 			onclick={(event) => {
 				event.stopPropagation();
 				show_layers = !show_layers;
 			}}
 		>
 			{show_layers
-				? "Layers"
+				? i18n("image_editor.layers")
 				: $layers.layers.find((l) => l.id === $layers.active_layer)?.name}
 			<span class="icon"><Layers /></span>
 		</button>
@@ -150,7 +153,7 @@
 					<li class="add-layer">
 						<IconButton
 							Icon={Plus}
-							label="Add Layer"
+							label={i18n("image_editor.add_layer")}
 							onclick={(e) => {
 								e.stopPropagation();
 								new_layer();
