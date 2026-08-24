@@ -12,7 +12,7 @@ afterEach(() => {
 describe("execute_custom_js", () => {
 	test("invokes a function expression", async () => {
 		await execute_custom_js(
-			"() => { globalThis.custom_js_result = 'function'; }"
+			"() => { globalThis.custom_js_result = 'function'; };",
 		);
 
 		expect(globalThis.custom_js_result).toBe("function");
@@ -20,7 +20,7 @@ describe("execute_custom_js", () => {
 
 	test("awaits an async function expression", async () => {
 		await execute_custom_js(
-			"async () => { await Promise.resolve(); globalThis.custom_js_result = 'async'; }"
+			"async () => { await Promise.resolve(); globalThis.custom_js_result = 'async'; };",
 		);
 
 		expect(globalThis.custom_js_result).toBe("async");
@@ -28,7 +28,7 @@ describe("execute_custom_js", () => {
 
 	test("executes raw JavaScript", async () => {
 		await execute_custom_js(
-			"const result = 'raw'; globalThis.custom_js_result = result;"
+			"const result = 'raw'; globalThis.custom_js_result = result;",
 		);
 
 		expect(globalThis.custom_js_result).toBe("raw");
