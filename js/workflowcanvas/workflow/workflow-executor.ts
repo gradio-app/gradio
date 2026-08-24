@@ -216,7 +216,11 @@ function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 			mime: (obj.mime_type as string) ?? "application/octet-stream"
 		} satisfies FileValue;
 	}
-	return String(result);
+
+	if (portType === "text" || portType === "html" || portType === "json") {
+		return JSON.stringify(result);
+	}
+	return null;
 }
 
 export async function executeWorkflow(
