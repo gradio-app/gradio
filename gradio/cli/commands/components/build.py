@@ -16,7 +16,10 @@ from gradio.cli.commands.components._docs_utils import (
     get_deep,
 )
 from gradio.cli.commands.components.docs import run_command
-from gradio.cli.commands.components.install_component import _get_executable_path
+from gradio.cli.commands.components.install_component import (
+    _get_executable_path,
+    _get_frontend_dir,
+)
 from gradio.cli.commands.display import LivePanelDisplay
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
@@ -128,16 +131,18 @@ def _build(
                     "node must be installed in order to run build command."
                 )
 
+            frontend_dir = _get_frontend_dir(component_directory)
+
             gradio_node_path = subprocess.run(
                 [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
-                cwd=Path(component_directory / "frontend"),
+                cwd=frontend_dir,
                 check=False,
                 capture_output=True,
             )
 
             if gradio_node_path.returncode != 0:
                 raise ValueError(
-                    "Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder."
+                    f"Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder ({frontend_dir})."
                 )
 
             gradio_node_path = gradio_node_path.stdout.decode("utf-8").strip()

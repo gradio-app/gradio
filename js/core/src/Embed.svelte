@@ -1,30 +1,49 @@
 <script lang="ts">
-	import { getContext, onMount } from "svelte";
+	import type { Snippet } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	import { _ } from "svelte-i18n";
 	import { navbar_config } from "./navbar_store";
 
-	export let wrapper: HTMLDivElement;
-	export let version: string;
-	export let initial_height: string;
-	export let fill_width: boolean;
-	export let is_embed: boolean;
-
-	export let space: string | null;
-	export let display: boolean;
-	export let info: boolean;
-	export let loaded: boolean;
-	export let pages: [string, string, boolean][] = [];
-	export let current_page = "";
-	export let root: string;
-	export let components: any[] = [];
-
-	let navbar_component = components.find((c) => c.type === "navbar");
-	let navbar: {
+	type Navbar = {
 		visible: boolean;
 		main_page_name: string | false;
 		value: [string, string][] | null;
-	} | null = navbar_component
+	};
+
+	let {
+		wrapper = $bindable(),
+		version,
+		initial_height,
+		fill_width,
+		is_embed,
+		space,
+		display,
+		info,
+		loaded,
+		pages = [],
+		current_page = "",
+		root,
+		components = [],
+		children
+	}: {
+		wrapper?: HTMLDivElement;
+		version: string;
+		initial_height: string;
+		fill_width: boolean;
+		is_embed: boolean;
+		space: string | null;
+		display: boolean;
+		info: boolean;
+		loaded: boolean;
+		pages?: [string, string, boolean][];
+		current_page?: string;
+		root: string;
+		components?: any[];
+		children?: Snippet;
+	} = $props();
+
+	const navbar_component = components.find((c) => c.type === "navbar");
+	const initial_navbar: Navbar | null = navbar_component
 		? {
 				visible: navbar_component.props.visible,
 				main_page_name: navbar_component.props.main_page_name,
@@ -32,20 +51,23 @@
 			}
 		: null;
 
-	if (navbar) {
-		navbar_config.set(navbar);
+	if (initial_navbar) {
+		navbar_config.set(initial_navbar);
 	}
 
-	$: if ($navbar_config) {
-		navbar = {
-			visible: $navbar_config.visible ?? true,
-			main_page_name: $navbar_config.main_page_name ?? "Home",
-			value: $navbar_config.value ?? null
-		};
-	}
+	let navbar: Navbar | null = $derived(
+		$navbar_config
+			? {
+					visible: $navbar_config.visible ?? true,
+					main_page_name: $navbar_config.main_page_name ?? "Home",
+					value: $navbar_config.value ?? null
+				}
+			: initial_navbar
+	);
 
-	$: show_navbar =
-		pages.length > 1 && (navbar === null || navbar.visible !== false);
+	let show_navbar = $derived(
+		pages.length > 1 && (navbar === null || navbar.visible !== false)
+	);
 
 	function normalize_path(path: string): string {
 		// Remove query parameters, hash fragments, and leading/trailing slashes from the path
@@ -61,7 +83,7 @@
 		return normalize_path(route) === normalize_path(current);
 	}
 
-	$: effective_pages = (() => {
+	let effective_pages = $derived.by(() => {
 		let visible_pages = pages.filter(([route, label, show], index) => {
 			if (index === 0 && route === "") {
 				return navbar?.main_page_name !== false;
@@ -93,7 +115,7 @@
 		}
 
 		return base_pages;
-	})();
+	});
 </script>
 
 <div
@@ -129,7 +151,7 @@
 		</div>
 	{/if}
 	<div class="main fillable" class:fill_width class:app={!display && !is_embed}>
-		<slot />
+		{@render children?.()}
 		<div>
 			{#if display && space && info}
 				<div class="info">
@@ -188,7 +210,7 @@
 		padding: 0;
 		min-height: 1px;
 		overflow: hidden;
-		color: var(--button-secondary-text-color);
+		color: var(--body-text-color);
 	}
 
 	.embed-container {

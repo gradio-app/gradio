@@ -19,14 +19,21 @@ import {
 } from "../helpers/api_info";
 import {
 	BROKEN_CONNECTION_MSG,
+	NO_API_INFO_MSG,
 	QUEUE_FULL_MSG,
 	SSE_URL,
 	SSE_DATA_URL,
 	RESET_URL,
-	CANCEL_URL
+	CANCEL_URL,
+	WS_PROTOCOL_MSG
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
+import {
+	start_run_history,
+	update_run_history,
+	update_run_inputs
+} from "./run_history";
 
 export function submit(
 	this: Client,
@@ -60,7 +67,7 @@ export function submit(
 
 		const that = this;
 
-		if (!api_info) throw new Error("No API found");
+		if (!api_info) throw new Error(NO_API_INFO_MSG);
 		if (!config) throw new Error("Could not resolve app config");
 
 		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
@@ -71,12 +78,65 @@ export function submit(
 		);
 
 		let resolved_data = map_data_to_params(data, endpoint_info);
-
-		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
 		if (protocol === "ws") {
-			throw new Error("WebSocket protocol is not supported in this version");
+			throw new Error(WS_PROTOCOL_MSG);
 		}
+		const history_endpoint =
+			typeof dependency.api_name === "string"
+				? `/${dependency.api_name}`
+				: endpoint;
+		const history_api_name =
+			typeof dependency.api_name === "string"
+				? `/${dependency.api_name}`
+				: `Function ${fn_index}`;
+		// Kept index-aligned with the stored payloads (null for components we
+		// cannot resolve) so every saved value stays matched to its component.
+		const component_metadata = (id: number) => {
+			const component = config.components.find((item) => item.id === id);
+			if (!component) return null;
+			return {
+				type: component.type,
+				component_class_id: component.component_class_id,
+				props: component.props
+			};
+		};
+		// The run history covers the same endpoints the API page documents, which
+		// it selects with exactly this predicate (see `ApiDocs.svelte`). That also
+		// keeps out the dependencies Gradio wires up for itself, since example
+		// loading, flagging and clear buttons are all "undocumented" or "private"
+		// and some of them fire on page load. The trade is that a component whose
+		// UI submits through an undocumented dependency — `gr.ChatInterface` does
+		// — records nothing for its in-app use.
+		const is_documented_endpoint = dependency.api_visibility === "public";
+		// Either side may opt out: the app for everyone who uses it, and this
+		// caller for itself.
+		const history_enabled =
+			config.run_history !== false && this.options.record_history !== false;
+		const history_scope = { app_id: config.app_id, username: config.username };
+		const history_run_id =
+			!history_enabled || !is_documented_endpoint
+				? null
+				: start_run_history({
+						...history_scope,
+						endpoint: history_endpoint,
+						api_name: history_api_name,
+						fn_index,
+						// Aligned to `dependency.inputs` the same way the submitted payload
+						// is, so this placeholder matches the components until the uploaded
+						// files are swapped in by `update_run_inputs` below.
+						inputs: handle_payload(
+							resolved_data,
+							dependency,
+							config.components,
+							"input",
+							true
+						),
+						input_components: dependency.inputs.map(component_metadata),
+						output_components: dependency.outputs.map(component_metadata)
+					});
+
+		let stream: EventSource | null;
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
 
@@ -101,6 +161,7 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
+			update_run_history(history_scope, history_run_id, event);
 			if (all_events || events_to_publish[event.type]) {
 				push_event(event);
 			}
@@ -178,11 +239,15 @@ export function submit(
 				"input",
 				true
 			);
+			update_run_inputs(history_scope, history_run_id, input_data || []);
 			payload = {
 				data: input_data || [],
 				event_data,
 				fn_index,
-				trigger_id
+				trigger_id,
+				...(options.oauth_token && endpoint_info?.oauth_token
+					? { oauth_token: options.oauth_token }
+					: {})
 			};
 			if (skip_queue(fn_index, config)) {
 				fire_event({
@@ -630,6 +695,22 @@ export function submit(
 			}
 		});
 
+		// Surface internal failures (e.g. malformed payloads or configs) as an
+		// error event instead of leaving the returned iterator hanging forever
+		// with an unhandled promise rejection.
+		job.catch((e) => {
+			fire_event({
+				type: "status",
+				stage: "error",
+				message: e instanceof Error ? e.message : String(e),
+				queue: !skip_queue(fn_index, config),
+				endpoint: _endpoint,
+				fn_index,
+				time: new Date()
+			});
+			close();
+		});
+
 		let done = false;
 		const values: (IteratorResult<GradioEvent> | PromiseLike<never>)[] = [];
 		const resolvers: ((
@@ -735,25 +816,37 @@ function get_endpoint_info(
 } {
 	let fn_index: number;
 	let endpoint_info: EndpointInfo<JsApiData>;
-	let dependency: Dependency;
+	let dependency: Dependency | undefined;
 
 	if (typeof endpoint === "number") {
 		fn_index = endpoint;
 		endpoint_info = api_info.unnamed_endpoints[fn_index];
-		dependency = config.dependencies.find((dep) => dep.id == endpoint)!;
+		dependency = config.dependencies.find((dep) => dep.id == endpoint);
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
 
 		fn_index = api_map[trimmed_endpoint];
-		endpoint_info = api_info.named_endpoints[endpoint.trim()];
+		// named endpoints are keyed with a leading slash in the API info, but
+		// accept endpoint names passed without one (e.g. "predict")
+		endpoint_info =
+			api_info.named_endpoints[endpoint.trim()] ??
+			api_info.named_endpoints[`/${trimmed_endpoint}`];
 		dependency = config.dependencies.find(
 			(dep) => dep.id == api_map[trimmed_endpoint]
-		)!;
+		);
 	}
 
-	if (typeof fn_index !== "number") {
+	if (typeof fn_index !== "number" || !dependency) {
+		const valid_endpoints = config.dependencies
+			.filter((dep) => dep.api_name)
+			.map((dep) => `"/${dep.api_name}"`)
+			.join(", ");
 		throw new Error(
-			"There is no endpoint matching that name of fn_index matching that number."
+			`No endpoint matching ${JSON.stringify(endpoint)} was found. ` +
+				(valid_endpoints
+					? `Valid named endpoints are: ${valid_endpoints}. `
+					: "This app exposes no named endpoints. ") +
+				"An fn_index (number) of an existing dependency can also be used."
 		);
 	}
 	return { fn_index, endpoint_info, dependency };

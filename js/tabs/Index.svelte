@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseTabs, TABS, type Tab } from "./shared/Tabs.svelte";
 </script>
 

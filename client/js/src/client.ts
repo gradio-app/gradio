@@ -25,6 +25,7 @@ import { submit } from "./utils/submit";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
+	normalise_token_option,
 	resolve_cookies,
 	resolve_config,
 	get_jwt,
@@ -33,6 +34,7 @@ import {
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
+import { clear_run_history } from "./utils/run_history";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
@@ -200,6 +202,7 @@ export class Client {
 		if (!options.events) {
 			options.events = ["data"];
 		}
+		normalise_token_option(options);
 
 		this.options = options;
 		this.current_payload = {};
@@ -230,8 +233,9 @@ export class Client {
 			await this.resolve_cookies();
 		}
 
-		await this._resolve_config().then(({ config }) =>
-			this._resolve_heartbeat(config)
+		await this._resolve_config().then(
+			(res: { config: Config } | undefined) =>
+				res?.config && this._resolve_heartbeat(res.config)
 		);
 
 		try {
@@ -400,7 +404,7 @@ export class Client {
 						load_status: "error",
 						detail: "NOT_FOUND"
 					});
-				throw Error(e);
+				throw e instanceof Error ? e : new Error(String(e));
 			}
 		}
 	}
@@ -410,6 +414,15 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
+
+		// Opting out also purges, so an app that turns the feature off does not
+		// leave behind what it stored while it was on.
+		if (_config.run_history === false) {
+			clear_run_history({
+				app_id: _config.app_id,
+				username: _config.username
+			});
+		}
 
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();

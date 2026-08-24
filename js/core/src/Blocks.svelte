@@ -2,7 +2,12 @@
 	import { tick, onMount, setContext, settled, untrack } from "svelte";
 	import type { Component } from "svelte";
 	import { _ } from "svelte-i18n";
-	import { Client } from "@gradio/client";
+	import {
+		Client,
+		on_run_history_change,
+		read_run_history,
+		run_history_url
+	} from "@gradio/client";
 	import { writable } from "svelte/store";
 
 	import type {
@@ -23,12 +28,19 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import settings_logo from "./api_docs/img/settings-logo.svg";
+	import history_logo from "./api_docs/img/history-logo.svg";
 	import record_stop from "./api_docs/img/record-stop.svg";
 	import { AppTree } from "./init.svelte";
 
 	import * as screen_recorder from "./screen_recorder";
 
 	import { DependencyManager } from "./dependency";
+	import {
+		create_resize_state,
+		next_frame_height,
+		reset_resize_growth,
+		setup_iframe_resizer
+	} from "./resize";
 	type AddNewMessage = (
 		title: string,
 		message: string,
@@ -56,6 +68,7 @@
 		js,
 		fill_height,
 		username,
+		run_history = true,
 		api_prefix,
 		max_file_size,
 		initial_layout,
@@ -84,6 +97,7 @@
 		js: string | null;
 		fill_height: boolean;
 		username: string | null;
+		run_history?: boolean;
 		api_prefix: string;
 		max_file_size: number | undefined;
 		initial_layout: ComponentMeta | undefined;
@@ -126,6 +140,7 @@
 		} else if (event === "info") {
 			new_message("Info", data as string, -1, event, 10, true);
 		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
+			reset_resize_growth(resize_state);
 			const id_ =
 				event === "gradio_expand"
 					? id
@@ -164,6 +179,7 @@
 		{
 			root,
 			theme: theme_mode,
+			theme_mode,
 			version,
 			api_prefix,
 			max_file_size,
@@ -198,6 +214,12 @@
 		if (!api_recorder_visible) return;
 		api_calls = [...api_calls, last_api_call];
 	};
+
+	let run_count = $state(0);
+
+	function refresh_run_count(): void {
+		run_count = read_run_history(app.config).length;
+	}
 
 	function handle_connection_lost(): void {
 		messages = messages.filter((m) => m.type !== "error");
@@ -245,6 +267,7 @@
 			app_tree.reload(components, layout, dependencies, {
 				root,
 				theme: theme_mode,
+				theme_mode,
 				version,
 				api_prefix,
 				max_file_size,
@@ -402,42 +425,35 @@
 		return container.children[container.children.length - 1] as HTMLElement;
 	}
 
-	let last_reported_height = 0;
-	let consecutive_grows = 0;
+	const resize_state = create_resize_state();
+	let mutation_observer: MutationObserver | null = null;
+
+	// Drop the `fill_height` stretch for a single synchronous measurement. It is
+	// restored before anything is painted, so the collapsed state is never shown.
+	function measure_unstretched_bottom(el: HTMLElement): number {
+		const previous = el.style.flexGrow;
+		el.style.flexGrow = "0";
+		const bottom = el.getBoundingClientRect().bottom;
+		el.style.flexGrow = previous;
+		// Drop the records for our own two style writes so they don't re-trigger us.
+		mutation_observer?.takeRecords();
+		return bottom;
+	}
 
 	function handle_resize(): void {
 		if (!("parentIFrame" in window)) return;
-		const box = root_container.children[0].getBoundingClientRect();
-		if (!box) return;
-		const next = box.bottom + footer_height + 32;
-		const viewport = window.innerHeight;
+		const el = root_container.children[0] as HTMLElement | undefined;
+		if (!el) return;
 
-		// Ignore sub-pixel echoes from our own resize.
-		if (Math.abs(next - last_reported_height) < 2) {
-			consecutive_grows = 0;
-			return;
-		}
+		const next = next_frame_height(resize_state, {
+			stretched_bottom: el.getBoundingClientRect().bottom,
+			measure_unstretched_bottom: () => measure_unstretched_bottom(el),
+			footer_height,
+			document_height: document.documentElement.scrollHeight,
+			viewport: window.innerHeight
+		});
 
-		if (next > last_reported_height) {
-			// Content sized in viewport-relative units (`vh`/`%`) or stretched by
-			// `fill_height` grows to fill whatever height the iframe is given, so its
-			// measured bottom just tracks the viewport. Requesting a larger size in
-			// that case feeds back into an unbounded growth loop (#12089, #12992).
-			// (a) If the content merely fills the viewport (no real overflow), don't grow.
-			if (next > viewport && box.bottom <= viewport + 2) return;
-			// (b) Circuit breaker: if we keep growing tick after tick, the content is
-			// tracking the iframe we just grew (a feedback loop), not genuinely taller
-			// content. Stop growing so the height stays bounded. Legitimate content
-			// (late-loading images, revealed blocks) settles within a few grows.
-			consecutive_grows += 1;
-			if (consecutive_grows > 4) return;
-		} else {
-			// Shrinking to fit shorter content is always safe and breaks any loop.
-			consecutive_grows = 0;
-		}
-
-		last_reported_height = next;
-		window.parentIFrame?.size(next);
+		if (next !== null) window.parentIFrame?.size(next);
 	}
 
 	function screen_recording(): void {
@@ -454,19 +470,23 @@
 				navigator.userAgent
 			);
 
-		if ("parentIFrame" in window) {
-			window.parentIFrame?.autoResize(false);
-		}
+		refresh_run_count();
+		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
 
-		const mut = new MutationObserver(handle_resize);
+		mutation_observer = new MutationObserver(handle_resize);
 		const res = new ResizeObserver(handle_resize);
 
-		mut.observe(root_container, {
+		mutation_observer.observe(root_container, {
 			childList: true,
 			subtree: true,
 			attributes: true
 		});
-		res.observe(root_container);
+		res.observe(root_container.parentElement ?? root_container);
+		const disconnect_iframe_resizer = setup_iframe_resizer(
+			window,
+			() => window.parentIFrame,
+			handle_resize
+		);
 
 		app_tree.ready.then(async () => {
 			if (js) {
@@ -478,6 +498,8 @@
 			}
 
 			ready = true;
+			reset_resize_growth(resize_state);
+			void settled().then(handle_resize);
 			dep_manager.dispatch_load_events();
 		});
 
@@ -486,8 +508,11 @@
 		}
 
 		return () => {
-			mut.disconnect();
+			disconnect_iframe_resizer();
+			mutation_observer?.disconnect();
+			mutation_observer = null;
 			res.disconnect();
+			unsubscribe_run_history();
 			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
 	});
@@ -521,12 +546,23 @@
 			bind:clientHeight={footer_height}
 			aria-label="Gradio footer navigation"
 		>
+			{#if run_history && footer_links.includes("runs") && run_count > 0}
+				<a
+					href={run_history_url(root, api_prefix)}
+					class="run-history"
+					title={$reactive_formatter("common.runs_description")}
+				>
+					{$reactive_formatter("common.runs")}
+					<img src={history_logo} alt={$reactive_formatter("common.runs")} />
+				</a>
+				<div class="divider">·</div>
+			{/if}
 			{#if footer_links.includes("api")}
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadApiDocs();
 						loadApiRecorder();
 					}}
@@ -554,7 +590,7 @@
 			{/if}
 			<button
 				class:hidden={!$is_screen_recording}
-				on:click={() => {
+				onclick={() => {
 					screen_recording();
 				}}
 				class="record"
@@ -569,10 +605,10 @@
 			{#if footer_links.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
 				<button
-					on:click={() => {
+					onclick={() => {
 						set_settings_visible(!settings_visible);
 					}}
-					on:mouseenter={() => {
+					onmouseenter={() => {
 						loadSettings();
 					}}
 					class="settings"
@@ -592,12 +628,12 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<div
 			id="api-recorder-container"
-			on:click={() => {
+			onclick={() => {
 				set_api_docs_visible(true);
 				api_recorder_visible = false;
 			}}
 		>
-			<svelte:component this={ApiRecorder} {api_calls} {dependencies} />
+			<ApiRecorder {api_calls} {dependencies} />
 		</div>
 	{/if}
 
@@ -613,19 +649,17 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_api_docs_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={ApiDocs}
+				<ApiDocs
 					root_node={app_tree.root}
-					on:close={(event) => {
+					onclose={(detail?: { api_recorder_visible: boolean }) => {
 						set_api_docs_visible(false);
 						api_calls = [];
-						api_recorder_visible = api_recorder_visible =
-							event.detail?.api_recorder_visible;
+						api_recorder_visible = detail?.api_recorder_visible ?? false;
 					}}
 					{dependencies}
 					{root}
@@ -651,13 +685,12 @@
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div
 				class="backdrop"
-				on:click={() => {
+				onclick={() => {
 					set_settings_visible(false);
 				}}
 			/>
 			<div class="api-docs-wrap" role="document">
-				<svelte:component
-					this={Settings}
+				<Settings
 					bind:allow_zoom
 					bind:allow_video_trim
 					onclose={() => {
@@ -668,6 +701,8 @@
 					}}
 					pwa_enabled={app.config.pwa}
 					{root}
+					run_history_scope={app.config}
+					run_history_enabled={run_history}
 					{space_id}
 					i18n={$reactive_formatter}
 				/>
@@ -676,7 +711,7 @@
 	{/if}
 
 	{#if vibe_mode && VibeEditor}
-		<svelte:component this={VibeEditor} {app} {root} />
+		<VibeEditor {app} {root} />
 	{/if}
 </div>
 
@@ -712,7 +747,8 @@
 
 	.show-api,
 	.settings,
-	.record {
+	.record,
+	.run-history {
 		display: flex;
 		align-items: center;
 	}
@@ -726,7 +762,8 @@
 		width: var(--size-3);
 	}
 
-	.settings img {
+	.settings img,
+	.run-history img {
 		margin-right: var(--size-1);
 		margin-left: var(--size-1);
 		width: var(--size-4);
@@ -745,7 +782,8 @@
 
 	.built-with:hover,
 	.settings:hover,
-	.record:hover {
+	.record:hover,
+	.run-history:hover {
 		color: var(--body-text-color);
 	}
 

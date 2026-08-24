@@ -2,14 +2,16 @@ import gradio as gr
 import os
 
 # save your HF API token from https:/hf.co/settings/tokens as an env variable to avoid rate limiting
-hf_token = os.getenv("hf_token")
+hf_token = os.getenv("HF_TOKEN")
 
 # load a model from https://hf.co/models as an interface, then use it as an api
-# you can remove the hf_token parameter if you don't care about rate limiting.
-api = gr.load("huggingface/gpt2-xl", hf_token=hf_token)
+# you can remove the token parameter if you don't care about rate limiting.
+api = gr.load("huggingface/microsoft/phi-1_5", token=hf_token)
+
 
 def complete_with_gpt(text):
     return text[:-50] + api(text[-50:])
+
 
 with gr.Blocks() as demo:
     textbox = gr.Textbox(placeholder="Type here...", lines=4)

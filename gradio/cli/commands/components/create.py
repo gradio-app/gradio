@@ -113,7 +113,7 @@ def _create(
         _create_utils._create_backend(name, component, directory, package_name)
         live.update(":snake: Created backend code", add_sleep=0.2)
         p = Path(inspect.getfile(gradio)).parent
-        component_source = p / "_frontend_code"
+        component_source = p / "_frontend_code" / gradio.__version__ / component.js_dir
         if not component_source.exists():
             live.update(
                 ":fast_down_button: Downloading frontend code from Hugging Face Hub. Set HF_HUB_DISABLE_PROGRESS_BARS to disable progress bars.",

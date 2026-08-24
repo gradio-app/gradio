@@ -65,84 +65,6 @@
 	padding: 4px 8px;
 }
 
-.access-badge {
-	font-family: "JetBrains Mono", monospace;
-	font-size: 10px;
-	font-weight: 600;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
-	border-radius: 999px;
-	padding: 2px 8px;
-	cursor: default;
-}
-
-/* Neutral/muted: you can run but not edit. */
-.access-badge.access-readonly {
-	color: #9a9cab;
-	background: #1a1b25;
-	border: 1px solid #2a2b38;
-}
-
-/* Accent (green): you hold the write token / own the Space — more permissions. */
-.access-badge.access-write {
-	color: #4fd1a5;
-	background: rgba(79, 209, 165, 0.1);
-	border: 1px solid rgba(79, 209, 165, 0.3);
-}
-
-.access-info-wrap {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-}
-
-/* The read-only badge is a button so it can be clicked to explain why editing
-   is disabled (and, on a Space with no OAuth, how to enable it). */
-button.access-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	transition:
-		color 0.15s,
-		border-color 0.15s;
-}
-
-/* The (i) hints that the badge is clickable for an explanation. */
-.access-info-icon {
-	display: inline-flex;
-	align-items: center;
-	opacity: 0.75;
-}
-
-button.access-badge.access-readonly:hover,
-button.access-badge.access-readonly.open {
-	color: #c7c9d6;
-	border-color: #3a3b48;
-}
-
-.access-info-popover {
-	position: absolute;
-	top: calc(100% + 8px);
-	right: 0;
-	width: 264px;
-	background: #16171f;
-	border: 1px solid #2a2b36;
-	border-radius: 10px;
-	padding: 12px;
-	font-family: "Manrope", sans-serif;
-	font-size: 12px;
-	font-weight: 400;
-	line-height: 1.5;
-	letter-spacing: normal;
-	text-transform: none;
-	color: #a0a2ae;
-	box-shadow:
-		0 8px 24px rgba(0, 0, 0, 0.45),
-		0 0 0 1px rgba(255, 255, 255, 0.03);
-	z-index: 40;
-}
-
 .save-indicator {
 	display: inline-flex;
 	align-items: center;
@@ -197,6 +119,93 @@ button.access-badge.access-readonly.open {
 	background: #16171f;
 	color: #a0a2ae;
 	border-color: #2a2b36;
+}
+
+/* Orange is reserved for dirty workflow state. */
+.tool-btn.save-space-btn {
+	color: #ff9350;
+	border-color: rgba(255, 147, 80, 0.5);
+}
+
+.tool-btn.save-space-btn:hover:not(:disabled) {
+	color: #ff9350;
+	background: rgba(255, 147, 80, 0.12);
+	border-color: rgba(255, 147, 80, 0.7);
+}
+
+.save-menu-wrap {
+	position: relative;
+	display: inline-flex;
+}
+
+.save-menu-trigger {
+	white-space: nowrap;
+}
+
+.save-menu-chevron {
+	display: inline-flex;
+	margin-left: 2px;
+}
+
+.save-menu-chevron :global(svg) {
+	width: 12px;
+	height: 12px;
+}
+
+.save-menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	width: 220px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 5px;
+	background: #16171f;
+	border: 1px solid #2a2b36;
+	border-radius: 9px;
+	box-shadow:
+		0 10px 28px rgba(0, 0, 0, 0.45),
+		0 0 0 1px rgba(255, 255, 255, 0.03);
+	z-index: 45;
+}
+
+.save-menu-item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	width: 100%;
+	padding: 8px 10px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: #d5d6de;
+	font-family: "Manrope", sans-serif;
+	text-align: left;
+	cursor: pointer;
+}
+
+.save-menu-item:hover:not(:disabled),
+.save-menu-item:focus-visible {
+	background: #1e1f2a;
+	outline: none;
+}
+
+.save-menu-item:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.save-menu-item-label {
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.save-menu-item-detail {
+	font-size: 10px;
+	font-weight: 400;
+	color: #777a86;
 }
 
 .api-btn-glyph {
@@ -802,6 +811,8 @@ button.access-badge.access-readonly.open {
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 	z-index: 30;
 	min-width: 130px;
+	max-height: 280px;
+	overflow-y: auto;
 	animation: wf-toast-in 0.12s ease-out;
 }
 

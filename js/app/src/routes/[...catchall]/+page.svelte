@@ -76,20 +76,18 @@
 <script lang="ts">
 	import { run } from "svelte/legacy";
 
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
 
 	import Blocks from "@gradio/core/blocks";
 	import Login from "@gradio/core/login";
-
-	const dispatch = createEventDispatcher();
 
 	let stream: EventSource;
 
@@ -301,7 +299,7 @@
 
 		await add_custom_html_head(config.head);
 
-		dispatch("loaded");
+		// nothing subscribes to a load event on the SvelteKit page
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(data.api_url);
@@ -464,7 +462,7 @@
 			footer_links={is_embed ? [] : config.footer_links}
 			{app_mode}
 			{version}
-			search_params={$page.url.searchParams}
+			search_params={page.url.searchParams}
 			initial_layout={data.layout}
 		/>
 	{/if}

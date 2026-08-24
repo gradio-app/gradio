@@ -26,6 +26,11 @@ export function normalize_space_id(raw: string): string | null {
 	);
 	if (pageMatch) return `${pageMatch[1]}/${pageMatch[2]}`;
 
+	const repoMatch = trimmed.match(
+		/^https?:\/\/(?:www\.)?huggingface\.co\/(?!spaces\/|datasets\/)([^/\s?#]+)\/([^/\s?#]+)/i
+	);
+	if (repoMatch) return `${repoMatch[1]}/${repoMatch[2]}`;
+
 	const sub = trimmed.match(/^https?:\/\/([^/]+)\.hf\.space/i);
 	if (sub) {
 		const parts = sub[1].split("-");
@@ -35,6 +40,18 @@ export function normalize_space_id(raw: string): string | null {
 	}
 
 	return null;
+}
+
+export function fork_repo_candidates(
+	user: string,
+	spaceId: string,
+	limit = 10
+): string[] {
+	const name = normalize_space_id(spaceId)?.split("/")[1];
+	if (!user || !name) return [];
+	return Array.from({ length: limit }, (_, i) =>
+		i === 0 ? `${user}/${name}` : `${user}/${name}-${i + 1}`
+	);
 }
 
 export function componentToPortType(
@@ -66,6 +83,7 @@ export function componentToPortType(
 		return "file";
 	if (c === "model3d") return "model3d";
 	if (c === "json" || c === "dataframe") return "json";
+	if (c === "html") return "html";
 	if (c === "state") return "__skip__";
 	if (
 		c === "textbox" ||
@@ -78,8 +96,7 @@ export function componentToPortType(
 		c === "dropdown" ||
 		c === "radio" ||
 		c === "checkboxgroup" ||
-		c === "colorpicker" ||
-		c === "html"
+		c === "colorpicker"
 	)
 		return "text";
 

@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import type { SelectData } from "@gradio/utils";
 
 	export const TABS = {};
@@ -30,7 +30,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, tick, untrack } from "svelte";
+	import { setContext, tick, untrack, type Snippet } from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
 
@@ -41,7 +41,8 @@
 		selected = $bindable(),
 		initial_tabs,
 		onchange,
-		onselect
+		onselect,
+		children
 	}: {
 		visible?: boolean | "hidden";
 		elem_id?: string;
@@ -50,6 +51,7 @@
 		initial_tabs: Tab[];
 		onchange?: () => void;
 		onselect?: (data: TabSelectData) => void;
+		children?: Snippet;
 	} = $props();
 
 	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
@@ -232,7 +234,7 @@
 			<div class="tab-container visually-hidden" aria-hidden="true">
 				{#each tabs as t, i}
 					{#if is_visible_tab(t)}
-						<button bind:this={tab_els[t.id]}>
+						<button tabindex="-1" bind:this={tab_els[t.id]}>
 							{t?.label}
 						</button>
 					{/if}
@@ -274,6 +276,7 @@
 				bind:this={overflow_menu}
 			>
 				<button
+					aria-label="More tabs"
 					onclick={(e) => {
 						e.stopPropagation();
 						overflow_menu_open = !overflow_menu_open;
@@ -305,7 +308,7 @@
 			</span>
 		</div>
 	{/if}
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

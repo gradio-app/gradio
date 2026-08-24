@@ -1,5 +1,27 @@
 # @gradio/paramviewer
 
+## 0.12.0
+
+### Features
+
+- [#13697](https://github.com/gradio-app/gradio/pull/13697) [`3ac9d5d`](https://github.com/gradio-app/gradio/commit/3ac9d5db5892e88f57260215793feeaa06bdde59) - Fix release CI regressions for assets and bundles.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13692](https://github.com/gradio-app/gradio/pull/13692) [`3676c45`](https://github.com/gradio-app/gradio/commit/3676c45acfc12456de097996fe5adab2132e2d30) - publish the `Prism` global before its grammar files load, so the docs pages stop failing to hydrate with `ReferenceError: Prism is not defined`.  Thanks @abidlabs!
+
+## 0.11.0
+
+### Features
+
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+
 ## 0.10.1
 
 ### Dependency updates

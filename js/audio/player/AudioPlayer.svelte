@@ -38,7 +38,7 @@
 		i18n: I18nFormatter;
 		dispatch_blob?: (
 			blobs: Uint8Array[] | Blob[],
-			event: "stream" | "change" | "stop_recording"
+			event: "stream" | "change"
 		) => Promise<void>;
 		interactive?: boolean;
 		editable?: boolean;
@@ -59,7 +59,8 @@
 	let url = $derived(value?.url);
 	let old_playback_position = $state(0);
 
-	let container: HTMLDivElement;
+	let container = $state<HTMLDivElement | undefined>(undefined);
+	let waveform_container: HTMLDivElement | undefined = undefined;
 	let waveform: WaveSurfer | undefined;
 	let waveform_ready = $state(false);
 	let waveform_component_wrapper: HTMLDivElement;
@@ -74,29 +75,53 @@
 	let trimDuration = $state(0);
 
 	let show_volume_slider = $state(false);
-	let audio_player: HTMLAudioElement;
+	let audio_player = $state<HTMLAudioElement | undefined>(undefined);
 
 	let stream_active = false;
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
+	let waveform_load_failed = $state(false);
+
 	let use_waveform = $derived(
 		waveform_options.show_recording_waveform && !value?.is_stream
 	);
 
+	let native_fallback_active = $derived(
+		waveform_load_failed && value?.url !== undefined && value?.url !== null
+	);
+
+	// The native element is the player, rather than a hidden decoy, whenever
+	// there is no working waveform to drive playback: the waveform is turned
+	// off, the value is a stream, or the waveform failed to load. Its events
+	// are only meaningful in those cases.
+	let native_player_active = $derived(!use_waveform || native_fallback_active);
+
 	$effect(() => {
 		if (
-			waveform_ready &&
 			playback_position !== undefined &&
-			old_playback_position !== playback_position &&
-			audio_duration
+			old_playback_position !== playback_position
 		) {
-			waveform?.seekTo(playback_position / audio_duration);
-			old_playback_position = playback_position;
+			if (native_player_active) {
+				if (audio_player) {
+					audio_player.currentTime = playback_position;
+					old_playback_position = playback_position;
+				}
+			} else if (waveform_ready && audio_duration) {
+				waveform?.seekTo(playback_position / audio_duration);
+				old_playback_position = playback_position;
+			}
 		}
 	});
 
 	const create_waveform = (): void => {
+		// `container` only exists while the waveform branch is rendered, and it is
+		// a fresh element every time that branch remounts, so bail out when there
+		// is nothing to draw into and rebuild when the element is replaced.
+		if (!container || waveform_container === container) return;
+		waveform?.destroy();
+		waveform_ready = false;
+		waveform_container = container;
 		waveform = WaveSurfer.create({
 			container: container,
 			...waveform_settings
@@ -163,21 +188,29 @@
 		waveform?.on("load", () => {
 			onload?.();
 		});
+
+		waveform?.on("error", handle_waveform_error);
 	};
 
 	$effect(() => {
 		if (url && waveform_ready) {
 			untrack(() => {
 				if (value?.url && waveform) {
-					waveform.load(value.url).catch((e) => {
-						if (e.name !== "AbortError") {
-							console.error("Waveform load error:", e);
-						}
-					});
+					waveform_load_failed = false;
+					waveform.load(value.url).catch(handle_waveform_error);
 				}
 			});
 		}
 	});
+
+	function handle_waveform_error(e: Error): void {
+		if (e?.name === "AbortError" || waveform_load_failed) return;
+		console.error("Waveform load error:", e);
+		waveform_load_failed = true;
+		if (audio_player && value?.url) {
+			audio_player.src = value.url;
+		}
+	}
 
 	const handle_trim_audio = async (
 		start: number,
@@ -218,7 +251,7 @@
 	});
 
 	function load_stream(value: FileData | null): void {
-		if (!value || !value.is_stream || !value.url) return;
+		if (!value || !value.is_stream || !value.url || !audio_player) return;
 
 		if (Hls.isSupported() && !stream_active) {
 			// Set config to start playback after 1 second of data received
@@ -230,7 +263,7 @@
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player.play();
+				if (waveform_settings.autoplay) audio_player?.play();
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
 				console.error("HLS error:", event, data);
@@ -262,7 +295,13 @@
 	}
 
 	$effect(() => {
-		if (audio_player && url && waveform_ready && url) {
+		// Without a waveform there is nothing to become ready, so gating the load
+		// on `waveform_ready` left the native player with no source at all.
+		if (
+			audio_player &&
+			url &&
+			(waveform_ready || !waveform_options.show_recording_waveform)
+		) {
 			load_audio(url);
 		}
 	});
@@ -273,8 +312,13 @@
 		}
 	});
 
+	$effect(() => {
+		if (container) {
+			untrack(() => create_waveform());
+		}
+	});
+
 	onMount(() => {
-		create_waveform();
 		const handleKeydown = (e: KeyboardEvent): void => {
 			if (!waveform || show_volume_slider) return;
 
@@ -390,13 +434,35 @@
 
 <audio
 	class="standard-player"
-	class:hidden={use_waveform}
+	class:hidden={!native_player_active}
+	data-testid={label ? "audio-player-" + label : "unlabelled-audio-player"}
 	controls
 	autoplay={waveform_settings.autoplay}
 	{onload}
 	bind:this={audio_player}
-	onended={() => onstop?.()}
-	onplay={() => onplay?.()}
+	onended={() => {
+		if (native_player_active) playing = false;
+		onstop?.();
+	}}
+	onplay={() => {
+		if (native_player_active) playing = true;
+		onplay?.();
+	}}
+	onpause={() => {
+		if (!native_player_active) return;
+		playing = false;
+		onpause?.();
+	}}
+	ontimeupdate={() => {
+		if (!native_player_active || !audio_player) return;
+		playback_position = audio_player.currentTime;
+		old_playback_position = audio_player.currentTime;
+	}}
+	onloadedmetadata={() => {
+		if (native_player_active && audio_player) {
+			audio_duration = audio_player.duration;
+		}
+	}}
 	preload="metadata"
 >
 </audio>
@@ -407,6 +473,7 @@
 {:else if use_waveform}
 	<div
 		class="component-wrapper"
+		class:hidden={native_fallback_active}
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 		bind:this={waveform_component_wrapper}
 	>

@@ -76,8 +76,12 @@ class TestSubgraph:
         g = _demo_graph()
         subject = g.subjects[0]["id"]
         ids = upstream_node_ids(g, subject)
-        # The whole demo feeds the single output, so every node is included.
-        assert ids == set(g.node_by_id.keys())
+        # Nodes with no edges are unreachable; exclude them from the expected set.
+        nodes_in_edges = {e["from_node_id"] for e in g.edges} | {
+            e["to_node_id"] for e in g.edges
+        }
+        expected = set(g.node_by_id.keys()) & (nodes_in_edges | {subject})
+        assert ids == expected
 
     def test_free_inputs_excludes_computed_reference(self):
         g = _demo_graph()
@@ -231,6 +235,25 @@ class TestEndpointRegistration:
         assert (
             described["parameters"][0]["parameter_name"] == info_param["parameter_name"]
         )
+
+    def test_describe_oauth_token_matches_info(self, tmp_path):
+        """The View API panel advertises the same token requirement as `/info`.
+
+        Subgraph endpoints take a `gr.OAuthToken` so an API caller — who has no
+        OAuth session on a Space — can still run the workflow as themselves.
+        """
+        import gradio as gr
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_with_subjects(1))
+        wf = gr.Workflow(graph=str(path))
+        graph = WorkflowGraph.from_json(path.read_text())
+        assert graph is not None
+
+        described = describe_workflow_api(graph)[0]
+        info = wf.get_api_info()["named_endpoints"]["/out0"]
+        assert described["oauth_token"] == "optional"
+        assert described["oauth_token"] == info["oauth_token"]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -627,3 +650,102 @@ class TestPortComponents:
         c = port_to_component("file", "Document")
         assert isinstance(c, gr.File)
         assert c.type == "filepath"
+
+
+class TestModelNodeDispatch:
+    def _make_graph(self, endpoint, port_id):
+        data = {
+            "schema_version": "2",
+            "references": [
+                {
+                    "id": "r",
+                    "label": "P",
+                    "role": "reference",
+                    "inputs": [{"id": "in", "label": "P", "type": "text"}],
+                    "outputs": [{"id": "out", "label": "P", "type": "text"}],
+                }
+            ],
+            "operators": [
+                {
+                    "id": "m",
+                    "label": "M",
+                    "role": "operator",
+                    "kind": "model",
+                    "model_id": "o/m",
+                    "pipeline_tag": "text-to-image",
+                    **({"endpoint": endpoint} if endpoint else {}),
+                    "inputs": [
+                        {
+                            "id": port_id,
+                            "label": "Prompt",
+                            "type": "text",
+                            "required": True,
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "id": "out_0",
+                            "label": "Image",
+                            "type": "image",
+                            "output_index": 0,
+                        }
+                    ],
+                }
+            ],
+            "subjects": [
+                {
+                    "id": "s",
+                    "label": "Out",
+                    "role": "subject",
+                    "inputs": [{"id": "in", "label": "I", "type": "image"}],
+                    "outputs": [{"id": "out", "label": "I", "type": "image"}],
+                }
+            ],
+            "edges": [
+                {
+                    "id": "e1",
+                    "from_node_id": "r",
+                    "from_port_id": "out",
+                    "to_node_id": "m",
+                    "to_port_id": port_id,
+                    "type": "text",
+                },
+                {
+                    "id": "e2",
+                    "from_node_id": "m",
+                    "from_port_id": "out_0",
+                    "to_node_id": "s",
+                    "to_port_id": "in",
+                    "type": "image",
+                },
+            ],
+        }
+        return WorkflowGraph.from_json(json.dumps(data))
+
+    def test_endpoint_sends_kwargs_dict_legacy_sends_list(self):
+        file_out = json.dumps([{"path": "/tmp/out.png", "url": "/f", "is_file": True}])
+        calls = {}
+
+        def capture(data, request=None, token=None):
+            calls[data[1]] = json.loads(data[2])
+            return file_out
+
+        g = self._make_graph("text_to_image", "prompt")
+        assert g is not None
+        WorkflowExecutor(g, {"model": capture}).run(
+            g.subjects[0]["id"], {g.references[0]["id"]: "cat"}
+        )
+        assert (
+            isinstance(calls["text_to_image"], dict)
+            and calls["text_to_image"]["prompt"] == "cat"
+        )
+
+        g2 = self._make_graph(None, "in_0")
+        assert g2 is not None
+        WorkflowExecutor(g2, {"model": capture}).run(
+            g2.subjects[0]["id"], {g2.references[0]["id"]: "cat"}
+        )
+        assert (
+            isinstance(calls["text-to-image"], list)
+            and calls["text-to-image"][0] == "cat"
+        )

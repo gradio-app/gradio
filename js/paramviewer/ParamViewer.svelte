@@ -1,7 +1,35 @@
 <script module lang="ts">
-	import * as Prism from "prismjs";
-	import "prismjs/components/prism-python";
-	import "prismjs/components/prism-typescript";
+	type PrismApi = typeof import("prismjs");
+
+	let prism: PrismApi | null = null;
+	let prism_languages: Promise<PrismApi> | null = null;
+
+	function load_prism_languages(): Promise<PrismApi> {
+		if (prism_languages) return prism_languages;
+
+		prism_languages = (async () => {
+			// Prism checks this pre-existing global while its module evaluates.
+			// Manual mode prevents its scheduled highlightAll() from rewriting
+			// Svelte's hydration markers before the grammars are ready.
+			(globalThis as any).Prism = { manual: true };
+			const prism_module = await import("prismjs");
+			const loaded_prism =
+				(
+					prism_module as unknown as {
+						default?: PrismApi;
+					}
+				).default ?? (prism_module as PrismApi);
+			loaded_prism.manual = true;
+			(globalThis as any).Prism = loaded_prism;
+			// @ts-expect-error Prism component modules do not ship declarations.
+			await import("prismjs/components/prism-python");
+			// @ts-expect-error Prism component modules do not ship declarations.
+			await import("prismjs/components/prism-typescript");
+			prism = loaded_prism;
+			return loaded_prism;
+		})();
+		return prism_languages;
+	}
 </script>
 
 <script lang="ts">
@@ -24,17 +52,32 @@
 		max_height
 	}: {
 		docs: Record<string, Param>;
-		linkify: string[];
+		linkify?: string[];
 		header: string | null;
 		anchor_links: string | boolean;
-		max_height: number | string | undefined;
+		max_height?: number | string | undefined;
 	} = $props();
 
 	let component_root: HTMLElement;
 	let all_open = $state(false);
 	let lang: "python" | "typescript" = "python";
+	let prism_ready = $state(prism !== null);
 
-	let _docs = $derived(highlight_code(docs, lang));
+	$effect(() => {
+		let active = true;
+		load_prism_languages()
+			.then(() => {
+				if (active) prism_ready = true;
+			})
+			.catch((e) => {
+				console.error("failed to load Prism grammars", e);
+			});
+		return () => {
+			active = false;
+		};
+	});
+
+	let _docs = $derived(highlight_code(docs, lang, prism_ready));
 
 	function create_slug(name: string, anchor_links: string | boolean): string {
 		let prefix = "param-";
@@ -45,8 +88,8 @@
 	}
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
-		let highlighted = Prism.languages[lang]
-			? Prism.highlight(code, Prism.languages[lang], lang)
+		let highlighted = prism?.languages[lang]
+			? prism.highlight(code, prism.languages[lang], lang)
 			: code;
 
 		for (const link of linkify) {
@@ -61,7 +104,8 @@
 
 	function highlight_code(
 		_docs: typeof docs,
-		lang: "python" | "typescript"
+		lang: "python" | "typescript",
+		_prism_ready: boolean
 	): Param[] {
 		if (!_docs) {
 			return [];
@@ -148,7 +192,7 @@
 		{/if}
 		<button
 			class="toggle-all"
-			on:click={toggle_all}
+			onclick={toggle_all}
 			title={all_open ? "Close All" : "Open All"}
 		>
 			{all_open ? "▲" : "▼"}

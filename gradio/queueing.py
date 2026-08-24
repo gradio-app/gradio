@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import copy
 import inspect
 import os
 import platform
@@ -24,6 +23,13 @@ from gradio.data_classes import (
 )
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
+from gradio.profiling import (
+    PROFILING_ENABLED,
+    RequestTrace,
+    collector,
+    get_current_trace,
+    set_current_trace,
+)
 from gradio.server_messages import (
     EstimationMessage,
     EventMessage,
@@ -146,44 +152,47 @@ class Queue:
         )
         self.max_size = max_size
         self.blocks = blocks
-        self._asyncio_tasks: list[asyncio.Task] = []
+        self._asyncio_tasks: set[asyncio.Task] = set()
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
+        self.ANALYTICS_MAX_EVENTS = max(
+            1, int(os.getenv("GRADIO_ANALYTICS_MAX_EVENTS", "10000"))
+        )
+        self.events_recorded_per_fn: defaultdict[str | None, int] = defaultdict(int)
         self.cached_event_analytics_summary = {"functions": {}}
+        self.events_recorded = 0
         self.event_count_at_last_cache = 0
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
 
     @staticmethod
-    def _get_df(event_analytics):
+    def _get_df(records):
         import pandas as pd
 
         try:
             with pd.option_context("future.no_silent_downcasting", True):
                 return (
-                    pd.DataFrame(list(event_analytics.values()))
-                    .fillna(value=np.nan)
-                    .infer_objects(copy=False)  # type: ignore
+                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
                 )
         except Exception as e:
             if "No such keys(s)" in str(e):
                 return (
-                    pd.DataFrame(list(event_analytics.values()))
-                    .fillna(value=np.nan)
-                    .infer_objects(copy=False)  # type: ignore
+                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
                 )
             raise e
 
-    def compute_analytics_summary(self, event_analytics):
+    def compute_analytics_summary(self, records):
+        if not records:
+            return self.cached_event_analytics_summary
         if (
-            len(event_analytics) - self.event_count_at_last_cache
+            self.events_recorded - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            df = self._get_df(event_analytics)
-            self.event_count_at_last_cache = len(event_analytics)
+            df = self._get_df(records)
+            self.event_count_at_last_cache = self.events_recorded
             grouped = df.groupby("function")
             metrics = {"functions": {}}
             for fn_name, fn_df in grouped:
@@ -200,7 +209,9 @@ class Queue:
                         "90th": percentiles[1],  # type: ignore
                         "99th": percentiles[2],  # type: ignore
                     },
-                    "total_requests": fn_df.shape[0],
+                    "total_requests": self.events_recorded_per_fn.get(
+                        fn_name, fn_df.shape[0]
+                    ),
                 }
             self.cached_event_analytics_summary = metrics
         return self.cached_event_analytics_summary
@@ -463,6 +474,10 @@ class Queue:
             "function": fn.api_name,
             "session_hash": body.session_hash,
         }
+        self.events_recorded += 1
+        self.events_recorded_per_fn[fn.api_name] += 1
+        while len(self.event_analytics) > self.ANALYTICS_MAX_EVENTS:
+            self.event_analytics.pop(next(iter(self.event_analytics)))
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
         return True, event._id, "success"
@@ -479,9 +494,9 @@ class Queue:
                     pass
 
     def _cancel_asyncio_tasks(self):
-        for task in self._asyncio_tasks:
+        for task in list(self._asyncio_tasks):
             task.cancel()
-        self._asyncio_tasks = []
+        self._asyncio_tasks.clear()
 
     def set_server_app(self, app: routes.App):
         self.server_app = app
@@ -542,7 +557,8 @@ class Queue:
                     fn = events[0].fn
                     event_queue.start_times_per_fn[fn].add(start_time)
                     for event in events:
-                        self.event_analytics[event._id]["status"] = "processing"
+                        if (a := self.event_analytics.get(event._id)) is not None:
+                            a["status"] = "processing"
                     process_event_task = run_coro_in_background(
                         self.process_events, events, batch, start_time, fn
                     )
@@ -554,7 +570,8 @@ class Queue:
                         batch,
                     )
 
-                    self._asyncio_tasks.append(process_event_task)
+                    self._asyncio_tasks.add(process_event_task)
+                    process_event_task.add_done_callback(self._asyncio_tasks.discard)
                     if self.live_updates:
                         self.broadcast_estimations(concurrency_id)
                 else:
@@ -849,12 +866,6 @@ class Queue:
             )
             first_iteration = 0
 
-            from gradio.profiling import (
-                PROFILING_ENABLED,
-                RequestTrace,
-                set_current_trace,
-            )
-
             if PROFILING_ENABLED:
                 trace = RequestTrace(
                     event_id=events[0]._id,
@@ -898,7 +909,10 @@ class Queue:
                             success=False,
                         ),
                     )
-                    await run_sync(self.compute_analytics_summary, self.event_analytics)
+                    await run_sync(
+                        self.compute_analytics_summary,
+                        list(self.event_analytics.values()),
+                    )
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
@@ -1013,8 +1027,10 @@ class Queue:
                     )
 
             elif response:
-                output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
+                    # Copy per event because "data" is replaced below and the
+                    # message is serialized later; only that key changes.
+                    output = dict(response)
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.get("data"), strict=False))[
                             e
@@ -1046,13 +1062,12 @@ class Queue:
                 if not response.get("used_cache"):
                     self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
-                    self.event_analytics[event._id]["process_time"] = duration
+                    if (a := self.event_analytics.get(event._id)) is not None:
+                        a["process_time"] = duration
         except Exception as e:
             if not isinstance(e, Error) or e.print_exception:
                 traceback.print_exc()
         finally:
-            from gradio.profiling import PROFILING_ENABLED, collector, get_current_trace
-
             if PROFILING_ENABLED:
                 trace = get_current_trace()
                 if trace is not None:
@@ -1080,13 +1095,18 @@ class Queue:
                 # to start "from scratch"
                 await self.reset_iterators(event._id)
 
-                if event in awake_events:
-                    self.event_analytics[event._id]["status"] = (
-                        "success" if success else "failed"
+                if (a := self.event_analytics.get(event._id)) is not None:
+                    a["status"] = (
+                        ("success" if success else "failed")
+                        if event in awake_events
+                        else "cancelled"
                     )
-                else:
-                    self.event_analytics[event._id]["status"] = "cancelled"
-                await run_sync(self.compute_analytics_summary, self.event_analytics)
+                await run_sync(
+                    self.compute_analytics_summary,
+                    list(self.event_analytics.values()),
+                )
+
+                self.event_ids_to_events.pop(event._id, None)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
@@ -1102,7 +1122,6 @@ class Queue:
             except Exception:
                 pass
             del app.iterators[event_id]
-            app.iterators_to_reset.add(event_id)
         return
 
 

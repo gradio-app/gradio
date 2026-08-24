@@ -20,6 +20,7 @@ import {
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Audio from "./";
 import WaveSurfer from "wavesurfer.js";
+import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
 
@@ -412,6 +413,73 @@ describe("Events: upload via file input", () => {
 	});
 });
 
+function make_wav_blob(): Blob {
+	const sample_rate = 8000;
+	const num_samples = 800;
+	const buffer = new ArrayBuffer(44 + num_samples * 2);
+	const view = new DataView(buffer);
+	const write_string = (offset: number, s: string): void => {
+		for (let i = 0; i < s.length; i++) {
+			view.setUint8(offset + i, s.charCodeAt(i));
+		}
+	};
+	write_string(0, "RIFF");
+	view.setUint32(4, 36 + num_samples * 2, true);
+	write_string(8, "WAVE");
+	write_string(12, "fmt ");
+	view.setUint32(16, 16, true);
+	view.setUint16(20, 1, true);
+	view.setUint16(22, 1, true);
+	view.setUint32(24, sample_rate, true);
+	view.setUint32(28, sample_rate * 2, true);
+	view.setUint16(32, 2, true);
+	view.setUint16(34, 16, true);
+	write_string(36, "data");
+	view.setUint32(40, num_samples * 2, true);
+	return new Blob([buffer], { type: "audio/wav" });
+}
+
+describe("Events: microphone recording", () => {
+	setupi18n();
+	let record_create: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		record_create = vi.spyOn(RecordPlugin, "create");
+	});
+	afterEach(() => {
+		record_create.mockRestore();
+		cleanup();
+	});
+
+	test("finishing a recording uploads the audio exactly once", async () => {
+		const upload = vi.fn(async (file_data: any[]) => file_data);
+		const { listen, get_data } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			value: null,
+			root: "https://example.com",
+			client: {
+				upload,
+				stream: async () => ({ onmessage: null, close: () => {} })
+			}
+		});
+
+		const stop_recording = listen("stop_recording");
+		const input = listen("input");
+
+		await waitFor(() => expect(record_create).toHaveBeenCalled());
+		const record = record_create.mock.results[0].value as any;
+		record.emit("record-end", make_wav_blob());
+
+		await waitFor(() => {
+			expect(stop_recording).toHaveBeenCalledTimes(1);
+		});
+		expect(upload).toHaveBeenCalledTimes(1);
+		expect(input).toHaveBeenCalledTimes(1);
+		expect((await get_data()).value).toBeTruthy();
+	});
+});
+
 describe("Props: playback_position", () => {
 	setupi18n();
 	afterEach(() => cleanup());
@@ -704,6 +772,53 @@ describe("Waveform options", () => {
 		// But the skip_length option is wired through the controls.
 		expect(getByLabelText("Skip forward by 5 seconds")).toBeTruthy();
 		expect(getByLabelText("Skip backwards by 5 seconds")).toBeTruthy();
+	});
+});
+
+describe("Props: show_recording_waveform", () => {
+	setupi18n();
+	afterEach(() => cleanup());
+
+	const native_props = {
+		...default_props,
+		interactive: false,
+		label: "music",
+		value: fake_value,
+		waveform_options: {
+			...default_props.waveform_options,
+			show_recording_waveform: false
+		}
+	};
+
+	test("show_recording_waveform=false dispatches pause from the native player", async () => {
+		const { getByTestId, queryByTestId, listen } = await render(
+			Audio,
+			native_props
+		);
+		expect(queryByTestId("waveform-music")).not.toBeInTheDocument();
+
+		const pause = listen("pause");
+		await fireEvent.pause(getByTestId("audio-player-music"));
+
+		expect(pause).toHaveBeenCalledTimes(1);
+	});
+
+	test("show_recording_waveform=false keeps playback_position in sync both ways", async () => {
+		const { getByTestId, set_data, get_data } = await render(
+			Audio,
+			native_props
+		);
+		const player = getByTestId("audio-player-music") as HTMLAudioElement;
+		await waitFor(() => expect(player.readyState).toBeGreaterThan(0));
+		const halfway = player.duration / 2;
+		const quarter = player.duration / 4;
+
+		player.currentTime = halfway;
+		await fireEvent.timeUpdate(player);
+		expect((await get_data()).playback_position).toBeCloseTo(halfway, 1);
+
+		await set_data({ playback_position: quarter });
+		expect(player.currentTime).toBeCloseTo(quarter, 1);
 	});
 });
 

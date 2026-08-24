@@ -5,8 +5,6 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import builtins
-import copy
-import dataclasses
 import inspect
 import os
 import warnings
@@ -44,7 +42,7 @@ from gradio.components.multimodal_textbox import MultimodalPostprocess, Multimod
 from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.helpers import special_args, update
+from gradio.helpers import skip, special_args, update
 from gradio.i18n import I18nData
 from gradio.layouts import Accordion, Column, Group, Row
 
@@ -879,7 +877,8 @@ class ChatInterface(Blocks):
         role: Literal["user", "assistant"] = "user",
     ) -> list[MessageDict]:
         message_dicts = self._message_as_message_dict(message, role)
-        history = copy.deepcopy(history)
+        # Shallow on purpose: messages can hold values that are not deep-copyable.
+        history = list(history)
         history.extend(message_dicts)  # type: ignore
         return history
 
@@ -900,9 +899,8 @@ class ChatInterface(Blocks):
                 message_dicts.append(msg.model_dump())
             elif isinstance(msg, ChatMessage):
                 msg.role = role
-                message_dicts.append(
-                    dataclasses.asdict(msg, dict_factory=utils.dict_factory)
-                )
+                # Not dataclasses.asdict: it deep-copies the field values.
+                message_dicts.append(utils.shallow_asdict(msg))
             elif isinstance(msg, (str, Component)):
                 message_dicts.append({"role": role, "content": msg})
             elif (
@@ -927,7 +925,10 @@ class ChatInterface(Blocks):
         history: list[MessageDict],
         *args,
     ) -> tuple:
-        inputs = [message, history] + list(args)
+        # `list(history)` so that appending to it inside the chat function does not
+        # change the conversation. Shallow, matching `_append_message_to_history`, so
+        # editing one of the messages in place still shows through. See #10823.
+        inputs = [message, list(history)] + list(args)
         if self.is_async:
             response = await self.fn(*inputs)
         else:
@@ -951,7 +952,9 @@ class ChatInterface(Blocks):
         tuple,
         None,
     ]:
-        inputs = [message, history] + list(args)
+        # `list(history)` for the same reason as in `_submit_fn`: appending to it in the
+        # generator's body must not be able to change the conversation. See #10823.
+        inputs = [message, list(history)] + list(args)
         if self.is_async:
             generator = self.fn(*inputs)
         else:
@@ -972,8 +975,8 @@ class ChatInterface(Blocks):
                     yield first_response, history_
                 else:
                     yield first_response, history_, *additional_outputs
-            except StopIteration:
-                yield None, history
+            except StopAsyncIteration:
+                yield None, history, *[skip() for _ in self.additional_outputs]
             async for response in generator:
                 if self.additional_outputs:
                     response, *additional_outputs = response

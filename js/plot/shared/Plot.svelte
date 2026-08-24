@@ -47,11 +47,18 @@
 
 	const is_browser = typeof window !== "undefined";
 	let _type = $state(null);
+	let _plot = $state(null);
+	let _chart = $state(null);
 
 	$effect(() => {
 		let type = value?.type;
+		let plot = value?.plot;
+		let chart = value?.chart;
 		untrack(() => {
-			key = key + 1;
+			// Remount only on a payload change; the prop's identity churns (#10107).
+			if (type !== _type || plot !== _plot || chart !== _chart) {
+				key = key + 1;
+			}
 			if (type !== _type) {
 				PlotComponent = null;
 			}
@@ -66,6 +73,8 @@
 				}
 			}
 			_type = type;
+			_plot = plot;
+			_chart = chart;
 		});
 		on_change();
 	});

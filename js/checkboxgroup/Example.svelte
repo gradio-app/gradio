@@ -1,20 +1,29 @@
 <script lang="ts">
-	export let value: string[];
-	export let type: "gallery" | "table";
-	export let selected = false;
-	export let choices: [string, string | number][];
+	let {
+		value,
+		type,
+		selected = false,
+		choices
+	}: {
+		value: string[];
+		type: "gallery" | "table";
+		selected?: boolean;
+		choices: [string, string | number][];
+	} = $props();
 
-	let names = value
-		.map(
-			(val) =>
-				(
-					choices.find((pair) => pair[1] === val) as
-						| [string, string | number]
-						| undefined
-				)?.[0]
-		)
-		.filter((name) => name !== undefined);
-	let names_string = names.join(", ");
+	let names_string = $derived(
+		value
+			.map(
+				(val) =>
+					(
+						choices.find((pair) => pair[1] === val) as
+							| [string, string | number]
+							| undefined
+					)?.[0]
+			)
+			.filter((name) => name !== undefined)
+			.join(", ")
+	);
 </script>
 
 <div

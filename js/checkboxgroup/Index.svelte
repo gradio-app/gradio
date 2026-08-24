@@ -1,5 +1,3 @@
-<svelte:options immutable={true} />
-
 <script lang="ts">
 	import { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle, IconButtonWrapper } from "@gradio/atoms";
@@ -88,14 +86,14 @@
 				<label class="select-all-label">
 					<input
 						class="select-all-checkbox"
-						on:change={toggle_select_all}
+						onchange={toggle_select_all}
 						checked={select_all_state === "checked"}
 						indeterminate={select_all_state === "indeterminate"}
 						type="checkbox"
 						title="Select/Deselect All"
 					/>
 				</label>
-				<button type="button" class="label-text" on:click={toggle_select_all}>
+				<button type="button" class="label-text" onclick={toggle_select_all}>
 					{gradio.shared.show_label ? gradio.shared.label : "Select All"}
 				</button>
 			</div>
@@ -112,14 +110,14 @@
 			>
 				<input
 					{disabled}
-					on:change={() => toggle_choice(internal_value)}
-					on:input={(evt) =>
+					onchange={() => toggle_choice(internal_value)}
+					oninput={(evt) =>
 						gradio.dispatch("select", {
 							index: i,
 							value: internal_value,
 							selected: evt.currentTarget.checked
 						})}
-					on:keydown={(event) => {
+					onkeydown={(event) => {
 						if (event.key === "Enter") {
 							toggle_choice(internal_value);
 							gradio.dispatch("select", {

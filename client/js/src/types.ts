@@ -36,6 +36,8 @@ export interface EndpointInfo<T extends ApiData | JsApiData> {
 	parameters: T[];
 	returns: T[];
 	type?: DependencyTypes;
+	/** Set when the endpoint's function takes a `gr.OAuthToken`. */
+	oauth_token?: "required" | "optional";
 }
 
 export interface ApiInfo<T extends ApiData | JsApiData> {
@@ -209,6 +211,12 @@ export interface Config {
 	pwa?: boolean;
 	i18n_translations?: Record<string, Record<string, string>> | null;
 	mcp_server?: boolean;
+	/**
+	 * Whether the app permits its runs being saved in the browser. Set from
+	 * `run_history` on `launch()`; absent on apps served by older versions of
+	 * Gradio, which is treated as permitted.
+	 */
+	run_history?: boolean;
 }
 
 // todo: DRY up types
@@ -301,6 +309,7 @@ export interface Payload {
 	time?: Date;
 	event_data?: unknown;
 	trigger_id?: number | null;
+	oauth_token?: string;
 }
 
 export interface PostResponse {
@@ -323,6 +332,11 @@ export interface DuplicateOptions extends ClientOptions {
 
 export interface ClientOptions {
 	token?: `hf_${string}`;
+	/**
+	 * @deprecated Use `token` instead. Kept as an alias so that code written
+	 * for older versions of the client keeps working.
+	 */
+	hf_token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
 	with_null_state?: boolean;
@@ -332,6 +346,21 @@ export interface ClientOptions {
 	session_hash?: string;
 	cookies?: string;
 	credentials?: RequestCredentials;
+	/**
+	 * A Hugging Face token passed to the app's own code, for endpoints whose
+	 * function takes a `gr.OAuthToken`. Unlike `token`, which only authenticates
+	 * you to the app, this lets the app act on your behalf, so it is sent only to
+	 * endpoints that declare they need it.
+	 */
+	oauth_token?: string;
+	/**
+	 * Whether to save each call's inputs and outputs in this browser's local
+	 * storage, so they can be reviewed on the app's run history page. Defaults
+	 * to true, and only ever applies in a browser: in Node there is no storage
+	 * to write to and nothing is recorded. The app can turn it off for everyone
+	 * with `run_history=False` on `launch()`, which takes precedence over this.
+	 */
+	record_history?: boolean;
 }
 
 export interface FileData {

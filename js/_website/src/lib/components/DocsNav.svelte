@@ -2,10 +2,17 @@
 	// @ts-nocheck
 	import { clickOutside } from "./clickOutside.js";
 
-	export let library_pages: any;
-	export let current_nav_link = "";
-	export let show_dropdown = true;
-	export let show_nav = false;
+	let {
+		library_pages,
+		current_nav_link = "",
+		show_dropdown = true,
+		show_nav = $bindable(false)
+	}: {
+		library_pages: any;
+		current_nav_link?: any;
+		show_dropdown?: any;
+		show_nav?: any;
+	} = $props();
 
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 </script>
@@ -16,13 +23,13 @@
 ></div>
 <div
 	use:clickOutside
-	on:click_outside={() => (show_nav = false)}
+	onclick_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
 	class="w-64 flex-shrink-0 max-h-[calc(100vh-4rem)] overflow-y-auto fixed inset-0 z-50 bg-white lg:bg-transparent dark:bg-neutral-900 lg:dark:bg-transparent p-6 lg:sticky lg:top-8 lg:self-start lg:block"
 	id="mobile-nav"
 >
 	<button
-		on:click={() => (show_nav = false)}
+		onclick={() => (show_nav = false)}
 		type="button"
 		class="absolute z-10 top-4 right-4 flex items-center justify-center text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 lg:hidden"
 		tabindex="0"

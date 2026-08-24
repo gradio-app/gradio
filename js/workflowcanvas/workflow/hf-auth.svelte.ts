@@ -106,6 +106,9 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	// Defaults to false so a broken "Sign in" button never flashes before the
 	// server confirms it — only shown once known to work.
 	let oauthAvailable = $state(false);
+	let oauthAvailableKnown = $state(false);
+	let missingScopes = $state<Record<string, string>>({});
+	let scopesKnown = $state(false);
 
 	function clearIdentity(): void {
 		user = "";
@@ -144,15 +147,32 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 
 	async function refreshOAuthAvailable(): Promise<void> {
 		const s = getServer();
-		if (!s?.get_oauth_available) {
-			oauthAvailable = false;
-			return;
-		}
+		if (!s?.get_oauth_available) return;
 		try {
 			oauthAvailable = (await s.get_oauth_available()) === "true";
+			oauthAvailableKnown = true;
 		} catch {
 			oauthAvailable = false;
+			oauthAvailableKnown = true;
 		}
+	}
+
+	async function refreshOAuthScopes(): Promise<void> {
+		const s = getServer();
+		if (!s?.get_oauth_scopes) return;
+		try {
+			const parsed = JSON.parse((await s.get_oauth_scopes()) || "{}");
+			missingScopes = parsed?.missing ?? {};
+			scopesKnown = true;
+		} catch {
+			missingScopes = {};
+			scopesKnown = true;
+		}
+	}
+
+	function hasScope(scope: string): boolean {
+		if (source !== "oauth") return true;
+		return !(scope in missingScopes);
 	}
 
 	async function init(): Promise<void> {
@@ -161,6 +181,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		applyWriteTokenFromUrl();
 		void refreshWriteAccess();
 		void refreshOAuthAvailable();
+		void refreshOAuthScopes();
 
 		// The server's get_token returns the OAuth user's token on a Space, but
 		// the host's locally saved `huggingface-cli login` token when running
@@ -301,6 +322,18 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		get oauthAvailable() {
 			return oauthAvailable;
 		},
+		get oauthAvailableKnown() {
+			return oauthAvailableKnown;
+		},
+		get missingScopes() {
+			return missingScopes;
+		},
+		get scopesKnown() {
+			return scopesKnown;
+		},
+		hasScope,
+		refreshOAuthAvailable,
+		refreshOAuthScopes,
 		init,
 		setPAT,
 		signIn,

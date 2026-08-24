@@ -1,7 +1,8 @@
-"""Handy utility functions."""
+"""Utility helpers shared across Gradio."""
 
 import asyncio
 import copy
+import dataclasses
 import functools
 import hashlib
 import importlib
@@ -1223,6 +1224,31 @@ def is_special_typed_parameter(name, parameter_types):
     return is_request or is_event_data or is_oauth_arg
 
 
+def oauth_token_requirement(
+    fn: Callable | None,
+) -> Literal["required", "optional"] | None:
+    """Returns "required" for `gr.OAuthToken`, "optional" for `gr.OAuthToken | None`,
+    and None when `fn` never receives one."""
+    from gradio.oauth import OAuthToken
+
+    if fn is None:
+        return None
+    hints = get_type_hints(fn) or getattr(fn, "__annotations__", {}) or {}
+    try:
+        parameters = inspect.signature(fn).parameters
+    except (TypeError, ValueError):
+        return None
+    # Iterate over parameters, not hints, which also holds the return annotation.
+    for name in parameters:
+        hint = hints.get(name)
+        if hint is OAuthToken:
+            return "required"
+        # `Optional[X]` and PEP 604 `X | None` compare equal, so this covers both.
+        if hint == Optional[OAuthToken]:
+            return "optional"
+    return None
+
+
 def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
@@ -1868,10 +1894,11 @@ def get_node_path():
         return which_node_path
 
     try:
-        # On Windows, try using 'where' command
+        # On Windows, try using 'where' command. Suppress stderr so a missing
+        # node does not print "INFO: Could not find files for the given pattern(s)."
         if sys.platform == "win32":
             windows_path = (
-                subprocess.check_output(["where", "node"])
+                subprocess.check_output(["where", "node"], stderr=subprocess.DEVNULL)
                 .decode()
                 .strip()
                 .split("\r\n")[0]
@@ -1885,7 +1912,11 @@ def get_node_path():
     try:
         # On Unix-like systems, try using 'which' command
         if sys.platform != "win32":
-            return subprocess.check_output(["which", "node"]).decode().strip()
+            return (
+                subprocess.check_output(["which", "node"], stderr=subprocess.DEVNULL)
+                .decode()
+                .strip()
+            )
     except (subprocess.CalledProcessError, FileNotFoundError):
         # Command failed, fall back to checking common install locations
         pass
@@ -1958,6 +1989,16 @@ def dict_factory(items):
         else:
             d[key] = value
     return d
+
+
+def shallow_asdict(obj) -> dict:
+    """
+    Like dataclasses.asdict, but without deep-copying the field values, which
+    fails for values such as bokeh figures.
+    """
+    return dict_factory(
+        [(f.name, getattr(obj, f.name)) for f in dataclasses.fields(obj)]
+    )
 
 
 def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[str]]:
