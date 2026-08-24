@@ -125,7 +125,11 @@
 	}
 
 	async function fetchRecords() {
-		records = (await list_bucket_records(root, 50)) as HistoryRecord[];
+		const fetched = (await list_bucket_records(root, 50)) as HistoryRecord[];
+		// Server order is not guaranteed chronological; sort newest first.
+		records = fetched
+			.slice()
+			.sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
 	}
 
 	async function refresh() {
