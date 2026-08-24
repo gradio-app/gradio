@@ -1120,6 +1120,42 @@ class TestEndpoints:
             client.endpoints[0]._download_file(regular_file_data)  # type: ignore
 
 
+@pytest.mark.parametrize(
+    "server_path, expected_name",
+    [
+        ("/tmp/gradio/abc/my report.png", "my report.png"),
+        ("/tmp/gradio/abc/résumé (1).pdf", "résumé (1).pdf"),
+        ("/tmp/gradio/abc/computer%20vision#Huggy.png", "computer%20vision#Huggy.png"),
+    ],
+)
+def test_download_file_names_output_after_the_server_path(
+    monkeypatch, tmp_path, server_path, expected_name
+):
+    """The request URL is percent-encoded, so the saved file has to take its name
+    from the server's path. Naming it after the URL would write "my report.png"
+    to disk as "my%20report.png"."""
+    from gradio_client.client import Endpoint
+
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.raise_for_status.return_value = None
+    response.iter_bytes.return_value = [b"data"]
+    monkeypatch.setattr(httpx, "stream", lambda *args, **kwargs: response)
+
+    endpoint = MagicMock()
+    endpoint.root_url = "http://localhost:7860/gradio_api/"
+    endpoint.client.output_dir = str(tmp_path)
+    endpoint.client.headers = {}
+    endpoint.client.cookies = None
+    endpoint.client.ssl_verify = True
+    endpoint.client.httpx_kwargs = {}
+
+    downloaded = Endpoint._download_file(endpoint, {"path": server_path})
+
+    assert Path(downloaded).name == expected_name
+    assert Path(downloaded).read_bytes() == b"data"
+
+
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC
 
 

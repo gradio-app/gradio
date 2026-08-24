@@ -14,8 +14,10 @@ from pathlib import Path
 from threading import Thread
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import unquote
 
 import gradio_client as grc
+import gradio_client.utils as client_utils
 import httpx
 import numpy as np
 import pandas as pd
@@ -749,6 +751,39 @@ class TestRoutes:
         app.build_proxy_request(
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
+
+    @pytest.mark.parametrize(
+        "cached_path",
+        [
+            "/tmp/gradio/abc/computer%20vision#Huggy.png",
+            "/tmp/gradio/abc/my report.png",
+            "/tmp/gradio/abc/100%.png",
+            "/tmp/gradio/abc/q?mark&a=b.png",
+            "/tmp/gradio/abc/plain.png",
+        ],
+    )
+    def test_proxy_request_preserves_encoded_paths(self, cached_path):
+        """The ASGI server percent-decodes the request path once before routing,
+        so the proxy has to re-encode it. Otherwise the upstream server decodes a
+        level too far, and a "#" is dropped as a URL fragment."""
+        space = "https://gradio-tests-test-loading-examples-private.hf.space"
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        interface.proxy_urls = {space}
+        app.configure_app(interface)
+
+        emitted = (
+            f"{API_PREFIX}/proxy={space}{API_PREFIX}/file="
+            f"{client_utils.encode_file_path(cached_path)}"
+        )
+        url_path = unquote(emitted).split(f"{API_PREFIX}/proxy=", 1)[1]
+
+        url, _ = app.build_proxy_request(url_path)
+
+        # `url.path` is decoded exactly once, so it is what the upstream server
+        # will see as its own request path.
+        assert url.path.split("file=", 1)[1] == cached_path
+        assert not url.query and not url.fragment
 
     def test_proxy_does_not_leak_hf_token_externally(self):
         gr.context.Context.token = "abcdef"  # type: ignore
