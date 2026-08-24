@@ -14,6 +14,7 @@ from pathlib import Path
 from threading import Thread
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import gradio_client as grc
 import httpx
@@ -22,8 +23,11 @@ import pandas as pd
 import pytest
 import requests
 import starlette.routing
+from authlib.integrations.base_client.errors import MismatchingStateError
 from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
 from fastapi.testclient import TestClient
+from starlette.middleware.sessions import SessionMiddleware
 
 import gradio as gr
 from gradio import (
@@ -33,8 +37,10 @@ from gradio import (
     Number,
     Textbox,
     close_all,
+    oauth,
     routes,
 )
+from gradio.oauth import _generate_redirect_uri
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
@@ -2745,10 +2751,6 @@ def test_json_postprocessing_with_queue_false(connect):
 
 class TestOAuthSecurity:
     def test_oauth_redirect_preserves_retry_count(self, monkeypatch):
-        from urllib.parse import parse_qs, urlparse
-
-        from gradio.oauth import _generate_redirect_uri
-
         monkeypatch.setenv("SPACE_HOST", "space.hf.space")
         scope = {
             "type": "http",
@@ -2765,12 +2767,6 @@ class TestOAuthSecurity:
         }
 
     def test_mismatching_oauth_state_clears_stale_session_cookie(self, monkeypatch):
-        from authlib.integrations.base_client.errors import MismatchingStateError
-        from fastapi.responses import RedirectResponse
-        from starlette.middleware.sessions import SessionMiddleware
-
-        from gradio import oauth
-
         class FakeHuggingFaceOAuth:
             async def authorize_redirect(self, request, redirect_uri):
                 return RedirectResponse(redirect_uri)
@@ -2829,12 +2825,6 @@ class TestOAuthSecurity:
         )
 
     def test_mismatching_oauth_state_preserves_existing_login(self, monkeypatch):
-        from authlib.integrations.base_client.errors import MismatchingStateError
-        from fastapi.responses import RedirectResponse
-        from starlette.middleware.sessions import SessionMiddleware
-
-        from gradio import oauth
-
         oauth_info = {"access_token": "valid"}
 
         class FakeHuggingFaceOAuth:
@@ -2884,6 +2874,59 @@ class TestOAuthSecurity:
 
         assert "Max-Age=0" not in response.headers["set-cookie"]
         assert session == {"oauth_info": oauth_info}
+
+    def test_mismatching_oauth_state_preserves_unrelated_session_data(
+        self, monkeypatch
+    ):
+        preferences = {"theme": "dark"}
+
+        class FakeHuggingFaceOAuth:
+            async def authorize_redirect(self, request, redirect_uri):
+                return RedirectResponse(redirect_uri)
+
+            async def authorize_access_token(self, request):
+                assert request.session["preferences"] == preferences
+                raise MismatchingStateError()
+
+        class FakeOAuth:
+            def __init__(self):
+                self.huggingface = FakeHuggingFaceOAuth()
+
+            def register(self, **kwargs):
+                pass
+
+        monkeypatch.setattr("authlib.integrations.starlette_client.OAuth", FakeOAuth)
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_ID", "client")
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_SECRET", "secret")
+        monkeypatch.setattr(oauth, "OAUTH_SCOPES", "openid")
+        monkeypatch.setattr(oauth, "OPENID_PROVIDER_URL", "https://huggingface.co")
+
+        app = FastAPI()
+
+        @app.get("/seed-session")
+        async def seed_session(request: Request):
+            request.session["preferences"] = preferences
+            request.session["_state_huggingface_stale"] = {"state": "stale"}
+            return {}
+
+        @app.get("/session")
+        async def get_session(request: Request):
+            return request.session
+
+        oauth._add_oauth_routes(app)
+        app.add_middleware(
+            SessionMiddleware,  # type: ignore
+            secret_key="secret",
+            https_only=True,
+        )
+
+        with TestClient(app, base_url="https://space.hf.space") as client:
+            client.get("/seed-session")
+            response = client.get("/login/callback", follow_redirects=False)
+            session = client.get("/session").json()
+
+        assert "Max-Age=0" not in response.headers["set-cookie"]
+        assert session == {"preferences": preferences}
 
     def test_redirect_to_target_blocks_external_urls(self):
         """_redirect_to_target should strip scheme/host to prevent open redirects."""

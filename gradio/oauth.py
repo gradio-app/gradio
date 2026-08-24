@@ -110,12 +110,15 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             # losing the state. A workaround is to delete the cookie and redirect the user to the login page again.
             # See https://github.com/lepture/authlib/issues/622 for more details.
 
-            # Reset stale OAuth state without logging out an already-authenticated
-            # user whose callback came from an older login attempt.
-            session_oauth_info = request.session.get("oauth_info")
-            request.session.clear()
-            if session_oauth_info is not None:
-                request.session["oauth_info"] = session_oauth_info
+            # SessionMiddleware cannot expire a cookie whose signature it could
+            # not decode, so remember that case before mutating the session.
+            stale_cookie = "session" in request.cookies and not request.session
+
+            # Delete only stale OAuth state. Other session data may still be valid
+            # when a callback comes from an older login attempt.
+            for key in list(request.session.keys()):
+                if key.startswith("_state_huggingface"):
+                    request.session.pop(key)
 
             # Parse query params
             nb_redirects = int(request.query_params.get("_nb_redirects", 0))
@@ -145,9 +148,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
                 # Redirect the user to the login page again
                 response = RedirectResponse(login_uri)
 
-            if session_oauth_info is None:
-                # SessionMiddleware cannot expire a cookie whose signature it could
-                # not decode, so delete it explicitly as well.
+            if stale_cookie:
                 response.delete_cookie(
                     "session", secure=True, httponly=True, samesite="none"
                 )
