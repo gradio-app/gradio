@@ -875,12 +875,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}
         ],
     },
-    "image_to_text": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
-        ],
-    },
     "automatic_speech_recognition": {
         "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
         "outputs": [
@@ -891,24 +885,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
         "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
         "outputs": [
             {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
-        ],
-    },
-    "visual_question_answering": {
-        "inputs": [
-            {"id": "image", "label": "Image", "type": "image"},
-            {"id": "question", "label": "Question", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
-        ],
-    },
-    "document_question_answering": {
-        "inputs": [
-            {"id": "image", "label": "Document", "type": "image"},
-            {"id": "question", "label": "Question", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
         ],
     },
     # Vision-language models are served as `conversational`, so they're called
@@ -973,9 +949,6 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "image-segmentation": "image_segmentation",
     "automatic-speech-recognition": "automatic_speech_recognition",
     "audio-classification": "audio_classification",
-    "image-to-text": "chat_completion",
-    "visual-question-answering": "chat_completion",
-    "document-question-answering": "chat_completion",
     "image-text-to-text": "chat_completion",
 }
 

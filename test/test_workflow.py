@@ -513,14 +513,14 @@ class TestWorkflowFromBind:
 class TestDispatchModelEndpoint:
     def test_legacy_in_n_port_ids_remap_to_schema_names(self):
         client = MagicMock()
-        client.visual_question_answering.return_value = []
+        client.question_answering.return_value = []
         _dispatch_model_endpoint(
             client,
-            "visual_question_answering",
-            {"in_0": {"url": "/f/a.png"}, "in_1": "what is this?"},
+            "question_answering",
+            {"in_0": "who?", "in_1": "some context"},
         )
-        client.visual_question_answering.assert_called_once_with(
-            image="/f/a.png", question="what is this?"
+        client.question_answering.assert_called_once_with(
+            question="who?", context="some context"
         )
 
     def test_list_kwargs_coerced_from_strings(self):
