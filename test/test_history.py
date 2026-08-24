@@ -124,7 +124,7 @@ def test_externalize_assets_pulls_nested_filedata(tmp_path, monkeypatch):
     img.write_bytes(b"\x89PNG")
     aud = tmp_path / "song.mp3"
     aud.write_bytes(b"ID3")
-    tree = {
+    tree: dict = {
         "outputs": {
             "n_img": {"value": {"path": str(img), "url": str(img)}},
             "n_audio": [{"path": str(aud)}],
@@ -133,11 +133,12 @@ def test_externalize_assets_pulls_nested_filedata(tmp_path, monkeypatch):
     }
     assets = externalize_assets(tree)
     assert len(assets) == 2
-    marker = tree["outputs"]["n_img"]["value"]
-    assert isinstance(marker, dict) and marker.get("__asset__")
-    marker2 = tree["outputs"]["n_audio"][0]
-    assert isinstance(marker2, dict) and marker2.get("__asset__")
-    assert tree["outputs"]["n_text"]["value"] == "just text"
+    outputs = tree["outputs"]
+    assert isinstance(outputs["n_img"]["value"], dict)
+    assert outputs["n_img"]["value"].get("__asset__")
+    assert isinstance(outputs["n_audio"][0], dict)
+    assert outputs["n_audio"][0].get("__asset__")
+    assert outputs["n_text"]["value"] == "just text"
 
 
 def test_externalize_assets_skips_untrusted(tmp_path, monkeypatch):
@@ -255,7 +256,7 @@ def test_ensure_private_bucket_maps_403_to_not_authorized():
     store, mock_api = _make_store()
     store._ensured = False
     err = RuntimeError("Forbidden")
-    err.response = MagicMock(status_code=403)
+    err.response = MagicMock(status_code=403)  # ty: ignore[unresolved-attribute]
     mock_api.create_bucket.side_effect = err
     with pytest.raises(NotAuthorizedError):
         store.ensure_private_bucket()
