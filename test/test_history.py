@@ -60,8 +60,6 @@ def _record(record_id="r1", **kw):
     )
 
 
-# ─── Validation ─────────────────────────────────────────────────────────────
-
 
 def test_validate_bucket_id_rejects_traversal():
     validate_bucket_id("alice/hist")
@@ -77,8 +75,6 @@ def test_validate_record_id():
         with pytest.raises(ValueError):
             validate_record_id(bad)
 
-
-# ─── Trusted-file resolution ────────────────────────────────────────────────
 
 
 def test_is_trusted_local_path_accepts_upload_folder(tmp_path, monkeypatch):
@@ -115,8 +111,6 @@ def test_extract_local_file_path_strips_gradio_prefix(tmp_path, monkeypatch):
     assert extract_local_file_path({"url": f"/gradio_api/file={f}"}) == str(f)
 
 
-# ─── Recursive FileData traversal ───────────────────────────────────────────
-
 
 def test_externalize_assets_pulls_nested_filedata(tmp_path, monkeypatch):
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
@@ -151,8 +145,6 @@ def test_externalize_assets_skips_untrusted(tmp_path, monkeypatch):
     assert assets == {}
     assert tree["outputs"]["n1"]["value"] == {"path": str(outside)}
 
-
-# ─── save_record / delete_record / clear_records ────────────────────────────
 
 
 def test_save_record_commits_json_after_assets(tmp_path, monkeypatch):
@@ -223,8 +215,6 @@ def test_clear_records_removes_everything():
     assert deleted == {"records/r1.json", "assets/r1/a001.png"}
 
 
-# ─── ensure_private_bucket ──────────────────────────────────────────────────
-
 
 def test_ensure_private_bucket_creates_and_verifies():
     with (
@@ -261,8 +251,6 @@ def test_ensure_private_bucket_maps_403_to_not_authorized():
     with pytest.raises(NotAuthorizedError):
         store.ensure_private_bucket()
 
-
-# ─── Owner isolation (concurrency blocker #2) ───────────────────────────────
 
 
 class TestOwnerIsolation:
@@ -357,8 +345,6 @@ class TestOwnerIsolation:
         assert b._token == "tok-b"
 
 
-# ─── Parallel saves (concurrency blocker #2) ────────────────────────────────
-
 
 class TestParallelSaves:
     def test_parallel_saves_never_cross_attribute(self):
@@ -411,8 +397,6 @@ class TestParallelSaves:
             data, _p = kwargs["add"][0]
             assert json.loads(data.decode())["owner_id"] == "bob"
 
-
-# ─── /run-history/* routes ──────────────────────────────────────────────────
 
 
 @pytest.fixture
