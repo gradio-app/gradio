@@ -295,15 +295,15 @@
 						<p>{paragraph}</p>
 					{/if}
 				{:else}
-					<div>Upload an image</div>
+					<div>{i18n("image_editor.upload_image")}</div>
 				{/if}
 			{/if}
 
 			{#if sources && sources.length && brush && !placeholder}
-				<div class="or">or</div>
+				<div class="or">{i18n("common.or")}</div>
 			{/if}
 			{#if brush && !placeholder}
-				<div>select the draw tool to start</div>
+				<div>{i18n("image_editor.select_draw_tool")}</div>
 			{/if}
 		</div>
 	{/if}
