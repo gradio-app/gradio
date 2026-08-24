@@ -305,42 +305,6 @@
 		white-space: nowrap;
 	}
 
-	.connect-auto-btn {
-		width: 100%;
-		background: #ff7a38;
-		border: none;
-		border-radius: 6px;
-		color: #fff;
-		font-size: 13px;
-		font-weight: 500;
-		padding: 9px 14px;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 8px;
-	}
-
-	.connect-auto-btn:hover:not(:disabled) {
-		background: #e86d2f;
-	}
-
-	.connect-auto-btn:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.connect-auto-hint {
-		font-size: 11px;
-		opacity: 0.8;
-		font-weight: 400;
-		font-family: monospace;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		max-width: 180px;
-	}
-
 	.connect-divider {
 		display: flex;
 		align-items: center;
