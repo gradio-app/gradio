@@ -11,6 +11,7 @@ import {
 	removeNode,
 	removeEdge,
 	sanitize_for_save,
+	structural_signature,
 	switch_endpoint,
 	reconcileComponentRoles
 } from "./workflow-store";
@@ -756,6 +757,98 @@ describe("sanitize_for_save", () => {
 		const snapshot = JSON.stringify(original);
 		sanitize_for_save(original);
 		expect(JSON.stringify(original)).toBe(snapshot);
+	});
+
+	test("strips per-viewer geometry so one arrangement isn't saved for everyone", () => {
+		const node = refNode("a", {});
+		node.manual_height = 300;
+		const saved = sanitize_for_save(wf([node])).references[0];
+		expect(saved).not.toHaveProperty("x");
+		expect(saved).not.toHaveProperty("y");
+		expect(saved).not.toHaveProperty("height");
+		expect(saved).not.toHaveProperty("manual_height");
+	});
+
+	test("keeps width, which comes from the node's source rather than the viewer", () => {
+		expect(sanitize_for_save(wf([refNode("a", {})])).references[0].width).toBe(
+			220
+		);
+	});
+});
+
+describe("structural_signature", () => {
+	function wf(refs: ReferenceNode[]): Workflow {
+		return {
+			schema_version: "2",
+			name: "Test",
+			runtime: { default: "client" },
+			references: refs,
+			operators: [],
+			subjects: [],
+			edges: [],
+			view: { default: "canvas" }
+		};
+	}
+
+	function refNode(id: string, geometry: Partial<ReferenceNode> = {}) {
+		return {
+			id,
+			role: "reference" as const,
+			label: id,
+			asset_type: "image" as const,
+			inputs: [{ id: "in", label: "in", type: "image" as const }],
+			outputs: [{ id: "out", label: "out", type: "image" as const }],
+			data: {},
+			x: 0,
+			y: 0,
+			width: 220,
+			height: 160,
+			...geometry
+		};
+	}
+
+	test("a node moving is not a change", () => {
+		expect(structural_signature(wf([refNode("a", { x: 500, y: 700 })]))).toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("a node being resized is not a change", () => {
+		expect(
+			structural_signature(
+				wf([refNode("a", { width: 480, height: 400, manual_height: 400 })])
+			)
+		).toBe(structural_signature(wf([refNode("a")])));
+	});
+
+	test("a node being added is a change", () => {
+		expect(structural_signature(wf([refNode("a"), refNode("b")]))).not.toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("a node label being renamed is a change", () => {
+		expect(structural_signature(wf([refNode("a", { label: "New" })]))).not.toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("an edge being added is a change", () => {
+		const before = wf([refNode("a"), refNode("b")]);
+		const after = {
+			...before,
+			edges: [
+				{
+					id: "e",
+					from_node_id: "a",
+					from_port_id: "out",
+					to_node_id: "b",
+					to_port_id: "in",
+					type: "image" as const
+				}
+			]
+		};
+		expect(structural_signature(before)).not.toBe(structural_signature(after));
 	});
 });
 

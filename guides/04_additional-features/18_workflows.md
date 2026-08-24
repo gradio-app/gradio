@@ -15,7 +15,7 @@ import gradio as gr
 gr.Workflow().launch()
 ```
 
-Open the app, drag Spaces, models, and datasets from the sidebar onto the canvas, connect their ports, and hit **Run**. As you edit the workflow, a `workflow.json` file will automatically be created next to the Python script that created the Workflow. Pass `graph=` if you want to save it somewhere else. You can also use a coding agent to write or edit this file, allowing you to create workflows programmatically.
+Open the app, drag Spaces, models, and datasets from the sidebar onto the canvas, connect their ports, and hit **Run**. As you add, remove, or change nodes and edges, a `workflow.json` file will automatically be created next to the Python script that created the Workflow. Pass `graph=` if you want to save it somewhere else. You can also use a coding agent to write or edit this file, allowing you to create workflows programmatically.
 
 `gr.Workflow` is already a complete Gradio app and must be created at the top level. It cannot be nested inside a `gr.Blocks` context.
 
@@ -67,7 +67,7 @@ Each edge is a `(from_fn, to_fn)` tuple referring to functions in `bind=`. Use `
 
 ## Loading from a JSON file
 
-Pass a `graph=` path to load a saved workflow topology. The canvas reads from the file on each page load and autosaves back to it when you make edits.
+Pass a `graph=` path to load a saved workflow topology. The canvas reads from the file on each page load and autosaves back to it when you add, remove, or change nodes and edges.
 
 ```python
 gr.Workflow(graph="workflow.json").launch()
@@ -127,7 +127,7 @@ A workflow is a JSON file with three node collections:
 }
 ```
 
-Node geometry (`x`, `y`, `width`, and `height`) and `data` may be omitted. If any node is missing geometry, the canvas fills in defaults and auto-arranges the entire graph.
+Node `data` may be omitted, and so may geometry. Include `x` and `y` on every node to control how the graph is arranged when someone opens it for the first time; leave them out and the canvas auto-arranges it. Either way the arrangement is only a starting point: each visitor is free to drag and resize cards, that arrangement is saved in their own browser rather than in the file, and `workflow.json` is never rewritten with it. `height` is measured from the rendered card. `width` is the default every viewer starts from — anyone can resize a card locally, and a writer's resize becomes the new default the next time an edit is saved.
 
 | Collection | Role |
 |---|---|
