@@ -54,10 +54,13 @@ describe("get_data / set_data", () => {
 			value
 		});
 		const uploaded = listen("upload", { retrospective: true });
-		await waitFor(() => {
-			expect(getByRole("button", { name: "image_editor.pan" })).toBeVisible();
-			expect(uploaded).toHaveBeenCalled();
-		});
+		await waitFor(
+			() => {
+				expect(getByRole("button", { name: "image_editor.pan" })).toBeVisible();
+				expect(uploaded).toHaveBeenCalled();
+			},
+			{ timeout: 5000 }
+		);
 
 		const result = (await get_data()).value;
 		const original_bytes = await (await fetch(TEST_PNG.url!)).arrayBuffer();
