@@ -225,7 +225,6 @@ class Image(StreamingInput, Component):
             watermark=self.watermark,
             cache_dir=self.GRADIO_CACHE,
             format=self.format,
-            alt_text=self.alt_text,
         )
 
     def api_info_as_output(self) -> dict[str, Any]:

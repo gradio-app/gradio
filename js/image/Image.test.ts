@@ -45,7 +45,8 @@ const default_props = {
 	placeholder: "",
 	buttons: [] as (string | { value: string; id: number; icon: null })[],
 	webcam_options: { mirror: false, constraints: {} },
-	watermark: null
+	watermark: null,
+	alt_text: null
 };
 
 run_shared_prop_tests({
@@ -85,7 +86,8 @@ describe("Image", () => {
 		const { getByRole } = await render(Image, {
 			...default_props,
 			interactive: false,
-			value: { ...fake_value, alt_text: "Three vertical color bands" }
+			value: fake_value,
+			alt_text: "Three vertical color bands"
 		});
 
 		expect(

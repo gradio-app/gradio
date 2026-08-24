@@ -102,6 +102,7 @@
 			}}
 			{fullscreen}
 			{value}
+			alt_text={gradio.props.alt_text}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			selectable={gradio.props._selectable}

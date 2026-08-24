@@ -109,21 +109,10 @@ class TestImage:
         component = gr.Image(None)
         assert component.get_config().get("value") is None
 
-    def test_alt_text_is_included_in_postprocessed_image(self):
+    def test_alt_text_is_included_in_config(self):
         component = gr.Image(alt_text="A city bus")
 
-        image = component.postprocess("test/test_files/bus.png")
-
-        assert image is not None
-        assert image.alt_text == "A city bus"
-
-    def test_alt_text_is_included_for_svg_images(self):
-        component = gr.Image(alt_text="Gradio logo")
-
-        image = component.postprocess("test/test_files/file_icon.svg")
-
-        assert image is not None
-        assert image.alt_text == "Gradio logo"
+        assert component.get_config()["alt_text"] == "A city bus"
 
     def test_images_upright_after_preprocess(self):
         component = gr.Image(type="pil")

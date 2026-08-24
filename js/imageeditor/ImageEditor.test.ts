@@ -43,7 +43,7 @@ describe("get_data / set_data", () => {
 	afterEach(() => cleanup());
 
 	test("an untouched editor returns the original image files", async () => {
-		const background = { ...TEST_PNG, alt_text: "Background" };
+		const background = { ...TEST_PNG, orig_name: "background.png" };
 		const layer = { ...TEST_PNG, orig_name: "layer.png" };
 		const composite = { ...TEST_PNG, orig_name: "composite.png" };
 		const value = { background, layers: [layer], composite };
@@ -52,7 +52,7 @@ describe("get_data / set_data", () => {
 			value
 		});
 		await waitFor(() => {
-			expect(getByRole("button", { name: "Pan" })).toBeVisible();
+			expect(getByRole("button", { name: "image_editor.pan" })).toBeVisible();
 		});
 
 		expect((await get_data()).value).toEqual(value);
