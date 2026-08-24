@@ -60,7 +60,6 @@ def _record(record_id="r1", **kw):
     )
 
 
-
 def test_validate_bucket_id_rejects_traversal():
     validate_bucket_id("alice/hist")
     for bad in ["alice/..", "../etc", "alice/./x", "", "noslash"]:
@@ -74,7 +73,6 @@ def test_validate_record_id():
     for bad in ["", "has/slash", "a" * 65, "sp ace", "wat!"]:
         with pytest.raises(ValueError):
             validate_record_id(bad)
-
 
 
 def test_is_trusted_local_path_accepts_upload_folder(tmp_path, monkeypatch):
@@ -111,7 +109,6 @@ def test_extract_local_file_path_strips_gradio_prefix(tmp_path, monkeypatch):
     assert extract_local_file_path({"url": f"/gradio_api/file={f}"}) == str(f)
 
 
-
 def test_externalize_assets_pulls_nested_filedata(tmp_path, monkeypatch):
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
     img = tmp_path / "img.png"
@@ -144,7 +141,6 @@ def test_externalize_assets_skips_untrusted(tmp_path, monkeypatch):
     assets = externalize_assets(tree)
     assert assets == {}
     assert tree["outputs"]["n1"]["value"] == {"path": str(outside)}
-
 
 
 def test_save_record_commits_json_after_assets(tmp_path, monkeypatch):
@@ -215,7 +211,6 @@ def test_clear_records_removes_everything():
     assert deleted == {"records/r1.json", "assets/r1/a001.png"}
 
 
-
 def test_ensure_private_bucket_creates_and_verifies():
     with (
         patch("gradio.history.HfApi") as mock_api_cls,
@@ -250,7 +245,6 @@ def test_ensure_private_bucket_maps_403_to_not_authorized():
     mock_api.create_bucket.side_effect = err
     with pytest.raises(NotAuthorizedError):
         store.ensure_private_bucket()
-
 
 
 class TestOwnerIsolation:
@@ -345,7 +339,6 @@ class TestOwnerIsolation:
         assert b._token == "tok-b"
 
 
-
 class TestParallelSaves:
     def test_parallel_saves_never_cross_attribute(self):
         cache, lock = OrderedDict(), threading.Lock()
@@ -396,7 +389,6 @@ class TestParallelSaves:
         for _, kwargs in bob_calls:
             data, _p = kwargs["add"][0]
             assert json.loads(data.decode())["owner_id"] == "bob"
-
 
 
 @pytest.fixture
