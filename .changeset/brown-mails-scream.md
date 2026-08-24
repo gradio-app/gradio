@@ -1,7 +1,7 @@
 ---
-"@gradio/client": minor
-"@gradio/workflowcanvas": minor
-"gradio": minor
+"@gradio/client": patch
+"@gradio/workflowcanvas": patch
+"gradio": patch
 ---
 
 feat:add history to bucket integration in workflow
