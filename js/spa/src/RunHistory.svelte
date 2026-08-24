@@ -41,6 +41,11 @@
 	}
 
 	onMount(() => {
+		// Embedded on Spaces this page loads inside an iframe the parent has
+		// already scrolled past, so it opens mid-list unless we ask for the top.
+		if ("parentIFrame" in window) {
+			window.parentIFrame?.scrollTo(0, 0);
+		}
 		refresh();
 		return on_run_history_change(refresh);
 	});
