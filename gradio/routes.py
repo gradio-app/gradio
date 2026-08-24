@@ -19,8 +19,8 @@ import time
 import traceback
 import warnings
 from collections import OrderedDict
-from dataclasses import asdict
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
+from dataclasses import asdict
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -906,9 +906,7 @@ class App(FastAPI):
 
             limiter: anyio.CapacityLimiter = app.state.history_write_limiter
             if limiter.borrowed_tokens >= limiter.total_tokens:
-                resp = JSONResponse(
-                    {"detail": "server busy"}, status_code=429
-                )
+                resp = JSONResponse({"detail": "server busy"}, status_code=429)
                 resp.headers["Retry-After"] = "2"
                 return resp
             async with limiter:

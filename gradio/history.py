@@ -82,7 +82,7 @@ class HistoryRecord:
         return json.dumps(asdict(self), ensure_ascii=False).encode("utf-8")
 
     @classmethod
-    def from_json_bytes(cls, data: bytes) -> "HistoryRecord":
+    def from_json_bytes(cls, data: bytes) -> HistoryRecord:
         d = json.loads(data)
         return cls(
             record_id=d["record_id"],
@@ -201,9 +201,7 @@ class BucketRunHistoryStore:
 
         try:
             if stale:
-                self._api.batch_bucket_files(
-                    bucket_id=self.repo_id, delete=stale
-                )
+                self._api.batch_bucket_files(bucket_id=self.repo_id, delete=stale)
             if adds:
                 self._api.batch_bucket_files(bucket_id=self.repo_id, add=adds)
             self._api.batch_bucket_files(
@@ -313,8 +311,7 @@ class BucketRunHistoryStore:
         blobs: list[bytes] = []
         with tempfile.TemporaryDirectory() as tmp:
             pairs = [
-                (it.path, os.path.join(tmp, f"{i}.json"))
-                for i, it in enumerate(items)
+                (it.path, os.path.join(tmp, f"{i}.json")) for i, it in enumerate(items)
             ]
             try:
                 self._api.download_bucket_files(

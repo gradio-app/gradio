@@ -20,8 +20,8 @@ from gradio.history import (
     NotAuthorized,
     PublicBucketError,
     bucket_for_token,
-    extract_local_file_path,
     externalize_assets,
+    extract_local_file_path,
     is_trusted_local_path,
     validate_bucket_id,
     validate_record_id,
@@ -269,12 +269,20 @@ class TestOwnerIsolation:
         cache, lock = OrderedDict(), threading.Lock()
         with patch("gradio.history.HfApi"):
             alice = bucket_for_token(
-                cache, lock, "tok-a", "alice/hist",
-                owner_id="alice", app_key="app",
+                cache,
+                lock,
+                "tok-a",
+                "alice/hist",
+                owner_id="alice",
+                app_key="app",
             )
             bob = bucket_for_token(
-                cache, lock, "tok-b", "alice/hist",
-                owner_id="bob", app_key="app",
+                cache,
+                lock,
+                "tok-b",
+                "alice/hist",
+                owner_id="bob",
+                app_key="app",
             )
         assert alice is not bob
         assert alice.owner_id == "alice"
@@ -285,12 +293,20 @@ class TestOwnerIsolation:
         cache, lock = OrderedDict(), threading.Lock()
         with patch("gradio.history.HfApi"):
             a = bucket_for_token(
-                cache, lock, "tok-alice", "alice/hist",
-                owner_id="alice", app_key="app",
+                cache,
+                lock,
+                "tok-alice",
+                "alice/hist",
+                owner_id="alice",
+                app_key="app",
             )
             b = bucket_for_token(
-                cache, lock, "tok-alice", "alice/hist",
-                owner_id="alice", app_key="app",
+                cache,
+                lock,
+                "tok-alice",
+                "alice/hist",
+                owner_id="alice",
+                app_key="app",
             )
         assert a is b
 
@@ -298,12 +314,20 @@ class TestOwnerIsolation:
         cache, lock = OrderedDict(), threading.Lock()
         with patch("gradio.history.HfApi"):
             v1 = bucket_for_token(
-                cache, lock, "tok-v1", "alice/hist",
-                owner_id="alice", app_key="app",
+                cache,
+                lock,
+                "tok-v1",
+                "alice/hist",
+                owner_id="alice",
+                app_key="app",
             )
             v2 = bucket_for_token(
-                cache, lock, "tok-v2", "alice/hist",
-                owner_id="alice", app_key="app",
+                cache,
+                lock,
+                "tok-v2",
+                "alice/hist",
+                owner_id="alice",
+                app_key="app",
             )
         assert v1 is not v2
         assert v1.owner_id == v2.owner_id == "alice"
@@ -312,12 +336,20 @@ class TestOwnerIsolation:
         cache, lock = OrderedDict(), threading.Lock()
         with patch("gradio.history.HfApi"):
             a = bucket_for_token(
-                cache, lock, "tok-a", "org/team-hist",
-                owner_id="alice", app_key="app",
+                cache,
+                lock,
+                "tok-a",
+                "org/team-hist",
+                owner_id="alice",
+                app_key="app",
             )
             b = bucket_for_token(
-                cache, lock, "tok-b", "org/team-hist",
-                owner_id="bob", app_key="app",
+                cache,
+                lock,
+                "tok-b",
+                "org/team-hist",
+                owner_id="bob",
+                app_key="app",
             )
         assert a is not b
         assert a._token == "tok-a"
@@ -334,8 +366,12 @@ class TestParallelSaves:
         def _mk_store(token, owner):
             with patch("gradio.history.HfApi"):
                 store = bucket_for_token(
-                    cache, lock, token, f"{owner}/hist",
-                    owner_id=owner, app_key="app",
+                    cache,
+                    lock,
+                    token,
+                    f"{owner}/hist",
+                    owner_id=owner,
+                    app_key="app",
                 )
             store._ensured = True
             return store
@@ -359,8 +395,7 @@ class TestParallelSaves:
 
         with ThreadPoolExecutor(max_workers=8) as ex:
             for f in [
-                ex.submit(_save, alice if i % 2 == 0 else bob, i)
-                for i in range(20)
+                ex.submit(_save, alice if i % 2 == 0 else bob, i) for i in range(20)
             ]:
                 f.result()
 
