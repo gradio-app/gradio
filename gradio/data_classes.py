@@ -440,6 +440,9 @@ class ImageData(GradioModel):
     orig_name: str | None = Field(default=None, description="Original filename")
     mime_type: str | None = Field(default=None, description="mime type of image")
     is_stream: bool = Field(default=False, description="Can always be set to False")
+    alt_text: str | None = Field(
+        default=None, description="Alternative text for the image"
+    )
     meta: dict = {"_type": "gradio.FileData"}
 
     model_config = ConfigDict(

@@ -330,11 +330,13 @@ def postprocess_image(
     cache_dir: str,
     format: str,
     watermark: WatermarkOptions | None = None,
+    alt_text: str | None = None,
 ) -> ImageData | None:
     """
     Parameters:
         value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
         watermark: An optional `WatermarkOptions` instance to apply a watermark to the image.
+        alt_text: Alternative text for the image.
     Returns:
         Returns the image as a `FileData` object.
     """
@@ -351,9 +353,10 @@ def postprocess_image(
         return ImageData(
             orig_name=Path(value).name,
             url=f"data:image/svg+xml,{quote(svg_content)}",
+            alt_text=alt_text,
         )
     if watermark and watermark.watermark is not None:
         value = add_watermark(value, watermark)
     saved = save_image(value, cache_dir=cache_dir, format=format)
     orig_name = Path(saved).name if Path(saved).exists() else None
-    return ImageData(path=saved, orig_name=orig_name)
+    return ImageData(path=saved, orig_name=orig_name, alt_text=alt_text)
