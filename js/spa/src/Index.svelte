@@ -84,11 +84,7 @@
 
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import {
-		consume_run_history_replay,
-		type SpaceStatus,
-		type StoredRun
-	} from "@gradio/client";
+	import { apply_run_history_replay, type SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -152,39 +148,6 @@
 	let active_theme_mode: ThemeMode = $state("system");
 	let api_url = $state("");
 	let run_history = $state(false);
-
-	function restore_run(config: Config, run: StoredRun | null): void {
-		if (!run) return;
-		const dependency = config.dependencies.find(
-			(item) =>
-				item.id === run.fn_index ||
-				(typeof item.api_name === "string" &&
-					`/${item.api_name.replace(/^\//, "")}` === run.api_name)
-		);
-		if (!dependency) return;
-
-		const inputs = Array.isArray(run.inputs)
-			? run.inputs
-			: Object.values(run.inputs as Record<string, unknown>);
-		const outputs = Array.isArray(run.outputs)
-			? run.outputs
-			: run.outputs === null
-				? []
-				: [run.outputs];
-		const restore = (ids: number[], saved: unknown[]): void => {
-			for (const [index, id] of ids.entries()) {
-				const component = config.components.find((item) => item.id === id);
-				if (!component || index >= saved.length) continue;
-				// `gr.State` is held on the server and always saved as null, so
-				// writing it back would wipe out the component's real default.
-				if (component.type === "state") continue;
-				component.props.value = saved[index];
-			}
-		};
-
-		restore(dependency.inputs, inputs);
-		restore(dependency.outputs, outputs);
-	}
 
 	$effect(() => {
 		if (config?.app_id) {
@@ -421,7 +384,7 @@
 		}
 
 		config = app.get_url_config() as unknown as Config;
-		restore_run(config, consume_run_history_replay(config));
+		apply_run_history_replay(config);
 		window.__gradio_space__ = config.space_id;
 
 		if (app.config?.i18n_translations) {
