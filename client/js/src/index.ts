@@ -6,6 +6,7 @@ export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
 export {
+	apply_run_history_replay,
 	clear_run_history,
 	consume_run_history_replay,
 	delete_run_history,
@@ -13,6 +14,7 @@ export {
 	read_run_history,
 	run_history_url,
 	stage_run_history_replay,
+	type ReplayTarget,
 	type RunHistoryScope,
 	type StoredRunComponent,
 	type StoredRun
