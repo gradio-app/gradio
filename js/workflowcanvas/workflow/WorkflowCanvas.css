@@ -407,12 +407,6 @@
 	color: #ef4444;
 }
 
-.toolbar-divider {
-	width: 1px;
-	height: 20px;
-	background: #1e1f2a;
-}
-
 .editor {
 	display: flex;
 	flex: 1;

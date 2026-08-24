@@ -3701,9 +3701,6 @@
 		background: #ffffff;
 		color: #3e4050;
 	}
-	:global(body:not(.dark) .toolbar-divider) {
-		background: #e2e4ea;
-	}
 	:global(body:not(.dark) .tool-btn.save-space-btn) {
 		color: #d95f0b;
 		border-color: rgba(217, 95, 11, 0.55);

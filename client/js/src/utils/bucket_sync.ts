@@ -119,7 +119,7 @@ export async function get_bucket_record(
 	}
 }
 
-export interface PushInput {
+interface PushInput {
 	record_id: string;
 	inputs?: Record<string, unknown>;
 	outputs?: Record<string, unknown>;
