@@ -95,6 +95,17 @@ describe("Image", () => {
 		).toBeVisible();
 	});
 
+	test("uses the provided alternative text for interactive previews", async () => {
+		const { getByRole } = await render(Image, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			alt_text: "An uploaded city bus"
+		});
+
+		expect(getByRole("img", { name: "An uploaded city bus" })).toBeVisible();
+	});
+
 	test("treats static images without alternative text as decorative", async () => {
 		const { getByRole } = await render(Image, {
 			...default_props,

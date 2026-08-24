@@ -143,6 +143,7 @@
 			bind:active_source
 			bind:value
 			bind:dragging
+			alt_text={gradio.props.alt_text}
 			selectable={gradio.props._selectable}
 			root={gradio.shared.root}
 			sources={gradio.props.sources}
