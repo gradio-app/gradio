@@ -1,5 +1,16 @@
 # @gradio/workflowcanvas
 
+## 0.10.0
+
+### Features
+
+- [#13766](https://github.com/gradio-app/gradio/pull/13766) [`5824703`](https://github.com/gradio-app/gradio/commit/5824703d4cc2904adaaca4ea7b536800ccf6a358) - workflows: allow save as copy.  Thanks @hannahblair!
+- [#13773](https://github.com/gradio-app/gradio/pull/13773) [`375335e`](https://github.com/gradio-app/gradio/commit/375335e60e2b4504a57f3eef0eb6bca3c7bb765a) - Keep workflow canvas layout per-viewer, and add undo/redo.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
 ## 0.9.0
 
 ### Features

@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflows: allow save as copy
+feat:workflow: move delete button
