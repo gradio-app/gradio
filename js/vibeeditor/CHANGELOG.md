@@ -4,6 +4,18 @@
 
 ### Dependency updates
 
+- @gradio/client@2.5.1
+
+## 0.3.13
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.3.13
+
+### Dependency updates
+
 - @gradio/client@2.4.0
 - @gradio/utils@0.14.0
 - @gradio/atoms@0.26.1

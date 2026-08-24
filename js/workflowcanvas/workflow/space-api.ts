@@ -42,6 +42,18 @@ export function normalize_space_id(raw: string): string | null {
 	return null;
 }
 
+export function fork_repo_candidates(
+	user: string,
+	spaceId: string,
+	limit = 10
+): string[] {
+	const name = normalize_space_id(spaceId)?.split("/")[1];
+	if (!user || !name) return [];
+	return Array.from({ length: limit }, (_, i) =>
+		i === 0 ? `${user}/${name}` : `${user}/${name}-${i + 1}`
+	);
+}
+
 export function componentToPortType(
 	component: string,
 	type?: string,
