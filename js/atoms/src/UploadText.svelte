@@ -47,12 +47,21 @@
 	let density = $state<Density>("full");
 
 	function update_density(height: number): void {
+		// A zero-sized block has not been laid out yet (for example while it is
+		// detached or rendered in a component test). Keep the default layout
+		// until the observer reports a real size.
+		if (height <= 0) return;
 		const next = height <= 48 ? "minimal" : height <= 160 ? "compact" : "full";
-		if (density !== next) density = next;
+		density = next;
 	}
 
 	$effect(() => {
 		const boundary = container.closest(".block") ?? container;
+		// Without an explicit height constraint, UploadText contributes to the
+		// block's intrinsic height. Observing that size would create a feedback
+		// loop as the responsive layout changes its own measured container.
+		if (!boundary.style.height && !boundary.style.maxHeight) return;
+
 		let frame: number;
 		const observer = new ResizeObserver(() => {
 			cancelAnimationFrame(frame);
