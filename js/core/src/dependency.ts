@@ -669,7 +669,7 @@ export class DependencyManager {
 									render_id,
 									new Set(Array.from(by_id.keys()))
 								);
-								this.register_loading_stati(by_id);
+								this.dispatch_load_events(by_id);
 								break submit_loop;
 							}
 
@@ -917,8 +917,10 @@ export class DependencyManager {
 		}
 	}
 
-	dispatch_load_events() {
-		this.dependencies_by_fn.forEach((dep) => {
+	dispatch_load_events(
+		dependencies: Map<number, Dependency> = this.dependencies_by_fn
+	) {
+		dependencies.forEach((dep) => {
 			dep.targets.forEach(([target_id, event_name]) => {
 				if (event_name === "load") {
 					this.dispatch({

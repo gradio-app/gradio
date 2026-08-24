@@ -1,5 +1,27 @@
 # @gradio/image
 
+## 0.28.2
+
+### Fixes
+
+- [#13764](https://github.com/gradio-app/gradio/pull/13764) [`fb02661`](https://github.com/gradio-app/gradio/commit/fb0266119af98eae52e8abcab735d643254ad0d4) - Fix mobile image-related issues.  Thanks @abidlabs!
+
+## 0.28.1
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.28.1
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+
 ## 0.28.0
 
 ### Features

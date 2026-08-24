@@ -99,7 +99,7 @@ if __name__ == "__main__":
     demo.launch()
 ```
 
-您可以像这样运行它：`gradio run.py --name Gretel`
+您可以像这样运行它：`gradio run.py -- --name Gretel`（`--` 之后的所有参数都会直接传递给您的应用）
 
 作为一个小提示，只要更改了 `run.py` 源代码或 Gradio 源代码，自动重新加载就会发生。这意味着如果您决定[为 Gradio 做贡献](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md)，这将非常有用 ✅
 

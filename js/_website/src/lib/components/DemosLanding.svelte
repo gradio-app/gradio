@@ -35,7 +35,7 @@
 	>
 		{#each tabs as { title }, i}
 			<div
-				on:click={() => (current_selection = i)}
+				onclick={() => (current_selection = i)}
 				class:active-example-tab={current_selection == i}
 				class="demo-tab hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer px-3 py-1"
 			>

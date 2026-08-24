@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import inspect
 import json
 import logging
+import mimetypes
 import os
 import re
 import secrets
@@ -31,7 +34,12 @@ from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
-from gradio.utils import get_space
+from gradio.utils import (
+    colab_check,
+    get_space,
+    get_upload_folder,
+    is_in_or_equal,
+)
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -198,8 +206,11 @@ def _workflow_from_bind(
     edges: list[tuple[str, str]] | None = None,
     name: str = "My Workflow",
 ) -> str:
+    # No coordinates: where a node sits is per-viewer state the canvas keeps in
+    # each visitor's localStorage, so a generated workflow just declares the
+    # graph and lets the canvas auto-arrange it on first open.
     nodes = []
-    for i, (fn_name, fn) in enumerate(bound.items()):
+    for fn_name, fn in bound.items():
         try:
             sig = inspect.signature(fn)
         except (ValueError, TypeError):
@@ -236,10 +247,7 @@ def _workflow_from_bind(
                 "fn": fn_name,
                 "kind": "transform",
                 "label": fn_name,
-                "x": 80 + i * 280,
-                "y": 150,
                 "width": 220,
-                "height": 80 + max(len(inputs), len(outputs)) * 36,
                 "inputs": inputs,
                 "outputs": outputs,
                 "data": {},
@@ -307,6 +315,50 @@ def _request_has_write_token(request: Request | None) -> bool:
     return False
 
 
+def _should_auto_open_browser() -> bool:
+    """Whether `launch()` should open a browser tab on the write-access link
+    without being asked, the way `jupyter notebook` opens its token URL.
+
+    Only done when a browser on this machine is plausibly the right place to
+    open it, so headless servers, containers, CI and remote kernels keep the
+    old print-the-link-only behavior. Set `GRADIO_WORKFLOW_INBROWSER=false` to
+    opt out, or pass `inbrowser=` explicitly to bypass this entirely.
+    """
+    env = os.getenv("GRADIO_WORKFLOW_INBROWSER", "").strip().lower()
+    if env in ("0", "false", "no", "off"):
+        return False
+    if env in ("1", "true", "yes", "on"):
+        return True
+    if get_space() is not None:
+        # No write token to hand out, and no browser on the Space's container.
+        return False
+    if "PYTEST_CURRENT_TEST" in os.environ or os.getenv("CI", "").lower() in (
+        "1",
+        "true",
+    ):
+        return False
+    if colab_check():
+        # The kernel runs on Google's machine, so a tab would open there.
+        return False
+    if os.environ.get("BROWSER"):
+        # Explicitly configured (e.g. VS Code Remote forwards this back to the
+        # local machine), and `webbrowser` honors it first.
+        return True
+    if os.environ.get("SSH_CONNECTION") or os.environ.get("SSH_TTY"):
+        return False
+    if sys.platform.startswith("linux") and not (
+        os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+    ):
+        # Headless Linux: `webbrowser` may fall back to a terminal browser and
+        # take over the console the app is logging to.
+        return False
+    try:
+        webbrowser.get()
+    except webbrowser.Error:
+        return False
+    return True
+
+
 # Shared instance: whoami(cache=True) caches per token on the HfApi instance,
 # which matters because whoami-v2 is heavily rate-limited.
 _hf_api = HfApi()
@@ -363,9 +415,9 @@ def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
 
 
 def _save_tmp(result, ext: str) -> dict:
-    path = os.path.join(
-        tempfile.gettempdir(), f"hf_workflow_{os.urandom(8).hex()}.{ext}"
-    )
+    directory = get_upload_folder()
+    os.makedirs(directory, exist_ok=True)
+    path = os.path.join(directory, f"workflow_{os.urandom(8).hex()}.{ext}")
     if hasattr(result, "save"):
         result.save(path)
     else:
@@ -376,6 +428,28 @@ def _save_tmp(result, ext: str) -> dict:
 
 def _img_url(a) -> str:
     return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
+
+
+def _chat_image_url(a) -> str:
+    """Return an image reference a provider can actually resolve.
+
+    Chat completions send images by reference, and the provider — not this
+    process — is what dereferences them. A local path or a relative
+    `/gradio_api/file=` URL is meaningless there, so those are inlined as a
+    data URI. Absolute http(s) URLs are passed through, though note the
+    provider still has to be able to fetch them.
+    """
+    src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
+    if not isinstance(src, str) or not src:
+        return ""
+    if src.startswith(("data:", "http://", "https://")):
+        return src
+    src = src.removeprefix("/gradio_api/file=")
+    if not os.path.isfile(src) or not is_in_or_equal(src, get_upload_folder()):
+        return src
+    mime = mimetypes.guess_type(src)[0] or "image/png"
+    with open(src, "rb") as f:
+        return f"data:{mime};base64,{base64.b64encode(f.read()).decode()}"
 
 
 def _classify_error(e: Exception) -> dict:
@@ -493,17 +567,92 @@ def get_write_access(
     return "true" if has_write_access(request, token) else "false"
 
 
+def get_space_id(_data=None) -> str:
+    """Return this Space's repo id (`owner/name`) for the "Save to Space" button.
+    Empty locally — the button is hidden there anyway."""
+    return os.getenv("SPACE_ID") or ""
+
+
+def _workflow_key(workflow_file: str) -> str:
+    """A stable identity for this workflow, used by the canvas to key the
+    per-viewer layout and viewport it keeps in localStorage.
+
+    The workflow's *name* can't do that job: it is editable from the canvas, and
+    two unrelated workflows served from the same origin (same host and port, one
+    after the other) can share it — so one workflow's arrangement would be
+    applied to the other's nodes. What is needed is something stable across
+    restarts and across edits to the graph: on a Space the repo id, and locally
+    the graph file's path. The path is hashed rather than sent as-is so a
+    viewer's browser storage doesn't carry the author's directory layout.
+    """
+    space = os.getenv("SPACE_ID")
+    if space:
+        return f"space:{space}"
+    digest = hashlib.sha256(os.path.abspath(workflow_file).encode("utf-8")).hexdigest()
+    return f"file:{digest[:16]}"
+
+
 def get_oauth_available(_data=None) -> str:
-    """Whether OAuth sign-in is actually wired up. On a Space this requires
-    `hf_oauth: true` in the README metadata, which provisions OAUTH_CLIENT_ID
-    and causes the `/login/huggingface` route to be mounted (mirrors the gate
-    that adds the LoginButton in `__init__`). Without it, sign-in would 404, so
-    the frontend hides the login button and explains the fix on the read-only
-    badge. OAuth is not used locally (the write-token model is used instead)."""
+    """True on a Space with `hf_oauth: true` (i.e. OAUTH_CLIENT_ID is set)."""
     return (
         "true"
         if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
         else "false"
+    )
+
+
+WORKFLOW_OAUTH_SCOPES: dict[str, str] = {
+    "inference-api": "run nodes on the signed-in user's own inference quota",
+    "write-repos": "save the workflow back to this Space",
+}
+
+
+def _missing_workflow_oauth_scopes() -> dict[str, str]:
+    granted = set((os.getenv("OAUTH_SCOPES") or "").split())
+    return {
+        scope: why
+        for scope, why in WORKFLOW_OAUTH_SCOPES.items()
+        if scope not in granted
+    }
+
+
+def _warn_workflow_oauth_configuration() -> None:
+    if get_space() is None:
+        return
+    if not os.getenv("OAUTH_CLIENT_ID"):
+        warnings.warn(
+            "Workflow OAuth is not enabled for this Space. Add `hf_oauth: true` "
+            "to the README metadata so users can run workflows on their own "
+            "inference quota.",
+            UserWarning,
+            stacklevel=3,
+        )
+        return
+
+    missing = _missing_workflow_oauth_scopes()
+    if not missing:
+        return
+    detail = ", ".join(f"`{scope}` (to {why})" for scope, why in missing.items())
+    scopes = " and ".join(f"`{scope}`" for scope in missing)
+    warnings.warn(
+        f"Workflow OAuth is missing {detail}. Add {scopes} under "
+        "`hf_oauth_scopes` in the README metadata and redeploy.",
+        UserWarning,
+        stacklevel=3,
+    )
+
+
+def get_oauth_scopes(_data=None) -> str:
+    """Which of `WORKFLOW_OAUTH_SCOPES` the Space's OAuth app was granted, and
+    which are missing. Empty off-Spaces and when OAuth is disabled."""
+    if get_space() is None or not os.getenv("OAUTH_CLIENT_ID"):
+        return json.dumps({"granted": [], "missing": {}})
+    granted = (os.getenv("OAUTH_SCOPES") or "").split()
+    return json.dumps(
+        {
+            "granted": granted,
+            "missing": _missing_workflow_oauth_scopes(),
+        }
     )
 
 
@@ -587,6 +736,406 @@ def call_space(
         return _format_error(e)
 
 
+_INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
+    "text_to_image": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
+        ],
+    },
+    "text_to_speech": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Audio", "type": "audio", "output_index": 0}
+        ],
+    },
+    "text_to_video": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
+        ],
+    },
+    "image_to_image": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
+        ],
+    },
+    "image_to_video": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
+        ],
+    },
+    "text_generation": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    },
+    "summarization": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Summary", "type": "text", "output_index": 0}
+        ],
+    },
+    "translation": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+            {"id": "src_lang", "label": "Source Language", "type": "text"},
+            {"id": "tgt_lang", "label": "Target Language", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Translation", "type": "text", "output_index": 0}
+        ],
+    },
+    "fill_mask": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Result", "type": "json", "output_index": 0}
+        ],
+    },
+    "text_classification": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
+    },
+    "token_classification": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Entities", "type": "json", "output_index": 0}
+        ],
+    },
+    "zero_shot_classification": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+            {"id": "candidate_labels", "label": "Candidate Labels", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
+        ],
+    },
+    "sentence_similarity": {
+        "inputs": [
+            {"id": "sentence", "label": "Sentence", "type": "text"},
+            {"id": "other_sentences", "label": "Other Sentences", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
+        ],
+    },
+    "question_answering": {
+        "inputs": [
+            {"id": "question", "label": "Question", "type": "text"},
+            {"id": "context", "label": "Context", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
+        ],
+    },
+    "feature_extraction": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Embeddings", "type": "json", "output_index": 0}
+        ],
+    },
+    "image_classification": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
+    },
+    "object_detection": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
+        "outputs": [
+            {"id": "out_0", "label": "Detections", "type": "json", "output_index": 0}
+        ],
+    },
+    "image_segmentation": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
+        "outputs": [
+            {"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}
+        ],
+    },
+    "image_to_text": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    },
+    "automatic_speech_recognition": {
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    },
+    "audio_classification": {
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
+    },
+    "visual_question_answering": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "question", "label": "Question", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
+        ],
+    },
+    "document_question_answering": {
+        "inputs": [
+            {"id": "image", "label": "Document", "type": "image"},
+            {"id": "question", "label": "Question", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
+        ],
+    },
+    # Vision-language models are served as `conversational`, so they're called
+    # through chat completions rather than a task-specific endpoint. Port order
+    # matches the canvas's image-text-to-text template (image, then prompt).
+    "chat_completion": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "text", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    },
+}
+
+
+# Generous by default: vision-language models are asked to emit whole files
+# (an HTML page, a long transcription), and reasoning models spend part of the
+# budget before their first visible token — reasoning counts against this cap,
+# and a dense screenshot can cost thousands of tokens before any output.
+# Bounded by the canvas executor's 300s per-node timeout: at the ~100 tok/s
+# these models stream, a larger cap would be cut off mid-answer anyway.
+_CHAT_MAX_TOKENS = 16384
+
+
+_ENDPOINT_OUTPUT_EXT: dict[str, str] = {
+    "text_to_image": "png",
+    "image_to_image": "png",
+    "text_to_speech": "wav",
+    "text_to_video": "mp4",
+    "image_to_video": "mp4",
+}
+
+
+# Legacy pipeline tags (as sent by older saved workflows and the browser
+# executor) → InferenceClient endpoint names. depth-estimation is absent on
+# purpose: InferenceClient has no such method, so it keeps its raw-POST branch
+# in call_model. Unmapped tags fall through to the chat/raw-POST fallback.
+_PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
+    "text-generation": "text_generation",
+    "text2text-generation": "text_generation",
+    "conversational": "text_generation",
+    "summarization": "summarization",
+    "translation": "translation",
+    "fill-mask": "fill_mask",
+    "text-classification": "text_classification",
+    "token-classification": "token_classification",
+    "zero-shot-classification": "zero_shot_classification",
+    "sentence-similarity": "sentence_similarity",
+    "question-answering": "question_answering",
+    "feature-extraction": "feature_extraction",
+    "text-to-image": "text_to_image",
+    "text-to-speech": "text_to_speech",
+    "text-to-audio": "text_to_speech",
+    "text-to-video": "text_to_video",
+    "image-to-image": "image_to_image",
+    "image-to-video": "image_to_video",
+    "image-classification": "image_classification",
+    "object-detection": "object_detection",
+    "image-segmentation": "image_segmentation",
+    "image-to-text": "image_to_text",
+    "automatic-speech-recognition": "automatic_speech_recognition",
+    "audio-classification": "audio_classification",
+    "visual-question-answering": "visual_question_answering",
+    "document-question-answering": "document_question_answering",
+    # Not visual_question_answering: the Hub routes every image-text-to-text
+    # model as `conversational`, and no provider serves the VQA task at all,
+    # so a task-specific call fails for every model carrying this tag.
+    "image-text-to-text": "chat_completion",
+}
+
+
+# Client params that expect a list of strings; port values arrive as a single
+# string, split on the given pattern.
+_ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
+    "zero_shot_classification": {"candidate_labels": r"[\n,]"},
+    "sentence_similarity": {"other_sentences": r"\n"},
+}
+
+
+def get_model_endpoints(
+    _data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
+) -> str:
+    from huggingface_hub import InferenceClient
+
+    # Only advertise endpoints the installed huggingface_hub can actually run,
+    # so the UI never shapes a node around a method that would fail server-side.
+    endpoints = [
+        {"name": name, **schema}
+        for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
+        if getattr(InferenceClient, name, None) is not None
+    ]
+    return json.dumps(endpoints)
+
+
+def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
+    """Call client.<endpoint>(**kwargs) and serialize the result."""
+    fn = getattr(client, endpoint, None)
+    if fn is None:
+        import huggingface_hub
+
+        raise ValueError(
+            f"Task '{endpoint}' is not supported by the installed huggingface_hub "
+            f"version ({huggingface_hub.__version__}). Upgrade it with "
+            "`pip install -U huggingface_hub`."
+        )
+    schema_ids = [
+        p["id"] for p in _INFERENCE_ENDPOINT_SCHEMAS.get(endpoint, {}).get("inputs", [])
+    ]
+    clean: dict = {}
+    # Chat images are dereferenced by the provider, not locally, so they need a
+    # different reference than the task endpoints' server-side reads.
+    to_url = _chat_image_url if endpoint == "chat_completion" else _img_url
+    for k, v in kwargs.items():
+        if v is None or v == "":
+            continue
+        legacy = re.fullmatch(r"in_(\d+)", k)
+        if legacy and k not in schema_ids and int(legacy.group(1)) < len(schema_ids):
+            # positional port IDs from workflows saved before endpoint schemas
+            k = schema_ids[int(legacy.group(1))]
+        clean[k] = (
+            to_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
+        )
+    for key, sep in _ENDPOINT_LIST_KWARGS.get(endpoint, {}).items():
+        if isinstance(clean.get(key), str):
+            clean[key] = [s.strip() for s in re.split(sep, clean[key]) if s.strip()]
+    if endpoint == "zero_shot_classification" and not clean.get("candidate_labels"):
+        # without labels, fall back to scoring with the model's own label set
+        return _dispatch_model_endpoint(
+            client, "text_classification", {"text": clean.get("text", "")}
+        )
+    if endpoint == "chat_completion":
+        content = []
+        if clean.get("text"):
+            content.append({"type": "text", "text": clean["text"]})
+        image_url = _chat_image_url(clean.get("image"))
+        if image_url:
+            content.append({"type": "image_url", "image_url": {"url": image_url}})
+        if not content:
+            raise ValueError("Connect a prompt or an image to this model.")
+        # Streamed, not buffered: the router's gateway times out a non-streaming
+        # request at ~120s, which a vision model writing a whole file routinely
+        # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
+        # so the request is bounded by the model, not by an idle proxy.
+        parts: list[str] = []
+        reasoned = 0
+        finish_reason = None
+        for chunk in client.chat_completion(
+            [{"role": "user", "content": content}],
+            max_tokens=_CHAT_MAX_TOKENS,
+            stream=True,
+        ):
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            delta = getattr(choice, "delta", None)
+            if delta is not None:
+                if delta.content:
+                    parts.append(delta.content)
+                reasoned += len(getattr(delta, "reasoning_content", None) or "")
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+        text = "".join(parts).strip()
+        if not text:
+            model_name = getattr(client, "model", None) or "The model"
+            if finish_reason == "length":
+                # Reasoning is billed against max_tokens, so a model can hit the
+                # cap while still thinking and return no visible answer at all.
+                raise ValueError(
+                    f"{model_name} hit the {_CHAT_MAX_TOKENS}-token limit "
+                    f"({reasoned} characters of reasoning) before producing an "
+                    "answer. Simplify the prompt or use a smaller image, or "
+                    "raise gradio.workflow._CHAT_MAX_TOKENS."
+                )
+            raise ValueError(
+                f"{model_name} returned no text (finish_reason={finish_reason})."
+            )
+        return json.dumps([text])
+    if endpoint == "text_generation":
+        clean.setdefault("max_new_tokens", 512)
+        try:
+            result = fn(**clean)
+        except Exception as inner:
+            msg = str(inner).lower()
+            if "not supported" in msg and "conversational" in msg:
+                r = client.chat_completion(
+                    [{"role": "user", "content": clean.get("prompt", "")}],
+                    max_tokens=512,
+                )
+                result = r.choices[0].message.content
+            else:
+                raise
+    else:
+        result = fn(**clean)
+    ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
+    if ext:
+        return json.dumps([_save_tmp(result, ext)])
+    if isinstance(result, list) and result and hasattr(result[0], "answer"):
+        # question-answering-style outputs: surface the top answer
+        result = result[0]
+    for attr in (
+        "summary_text",
+        "translation_text",
+        "generated_text",
+        "text",
+        "answer",
+    ):
+        if hasattr(result, attr):
+            return json.dumps([getattr(result, attr)])
+    if isinstance(result, list):
+
+        def _item(r):
+            if hasattr(r, "__dict__"):
+                return {k: v for k, v in vars(r).items() if not k.startswith("_")}
+            return r
+
+        return json.dumps(
+            [[_item(r) for r in result]],
+            default=lambda o: vars(o) if hasattr(o, "__dict__") else str(o),
+        )
+    if hasattr(result, "tolist"):
+        return json.dumps([result.tolist()])
+    return json.dumps(
+        [result if isinstance(result, (str, int, float, bool)) else str(result)]
+    )
+
+
 def call_model(
     data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
 ) -> str:
@@ -611,140 +1160,14 @@ def call_model(
         provider = data[4] if len(data) > 4 and data[4] else "auto"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
+        if isinstance(args, dict):
+            endpoint = pipeline_tag or ""
+            return _dispatch_model_endpoint(client, endpoint, args)
+
         task = pipeline_tag or "text-generation"
         a0 = args[0] if args else ""
         a1 = args[1] if len(args) > 1 else ""
 
-        if task in (
-            "text-generation",
-            "text2text-generation",
-            "conversational",
-        ):
-            try:
-                result = client.text_generation(a0, max_new_tokens=512)
-            except Exception as inner:
-                msg = str(inner).lower()
-                if "not supported" in msg and "conversational" in msg:
-                    r = client.chat_completion(
-                        [{"role": "user", "content": a0}], max_tokens=512
-                    )
-                    result = r.choices[0].message.content
-                else:
-                    raise
-            return json.dumps([result])
-        if task == "summarization":
-            return json.dumps([client.summarization(a0).summary_text])
-        if task == "translation":
-            return json.dumps([client.translation(a0).translation_text])
-        if task in ("text-classification", "zero-shot-classification"):
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.text_classification(a0)
-                    ]
-                ]
-            )
-        if task == "token-classification":
-            return json.dumps(
-                [
-                    [
-                        {
-                            "entity_group": r.entity_group,
-                            "word": r.word,
-                            "score": r.score,
-                        }
-                        for r in client.token_classification(a0)
-                    ]
-                ]
-            )
-        if task == "fill-mask":
-            return json.dumps(
-                [
-                    [
-                        {
-                            "token_str": r.token_str,
-                            "score": r.score,
-                            "sequence": r.sequence,
-                        }
-                        for r in client.fill_mask(a0)
-                    ]
-                ]
-            )
-        if task == "question-answering":
-            qa_result = client.question_answering(question=a0, context=a1)
-            qa_answer = (
-                qa_result[0].answer if isinstance(qa_result, list) else qa_result.answer
-            )  # type: ignore[union-attr]
-            return json.dumps([qa_answer])
-        if task == "feature-extraction":
-            r = client.feature_extraction(a0)
-            return json.dumps([r.tolist() if hasattr(r, "tolist") else r])
-        if task == "sentence-similarity":
-            return json.dumps(
-                [client.sentence_similarity(a0, a1.split("\n") if a1 else [])]
-            )
-        if task == "text-to-image":
-            return json.dumps([_save_tmp(client.text_to_image(a0), "png")])
-        if task in ("text-to-speech", "text-to-audio"):
-            return json.dumps([_save_tmp(client.text_to_speech(a0), "wav")])
-        if task == "text-to-video":
-            return json.dumps([_save_tmp(client.text_to_video(a0), "mp4")])
-        if task == "image-classification":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.image_classification(_img_url(a0))
-                    ]
-                ]
-            )
-        if task == "object-detection":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score, "box": r.box}
-                        for r in client.object_detection(_img_url(a0))
-                    ]
-                ]
-            )
-        if task == "image-segmentation":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.image_segmentation(_img_url(a0))
-                    ]
-                ]
-            )
-        if task == "image-to-text":
-            r = client.image_to_text(_img_url(a0))
-            return json.dumps(
-                [r.generated_text if hasattr(r, "generated_text") else str(r)]
-            )
-        if task == "image-to-image":
-            return json.dumps(
-                [_save_tmp(client.image_to_image(_img_url(a0), prompt=a1), "png")]
-            )
-        if task == "automatic-speech-recognition":
-            r = client.automatic_speech_recognition(_img_url(a0))
-            return json.dumps([r.text if hasattr(r, "text") else str(r)])
-        if task == "audio-classification":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.audio_classification(_img_url(a0))
-                    ]
-                ]
-            )
-        if task in (
-            "visual-question-answering",
-            "document-question-answering",
-            "image-text-to-text",
-        ):
-            r = client.visual_question_answering(_img_url(a0), a1)
-            return json.dumps([r[0].answer if r else ""])
         if task == "depth-estimation":
             headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
             resp = httpx.post(
@@ -760,6 +1183,17 @@ def call_model(
 
             depth_img = _Image.open(_io.BytesIO(resp.content))
             return json.dumps([_save_tmp(depth_img, "png")])
+
+        endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
+        if endpoint:
+            # Positional args from legacy saved workflows and the browser
+            # executor map onto the endpoint schema's input order.
+            schema_inputs = _INFERENCE_ENDPOINT_SCHEMAS[endpoint]["inputs"]
+            kwargs = {
+                schema_inputs[i]["id"]: val
+                for i, val in enumerate(args[: len(schema_inputs)])
+            }
+            return _dispatch_model_endpoint(client, endpoint, kwargs)
 
         # Fallback for tasks not handled above: chat_completion (works for most
         # text models across providers), then a raw POST as last resort.
@@ -1247,15 +1681,42 @@ class Workflow(Blocks):
         Workflow(graph="workflow.json", bind={"summarize": summarize}).launch()
         ```
 
-    The graph file defines nodes and edges:
+    The graph file uses schema version 2 and defines references, operators,
+    subjects, and edges:
         ```json
         {
-          "nodes": [
-            {"id": "sum", "kind": "transform", "source": "fn", "fn": "summarize", ...},
-            {"id": "img", "kind": "transform", "source": "space", "space_id": "black-forest-labs/FLUX.1-schnell", ...}
+          "schema_version": "2",
+          "references": [
+            {
+              "id": "prompt", "role": "reference", "label": "Prompt",
+              "asset_type": "text",
+              "inputs": [{"id": "in", "label": "Text", "type": "text"}],
+              "outputs": [{"id": "out", "label": "Text", "type": "text"}],
+              "data": {"out": "A sunset over the ocean"}
+            }
+          ],
+          "operators": [
+            {
+              "id": "image", "role": "operator", "kind": "model",
+              "model_id": "black-forest-labs/FLUX.1-schnell",
+              "pipeline_tag": "text-to-image", "endpoint": "text_to_image",
+              "inputs": [{"id": "prompt", "label": "Prompt", "type": "text", "required": true}],
+              "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
+              "data": {}
+            }
+          ],
+          "subjects": [
+            {
+              "id": "result", "role": "subject", "label": "Image",
+              "asset_type": "image",
+              "inputs": [{"id": "in", "label": "Image", "type": "image"}],
+              "outputs": [{"id": "out", "label": "Image", "type": "image"}],
+              "data": {}
+            }
           ],
           "edges": [
-            {"id": "e1", "from_node_id": "sum", "from_port_id": "out_0", "to_node_id": "img", "to_port_id": "in_0", "type": "text"}
+            {"id": "e1", "from_node_id": "prompt", "from_port_id": "out", "to_node_id": "image", "to_port_id": "prompt", "type": "text"},
+            {"id": "e2", "from_node_id": "image", "from_port_id": "out_0", "to_node_id": "result", "to_port_id": "in", "type": "image"}
           ]
         }
         ```
@@ -1317,6 +1778,7 @@ class Workflow(Blocks):
             "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
             UserWarning,
         )
+        _warn_workflow_oauth_configuration()
 
         super().__init__(mode="workflow")
         self._build()
@@ -1488,10 +1950,16 @@ class Workflow(Blocks):
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
 
+        def get_workflow_key(_data=None) -> str:
+            return _workflow_key(workflow_file)
+
         server_functions = [
             get_token,
             get_write_access,
             get_oauth_available,
+            get_oauth_scopes,
+            get_space_id,
+            get_workflow_key,
             call_space,
             call_model,
             fetch_dataset,
@@ -1506,6 +1974,7 @@ class Workflow(Blocks):
             get_dataset_schema,
             list_bound_fns,
             get_workflow_api,
+            get_model_endpoints,
             save_workflow,
         ]
 
@@ -1589,8 +2058,10 @@ class Workflow(Blocks):
         to `allowed_paths` so those URLs resolve.
 
         Locally, editing requires the write token: the full edit link is printed
-        after the standard launch output (and used for `inbrowser`). Plain
-        local/share URLs open the app read-only."""
+        after the standard launch output, and — unless `inbrowser` is passed
+        explicitly — opened in a browser tab automatically (like `jupyter
+        notebook` does with its token URL). Plain local/share URLs open the app
+        read-only. See `_should_auto_open_browser` for when the tab is opened."""
         if args:
             names = list(inspect.signature(super().launch).parameters)
             kwargs.update(dict(zip(names, args)))
@@ -1607,7 +2078,15 @@ class Workflow(Blocks):
         # replicate Blocks.launch()'s blocking behavior ourselves below.
         prevent_thread_lock = bool(kwargs.get("prevent_thread_lock", False))
         debug = bool(kwargs.get("debug", False))
-        inbrowser = bool(kwargs.get("inbrowser", False))
+        # `inbrowser` defaults to opening the write-access link, but only when
+        # the caller didn't say either way — an explicit `inbrowser=False` still
+        # means "don't open anything".
+        explicit_inbrowser = kwargs.get("inbrowser")
+        inbrowser = (
+            bool(explicit_inbrowser)
+            if explicit_inbrowser is not None
+            else _should_auto_open_browser()
+        )
         kwargs["inbrowser"] = False
 
         real_block_thread = self.block_thread
@@ -1623,8 +2102,9 @@ class Workflow(Blocks):
             sep = "&" if "?" in local_url else "?"
             write_url = f"{local_url}{sep}write_token={WRITE_TOKEN}"
             if not kwargs.get("quiet", False):
+                opening = " — opening it in your browser" if inbrowser else ""
                 print(
-                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see): {write_url}"
+                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see){opening}: {write_url}"
                 )
         if inbrowser:
             webbrowser.open(

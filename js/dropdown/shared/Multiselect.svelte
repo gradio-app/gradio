@@ -228,8 +228,11 @@
 					{#if !disabled}
 						<div
 							class="token-remove"
-							on:click|preventDefault={() => remove_selected_choice(s)}
-							on:keydown={(event) => {
+							onclick={(event) => {
+								event.preventDefault();
+								remove_selected_choice(s);
+							}}
+							onkeydown={(event) => {
 								if (event.key === "Enter") {
 									remove_selected_choice(s);
 								}
@@ -261,15 +264,15 @@
 					autocomplete="off"
 					bind:value={input_text}
 					bind:this={filter_input}
-					on:keydown={handle_key_down}
-					on:keyup={(e) => {
+					onkeydown={handle_key_down}
+					onkeyup={(e) => {
 						gradio.dispatch("key_up", {
 							key: e.key,
 							input_value: input_text
 						});
 					}}
-					on:blur={handle_blur}
-					on:focus={handle_focus}
+					onblur={handle_blur}
+					onfocus={handle_focus}
 					readonly={!gradio.props.filterable}
 				/>
 
@@ -280,8 +283,8 @@
 							tabindex="0"
 							class="token-remove remove-all"
 							title={gradio.i18n("common.clear")}
-							on:click={remove_all}
-							on:keydown={(event) => {
+							onclick={remove_all}
+							onkeydown={(event) => {
 								if (event.key === "Enter") {
 									remove_all(event);
 								}

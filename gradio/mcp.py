@@ -1270,6 +1270,13 @@ class GradioMCPServer:
                 for p in endpoint_info["parameters"]
             },
         }
+        required = [
+            p["parameter_name"]
+            for p in endpoint_info["parameters"]
+            if not p.get("parameter_has_default", False)
+        ]
+        if required:
+            schema["required"] = required
         return self.simplify_filedata_schema(schema)
 
     async def get_complete_schema(self, request) -> JSONResponse:

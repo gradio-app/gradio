@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
 	import { onMount, tick } from "svelte";
 	import { Gradio } from "@gradio/utils";

@@ -8,9 +8,17 @@ import {
 	removeNode,
 	removeEdge,
 	sanitize_for_save,
-	switch_endpoint
+	structural_signature,
+	switch_endpoint,
+	reconcileComponentRoles
 } from "./workflow-store";
-import type { OperatorNode, ReferenceNode, Workflow } from "./workflow-types";
+import type {
+	OperatorNode,
+	PortType,
+	ReferenceNode,
+	SubjectNode,
+	Workflow
+} from "./workflow-types";
 
 function resetWorkflow(): void {
 	workflow.set({
@@ -418,6 +426,216 @@ describe("switch_endpoint", () => {
 	});
 });
 
+describe("reconcileComponentRoles", () => {
+	function component(
+		id: string,
+		role: "reference" | "subject",
+		type: PortType = "image",
+		data: Record<string, unknown> = {}
+	): ReferenceNode | SubjectNode {
+		return {
+			id,
+			role,
+			label: id,
+			asset_type: type,
+			inputs: [{ id: "in", label: "in", type }],
+			outputs: [{ id: "out", label: "out", type }],
+			data: data as ReferenceNode["data"],
+			x: 0,
+			y: 0,
+			width: 220,
+			height: 160
+		} as ReferenceNode | SubjectNode;
+	}
+
+	function graph(
+		refs: (ReferenceNode | SubjectNode)[],
+		subs: (ReferenceNode | SubjectNode)[],
+		edges: { to: string; from?: string }[] = []
+	): Workflow {
+		return {
+			schema_version: "2",
+			name: "Test",
+			runtime: { default: "client" },
+			references: refs as ReferenceNode[],
+			operators: [],
+			subjects: subs as SubjectNode[],
+			edges: edges.map((e, i) => ({
+				id: `e${i}`,
+				from_node_id: e.from ?? "op",
+				from_port_id: "out",
+				to_node_id: e.to,
+				to_port_id: "in",
+				type: "image" as PortType
+			})),
+			view: { default: "canvas" }
+		};
+	}
+
+	test("a driven reference becomes a subject", () => {
+		const out = reconcileComponentRoles(
+			graph([component("a", "reference")], [], [{ to: "a" }])
+		);
+		expect(out.references).toHaveLength(0);
+		expect(out.subjects.map((n) => n.id)).toEqual(["a"]);
+		expect(out.subjects[0].role).toBe("subject");
+	});
+
+	test("an undriven subject reverts to a reference", () => {
+		const out = reconcileComponentRoles(graph([], [component("a", "subject")]));
+		expect(out.subjects).toHaveLength(0);
+		expect(out.references.map((n) => n.id)).toEqual(["a"]);
+		expect(out.references[0].role).toBe("reference");
+	});
+
+	test("an undriven reference and a driven subject are left alone", () => {
+		const out = reconcileComponentRoles(
+			graph(
+				[component("a", "reference")],
+				[component("b", "subject")],
+				[{ to: "b" }]
+			)
+		);
+		expect(out.references.map((n) => n.id)).toEqual(["a"]);
+		expect(out.subjects.map((n) => n.id)).toEqual(["b"]);
+	});
+
+	test("flipped nodes append, so existing output order is stable", () => {
+		// `subject_groups` in workflow_api.py fixes the API's output-tuple order
+		// from `subjects` order — a newly promoted node must not jump the queue.
+		const out = reconcileComponentRoles(
+			graph(
+				[component("promoted", "reference")],
+				[component("existing", "subject")],
+				[{ to: "promoted" }, { to: "existing" }]
+			)
+		);
+		expect(out.subjects.map((n) => n.id)).toEqual(["existing", "promoted"]);
+	});
+
+	test("is idempotent", () => {
+		const once = reconcileComponentRoles(
+			graph(
+				[component("a", "reference"), component("b", "reference")],
+				[component("c", "subject")],
+				[{ to: "a" }]
+			)
+		);
+		expect(reconcileComponentRoles(once)).toEqual(once);
+	});
+
+	test("a component with no input port can never be driven", () => {
+		const bare = component("a", "reference");
+		bare.inputs = [];
+		const out = reconcileComponentRoles(graph([bare], [], [{ to: "a" }]));
+		expect(out.references.map((n) => n.id)).toEqual(["a"]);
+	});
+
+	test("operators are never reassigned", () => {
+		const wf = graph([], []);
+		wf.operators = [
+			{
+				id: "op",
+				role: "operator",
+				kind: "fn",
+				label: "op",
+				fn: "op",
+				inputs: [{ id: "in", label: "x", type: "text" }],
+				outputs: [{ id: "out", label: "y", type: "text" }],
+				data: {},
+				x: 0,
+				y: 0,
+				width: 200,
+				height: 80
+			} as OperatorNode
+		];
+		wf.edges = [
+			{
+				id: "e",
+				from_node_id: "other",
+				from_port_id: "out",
+				to_node_id: "op",
+				to_port_id: "in",
+				type: "text"
+			}
+		];
+		const out = reconcileComponentRoles(wf);
+		expect(out.operators).toEqual(wf.operators);
+		expect(out.references).toHaveLength(0);
+		expect(out.subjects).toHaveLength(0);
+	});
+
+	test("promotion clears the stale literal, demotion reseeds defaults", () => {
+		const promoted = reconcileComponentRoles(
+			graph(
+				[component("a", "reference", "image", { out: { url: "/f/a.png" } })],
+				[],
+				[{ to: "a" }]
+			)
+		);
+		expect(promoted.subjects[0].data).toEqual({});
+
+		const demoted = reconcileComponentRoles(
+			graph([], [component("b", "subject", "text", { in: "computed" })])
+		);
+		// `text` has a zero value in PORT_DEFAULTS, so both ports get seeded.
+		expect(demoted.references[0].data).toEqual({ in: "", out: "" });
+	});
+
+	test("addEdge promotes, removeEdge demotes", () => {
+		resetWorkflow();
+		workflow.update((wf) => ({
+			...wf,
+			references: [component("a", "reference") as ReferenceNode]
+		}));
+		addEdge({
+			from_node_id: "op",
+			from_port_id: "out",
+			to_node_id: "a",
+			to_port_id: "in",
+			type: "image"
+		});
+		expect(get(workflow).subjects.map((n) => n.id)).toEqual(["a"]);
+
+		removeEdge(get(workflow).edges[0].id);
+		expect(get(workflow).references.map((n) => n.id)).toEqual(["a"]);
+		expect(get(workflow).subjects).toHaveLength(0);
+	});
+
+	test("removeNode demotes the components it was feeding", () => {
+		resetWorkflow();
+		const op = addOperator(
+			{
+				kind: "fn",
+				label: "op",
+				fn: "op",
+				inputs: [],
+				outputs: [{ id: "out", label: "y", type: "image" }],
+				width: 200,
+				height: 80
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+		workflow.update((wf) => ({
+			...wf,
+			subjects: [component("sink", "subject") as SubjectNode]
+		}));
+		addEdge({
+			from_node_id: op,
+			from_port_id: "out",
+			to_node_id: "sink",
+			to_port_id: "in",
+			type: "image"
+		});
+		expect(get(workflow).subjects.map((n) => n.id)).toEqual(["sink"]);
+
+		removeNode(op);
+		expect(get(workflow).subjects).toHaveLength(0);
+		expect(get(workflow).references.map((n) => n.id)).toEqual(["sink"]);
+	});
+});
+
 describe("sanitize_for_save", () => {
 	function wf(refs: ReferenceNode[] = []): Workflow {
 		return {
@@ -492,6 +710,43 @@ describe("sanitize_for_save", () => {
 		expect(result.references[2].data).toEqual({ in: true });
 	});
 
+	test("strips runtime endpoint catalogs from operators", () => {
+		const w = wf();
+		const endpoints = [
+			{
+				name: "text_to_image",
+				inputs: [{ id: "prompt", label: "Prompt", type: "text" as const }],
+				outputs: [{ id: "image", label: "Image", type: "image" as const }]
+			}
+		];
+		w.operators = [
+			{
+				id: "model",
+				role: "operator",
+				kind: "model",
+				label: "Model",
+				model_id: "org/model",
+				endpoint: "text_to_image",
+				endpoints,
+				inputs: endpoints[0].inputs,
+				outputs: endpoints[0].outputs,
+				data: {},
+				x: 0,
+				y: 0,
+				width: 220,
+				height: 90
+			}
+		];
+
+		const result = sanitize_for_save(w);
+		expect(result.operators[0]).not.toHaveProperty("endpoints");
+		expect(result.operators[0]).toMatchObject({
+			model_id: "org/model",
+			endpoint: "text_to_image"
+		});
+		expect(w.operators[0].endpoints).toEqual(endpoints);
+	});
+
 	test("does not mutate the input workflow", () => {
 		const original = wf([
 			refNode("a", { in: { name: "x", url: "blob:nope" } })
@@ -499,5 +754,97 @@ describe("sanitize_for_save", () => {
 		const snapshot = JSON.stringify(original);
 		sanitize_for_save(original);
 		expect(JSON.stringify(original)).toBe(snapshot);
+	});
+
+	test("strips per-viewer geometry so one arrangement isn't saved for everyone", () => {
+		const node = refNode("a", {});
+		node.manual_height = 300;
+		const saved = sanitize_for_save(wf([node])).references[0];
+		expect(saved).not.toHaveProperty("x");
+		expect(saved).not.toHaveProperty("y");
+		expect(saved).not.toHaveProperty("height");
+		expect(saved).not.toHaveProperty("manual_height");
+	});
+
+	test("keeps width, which comes from the node's source rather than the viewer", () => {
+		expect(sanitize_for_save(wf([refNode("a", {})])).references[0].width).toBe(
+			220
+		);
+	});
+});
+
+describe("structural_signature", () => {
+	function wf(refs: ReferenceNode[]): Workflow {
+		return {
+			schema_version: "2",
+			name: "Test",
+			runtime: { default: "client" },
+			references: refs,
+			operators: [],
+			subjects: [],
+			edges: [],
+			view: { default: "canvas" }
+		};
+	}
+
+	function refNode(id: string, geometry: Partial<ReferenceNode> = {}) {
+		return {
+			id,
+			role: "reference" as const,
+			label: id,
+			asset_type: "image" as const,
+			inputs: [{ id: "in", label: "in", type: "image" as const }],
+			outputs: [{ id: "out", label: "out", type: "image" as const }],
+			data: {},
+			x: 0,
+			y: 0,
+			width: 220,
+			height: 160,
+			...geometry
+		};
+	}
+
+	test("a node moving is not a change", () => {
+		expect(structural_signature(wf([refNode("a", { x: 500, y: 700 })]))).toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("a node being resized is not a change", () => {
+		expect(
+			structural_signature(
+				wf([refNode("a", { width: 480, height: 400, manual_height: 400 })])
+			)
+		).toBe(structural_signature(wf([refNode("a")])));
+	});
+
+	test("a node being added is a change", () => {
+		expect(structural_signature(wf([refNode("a"), refNode("b")]))).not.toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("a node label being renamed is a change", () => {
+		expect(structural_signature(wf([refNode("a", { label: "New" })]))).not.toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("an edge being added is a change", () => {
+		const before = wf([refNode("a"), refNode("b")]);
+		const after = {
+			...before,
+			edges: [
+				{
+					id: "e",
+					from_node_id: "a",
+					from_port_id: "out",
+					to_node_id: "b",
+					to_port_id: "in",
+					type: "image" as const
+				}
+			]
+		};
+		expect(structural_signature(before)).not.toBe(structural_signature(after));
 	});
 });

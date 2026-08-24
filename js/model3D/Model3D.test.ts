@@ -17,6 +17,7 @@ import {
 	download_file,
 	TEST_GLTF,
 	TEST_PLY,
+	TEST_PLY_MESH,
 	TEST_SPLAT
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
@@ -28,7 +29,7 @@ import Model3D from "./Index.svelte";
 // that can complete after component cleanup, causing unhandled rejections.
 // These are harmless race conditions in the 3D rendering libraries, not test bugs.
 function suppress_3d_library_errors(e: PromiseRejectionEvent): void {
-	const msg = e.reason?.message ?? "";
+	const msg = String(e.reason?.message ?? e.reason ?? "");
 	if (
 		msg.includes("addEventListener") ||
 		msg.includes("Viewer is disposed") ||
@@ -42,10 +43,6 @@ function suppress_3d_library_errors(e: PromiseRejectionEvent): void {
 
 beforeAll(() => {
 	window.addEventListener("unhandledrejection", suppress_3d_library_errors);
-});
-
-afterAll(() => {
-	window.removeEventListener("unhandledrejection", suppress_3d_library_errors);
 });
 
 const base_props = {
@@ -193,6 +190,20 @@ describe("Static mode", () => {
 		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
 	});
 
+	test("an upper-case .PLY has its header read too", async () => {
+		// Babylon lowercases the extension when it picks a loader, so a `.PLY`
+		// that skipped the header read here would reach the splat loader anyway.
+		const { queryByLabelText, getByTestId } = await render(Model3D, {
+			...base_props,
+			value: { ...TEST_PLY, path: TEST_PLY.path.replace(".ply", ".PLY") }
+		});
+
+		await waitFor(() => {
+			expect(getByTestId("model3d")).toBeInTheDocument();
+		});
+		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
+	});
+
 	test(".splat value skips undo button (Canvas3DGS branch)", async () => {
 		const { queryByLabelText, getByTestId } = await render(Model3D, {
 			...base_props,
@@ -203,6 +214,19 @@ describe("Static mode", () => {
 			expect(getByTestId("model3d")).toBeInTheDocument();
 		});
 		expect(queryByLabelText("Undo")).not.toBeInTheDocument();
+	});
+
+	test(".ply mesh value shows undo button (Canvas3D branch)", async () => {
+		const { getByLabelText } = await render(Model3D, {
+			...base_props,
+			value: TEST_PLY_MESH
+		});
+
+		// A .ply is only a Gaussian splat if its header says so; a triangle mesh
+		// has to go to Babylon, which gsplat cannot render.
+		await waitFor(() => {
+			expect(getByLabelText("Undo")).toBeInTheDocument();
+		});
 	});
 
 	test(".gltf value shows undo button (Canvas3D branch)", async () => {

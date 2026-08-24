@@ -17,7 +17,7 @@ import warnings
 import weakref
 import webbrowser
 from collections import defaultdict
-from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
+from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -35,6 +35,7 @@ from gradio import (
     analytics,
     components,
     networking,
+    oauth,
     processing_utils,
     queueing,
     utils,
@@ -71,6 +72,7 @@ from gradio.exceptions import (
     Error,
     InvalidApiNameError,
     InvalidComponentError,
+    ServerFailedToStartError,
     ShareCertificateWriteError,
 )
 from gradio.helpers import create_tracker, skip, special_args
@@ -641,6 +643,15 @@ def _find_free_port(host: str, start: int, try_count: int = 100) -> int:
     raise OSError(f"Cannot find empty port in range: {start}-{start + try_count - 1}.")
 
 
+def _port_is_free(host: str, port: int) -> bool:
+    """Whether *port* can be bound, checked the same way as `_find_free_port`."""
+    try:
+        _find_free_port(host, start=port, try_count=1)
+    except OSError:
+        return False
+    return True
+
+
 class BlocksConfig:
     def __init__(self, root_block: Blocks):
         self._id: int = 0
@@ -648,6 +659,7 @@ class BlocksConfig:
         self.blocks: dict[int, Component | Block] = {}
         self.fns: dict[int, BlockFunction] = {}
         self.fn_id: int = 0
+        self.renderables: list[Renderable] = root_block.renderables
 
     def set_event_trigger(
         self,
@@ -1000,6 +1012,7 @@ class BlocksConfig:
         new.blocks = copy.copy(self.blocks)
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
+        new.renderables = copy.copy(self.renderables)
         return new
 
     def attach_load_events(self, rendered_in: Renderable | None = None):
@@ -1112,6 +1125,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.custom_mount_path: str | None = None
         self.pwa = False
         self.mcp_server = False
+        self.run_history = True
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1472,7 +1486,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def render(self):
         root_context = get_blocks_context()
-        if root_context is not None and Context.root_block is not None:
+        if root_context is not None:
+            root_block = root_context.root_block
             if self._id in root_context.blocks:
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
@@ -1486,7 +1501,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             for block in self.blocks.values():
-                block.page = Context.root_block.current_page
+                block.page = root_block.current_page
             root_context.blocks.update(self.blocks)
             dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
@@ -1495,13 +1510,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
-                dependency.page = Context.root_block.current_page
+                dependency.page = root_block.current_page
                 dependency._id += dependency_offset
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
-                for target in dependency.targets:
-                    if target[0] == self._id:
-                        target = (Context.root_block._id, target[1])
+                dependency.targets = [
+                    (root_block._id, event_name)
+                    if target_id == self._id
+                    else (target_id, event_name)
+                    for target_id, event_name in dependency.targets
+                ]
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -1523,9 +1541,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dependency.cancels = get_cancelled_fn_indices(updated_cancels)
                 root_context.fns[dependency._id] = dependency
             root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
-            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
-            Context.root_block.proxy_urls.update(self.proxy_urls)
-            Context.root_block.extra_startup_events.extend(self.extra_startup_events)
+            root_block.temp_file_sets.extend(self.temp_file_sets)
+            root_block.proxy_urls.update(self.proxy_urls)
+            root_block.extra_startup_events.extend(self.extra_startup_events)
 
         render_context = get_render_context()
         if render_context is not None:
@@ -1605,6 +1623,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         event_data: EventData | None = None,
         in_event_listener: bool = False,
         state: SessionState | None = None,
+        oauth_token: oauth.OAuthToken | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1655,6 +1674,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 request,  # type: ignore
                 event_data,  # type: ignore
                 component_props=component_props,
+                token=oauth_token,
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -2127,7 +2147,14 @@ Received inputs:
                 and not utils.is_prop_update(data[i])
             ):
                 if final:
-                    stream_run[output_id].end_stream()
+                    # Nothing to finalize if this output never opened a stream —
+                    # the session may have been dropped on disconnect, or every
+                    # chunk before this one may have been a prop update. Falling
+                    # through would leave `first_chunk` true and build a fresh
+                    # stream that nothing ever ends.
+                    if (existing := stream_run.get(output_id)) is None:
+                        continue
+                    existing.end_stream()
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
@@ -2209,6 +2236,7 @@ Received inputs:
         simple_format: bool = False,
         explicit_call: bool = False,
         root_path: str | None = None,
+        oauth_token: oauth.OAuthToken | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2272,6 +2300,7 @@ Received inputs:
                     event_data,
                     in_event_listener,
                     state,
+                    oauth_token,
                 )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
@@ -2307,6 +2336,7 @@ Received inputs:
                         event_data,
                         in_event_listener,
                         state,
+                        oauth_token,
                     )
                 manual_cache_used = used_manual_cache()
 
@@ -2421,6 +2451,7 @@ Received inputs:
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "footer_links": getattr(self, "footer_links", []),
+            "run_history": getattr(self, "run_history", True),
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": getattr(self, "stylesheets", []),
@@ -2647,8 +2678,11 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+        footer_links: list[
+            Literal["api", "gradio", "settings", "runs"] | dict[str, str]
+        ]
         | None = None,
+        run_history: bool | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2657,7 +2691,8 @@ Received inputs:
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         share_server_tls_certificate: str | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
@@ -2700,7 +2735,8 @@ Received inputs:
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
-            footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
+            footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+            run_history: If True, each user's browser saves the inputs and outputs of their own calls to this app, which they can review and reload from the run history page at /gradio_api/runs. The runs are kept in that browser's local storage, are scoped to the logged-in user if the app uses `auth`, and are never sent to the server. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
@@ -2804,9 +2840,18 @@ Received inputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-        self.footer_links = (
-            footer_links if footer_links is not None else ["api", "gradio", "settings"]
+        self.run_history = (
+            os.environ.get("GRADIO_RUN_HISTORY", "True").lower() == "true"
+            if run_history is None
+            else run_history
         )
+        self.footer_links = (
+            footer_links
+            if footer_links is not None
+            else ["api", "gradio", "settings", "runs"]
+        )
+        if not self.run_history:
+            self.footer_links = [link for link in self.footer_links if link != "runs"]
 
         if allowed_paths:
             self.allowed_paths = allowed_paths
@@ -2858,8 +2903,19 @@ Received inputs:
             env_val = os.environ.get("GRADIO_NUM_WORKERS")
             if env_val is not None:
                 resolved_num_workers = int(env_val)
+        static_worker_count = (
+            resolved_num_workers
+            if resolved_num_workers is not None
+            and resolved_num_workers >= 1
+            and self.auth is None
+            and auth_dependency is None
+            else 0
+        )
 
         self._node_is_proxy = False
+        # Set when SSR was requested but Node couldn't serve, and we fell back to
+        # serving the app from Python without SSR.
+        self._ssr_degraded = False
         static_worker_ports: list[int] = []
         # Stashed kwargs for the deferred production Node proxy start.
         # When set, the user-facing Node front proxy is started after
@@ -2893,23 +2949,32 @@ Received inputs:
                 # 502 from the proxy (observed on HF Spaces after #13366).
                 from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
 
-                user_port = server_port or int(
-                    os.getenv("GRADIO_SERVER_PORT", str(INITIAL_PORT_VALUE))
-                )
                 python_host = server_name or os.getenv(
                     "GRADIO_SERVER_NAME", "127.0.0.1"
+                )
+
+                user_port = node_port
+                if user_port is None:
+                    env_node_port = os.getenv("GRADIO_NODE_SERVER_PORT")
+                    if env_node_port is not None:
+                        user_port = int(env_node_port)
+                if user_port is None and server_port is not None:
+                    user_port = server_port
+
+                preferred_start = (
+                    user_port if user_port is not None else INITIAL_PORT_VALUE
                 )
 
                 # Reserve a free internal port for Python; Node will proxy
                 # non-static traffic here once it starts.
                 python_internal_port = _find_free_port(
-                    python_host, start=user_port + 1, try_count=TRY_NUM_PORTS
+                    python_host, start=preferred_start + 1, try_count=TRY_NUM_PORTS
                 )
 
-                if resolved_num_workers is not None and resolved_num_workers >= 1:
+                if static_worker_count:
                     worker_start = python_internal_port + 1
                     static_worker_ports = [
-                        worker_start + i for i in range(resolved_num_workers)
+                        worker_start + i for i in range(static_worker_count)
                     ]
 
                 # Commit Python to the internal port now (so it can bind
@@ -2921,7 +2986,7 @@ Received inputs:
                 server_port = python_internal_port
                 _pending_node_proxy_kwargs = {
                     "server_name": node_server_name or python_host,
-                    "server_port": node_port or user_port,
+                    "server_port": user_port,
                     "node_path": self.node_path,
                     "python_port": python_internal_port,
                     "python_host": python_host,
@@ -3004,7 +3069,7 @@ Received inputs:
             self._queue.set_server_app(self.server_app)
 
             # Static worker pool for offloading file serving / uploads
-            if resolved_num_workers is not None and resolved_num_workers >= 1:
+            if static_worker_count:
                 from gradio.routes import (
                     BUILD_PATH_LIB,
                     STATIC_PATH_LIB,
@@ -3029,10 +3094,10 @@ Received inputs:
                     if self.node_port is not None:
                         worker_start = max(worker_start, self.node_port + 1)
                     worker_ports = [
-                        worker_start + i for i in range(resolved_num_workers)
+                        worker_start + i for i in range(static_worker_count)
                     ]
                 self._static_worker_pool = StaticWorkerPool(
-                    num_workers=resolved_num_workers,
+                    num_workers=static_worker_count,
                     config=static_config,
                     ports=worker_ports,
                 )
@@ -3040,7 +3105,7 @@ Received inputs:
 
                 if not quiet:
                     print(
-                        f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"
+                        f"* Static file workers: {static_worker_count} processes on ports {self._static_worker_pool.ports}"
                     )
 
             # Now that Python (and any static workers) are listening,
@@ -3050,7 +3115,10 @@ Received inputs:
             # request resolved to a 502 from an unreachable upstream.
             if _pending_node_proxy_kwargs is not None:
                 self.node_server_name, self.node_process, self.node_port = (
-                    start_node_server(**_pending_node_proxy_kwargs)
+                    start_node_server(
+                        **_pending_node_proxy_kwargs,
+                        on_shutdown=self._end_streaming_responses,
+                    )
                 )
                 if self.node_process is not None and self.node_port is not None:
                     self._node_is_proxy = True
@@ -3063,20 +3131,40 @@ Received inputs:
                     self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
                     if self.mcp_server_obj:
                         self.mcp_server_obj._local_url = self.local_url
-                elif not quiet:
-                    warnings.warn(
-                        "Failed to start Node front proxy for SSR; Gradio is "
-                        f"reachable directly on the internal Python port "
-                        f":{self.server_port}. Check the Node installation "
-                        "or set GRADIO_NODE_PATH."
+                else:
+                    # Python is listening on an internal port that only Node was
+                    # ever going to route to, so with Node gone the app is
+                    # unreachable at the address the user (or the Space's health
+                    # check) is watching. Move Python onto the user-facing port and
+                    # serve without SSR: worse than SSR, far better than dead.
+                    self._ssr_degraded = self._serve_without_node_proxy(
+                        user_port=_pending_node_proxy_kwargs["server_port"],
+                        ssl_keyfile=ssl_keyfile,
+                        ssl_certfile=ssl_certfile,
+                        ssl_keyfile_password=ssl_keyfile_password,
                     )
+                    if not quiet:
+                        if self._ssr_degraded:
+                            warnings.warn(
+                                "Failed to start Node front proxy for SSR; serving "
+                                f"without SSR on {self.local_url} "
+                                "(see the Node server output above)."
+                            )
+                        else:
+                            warnings.warn(
+                                "Failed to start Node front proxy for SSR, and the "
+                                f"user-facing port could not be taken over; Gradio is "
+                                f"reachable only on the internal Python port "
+                                f":{self.server_port}. See the Node server output "
+                                "above, or set ssr_mode=False."
+                            )
 
             if not self.is_colab and not quiet:
                 if self._node_is_proxy and self.node_port is not None:
                     print(
                         f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.node_port}, with SSR ⚡ (Node proxy -> Python :{self.server_port})"
                     )
-                elif self.ssr_mode:
+                elif self.ssr_mode and not self._ssr_degraded:
                     print(
                         f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.server_port}, with SSR ⚡ (dev mode)"
                     )
@@ -3351,6 +3439,94 @@ Received inputs:
             data = {"integration": analytics_integration}
             analytics.integration_analytics(data)
 
+    def _serve_without_node_proxy(
+        self,
+        user_port: int | None,
+        ssl_keyfile: str | None = None,
+        ssl_certfile: str | None = None,
+        ssl_keyfile_password: str | None = None,
+    ) -> bool:
+        """Moves the running Python server from its internal port onto the
+        user-facing port, for when the Node front proxy failed to start.
+
+        In proxy mode Python deliberately binds an internal port and lets Node own
+        the user-facing one. If Node never comes up, that leaves the app answering
+        on a port nobody is asking about — on Spaces the container is judged by the
+        user-facing port, so the app is reported as crashed even though Python is
+        healthy. Rebinding there serves the app client-side rendered instead.
+
+        Returns whether the move happened; the existing server keeps running if the
+        user-facing port could not be taken over.
+        """
+        from gradio import http_server
+        from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
+
+        internal_port = self.server_port
+        old_server = self.server
+        bind_host = "127.0.0.1" if self.server_name == "0.0.0.0" else self.server_name
+
+        def serve_on(port: int | None):
+            return http_server.start_server(
+                app=self.app,
+                server_name=self.server_name,
+                server_port=port,
+                ssl_keyfile=ssl_keyfile,
+                ssl_certfile=ssl_certfile,
+                ssl_keyfile_password=ssl_keyfile_password,
+            )
+
+        # Check the port before giving up the one we have. The two servers can't
+        # overlap: they share an app, so the second would run its lifespan a second
+        # time and the first's shutdown would delete the app's cache files from
+        # under it.
+        if user_port is not None:
+            if not _port_is_free(bind_host, user_port):
+                return False
+            target_port: int | None = user_port
+        else:
+            try:
+                target_port = _find_free_port(
+                    bind_host, start=INITIAL_PORT_VALUE, try_count=TRY_NUM_PORTS
+                )
+            except OSError:
+                return False
+
+        if old_server is not None:
+            old_server.close()
+
+        try:
+            server_name, server_port, local_url, server = serve_on(target_port)
+        except (OSError, ServerFailedToStartError):
+            # Lost the race for the user-facing port after releasing ours, so go
+            # back to the internal one rather than leave nothing listening.
+            server_name, server_port, local_url, server = serve_on(internal_port)
+            self.server = server
+            return False
+
+        self.server_name = server_name
+        self.server_port = server_port
+        self.local_url = local_url
+        self.local_api_url = f"{local_url.rstrip('/')}{API_PREFIX}/"
+        self.server = server
+        self.protocol = (
+            "https" if local_url.startswith("https") or self.is_colab else "http"
+        )
+        if self.mcp_server_obj:
+            self.mcp_server_obj._local_url = local_url
+        return True
+
+    def _end_streaming_responses(self) -> None:
+        """
+        Ends the session heartbeat streams. The Node front proxy waits for the
+        connections it is serving before exiting, and these are those connections.
+
+        This runs on the main thread while the event loop runs in uvicorn's, so
+        the set() only lands on the loop's next wake; uvicorn's main loop ticks
+        every 100ms, which is what keeps shutdown prompt. `server_app` rather
+        than `app`, because `queue()` rebinds `app` but not the served instance.
+        """
+        self.server_app.stop_event.set()
+
     def close(self, verbose: bool = True) -> None:
         """
         Closes the Interface that was launched and frees the port.
@@ -3427,6 +3603,9 @@ Received inputs:
                     Literal["public", "private", "undocumented"], fn.api_visibility
                 ),
             }
+            oauth_token_kind = utils.oauth_token_requirement(fn.fn)
+            if oauth_token_kind is not None:
+                dependency_info["oauth_token"] = oauth_token_kind
             fn_info = utils.get_function_params(fn.fn)
             if fn.api_description is False:
                 dependency_info["description"] = ""

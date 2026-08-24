@@ -195,6 +195,128 @@ describe("Props: sources", () => {
 		await fireEvent.click(getByLabelText("Upload file"));
 		expect(getByLabelText("image.drop_to_upload")).toBeVisible();
 	});
+
+	test("webcam video stays inline so capture controls remain visible on iOS", async () => {
+		const { getByTestId } = await render(Image, {
+			...default_props,
+			sources: ["webcam"]
+		});
+
+		const video = getByTestId("webcam-video") as HTMLVideoElement;
+		expect(video.playsInline).toBe(true);
+	});
+
+	test("camera source selector stays within a narrow Image", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const play_descriptor = Object.getOwnPropertyDescriptor(
+			HTMLMediaElement.prototype,
+			"play"
+		);
+		const root_style = document.documentElement.style;
+		const size_4 = root_style.getPropertyValue("--size-4");
+		const size_52 = root_style.getPropertyValue("--size-52");
+
+		try {
+			root_style.setProperty("--size-4", "1rem");
+			root_style.setProperty("--size-52", "13rem");
+			const stream = new MediaStream();
+			Object.defineProperty(stream, "getTracks", {
+				value: () => [
+					{
+						getSettings: () => ({ deviceId: "front-camera" }),
+						stop: () => {}
+					}
+				]
+			});
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async () => stream,
+					enumerateDevices: async () => [
+						{
+							deviceId: "front-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Front camera"
+						},
+						{
+							deviceId: "rear-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Rear camera"
+						}
+					]
+				}
+			});
+			Object.defineProperty(HTMLMediaElement.prototype, "play", {
+				configurable: true,
+				value: async () => {}
+			});
+
+			const { getByRole, getByTestId } = await render(Image, {
+				...default_props,
+				sources: ["webcam"],
+				width: 160
+			});
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			const device_select = await waitFor(() =>
+				getByRole("button", { name: "select input source" })
+			);
+			await fireEvent.click(device_select);
+
+			const selector = getByRole("combobox", {
+				name: "select source"
+			});
+			expect(selector).toBeVisible();
+
+			const component_bounds = getByTestId("image").getBoundingClientRect();
+			const selector_bounds = selector.getBoundingClientRect();
+
+			expect(selector_bounds.width).toBeGreaterThan(0);
+			expect(selector_bounds.width).toBeLessThanOrEqual(component_bounds.width);
+			expect(selector_bounds.left).toBeGreaterThanOrEqual(
+				component_bounds.left
+			);
+			expect(selector_bounds.right).toBeLessThanOrEqual(component_bounds.right);
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+
+			if (play_descriptor) {
+				Object.defineProperty(
+					HTMLMediaElement.prototype,
+					"play",
+					play_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(HTMLMediaElement.prototype, "play");
+			}
+
+			if (size_4) {
+				root_style.setProperty("--size-4", size_4);
+			} else {
+				root_style.removeProperty("--size-4");
+			}
+			if (size_52) {
+				root_style.setProperty("--size-52", size_52);
+			} else {
+				root_style.removeProperty("--size-52");
+			}
+		}
+	});
 });
 
 describe("Props: interactive", () => {
@@ -343,6 +465,64 @@ describe("Props: buttons (static mode)", () => {
 		await waitFor(() => {
 			expect(getByLabelText("Fullscreen")).toBeVisible();
 		});
+	});
+
+	test("fullscreen block does not extend beneath the window scrollbar", async () => {
+		// Reserve a 16px scrollbar gutter so the window scrollbar takes layout
+		// space, as classic (non-overlay) scrollbars do on Windows (#11982).
+		// The box-sizing rule mirrors the app's global reset.css, which is not
+		// loaded in the test environment.
+		const style = document.createElement("style");
+		style.textContent =
+			"html { scrollbar-gutter: stable; } ::-webkit-scrollbar { width: 16px; } * { box-sizing: border-box; }";
+		document.head.appendChild(style);
+		const filler = document.createElement("div");
+		filler.style.height = "5000px";
+		document.body.appendChild(filler);
+		// A fixed element spanning left:0/right:0 measures the visible viewport
+		// width, which excludes the scrollbar gutter.
+		const probe = document.createElement("div");
+		probe.style.cssText = "position: fixed; left: 0; right: 0; height: 1px;";
+		document.body.appendChild(probe);
+
+		try {
+			const visible_width = probe.getBoundingClientRect().width;
+			expect(visible_width).toBeLessThan(window.innerWidth);
+
+			const { getByLabelText } = await render(Image, {
+				...default_props,
+				interactive: true,
+				value: fake_value,
+				buttons: ["fullscreen"]
+			});
+
+			await fireEvent.click(getByLabelText("Fullscreen"));
+			const block = await waitFor(() => {
+				const el = document.querySelector(".block.fullscreen");
+				expect(el).toBeTruthy();
+				// Wait out the pop-out animation: the block must have reached
+				// its final, (at least) full-viewport width before measuring.
+				expect(el?.getBoundingClientRect().width).toBeGreaterThanOrEqual(
+					visible_width - 1
+				);
+				return el as HTMLElement;
+			});
+
+			expect(block.getBoundingClientRect().right).toBeLessThanOrEqual(
+				visible_width
+			);
+			const wrapper = block.querySelector(
+				".icon-button-wrapper"
+			) as HTMLElement;
+			expect(wrapper).toBeTruthy();
+			expect(wrapper.getBoundingClientRect().right).toBeLessThanOrEqual(
+				visible_width
+			);
+		} finally {
+			style.remove();
+			filler.remove();
+			probe.remove();
+		}
 	});
 
 	test("empty buttons array shows no action buttons", async () => {

@@ -1,5 +1,23 @@
 # @gradio/upload
 
+## 0.18.2
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.18.2
+
+### Features
+
+- [#13601](https://github.com/gradio-app/gradio/pull/13601) [`0ee5cc8`](https://github.com/gradio-app/gradio/commit/0ee5cc80e2915e5a1b074c892490a62f165cd80d) - Preserve browser-visible proxy origins for frontend assets and API requests, and retain app-level FastAPI root paths.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+
 ## 0.18.1
 
 ### Fixes

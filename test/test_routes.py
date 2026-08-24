@@ -1,5 +1,6 @@
 """Contains tests for networking.py and app.py"""
 
+import asyncio
 import functools
 import inspect
 import json
@@ -11,6 +12,8 @@ import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from threading import Thread
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import gradio_client as grc
 import httpx
@@ -35,7 +38,10 @@ from gradio import (
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
+    _delete_state_handler,
+    _lifespan_handler,
     compare_passwords_securely,
+    create_lifespan_handler,
     get_api_call_path,
     get_request_origin,
     get_root_url,
@@ -58,6 +64,23 @@ class TestRoutes:
     def test_get_main_route(self, test_client):
         response = test_client.get("/")
         assert response.status_code == 200
+
+    def test_get_run_history_route(self, test_client):
+        response = test_client.get(f"{API_PREFIX}/runs")
+        assert response.status_code == 200
+        assert "<gradio-app" in response.text
+        assert '<base href="../"' in response.text
+        assert '"root":"http://testserver"' in response.text
+
+    def test_run_history_route_disabled(self):
+        io = Interface(lambda x: x + x, "text", "text", api_name="predict")
+        app, _, _ = io.launch(prevent_thread_lock=True, run_history=False)
+        try:
+            assert io.config["run_history"] is False
+            assert "runs" not in io.config["footer_links"]
+            assert TestClient(app).get(f"{API_PREFIX}/runs").status_code == 404
+        finally:
+            io.close()
 
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
@@ -427,6 +450,24 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_monitoring_summary(self):
+        app = FastAPI()
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/default",
+        )
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/disabled",
+            enable_monitoring=False,
+        )
+
+        with TestClient(app) as client:
+            assert client.get("/default/monitoring/summary").is_success
+            assert client.get("/disabled/monitoring/summary").status_code == 403
+
     def test_mount_gradio_app_picks_up_root_path_from_asgi_scope(self):
         """Test that media URLs include the proxy prefix when root_path is set
         via the ASGI scope (e.g. uvicorn --root-path), without needing to
@@ -565,6 +606,42 @@ class TestRoutes:
         with TestClient(app) as client:
             assert not client.get("/", headers={}).is_success
             assert client.get("/", headers={"user": "abubakar"}).is_success
+
+    def test_gradio_app_with_async_auth_dependency(self):
+        async def block_anonymous(request: Request):
+            return request.headers.get("user")
+
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app, _, _ = demo.launch(
+            auth_dependency=block_anonymous, prevent_thread_lock=True
+        )
+
+        with TestClient(app) as client:
+            assert not client.get("/", headers={}).is_success
+            assert client.get("/", headers={"user": "abubakar"}).is_success
+        demo.close()
+
+    def test_server_mode_with_auth_dependency(self):
+        def block_anonymous(request: Request):
+            return request.headers.get("user")
+
+        server = gr.Server()
+
+        @server.api(name="echo")
+        def echo(x: str) -> str:
+            return x
+
+        app, _, _ = server.launch(
+            auth_dependency=block_anonymous, prevent_thread_lock=True
+        )
+
+        with TestClient(app) as client:
+            assert (
+                client.get(f"{API_PREFIX}/login_check", headers={}).status_code == 401
+            )
+            assert client.get(
+                f"{API_PREFIX}/login_check", headers={"user": "abubakar"}
+            ).is_success
 
     def test_mount_gradio_app_with_auth_dependency(self):
         app = FastAPI()
@@ -741,6 +818,34 @@ class TestRoutes:
 
         io.close()
 
+    @pytest.mark.parametrize("add_middleware_first", [True, False])
+    def test_mounted_app_respects_user_cors_middleware(self, add_middleware_first):
+        from fastapi.middleware.cors import CORSMiddleware
+
+        with gr.Blocks() as demo:
+            gr.Textbox("hello")
+
+        app = FastAPI()
+        if add_middleware_first:
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+            app = gr.mount_gradio_app(app, demo, path="/")
+        else:
+            app = gr.mount_gradio_app(app, demo, path="/")
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+
+        client = TestClient(app)
+        disallowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://malicious.com"},
+        )
+        assert "access-control-allow-origin" not in disallowed.headers
+
+        allowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://example.com"},
+        )
+        assert allowed.headers["access-control-allow-origin"] == "https://example.com"
+
     def test_loose_cors_restrictions(self):
         io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
         app, _, _ = io.launch(prevent_thread_lock=True, strict_cors=False)
@@ -855,6 +960,8 @@ class TestRoutes:
         client = TestClient(app)
         response = client.get("/monitoring")
         assert response.status_code == 403
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 403
 
 
 def test_api_listener(connect):
@@ -881,6 +988,61 @@ class TestApp:
     def test_create_app_debug_flag_forwarded(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"), debug=True)
         assert app.debug is True
+
+
+class TestLifespanHandlers:
+    @staticmethod
+    def _fake_app():
+        blocks = SimpleNamespace(blocks={}, temp_file_sets=[])
+        return SimpleNamespace(
+            state_holder=SimpleNamespace(delete_all_expired_state=lambda: None),
+            get_blocks=lambda: blocks,
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "make_handler",
+        [
+            _delete_state_handler,
+            lambda app: _lifespan_handler(app, 1, 1),
+            create_lifespan_handler(None, 1, 1),
+        ],
+        ids=["delete_state", "lifespan", "combined"],
+    )
+    async def test_background_tasks_do_not_leak(self, make_handler):
+        """Each handler starts a `while True` task; leaving it running would leak
+        one task (and the `App` it closes over) per launch."""
+        pending_before = len(asyncio.all_tasks())
+        for _ in range(3):
+            async with make_handler(self._fake_app()):
+                await asyncio.sleep(0)  # let the background task start
+        await asyncio.sleep(0)  # let the cancellations be delivered
+        assert len(asyncio.all_tasks()) == pending_before
+
+    @pytest.mark.asyncio
+    async def test_failing_background_task_does_not_break_shutdown(self):
+        """The background tasks used to be fire-and-forget, so an error inside one
+        was only logged. Awaiting them on shutdown must not surface that error or
+        skip the final cleanup."""
+        app = self._fake_app()
+        deleted = []
+        app.get_blocks().temp_file_sets.append(set())
+
+        def boom():
+            raise RuntimeError("state cleanup blew up")
+
+        app.state_holder.delete_all_expired_state = boom
+
+        with patch(
+            "gradio.route_utils.delete_files_created_by_app",
+            side_effect=lambda *a, **kw: deleted.append(kw.get("age", "unset")),
+        ):
+            async with create_lifespan_handler(None, 1, 1)(app):
+                await asyncio.sleep(0)  # let _delete_state raise
+
+        # Shutdown completed without propagating the error, and the final
+        # "delete everything" cleanup still ran.
+        assert deleted == [None]
 
 
 class TestAuthenticatedRoutes:
@@ -957,6 +1119,8 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 200
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 200
 
         response = client.get("/logout")
 
@@ -964,6 +1128,41 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 401
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 401
+
+
+class TestConfigUsername:
+    """`/config` reports who is logged in. Resolving the user is async, so a
+    caller that does not await it gets a coroutine, which `ORJSONResponse`
+    stringifies rather than rejects. See
+    https://github.com/gradio-app/gradio/issues/13758."""
+
+    def test_username_is_none_without_auth(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            assert client.get("/config").json()["username"] is None
+
+    def test_username_is_the_logged_in_user(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth=("admin", "password"), prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            client.post("/login", data={"username": "admin", "password": "password"})
+            assert client.get("/config").json()["username"] == "admin"
+
+    def test_username_comes_from_an_async_auth_dependency(self):
+        async def whoever_asked(request: Request):
+            return request.headers.get("user")
+
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth_dependency=whoever_asked, prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            response = client.get("/config", headers={"user": "abubakar"})
+            assert response.json()["username"] == "abubakar"
 
 
 class TestQueueRoutes:
@@ -1574,6 +1773,31 @@ class TestSimpleAPIRoutes:
             btn3.click(fn_3, None, [output, output2], api_name="fn3")
         return demo
 
+    def test_simple_route_collects_a_result_under_the_callers_session_hash(self):
+        # `/call` accepts a session hash of the caller's choosing, and the GET
+        # that collects the result routinely arrives after the event has
+        # finished. The route has to recover that hash from somewhere the
+        # finished event no longer is.
+        demo = self.get_demo()
+        demo.launch(prevent_thread_lock=True)
+
+        response = requests.post(
+            f"{demo.local_api_url}call/fn1",
+            json={"data": ["world"], "session_hash": "a-session-of-my-own"},
+        )
+        assert response.status_code == 200, "Failed to call fn1"
+        event_id = response.json()["event_id"]
+
+        time.sleep(2)  # fn1 is fast, so it is done well before the GET
+
+        output = []
+        response = requests.get(f"{demo.local_api_url}call/fn1/{event_id}", stream=True)
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == ["event: complete", 'data: ["Hello, world!"]']
+
     def test_successful_simple_route(self):
         demo = self.get_demo()
         demo.launch(prevent_thread_lock=True)
@@ -1869,6 +2093,51 @@ class TestCurlEndpointWithFiles:
             }
             assert output[-2] == "event: error"
             assert output[-1] == f"data: {json.dumps(data)}"
+        finally:
+            demo.close()
+
+
+class TestCurlEndpointWithOAuthToken:
+    @pytest.mark.serial
+    def test_token_reaches_only_the_endpoint_that_takes_one(self):
+        def report(oauth_token: gr.OAuthToken | None) -> str:
+            return "none" if oauth_token is None else "token:" + oauth_token.token
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            gr.Button("Report").click(report, None, out, api_name="report")
+            gr.Button("Echo").click(lambda: "echo", None, out, api_name="echo")
+            named = gr.Textbox(value="orig", label="oauth_token")
+            gr.Button("Named").click(
+                lambda oauth_token: "param:" + oauth_token,
+                named,
+                out,
+                api_name="named",
+            )
+
+        demo.launch(prevent_thread_lock=True)
+
+        def call(api_name: str, payload: dict) -> str:
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/{api_name}", json=payload
+            )
+            assert post_resp.status_code == 200, post_resp.text
+            event_id = post_resp.json()["event_id"]
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/{api_name}/{event_id}", stream=True
+            )
+            output = [line.decode("utf-8") for line in sse_resp.iter_lines() if line]
+            return json.loads(output[-1].removeprefix("data: "))[0]
+
+        try:
+            assert call("report", {"oauth_token": "hf_abc"}) == "token:hf_abc"
+            assert call("report", {}) == "none"
+            # An endpoint that takes no token ignores one rather than erroring.
+            assert call("echo", {"oauth_token": "hf_abc"}) == "echo"
+            # The name is only reserved where the fn takes a token, so an
+            # endpoint with a parameter of that name still receives its value.
+            assert call("named", {"oauth_token": "MINE"}) == "param:MINE"
+            assert call("named", {}) == "param:orig"
         finally:
             demo.close()
 
@@ -2404,6 +2673,41 @@ def test_server_fn_passes_request():
     response = requests.post(f"{local_url}/gradio_api/component_server", json=form_data)
     assert response.status_code == 200
     assert response.json()["_url"].endswith("/gradio_api/component_server")
+
+
+def test_server_fn_forwards_x_ip_token_via_local_context():
+    """/component_server must set LocalContext.request so gradio_client.Client
+    can forward the caller's x-ip-token to downstream ZeroGPU Spaces."""
+    import requests
+
+    from gradio.components.base import server
+    from gradio.context import LocalContext
+
+    def get_ip_token(self, _data):
+        req = LocalContext.request.get(None)
+        return req.headers.get("x-ip-token") if req else None
+
+    tb = gr.Textbox()
+    tb.get_ip_token = server(get_ip_token)  # type: ignore
+    iface = gr.Interface(lambda x: x, inputs=tb, outputs="text")
+    component_id = next(
+        c["id"]
+        for c in iface.config["components"]
+        if c["type"] == "textbox"  # type: ignore
+    )
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+    response = requests.post(
+        f"{local_url}/gradio_api/component_server",
+        json={
+            "session_hash": "foo",
+            "component_id": component_id,
+            "fn_name": "get_ip_token",
+            "data": json.dumps({}),
+        },
+        headers={"x-ip-token": "test-token"},
+    )
+    assert response.status_code == 200
+    assert response.json() == "test-token"
 
 
 def test_slugify():

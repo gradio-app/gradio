@@ -2,6 +2,7 @@
 
 import shutil
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -222,6 +223,7 @@ class TestNodeProxyStartupOrdering:
         from gradio import http_server
 
         events: list[str] = []
+        node_kwargs: dict[str, Any] = {}
         original_start_server = http_server.start_server
         original_start_node = blocks_mod.start_node_server
 
@@ -233,6 +235,7 @@ class TestNodeProxyStartupOrdering:
 
         def patched_start_node(*args, **kwargs):
             events.append("node_start")
+            node_kwargs.update(kwargs)
             result = original_start_node(*args, **kwargs)
             events.append("node_returned")
             return result
@@ -256,6 +259,10 @@ class TestNodeProxyStartupOrdering:
             )
             assert "node_start" in events, (
                 f"start_node_server never ran. Events: {events}"
+            )
+            assert node_kwargs.get("on_shutdown") is not None, (
+                "launch() must pass on_shutdown, or the heartbeat streams stay "
+                "open and shutdown stalls until Node force-closes them."
             )
             python_ready_idx = events.index("python_ready")
             node_start_idx = events.index("node_start")
@@ -349,3 +356,98 @@ class TestNodeProxyStartupOrdering:
             )
         finally:
             self._cleanup(demo)
+
+
+class _FakeNodeProcess:
+    """Stands in for the Node subprocess, recording how it was stopped."""
+
+    def __init__(self, log: list[str]):
+        self.log = log
+
+    def terminate(self):
+        self.log.append("node_terminated")
+
+    def wait(self, timeout=None):
+        return 0
+
+
+def _capture_shutdown_handler(monkeypatch, node, on_shutdown=None):
+    """Installs the shutdown handlers against a stub, without touching this
+    process's real ones, and returns the handler that was registered."""
+    import signal
+
+    from gradio.node_server import install_shutdown_handlers
+
+    captured: dict[int, Any] = {}
+
+    def record(sig, fn):
+        captured[sig] = fn
+
+    monkeypatch.setattr(signal, "signal", record)
+    install_shutdown_handlers(node, on_shutdown=on_shutdown)
+    return captured[signal.SIGINT]
+
+
+class TestNodeShutdown:
+    """Regression coverage for a shutdown hang in SSR mode, where Python waited
+    on Node while Node waited for the streams Python was still serving."""
+
+    def test_unresponsive_node_is_killed_rather_than_waited_on(self):
+        import subprocess
+        import sys
+        import time
+
+        from gradio.node_server import stop_node_process
+
+        node = subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                (
+                    "import signal, time; "
+                    "signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+                    "print('ready', flush=True); time.sleep(60)"
+                ),
+            ],
+            stdout=subprocess.PIPE,
+        )
+        assert node.stdout is not None
+        node.stdout.readline()  # SIGTERM is ignored from here on
+        try:
+            start = time.perf_counter()
+            stop_node_process(node, timeout=0.5)
+            assert node.poll() is not None
+            assert time.perf_counter() - start < 5
+        finally:
+            node.kill()
+            node.stdout.close()
+            node.wait(timeout=5)
+
+    def test_streams_are_ended_before_node_is_stopped(self, monkeypatch):
+        import signal
+
+        log: list[str] = []
+        handler = _capture_shutdown_handler(
+            monkeypatch,
+            _FakeNodeProcess(log),
+            on_shutdown=lambda: log.append("streams_ended"),
+        )
+
+        with pytest.raises(SystemExit):
+            handler(signal.SIGINT, None)
+
+        assert log == ["streams_ended", "node_terminated"]
+
+    def test_repeated_signals_do_not_re_enter_the_handler(self, monkeypatch):
+        import signal
+
+        log: list[str] = []
+        handler = _capture_shutdown_handler(monkeypatch, _FakeNodeProcess(log))
+
+        with pytest.raises(SystemExit):
+            handler(signal.SIGINT, None)
+        # Re-entering would call Popen.wait() again and deadlock on its
+        # non-reentrant waitpid lock, so a second signal has to be a no-op.
+        handler(signal.SIGINT, None)
+
+        assert log == ["node_terminated"]

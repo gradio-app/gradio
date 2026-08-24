@@ -75,10 +75,10 @@
 			max={gradio.props.maximum}
 			step={gradio.props.step}
 			placeholder={gradio.props.placeholder}
-			on:keypress={handle_keypress}
-			on:input={() => gradio.dispatch("input")}
-			on:blur={() => gradio.dispatch("blur")}
-			on:focus={() => gradio.dispatch("focus")}
+			onkeypress={handle_keypress}
+			oninput={() => gradio.dispatch("input")}
+			onblur={() => gradio.dispatch("blur")}
+			onfocus={() => gradio.dispatch("focus")}
 			{disabled}
 		/>
 	</label>
