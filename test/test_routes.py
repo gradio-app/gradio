@@ -40,7 +40,7 @@ from gradio import (
     oauth,
     routes,
 )
-from gradio.oauth import _generate_redirect_uri
+from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
@@ -2930,8 +2930,6 @@ class TestOAuthSecurity:
 
     def test_redirect_to_target_blocks_external_urls(self):
         """_redirect_to_target should strip scheme/host to prevent open redirects."""
-        from gradio.oauth import _redirect_to_target
-
         scope = {
             "type": "http",
             "method": "GET",
@@ -2969,8 +2967,6 @@ class TestOAuthSecurity:
         scheme-relative `//evil.com` (which browsers resolve to an external
         host), bypassing the CVE-2026-28415 fix. Backslashes are treated the
         same way by browsers and must also be collapsed."""
-        from gradio.oauth import _redirect_to_target
-
         scope = {"type": "http", "method": "GET", "headers": []}
 
         # Each hostile target must resolve to a same-origin path: a single
