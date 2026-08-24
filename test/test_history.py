@@ -432,3 +432,176 @@ class TestRunHistoryRoutes:
     def test_buckets_without_session_returns_401(self, history_client):
         r = history_client.get("/gradio_api/run-history/buckets")
         assert r.status_code == 401
+
+
+class _RecordingStore:
+    """Stands in for BucketRunHistoryStore in route tests."""
+
+    owner_id = "alice"
+    app_key = "app-hash"
+
+    def __init__(self):
+        self.saved: list[tuple] = []
+
+    def save_record(self, record, local_assets=None):
+        self.saved.append((record, local_assets))
+
+    def list_records(self, limit=50):
+        return []
+
+    def get_record(self, record_id):
+        return HistoryRecord(
+            record_id=record_id,
+            owner_id=self.owner_id,
+            app_key=self.app_key,
+            created_at="2026-01-01T00:00:00Z",
+            inputs={},
+            outputs={},
+        )
+
+    def delete_record(self, record_id):
+        pass
+
+    def clear_records(self):
+        pass
+
+
+@pytest.fixture
+def authed_history():
+    from gradio import history_routes, oauth
+    from gradio.routes import App
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    store = _RecordingStore()
+    app.dependency_overrides[oauth.require_oauth_token] = lambda: "tok"
+    app.dependency_overrides[history_routes.get_store] = lambda: store
+    yield TestClient(app), store
+    app.dependency_overrides.clear()
+    close_all()
+
+
+class TestRunHistoryValidation:
+    def test_limit_out_of_range_is_422(self, authed_history):
+        client, _ = authed_history
+        assert (
+            client.get("/gradio_api/run-history/records?limit=999").status_code == 422
+        )
+        assert client.get("/gradio_api/run-history/records?limit=0").status_code == 422
+
+    def test_bad_record_id_in_path_is_422(self, authed_history):
+        client, _ = authed_history
+        assert client.get("/gradio_api/run-history/records/bad id").status_code == 422
+        assert client.get("/gradio_api/run-history/records/bad$id").status_code == 422
+        long_id = "a" * 65
+        assert (
+            client.delete(f"/gradio_api/run-history/records/{long_id}").status_code
+            == 422
+        )
+
+    def test_bad_record_id_in_body_is_422(self, authed_history):
+        client, _ = authed_history
+        r = client.post("/gradio_api/run-history/records", json={"record_id": "a b"})
+        assert r.status_code == 422
+
+    def test_oversized_body_is_413(self, authed_history):
+        client, _ = authed_history
+        r = client.post(
+            "/gradio_api/run-history/records",
+            json={"record_id": "r1", "outputs": {"n1": "x" * (2 * 1024 * 1024 + 10)}},
+        )
+        assert r.status_code == 413
+
+
+class TestRunHistoryPushExternalizesAssets:
+    def test_push_uploads_local_media_and_stores_markers(
+        self, authed_history, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        img = tmp_path / "out.png"
+        img.write_bytes(b"\x89PNG")
+        client, store = authed_history
+
+        r = client.post(
+            "/gradio_api/run-history/records",
+            json={
+                "record_id": "r1",
+                "inputs": {},
+                "outputs": {
+                    "n1": {
+                        # the executor emits absolute file URLs, not bare paths
+                        "value": {
+                            "url": f"http://127.0.0.1:7860/gradio_api/file={img}",
+                            "mime": "image/png",
+                        },
+                        "type": "image",
+                    }
+                },
+            },
+        )
+        assert r.status_code == 200
+        record, local_assets = store.saved[0]
+        assert local_assets and list(local_assets.values())[0][0] == str(img)
+        asset_id = next(iter(local_assets))
+        assert record.outputs["n1"]["value"] == {"__asset__": asset_id}
+
+    def test_push_leaves_untrusted_paths_alone(
+        self, authed_history, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "secret.png"
+        outside.write_bytes(b"leak")
+        client, store = authed_history
+
+        r = client.post(
+            "/gradio_api/run-history/records",
+            json={
+                "record_id": "r2",
+                "outputs": {"n1": {"value": {"path": str(outside)}, "type": "image"}},
+            },
+        )
+        assert r.status_code == 200
+        record, local_assets = store.saved[0]
+        assert local_assets == {}
+        assert record.outputs["n1"]["value"] == {"path": str(outside)}
+
+    def test_input_and_output_asset_ids_do_not_collide(
+        self, authed_history, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        a = tmp_path / "in.png"
+        a.write_bytes(b"\x89PNG")
+        b = tmp_path / "out.png"
+        b.write_bytes(b"\x89PNG")
+        client, store = authed_history
+
+        r = client.post(
+            "/gradio_api/run-history/records",
+            json={
+                "record_id": "r3",
+                "inputs": {"n0": {"value": {"path": str(a)}, "type": "image"}},
+                "outputs": {"n1": {"value": {"path": str(b)}, "type": "image"}},
+            },
+        )
+        assert r.status_code == 200
+        record, local_assets = store.saved[0]
+        assert len(local_assets) == 2
+        assert (
+            record.inputs["n0"]["value"]["__asset__"]
+            != record.outputs["n1"]["value"]["__asset__"]
+        )
+
+
+def test_extract_local_file_path_handles_absolute_file_urls(tmp_path, monkeypatch):
+    monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+    img = tmp_path / "a b.png"
+    img.write_bytes(b"\x89PNG")
+    quoted = str(img).replace(" ", "%20")
+    assert extract_local_file_path(
+        {"url": f"https://host.hf.space/gradio_api/file={quoted}"}
+    ) == str(img)
+    assert extract_local_file_path({"url": f"/gradio_api/file={img}"}) == str(img)
+    assert extract_local_file_path({"path": str(img)}) == str(img)
+    assert extract_local_file_path({"url": "https://host/not-a-file.png"}) is None

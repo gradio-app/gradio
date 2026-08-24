@@ -16,6 +16,7 @@ import time
 from collections import OrderedDict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
+from urllib.parse import unquote
 
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
@@ -31,7 +32,8 @@ _LIST_CACHE_TTL = 10.0
 _MAX_FILES_SCAN = 200
 
 BUCKET_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$")
-_RECORD_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+RECORD_ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
+_RECORD_ID_RE = re.compile(RECORD_ID_PATTERN)
 
 
 class HistoryStoreError(Exception):
@@ -112,14 +114,26 @@ def is_trusted_local_path(path: str) -> bool:
         return False
 
 
+_FILE_URL_MARKERS = ("/gradio_api/file=", "/file=")
+
+
 def extract_local_file_path(value) -> str | None:
-    src = None
-    if isinstance(value, dict):
-        src = value.get("path") or value.get("url") or ""
-        if isinstance(src, str) and src.startswith("/gradio_api/file="):
-            src = src[len("/gradio_api/file=") :]
+    """Resolve a FileData-ish node to a trusted local path, or None.
+
+    Handles raw ``path`` fields as well as file URLs, which the workflow
+    executor emits absolute (``http://host/gradio_api/file=/tmp/...``) rather
+    than root-relative.
+    """
+    if not isinstance(value, dict):
+        return None
+    src = value.get("path") or value.get("url") or ""
     if not isinstance(src, str) or not src:
         return None
+    for marker in _FILE_URL_MARKERS:
+        idx = src.find(marker)
+        if idx != -1:
+            src = unquote(src[idx + len(marker) :].split("?", 1)[0])
+            break
     return src if is_trusted_local_path(src) else None
 
 
