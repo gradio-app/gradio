@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow move delete button
+feat:workflow: move delete button
