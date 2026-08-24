@@ -755,16 +755,16 @@ class App(FastAPI):
         def _http_from_store_error(exc):
             from gradio.history import (
                 HubError,
-                NotAuthorized,
-                NotFound,
+                NotAuthorizedError,
+                NotFoundError,
                 PublicBucketError,
             )
 
-            if isinstance(exc, NotAuthorized):
+            if isinstance(exc, NotAuthorizedError):
                 return fastapi.HTTPException(403, str(exc))
             if isinstance(exc, PublicBucketError):
                 return fastapi.HTTPException(403, str(exc))
-            if isinstance(exc, NotFound):
+            if isinstance(exc, NotFoundError):
                 return fastapi.HTTPException(404, str(exc))
             if isinstance(exc, HubError):
                 return fastapi.HTTPException(502, str(exc))

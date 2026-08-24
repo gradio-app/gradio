@@ -17,7 +17,7 @@ from gradio.history import (
     BucketRunHistoryStore,
     HistoryRecord,
     HubError,
-    NotAuthorized,
+    NotAuthorizedError,
     PublicBucketError,
     bucket_for_token,
     externalize_assets,
@@ -257,7 +257,7 @@ def test_ensure_private_bucket_maps_403_to_not_authorized():
     err = RuntimeError("Forbidden")
     err.response = MagicMock(status_code=403)
     mock_api.create_bucket.side_effect = err
-    with pytest.raises(NotAuthorized):
+    with pytest.raises(NotAuthorizedError):
         store.ensure_private_bucket()
 
 

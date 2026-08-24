@@ -38,11 +38,11 @@ class HistoryStoreError(Exception):
     pass
 
 
-class NotAuthorized(HistoryStoreError):
+class NotAuthorizedError(HistoryStoreError):
     pass
 
 
-class NotFound(HistoryStoreError):
+class NotFoundError(HistoryStoreError):
     pass
 
 
@@ -153,7 +153,7 @@ class BucketRunHistoryStore:
             except Exception as e:
                 status = getattr(getattr(e, "response", None), "status_code", None)
                 if status == 403:
-                    raise NotAuthorized(
+                    raise NotAuthorizedError(
                         f"missing manage-repos scope for {self.repo_id}"
                     ) from e
                 raise HubError(f"bucket create failed: {e}") from e
@@ -236,7 +236,7 @@ class BucketRunHistoryStore:
         validate_record_id(record_id)
         try:
             data = self._download_bytes(f"records/{record_id}.json")
-        except NotFound:
+        except NotFoundError:
             raise
         except Exception as e:
             raise HubError(f"get_record failed: {e}") from e
@@ -248,7 +248,7 @@ class BucketRunHistoryStore:
         record = self.get_record(record_id)
         path = record.assets.get(asset_id)
         if not path:
-            raise NotFound(f"asset {asset_id} not found for record {record_id}")
+            raise NotFoundError(f"asset {asset_id} not found for record {record_id}")
         ct = mimetypes.guess_type(path)[0] or "application/octet-stream"
         try:
             return self._download_bytes(path), ct
@@ -347,7 +347,7 @@ class BucketRunHistoryStore:
             except Exception as e:
                 status = getattr(getattr(e, "response", None), "status_code", None)
                 if status == 404:
-                    raise NotFound(path_in_repo) from e
+                    raise NotFoundError(path_in_repo) from e
                 raise
             with open(local, "rb") as fh:
                 return fh.read()
