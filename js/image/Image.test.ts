@@ -71,6 +71,68 @@ describe("Image", () => {
 		expect(getByLabelText("image.drop_to_upload")).toBeVisible();
 	});
 
+	test("shows the full upload prompt when enough height is available", async () => {
+		const { getByTestId, getByText } = await render(Image, {
+			...default_props,
+			height: 300,
+			value: null
+		});
+
+		await waitFor(() => expect(getByTestId("upload-icon")).toBeVisible());
+		expect(getByText("upload_text.drop_image")).toBeVisible();
+		expect(getByText("common.or")).toBeVisible();
+		expect(getByText("upload_text.click_to_upload")).toBeVisible();
+		expect(
+			getByText("upload_text.click_to_upload").getBoundingClientRect().top
+		).toBeGreaterThan(
+			getByText("upload_text.drop_image").getBoundingClientRect().top
+		);
+	});
+
+	test.each([80, 130])(
+		"uses a single-line prompt without an icon at %ipx",
+		async (height) => {
+			const { getByTestId, getByText } = await render(Image, {
+				...default_props,
+				height,
+				value: null
+			});
+
+			await waitFor(() => expect(getByTestId("upload-icon")).not.toBeVisible());
+			const drop_text = getByText("upload_text.drop_image");
+			const or_text = getByText("common.or");
+			const click_text = getByText("upload_text.click_to_upload");
+			const selector = getByTestId("source-select");
+
+			expect(drop_text).toBeVisible();
+			expect(or_text).toBeVisible();
+			expect(click_text).toBeVisible();
+			expect(or_text.getBoundingClientRect().top).toBeCloseTo(
+				drop_text.getBoundingClientRect().top,
+				0
+			);
+			expect(click_text.getBoundingClientRect().top).toBeCloseTo(
+				drop_text.getBoundingClientRect().top,
+				0
+			);
+			expect(click_text.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+				selector.getBoundingClientRect().top
+			);
+		}
+	);
+
+	test("keeps a 40px Image as an empty accessible drop zone", async () => {
+		const { getByLabelText, getByTestId } = await render(Image, {
+			...default_props,
+			height: 40,
+			value: null
+		});
+
+		await waitFor(() => expect(getByTestId("upload-text")).not.toBeVisible());
+		expect(getByLabelText("image.drop_to_upload")).toBeVisible();
+		expect(getByTestId("source-select")).not.toBeVisible();
+	});
+
 	test("renders image when value is set", async () => {
 		const { container } = await render(Image, {
 			...default_props,

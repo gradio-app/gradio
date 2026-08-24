@@ -326,6 +326,16 @@
 		height: calc(100% - var(--size-10));
 	}
 
+	.image-container:has(:global([data-upload-density="minimal"]))
+		.upload-container {
+		height: 100%;
+	}
+
+	.image-container:has(:global([data-upload-density="minimal"]))
+		:global(.source-selection) {
+		display: none;
+	}
+
 	.image-container {
 		display: flex;
 		height: 100%;
