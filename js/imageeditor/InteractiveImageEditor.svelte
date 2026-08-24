@@ -120,6 +120,10 @@
 	});
 
 	export async function get_data(): Promise<ImageBlobs> {
+		if (!can_undo) {
+			return { background, layers, composite };
+		}
+
 		let blobs;
 		try {
 			blobs = await editor.get_blobs();
@@ -127,38 +131,43 @@
 			return { background: null, layers: [], composite: null };
 		}
 
-		const bg = blobs.background
+		const background_upload = blobs.background
 			? upload(
 					await prepare_files([new File([blobs.background], "background.png")]),
 					root
 				)
 			: Promise.resolve(null);
 
-		const layers = blobs.layers
+		const layer_uploads = blobs.layers
 			.filter(is_not_null)
 			.map(async (blob, i) =>
 				upload(await prepare_files([new File([blob], `layer_${i}.png`)]), root)
 			);
 
-		const composite = blobs.composite
+		const composite_upload = blobs.composite
 			? upload(
 					await prepare_files([new File([blobs.composite], "composite.png")]),
 					root
 				)
 			: Promise.resolve(null);
 
-		const [background, composite_, ...layers_] = await Promise.all([
-			bg,
-			composite,
-			...layers
-		]);
+		const [uploaded_background, uploaded_composite, ...uploaded_layers] =
+			await Promise.all([
+				background_upload,
+				composite_upload,
+				...layer_uploads
+			]);
 
 		return {
-			background: Array.isArray(background) ? background[0] : background,
-			layers: layers_
+			background: Array.isArray(uploaded_background)
+				? uploaded_background[0]
+				: uploaded_background,
+			layers: uploaded_layers
 				.flatMap((layer) => (Array.isArray(layer) ? layer : [layer]))
 				.filter(is_file_data),
-			composite: Array.isArray(composite_) ? composite_[0] : composite_
+			composite: Array.isArray(uploaded_composite)
+				? uploaded_composite[0]
+				: uploaded_composite
 		};
 	}
 
