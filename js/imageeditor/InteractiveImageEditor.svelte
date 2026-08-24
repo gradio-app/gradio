@@ -115,13 +115,54 @@
 		return !!o;
 	}
 
+	async function upload_original(
+		file_data: FileData | null,
+		fallback_name: string
+	): Promise<FileData | null> {
+		if (!file_data) return null;
+
+		let file = file_data.blob;
+		if (!file) {
+			if (!file_data.url) throw new Error("Image file has no URL");
+			const response = await fetch(file_data.url);
+			if (!response.ok) throw new Error("Image file could not be fetched");
+			const blob = await response.blob();
+			file = new File([blob], file_data.orig_name || fallback_name, {
+				type: file_data.mime_type || blob.type
+			});
+		}
+
+		const uploaded = await upload(await prepare_files([file]), root);
+		return Array.isArray(uploaded) ? uploaded[0] : uploaded;
+	}
+
+	async function upload_original_data(): Promise<ImageBlobs> {
+		const [uploaded_background, uploaded_composite, ...uploaded_layers] =
+			await Promise.all([
+				upload_original(background, "background.png"),
+				upload_original(composite, "composite.png"),
+				...layers.map((layer, i) => upload_original(layer, `layer_${i}.png`))
+			]);
+
+		return {
+			background: uploaded_background,
+			layers: uploaded_layers.filter(is_file_data),
+			composite: uploaded_composite
+		};
+	}
+
 	$effect(() => {
 		if (background_image) onupload?.();
 	});
 
 	export async function get_data(): Promise<ImageBlobs> {
-		if (!can_undo) {
-			return { background, layers, composite };
+		if (!has_user_edits) {
+			try {
+				return await upload_original_data();
+			} catch {
+				// Some server-provided files cannot be fetched by the browser. In that
+				// case, fall back to the rendered canvas as before.
+			}
 		}
 
 		let blobs;
@@ -185,6 +226,7 @@
 
 	let background_image = $state(false);
 	let can_undo = $state(false);
+	let has_user_edits = $state(false);
 
 	type BinaryImages = [string, string, File, number | null][];
 
@@ -291,6 +333,7 @@
 	{show_download_button}
 	{theme_mode}
 	bind:can_undo
+	bind:has_user_edits
 	bind:full_history
 >
 	{#if current_tool === "image" && !can_undo}

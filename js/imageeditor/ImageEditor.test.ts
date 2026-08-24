@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import {
 	cleanup,
 	fireEvent,
+	mock_client,
 	render,
 	TEST_PNG,
 	waitFor
@@ -42,20 +43,31 @@ run_shared_prop_tests({
 describe("get_data / set_data", () => {
 	afterEach(() => cleanup());
 
-	test("an untouched editor returns the original image files", async () => {
+	test("an untouched editor uploads the original image bytes", async () => {
 		const background = { ...TEST_PNG, orig_name: "background.png" };
 		const layer = { ...TEST_PNG, orig_name: "layer.png" };
 		const composite = { ...TEST_PNG, orig_name: "composite.png" };
 		const value = { background, layers: [layer], composite };
-		const { getByRole, get_data } = await render(ImageEditor, {
+		const { getByRole, get_data, listen } = await render(ImageEditor, {
 			...default_props,
+			client: mock_client(),
 			value
 		});
+		const uploaded = listen("upload", { retrospective: true });
 		await waitFor(() => {
 			expect(getByRole("button", { name: "image_editor.pan" })).toBeVisible();
+			expect(uploaded).toHaveBeenCalled();
 		});
 
-		expect((await get_data()).value).toEqual(value);
+		const result = (await get_data()).value;
+		const original_bytes = await (await fetch(TEST_PNG.url!)).arrayBuffer();
+
+		expect(result.background.orig_name).toBe("background.png");
+		expect(result.layers[0].orig_name).toBe("layer.png");
+		expect(result.composite.orig_name).toBe("composite.png");
+		expect(await result.background.blob.arrayBuffer()).toEqual(original_bytes);
+		expect(await result.layers[0].blob.arrayBuffer()).toEqual(original_bytes);
+		expect(await result.composite.blob.arrayBuffer()).toEqual(original_bytes);
 	});
 });
 
