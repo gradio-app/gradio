@@ -1176,7 +1176,8 @@
 	}
 
 	.node-delete {
-		display: none;
+		display: flex;
+		visibility: hidden;
 		width: 20px;
 		height: 20px;
 		border: none;
@@ -1186,7 +1187,6 @@
 		font-size: 12px;
 		cursor: pointer;
 		flex-shrink: 0;
-		margin-left: auto;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
@@ -1194,7 +1194,7 @@
 	}
 
 	.wf-node:hover .node-delete {
-		display: flex;
+		visibility: visible;
 	}
 
 	.node-delete:hover {

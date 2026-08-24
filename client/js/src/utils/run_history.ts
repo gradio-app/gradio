@@ -308,6 +308,62 @@ function consume_run_history_replay_impl(
 	}
 }
 
+/**
+ * The parts of an app config a replayed run writes back into. Kept structural
+ * so every entry point — the SPA and the SSR app each carry their own `Config`
+ * declaration — can hand its config straight over.
+ */
+export interface ReplayTarget {
+	components: { id: number; type: string; props: Record<string, any> }[];
+	dependencies: {
+		id: number;
+		api_name?: string | null;
+		inputs: number[];
+		outputs: number[];
+	}[];
+}
+
+function restore_run_impl(config: ReplayTarget, run: StoredRun): boolean {
+	const dependency = config.dependencies.find(
+		(item) =>
+			item.id === run.fn_index ||
+			(typeof item.api_name === "string" &&
+				`/${item.api_name.replace(/^\//, "")}` === run.api_name)
+	);
+	if (!dependency) return false;
+
+	const inputs = Array.isArray(run.inputs)
+		? run.inputs
+		: Object.values((run.inputs ?? {}) as Record<string, unknown>);
+	const outputs = Array.isArray(run.outputs)
+		? run.outputs
+		: run.outputs === null || run.outputs === undefined
+			? []
+			: [run.outputs];
+
+	const restore = (ids: number[], saved: unknown[]): void => {
+		for (const [index, id] of ids.entries()) {
+			const component = config.components.find((item) => item.id === id);
+			if (!component || index >= saved.length) continue;
+			// `gr.State` is held on the server and always saved as null, so
+			// writing it back would wipe out the component's real default.
+			if (component.type === "state") continue;
+			component.props.value = saved[index];
+		}
+	};
+
+	restore(dependency.inputs, inputs);
+	restore(dependency.outputs, outputs);
+	return true;
+}
+
+function apply_run_history_replay_impl(
+	config: ReplayTarget & RunHistoryScope
+): boolean {
+	const run = consume_run_history_replay_impl(config);
+	return run ? restore_run_impl(config, run) : false;
+}
+
 function start_run_history_impl(options: StartRunOptions): string | null {
 	const key = storage_key(options);
 	if (!key) return null;
@@ -490,6 +546,19 @@ export function consume_run_history_replay(
 	scope: RunHistoryScope | null | undefined
 ): StoredRun | null {
 	return safely(() => consume_run_history_replay_impl(scope), null);
+}
+
+/**
+ * Applies the run staged by the history page, if this page load is the one it
+ * was staged for. Every entry point that renders an app has to call this, or
+ * "Load run" silently does nothing on that entry point.
+ *
+ * @returns whether a staged run was found and applied.
+ */
+export function apply_run_history_replay(
+	config: ReplayTarget & RunHistoryScope
+): boolean {
+	return safely(() => apply_run_history_replay_impl(config), false);
 }
 
 export function start_run_history(options: StartRunOptions): string | null {
