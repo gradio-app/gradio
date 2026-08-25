@@ -1,5 +1,19 @@
 # gradio
 
+## 6.26.0
+
+### Features
+
+- [#13766](https://github.com/gradio-app/gradio/pull/13766) [`5824703`](https://github.com/gradio-app/gradio/commit/5824703d4cc2904adaaca4ea7b536800ccf6a358) - workflows: allow save as copy.  Thanks @hannahblair!
+- [#13773](https://github.com/gradio-app/gradio/pull/13773) [`375335e`](https://github.com/gradio-app/gradio/commit/375335e60e2b4504a57f3eef0eb6bca3c7bb765a) - Keep workflow canvas layout per-viewer, and add undo/redo.  Thanks @abidlabs!
+- [#13770](https://github.com/gradio-app/gradio/pull/13770) [`2cb02c0`](https://github.com/gradio-app/gradio/commit/2cb02c06228a4dfd509a0ac757ed0af466218478) - Upgrade vulnerable frontend dependencies.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13641](https://github.com/gradio-app/gradio/pull/13641) [`d9acd25`](https://github.com/gradio-app/gradio/commit/d9acd25491a87eda4e98b0f43d4ba262dc6a69e6) - Fix OAuth redirect loops caused by stale sessions.  Thanks @dawoodkhan82!
+- [#13760](https://github.com/gradio-app/gradio/pull/13760) [`7831e62`](https://github.com/gradio-app/gradio/commit/7831e62509a85a3cb38689655fe6ed98946d0d74) - Give the client's internal helper tasks their own thread pool.  Thanks @hysts!
+- [#13782](https://github.com/gradio-app/gradio/pull/13782) [`a9ce60a`](https://github.com/gradio-app/gradio/commit/a9ce60ae03123ed6374b739d862e62dcae2f451e) - Load a saved run's outputs, not just its inputs, when SSR is on.  Thanks @abidlabs!
+
 ## 6.25.0
 
 ### Features
