@@ -1,5 +1,17 @@
 # @gradio/core
 
+## 1.11.1
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 1.11.1
+
+### Fixes
+
+- [#13765](https://github.com/gradio-app/gradio/pull/13765) [`c6b9cc3`](https://github.com/gradio-app/gradio/commit/c6b9cc33c9f3932014f51467f7219bb1c4ac7a4b) - Fix nested reactive render contexts.  Thanks @abidlabs!
+
 ## 1.11.0
 
 ### Features

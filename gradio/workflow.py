@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import inspect
 import json
 import logging
@@ -41,6 +42,7 @@ from gradio.utils import (
     get_upload_folder,
     is_in_or_equal,
 )
+from gradio.workflow_provider_shims import call_with_recovery
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -207,8 +209,11 @@ def _workflow_from_bind(
     edges: list[tuple[str, str]] | None = None,
     name: str = "My Workflow",
 ) -> str:
+    # No coordinates: where a node sits is per-viewer state the canvas keeps in
+    # each visitor's localStorage, so a generated workflow just declares the
+    # graph and lets the canvas auto-arrange it on first open.
     nodes = []
-    for i, (fn_name, fn) in enumerate(bound.items()):
+    for fn_name, fn in bound.items():
         try:
             sig = inspect.signature(fn)
         except (ValueError, TypeError):
@@ -245,10 +250,7 @@ def _workflow_from_bind(
                 "fn": fn_name,
                 "kind": "transform",
                 "label": fn_name,
-                "x": 80 + i * 280,
-                "y": 150,
                 "width": 220,
-                "height": 80 + max(len(inputs), len(outputs)) * 36,
                 "inputs": inputs,
                 "outputs": outputs,
                 "data": {},
@@ -594,17 +596,92 @@ def get_write_access(
     return "true" if has_write_access(request, token) else "false"
 
 
+def get_space_id(_data=None) -> str:
+    """Return this Space's repo id (`owner/name`) for the "Save to Space" button.
+    Empty locally — the button is hidden there anyway."""
+    return os.getenv("SPACE_ID") or ""
+
+
+def _workflow_key(workflow_file: str) -> str:
+    """A stable identity for this workflow, used by the canvas to key the
+    per-viewer layout and viewport it keeps in localStorage.
+
+    The workflow's *name* can't do that job: it is editable from the canvas, and
+    two unrelated workflows served from the same origin (same host and port, one
+    after the other) can share it — so one workflow's arrangement would be
+    applied to the other's nodes. What is needed is something stable across
+    restarts and across edits to the graph: on a Space the repo id, and locally
+    the graph file's path. The path is hashed rather than sent as-is so a
+    viewer's browser storage doesn't carry the author's directory layout.
+    """
+    space = os.getenv("SPACE_ID")
+    if space:
+        return f"space:{space}"
+    digest = hashlib.sha256(os.path.abspath(workflow_file).encode("utf-8")).hexdigest()
+    return f"file:{digest[:16]}"
+
+
 def get_oauth_available(_data=None) -> str:
-    """Whether OAuth sign-in is actually wired up. On a Space this requires
-    `hf_oauth: true` in the README metadata, which provisions OAUTH_CLIENT_ID
-    and causes the `/login/huggingface` route to be mounted (mirrors the gate
-    that adds the LoginButton in `__init__`). Without it, sign-in would 404, so
-    the frontend hides the login button and explains the fix on the read-only
-    badge. OAuth is not used locally (the write-token model is used instead)."""
+    """True on a Space with `hf_oauth: true` (i.e. OAUTH_CLIENT_ID is set)."""
     return (
         "true"
         if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
         else "false"
+    )
+
+
+WORKFLOW_OAUTH_SCOPES: dict[str, str] = {
+    "inference-api": "run nodes on the signed-in user's own inference quota",
+    "write-repos": "save the workflow back to this Space",
+}
+
+
+def _missing_workflow_oauth_scopes() -> dict[str, str]:
+    granted = set((os.getenv("OAUTH_SCOPES") or "").split())
+    return {
+        scope: why
+        for scope, why in WORKFLOW_OAUTH_SCOPES.items()
+        if scope not in granted
+    }
+
+
+def _warn_workflow_oauth_configuration() -> None:
+    if get_space() is None:
+        return
+    if not os.getenv("OAUTH_CLIENT_ID"):
+        warnings.warn(
+            "Workflow OAuth is not enabled for this Space. Add `hf_oauth: true` "
+            "to the README metadata so users can run workflows on their own "
+            "inference quota.",
+            UserWarning,
+            stacklevel=3,
+        )
+        return
+
+    missing = _missing_workflow_oauth_scopes()
+    if not missing:
+        return
+    detail = ", ".join(f"`{scope}` (to {why})" for scope, why in missing.items())
+    scopes = " and ".join(f"`{scope}`" for scope in missing)
+    warnings.warn(
+        f"Workflow OAuth is missing {detail}. Add {scopes} under "
+        "`hf_oauth_scopes` in the README metadata and redeploy.",
+        UserWarning,
+        stacklevel=3,
+    )
+
+
+def get_oauth_scopes(_data=None) -> str:
+    """Which of `WORKFLOW_OAUTH_SCOPES` the Space's OAuth app was granted, and
+    which are missing. Empty off-Spaces and when OAuth is disabled."""
+    if get_space() is None or not os.getenv("OAUTH_CLIENT_ID"):
+        return json.dumps({"granted": [], "missing": {}})
+    granted = (os.getenv("OAUTH_SCOPES") or "").split()
+    return json.dumps(
+        {
+            "granted": granted,
+            "missing": _missing_workflow_oauth_scopes(),
+        }
     )
 
 
@@ -834,12 +911,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}
         ],
     },
-    "image_to_text": {
-        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
-        "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
-        ],
-    },
     "automatic_speech_recognition": {
         "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
         "outputs": [
@@ -850,24 +921,6 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
         "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
         "outputs": [
             {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
-        ],
-    },
-    "visual_question_answering": {
-        "inputs": [
-            {"id": "image", "label": "Image", "type": "image"},
-            {"id": "question", "label": "Question", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
-        ],
-    },
-    "document_question_answering": {
-        "inputs": [
-            {"id": "image", "label": "Document", "type": "image"},
-            {"id": "question", "label": "Question", "type": "text"},
-        ],
-        "outputs": [
-            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
         ],
     },
     # Vision-language models are served as `conversational`, so they're called
@@ -926,17 +979,12 @@ _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "text-to-video": "text_to_video",
     "image-to-image": "image_to_image",
     "image-to-video": "image_to_video",
+    "image-text-to-video": "image_to_video",
     "image-classification": "image_classification",
     "object-detection": "object_detection",
     "image-segmentation": "image_segmentation",
-    "image-to-text": "image_to_text",
     "automatic-speech-recognition": "automatic_speech_recognition",
     "audio-classification": "audio_classification",
-    "visual-question-answering": "visual_question_answering",
-    "document-question-answering": "document_question_answering",
-    # Not visual_question_answering: the Hub routes every image-text-to-text
-    # model as `conversational`, and no provider serves the VQA task at all,
-    # so a task-specific call fails for every model carrying this tag.
     "image-text-to-text": "chat_completion",
 }
 
@@ -962,6 +1010,34 @@ def get_model_endpoints(
         if getattr(InferenceClient, name, None) is not None
     ]
     return json.dumps(endpoints)
+
+
+def _partition_params(fn, params: dict) -> dict:
+    """Route *params* per fn's signature: extra_body / **kwargs / reject."""
+    try:
+        sig = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return dict(params)
+    param_names = set(sig.parameters)
+    accepts_kwargs = any(
+        p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+    )
+    known: dict = {}
+    unknown: dict = {}
+    for k, v in params.items():
+        (known if k in param_names else unknown)[k] = v
+    if not unknown:
+        return known
+    if "extra_body" in param_names:
+        known["extra_body"] = {**(known.get("extra_body") or {}), **unknown}
+        return known
+    if accepts_kwargs:
+        known.update(unknown)
+        return known
+    raise ValueError(
+        f"Model doesn't accept parameter(s): {', '.join(sorted(unknown))}. "
+        "Remove those from the node or switch to a model that supports them."
+    )
 
 
 def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
@@ -1010,6 +1086,9 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             content.append({"type": "image_url", "image_url": {"url": image_url}})
         if not content:
             raise ValueError("Connect a prompt or an image to this model.")
+        extras = {k: v for k, v in clean.items() if k not in ("text", "image")}
+        extras.setdefault("max_tokens", _CHAT_MAX_TOKENS)
+        chat_params = _partition_params(client.chat_completion, extras)
         # Streamed, not buffered: the router's gateway times out a non-streaming
         # request at ~120s, which a vision model writing a whole file routinely
         # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
@@ -1019,8 +1098,8 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         finish_reason = None
         for chunk in client.chat_completion(
             [{"role": "user", "content": content}],
-            max_tokens=_CHAT_MAX_TOKENS,
             stream=True,
+            **chat_params,
         ):
             if not chunk.choices:
                 continue
@@ -1048,6 +1127,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
                 f"{model_name} returned no text (finish_reason={finish_reason})."
             )
         return json.dumps([text])
+    clean = _partition_params(fn, clean)
     if endpoint == "text_generation":
         clean.setdefault("max_new_tokens", 512)
         try:
@@ -1063,7 +1143,7 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             else:
                 raise
     else:
-        result = fn(**clean)
+        result = call_with_recovery(client, fn, clean)
     ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
     if ext:
         return json.dumps([_save_tmp(result, ext)])
@@ -1122,7 +1202,9 @@ def call_model(
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
         if isinstance(args, dict):
-            endpoint = pipeline_tag or ""
+            endpoint = (
+                _PIPELINE_TAG_TO_ENDPOINT.get(pipeline_tag or "") or pipeline_tag or ""
+            )
             return _dispatch_model_endpoint(client, endpoint, args)
 
         task = pipeline_tag or "text-generation"
@@ -1156,20 +1238,20 @@ def call_model(
             }
             return _dispatch_model_endpoint(client, endpoint, kwargs)
 
-        # Fallback for tasks not handled above: chat_completion (works for most
-        # text models across providers), then a raw POST as last resort.
-        try:
-            r = client.chat_completion(
-                [{"role": "user", "content": a0}], max_tokens=512
+        def _resolve(v):
+            return (
+                _sendable_ref(v)
+                if isinstance(v, dict) and ("url" in v or "path" in v)
+                else v
             )
-            return json.dumps([r.choices[0].message.content])
-        except Exception:
-            pass
+
+        a1_missing = a1 is None or a1 == ""
+        payload = _resolve(a0) if a1_missing else [_resolve(a0), _resolve(a1)]
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
         fallback_resp = httpx.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
-            json={"inputs": a0 if not a1 else [a0, a1]},
+            json={"inputs": payload},
             timeout=60,
         )
         fallback_resp.raise_for_status()
@@ -1693,9 +1775,10 @@ class Workflow(Blocks):
         """
         Parameters:
             graph: Path to the workflow JSON file describing the canvas graph
-                (nodes + edges). Defaults to `workflow.json` in the same
-                directory as the calling script. The file is created on first
-                save if it doesn't exist.
+                (nodes + edges). Relative paths are resolved from the directory
+                containing the calling script. Defaults to `workflow.json` in
+                that directory. The file is created on first save if it doesn't
+                exist.
             bind: Functions callable from the canvas frontend via the `call_fn` server
                 function. Pass a list of callables (keys default to ``fn.__name__``) or
                 a dict mapping explicit names to callables.
@@ -1712,10 +1795,12 @@ class Workflow(Blocks):
                         ("clean.output", "tag.text"), # by port label
                     ]
         """
-        if graph is None:
+        if graph is None or not os.path.isabs(graph):
             caller_filename = sys._getframe(1).f_code.co_filename
             caller_dir = os.path.dirname(os.path.abspath(caller_filename))
-            graph = os.path.join(caller_dir, "workflow.json")
+            graph = os.path.join(
+                caller_dir, "workflow.json" if graph is None else graph
+            )
 
         if isinstance(bind, list):
             bind = {getattr(fn, "__name__", repr(fn)): fn for fn in bind}
@@ -1739,6 +1824,7 @@ class Workflow(Blocks):
             "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
             UserWarning,
         )
+        _warn_workflow_oauth_configuration()
 
         super().__init__(mode="workflow")
         self._build()
@@ -1910,10 +1996,16 @@ class Workflow(Blocks):
                 logger.error("save_workflow failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
 
+        def get_workflow_key(_data=None) -> str:
+            return _workflow_key(workflow_file)
+
         server_functions = [
             get_token,
             get_write_access,
             get_oauth_available,
+            get_oauth_scopes,
+            get_space_id,
+            get_workflow_key,
             call_space,
             call_model,
             fetch_dataset,

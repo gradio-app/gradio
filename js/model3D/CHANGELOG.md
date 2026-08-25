@@ -1,5 +1,17 @@
 # @gradio/model3d
 
+## 0.18.3
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.18.3
+
+### Fixes
+
+- [#13745](https://github.com/gradio-app/gradio/pull/13745) [`3706565`](https://github.com/gradio-app/gradio/commit/3706565c713e6959d5078305712b5c1a4f87dda5) - Render the PLY and OBJ files `gr.Model3D` showed as a blank canvas.  Thanks @hysts!
+
 ## 0.18.2
 
 ### Dependency updates

@@ -53,9 +53,18 @@ function serializedNodes(raw: unknown): Record<string, unknown>[] {
 		});
 }
 
+/**
+ * Whether the *file* left any node's position unspecified. Geometry is no longer
+ * written back (see `layout-persistence.ts`), but a file that carries a complete
+ * arrangement still describes how its author meant the graph to be read, so the
+ * canvas honours it for a viewer who has never arranged this workflow rather
+ * than auto-laying it out.
+ */
 export function hasMissingNodeGeometry(raw: unknown): boolean {
-	return serializedNodes(raw).some((node) =>
-		["x", "y", "width", "height"].some(
+	const nodes = serializedNodes(raw);
+	if (!nodes.length) return true;
+	return nodes.some((node) =>
+		["x", "y"].some(
 			(key) => typeof node[key] !== "number" || !Number.isFinite(node[key])
 		)
 	);

@@ -14,6 +14,7 @@ with gr.Blocks() as demo:
         im = gr.ImageEditor(
             type="numpy",
             interactive=True,
+            transforms=("crop",),
         )
         im_preview = gr.ImageEditor(
             interactive=True,

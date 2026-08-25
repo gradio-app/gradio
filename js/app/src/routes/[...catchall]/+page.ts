@@ -1,7 +1,7 @@
 // import { type LayoutServerLoad } from "./$types";
 import { browser } from "$app/environment";
 
-import { Client } from "@gradio/client";
+import { apply_run_history_replay, Client } from "@gradio/client";
 
 import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
@@ -154,6 +154,10 @@ export async function load({
 	}
 
 	let page_config = app.get_url_config(url.toString());
+
+	if (browser) {
+		apply_run_history_replay(page_config);
+	}
 
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);
 	return {

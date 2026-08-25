@@ -32,6 +32,7 @@ export interface Port {
 	output_index?: number;
 	choices?: string[];
 	multiselect?: boolean;
+	custom?: boolean;
 }
 
 export interface FileValue {
@@ -193,6 +194,26 @@ export interface Workflow {
 	view?: {
 		default?: "studio" | "canvas";
 	};
+}
+
+/**
+ * Geometry that belongs to the viewer looking at the workflow rather than to the
+ * workflow itself: where each card sits and how tall it is. Kept out of
+ * `workflow.json` and mirrored per-user into localStorage instead — see
+ * `layout-persistence.ts`.
+ */
+export type ViewGeometryKey = "x" | "y" | "height" | "manual_height";
+
+export type SavedNode<T extends AnyNode = AnyNode> = Omit<T, ViewGeometryKey>;
+
+/** A workflow as it is written to `workflow.json`. */
+export interface SavedWorkflow extends Omit<
+	Workflow,
+	"references" | "operators" | "subjects"
+> {
+	references: SavedNode<ReferenceNode>[];
+	operators: SavedNode<OperatorNode>[];
+	subjects: SavedNode<SubjectNode>[];
 }
 
 export const PORT_COLOR: Record<PortType, string> = {
