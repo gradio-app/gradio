@@ -409,20 +409,20 @@
 					{/if}
 				</button>
 			{/if}
-			{#if !readOnly}
-				<button
-					class="node-delete"
-					onpointerdown={(e) => e.stopPropagation()}
-					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => {
-						e.stopPropagation();
-						ctx.onremove(node.id);
-					}}
-					title="Delete node">&times;</button
-				>
-			{/if}
 		</div>
 	</div>
+	{#if !readOnly}
+		<button
+			class="node-delete"
+			onpointerdown={(e) => e.stopPropagation()}
+			onmousedown={(e) => e.stopPropagation()}
+			onclick={(e) => {
+				e.stopPropagation();
+				ctx.onremove(node.id);
+			}}
+			title="Delete node">&times;</button
+		>
+	{/if}
 
 	<!-- Source label for transform nodes — floats above the card.
 	     Components are pure data containers and have no source label. -->
@@ -1175,22 +1175,29 @@
 		cursor: default;
 	}
 
+	/* Floats just off the card's top-right corner so it stops competing with
+	 * the run button in the header row. Hover-only on the card, not the button
+	 * itself, so the whole corner region reveals it. */
 	.node-delete {
 		display: flex;
 		visibility: hidden;
-		width: 20px;
-		height: 20px;
-		border: none;
-		border-radius: 4px;
-		background: transparent;
-		color: #5c5e6a;
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		width: 18px;
+		height: 18px;
+		border: 1px solid #2a2b38;
+		border-radius: 50%;
+		background: #16171f;
+		color: #8b8d98;
 		font-size: 12px;
+		line-height: 1;
 		cursor: pointer;
-		flex-shrink: 0;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
 		text-align: center;
+		z-index: 2;
 	}
 
 	.wf-node:hover .node-delete {
@@ -1198,7 +1205,8 @@
 	}
 
 	.node-delete:hover {
-		background: rgba(239, 68, 68, 0.15);
+		background: rgba(239, 68, 68, 0.18);
+		border-color: rgba(239, 68, 68, 0.4);
 		color: #ef4444;
 	}
 
@@ -1227,10 +1235,6 @@
 	.node-run.has-duration {
 		padding: 0 3px 0 7px;
 		background: rgba(255, 255, 255, 0.06);
-	}
-
-	.node-run + .node-delete {
-		margin-left: 2px;
 	}
 
 	.node-run-time {
@@ -1760,6 +1764,8 @@
 	}
 
 	:global(body:not(.dark)) .node-delete {
+		background: #ffffff;
+		border-color: #e2e4ea;
 		color: #9a9caa;
 	}
 
