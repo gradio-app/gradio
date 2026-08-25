@@ -54,8 +54,11 @@ describe("getComponentForPortType", () => {
 		expect(getComponentForPortType("gallery")?.label).toBe("Gallery");
 	});
 
-	test("falls back to Image for inference-only types", () => {
-		expect(getComponentForPortType("any")?.label).toBe("Image");
+	test("falls back to JSON for any values", () => {
+		expect(getComponentForPortType("any")?.label).toBe("JSON");
+	});
+
+	test("falls back to Image for ambiguous files", () => {
 		expect(getComponentForPortType("file")?.label).toBe("Image");
 	});
 

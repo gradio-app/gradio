@@ -11,10 +11,8 @@ from transformers import (
     FillMaskPipeline,
     ImageClassificationPipeline,
     ObjectDetectionPipeline,
-    QuestionAnsweringPipeline,  # ty: ignore[unresolved-import]
     TextClassificationPipeline,
     TextGenerationPipeline,
-    VisualQuestionAnsweringPipeline,  # ty: ignore[unresolved-import]
     ZeroShotClassificationPipeline,
 )
 
@@ -23,11 +21,18 @@ from gradio.pipelines_utils import (
     handle_transformers_pipeline,
 )
 
+QuestionAnsweringPipeline = getattr(transformers, "QuestionAnsweringPipeline", None)
+VisualQuestionAnsweringPipeline = getattr(
+    transformers, "VisualQuestionAnsweringPipeline", None
+)
+
+PIPELINE_MODEL = "hf-internal-testing/tiny-random-DistilBertForSequenceClassification"
+
 
 @pytest.mark.flaky
 def test_interface_in_blocks():
-    pipe1 = transformers.pipeline(model="deepset/roberta-base-squad2")  # type: ignore
-    pipe2 = transformers.pipeline(model="deepset/roberta-base-squad2")  # type: ignore
+    pipe1 = transformers.pipeline("text-classification", model=PIPELINE_MODEL)
+    pipe2 = transformers.pipeline("text-classification", model=PIPELINE_MODEL)
     with gr.Blocks() as demo:
         with gr.Tab("Image Inference"):
             gr.Interface.from_pipeline(pipe1)
@@ -41,12 +46,10 @@ def test_interface_in_blocks():
 def test_transformers_load_from_pipeline():
     from transformers import pipeline
 
-    pipe = pipeline(model="deepset/roberta-base-squad2")  # type: ignore
+    pipe = pipeline("text-classification", model=PIPELINE_MODEL)
     io = gr.Interface.from_pipeline(pipe)
-    assert io.input_components[0].label == "Context"  # type: ignore
-    assert io.input_components[1].label == "Question"  # type: ignore
-    assert io.output_components[0].label == "Answer"  # type: ignore
-    assert io.output_components[1].label == "Score"  # type: ignore
+    assert io.input_components[0].label == "Input"  # type: ignore
+    assert io.output_components[0].label == "Classification"  # type: ignore
 
 
 class TestHandleTransformersPipelines(unittest.TestCase):
@@ -92,6 +95,10 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info["inputs"].label == "Input Image"
         assert pipeline_info["outputs"].label == "Classification"
 
+    @pytest.mark.skipif(
+        QuestionAnsweringPipeline is None,
+        reason="QuestionAnsweringPipeline is unavailable in this transformers version",
+    )
     def test_question_answering_pipeline(self):
         pipe = MagicMock(spec=QuestionAnsweringPipeline)
         pipeline_info = handle_transformers_pipeline(pipe)
@@ -134,6 +141,10 @@ class TestHandleTransformersPipelines(unittest.TestCase):
         assert pipeline_info["inputs"][1].label == "Question"
         assert pipeline_info["outputs"].label == "Label"
 
+    @pytest.mark.skipif(
+        VisualQuestionAnsweringPipeline is None,
+        reason="VisualQuestionAnsweringPipeline is unavailable in this transformers version",
+    )
     def test_visual_question_answering_pipeline(self):
         pipe = MagicMock(spec=VisualQuestionAnsweringPipeline)
         pipeline_info = handle_transformers_pipeline(pipe)

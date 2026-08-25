@@ -1,6 +1,8 @@
 import json
 import os
+import runpy
 import tempfile
+import warnings
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -17,10 +19,13 @@ from gradio.workflow import (
     _chat_image_url,
     _dispatch_model_endpoint,
     _get_locally_saved_hf_token,
+    _partition_params,
     _request_has_write_token,
     _resolve_token,
     _save_tmp,
+    _warn_workflow_oauth_configuration,
     _workflow_from_bind,
+    _workflow_key,
     call_model,
     call_space,
     get_model_endpoints,
@@ -28,6 +33,7 @@ from gradio.workflow import (
     get_token,
     has_write_access,
 )
+from gradio.workflow_provider_shims import call_with_recovery
 
 
 def _make_oauth(token: str) -> OAuthToken:
@@ -94,6 +100,39 @@ class TestConstruction:
         wf = Workflow(graph=str(graph))
         assert wf._workflow_file == str(graph)
 
+    def test_relative_graph_path_is_resolved_beside_calling_script(
+        self, tmp_path, monkeypatch
+    ):
+        script_dir = tmp_path / "a"
+        script_dir.mkdir()
+        script_graph = script_dir / "workflow.json"
+        script_payload = '{"schema_version": "2", "name": "Script graph"}'
+        script_graph.write_text(script_payload)
+
+        cwd_graph = tmp_path / "workflow.json"
+        cwd_payload = '{"schema_version": "2", "name": "CWD graph"}'
+        cwd_graph.write_text(cwd_payload)
+        monkeypatch.chdir(tmp_path)
+
+        script = script_dir / "workflow.py"
+        script.write_text(
+            "from gradio.workflow import Workflow\n"
+            'workflow = Workflow(graph="workflow.json")'
+        )
+        namespace = runpy.run_path(str(script))
+        wf = namespace["workflow"]
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+
+        assert wf._workflow_file == str(script_graph)
+        assert canvas.value == script_payload
+
+        saved_payload = '{"schema_version": "2", "name": "Saved graph"}'
+        assert canvas.save_workflow([saved_payload], _write_request(), None) == "ok"
+        assert script_graph.read_text() == saved_payload
+        assert cwd_graph.read_text() == cwd_payload
+
     def test_bind_accepts_list(self, tmp_path):
         wf = Workflow(graph=str(tmp_path / "wf.json"), bind=[_shout, _add])
         assert set(wf._bound.keys()) == {"_shout", "_add"}
@@ -129,7 +168,9 @@ class TestOAuthGating:
         monkeypatch.setenv("SYSTEM", "spaces")
         monkeypatch.setenv("SPACE_ID", "u/r")
         monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
-        wf = Workflow(graph=str(tmp_path / "wf.json"))
+        with pytest.warns(UserWarning) as recorded:
+            wf = Workflow(graph=str(tmp_path / "wf.json"))
+        assert any("Add `hf_oauth: true`" in str(w.message) for w in recorded)
         assert wf.expects_oauth is False
 
 
@@ -321,6 +362,63 @@ class TestOAuthAvailable:
         assert get_oauth_available() == "true"
 
 
+class TestWorkflowKey:
+    """The canvas keys each viewer's layout and viewport by this, so it has to be
+    stable across restarts and distinct per workflow."""
+
+    def test_uses_the_space_repo_id_on_spaces(self, monkeypatch):
+        monkeypatch.setenv("SPACE_ID", "owner/space")
+        assert _workflow_key("/anywhere/workflow.json") == "space:owner/space"
+
+    def test_identifies_the_graph_file_locally(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("SPACE_ID", raising=False)
+        assert _workflow_key("/a/workflow.json") != _workflow_key("/b/workflow.json")
+        # Resolved, so relaunching from a different directory keeps the key.
+        monkeypatch.chdir(tmp_path)
+        assert _workflow_key("workflow.json") == _workflow_key(
+            str(tmp_path / "workflow.json")
+        )
+
+
+class TestOAuthConfigurationWarning:
+    def test_silent_outside_spaces(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: None)
+        monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            _warn_workflow_oauth_configuration()
+
+    def test_warns_when_oauth_is_disabled(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
+        with pytest.warns(UserWarning, match="Add `hf_oauth: true`"):
+            _warn_workflow_oauth_configuration()
+
+    def test_workflow_warns_on_construction(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
+        with pytest.warns(UserWarning) as recorded:
+            Workflow(graph=str(tmp_path / "workflow.json"))
+        assert any("Add `hf_oauth: true`" in str(w.message) for w in recorded)
+
+    def test_warns_with_each_missing_scope(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.setenv("OAUTH_CLIENT_ID", "client-id")
+        monkeypatch.setenv("OAUTH_SCOPES", "openid profile")
+        with pytest.warns(
+            UserWarning, match="`inference-api`.*`write-repos`.*hf_oauth_scopes"
+        ):
+            _warn_workflow_oauth_configuration()
+
+    def test_silent_when_all_scopes_are_present(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.setenv("OAUTH_CLIENT_ID", "client-id")
+        monkeypatch.setenv("OAUTH_SCOPES", "openid profile inference-api write-repos")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            _warn_workflow_oauth_configuration()
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Write access — local write token + Spaces OAuth ownership
 # ─────────────────────────────────────────────────────────────────────────────
@@ -449,14 +547,14 @@ class TestWorkflowFromBind:
 class TestDispatchModelEndpoint:
     def test_legacy_in_n_port_ids_remap_to_schema_names(self):
         client = MagicMock()
-        client.visual_question_answering.return_value = []
+        client.question_answering.return_value = []
         _dispatch_model_endpoint(
             client,
-            "visual_question_answering",
-            {"in_0": {"url": "/f/a.png"}, "in_1": "what is this?"},
+            "question_answering",
+            {"in_0": "who?", "in_1": "some context"},
         )
-        client.visual_question_answering.assert_called_once_with(
-            image="/f/a.png", question="what is this?"
+        client.question_answering.assert_called_once_with(
+            question="who?", context="some context"
         )
 
     def test_list_kwargs_coerced_from_strings(self):
@@ -740,3 +838,121 @@ class TestChatImageUrl:
         outside.write_bytes(b"must-not-be-read")
 
         assert _chat_image_url({"path": str(outside)}) == str(outside)
+
+
+class TestPartitionParams:
+    """`_partition_params` centralises how custom-port values reach the client."""
+
+    def test_all_known_params_pass_through(self):
+        def fn(text, temperature): ...
+
+        assert _partition_params(fn, {"text": "hi", "temperature": 0.9}) == {
+            "text": "hi",
+            "temperature": 0.9,
+        }
+
+    def test_unknowns_route_to_extra_body_when_supported(self):
+        def fn(text, extra_body=None): ...
+
+        assert _partition_params(fn, {"text": "hi", "temperature": 0.9}) == {
+            "text": "hi",
+            "extra_body": {"temperature": 0.9},
+        }
+
+    def test_unknowns_merge_into_existing_extra_body(self):
+        def fn(text, extra_body=None): ...
+
+        assert _partition_params(
+            fn, {"text": "hi", "extra_body": {"a": 1}, "temp": 0.9}
+        ) == {"text": "hi", "extra_body": {"a": 1, "temp": 0.9}}
+
+    def test_unknowns_pass_through_when_fn_accepts_kwargs(self):
+        def fn(text, **kwargs): ...
+
+        assert _partition_params(fn, {"text": "hi", "temperature": 0.9}) == {
+            "text": "hi",
+            "temperature": 0.9,
+        }
+
+    def test_unknowns_rejected_when_unsupported(self):
+        def fn(text): ...
+
+        with pytest.raises(ValueError, match="doesn't accept parameter"):
+            _partition_params(fn, {"text": "hi", "temperature": 0.9})
+
+
+class TestChatCustomParams:
+    """Custom-port values must reach `chat_completion`, not be silently dropped."""
+
+    @staticmethod
+    def _chunks(content="ok", reasoning="", finish_reason="stop"):
+        return [
+            SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        delta=SimpleNamespace(
+                            content=content, reasoning_content=reasoning
+                        ),
+                        finish_reason=finish_reason,
+                    )
+                ]
+            )
+        ]
+
+    def test_temperature_reaches_chat_completion(self):
+        client = MagicMock()
+        client.chat_completion.return_value = self._chunks(content="ok")
+        _dispatch_model_endpoint(
+            client, "chat_completion", {"text": "hi", "temperature": 0.9}
+        )
+        kwargs = client.chat_completion.call_args.kwargs
+        # MagicMock() has a **kwargs-shaped signature, so temperature passes
+        # straight through (rather than being packed into extra_body).
+        assert kwargs.get("temperature") == 0.9
+
+    def test_max_tokens_default_applied_when_absent(self):
+        client = MagicMock()
+        client.chat_completion.return_value = self._chunks(content="ok")
+        _dispatch_model_endpoint(client, "chat_completion", {"text": "hi"})
+        assert (
+            client.chat_completion.call_args.kwargs["max_tokens"]
+            == workflow_module._CHAT_MAX_TOKENS
+        )
+
+    def test_max_tokens_override_respected(self):
+        client = MagicMock()
+        client.chat_completion.return_value = self._chunks(content="ok")
+        _dispatch_model_endpoint(
+            client, "chat_completion", {"text": "hi", "max_tokens": 42}
+        )
+        assert client.chat_completion.call_args.kwargs["max_tokens"] == 42
+
+
+class TestNoDoubleInference:
+    """Response-parser recovery must not re-post (double bill)."""
+
+    def test_keyerror_reuses_captured_response(self):
+        call_count = {"n": 0}
+        envelope = b'{"video": {"url": "https://example.com/out.mp4"}}'
+
+        def _inner_post(_req):
+            call_count["n"] += 1
+            return envelope
+
+        client = MagicMock()
+        client._inner_post = _inner_post
+        client.provider = "fal-ai"
+
+        def fn(**_kwargs):
+            client._inner_post({})
+            raise KeyError("bytes")
+
+        with patch(
+            "gradio.workflow_provider_shims._fetch_media_bytes",
+            return_value=b"video-bytes",
+        ) as fetch:
+            result = call_with_recovery(client, fn, {"prompt": "x"})
+
+        assert result == b"video-bytes"
+        assert call_count["n"] == 1  # no second POST
+        fetch.assert_called_once_with("https://example.com/out.mp4")

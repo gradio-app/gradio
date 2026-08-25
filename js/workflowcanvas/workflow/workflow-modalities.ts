@@ -93,10 +93,13 @@ export const MODALITIES: ModalityConfig[] = [
 				label: "Image Editing",
 				spaceCategory: "image-editing"
 			}),
-			task("image-to-text", "image-to-text", ["image"], ["text"], {
-				label: "Image Captioning",
-				spaceCategory: "image-captioning"
-			}),
+			task(
+				"image-text-to-text",
+				"image-text-to-text",
+				["image", "text"],
+				["text"],
+				{ label: "Image + Text → Text", spaceCategory: "image-captioning" }
+			),
 			task("object-detection", "object-detection", ["image"], ["json"], {
 				label: "Object Detection",
 				spaceCategory: "object-detection"
@@ -133,20 +136,6 @@ export const MODALITIES: ModalityConfig[] = [
 			task("keypoint-detection", "keypoint-detection", ["image"], ["json"], {
 				label: "Keypoint Detection"
 			}),
-			task(
-				"visual-question-answering",
-				"visual-question-answering",
-				["image", "text"],
-				["text"],
-				{ label: "Visual Q&A" }
-			),
-			task(
-				"document-question-answering",
-				"document-question-answering",
-				["image", "text"],
-				["text"],
-				{ label: "Document Q&A" }
-			),
 			task("depth-estimation", "depth-estimation", ["image"], ["image"], {
 				label: "Depth Estimation"
 			})
