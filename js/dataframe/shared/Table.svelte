@@ -10,7 +10,7 @@
 		type ColumnFiltersState,
 		type ColumnPinningState
 	} from "./tanstack/index.js";
-	import { tick, onMount } from "svelte";
+	import { tick, onMount, untrack } from "svelte";
 	import { Upload } from "@gradio/upload";
 
 	import { MarkdownCode } from "@gradio/markdown-code";
@@ -681,10 +681,18 @@
 		}
 	}
 
+	// `selected` holds an index into `values`, but the table can be filtered or
+	// sorted, so the neighbouring row is found by stepping through the view
+	function step_row(row: number, delta: number): number | false {
+		const view_index = rows.findIndex((r) => r.original._index === row);
+		if (view_index === -1) return false;
+		const next = rows[view_index + delta];
+		return next ? next.original._index : false;
+	}
+
 	function handle_keydown(e: KeyboardEvent): void {
 		if (!selected && selected_header === false) return;
 
-		const num_rows = rows.length;
 		const num_cols = resolved_headers.length;
 
 		if (selected) {
@@ -701,22 +709,24 @@
 			}
 
 			switch (e.key) {
-				case "ArrowUp":
+				case "ArrowUp": {
 					e.preventDefault();
-					if (row > 0) {
-						selected = [row - 1, col];
+					const prev_row = step_row(row, -1);
+					if (prev_row !== false) {
+						selected = [prev_row, col];
 						selected_cells = [selected];
-						virtualizer.instance.scrollToIndex(row - 1, { align: "auto" });
 					}
 					break;
-				case "ArrowDown":
+				}
+				case "ArrowDown": {
 					e.preventDefault();
-					if (row < num_rows - 1) {
-						selected = [row + 1, col];
+					const next_row = step_row(row, 1);
+					if (next_row !== false) {
+						selected = [next_row, col];
 						selected_cells = [selected];
-						virtualizer.instance.scrollToIndex(row + 1, { align: "auto" });
 					}
 					break;
+				}
 				case "ArrowLeft":
 					e.preventDefault();
 					if (col > 0) {
@@ -736,10 +746,16 @@
 					const was_editing = !!editing;
 					if (e.shiftKey) {
 						if (col > 0) selected = [row, col - 1];
-						else if (row > 0) selected = [row - 1, num_cols - 1];
+						else {
+							const prev_row = step_row(row, -1);
+							if (prev_row !== false) selected = [prev_row, num_cols - 1];
+						}
 					} else {
 						if (col < num_cols - 1) selected = [row, col + 1];
-						else if (row < num_rows - 1) selected = [row + 1, 0];
+						else {
+							const next_row = step_row(row, 1);
+							if (next_row !== false) selected = [next_row, 0];
+						}
 					}
 					selected_cells = [selected];
 					if (was_editing) {
@@ -762,8 +778,9 @@
 					e.preventDefault();
 					if (editing) {
 						editing = false;
-						if (row < num_rows - 1) {
-							selected = [row + 1, col];
+						const next_row = step_row(row, 1);
+						if (next_row !== false) {
+							selected = [next_row, col];
 							selected_cells = [selected];
 						}
 						tick().then(() => parent?.focus());
@@ -890,10 +907,19 @@
 	);
 	let selected_index = $derived(selected !== false ? selected[0] : false);
 
+	// the virtualizer indexes the current view rather than the data, so the
+	// selected row has to be translated before scrolling to it. untrack keeps
+	// this to selection changes instead of re-running whenever the view changes
 	$effect(() => {
-		if (typeof selected_index === "number") {
-			virtualizer.instance.scrollToIndex(selected_index, { align: "auto" });
-		}
+		if (typeof selected_index !== "number") return;
+		untrack(() => {
+			const view_index = rows.findIndex(
+				(r) => r.original._index === selected_index
+			);
+			if (view_index !== -1) {
+				virtualizer.instance.scrollToIndex(view_index, { align: "auto" });
+			}
+		});
 	});
 
 	function get_sort_info(col: number): {
@@ -970,6 +996,7 @@
 				onscroll={handle_scroll}
 				style="max-height: {max_height}px;"
 				role="grid"
+				data-testid="dataframe-viewport"
 			>
 				{#if label && label.length !== 0}
 					<span class="sr-only">{label}</span>
