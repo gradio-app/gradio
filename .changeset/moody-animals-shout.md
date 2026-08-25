@@ -1,6 +1,6 @@
 ---
-"@gradio/workflowcanvas": minor
-"gradio": minor
+"@gradio/workflowcanvas": patch
+"gradio": patch
 ---
 
-feat:workflow: improve handling of `Any` output type
+fix:workflow: improve handling of `Any` output type
