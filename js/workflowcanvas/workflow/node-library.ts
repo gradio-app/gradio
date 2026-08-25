@@ -119,10 +119,6 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
 		outputs: [{ id: "out_0", label: "Segments", type: "json" }]
 	},
-	"image-to-text": {
-		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }]
-	},
 	"image-to-image": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
@@ -132,6 +128,13 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 	},
 	"image-to-video": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
+		outputs: [{ id: "out_0", label: "Video", type: "video" }]
+	},
+	"image-text-to-video": {
+		inputs: [
+			{ id: "in_0", label: "Image", type: "image" },
+			{ id: "in_1", label: "Prompt", type: "text" }
+		],
 		outputs: [{ id: "out_0", label: "Video", type: "video" }]
 	},
 	"depth-estimation": {
@@ -159,20 +162,6 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		outputs: [{ id: "out_0", label: "Audio", type: "audio" }]
 	},
 	// Multimodal
-	"visual-question-answering": {
-		inputs: [
-			{ id: "in_0", label: "Image", type: "image" },
-			{ id: "in_1", label: "Question", type: "text" }
-		],
-		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
-	},
-	"document-question-answering": {
-		inputs: [
-			{ id: "in_0", label: "Document", type: "image" },
-			{ id: "in_1", label: "Question", type: "text" }
-		],
-		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
-	},
 	"zero-shot-image-classification": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
@@ -252,7 +241,6 @@ export const PIPELINE_TO_CATEGORY: Record<string, string> = {
 	"unconditional-image-generation": "image",
 	"image-feature-extraction": "image",
 	"depth-estimation": "image",
-	"image-to-text": "image",
 	// Audio
 	"text-to-speech": "audio",
 	"automatic-speech-recognition": "audio",
@@ -275,14 +263,13 @@ export const PIPELINE_TO_CATEGORY: Record<string, string> = {
 	// Video
 	"text-to-video": "video",
 	"image-to-video": "video",
+	"image-text-to-video": "video",
 	"video-classification": "video",
 	// 3D
 	"text-to-3d": "3d",
 	"image-to-3d": "3d",
 	// Multimodal
-	"visual-question-answering": "multimodal",
 	"image-text-to-text": "multimodal",
-	"document-question-answering": "multimodal",
 	"zero-shot-image-classification": "multimodal",
 	"video-text-to-text": "multimodal",
 	// Chat

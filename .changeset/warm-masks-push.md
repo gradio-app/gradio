@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:workflow: move delete button
+feat:workflow: inference hardcoded endpoint improvements
