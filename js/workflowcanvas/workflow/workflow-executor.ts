@@ -428,14 +428,24 @@ export async function executeWorkflow(
 					if (!serverCallModel) {
 						throw new Error("Model call function not available");
 					}
+					// Custom-port values need names — pack as a keyed dict so
+					// the backend's dict-args branch can pass them as kwargs.
+					const hasCustomPorts = node.inputs.some((p) => p.custom);
+					const modelArgs = hasCustomPorts
+						? (Object.fromEntries(
+								node.inputs.map((port, i) => [port.id, args[i]])
+							) as unknown)
+						: args;
 					// Prefer browser-side streaming for chat-completion-compatible
-					// text tasks so the UI receives tokens as they arrive. The
-					// Python path stays for every other task.
+					// text tasks so the UI receives tokens as they arrive. Skip
+					// streaming when there are custom ports — the streaming path
+					// only sends the prompt and would drop the extras.
 					const tag = node.pipeline_tag ?? "text-generation";
 					const streamable =
 						(tag === "text-generation" ||
 							tag === "text2text-generation" ||
 							tag === "conversational") &&
+						!hasCustomPorts &&
 						!!stream_text_generation;
 					if (streamable) {
 						const prompt =
@@ -456,7 +466,7 @@ export async function executeWorkflow(
 							serverCallModel(
 								node.model_id,
 								tag,
-								JSON.stringify(args),
+								JSON.stringify(modelArgs),
 								node.provider
 							),
 							new Promise<never>((_, reject) =>

@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:workflow: move delete button
+fix:workflow: improve handling of `Any` output type
