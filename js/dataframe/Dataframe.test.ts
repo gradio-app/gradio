@@ -562,6 +562,34 @@ describe("Selection while search is active", () => {
 
 		expect(get_cell(container, 103, 0)!.className).toContain("cell-selected");
 	});
+
+	test("arrow keys scroll the selected row into view", async () => {
+		// a short viewport so a handful of steps is guaranteed to leave it
+		const steps = 20;
+		const { container, getByTestId } = await render(Dataframe, {
+			...search_props,
+			max_height: 120
+		});
+		await wait();
+		await search_for_target(container);
+
+		const viewport = getByTestId("dataframe-viewport");
+		await fireEvent.mouseDown(get_cell(container, 101, 0)!);
+		await wait(100);
+		expect(viewport.scrollTop).toBe(0);
+
+		const table_wrap = get_table_wrap(container);
+		for (let i = 0; i < steps; i++) {
+			await fireEvent.keyDown(table_wrap, { key: "ArrowDown" });
+		}
+		await wait(100);
+
+		// matches are the odd rows from 100 up, so each step advances two rows
+		const selected_row = get_cell(container, 101 + steps * 2, 0);
+		expect(selected_row).toBeInTheDocument();
+		expect(selected_row!.className).toContain("cell-selected");
+		expect(viewport.scrollTop).toBeGreaterThan(0);
+	});
 });
 
 describe("Add/remove rows and columns", () => {
