@@ -84,11 +84,11 @@ export function componentToPortType(
 	if (c === "model3d") return "model3d";
 	if (c === "json" || c === "dataframe") return "json";
 	if (c === "html") return "html";
+	if (c === "markdown") return "markdown";
 	if (c === "state") return "__skip__";
 	if (
 		c === "textbox" ||
 		c === "text" ||
-		c === "markdown" ||
 		c === "chatbot" ||
 		c === "label" ||
 		c === "code" ||

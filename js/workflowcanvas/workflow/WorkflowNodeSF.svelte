@@ -19,8 +19,10 @@
 		WFNode,
 		PortType,
 		NodeDataValue,
-		NodeStatus
+		NodeStatus,
+		FileValue
 	} from "./workflow-types";
+	import { nodeMetaLabel, resolveFileSize } from "./node-meta";
 
 	interface Props {
 		id: string;
@@ -294,6 +296,44 @@
 	);
 	const isReadonly = $derived(mode === "output");
 
+	// ── Header meta ──
+	// How much the card is holding, in the top-right of the header: a character
+	// count for text-ish widgets, a file size for media. Media that arrived as a
+	// bare URL carries no size, so measure it once per URL and keep the answer
+	// here rather than writing it back into the graph (that would dirty the
+	// workflow and mark downstream nodes stale for a cosmetic read).
+	let measuredSize = $state<number | null>(null);
+	let measuredUrl = $state<string | null>(null);
+
+	const widgetValue = $derived(
+		widgetPortId ? node.data?.[widgetPortId] : undefined
+	);
+
+	$effect(() => {
+		const val = widgetValue;
+		const file =
+			val && typeof val === "object" && !Array.isArray(val)
+				? (val as FileValue)
+				: null;
+		if (!file?.url || typeof file.size === "number") {
+			measuredUrl = null;
+			measuredSize = null;
+			return;
+		}
+		if (file.url === measuredUrl) return;
+		const url = file.url;
+		measuredUrl = url;
+		measuredSize = null;
+		resolveFileSize(url).then((size) => {
+			// The value may have moved on while the request was in flight.
+			if (measuredUrl === url) measuredSize = size;
+		});
+	});
+
+	const metaLabel = $derived(
+		hasWidget ? nodeMetaLabel(widgetType, widgetValue, measuredSize) : null
+	);
+
 	function sourceHFUrl(n: WFNode): string {
 		if (n.space_id) return `https://huggingface.co/spaces/${n.space_id}`;
 		if (n.model_id) return `https://huggingface.co/${n.model_id}`;
@@ -377,6 +417,9 @@
 						requestAnimationFrame(() => labelInput?.select());
 					}}>{node.label}</span
 				>
+			{/if}
+			{#if metaLabel}
+				<span class="node-meta" title={metaLabel}>{metaLabel}</span>
 			{/if}
 			{#if canRunSolo}
 				<button
@@ -1078,6 +1121,20 @@
 		);
 	}
 
+	/* Sits between the title and the header buttons. `flex: 0 0 auto` keeps it
+	   whole while the title takes the squeeze. */
+	.node-meta {
+		flex: 0 0 auto;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9.5px;
+		font-weight: 500;
+		line-height: 1;
+		color: #55576a;
+		white-space: nowrap;
+		letter-spacing: 0.01em;
+		user-select: none;
+	}
+
 	.node-label-input {
 		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
@@ -1720,6 +1777,10 @@
 		box-shadow:
 			0 0 0 1px var(--accent-dim),
 			0 4px 20px rgba(0, 0, 0, 0.08);
+	}
+
+	:global(body:not(.dark)) .node-meta {
+		color: #a3a6b4;
 	}
 
 	:global(body:not(.dark)) .node-header {

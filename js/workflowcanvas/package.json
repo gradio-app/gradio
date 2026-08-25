@@ -20,6 +20,7 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/client": "workspace:^",
+		"@gradio/markdown": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@huggingface/hub": "^1.0.0",

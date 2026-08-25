@@ -2517,6 +2517,9 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/markdown':
+        specifier: workspace:^
+        version: link:../markdown
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker

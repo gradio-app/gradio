@@ -31,7 +31,7 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 	// Text → Text
 	"text-generation": {
 		inputs: [{ id: "in_0", label: "Prompt", type: "text" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }]
+		outputs: [{ id: "out_0", label: "Text", type: "markdown" }]
 	},
 	"text2text-generation": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
@@ -49,9 +49,12 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
 		outputs: [{ id: "out_0", label: "Result", type: "json" }]
 	},
+	// Chat-shaped tasks answer in prose that is very often markdown (headings,
+	// lists, fenced code), so their tile renders it rather than showing the raw
+	// asterisks. `markdown` is interchangeable with `text` for wiring.
 	conversational: {
 		inputs: [{ id: "in_0", label: "Message", type: "text" }],
-		outputs: [{ id: "out_0", label: "Reply", type: "text" }]
+		outputs: [{ id: "out_0", label: "Reply", type: "markdown" }]
 	},
 	// Text → Classification
 	"text-classification": {
@@ -146,7 +149,7 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 			{ id: "in_0", label: "Image", type: "image" },
 			{ id: "in_1", label: "Prompt", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }]
+		outputs: [{ id: "out_0", label: "Answer", type: "markdown" }]
 	},
 	// Audio → *
 	"automatic-speech-recognition": {
