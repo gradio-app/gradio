@@ -39,6 +39,7 @@
       "model_id": "Qwen/Qwen3.8-27B",
       "endpoint": "chat_completion",
       "pipeline_tag": "image-text-to-text",
+      "provider": "featherless-ai",
       "inputs": [
         {"id": "image", "label": "Image", "type": "image", "required": true},
         {"id": "text", "label": "Prompt", "type": "text", "required": true},
