@@ -279,7 +279,6 @@
 	const MODEL_TASKS = [
 		{ key: "text-to-image", label: "Text → Image" },
 		{ key: "text-generation", label: "Text Generation" },
-		{ key: "image-to-text", label: "Image → Text" },
 		{ key: "image-classification", label: "Image Classification" },
 		{ key: "object-detection", label: "Object Detection" },
 		{ key: "automatic-speech-recognition", label: "Speech → Text" },

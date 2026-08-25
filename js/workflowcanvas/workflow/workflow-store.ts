@@ -505,15 +505,55 @@ export function init_model_node_ports(
 			if (!endpointName) return n;
 			const sig = schemas.find((s) => s.name === endpointName);
 			if (!sig) return { ...n, endpoints: schemas };
+			const schemaIds = new Set(sig.inputs.map((p) => p.id));
+			const customPorts = (n.inputs ?? []).filter(
+				(p) => p.custom && !schemaIds.has(p.id)
+			);
 			return {
 				...n,
 				endpoint: endpointName,
 				endpoints: schemas,
-				inputs: sig.inputs,
+				inputs: [...sig.inputs, ...customPorts],
 				outputs: sig.outputs
 			};
 		})
 	}));
+}
+
+export function add_custom_port(nodeId: string, port: Port): void {
+	workflow.update((wf) => {
+		const node = wf.operators.find((n) => n.id === nodeId);
+		if (!node || node.inputs.some((p) => p.id === port.id)) return wf;
+		return {
+			...wf,
+			operators: wf.operators.map((n) =>
+				n.id === nodeId
+					? { ...n, inputs: [...n.inputs, { ...port, custom: true }] }
+					: n
+			)
+		};
+	});
+}
+
+export function remove_custom_port(nodeId: string, portId: string): void {
+	workflow.update((wf) => {
+		const node = wf.operators.find((n) => n.id === nodeId);
+		if (!node?.inputs.some((p) => p.id === portId && p.custom)) return wf;
+		return reconcileComponentRoles({
+			...wf,
+			operators: wf.operators.map((n) =>
+				n.id === nodeId
+					? {
+							...n,
+							inputs: n.inputs.filter((p) => !(p.id === portId && p.custom))
+						}
+					: n
+			),
+			edges: wf.edges.filter(
+				(e) => !(e.to_node_id === nodeId && e.to_port_id === portId)
+			)
+		});
+	});
 }
 
 export function switch_endpoint(nodeId: string, endpointName: string): void {
@@ -522,8 +562,13 @@ export function switch_endpoint(nodeId: string, endpointName: string): void {
 		if (!node || !node.endpoints) return wf;
 		const sig = node.endpoints.find((e) => e.name === endpointName);
 		if (!sig || sig.name === node.endpoint) return wf;
-
-		const input_by_id = new Map(sig.inputs.map((p) => [p.id, p]));
+		const schemaIds = new Set(sig.inputs.map((p) => p.id));
+		const customPorts = (node.inputs ?? []).filter(
+			(p) => p.custom && !schemaIds.has(p.id)
+		);
+		const input_by_id = new Map(
+			[...sig.inputs, ...customPorts].map((p) => [p.id, p])
+		);
 		const output_by_id = new Map(sig.outputs.map((p) => [p.id, p]));
 
 		// Switching endpoints prunes edges whose ports vanished, so a component
@@ -535,7 +580,7 @@ export function switch_endpoint(nodeId: string, endpointName: string): void {
 					? {
 							...n,
 							endpoint: sig.name,
-							inputs: sig.inputs,
+							inputs: [...sig.inputs, ...customPorts],
 							outputs: sig.outputs,
 							data: {}
 						}
