@@ -1738,9 +1738,10 @@ class Workflow(Blocks):
         """
         Parameters:
             graph: Path to the workflow JSON file describing the canvas graph
-                (nodes + edges). Defaults to `workflow.json` in the same
-                directory as the calling script. The file is created on first
-                save if it doesn't exist.
+                (nodes + edges). Relative paths are resolved from the directory
+                containing the calling script. Defaults to `workflow.json` in
+                that directory. The file is created on first save if it doesn't
+                exist.
             bind: Functions callable from the canvas frontend via the `call_fn` server
                 function. Pass a list of callables (keys default to ``fn.__name__``) or
                 a dict mapping explicit names to callables.
@@ -1757,10 +1758,12 @@ class Workflow(Blocks):
                         ("clean.output", "tag.text"), # by port label
                     ]
         """
-        if graph is None:
+        if graph is None or not os.path.isabs(graph):
             caller_filename = sys._getframe(1).f_code.co_filename
             caller_dir = os.path.dirname(os.path.abspath(caller_filename))
-            graph = os.path.join(caller_dir, "workflow.json")
+            graph = os.path.join(
+                caller_dir, "workflow.json" if graph is None else graph
+            )
 
         if isinstance(bind, list):
             bind = {getattr(fn, "__name__", repr(fn)): fn for fn in bind}

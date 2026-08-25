@@ -1,5 +1,6 @@
 import json
 import os
+import runpy
 import tempfile
 import warnings
 from types import SimpleNamespace
@@ -98,6 +99,39 @@ class TestConstruction:
         graph = tmp_path / "custom.json"
         wf = Workflow(graph=str(graph))
         assert wf._workflow_file == str(graph)
+
+    def test_relative_graph_path_is_resolved_beside_calling_script(
+        self, tmp_path, monkeypatch
+    ):
+        script_dir = tmp_path / "a"
+        script_dir.mkdir()
+        script_graph = script_dir / "workflow.json"
+        script_payload = '{"schema_version": "2", "name": "Script graph"}'
+        script_graph.write_text(script_payload)
+
+        cwd_graph = tmp_path / "workflow.json"
+        cwd_payload = '{"schema_version": "2", "name": "CWD graph"}'
+        cwd_graph.write_text(cwd_payload)
+        monkeypatch.chdir(tmp_path)
+
+        script = script_dir / "workflow.py"
+        script.write_text(
+            "from gradio.workflow import Workflow\n"
+            'workflow = Workflow(graph="workflow.json")'
+        )
+        namespace = runpy.run_path(str(script))
+        wf = namespace["workflow"]
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+
+        assert wf._workflow_file == str(script_graph)
+        assert canvas.value == script_payload
+
+        saved_payload = '{"schema_version": "2", "name": "Saved graph"}'
+        assert canvas.save_workflow([saved_payload], _write_request(), None) == "ok"
+        assert script_graph.read_text() == saved_payload
+        assert cwd_graph.read_text() == cwd_payload
 
     def test_bind_accepts_list(self, tmp_path):
         wf = Workflow(graph=str(tmp_path / "wf.json"), bind=[_shout, _add])
