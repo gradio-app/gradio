@@ -13,7 +13,9 @@
       "added_at": "2026-04-01T00:00:00Z",
       "featured": true,
       "zero_gpu": true,
-      "smoke_inputs": { "prompt": "a small red square" },
+      "smoke_inputs": {
+        "prompt": "a small red square"
+      },
       "validation": {
         "last_checked": "2026-06-08T03:14:00Z",
         "status": "ok",
@@ -32,7 +34,9 @@
       "added_at": "2026-04-01T00:00:00Z",
       "featured": true,
       "zero_gpu": true,
-      "smoke_inputs": { "prompt": "a small red square" },
+      "smoke_inputs": {
+        "prompt": "a small red square"
+      },
       "validation": {
         "last_checked": "2026-06-08T03:14:00Z",
         "status": "ok",
@@ -73,21 +77,6 @@
         "last_checked": "2026-06-08T03:14:00Z",
         "status": "ok",
         "latency_ms": 2400,
-        "error": null
-      }
-    },
-    {
-      "kind": "model",
-      "id": "Salesforce/blip-image-captioning-large",
-      "task": "image-to-text",
-      "modality": "image",
-      "title": "BLIP Image Captioning",
-      "description": "Generate captions from images",
-      "added_at": "2026-04-02T00:00:00Z",
-      "featured": false,
-      "validation": {
-        "last_checked": "2026-06-08T03:14:00Z",
-        "status": "ok",
         "error": null
       }
     },
@@ -162,7 +151,9 @@
       "added_at": "2026-04-02T00:00:00Z",
       "featured": false,
       "zero_gpu": true,
-      "smoke_inputs": { "prompt": "calm piano" },
+      "smoke_inputs": {
+        "prompt": "calm piano"
+      },
       "validation": {
         "last_checked": "2026-06-08T03:14:00Z",
         "status": "ok",
@@ -190,7 +181,7 @@
       "id": "Helsinki-NLP/opus-mt-en-fr",
       "task": "translation",
       "modality": "text",
-      "title": "Opus EN→FR",
+      "title": "Opus EN\u2192FR",
       "description": "English-to-French translation",
       "added_at": "2026-04-02T00:00:00Z",
       "featured": false,
@@ -244,7 +235,9 @@
       "added_at": "2026-04-02T00:00:00Z",
       "featured": true,
       "zero_gpu": true,
-      "smoke_inputs": { "prompt": "a flower opening" },
+      "smoke_inputs": {
+        "prompt": "a flower opening"
+      },
       "validation": {
         "last_checked": "2026-06-08T03:14:00Z",
         "status": "ok",
@@ -281,7 +274,9 @@
       "added_at": "2026-04-01T00:00:00Z",
       "featured": true,
       "zero_gpu": true,
-      "smoke_inputs": { "text": "hello" },
+      "smoke_inputs": {
+        "text": "hello"
+      },
       "validation": {
         "last_checked": "2026-06-08T03:14:00Z",
         "status": "ok",
@@ -322,7 +317,7 @@
     {
       "kind": "model",
       "id": "Qwen/Qwen2.5-VL-7B-Instruct",
-      "task": "image-to-text",
+      "task": "image-text-to-text",
       "modality": "image",
       "title": "Qwen2.5-VL 7B",
       "description": "Image understanding & captioning",
