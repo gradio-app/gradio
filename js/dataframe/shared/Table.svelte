@@ -681,8 +681,7 @@
 		}
 	}
 
-	// `selected` holds an index into `values`, but the table can be filtered or
-	// sorted, so the neighbouring row is found by stepping through the view
+	// `selected` indexes `values`, but the view can be filtered or sorted
 	function step_row(row: number, delta: number): number | false {
 		const view_index = rows.findIndex((r) => r.original._index === row);
 		if (view_index === -1) return false;
@@ -907,9 +906,8 @@
 	);
 	let selected_index = $derived(selected !== false ? selected[0] : false);
 
-	// the virtualizer indexes the current view rather than the data, so the
-	// selected row has to be translated before scrolling to it. untrack keeps
-	// this to selection changes instead of re-running whenever the view changes
+	// the virtualizer indexes the view, not the data; untrack keeps this on
+	// selection changes rather than re-running on every re-filter
 	$effect(() => {
 		if (typeof selected_index !== "number") return;
 		untrack(() => {
