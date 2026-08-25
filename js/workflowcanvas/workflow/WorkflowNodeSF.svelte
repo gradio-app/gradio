@@ -99,8 +99,9 @@
 		return Math.ceil(h);
 	}
 
+	// No `readOnly` guard: a card's size is view state kept in the viewer's own
+	// localStorage (`layout-persistence.ts`), so resizing needs no write access.
 	function startResize(e: PointerEvent): void {
-		if (readOnly) return;
 		e.preventDefault();
 		e.stopPropagation();
 		resizing = true;
@@ -151,7 +152,7 @@
 
 	/** Double-click the handle to release a pinned height back to fit-content. */
 	function resetHeight(): void {
-		if (readOnly || pinnedHeight === null) return;
+		if (pinnedHeight === null) return;
 		setNodeSize(node.id, node.width, null);
 	}
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
@@ -790,20 +791,18 @@
 		</div>
 	{/if}
 
-	{#if !readOnly}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="node-resize-handle nodrag nopan"
-			class:width-only={!canPinHeight}
-			onpointerdown={startResize}
-			ondblclick={resetHeight}
-			title={!canPinHeight
-				? "Drag to set width"
-				: pinnedHeight !== null
-					? "Drag to resize — double-click to fit height to content"
-					: "Drag to resize"}
-		></div>
-	{/if}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="node-resize-handle nodrag nopan"
+		class:width-only={!canPinHeight}
+		onpointerdown={startResize}
+		ondblclick={resetHeight}
+		title={!canPinHeight
+			? "Drag to set width"
+			: pinnedHeight !== null
+				? "Drag to resize — double-click to fit height to content"
+				: "Drag to resize"}
+	></div>
 </div>
 
 <style>
@@ -1050,7 +1049,8 @@
 	}
 
 	.node-delete {
-		display: none;
+		display: flex;
+		visibility: hidden;
 		width: 20px;
 		height: 20px;
 		border: none;
@@ -1060,7 +1060,6 @@
 		font-size: 12px;
 		cursor: pointer;
 		flex-shrink: 0;
-		margin-left: auto;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
@@ -1068,7 +1067,7 @@
 	}
 
 	.wf-node:hover .node-delete {
-		display: flex;
+		visibility: visible;
 	}
 
 	.node-delete:hover {
@@ -1467,13 +1466,19 @@
 		overflow-y: auto;
 	}
 
-	.inline-choices input[type="checkbox"] {
+	.wf-node input[type="checkbox"] {
 		width: 14px;
 		height: 14px;
-		accent-color: var(--accent);
+		border-radius: 3px;
+		border-color: #3a3b48;
 		cursor: pointer;
-		appearance: auto;
-		-webkit-appearance: checkbox;
+	}
+	.wf-node input[type="checkbox"]:checked {
+		background-color: var(--accent);
+		border-color: var(--accent);
+	}
+	:global(body:not(.dark)) .wf-node input[type="checkbox"]:not(:checked) {
+		border-color: #d0d2dc;
 	}
 
 	/* Light mode */

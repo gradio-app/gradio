@@ -572,6 +572,11 @@ class TestClientPredictions:
             result = client.predict(api_name="/predict")
             assert result == "before\x85after"
 
+    def test_more_jobs_than_workers_all_complete(self, calculator_demo):
+        with connect(calculator_demo, client_kwargs={"max_workers": 2}) as client:
+            jobs = [client.submit(i, "add", 1, api_name="/predict") for i in range(6)]
+            assert [job.result(timeout=20) for job in jobs] == list(range(1, 7))
+
 
 class TestClientPredictionsWithKwargs:
     def test_no_default_params(self, calculator_demo):

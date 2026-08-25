@@ -17,7 +17,7 @@ import warnings
 import weakref
 import webbrowser
 from collections import defaultdict
-from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
+from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -659,6 +659,7 @@ class BlocksConfig:
         self.blocks: dict[int, Component | Block] = {}
         self.fns: dict[int, BlockFunction] = {}
         self.fn_id: int = 0
+        self.renderables: list[Renderable] = root_block.renderables
 
     def set_event_trigger(
         self,
@@ -1011,6 +1012,7 @@ class BlocksConfig:
         new.blocks = copy.copy(self.blocks)
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
+        new.renderables = copy.copy(self.renderables)
         return new
 
     def attach_load_events(self, rendered_in: Renderable | None = None):
@@ -1484,7 +1486,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def render(self):
         root_context = get_blocks_context()
-        if root_context is not None and Context.root_block is not None:
+        if root_context is not None:
+            root_block = root_context.root_block
             if self._id in root_context.blocks:
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
@@ -1498,7 +1501,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             for block in self.blocks.values():
-                block.page = Context.root_block.current_page
+                block.page = root_block.current_page
             root_context.blocks.update(self.blocks)
             dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
@@ -1507,13 +1510,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
-                dependency.page = Context.root_block.current_page
+                dependency.page = root_block.current_page
                 dependency._id += dependency_offset
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
-                for target in dependency.targets:
-                    if target[0] == self._id:
-                        target = (Context.root_block._id, target[1])
+                dependency.targets = [
+                    (root_block._id, event_name)
+                    if target_id == self._id
+                    else (target_id, event_name)
+                    for target_id, event_name in dependency.targets
+                ]
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -1535,9 +1541,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dependency.cancels = get_cancelled_fn_indices(updated_cancels)
                 root_context.fns[dependency._id] = dependency
             root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
-            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
-            Context.root_block.proxy_urls.update(self.proxy_urls)
-            Context.root_block.extra_startup_events.extend(self.extra_startup_events)
+            root_block.temp_file_sets.extend(self.temp_file_sets)
+            root_block.proxy_urls.update(self.proxy_urls)
+            root_block.extra_startup_events.extend(self.extra_startup_events)
 
         render_context = get_render_context()
         if render_context is not None:
@@ -2141,7 +2147,14 @@ Received inputs:
                 and not utils.is_prop_update(data[i])
             ):
                 if final:
-                    stream_run[output_id].end_stream()
+                    # Nothing to finalize if this output never opened a stream —
+                    # the session may have been dropped on disconnect, or every
+                    # chunk before this one may have been a prop update. Falling
+                    # through would leave `first_chunk` true and build a fresh
+                    # stream that nothing ever ends.
+                    if (existing := stream_run.get(output_id)) is None:
+                        continue
+                    existing.end_stream()
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
@@ -2678,7 +2691,8 @@ Received inputs:
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         share_server_tls_certificate: str | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,

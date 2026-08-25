@@ -1,5 +1,23 @@
 # @gradio/dataframe
 
+## 0.24.3
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.24.3
+
+### Fixes
+
+- [#13744](https://github.com/gradio-app/gradio/pull/13744) [`ca9dec0`](https://github.com/gradio-app/gradio/commit/ca9dec0e2e07d33cf3551f5062ff35ab9acf3026) - Re-read the Dataframe virtual window whenever the row count changes.  Thanks @abidlabs!
+
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
 ## 0.24.2
 
 ### Fixes

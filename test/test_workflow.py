@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+import warnings
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -10,14 +11,19 @@ import gradio as gr
 import gradio.workflow as workflow_module
 from gradio.oauth import OAuthToken
 from gradio.route_utils import Request
+from gradio.utils import get_upload_folder, is_in_or_equal
 from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
+    _chat_image_url,
     _dispatch_model_endpoint,
     _get_locally_saved_hf_token,
     _request_has_write_token,
     _resolve_token,
+    _save_tmp,
+    _warn_workflow_oauth_configuration,
     _workflow_from_bind,
+    _workflow_key,
     call_model,
     call_space,
     get_model_endpoints,
@@ -126,7 +132,9 @@ class TestOAuthGating:
         monkeypatch.setenv("SYSTEM", "spaces")
         monkeypatch.setenv("SPACE_ID", "u/r")
         monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
-        wf = Workflow(graph=str(tmp_path / "wf.json"))
+        with pytest.warns(UserWarning) as recorded:
+            wf = Workflow(graph=str(tmp_path / "wf.json"))
+        assert any("Add `hf_oauth: true`" in str(w.message) for w in recorded)
         assert wf.expects_oauth is False
 
 
@@ -316,6 +324,63 @@ class TestOAuthAvailable:
         monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
         monkeypatch.setenv("OAUTH_CLIENT_ID", "client-id")
         assert get_oauth_available() == "true"
+
+
+class TestWorkflowKey:
+    """The canvas keys each viewer's layout and viewport by this, so it has to be
+    stable across restarts and distinct per workflow."""
+
+    def test_uses_the_space_repo_id_on_spaces(self, monkeypatch):
+        monkeypatch.setenv("SPACE_ID", "owner/space")
+        assert _workflow_key("/anywhere/workflow.json") == "space:owner/space"
+
+    def test_identifies_the_graph_file_locally(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("SPACE_ID", raising=False)
+        assert _workflow_key("/a/workflow.json") != _workflow_key("/b/workflow.json")
+        # Resolved, so relaunching from a different directory keeps the key.
+        monkeypatch.chdir(tmp_path)
+        assert _workflow_key("workflow.json") == _workflow_key(
+            str(tmp_path / "workflow.json")
+        )
+
+
+class TestOAuthConfigurationWarning:
+    def test_silent_outside_spaces(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: None)
+        monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            _warn_workflow_oauth_configuration()
+
+    def test_warns_when_oauth_is_disabled(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
+        with pytest.warns(UserWarning, match="Add `hf_oauth: true`"):
+            _warn_workflow_oauth_configuration()
+
+    def test_workflow_warns_on_construction(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.delenv("OAUTH_CLIENT_ID", raising=False)
+        with pytest.warns(UserWarning) as recorded:
+            Workflow(graph=str(tmp_path / "workflow.json"))
+        assert any("Add `hf_oauth: true`" in str(w.message) for w in recorded)
+
+    def test_warns_with_each_missing_scope(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.setenv("OAUTH_CLIENT_ID", "client-id")
+        monkeypatch.setenv("OAUTH_SCOPES", "openid profile")
+        with pytest.warns(
+            UserWarning, match="`inference-api`.*`write-repos`.*hf_oauth_scopes"
+        ):
+            _warn_workflow_oauth_configuration()
+
+    def test_silent_when_all_scopes_are_present(self, monkeypatch):
+        monkeypatch.setattr(workflow_module, "get_space", lambda: "owner/space")
+        monkeypatch.setenv("OAUTH_CLIENT_ID", "client-id")
+        monkeypatch.setenv("OAUTH_SCOPES", "openid profile inference-api write-repos")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            _warn_workflow_oauth_configuration()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -719,3 +784,21 @@ class TestCallSpaceValidation:
         assert re.fullmatch(pattern, "owner/repo")
         assert re.fullmatch(pattern, "my-org/my-space")
         assert re.fullmatch(pattern, "http://host/path") is None
+
+
+class TestChatImageUrl:
+    def test_operator_outputs_land_in_the_cache_and_inline(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        saved = _save_tmp(b"operator-output", "png")
+
+        assert is_in_or_equal(saved["path"], get_upload_folder())
+        assert _chat_image_url({"path": saved["path"]}).startswith("data:")
+
+    def test_does_not_read_files_outside_the_cache(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        (tmp_path / "cache").mkdir()
+        outside = tmp_path / "elsewhere" / "private.png"
+        outside.parent.mkdir()
+        outside.write_bytes(b"must-not-be-read")
+
+        assert _chat_image_url({"path": str(outside)}) == str(outside)

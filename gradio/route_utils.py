@@ -40,6 +40,7 @@ import gradio_client.utils as client_utils
 import httpx
 import safehttpx
 from gradio_client.documentation import document
+from python_multipart.exceptions import MultipartParseError
 from python_multipart.multipart import MultipartParser, parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import (
@@ -430,7 +431,7 @@ async def call_process_api(
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
             pending_streams: dict[int, MediaStream] = (
-                app.get_blocks().pending_streams[session_hash].get(run_id, {})
+                app.get_blocks().pending_streams.get(session_hash, {}).get(run_id, {})
             )
             for stream in pending_streams.values():
                 stream.end_stream()
@@ -829,11 +830,21 @@ class GradioMultiPartParser:
                     await part.file.seek(0)
                 self._file_parts_to_write.clear()
                 self._file_parts_to_finish.clear()
-        except MultiPartException as exc:
+        except (MultiPartException, MultipartParseError) as exc:
             # Close all the files if there was an error.
             for file in self._files_to_close_on_error:
                 file.close()
                 Path(file.name).unlink()
+            if isinstance(exc, MultipartParseError):
+                # python_multipart enforces its own per-part header limits and
+                # aborts the parse before our header callbacks run, so surface it
+                # as a MultiPartException like every other parse failure here.
+                message = str(exc)
+                raise MultiPartException(
+                    "Headers exceeded maximum allowed size."
+                    if "header" in message.lower()
+                    else f"Could not parse multipart request: {message}"
+                ) from exc
             raise exc
 
         parser.finalize()
@@ -923,8 +934,11 @@ class CustomCORSMiddleware:
         self,
         app: ASGIApp,
         strict_cors: bool = True,
+        parent_app: Any | None = None,
     ) -> None:
         self.app = app
+        self.parent_app = parent_app
+        self._parent_configures_cors: bool | None = None
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
         self.preflight_headers = {
             "Access-Control-Allow-Methods": ", ".join(self.all_methods),
@@ -940,8 +954,21 @@ class CustomCORSMiddleware:
             # also be used maliciously for CSRF attacks, so it is not allowed by default.
             self.localhost_aliases.append("null")
 
+    def parent_configures_cors(self) -> bool:
+        if self._parent_configures_cors is None:
+            from starlette.middleware.cors import CORSMiddleware
+
+            self._parent_configures_cors = any(
+                middleware.cls is CORSMiddleware
+                for middleware in getattr(self.parent_app, "user_middleware", [])
+            )
+        return self._parent_configures_cors
+
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        if self.parent_configures_cors():
             await self.app(scope, receive, send)
             return
         headers = Headers(scope=scope)

@@ -2,6 +2,18 @@
 
 ## 0.24.2
 
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.24.2
+
 ### Fixes
 
 - [#13626](https://github.com/gradio-app/gradio/pull/13626) [`7d71469`](https://github.com/gradio-app/gradio/commit/7d714699ae9c47daabbd48a55f61e990c5bba1d7) - Reset audio playback position when the file is cleared or a new one is uploaded.  Thanks @hysts!

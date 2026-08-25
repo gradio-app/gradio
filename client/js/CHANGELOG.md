@@ -1,5 +1,17 @@
 # @gradio/client
 
+## 2.5.1
+
+### Fixes
+
+- [#13782](https://github.com/gradio-app/gradio/pull/13782) [`a9ce60a`](https://github.com/gradio-app/gradio/commit/a9ce60ae03123ed6374b739d862e62dcae2f451e) - Load a saved run's outputs, not just its inputs, when SSR is on.  Thanks @abidlabs!
+
+## 2.5.0
+
+### Features
+
+- [#13718](https://github.com/gradio-app/gradio/pull/13718) [`a9e8382`](https://github.com/gradio-app/gradio/commit/a9e8382c4f68e938b5fceef299d7539434c6063f) - Add browser-local run history and loading.  Thanks @abidlabs!
+
 ## 2.4.0
 
 ### Features
