@@ -222,10 +222,11 @@ export const LIBRARY: Record<string, NodeTemplate[]> = {
 };
 
 export function getComponentForPortType(type: string): NodeTemplate | null {
-	// `any`/`file` are inference-only fallbacks — default them to Image so
-	// the user gets a usable picker entry rather than nothing.
+	// `any`/`file` are inference-only fallbacks. JSON gives `any` values a
+	// general-purpose textbox while still allowing runtime media detection;
+	// files retain the image picker used for ambiguous uploads.
 	const lookup = (
-		type === "any" || type === "file" ? "image" : type
+		type === "any" ? "json" : type === "file" ? "image" : type
 	) as PortType;
 	return LIBRARY.components.find((c) => c.outputs[0]?.type === lookup) ?? null;
 }
