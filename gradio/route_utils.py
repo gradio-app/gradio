@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import importlib.resources
 import json
+import logging
 import mimetypes
 import os
 import pickle
@@ -61,7 +62,7 @@ from starlette.responses import (
 )
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from gradio import processing_utils, utils
+from gradio import history, history_recorder, processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
     DeveloperPath,
@@ -86,6 +87,8 @@ API_PREFIX = "/gradio_api"
 
 
 mimetypes.init()
+
+logger = logging.getLogger(__name__)
 
 
 def enforce_body_limit(max_bytes: int):
@@ -431,6 +434,16 @@ async def call_process_api(
     if batch_in_single_out:
         inputs = [inputs]
 
+    # Captured before the call: `inputs` is rebound to preprocessed values
+    # inside process_api, and history stores the payload as submitted so a run
+    # can be replayed the same way it was made.
+    submitted_inputs = body.data
+    started_at = history.now_utc_iso()
+    # A generator's later steps arrive with an iterator already in flight, which
+    # is the only signal at this point that the run streamed — by the time the
+    # final step returns, `is_generating` is False and the iterator is spent.
+    was_streaming = iterator is not None
+
     try:
         from gradio.profiling import trace_phase
 
@@ -455,7 +468,7 @@ async def call_process_api(
             app.iterators[event_id] = iterator  # type: ignore
         if isinstance(output, Error):
             raise output
-    except BaseException:
+    except BaseException as exc:
         iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
@@ -464,11 +477,87 @@ async def call_process_api(
             )
             for stream in pending_streams.values():
                 stream.end_stream()
+        _record_run_history(
+            app,
+            body=body,
+            fn=fn,
+            gr_request=gr_request,
+            inputs=submitted_inputs,
+            outputs=None,
+            started_at=started_at,
+            status="failed",
+            error=str(exc),
+            streamed=was_streaming,
+        )
         raise
 
     if batch_in_single_out:
         output["data"] = output["data"][0]
+
+    _record_run_history(
+        app,
+        body=body,
+        fn=fn,
+        gr_request=gr_request,
+        inputs=submitted_inputs,
+        outputs=output.get("data"),
+        started_at=started_at,
+        status="completed",
+        duration_ms=(output.get("duration") or 0) * 1000 or None,
+        streamed=was_streaming or bool(output.get("is_generating")),
+        is_final=not output.get("is_generating"),
+    )
     return output
+
+
+def _record_run_history(
+    app: App,
+    *,
+    body: PredictBodyInternal,
+    fn: BlockFunction,
+    gr_request: Union[Request, list[Request]],
+    inputs: Any,
+    outputs: Any,
+    started_at: str,
+    status: str,
+    error: str | None = None,
+    duration_ms: float | None = None,
+    streamed: bool = False,
+    is_final: bool = True,
+) -> None:
+    """Hand a finished run to the recorder.
+
+    Every predict path in gradio funnels through `call_process_api`, so this is
+    the only hook a regular app needs for its history to be recorded — there is
+    no second, client-driven way to write a record.
+    """
+    # Same predicate the browser-local history uses (and the API page
+    # documents with): it keeps out the dependencies gradio wires up for
+    # itself — example loading, flagging, clear buttons — several of which
+    # fire on page load and would otherwise fill the bucket with events the
+    # user never made.
+    if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
+        return
+    try:
+        history_recorder.schedule_record_run(
+            app,
+            request=gr_request,
+            inputs=inputs,
+            outputs=outputs,
+            api_name=fn.api_name,
+            fn_index=fn._id,
+            page=fn.page or "",
+            label=fn.api_name or fn.name,
+            status=status,
+            error=error,
+            started_at=started_at,
+            duration_ms=duration_ms,
+            queued_ms=getattr(body, "queue_wait_ms", None),
+            streamed=streamed,
+        )
+    except Exception:
+        # History must never turn a successful prediction into a failed one.
+        logger.debug("history: scheduling failed", exc_info=True)
 
 
 def get_first_header_value(request: fastapi.Request, header_name: str):

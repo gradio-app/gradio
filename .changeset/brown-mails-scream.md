@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-feat:add history to bucket integration in workflow
+feat:add server-side run history in HF Hub buckets

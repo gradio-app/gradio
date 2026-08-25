@@ -1,47 +1,48 @@
-"""HTTP surface for durable run history (``/gradio_api/run-history/*``).
+"""Read surface for durable run history (``/gradio_api/run-history/*``).
 
-The bucket is chosen once via ``POST /connect`` and stored on the session;
-every other route derives it from the session rather than trusting a
-client-supplied bucket id.
+These routes only ever *read* or *delete*. Records are written exclusively by
+:func:`gradio.history_recorder.record_run` from the server's own view of a run,
+so there is no route that accepts a record from a client.
+
+The bucket is named per request rather than held on the session. A session slot
+is one mutable value shared by every tab on an origin, so two apps — or two tabs
+on one app — overwrite each other's binding and reads land in the wrong bucket.
+Every route here takes ``?bucket=`` and authorizes it against the caller's own
+OAuth token, which means a caller can only ever reach buckets they could reach
+directly on the Hub.
 """
 
 from __future__ import annotations
 
-import threading
-from collections import OrderedDict
 from dataclasses import asdict
-from typing import Annotated, Any
+from typing import Annotated
 
 import anyio
 import anyio.to_thread
 import fastapi
 from fastapi import APIRouter, Depends, Path, Query, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from gradio import oauth, route_utils
+from gradio import history_recorder, oauth, route_utils
 from gradio.history import (
+    MAX_RECORDS_PER_PAGE,
     RECORD_ID_PATTERN,
+    SEGMENT_PATTERN,
     BucketRunHistoryStore,
-    HistoryRecord,
     HistoryStoreError,
     HubError,
     NotAuthorizedError,
     NotFoundError,
     PublicBucketError,
-    bucket_for_token,
-    externalize_assets,
-    now_utc_iso,
+    store_for,
+    validate_bucket_id,
 )
 
 MAX_BODY_BYTES = 2 * 1024 * 1024
-MAX_CONCURRENT_WRITES = 8
-
-
-def init_history_state(app: fastapi.FastAPI) -> None:
-    """Attach the per-app caches the history routes depend on."""
-    app.state.bucket_history_cache = OrderedDict()
-    app.state.bucket_history_cache_lock = threading.Lock()
-    app.state.history_write_limiter = anyio.CapacityLimiter(MAX_CONCURRENT_WRITES)
+# Records can carry large JSON payloads (a dataframe, a long generation), and a
+# record read is a plain download, so the read cap is separate from the small
+# cap on request bodies.
+MAX_ASSET_BYTES = 64 * 1024 * 1024
 
 
 def _http_from_store_error(exc: Exception) -> fastapi.HTTPException:
@@ -62,66 +63,53 @@ async def offload(fn, *args):
         raise _http_from_store_error(exc) from exc
 
 
-def _owner_and_app(request: Request) -> tuple[str, str]:
-    try:
-        info = oauth._get_valid_oauth_info_from_session(request.session)
-    except Exception:
-        info = None
-    userinfo = (info or {}).get("userinfo") or {}
-    owner_id = userinfo.get("sub") or userinfo.get("name")
-    if not isinstance(owner_id, str) or not owner_id:
-        raise fastapi.HTTPException(401, "oauth session missing subject identity")
-    app_key = str(getattr(request.app.get_blocks(), "app_id", None) or "app")
-    return owner_id, app_key
-
-
-def _store_for(request: Request, token: str, bucket_id: str) -> BucketRunHistoryStore:
-    owner_id, app_key = _owner_and_app(request)
-    try:
-        return bucket_for_token(
-            request.app.state.bucket_history_cache,
-            request.app.state.bucket_history_cache_lock,
-            token,
-            bucket_id,
-            owner_id=owner_id,
-            app_key=app_key,
-        )
-    except ValueError as exc:
-        raise fastapi.HTTPException(422, "invalid bucket id") from exc
+def _owner_id(request: Request) -> str:
+    identity = history_recorder.resolve_identity(request)
+    if identity is None:
+        raise fastapi.HTTPException(401, "oauth session required")
+    return identity[0]
 
 
 def get_store(
     request: Request,
     token: Annotated[str, Depends(oauth.require_oauth_token)],
+    bucket: Annotated[str, Query(min_length=3, max_length=200)],
 ) -> BucketRunHistoryStore:
-    """Resolve the store for the bucket this session connected to."""
-    bucket_id = (request.session.get("history") or {}).get("bucket_id")
-    if not bucket_id:
-        raise fastapi.HTTPException(409, "no bucket connected")
-    return _store_for(request, token, bucket_id)
+    """The store for the bucket named on *this* request.
+
+    Nothing is trusted about `bucket` beyond its shape: the store is built with
+    the caller's own token, so authorization is whatever the Hub already grants
+    that token.
+    """
+    blocks = request.app.get_blocks()
+    if not getattr(blocks, "run_history", True):
+        raise fastapi.HTTPException(404, "run history is disabled for this app")
+    try:
+        validate_bucket_id(bucket)
+    except ValueError as exc:
+        raise fastapi.HTTPException(422, "invalid bucket id") from exc
+    try:
+        return store_for(
+            request.app.state.bucket_history_cache,
+            request.app.state.bucket_history_cache_lock,
+            token,
+            bucket,
+            owner_id=_owner_id(request),
+            app_key=history_recorder.stable_app_key(blocks),
+        )
+    except ValueError as exc:
+        raise fastapi.HTTPException(422, "invalid bucket id") from exc
 
 
 StoreDep = Annotated[BucketRunHistoryStore, Depends(get_store)]
 TokenDep = Annotated[str, Depends(oauth.require_oauth_token)]
 RecordId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
 AssetId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
+EndpointSeg = Annotated[str, Path(pattern=SEGMENT_PATTERN)]
 
 
 class ConnectBody(BaseModel):
     bucket_id: str
-
-
-# ISO-8601 UTC, with or without fractional seconds. The canvas sends
-# `Date.toISOString()` (milliseconds); `now_utc_iso()` omits them.
-TIMESTAMP_PATTERN = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$"
-
-
-class RecordBody(BaseModel):
-    record_id: str = Field(pattern=RECORD_ID_PATTERN)
-    created_at: str | None = Field(default=None, pattern=TIMESTAMP_PATTERN)
-    subgraph: str | None = Field(default=None, max_length=256)
-    inputs: dict[str, Any] = Field(default_factory=dict)
-    outputs: dict[str, Any] = Field(default_factory=dict)
 
 
 history_router = APIRouter(
@@ -133,16 +121,29 @@ history_router = APIRouter(
 
 @history_router.post("/connect")
 async def connect(request: Request, body: ConnectBody, token: TokenDep):
-    store = _store_for(request, token, body.bucket_id)
+    """Create the bucket if needed and confirm it is private and writable.
+
+    Deliberately stateless: it stores nothing, and the answer is only about the
+    bucket named in the body. Callers keep their own choice and name it on each
+    subsequent request.
+    """
+    blocks = request.app.get_blocks()
+    if not getattr(blocks, "run_history", True):
+        raise fastapi.HTTPException(404, "run history is disabled for this app")
+    try:
+        validate_bucket_id(body.bucket_id)
+    except ValueError as exc:
+        raise fastapi.HTTPException(422, "invalid bucket id") from exc
+    store = store_for(
+        request.app.state.bucket_history_cache,
+        request.app.state.bucket_history_cache_lock,
+        token,
+        body.bucket_id,
+        owner_id=_owner_id(request),
+        app_key=history_recorder.stable_app_key(blocks),
+    )
     await offload(store.ensure_private_bucket)
-    request.session["history"] = {"bucket_id": body.bucket_id}
-    return {"bucket_id": body.bucket_id}
-
-
-@history_router.post("/disconnect")
-async def disconnect(request: Request, token: TokenDep):  # noqa: ARG001
-    request.session.pop("history", None)
-    return {"ok": True}
+    return {"bucket_id": body.bucket_id, "app_key": store.app_key}
 
 
 @history_router.get("/buckets")
@@ -161,63 +162,65 @@ async def list_buckets(token: TokenDep):
         raise fastapi.HTTPException(502, "hub error") from exc
 
 
+@history_router.get("/endpoints")
+async def list_endpoints(store: StoreDep):
+    """The endpoints of this app that the caller has runs for."""
+    endpoints = await offload(store.list_endpoints)
+    return {"app_key": store.app_key, "endpoints": endpoints}
+
+
 @history_router.get("/records")
 async def list_records(
     store: StoreDep,
-    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    endpoint: Annotated[str | None, Query(pattern=SEGMENT_PATTERN)] = None,
+    limit: Annotated[int, Query(ge=1, le=MAX_RECORDS_PER_PAGE)] = 50,
 ):
-    records = await offload(lambda: store.list_records(limit=limit))
-    return {"records": [asdict(r) for r in records]}
+    records = await offload(lambda: store.list_records(endpoint, limit))
+    return {
+        "app_key": store.app_key,
+        "endpoint": endpoint,
+        "records": [asdict(r) for r in records],
+    }
 
 
-@history_router.get("/records/{record_id}")
-async def get_record(store: StoreDep, record_id: RecordId):
-    return asdict(await offload(store.get_record, record_id))
+@history_router.get("/records/{endpoint}/{record_id}")
+async def get_record(store: StoreDep, endpoint: EndpointSeg, record_id: RecordId):
+    return asdict(await offload(store.get_record, endpoint, record_id))
 
 
-@history_router.post("/records")
-async def save_record(request: Request, store: StoreDep, body: RecordBody):
-    record = HistoryRecord(
-        record_id=body.record_id,
-        owner_id=store.owner_id,
-        app_key=store.app_key,
-        created_at=body.created_at or now_utc_iso(),
-        inputs=body.inputs,
-        outputs=body.outputs,
-        subgraph=body.subgraph,
-    )
-    # Replace trusted local files with `{"__asset__": id}` markers so the
-    # record stays replayable after the temp dir (or the Space) is gone.
-    counter = [0]
-    assets = externalize_assets(record.inputs, counter)
-    assets.update(externalize_assets(record.outputs, counter))
-
-    limiter: anyio.CapacityLimiter = request.app.state.history_write_limiter
-    if limiter.borrowed_tokens >= limiter.total_tokens:
-        raise fastapi.HTTPException(429, "server busy", headers={"Retry-After": "2"})
-    async with limiter:
-        await offload(store.save_record, record, assets)
-    return {"record_id": record.record_id, "assets": list(record.assets)}
-
-
-@history_router.delete("/records/{record_id}")
-async def delete_record(store: StoreDep, record_id: RecordId):
-    await offload(store.delete_record, record_id)
+@history_router.delete("/records/{endpoint}/{record_id}")
+async def delete_record(store: StoreDep, endpoint: EndpointSeg, record_id: RecordId):
+    await offload(store.delete_record, endpoint, record_id)
     return {"ok": True}
 
 
 @history_router.delete("/records")
-async def clear_records(store: StoreDep):
-    await offload(store.clear_records)
+async def clear_records(
+    store: StoreDep,
+    endpoint: Annotated[str | None, Query(pattern=SEGMENT_PATTERN)] = None,
+):
+    await offload(store.clear_records, endpoint)
     return {"ok": True}
 
 
-@history_router.get("/records/{record_id}/assets/{asset_id}")
-async def get_asset(store: StoreDep, record_id: RecordId, asset_id: AssetId):
-    data, guessed = await offload(store.get_asset_bytes, record_id, asset_id)
+@history_router.post("/orphans")
+async def sweep_orphans(store: StoreDep):
+    """Delete asset blobs left behind by a half-completed write or delete.
+
+    They are unreachable through every read path, so nothing else would ever
+    find them and the bucket would grow without bound.
+    """
+    removed = await offload(store.delete_orphan_assets)
+    return {"removed": removed}
+
+
+@history_router.get("/records/{endpoint}/{record_id}/assets/{asset_id}")
+async def get_asset(
+    store: StoreDep, endpoint: EndpointSeg, record_id: RecordId, asset_id: AssetId
+):
+    data, guessed = await offload(store.get_asset_bytes, endpoint, record_id, asset_id)
     # Same rule as gradio's own file route: only mimetypes that cannot be turned
-    # into script are served inline. `externalize_assets` uploads any trusted
-    # FileData, so an .html/.svg on a file node would otherwise render on this
+    # into script are served inline, so a stored .html/.svg cannot render on this
     # app's origin.
     if guessed in route_utils.XSS_SAFE_MIMETYPES:
         content_type, disposition = guessed, "inline"
@@ -228,9 +231,9 @@ async def get_asset(store: StoreDep, record_id: RecordId, asset_id: AssetId):
         media_type=content_type,
         headers={
             "Content-Disposition": disposition,
-            # Bucket assets are immutable: the record id is unique per run and
-            # an asset is never rewritten in place. Without this every thumbnail
-            # in the panel re-downloads from the Hub on each render.
+            # Assets are immutable: the record id is unique per run and an asset
+            # is never rewritten in place. Without this every thumbnail in the
+            # panel re-downloads from the Hub on each render.
             "Cache-Control": "private, max-age=31536000, immutable",
         },
     )

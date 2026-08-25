@@ -66,6 +66,7 @@ from starlette.responses import RedirectResponse
 import gradio
 from gradio import (
     caching,
+    history_recorder,
     history_routes,
     route_utils,
     themes,
@@ -730,7 +731,7 @@ class App(FastAPI):
         # nothing is recorded, so the bucket endpoints must not be reachable
         # either.
         if getattr(blocks, "run_history", True):
-            history_routes.init_history_state(app)
+            history_recorder.init_history_state(app)
             router.include_router(history_routes.history_router)
 
         @app.get("/gradio_api/deep_link")

@@ -11,7 +11,7 @@
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
 	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
-	import { push_record_to_bucket, connect_bucket } from "@gradio/client";
+	import { asset_url } from "@gradio/client";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
@@ -2143,67 +2143,47 @@
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
 
-		if (bucketId) {
+		if (bucketId && server?.record_workflow_run) {
 			try {
-				const now = new Date().toISOString();
-				const inputs: Record<string, unknown> = {};
+				// The canvas sends only the raw node values it holds. Which
+				// endpoint this run belongs to, which nodes are its inputs and
+				// outputs, the record id, the owner and the timestamps are all
+				// derived on the server from the workflow graph — the same
+				// `record_run` a regular gradio app uses writes the record.
+				const values: Record<string, unknown> = {};
 				for (const ref of wfToRun.references) {
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
-					inputs[ref.id] = {
-						// User-supplied media lives in a `blob:` object URL that dies
-						// with the tab. Upload it so the record stays loadable.
-						value: await persistValueForHistory(
-							node.data?.[outPort.id] ?? null
-						),
-						type: outPort.type,
-						label: node.label,
-						port_id: outPort.id
-					};
+					// User-supplied media lives in a `blob:` object URL that dies
+					// with the tab, and the server can only store a file it can
+					// reach. Upload it first so the record stays loadable.
+					values[ref.id] = await persistValueForHistory(
+						node.data?.[outPort.id] ?? null
+					);
 				}
-				const outputs: Record<string, unknown> = {};
 				for (const subj of wfToRun.subjects) {
 					const node = legacyView.nodes.find((n) => n.id === subj.id);
 					const inPort = node?.inputs?.[0];
 					if (!node || !inPort) continue;
-					outputs[subj.id] = {
-						value: await persistValueForHistory(node.data?.[inPort.id] ?? null),
-						type: inPort.type,
-						label: node.label
-					};
+					values[subj.id] = await persistValueForHistory(
+						node.data?.[inPort.id] ?? null
+					);
 				}
-				const record = {
-					record_id: crypto.randomUUID().replace(/-/g, "").slice(0, 24),
-					created_at: now,
-					subgraph: $workflow.name || "workflow",
-					inputs,
-					outputs
-				};
-				// The bucket lives on the server session, which the client cannot
-				// see: it is dropped by a restart, and two tabs on two workflows
-				// share one slot. Re-assert it so this push lands in the bucket
-				// this canvas is actually bound to.
-				const reconnected = await connect_bucket(historyRoot, bucketId);
-				if (!reconnected.ok) {
+				const raw = await server.record_workflow_run([
+					bucketId,
+					JSON.stringify(wfToRun.subjects.map((s) => s.id)),
+					JSON.stringify(values)
+				]);
+				const result = typeof raw === "string" ? JSON.parse(raw) : raw;
+				if (result?.error) {
 					showToast(
-						`Could not save to history: ${reconnected.detail ?? reconnected.status}`,
+						`Could not save to history: ${result.error}`,
 						5000,
 						"warning"
 					);
-				} else {
-					const pushed = await push_record_to_bucket(historyRoot, record);
-					if (!pushed.ok) {
-						showToast(
-							`Could not save to history: ${pushed.detail ?? pushed.status}`,
-							5000,
-							"warning"
-						);
-					} else if (showHistoryPanel) {
-						setTimeout(() => {
-							if (showHistoryPanel) historyRefreshCount++;
-						}, 2500);
-					}
+				} else if (showHistoryPanel) {
+					historyRefreshCount++;
 				}
 			} catch (e: any) {
 				// Never let a history failure look like a successful save.
@@ -3449,15 +3429,20 @@
 			}}
 			onload={({
 				record_id,
+				endpoint,
 				inputs,
 				outputs
 			}: {
 				record_id: string;
+				endpoint: string;
 				inputs: Record<
 					string,
 					{ value: unknown; type: string; port_id?: string }
 				>;
-				outputs: Record<string, { value: unknown; type: string }>;
+				outputs: Record<
+					string,
+					{ value: unknown; type: string; port_id?: string }
+				>;
 			}) => {
 				const MEDIA = new Set(["image", "audio", "video", "file"]);
 				const MIME: Record<string, string> = {
@@ -3466,15 +3451,19 @@
 					video: "video/*",
 					file: ""
 				};
-				const assetUrl = (id: string): string =>
-					`${historyRoot.replace(/\/+$/, "")}/gradio_api/run-history/records/${encodeURIComponent(record_id)}/assets/${encodeURIComponent(id)}`;
 				const resolve = (v: unknown): unknown => {
 					if (
 						v &&
 						typeof v === "object" &&
 						typeof (v as any).__asset__ === "string"
 					) {
-						return assetUrl((v as any).__asset__);
+						return asset_url(
+							historyRoot,
+							bucketId,
+							endpoint,
+							record_id,
+							(v as any).__asset__
+						);
 					}
 					return v;
 				};
@@ -3498,7 +3487,7 @@
 				}
 				for (const [nodeId, output] of Object.entries(outputs)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
-					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
+					const inPortId = output.port_id ?? node?.inputs?.[0]?.id ?? "in_0";
 					updateNodeData(
 						nodeId,
 						inPortId,

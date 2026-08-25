@@ -2,23 +2,16 @@
 	import { onMount, untrack } from "svelte";
 	import {
 		asset_url,
-		connect_bucket,
 		delete_record_from_bucket,
 		list_bucket_records,
 		type HistoryRecord
 	} from "@gradio/client";
 
-	interface HistoryInput {
+	interface HistoryValue {
 		value: any;
 		type: string;
 		label: string;
 		port_id?: string;
-	}
-
-	interface HistoryOutput {
-		value: any;
-		type: string;
-		label: string;
 	}
 
 	let {
@@ -33,8 +26,9 @@
 		bucketId: string;
 		onload?: (record: {
 			record_id: string;
-			inputs: Record<string, HistoryInput>;
-			outputs: Record<string, HistoryOutput>;
+			endpoint: string;
+			inputs: Record<string, HistoryValue>;
+			outputs: Record<string, HistoryValue>;
 		}) => void;
 		onclose: () => void;
 		onchange?: () => void;
@@ -45,21 +39,21 @@
 	let loading = $state(true);
 	let refreshing = $state(false);
 	let error = $state<string | null>(null);
-	let selectedSubgraph = $state<string | null>(null);
+	let selectedEndpoint = $state<string | null>(null);
 	let pendingDelete = $state<string | null>(null);
 	let repoId = $derived(bucketId);
 
 	const MEDIA_TYPES = new Set(["image", "audio", "video"]);
 
-	const subgraphs = $derived(
-		[
-			...new Set(records.map((r) => r.subgraph).filter((s): s is string => !!s))
-		].sort()
+	// Runs are filed under the API endpoint they ran, the same way the browser-
+	// local history groups them, so the chips are the app's endpoints.
+	const endpoints = $derived(
+		[...new Set(records.map((r) => r.endpoint).filter(Boolean))].sort()
 	);
 
 	const filtered = $derived(
-		selectedSubgraph
-			? records.filter((r) => r.subgraph === selectedSubgraph)
+		selectedEndpoint
+			? records.filter((r) => r.endpoint === selectedEndpoint)
 			: records
 	);
 
@@ -76,44 +70,48 @@
 		return `${Math.floor(hrs / 24)}d ago`;
 	}
 
-	function primaryOutput(record: HistoryRecord): HistoryOutput | null {
-		const vals = Object.values(record.outputs) as HistoryOutput[];
-		return vals[0] ?? null;
+	function values_of(side: unknown): HistoryValue[] {
+		return side && typeof side === "object"
+			? (Object.values(side as Record<string, HistoryValue>) as HistoryValue[])
+			: [];
+	}
+
+	function primaryOutput(record: HistoryRecord): HistoryValue | null {
+		return values_of(record.outputs)[0] ?? null;
 	}
 
 	function resolveMediaSrc(
 		record: HistoryRecord,
-		out: HistoryOutput | null
+		out: HistoryValue | null
 	): string | null {
 		if (!out) return null;
-		// Asset marker: {"__asset__": "a001"} → proxied download URL.
-		if (
-			out.value &&
-			typeof out.value === "object" &&
-			typeof (out.value as any).__asset__ === "string"
-		) {
-			return asset_url(root, record.record_id, (out.value as any).__asset__);
-		}
-		// Nested FileData with __asset__ marker.
-		if (
-			out.value &&
-			typeof out.value === "object" &&
-			(out.value as any).value &&
-			typeof (out.value as any).value.__asset__ === "string"
-		) {
+		const marker = asset_marker(out.value) ?? asset_marker(out.value?.value);
+		if (marker) {
 			return asset_url(
 				root,
+				bucketId,
+				record.endpoint,
 				record.record_id,
-				(out.value as any).value.__asset__
+				marker
 			);
 		}
 		return typeof out.value === "string" ? out.value : null;
 	}
 
+	function asset_marker(v: unknown): string | null {
+		if (
+			v &&
+			typeof v === "object" &&
+			typeof (v as any).__asset__ === "string"
+		) {
+			return (v as any).__asset__;
+		}
+		return null;
+	}
+
 	function inputSummary(record: HistoryRecord): string {
-		return Object.values(record.inputs)
-			.map((i) => i as Partial<HistoryInput>)
-			.filter((i) => i.type === "text" && typeof i.value === "string")
+		return values_of(record.inputs)
+			.filter((i) => i?.type === "text" && typeof i.value === "string")
 			.map((i) => i.value as string)
 			.join(" / ")
 			.slice(0, 80);
@@ -123,33 +121,28 @@
 		if (onload)
 			onload({
 				record_id: record.record_id,
-				inputs: record.inputs as Record<string, HistoryInput>,
-				outputs: record.outputs as Record<string, HistoryOutput>
+				endpoint: record.endpoint,
+				inputs: (record.inputs ?? {}) as Record<string, HistoryValue>,
+				outputs: (record.outputs ?? {}) as Record<string, HistoryValue>
 			});
 	}
 
 	async function fetchRecords() {
-		// The server derives the bucket from the session, which this panel cannot
-		// inspect and which a restart clears. Re-assert the binding this canvas
-		// holds before listing, so a reload doesn't render an empty history.
-		if (bucketId) {
-			const connected = await connect_bucket(root, bucketId);
-			if (!connected.ok) {
-				throw new Error(connected.detail ?? `Could not connect to ${bucketId}`);
-			}
-		}
-		const result = await list_bucket_records(root, 50);
+		// The bucket is named on the request; the server keeps no binding, so
+		// there is nothing to re-assert and no way for another tab to have
+		// pointed this read somewhere else.
+		const result = await list_bucket_records(root, bucketId, { limit: 50 });
 		if (!result.ok) {
 			throw new Error(
-				result.status === 409
-					? "This session is no longer connected to a bucket. Reconnect to see your history."
+				result.status === 401
+					? "Sign in with Hugging Face to see your history."
 					: (result.detail ?? "Could not load history")
 			);
 		}
-		// Server order is not guaranteed chronological; sort newest first.
-		records = result.records
+		// Record ids are time-ordered, so this matches the server's ordering.
+		records = result.data
 			.slice()
-			.sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
+			.sort((a, b) => b.record_id.localeCompare(a.record_id));
 	}
 
 	async function refresh() {
@@ -161,6 +154,23 @@
 			error = e?.message ?? "Failed to refresh";
 		} finally {
 			refreshing = false;
+		}
+	}
+
+	async function removeRecord(record: HistoryRecord): Promise<void> {
+		pendingDelete = null;
+		const previous = records;
+		records = records.filter((r) => r.record_id !== record.record_id);
+		const result = await delete_record_from_bucket(
+			root,
+			bucketId,
+			record.endpoint,
+			record.record_id
+		);
+		if (!result.ok) {
+			// Put it back rather than showing a deletion that did not happen.
+			records = previous;
+			error = result.detail ?? "Could not delete that run";
 		}
 	}
 
@@ -263,18 +273,18 @@
 			</div>
 		</div>
 
-		{#if subgraphs.length > 1}
+		{#if endpoints.length > 1}
 			<div class="history-filters">
 				<button
 					class="filter-chip"
-					class:active={selectedSubgraph === null}
-					onclick={() => (selectedSubgraph = null)}>All</button
+					class:active={selectedEndpoint === null}
+					onclick={() => (selectedEndpoint = null)}>All</button
 				>
-				{#each subgraphs as sg}
+				{#each endpoints as ep}
 					<button
 						class="filter-chip"
-						class:active={selectedSubgraph === sg}
-						onclick={() => (selectedSubgraph = sg)}>{sg}</button
+						class:active={selectedEndpoint === ep}
+						onclick={() => (selectedEndpoint = ep)}>{ep}</button
 					>
 				{/each}
 			</div>
@@ -323,7 +333,7 @@
 
 							<div class="card-meta">
 								<div class="card-time">
-									{formatRelativeTime(record.created_at)}
+									{formatRelativeTime(record.started_at)}
 								</div>
 								{#if summary}
 									<div class="card-inputs">{summary}</div>
@@ -340,15 +350,7 @@
 								{#if pendingDelete === record.record_id}
 									<button
 										class="card-delete-confirm"
-										onclick={() => {
-											pendingDelete = null;
-											delete_record_from_bucket(root, {
-												record_id: record.record_id
-											});
-											records = records.filter(
-												(r) => r.record_id !== record.record_id
-											);
-										}}>Delete?</button
+										onclick={() => removeRecord(record)}>Delete?</button
 									>
 									<button
 										class="card-delete-cancel"

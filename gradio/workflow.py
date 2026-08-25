@@ -20,7 +20,7 @@ import warnings
 import webbrowser
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
+from typing import TYPE_CHECKING, Any, Optional, TypedDict, Union, get_type_hints
 
 import anyio
 import httpx
@@ -1790,6 +1790,12 @@ class Workflow(Blocks):
         _warn_workflow_oauth_configuration()
 
         super().__init__(mode="workflow")
+        # Where this workflow's runs live in a history bucket. `_workflow_key`
+        # is already the stable identity for this workflow (the repo id on a
+        # Space, the graph file's hash locally), and setting it here means the
+        # recorder and the read routes derive the same key from the same place
+        # rather than each computing their own.
+        self.history_app_key = _workflow_key(self._workflow_file)
         self._build()
 
     def _build(self):
@@ -1962,6 +1968,108 @@ class Workflow(Blocks):
         def get_workflow_key(_data=None) -> str:
             return _workflow_key(workflow_file)
 
+        async def record_workflow_run(
+            data,
+            request: Optional[Request] = None,
+            token: Optional[OAuthToken] = None,  # noqa: ARG001
+        ) -> str:
+            """Record a canvas run against the API endpoint it corresponds to.
+
+            The canvas orchestrates a run node by node in the browser, so unlike
+            a regular gradio app there is no single server call whose inputs and
+            outputs *are* the run. What the canvas sends is therefore only the
+            raw node values it holds; everything that identifies the run — which
+            endpoint it belongs to, which nodes are its inputs and outputs, the
+            record id, the owner, the timestamps — is reconstructed here from
+            the workflow graph, and the record itself is written by the same
+            `record_run` a regular app uses.
+            """
+            from gradio import history_recorder
+            from gradio.workflow_api import (
+                WorkflowGraph,
+                _group_slug_iter,
+                group_free_inputs,
+                subject_groups,
+            )
+
+            try:
+                bucket_id = data[0] if data else ""
+                subject_ids = json.loads(data[1]) if len(data) > 1 else []
+                values = json.loads(data[2]) if len(data) > 2 else {}
+                if not isinstance(subject_ids, list) or not isinstance(values, dict):
+                    return json.dumps({"error": "Malformed run payload"})
+
+                app = history_recorder.app_from_request(request)
+                if app is None:
+                    return json.dumps({"error": "No server app for this request"})
+
+                graph = WorkflowGraph.from_json(_load_initial())
+                if graph is None:
+                    return json.dumps({"error": "No workflow graph"})
+
+                # The endpoint is whichever generated endpoint owns these
+                # subjects, so a run recorded from the canvas lands in the same
+                # bucket location as a run of the same subgraph through /call.
+                wanted = set(subject_ids)
+                match = None
+                for group, api_name in _group_slug_iter(subject_groups(graph)):
+                    ids = {s["id"] for s in group}
+                    if wanted and wanted <= ids:
+                        match = (group, api_name)
+                        break
+                if match is None:
+                    return json.dumps({"error": "No endpoint matches those outputs"})
+                group, api_name = match
+
+                def _port_type(node: dict, ports: str) -> str:
+                    entries = node.get(ports) or []
+                    return entries[0].get("type", "") if entries else ""
+
+                inputs: dict[str, Any] = {}
+                for free in group_free_inputs(graph, group):
+                    node = free["node"]
+                    node_id = node["id"]
+                    inputs[node_id] = {
+                        "value": values.get(node_id),
+                        "type": free.get("type") or _port_type(node, "outputs"),
+                        "label": node.get("label", node_id),
+                        # Which port to write back into when the run is loaded
+                        # into the canvas again.
+                        "port_id": (free.get("port") or {}).get("id"),
+                    }
+                outputs: dict[str, Any] = {}
+                for subject in group:
+                    node_id = subject["id"]
+                    outputs[node_id] = {
+                        "value": values.get(node_id),
+                        "type": _port_type(subject, "inputs"),
+                        "label": subject.get("label", node_id),
+                        "port_id": ((subject.get("inputs") or [{}])[0]).get("id"),
+                    }
+
+                record_id = await history_recorder.record_run(
+                    app,
+                    request=request,
+                    inputs=inputs,
+                    outputs=outputs,
+                    api_name=api_name,
+                    endpoint=history_recorder.endpoint_key(api_name, None),
+                    label=group[0].get("label", api_name),
+                    bucket_id=bucket_id or None,
+                )
+                if record_id is None:
+                    return json.dumps(
+                        {
+                            "error": "History is not available — sign in with "
+                            "Hugging Face and connect a bucket first.",
+                            "error_type": "auth",
+                        }
+                    )
+                return json.dumps({"record_id": record_id, "endpoint": api_name})
+            except Exception as e:
+                logger.error("record_workflow_run failed: %s", e, exc_info=True)
+                return json.dumps({"error": str(e)})
+
         server_functions = [
             get_token,
             get_write_access,
@@ -1969,6 +2077,7 @@ class Workflow(Blocks):
             get_oauth_scopes,
             get_space_id,
             get_workflow_key,
+            record_workflow_run,
             call_space,
             call_model,
             fetch_dataset,

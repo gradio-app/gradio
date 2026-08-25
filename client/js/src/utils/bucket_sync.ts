@@ -1,7 +1,19 @@
-import type { StoredRun } from "./run_history";
+/**
+ * Client for the durable run history in an HF Hub bucket
+ * (`/gradio_api/run-history/*`).
+ *
+ * Read-only by design. Records are written by the server from the run it
+ * actually executed — there is no push function here, and nothing in this
+ * module can create a record.
+ *
+ * Every call names the bucket it is talking about. The server holds no
+ * per-session binding, so two tabs (or two apps on one origin) cannot end up
+ * reading each other's history.
+ */
 
 const BUCKET_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$/;
 const RECORD_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+const SEGMENT_RE = /^[A-Za-z0-9_.-]{1,80}$/;
 
 export function is_valid_bucket_id(id: string): boolean {
 	if (!BUCKET_ID_RE.test(id)) return false;
@@ -15,31 +27,56 @@ export interface BucketInfo {
 	private?: boolean;
 }
 
+/** Mirrors `HistoryRecord` in `gradio/history.py`, which in turn mirrors
+ * `StoredRun` in `run_history.ts` — the browser-local backend for the same
+ * thing. */
 export interface HistoryRecord {
 	record_id: string;
 	owner_id: string;
 	app_key: string;
-	created_at: string;
-	inputs: Record<string, unknown>;
-	outputs: Record<string, unknown>;
+	endpoint: string;
+	inputs: unknown;
+	outputs: unknown;
+	api_name?: string | null;
+	fn_index?: number | null;
+	page?: string;
+	label?: string | null;
+	status: string;
+	error?: string | null;
+	started_at: string;
+	completed_at?: string | null;
+	duration_ms?: number | null;
+	queued_ms?: number | null;
+	streamed?: boolean;
 	assets: Record<string, string>;
 	schema_version: number;
-	subgraph?: string;
 }
 
-function url(root: string, path: string): string {
+export interface HistoryResult<T> {
+	ok: boolean;
+	status: number;
+	data: T;
+	detail?: string;
+}
+
+function url(
+	root: string,
+	path: string,
+	params?: Record<string, string>
+): string {
+	const query = params ? `?${new URLSearchParams(params)}` : "";
 	const base = root.replace(/\/+$/, "");
-	if (base) return `${base}/gradio_api/run-history/${path}`;
+	if (base) return `${base}/gradio_api/run-history/${path}${query}`;
 	// No configured root. A leading slash would drop any mount subpath
 	// (`mount_gradio_app(app, path="/myapp")`), so resolve against the document
 	// base, which gradio sets via <base href> on the app shell.
 	if (typeof document !== "undefined" && document.baseURI) {
 		return new URL(
-			`gradio_api/run-history/${path}`,
+			`gradio_api/run-history/${path}${query}`,
 			document.baseURI
 		).toString();
 	}
-	return `gradio_api/run-history/${path}`;
+	return `gradio_api/run-history/${path}${query}`;
 }
 
 async function parse_error(res: Response): Promise<string> {
@@ -51,165 +88,173 @@ async function parse_error(res: Response): Promise<string> {
 	}
 }
 
+async function request<T>(
+	input: string,
+	init: RequestInit,
+	fallback: T,
+	pick: (body: any) => T
+): Promise<HistoryResult<T>> {
+	try {
+		const res = await fetch(input, { credentials: "include", ...init });
+		if (!res.ok) {
+			// An empty list and a failed request are different things: a 401 here
+			// means "sign in", not "no runs yet".
+			return {
+				ok: false,
+				status: res.status,
+				data: fallback,
+				detail: await parse_error(res)
+			};
+		}
+		return { ok: true, status: res.status, data: pick(await res.json()) };
+	} catch (e) {
+		return { ok: false, status: 0, data: fallback, detail: String(e) };
+	}
+}
+
+/**
+ * Create the bucket if it does not exist and confirm it is private and
+ * writable by the caller. Stores nothing server-side — the caller keeps its own
+ * choice and names it on every later request.
+ */
 export async function connect_bucket(
 	root: string,
 	bucket_id: string
-): Promise<{ ok: boolean; status: number; detail?: string }> {
+): Promise<HistoryResult<{ bucket_id: string; app_key: string } | null>> {
 	if (!is_valid_bucket_id(bucket_id)) {
-		return { ok: false, status: 422, detail: "invalid bucket id" };
+		return {
+			ok: false,
+			status: 422,
+			data: null,
+			detail: "invalid bucket id"
+		};
 	}
-	try {
-		const res = await fetch(url(root, "connect"), {
+	return request(
+		url(root, "connect"),
+		{
 			method: "POST",
-			credentials: "include",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ bucket_id })
-		});
-		return {
-			ok: res.ok,
-			status: res.status,
-			detail: res.ok ? undefined : await parse_error(res)
-		};
-	} catch (e: any) {
-		return { ok: false, status: 0, detail: String(e) };
-	}
-}
-
-export async function disconnect_bucket(root: string): Promise<void> {
-	try {
-		await fetch(url(root, "disconnect"), {
-			method: "POST",
-			credentials: "include"
-		});
-	} catch {}
+		},
+		null,
+		(b) => b
+	);
 }
 
 export async function list_user_buckets(root: string): Promise<BucketInfo[]> {
-	try {
-		const res = await fetch(url(root, "buckets"), { credentials: "include" });
-		if (!res.ok) return [];
-		const data = await res.json();
-		return Array.isArray(data?.buckets) ? data.buckets : [];
-	} catch {
-		return [];
-	}
+	const res = await request<BucketInfo[]>(url(root, "buckets"), {}, [], (b) =>
+		Array.isArray(b?.buckets) ? b.buckets : []
+	);
+	return res.data;
 }
 
-export interface HistoryListResult {
-	ok: boolean;
-	status: number;
-	records: HistoryRecord[];
-	detail?: string;
+export async function list_bucket_endpoints(
+	root: string,
+	bucket: string
+): Promise<HistoryResult<string[]>> {
+	return request(url(root, "endpoints", { bucket }), {}, [], (b) =>
+		Array.isArray(b?.endpoints) ? b.endpoints : []
+	);
 }
 
 export async function list_bucket_records(
 	root: string,
-	limit = 50
-): Promise<HistoryListResult> {
-	try {
-		const params = new URLSearchParams({ limit: String(limit) });
-		const res = await fetch(`${url(root, "records")}?${params}`, {
-			credentials: "include"
-		});
-		if (!res.ok) {
-			// An empty list and a failed request are different things: a 409 here
-			// means the session lost its bucket, not that the bucket is empty.
-			return {
-				ok: false,
-				status: res.status,
-				records: [],
-				detail: await parse_error(res)
-			};
-		}
-		const data = await res.json();
-		return {
-			ok: true,
-			status: res.status,
-			records: Array.isArray(data?.records) ? data.records : []
-		};
-	} catch (e) {
-		console.warn("[run-history] list failed:", e);
-		return { ok: false, status: 0, records: [], detail: String(e) };
-	}
+	bucket: string,
+	options: { endpoint?: string; limit?: number } = {}
+): Promise<HistoryResult<HistoryRecord[]>> {
+	const params: Record<string, string> = {
+		bucket,
+		limit: String(options.limit ?? 50)
+	};
+	if (options.endpoint) params.endpoint = options.endpoint;
+	return request(url(root, "records", params), {}, [], (b) =>
+		Array.isArray(b?.records) ? b.records : []
+	);
 }
 
 export async function get_bucket_record(
 	root: string,
+	bucket: string,
+	endpoint: string,
 	record_id: string
 ): Promise<HistoryRecord | null> {
-	if (!RECORD_ID_RE.test(record_id)) return null;
-	try {
-		const res = await fetch(
-			`${url(root, "records")}/${encodeURIComponent(record_id)}`,
-			{ credentials: "include" }
-		);
-		if (!res.ok) return null;
-		return await res.json();
-	} catch {
-		return null;
-	}
+	if (!RECORD_ID_RE.test(record_id) || !SEGMENT_RE.test(endpoint)) return null;
+	const res = await request<HistoryRecord | null>(
+		url(
+			root,
+			`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(record_id)}`,
+			{ bucket }
+		),
+		{},
+		null,
+		(b) => b
+	);
+	return res.data;
 }
 
-interface PushInput {
-	record_id: string;
-	inputs?: Record<string, unknown>;
-	outputs?: Record<string, unknown>;
-	subgraph?: string;
-	created_at?: string;
-}
-
-export async function push_record_to_bucket(
+export async function delete_record_from_bucket(
 	root: string,
-	record: PushInput | StoredRun
-): Promise<{ ok: boolean; status: number; detail?: string }> {
-	const rid = (record as any).record_id ?? (record as any).id;
-	if (typeof rid !== "string" || !RECORD_ID_RE.test(rid)) {
-		return { ok: false, status: 422, detail: "invalid record id" };
+	bucket: string,
+	endpoint: string,
+	record_id: string
+): Promise<HistoryResult<null>> {
+	if (!RECORD_ID_RE.test(record_id) || !SEGMENT_RE.test(endpoint)) {
+		return { ok: false, status: 422, data: null, detail: "invalid record" };
 	}
-	if ((record as StoredRun)?.status === "running") {
-		return { ok: false, status: 0, detail: "still running" };
-	}
-	try {
-		const res = await fetch(url(root, "records"), {
-			method: "POST",
-			credentials: "include",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ ...(record as any), record_id: rid })
-		});
-		return {
-			ok: res.ok,
-			status: res.status,
-			detail: res.ok ? undefined : await parse_error(res)
-		};
-	} catch (e: any) {
-		return { ok: false, status: 0, detail: String(e) };
-	}
+	return request(
+		url(
+			root,
+			`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(record_id)}`,
+			{ bucket }
+		),
+		{ method: "DELETE" },
+		null,
+		() => null
+	);
 }
 
-export function delete_record_from_bucket(
+export async function clear_records(
 	root: string,
-	record: { record_id?: string; id?: string }
-): void {
-	const rid = record?.record_id ?? record?.id;
-	if (typeof rid !== "string" || !RECORD_ID_RE.test(rid)) return;
-	fetch(`${url(root, "records")}/${encodeURIComponent(rid)}`, {
-		method: "DELETE",
-		credentials: "include"
-	}).catch(() => {});
+	bucket: string,
+	endpoint?: string
+): Promise<HistoryResult<null>> {
+	const params: Record<string, string> = { bucket };
+	if (endpoint) params.endpoint = endpoint;
+	return request(
+		url(root, "records", params),
+		{ method: "DELETE" },
+		null,
+		() => null
+	);
 }
 
-export function clear_records(root: string): Promise<Response> {
-	return fetch(url(root, "records"), {
-		method: "DELETE",
-		credentials: "include"
-	});
+/** Delete asset blobs left behind by a half-completed write. Nothing else can
+ * reach them, so only this sweep can reclaim the space. */
+export async function sweep_orphan_assets(
+	root: string,
+	bucket: string
+): Promise<HistoryResult<number>> {
+	return request(
+		url(root, "orphans", { bucket }),
+		{ method: "POST" },
+		0,
+		(b) => (typeof b?.removed === "number" ? b.removed : 0)
+	);
 }
 
 /** Backend-proxied download URL for a stored asset. Use as `<img src=…>`. */
 export function asset_url(
 	root: string,
+	bucket: string,
+	endpoint: string,
 	record_id: string,
 	asset_id: string
 ): string {
-	return `${url(root, "records")}/${encodeURIComponent(record_id)}/assets/${encodeURIComponent(asset_id)}`;
+	return url(
+		root,
+		`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(
+			record_id
+		)}/assets/${encodeURIComponent(asset_id)}`,
+		{ bucket }
+	);
 }
