@@ -821,7 +821,7 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "prompt", "label": "Prompt", "type": "text"},
         ],
         "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+            {"id": "out_0", "label": "Text", "type": "markdown", "output_index": 0}
         ],
     },
     "summarization": {
@@ -931,8 +931,11 @@ _INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
             {"id": "image", "label": "Image", "type": "image"},
             {"id": "text", "label": "Prompt", "type": "text"},
         ],
+        # Chat models answer in prose that is very often markdown (headings,
+        # lists, fenced code), so the tile renders it instead of showing the raw
+        # asterisks. `markdown` wires interchangeably with `text`.
         "outputs": [
-            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+            {"id": "out_0", "label": "Answer", "type": "markdown", "output_index": 0}
         ],
     },
 }
