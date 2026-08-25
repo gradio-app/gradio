@@ -11,6 +11,7 @@
 		datatype = "str",
 		row_idx,
 		col_idx,
+		aria_col_index = col_idx + 1,
 		col_style = "",
 		cell_style = "",
 		selection_classes = "",
@@ -45,6 +46,7 @@
 		datatype?: Datatype;
 		row_idx: number;
 		col_idx: number;
+		aria_col_index?: number;
 		col_style?: string;
 		cell_style?: string;
 		selection_classes?: string;
@@ -106,7 +108,7 @@
 	data-testid={`cell-${row_idx}-${col_idx}`}
 	role="gridcell"
 	aria-rowindex={aria_row_index}
-	aria-colindex={col_idx + 1}
+	aria-colindex={aria_col_index}
 	aria-selected={is_selected}
 	tabindex={is_active ? 0 : -1}
 	{onmousedown}

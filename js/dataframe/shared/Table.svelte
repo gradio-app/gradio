@@ -1136,7 +1136,7 @@
 		role="grid"
 		aria-label={label || "Dataframe"}
 		aria-rowcount={rows.length + 1}
-		aria-colcount={resolved_headers.length}
+		aria-colcount={resolved_headers.length + Number(show_row_numbers)}
 		aria-readonly={!editable}
 		tabindex={rows.length === 0 ? 0 : -1}
 		style="--df-max-col-width: {viewport_width}px;"
@@ -1171,7 +1171,11 @@
 					<thead>
 						<tr bind:this={header_row_el} role="row" aria-rowindex="1">
 							{#if show_row_numbers}
-								<th class="row-number-header">&nbsp;</th>
+								<th
+									class="row-number-header"
+									role="columnheader"
+									aria-colindex="1">&nbsp;</th
+								>
 							{/if}
 							{#each header_groups as headerGroup (headerGroup.id)}
 								{#each headerGroup.headers as header (header.id)}
@@ -1180,6 +1184,7 @@
 									<HeaderCell
 										value={String(header.column.columnDef.header ?? "")}
 										{col_idx}
+										aria_col_index={col_idx + (show_row_numbers ? 2 : 1)}
 										is_editing={header_edit === col_idx}
 										is_selected={selected_header === col_idx}
 										is_static={!!(header.column.columnDef.meta as any)
@@ -1268,6 +1273,8 @@
 										class="row-number-cell"
 										data-row={row_idx}
 										data-col="row-number"
+										role="rowheader"
+										aria-colindex="1"
 										style="flex: 0 0 {measurement.row_num_width}px; width: {measurement.row_num_width}px;"
 									>
 										{row_idx + 1}
@@ -1286,6 +1293,7 @@
 										datatype={get_dtype(col_idx)}
 										{row_idx}
 										{col_idx}
+										aria_col_index={col_idx + (show_row_numbers ? 2 : 1)}
 										col_style={measurement.get_col_style(ci)}
 										cell_style={get_styling(row_idx, col_idx)}
 										selection_classes={is_cell_selected(

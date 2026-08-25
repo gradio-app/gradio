@@ -12,6 +12,7 @@
 	let {
 		value,
 		col_idx,
+		aria_col_index = col_idx + 1,
 		is_editing = false,
 		is_selected = false,
 		is_static = false,
@@ -37,6 +38,7 @@
 	}: {
 		value: string;
 		col_idx: number;
+		aria_col_index?: number;
 		is_editing?: boolean;
 		is_selected?: boolean;
 		is_static?: boolean;
@@ -75,7 +77,7 @@
 	data-heading={col_idx}
 	data-testid={`header-${col_idx}`}
 	role="columnheader"
-	aria-colindex={col_idx + 1}
+	aria-colindex={aria_col_index}
 	tabindex={is_selected ? 0 : -1}
 	onfocus={() => onfocus(col_idx)}
 	onclick={(e) => onclick(e, col_idx)}

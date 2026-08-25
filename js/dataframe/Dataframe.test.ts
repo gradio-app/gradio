@@ -154,6 +154,18 @@ describe("Dataframe rendering", () => {
 
 		const row_number_cells = container.querySelectorAll(".row-number-cell");
 		expect(row_number_cells.length).toBeGreaterThan(0);
+		expect(get_table_wrap(container)).toHaveAttribute("aria-colcount", "4");
+		expect(container.querySelector(".row-number-header")).toHaveAttribute(
+			"aria-colindex",
+			"1"
+		);
+		expect(get_header_cells(container)[0]).toHaveAttribute(
+			"aria-colindex",
+			"2"
+		);
+		const row_header = container.querySelector('[role="rowheader"]');
+		expect(row_header).toHaveAttribute("aria-colindex", "1");
+		expect(get_cell(container, 0, 0)).toHaveAttribute("aria-colindex", "2");
 	});
 
 	test("renders search input when show_search is 'search'", async () => {
@@ -340,7 +352,21 @@ describe("Cell selection", () => {
 });
 
 describe("Keyboard accessibility", () => {
-	afterEach(() => cleanup());
+	const external_buttons: HTMLButtonElement[] = [];
+
+	function append_external_button(text: string): HTMLButtonElement {
+		const button = document.createElement("button");
+		button.textContent = text;
+		document.body.appendChild(button);
+		external_buttons.push(button);
+		return button;
+	}
+
+	afterEach(() => {
+		cleanup();
+		external_buttons.forEach((button) => button.remove());
+		external_buttons.length = 0;
+	});
 
 	const navigation_props = {
 		...default_props,
@@ -348,9 +374,7 @@ describe("Keyboard accessibility", () => {
 	};
 
 	test("Tab enters the grid on a single active cell", async () => {
-		const before = document.createElement("button");
-		before.textContent = "Before dataframe";
-		document.body.appendChild(before);
+		const before = append_external_button("Before dataframe");
 
 		const { getByRole, getByTestId } = await render(
 			Dataframe,
@@ -370,14 +394,10 @@ describe("Keyboard accessibility", () => {
 	});
 
 	test("Tab and Shift+Tab leave the grid in navigation mode", async () => {
-		const before = document.createElement("button");
-		before.textContent = "Before dataframe";
-		document.body.appendChild(before);
+		const before = append_external_button("Before dataframe");
 
 		const { getByTestId } = await render(Dataframe, navigation_props);
-		const after = document.createElement("button");
-		after.textContent = "After dataframe";
-		document.body.appendChild(after);
+		const after = append_external_button("After dataframe");
 		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
 
 		first_cell.focus();
@@ -500,16 +520,12 @@ describe("Keyboard accessibility", () => {
 	});
 
 	test("Tab moves between cells while editing and leaves at the grid boundary", async () => {
-		const before = document.createElement("button");
-		before.textContent = "Before dataframe";
-		document.body.appendChild(before);
+		const before = append_external_button("Before dataframe");
 		const { getByRole, getByTestId } = await render(
 			Dataframe,
 			navigation_props
 		);
-		const after = document.createElement("button");
-		after.textContent = "After dataframe";
-		document.body.appendChild(after);
+		const after = append_external_button("After dataframe");
 		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
 		const last_cell = getByTestId("cell-2-2");
 
