@@ -45,6 +45,7 @@ def _make_store(
     store._cache_lock = threading.Lock()
     store._cache = None
     store._cache_at = 0.0
+    store._record_cache = OrderedDict()
     return store, mock_api
 
 
@@ -185,8 +186,10 @@ def test_save_record_wraps_hub_errors():
 
 def test_delete_record_removes_json_and_assets():
     store, mock_api = _make_store()
+    # delete_record now reads the record first to confirm we own it
+    store._download_bytes = lambda path: _record("r1").to_json_bytes()
     mock_api.list_bucket_tree.return_value = iter(
-        [MagicMock(path=f"assets/r1/a{i:03d}.png") for i in range(3)]
+        [MagicMock(type="file", path=f"assets/r1/a{i:03d}.png") for i in range(3)]
     )
     store.delete_record("r1")
     call = mock_api.batch_bucket_files.call_args
@@ -200,15 +203,71 @@ def test_delete_record_removes_json_and_assets():
 def test_clear_records_removes_everything():
     store, mock_api = _make_store()
 
-    def _tree(repo, prefix):
+    def _tree(repo, prefix, recursive=None):
+        assert recursive is True, "assets/ must be listed recursively"
         if prefix == "records/":
-            return iter([MagicMock(path="records/r1.json")])
-        return iter([MagicMock(path="assets/r1/a001.png")])
+            return iter([MagicMock(type="file", path="records/r1.json")])
+        return iter([MagicMock(type="file", path="assets/r1/a001.png")])
 
     mock_api.list_bucket_tree.side_effect = _tree
+    store._fetch_all_records = lambda: [_record("r1").to_json_bytes()]
     store.clear_records()
     deleted = set(mock_api.batch_bucket_files.call_args.kwargs["delete"])
     assert deleted == {"records/r1.json", "assets/r1/a001.png"}
+
+
+def test_clear_records_leaves_other_owners_alone():
+    """A shared org bucket must not be wiped by whoever clicks Clear."""
+    store, mock_api = _make_store(owner_id="alice")
+
+    def _tree(repo, prefix, recursive=None):
+        if prefix == "records/":
+            return iter([])
+        return iter(
+            [
+                MagicMock(type="file", path="assets/r1/a001.png"),
+                MagicMock(type="file", path="assets/r2/a001.png"),
+            ]
+        )
+
+    mock_api.list_bucket_tree.side_effect = _tree
+    store._fetch_all_records = lambda: [
+        _record("r1", owner_id="alice").to_json_bytes(),
+        _record("r2", owner_id="bob").to_json_bytes(),
+    ]
+    store.clear_records()
+    deleted = set(mock_api.batch_bucket_files.call_args.kwargs["delete"])
+    assert deleted == {"records/r1.json", "assets/r1/a001.png"}
+
+
+def test_list_records_hides_other_owners_and_sorts_by_created_at():
+    store, _ = _make_store(owner_id="alice")
+    store._fetch_all_records = lambda: [
+        _record(
+            "old", owner_id="alice", created_at="2026-08-24T10:00:00Z"
+        ).to_json_bytes(),
+        _record(
+            "theirs", owner_id="bob", created_at="2026-08-24T23:00:00Z"
+        ).to_json_bytes(),
+        _record(
+            "new", owner_id="alice", created_at="2026-08-24T20:00:00Z"
+        ).to_json_bytes(),
+    ]
+    got = store.list_records()
+    assert [r.record_id for r in got] == ["new", "old"]
+
+
+def test_get_and_delete_reject_another_owners_record():
+    from gradio.history import NotFoundError
+
+    store, mock_api = _make_store(owner_id="alice")
+    theirs = _record("r9", owner_id="bob").to_json_bytes()
+    store._download_bytes = lambda path: theirs
+    with pytest.raises(NotFoundError):
+        store.get_record("r9")
+    with pytest.raises(NotFoundError):
+        store.delete_record("r9")
+    mock_api.batch_bucket_files.assert_not_called()
 
 
 def test_ensure_private_bucket_creates_and_verifies():
@@ -605,3 +664,112 @@ def test_extract_local_file_path_handles_absolute_file_urls(tmp_path, monkeypatc
     assert extract_local_file_path({"url": f"/gradio_api/file={img}"}) == str(img)
     assert extract_local_file_path({"path": str(img)}) == str(img)
     assert extract_local_file_path({"url": "https://host/not-a-file.png"}) is None
+
+
+def test_fetch_all_records_sorts_by_mtime_not_path():
+    """`BucketFile` has no `last_modified`; sorting on it silently fell back to
+    the random record id, so the 200-file scan cap picked an arbitrary subset."""
+    from datetime import datetime, timezone
+
+    store, mock_api = _make_store()
+    old = MagicMock(
+        type="file",
+        path="records/zzz.json",
+        mtime=datetime(2020, 1, 1, tzinfo=timezone.utc),
+    )
+    new = MagicMock(
+        type="file",
+        path="records/aaa.json",
+        mtime=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+    mock_api.list_bucket_tree.return_value = iter([old, new])
+    seen: list[str] = []
+    mock_api.download_bucket_files.side_effect = lambda **kw: seen.extend(
+        remote for remote, _ in kw["files"]
+    )
+    store._fetch_all_records()
+    assert seen == ["records/aaa.json", "records/zzz.json"]
+
+
+def test_sort_key_tolerates_naive_and_missing_timestamps():
+    from datetime import datetime
+
+    store, _ = _make_store()
+    items = [
+        MagicMock(type="file", path="a", mtime=datetime(2026, 1, 1)),  # naive
+        MagicMock(type="file", path="b", mtime=None, uploaded_at=None),
+        MagicMock(type="file", path="c", mtime=datetime(2025, 1, 1)),
+    ]
+    # must not raise "can't compare offset-naive and offset-aware datetimes"
+    ordered = sorted(items, key=store._sort_key, reverse=True)
+    assert [i.path for i in ordered] == ["a", "c", "b"]
+
+
+class TestAssetServing:
+    def _client_with_asset(self, data: bytes, path: str):
+        from gradio import history_routes, oauth
+        from gradio.routes import App
+
+        class _S:
+            owner_id = "alice"
+            app_key = "app"
+
+            def get_asset_bytes(self, record_id, asset_id):
+                import mimetypes
+
+                return data, mimetypes.guess_type(path)[0] or "application/octet-stream"
+
+        with gr.Blocks() as demo:
+            gr.Textbox()
+        app = App.create_app(demo)
+        app.dependency_overrides[oauth.require_oauth_token] = lambda: "tok"
+        app.dependency_overrides[history_routes.get_store] = lambda: _S()
+        return TestClient(app)
+
+    def test_html_asset_is_not_served_inline(self):
+        client = self._client_with_asset(b"<script>alert(1)</script>", "x.html")
+        r = client.get("/gradio_api/run-history/records/r1/assets/a001")
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("application/octet-stream")
+        assert r.headers["content-disposition"] == "attachment"
+
+    def test_png_asset_is_inline_and_cacheable(self):
+        client = self._client_with_asset(b"\x89PNG", "x.png")
+        r = client.get("/gradio_api/run-history/records/r1/assets/a001")
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("image/png")
+        assert r.headers["content-disposition"] == "inline"
+        assert "immutable" in r.headers["cache-control"]
+
+
+def test_run_history_false_disables_bucket_routes():
+    from gradio.routes import App
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.run_history = False
+    client = TestClient(App.create_app(demo))
+    # 404, not 401: the routes must not exist at all
+    assert client.get("/gradio_api/run-history/records").status_code == 404
+    assert client.post("/gradio_api/run-history/connect", json={}).status_code == 404
+
+
+def test_chunked_body_over_limit_is_rejected_without_buffering():
+    """A chunked request carries no Content-Length, so the header check does not
+    fire and the cap has to come from streaming."""
+    from gradio import history_routes, oauth
+    from gradio.routes import App
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    app.dependency_overrides[oauth.require_oauth_token] = lambda: "tok"
+    app.dependency_overrides[history_routes.get_store] = lambda: _RecordingStore()
+    client = TestClient(app)
+
+    def _chunks():
+        for _ in range(40):
+            yield b"x" * 100_000
+
+    r = client.post("/gradio_api/run-history/records", content=_chunks())
+    assert r.status_code == 413

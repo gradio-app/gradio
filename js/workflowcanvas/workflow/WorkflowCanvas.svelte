@@ -11,7 +11,7 @@
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
 	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
-	import { push_record_to_bucket } from "@gradio/client";
+	import { push_record_to_bucket, connect_bucket } from "@gradio/client";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
@@ -61,7 +61,12 @@
 		NodeDataValue,
 		Workflow
 	} from "./workflow-types";
-	import { executeWorkflow } from "./workflow-executor";
+	import {
+		executeWorkflow,
+		is_client_only_media,
+		upload_local_media,
+		type LocalMediaValue
+	} from "./workflow-executor";
 	import { stream_text_generation } from "./inference-stream";
 	import {
 		findFreeSpot as findFreeSpotImpl,
@@ -570,10 +575,10 @@
 	let showHistoryConnect = $state(false);
 	let historyRefreshCount = $state(0);
 
-	// Root URL for the /gradio_api/history/* routes. Prefers the client's
-	// configured root (correct for tunnels / mount_gradio_app subpaths).
-	// Falls back to empty string so relative URL resolution uses the current
-	// page's base — origin would drop any mount subpath and 404 the routes.
+	// Root URL for the /gradio_api/run-history/* routes. Prefers the client's
+	// configured root (correct for tunnels / mount_gradio_app subpaths). When it
+	// is empty, `url()` in bucket_sync resolves against document.baseURI rather
+	// than emitting a root-absolute path, which would drop a mount subpath.
 	const historyRoot = $derived(gradio_client?.config?.root ?? "");
 
 	// Per-workflow bucket id, persisted in localStorage. Keyed by workflow
@@ -590,6 +595,20 @@
 			bucketId = "";
 		}
 	});
+	// A `blob:`/`data:` value only exists in this tab, so a record referencing
+	// one is dead the moment the page reloads. Upload it to this server first so
+	// the backend can externalize it into the bucket like any other asset.
+	async function persistValueForHistory(value: unknown): Promise<unknown> {
+		if (!is_client_only_media(value)) return value;
+		try {
+			const uploaded = await upload_local_media(value as LocalMediaValue);
+			return { ...(value as object), path: uploaded.path, url: uploaded.url };
+		} catch (e) {
+			console.warn("[run-history] could not persist input media:", e);
+			return value;
+		}
+	}
+
 	function setBucketId(id: string): void {
 		bucketId = id;
 		try {
@@ -2133,7 +2152,11 @@
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
 					inputs[ref.id] = {
-						value: node.data?.[outPort.id] ?? null,
+						// User-supplied media lives in a `blob:` object URL that dies
+						// with the tab. Upload it so the record stays loadable.
+						value: await persistValueForHistory(
+							node.data?.[outPort.id] ?? null
+						),
 						type: outPort.type,
 						label: node.label,
 						port_id: outPort.id
@@ -2145,7 +2168,7 @@
 					const inPort = node?.inputs?.[0];
 					if (!node || !inPort) continue;
 					outputs[subj.id] = {
-						value: node.data?.[inPort.id] ?? null,
+						value: await persistValueForHistory(node.data?.[inPort.id] ?? null),
 						type: inPort.type,
 						label: node.label
 					};
@@ -2157,13 +2180,39 @@
 					inputs,
 					outputs
 				};
-				await push_record_to_bucket(historyRoot, record);
-				if (showHistoryPanel) {
-					setTimeout(() => {
-						if (showHistoryPanel) historyRefreshCount++;
-					}, 2500);
+				// The bucket lives on the server session, which the client cannot
+				// see: it is dropped by a restart, and two tabs on two workflows
+				// share one slot. Re-assert it so this push lands in the bucket
+				// this canvas is actually bound to.
+				const reconnected = await connect_bucket(historyRoot, bucketId);
+				if (!reconnected.ok) {
+					showToast(
+						`Could not save to history: ${reconnected.detail ?? reconnected.status}`,
+						5000,
+						"warning"
+					);
+				} else {
+					const pushed = await push_record_to_bucket(historyRoot, record);
+					if (!pushed.ok) {
+						showToast(
+							`Could not save to history: ${pushed.detail ?? pushed.status}`,
+							5000,
+							"warning"
+						);
+					} else if (showHistoryPanel) {
+						setTimeout(() => {
+							if (showHistoryPanel) historyRefreshCount++;
+						}, 2500);
+					}
 				}
-			} catch {}
+			} catch (e: any) {
+				// Never let a history failure look like a successful save.
+				showToast(
+					`Could not save to history: ${e?.message ?? e}`,
+					5000,
+					"warning"
+				);
+			}
 		}
 
 		showToast(
@@ -3441,12 +3490,20 @@
 				};
 				for (const [nodeId, input] of Object.entries(inputs)) {
 					const portId = input.port_id ?? "out_0";
-					updateNodeData(nodeId, portId, wrap(input.value, input.type));
+					updateNodeData(
+						nodeId,
+						portId,
+						wrap(input.value, input.type) as NodeDataValue
+					);
 				}
 				for (const [nodeId, output] of Object.entries(outputs)) {
 					const node = legacyView.nodes.find((n) => n.id === nodeId);
 					const inPortId = node?.inputs?.[0]?.id ?? "in_0";
-					updateNodeData(nodeId, inPortId, wrap(output.value, output.type));
+					updateNodeData(
+						nodeId,
+						inPortId,
+						wrap(output.value, output.type) as NodeDataValue
+					);
 				}
 				showHistoryPanel = false;
 			}}

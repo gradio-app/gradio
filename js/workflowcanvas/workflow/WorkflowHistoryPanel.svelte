@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import {
 		asset_url,
+		connect_bucket,
 		delete_record_from_bucket,
 		list_bucket_records,
 		type HistoryRecord
@@ -51,7 +52,9 @@
 	const MEDIA_TYPES = new Set(["image", "audio", "video"]);
 
 	const subgraphs = $derived(
-		[...new Set(records.map((r) => r.subgraph))].sort()
+		[
+			...new Set(records.map((r) => r.subgraph).filter((s): s is string => !!s))
+		].sort()
 	);
 
 	const filtered = $derived(
@@ -109,6 +112,7 @@
 
 	function inputSummary(record: HistoryRecord): string {
 		return Object.values(record.inputs)
+			.map((i) => i as Partial<HistoryInput>)
 			.filter((i) => i.type === "text" && typeof i.value === "string")
 			.map((i) => i.value as string)
 			.join(" / ")
@@ -125,9 +129,25 @@
 	}
 
 	async function fetchRecords() {
-		const fetched = (await list_bucket_records(root, 50)) as HistoryRecord[];
+		// The server derives the bucket from the session, which this panel cannot
+		// inspect and which a restart clears. Re-assert the binding this canvas
+		// holds before listing, so a reload doesn't render an empty history.
+		if (bucketId) {
+			const connected = await connect_bucket(root, bucketId);
+			if (!connected.ok) {
+				throw new Error(connected.detail ?? `Could not connect to ${bucketId}`);
+			}
+		}
+		const result = await list_bucket_records(root, 50);
+		if (!result.ok) {
+			throw new Error(
+				result.status === 409
+					? "This session is no longer connected to a bucket. Reconnect to see your history."
+					: (result.detail ?? "Could not load history")
+			);
+		}
 		// Server order is not guaranteed chronological; sort newest first.
-		records = fetched
+		records = result.records
 			.slice()
 			.sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
 	}
@@ -154,8 +174,14 @@
 		}
 	});
 
+	// plain let: only ever read inside untrack, so it must not be a dependency
+	let lastRefreshHandled = 0;
 	$effect(() => {
-		if (triggerRefresh > 0 && !loading) {
+		// Track only `triggerRefresh`. Reading `loading` here made the effect
+		// re-run when onMount flipped it, double-fetching on every reopen.
+		const trigger = triggerRefresh;
+		if (trigger > 0 && trigger !== untrack(() => lastRefreshHandled)) {
+			lastRefreshHandled = trigger;
 			refresh();
 		}
 	});

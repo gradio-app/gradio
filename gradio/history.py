@@ -30,6 +30,7 @@ SCHEMA_VERSION = 1
 
 _LIST_CACHE_TTL = 10.0
 _MAX_FILES_SCAN = 200
+_RECORD_CACHE_MAX = 256
 
 BUCKET_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$")
 RECORD_ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
@@ -100,7 +101,13 @@ class HistoryRecord:
 
 
 def now_utc_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    """Millisecond precision, matching the canvas's `Date.toISOString()`.
+
+    Records are sorted by this string, so a server-generated timestamp that
+    omitted milliseconds sorted before every client-generated one in the same
+    second."""
+    now = datetime.now(timezone.utc)
+    return f"{now:%Y-%m-%dT%H:%M:%S}.{now.microsecond // 1000:03d}Z"
 
 
 def is_trusted_local_path(path: str) -> bool:
@@ -157,6 +164,9 @@ class BucketRunHistoryStore:
         self._cache_lock = threading.Lock()
         self._cache: list[bytes] | None = None
         self._cache_at: float = 0.0
+        # Records are immutable once written, so a small bounded cache keeps the
+        # asset route from re-downloading the record JSON for every thumbnail.
+        self._record_cache: OrderedDict[str, HistoryRecord] = OrderedDict()
 
     def ensure_private_bucket(self) -> None:
         with self._ensure_lock:
@@ -227,8 +237,18 @@ class BucketRunHistoryStore:
 
         with self._cache_lock:
             self._cache = None
+            self._record_cache.clear()
 
-    def list_records(self, limit: int = 50) -> list[HistoryRecord]:
+    def _owns(self, record: HistoryRecord) -> bool:
+        """Records in a shared (org) bucket are only visible to their author.
+
+        `app_key` is deliberately *not* part of this check: it is derived from
+        the running app and is not stable across restarts, so filtering on it
+        would hide a user's own history after every redeploy.
+        """
+        return record.owner_id == self.owner_id
+
+    def _all_records(self) -> list[HistoryRecord]:
         now = time.monotonic()
         with self._cache_lock:
             fresh = self._cache is not None and (now - self._cache_at) < _LIST_CACHE_TTL
@@ -239,22 +259,41 @@ class BucketRunHistoryStore:
                 self._cache = blobs
                 self._cache_at = time.monotonic()
         out: list[HistoryRecord] = []
-        for b in blobs[:limit]:
+        for b in blobs:
             try:
-                out.append(HistoryRecord.from_json_bytes(b))
+                record = HistoryRecord.from_json_bytes(b)
             except Exception:
                 continue
+            if self._owns(record):
+                out.append(record)
+        out.sort(key=lambda r: r.created_at, reverse=True)
         return out
+
+    def list_records(self, limit: int = 50) -> list[HistoryRecord]:
+        return self._all_records()[:limit]
 
     def get_record(self, record_id: str) -> HistoryRecord:
         validate_record_id(record_id)
+        with self._cache_lock:
+            cached = self._record_cache.get(record_id)
+        if cached is not None:
+            return cached
         try:
             data = self._download_bytes(f"records/{record_id}.json")
         except NotFoundError:
             raise
         except Exception as e:
             raise HubError(f"get_record failed: {e}") from e
-        return HistoryRecord.from_json_bytes(data)
+        record = HistoryRecord.from_json_bytes(data)
+        if not self._owns(record):
+            # 404 rather than 403: existence itself is another user's business.
+            raise NotFoundError(f"record {record_id} not found")
+        with self._cache_lock:
+            self._record_cache[record_id] = record
+            self._record_cache.move_to_end(record_id)
+            if len(self._record_cache) > _RECORD_CACHE_MAX:
+                self._record_cache.popitem(last=False)
+        return record
 
     def get_asset_bytes(self, record_id: str, asset_id: str) -> tuple[bytes, str]:
         validate_record_id(record_id)
@@ -271,6 +310,7 @@ class BucketRunHistoryStore:
 
     def delete_record(self, record_id: str) -> None:
         validate_record_id(record_id)
+        self.get_record(record_id)  # raises NotFoundError unless we own it
         asset_paths = [
             getattr(it, "path", "")
             for it in self._safe_list_tree(prefix=f"assets/{record_id}/")
@@ -282,19 +322,19 @@ class BucketRunHistoryStore:
             raise HubError(f"delete_record failed: {e}") from e
         with self._cache_lock:
             self._cache = None
+            self._record_cache.clear()
 
     def clear_records(self) -> None:
-        paths = [
-            getattr(it, "path", "")
-            for it in self._safe_list_tree(prefix="records/")
-            if getattr(it, "path", "").endswith(".json")
-        ]
+        owned = self._all_records()
+        if not owned:
+            return
+        owned_ids = {r.record_id for r in owned}
+        paths = [f"records/{rid}.json" for rid in owned_ids]
         paths += [
-            getattr(it, "path", "")
+            it.path
             for it in self._safe_list_tree(prefix="assets/")
-            if getattr(it, "path", "")
+            if self._is_file(it) and _record_id_of_asset(it.path) in owned_ids
         ]
-        paths = [p for p in paths if p]
         if not paths:
             return
         try:
@@ -303,6 +343,7 @@ class BucketRunHistoryStore:
             raise HubError(f"clear_records failed: {e}") from e
         with self._cache_lock:
             self._cache = None
+            self._record_cache.clear()
 
     def _fetch_all_records(self) -> list[bytes]:
         try:
@@ -310,10 +351,9 @@ class BucketRunHistoryStore:
                 (
                     it
                     for it in self._safe_list_tree(prefix="records/")
-                    if getattr(it, "path", "").endswith(".json")
-                    and not hasattr(it, "count")
+                    if self._is_file(it) and it.path.endswith(".json")
                 ),
-                key=lambda f: getattr(f, "last_modified", "") or f.path,
+                key=self._sort_key,
                 reverse=True,
             )[:_MAX_FILES_SCAN]
         except Exception:
@@ -341,11 +381,35 @@ class BucketRunHistoryStore:
                     continue
         return blobs
 
-    def _safe_list_tree(self, prefix: str):
+    def _safe_list_tree(self, prefix: str, *, recursive: bool = True):
+        """List bucket entries under *prefix*.
+
+        `list_bucket_tree` defaults to `recursive=False`, which returns only the
+        entries directly under the prefix — for `assets/` that is a list of
+        `BucketFolder`s and never the files inside them.
+        """
         try:
-            yield from self._api.list_bucket_tree(self.repo_id, prefix=prefix)
+            yield from self._api.list_bucket_tree(
+                self.repo_id, prefix=prefix, recursive=recursive
+            )
         except Exception:
             return
+
+    @staticmethod
+    def _is_file(item) -> bool:
+        return getattr(item, "type", "file") != "directory" and bool(
+            getattr(item, "path", "")
+        )
+
+    @staticmethod
+    def _sort_key(item) -> datetime:
+        """Newest first. `BucketFile` exposes `mtime`/`uploaded_at` — there is no
+        `last_modified`, so the previous key silently fell back to the random
+        record id and made the listing order (and the scan cap) arbitrary."""
+        ts = getattr(item, "mtime", None) or getattr(item, "uploaded_at", None)
+        if not isinstance(ts, datetime):
+            return datetime.min.replace(tzinfo=timezone.utc)
+        return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
 
     def _download_bytes(self, path_in_repo: str) -> bytes:
         import tempfile
@@ -391,6 +455,12 @@ def bucket_for_token(
         if len(cache) > max_entries:
             cache.popitem(last=False)
         return store
+
+
+def _record_id_of_asset(path_in_repo: str) -> str:
+    """``assets/<record_id>/<asset_id>.<ext>`` -> ``<record_id>``."""
+    parts = path_in_repo.split("/")
+    return parts[1] if len(parts) > 2 and parts[0] == "assets" else ""
 
 
 def _ext_from(local_path: str, content_type: str | None) -> str:

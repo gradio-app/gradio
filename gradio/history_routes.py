@@ -111,10 +111,15 @@ class ConnectBody(BaseModel):
     bucket_id: str
 
 
+# ISO-8601 UTC, with or without fractional seconds. The canvas sends
+# `Date.toISOString()` (milliseconds); `now_utc_iso()` omits them.
+TIMESTAMP_PATTERN = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$"
+
+
 class RecordBody(BaseModel):
     record_id: str = Field(pattern=RECORD_ID_PATTERN)
-    created_at: str | None = None
-    subgraph: str | None = None
+    created_at: str | None = Field(default=None, pattern=TIMESTAMP_PATTERN)
+    subgraph: str | None = Field(default=None, max_length=256)
     inputs: dict[str, Any] = Field(default_factory=dict)
     outputs: dict[str, Any] = Field(default_factory=dict)
 
@@ -209,5 +214,23 @@ async def clear_records(store: StoreDep):
 
 @history_router.get("/records/{record_id}/assets/{asset_id}")
 async def get_asset(store: StoreDep, record_id: RecordId, asset_id: AssetId):
-    data, content_type = await offload(store.get_asset_bytes, record_id, asset_id)
-    return Response(content=data, media_type=content_type)
+    data, guessed = await offload(store.get_asset_bytes, record_id, asset_id)
+    # Same rule as gradio's own file route: only mimetypes that cannot be turned
+    # into script are served inline. `externalize_assets` uploads any trusted
+    # FileData, so an .html/.svg on a file node would otherwise render on this
+    # app's origin.
+    if guessed in route_utils.XSS_SAFE_MIMETYPES:
+        content_type, disposition = guessed, "inline"
+    else:
+        content_type, disposition = "application/octet-stream", "attachment"
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Content-Disposition": disposition,
+            # Bucket assets are immutable: the record id is unique per run and
+            # an asset is never rewritten in place. Without this every thumbnail
+            # in the panel re-downloads from the Hub on each render.
+            "Cache-Control": "private, max-age=31536000, immutable",
+        },
+    )

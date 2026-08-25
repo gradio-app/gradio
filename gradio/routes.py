@@ -726,8 +726,12 @@ class App(FastAPI):
                 raise HTTPException(status_code=404, detail="Not found")
             return main(request, user)
 
-        history_routes.init_history_state(app)
-        router.include_router(history_routes.history_router)
+        # Same kill switch as the /runs page above: with run_history=False
+        # nothing is recorded, so the bucket endpoints must not be reachable
+        # either.
+        if getattr(blocks, "run_history", True):
+            history_routes.init_history_state(app)
+            router.include_router(history_routes.history_router)
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):

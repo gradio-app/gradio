@@ -31,6 +31,7 @@ export {
 	list_user_buckets,
 	push_record_to_bucket,
 	type BucketInfo,
+	type HistoryListResult,
 	type HistoryRecord
 } from "./utils/bucket_sync";
 

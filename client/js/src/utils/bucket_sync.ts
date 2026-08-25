@@ -28,7 +28,18 @@ export interface HistoryRecord {
 }
 
 function url(root: string, path: string): string {
-	return `${root.replace(/\/+$/, "")}/gradio_api/run-history/${path}`;
+	const base = root.replace(/\/+$/, "");
+	if (base) return `${base}/gradio_api/run-history/${path}`;
+	// No configured root. A leading slash would drop any mount subpath
+	// (`mount_gradio_app(app, path="/myapp")`), so resolve against the document
+	// base, which gradio sets via <base href> on the app shell.
+	if (typeof document !== "undefined" && document.baseURI) {
+		return new URL(
+			`gradio_api/run-history/${path}`,
+			document.baseURI
+		).toString();
+	}
+	return `gradio_api/run-history/${path}`;
 }
 
 async function parse_error(res: Response): Promise<string> {
@@ -84,21 +95,41 @@ export async function list_user_buckets(root: string): Promise<BucketInfo[]> {
 	}
 }
 
+export interface HistoryListResult {
+	ok: boolean;
+	status: number;
+	records: HistoryRecord[];
+	detail?: string;
+}
+
 export async function list_bucket_records(
 	root: string,
 	limit = 50
-): Promise<HistoryRecord[]> {
+): Promise<HistoryListResult> {
 	try {
 		const params = new URLSearchParams({ limit: String(limit) });
 		const res = await fetch(`${url(root, "records")}?${params}`, {
 			credentials: "include"
 		});
-		if (!res.ok) return [];
+		if (!res.ok) {
+			// An empty list and a failed request are different things: a 409 here
+			// means the session lost its bucket, not that the bucket is empty.
+			return {
+				ok: false,
+				status: res.status,
+				records: [],
+				detail: await parse_error(res)
+			};
+		}
 		const data = await res.json();
-		return Array.isArray(data?.records) ? data.records : [];
+		return {
+			ok: true,
+			status: res.status,
+			records: Array.isArray(data?.records) ? data.records : []
+		};
 	} catch (e) {
 		console.warn("[run-history] list failed:", e);
-		return [];
+		return { ok: false, status: 0, records: [], detail: String(e) };
 	}
 }
 

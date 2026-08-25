@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import {
 		connect_bucket,
 		is_valid_bucket_id,
@@ -38,8 +38,17 @@
 	);
 
 	let repoInput = $state("");
+	// Prefill once, when the username first arrives. The previous version read
+	// `repoInput` inside the effect that writes it, so clearing the field
+	// re-triggered the effect and instantly refilled it — making an org bucket
+	// impossible to type.
+	let prefilled = false;
 	$effect(() => {
-		if (!repoInput && username) repoInput = `${username}/${suggestedName}`;
+		if (prefilled || !username) return;
+		prefilled = true;
+		if (!untrack(() => repoInput)) {
+			repoInput = `${username}/${suggestedName}`;
+		}
 	});
 	let connecting = $state(false);
 	let error = $state<string | null>(null);
