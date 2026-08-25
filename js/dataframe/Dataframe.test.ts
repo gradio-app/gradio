@@ -373,7 +373,7 @@ describe("Keyboard accessibility", () => {
 		buttons: [] as string[]
 	};
 
-	test("Tab enters the grid on a single active cell", async () => {
+	test("Tab bypasses the grid container and enters on a single active cell", async () => {
 		const before = append_external_button("Before dataframe");
 
 		const { getByRole, getByTestId } = await render(
@@ -389,8 +389,11 @@ describe("Keyboard accessibility", () => {
 		expect(first_cell).toHaveFocus();
 		expect(first_cell).toHaveAttribute("tabindex", "0");
 		expect(second_cell).toHaveAttribute("tabindex", "-1");
-		expect(getByRole("grid")).toHaveAttribute("aria-rowcount", "4");
-		expect(getByRole("grid")).toHaveAttribute("aria-colcount", "3");
+		const grid = getByRole("grid");
+		expect(grid).toHaveAttribute("tabindex", "-1");
+		expect(grid).not.toHaveFocus();
+		expect(grid).toHaveAttribute("aria-rowcount", "4");
+		expect(grid).toHaveAttribute("aria-colcount", "3");
 	});
 
 	test("Tab and Shift+Tab leave the grid in navigation mode", async () => {
