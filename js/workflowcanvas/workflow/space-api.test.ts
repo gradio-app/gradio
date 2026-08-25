@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 import {
 	canonicalizePort,
+	componentToPortType,
 	extract_choices,
 	normalizeOperatorPorts,
 	normalize_space_id,
@@ -40,6 +41,30 @@ describe("canonicalizePort", () => {
 		expect(canonicalizePort("any", "number")).toBe("any");
 		expect(canonicalizePort("file", "boolean")).toBe("file");
 		expect(canonicalizePort("any", "json")).toBe("any");
+	});
+});
+
+describe("componentToPortType — gr.api Any handling", () => {
+	test("Api component + python_type 'Any' → 'any' port (not 'json')", () => {
+		expect(componentToPortType("Api", "", "Any", "1st")).toBe("any");
+	});
+
+	test("Api component + python_type 'dict' still → 'json'", () => {
+		expect(componentToPortType("Api", "", "dict", "result")).toBe("json");
+	});
+
+	test("Api component + python_type 'list' still → 'json'", () => {
+		expect(componentToPortType("Api", "", "list[str]", "results")).toBe("json");
+	});
+
+	test("Api component + python_type 'filepath' → 'file' (no media hint)", () => {
+		expect(componentToPortType("Api", "", "filepath", "1st")).toBe("file");
+	});
+
+	test("Api component + python_type 'filepath' + video-hinting label → 'video'", () => {
+		expect(componentToPortType("Api", "", "filepath", "output_video")).toBe(
+			"video"
+		);
 	});
 });
 
