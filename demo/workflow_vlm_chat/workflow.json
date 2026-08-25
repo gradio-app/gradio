@@ -35,8 +35,8 @@
       "id": "op-vlm",
       "role": "operator",
       "kind": "model",
-      "label": "Qwen2.5-VL",
-      "model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "label": "Qwen3.8-27B",
+      "model_id": "Qwen/Qwen3.8-27B",
       "endpoint": "chat_completion",
       "pipeline_tag": "image-text-to-text",
       "inputs": [
