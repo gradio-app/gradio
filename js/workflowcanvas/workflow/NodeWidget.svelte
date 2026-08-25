@@ -82,8 +82,9 @@
 				return widgetType;
 			const v = node.data?.[widgetPortId];
 			if (!v || typeof v !== "object" || Array.isArray(v)) return widgetType;
-			const mime = (v as FileValue).mime;
-			if (typeof mime !== "string") return widgetType;
+			const { mime, url } = v as FileValue;
+			if (typeof mime !== "string" || typeof url !== "string" || !url)
+				return widgetType;
 			if (mime.startsWith("video/")) return "video";
 			if (mime.startsWith("image/")) return "image";
 			if (mime.startsWith("audio/")) return "audio";
