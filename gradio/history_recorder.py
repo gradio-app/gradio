@@ -102,10 +102,10 @@ def app_from_request(request) -> Any | None:
 def resolve_identity(request) -> tuple[str, str] | None:
     """``(owner_id, access_token)`` for the caller, or None when unavailable.
 
-    The owner is the OAuth subject and nothing else. The previous
-    ``sub or name`` fallback mixed two identifier namespaces in the field that
-    decides which prefix a caller may write to, so a session missing ``sub``
-    could land in a directory addressed by someone else's name.
+    The token is what matters: it is the Hub credential the write is made with,
+    and the Hub decides what it may reach. ``owner_id`` is recorded alongside
+    the run so a shared bucket can show who ran what, and nothing branches on
+    it, so falling back to a display name when the subject is absent is fine.
     """
     from gradio import oauth
 
@@ -123,12 +123,11 @@ def resolve_identity(request) -> tuple[str, str] | None:
     if not info:
         return None
     token = info.get("access_token")
-    owner_id = ((info.get("userinfo") or {}).get("sub")) or None
-    if not isinstance(owner_id, str) or not owner_id:
-        return None
     if not isinstance(token, str) or not token:
         return None
-    return owner_id, token
+    userinfo = info.get("userinfo") or {}
+    owner_id = userinfo.get("sub") or userinfo.get("preferred_username") or ""
+    return (owner_id if isinstance(owner_id, str) else ""), token
 
 
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
@@ -253,22 +252,17 @@ async def record_run(
         outputs=None,
     )
 
+    # Capturing assets is async (remote media is fetched through gradio's
+    # SSRF-protected client), so it happens here on the loop; only the blocking
+    # Hub upload is offloaded.
+    counter = [0]
+    record.inputs, assets = await externalize_assets(inputs, counter)
+    record.outputs, output_assets = await externalize_assets(outputs, counter)
+    merged: dict[str, PendingAsset] = {**assets, **output_assets}
+
     limiter: anyio.CapacityLimiter = app.state.history_write_limiter
-
-    def _write() -> None:
-        # Asset capture downloads remote media, so it belongs off the event loop
-        # together with the upload rather than in front of it.
-        counter = [0]
-        stored_inputs, assets = externalize_assets(inputs, counter)
-        stored_outputs, output_assets = externalize_assets(outputs, counter)
-        merged: dict[str, PendingAsset] = dict(assets)
-        merged.update(output_assets)
-        record.inputs = stored_inputs
-        record.outputs = stored_outputs
-        store.save_record(record, merged)
-
     async with limiter:
-        await anyio.to_thread.run_sync(_write)
+        await anyio.to_thread.run_sync(store.save_record, record, merged)
     return record.record_id
 
 

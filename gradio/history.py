@@ -4,14 +4,19 @@ The layout mirrors the app → endpoint → runs structure of the browser-local 
 history (``client/js/src/utils/run_history.ts``), so the two are alternative
 backends for the same thing rather than two different models::
 
-    runs/<owner>/<app>/<endpoint>/<record_id>.json
-    assets/<owner>/<app>/<endpoint>/<record_id>/<asset_id>.<ext>
+    runs/<app>/<endpoint>/<record_id>.json
+    assets/<app>/<endpoint>/<record_id>/<asset_id>.<ext>
 
-Three properties fall out of putting the owner, app, and endpoint in the *path*
-rather than in a field that has to be filtered on after the fact:
+A bucket holds one shared history: everyone who can write to it sees the same
+runs. That is the point of pointing a team at an org bucket, and it means the
+Hub's own access control is the only permission model here — there is no
+finer-grained owner boundary inside a bucket to enforce or to get wrong. Each
+record still carries the `owner_id` of whoever ran it, as metadata to display,
+never as a filter.
 
-* A caller can only ever address its own prefix, so one user cannot read,
-  overwrite, or delete another's records even in a shared org bucket.
+Two properties fall out of putting the app and endpoint in the *path* rather
+than in a field that has to be filtered on after the fact:
+
 * Listing an endpoint is a prefix listing bounded by ``limit``, not a scan of
   every record in the bucket.
 * ``record_id`` is millisecond-prefixed and therefore lexically sortable, so
@@ -25,15 +30,12 @@ client-supplied record.
 
 from __future__ import annotations
 
-import hashlib
-import ipaddress
 import json
 import logging
 import mimetypes
 import os
 import re
 import secrets
-import socket
 import threading
 import time
 from collections import OrderedDict
@@ -42,6 +44,7 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import unquote, urlparse
 
+import gradio_client.utils as client_utils
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
@@ -63,7 +66,6 @@ MAX_RECORDS_PER_PAGE = 200
 # A remote asset is downloaded through the server before it is stored, so both
 # caps are on bytes this process will hold.
 MAX_REMOTE_ASSET_BYTES = 64 * 1024 * 1024
-REMOTE_ASSET_TIMEOUT = 20.0
 
 BUCKET_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$")
 RECORD_ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
@@ -116,18 +118,6 @@ def sanitize_segment(value: Any, fallback: str = "app") -> str:
     slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", str(value or "")).strip("-.")
     slug = slug[:80].strip("-.")
     return slug or fallback
-
-
-def owner_segment(owner_id: str) -> str:
-    """Path segment for an owner.
-
-    The OAuth subject is an opaque string that may contain anything, so it is
-    hashed rather than sanitized: sanitizing could map two distinct subjects
-    onto one directory, which is precisely the isolation this prefix provides.
-    """
-    if not isinstance(owner_id, str) or not owner_id:
-        raise ValueError("owner_id required")
-    return "u" + hashlib.sha256(owner_id.encode("utf-8")).hexdigest()[:24]
 
 
 class _IdClock:
@@ -270,38 +260,15 @@ def extract_remote_url(value) -> str | None:
     return src
 
 
-def _is_public_address(hostname: str) -> bool:
-    """Whether every address *hostname* resolves to is publicly routable.
-
-    Asset URLs come from app output, which on a workflow canvas is wired up by
-    whoever edited the graph. Fetching those server-side without this check
-    turns history into an SSRF primitive against the host's own network.
-    """
-    try:
-        infos = socket.getaddrinfo(hostname, None)
-    except Exception:
-        return False
-    if not infos:
-        return False
-    for info in infos:
-        try:
-            ip = ipaddress.ip_address(info[4][0])
-        except ValueError:
-            return False
-        if (
-            ip.is_private
-            or ip.is_loopback
-            or ip.is_link_local
-            or ip.is_reserved
-            or ip.is_multicast
-            or ip.is_unspecified
-        ):
-            return False
-    return True
-
-
-def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
+async def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
     """Download a remote asset, or None if it cannot be stored safely.
+
+    Asset URLs come out of app output, which on a workflow canvas is wired up by
+    whoever edited the graph, so fetching them server-side needs the same
+    protection as any other user-supplied URL gradio fetches. That is exactly
+    what `processing_utils.async_ssrf_protected_get` already provides — public
+    hostname allow-list, IP-pinned transport, and each redirect re-validated —
+    so this reuses it rather than re-deriving a weaker version of it.
 
     Never raises: a failed fetch degrades to leaving the original URL in the
     record, which is strictly better than losing the whole run.
@@ -312,42 +279,20 @@ def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
         "off",
     ):
         return None
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.hostname:
-        return None
-    if not _is_public_address(parsed.hostname):
-        logger.debug(
-            "history: refusing to fetch non-public asset host %r", parsed.hostname
-        )
-        return None
     try:
-        import httpx
+        from gradio import processing_utils
 
-        with (
-            httpx.Client(
-                timeout=REMOTE_ASSET_TIMEOUT, follow_redirects=False
-            ) as client,
-            client.stream("GET", url) as response,
-        ):
-            if response.status_code != 200:
-                return None
-            declared = response.headers.get("content-length") or ""
-            if declared.isdigit() and int(declared) > MAX_REMOTE_ASSET_BYTES:
-                return None
-            content_type = (
-                response.headers.get("content-type", "").split(";", 1)[0].strip()
-            )
-            chunks: list[bytes] = []
-            total = 0
-            for chunk in response.iter_bytes():
-                total += len(chunk)
-                if total > MAX_REMOTE_ASSET_BYTES:
-                    logger.debug("history: remote asset over size cap: %s", url)
-                    return None
-                chunks.append(chunk)
-        if not chunks:
+        response = await processing_utils.async_ssrf_protected_get(url)
+        if response.status_code != 200:
             return None
-        return b"".join(chunks), content_type or "application/octet-stream"
+        data = response.content
+        if len(data) > MAX_REMOTE_ASSET_BYTES:
+            logger.debug("history: remote asset over size cap: %s", url)
+            return None
+        if not data:
+            return None
+        content_type = response.headers.get("content-type", "").split(";", 1)[0].strip()
+        return data, content_type or "application/octet-stream"
     except Exception:
         logger.debug("history: remote asset fetch failed for %s", url, exc_info=True)
         return None
@@ -365,12 +310,12 @@ class PendingAsset:
 
 
 class BucketRunHistoryStore:
-    """Reads and writes one owner's history inside one bucket.
+    """Reads and writes one app's history inside one bucket.
 
-    ``owner_id`` and ``app_key`` are fixed at construction and become path
-    segments, so every operation this object can perform is confined to
-    ``runs/<owner>/<app>/`` — there is no code path that addresses another
-    owner's prefix.
+    ``app_key`` is fixed at construction and becomes a path segment, so this
+    object is confined to ``runs/<app>/``. Everyone who can write to the bucket
+    shares that history; ``owner_id`` is carried on records to show who ran
+    what, and is never used to decide what a caller may see.
     """
 
     def __init__(
@@ -386,7 +331,6 @@ class BucketRunHistoryStore:
         self.repo_id = repo_id
         self.app_key = app_key
         self.owner_id = owner_id
-        self.owner_key = owner_segment(owner_id)
         self._token = token or hf_get_token()
         self._api = HfApi(token=self._token)
         self._ensure_lock = threading.Lock()
@@ -400,7 +344,7 @@ class BucketRunHistoryStore:
 
     @property
     def app_prefix(self) -> str:
-        return f"runs/{self.owner_key}/{self.app_key}/"
+        return f"runs/{self.app_key}/"
 
     def endpoint_prefix(self, endpoint: str) -> str:
         validate_segment(endpoint)
@@ -413,7 +357,7 @@ class BucketRunHistoryStore:
     def asset_prefix(self, endpoint: str, record_id: str) -> str:
         validate_record_id(record_id)
         validate_segment(endpoint)
-        return f"assets/{self.owner_key}/{self.app_key}/{endpoint}/{record_id}/"
+        return f"assets/{self.app_key}/{endpoint}/{record_id}/"
 
     # -- bucket lifecycle ---------------------------------------------------
 
@@ -520,80 +464,7 @@ class BucketRunHistoryStore:
             raise HubError(f"delete_record failed: {e}") from e
         self._invalidate()
 
-    def clear_records(self, endpoint: str | None = None) -> None:
-        """Delete this owner's records for one endpoint, or for the whole app."""
-        if endpoint is None:
-            run_prefix = self.app_prefix
-            asset_prefix = f"assets/{self.owner_key}/{self.app_key}/"
-        else:
-            run_prefix = self.endpoint_prefix(endpoint)
-            validate_segment(endpoint)
-            asset_prefix = f"assets/{self.owner_key}/{self.app_key}/{endpoint}/"
-
-        paths = [
-            it.path
-            for it in self._safe_list_tree(prefix=run_prefix)
-            if self._is_file(it) and it.path.endswith(".json")
-        ]
-        paths += [
-            it.path
-            for it in self._safe_list_tree(prefix=asset_prefix)
-            if self._is_file(it)
-        ]
-        if not paths:
-            return
-        try:
-            self._api.batch_bucket_files(bucket_id=self.repo_id, delete=paths)
-        except Exception as e:
-            raise HubError(f"clear_records failed: {e}") from e
-        self._invalidate()
-
-    def collect_orphan_assets(self) -> list[str]:
-        """Asset paths under this owner+app with no corresponding record.
-
-        A crash between the asset upload and the JSON commit, or a delete that
-        half-failed, leaves blobs nothing references. They are unreachable
-        through any read path, so only an explicit sweep can find them.
-        """
-        live: set[tuple[str, str]] = set()
-        for path in self._list_paths(self.app_prefix):
-            parts = path.split("/")
-            if len(parts) == 5 and parts[4].endswith(".json"):
-                live.add((parts[3], parts[4][: -len(".json")]))
-        orphans: list[str] = []
-        for it in self._safe_list_tree(
-            prefix=f"assets/{self.owner_key}/{self.app_key}/"
-        ):
-            if not self._is_file(it):
-                continue
-            parts = it.path.split("/")
-            # assets/<owner>/<app>/<endpoint>/<record_id>/<file>
-            if len(parts) < 6:
-                continue
-            if (parts[3], parts[4]) not in live:
-                orphans.append(it.path)
-        return orphans
-
-    def delete_orphan_assets(self) -> int:
-        orphans = self.collect_orphan_assets()
-        if not orphans:
-            return 0
-        try:
-            self._api.batch_bucket_files(bucket_id=self.repo_id, delete=orphans)
-        except Exception as e:
-            raise HubError(f"orphan sweep failed: {e}") from e
-        self._invalidate()
-        return len(orphans)
-
     # -- reads --------------------------------------------------------------
-
-    def list_endpoints(self) -> list[str]:
-        seen: dict[str, int] = {}
-        for path in self._list_paths(self.app_prefix):
-            parts = path.split("/")
-            if len(parts) == 5 and parts[4].endswith(".json"):
-                seen[parts[3]] = seen.get(parts[3], 0) + 1
-        return sorted(seen)
 
     def list_records(
         self, endpoint: str | None = None, limit: int = 50
@@ -771,7 +642,7 @@ def store_for(
 ) -> BucketRunHistoryStore:
     validate_bucket_id(bucket_id)
     validate_segment(app_key)
-    key = (token, bucket_id, owner_id, app_key)
+    key = (token, bucket_id, app_key)
     with lock:
         store = cache.get(key)
         if store is not None:
@@ -797,7 +668,20 @@ def _ext_from(local_path: str | None, content_type: str | None) -> str:
     return ".bin"
 
 
-def externalize_assets(
+def _is_asset_node(node: Any) -> bool:
+    """Everything gradio already recognises as a file, plus url-only nodes.
+
+    `client_utils.is_file_obj` requires a local `path`, which a workflow canvas
+    value produced by a remote Space does not have — it is `{"url": ..., ...}`
+    on that Space's origin. Those are exactly the nodes worth capturing, so the
+    gradio predicate is extended rather than replaced.
+    """
+    if client_utils.is_file_obj(node):
+        return True
+    return isinstance(node, dict) and isinstance(node.get("url"), str)
+
+
+async def externalize_assets(
     tree: Any,
     counter: list[int] | None = None,
     *,
@@ -805,46 +689,48 @@ def externalize_assets(
 ) -> tuple[Any, dict[str, PendingAsset]]:
     """Replace file nodes in *tree* with ``{"__asset__": <id>}`` markers.
 
-    Returns the rewritten tree and the assets to store with it. Both local
-    files (uploaded from disk) and remote URLs (downloaded first) are captured,
+    Returns the rewritten tree and the assets to store with it. Both local files
+    (uploaded from disk) and remote URLs (downloaded first) are captured,
     because a record that points at either a temp dir or another host's temp dir
     stops resolving well before the user stops wanting it.
+
+    A remote fetch that fails leaves the node exactly as it was: a record with a
+    URL that may expire beats no record at all.
     """
     if counter is None:
         counter = [0]
     assets: dict[str, PendingAsset] = {}
 
-    def _walk(node):
-        if isinstance(node, dict):
-            local = extract_local_file_path(node)
-            if local is not None:
-                counter[0] += 1
-                asset_id = f"a{counter[0]:03d}"
-                assets[asset_id] = PendingAsset(
-                    content_type=_content_type_of(node, local),
-                    local_path=local,
-                )
-                return {"__asset__": asset_id}
-            if fetch_remote:
-                remote = extract_remote_url(node)
-                if remote is not None:
-                    fetched = fetch_remote_asset(remote)
-                    if fetched is not None:
-                        data, content_type = fetched
-                        counter[0] += 1
-                        asset_id = f"a{counter[0]:03d}"
-                        assets[asset_id] = PendingAsset(
-                            content_type=_content_type_of(node, remote) or content_type,
-                            data=data,
-                            suggested_name=urlparse(remote).path.rsplit("/", 1)[-1],
-                        )
-                        return {"__asset__": asset_id}
-            return {k: _walk(v) for k, v in node.items()}
-        if isinstance(node, list):
-            return [_walk(v) for v in node]
+    def _next_id() -> str:
+        counter[0] += 1
+        return f"a{counter[0]:03d}"
+
+    async def _capture(node: Any) -> Any:
+        local = extract_local_file_path(node)
+        if local is not None:
+            asset_id = _next_id()
+            assets[asset_id] = PendingAsset(
+                content_type=_content_type_of(node, local),
+                local_path=local,
+            )
+            return {"__asset__": asset_id}
+        if fetch_remote:
+            remote = extract_remote_url(node)
+            if remote is not None:
+                fetched = await fetch_remote_asset(remote)
+                if fetched is not None:
+                    data, content_type = fetched
+                    asset_id = _next_id()
+                    assets[asset_id] = PendingAsset(
+                        content_type=_content_type_of(node, remote) or content_type,
+                        data=data,
+                        suggested_name=urlparse(remote).path.rsplit("/", 1)[-1],
+                    )
+                    return {"__asset__": asset_id}
         return node
 
-    return _walk(tree), assets
+    rewritten = await client_utils.async_traverse(tree, _capture, _is_asset_node)
+    return rewritten, assets
 
 
 def _content_type_of(node, path_or_url: str) -> str:

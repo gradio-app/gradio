@@ -8,13 +8,14 @@ behind when a write fails halfway.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import threading
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -27,18 +28,24 @@ from gradio.history import (
     NotAuthorizedError,
     PendingAsset,
     PublicBucketError,
-    _is_public_address,
     externalize_assets,
     extract_local_file_path,
+    extract_remote_url,
     is_trusted_local_path,
     new_record_id,
-    owner_segment,
     store_for,
     validate_bucket_id,
     validate_record_id,
     validate_segment,
 )
 from gradio.interface import close_all
+
+
+def externalize(tree, counter=None, **kwargs):
+    """Sync bridge: `externalize_assets` is async because capturing a remote
+    asset goes through gradio's SSRF-protected client."""
+    return asyncio.run(externalize_assets(tree, counter, **kwargs))
+
 
 # ---------------------------------------------------------------- fake bucket
 
@@ -162,89 +169,55 @@ def test_record_ids_sort_in_creation_order():
     assert len(set(ids)) == 50
 
 
-def test_owner_segment_is_collision_resistant():
-    # Two subjects that would collide under any sanitizing scheme must not
-    # share a directory, since that directory is the isolation boundary.
-    assert owner_segment("a/b") != owner_segment("a_b")
-    assert owner_segment("x") == owner_segment("x")
+# ------------------------------------------------------------ layout + sharing
 
 
-# -------------------------------------------------------- layout + isolation
-
-
-def test_records_are_filed_under_owner_app_endpoint():
+def test_records_are_filed_under_app_endpoint():
     hub = FakeHub()
     store = make_store(hub, app_key="myapp")
     store.save_record(make_record(store, endpoint="predict", record_id="0001abc"))
     (path,) = list(hub.files)
-    assert path == f"runs/{store.owner_key}/myapp/predict/0001abc.json"
+    assert path == "runs/myapp/predict/0001abc.json"
 
 
-def test_one_owner_cannot_overwrite_anothers_record():
-    """The write path is prefix-confined, so a colliding record id is harmless.
+def test_a_bucket_is_one_shared_history():
+    """Connecting a team to a bucket means the team shares its history.
 
-    Previously `save_record` wrote `records/<client id>.json` with no ownership
-    check, so a second user pushing a known record id replaced the first user's
-    record and deleted its assets.
+    The Hub decides who may write to the bucket; inside it there is no finer
+    owner boundary, so two people pointing at one bucket see one timeline.
     """
     hub = FakeHub()
     alice = make_store(hub, owner_id="alice-sub")
     bob = make_store(hub, owner_id="bob-sub")
 
     alice.save_record(
-        make_record(alice, record_id="collide", outputs={"o": "alice data"})
+        make_record(alice, record_id="0001a", outputs={"o": "from alice"})
     )
-    bob.save_record(make_record(bob, record_id="collide", outputs={"o": "bob data"}))
+    bob.save_record(make_record(bob, record_id="0002b", outputs={"o": "from bob"}))
 
-    assert len(hub.files) == 2
-    assert alice.get_record("predict", "collide").outputs == {"o": "alice data"}
-    assert bob.get_record("predict", "collide").outputs == {"o": "bob data"}
+    assert [r.record_id for r in bob.list_records()] == ["0002b", "0001a"]
+    assert bob.get_record("predict", "0001a").outputs == {"o": "from alice"}
 
 
-def test_one_owner_cannot_read_or_delete_anothers_record():
+def test_a_record_still_says_who_ran_it():
+    """`owner_id` is display metadata in a shared bucket, not a filter."""
     hub = FakeHub()
     alice = make_store(hub, owner_id="alice-sub")
     bob = make_store(hub, owner_id="bob-sub")
-    alice.save_record(make_record(alice, record_id="secret1"))
-
-    from gradio.history import NotFoundError
-
-    with pytest.raises(NotFoundError):
-        bob.get_record("predict", "secret1")
-    assert bob.list_records() == []
-    bob.delete_record("predict", "secret1")  # deletes bob's (nonexistent) path
-    assert alice.get_record("predict", "secret1").record_id == "secret1"
+    alice.save_record(make_record(alice, record_id="0001a"))
+    bob.save_record(make_record(bob, record_id="0002b"))
+    assert {r.owner_id for r in bob.list_records()} == {"alice-sub", "bob-sub"}
 
 
-def test_clear_records_leaves_other_owners_alone():
+def test_apps_sharing_a_bucket_stay_separate():
+    """Two apps can share a bucket without their runs interleaving."""
     hub = FakeHub()
-    alice = make_store(hub, owner_id="alice-sub")
-    bob = make_store(hub, owner_id="bob-sub")
-    alice.save_record(make_record(alice, record_id="a1"))
-    bob.save_record(make_record(bob, record_id="b1"))
-    alice.clear_records()
-    assert alice.list_records() == []
-    assert len(bob.list_records()) == 1
-
-
-def test_clear_records_can_scope_to_one_endpoint():
-    hub = FakeHub()
-    store = make_store(hub)
-    store.save_record(make_record(store, endpoint="predict", record_id="p1"))
-    store.save_record(make_record(store, endpoint="other", record_id="o1"))
-    store.clear_records("predict")
-    remaining = store.list_records()
-    assert [r.endpoint for r in remaining] == ["other"]
-
-
-def test_list_endpoints_reports_only_this_apps_endpoints():
-    hub = FakeHub()
-    store = make_store(hub, app_key="app1")
-    other_app = make_store(hub, app_key="app2")
-    store.save_record(make_record(store, endpoint="alpha", record_id="1"))
-    store.save_record(make_record(store, endpoint="beta", record_id="2"))
-    other_app.save_record(make_record(other_app, endpoint="gamma", record_id="3"))
-    assert store.list_endpoints() == ["alpha", "beta"]
+    app1 = make_store(hub, app_key="app1")
+    app2 = make_store(hub, app_key="app2")
+    app1.save_record(make_record(app1, endpoint="alpha", record_id="0001a"))
+    app2.save_record(make_record(app2, endpoint="gamma", record_id="0002b"))
+    assert [r.endpoint for r in app1.list_records()] == ["alpha"]
+    assert [r.endpoint for r in app2.list_records()] == ["gamma"]
 
 
 # ------------------------------------------------------------ bounded reading
@@ -286,7 +259,7 @@ def test_unreadable_record_is_skipped_not_fatal():
     hub = FakeHub()
     store = make_store(hub)
     store.save_record(make_record(store, record_id="good1"))
-    hub.files[f"runs/{store.owner_key}/app/predict/bad1.json"] = b"{not json"
+    hub.files["runs/app/predict/bad1.json"] = b"{not json"
     assert [r.record_id for r in store.list_records()] == ["good1"]
 
 
@@ -334,7 +307,7 @@ def test_externalize_assets_replaces_local_files_with_markers(tmp_path, monkeypa
     f = tmp_path / "img.png"
     f.write_bytes(b"png")
     tree = {"a": {"value": {"path": str(f), "mime_type": "image/png"}}, "b": 3}
-    rewritten, assets = externalize_assets(tree)
+    rewritten, assets = externalize(tree)
     assert rewritten["a"]["value"] == {"__asset__": "a001"}
     assert rewritten["b"] == 3
     assert assets["a001"].local_path == str(f)
@@ -345,8 +318,8 @@ def test_asset_ids_do_not_collide_between_inputs_and_outputs(tmp_path, monkeypat
     f = tmp_path / "a.png"
     f.write_bytes(b"png")
     counter = [0]
-    _, first = externalize_assets({"x": {"path": str(f)}}, counter)
-    _, second = externalize_assets({"y": {"path": str(f)}}, counter)
+    _, first = externalize({"x": {"path": str(f)}}, counter)
+    _, second = externalize({"y": {"path": str(f)}}, counter)
     assert set(first) & set(second) == set()
 
 
@@ -409,32 +382,6 @@ def test_failed_commit_cleans_up_its_uploaded_assets(tmp_path, monkeypatch):
     assert hub.files == {}
 
 
-def test_orphan_sweep_removes_unreferenced_assets():
-    hub = FakeHub()
-    store = make_store(hub)
-    store.save_record(make_record(store, record_id="live1"))
-    orphan = f"assets/{store.owner_key}/app/predict/dead1/a001.png"
-    hub.files[orphan] = b"leftover"
-
-    assert store.collect_orphan_assets() == [orphan]
-    assert store.delete_orphan_assets() == 1
-    assert orphan not in hub.files
-    assert store.get_record("predict", "live1").record_id == "live1"
-
-
-def test_orphan_sweep_leaves_referenced_assets_alone(tmp_path, monkeypatch):
-    monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
-    f = tmp_path / "img.png"
-    f.write_bytes(b"png")
-    hub = FakeHub()
-    store = make_store(hub)
-    store.save_record(
-        make_record(store, record_id="r1"),
-        {"a001": PendingAsset(content_type="image/png", local_path=str(f))},
-    )
-    assert store.collect_orphan_assets() == []
-
-
 def test_delete_record_removes_its_assets(tmp_path, monkeypatch):
     monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
     f = tmp_path / "img.png"
@@ -458,9 +405,10 @@ def test_remote_media_is_fetched_and_stored():
     hub = FakeHub()
     store = make_store(hub)
     with patch(
-        "gradio.history.fetch_remote_asset", return_value=(b"REMOTE", "image/png")
+        "gradio.history.fetch_remote_asset",
+        new=AsyncMock(return_value=(b"REMOTE", "image/png")),
     ):
-        rewritten, assets = externalize_assets(
+        rewritten, assets = externalize(
             {
                 "o": {
                     "value": {
@@ -477,33 +425,51 @@ def test_remote_media_is_fetched_and_stored():
 
 
 def test_remote_fetch_failure_leaves_the_url_in_place():
-    with patch("gradio.history.fetch_remote_asset", return_value=None):
-        rewritten, assets = externalize_assets(
-            {"o": {"url": "https://other.example/x.png"}}
-        )
+    with patch("gradio.history.fetch_remote_asset", new=AsyncMock(return_value=None)):
+        rewritten, assets = externalize({"o": {"url": "https://other.example/x.png"}})
     assert rewritten["o"]["url"] == "https://other.example/x.png"
     assert assets == {}
 
 
-def test_remote_fetch_refuses_private_addresses():
-    """Output URLs come from the graph, so fetching them unguarded would make
-    history an SSRF primitive against the host's own network."""
-    with patch("gradio.history.socket.getaddrinfo") as gai:
-        gai.return_value = [(2, 1, 6, "", ("127.0.0.1", 80))]
-        assert _is_public_address("evil.example") is False
-        gai.return_value = [(2, 1, 6, "", ("169.254.169.254", 80))]
-        assert _is_public_address("metadata.example") is False
-        gai.return_value = [(2, 1, 6, "", ("10.0.0.5", 80))]
-        assert _is_public_address("internal.example") is False
-        gai.return_value = [(2, 1, 6, "", ("93.184.216.34", 80))]
-        assert _is_public_address("example.com") is True
+def test_remote_fetch_goes_through_gradios_ssrf_protected_client():
+    """Output URLs come from the graph, so an unguarded fetch would make history
+    an SSRF primitive against the host's own network. Rather than re-deriving a
+    weaker check, this must route through the same guarded client gradio already
+    uses everywhere else — public-host allow-list, IP-pinned, redirects
+    re-validated."""
+    from gradio.history import fetch_remote_asset
+
+    response = MagicMock(
+        status_code=200, content=b"OK", headers={"content-type": "image/png"}
+    )
+    with patch(
+        "gradio.processing_utils.async_ssrf_protected_get",
+        new=AsyncMock(return_value=response),
+    ) as guarded:
+        result = asyncio.run(fetch_remote_asset("https://example.com/x.png"))
+    guarded.assert_awaited_once_with("https://example.com/x.png")
+    assert result == (b"OK", "image/png")
 
 
 def test_remote_fetch_rejects_non_http_schemes():
-    from gradio.history import fetch_remote_asset
+    # Rejected before the fetch, so a bad scheme never reaches the client.
+    assert extract_remote_url({"url": "file:///etc/passwd"}) is None
+    assert extract_remote_url({"url": "gopher://x/"}) is None
 
-    assert fetch_remote_asset("file:///etc/passwd") is None
-    assert fetch_remote_asset("gopher://x/") is None
+
+def test_remote_asset_over_the_size_cap_is_dropped():
+    from gradio.history import MAX_REMOTE_ASSET_BYTES, fetch_remote_asset
+
+    response = MagicMock(
+        status_code=200,
+        content=b"x" * (MAX_REMOTE_ASSET_BYTES + 1),
+        headers={"content-type": "image/png"},
+    )
+    with patch(
+        "gradio.processing_utils.async_ssrf_protected_get",
+        new=AsyncMock(return_value=response),
+    ):
+        assert asyncio.run(fetch_remote_asset("https://example.com/big.png")) is None
 
 
 # ------------------------------------------------------------ bucket lifecycle
@@ -537,11 +503,13 @@ def test_ensure_private_bucket_maps_403_to_not_authorized():
 
 class TestStoreCache:
     def test_different_tokens_get_different_stores(self):
+        """Each caller writes with its own Hub credential, so stores are keyed
+        by token even when two people share one bucket."""
         cache, lock = OrderedDict(), threading.Lock()
         a = store_for(cache, lock, "tok-a", "org/b", owner_id="alice", app_key="app")
         b = store_for(cache, lock, "tok-b", "org/b", owner_id="bob", app_key="app")
         assert a is not b
-        assert a.owner_key != b.owner_key
+        assert (a._token, b._token) == ("tok-a", "tok-b")
 
     def test_same_caller_reuses_one_store(self):
         cache, lock = OrderedDict(), threading.Lock()
@@ -563,13 +531,10 @@ class TestStoreCache:
             ]:
                 f.result()
 
-        for path, blob in hub.files.items():
-            owner_key = path.split("/")[1]
-            assert json.loads(blob)["owner_id"] == (
-                "alice-sub" if owner_key == alice.owner_key else "bob-sub"
-            )
-        assert len(alice.list_records(limit=200)) == 10
-        assert len(bob.list_records(limit=200)) == 10
+        owners = [json.loads(b)["owner_id"] for b in hub.files.values()]
+        assert sorted(owners) == ["alice-sub"] * 10 + ["bob-sub"] * 10
+        # One shared bucket: both see all twenty, each attributed correctly.
+        assert len(alice.list_records(limit=200)) == 20
 
 
 # ------------------------------------------------------------------- recorder
@@ -634,9 +599,10 @@ def test_endpoint_key_falls_back_to_fn_index():
     assert endpoint_key("a/b c", None) == "a-b-c"
 
 
-def test_owner_identity_requires_the_oauth_subject():
-    """`sub or name` mixed two identifier namespaces in the field that decides
-    which prefix a caller may write to."""
+def test_identity_requires_a_token_but_not_a_subject():
+    """The token is the Hub credential the write is made with, so it is
+    required. `owner_id` only labels the record in a shared bucket, so a session
+    without a subject still records — it just shows the display name."""
     from gradio import history_recorder
 
     request = MagicMock()
@@ -644,7 +610,7 @@ def test_owner_identity_requires_the_oauth_subject():
     request.session = {}
     with patch(
         "gradio.oauth._get_valid_oauth_info_from_session",
-        return_value={"access_token": "tok", "userinfo": {"name": "alice"}},
+        return_value={"userinfo": {"sub": "sub-123"}},
     ):
         assert history_recorder.resolve_identity(request) is None
     with patch(
@@ -652,6 +618,14 @@ def test_owner_identity_requires_the_oauth_subject():
         return_value={"access_token": "tok", "userinfo": {"sub": "sub-123"}},
     ):
         assert history_recorder.resolve_identity(request) == ("sub-123", "tok")
+    with patch(
+        "gradio.oauth._get_valid_oauth_info_from_session",
+        return_value={
+            "access_token": "tok",
+            "userinfo": {"preferred_username": "alice"},
+        },
+    ):
+        assert history_recorder.resolve_identity(request) == ("alice", "tok")
 
 
 def test_bucket_resolution_never_reads_session_state(monkeypatch):
@@ -765,7 +739,7 @@ class TestRunHistoryValidation:
 
     def test_bad_record_id_in_path_is_422(self, authed_history):
         client, _ = authed_history
-        r = client.get("/gradio_api/run-history/records/predict/bad%20id?bucket=a/b")
+        r = client.delete("/gradio_api/run-history/records/predict/bad%20id?bucket=a/b")
         assert r.status_code == 422
 
     def test_bad_endpoint_in_path_is_422(self, authed_history):
@@ -869,8 +843,7 @@ class TestServerSideRecording:
 
         assert _wait_for(lambda: len(hub.files) == 1), "no record was written"
         (path,) = list(hub.files)
-        owner = owner_segment("alice-sub")
-        assert path.startswith(f"runs/{owner}/testapp/greet/")
+        assert path.startswith("runs/testapp/greet/")
         record = json.loads(hub.files[path])
         # The values are the server's own, not something a client supplied.
         assert record["inputs"] == ["world"]
@@ -1054,9 +1027,8 @@ class TestWorkflowRecording:
 
         assert _wait_for(lambda: len(hub.files) == 1)
         (path,) = list(hub.files)
-        owner = owner_segment("alice-sub")
         app_key = __import__("gradio").history_recorder.stable_app_key(wf)
-        assert path.startswith(f"runs/{owner}/{app_key}/result_image/")
+        assert path.startswith(f"runs/{app_key}/result_image/")
 
         record = json.loads(hub.files[path])
         # The structure is reconstructed from the graph, not sent by the client.

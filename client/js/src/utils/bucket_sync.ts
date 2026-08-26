@@ -148,15 +148,6 @@ export async function list_user_buckets(root: string): Promise<BucketInfo[]> {
 	return res.data;
 }
 
-export async function list_bucket_endpoints(
-	root: string,
-	bucket: string
-): Promise<HistoryResult<string[]>> {
-	return request(url(root, "endpoints", { bucket }), {}, [], (b) =>
-		Array.isArray(b?.endpoints) ? b.endpoints : []
-	);
-}
-
 export async function list_bucket_records(
 	root: string,
 	bucket: string,
@@ -170,26 +161,6 @@ export async function list_bucket_records(
 	return request(url(root, "records", params), {}, [], (b) =>
 		Array.isArray(b?.records) ? b.records : []
 	);
-}
-
-export async function get_bucket_record(
-	root: string,
-	bucket: string,
-	endpoint: string,
-	record_id: string
-): Promise<HistoryRecord | null> {
-	if (!RECORD_ID_RE.test(record_id) || !SEGMENT_RE.test(endpoint)) return null;
-	const res = await request<HistoryRecord | null>(
-		url(
-			root,
-			`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(record_id)}`,
-			{ bucket }
-		),
-		{},
-		null,
-		(b) => b
-	);
-	return res.data;
 }
 
 export async function delete_record_from_bucket(
@@ -213,36 +184,6 @@ export async function delete_record_from_bucket(
 	);
 }
 
-export async function clear_records(
-	root: string,
-	bucket: string,
-	endpoint?: string
-): Promise<HistoryResult<null>> {
-	const params: Record<string, string> = { bucket };
-	if (endpoint) params.endpoint = endpoint;
-	return request(
-		url(root, "records", params),
-		{ method: "DELETE" },
-		null,
-		() => null
-	);
-}
-
-/** Delete asset blobs left behind by a half-completed write. Nothing else can
- * reach them, so only this sweep can reclaim the space. */
-export async function sweep_orphan_assets(
-	root: string,
-	bucket: string
-): Promise<HistoryResult<number>> {
-	return request(
-		url(root, "orphans", { bucket }),
-		{ method: "POST" },
-		0,
-		(b) => (typeof b?.removed === "number" ? b.removed : 0)
-	);
-}
-
-/** Backend-proxied download URL for a stored asset. Use as `<img src=…>`. */
 export function asset_url(
 	root: string,
 	bucket: string,

@@ -162,13 +162,6 @@ async def list_buckets(token: TokenDep):
         raise fastapi.HTTPException(502, "hub error") from exc
 
 
-@history_router.get("/endpoints")
-async def list_endpoints(store: StoreDep):
-    """The endpoints of this app that the caller has runs for."""
-    endpoints = await offload(store.list_endpoints)
-    return {"app_key": store.app_key, "endpoints": endpoints}
-
-
 @history_router.get("/records")
 async def list_records(
     store: StoreDep,
@@ -183,35 +176,10 @@ async def list_records(
     }
 
 
-@history_router.get("/records/{endpoint}/{record_id}")
-async def get_record(store: StoreDep, endpoint: EndpointSeg, record_id: RecordId):
-    return asdict(await offload(store.get_record, endpoint, record_id))
-
-
 @history_router.delete("/records/{endpoint}/{record_id}")
 async def delete_record(store: StoreDep, endpoint: EndpointSeg, record_id: RecordId):
     await offload(store.delete_record, endpoint, record_id)
     return {"ok": True}
-
-
-@history_router.delete("/records")
-async def clear_records(
-    store: StoreDep,
-    endpoint: Annotated[str | None, Query(pattern=SEGMENT_PATTERN)] = None,
-):
-    await offload(store.clear_records, endpoint)
-    return {"ok": True}
-
-
-@history_router.post("/orphans")
-async def sweep_orphans(store: StoreDep):
-    """Delete asset blobs left behind by a half-completed write or delete.
-
-    They are unreachable through every read path, so nothing else would ever
-    find them and the bucket would grow without bound.
-    """
-    removed = await offload(store.delete_orphan_assets)
-    return {"removed": removed}
 
 
 @history_router.get("/records/{endpoint}/{record_id}/assets/{asset_id}")
