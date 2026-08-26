@@ -91,31 +91,9 @@ def sanitize_segment(value: Any, fallback: str = "app") -> str:
     return slug or fallback
 
 
-class _IdClock:
-    """Monotonic (millisecond, sequence) source for record ids."""
-
-    def __init__(self) -> None:
-        self.lock = threading.Lock()
-        self.last_ms = 0
-        self.seq = 0
-
-    def next(self) -> tuple[int, int]:
-        with self.lock:
-            ms = max(int(time.time() * 1000), self.last_ms)
-            if ms == self.last_ms:
-                self.seq += 1
-            else:
-                self.last_ms, self.seq = ms, 0
-            return ms, self.seq & 0xFFFF
-
-
-_id_clock = _IdClock()
-
-
 def new_record_id() -> str:
-    """Millisecond-prefixed, so ids sort lexically in creation order."""
-    ms, seq = _id_clock.next()
-    return f"{ms:013d}{seq:04x}{secrets.token_hex(4)}"
+    """Timestamp-prefixed id that sorts chronologically under a stable clock."""
+    return f"{time.time_ns():020d}{secrets.token_hex(4)}"
 
 
 def now_utc_iso() -> str:
@@ -758,9 +736,6 @@ def schedule_record_run(app, **kwargs) -> None:
         return
     tasks.add(task)
     task.add_done_callback(tasks.discard)
-
-
-MAX_BODY_BYTES = 2 * 1024 * 1024
 
 
 def _http_from_store_error(exc: Exception) -> fastapi.HTTPException:

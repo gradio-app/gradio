@@ -91,35 +91,6 @@ mimetypes.init()
 logger = logging.getLogger(__name__)
 
 
-def enforce_body_limit(max_bytes: int):
-    """Build a FastAPI dependency that rejects request bodies over *max_bytes*.
-
-    Starlette caches the body, so reading it here does not stop the route's own
-    model parsing from seeing it.
-    """
-
-    async def _check(request: fastapi.Request) -> None:
-        declared = request.headers.get("content-length")
-        if declared and declared.isdigit() and int(declared) > max_bytes:
-            raise fastapi.HTTPException(413, "body too large")
-        if request.method not in ("POST", "PUT", "PATCH"):
-            return
-        # Stream rather than `await request.body()`: a chunked request carries no
-        # Content-Length, so the check above does not fire and buffering the whole
-        # body first would let an unauthenticated caller pin arbitrary memory.
-        # Starlette caches what we consume here, so the route still parses it.
-        total = 0
-        chunks: list[bytes] = []
-        async for chunk in request.stream():
-            total += len(chunk)
-            if total > max_bytes:
-                raise fastapi.HTTPException(413, "body too large")
-            chunks.append(chunk)
-        request._body = b"".join(chunks)
-
-    return _check
-
-
 class Obj:
     """
     Using a class to convert dictionaries into objects. Used by the `Request` class.

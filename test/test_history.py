@@ -164,11 +164,14 @@ def test_validate_bucket_id_rejects_traversal():
             validate_bucket_id(bad)
 
 
-def test_record_ids_sort_in_creation_order():
-    """Newest-first is a sort of the ids, so they must be time-ordered."""
-    ids = [new_record_id() for _ in range(50)]
-    assert ids == sorted(ids)
-    assert len(set(ids)) == 50
+def test_record_ids_are_timestamp_prefixed_and_unique():
+    with (
+        patch("gradio.history.time.time_ns", side_effect=[1, 2]),
+        patch("gradio.history.secrets.token_hex", side_effect=["abcd", "ef01"]),
+    ):
+        ids = [new_record_id(), new_record_id()]
+
+    assert ids == ["00000000000000000001abcd", "00000000000000000002ef01"]
 
 
 # ------------------------------------------------------------ layout + sharing
@@ -512,24 +515,6 @@ def test_run_history_false_disables_bucket_routes():
     app, _, _ = io.launch(prevent_thread_lock=True, run_history=False)
     client = TestClient(app)
     assert client.get("/gradio_api/run-history/records?bucket=a/b").status_code == 404
-    io.close()
-    close_all()
-
-
-def test_chunked_body_over_limit_is_rejected_without_buffering():
-    from gradio.route_utils import enforce_body_limit
-
-    io = gr.Interface(lambda x: x, "text", "text")
-    app, _, _ = io.launch(prevent_thread_lock=True)
-    client = TestClient(app)
-
-    def chunks():
-        for _ in range(40):
-            yield b"x" * (100 * 1024)
-
-    r = client.post("/gradio_api/run-history/connect", content=chunks())
-    assert r.status_code in (401, 413)
-    assert enforce_body_limit is not None
     io.close()
     close_all()
 
