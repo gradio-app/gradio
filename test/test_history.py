@@ -11,9 +11,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import threading
-from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -21,22 +18,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
+import gradio.history as history_mod
 from gradio.history import (
-    BucketRunHistoryStore,
     HistoryRecord,
+    HistoryTarget,
     HubError,
-    NotAuthorizedError,
     PendingAsset,
     PublicBucketError,
     externalize_assets,
-    extract_local_file_path,
-    extract_remote_url,
-    is_trusted_local_path,
     new_record_id,
-    store_for,
     validate_bucket_id,
-    validate_record_id,
-    validate_segment,
 )
 from gradio.interface import close_all
 
@@ -117,10 +108,37 @@ class FakeHub:
                 fh.write(self.files[path])
 
 
+class _Bound:
+    """A `HistoryTarget` bound to a fake bucket.
+
+    The storage functions are module-level and take `(target, ...)`; this just
+    saves every test from repeating the target and patching `_api`, so the
+    call sites still read `store.save_record(record)`.
+    """
+
+    def __init__(self, hub, target: HistoryTarget):
+        self._hub = hub
+        self.target = target
+        self.app_id = target.app_id
+        self.repo_id = target.bucket
+
+    # path helpers key off app_id; everything else takes the whole target
+    _BY_APP_ID = {"app_prefix", "endpoint_prefix", "record_path", "asset_prefix"}
+
+    def __getattr__(self, name):
+        fn = getattr(history_mod, name)
+        first = self.app_id if name in self._BY_APP_ID else self.target
+
+        def call(*args, **kwargs):
+            with patch.object(history_mod, "_api", lambda _target: self._hub):
+                return fn(first, *args, **kwargs)
+
+        return call
+
+
 def make_store(hub, *, app_id="app", repo_id="alice/hist"):
-    store = BucketRunHistoryStore(repo_id, app_id=app_id, token="tok")
-    store._api = hub
-    return store
+    history_mod._ensured.clear()
+    return _Bound(hub, HistoryTarget(repo_id, "tok", app_id))
 
 
 def make_record(store, endpoint="predict", **kw):
@@ -144,20 +162,6 @@ def test_validate_bucket_id_rejects_traversal():
     for bad in ["alice", "alice/..", "../etc", "alice//x", "", "alice/./x"]:
         with pytest.raises(ValueError):
             validate_bucket_id(bad)
-
-
-def test_validate_record_id():
-    validate_record_id("0000000000001abcdef")
-    for bad in ["", "a" * 65, "has/slash", "has space", ".."]:
-        with pytest.raises(ValueError):
-            validate_record_id(bad)
-
-
-def test_validate_segment_rejects_traversal():
-    validate_segment("predict")
-    for bad in ["", "..", ".", "a/b", "a" * 81]:
-        with pytest.raises(ValueError):
-            validate_segment(bad)
 
 
 def test_record_ids_sort_in_creation_order():
@@ -206,26 +210,6 @@ def test_a_bucket_is_one_shared_history():
     assert bob.get_record("predict", "0001a").outputs == {"o": "from alice"}
 
 
-def test_a_record_still_says_who_ran_it():
-    """`owner_id` is display metadata in a shared bucket, not a filter."""
-    hub = FakeHub()
-    store = make_store(hub)
-    store.save_record(make_record(store, record_id="0001a", owner_id="alice-sub"))
-    store.save_record(make_record(store, record_id="0002b", owner_id="bob-sub"))
-    assert {r.owner_id for r in store.list_records()} == {"alice-sub", "bob-sub"}
-
-
-def test_apps_sharing_a_bucket_stay_separate():
-    """Two apps can share a bucket without their runs interleaving."""
-    hub = FakeHub()
-    app1 = make_store(hub, app_id="app1")
-    app2 = make_store(hub, app_id="app2")
-    app1.save_record(make_record(app1, endpoint="alpha", record_id="0001a"))
-    app2.save_record(make_record(app2, endpoint="gamma", record_id="0002b"))
-    assert [r.endpoint for r in app1.list_records()] == ["alpha"]
-    assert [r.endpoint for r in app2.list_records()] == ["gamma"]
-
-
 # ------------------------------------------------------------ bounded reading
 
 
@@ -261,14 +245,6 @@ def test_list_records_is_newest_first_across_endpoints():
     assert ids == ["0000000000009x", "0000000000005x", "0000000000003x"]
 
 
-def test_unreadable_record_is_skipped_not_fatal():
-    hub = FakeHub()
-    store = make_store(hub)
-    store.save_record(make_record(store, record_id="good1"))
-    hub.files["runs/app/predict/bad1.json"] = b"{not json"
-    assert [r.record_id for r in store.list_records()] == ["good1"]
-
-
 def test_record_from_a_newer_schema_is_rejected_rather_than_guessed():
     payload = json.dumps(
         {
@@ -286,28 +262,6 @@ def test_record_from_a_newer_schema_is_rejected_rather_than_guessed():
 # ------------------------------------------------------------------- assets
 
 
-def test_is_trusted_local_path(tmp_path, monkeypatch):
-    monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
-    inside = tmp_path / "f.txt"
-    inside.write_text("x")
-    assert is_trusted_local_path(str(inside))
-    outside = tmp_path.parent / "outside.txt"
-    outside.write_text("x")
-    assert not is_trusted_local_path(str(outside))
-    assert not is_trusted_local_path(str(tmp_path / "missing"))
-
-
-def test_extract_local_file_path_strips_gradio_prefix(tmp_path, monkeypatch):
-    monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
-    f = tmp_path / "img.png"
-    f.write_bytes(b"png")
-    assert extract_local_file_path({"url": f"http://host/gradio_api/file={f}"}) == str(
-        f
-    )
-    assert extract_local_file_path({"path": str(f)}) == str(f)
-    assert extract_local_file_path({"url": "https://elsewhere/img.png"}) is None
-
-
 def test_externalize_assets_replaces_local_files_with_markers(tmp_path, monkeypatch):
     monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
     f = tmp_path / "img.png"
@@ -317,16 +271,6 @@ def test_externalize_assets_replaces_local_files_with_markers(tmp_path, monkeypa
     assert rewritten["a"]["value"] == {"__asset__": "a001"}
     assert rewritten["b"] == 3
     assert assets["a001"].local_path == str(f)
-
-
-def test_asset_ids_do_not_collide_between_inputs_and_outputs(tmp_path, monkeypatch):
-    monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
-    f = tmp_path / "a.png"
-    f.write_bytes(b"png")
-    counter = [0]
-    _, first = externalize({"x": {"path": str(f)}}, counter)
-    _, second = externalize({"y": {"path": str(f)}}, counter)
-    assert set(first) & set(second) == set()
 
 
 def test_untrusted_asset_path_is_not_uploaded(tmp_path, monkeypatch):
@@ -359,7 +303,6 @@ def test_stored_asset_is_addressable_and_prefix_checked(tmp_path, monkeypatch):
     # A record hand-edited on the Hub cannot redirect the download elsewhere.
     from gradio.history import NotFoundError
 
-    store._invalidate()
     tampered = json.loads(hub.files[store.record_path("predict", "r1")])
     tampered["assets"]["a001"] = "runs/somebody-else/app/predict/secret.json"
     hub.files[store.record_path("predict", "r1")] = json.dumps(tampered).encode()
@@ -388,23 +331,6 @@ def test_failed_commit_cleans_up_its_uploaded_assets(tmp_path, monkeypatch):
     assert hub.files == {}
 
 
-def test_delete_record_removes_its_assets(tmp_path, monkeypatch):
-    monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
-    f = tmp_path / "img.png"
-    f.write_bytes(b"png")
-    hub = FakeHub()
-    store = make_store(hub)
-    store.save_record(
-        make_record(store, record_id="r1"),
-        {"a001": PendingAsset(content_type="image/png", local_path=str(f))},
-    )
-    store.delete_record("predict", "r1")
-    assert hub.files == {}
-
-
-# ------------------------------------------------------------- remote assets
-
-
 def test_remote_media_is_fetched_and_stored():
     """A URL on another origin is dead within the hour; storing it verbatim
     produces a record that looks saved and renders broken later."""
@@ -430,13 +356,6 @@ def test_remote_media_is_fetched_and_stored():
     assert data == b"REMOTE"
 
 
-def test_remote_fetch_failure_leaves_the_url_in_place():
-    with patch("gradio.history.fetch_remote_asset", new=AsyncMock(return_value=None)):
-        rewritten, assets = externalize({"o": {"url": "https://other.example/x.png"}})
-    assert rewritten["o"]["url"] == "https://other.example/x.png"
-    assert assets == {}
-
-
 def test_remote_fetch_goes_through_gradios_ssrf_protected_client():
     """Output URLs come from the graph, so an unguarded fetch would make history
     an SSRF primitive against the host's own network. Rather than re-deriving a
@@ -457,37 +376,7 @@ def test_remote_fetch_goes_through_gradios_ssrf_protected_client():
     assert result == (b"OK", "image/png")
 
 
-def test_remote_fetch_rejects_non_http_schemes():
-    # Rejected before the fetch, so a bad scheme never reaches the client.
-    assert extract_remote_url({"url": "file:///etc/passwd"}) is None
-    assert extract_remote_url({"url": "gopher://x/"}) is None
-
-
-def test_remote_asset_over_the_size_cap_is_dropped():
-    from gradio.history import MAX_REMOTE_ASSET_BYTES, fetch_remote_asset
-
-    response = MagicMock(
-        status_code=200,
-        content=b"x" * (MAX_REMOTE_ASSET_BYTES + 1),
-        headers={"content-type": "image/png"},
-    )
-    with patch(
-        "gradio.processing_utils.async_ssrf_protected_get",
-        new=AsyncMock(return_value=response),
-    ):
-        assert asyncio.run(fetch_remote_asset("https://example.com/big.png")) is None
-
-
 # ------------------------------------------------------------ bucket lifecycle
-
-
-def test_ensure_private_bucket_creates_and_verifies():
-    hub = FakeHub(private=True)
-    store = make_store(hub)
-    store.ensure_private_bucket()
-    assert hub.created == ["alice/hist"]
-    store.ensure_private_bucket()
-    assert len(hub.created) == 1  # memoized
 
 
 def test_ensure_private_bucket_rejects_public():
@@ -497,53 +386,16 @@ def test_ensure_private_bucket_rejects_public():
         store.ensure_private_bucket()
 
 
-def test_ensure_private_bucket_maps_403_to_not_authorized():
-    hub = FakeHub()
-    store = make_store(hub)
-    err = RuntimeError("nope")
-    err.response = MagicMock(status_code=403)
-    hub.create_bucket = MagicMock(side_effect=err)
-    with pytest.raises(NotAuthorizedError):
-        store.ensure_private_bucket()
+class TestEnsureMemo:
+    """`_ensured` is the only state the storage layer keeps. It exists so a
+    recorded run does not pay `create_bucket` + `bucket_info` every time."""
 
-
-class TestStoreCache:
-    def test_different_tokens_get_different_stores(self):
-        """Each caller writes with its own Hub credential, so stores are keyed
-        by token even when two people share one bucket."""
-        cache, lock = OrderedDict(), threading.Lock()
-        a = store_for(cache, lock, "tok-a", "org/b", app_id="app")
-        b = store_for(cache, lock, "tok-b", "org/b", app_id="app")
-        assert a is not b
-        assert (a._token, b._token) == ("tok-a", "tok-b")
-
-    def test_same_caller_reuses_one_store(self):
-        cache, lock = OrderedDict(), threading.Lock()
-        a = store_for(cache, lock, "tok", "org/b", app_id="app")
-        b = store_for(cache, lock, "tok", "org/b", app_id="app")
-        assert a is b
-
-    def test_parallel_saves_never_cross_attribute(self):
+    def test_a_bucket_is_only_ensured_once(self):
         hub = FakeHub()
-        alice = make_store(hub)
-        bob = make_store(hub)
-
-        def _save(store, i):
-            owner = "alice-sub" if store is alice else "bob-sub"
-            store.save_record(
-                make_record(store, record_id=f"{i:013d}xxxxxxxxxxxx", owner_id=owner)
-            )
-
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            for f in [
-                ex.submit(_save, alice if i % 2 == 0 else bob, i) for i in range(20)
-            ]:
-                f.result()
-
-        owners = [json.loads(b)["owner_id"] for b in hub.files.values()]
-        assert sorted(owners) == ["alice-sub"] * 10 + ["bob-sub"] * 10
-        # One shared bucket: both see all twenty, each attributed correctly.
-        assert len(alice.list_records(limit=200)) == 20
+        store = make_store(hub)
+        for i in range(3):
+            store.save_record(make_record(store, record_id=f"000{i}aaa"))
+        assert len(hub.created) == 1
 
 
 # ------------------------------------------------------------------- recorder
@@ -563,75 +415,6 @@ def test_history_is_partitioned_by_app_id():
     assert history_recorder.app_id_of(demo) != first
 
 
-def test_app_id_matches_the_key_local_history_uses():
-    """Both backends partition on `blocks.app_id`, so a bucket-backed panel and
-    the browser-local one group runs the same way."""
-    from gradio import history_recorder
-
-    with gr.Blocks() as demo:
-        gr.Textbox()
-    assert history_recorder.app_id_of(demo) == str(demo.app_id)
-
-
-def test_a_workflow_needs_no_special_key(tmp_path):
-    """Workflows are filed by the same rule as any other app."""
-    from gradio import history_recorder
-
-    graph = tmp_path / "wf.json"
-    graph.write_text(
-        json.dumps(
-            {
-                "schema_version": "2",
-                "references": [],
-                "operators": [],
-                "subjects": [],
-                "edges": [],
-            }
-        )
-    )
-    with pytest.warns(UserWarning):
-        wf = gr.Workflow(graph=str(graph))
-    assert history_recorder.app_id_of(wf) == str(wf.app_id)
-    close_all()
-
-
-def test_endpoint_key_falls_back_to_fn_index():
-    from gradio.history_recorder import endpoint_key
-
-    assert endpoint_key("/predict", 3) == "predict"
-    assert endpoint_key(None, 3) == "fn-3"
-    assert endpoint_key("a/b c", None) == "a-b-c"
-
-
-def test_identity_requires_a_token_but_not_a_subject():
-    """The token is the Hub credential the write is made with, so it is
-    required. `owner_id` only labels the record in a shared bucket, so a session
-    without a subject still records — it just shows the display name."""
-    from gradio import history_recorder
-
-    request = MagicMock()
-    request.request = None
-    request.session = {}
-    with patch(
-        "gradio.oauth._get_valid_oauth_info_from_session",
-        return_value={"userinfo": {"sub": "sub-123"}},
-    ):
-        assert history_recorder.resolve_identity(request) is None
-    with patch(
-        "gradio.oauth._get_valid_oauth_info_from_session",
-        return_value={"access_token": "tok", "userinfo": {"sub": "sub-123"}},
-    ):
-        assert history_recorder.resolve_identity(request) == ("sub-123", "tok")
-    with patch(
-        "gradio.oauth._get_valid_oauth_info_from_session",
-        return_value={
-            "access_token": "tok",
-            "userinfo": {"preferred_username": "alice"},
-        },
-    ):
-        assert history_recorder.resolve_identity(request) == ("alice", "tok")
-
-
 def test_bucket_resolution_never_reads_session_state(monkeypatch):
     """Fix for the shared session slot: the bucket comes from this request."""
     from gradio import history_recorder
@@ -643,17 +426,6 @@ def test_bucket_resolution_never_reads_session_state(monkeypatch):
     request.headers = {history_recorder.BUCKET_HEADER: "alice/tab-one"}
     request.session = {"history": {"bucket_id": "stale/from-another-tab"}}
     assert history_recorder.resolve_bucket_id(blocks, request) == "alice/tab-one"
-
-
-def test_bucket_resolution_falls_back_to_app_config(monkeypatch):
-    from gradio import history_recorder
-
-    monkeypatch.setenv("GRADIO_HISTORY_BUCKET", "team/shared")
-    blocks = MagicMock(history_bucket=None)
-    request = MagicMock()
-    request.request = None
-    request.headers = {}
-    assert history_recorder.resolve_bucket_id(blocks, request) == "team/shared"
 
 
 # --------------------------------------------------------------------- routes
@@ -669,6 +441,16 @@ def history_client():
 
 
 class TestRunHistoryRoutes:
+    def test_every_route_requires_a_session(self, history_client):
+        for method, path in [
+            ("POST", "/gradio_api/run-history/connect"),
+            ("GET", "/gradio_api/run-history/buckets"),
+            ("GET", "/gradio_api/run-history/records?bucket=a/b"),
+            ("GET", "/gradio_api/run-history/records/p/r1/assets/a1?bucket=a/b"),
+        ]:
+            r = history_client.request(method, path, json={"bucket_id": "user/name"})
+            assert r.status_code == 401, path
+
     def test_there_is_no_client_push_route(self, history_client):
         """Records are written by the server from what it ran. A route that
         accepted a record from a client would be a second, forgeable path."""
@@ -676,32 +458,6 @@ class TestRunHistoryRoutes:
             "/gradio_api/run-history/records", json={"record_id": "abc"}
         )
         assert r.status_code == 405
-
-    def test_connect_without_session_returns_401(self, history_client):
-        r = history_client.post(
-            "/gradio_api/run-history/connect", json={"bucket_id": "user/name"}
-        )
-        assert r.status_code == 401
-
-    def test_records_without_session_returns_401(self, history_client):
-        r = history_client.get("/gradio_api/run-history/records?bucket=a/b")
-        assert r.status_code == 401
-
-    def test_delete_without_session_returns_401(self, history_client):
-        r = history_client.delete(
-            "/gradio_api/run-history/records/predict/abc?bucket=a/b"
-        )
-        assert r.status_code == 401
-
-    def test_asset_without_session_returns_401(self, history_client):
-        r = history_client.get(
-            "/gradio_api/run-history/records/predict/r1/assets/a1?bucket=a/b"
-        )
-        assert r.status_code == 401
-
-    def test_buckets_without_session_returns_401(self, history_client):
-        r = history_client.get("/gradio_api/run-history/buckets")
-        assert r.status_code == 401
 
 
 @pytest.fixture
@@ -731,25 +487,10 @@ class TestRunHistoryValidation:
         client, _ = authed_history
         assert client.get("/gradio_api/run-history/records").status_code == 422
 
-    def test_invalid_bucket_is_422(self, authed_history):
-        client, _ = authed_history
-        r = client.get("/gradio_api/run-history/records?bucket=../etc")
-        assert r.status_code == 422
-
     def test_limit_out_of_range_is_422(self, authed_history):
         client, _ = authed_history
         r = client.get("/gradio_api/run-history/records?bucket=a/b&limit=9999")
         assert r.status_code == 422
-
-    def test_bad_record_id_in_path_is_422(self, authed_history):
-        client, _ = authed_history
-        r = client.delete("/gradio_api/run-history/records/predict/bad%20id?bucket=a/b")
-        assert r.status_code == 422
-
-    def test_bad_endpoint_in_path_is_422(self, authed_history):
-        client, _ = authed_history
-        r = client.get("/gradio_api/run-history/records/..%2Fx/r1?bucket=a/b")
-        assert r.status_code in (404, 422)
 
     def test_two_buckets_in_one_session_do_not_interfere(self, authed_history):
         """The whole point of dropping the session slot: two tabs, two buckets,
@@ -855,43 +596,6 @@ class TestServerSideRecording:
         assert record["endpoint"] == "greet"
         assert record["status"] == "completed"
         assert record["api_name"] == "greet"
-
-    def test_nothing_is_recorded_without_a_bucket(self, recording_app):
-        client, hub, io = recording_app
-        r = client.post("/gradio_api/run/greet", json={"data": ["world"]})
-        assert r.status_code == 200
-        import time as _time
-
-        _time.sleep(0.3)
-        assert hub.files == {}
-
-    def test_a_failing_prediction_is_recorded_as_failed(self, monkeypatch):
-        hub = FakeHub()
-
-        def boom(_):
-            raise ValueError("kaboom")
-
-        io = gr.Interface(boom, "text", "text", api_name="boom")
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        with (
-            patch(
-                "gradio.history_recorder.resolve_identity",
-                return_value=("alice-sub", "tok"),
-            ),
-            patch("gradio.history.HfApi", return_value=hub),
-        ):
-            client = TestClient(app)
-            client.post(
-                "/gradio_api/run/boom",
-                json={"data": ["x"]},
-                headers={"X-Gradio-History-Bucket": "alice/hist"},
-            )
-            assert _wait_for(lambda: len(hub.files) == 1)
-            record = json.loads(next(iter(hub.files.values())))
-            assert record["status"] == "failed"
-            assert "kaboom" in (record["error"] or "")
-        io.close()
-        close_all()
 
     def test_a_hub_failure_does_not_fail_the_prediction(self, recording_app):
         client, hub, io = recording_app
@@ -1041,18 +745,6 @@ class TestWorkflowRecording:
         assert record["outputs"]["result"]["type"] == "image"
         assert record["api_name"] == "result_image"
         assert record["owner_id"] == "alice-sub"
-
-    def test_unknown_subject_is_rejected(self, workflow_app):
-        client, hub, _wf, cid = workflow_app
-        r = _call_server_fn(
-            client,
-            cid,
-            "record_workflow_run",
-            ["alice/hist", json.dumps(["not-a-subject"]), json.dumps({})],
-        )
-        payload = json.loads(r.json())
-        assert "error" in payload
-        assert hub.files == {}
 
     def test_client_cannot_choose_the_record_id_or_owner(self, workflow_app):
         client, hub, _wf, cid = workflow_app

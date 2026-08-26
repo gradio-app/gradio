@@ -25,16 +25,15 @@ import anyio
 import anyio.to_thread
 
 from gradio.history import (
-    BucketRunHistoryStore,
     HistoryRecord,
     HistoryStoreError,
+    HistoryTarget,
     PendingAsset,
     externalize_assets,
     new_record_id,
     now_utc_iso,
     sanitize_segment,
-    store_for,
-    validate_bucket_id,
+    save_record,
 )
 
 logger = logging.getLogger(__name__)
@@ -144,14 +143,14 @@ def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | Non
     return configured or None
 
 
-def resolve_store(
+def resolve_target(
     app,
     request,
     *,
     bucket_id: str | None = None,
     app_id: str | None = None,
-) -> BucketRunHistoryStore | None:
-    """The store this caller may write to, or None if history is not available.
+) -> tuple[HistoryTarget, str] | None:
+    """``(target, owner_id)`` for this caller, or None if history is not on.
 
     Returns None rather than raising: for the automatic recording path, "no
     bucket configured" and "not signed in" are the normal case, not an error.
@@ -159,28 +158,17 @@ def resolve_store(
     blocks = app.get_blocks()
     if not getattr(blocks, "run_history", True):
         return None
-    resolved_bucket = resolve_bucket_id(blocks, request, bucket_id)
-    if not resolved_bucket:
+    bucket = resolve_bucket_id(blocks, request, bucket_id)
+    if not bucket:
         return None
     identity = resolve_identity(request)
     if identity is None:
         return None
-    _, token = identity
+    owner_id, token = identity
     try:
-        validate_bucket_id(resolved_bucket)
+        return HistoryTarget.build(bucket, token, app_id or app_id_of(blocks)), owner_id
     except ValueError:
-        logger.debug("history: ignoring invalid bucket id %r", resolved_bucket)
-        return None
-    try:
-        return store_for(
-            app.state.bucket_history_cache,
-            app.state.bucket_history_cache_lock,
-            token,
-            resolved_bucket,
-            app_id=app_id or app_id_of(blocks),
-        )
-    except (ValueError, AttributeError):
-        logger.debug("history: could not build store", exc_info=True)
+        logger.debug("history: ignoring invalid bucket id %r", bucket)
         return None
 
 
@@ -217,15 +205,15 @@ async def record_run(
 
     This is the single write path for both regular Gradio apps and workflows.
     """
-    store = resolve_store(app, request, bucket_id=bucket_id, app_id=app_id)
-    if store is None:
+    resolved = resolve_target(app, request, bucket_id=bucket_id, app_id=app_id)
+    if resolved is None:
         return None
-    identity = resolve_identity(request)
+    target, owner_id = resolved
 
     record = HistoryRecord(
         record_id=new_record_id(),
-        owner_id=identity[0] if identity else "",
-        app_id=store.app_id,
+        owner_id=owner_id,
+        app_id=target.app_id,
         endpoint=endpoint or endpoint_key(api_name, fn_index),
         api_name=api_name,
         fn_index=fn_index,
@@ -252,7 +240,7 @@ async def record_run(
 
     limiter: anyio.CapacityLimiter = app.state.history_write_limiter
     async with limiter:
-        await anyio.to_thread.run_sync(store.save_record, record, merged)
+        await anyio.to_thread.run_sync(save_record, target, record, merged)
     return record.record_id
 
 

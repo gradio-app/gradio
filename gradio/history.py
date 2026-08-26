@@ -46,10 +46,9 @@ import re
 import secrets
 import threading
 import time
-from collections import OrderedDict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, NamedTuple
 from urllib.parse import unquote, urlparse
 
 import gradio_client.utils as client_utils
@@ -63,8 +62,6 @@ logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION = 2
 
-_LIST_CACHE_TTL = 10.0
-_RECORD_CACHE_MAX = 256
 # Hard ceiling on paths pulled from one prefix listing. Records sort lexically
 # by id, so the newest `limit` are the last `limit` paths — this only bounds how
 # much of the (already paginated) listing we walk.
@@ -317,347 +314,302 @@ class PendingAsset:
     suggested_name: str = ""
 
 
-class BucketRunHistoryStore:
-    """Reads and writes one app's history inside one bucket.
+class HistoryTarget(NamedTuple):
+    """Where a run's history goes: which bucket, whose credential, which app.
 
-    ``app_id`` is fixed at construction and becomes a path segment, so this
-    object is confined to ``runs/<app_id>/``. It knows where to read and write
-    and which credential to use — nothing about who is asking. Who ran a run is
-    a property of the record, not of the storage.
+    A plain parameter bundle. It holds no connection, no cache and no lifecycle
+    — the bucket paths are the model, and these three values are all it takes to
+    address them.
     """
 
-    def __init__(
-        self,
-        repo_id: str,
-        *,
-        app_id: str,
-        token: str | None = None,
-    ) -> None:
-        validate_bucket_id(repo_id)
+    bucket: str
+    token: str
+    app_id: str
+
+    @classmethod
+    def build(cls, bucket: str, token: str | None, app_id: str) -> HistoryTarget:
+        validate_bucket_id(bucket)
         validate_segment(app_id)
-        self.repo_id = repo_id
-        self.app_id = app_id
-        self._token = token or hf_get_token()
-        self._api = HfApi(token=self._token)
-        self._ensure_lock = threading.Lock()
-        self._ensured = False
-        self._cache_lock = threading.Lock()
-        # prefix -> (paths, fetched_at)
-        self._path_cache: dict[str, tuple[list[str], float]] = {}
-        self._record_cache: OrderedDict[str, HistoryRecord] = OrderedDict()
+        return cls(bucket, token or hf_get_token() or "", app_id)
 
-    # -- paths --------------------------------------------------------------
 
-    @property
-    def app_prefix(self) -> str:
-        return f"runs/{self.app_id}/"
+def _api(target: HistoryTarget) -> HfApi:
+    return HfApi(token=target.token)
 
-    def endpoint_prefix(self, endpoint: str) -> str:
-        validate_segment(endpoint)
-        return f"{self.app_prefix}{endpoint}/"
 
-    def record_path(self, endpoint: str, record_id: str) -> str:
-        validate_record_id(record_id)
-        return f"{self.endpoint_prefix(endpoint)}{record_id}.json"
+# -- paths ------------------------------------------------------------------
 
-    def asset_prefix(self, endpoint: str, record_id: str) -> str:
-        validate_record_id(record_id)
-        validate_segment(endpoint)
-        return f"assets/{self.app_id}/{endpoint}/{record_id}/"
 
-    # -- bucket lifecycle ---------------------------------------------------
+def app_prefix(app_id: str) -> str:
+    return f"runs/{app_id}/"
 
-    def ensure_private_bucket(self) -> None:
-        with self._ensure_lock:
-            if self._ensured:
-                return
-            try:
-                self._api.create_bucket(self.repo_id, private=True, exist_ok=True)
-            except Exception as e:
-                status = getattr(getattr(e, "response", None), "status_code", None)
-                if status == 403:
-                    raise NotAuthorizedError(
-                        f"missing manage-repos scope for {self.repo_id}"
-                    ) from e
-                raise HubError(f"bucket create failed: {e}") from e
-            try:
-                info = self._api.bucket_info(self.repo_id)
-                if getattr(info, "private", True) is False:
-                    raise PublicBucketError(
-                        f"bucket {self.repo_id} is public; refusing to store history"
-                    )
-            except PublicBucketError:
-                raise
-            except Exception as e:
-                raise HubError(f"bucket privacy check failed: {e}") from e
-            self._ensured = True
 
-    # -- writes -------------------------------------------------------------
+def endpoint_prefix(app_id: str, endpoint: str) -> str:
+    validate_segment(endpoint)
+    return f"{app_prefix(app_id)}{endpoint}/"
 
-    def save_record(
-        self,
-        record: HistoryRecord,
-        assets: dict[str, PendingAsset] | None = None,
-    ) -> None:
-        """Write *record*, uploading its assets first.
 
-        The JSON is the commit marker: it lands only after every asset upload
-        has succeeded, so a record is never visible while referencing an asset
-        that does not exist.
-        """
-        validate_record_id(record.record_id)
-        validate_segment(record.endpoint)
-        self.ensure_private_bucket()
+def record_path(app_id: str, endpoint: str, record_id: str) -> str:
+    validate_record_id(record_id)
+    return f"{endpoint_prefix(app_id, endpoint)}{record_id}.json"
 
-        adds: list[tuple[Any, str]] = []
-        if assets:
-            prefix = self.asset_prefix(record.endpoint, record.record_id)
-            for asset_id, pending in assets.items():
-                validate_record_id(asset_id)
-                ext = _ext_from(
-                    pending.local_path or pending.suggested_name, pending.content_type
+
+def asset_prefix(app_id: str, endpoint: str, record_id: str) -> str:
+    validate_record_id(record_id)
+    validate_segment(endpoint)
+    return f"assets/{app_id}/{endpoint}/{record_id}/"
+
+
+# -- bucket lifecycle -------------------------------------------------------
+
+# (token, bucket) pairs already confirmed to exist and be private. Only a memo:
+# without it every recorded run pays `create_bucket` + `bucket_info` before it
+# can write. Failures are never recorded, so a transient error is retried.
+_ensured: set[tuple[str, str]] = set()
+_ensure_lock = threading.Lock()
+
+
+def ensure_private_bucket(target: HistoryTarget) -> None:
+    key = (target.token, target.bucket)
+    with _ensure_lock:
+        if key in _ensured:
+            return
+        api = _api(target)
+        try:
+            api.create_bucket(target.bucket, private=True, exist_ok=True)
+        except Exception as e:
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            if status == 403:
+                raise NotAuthorizedError(
+                    f"missing manage-repos scope for {target.bucket}"
+                ) from e
+            raise HubError(f"bucket create failed: {e}") from e
+        try:
+            info = api.bucket_info(target.bucket)
+            if getattr(info, "private", True) is False:
+                raise PublicBucketError(
+                    f"bucket {target.bucket} is public; refusing to store history"
                 )
-                path_in_repo = f"{prefix}{asset_id}{ext}"
-                if pending.data is not None:
-                    adds.append((pending.data, path_in_repo))
-                elif is_trusted_local_path(pending.local_path or ""):
-                    adds.append((pending.local_path, path_in_repo))
-                else:
-                    logger.warning(
-                        "history: skipping asset %s — untrusted path %r",
-                        asset_id,
-                        pending.local_path,
-                    )
-                    continue
-                record.assets[asset_id] = path_in_repo
-
-        try:
-            if adds:
-                self._api.batch_bucket_files(bucket_id=self.repo_id, add=adds)
-            self._api.batch_bucket_files(
-                bucket_id=self.repo_id,
-                add=[
-                    (
-                        record.to_json_bytes(),
-                        self.record_path(record.endpoint, record.record_id),
-                    )
-                ],
-            )
-        except Exception as e:
-            # The JSON never landed, so the uploaded assets are unreferenced.
-            # Nothing else will ever find them, so clean up here rather than
-            # leaving blobs that accumulate invisibly.
-            if adds:
-                self._try_delete([p for _, p in adds])
-            raise HubError(f"save_record failed: {e}") from e
-
-        self._invalidate()
-
-    def delete_record(self, endpoint: str, record_id: str) -> None:
-        path = self.record_path(endpoint, record_id)
-        asset_paths = [
-            it.path
-            for it in self._safe_list_tree(
-                prefix=self.asset_prefix(endpoint, record_id)
-            )
-            if self._is_file(it)
-        ]
-        try:
-            self._api.batch_bucket_files(
-                bucket_id=self.repo_id, delete=[path] + asset_paths
-            )
-        except Exception as e:
-            raise HubError(f"delete_record failed: {e}") from e
-        self._invalidate()
-
-    # -- reads --------------------------------------------------------------
-
-    def list_records(
-        self, endpoint: str | None = None, limit: int = 50
-    ) -> list[HistoryRecord]:
-        """The newest *limit* records, for one endpoint or across the app.
-
-        Only *limit* record files are downloaded: ids are time-ordered, so the
-        newest are the tail of the sorted path listing.
-        """
-        limit = max(1, min(int(limit), MAX_RECORDS_PER_PAGE))
-        prefix = self.app_prefix if endpoint is None else self.endpoint_prefix(endpoint)
-        paths = [p for p in self._list_paths(prefix) if p.endswith(".json")]
-        # Sort on the record id (the basename), not the full path, so ordering
-        # is chronological across endpoints rather than grouped by endpoint.
-        paths.sort(key=lambda p: p.rsplit("/", 1)[-1], reverse=True)
-        selected = paths[:limit]
-        if not selected:
-            return []
-        records: list[HistoryRecord] = []
-        for path, blob in self._download_many(selected):
-            try:
-                record = HistoryRecord.from_json_bytes(blob)
-            except Exception:
-                logger.debug("history: skipping unreadable record %s", path)
-                continue
-            records.append(record)
-        records.sort(key=lambda r: r.record_id, reverse=True)
-        return records
-
-    def get_record(self, endpoint: str, record_id: str) -> HistoryRecord:
-        path = self.record_path(endpoint, record_id)
-        with self._cache_lock:
-            cached = self._record_cache.get(path)
-        if cached is not None:
-            return cached
-        try:
-            data = self._download_bytes(path)
-        except NotFoundError:
+        except PublicBucketError:
             raise
         except Exception as e:
-            raise HubError(f"get_record failed: {e}") from e
-        record = HistoryRecord.from_json_bytes(data)
-        with self._cache_lock:
-            self._record_cache[path] = record
-            self._record_cache.move_to_end(path)
-            if len(self._record_cache) > _RECORD_CACHE_MAX:
-                self._record_cache.popitem(last=False)
-        return record
+            raise HubError(f"bucket privacy check failed: {e}") from e
+        _ensured.add(key)
 
-    def get_asset_bytes(
-        self, endpoint: str, record_id: str, asset_id: str
-    ) -> tuple[bytes, str]:
-        validate_record_id(asset_id)
-        record = self.get_record(endpoint, record_id)
-        path = record.assets.get(asset_id)
-        if not path:
-            raise NotFoundError(f"asset {asset_id} not found for record {record_id}")
-        # The record is this owner's, but its stored path is still checked
-        # against the prefix this store may address, so a record hand-edited on
-        # the Hub cannot redirect a download elsewhere in the bucket.
-        if not path.startswith(self.asset_prefix(endpoint, record_id)):
-            raise NotFoundError(f"asset {asset_id} not addressable")
-        ct = mimetypes.guess_type(path)[0] or "application/octet-stream"
+
+# -- writes -----------------------------------------------------------------
+
+
+def save_record(
+    target: HistoryTarget,
+    record: HistoryRecord,
+    assets: dict[str, PendingAsset] | None = None,
+) -> None:
+    """Write *record*, uploading its assets first.
+
+    The JSON is the commit marker: it lands only after every asset upload has
+    succeeded, so a record is never visible while referencing an asset that does
+    not exist.
+    """
+    validate_record_id(record.record_id)
+    validate_segment(record.endpoint)
+    ensure_private_bucket(target)
+    api = _api(target)
+
+    adds: list[tuple[Any, str]] = []
+    if assets:
+        prefix = asset_prefix(target.app_id, record.endpoint, record.record_id)
+        for asset_id, pending in assets.items():
+            validate_record_id(asset_id)
+            ext = _ext_from(
+                pending.local_path or pending.suggested_name, pending.content_type
+            )
+            path_in_repo = f"{prefix}{asset_id}{ext}"
+            if pending.data is not None:
+                adds.append((pending.data, path_in_repo))
+            elif is_trusted_local_path(pending.local_path or ""):
+                adds.append((pending.local_path, path_in_repo))
+            else:
+                logger.warning(
+                    "history: skipping asset %s — untrusted path %r",
+                    asset_id,
+                    pending.local_path,
+                )
+                continue
+            record.assets[asset_id] = path_in_repo
+
+    try:
+        if adds:
+            api.batch_bucket_files(bucket_id=target.bucket, add=adds)
+        api.batch_bucket_files(
+            bucket_id=target.bucket,
+            add=[
+                (
+                    record.to_json_bytes(),
+                    record_path(target.app_id, record.endpoint, record.record_id),
+                )
+            ],
+        )
+    except Exception as e:
+        # The JSON never landed, so the uploaded assets are unreferenced.
+        # Nothing else will ever find them, so clean up here rather than leaving
+        # blobs that accumulate invisibly.
+        if adds:
+            _try_delete(target, [p for _, p in adds])
+        raise HubError(f"save_record failed: {e}") from e
+
+
+# -- reads ------------------------------------------------------------------
+
+
+def list_records(
+    target: HistoryTarget, endpoint: str | None = None, limit: int = 50
+) -> list[HistoryRecord]:
+    """The newest *limit* records, for one endpoint or across the app.
+
+    Only *limit* record files are downloaded: ids are time-ordered, so the
+    newest are the tail of the sorted path listing.
+    """
+    limit = max(1, min(int(limit), MAX_RECORDS_PER_PAGE))
+    prefix = (
+        app_prefix(target.app_id)
+        if endpoint is None
+        else endpoint_prefix(target.app_id, endpoint)
+    )
+    paths = [p for p in _list_paths(target, prefix) if p.endswith(".json")]
+    # Sort on the record id (the basename), not the full path, so ordering is
+    # chronological across endpoints rather than grouped by endpoint.
+    paths.sort(key=lambda p: p.rsplit("/", 1)[-1], reverse=True)
+    selected = paths[:limit]
+    if not selected:
+        return []
+    records: list[HistoryRecord] = []
+    for path, blob in _download_many(target, selected):
         try:
-            return self._download_bytes(path), ct
-        except Exception as e:
-            raise HubError(f"asset download failed: {e}") from e
+            records.append(HistoryRecord.from_json_bytes(blob))
+        except Exception:
+            logger.debug("history: skipping unreadable record %s", path)
+    records.sort(key=lambda r: r.record_id, reverse=True)
+    return records
 
-    # -- internals ----------------------------------------------------------
 
-    def _invalidate(self) -> None:
-        with self._cache_lock:
-            self._path_cache.clear()
-            self._record_cache.clear()
+def get_record(target: HistoryTarget, endpoint: str, record_id: str) -> HistoryRecord:
+    try:
+        data = _download_bytes(target, record_path(target.app_id, endpoint, record_id))
+    except NotFoundError:
+        raise
+    except Exception as e:
+        raise HubError(f"get_record failed: {e}") from e
+    return HistoryRecord.from_json_bytes(data)
 
-    def _list_paths(self, prefix: str) -> list[str]:
-        now = time.monotonic()
-        with self._cache_lock:
-            hit = self._path_cache.get(prefix)
-            if hit is not None and (now - hit[1]) < _LIST_CACHE_TTL:
-                return list(hit[0])
-        paths: list[str] = []
-        for it in self._safe_list_tree(prefix=prefix):
-            if self._is_file(it):
-                paths.append(it.path)
-                if len(paths) >= _MAX_LIST_PATHS:
-                    logger.warning(
-                        "history: listing for %s hit the %d path cap",
-                        prefix,
-                        _MAX_LIST_PATHS,
-                    )
-                    break
-        with self._cache_lock:
-            self._path_cache[prefix] = (list(paths), time.monotonic())
-        return paths
 
-    def _safe_list_tree(self, prefix: str, *, recursive: bool = True):
-        """List bucket entries under *prefix*.
+def get_asset_bytes(
+    target: HistoryTarget, endpoint: str, record_id: str, asset_id: str
+) -> tuple[bytes, str]:
+    validate_record_id(asset_id)
+    record = get_record(target, endpoint, record_id)
+    path = record.assets.get(asset_id)
+    if not path:
+        raise NotFoundError(f"asset {asset_id} not found for record {record_id}")
+    # The stored path is checked against the prefix it should be under, so a
+    # record hand-edited on the Hub cannot redirect a download elsewhere.
+    if not path.startswith(asset_prefix(target.app_id, endpoint, record_id)):
+        raise NotFoundError(f"asset {asset_id} not addressable")
+    ct = mimetypes.guess_type(path)[0] or "application/octet-stream"
+    try:
+        return _download_bytes(target, path), ct
+    except Exception as e:
+        raise HubError(f"asset download failed: {e}") from e
 
-        ``list_bucket_tree`` defaults to ``recursive=False``, which returns only
-        the entries directly under the prefix — for a directory prefix that is a
-        list of ``BucketFolder``s and never the files inside them.
-        """
+
+# -- Hub plumbing -----------------------------------------------------------
+
+
+def _safe_list_tree(target: HistoryTarget, prefix: str, *, recursive: bool = True):
+    """List bucket entries under *prefix*.
+
+    ``list_bucket_tree`` defaults to ``recursive=False``, which returns only the
+    entries directly under the prefix — for a directory prefix that is a list of
+    ``BucketFolder``s and never the files inside them.
+    """
+    try:
+        yield from _api(target).list_bucket_tree(
+            target.bucket, prefix=prefix, recursive=recursive
+        )
+    except Exception:
+        return
+
+
+def _is_file(item) -> bool:
+    return getattr(item, "type", "file") != "directory" and bool(
+        getattr(item, "path", "")
+    )
+
+
+def _list_paths(target: HistoryTarget, prefix: str) -> list[str]:
+    paths: list[str] = []
+    for it in _safe_list_tree(target, prefix):
+        if _is_file(it):
+            paths.append(it.path)
+            if len(paths) >= _MAX_LIST_PATHS:
+                logger.warning(
+                    "history: listing for %s hit the %d path cap",
+                    prefix,
+                    _MAX_LIST_PATHS,
+                )
+                break
+    return paths
+
+
+def _try_delete(target: HistoryTarget, paths: list[str]) -> None:
+    try:
+        _api(target).batch_bucket_files(bucket_id=target.bucket, delete=paths)
+    except Exception:
+        logger.debug("history: cleanup delete failed", exc_info=True)
+
+
+def _download_many(target: HistoryTarget, paths: list[str]) -> list[tuple[str, bytes]]:
+    import tempfile
+
+    out: list[tuple[str, bytes]] = []
+    with tempfile.TemporaryDirectory() as tmp:
+        pairs = [(p, os.path.join(tmp, f"{i}.json")) for i, p in enumerate(paths)]
         try:
-            yield from self._api.list_bucket_tree(
-                self.repo_id, prefix=prefix, recursive=recursive
+            _api(target).download_bucket_files(
+                bucket_id=target.bucket, files=pairs, token=target.token
             )
         except Exception:
-            return
-
-    @staticmethod
-    def _is_file(item) -> bool:
-        return getattr(item, "type", "file") != "directory" and bool(
-            getattr(item, "path", "")
-        )
-
-    def _try_delete(self, paths: list[str]) -> None:
-        try:
-            self._api.batch_bucket_files(bucket_id=self.repo_id, delete=paths)
-        except Exception:
-            logger.debug("history: cleanup delete failed", exc_info=True)
-
-    def _download_many(self, paths: list[str]) -> list[tuple[str, bytes]]:
-        import tempfile
-
-        out: list[tuple[str, bytes]] = []
-        with tempfile.TemporaryDirectory() as tmp:
-            pairs = [(p, os.path.join(tmp, f"{i}.json")) for i, p in enumerate(paths)]
+            logger.debug("history: bulk record download failed", exc_info=True)
+            return []
+        for path, local in pairs:
             try:
-                self._api.download_bucket_files(
-                    bucket_id=self.repo_id, files=pairs, token=self._token
-                )
+                with open(local, "rb") as fh:
+                    out.append((path, fh.read()))
             except Exception:
-                logger.debug("history: bulk record download failed", exc_info=True)
-                return []
-            for path, local in pairs:
-                try:
-                    with open(local, "rb") as fh:
-                        out.append((path, fh.read()))
-                except Exception:
-                    continue
-        return out
-
-    def _download_bytes(self, path_in_repo: str) -> bytes:
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as tmp:
-            local = os.path.join(tmp, os.path.basename(path_in_repo))
-            try:
-                self._api.download_bucket_files(
-                    bucket_id=self.repo_id,
-                    files=[(path_in_repo, local)],
-                    token=self._token,
-                )
-            except Exception as e:
-                status = getattr(getattr(e, "response", None), "status_code", None)
-                if status == 404:
-                    raise NotFoundError(path_in_repo) from e
-                raise
-            if not os.path.exists(local):
-                raise NotFoundError(path_in_repo)
-            with open(local, "rb") as fh:
-                return fh.read()
+                continue
+    return out
 
 
-def store_for(
-    cache: OrderedDict,
-    lock: threading.Lock,
-    token: str,
-    bucket_id: str,
-    *,
-    app_id: str,
-    max_entries: int = 256,
-) -> BucketRunHistoryStore:
-    validate_bucket_id(bucket_id)
-    validate_segment(app_id)
-    key = (token, bucket_id, app_id)
-    with lock:
-        store = cache.get(key)
-        if store is not None:
-            cache.move_to_end(key)
-            return store
-        store = BucketRunHistoryStore(bucket_id, token=token, app_id=app_id)
-        cache[key] = store
-        if len(cache) > max_entries:
-            cache.popitem(last=False)
-        return store
+def _download_bytes(target: HistoryTarget, path_in_repo: str) -> bytes:
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        local = os.path.join(tmp, os.path.basename(path_in_repo))
+        try:
+            _api(target).download_bucket_files(
+                bucket_id=target.bucket,
+                files=[(path_in_repo, local)],
+                token=target.token,
+            )
+        except Exception as e:
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            if status == 404:
+                raise NotFoundError(path_in_repo) from e
+            raise
+        if not os.path.exists(local):
+            raise NotFoundError(path_in_repo)
+        with open(local, "rb") as fh:
+            return fh.read()
 
 
 def _ext_from(local_path: str | None, content_type: str | None) -> str:

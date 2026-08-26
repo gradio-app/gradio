@@ -2,7 +2,6 @@
 	import { onMount, untrack } from "svelte";
 	import {
 		asset_url,
-		delete_record_from_bucket,
 		list_bucket_records,
 		type HistoryRecord
 	} from "@gradio/client";
@@ -40,7 +39,6 @@
 	let refreshing = $state(false);
 	let error = $state<string | null>(null);
 	let selectedEndpoint = $state<string | null>(null);
-	let pendingDelete = $state<string | null>(null);
 	let repoId = $derived(bucketId);
 
 	const MEDIA_TYPES = new Set(["image", "audio", "video"]);
@@ -154,23 +152,6 @@
 			error = e?.message ?? "Failed to refresh";
 		} finally {
 			refreshing = false;
-		}
-	}
-
-	async function removeRecord(record: HistoryRecord): Promise<void> {
-		pendingDelete = null;
-		const previous = records;
-		records = records.filter((r) => r.record_id !== record.record_id);
-		const result = await delete_record_from_bucket(
-			root,
-			bucketId,
-			record.endpoint,
-			record.record_id
-		);
-		if (!result.ok) {
-			// Put it back rather than showing a deletion that did not happen.
-			records = previous;
-			error = result.detail ?? "Could not delete that run";
 		}
 	}
 
@@ -345,25 +326,6 @@
 										title="Load inputs and outputs back into the canvas"
 									>
 										Load
-									</button>
-								{/if}
-								{#if pendingDelete === record.record_id}
-									<button
-										class="card-delete-confirm"
-										onclick={() => removeRecord(record)}>Delete?</button
-									>
-									<button
-										class="card-delete-cancel"
-										onclick={() => (pendingDelete = null)}>Cancel</button
-									>
-								{:else}
-									<button
-										class="card-delete-btn"
-										onclick={() => (pendingDelete = record.record_id)}
-										title="Delete this generation"
-										aria-label="Delete"
-									>
-										&#x2715;
 									</button>
 								{/if}
 							</div>
@@ -690,44 +652,5 @@
 	:global(body:not(.dark)) .card-load-btn:hover {
 		border-color: #ff7a38;
 		color: #ff7a38;
-	}
-
-	.card-delete-btn {
-		background: none;
-		border: none;
-		color: #4a4b5a;
-		font-size: 11px;
-		cursor: pointer;
-		padding: 2px 4px;
-		border-radius: 3px;
-		line-height: 1;
-		flex-shrink: 0;
-	}
-
-	.card-delete-btn:hover {
-		color: #ef4444;
-		background: rgba(239, 68, 68, 0.1);
-	}
-
-	.card-delete-confirm {
-		background: #ef4444;
-		border: none;
-		color: #fff;
-		font-size: 10px;
-		padding: 2px 6px;
-		border-radius: 3px;
-		cursor: pointer;
-		flex-shrink: 0;
-	}
-
-	.card-delete-cancel {
-		background: none;
-		border: 1px solid #3a3b4a;
-		color: #7c7f99;
-		font-size: 10px;
-		padding: 2px 6px;
-		border-radius: 3px;
-		cursor: pointer;
-		flex-shrink: 0;
 	}
 </style>

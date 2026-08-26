@@ -163,27 +163,6 @@ export async function list_bucket_records(
 	);
 }
 
-export async function delete_record_from_bucket(
-	root: string,
-	bucket: string,
-	endpoint: string,
-	record_id: string
-): Promise<HistoryResult<null>> {
-	if (!RECORD_ID_RE.test(record_id) || !SEGMENT_RE.test(endpoint)) {
-		return { ok: false, status: 422, data: null, detail: "invalid record" };
-	}
-	return request(
-		url(
-			root,
-			`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(record_id)}`,
-			{ bucket }
-		),
-		{ method: "DELETE" },
-		null,
-		() => null
-	);
-}
-
 export function asset_url(
 	root: string,
 	bucket: string,

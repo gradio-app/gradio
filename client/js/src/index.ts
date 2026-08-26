@@ -22,7 +22,6 @@ export {
 export {
 	asset_url,
 	connect_bucket,
-	delete_record_from_bucket,
 	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets,

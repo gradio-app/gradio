@@ -23,19 +23,17 @@ import fastapi
 from fastapi import APIRouter, Depends, Path, Query, Request, Response
 from pydantic import BaseModel
 
-from gradio import history_recorder, oauth, route_utils
+from gradio import history, history_recorder, oauth, route_utils
 from gradio.history import (
     MAX_RECORDS_PER_PAGE,
     RECORD_ID_PATTERN,
     SEGMENT_PATTERN,
-    BucketRunHistoryStore,
     HistoryStoreError,
+    HistoryTarget,
     HubError,
     NotAuthorizedError,
     NotFoundError,
     PublicBucketError,
-    store_for,
-    validate_bucket_id,
 )
 
 MAX_BODY_BYTES = 2 * 1024 * 1024
@@ -62,14 +60,14 @@ async def offload(fn, *args):
         raise _http_from_store_error(exc) from exc
 
 
-def get_store(
+def get_target(
     request: Request,
     token: Annotated[str, Depends(oauth.require_oauth_token)],
     bucket: Annotated[str, Query(min_length=3, max_length=200)],
-) -> BucketRunHistoryStore:
-    """The store for the bucket named on *this* request.
+) -> HistoryTarget:
+    """Where the bucket named on *this* request lives, for this caller.
 
-    Nothing is trusted about `bucket` beyond its shape: the store is built with
+    Nothing is trusted about `bucket` beyond its shape: every call is made with
     the caller's own token, so authorization is whatever the Hub already grants
     that token.
     """
@@ -77,22 +75,12 @@ def get_store(
     if not getattr(blocks, "run_history", True):
         raise fastapi.HTTPException(404, "run history is disabled for this app")
     try:
-        validate_bucket_id(bucket)
-    except ValueError as exc:
-        raise fastapi.HTTPException(422, "invalid bucket id") from exc
-    try:
-        return store_for(
-            request.app.state.bucket_history_cache,
-            request.app.state.bucket_history_cache_lock,
-            token,
-            bucket,
-            app_id=history_recorder.app_id_of(blocks),
-        )
+        return HistoryTarget.build(bucket, token, history_recorder.app_id_of(blocks))
     except ValueError as exc:
         raise fastapi.HTTPException(422, "invalid bucket id") from exc
 
 
-StoreDep = Annotated[BucketRunHistoryStore, Depends(get_store)]
+TargetDep = Annotated[HistoryTarget, Depends(get_target)]
 TokenDep = Annotated[str, Depends(oauth.require_oauth_token)]
 RecordId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
 AssetId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
@@ -122,18 +110,13 @@ async def connect(request: Request, body: ConnectBody, token: TokenDep):
     if not getattr(blocks, "run_history", True):
         raise fastapi.HTTPException(404, "run history is disabled for this app")
     try:
-        validate_bucket_id(body.bucket_id)
+        target = HistoryTarget.build(
+            body.bucket_id, token, history_recorder.app_id_of(blocks)
+        )
     except ValueError as exc:
         raise fastapi.HTTPException(422, "invalid bucket id") from exc
-    store = store_for(
-        request.app.state.bucket_history_cache,
-        request.app.state.bucket_history_cache_lock,
-        token,
-        body.bucket_id,
-        app_id=history_recorder.app_id_of(blocks),
-    )
-    await offload(store.ensure_private_bucket)
-    return {"bucket_id": body.bucket_id, "app_id": store.app_id}
+    await offload(history.ensure_private_bucket, target)
+    return {"bucket_id": body.bucket_id, "app_id": target.app_id}
 
 
 @history_router.get("/buckets")
@@ -154,29 +137,25 @@ async def list_buckets(token: TokenDep):
 
 @history_router.get("/records")
 async def list_records(
-    store: StoreDep,
+    target: TargetDep,
     endpoint: Annotated[str | None, Query(pattern=SEGMENT_PATTERN)] = None,
     limit: Annotated[int, Query(ge=1, le=MAX_RECORDS_PER_PAGE)] = 50,
 ):
-    records = await offload(lambda: store.list_records(endpoint, limit))
+    records = await offload(lambda: history.list_records(target, endpoint, limit))
     return {
-        "app_id": store.app_id,
+        "app_id": target.app_id,
         "endpoint": endpoint,
         "records": [asdict(r) for r in records],
     }
 
 
-@history_router.delete("/records/{endpoint}/{record_id}")
-async def delete_record(store: StoreDep, endpoint: EndpointSeg, record_id: RecordId):
-    await offload(store.delete_record, endpoint, record_id)
-    return {"ok": True}
-
-
 @history_router.get("/records/{endpoint}/{record_id}/assets/{asset_id}")
 async def get_asset(
-    store: StoreDep, endpoint: EndpointSeg, record_id: RecordId, asset_id: AssetId
+    target: TargetDep, endpoint: EndpointSeg, record_id: RecordId, asset_id: AssetId
 ):
-    data, guessed = await offload(store.get_asset_bytes, endpoint, record_id, asset_id)
+    data, guessed = await offload(
+        history.get_asset_bytes, target, endpoint, record_id, asset_id
+    )
     # Same rule as gradio's own file route: only mimetypes that cannot be turned
     # into script are served inline, so a stored .html/.svg cannot render on this
     # app's origin.
