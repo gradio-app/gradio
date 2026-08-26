@@ -548,13 +548,9 @@
 		color: #1a1b25;
 	}
 
-	/* Mobile: bottom bar hugs the viewport, scrolls horizontally when its
-	 * children overflow. Drop the "Add a node:" prefix — space is precious
-	 * and the icons carry the meaning. */
 	@media (max-width: 640px) {
 		.bottom-bar {
 			bottom: 10px;
-		
 			max-width: calc(100vw - 16px);
 			overflow-x: auto;
 			overflow-y: hidden;

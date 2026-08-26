@@ -1988,8 +1988,6 @@
 		color: rgba(0, 0, 0, 0.55);
 	}
 
-	/* Mobile: panel becomes a full-viewport sheet, task sidebar collapses
-	 * to a horizontally scrolling strip along the top of the results body. */
 	@media (max-width: 640px) {
 		.picker-overlay {
 			padding-bottom: 70px;
@@ -1998,8 +1996,6 @@
 		.picker-panel,
 		.picker-panel-anchored {
 			position: absolute;
-			/* !important beats the anchored variant's inline left/top — on
-			 * mobile we always want the sheet layout, ignoring anchor coords. */
 			inset: 4px 4px 70px !important;
 			left: 4px !important;
 			top: 4px !important;

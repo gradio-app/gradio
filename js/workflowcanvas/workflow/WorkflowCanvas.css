@@ -426,8 +426,6 @@
 	position: relative;
 	overflow: hidden;
 	background-color: #0c0d10;
-	/* Kill browser touch-scroll on canvas so single-finger pan and pinch
-	 * gestures reach onCanvasPointerMove. */
 	touch-action: none;
 	/* Block the browser's "select word/paragraph" behaviour on
 	 * dbl-click. Input fields, textboxes, and node labels opt back
@@ -957,12 +955,6 @@
 	white-space: nowrap;
 }
 
-/* ─── Mobile (≤ 640px) ─────────────────────────────────────────────────────
- * Canvas UI is desktop-first: toolbar in a single row, save/token controls
- * inline, bottom bar centred. On small screens we compact chrome, wrap the
- * toolbar over two lines, let the bottom bar horizontally scroll, and shrink
- * min-height so the workflow fits inside phone viewports.
- * ────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
 	.workflow-root {
 		min-height: 100dvh;
@@ -1017,8 +1009,6 @@
 	.save-menu {
 		right: 0;
 	}
-	/* Zoom controls sit above bottom bar (~72px tall on mobile with scroll)
-	 * and to the left so they don't crowd the pinch/pan gesture edge. */
 	.zoom-controls {
 		bottom: 84px;
 		right: 8px;

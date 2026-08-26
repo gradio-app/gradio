@@ -524,9 +524,6 @@
 	let spaceHeld = $state(false);
 	let last_node_drag_moved = false;
 
-	// Track active touch pointers for pinch-zoom. Two-finger down enters pinch
-	// mode, single-finger touch pans instead of marqueeing (touch users don't
-	// have marquee — hold-and-move on empty canvas is expected to pan).
 	const activeTouches = new Map<
 		number,
 		{ clientX: number; clientY: number }
@@ -1072,11 +1069,10 @@
 			// Second finger down → start pinch-zoom, drop any single-touch pan.
 			if (activeTouches.size === 2) {
 				const [a, b] = Array.from(activeTouches.values());
-				const dx = a.clientX - b.clientX;
-				const dy = a.clientY - b.clientY;
 				const r = canvasEl.getBoundingClientRect();
 				pinchState = {
-					startDist: Math.hypot(dx, dy) || 1,
+					startDist:
+						Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
 					startZoom: viewport.zoom,
 					startCenterX: (a.clientX + b.clientX) / 2 - r.left,
 					startCenterY: (a.clientY + b.clientY) / 2 - r.top,
@@ -1217,9 +1213,6 @@
 				const r = canvasEl.getBoundingClientRect();
 				const cx = (a.clientX + b.clientX) / 2 - r.left;
 				const cy = (a.clientY + b.clientY) / 2 - r.top;
-				// Anchor: world-coord under the initial two-finger midpoint stays
-				// under the current midpoint. Handles pinch (dist changes) and
-				// two-finger drag (midpoint moves) in one step.
 				const worldCX =
 					(pinchState.startCenterX - pinchState.startVX) /
 					pinchState.startZoom;
