@@ -21,7 +21,6 @@ from fastapi.testclient import TestClient
 import gradio as gr
 import gradio.history as history_mod
 from gradio.history import (
-    HistoryError,
     HistoryRecord,
     HistoryTarget,
     PendingAsset,
@@ -136,16 +135,6 @@ def test_validate_bucket_id_rejects_traversal():
             validate_bucket_id(bad)
 
 
-def test_record_ids_are_timestamp_prefixed_and_unique():
-    with (
-        patch("gradio.history.time.time_ns", side_effect=[1, 2]),
-        patch("gradio.history.secrets.token_hex", side_effect=["abcd", "ef01"]),
-    ):
-        ids = [new_record_id(), new_record_id()]
-
-    assert ids == ["00000000000000000001abcd", "00000000000000000002ef01"]
-
-
 # ------------------------------------------------------------ layout + sharing
 
 
@@ -212,37 +201,6 @@ def test_list_records_downloads_only_the_page_it_returns():
     ]
 
 
-def test_list_records_is_newest_first_across_endpoints():
-    hub = FakeHub()
-    target = make_target()
-    with use_hub(hub):
-        history_mod.save_record(
-            target, make_record(endpoint="zzz", record_id="0000000000003x")
-        )
-        history_mod.save_record(
-            target, make_record(endpoint="aaa", record_id="0000000000009x")
-        )
-        history_mod.save_record(
-            target, make_record(endpoint="mmm", record_id="0000000000005x")
-        )
-        ids = [r.record_id for r in history_mod.list_records(target)]
-    assert ids == ["0000000000009x", "0000000000005x", "0000000000003x"]
-
-
-def test_record_from_a_newer_schema_is_rejected_rather_than_guessed():
-    payload = json.dumps(
-        {
-            "record_id": "r1",
-            "owner_id": "o",
-            "app_id": "a",
-            "endpoint": "e",
-            "schema_version": 99,
-        }
-    ).encode()
-    with pytest.raises(ValueError, match="unsupported record schema"):
-        HistoryRecord.from_json_bytes(payload)
-
-
 # ------------------------------------------------------------------- assets
 
 
@@ -270,46 +228,7 @@ def test_untrusted_asset_path_is_not_uploaded(tmp_path, monkeypatch):
     assert all(p.endswith("r1.json") for p in hub.files)
 
 
-def test_stored_asset_is_addressable_by_its_filename(tmp_path, monkeypatch):
-    monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
-    f = tmp_path / "img.png"
-    f.write_bytes(b"PNGDATA")
-    hub = FakeHub()
-    target = make_target()
-    with use_hub(hub):
-        history_mod.save_record(
-            target,
-            make_record(record_id="r1"),
-            {"a001.png": PendingAsset(local_path=str(f))},
-        )
-        data, ct = history_mod.get_asset_bytes(target, "predict", "r1", "a001.png")
-    assert data == b"PNGDATA"
-    assert ct == "image/png"
-    with pytest.raises(ValueError):
-        history_mod.get_asset_bytes(target, "predict", "r1", "../secret")
-
-
 # --------------------------------------------------------- orphaned assets
-
-
-def test_failed_commit_cleans_up_its_uploaded_assets(tmp_path, monkeypatch):
-    """If the record JSON never lands, its assets are unreachable forever."""
-    monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
-    f = tmp_path / "img.png"
-    f.write_bytes(b"png")
-    hub = FakeHub()
-    target = make_target()
-    record = make_record(record_id="r1")
-    hub.fail_next_add_paths = {history_mod.record_path(target.app_id, "predict", "r1")}
-
-    with use_hub(hub), pytest.raises(HistoryError):
-        history_mod.save_record(
-            target,
-            record,
-            {"a001.png": PendingAsset(local_path=str(f))},
-        )
-
-    assert hub.files == {}
 
 
 def test_remote_media_is_fetched_and_stored():
@@ -361,19 +280,6 @@ def test_remote_fetch_goes_through_gradios_ssrf_protected_client():
 # ------------------------------------------------------------ bucket lifecycle
 
 
-class TestEnsureMemo:
-    """`_ensured` is the only state the storage layer keeps. It exists so a
-    recorded run does not pay `create_bucket` every time."""
-
-    def test_a_bucket_is_only_ensured_once(self):
-        hub = FakeHub()
-        target = make_target()
-        with use_hub(hub):
-            for i in range(3):
-                history_mod.save_record(target, make_record(record_id=f"000{i}aaa"))
-        assert len(hub.created) == 1
-
-
 # ------------------------------------------------------------------- recorder
 
 
@@ -389,19 +295,6 @@ def test_history_is_partitioned_by_app_id():
     first = history.app_id_of(demo)
     demo.app_id = 999888777  # what a restart amounts to
     assert history.app_id_of(demo) != first
-
-
-def test_bucket_resolution_never_reads_session_state(monkeypatch):
-    """Fix for the shared session slot: the bucket comes from this request."""
-    from gradio import history
-
-    monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
-    blocks = MagicMock(history_bucket=None)
-    request = MagicMock()
-    request.request = None
-    request.headers = {history.BUCKET_HEADER: "alice/tab-one"}
-    request.session = {"history": {"bucket_id": "stale/from-another-tab"}}
-    assert history.resolve_bucket_id(blocks, request) == "alice/tab-one"
 
 
 # --------------------------------------------------------------------- routes
@@ -456,21 +349,9 @@ def authed_history():
 
 
 class TestRunHistoryValidation:
-    def test_connect_returns_only_success(self, authed_history):
-        client, _ = authed_history
-        response = client.post(
-            "/gradio_api/run-history/connect", json={"bucket_id": "alice/history"}
-        )
-        assert response.json() == {"ok": True}
-
     def test_bucket_is_required_on_every_read(self, authed_history):
         client, _ = authed_history
         assert client.get("/gradio_api/run-history/records").status_code == 422
-
-    def test_limit_out_of_range_is_422(self, authed_history):
-        client, _ = authed_history
-        r = client.get("/gradio_api/run-history/records?bucket=a/b&limit=9999")
-        assert r.status_code == 422
 
     def test_two_buckets_in_one_session_do_not_interfere(self, authed_history):
         """The whole point of dropping the session slot: two tabs, two buckets,

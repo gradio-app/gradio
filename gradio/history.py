@@ -195,24 +195,20 @@ def _api(target: HistoryTarget) -> HfApi:
     return HfApi(token=target.token)
 
 
-def app_prefix(app_id: str) -> str:
-    return f"runs/{app_id}/"
-
-
-def endpoint_prefix(app_id: str, endpoint: str) -> str:
-    validate_segment(endpoint)
-    return f"{app_prefix(app_id)}{endpoint}/"
+RUNS_PREFIX = "runs"
+ASSETS_PREFIX = "assets"
 
 
 def record_path(app_id: str, endpoint: str, record_id: str) -> str:
+    validate_segment(endpoint)
     validate_segment(record_id)
-    return f"{endpoint_prefix(app_id, endpoint)}{record_id}.json"
+    return f"{RUNS_PREFIX}/{app_id}/{endpoint}/{record_id}.json"
 
 
 def asset_prefix(app_id: str, endpoint: str, record_id: str) -> str:
-    validate_segment(record_id)
     validate_segment(endpoint)
-    return f"assets/{app_id}/{endpoint}/{record_id}/"
+    validate_segment(record_id)
+    return f"{ASSETS_PREFIX}/{app_id}/{endpoint}/{record_id}/"
 
 
 _ensured: set[tuple[str, str]] = set()
@@ -280,14 +276,19 @@ def save_record(
         )
     except Exception as e:
         if adds:
-            _try_delete(target, [p for _, p in adds])
+            try:
+                _api(target).batch_bucket_files(
+                    bucket_id=target.bucket, delete=[p for _, p in adds]
+                )
+            except Exception:
+                logger.debug("history: cleanup delete failed", exc_info=True)
         raise HistoryError(f"save_record failed: {e}", 502) from e
 
 
 def list_records(target: HistoryTarget, limit: int = 50) -> list[HistoryRecord]:
     """The newest *limit* records for this app."""
     limit = max(1, min(int(limit), MAX_RECORDS_PER_PAGE))
-    prefix = app_prefix(target.app_id)
+    prefix = f"{RUNS_PREFIX}/{target.app_id}/"
     paths = [p for p in _list_paths(target, prefix) if p.endswith(".json")]
     paths.sort(key=lambda p: p.rsplit("/", 1)[-1], reverse=True)
     selected = paths[:limit]
@@ -317,42 +318,25 @@ def get_asset_bytes(
         raise HistoryError(f"asset download failed: {e}", 502) from e
 
 
-def _safe_list_tree(target: HistoryTarget, prefix: str, *, recursive: bool = True):
-    """List files under *prefix*, recursively by default."""
+def _list_paths(target: HistoryTarget, prefix: str) -> list[str]:
+    """File paths under *prefix*, capped; a failed listing yields nothing."""
     try:
-        yield from _api(target).list_bucket_tree(
-            target.bucket, prefix=prefix, recursive=recursive
+        items = _api(target).list_bucket_tree(
+            target.bucket, prefix=prefix, recursive=True
         )
     except Exception:
-        return
-
-
-def _is_file(item) -> bool:
-    return getattr(item, "type", "file") != "directory" and bool(
-        getattr(item, "path", "")
-    )
-
-
-def _list_paths(target: HistoryTarget, prefix: str) -> list[str]:
-    paths: list[str] = []
-    for it in _safe_list_tree(target, prefix):
-        if _is_file(it):
-            paths.append(it.path)
-            if len(paths) >= _MAX_LIST_PATHS:
-                logger.warning(
-                    "history: listing for %s hit the %d path cap",
-                    prefix,
-                    _MAX_LIST_PATHS,
-                )
-                break
+        return []
+    paths = []
+    for item in items:
+        if getattr(item, "type", "file") == "directory" or not getattr(
+            item, "path", ""
+        ):
+            continue
+        paths.append(item.path)
+        if len(paths) >= _MAX_LIST_PATHS:
+            logger.warning("history: listing for %s hit the path cap", prefix)
+            break
     return paths
-
-
-def _try_delete(target: HistoryTarget, paths: list[str]) -> None:
-    try:
-        _api(target).batch_bucket_files(bucket_id=target.bucket, delete=paths)
-    except Exception:
-        logger.debug("history: cleanup delete failed", exc_info=True)
 
 
 def _download_many(target: HistoryTarget, paths: list[str]) -> list[tuple[str, bytes]]:
@@ -495,40 +479,25 @@ def app_from_request(request) -> Any | None:
 def resolve_token(request) -> str | None:
     """The caller's OAuth access token, or None."""
     raw = _fastapi_request(request)
-    if raw is None:
-        return None
     try:
-        session = raw.session
+        info = oauth._get_valid_oauth_info_from_session(raw.session)
     except Exception:
         return None
-    try:
-        info = oauth._get_valid_oauth_info_from_session(session)
-    except Exception:
-        info = None
-    if not info:
-        return None
-    token = info.get("access_token")
-    if not isinstance(token, str) or not token:
-        return None
-    return token
+    token = (info or {}).get("access_token")
+    return token if isinstance(token, str) and token else None
 
 
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
     """Which bucket this run belongs in, resolved per request."""
     if explicit:
         return explicit
-    raw = _fastapi_request(request)
-    if raw is not None:
-        try:
-            header = raw.headers.get(BUCKET_HEADER)
-        except Exception:
-            header = None
-        if header:
-            return header.strip()
-    configured = os.getenv("GRADIO_HISTORY_BUCKET") or getattr(
-        blocks, "history_bucket", None
-    )
-    return configured or None
+    try:
+        header = _fastapi_request(request).headers.get(BUCKET_HEADER)
+    except Exception:
+        header = None
+    if header:
+        return header.strip()
+    return os.getenv("GRADIO_HISTORY_BUCKET") or getattr(blocks, "history_bucket", None)
 
 
 def resolve_target(
@@ -578,10 +547,9 @@ async def record_run(
     app_id: str | None = None,
 ) -> str | None:
     """Persist one run. Returns the record id, or None if nothing was written."""
-    resolved = resolve_target(app, request, bucket_id=bucket_id, app_id=app_id)
-    if resolved is None:
+    target = resolve_target(app, request, bucket_id=bucket_id, app_id=app_id)
+    if target is None:
         return None
-    target = resolved
 
     record = HistoryRecord(
         record_id=new_record_id(),
@@ -661,10 +629,7 @@ TokenDep = Annotated[str, Depends(oauth.require_oauth_token)]
 RecordId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
 
 
-AssetName = Annotated[str, Path(pattern=SEGMENT_PATTERN)]
-
-
-EndpointSeg = Annotated[str, Path(pattern=SEGMENT_PATTERN)]
+Segment = Annotated[str, Path(pattern=SEGMENT_PATTERN)]
 
 
 class ConnectBody(BaseModel):

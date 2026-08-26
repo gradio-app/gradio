@@ -775,9 +775,9 @@ class App(FastAPI):
             @router.get("/run-history/records/{endpoint}/{record_id}/assets/{asset_id}")
             async def get_history_asset(
                 target: history.TargetDep,
-                endpoint: history.EndpointSeg,
+                endpoint: history.Segment,
                 record_id: history.RecordId,
-                asset_id: history.AssetName,
+                asset_id: history.Segment,
             ):
                 """Proxy one stored asset, which the browser cannot fetch itself."""
                 data, guessed = await history.offload(
