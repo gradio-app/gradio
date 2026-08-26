@@ -59,6 +59,7 @@ from gradio_client.documentation import document
 from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from hf_gradio.cli import _condense_info, generate_cli_snippet
+from huggingface_hub import HfApi
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -754,7 +755,6 @@ class App(FastAPI):
             @router.get("/run-history/buckets")
             async def list_history_buckets(token: history.TokenDep):
                 """The buckets the signed-in user can write to."""
-                from huggingface_hub import HfApi
 
                 def _list():
                     return [

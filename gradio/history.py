@@ -9,6 +9,7 @@ import mimetypes
 import os
 import re
 import secrets
+import tempfile
 import threading
 import time
 from collections import OrderedDict
@@ -26,7 +27,7 @@ from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 from pydantic import BaseModel
 
-from gradio import oauth
+from gradio import oauth, processing_utils
 from gradio.utils import get_upload_folder, is_in_or_equal
 
 logger = logging.getLogger(__name__)
@@ -46,36 +47,20 @@ SEGMENT_PATTERN = r"^[A-Za-z0-9_.-]{1,80}$"
 _SEGMENT_RE = re.compile(SEGMENT_PATTERN)
 
 
-class HistoryStoreError(Exception):
-    pass
+class HistoryError(Exception):
+    """A history operation failed; ``status`` is the HTTP code to surface."""
 
-
-class NotAuthorizedError(HistoryStoreError):
-    pass
-
-
-class NotFoundError(HistoryStoreError):
-    pass
-
-
-class HubError(HistoryStoreError):
-    pass
-
-
-class PublicBucketError(HistoryStoreError):
-    pass
+    def __init__(self, message: str, status: int = 500):
+        super().__init__(message)
+        self.status = status
 
 
 def validate_bucket_id(bucket_id: str) -> None:
-    if not BUCKET_ID_RE.fullmatch(bucket_id or ""):
+    segments = (bucket_id or "").split("/")
+    if not BUCKET_ID_RE.fullmatch(bucket_id or "") or any(
+        seg in {"", ".", ".."} for seg in segments
+    ):
         raise ValueError("invalid bucket id")
-    if any(seg in {"", ".", ".."} for seg in bucket_id.split("/")):
-        raise ValueError("invalid bucket id")
-
-
-def validate_record_id(record_id: str) -> None:
-    if not _RECORD_ID_RE.fullmatch(record_id or ""):
-        raise ValueError("invalid record id")
 
 
 def validate_segment(segment: str) -> None:
@@ -190,8 +175,6 @@ async def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
     ):
         return None
     try:
-        from gradio import processing_utils
-
         response = await processing_utils.async_ssrf_protected_get(url)
         if response.status_code != 200:
             return None
@@ -246,12 +229,12 @@ def endpoint_prefix(app_id: str, endpoint: str) -> str:
 
 
 def record_path(app_id: str, endpoint: str, record_id: str) -> str:
-    validate_record_id(record_id)
+    validate_segment(record_id)
     return f"{endpoint_prefix(app_id, endpoint)}{record_id}.json"
 
 
 def asset_prefix(app_id: str, endpoint: str, record_id: str) -> str:
-    validate_record_id(record_id)
+    validate_segment(record_id)
     validate_segment(endpoint)
     return f"assets/{app_id}/{endpoint}/{record_id}/"
 
@@ -271,20 +254,20 @@ def ensure_private_bucket(target: HistoryTarget) -> None:
         except Exception as e:
             status = getattr(getattr(e, "response", None), "status_code", None)
             if status == 403:
-                raise NotAuthorizedError(
-                    f"missing manage-repos scope for {target.bucket}"
+                raise HistoryError(
+                    f"missing manage-repos scope for {target.bucket}", 403
                 ) from e
-            raise HubError(f"bucket create failed: {e}") from e
+            raise HistoryError(f"bucket create failed: {e}", 502) from e
         try:
             info = api.bucket_info(target.bucket)
             if getattr(info, "private", True) is False:
-                raise PublicBucketError(
-                    f"bucket {target.bucket} is public; refusing to store history"
+                raise HistoryError(
+                    f"bucket {target.bucket} is public; refusing to store history", 403
                 )
-        except PublicBucketError:
+        except HistoryError:
             raise
         except Exception as e:
-            raise HubError(f"bucket privacy check failed: {e}") from e
+            raise HistoryError(f"bucket privacy check failed: {e}", 502) from e
         _ensured.add(key)
 
 
@@ -294,7 +277,7 @@ def save_record(
     assets: dict[str, PendingAsset] | None = None,
 ) -> None:
     """Write *record*, uploading its assets first. The JSON is the commit marker."""
-    validate_record_id(record.record_id)
+    validate_segment(record.record_id)
     validate_segment(record.endpoint)
     ensure_private_bucket(target)
     api = _api(target)
@@ -303,7 +286,7 @@ def save_record(
     if assets:
         prefix = asset_prefix(target.app_id, record.endpoint, record.record_id)
         for asset_id, pending in assets.items():
-            validate_record_id(asset_id)
+            validate_segment(asset_id)
             ext = _ext_from(
                 pending.local_path or pending.suggested_name, pending.content_type
             )
@@ -336,7 +319,7 @@ def save_record(
     except Exception as e:
         if adds:
             _try_delete(target, [p for _, p in adds])
-        raise HubError(f"save_record failed: {e}") from e
+        raise HistoryError(f"save_record failed: {e}", 502) from e
 
 
 def list_records(
@@ -367,28 +350,28 @@ def list_records(
 def get_record(target: HistoryTarget, endpoint: str, record_id: str) -> HistoryRecord:
     try:
         data = _download_bytes(target, record_path(target.app_id, endpoint, record_id))
-    except NotFoundError:
+    except HistoryError:
         raise
     except Exception as e:
-        raise HubError(f"get_record failed: {e}") from e
+        raise HistoryError(f"get_record failed: {e}", 502) from e
     return HistoryRecord.from_json_bytes(data)
 
 
 def get_asset_bytes(
     target: HistoryTarget, endpoint: str, record_id: str, asset_id: str
 ) -> tuple[bytes, str]:
-    validate_record_id(asset_id)
+    validate_segment(asset_id)
     record = get_record(target, endpoint, record_id)
     path = record.assets.get(asset_id)
     if not path:
-        raise NotFoundError(f"asset {asset_id} not found for record {record_id}")
+        raise HistoryError(f"asset {asset_id} not found", 404)
     if not path.startswith(asset_prefix(target.app_id, endpoint, record_id)):
-        raise NotFoundError(f"asset {asset_id} not addressable")
+        raise HistoryError(f"asset {asset_id} not addressable", 404)
     ct = mimetypes.guess_type(path)[0] or "application/octet-stream"
     try:
         return _download_bytes(target, path), ct
     except Exception as e:
-        raise HubError(f"asset download failed: {e}") from e
+        raise HistoryError(f"asset download failed: {e}", 502) from e
 
 
 def _safe_list_tree(target: HistoryTarget, prefix: str, *, recursive: bool = True):
@@ -430,8 +413,6 @@ def _try_delete(target: HistoryTarget, paths: list[str]) -> None:
 
 
 def _download_many(target: HistoryTarget, paths: list[str]) -> list[tuple[str, bytes]]:
-    import tempfile
-
     out: list[tuple[str, bytes]] = []
     with tempfile.TemporaryDirectory() as tmp:
         pairs = [(p, os.path.join(tmp, f"{i}.json")) for i, p in enumerate(paths)]
@@ -452,8 +433,6 @@ def _download_many(target: HistoryTarget, paths: list[str]) -> list[tuple[str, b
 
 
 def _download_bytes(target: HistoryTarget, path_in_repo: str) -> bytes:
-    import tempfile
-
     with tempfile.TemporaryDirectory() as tmp:
         local = os.path.join(tmp, os.path.basename(path_in_repo))
         try:
@@ -465,10 +444,10 @@ def _download_bytes(target: HistoryTarget, path_in_repo: str) -> bytes:
         except Exception as e:
             status = getattr(getattr(e, "response", None), "status_code", None)
             if status == 404:
-                raise NotFoundError(path_in_repo) from e
+                raise HistoryError(path_in_repo, 404) from e
             raise
         if not os.path.exists(local):
-            raise NotFoundError(path_in_repo)
+            raise HistoryError(path_in_repo, 404)
         with open(local, "rb") as fh:
             return fh.read()
 
@@ -722,7 +701,7 @@ def schedule_record_run(app, **kwargs) -> None:
     async def _run() -> None:
         try:
             await record_run(app, **kwargs)
-        except HistoryStoreError as exc:
+        except HistoryError as exc:
             logger.warning("history: could not record run: %s", exc)
         except Exception:
             logger.warning("history: could not record run", exc_info=True)
@@ -738,22 +717,12 @@ def schedule_record_run(app, **kwargs) -> None:
     task.add_done_callback(tasks.discard)
 
 
-def _http_from_store_error(exc: Exception) -> fastapi.HTTPException:
-    if isinstance(exc, (NotAuthorizedError, PublicBucketError)):
-        return fastapi.HTTPException(403, str(exc))
-    if isinstance(exc, NotFoundError):
-        return fastapi.HTTPException(404, str(exc))
-    if isinstance(exc, HubError):
-        return fastapi.HTTPException(502, str(exc))
-    return fastapi.HTTPException(500, str(exc))
-
-
 async def offload(fn, *args):
-    """Run a blocking store call off the event loop, mapping store errors to HTTP."""
+    """Run a blocking Hub call off the event loop, surfacing its status."""
     try:
         return await anyio.to_thread.run_sync(fn, *args)
-    except HistoryStoreError as exc:
-        raise _http_from_store_error(exc) from exc
+    except HistoryError as exc:
+        raise fastapi.HTTPException(exc.status, str(exc)) from exc
 
 
 def get_target(

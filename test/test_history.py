@@ -20,11 +20,10 @@ from fastapi.testclient import TestClient
 import gradio as gr
 import gradio.history as history_mod
 from gradio.history import (
+    HistoryError,
     HistoryRecord,
     HistoryTarget,
-    HubError,
     PendingAsset,
-    PublicBucketError,
     externalize_assets,
     new_record_id,
     validate_bucket_id,
@@ -304,12 +303,10 @@ def test_stored_asset_is_addressable_and_prefix_checked(tmp_path, monkeypatch):
     assert ct == "image/png"
 
     # A record hand-edited on the Hub cannot redirect the download elsewhere.
-    from gradio.history import NotFoundError
-
     tampered = json.loads(hub.files[store.record_path("predict", "r1")])
     tampered["assets"]["a001"] = "runs/somebody-else/app/predict/secret.json"
     hub.files[store.record_path("predict", "r1")] = json.dumps(tampered).encode()
-    with pytest.raises(NotFoundError):
+    with pytest.raises(HistoryError):
         store.get_asset_bytes("predict", "r1", "a001")
 
 
@@ -326,7 +323,7 @@ def test_failed_commit_cleans_up_its_uploaded_assets(tmp_path, monkeypatch):
     record = make_record(store, record_id="r1")
     hub.fail_next_add_paths = {store.record_path("predict", "r1")}
 
-    with pytest.raises(HubError):
+    with pytest.raises(HistoryError):
         store.save_record(
             record, {"a001": PendingAsset(content_type="image/png", local_path=str(f))}
         )
@@ -385,7 +382,7 @@ def test_remote_fetch_goes_through_gradios_ssrf_protected_client():
 def test_ensure_private_bucket_rejects_public():
     hub = FakeHub(private=False)
     store = make_store(hub)
-    with pytest.raises(PublicBucketError):
+    with pytest.raises(HistoryError):
         store.ensure_private_bucket()
 
 
