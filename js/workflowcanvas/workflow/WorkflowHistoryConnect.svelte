@@ -40,6 +40,11 @@
 	let connecting = $state(false);
 	let error = $state<string | null>(null);
 	let existingBuckets = $state<string[]>([]);
+	const MAX_LISTED = 50;
+	const listedBuckets = $derived(existingBuckets.slice(0, MAX_LISTED));
+	const hiddenBucketCount = $derived(
+		Math.max(0, existingBuckets.length - MAX_LISTED)
+	);
 
 	async function connect(bucketId: string) {
 		error = null;
@@ -105,7 +110,7 @@
 		{:else}
 			{#if existingBuckets.length > 0}
 				<div class="bucket-list">
-					{#each existingBuckets as bucket}
+					{#each listedBuckets as bucket}
 						<button
 							class="bucket-item"
 							disabled={connecting}
@@ -115,6 +120,11 @@
 						</button>
 					{/each}
 				</div>
+				{#if hiddenBucketCount > 0}
+					<p class="connect-hint">
+						{hiddenBucketCount} more not shown — type its full id below.
+					</p>
+				{/if}
 				<div class="connect-divider"><span>or use a new bucket</span></div>
 			{/if}
 
@@ -169,6 +179,9 @@
 		padding: 20px;
 		width: 440px;
 		max-width: 95vw;
+		max-height: 85vh;
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	.connect-hint {
@@ -248,6 +261,23 @@
 		flex-direction: column;
 		gap: 4px;
 		margin-bottom: 12px;
+		max-height: 180px;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		padding-right: 2px;
+	}
+
+	.bucket-list::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	.bucket-list::-webkit-scrollbar-thumb {
+		background: #2a2b38;
+		border-radius: 4px;
+	}
+
+	.bucket-list::-webkit-scrollbar-thumb:hover {
+		background: #3a3b4a;
 	}
 
 	.bucket-item {
