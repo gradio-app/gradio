@@ -554,13 +554,10 @@
 	@media (max-width: 640px) {
 		.bottom-bar {
 			bottom: 10px;
-			left: 8px;
-			right: 8px;
-			transform: none;
-			max-width: none;
+		
+			max-width: calc(100vw - 16px);
 			overflow-x: auto;
 			overflow-y: hidden;
-			justify-content: flex-start;
 			scrollbar-width: none;
 			padding: 4px 6px;
 			gap: 4px;
