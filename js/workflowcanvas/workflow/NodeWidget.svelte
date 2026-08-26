@@ -8,6 +8,7 @@
 	import { getContext } from "svelte";
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
+	import { BaseMarkdown } from "@gradio/markdown";
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 	import ExpandIcon from "./icons/ExpandIcon.svelte";
@@ -68,6 +69,29 @@
 	);
 	const choices = $derived(widgetPort?.choices ?? null);
 	const hasChoices = $derived(!!choices?.length);
+
+	// When the schema is ambiguous (any/json/file) but the runtime value carries
+	// a media MIME, render the media instead of a JSON blob.
+	const effectiveWidgetType = $derived<PortType>(
+		((): PortType => {
+			if (!isReadonly) return widgetType;
+			if (
+				widgetType !== "any" &&
+				widgetType !== "json" &&
+				widgetType !== "file"
+			)
+				return widgetType;
+			const v = node.data?.[widgetPortId];
+			if (!v || typeof v !== "object" || Array.isArray(v)) return widgetType;
+			const { mime, url } = v as FileValue;
+			if (typeof mime !== "string" || typeof url !== "string" || !url)
+				return widgetType;
+			if (mime.startsWith("video/")) return "video";
+			if (mime.startsWith("image/")) return "image";
+			if (mime.startsWith("audio/")) return "audio";
+			return widgetType;
+		})()
+	);
 	const multiselect = $derived(!!widgetPort?.multiselect);
 
 	let fileInputEl: HTMLInputElement | undefined = $state();
@@ -154,7 +178,8 @@
 		ondatachange(node.id, widgetPortId, {
 			name: file.name,
 			url: URL.createObjectURL(file),
-			mime: file.type
+			mime: file.type,
+			size: file.size
 		});
 	}
 
@@ -250,7 +275,9 @@
 	class="widget-zone nodrag nopan nowheel"
 	class:fill={fillHeight}
 	class:native-resize={nativeTextareaResize}
-	class:text-full={(widgetType === "text" || widgetType === "json") &&
+	class:text-full={(effectiveWidgetType === "text" ||
+		effectiveWidgetType === "json" ||
+		(effectiveWidgetType === "markdown" && !isReadonly)) &&
 		!hasChoices}
 	onmousedown={(e) => e.stopPropagation()}
 	onpointerdown={(e) => e.stopPropagation()}
@@ -293,20 +320,34 @@
 				</label>
 			{/each}
 		</div>
-	{:else if widgetType === "text" || widgetType === "json"}
+	{:else if effectiveWidgetType === "markdown" && isReadonly}
+		<!-- Chat-shaped model output: render the markdown rather than showing the
+		     raw asterisks and fences a text tile would. Authoring a markdown
+		     reference still uses the plain textarea below. -->
+		{@const md = getTextValue()}
+		{#if md}
+			<div class="widget-markdown">
+				<BaseMarkdown value={md} line_breaks={true} />
+			</div>
+		{:else}
+			<div class="widget-placeholder">Waiting for output...</div>
+		{/if}
+	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json" || effectiveWidgetType === "markdown"}
 		<div class="widget-text-wrap">
 			<div class="widget-gradio-wrap">
 				<BaseTextbox
 					value={getTextValue()}
 					label="text"
 					show_label={false}
-					lines={widgetType === "json" ? 4 : 3}
+					lines={effectiveWidgetType === "json" ? 4 : 3}
 					max_lines={8}
 					placeholder={isReadonly
 						? "Waiting for output..."
-						: widgetType === "json"
+						: effectiveWidgetType === "json"
 							? '{"key": "value"}'
-							: "Enter text..."}
+							: effectiveWidgetType === "markdown"
+								? "Enter markdown..."
+								: "Enter text..."}
 					disabled={isReadonly}
 					onchange={(val) => {
 						if (node.data?.[widgetPortId] !== val)
@@ -315,7 +356,7 @@
 				/>
 			</div>
 		</div>
-	{:else if widgetType === "number"}
+	{:else if effectiveWidgetType === "number"}
 		<div class="widget-number-wrap">
 			{#if isReadonly}
 				<div class="widget-text-display">
@@ -331,7 +372,7 @@
 				/>
 			{/if}
 		</div>
-	{:else if widgetType === "boolean"}
+	{:else if effectiveWidgetType === "boolean"}
 		<div class="widget-bool-wrap">
 			<label class="widget-checkbox-row">
 				<input
@@ -346,7 +387,7 @@
 				>
 			</label>
 		</div>
-	{:else if widgetType === "html"}
+	{:else if effectiveWidgetType === "html"}
 		{#if htmlValue}
 			<div
 				class="widget-html-preview"
@@ -376,11 +417,11 @@
 		{:else}
 			<div class="widget-placeholder">Waiting for output...</div>
 		{/if}
-	{:else if widgetType === "image" || widgetType === "audio" || widgetType === "video" || widgetType === "file" || widgetType === "gallery" || widgetType === "model3d"}
+	{:else if effectiveWidgetType === "image" || effectiveWidgetType === "audio" || effectiveWidgetType === "video" || effectiveWidgetType === "file" || effectiveWidgetType === "gallery" || effectiveWidgetType === "model3d"}
 		{@const fileVal = getFileValue()}
 		{#if fileVal}
 			<div class="widget-preview">
-				{#if (widgetType === "image" || widgetType === "gallery") && isReadonly}
+				{#if (effectiveWidgetType === "image" || effectiveWidgetType === "gallery") && isReadonly}
 					<div class="widget-gradio-wrap widget-gradio-image">
 						<BaseStaticImage
 							value={{
@@ -395,13 +436,13 @@
 							buttons={[]}
 						/>
 					</div>
-				{:else if widgetType === "image" || widgetType === "gallery"}
+				{:else if effectiveWidgetType === "image" || effectiveWidgetType === "gallery"}
 					<img class="widget-img" src={fileVal.url} alt={fileVal.name} />
-				{:else if widgetType === "audio"}
+				{:else if effectiveWidgetType === "audio"}
 					<div class="widget-audio-shell">
 						<audio class="widget-audio" controls src={fileVal.url}></audio>
 					</div>
-				{:else if widgetType === "video"}
+				{:else if effectiveWidgetType === "video"}
 					<video class="widget-video" controls src={fileVal.url}></video>
 				{:else}
 					<div class="widget-file-info">
@@ -409,7 +450,7 @@
 					</div>
 				{/if}
 				<div class="widget-preview-actions">
-					{#if (widgetType === "image" || widgetType === "gallery") && wf?.onviewfullscreen}
+					{#if (effectiveWidgetType === "image" || effectiveWidgetType === "gallery") && wf?.onviewfullscreen}
 						<button
 							class="widget-action"
 							onclick={(e) => {
@@ -1075,6 +1116,159 @@
 		background: #f1f2f6;
 	}
 
+	/* ─── Markdown output ───
+	   Reuses the canvas's own type scale rather than the host theme's `.prose`
+	   sizing, which is tuned for a full-width Gradio block and swamps a card. */
+	.widget-markdown {
+		padding: 8px 12px 10px;
+		max-height: var(--preview-max-h, 320px);
+		overflow-y: auto;
+		background: #101118;
+		border-radius: 0 0 10px 10px;
+		font-size: 11.5px;
+		line-height: 1.55;
+		color: #c8c9d2;
+	}
+
+	.widget-markdown :global(.prose) {
+		font-size: inherit;
+		line-height: inherit;
+		color: inherit;
+	}
+
+	.widget-markdown :global(p),
+	.widget-markdown :global(ul),
+	.widget-markdown :global(ol),
+	.widget-markdown :global(blockquote),
+	.widget-markdown :global(table) {
+		margin: 0 0 0.6em;
+	}
+
+	.widget-markdown :global(.prose > :last-child) {
+		margin-bottom: 0;
+	}
+
+	.widget-markdown :global(h1),
+	.widget-markdown :global(h2),
+	.widget-markdown :global(h3),
+	.widget-markdown :global(h4) {
+		margin: 0.8em 0 0.4em;
+		font-weight: 700;
+		line-height: 1.3;
+		color: #e6e7ec;
+	}
+
+	.widget-markdown :global(h1) {
+		font-size: 1.35em;
+	}
+	.widget-markdown :global(h2) {
+		font-size: 1.2em;
+	}
+	.widget-markdown :global(h3),
+	.widget-markdown :global(h4) {
+		font-size: 1.05em;
+	}
+
+	.widget-markdown :global(ul),
+	.widget-markdown :global(ol) {
+		padding-left: 1.3em;
+	}
+
+	.widget-markdown :global(li) {
+		margin: 0.15em 0;
+	}
+
+	.widget-markdown :global(a) {
+		color: var(--accent);
+		text-decoration: underline;
+	}
+
+	.widget-markdown :global(code) {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 0.9em;
+		background: #1a1b25;
+		border-radius: 4px;
+		padding: 1px 4px;
+	}
+
+	.widget-markdown :global(pre) {
+		background: #16171f;
+		border: 1px solid #1e1f2a;
+		border-radius: 6px;
+		padding: 8px 10px;
+		overflow-x: auto;
+		margin: 0 0 0.6em;
+	}
+
+	.widget-markdown :global(pre code) {
+		background: none;
+		padding: 0;
+	}
+
+	.widget-markdown :global(blockquote) {
+		border-left: 2px solid #2a2b38;
+		padding-left: 0.8em;
+		color: #8b8d98;
+	}
+
+	.widget-markdown :global(table) {
+		border-collapse: collapse;
+		font-size: 0.95em;
+	}
+
+	.widget-markdown :global(th),
+	.widget-markdown :global(td) {
+		border: 1px solid #1e1f2a;
+		padding: 3px 7px;
+		text-align: left;
+	}
+
+	.widget-markdown :global(img) {
+		max-width: 100%;
+		border-radius: 6px;
+	}
+
+	.widget-markdown :global(hr) {
+		border: none;
+		border-top: 1px solid #1e1f2a;
+		margin: 0.8em 0;
+	}
+
+	:global(body:not(.dark)) .widget-markdown {
+		background: #f8f9fb;
+		color: #33353f;
+	}
+
+	:global(body:not(.dark)) .widget-markdown :global(h1),
+	:global(body:not(.dark)) .widget-markdown :global(h2),
+	:global(body:not(.dark)) .widget-markdown :global(h3),
+	:global(body:not(.dark)) .widget-markdown :global(h4) {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .widget-markdown :global(code) {
+		background: #eceef4;
+	}
+
+	:global(body:not(.dark)) .widget-markdown :global(pre) {
+		background: #f1f2f6;
+		border-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .widget-markdown :global(blockquote) {
+		border-left-color: #d8dae2;
+		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .widget-markdown :global(th),
+	:global(body:not(.dark)) .widget-markdown :global(td) {
+		border-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .widget-markdown :global(hr) {
+		border-top-color: #e2e4ea;
+	}
+
 	.widget-html-preview {
 		position: relative;
 		overflow: hidden;
@@ -1193,7 +1387,8 @@
 		resize: none !important;
 	}
 
-	.widget-zone.fill .widget-text-display {
+	.widget-zone.fill .widget-text-display,
+	.widget-zone.fill .widget-markdown {
 		max-height: none;
 	}
 </style>

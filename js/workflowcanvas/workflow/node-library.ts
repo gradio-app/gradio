@@ -31,7 +31,7 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 	// Text → Text
 	"text-generation": {
 		inputs: [{ id: "in_0", label: "Prompt", type: "text" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }]
+		outputs: [{ id: "out_0", label: "Text", type: "markdown" }]
 	},
 	"text2text-generation": {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
@@ -49,9 +49,12 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		inputs: [{ id: "in_0", label: "Text", type: "text" }],
 		outputs: [{ id: "out_0", label: "Result", type: "json" }]
 	},
+	// Chat-shaped tasks answer in prose that is very often markdown (headings,
+	// lists, fenced code), so their tile renders it rather than showing the raw
+	// asterisks. `markdown` is interchangeable with `text` for wiring.
 	conversational: {
 		inputs: [{ id: "in_0", label: "Message", type: "text" }],
-		outputs: [{ id: "out_0", label: "Reply", type: "text" }]
+		outputs: [{ id: "out_0", label: "Reply", type: "markdown" }]
 	},
 	// Text → Classification
 	"text-classification": {
@@ -119,10 +122,6 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
 		outputs: [{ id: "out_0", label: "Segments", type: "json" }]
 	},
-	"image-to-text": {
-		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }]
-	},
 	"image-to-image": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
@@ -134,6 +133,13 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
 		outputs: [{ id: "out_0", label: "Video", type: "video" }]
 	},
+	"image-text-to-video": {
+		inputs: [
+			{ id: "in_0", label: "Image", type: "image" },
+			{ id: "in_1", label: "Prompt", type: "text" }
+		],
+		outputs: [{ id: "out_0", label: "Video", type: "video" }]
+	},
 	"depth-estimation": {
 		inputs: [{ id: "in_0", label: "Image", type: "image" }],
 		outputs: [{ id: "out_0", label: "Depth", type: "image" }]
@@ -143,7 +149,7 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 			{ id: "in_0", label: "Image", type: "image" },
 			{ id: "in_1", label: "Prompt", type: "text" }
 		],
-		outputs: [{ id: "out_0", label: "Text", type: "text" }]
+		outputs: [{ id: "out_0", label: "Answer", type: "markdown" }]
 	},
 	// Audio → *
 	"automatic-speech-recognition": {
@@ -159,20 +165,6 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		outputs: [{ id: "out_0", label: "Audio", type: "audio" }]
 	},
 	// Multimodal
-	"visual-question-answering": {
-		inputs: [
-			{ id: "in_0", label: "Image", type: "image" },
-			{ id: "in_1", label: "Question", type: "text" }
-		],
-		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
-	},
-	"document-question-answering": {
-		inputs: [
-			{ id: "in_0", label: "Document", type: "image" },
-			{ id: "in_1", label: "Question", type: "text" }
-		],
-		outputs: [{ id: "out_0", label: "Answer", type: "text" }]
-	},
 	"zero-shot-image-classification": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
@@ -222,10 +214,11 @@ export const LIBRARY: Record<string, NodeTemplate[]> = {
 };
 
 export function getComponentForPortType(type: string): NodeTemplate | null {
-	// `any`/`file` are inference-only fallbacks — default them to Image so
-	// the user gets a usable picker entry rather than nothing.
+	// `any`/`file` are inference-only fallbacks. JSON gives `any` values a
+	// general-purpose textbox while still allowing runtime media detection;
+	// files retain the image picker used for ambiguous uploads.
 	const lookup = (
-		type === "any" || type === "file" ? "image" : type
+		type === "any" ? "json" : type === "file" ? "image" : type
 	) as PortType;
 	return LIBRARY.components.find((c) => c.outputs[0]?.type === lookup) ?? null;
 }
@@ -251,7 +244,6 @@ export const PIPELINE_TO_CATEGORY: Record<string, string> = {
 	"unconditional-image-generation": "image",
 	"image-feature-extraction": "image",
 	"depth-estimation": "image",
-	"image-to-text": "image",
 	// Audio
 	"text-to-speech": "audio",
 	"automatic-speech-recognition": "audio",
@@ -274,14 +266,13 @@ export const PIPELINE_TO_CATEGORY: Record<string, string> = {
 	// Video
 	"text-to-video": "video",
 	"image-to-video": "video",
+	"image-text-to-video": "video",
 	"video-classification": "video",
 	// 3D
 	"text-to-3d": "3d",
 	"image-to-3d": "3d",
 	// Multimodal
-	"visual-question-answering": "multimodal",
 	"image-text-to-text": "multimodal",
-	"document-question-answering": "multimodal",
 	"zero-shot-image-classification": "multimodal",
 	"video-text-to-text": "multimodal",
 	// Chat

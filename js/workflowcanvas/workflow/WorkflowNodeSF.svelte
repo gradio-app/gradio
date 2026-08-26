@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { resizeNode, setNodeSize, workflow } from "./workflow-store";
+	import {
+		add_custom_port,
+		remove_custom_port,
+		resizeNode,
+		setNodeSize,
+		workflow
+	} from "./workflow-store";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -13,8 +19,10 @@
 		WFNode,
 		PortType,
 		NodeDataValue,
-		NodeStatus
+		NodeStatus,
+		FileValue
 	} from "./workflow-types";
+	import { nodeMetaLabel, resolveFileSize } from "./node-meta";
 
 	interface Props {
 		id: string;
@@ -194,6 +202,34 @@
 		}
 	}
 
+	let showCustomParamForm = $state(false);
+	let customParamName = $state("");
+	let customParamType = $state<PortType>("text");
+
+	function submitCustomParam(): void {
+		const raw = customParamName.trim();
+		if (!raw) return;
+		// to match the InferenceClient param naming convention (snake_case)
+		const id = raw
+			.toLowerCase()
+			.replace(/[^a-z0-9_]+/g, "_")
+			.replace(/^_+|_+$/g, "");
+		if (!id) return;
+		if (node.inputs.some((p) => p.id === id)) return;
+		const label = id
+			.replace(/_/g, " ")
+			.replace(/\b\w/g, (c) => c.toUpperCase());
+		add_custom_port(node.id, {
+			id,
+			label,
+			type: customParamType,
+			required: false
+		});
+		customParamName = "";
+		customParamType = "text";
+		showCustomParamForm = false;
+	}
+
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
 			const n = Number(v);
@@ -259,6 +295,44 @@
 				: null
 	);
 	const isReadonly = $derived(mode === "output");
+
+	// ── Header meta ──
+	// How much the card is holding, in the top-right of the header: a character
+	// count for text-ish widgets, a file size for media. Media that arrived as a
+	// bare URL carries no size, so measure it once per URL and keep the answer
+	// here rather than writing it back into the graph (that would dirty the
+	// workflow and mark downstream nodes stale for a cosmetic read).
+	let measuredSize = $state<number | null>(null);
+	let measuredUrl = $state<string | null>(null);
+
+	const widgetValue = $derived(
+		widgetPortId ? node.data?.[widgetPortId] : undefined
+	);
+
+	$effect(() => {
+		const val = widgetValue;
+		const file =
+			val && typeof val === "object" && !Array.isArray(val)
+				? (val as FileValue)
+				: null;
+		if (!file?.url || typeof file.size === "number") {
+			measuredUrl = null;
+			measuredSize = null;
+			return;
+		}
+		if (file.url === measuredUrl) return;
+		const url = file.url;
+		measuredUrl = url;
+		measuredSize = null;
+		resolveFileSize(url).then((size) => {
+			// The value may have moved on while the request was in flight.
+			if (measuredUrl === url) measuredSize = size;
+		});
+	});
+
+	const metaLabel = $derived(
+		hasWidget ? nodeMetaLabel(widgetType, widgetValue, measuredSize) : null
+	);
 
 	function sourceHFUrl(n: WFNode): string {
 		if (n.space_id) return `https://huggingface.co/spaces/${n.space_id}`;
@@ -344,6 +418,9 @@
 					}}>{node.label}</span
 				>
 			{/if}
+			{#if metaLabel}
+				<span class="node-meta" title={metaLabel}>{metaLabel}</span>
+			{/if}
 			{#if canRunSolo}
 				<button
 					class="node-run"
@@ -375,20 +452,20 @@
 					{/if}
 				</button>
 			{/if}
-			{#if !readOnly}
-				<button
-					class="node-delete"
-					onpointerdown={(e) => e.stopPropagation()}
-					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => {
-						e.stopPropagation();
-						ctx.onremove(node.id);
-					}}
-					title="Delete node">&times;</button
-				>
-			{/if}
 		</div>
 	</div>
+	{#if !readOnly}
+		<button
+			class="node-delete"
+			onpointerdown={(e) => e.stopPropagation()}
+			onmousedown={(e) => e.stopPropagation()}
+			onclick={(e) => {
+				e.stopPropagation();
+				ctx.onremove(node.id);
+			}}
+			title="Delete node">&times;</button
+		>
+	{/if}
 
 	<!-- Source label for transform nodes — floats above the card.
 	     Components are pure data containers and have no source label. -->
@@ -490,20 +567,28 @@
 		</div>
 	{/if}
 
-	<!-- Input ports -->
 	{#if node.inputs.length > 0}
-		{@const hiddenCount = node.inputs.filter(
+		{@const orderedInputs = [
+			...node.inputs.filter((p) => p.custom),
+			...node.inputs.filter((p) => !p.custom)
+		]}
+		{@const hiddenCount = orderedInputs.filter(
 			(p) =>
-				p.required === false && !connectedPorts.has(`${node.id}:${p.id}:input`)
+				!p.custom &&
+				p.required === false &&
+				!connectedPorts.has(`${node.id}:${p.id}:input`)
 		).length}
 		{@const collapsible = hiddenCount > 0}
 		<div class="ports" class:widget-ports={hasWidget}>
-			{#each node.inputs as port}
+			{#each orderedInputs as port}
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
 				{@const visible =
-					showAllInputs || portConnected || port.required !== false}
+					showAllInputs ||
+					portConnected ||
+					port.required !== false ||
+					port.custom}
 				{#if visible}
 					{@const inlineWidget =
 						!portConnected &&
@@ -547,13 +632,28 @@
 							<span
 								class="port-label"
 								class:port-label-optional={port.required === false}
-								>{port.label}</span
+								class:port-label-custom={port.custom}>{port.label}</span
 							>
 							{#if !inlineWidget}
 								<span
 									class="port-type-tag"
 									style="color: {PORT_COLOR[port.type]}">{port.type}</span
 								>
+							{/if}
+							{#if port.custom && !readOnly}
+								<button
+									class="port-remove-btn"
+									title="Remove custom param"
+									aria-label="Remove custom param {port.label}"
+									onpointerdown={(e) => e.stopPropagation()}
+									onmousedown={(e) => e.stopPropagation()}
+									onclick={(e) => {
+										e.stopPropagation();
+										remove_custom_port(node.id, port.id);
+									}}
+								>
+									✕
+								</button>
 							{/if}
 						{/if}
 						{#if inlineWidget}
@@ -702,6 +802,76 @@
 							? ""
 							: "s"}{/if}
 				</button>
+			{/if}
+			{#if !readOnly && node.kind === "transform" && node.model_id}
+				<div
+					class="custom-param-wrap"
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{#if showCustomParamForm}
+						<div class="custom-param-form">
+							<input
+								class="custom-param-input"
+								type="text"
+								bind:value={customParamName}
+								placeholder="param name (e.g. strength)"
+								onkeydown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										submitCustomParam();
+									}
+									if (e.key === "Escape") showCustomParamForm = false;
+								}}
+							/>
+							<div class="custom-param-form-row">
+								<select
+									class="custom-param-select"
+									bind:value={customParamType}
+								>
+									<option value="text">text</option>
+									<option value="number">number</option>
+									<option value="boolean">boolean</option>
+									<option value="image">image</option>
+									<option value="audio">audio</option>
+								</select>
+								<button
+									class="custom-param-add"
+									onclick={(e) => {
+										e.stopPropagation();
+										submitCustomParam();
+									}}
+									disabled={!customParamName.trim()}
+								>
+									Add
+								</button>
+								<button
+									class="custom-param-cancel"
+									title="Cancel"
+									aria-label="Cancel adding custom param"
+									onclick={(e) => {
+										e.stopPropagation();
+										showCustomParamForm = false;
+										customParamName = "";
+									}}
+								>
+									✕
+								</button>
+							</div>
+						</div>
+					{:else}
+						<button
+							class="ports-toggle"
+							onclick={(e) => {
+								e.stopPropagation();
+								showCustomParamForm = true;
+							}}
+							title="Add a param the default schema doesn't include (e.g. provider-specific overrides)"
+						>
+							+ Add param
+						</button>
+					{/if}
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -951,6 +1121,20 @@
 		);
 	}
 
+	/* Sits between the title and the header buttons. `flex: 0 0 auto` keeps it
+	   whole while the title takes the squeeze. */
+	.node-meta {
+		flex: 0 0 auto;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9.5px;
+		font-weight: 500;
+		line-height: 1;
+		color: #55576a;
+		white-space: nowrap;
+		letter-spacing: 0.01em;
+		user-select: none;
+	}
+
 	.node-label-input {
 		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
@@ -1048,30 +1232,38 @@
 		cursor: default;
 	}
 
+	/* Floats just off the card's top-right corner so it stops competing with
+	 * the run button in the header row. Hover-only on the card, not the button
+	 * itself, so the whole corner region reveals it. */
 	.node-delete {
-		display: none;
-		width: 20px;
-		height: 20px;
-		border: none;
-		border-radius: 4px;
-		background: transparent;
-		color: #5c5e6a;
+		display: flex;
+		visibility: hidden;
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		width: 18px;
+		height: 18px;
+		border: 1px solid #2a2b38;
+		border-radius: 50%;
+		background: #16171f;
+		color: #8b8d98;
 		font-size: 12px;
+		line-height: 1;
 		cursor: pointer;
-		flex-shrink: 0;
-		margin-left: auto;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
 		text-align: center;
+		z-index: 2;
 	}
 
 	.wf-node:hover .node-delete {
-		display: flex;
+		visibility: visible;
 	}
 
 	.node-delete:hover {
-		background: rgba(239, 68, 68, 0.15);
+		background: rgba(239, 68, 68, 0.18);
+		border-color: rgba(239, 68, 68, 0.4);
 		color: #ef4444;
 	}
 
@@ -1100,10 +1292,6 @@
 	.node-run.has-duration {
 		padding: 0 3px 0 7px;
 		background: rgba(255, 255, 255, 0.06);
-	}
-
-	.node-run + .node-delete {
-		margin-left: 2px;
 	}
 
 	.node-run-time {
@@ -1376,6 +1564,108 @@
 		color: #8b8d98;
 	}
 
+	/* Padding mirrors .port-inline-config so the input's left edge lines up
+	   with the other inline text inputs (Prompt / Scheduler etc.). */
+	.custom-param-form {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 1px 12px 3px 20px;
+	}
+
+	.custom-param-form-row {
+		display: flex;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.custom-param-input {
+		width: 100%;
+	}
+
+	.custom-param-select {
+		flex: 1;
+	}
+
+	.custom-param-input,
+	.custom-param-select {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 0 7px;
+		border: 1px solid #1e1f2a;
+		border-radius: 4px;
+		background: transparent;
+		color: inherit;
+		min-width: 0;
+		box-sizing: border-box;
+		height: 24px;
+		line-height: 22px;
+	}
+
+	.custom-param-input:focus,
+	.custom-param-select:focus {
+		outline: none;
+		border-color: #3e3f4d;
+	}
+
+	.custom-param-input::placeholder {
+		color: #4a4b58;
+	}
+
+	.custom-param-add,
+	.custom-param-cancel {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 24px;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 11px;
+		font-weight: 600;
+		padding: 0 10px;
+		border: none;
+		background: transparent;
+		color: #6b6e78;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.custom-param-cancel {
+		font-size: 14px;
+		padding: 0 8px;
+	}
+
+	.custom-param-add:not(:disabled):hover,
+	.custom-param-cancel:hover {
+		color: #b8b9c4;
+	}
+
+	.custom-param-add:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+
+	.port-label-custom {
+		font-style: italic;
+	}
+
+	/* order + margin-left: auto pin ✕ to the far right after any inline
+	   widget, without stealing the widget's width. */
+	.port-remove-btn {
+		order: 999;
+		margin-left: auto;
+		padding: 0 4px;
+		border: none;
+		background: transparent;
+		color: #6b6d78;
+		font-size: 10px;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.port-remove-btn:hover {
+		color: #ef4444;
+	}
+
 	.port-inline-config {
 		padding: 1px 12px 3px 20px;
 	}
@@ -1493,6 +1783,10 @@
 			0 4px 20px rgba(0, 0, 0, 0.08);
 	}
 
+	:global(body:not(.dark)) .node-meta {
+		color: #a3a6b4;
+	}
+
 	:global(body:not(.dark)) .node-header {
 		border-bottom-color: #e2e4ea;
 	}
@@ -1531,6 +1825,8 @@
 	}
 
 	:global(body:not(.dark)) .node-delete {
+		background: #ffffff;
+		border-color: #e2e4ea;
 		color: #9a9caa;
 	}
 
@@ -1560,6 +1856,40 @@
 
 	:global(body:not(.dark)) .inline-checkbox {
 		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .custom-param-input,
+	:global(body:not(.dark)) .custom-param-select {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .custom-param-input:focus,
+	:global(body:not(.dark)) .custom-param-select:focus {
+		border-color: #b8b9c4;
+	}
+
+	:global(body:not(.dark)) .custom-param-input::placeholder {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .custom-param-add,
+	:global(body:not(.dark)) .custom-param-cancel {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .custom-param-add:not(:disabled):hover,
+	:global(body:not(.dark)) .custom-param-cancel:hover {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .port-remove-btn {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .port-remove-btn:hover {
+		color: #ef4444;
 	}
 
 	.node-endpoint-row {
