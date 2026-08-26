@@ -62,7 +62,7 @@ from starlette.responses import (
 )
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from gradio import history, history_recorder, processing_utils, utils
+from gradio import history, processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
     DeveloperPath,
@@ -434,14 +434,8 @@ async def call_process_api(
     if batch_in_single_out:
         inputs = [inputs]
 
-    # Captured before the call: `inputs` is rebound to preprocessed values
-    # inside process_api, and history stores the payload as submitted so a run
-    # can be replayed the same way it was made.
     submitted_inputs = body.data
     started_at = history.now_utc_iso()
-    # A generator's later steps arrive with an iterator already in flight, which
-    # is the only signal at this point that the run streamed — by the time the
-    # final step returns, `is_generating` is False and the iterator is spent.
     was_streaming = iterator is not None
 
     try:
@@ -525,21 +519,11 @@ def _record_run_history(
     streamed: bool = False,
     is_final: bool = True,
 ) -> None:
-    """Hand a finished run to the recorder.
-
-    Every predict path in gradio funnels through `call_process_api`, so this is
-    the only hook a regular app needs for its history to be recorded — there is
-    no second, client-driven way to write a record.
-    """
-    # Same predicate the browser-local history uses (and the API page
-    # documents with): it keeps out the dependencies gradio wires up for
-    # itself — example loading, flagging, clear buttons — several of which
-    # fire on page load and would otherwise fill the bucket with events the
-    # user never made.
+    """Hand a finished run to the recorder; records only public endpoints."""
     if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
         return
     try:
-        history_recorder.schedule_record_run(
+        history.schedule_record_run(
             app,
             request=gr_request,
             inputs=inputs,
@@ -556,7 +540,6 @@ def _record_run_history(
             streamed=streamed,
         )
     except Exception:
-        # History must never turn a successful prediction into a failed one.
         logger.debug("history: scheduling failed", exc_info=True)
 
 

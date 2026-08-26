@@ -1967,18 +1967,8 @@ class Workflow(Blocks):
             request: Optional[Request] = None,
             token: Optional[OAuthToken] = None,  # noqa: ARG001
         ) -> str:
-            """Record a canvas run against the API endpoint it corresponds to.
-
-            The canvas orchestrates a run node by node in the browser, so unlike
-            a regular gradio app there is no single server call whose inputs and
-            outputs *are* the run. What the canvas sends is therefore only the
-            raw node values it holds; everything that identifies the run — which
-            endpoint it belongs to, which nodes are its inputs and outputs, the
-            record id, the owner, the timestamps — is reconstructed here from
-            the workflow graph, and the record itself is written by the same
-            `record_run` a regular app uses.
-            """
-            from gradio import history_recorder
+            """Record a canvas run against the API endpoint it corresponds to."""
+            from gradio import history
             from gradio.workflow_api import (
                 WorkflowGraph,
                 _group_slug_iter,
@@ -1993,7 +1983,7 @@ class Workflow(Blocks):
                 if not isinstance(subject_ids, list) or not isinstance(values, dict):
                     return json.dumps({"error": "Malformed run payload"})
 
-                app = history_recorder.app_from_request(request)
+                app = history.app_from_request(request)
                 if app is None:
                     return json.dumps({"error": "No server app for this request"})
 
@@ -2001,9 +1991,6 @@ class Workflow(Blocks):
                 if graph is None:
                     return json.dumps({"error": "No workflow graph"})
 
-                # The endpoint is whichever generated endpoint owns these
-                # subjects, so a run recorded from the canvas lands in the same
-                # bucket location as a run of the same subgraph through /call.
                 wanted = set(subject_ids)
                 match = None
                 for group, api_name in _group_slug_iter(subject_groups(graph)):
@@ -2027,8 +2014,6 @@ class Workflow(Blocks):
                         "value": values.get(node_id),
                         "type": free.get("type") or _port_type(node, "outputs"),
                         "label": node.get("label", node_id),
-                        # Which port to write back into when the run is loaded
-                        # into the canvas again.
                         "port_id": (free.get("port") or {}).get("id"),
                     }
                 outputs: dict[str, Any] = {}
@@ -2041,13 +2026,13 @@ class Workflow(Blocks):
                         "port_id": ((subject.get("inputs") or [{}])[0]).get("id"),
                     }
 
-                record_id = await history_recorder.record_run(
+                record_id = await history.record_run(
                     app,
                     request=request,
                     inputs=inputs,
                     outputs=outputs,
                     api_name=api_name,
-                    endpoint=history_recorder.endpoint_key(api_name, None),
+                    endpoint=history.endpoint_key(api_name, None),
                     label=group[0].get("label", api_name),
                     bucket_id=bucket_id or None,
                 )

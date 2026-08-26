@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import dataclasses
 import hashlib
 import inspect
 import io
@@ -21,8 +22,10 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
+    Annotated,
     Any,
     Literal,
+    Optional,
     Union,
     cast,
 )
@@ -66,8 +69,7 @@ from starlette.responses import RedirectResponse
 import gradio
 from gradio import (
     caching,
-    history_recorder,
-    history_routes,
+    history,
     route_utils,
     themes,
     utils,
@@ -727,12 +729,87 @@ class App(FastAPI):
                 raise HTTPException(status_code=404, detail="Not found")
             return main(request, user)
 
-        # Same kill switch as the /runs page above: with run_history=False
-        # nothing is recorded, so the bucket endpoints must not be reachable
-        # either.
         if getattr(blocks, "run_history", True):
-            history_recorder.init_history_state(app)
-            router.include_router(history_routes.history_router)
+            history.init_history_state(app)
+
+            @router.post("/run-history/connect")
+            async def connect_history(
+                request: fastapi.Request,
+                body: history.ConnectBody,
+                token: history.TokenDep,
+            ):
+                """Create the bucket if needed and confirm it is private and writable."""
+                blocks = request.app.get_blocks()
+                if not getattr(blocks, "run_history", True):
+                    raise HTTPException(404, "run history is disabled for this app")
+                try:
+                    target = history.HistoryTarget.build(
+                        body.bucket_id, token, history.app_id_of(blocks)
+                    )
+                except ValueError as exc:
+                    raise HTTPException(422, "invalid bucket id") from exc
+                await history.offload(history.ensure_private_bucket, target)
+                return {"bucket_id": body.bucket_id, "app_id": target.app_id}
+
+            @router.get("/run-history/buckets")
+            async def list_history_buckets(token: history.TokenDep):
+                """The buckets the signed-in user can write to."""
+                from huggingface_hub import HfApi
+
+                def _list():
+                    return [
+                        {"id": b.id, "private": getattr(b, "private", True)}
+                        for b in HfApi(token=token).list_buckets(token=token)
+                    ]
+
+                try:
+                    return {"buckets": await anyio.to_thread.run_sync(_list)}
+                except Exception as exc:
+                    raise HTTPException(502, "hub error") from exc
+
+            @router.get("/run-history/records")
+            async def list_history_records(
+                target: history.TargetDep,
+                endpoint: Annotated[
+                    Optional[str], fastapi.Query(pattern=history.SEGMENT_PATTERN)
+                ] = None,
+                limit: Annotated[
+                    int, fastapi.Query(ge=1, le=history.MAX_RECORDS_PER_PAGE)
+                ] = 50,
+            ):
+                """The newest runs for this app, newest first."""
+                records = await history.offload(
+                    lambda: history.list_records(target, endpoint, limit)
+                )
+                return {
+                    "app_id": target.app_id,
+                    "endpoint": endpoint,
+                    "records": [dataclasses.asdict(r) for r in records],
+                }
+
+            @router.get("/run-history/records/{endpoint}/{record_id}/assets/{asset_id}")
+            async def get_history_asset(
+                target: history.TargetDep,
+                endpoint: history.EndpointSeg,
+                record_id: history.RecordId,
+                asset_id: history.AssetId,
+            ):
+                """Proxy one stored asset, which the browser cannot fetch itself."""
+                data, guessed = await history.offload(
+                    history.get_asset_bytes, target, endpoint, record_id, asset_id
+                )
+                if guessed in route_utils.XSS_SAFE_MIMETYPES:
+                    content_type, disposition = guessed, "inline"
+                else:
+                    content_type, disposition = "application/octet-stream", "attachment"
+                return Response(
+                    content=data,
+                    media_type=content_type,
+                    headers={
+                        "Content-Disposition": disposition,
+                        "Cache-Control": "private, max-age=31536000, immutable",
+                    },
+                )
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):

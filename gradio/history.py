@@ -1,43 +1,8 @@
-"""Durable run history in a private HF Hub bucket.
-
-The layout mirrors the app → endpoint → runs structure of the browser-local run
-history (``client/js/src/utils/run_history.ts``), so the two are alternative
-backends for the same thing rather than two different models::
-
-    runs/<app_id>/<endpoint>/<record_id>.json
-    assets/<app_id>/<endpoint>/<record_id>/<asset_id>.<ext>
-
-``app_id`` is ``blocks.app_id``, which is minted per process — so a new commit
-(which restarts the Space) or a local restart starts a new folder. That is
-deliberate: an app's endpoints and, for a workflow, its whole graph can change
-between deploys, at which point older runs no longer describe anything you can
-replay. They stay in the bucket; they just stop being this app's history. It is
-also the key the browser-local history already uses, so the two backends
-partition runs the same way.
-
-A bucket holds one shared history: everyone who can write to it sees the same
-runs. That is the point of pointing a team at an org bucket, and it means the
-Hub's own access control is the only permission model here — there is no
-finer-grained owner boundary inside a bucket to enforce or to get wrong. Each
-record still carries the `owner_id` of whoever ran it, as metadata to display,
-never as a filter.
-
-Two properties fall out of putting the app and endpoint in the *path* rather
-than in a field that has to be filtered on after the fact:
-
-* Listing an endpoint is a prefix listing bounded by ``limit``, not a scan of
-  every record in the bucket.
-* ``record_id`` is millisecond-prefixed and therefore lexically sortable, so
-  "newest first" is a sort of the returned *paths* — no per-record download and
-  no dependence on Hub-reported mtimes.
-
-Records are written by :func:`record_run`, which is the only way history is
-produced: the server records what it actually executed. Nothing accepts a
-client-supplied record.
-"""
+"""Durable run history in a private HF Hub bucket."""
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import mimetypes
@@ -46,15 +11,22 @@ import re
 import secrets
 import threading
 import time
+from collections import OrderedDict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, NamedTuple
+from typing import Annotated, Any, NamedTuple
 from urllib.parse import unquote, urlparse
 
+import anyio
+import anyio.to_thread
+import fastapi
 import gradio_client.utils as client_utils
+from fastapi import Depends, Path, Query, Request
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
+from pydantic import BaseModel
 
+from gradio import oauth
 from gradio.utils import get_upload_folder, is_in_or_equal
 
 logger = logging.getLogger(__name__)
@@ -62,14 +34,9 @@ logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION = 2
 
-# Hard ceiling on paths pulled from one prefix listing. Records sort lexically
-# by id, so the newest `limit` are the last `limit` paths — this only bounds how
-# much of the (already paginated) listing we walk.
 _MAX_LIST_PATHS = 5000
 MAX_RECORDS_PER_PAGE = 200
 
-# A remote asset is downloaded through the server before it is stored, so both
-# caps are on bytes this process will hold.
 MAX_REMOTE_ASSET_BYTES = 64 * 1024 * 1024
 
 BUCKET_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$")
@@ -112,8 +79,7 @@ def validate_record_id(record_id: str) -> None:
 
 
 def validate_segment(segment: str) -> None:
-    """App and endpoint keys become path segments, so they are constrained the
-    same way record ids are."""
+    """Reject anything that is not a single safe path segment."""
     if not _SEGMENT_RE.fullmatch(segment or "") or segment in {".", ".."}:
         raise ValueError("invalid path segment")
 
@@ -147,17 +113,7 @@ _id_clock = _IdClock()
 
 
 def new_record_id() -> str:
-    """Millisecond-prefixed, so ids sort lexically in creation order.
-
-    Listing "newest first" is then a sort of the paths a prefix listing already
-    returns, instead of downloading every record to read a timestamp out of it.
-
-    The sequence counter matters for more than tidiness: without it, records
-    minted inside the same millisecond order by their random suffix, so two
-    successive listings can disagree about which is newer and a paged read can
-    show one record twice and another not at all. The clock is also clamped
-    forward, so an NTP step backwards cannot bury new records below old ones.
-    """
+    """Millisecond-prefixed, so ids sort lexically in creation order."""
     ms, seq = _id_clock.next()
     return f"{ms:013d}{seq:04x}{secrets.token_hex(4)}"
 
@@ -170,11 +126,7 @@ def now_utc_iso() -> str:
 
 @dataclass
 class HistoryRecord:
-    """One run of one endpoint.
-
-    Mirrors `StoredRun` in the browser-local history so a UI can render either
-    backend from the same shape.
-    """
+    """One run of one endpoint."""
 
     record_id: str
     owner_id: str
@@ -204,8 +156,6 @@ class HistoryRecord:
         d = json.loads(data)
         version = d.get("schema_version", SCHEMA_VERSION)
         if not isinstance(version, int) or version > SCHEMA_VERSION:
-            # Written by a newer gradio. Guessing at the shape would surface
-            # wrong data as if it were right.
             raise ValueError(f"unsupported record schema version {version!r}")
         known = set(cls.__dataclass_fields__)
         return cls(**{k: v for k, v in d.items() if k in known})
@@ -226,12 +176,7 @@ _FILE_URL_MARKERS = ("/gradio_api/file=", "/file=")
 
 
 def extract_local_file_path(value) -> str | None:
-    """Resolve a FileData-ish node to a trusted local path, or None.
-
-    Handles raw ``path`` fields as well as file URLs, which the workflow
-    executor emits absolute (``http://host/gradio_api/file=/tmp/...``) rather
-    than root-relative.
-    """
+    """Resolve a file node to a trusted local path, or None."""
     if not isinstance(value, dict):
         return None
     src = value.get("path") or value.get("url") or ""
@@ -246,14 +191,7 @@ def extract_local_file_path(value) -> str | None:
 
 
 def extract_remote_url(value) -> str | None:
-    """A FileData-ish node whose payload lives on some *other* origin.
-
-    Workflow nodes routinely emit these: an output produced by a remote Space
-    is an ``https://<space>.hf.space/gradio_api/file=/tmp/...`` URL backed by
-    that Space's temp dir, which is gone within the hour. Storing the URL
-    verbatim produces a record that looks saved and renders a broken image
-    later, so these are fetched and stored like any other asset.
-    """
+    """A file node whose payload lives on another origin, or None."""
     if not isinstance(value, dict):
         return None
     src = value.get("url") or value.get("path") or ""
@@ -266,18 +204,7 @@ def extract_remote_url(value) -> str | None:
 
 
 async def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
-    """Download a remote asset, or None if it cannot be stored safely.
-
-    Asset URLs come out of app output, which on a workflow canvas is wired up by
-    whoever edited the graph, so fetching them server-side needs the same
-    protection as any other user-supplied URL gradio fetches. That is exactly
-    what `processing_utils.async_ssrf_protected_get` already provides — public
-    hostname allow-list, IP-pinned transport, and each redirect re-validated —
-    so this reuses it rather than re-deriving a weaker version of it.
-
-    Never raises: a failed fetch degrades to leaving the original URL in the
-    record, which is strictly better than losing the whole run.
-    """
+    """Download a remote asset through gradio's SSRF-protected client, or None."""
     if os.getenv("GRADIO_HISTORY_FETCH_REMOTE_ASSETS", "1").lower() in (
         "0",
         "false",
@@ -305,8 +232,7 @@ async def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
 
 @dataclass
 class PendingAsset:
-    """An asset to store alongside a record: either a local file to upload or
-    bytes already in hand."""
+    """An asset to store: a local file to upload, or bytes in hand."""
 
     content_type: str
     local_path: str | None = None
@@ -315,12 +241,7 @@ class PendingAsset:
 
 
 class HistoryTarget(NamedTuple):
-    """Where a run's history goes: which bucket, whose credential, which app.
-
-    A plain parameter bundle. It holds no connection, no cache and no lifecycle
-    — the bucket paths are the model, and these three values are all it takes to
-    address them.
-    """
+    """Where history goes: which bucket, whose credential, which app."""
 
     bucket: str
     token: str
@@ -335,9 +256,6 @@ class HistoryTarget(NamedTuple):
 
 def _api(target: HistoryTarget) -> HfApi:
     return HfApi(token=target.token)
-
-
-# -- paths ------------------------------------------------------------------
 
 
 def app_prefix(app_id: str) -> str:
@@ -360,11 +278,6 @@ def asset_prefix(app_id: str, endpoint: str, record_id: str) -> str:
     return f"assets/{app_id}/{endpoint}/{record_id}/"
 
 
-# -- bucket lifecycle -------------------------------------------------------
-
-# (token, bucket) pairs already confirmed to exist and be private. Only a memo:
-# without it every recorded run pays `create_bucket` + `bucket_info` before it
-# can write. Failures are never recorded, so a transient error is retried.
 _ensured: set[tuple[str, str]] = set()
 _ensure_lock = threading.Lock()
 
@@ -397,20 +310,12 @@ def ensure_private_bucket(target: HistoryTarget) -> None:
         _ensured.add(key)
 
 
-# -- writes -----------------------------------------------------------------
-
-
 def save_record(
     target: HistoryTarget,
     record: HistoryRecord,
     assets: dict[str, PendingAsset] | None = None,
 ) -> None:
-    """Write *record*, uploading its assets first.
-
-    The JSON is the commit marker: it lands only after every asset upload has
-    succeeded, so a record is never visible while referencing an asset that does
-    not exist.
-    """
+    """Write *record*, uploading its assets first. The JSON is the commit marker."""
     validate_record_id(record.record_id)
     validate_segment(record.endpoint)
     ensure_private_bucket(target)
@@ -451,25 +356,15 @@ def save_record(
             ],
         )
     except Exception as e:
-        # The JSON never landed, so the uploaded assets are unreferenced.
-        # Nothing else will ever find them, so clean up here rather than leaving
-        # blobs that accumulate invisibly.
         if adds:
             _try_delete(target, [p for _, p in adds])
         raise HubError(f"save_record failed: {e}") from e
 
 
-# -- reads ------------------------------------------------------------------
-
-
 def list_records(
     target: HistoryTarget, endpoint: str | None = None, limit: int = 50
 ) -> list[HistoryRecord]:
-    """The newest *limit* records, for one endpoint or across the app.
-
-    Only *limit* record files are downloaded: ids are time-ordered, so the
-    newest are the tail of the sorted path listing.
-    """
+    """The newest *limit* records, for one endpoint or across the app."""
     limit = max(1, min(int(limit), MAX_RECORDS_PER_PAGE))
     prefix = (
         app_prefix(target.app_id)
@@ -477,8 +372,6 @@ def list_records(
         else endpoint_prefix(target.app_id, endpoint)
     )
     paths = [p for p in _list_paths(target, prefix) if p.endswith(".json")]
-    # Sort on the record id (the basename), not the full path, so ordering is
-    # chronological across endpoints rather than grouped by endpoint.
     paths.sort(key=lambda p: p.rsplit("/", 1)[-1], reverse=True)
     selected = paths[:limit]
     if not selected:
@@ -511,8 +404,6 @@ def get_asset_bytes(
     path = record.assets.get(asset_id)
     if not path:
         raise NotFoundError(f"asset {asset_id} not found for record {record_id}")
-    # The stored path is checked against the prefix it should be under, so a
-    # record hand-edited on the Hub cannot redirect a download elsewhere.
     if not path.startswith(asset_prefix(target.app_id, endpoint, record_id)):
         raise NotFoundError(f"asset {asset_id} not addressable")
     ct = mimetypes.guess_type(path)[0] or "application/octet-stream"
@@ -522,16 +413,8 @@ def get_asset_bytes(
         raise HubError(f"asset download failed: {e}") from e
 
 
-# -- Hub plumbing -----------------------------------------------------------
-
-
 def _safe_list_tree(target: HistoryTarget, prefix: str, *, recursive: bool = True):
-    """List bucket entries under *prefix*.
-
-    ``list_bucket_tree`` defaults to ``recursive=False``, which returns only the
-    entries directly under the prefix — for a directory prefix that is a list of
-    ``BucketFolder``s and never the files inside them.
-    """
+    """List files under *prefix*, recursively by default."""
     try:
         yield from _api(target).list_bucket_tree(
             target.bucket, prefix=prefix, recursive=recursive
@@ -624,13 +507,7 @@ def _ext_from(local_path: str | None, content_type: str | None) -> str:
 
 
 def _is_asset_node(node: Any) -> bool:
-    """Everything gradio already recognises as a file, plus url-only nodes.
-
-    `client_utils.is_file_obj` requires a local `path`, which a workflow canvas
-    value produced by a remote Space does not have — it is `{"url": ..., ...}`
-    on that Space's origin. Those are exactly the nodes worth capturing, so the
-    gradio predicate is extended rather than replaced.
-    """
+    """A gradio file node, or a url-only node as a workflow canvas emits."""
     if client_utils.is_file_obj(node):
         return True
     return isinstance(node, dict) and isinstance(node.get("url"), str)
@@ -642,16 +519,7 @@ async def externalize_assets(
     *,
     fetch_remote: bool = True,
 ) -> tuple[Any, dict[str, PendingAsset]]:
-    """Replace file nodes in *tree* with ``{"__asset__": <id>}`` markers.
-
-    Returns the rewritten tree and the assets to store with it. Both local files
-    (uploaded from disk) and remote URLs (downloaded first) are captured,
-    because a record that points at either a temp dir or another host's temp dir
-    stops resolving well before the user stops wanting it.
-
-    A remote fetch that fails leaves the node exactly as it was: a record with a
-    URL that may expire beats no record at all.
-    """
+    """Replace file nodes with ``{"__asset__": id}`` markers, capturing their bytes."""
     if counter is None:
         counter = [0]
     assets: dict[str, PendingAsset] = {}
@@ -694,3 +562,254 @@ def _content_type_of(node, path_or_url: str) -> str:
         if isinstance(m, str) and m:
             return m
     return mimetypes.guess_type(path_or_url)[0] or "application/octet-stream"
+
+
+BUCKET_HEADER = "x-gradio-history-bucket"
+MAX_CONCURRENT_WRITES = 8
+
+
+def init_history_state(app) -> None:
+    """Attach the per-app state the recorder and the read routes share."""
+    app.state.bucket_history_cache = OrderedDict()
+    app.state.bucket_history_cache_lock = threading.Lock()
+    app.state.history_write_limiter = anyio.CapacityLimiter(MAX_CONCURRENT_WRITES)
+    app.state.history_tasks = set()
+
+
+def app_id_of(blocks) -> str:
+    """The folder this app's runs are filed under; re-minted on restart."""
+    return sanitize_segment(getattr(blocks, "app_id", None) or "app")
+
+
+def _fastapi_request(request) -> Any | None:
+    """Unwrap a `gr.Request` to the underlying fastapi request, if there is one."""
+    if request is None:
+        return None
+    if isinstance(request, list):
+        request = request[0] if request else None
+        if request is None:
+            return None
+    inner = getattr(request, "request", None)
+    return inner if inner is not None else request
+
+
+def app_from_request(request) -> Any | None:
+    """The gradio ``App`` serving *request*."""
+    raw = _fastapi_request(request)
+    return getattr(raw, "app", None) if raw is not None else None
+
+
+def resolve_identity(request) -> tuple[str, str] | None:
+    """``(owner_id, access_token)`` for the caller, or None."""
+    raw = _fastapi_request(request)
+    if raw is None:
+        return None
+    try:
+        session = raw.session
+    except Exception:
+        return None
+    try:
+        info = oauth._get_valid_oauth_info_from_session(session)
+    except Exception:
+        info = None
+    if not info:
+        return None
+    token = info.get("access_token")
+    if not isinstance(token, str) or not token:
+        return None
+    userinfo = info.get("userinfo") or {}
+    owner_id = userinfo.get("sub") or userinfo.get("preferred_username") or ""
+    return (owner_id if isinstance(owner_id, str) else ""), token
+
+
+def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
+    """Which bucket this run belongs in, resolved per request."""
+    if explicit:
+        return explicit
+    raw = _fastapi_request(request)
+    if raw is not None:
+        try:
+            header = raw.headers.get(BUCKET_HEADER)
+        except Exception:
+            header = None
+        if header:
+            return header.strip()
+    configured = os.getenv("GRADIO_HISTORY_BUCKET") or getattr(
+        blocks, "history_bucket", None
+    )
+    return configured or None
+
+
+def resolve_target(
+    app,
+    request,
+    *,
+    bucket_id: str | None = None,
+    app_id: str | None = None,
+) -> tuple[HistoryTarget, str] | None:
+    """``(target, owner_id)`` for this caller, or None if history is off."""
+    blocks = app.get_blocks()
+    if not getattr(blocks, "run_history", True):
+        return None
+    bucket = resolve_bucket_id(blocks, request, bucket_id)
+    if not bucket:
+        return None
+    identity = resolve_identity(request)
+    if identity is None:
+        return None
+    owner_id, token = identity
+    try:
+        return HistoryTarget.build(bucket, token, app_id or app_id_of(blocks)), owner_id
+    except ValueError:
+        logger.debug("history: ignoring invalid bucket id %r", bucket)
+        return None
+
+
+def endpoint_key(api_name: str | None, fn_index: int | None) -> str:
+    """The path segment a run is filed under: the endpoint it ran."""
+    if api_name:
+        return sanitize_segment(str(api_name).lstrip("/"), fallback="endpoint")
+    if fn_index is not None:
+        return f"fn-{int(fn_index)}"
+    return "endpoint"
+
+
+async def record_run(
+    app,
+    *,
+    request,
+    inputs: Any,
+    outputs: Any,
+    api_name: str | None = None,
+    fn_index: int | None = None,
+    endpoint: str | None = None,
+    page: str = "",
+    label: str | None = None,
+    status: str = "completed",
+    error: str | None = None,
+    started_at: str | None = None,
+    duration_ms: float | None = None,
+    queued_ms: float | None = None,
+    streamed: bool = False,
+    bucket_id: str | None = None,
+    app_id: str | None = None,
+) -> str | None:
+    """Persist one run. Returns the record id, or None if nothing was written."""
+    resolved = resolve_target(app, request, bucket_id=bucket_id, app_id=app_id)
+    if resolved is None:
+        return None
+    target, owner_id = resolved
+
+    record = HistoryRecord(
+        record_id=new_record_id(),
+        owner_id=owner_id,
+        app_id=target.app_id,
+        endpoint=endpoint or endpoint_key(api_name, fn_index),
+        api_name=api_name,
+        fn_index=fn_index,
+        page=page or "",
+        label=label,
+        status=status,
+        error=error,
+        started_at=started_at or now_utc_iso(),
+        completed_at=now_utc_iso(),
+        duration_ms=duration_ms,
+        queued_ms=queued_ms,
+        streamed=streamed,
+        inputs=None,
+        outputs=None,
+    )
+
+    counter = [0]
+    record.inputs, assets = await externalize_assets(inputs, counter)
+    record.outputs, output_assets = await externalize_assets(outputs, counter)
+    merged: dict[str, PendingAsset] = {**assets, **output_assets}
+
+    limiter: anyio.CapacityLimiter = app.state.history_write_limiter
+    async with limiter:
+        await anyio.to_thread.run_sync(save_record, target, record, merged)
+    return record.record_id
+
+
+def schedule_record_run(app, **kwargs) -> None:
+    """Record a run without making the caller wait for the Hub."""
+    try:
+        limiter = app.state.history_write_limiter
+    except AttributeError:
+        return
+    if limiter.borrowed_tokens >= limiter.total_tokens:
+        logger.debug("history: write pool saturated, dropping record")
+        return
+
+    async def _run() -> None:
+        try:
+            await record_run(app, **kwargs)
+        except HistoryStoreError as exc:
+            logger.warning("history: could not record run: %s", exc)
+        except Exception:
+            logger.warning("history: could not record run", exc_info=True)
+
+    try:
+        task = asyncio.get_running_loop().create_task(_run())
+    except RuntimeError:
+        return
+    tasks = getattr(app.state, "history_tasks", None)
+    if tasks is None:
+        return
+    tasks.add(task)
+    task.add_done_callback(tasks.discard)
+
+
+MAX_BODY_BYTES = 2 * 1024 * 1024
+
+
+def _http_from_store_error(exc: Exception) -> fastapi.HTTPException:
+    if isinstance(exc, (NotAuthorizedError, PublicBucketError)):
+        return fastapi.HTTPException(403, str(exc))
+    if isinstance(exc, NotFoundError):
+        return fastapi.HTTPException(404, str(exc))
+    if isinstance(exc, HubError):
+        return fastapi.HTTPException(502, str(exc))
+    return fastapi.HTTPException(500, str(exc))
+
+
+async def offload(fn, *args):
+    """Run a blocking store call off the event loop, mapping store errors to HTTP."""
+    try:
+        return await anyio.to_thread.run_sync(fn, *args)
+    except HistoryStoreError as exc:
+        raise _http_from_store_error(exc) from exc
+
+
+def get_target(
+    request: Request,
+    token: Annotated[str, Depends(oauth.require_oauth_token)],
+    bucket: Annotated[str, Query(min_length=3, max_length=200)],
+) -> HistoryTarget:
+    """The bucket named on this request, addressed with the caller's token."""
+    blocks = request.app.get_blocks()
+    if not getattr(blocks, "run_history", True):
+        raise fastapi.HTTPException(404, "run history is disabled for this app")
+    try:
+        return HistoryTarget.build(bucket, token, app_id_of(blocks))
+    except ValueError as exc:
+        raise fastapi.HTTPException(422, "invalid bucket id") from exc
+
+
+TargetDep = Annotated[HistoryTarget, Depends(get_target)]
+
+
+TokenDep = Annotated[str, Depends(oauth.require_oauth_token)]
+
+
+RecordId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
+
+
+AssetId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
+
+
+EndpointSeg = Annotated[str, Path(pattern=SEGMENT_PATTERN)]
+
+
+class ConnectBody(BaseModel):
+    bucket_id: str

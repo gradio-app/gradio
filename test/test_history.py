@@ -406,26 +406,26 @@ def test_history_is_partitioned_by_app_id():
     way `blocks.app_id` is re-minted — which is the point. An app's endpoints,
     or a workflow's whole graph, can change between deploys, and runs recorded
     against the old shape are not replayable against the new one."""
-    from gradio import history_recorder
+    from gradio import history
 
     with gr.Blocks() as demo:
         gr.Textbox()
-    first = history_recorder.app_id_of(demo)
+    first = history.app_id_of(demo)
     demo.app_id = 999888777  # what a restart amounts to
-    assert history_recorder.app_id_of(demo) != first
+    assert history.app_id_of(demo) != first
 
 
 def test_bucket_resolution_never_reads_session_state(monkeypatch):
     """Fix for the shared session slot: the bucket comes from this request."""
-    from gradio import history_recorder
+    from gradio import history
 
     monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
     blocks = MagicMock(history_bucket=None)
     request = MagicMock()
     request.request = None
-    request.headers = {history_recorder.BUCKET_HEADER: "alice/tab-one"}
+    request.headers = {history.BUCKET_HEADER: "alice/tab-one"}
     request.session = {"history": {"bucket_id": "stale/from-another-tab"}}
-    assert history_recorder.resolve_bucket_id(blocks, request) == "alice/tab-one"
+    assert history.resolve_bucket_id(blocks, request) == "alice/tab-one"
 
 
 # --------------------------------------------------------------------- routes
@@ -472,7 +472,7 @@ def authed_history():
     app.dependency_overrides[oauth.require_oauth_token] = lambda: "tok"
     with (
         patch(
-            "gradio.history_recorder.resolve_identity",
+            "gradio.history.resolve_identity",
             return_value=("alice-sub", "tok"),
         ),
         patch("gradio.history.HfApi", return_value=hub),
@@ -562,7 +562,7 @@ def recording_app(monkeypatch):
     app, _, _ = io.launch(prevent_thread_lock=True)
     with (
         patch(
-            "gradio.history_recorder.resolve_identity",
+            "gradio.history.resolve_identity",
             return_value=("alice-sub", "tok"),
         ),
         patch("gradio.history.HfApi", return_value=hub),
@@ -688,7 +688,7 @@ def workflow_app(tmp_path, monkeypatch):
     canvas = next(b for b in wf.blocks.values() if type(b).__name__ == "WorkflowCanvas")
     with (
         patch(
-            "gradio.history_recorder.resolve_identity",
+            "gradio.history.resolve_identity",
             return_value=("alice-sub", "tok"),
         ),
         patch("gradio.history.HfApi", return_value=hub),
@@ -733,7 +733,7 @@ class TestWorkflowRecording:
 
         assert _wait_for(lambda: len(hub.files) == 1)
         (path,) = list(hub.files)
-        app_id = __import__("gradio").history_recorder.app_id_of(wf)
+        app_id = __import__("gradio").history.app_id_of(wf)
         assert path.startswith(f"runs/{app_id}/result_image/")
 
         record = json.loads(hub.files[path])
@@ -787,7 +787,7 @@ class TestWorkflowRecording:
         internal = next(f for f in demo.fns.values() if f.api_visibility != "public")
         with (
             patch(
-                "gradio.history_recorder.resolve_identity",
+                "gradio.history.resolve_identity",
                 return_value=("alice-sub", "tok"),
             ),
             patch("gradio.history.HfApi", return_value=hub),
