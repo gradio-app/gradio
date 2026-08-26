@@ -3124,7 +3124,7 @@
 				<div class="zoom-ctrl-divider"></div>
 			{/if}
 			<button
-				class="zoom-ctrl-btn"
+				class="zoom-ctrl-btn zoom-ctrl-shortcuts"
 				onclick={() => (showShortcuts = !showShortcuts)}
 				title="Keyboard shortcuts">?</button
 			>

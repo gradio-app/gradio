@@ -8,6 +8,7 @@
 	border: 1px solid #1e1f2a;
 	border-radius: 14px;
 	overflow: hidden;
+	overscroll-behavior: none;
 	font-family: "Manrope", sans-serif;
 	color-scheme: dark;
 	box-shadow:
@@ -955,7 +956,7 @@
 	white-space: nowrap;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (pointer: coarse) {
 	.workflow-root {
 		min-height: 100dvh;
 		border-radius: 0;
@@ -981,18 +982,26 @@
 	.name-text {
 		font-size: 13px;
 	}
+	.name-btn,
+	.name-readonly,
+	.tool-btn,
+	.toolbar-login-btn,
+	.toolbar-user-chip {
+		white-space: nowrap;
+	}
 	.tool-btn {
 		padding: 5px 8px;
 		font-size: 11px;
+	}
+	.toolbar-token-form {
+		flex-basis: 100%;
+		min-width: 0;
+		order: 10;
 	}
 	.toolbar-token-input {
 		width: 100%;
 		min-width: 0;
 		flex: 1;
-	}
-	.toolbar-token-form {
-		flex: 1;
-		min-width: 0;
 	}
 	.toolbar-login-btn {
 		padding: 5px 10px;
@@ -1010,14 +1019,15 @@
 		right: 0;
 	}
 	.zoom-controls {
-		bottom: 84px;
+		bottom: calc(84px + env(safe-area-inset-bottom));
 		right: 8px;
 	}
-	.shortcuts-panel {
+	.shortcuts-panel,
+	.zoom-ctrl-shortcuts {
 		display: none;
 	}
 	.wf-toast-stack {
-		bottom: 96px;
+		bottom: calc(96px + env(safe-area-inset-bottom));
 		left: 8px;
 		right: 8px;
 		transform: none;

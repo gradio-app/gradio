@@ -1871,4 +1871,19 @@
 	:global(body:not(.dark)) .node-endpoint-load:hover {
 		color: #3e4050;
 	}
+
+	@media (pointer: coarse) {
+		.port-handle-sf::before {
+			content: "";
+			position: absolute;
+			inset: -10px;
+			border-radius: 50%;
+		}
+		.port-handle-sf {
+			opacity: 1;
+		}
+		.node-resize-handle {
+			display: none;
+		}
+	}
 </style>

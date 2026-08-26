@@ -548,9 +548,9 @@
 		color: #1a1b25;
 	}
 
-	@media (max-width: 640px) {
+	@media (max-width: 640px), (pointer: coarse) {
 		.bottom-bar {
-			bottom: 10px;
+			bottom: calc(10px + env(safe-area-inset-bottom));
 			max-width: calc(100vw - 16px);
 			overflow-x: auto;
 			overflow-y: hidden;

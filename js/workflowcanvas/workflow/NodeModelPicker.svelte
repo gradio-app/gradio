@@ -1988,9 +1988,9 @@
 		color: rgba(0, 0, 0, 0.55);
 	}
 
-	@media (max-width: 640px) {
+	@media (max-width: 640px), (pointer: coarse) {
 		.picker-overlay {
-			padding-bottom: 70px;
+			padding-bottom: calc(70px + env(safe-area-inset-bottom));
 			padding-top: 4px;
 		}
 		.picker-panel,
