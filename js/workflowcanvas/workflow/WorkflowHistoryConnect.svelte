@@ -72,7 +72,8 @@
 
 	onMount(async () => {
 		if (!signedIn) return;
-		existingBuckets = await list_user_buckets(root);
+		const result = await list_user_buckets(root);
+		if (result.ok) existingBuckets = result.data;
 	});
 </script>
 

@@ -12,9 +12,12 @@ export {
 	delete_run_history,
 	on_run_history_change,
 	read_run_history,
+	read_run_history_storage,
 	run_history_url,
+	set_run_history_storage,
 	stage_run_history_replay,
 	type ReplayTarget,
+	type RunHistoryStorage,
 	type RunHistoryScope,
 	type StoredRunComponent,
 	type StoredRun

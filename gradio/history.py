@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import json
 import logging
 import mimetypes
@@ -480,12 +481,39 @@ def app_from_request(request) -> Any | None:
     return getattr(raw, "app", None) if raw is not None else None
 
 
+def _is_loopback_host(value: str | None) -> bool:
+    if not value:
+        return False
+    if value.lower() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(value).is_loopback
+    except ValueError:
+        return False
+
+
+def _is_direct_local_request(request) -> bool:
+    """Whether the browser reached a local-only Gradio URL directly.
+
+    Check both the public Host and the network peer. A share tunnel may connect
+    to the server from loopback, while a LAN client can forge ``Host:
+    localhost``; requiring both prevents either from inheriting the host's
+    locally saved Hugging Face credential.
+    """
+    try:
+        return _is_loopback_host(request.url.hostname) and _is_loopback_host(
+            request.client.host
+        )
+    except (AttributeError, ValueError):
+        return False
+
+
 def resolve_token(request) -> str | None:
     """The caller's HF token: their OAuth token, else the host's own local one.
 
-    Same order `gradio.workflow._resolve_token` uses for inference and ZeroGPU,
-    so history is available exactly where model calls already are. Imported
-    lazily because `gradio.workflow` imports this module.
+    The local credential is limited to Workflow's write-token holder or a
+    browser connected directly over loopback. Imported lazily because
+    `gradio.workflow` imports this module.
     """
     from gradio.workflow import _get_locally_saved_hf_token, _request_has_write_token
 
@@ -499,7 +527,9 @@ def resolve_token(request) -> str | None:
     token = (info or {}).get("access_token")
     if isinstance(token, str) and token:
         return token
-    if raw is not None and _request_has_write_token(raw):
+    if raw is not None and (
+        _request_has_write_token(raw) or _is_direct_local_request(raw)
+    ):
         return _get_locally_saved_hf_token()
     return None
 

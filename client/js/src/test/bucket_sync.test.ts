@@ -108,10 +108,24 @@ describe("bucket setup", () => {
 			status: 200,
 			json: async () => ({ buckets: ["alice/one", "alice/two"] })
 		}) as any;
-		expect(await list_user_buckets("http://x")).toEqual([
-			"alice/one",
-			"alice/two"
-		]);
+		expect(await list_user_buckets("http://x")).toMatchObject({
+			ok: true,
+			data: ["alice/one", "alice/two"]
+		});
+	});
+
+	it("preserves authentication errors for the connect UI", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 401,
+			json: async () => ({ detail: "oauth session required" })
+		}) as any;
+		expect(await list_user_buckets("http://x")).toMatchObject({
+			ok: false,
+			status: 401,
+			data: [],
+			detail: "oauth session required"
+		});
 	});
 });
 

@@ -119,11 +119,12 @@ export async function connect_bucket(
 	);
 }
 
-export async function list_user_buckets(root: string): Promise<string[]> {
-	const res = await request<string[]>(url(root, "buckets"), {}, [], (b) =>
+export async function list_user_buckets(
+	root: string
+): Promise<HistoryResult<string[]>> {
+	return request<string[]>(url(root, "buckets"), {}, [], (b) =>
 		Array.isArray(b?.buckets) ? b.buckets : []
 	);
-	return res.data;
 }
 
 export async function list_bucket_records(
