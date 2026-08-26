@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from contextlib import contextmanager
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -107,44 +108,20 @@ class FakeHub:
                 fh.write(self.files[path])
 
 
-class _Bound:
-    """A `HistoryTarget` bound to a fake bucket.
-
-    The storage functions are module-level and take `(target, ...)`; this just
-    saves every test from repeating the target and patching `_api`, so the
-    call sites still read `store.save_record(record)`.
-    """
-
-    def __init__(self, hub, target: HistoryTarget):
-        self._hub = hub
-        self.target = target
-        self.app_id = target.app_id
-        self.repo_id = target.bucket
-
-    # path helpers key off app_id; everything else takes the whole target
-    _BY_APP_ID = {"app_prefix", "endpoint_prefix", "record_path", "asset_prefix"}
-
-    def __getattr__(self, name):
-        fn = getattr(history_mod, name)
-        first = self.app_id if name in self._BY_APP_ID else self.target
-
-        def call(*args, **kwargs):
-            with patch.object(history_mod, "_api", lambda _target: self._hub):
-                return fn(first, *args, **kwargs)
-
-        return call
-
-
-def make_store(hub, *, app_id="app", repo_id="alice/hist"):
+def make_target(*, app_id="app", bucket="alice/hist", token="tok"):
     history_mod._ensured.clear()
-    return _Bound(hub, HistoryTarget(repo_id, "tok", app_id))
+    return HistoryTarget(bucket, token, app_id)
 
 
-def make_record(store, endpoint="predict", **kw):
+@contextmanager
+def use_hub(hub):
+    with patch.object(history_mod, "_api", lambda _target: hub):
+        yield
+
+
+def make_record(endpoint="predict", **kw):
     return HistoryRecord(
         record_id=kw.pop("record_id", new_record_id()),
-        owner_id=kw.pop("owner_id", "alice-sub"),
-        app_id=kw.pop("app_id", store.app_id),
         endpoint=endpoint,
         inputs=kw.pop("inputs", {}),
         outputs=kw.pop("outputs", {}),
@@ -178,8 +155,11 @@ def test_record_ids_are_timestamp_prefixed_and_unique():
 
 def test_records_are_filed_under_app_endpoint():
     hub = FakeHub()
-    store = make_store(hub, app_id="myapp")
-    store.save_record(make_record(store, endpoint="predict", record_id="0001abc"))
+    target = make_target(app_id="myapp")
+    with use_hub(hub):
+        history_mod.save_record(
+            target, make_record(endpoint="predict", record_id="0001abc")
+        )
     (path,) = list(hub.files)
     assert path == "runs/myapp/predict/0001abc.json"
 
@@ -191,25 +171,22 @@ def test_a_bucket_is_one_shared_history():
     owner boundary, so two people pointing at one bucket see one timeline.
     """
     hub = FakeHub()
-    alice = make_store(hub)
-    bob = make_store(hub)
+    alice = make_target(token="alice-token")
+    bob = HistoryTarget(alice.bucket, "bob-token", alice.app_id)
 
-    alice.save_record(
-        make_record(
+    with use_hub(hub):
+        history_mod.save_record(
             alice,
-            record_id="0001a",
-            owner_id="alice-sub",
-            outputs={"o": "from alice"},
+            make_record(record_id="0001a", outputs={"o": "from alice"}),
         )
-    )
-    bob.save_record(
-        make_record(
-            bob, record_id="0002b", owner_id="bob-sub", outputs={"o": "from bob"}
+        history_mod.save_record(
+            bob,
+            make_record(record_id="0002b", outputs={"o": "from bob"}),
         )
-    )
+        records = history_mod.list_records(bob)
 
-    assert [r.record_id for r in bob.list_records()] == ["0002b", "0001a"]
-    assert bob.get_record("predict", "0001a").outputs == {"o": "from alice"}
+    assert [r.record_id for r in records] == ["0002b", "0001a"]
+    assert records[1].outputs == {"o": "from alice"}
 
 
 # ------------------------------------------------------------ bounded reading
@@ -222,12 +199,14 @@ def test_list_records_downloads_only_the_page_it_returns():
     cache miss regardless of `limit`, and dropped everything past 200 entirely.
     """
     hub = FakeHub()
-    store = make_store(hub)
-    for i in range(300):
-        store.save_record(make_record(store, record_id=f"{i:013d}aaaaaaaaaaaa"))
-    hub.downloads.clear()
-
-    records = store.list_records(limit=10)
+    target = make_target()
+    with use_hub(hub):
+        for i in range(300):
+            history_mod.save_record(
+                target, make_record(record_id=f"{i:013d}aaaaaaaaaaaa")
+            )
+        hub.downloads.clear()
+        records = history_mod.list_records(target, limit=10)
 
     assert len(records) == 10
     assert len(hub.downloads) == 10
@@ -239,11 +218,18 @@ def test_list_records_downloads_only_the_page_it_returns():
 
 def test_list_records_is_newest_first_across_endpoints():
     hub = FakeHub()
-    store = make_store(hub)
-    store.save_record(make_record(store, endpoint="zzz", record_id="0000000000003x"))
-    store.save_record(make_record(store, endpoint="aaa", record_id="0000000000009x"))
-    store.save_record(make_record(store, endpoint="mmm", record_id="0000000000005x"))
-    ids = [r.record_id for r in store.list_records()]
+    target = make_target()
+    with use_hub(hub):
+        history_mod.save_record(
+            target, make_record(endpoint="zzz", record_id="0000000000003x")
+        )
+        history_mod.save_record(
+            target, make_record(endpoint="aaa", record_id="0000000000009x")
+        )
+        history_mod.save_record(
+            target, make_record(endpoint="mmm", record_id="0000000000005x")
+        )
+        ids = [r.record_id for r in history_mod.list_records(target)]
     assert ids == ["0000000000009x", "0000000000005x", "0000000000003x"]
 
 
@@ -270,44 +256,41 @@ def test_externalize_assets_replaces_local_files_with_markers(tmp_path, monkeypa
     f.write_bytes(b"png")
     tree = {"a": {"value": {"path": str(f), "mime_type": "image/png"}}, "b": 3}
     rewritten, assets = externalize(tree)
-    assert rewritten["a"]["value"] == {"__asset__": "a001"}
+    assert rewritten["a"]["value"] == {"__asset__": "a001.png"}
     assert rewritten["b"] == 3
-    assert assets["a001"].local_path == str(f)
+    assert assets["a001.png"].local_path == str(f)
 
 
 def test_untrusted_asset_path_is_not_uploaded(tmp_path, monkeypatch):
     monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
     hub = FakeHub()
-    store = make_store(hub)
-    record = make_record(store, record_id="r1")
-    store.save_record(
-        record,
-        {"a001": PendingAsset(content_type="text/plain", local_path="/etc/passwd")},
-    )
-    assert record.assets == {}
+    target = make_target()
+    with use_hub(hub):
+        history_mod.save_record(
+            target,
+            make_record(record_id="r1"),
+            {"a001.txt": PendingAsset(local_path="/etc/passwd")},
+        )
     assert all(p.endswith("r1.json") for p in hub.files)
 
 
-def test_stored_asset_is_addressable_and_prefix_checked(tmp_path, monkeypatch):
+def test_stored_asset_is_addressable_by_its_filename(tmp_path, monkeypatch):
     monkeypatch.setattr("gradio.history.get_upload_folder", lambda: str(tmp_path))
     f = tmp_path / "img.png"
     f.write_bytes(b"PNGDATA")
     hub = FakeHub()
-    store = make_store(hub)
-    record = make_record(store, record_id="r1")
-    store.save_record(
-        record, {"a001": PendingAsset(content_type="image/png", local_path=str(f))}
-    )
-    data, ct = store.get_asset_bytes("predict", "r1", "a001")
+    target = make_target()
+    with use_hub(hub):
+        history_mod.save_record(
+            target,
+            make_record(record_id="r1"),
+            {"a001.png": PendingAsset(local_path=str(f))},
+        )
+        data, ct = history_mod.get_asset_bytes(target, "predict", "r1", "a001.png")
     assert data == b"PNGDATA"
     assert ct == "image/png"
-
-    # A record hand-edited on the Hub cannot redirect the download elsewhere.
-    tampered = json.loads(hub.files[store.record_path("predict", "r1")])
-    tampered["assets"]["a001"] = "runs/somebody-else/app/predict/secret.json"
-    hub.files[store.record_path("predict", "r1")] = json.dumps(tampered).encode()
-    with pytest.raises(HistoryError):
-        store.get_asset_bytes("predict", "r1", "a001")
+    with pytest.raises(ValueError):
+        history_mod.get_asset_bytes(target, "predict", "r1", "../secret")
 
 
 # --------------------------------------------------------- orphaned assets
@@ -319,13 +302,15 @@ def test_failed_commit_cleans_up_its_uploaded_assets(tmp_path, monkeypatch):
     f = tmp_path / "img.png"
     f.write_bytes(b"png")
     hub = FakeHub()
-    store = make_store(hub)
-    record = make_record(store, record_id="r1")
-    hub.fail_next_add_paths = {store.record_path("predict", "r1")}
+    target = make_target()
+    record = make_record(record_id="r1")
+    hub.fail_next_add_paths = {history_mod.record_path(target.app_id, "predict", "r1")}
 
-    with pytest.raises(HistoryError):
-        store.save_record(
-            record, {"a001": PendingAsset(content_type="image/png", local_path=str(f))}
+    with use_hub(hub), pytest.raises(HistoryError):
+        history_mod.save_record(
+            target,
+            record,
+            {"a001.png": PendingAsset(local_path=str(f))},
         )
 
     assert hub.files == {}
@@ -335,7 +320,7 @@ def test_remote_media_is_fetched_and_stored():
     """A URL on another origin is dead within the hour; storing it verbatim
     produces a record that looks saved and renders broken later."""
     hub = FakeHub()
-    store = make_store(hub)
+    target = make_target()
     with patch(
         "gradio.history.fetch_remote_asset",
         new=AsyncMock(return_value=(b"REMOTE", "image/png")),
@@ -349,10 +334,11 @@ def test_remote_media_is_fetched_and_stored():
                 }
             }
         )
-    assert rewritten["o"]["value"] == {"__asset__": "a001"}
-    record = make_record(store, record_id="r1", outputs=rewritten)
-    store.save_record(record, assets)
-    data, _ = store.get_asset_bytes("predict", "r1", "a001")
+    assert rewritten["o"]["value"] == {"__asset__": "a001.png"}
+    record = make_record(record_id="r1", outputs=rewritten)
+    with use_hub(hub):
+        history_mod.save_record(target, record, assets)
+        data, _ = history_mod.get_asset_bytes(target, "predict", "r1", "a001.png")
     assert data == b"REMOTE"
 
 
@@ -381,9 +367,9 @@ def test_remote_fetch_goes_through_gradios_ssrf_protected_client():
 
 def test_ensure_private_bucket_rejects_public():
     hub = FakeHub(private=False)
-    store = make_store(hub)
-    with pytest.raises(HistoryError):
-        store.ensure_private_bucket()
+    target = make_target()
+    with use_hub(hub), pytest.raises(HistoryError):
+        history_mod.ensure_private_bucket(target)
 
 
 class TestEnsureMemo:
@@ -392,9 +378,10 @@ class TestEnsureMemo:
 
     def test_a_bucket_is_only_ensured_once(self):
         hub = FakeHub()
-        store = make_store(hub)
-        for i in range(3):
-            store.save_record(make_record(store, record_id=f"000{i}aaa"))
+        target = make_target()
+        with use_hub(hub):
+            for i in range(3):
+                history_mod.save_record(target, make_record(record_id=f"000{i}aaa"))
         assert len(hub.created) == 1
 
 
@@ -471,10 +458,7 @@ def authed_history():
     hub = FakeHub()
     app.dependency_overrides[oauth.require_oauth_token] = lambda: "tok"
     with (
-        patch(
-            "gradio.history.resolve_identity",
-            return_value=("alice-sub", "tok"),
-        ),
+        patch("gradio.history.resolve_token", return_value="tok"),
         patch("gradio.history.HfApi", return_value=hub),
     ):
         yield TestClient(app), hub
@@ -483,6 +467,13 @@ def authed_history():
 
 
 class TestRunHistoryValidation:
+    def test_connect_returns_only_success(self, authed_history):
+        client, _ = authed_history
+        response = client.post(
+            "/gradio_api/run-history/connect", json={"bucket_id": "alice/history"}
+        )
+        assert response.json() == {"ok": True}
+
     def test_bucket_is_required_on_every_read(self, authed_history):
         client, _ = authed_history
         assert client.get("/gradio_api/run-history/records").status_code == 422
@@ -543,10 +534,7 @@ def recording_app(monkeypatch):
     io = gr.Interface(greet, "text", "text", api_name="greet")
     app, _, _ = io.launch(prevent_thread_lock=True)
     with (
-        patch(
-            "gradio.history.resolve_identity",
-            return_value=("alice-sub", "tok"),
-        ),
+        patch("gradio.history.resolve_token", return_value="tok"),
         patch("gradio.history.HfApi", return_value=hub),
     ):
         yield TestClient(app), hub, io
@@ -574,10 +562,15 @@ class TestServerSideRecording:
         # The values are the server's own, not something a client supplied.
         assert record["inputs"] == ["world"]
         assert record["outputs"] == ["hello world"]
-        assert record["owner_id"] == "alice-sub"
         assert record["endpoint"] == "greet"
-        assert record["status"] == "completed"
-        assert record["api_name"] == "greet"
+        assert set(record) == {
+            "record_id",
+            "endpoint",
+            "inputs",
+            "outputs",
+            "started_at",
+            "schema_version",
+        }
 
     def test_a_hub_failure_does_not_fail_the_prediction(self, recording_app):
         client, hub, io = recording_app
@@ -669,10 +662,7 @@ def workflow_app(tmp_path, monkeypatch):
     app, _, _ = wf.launch(prevent_thread_lock=True)
     canvas = next(b for b in wf.blocks.values() if type(b).__name__ == "WorkflowCanvas")
     with (
-        patch(
-            "gradio.history.resolve_identity",
-            return_value=("alice-sub", "tok"),
-        ),
+        patch("gradio.history.resolve_token", return_value="tok"),
         patch("gradio.history.HfApi", return_value=hub),
     ):
         yield TestClient(app), hub, wf, canvas._id
@@ -693,9 +683,7 @@ def _call_server_fn(client, component_id, fn_name, data):
 
 
 class TestWorkflowRecording:
-    def test_canvas_run_is_filed_under_its_api_endpoint(self, workflow_app):
-        """A canvas run and a `/call/<subject>` run of the same subgraph must
-        land in the same place — that is the point of one recorder."""
+    def test_canvas_run_uses_the_metadata_the_canvas_already_has(self, workflow_app):
         client, hub, wf, cid = workflow_app
         r = _call_server_fn(
             client,
@@ -703,32 +691,43 @@ class TestWorkflowRecording:
             "record_workflow_run",
             [
                 "alice/hist",
-                json.dumps(["result"]),
-                json.dumps({"prompt": "a cat", "result": "http://x/img.png"}),
+                "Result Image",
+                {
+                    "prompt": {
+                        "value": "a cat",
+                        "label": "Prompt",
+                        "type": "text",
+                        "port_id": "out",
+                    }
+                },
+                {
+                    "result": {
+                        "value": "generated",
+                        "label": "Result Image",
+                        "type": "image",
+                        "port_id": "in",
+                    }
+                },
             ],
         )
         assert r.status_code == 200, r.text
         payload = json.loads(r.json())
         assert "error" not in payload, payload
-        # `_group_slug_iter` slugifies the first subject's label.
-        assert payload["endpoint"] == "result_image"
+        assert payload["endpoint"] == "Result-Image"
 
         assert _wait_for(lambda: len(hub.files) == 1)
         (path,) = list(hub.files)
         app_id = __import__("gradio").history.app_id_of(wf)
-        assert path.startswith(f"runs/{app_id}/result_image/")
+        assert path.startswith(f"runs/{app_id}/Result-Image/")
 
         record = json.loads(hub.files[path])
-        # The structure is reconstructed from the graph, not sent by the client.
         assert record["inputs"]["prompt"]["label"] == "Prompt"
         assert record["inputs"]["prompt"]["type"] == "text"
         assert record["inputs"]["prompt"]["port_id"] == "out"
         assert record["outputs"]["result"]["label"] == "Result Image"
         assert record["outputs"]["result"]["type"] == "image"
-        assert record["api_name"] == "result_image"
-        assert record["owner_id"] == "alice-sub"
 
-    def test_client_cannot_choose_the_record_id_or_owner(self, workflow_app):
+    def test_client_cannot_choose_record_metadata(self, workflow_app):
         client, hub, _wf, cid = workflow_app
         _call_server_fn(
             client,
@@ -736,22 +735,16 @@ class TestWorkflowRecording:
             "record_workflow_run",
             [
                 "alice/hist",
-                json.dumps(["result"]),
-                json.dumps(
-                    {
-                        "prompt": "x",
-                        "result": "y",
-                        "record_id": "attacker-chosen",
-                        "owner_id": "bob-sub",
-                    }
-                ),
+                "result",
+                {"record_id": "attacker-chosen", "started_at": "yesterday"},
+                {"result": {"value": "y", "type": "text"}},
             ],
         )
         assert _wait_for(lambda: len(hub.files) == 1)
         (path,) = list(hub.files)
         record = json.loads(hub.files[path])
         assert record["record_id"] != "attacker-chosen"
-        assert record["owner_id"] == "alice-sub"
+        assert record["started_at"] != "yesterday"
 
     def test_internal_dependencies_are_not_recorded(self, monkeypatch):
         """Parity with the browser-local history, which records only the
@@ -768,10 +761,7 @@ class TestWorkflowRecording:
         app, _, _ = demo.launch(prevent_thread_lock=True)
         internal = next(f for f in demo.fns.values() if f.api_visibility != "public")
         with (
-            patch(
-                "gradio.history.resolve_identity",
-                return_value=("alice-sub", "tok"),
-            ),
+            patch("gradio.history.resolve_token", return_value="tok"),
             patch("gradio.history.HfApi", return_value=hub),
         ):
             client = TestClient(app)

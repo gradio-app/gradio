@@ -12,8 +12,6 @@
  */
 
 const BUCKET_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$/;
-const RECORD_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
-const SEGMENT_RE = /^[A-Za-z0-9_.-]{1,80}$/;
 
 export function is_valid_bucket_id(id: string): boolean {
 	if (!BUCKET_ID_RE.test(id)) return false;
@@ -22,33 +20,13 @@ export function is_valid_bucket_id(id: string): boolean {
 		.some((seg) => seg === "" || seg === "." || seg === "..");
 }
 
-export interface BucketInfo {
-	id: string;
-	private?: boolean;
-}
-
-/** Mirrors `HistoryRecord` in `gradio/history.py`, which in turn mirrors
- * `StoredRun` in `run_history.ts` — the browser-local backend for the same
- * thing. */
+/** Mirrors `HistoryRecord` in `gradio/history.py`. */
 export interface HistoryRecord {
 	record_id: string;
-	owner_id: string;
-	app_id: string;
 	endpoint: string;
 	inputs: unknown;
 	outputs: unknown;
-	api_name?: string | null;
-	fn_index?: number | null;
-	page?: string;
-	label?: string | null;
-	status: string;
-	error?: string | null;
 	started_at: string;
-	completed_at?: string | null;
-	duration_ms?: number | null;
-	queued_ms?: number | null;
-	streamed?: boolean;
-	assets: Record<string, string>;
 	schema_version: number;
 }
 
@@ -120,7 +98,7 @@ async function request<T>(
 export async function connect_bucket(
 	root: string,
 	bucket_id: string
-): Promise<HistoryResult<{ bucket_id: string; app_id: string } | null>> {
+): Promise<HistoryResult<null>> {
 	if (!is_valid_bucket_id(bucket_id)) {
 		return {
 			ok: false,
@@ -137,12 +115,12 @@ export async function connect_bucket(
 			body: JSON.stringify({ bucket_id })
 		},
 		null,
-		(b) => b
+		() => null
 	);
 }
 
-export async function list_user_buckets(root: string): Promise<BucketInfo[]> {
-	const res = await request<BucketInfo[]>(url(root, "buckets"), {}, [], (b) =>
+export async function list_user_buckets(root: string): Promise<string[]> {
+	const res = await request<string[]>(url(root, "buckets"), {}, [], (b) =>
 		Array.isArray(b?.buckets) ? b.buckets : []
 	);
 	return res.data;
@@ -150,15 +128,9 @@ export async function list_user_buckets(root: string): Promise<BucketInfo[]> {
 
 export async function list_bucket_records(
 	root: string,
-	bucket: string,
-	options: { endpoint?: string; limit?: number } = {}
+	bucket: string
 ): Promise<HistoryResult<HistoryRecord[]>> {
-	const params: Record<string, string> = {
-		bucket,
-		limit: String(options.limit ?? 50)
-	};
-	if (options.endpoint) params.endpoint = options.endpoint;
-	return request(url(root, "records", params), {}, [], (b) =>
+	return request(url(root, "records", { bucket }), {}, [], (b) =>
 		Array.isArray(b?.records) ? b.records : []
 	);
 }
@@ -168,13 +140,13 @@ export function asset_url(
 	bucket: string,
 	endpoint: string,
 	record_id: string,
-	asset_id: string
+	filename: string
 ): string {
 	return url(
 		root,
 		`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(
 			record_id
-		)}/assets/${encodeURIComponent(asset_id)}`,
+		)}/assets/${encodeURIComponent(filename)}`,
 		{ bucket }
 	);
 }

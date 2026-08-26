@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
 	asset_url,
+	connect_bucket,
 	is_valid_bucket_id,
-	list_bucket_records
+	list_bucket_records,
+	list_user_buckets
 } from "../utils/bucket_sync";
 
 describe("is_valid_bucket_id", () => {
@@ -62,14 +64,11 @@ describe("list_bucket_records", () => {
 			json: async () => ({ records: [] })
 		});
 		globalThis.fetch = spy as any;
-		await list_bucket_records("http://x", "alice/my-history", {
-			endpoint: "predict",
-			limit: 10
-		});
+		await list_bucket_records("http://x", "alice/my-history");
 		const called = String(spy.mock.calls[0][0]);
 		expect(called).toContain("bucket=alice%2Fmy-history");
-		expect(called).toContain("endpoint=predict");
-		expect(called).toContain("limit=10");
+		expect(called).not.toContain("endpoint=");
+		expect(called).not.toContain("limit=");
 	});
 
 	it("does not emit a root-absolute URL when root is empty", async () => {
@@ -87,10 +86,39 @@ describe("list_bucket_records", () => {
 	});
 });
 
+describe("bucket setup", () => {
+	const orig = globalThis.fetch;
+	afterEach(() => {
+		globalThis.fetch = orig;
+	});
+
+	it("ignores the connect response body", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({ ok: true })
+		}) as any;
+		const result = await connect_bucket("http://x", "alice/history");
+		expect(result).toMatchObject({ ok: true, data: null });
+	});
+
+	it("returns bucket ids as strings", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({ buckets: ["alice/one", "alice/two"] })
+		}) as any;
+		expect(await list_user_buckets("http://x")).toEqual([
+			"alice/one",
+			"alice/two"
+		]);
+	});
+});
+
 describe("asset_url", () => {
 	it("addresses an asset by bucket, endpoint and record", () => {
-		const url = asset_url("http://x", "alice/h", "predict", "r1", "a001");
-		expect(url).toContain("/run-history/records/predict/r1/assets/a001");
+		const url = asset_url("http://x", "alice/h", "predict", "r1", "a001.png");
+		expect(url).toContain("/run-history/records/predict/r1/assets/a001.png");
 		expect(url).toContain("bucket=alice%2Fh");
 	});
 });

@@ -25,7 +25,6 @@ from typing import (
     Annotated,
     Any,
     Literal,
-    Optional,
     Union,
     cast,
 )
@@ -741,8 +740,6 @@ class App(FastAPI):
             ):
                 """Create the bucket if needed and confirm it is private and writable."""
                 blocks = request.app.get_blocks()
-                if not getattr(blocks, "run_history", True):
-                    raise HTTPException(404, "run history is disabled for this app")
                 try:
                     target = history.HistoryTarget.build(
                         body.bucket_id, token, history.app_id_of(blocks)
@@ -750,17 +747,14 @@ class App(FastAPI):
                 except ValueError as exc:
                     raise HTTPException(422, "invalid bucket id") from exc
                 await history.offload(history.ensure_private_bucket, target)
-                return {"bucket_id": body.bucket_id, "app_id": target.app_id}
+                return {"ok": True}
 
             @router.get("/run-history/buckets")
             async def list_history_buckets(token: history.TokenDep):
                 """The buckets the signed-in user can write to."""
 
                 def _list():
-                    return [
-                        {"id": b.id, "private": getattr(b, "private", True)}
-                        for b in HfApi(token=token).list_buckets(token=token)
-                    ]
+                    return [b.id for b in HfApi(token=token).list_buckets(token=token)]
 
                 try:
                     return {"buckets": await anyio.to_thread.run_sync(_list)}
@@ -770,29 +764,20 @@ class App(FastAPI):
             @router.get("/run-history/records")
             async def list_history_records(
                 target: history.TargetDep,
-                endpoint: Annotated[
-                    Optional[str], fastapi.Query(pattern=history.SEGMENT_PATTERN)
-                ] = None,
                 limit: Annotated[
                     int, fastapi.Query(ge=1, le=history.MAX_RECORDS_PER_PAGE)
                 ] = 50,
             ):
                 """The newest runs for this app, newest first."""
-                records = await history.offload(
-                    lambda: history.list_records(target, endpoint, limit)
-                )
-                return {
-                    "app_id": target.app_id,
-                    "endpoint": endpoint,
-                    "records": [dataclasses.asdict(r) for r in records],
-                }
+                records = await history.offload(history.list_records, target, limit)
+                return {"records": [dataclasses.asdict(r) for r in records]}
 
             @router.get("/run-history/records/{endpoint}/{record_id}/assets/{asset_id}")
             async def get_history_asset(
                 target: history.TargetDep,
                 endpoint: history.EndpointSeg,
                 record_id: history.RecordId,
-                asset_id: history.AssetId,
+                asset_id: history.AssetName,
             ):
                 """Proxy one stored asset, which the browser cannot fetch itself."""
                 data, guessed = await history.offload(

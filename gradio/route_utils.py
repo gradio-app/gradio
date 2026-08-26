@@ -407,7 +407,6 @@ async def call_process_api(
 
     submitted_inputs = body.data
     started_at = history.now_utc_iso()
-    was_streaming = iterator is not None
 
     try:
         from gradio.profiling import trace_phase
@@ -433,7 +432,7 @@ async def call_process_api(
             app.iterators[event_id] = iterator  # type: ignore
         if isinstance(output, Error):
             raise output
-    except BaseException as exc:
+    except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
@@ -442,18 +441,6 @@ async def call_process_api(
             )
             for stream in pending_streams.values():
                 stream.end_stream()
-        _record_run_history(
-            app,
-            body=body,
-            fn=fn,
-            gr_request=gr_request,
-            inputs=submitted_inputs,
-            outputs=None,
-            started_at=started_at,
-            status="failed",
-            error=str(exc),
-            streamed=was_streaming,
-        )
         raise
 
     if batch_in_single_out:
@@ -461,15 +448,11 @@ async def call_process_api(
 
     _record_run_history(
         app,
-        body=body,
         fn=fn,
         gr_request=gr_request,
         inputs=submitted_inputs,
         outputs=output.get("data"),
         started_at=started_at,
-        status="completed",
-        duration_ms=(output.get("duration") or 0) * 1000 or None,
-        streamed=was_streaming or bool(output.get("is_generating")),
         is_final=not output.get("is_generating"),
     )
     return output
@@ -478,16 +461,11 @@ async def call_process_api(
 def _record_run_history(
     app: App,
     *,
-    body: PredictBodyInternal,
     fn: BlockFunction,
     gr_request: Union[Request, list[Request]],
     inputs: Any,
     outputs: Any,
     started_at: str,
-    status: str,
-    error: str | None = None,
-    duration_ms: float | None = None,
-    streamed: bool = False,
     is_final: bool = True,
 ) -> None:
     """Hand a finished run to the recorder; records only public endpoints."""
@@ -501,14 +479,7 @@ def _record_run_history(
             outputs=outputs,
             api_name=fn.api_name,
             fn_index=fn._id,
-            page=fn.page or "",
-            label=fn.api_name or fn.name,
-            status=status,
-            error=error,
             started_at=started_at,
-            duration_ms=duration_ms,
-            queued_ms=getattr(body, "queue_wait_ms", None),
-            streamed=streamed,
         )
     except Exception:
         logger.debug("history: scheduling failed", exc_info=True)

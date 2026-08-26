@@ -12,8 +12,7 @@ import secrets
 import tempfile
 import threading
 import time
-from collections import OrderedDict
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Annotated, Any, NamedTuple
 from urllib.parse import unquote, urlparse
@@ -24,7 +23,6 @@ import fastapi
 import gradio_client.utils as client_utils
 from fastapi import Depends, Path, Query, Request
 from huggingface_hub import HfApi
-from huggingface_hub import get_token as hf_get_token
 from pydantic import BaseModel
 
 from gradio import oauth, processing_utils
@@ -42,7 +40,6 @@ MAX_REMOTE_ASSET_BYTES = 64 * 1024 * 1024
 
 BUCKET_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$")
 RECORD_ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
-_RECORD_ID_RE = re.compile(RECORD_ID_PATTERN)
 SEGMENT_PATTERN = r"^[A-Za-z0-9_.-]{1,80}$"
 _SEGMENT_RE = re.compile(SEGMENT_PATTERN)
 
@@ -92,23 +89,10 @@ class HistoryRecord:
     """One run of one endpoint."""
 
     record_id: str
-    owner_id: str
-    app_id: str
     endpoint: str
     inputs: Any = None
     outputs: Any = None
-    api_name: str | None = None
-    fn_index: int | None = None
-    page: str = ""
-    label: str | None = None
-    status: str = "completed"
-    error: str | None = None
     started_at: str = ""
-    completed_at: str | None = None
-    duration_ms: float | None = None
-    queued_ms: float | None = None
-    streamed: bool = False
-    assets: dict[str, str] = field(default_factory=dict)
     schema_version: int = SCHEMA_VERSION
 
     def to_json_bytes(self) -> bytes:
@@ -168,12 +152,6 @@ def extract_remote_url(value) -> str | None:
 
 async def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
     """Download a remote asset through gradio's SSRF-protected client, or None."""
-    if os.getenv("GRADIO_HISTORY_FETCH_REMOTE_ASSETS", "1").lower() in (
-        "0",
-        "false",
-        "off",
-    ):
-        return None
     try:
         response = await processing_utils.async_ssrf_protected_get(url)
         if response.status_code != 200:
@@ -195,10 +173,8 @@ async def fetch_remote_asset(url: str) -> tuple[bytes, str] | None:
 class PendingAsset:
     """An asset to store: a local file to upload, or bytes in hand."""
 
-    content_type: str
     local_path: str | None = None
     data: bytes | None = None
-    suggested_name: str = ""
 
 
 class HistoryTarget(NamedTuple):
@@ -209,10 +185,10 @@ class HistoryTarget(NamedTuple):
     app_id: str
 
     @classmethod
-    def build(cls, bucket: str, token: str | None, app_id: str) -> HistoryTarget:
+    def build(cls, bucket: str, token: str, app_id: str) -> HistoryTarget:
         validate_bucket_id(bucket)
         validate_segment(app_id)
-        return cls(bucket, token or hf_get_token() or "", app_id)
+        return cls(bucket, token, app_id)
 
 
 def _api(target: HistoryTarget) -> HfApi:
@@ -285,12 +261,9 @@ def save_record(
     adds: list[tuple[Any, str]] = []
     if assets:
         prefix = asset_prefix(target.app_id, record.endpoint, record.record_id)
-        for asset_id, pending in assets.items():
-            validate_segment(asset_id)
-            ext = _ext_from(
-                pending.local_path or pending.suggested_name, pending.content_type
-            )
-            path_in_repo = f"{prefix}{asset_id}{ext}"
+        for filename, pending in assets.items():
+            validate_segment(filename)
+            path_in_repo = f"{prefix}{filename}"
             if pending.data is not None:
                 adds.append((pending.data, path_in_repo))
             elif is_trusted_local_path(pending.local_path or ""):
@@ -298,11 +271,10 @@ def save_record(
             else:
                 logger.warning(
                     "history: skipping asset %s — untrusted path %r",
-                    asset_id,
+                    filename,
                     pending.local_path,
                 )
                 continue
-            record.assets[asset_id] = path_in_repo
 
     try:
         if adds:
@@ -322,16 +294,10 @@ def save_record(
         raise HistoryError(f"save_record failed: {e}", 502) from e
 
 
-def list_records(
-    target: HistoryTarget, endpoint: str | None = None, limit: int = 50
-) -> list[HistoryRecord]:
-    """The newest *limit* records, for one endpoint or across the app."""
+def list_records(target: HistoryTarget, limit: int = 50) -> list[HistoryRecord]:
+    """The newest *limit* records for this app."""
     limit = max(1, min(int(limit), MAX_RECORDS_PER_PAGE))
-    prefix = (
-        app_prefix(target.app_id)
-        if endpoint is None
-        else endpoint_prefix(target.app_id, endpoint)
-    )
+    prefix = app_prefix(target.app_id)
     paths = [p for p in _list_paths(target, prefix) if p.endswith(".json")]
     paths.sort(key=lambda p: p.rsplit("/", 1)[-1], reverse=True)
     selected = paths[:limit]
@@ -347,29 +313,16 @@ def list_records(
     return records
 
 
-def get_record(target: HistoryTarget, endpoint: str, record_id: str) -> HistoryRecord:
-    try:
-        data = _download_bytes(target, record_path(target.app_id, endpoint, record_id))
-    except HistoryError:
-        raise
-    except Exception as e:
-        raise HistoryError(f"get_record failed: {e}", 502) from e
-    return HistoryRecord.from_json_bytes(data)
-
-
 def get_asset_bytes(
-    target: HistoryTarget, endpoint: str, record_id: str, asset_id: str
+    target: HistoryTarget, endpoint: str, record_id: str, filename: str
 ) -> tuple[bytes, str]:
-    validate_segment(asset_id)
-    record = get_record(target, endpoint, record_id)
-    path = record.assets.get(asset_id)
-    if not path:
-        raise HistoryError(f"asset {asset_id} not found", 404)
-    if not path.startswith(asset_prefix(target.app_id, endpoint, record_id)):
-        raise HistoryError(f"asset {asset_id} not addressable", 404)
+    validate_segment(filename)
+    path = f"{asset_prefix(target.app_id, endpoint, record_id)}{filename}"
     ct = mimetypes.guess_type(path)[0] or "application/octet-stream"
     try:
         return _download_bytes(target, path), ct
+    except HistoryError:
+        raise
     except Exception as e:
         raise HistoryError(f"asset download failed: {e}", 502) from e
 
@@ -473,40 +426,35 @@ def _is_asset_node(node: Any) -> bool:
 async def externalize_assets(
     tree: Any,
     counter: list[int] | None = None,
-    *,
-    fetch_remote: bool = True,
 ) -> tuple[Any, dict[str, PendingAsset]]:
-    """Replace file nodes with ``{"__asset__": id}`` markers, capturing their bytes."""
+    """Replace file nodes with asset filenames, capturing their bytes."""
     if counter is None:
         counter = [0]
     assets: dict[str, PendingAsset] = {}
 
-    def _next_id() -> str:
+    def _next_filename(path: str, content_type: str) -> str:
         counter[0] += 1
-        return f"a{counter[0]:03d}"
+        return f"a{counter[0]:03d}{_ext_from(path, content_type)}"
 
     async def _capture(node: Any) -> Any:
         local = extract_local_file_path(node)
         if local is not None:
-            asset_id = _next_id()
-            assets[asset_id] = PendingAsset(
-                content_type=_content_type_of(node, local),
+            content_type = _content_type_of(node, local)
+            filename = _next_filename(local, content_type)
+            assets[filename] = PendingAsset(
                 local_path=local,
             )
-            return {"__asset__": asset_id}
-        if fetch_remote:
-            remote = extract_remote_url(node)
-            if remote is not None:
-                fetched = await fetch_remote_asset(remote)
-                if fetched is not None:
-                    data, content_type = fetched
-                    asset_id = _next_id()
-                    assets[asset_id] = PendingAsset(
-                        content_type=_content_type_of(node, remote) or content_type,
-                        data=data,
-                        suggested_name=urlparse(remote).path.rsplit("/", 1)[-1],
-                    )
-                    return {"__asset__": asset_id}
+            return {"__asset__": filename}
+        remote = extract_remote_url(node)
+        if remote is not None:
+            fetched = await fetch_remote_asset(remote)
+            if fetched is not None:
+                data, content_type = fetched
+                suggested_name = urlparse(remote).path.rsplit("/", 1)[-1]
+                content_type = _content_type_of(node, remote) or content_type
+                filename = _next_filename(suggested_name, content_type)
+                assets[filename] = PendingAsset(data=data)
+                return {"__asset__": filename}
         return node
 
     rewritten = await client_utils.async_traverse(tree, _capture, _is_asset_node)
@@ -527,8 +475,6 @@ MAX_CONCURRENT_WRITES = 8
 
 def init_history_state(app) -> None:
     """Attach the per-app state the recorder and the read routes share."""
-    app.state.bucket_history_cache = OrderedDict()
-    app.state.bucket_history_cache_lock = threading.Lock()
     app.state.history_write_limiter = anyio.CapacityLimiter(MAX_CONCURRENT_WRITES)
     app.state.history_tasks = set()
 
@@ -556,8 +502,8 @@ def app_from_request(request) -> Any | None:
     return getattr(raw, "app", None) if raw is not None else None
 
 
-def resolve_identity(request) -> tuple[str, str] | None:
-    """``(owner_id, access_token)`` for the caller, or None."""
+def resolve_token(request) -> str | None:
+    """The caller's OAuth access token, or None."""
     raw = _fastapi_request(request)
     if raw is None:
         return None
@@ -574,9 +520,7 @@ def resolve_identity(request) -> tuple[str, str] | None:
     token = info.get("access_token")
     if not isinstance(token, str) or not token:
         return None
-    userinfo = info.get("userinfo") or {}
-    owner_id = userinfo.get("sub") or userinfo.get("preferred_username") or ""
-    return (owner_id if isinstance(owner_id, str) else ""), token
+    return token
 
 
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
@@ -603,20 +547,19 @@ def resolve_target(
     *,
     bucket_id: str | None = None,
     app_id: str | None = None,
-) -> tuple[HistoryTarget, str] | None:
-    """``(target, owner_id)`` for this caller, or None if history is off."""
+) -> HistoryTarget | None:
+    """The history target for this caller, or None if history is off."""
     blocks = app.get_blocks()
     if not getattr(blocks, "run_history", True):
         return None
     bucket = resolve_bucket_id(blocks, request, bucket_id)
     if not bucket:
         return None
-    identity = resolve_identity(request)
-    if identity is None:
+    token = resolve_token(request)
+    if token is None:
         return None
-    owner_id, token = identity
     try:
-        return HistoryTarget.build(bucket, token, app_id or app_id_of(blocks)), owner_id
+        return HistoryTarget.build(bucket, token, app_id or app_id_of(blocks))
     except ValueError:
         logger.debug("history: ignoring invalid bucket id %r", bucket)
         return None
@@ -640,14 +583,7 @@ async def record_run(
     api_name: str | None = None,
     fn_index: int | None = None,
     endpoint: str | None = None,
-    page: str = "",
-    label: str | None = None,
-    status: str = "completed",
-    error: str | None = None,
     started_at: str | None = None,
-    duration_ms: float | None = None,
-    queued_ms: float | None = None,
-    streamed: bool = False,
     bucket_id: str | None = None,
     app_id: str | None = None,
 ) -> str | None:
@@ -655,24 +591,12 @@ async def record_run(
     resolved = resolve_target(app, request, bucket_id=bucket_id, app_id=app_id)
     if resolved is None:
         return None
-    target, owner_id = resolved
+    target = resolved
 
     record = HistoryRecord(
         record_id=new_record_id(),
-        owner_id=owner_id,
-        app_id=target.app_id,
         endpoint=endpoint or endpoint_key(api_name, fn_index),
-        api_name=api_name,
-        fn_index=fn_index,
-        page=page or "",
-        label=label,
-        status=status,
-        error=error,
         started_at=started_at or now_utc_iso(),
-        completed_at=now_utc_iso(),
-        duration_ms=duration_ms,
-        queued_ms=queued_ms,
-        streamed=streamed,
         inputs=None,
         outputs=None,
     )
@@ -732,8 +656,6 @@ def get_target(
 ) -> HistoryTarget:
     """The bucket named on this request, addressed with the caller's token."""
     blocks = request.app.get_blocks()
-    if not getattr(blocks, "run_history", True):
-        raise fastapi.HTTPException(404, "run history is disabled for this app")
     try:
         return HistoryTarget.build(bucket, token, app_id_of(blocks))
     except ValueError as exc:
@@ -749,7 +671,7 @@ TokenDep = Annotated[str, Depends(oauth.require_oauth_token)]
 RecordId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
 
 
-AssetId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
+AssetName = Annotated[str, Path(pattern=SEGMENT_PATTERN)]
 
 
 EndpointSeg = Annotated[str, Path(pattern=SEGMENT_PATTERN)]

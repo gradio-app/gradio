@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { onMount, untrack } from "svelte";
+	import { onMount } from "svelte";
 	import {
 		connect_bucket,
 		is_valid_bucket_id,
-		list_user_buckets,
-		type BucketInfo
+		list_user_buckets
 	} from "@gradio/client";
 
 	let {
@@ -37,22 +36,10 @@
 		username ? `${username}/${suggestedName}` : `username/${suggestedName}`
 	);
 
-	let repoInput = $state("");
-	// Prefill once, when the username first arrives. The previous version read
-	// `repoInput` inside the effect that writes it, so clearing the field
-	// re-triggered the effect and instantly refilled it — making an org bucket
-	// impossible to type.
-	let prefilled = false;
-	$effect(() => {
-		if (prefilled || !username) return;
-		prefilled = true;
-		if (!untrack(() => repoInput)) {
-			repoInput = `${username}/${suggestedName}`;
-		}
-	});
+	let repoInput = $state(username ? `${username}/${suggestedName}` : "");
 	let connecting = $state(false);
 	let error = $state<string | null>(null);
-	let existingBuckets = $state<BucketInfo[]>([]);
+	let existingBuckets = $state<string[]>([]);
 
 	async function connect(bucketId: string) {
 		error = null;
@@ -80,11 +67,7 @@
 
 	onMount(async () => {
 		if (!signedIn) return;
-		try {
-			existingBuckets = await list_user_buckets(root);
-		} catch {
-			// silently ignore — bucket list is optional
-		}
+		existingBuckets = await list_user_buckets(root);
 	});
 </script>
 
@@ -126,9 +109,9 @@
 						<button
 							class="bucket-item"
 							disabled={connecting}
-							onclick={() => connect(bucket.id)}
+							onclick={() => connect(bucket)}
 						>
-							<span class="bucket-id">{bucket.id}</span>
+							<span class="bucket-id">{bucket}</span>
 						</button>
 					{/each}
 				</div>

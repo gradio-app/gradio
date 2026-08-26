@@ -573,7 +573,6 @@
 	let showApiPanel = $state(false);
 	let showHistoryPanel = $state(false);
 	let showHistoryConnect = $state(false);
-	let historyRefreshCount = $state(0);
 
 	// Root URL for the /gradio_api/run-history/* routes. Prefers the client's
 	// configured root (correct for tunnels / mount_gradio_app subpaths). When it
@@ -2143,14 +2142,9 @@
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
 
-		if (bucketId && server?.record_workflow_run) {
+		if (!hasErrors && bucketId && server?.record_workflow_run) {
 			try {
-				// The canvas sends only the raw node values it holds. Which
-				// endpoint this run belongs to, which nodes are its inputs and
-				// outputs, the record id, the owner and the timestamps are all
-				// derived on the server from the workflow graph — the same
-				// `record_run` a regular gradio app uses writes the record.
-				const values: Record<string, unknown> = {};
+				const inputs: Record<string, unknown> = {};
 				for (const ref of wfToRun.references) {
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
@@ -2158,22 +2152,34 @@
 					// User-supplied media lives in a `blob:` object URL that dies
 					// with the tab, and the server can only store a file it can
 					// reach. Upload it first so the record stays loadable.
-					values[ref.id] = await persistValueForHistory(
-						node.data?.[outPort.id] ?? null
-					);
+					inputs[ref.id] = {
+						value: await persistValueForHistory(
+							node.data?.[outPort.id] ?? null
+						),
+						type: outPort.type,
+						label: node.label ?? ref.id,
+						port_id: outPort.id
+					};
 				}
+				const outputs: Record<string, unknown> = {};
 				for (const subj of wfToRun.subjects) {
 					const node = legacyView.nodes.find((n) => n.id === subj.id);
 					const inPort = node?.inputs?.[0];
 					if (!node || !inPort) continue;
-					values[subj.id] = await persistValueForHistory(
-						node.data?.[inPort.id] ?? null
-					);
+					outputs[subj.id] = {
+						value: await persistValueForHistory(node.data?.[inPort.id] ?? null),
+						type: inPort.type,
+						label: node.label ?? subj.id,
+						port_id: inPort.id
+					};
 				}
+				const endpoint =
+					wfToRun.subjects[0]?.label ?? wfToRun.subjects[0]?.id ?? "workflow";
 				const raw = await server.record_workflow_run([
 					bucketId,
-					JSON.stringify(wfToRun.subjects.map((s) => s.id)),
-					JSON.stringify(values)
+					endpoint,
+					inputs,
+					outputs
 				]);
 				const result = typeof raw === "string" ? JSON.parse(raw) : raw;
 				if (result?.error) {
@@ -2182,8 +2188,6 @@
 						5000,
 						"warning"
 					);
-				} else if (showHistoryPanel) {
-					historyRefreshCount++;
 				}
 			} catch (e: any) {
 				// Never let a history failure look like a successful save.
@@ -3421,7 +3425,6 @@
 		<WorkflowHistoryPanel
 			root={historyRoot}
 			{bucketId}
-			triggerRefresh={historyRefreshCount}
 			onclose={() => (showHistoryPanel = false)}
 			onchange={() => {
 				showHistoryPanel = false;

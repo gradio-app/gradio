@@ -25,7 +25,6 @@ export {
 	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets,
-	type BucketInfo,
 	type HistoryRecord,
 	type HistoryResult
 } from "./utils/bucket_sync";

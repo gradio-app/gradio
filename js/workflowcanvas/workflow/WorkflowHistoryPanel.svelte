@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, untrack } from "svelte";
+	import { onMount } from "svelte";
 	import {
 		asset_url,
 		list_bucket_records,
@@ -16,22 +16,20 @@
 	let {
 		root,
 		bucketId,
-		onload = undefined,
+		onload,
 		onclose,
-		onchange = undefined,
-		triggerRefresh = 0
+		onchange
 	}: {
 		root: string;
 		bucketId: string;
-		onload?: (record: {
+		onload: (record: {
 			record_id: string;
 			endpoint: string;
 			inputs: Record<string, HistoryValue>;
 			outputs: Record<string, HistoryValue>;
 		}) => void;
 		onclose: () => void;
-		onchange?: () => void;
-		triggerRefresh?: number;
+		onchange: () => void;
 	} = $props();
 
 	let records = $state<HistoryRecord[]>([]);
@@ -39,7 +37,6 @@
 	let refreshing = $state(false);
 	let error = $state<string | null>(null);
 	let selectedEndpoint = $state<string | null>(null);
-	let repoId = $derived(bucketId);
 
 	const MEDIA_TYPES = new Set(["image", "audio", "video"]);
 
@@ -83,7 +80,7 @@
 		out: HistoryValue | null
 	): string | null {
 		if (!out) return null;
-		const marker = asset_marker(out.value) ?? asset_marker(out.value?.value);
+		const marker = asset_marker(out.value);
 		if (marker) {
 			return asset_url(
 				root,
@@ -116,20 +113,19 @@
 	}
 
 	function handleLoad(record: HistoryRecord): void {
-		if (onload)
-			onload({
-				record_id: record.record_id,
-				endpoint: record.endpoint,
-				inputs: (record.inputs ?? {}) as Record<string, HistoryValue>,
-				outputs: (record.outputs ?? {}) as Record<string, HistoryValue>
-			});
+		onload({
+			record_id: record.record_id,
+			endpoint: record.endpoint,
+			inputs: (record.inputs ?? {}) as Record<string, HistoryValue>,
+			outputs: (record.outputs ?? {}) as Record<string, HistoryValue>
+		});
 	}
 
 	async function fetchRecords() {
 		// The bucket is named on the request; the server keeps no binding, so
 		// there is nothing to re-assert and no way for another tab to have
 		// pointed this read somewhere else.
-		const result = await list_bucket_records(root, bucketId, { limit: 50 });
+		const result = await list_bucket_records(root, bucketId);
 		if (!result.ok) {
 			throw new Error(
 				result.status === 401
@@ -137,10 +133,7 @@
 					: (result.detail ?? "Could not load history")
 			);
 		}
-		// Record ids are time-ordered, so this matches the server's ordering.
-		records = result.data
-			.slice()
-			.sort((a, b) => b.record_id.localeCompare(a.record_id));
+		records = result.data;
 	}
 
 	async function refresh() {
@@ -164,18 +157,6 @@
 			loading = false;
 		}
 	});
-
-	// plain let: only ever read inside untrack, so it must not be a dependency
-	let lastRefreshHandled = 0;
-	$effect(() => {
-		// Track only `triggerRefresh`. Reading `loading` here made the effect
-		// re-run when onMount flipped it, double-fetching on every reopen.
-		const trigger = triggerRefresh;
-		if (trigger > 0 && trigger !== untrack(() => lastRefreshHandled)) {
-			lastRefreshHandled = trigger;
-			refresh();
-		}
-	});
 </script>
 
 <div class="history-overlay" role="dialog" aria-label="History">
@@ -183,11 +164,11 @@
 		<div class="history-header">
 			<div class="history-title-row">
 				<span class="history-title">History</span>
-				{#if repoId}
+				{#if bucketId}
 					<div class="history-repo-row">
 						<a
 							class="history-repo-link"
-							href="https://huggingface.co/buckets/{repoId}"
+							href="https://huggingface.co/buckets/{bucketId}"
 							target="_blank"
 							rel="noopener noreferrer"
 							title="View bucket on Hugging Face"
@@ -202,17 +183,15 @@
 									d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"
 								/>
 							</svg>
-							{repoId}
+							{bucketId}
 						</a>
-						{#if onchange}
-							<button
-								class="history-change-btn"
-								onclick={onchange}
-								title="Switch bucket"
-							>
-								Change
-							</button>
-						{/if}
+						<button
+							class="history-change-btn"
+							onclick={onchange}
+							title="Switch bucket"
+						>
+							Change
+						</button>
 					</div>
 				{/if}
 			</div>
@@ -319,15 +298,13 @@
 								{#if summary}
 									<div class="card-inputs">{summary}</div>
 								{/if}
-								{#if onload}
-									<button
-										class="card-load-btn"
-										onclick={() => handleLoad(record)}
-										title="Load inputs and outputs back into the canvas"
-									>
-										Load
-									</button>
-								{/if}
+								<button
+									class="card-load-btn"
+									onclick={() => handleLoad(record)}
+									title="Load inputs and outputs back into the canvas"
+								>
+									Load
+								</button>
 							</div>
 						</div>
 					{/each}
