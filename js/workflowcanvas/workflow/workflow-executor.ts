@@ -156,7 +156,7 @@ function output_matches_port_type(item: unknown, portType: string): boolean {
 			("path" in (item as object) || "url" in (item as object))
 		);
 	}
-	if (portType === "text" || portType === "html")
+	if (portType === "text" || portType === "html" || portType === "markdown")
 		return typeof item === "string";
 	if (portType === "number") return typeof item === "number";
 	if (portType === "boolean") return typeof item === "boolean";
@@ -213,6 +213,7 @@ function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 		if (
 			portType !== "text" &&
 			portType !== "html" &&
+			portType !== "markdown" &&
 			(result.startsWith("http://") ||
 				result.startsWith("https://") ||
 				result.startsWith("blob:") ||
@@ -239,7 +240,8 @@ function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 		return {
 			name: (obj.orig_name as string) ?? "output",
 			url: obj.url as string,
-			mime: (obj.mime_type as string) ?? "application/octet-stream"
+			mime: (obj.mime_type as string) ?? "application/octet-stream",
+			...(typeof obj.size === "number" ? { size: obj.size } : {})
 		} satisfies FileValue;
 	}
 
