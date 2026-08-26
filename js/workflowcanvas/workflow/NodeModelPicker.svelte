@@ -1987,4 +1987,76 @@
 	:global(body:not(.dark)) .space-avatar {
 		color: rgba(0, 0, 0, 0.55);
 	}
+
+	/* Mobile: panel becomes a full-viewport sheet, task sidebar collapses
+	 * to a horizontally scrolling strip along the top of the results body. */
+	@media (max-width: 640px) {
+		.picker-overlay {
+			padding-bottom: 70px;
+			padding-top: 4px;
+		}
+		.picker-panel,
+		.picker-panel-anchored {
+			position: absolute;
+			/* !important beats the anchored variant's inline left/top — on
+			 * mobile we always want the sheet layout, ignoring anchor coords. */
+			inset: 4px 4px 70px !important;
+			left: 4px !important;
+			top: 4px !important;
+			width: auto;
+			height: auto;
+			max-height: none;
+			border-radius: 12px;
+		}
+		.picker-search-row {
+			flex-wrap: wrap;
+			gap: 4px;
+			padding: 6px 8px;
+		}
+		.picker-search {
+			padding: 10px 12px 10px 36px;
+			font-size: 13px;
+		}
+		.picker-filter-pill {
+			font-size: 10px;
+		}
+		.picker-zerogpu-toggle {
+			position: static;
+			transform: none;
+			margin-left: auto;
+		}
+		.picker-close-inline {
+			position: static;
+			transform: none;
+		}
+		.picker-body {
+			flex-direction: column;
+		}
+		.picker-sidebar {
+			width: auto;
+			max-height: 44px;
+			border-right: none;
+			border-bottom: 1px solid #2a2b36;
+			padding: 4px 6px;
+			display: flex;
+			gap: 4px;
+			overflow-x: auto;
+			overflow-y: hidden;
+			scrollbar-width: none;
+			flex-shrink: 0;
+		}
+		.picker-sidebar::-webkit-scrollbar {
+			display: none;
+		}
+		.picker-sidebar-heading,
+		.picker-sidebar-group-heading,
+		.picker-sidebar-clear {
+			display: none;
+		}
+		.picker-task-item {
+			flex-shrink: 0;
+			white-space: nowrap;
+			padding: 6px 10px;
+		}
+	}
 </style>

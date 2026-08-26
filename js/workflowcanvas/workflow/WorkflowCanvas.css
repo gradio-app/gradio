@@ -418,6 +418,7 @@
 	flex: 1;
 	overflow: hidden;
 	position: relative;
+	touch-action: none;
 }
 
 .canvas {
@@ -425,6 +426,9 @@
 	position: relative;
 	overflow: hidden;
 	background-color: #0c0d10;
+	/* Kill browser touch-scroll on canvas so single-finger pan and pinch
+	 * gestures reach onCanvasPointerMove. */
+	touch-action: none;
 	/* Block the browser's "select word/paragraph" behaviour on
 	 * dbl-click. Input fields, textboxes, and node labels opt back
 	 * in to text selection where needed. */
@@ -952,3 +956,96 @@
 	z-index: 20;
 	white-space: nowrap;
 }
+
+/* ─── Mobile (≤ 640px) ─────────────────────────────────────────────────────
+ * Canvas UI is desktop-first: toolbar in a single row, save/token controls
+ * inline, bottom bar centred. On small screens we compact chrome, wrap the
+ * toolbar over two lines, let the bottom bar horizontally scroll, and shrink
+ * min-height so the workflow fits inside phone viewports.
+ * ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+	.workflow-root {
+		min-height: 100dvh;
+		border-radius: 0;
+		border: none;
+		box-shadow: none;
+	}
+	.toolbar {
+		height: auto;
+		min-height: 44px;
+		padding: 6px 8px;
+		flex-wrap: wrap;
+		gap: 6px;
+		row-gap: 6px;
+	}
+	.toolbar-left,
+	.toolbar-right {
+		gap: 6px;
+		flex-wrap: wrap;
+	}
+	.toolbar-stat {
+		display: none;
+	}
+	.name-text {
+		font-size: 13px;
+	}
+	.tool-btn {
+		padding: 5px 8px;
+		font-size: 11px;
+	}
+	.toolbar-token-input {
+		width: 100%;
+		min-width: 0;
+		flex: 1;
+	}
+	.toolbar-token-form {
+		flex: 1;
+		min-width: 0;
+	}
+	.toolbar-login-btn {
+		padding: 5px 10px;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+	.toolbar-user-name {
+		max-width: 84px;
+	}
+	.toolbar-user-menu,
+	.save-menu {
+		width: min(280px, calc(100vw - 24px));
+	}
+	.save-menu {
+		right: 0;
+	}
+	/* Zoom controls sit above bottom bar (~72px tall on mobile with scroll)
+	 * and to the left so they don't crowd the pinch/pan gesture edge. */
+	.zoom-controls {
+		bottom: 84px;
+		right: 8px;
+	}
+	.shortcuts-panel {
+		display: none;
+	}
+	.wf-toast-stack {
+		bottom: 96px;
+		left: 8px;
+		right: 8px;
+		transform: none;
+		width: auto;
+	}
+	.wf-toast {
+		max-width: none;
+		font-size: 10px;
+		padding: 6px 10px 6px 12px;
+	}
+	.wf-modal {
+		min-width: 0;
+		max-width: none;
+		width: calc(100vw - 24px);
+	}
+	.drop-menu,
+	.add-node-menu {
+		max-width: calc(100vw - 16px);
+	}
+}
+

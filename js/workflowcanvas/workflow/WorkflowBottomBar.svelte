@@ -547,4 +547,50 @@
 		background: #f0f1f5;
 		color: #1a1b25;
 	}
+
+	/* Mobile: bottom bar hugs the viewport, scrolls horizontally when its
+	 * children overflow. Drop the "Add a node:" prefix — space is precious
+	 * and the icons carry the meaning. */
+	@media (max-width: 640px) {
+		.bottom-bar {
+			bottom: 10px;
+			left: 8px;
+			right: 8px;
+			transform: none;
+			max-width: none;
+			overflow-x: auto;
+			overflow-y: hidden;
+			justify-content: flex-start;
+			scrollbar-width: none;
+			padding: 4px 6px;
+			gap: 4px;
+		}
+		.bottom-bar::-webkit-scrollbar {
+			display: none;
+		}
+		.bb-group-label {
+			display: none;
+		}
+		.bb-modality-group {
+			padding: 2px 4px;
+			gap: 2px;
+		}
+		.bb-btn,
+		.bb-input-btn {
+			padding: 6px 10px;
+			font-size: 11.5px;
+			flex-shrink: 0;
+		}
+		.bb-label {
+			display: none;
+		}
+		.bb-input-btn {
+			gap: 4px;
+		}
+		.bb-run-btn {
+			padding: 7px 14px;
+			font-size: 12px;
+			flex-shrink: 0;
+		}
+	}
 </style>
