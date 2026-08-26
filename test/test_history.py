@@ -627,7 +627,7 @@ class TestWorkflowRecording:
             gr.Button().click(
                 lambda x: x, box, out, api_name="public_one", api_visibility="public"
             )
-            gr.Button().click(lambda x: x, box, out, api_name=False)
+            gr.Button().click(lambda x: x, box, out, api_visibility="private")
         app, _, _ = demo.launch(prevent_thread_lock=True)
         internal = next(f for f in demo.fns.values() if f.api_visibility != "public")
         with (

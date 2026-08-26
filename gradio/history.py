@@ -490,6 +490,8 @@ def resolve_token(request) -> str | None:
     from gradio.workflow import _get_locally_saved_hf_token, _request_has_write_token
 
     raw = _fastapi_request(request)
+    if raw is None:
+        return None
     try:
         info = oauth._get_valid_oauth_info_from_session(raw.session)
     except Exception:
@@ -514,10 +516,13 @@ def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | Non
     """Which bucket this run belongs in, resolved per request."""
     if explicit:
         return explicit
-    try:
-        header = _fastapi_request(request).headers.get(BUCKET_HEADER)
-    except Exception:
-        header = None
+    raw = _fastapi_request(request)
+    header = None
+    if raw is not None:
+        try:
+            header = raw.headers.get(BUCKET_HEADER)
+        except Exception:
+            header = None
     if header:
         return header.strip()
     return os.getenv("GRADIO_HISTORY_BUCKET") or getattr(blocks, "history_bucket", None)
