@@ -50,9 +50,8 @@ class _Entry:
 class FakeHub:
     """An in-memory stand-in for the HfApi bucket surface."""
 
-    def __init__(self, private: bool = True):
+    def __init__(self):
         self.files: dict[str, bytes] = {}
-        self.private = private
         self.created: list[str] = []
         self.downloads: list[str] = []
         self.fail_next_add_paths: set[str] | None = None
@@ -60,9 +59,6 @@ class FakeHub:
     # -- HfApi surface --
     def create_bucket(self, bucket_id, private=None, exist_ok=False, **kw):
         self.created.append(bucket_id)
-
-    def bucket_info(self, bucket_id, **kw):
-        return MagicMock(private=self.private)
 
     def batch_bucket_files(self, bucket_id=None, add=None, delete=None, **kw):
         for path in delete or []:
@@ -365,16 +361,9 @@ def test_remote_fetch_goes_through_gradios_ssrf_protected_client():
 # ------------------------------------------------------------ bucket lifecycle
 
 
-def test_ensure_private_bucket_rejects_public():
-    hub = FakeHub(private=False)
-    target = make_target()
-    with use_hub(hub), pytest.raises(HistoryError):
-        history_mod.ensure_private_bucket(target)
-
-
 class TestEnsureMemo:
     """`_ensured` is the only state the storage layer keeps. It exists so a
-    recorded run does not pay `create_bucket` + `bucket_info` every time."""
+    recorded run does not pay `create_bucket` every time."""
 
     def test_a_bucket_is_only_ensured_once(self):
         hub = FakeHub()

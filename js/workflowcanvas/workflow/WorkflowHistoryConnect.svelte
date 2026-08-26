@@ -88,15 +88,15 @@
 		</div>
 
 		<p class="connect-desc">
-			Save every generation to a private HF Hub bucket. Browse and reload past
-			outputs from the History panel.
+			Save every generation to an HF Hub bucket. Browse and reload past outputs
+			from the History panel.
 		</p>
 
 		{#if !signedIn}
 			<div class="connect-signin">
 				<p class="connect-hint">
-					Sign in with your Hugging Face account to save history to a private
-					bucket under your name.
+					Sign in with your Hugging Face account to save history to a bucket
+					under your name.
 				</p>
 				<button class="connect-btn" onclick={() => onsignin?.()}>
 					Sign in with 🤗

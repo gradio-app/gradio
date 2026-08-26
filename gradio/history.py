@@ -1,4 +1,4 @@
-"""Durable run history in a private HF Hub bucket."""
+"""Durable run history in an HF Hub bucket."""
 
 from __future__ import annotations
 
@@ -219,14 +219,14 @@ _ensured: set[tuple[str, str]] = set()
 _ensure_lock = threading.Lock()
 
 
-def ensure_private_bucket(target: HistoryTarget) -> None:
+def ensure_bucket(target: HistoryTarget) -> None:
+    """Create the bucket if it does not exist; new ones default to private."""
     key = (target.token, target.bucket)
     with _ensure_lock:
         if key in _ensured:
             return
-        api = _api(target)
         try:
-            api.create_bucket(target.bucket, private=True, exist_ok=True)
+            _api(target).create_bucket(target.bucket, private=True, exist_ok=True)
         except Exception as e:
             status = getattr(getattr(e, "response", None), "status_code", None)
             if status == 403:
@@ -234,16 +234,6 @@ def ensure_private_bucket(target: HistoryTarget) -> None:
                     f"missing manage-repos scope for {target.bucket}", 403
                 ) from e
             raise HistoryError(f"bucket create failed: {e}", 502) from e
-        try:
-            info = api.bucket_info(target.bucket)
-            if getattr(info, "private", True) is False:
-                raise HistoryError(
-                    f"bucket {target.bucket} is public; refusing to store history", 403
-                )
-        except HistoryError:
-            raise
-        except Exception as e:
-            raise HistoryError(f"bucket privacy check failed: {e}", 502) from e
         _ensured.add(key)
 
 
@@ -255,7 +245,7 @@ def save_record(
     """Write *record*, uploading its assets first. The JSON is the commit marker."""
     validate_segment(record.record_id)
     validate_segment(record.endpoint)
-    ensure_private_bucket(target)
+    ensure_bucket(target)
     api = _api(target)
 
     adds: list[tuple[Any, str]] = []

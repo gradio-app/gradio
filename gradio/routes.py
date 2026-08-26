@@ -738,7 +738,7 @@ class App(FastAPI):
                 body: history.ConnectBody,
                 token: history.TokenDep,
             ):
-                """Create the bucket if needed and confirm it is private and writable."""
+                """Create the bucket if needed and confirm it is writable."""
                 blocks = request.app.get_blocks()
                 try:
                     target = history.HistoryTarget.build(
@@ -746,7 +746,7 @@ class App(FastAPI):
                     )
                 except ValueError as exc:
                     raise HTTPException(422, "invalid bucket id") from exc
-                await history.offload(history.ensure_private_bucket, target)
+                await history.offload(history.ensure_bucket, target)
                 return {"ok": True}
 
             @router.get("/run-history/buckets")

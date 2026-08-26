@@ -91,9 +91,9 @@ async function request<T>(
 }
 
 /**
- * Create the bucket if it does not exist and confirm it is private and
- * writable by the caller. Stores nothing server-side — the caller keeps its own
- * choice and names it on every later request.
+ * Create the bucket if it does not exist and confirm it is writable. Stores
+ * nothing server-side — the caller keeps its own choice and names it on every
+ * later request.
  */
 export async function connect_bucket(
 	root: string,
