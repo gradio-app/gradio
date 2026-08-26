@@ -656,3 +656,28 @@ class TestWorkflowRecording:
             assert _wait_for(lambda: len(hub.files) == 1)
         demo.close()
         close_all()
+
+
+def test_a_local_app_uses_the_hosts_own_token():
+    """Locally there is no OAuth session, so history must fall back to the
+    host's `huggingface-cli login` token — the same order and the same write
+    token gate `gradio.workflow` uses for inference and ZeroGPU."""
+    from gradio.routes import App
+    from gradio.workflow import WRITE_TOKEN
+
+    hub = FakeHub()
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    url = "/gradio_api/run-history/records?bucket=alice/hist"
+
+    with (
+        patch("gradio.workflow._get_locally_saved_hf_token", return_value="hf_local"),
+        patch("gradio.history.HfApi", return_value=hub),
+    ):
+        assert TestClient(app).get(url).status_code == 401
+        signed_in = TestClient(app).get(
+            url, headers={"cookie": f"gradio_workflow_write_token_7860={WRITE_TOKEN}"}
+        )
+        assert signed_in.status_code == 200, signed_in.text
+    close_all()

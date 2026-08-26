@@ -319,23 +319,27 @@ def get_asset_bytes(
 
 
 def _list_paths(target: HistoryTarget, prefix: str) -> list[str]:
-    """File paths under *prefix*, capped; a failed listing yields nothing."""
+    """File paths under *prefix*, capped. Nothing there yet is not an error."""
+    paths: list[str] = []
     try:
-        items = _api(target).list_bucket_tree(
+        for item in _api(target).list_bucket_tree(
             target.bucket, prefix=prefix, recursive=True
-        )
-    except Exception:
-        return []
-    paths = []
-    for item in items:
-        if getattr(item, "type", "file") == "directory" or not getattr(
-            item, "path", ""
         ):
-            continue
-        paths.append(item.path)
-        if len(paths) >= _MAX_LIST_PATHS:
-            logger.warning("history: listing for %s hit the path cap", prefix)
-            break
+            if getattr(item, "type", "file") == "directory" or not getattr(
+                item, "path", ""
+            ):
+                continue
+            paths.append(item.path)
+            if len(paths) >= _MAX_LIST_PATHS:
+                logger.warning("history: listing for %s hit the path cap", prefix)
+                break
+    except Exception as e:
+        status = getattr(getattr(e, "response", None), "status_code", None)
+        if status == 404:
+            return []
+        raise HistoryError(
+            f"could not list {prefix}: {e}", status if status in (401, 403) else 502
+        ) from e
     return paths
 
 
@@ -477,14 +481,33 @@ def app_from_request(request) -> Any | None:
 
 
 def resolve_token(request) -> str | None:
-    """The caller's OAuth access token, or None."""
+    """The caller's HF token: their OAuth token, else the host's own local one.
+
+    Same order `gradio.workflow._resolve_token` uses for inference and ZeroGPU,
+    so history is available exactly where model calls already are. Imported
+    lazily because `gradio.workflow` imports this module.
+    """
+    from gradio.workflow import _get_locally_saved_hf_token, _request_has_write_token
+
     raw = _fastapi_request(request)
     try:
         info = oauth._get_valid_oauth_info_from_session(raw.session)
     except Exception:
-        return None
+        info = None
     token = (info or {}).get("access_token")
-    return token if isinstance(token, str) and token else None
+    if isinstance(token, str) and token:
+        return token
+    if raw is not None and _request_has_write_token(raw):
+        return _get_locally_saved_hf_token()
+    return None
+
+
+def require_token(request: Request) -> str:
+    """The caller's HF token, or 401."""
+    token = resolve_token(request)
+    if not token:
+        raise fastapi.HTTPException(401, "sign in to use run history")
+    return token
 
 
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
@@ -609,7 +632,7 @@ async def offload(fn, *args):
 
 def get_target(
     request: Request,
-    token: Annotated[str, Depends(oauth.require_oauth_token)],
+    token: Annotated[str, Depends(require_token)],
     bucket: Annotated[str, Query(min_length=3, max_length=200)],
 ) -> HistoryTarget:
     """The bucket named on this request, addressed with the caller's token."""
@@ -623,7 +646,7 @@ def get_target(
 TargetDep = Annotated[HistoryTarget, Depends(get_target)]
 
 
-TokenDep = Annotated[str, Depends(oauth.require_oauth_token)]
+TokenDep = Annotated[str, Depends(require_token)]
 
 
 RecordId = Annotated[str, Path(pattern=RECORD_ID_PATTERN)]
