@@ -380,7 +380,10 @@ def test_run_history_false_disables_bucket_routes():
 # --------------------------------------------------- end-to-end: regular apps
 
 
-def _wait_for(predicate, timeout=5.0):
+def _wait_for(predicate, timeout=30.0):
+    """Poll until *predicate* holds. Recording is fire-and-forget, so there is
+    nothing to await; the ceiling is generous because a loaded CI runner can be
+    slow to get to the task, and a passing check returns immediately anyway."""
     import time as _time
 
     deadline = _time.time() + timeout
