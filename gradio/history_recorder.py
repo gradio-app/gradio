@@ -15,7 +15,6 @@ the server actually sent to and received from the function, and ``record_id``,
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import logging
 import os
 import threading
@@ -52,29 +51,20 @@ def init_history_state(app) -> None:
     app.state.history_tasks = set()
 
 
-def stable_app_key(blocks) -> str:
-    """A path segment identifying this app, stable across restarts.
+def app_id_of(blocks) -> str:
+    """The folder this app's runs are filed under.
 
-    ``blocks.app_id`` cannot be used: it is ``random.getrandbits(64)``, minted
-    per process, so every restart would file the same app's runs under a new key
-    and orphan everything written before it. The browser-local history tolerates
-    that because it is disposable; a durable bucket does not.
+    ``blocks.app_id`` is minted per process, so a new commit (which restarts the
+    Space) or a local restart starts a fresh folder. That is the intent: an
+    app's endpoints — and a workflow's entire graph — can change between
+    deploys, and runs recorded against the old shape are no longer replayable
+    against the new one. Older folders stay in the bucket, they just stop being
+    this app's history.
+
+    It is also exactly what the browser-local history keys on, so both backends
+    partition runs the same way.
     """
-    explicit = os.getenv("GRADIO_HISTORY_APP_KEY") or getattr(
-        blocks, "history_app_key", None
-    )
-    if explicit:
-        return sanitize_segment(explicit)
-    space = os.getenv("SPACE_ID")
-    if space:
-        return sanitize_segment(f"space-{space}")
-    # Locally there is no repo id, so fall back to something derived from what
-    # the app actually is. Hashed so the key does not leak the author's paths.
-    seed = getattr(blocks, "history_app_seed", None) or getattr(blocks, "title", None)
-    if seed:
-        digest = hashlib.sha256(str(seed).encode("utf-8")).hexdigest()[:16]
-        return f"app-{digest}"
-    return "app"
+    return sanitize_segment(getattr(blocks, "app_id", None) or "app")
 
 
 def _fastapi_request(request) -> Any | None:
@@ -159,7 +149,7 @@ def resolve_store(
     request,
     *,
     bucket_id: str | None = None,
-    app_key: str | None = None,
+    app_id: str | None = None,
 ) -> BucketRunHistoryStore | None:
     """The store this caller may write to, or None if history is not available.
 
@@ -175,7 +165,7 @@ def resolve_store(
     identity = resolve_identity(request)
     if identity is None:
         return None
-    owner_id, token = identity
+    _, token = identity
     try:
         validate_bucket_id(resolved_bucket)
     except ValueError:
@@ -187,8 +177,7 @@ def resolve_store(
             app.state.bucket_history_cache_lock,
             token,
             resolved_bucket,
-            owner_id=owner_id,
-            app_key=app_key or stable_app_key(blocks),
+            app_id=app_id or app_id_of(blocks),
         )
     except (ValueError, AttributeError):
         logger.debug("history: could not build store", exc_info=True)
@@ -222,20 +211,21 @@ async def record_run(
     queued_ms: float | None = None,
     streamed: bool = False,
     bucket_id: str | None = None,
-    app_key: str | None = None,
+    app_id: str | None = None,
 ) -> str | None:
     """Persist one run. Returns the record id, or None if nothing was written.
 
     This is the single write path for both regular Gradio apps and workflows.
     """
-    store = resolve_store(app, request, bucket_id=bucket_id, app_key=app_key)
+    store = resolve_store(app, request, bucket_id=bucket_id, app_id=app_id)
     if store is None:
         return None
+    identity = resolve_identity(request)
 
     record = HistoryRecord(
         record_id=new_record_id(),
-        owner_id=store.owner_id,
-        app_key=store.app_key,
+        owner_id=identity[0] if identity else "",
+        app_id=store.app_id,
         endpoint=endpoint or endpoint_key(api_name, fn_index),
         api_name=api_name,
         fn_index=fn_index,

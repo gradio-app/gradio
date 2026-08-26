@@ -4,8 +4,16 @@ The layout mirrors the app → endpoint → runs structure of the browser-local 
 history (``client/js/src/utils/run_history.ts``), so the two are alternative
 backends for the same thing rather than two different models::
 
-    runs/<app>/<endpoint>/<record_id>.json
-    assets/<app>/<endpoint>/<record_id>/<asset_id>.<ext>
+    runs/<app_id>/<endpoint>/<record_id>.json
+    assets/<app_id>/<endpoint>/<record_id>/<asset_id>.<ext>
+
+``app_id`` is ``blocks.app_id``, which is minted per process — so a new commit
+(which restarts the Space) or a local restart starts a new folder. That is
+deliberate: an app's endpoints and, for a workflow, its whole graph can change
+between deploys, at which point older runs no longer describe anything you can
+replay. They stay in the bucket; they just stop being this app's history. It is
+also the key the browser-local history already uses, so the two backends
+partition runs the same way.
 
 A bucket holds one shared history: everyone who can write to it sees the same
 runs. That is the point of pointing a team at an org bucket, and it means the
@@ -173,7 +181,7 @@ class HistoryRecord:
 
     record_id: str
     owner_id: str
-    app_key: str
+    app_id: str
     endpoint: str
     inputs: Any = None
     outputs: Any = None
@@ -312,25 +320,23 @@ class PendingAsset:
 class BucketRunHistoryStore:
     """Reads and writes one app's history inside one bucket.
 
-    ``app_key`` is fixed at construction and becomes a path segment, so this
-    object is confined to ``runs/<app>/``. Everyone who can write to the bucket
-    shares that history; ``owner_id`` is carried on records to show who ran
-    what, and is never used to decide what a caller may see.
+    ``app_id`` is fixed at construction and becomes a path segment, so this
+    object is confined to ``runs/<app_id>/``. It knows where to read and write
+    and which credential to use — nothing about who is asking. Who ran a run is
+    a property of the record, not of the storage.
     """
 
     def __init__(
         self,
         repo_id: str,
         *,
-        app_key: str,
-        owner_id: str,
+        app_id: str,
         token: str | None = None,
     ) -> None:
         validate_bucket_id(repo_id)
-        validate_segment(app_key)
+        validate_segment(app_id)
         self.repo_id = repo_id
-        self.app_key = app_key
-        self.owner_id = owner_id
+        self.app_id = app_id
         self._token = token or hf_get_token()
         self._api = HfApi(token=self._token)
         self._ensure_lock = threading.Lock()
@@ -344,7 +350,7 @@ class BucketRunHistoryStore:
 
     @property
     def app_prefix(self) -> str:
-        return f"runs/{self.app_key}/"
+        return f"runs/{self.app_id}/"
 
     def endpoint_prefix(self, endpoint: str) -> str:
         validate_segment(endpoint)
@@ -357,7 +363,7 @@ class BucketRunHistoryStore:
     def asset_prefix(self, endpoint: str, record_id: str) -> str:
         validate_record_id(record_id)
         validate_segment(endpoint)
-        return f"assets/{self.app_key}/{endpoint}/{record_id}/"
+        return f"assets/{self.app_id}/{endpoint}/{record_id}/"
 
     # -- bucket lifecycle ---------------------------------------------------
 
@@ -636,21 +642,18 @@ def store_for(
     token: str,
     bucket_id: str,
     *,
-    owner_id: str,
-    app_key: str,
+    app_id: str,
     max_entries: int = 256,
 ) -> BucketRunHistoryStore:
     validate_bucket_id(bucket_id)
-    validate_segment(app_key)
-    key = (token, bucket_id, app_key)
+    validate_segment(app_id)
+    key = (token, bucket_id, app_id)
     with lock:
         store = cache.get(key)
         if store is not None:
             cache.move_to_end(key)
             return store
-        store = BucketRunHistoryStore(
-            bucket_id, token=token, owner_id=owner_id, app_key=app_key
-        )
+        store = BucketRunHistoryStore(bucket_id, token=token, app_id=app_id)
         cache[key] = store
         if len(cache) > max_entries:
             cache.popitem(last=False)

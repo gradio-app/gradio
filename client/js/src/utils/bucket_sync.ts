@@ -33,7 +33,7 @@ export interface BucketInfo {
 export interface HistoryRecord {
 	record_id: string;
 	owner_id: string;
-	app_key: string;
+	app_id: string;
 	endpoint: string;
 	inputs: unknown;
 	outputs: unknown;
@@ -120,7 +120,7 @@ async function request<T>(
 export async function connect_bucket(
 	root: string,
 	bucket_id: string
-): Promise<HistoryResult<{ bucket_id: string; app_key: string } | null>> {
+): Promise<HistoryResult<{ bucket_id: string; app_id: string } | null>> {
 	if (!is_valid_bucket_id(bucket_id)) {
 		return {
 			ok: false,

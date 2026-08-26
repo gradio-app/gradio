@@ -42,7 +42,6 @@ MAX_BODY_BYTES = 2 * 1024 * 1024
 # Records can carry large JSON payloads (a dataframe, a long generation), and a
 # record read is a plain download, so the read cap is separate from the small
 # cap on request bodies.
-MAX_ASSET_BYTES = 64 * 1024 * 1024
 
 
 def _http_from_store_error(exc: Exception) -> fastapi.HTTPException:
@@ -61,13 +60,6 @@ async def offload(fn, *args):
         return await anyio.to_thread.run_sync(fn, *args)
     except HistoryStoreError as exc:
         raise _http_from_store_error(exc) from exc
-
-
-def _owner_id(request: Request) -> str:
-    identity = history_recorder.resolve_identity(request)
-    if identity is None:
-        raise fastapi.HTTPException(401, "oauth session required")
-    return identity[0]
 
 
 def get_store(
@@ -94,8 +86,7 @@ def get_store(
             request.app.state.bucket_history_cache_lock,
             token,
             bucket,
-            owner_id=_owner_id(request),
-            app_key=history_recorder.stable_app_key(blocks),
+            app_id=history_recorder.app_id_of(blocks),
         )
     except ValueError as exc:
         raise fastapi.HTTPException(422, "invalid bucket id") from exc
@@ -139,11 +130,10 @@ async def connect(request: Request, body: ConnectBody, token: TokenDep):
         request.app.state.bucket_history_cache_lock,
         token,
         body.bucket_id,
-        owner_id=_owner_id(request),
-        app_key=history_recorder.stable_app_key(blocks),
+        app_id=history_recorder.app_id_of(blocks),
     )
     await offload(store.ensure_private_bucket)
-    return {"bucket_id": body.bucket_id, "app_key": store.app_key}
+    return {"bucket_id": body.bucket_id, "app_id": store.app_id}
 
 
 @history_router.get("/buckets")
@@ -170,7 +160,7 @@ async def list_records(
 ):
     records = await offload(lambda: store.list_records(endpoint, limit))
     return {
-        "app_key": store.app_key,
+        "app_id": store.app_id,
         "endpoint": endpoint,
         "records": [asdict(r) for r in records],
     }

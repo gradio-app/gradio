@@ -1790,12 +1790,6 @@ class Workflow(Blocks):
         _warn_workflow_oauth_configuration()
 
         super().__init__(mode="workflow")
-        # Where this workflow's runs live in a history bucket. `_workflow_key`
-        # is already the stable identity for this workflow (the repo id on a
-        # Space, the graph file's hash locally), and setting it here means the
-        # recorder and the read routes derive the same key from the same place
-        # rather than each computing their own.
-        self.history_app_key = _workflow_key(self._workflow_file)
         self._build()
 
     def _build(self):

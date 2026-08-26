@@ -117,10 +117,8 @@ class FakeHub:
                 fh.write(self.files[path])
 
 
-def make_store(hub, *, owner_id="alice-sub", app_key="app", repo_id="alice/hist"):
-    store = BucketRunHistoryStore(
-        repo_id, owner_id=owner_id, app_key=app_key, token="tok"
-    )
+def make_store(hub, *, app_id="app", repo_id="alice/hist"):
+    store = BucketRunHistoryStore(repo_id, app_id=app_id, token="tok")
     store._api = hub
     return store
 
@@ -128,8 +126,8 @@ def make_store(hub, *, owner_id="alice-sub", app_key="app", repo_id="alice/hist"
 def make_record(store, endpoint="predict", **kw):
     return HistoryRecord(
         record_id=kw.pop("record_id", new_record_id()),
-        owner_id=kw.pop("owner_id", store.owner_id),
-        app_key=kw.pop("app_key", store.app_key),
+        owner_id=kw.pop("owner_id", "alice-sub"),
+        app_id=kw.pop("app_id", store.app_id),
         endpoint=endpoint,
         inputs=kw.pop("inputs", {}),
         outputs=kw.pop("outputs", {}),
@@ -174,7 +172,7 @@ def test_record_ids_sort_in_creation_order():
 
 def test_records_are_filed_under_app_endpoint():
     hub = FakeHub()
-    store = make_store(hub, app_key="myapp")
+    store = make_store(hub, app_id="myapp")
     store.save_record(make_record(store, endpoint="predict", record_id="0001abc"))
     (path,) = list(hub.files)
     assert path == "runs/myapp/predict/0001abc.json"
@@ -187,13 +185,22 @@ def test_a_bucket_is_one_shared_history():
     owner boundary, so two people pointing at one bucket see one timeline.
     """
     hub = FakeHub()
-    alice = make_store(hub, owner_id="alice-sub")
-    bob = make_store(hub, owner_id="bob-sub")
+    alice = make_store(hub)
+    bob = make_store(hub)
 
     alice.save_record(
-        make_record(alice, record_id="0001a", outputs={"o": "from alice"})
+        make_record(
+            alice,
+            record_id="0001a",
+            owner_id="alice-sub",
+            outputs={"o": "from alice"},
+        )
     )
-    bob.save_record(make_record(bob, record_id="0002b", outputs={"o": "from bob"}))
+    bob.save_record(
+        make_record(
+            bob, record_id="0002b", owner_id="bob-sub", outputs={"o": "from bob"}
+        )
+    )
 
     assert [r.record_id for r in bob.list_records()] == ["0002b", "0001a"]
     assert bob.get_record("predict", "0001a").outputs == {"o": "from alice"}
@@ -202,18 +209,17 @@ def test_a_bucket_is_one_shared_history():
 def test_a_record_still_says_who_ran_it():
     """`owner_id` is display metadata in a shared bucket, not a filter."""
     hub = FakeHub()
-    alice = make_store(hub, owner_id="alice-sub")
-    bob = make_store(hub, owner_id="bob-sub")
-    alice.save_record(make_record(alice, record_id="0001a"))
-    bob.save_record(make_record(bob, record_id="0002b"))
-    assert {r.owner_id for r in bob.list_records()} == {"alice-sub", "bob-sub"}
+    store = make_store(hub)
+    store.save_record(make_record(store, record_id="0001a", owner_id="alice-sub"))
+    store.save_record(make_record(store, record_id="0002b", owner_id="bob-sub"))
+    assert {r.owner_id for r in store.list_records()} == {"alice-sub", "bob-sub"}
 
 
 def test_apps_sharing_a_bucket_stay_separate():
     """Two apps can share a bucket without their runs interleaving."""
     hub = FakeHub()
-    app1 = make_store(hub, app_key="app1")
-    app2 = make_store(hub, app_key="app2")
+    app1 = make_store(hub, app_id="app1")
+    app2 = make_store(hub, app_id="app2")
     app1.save_record(make_record(app1, endpoint="alpha", record_id="0001a"))
     app2.save_record(make_record(app2, endpoint="gamma", record_id="0002b"))
     assert [r.endpoint for r in app1.list_records()] == ["alpha"]
@@ -268,7 +274,7 @@ def test_record_from_a_newer_schema_is_rejected_rather_than_guessed():
         {
             "record_id": "r1",
             "owner_id": "o",
-            "app_key": "a",
+            "app_id": "a",
             "endpoint": "e",
             "schema_version": 99,
         }
@@ -506,24 +512,27 @@ class TestStoreCache:
         """Each caller writes with its own Hub credential, so stores are keyed
         by token even when two people share one bucket."""
         cache, lock = OrderedDict(), threading.Lock()
-        a = store_for(cache, lock, "tok-a", "org/b", owner_id="alice", app_key="app")
-        b = store_for(cache, lock, "tok-b", "org/b", owner_id="bob", app_key="app")
+        a = store_for(cache, lock, "tok-a", "org/b", app_id="app")
+        b = store_for(cache, lock, "tok-b", "org/b", app_id="app")
         assert a is not b
         assert (a._token, b._token) == ("tok-a", "tok-b")
 
     def test_same_caller_reuses_one_store(self):
         cache, lock = OrderedDict(), threading.Lock()
-        a = store_for(cache, lock, "tok", "org/b", owner_id="alice", app_key="app")
-        b = store_for(cache, lock, "tok", "org/b", owner_id="alice", app_key="app")
+        a = store_for(cache, lock, "tok", "org/b", app_id="app")
+        b = store_for(cache, lock, "tok", "org/b", app_id="app")
         assert a is b
 
     def test_parallel_saves_never_cross_attribute(self):
         hub = FakeHub()
-        alice = make_store(hub, owner_id="alice-sub")
-        bob = make_store(hub, owner_id="bob-sub")
+        alice = make_store(hub)
+        bob = make_store(hub)
 
         def _save(store, i):
-            store.save_record(make_record(store, record_id=f"{i:013d}xxxxxxxxxxxx"))
+            owner = "alice-sub" if store is alice else "bob-sub"
+            store.save_record(
+                make_record(store, record_id=f"{i:013d}xxxxxxxxxxxx", owner_id=owner)
+            )
 
         with ThreadPoolExecutor(max_workers=8) as ex:
             for f in [
@@ -540,35 +549,33 @@ class TestStoreCache:
 # ------------------------------------------------------------------- recorder
 
 
-def test_stable_app_key_does_not_use_the_random_app_id(monkeypatch):
-    """`blocks.app_id` is re-minted every process, so keying on it would orphan
-    every record written before a restart."""
+def test_history_is_partitioned_by_app_id():
+    """A new commit restarts the Space and a local restart re-execs, and either
+    way `blocks.app_id` is re-minted — which is the point. An app's endpoints,
+    or a workflow's whole graph, can change between deploys, and runs recorded
+    against the old shape are not replayable against the new one."""
     from gradio import history_recorder
 
-    monkeypatch.delenv("GRADIO_HISTORY_APP_KEY", raising=False)
-    monkeypatch.delenv("SPACE_ID", raising=False)
-    with gr.Blocks(title="My App") as demo:
-        gr.Textbox()
-    first = history_recorder.stable_app_key(demo)
-    demo.app_id = 12345
-    assert history_recorder.stable_app_key(demo) == first
-
-
-def test_stable_app_key_prefers_space_id(monkeypatch):
-    from gradio import history_recorder
-
-    monkeypatch.delenv("GRADIO_HISTORY_APP_KEY", raising=False)
-    monkeypatch.setenv("SPACE_ID", "alice/my-space")
     with gr.Blocks() as demo:
         gr.Textbox()
-    assert history_recorder.stable_app_key(demo) == "space-alice-my-space"
+    first = history_recorder.app_id_of(demo)
+    demo.app_id = 999888777  # what a restart amounts to
+    assert history_recorder.app_id_of(demo) != first
 
 
-def test_workflow_app_key_matches_between_writer_and_reader(tmp_path):
-    """The recorder and the read routes must derive the same key, or a workflow
-    writes to one prefix and reads from another."""
+def test_app_id_matches_the_key_local_history_uses():
+    """Both backends partition on `blocks.app_id`, so a bucket-backed panel and
+    the browser-local one group runs the same way."""
     from gradio import history_recorder
-    from gradio.workflow import _workflow_key
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    assert history_recorder.app_id_of(demo) == str(demo.app_id)
+
+
+def test_a_workflow_needs_no_special_key(tmp_path):
+    """Workflows are filed by the same rule as any other app."""
+    from gradio import history_recorder
 
     graph = tmp_path / "wf.json"
     graph.write_text(
@@ -584,10 +591,7 @@ def test_workflow_app_key_matches_between_writer_and_reader(tmp_path):
     )
     with pytest.warns(UserWarning):
         wf = gr.Workflow(graph=str(graph))
-    assert wf.history_app_key == _workflow_key(str(graph))
-    assert history_recorder.stable_app_key(wf) == history_recorder.sanitize_segment(
-        _workflow_key(str(graph))
-    )
+    assert history_recorder.app_id_of(wf) == str(wf.app_id)
     close_all()
 
 
@@ -808,7 +812,6 @@ def recording_app(monkeypatch):
     """A normal gradio app wired to a fake bucket, with no history-specific
     code in the app itself."""
     monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
-    monkeypatch.setenv("GRADIO_HISTORY_APP_KEY", "testapp")
     hub = FakeHub()
 
     def greet(name):
@@ -843,7 +846,7 @@ class TestServerSideRecording:
 
         assert _wait_for(lambda: len(hub.files) == 1), "no record was written"
         (path,) = list(hub.files)
-        assert path.startswith("runs/testapp/greet/")
+        assert path.startswith(f"runs/{io.app_id}/greet/")
         record = json.loads(hub.files[path])
         # The values are the server's own, not something a client supplied.
         assert record["inputs"] == ["world"]
@@ -863,7 +866,6 @@ class TestServerSideRecording:
         assert hub.files == {}
 
     def test_a_failing_prediction_is_recorded_as_failed(self, monkeypatch):
-        monkeypatch.setenv("GRADIO_HISTORY_APP_KEY", "testapp")
         hub = FakeHub()
 
         def boom(_):
@@ -1027,8 +1029,8 @@ class TestWorkflowRecording:
 
         assert _wait_for(lambda: len(hub.files) == 1)
         (path,) = list(hub.files)
-        app_key = __import__("gradio").history_recorder.stable_app_key(wf)
-        assert path.startswith(f"runs/{app_key}/result_image/")
+        app_id = __import__("gradio").history_recorder.app_id_of(wf)
+        assert path.startswith(f"runs/{app_id}/result_image/")
 
         record = json.loads(hub.files[path])
         # The structure is reconstructed from the graph, not sent by the client.
@@ -1081,7 +1083,6 @@ class TestWorkflowRecording:
         """Parity with the browser-local history, which records only the
         endpoints the API page documents. Example loaders, clear buttons and
         friends fire on page load and would otherwise fill the bucket."""
-        monkeypatch.setenv("GRADIO_HISTORY_APP_KEY", "testapp")
         hub = FakeHub()
         with gr.Blocks() as demo:
             box = gr.Textbox()
