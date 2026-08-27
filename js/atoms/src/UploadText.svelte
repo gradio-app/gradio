@@ -91,7 +91,7 @@
 		{/if}
 	</span>
 
-	<div class="prompt">
+	{#if density === "full"}
 		{#if heading || paragraph}
 			{#if heading}
 				<h2>{heading}</h2>
@@ -100,20 +100,32 @@
 				<p>{paragraph}</p>
 			{/if}
 		{:else}
-			<span>{i18n(defs[type] || defs.file)}</span>
+			{i18n(defs[type] || defs.file)}
 
 			{#if mode !== "short"}
-				<span class="or"
-					><span class="separator">- </span>{i18n("common.or")}<span
-						class="separator"
-					>
-						-</span
-					></span
-				>
-				<span>{message || i18n("upload_text.click_to_upload")}</span>
+				<span class="or">- {i18n("common.or")} -</span>
+				{message || i18n("upload_text.click_to_upload")}
 			{/if}
 		{/if}
-	</div>
+	{:else}
+		<div class="prompt">
+			{#if heading || paragraph}
+				{#if heading}
+					<h2>{heading}</h2>
+				{/if}
+				{#if paragraph}
+					<p>{paragraph}</p>
+				{/if}
+			{:else}
+				<span>{i18n(defs[type] || defs.file)}</span>{" "}
+				{#if mode !== "short"}
+					<span class="or">{i18n("common.or")}</span>{" "}<span
+						>{message || i18n("upload_text.click_to_upload")}</span
+					>
+				{/if}
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -123,7 +135,6 @@
 
 	p,
 	h2 {
-		margin: 0;
 		white-space: pre-line;
 	}
 
@@ -137,12 +148,9 @@
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
 		height: 100%;
-		width: 100%;
-		box-sizing: border-box;
-		padding: var(--size-3) var(--spacing-lg) 0;
+		padding-top: var(--size-3);
 		text-align: center;
-		margin: auto;
-		overflow: hidden;
+		margin: auto var(--spacing-lg);
 	}
 
 	.prompt {
@@ -165,7 +173,9 @@
 
 	.compact {
 		min-height: 0;
-		padding: 0 var(--spacing-lg);
+		max-width: calc(100% - 2 * var(--spacing-lg));
+		padding: 0;
+		overflow: hidden;
 	}
 
 	.compact .icon-wrap {
@@ -183,10 +193,6 @@
 	.compact .or {
 		display: inline;
 		margin: 0 0.25em;
-	}
-
-	.compact .separator {
-		display: none;
 	}
 
 	.compact h2,
