@@ -168,6 +168,35 @@ describe("Dataframe rendering", () => {
 		expect(get_cell(container, 0, 0)).toHaveAttribute("aria-colindex", "2");
 	});
 
+	test("exposes grid rows through presentational layout wrappers", async () => {
+		const { getByRole } = await render(Dataframe, default_props);
+		await wait();
+
+		const grid = getByRole("grid");
+		const upload_container = grid.querySelector<HTMLElement>(
+			":scope > .upload-container"
+		)!;
+		const viewport = upload_container.querySelector<HTMLElement>(
+			":scope > .virtual-table-viewport"
+		)!;
+		const header_table = viewport.querySelector<HTMLElement>(
+			":scope > .header-table"
+		)!;
+		const header_rowgroup = header_table.querySelector(":scope > thead");
+		const virtual_body = viewport.querySelector<HTMLElement>(
+			":scope > .virtual-body"
+		)!;
+
+		expect(upload_container).toHaveAttribute("role", "none");
+		expect(upload_container).not.toHaveAttribute("tabindex");
+		expect(upload_container).not.toHaveAttribute("aria-label");
+		expect(upload_container).not.toHaveAttribute("aria-dropeffect");
+		expect(viewport).toHaveAttribute("role", "none");
+		expect(header_table).toHaveAttribute("role", "none");
+		expect(header_rowgroup).toHaveAttribute("role", "rowgroup");
+		expect(virtual_body).toHaveAttribute("role", "none");
+	});
+
 	test("renders search input when show_search is 'search'", async () => {
 		const { container } = await render(Dataframe, {
 			...default_props,
@@ -492,6 +521,28 @@ describe("Keyboard accessibility", () => {
 		expect(first_cell).toHaveFocus();
 	});
 
+	test("Space toggles an editable boolean cell", async () => {
+		const { getByTestId } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [[false]],
+				headers: ["Enabled"],
+				metadata: null
+			},
+			datatype: ["bool"] as const,
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [1, "fixed"] as [number, "fixed"]
+		});
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const checkbox = within(cell).getByTestId("checkbox");
+
+		cell.focus();
+		await event.keyboard(" ");
+
+		await waitFor(() => expect(checkbox).toBeChecked());
+		expect(cell).toHaveFocus();
+	});
+
 	test("F2 toggles edit mode and Escape returns to grid navigation", async () => {
 		const { getByRole, getByTestId, queryByRole } = await render(
 			Dataframe,
@@ -770,20 +821,23 @@ describe("Add/remove rows and columns", () => {
 		row_count: [3, "dynamic"] as [number, "fixed" | "dynamic"]
 	};
 
-	test("add row button appends a new row", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+	test("add row button appends a row and focuses its first cell", async () => {
+		const { container, getByRole, getByTestId } = await render(Dataframe, {
+			...dynamic_props,
+			value: {
+				data: [],
+				headers: default_props.value.headers,
+				metadata: null
+			},
+			row_count: [0, "dynamic"] as [number, "dynamic"]
+		});
 		await wait();
 
-		const initial_rows = get_rows(container).length;
+		await fireEvent.click(getByRole("button", { name: "Add row" }));
 
-		// The empty row button should be present for dynamic row_count
-		const add_btn = container.querySelector(".empty-row-button") as HTMLElement;
-		if (add_btn) {
-			await fireEvent.click(add_btn);
-			await wait();
-
-			expect(get_rows(container).length).toBe(initial_rows + 1);
-		}
+		const added_cell = await waitFor(() => getByTestId("cell-0-0"));
+		expect(get_rows(container)).toHaveLength(1);
+		expect(added_cell).toHaveFocus();
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
@@ -817,7 +871,7 @@ describe("Add/remove rows and columns", () => {
 	});
 
 	test("add column via header menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const initial_headers = get_header_cells(container).length;
@@ -826,20 +880,20 @@ describe("Add/remove rows and columns", () => {
 		const headers = get_header_cells(container);
 		const header = headers[0] as HTMLElement;
 		const menu_btn = header.querySelector(".cell-menu-button") as HTMLElement;
-		if (menu_btn) {
-			await fireEvent.click(menu_btn);
-			await wait();
+		expect(menu_btn).toBeTruthy();
+		await fireEvent.click(menu_btn);
+		await wait();
 
-			const add_col_btn = document.querySelector(
-				'[aria-label="Add column to the right"]'
-			) as HTMLElement;
-			if (add_col_btn) {
-				await fireEvent.click(add_col_btn);
-				await wait();
+		const add_col_btn = document.querySelector(
+			'[aria-label="Add column to the right"]'
+		) as HTMLElement;
+		expect(add_col_btn).toBeTruthy();
+		await fireEvent.click(add_col_btn);
 
-				expect(get_header_cells(container).length).toBe(initial_headers + 1);
-			}
-		}
+		await waitFor(() =>
+			expect(get_header_cells(container)).toHaveLength(initial_headers + 1)
+		);
+		expect(getByTestId("header-1")).toHaveFocus();
 	});
 
 	test("delete column via header menu", async () => {

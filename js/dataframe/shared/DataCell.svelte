@@ -159,6 +159,17 @@
 		min-width: 0;
 	}
 
+	.body-cell:focus-visible {
+		outline: 2px solid var(--color-accent);
+		outline-offset: -2px;
+	}
+
+	@media (forced-colors: active) {
+		.body-cell:focus-visible {
+			outline-color: CanvasText;
+		}
+	}
+
 	.body-cell.static {
 		user-select: text;
 	}

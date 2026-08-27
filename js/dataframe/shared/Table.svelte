@@ -685,8 +685,7 @@
 		}
 		values = new_values;
 		push_change(new_values);
-		selected = [index ?? new_values.length - 1, 0];
-		parent?.focus();
+		set_active_cell([index ?? new_values.length - 1, 0]);
 	}
 
 	function add_col(index?: number): void {
@@ -703,7 +702,14 @@
 		values = new_values;
 		headers = new_headers;
 		push_change(new_values, new_headers);
-		parent?.focus();
+		const new_col = index ?? new_headers.length - 1;
+		if (selected) {
+			set_active_cell([selected[0], new_col]);
+		} else {
+			selected_header = new_col;
+			header_edit = false;
+			focus_header(new_col);
+		}
 	}
 
 	function delete_row_at(index: number): void {
@@ -958,6 +964,15 @@
 			case "Spacebar":
 				if (!editing) {
 					e.preventDefault();
+					const col_is_static =
+						static_columns.includes(col) ||
+						static_columns.includes(resolved_headers[col]);
+					if (editable && !col_is_static && get_dtype(col) === "bool") {
+						const new_values = values.map((value_row) => [...value_row]);
+						new_values[row][col] = !new_values[row][col];
+						values = new_values;
+						push_change(new_values);
+					}
 					dispatch_select(row, col);
 				}
 				break;
@@ -1161,14 +1176,15 @@
 				bind:this={scroll_container}
 				bind:clientWidth={viewport_width}
 				onscroll={handle_scroll}
+				role="none"
 				style="max-height: {max_height}px;"
 			>
 				{#if label && label.length !== 0}
 					<span class="sr-only">{label}</span>
 				{/if}
 				<!-- header row: uses table layout to auto-size columns by content -->
-				<table class="header-table" bind:this={header_table_el}>
-					<thead>
+				<table class="header-table" bind:this={header_table_el} role="none">
+					<thead role="rowgroup">
 						<tr bind:this={header_row_el} role="row" aria-rowindex="1">
 							{#if show_row_numbers}
 								<th
@@ -1247,6 +1263,7 @@
 				<!-- table body: absolutely positioned rows (standard tanstack virtual pattern) -->
 				<div
 					class="virtual-body"
+					role="none"
 					style="height: {total_size}px; position: relative; flex-shrink: 0; width: {measurement.total_header_width
 						? `${measurement.total_header_width}px`
 						: '100%'};"

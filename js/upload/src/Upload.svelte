@@ -287,9 +287,16 @@
 					? height + "px"
 					: height
 				: "100%"}
-		tabindex={hidden ? -1 : tab_index}
+		role={container_element === "div" ? "none" : undefined}
+		tabindex={container_element === "button"
+			? hidden
+				? -1
+				: tab_index
+			: undefined}
 		onclick={paste_clipboard}
-		aria-label={aria_label || "Paste from clipboard"}
+		aria-label={container_element === "button"
+			? aria_label || "Paste from clipboard"
+			: undefined}
 	>
 		{#if children}{@render children()}{/if}
 	</svelte:element>
@@ -314,7 +321,12 @@
 					? height + "px"
 					: height
 				: "100%"}
-		tabindex={hidden ? -1 : tab_index}
+		role={container_element === "div" ? "none" : undefined}
+		tabindex={container_element === "button"
+			? hidden
+				? -1
+				: tab_index
+			: undefined}
 		use:drag={{
 			on_drag_change: (d) => (dragging = d),
 			on_files: (files) => load_files_from_upload(files),
@@ -322,8 +334,10 @@
 			mode: file_count,
 			disable_click
 		}}
-		aria-label={aria_label || "Click to upload or drop files"}
-		aria-dropeffect="copy"
+		aria-label={container_element === "button"
+			? aria_label || "Click to upload or drop files"
+			: undefined}
+		aria-dropeffect={container_element === "button" ? "copy" : undefined}
 	>
 		{#if children}{@render children()}{/if}
 	</svelte:element>
