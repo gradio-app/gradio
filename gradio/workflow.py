@@ -438,13 +438,19 @@ def _file_ref(a) -> str:
     canvas file value carries no `path` at all (`FileValue` in
     `js/workflowcanvas/workflow/workflow-types.ts`), so the prefix comes off
     here and callers get the local path either way.
+
+    The URL branch is percent-encoded, so it is unquoted on the way out. That
+    unquoting stays inside the branch: a `path` that wins can itself hold a
+    literal `%20`, which must survive as part of the filename.
     """
     src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
     if not isinstance(src, str) or not src:
         return ""
     if src.startswith(("data:", "http://", "https://")):
         return src
-    return src.removeprefix("/gradio_api/file=")
+    if src.startswith("/gradio_api/file="):
+        return urllib.parse.unquote(src.removeprefix("/gradio_api/file="))
+    return src
 
 
 def _sendable_ref(a) -> str:
