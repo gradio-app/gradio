@@ -19,8 +19,10 @@
 		WFNode,
 		PortType,
 		NodeDataValue,
-		NodeStatus
+		NodeStatus,
+		FileValue
 	} from "./workflow-types";
+	import { nodeMetaLabel, resolveFileSize } from "./node-meta";
 
 	interface Props {
 		id: string;
@@ -294,6 +296,44 @@
 	);
 	const isReadonly = $derived(mode === "output");
 
+	// ── Header meta ──
+	// How much the card is holding, in the top-right of the header: a character
+	// count for text-ish widgets, a file size for media. Media that arrived as a
+	// bare URL carries no size, so measure it once per URL and keep the answer
+	// here rather than writing it back into the graph (that would dirty the
+	// workflow and mark downstream nodes stale for a cosmetic read).
+	let measuredSize = $state<number | null>(null);
+	let measuredUrl = $state<string | null>(null);
+
+	const widgetValue = $derived(
+		widgetPortId ? node.data?.[widgetPortId] : undefined
+	);
+
+	$effect(() => {
+		const val = widgetValue;
+		const file =
+			val && typeof val === "object" && !Array.isArray(val)
+				? (val as FileValue)
+				: null;
+		if (!file?.url || typeof file.size === "number") {
+			measuredUrl = null;
+			measuredSize = null;
+			return;
+		}
+		if (file.url === measuredUrl) return;
+		const url = file.url;
+		measuredUrl = url;
+		measuredSize = null;
+		resolveFileSize(url).then((size) => {
+			// The value may have moved on while the request was in flight.
+			if (measuredUrl === url) measuredSize = size;
+		});
+	});
+
+	const metaLabel = $derived(
+		hasWidget ? nodeMetaLabel(widgetType, widgetValue, measuredSize) : null
+	);
+
 	function sourceHFUrl(n: WFNode): string {
 		if (n.space_id) return `https://huggingface.co/spaces/${n.space_id}`;
 		if (n.model_id) return `https://huggingface.co/${n.model_id}`;
@@ -378,6 +418,9 @@
 					}}>{node.label}</span
 				>
 			{/if}
+			{#if metaLabel}
+				<span class="node-meta" title={metaLabel}>{metaLabel}</span>
+			{/if}
 			{#if canRunSolo}
 				<button
 					class="node-run"
@@ -409,20 +452,20 @@
 					{/if}
 				</button>
 			{/if}
-			{#if !readOnly}
-				<button
-					class="node-delete"
-					onpointerdown={(e) => e.stopPropagation()}
-					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => {
-						e.stopPropagation();
-						ctx.onremove(node.id);
-					}}
-					title="Delete node">&times;</button
-				>
-			{/if}
 		</div>
 	</div>
+	{#if !readOnly}
+		<button
+			class="node-delete"
+			onpointerdown={(e) => e.stopPropagation()}
+			onmousedown={(e) => e.stopPropagation()}
+			onclick={(e) => {
+				e.stopPropagation();
+				ctx.onremove(node.id);
+			}}
+			title="Delete node">&times;</button
+		>
+	{/if}
 
 	<!-- Source label for transform nodes — floats above the card.
 	     Components are pure data containers and have no source label. -->
@@ -1078,6 +1121,20 @@
 		);
 	}
 
+	/* Sits between the title and the header buttons. `flex: 0 0 auto` keeps it
+	   whole while the title takes the squeeze. */
+	.node-meta {
+		flex: 0 0 auto;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9.5px;
+		font-weight: 500;
+		line-height: 1;
+		color: #55576a;
+		white-space: nowrap;
+		letter-spacing: 0.01em;
+		user-select: none;
+	}
+
 	.node-label-input {
 		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
@@ -1175,22 +1232,29 @@
 		cursor: default;
 	}
 
+	/* Floats just off the card's top-right corner so it stops competing with
+	 * the run button in the header row. Hover-only on the card, not the button
+	 * itself, so the whole corner region reveals it. */
 	.node-delete {
 		display: flex;
 		visibility: hidden;
-		width: 20px;
-		height: 20px;
-		border: none;
-		border-radius: 4px;
-		background: transparent;
-		color: #5c5e6a;
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		width: 18px;
+		height: 18px;
+		border: 1px solid #2a2b38;
+		border-radius: 50%;
+		background: #16171f;
+		color: #8b8d98;
 		font-size: 12px;
+		line-height: 1;
 		cursor: pointer;
-		flex-shrink: 0;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
 		text-align: center;
+		z-index: 2;
 	}
 
 	.wf-node:hover .node-delete {
@@ -1198,7 +1262,8 @@
 	}
 
 	.node-delete:hover {
-		background: rgba(239, 68, 68, 0.15);
+		background: rgba(239, 68, 68, 0.18);
+		border-color: rgba(239, 68, 68, 0.4);
 		color: #ef4444;
 	}
 
@@ -1227,10 +1292,6 @@
 	.node-run.has-duration {
 		padding: 0 3px 0 7px;
 		background: rgba(255, 255, 255, 0.06);
-	}
-
-	.node-run + .node-delete {
-		margin-left: 2px;
 	}
 
 	.node-run-time {
@@ -1722,6 +1783,10 @@
 			0 4px 20px rgba(0, 0, 0, 0.08);
 	}
 
+	:global(body:not(.dark)) .node-meta {
+		color: #a3a6b4;
+	}
+
 	:global(body:not(.dark)) .node-header {
 		border-bottom-color: #e2e4ea;
 	}
@@ -1760,6 +1825,8 @@
 	}
 
 	:global(body:not(.dark)) .node-delete {
+		background: #ffffff;
+		border-color: #e2e4ea;
 		color: #9a9caa;
 	}
 
