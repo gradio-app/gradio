@@ -56,7 +56,8 @@
 	}
 
 	$effect(() => {
-		const boundary = container.closest(".block") ?? container;
+		const boundary =
+			(container.closest(".block") as HTMLElement | null) ?? container;
 		// Without an explicit height constraint, UploadText contributes to the
 		// block's intrinsic height. Observing that size would create a feedback
 		// loop as the responsive layout changes its own measured container.
