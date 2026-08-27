@@ -9,6 +9,7 @@ import type {
 } from "./workflow-types";
 import { toLegacyShape } from "./workflow-migration";
 import { topoSort } from "./workflow-graph";
+import type { ChatContentPart } from "./inference-stream";
 
 type StatusCallback = (
 	nodeId: string,
@@ -47,11 +48,31 @@ type ServerCallPyFn = (fnName: string, argsJson: string) => Promise<string>;
  */
 type StreamTextFn = (
 	modelId: string,
-	prompt: string,
+	content: string | ChatContentPart[],
 	provider: string | undefined,
 	signal: AbortSignal | undefined,
 	onChunk: (delta: string, accumulated: string) => void
 ) => Promise<string>;
+
+function buildChatContent(
+	ports: Port[],
+	args: unknown[]
+): string | ChatContentPart[] {
+	const parts: ChatContentPart[] = [];
+	ports.forEach((port, i) => {
+		const arg = args[i];
+		if (arg == null || arg === "") return;
+		if (port.type === "image") {
+			const url = (arg as { url?: string })?.url;
+			if (url) parts.push({ type: "image_url", image_url: { url } });
+		} else if (typeof arg === "string" || typeof arg === "number") {
+			parts.push({ type: "text", text: String(arg) });
+		}
+	});
+	if (parts.length === 0) return "";
+	if (parts.length === 1 && parts[0].type === "text") return parts[0].text;
+	return parts;
+}
 
 function resolveInputs(
 	node: WFNode,
@@ -440,12 +461,12 @@ export async function executeWorkflow(
 					const streamable =
 						(tag === "text-generation" ||
 							tag === "text2text-generation" ||
-							tag === "conversational") &&
+							tag === "conversational" ||
+							tag === "image-text-to-text") &&
 						!hasCustomPorts &&
 						!!stream_text_generation;
 					if (streamable) {
-						const prompt =
-							typeof args[0] === "string" ? args[0] : String(args[0] ?? "");
+						const content = buildChatContent(node.inputs, args);
 						const outputPort = node.outputs[0];
 						const downstream = outputPort
 							? edges.filter(
@@ -456,7 +477,7 @@ export async function executeWorkflow(
 							: [];
 						const final = await stream_text_generation!(
 							node.model_id,
-							prompt,
+							content,
 							node.provider,
 							signal,
 							(_delta, accumulated) => {
