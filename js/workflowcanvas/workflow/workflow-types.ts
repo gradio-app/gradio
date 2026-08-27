@@ -8,6 +8,7 @@
 export type PortType =
 	| "image"
 	| "text"
+	| "markdown"
 	| "audio"
 	| "video"
 	| "number"
@@ -19,8 +20,14 @@ export type PortType =
 	| "html"
 	| "any";
 
+/** Types that carry a plain string and are freely interchangeable. Markdown is
+ * text with a renderer attached, so a model's text output can feed a markdown
+ * tile and a markdown reference can prompt a text input. */
+const TEXTUAL = new Set<PortType>(["text", "markdown"]);
+
 export function ports_compatible(a: PortType, b: PortType): boolean {
-	return a === "any" || b === "any" || a === b;
+	if (a === "any" || b === "any" || a === b) return true;
+	return TEXTUAL.has(a) && TEXTUAL.has(b);
 }
 
 export interface Port {
@@ -39,6 +46,10 @@ export interface FileValue {
 	name: string;
 	url: string;
 	mime: string;
+	/** Byte size, when the source knew it (a local upload, a capture, or a
+	 * Gradio payload that carried `size`). Absent for bare remote URLs — the
+	 * node header measures those lazily instead. */
+	size?: number;
 }
 
 export type NodeDataValue =
@@ -219,6 +230,7 @@ export interface SavedWorkflow extends Omit<
 export const PORT_COLOR: Record<PortType, string> = {
 	image: "#4fd1a5",
 	text: "#8b83e8",
+	markdown: "#8b83e8",
 	audio: "#f5a623",
 	video: "#4d9cf5",
 	number: "#e879a8",
@@ -234,6 +246,7 @@ export const PORT_COLOR: Record<PortType, string> = {
 export const PORT_COLOR_DIM: Record<PortType, string> = {
 	image: "rgba(79, 209, 165, 0.15)",
 	text: "rgba(139, 131, 232, 0.15)",
+	markdown: "rgba(139, 131, 232, 0.15)",
 	audio: "rgba(245, 166, 35, 0.15)",
 	video: "rgba(77, 156, 245, 0.15)",
 	number: "rgba(232, 121, 168, 0.15)",

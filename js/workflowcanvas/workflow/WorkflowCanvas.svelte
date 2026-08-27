@@ -2510,6 +2510,7 @@
 		"audio",
 		"video",
 		"text",
+		"markdown",
 		"html",
 		"file",
 		"gallery",
