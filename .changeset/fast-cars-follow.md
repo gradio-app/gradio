@@ -6,4 +6,4 @@
 "gradio": patch
 ---
 
-fix:Fix Image and ImageEditor regressions
+fix:Fix Image and ImageEditor UI/UX issues 
