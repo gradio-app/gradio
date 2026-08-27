@@ -159,10 +159,7 @@
 		if (!has_user_edits) {
 			try {
 				return await upload_original_data();
-			} catch {
-				// Some server-provided files cannot be fetched by the browser. In that
-				// case, fall back to the rendered canvas as before.
-			}
+			} catch {}
 		}
 
 		let blobs;

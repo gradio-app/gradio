@@ -90,8 +90,6 @@ export class BrushCommand implements Command {
 			const graphics = new Graphics();
 			const replacement_container = new Container();
 			const render_root = new Container();
-			// Pixi does not apply a blend mode to the renderer's root object, so
-			// nest the replacement pass to overwrite only the brush fragments.
 			replacement_container.blendMode = "none";
 			replacement_container.addChild(graphics);
 			render_root.addChild(replacement_container);
