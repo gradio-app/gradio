@@ -524,10 +524,7 @@
 	let spaceHeld = $state(false);
 	let last_node_drag_moved = false;
 
-	const activeTouches = new Map<
-		number,
-		{ clientX: number; clientY: number }
-	>();
+	const activeTouches = new Map<number, { clientX: number; clientY: number }>();
 	let pinchState: {
 		startDist: number;
 		startZoom: number;
@@ -1214,11 +1211,9 @@
 				const cx = (a.clientX + b.clientX) / 2 - r.left;
 				const cy = (a.clientY + b.clientY) / 2 - r.top;
 				const worldCX =
-					(pinchState.startCenterX - pinchState.startVX) /
-					pinchState.startZoom;
+					(pinchState.startCenterX - pinchState.startVX) / pinchState.startZoom;
 				const worldCY =
-					(pinchState.startCenterY - pinchState.startVY) /
-					pinchState.startZoom;
+					(pinchState.startCenterY - pinchState.startVY) / pinchState.startZoom;
 				viewport = {
 					zoom: newZoom,
 					x: cx - worldCX * newZoom,
