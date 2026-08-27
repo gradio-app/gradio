@@ -291,7 +291,7 @@ class App(FastAPI):
         return self.blocks
 
     def build_proxy_request(self, url_path):
-        url = httpx.URL(url_path)
+        url = httpx.URL(route_utils.requote_proxied_url(url_path))
         assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.

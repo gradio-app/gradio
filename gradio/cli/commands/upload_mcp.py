@@ -1,6 +1,6 @@
 def main(url_or_space_id: str, source_directory: str):
     import httpx
-    from gradio_client.utils import is_http_url_like
+    from gradio_client.utils import encode_file_path, is_http_url_like
     from huggingface_hub import space_info
     from mcp.server.fastmcp import FastMCP  # type: ignore
 
@@ -33,7 +33,7 @@ def main(url_or_space_id: str, source_directory: str):
             response = httpx.post(f"{url}/gradio_api/upload", files={"files": f})
         response.raise_for_status()
         result = response.json()[0]
-        return f"{url}/gradio_api/file={result}"
+        return f"{url}/gradio_api/file={encode_file_path(result)}"
 
     mcp.run(transport="stdio")
 

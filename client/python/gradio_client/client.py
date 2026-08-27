@@ -1412,8 +1412,13 @@ class Endpoint:
             # If the URL is relative, prepend the root URL
             if not url_path.startswith(("http://", "https://")):
                 url_path = self.root_url + url_path.lstrip("/")
+            file_name = Path(url_path).name
         else:
-            url_path = self.root_url + "file=" + x["path"]
+            url_path = self.root_url + "file=" + utils.encode_file_path(x["path"])
+            # Name the download after the server's path rather than the URL. The
+            # URL is percent-encoded, so a file called "my report.png" would
+            # otherwise land on disk as "my%20report.png".
+            file_name = Path(x["path"]).name or "file"
 
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)
@@ -1432,15 +1437,15 @@ class Endpoint:
             **self.client.httpx_kwargs,
         ) as response:
             response.raise_for_status()
-            with open(temp_dir / Path(url_path).name, "wb") as f:
+            with open(temp_dir / file_name, "wb") as f:
                 for chunk in response.iter_bytes(chunk_size=128 * sha.block_size):
                     sha.update(chunk)
                     f.write(chunk)
 
         directory = Path(self.client.output_dir) / sha.hexdigest()
         directory.mkdir(exist_ok=True, parents=True)
-        dest = directory / Path(url_path).name
-        shutil.move(temp_dir / Path(url_path).name, dest)
+        dest = directory / file_name
+        shutil.move(temp_dir / file_name, dest)
         return str(dest.resolve())
 
     def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
