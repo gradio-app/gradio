@@ -72,21 +72,18 @@ describe("Image", () => {
 	});
 
 	test("shows the full upload prompt when enough height is available", async () => {
-		const { getByTestId, getByText } = await render(Image, {
+		const { getByTestId } = await render(Image, {
 			...default_props,
 			height: 300,
 			value: null
 		});
 
 		await waitFor(() => expect(getByTestId("upload-icon")).toBeVisible());
-		expect(getByText("upload_text.drop_image")).toBeVisible();
-		expect(getByText("common.or")).toBeVisible();
-		expect(getByText("upload_text.click_to_upload")).toBeVisible();
-		expect(
-			getByText("upload_text.click_to_upload").getBoundingClientRect().top
-		).toBeGreaterThan(
-			getByText("upload_text.drop_image").getBoundingClientRect().top
+		const upload_text = getByTestId("upload-text");
+		expect(upload_text).toHaveTextContent(
+			"upload_text.drop_image - common.or - upload_text.click_to_upload"
 		);
+		expect(getComputedStyle(upload_text).flexDirection).toBe("column");
 	});
 
 	test.each([80, 130])(
