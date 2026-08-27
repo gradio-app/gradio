@@ -61,6 +61,13 @@
 	function delete_layer(id: string): void {
 		ondelete_layer?.(id);
 	}
+
+	function localize_layer_name(name: string): string {
+		const generated_layer_name = /^Layer (\d+)$/.exec(name);
+		return generated_layer_name
+			? `${i18n("image_editor.layer")} ${generated_layer_name[1]}`
+			: name;
+	}
 </script>
 
 {#if enable_layers}
@@ -79,7 +86,10 @@
 		>
 			{show_layers
 				? i18n("image_editor.layers")
-				: $layers.layers.find((l) => l.id === $layers.active_layer)?.name}
+				: localize_layer_name(
+						$layers.layers.find((l) => l.id === $layers.active_layer)?.name ??
+							""
+					)}
 			<span class="icon"><Layers /></span>
 		</button>
 		{#if show_layers}
@@ -111,7 +121,7 @@
 							onclick={(event) => {
 								event.stopPropagation();
 								change_layer(id);
-							}}>{name}</button
+							}}>{localize_layer_name(name)}</button
 						>
 						{#if $layers.layers.length > 1}
 							<div>

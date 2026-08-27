@@ -9,6 +9,7 @@ import {
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
+import es from "../core/src/lang/es.json";
 import ImageEditor from "./Index.svelte";
 import ImageEditorTestWrapper from "./ImageEditorTestWrapper.svelte";
 
@@ -30,6 +31,13 @@ const default_props = {
 	eraser: { default_size: "auto" as const },
 	webcam_options: { mirror: true, constraints: {} },
 	buttons: []
+};
+
+const spanish_i18n = (key: string): string => {
+	const [namespace, message] = key.split(".");
+	return (
+		(es as Record<string, Record<string, string>>)[namespace]?.[message] ?? key
+	);
 };
 
 run_shared_prop_tests({
@@ -78,50 +86,44 @@ describe("Internationalization", () => {
 	afterEach(() => cleanup());
 
 	test("canvas controls use translated accessible names", async () => {
-		const i18n = (key: string): string => key;
 		const { getByRole } = await render(ImageEditorTestWrapper, {
 			kind: "controls",
-			i18n
+			i18n: spanish_i18n
 		});
 
-		expect(getByRole("button", { name: "common.download" })).toBeVisible();
-		expect(getByRole("button", { name: "image_editor.pan" })).toBeVisible();
-		expect(
-			getByRole("button", { name: "image_editor.zoom_out" })
-		).toBeVisible();
-		expect(
-			getByRole("button", { name: "image_editor.save_changes" })
-		).toBeVisible();
+		expect(getByRole("button", { name: "Descargar" })).toBeVisible();
+		expect(getByRole("button", { name: "Desplazar" })).toBeVisible();
+		expect(getByRole("button", { name: "Alejar" })).toBeVisible();
+		expect(getByRole("button", { name: "Deshacer" })).toBeVisible();
+		expect(getByRole("button", { name: "Guardar cambios" })).toBeVisible();
 	});
 
 	test("editing tools use translated accessible names", async () => {
-		const i18n = (key: string): string => key;
 		const { getByRole } = await render(ImageEditorTestWrapper, {
 			kind: "toolbar",
-			i18n
+			i18n: spanish_i18n
 		});
 
-		expect(getByRole("button", { name: "image.image" })).toBeVisible();
-		expect(getByRole("button", { name: "image_editor.brush" })).toBeVisible();
-		expect(getByRole("button", { name: "image_editor.erase" })).toBeVisible();
-		expect(getByRole("button", { name: "image_editor.upload" })).toBeVisible();
-		expect(getByRole("button", { name: "image_editor.paste" })).toBeVisible();
+		expect(getByRole("button", { name: "Imagen" })).toBeVisible();
+		expect(getByRole("button", { name: "Pincel" })).toBeVisible();
+		expect(getByRole("button", { name: "Borrar" })).toBeVisible();
+		expect(getByRole("button", { name: "Cargar" })).toBeVisible();
+		expect(getByRole("button", { name: "Pegar" })).toBeVisible();
 	});
 
 	test("layer controls use translated accessible names", async () => {
-		const i18n = (key: string): string => key;
-		const { getByRole } = await render(ImageEditorTestWrapper, {
+		const { getByRole, getByText } = await render(ImageEditorTestWrapper, {
 			kind: "layers",
-			i18n
+			i18n: spanish_i18n
 		});
 		const show_layers = getByRole("button", {
-			name: "image_editor.show_layers"
+			name: "Mostrar capas"
 		});
+		expect(getByText("Capa 1")).toBeVisible();
 
 		await fireEvent.click(show_layers);
 
-		expect(
-			getByRole("button", { name: "image_editor.add_layer" })
-		).toBeVisible();
+		expect(getByText("Capas")).toBeVisible();
+		expect(getByRole("button", { name: "Añadir capa" })).toBeVisible();
 	});
 });
