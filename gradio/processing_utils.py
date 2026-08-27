@@ -484,13 +484,14 @@ def move_files_to_cache(
         )
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
+            encoded_path = client_utils.encode_file_path(payload.path)
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
             url = f"{payload.path}"
         else:
-            url = f"{url_prefix}{payload.path}"
+            url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
         payload.url = url
         _mark_svg_as_safe(payload)
         return payload.model_dump()
@@ -606,13 +607,14 @@ async def async_move_files_to_cache(
         )
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
+            encoded_path = client_utils.encode_file_path(payload.path)
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
             url = payload.path
         else:
-            url = f"{url_prefix}{payload.path}"
+            url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
         payload.url = url
         _mark_svg_as_safe(payload)
         return payload.model_dump()

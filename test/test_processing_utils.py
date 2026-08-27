@@ -57,6 +57,27 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
         assert Path(f).name == "cheetah1-copy.jpg"
 
+    @pytest.mark.asyncio
+    async def test_move_files_to_cache_encodes_file_urls(self, tmp_path):
+        source = tmp_path / "report%20#final.txt"
+        source.write_text("ok")
+        data = data_classes.FileData(path=str(source)).model_dump()
+
+        sync_result = processing_utils.move_files_to_cache(
+            data, gr.File(), postprocess=True
+        )
+        async_result = await processing_utils.async_move_files_to_cache(
+            data, gr.File(), postprocess=True
+        )
+        proxy_component = gr.File()
+        proxy_component.proxy_url = "https://example.com"
+        proxy_result = processing_utils.move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+
+        for result in (sync_result, async_result, proxy_result):
+            assert result["url"].endswith("/report%2520%23final.txt")
+
     def test_save_b64_to_cache(self, gradio_temp_dir, media_data):
         base64_file_1 = media_data.BASE64_IMAGE
         base64_file_2 = media_data.BASE64_AUDIO["data"]
