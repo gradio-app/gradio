@@ -447,13 +447,24 @@ export async function executeWorkflow(
 						const prompt =
 							typeof args[0] === "string" ? args[0] : String(args[0] ?? "");
 						const outputPort = node.outputs[0];
+						const downstream = outputPort
+							? edges.filter(
+									(e) =>
+										e.from_node_id === node.id &&
+										e.from_port_id === outputPort.id
+								)
+							: [];
 						const final = await stream_text_generation!(
 							node.model_id,
 							prompt,
 							node.provider,
 							signal,
 							(_delta, accumulated) => {
-								if (outputPort) onOutput(node.id, outputPort.id, accumulated);
+								if (!outputPort) return;
+								onOutput(node.id, outputPort.id, accumulated);
+								for (const e of downstream) {
+									onOutput(e.to_node_id, e.to_port_id, accumulated);
+								}
 							}
 						);
 						resultJson = JSON.stringify([final]);
