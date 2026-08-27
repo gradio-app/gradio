@@ -14,6 +14,7 @@ import secrets
 import shutil
 import tempfile
 import time
+import urllib.parse
 import warnings
 from collections import deque
 from collections.abc import Callable, Coroutine
@@ -776,8 +777,8 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     Only removes characters that are truly dangerous for file systems: path separators,
     null bytes, control characters, and shell-dangerous characters. Preserves all other
     characters including parentheses, brackets, unicode characters, etc.
-    The filename may include an extension (in which case it is preserved exactly as is),
-    or could be just a name without an extension.
+    The filename may include an extension (which is preserved when it fits), or
+    could be just a name without an extension.
     """
     name, ext = os.path.splitext(filename)
     name = _FORBIDDEN_RE.sub("", name)
@@ -789,6 +790,15 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     # stem (e.g. "#.txt" → ".txt" → Path(".txt").suffix == "").
     if not name and ext:
         name = "file"
+    # Preserve the parent-directory marker so upload path validation rejects it.
+    if name + ext == "..":
+        return ".."
+    # Windows strips trailing spaces and dots from path segments. Remove them
+    # consistently on every platform so the returned upload path is portable.
+    filename = (name + ext).rstrip(" .")
+    if not filename:
+        filename = "file"
+    name, ext = os.path.splitext(filename)
     # Prefix Windows reserved device names so uploads remain valid on NTFS
     # (CON, PRN, AUX, NUL, COM1–COM9, LPT1–LPT9, with or without extension).
     # Windows resolves device names from the segment before the *first* dot
@@ -797,15 +807,25 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     if (name + ext).partition(".")[0].rstrip(" ").upper() in _WINDOWS_RESERVED_NAMES:
         name = "_" + name
     filename = name + ext
-    filename_len = len(filename.encode())
-    if filename_len > max_bytes:
-        while filename_len > max_bytes:
-            if len(name) == 0:
-                break
-            name = name[:-1]
-            filename = name + ext
-            filename_len = len(filename.encode())
-    return filename
+    while len(filename.encode()) > max_bytes and name:
+        name = name[:-1]
+        filename = name + ext
+    if len(filename.encode()) <= max_bytes:
+        return filename
+
+    # An extension can itself exceed the limit. Keep a usable fallback stem and
+    # truncate the extension by characters so multi-byte Unicode is never split.
+    name = "file"
+    while len(name.encode()) > max_bytes and name:
+        name = name[:-1]
+    while len((name + ext).encode()) > max_bytes and ext:
+        ext = ext[:-1]
+    return name + ext
+
+
+def encode_file_path(path: str | Path) -> str:
+    """Encode a filesystem path for use after a Gradio ``/file=`` route."""
+    return urllib.parse.quote(str(path), safe="/")
 
 
 def sanitize_parameter_names(original_name: str) -> str:
