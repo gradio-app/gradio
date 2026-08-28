@@ -11,6 +11,7 @@ build/
 !js/build/dist/
 __tmp/*
 *.pyi
+!gradio/components/*.pyi
 !gradio/stubs/**/*.pyi
 .ipynb_checkpoints/
 .python-version

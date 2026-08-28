@@ -1,27 +1,107 @@
+"""gr.Navbar() component."""
+
 from __future__ import annotations
 
-import ast
-import inspect
-from abc import ABCMeta
-from functools import wraps
-from pathlib import Path
+from typing import Any, Literal
 
-from jinja2 import Template
+from gradio_client.documentation import document
 
-from gradio.events import EventListener
-from gradio.exceptions import ComponentDefinitionError
-from gradio.utils import no_raise_exception
+from gradio.components.base import Component
+from gradio.events import Events
 
-INTERFACE_TEMPLATE = '''
-{{ contents }}
+from gradio.events import Dependency
+
+@document()
+class Navbar(Component):
+    """
+    Creates a navigation bar component for multipage Gradio apps. The navbar component allows customizing the
+    appearance of the navbar for that page. Only one Navbar component can exist per page in a Blocks app,
+    and it can be placed anywhere within the page.
+
+    The Navbar component is designed to control the appearance of the navigation bar in multipage
+    applications. When present in a Blocks app, its properties override the default navbar behavior.
+
+    Example:
+        ```python
+        import gradio as gr
+
+        with gr.Blocks() as demo:
+            navbar = gr.Navbar(
+                visible=True,
+                main_page_name="My App",
+                value=[("Analytics", "analytics"), ("About", "https://twitter.com/abidlabs")]
+            )
+            gr.Textbox(label="Main page content")
+
+        with demo.route("About"):
+            gr.Markdown("This is the about page")
+
+        demo.launch()
+        ```
+    Guides: multipage-apps
+    """
+
+    EVENTS = [Events.change]
+
+    def __init__(
+        self,
+        value: list[tuple[str, str]] | None = None,
+        *,
+        visible: bool = True,
+        main_page_name: str | Literal[False] = "Home",
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        key: int | str | tuple[int | str, ...] | None = None,
+    ):
+        """
+        Parameters:
+            value: If a list of tuples of (page_name, page_path) are provided, these additional pages will be added to the navbar alongside the existing pages defined in the Blocks app. The page_path can be either a relative path for internal Gradio app pages (e.g., "analytics") or an absolute URL for external links (e.g., "https://twitter.com/username"). Otherwise, only the pages defined using the `Blocks.route` method will be displayed. Example: [("Dashboard", "dashboard"), ("About", "https://twitter.com/abidlabs")]
+            visible: If True, the navbar will be visible. If False, the navbar will be hidden.
+            main_page_name: The title to display in the navbar for the main page of the Gradio. If False, the main page will not be displayed in the navbar.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component.
+        """
+        self.visible = visible
+        self.main_page_name = main_page_name
+
+        super().__init__(
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            key=key,
+            visible=visible,
+            value=value,
+        )
+
+    def preprocess(
+        self, payload: list[tuple[str, str]] | None
+    ) -> list[tuple[str, str]] | None:
+        return payload
+
+    def postprocess(
+        self, value: list[tuple[str, str]] | None
+    ) -> list[tuple[str, str]] | None:
+        return value
+
+    def api_info(self) -> dict[str, Any]:
+        return {}
+
+    def example_payload(self) -> list[tuple[str, str]] | None:
+        return None
+
+    def example_value(self) -> list[tuple[str, str]] | None:
+        return None
     from typing import Callable, Literal, Sequence, Any, TYPE_CHECKING
     from gradio.blocks import Block
     if TYPE_CHECKING:
         from gradio.components import Timer
         from gradio.components.base import Component
 
-    {% for event in events %}
-    def {{ event.event_name }}(self,
+
+    def change(self,
         fn: Callable[..., Any] | None = None,
         inputs: Block | Sequence[Block] | set[Block] | None = None,
         outputs: Block | Sequence[Block] | None = None,
@@ -44,9 +124,7 @@ INTERFACE_TEMPLATE = '''
         key: int | str | tuple[int | str, ...] | None = None,
         api_description: str | None | Literal[False] = None,
         validator: Callable[..., Any] | None = None,
-    {% for arg in event.event_specific_args %}
-        {{ arg.name }}: {{ arg.type }},
-    {% endfor %}
+
         ) -> Dependency:
         """
         Parameters:
@@ -72,165 +150,6 @@ INTERFACE_TEMPLATE = '''
             key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function.
-        {% for arg in event.event_specific_args %}
-            {{ arg.name }}: {{ arg.doc }},
-        {% endfor %}
+
         """
         ...
-    {% endfor %}
-'''
-
-
-def create_pyi(class_code: str, events: list[EventListener | str]):
-    template = Template(INTERFACE_TEMPLATE)
-    event_template = [
-        e
-        if isinstance(e, EventListener)
-        else EventListener(event_name=e, event_specific_args=[])
-        for e in events
-    ]
-    rendered = template.render(events=event_template, contents=class_code)
-    return "\n".join(line.rstrip() for line in rendered.splitlines())
-
-
-def extract_class_source_code(
-    code: str, class_name: str
-) -> tuple[str, int] | tuple[None, None]:
-    class_start_line = code.find(f"class {class_name}")
-    if class_start_line == -1:
-        return None, None
-
-    class_ast = ast.parse(code)
-    for node in ast.walk(class_ast):
-        if isinstance(node, ast.ClassDef) and node.name == class_name:
-            segment = ast.get_source_segment(code, node)
-            if not segment:
-                raise ValueError("segment not found")
-            return segment, node.lineno
-    return None, None
-
-
-def create_or_modify_pyi(
-    component_class: type, class_name: str, events: list[str | EventListener]
-):
-    try:
-        source_file = Path(inspect.getfile(component_class))
-    except OSError:
-        # This can happen if the component is not a file, e.g. a custom HTML component
-        # We don't want to need to create a pyi file for these components
-        return
-
-    source_code = source_file.read_text(encoding="utf-8")
-
-    current_impl, lineno = extract_class_source_code(source_code, class_name)
-
-    if not (current_impl and lineno):
-        raise ValueError("Couldn't find class source code")
-
-    new_interface = create_pyi(current_impl, events)
-
-    pyi_file = source_file.with_suffix(".pyi")
-    if not pyi_file.exists():
-        last_empty_line_before_class = -1
-        lines = source_code.splitlines()
-        for i, line in enumerate(lines):
-            if line in ["", " "]:
-                last_empty_line_before_class = i
-            if i >= lineno:
-                break
-        lines = (
-            lines[:last_empty_line_before_class]
-            + ["from gradio.events import Dependency"]
-            + lines[last_empty_line_before_class:]
-        )
-        with no_raise_exception():
-            pyi_file.write_text("\n".join(lines))
-    with no_raise_exception():
-        current_interface, _ = extract_class_source_code(
-            pyi_file.read_text(), class_name
-        )
-        if not current_interface:
-            with open(str(pyi_file), mode="a") as f:
-                f.write(new_interface)
-        else:
-            contents = pyi_file.read_text()
-            contents = contents.replace(current_interface, new_interface.strip())
-            current_contents = pyi_file.read_text()
-            if current_contents != contents:
-                pyi_file.write_text(contents)
-
-
-def get_local_contexts():
-    from gradio.context import LocalContext
-
-    return (
-        LocalContext.in_event_listener.get(False),
-        LocalContext.renderable.get(None) is not None,
-    )
-
-
-def updateable(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        fn_args = inspect.getfullargspec(fn).args
-        self = args[0]
-
-        # We need to ensure __init__ is always called at least once
-        # so that the component has all the variables in self defined
-        # test_blocks.py::test_async_iterator_update_with_new_component
-        # checks this
-        initialized_before = hasattr(self, "_constructor_args")
-        if not initialized_before:
-            self._constructor_args = []
-        for i, arg in enumerate(args):
-            if i == 0 or i >= len(fn_args):  #  skip self, *args
-                continue
-            arg_name = fn_args[i]
-            kwargs[arg_name] = arg
-        self._constructor_args.append(kwargs)
-        in_event_listener, is_render = get_local_contexts()
-        if in_event_listener and initialized_before and not is_render:
-            return None
-        else:
-            return fn(self, **kwargs)
-
-    return wrapper
-
-
-class ComponentMeta(ABCMeta):
-    def __new__(cls, name, bases, attrs):
-        if "__init__" in attrs:
-            attrs["__init__"] = updateable(attrs["__init__"])
-        if "EVENTS" not in attrs:
-            found = False
-            for base in bases:
-                if hasattr(base, "EVENTS"):
-                    found = True
-                    break
-            if not found:
-                raise ComponentDefinitionError(
-                    f"{name} or its base classes must define an EVENTS list. "
-                    "If no events are supported, set it to an empty list."
-                )
-        events = attrs.get("EVENTS", [])
-        if not all(isinstance(e, (str, EventListener)) for e in events):
-            raise ComponentDefinitionError(
-                f"All events for {name} must either be an string or an instance "
-                "of EventListener."
-            )
-        new_events = []
-        for event in events:
-            trigger = (
-                event
-                if isinstance(event, EventListener)
-                else EventListener(event_name=event)
-            ).copy()
-            new_events.append(trigger)
-            trigger.set_doc(component=name)
-            attrs[event] = trigger.listener
-        if "EVENTS" in attrs:
-            attrs["EVENTS"] = new_events
-        component_class = super().__new__(cls, name, bases, attrs)
-
-        create_or_modify_pyi(component_class, name, events)
-        return component_class

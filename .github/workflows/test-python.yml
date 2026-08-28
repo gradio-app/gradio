@@ -58,6 +58,12 @@ jobs:
         run: |
           . venv/bin/activate
           ./scripts/lint_backend.sh
+      - name: Verify generated component stubs
+        run: |
+          . venv/bin/activate
+          python -c "import gradio"
+          git diff --exit-code -- gradio/components
+          test -z "$(git status --short -- 'gradio/components/*.pyi')"
       - name: Typecheck
         run: |
           . venv/bin/activate
@@ -67,6 +73,10 @@ jobs:
           . venv/bin/activate
           uv pip install build
           python -m build
+      - name: Verify wheel includes component stubs
+        run: |
+          . venv/bin/activate
+          python -c 'import glob, zipfile; wheel = glob.glob("dist/*.whl")[0]; expected = set(glob.glob("gradio/components/*.pyi")); actual = set(zipfile.ZipFile(wheel).namelist()); missing = expected - actual; assert not missing, f"Missing component stubs: {sorted(missing)}"'
       - name: Build gradio_client wheel
         run: |
           . venv/bin/activate
@@ -134,11 +144,6 @@ jobs:
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           uv pip freeze
-      - name: Generate .pyi files
-        shell: bash
-        run: |
-          . ${{steps.install_deps.outputs.venv_activate}}
-          python -c "import gradio"
       - name: Copy wheels for docker tests
         shell: bash
         run: |

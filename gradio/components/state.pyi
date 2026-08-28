@@ -1,27 +1,114 @@
+"""gr.State() component."""
+
 from __future__ import annotations
 
-import ast
-import inspect
-from abc import ABCMeta
-from functools import wraps
-from pathlib import Path
+import math
+from collections.abc import Callable
+from copy import deepcopy
+from typing import Any
 
-from jinja2 import Template
+from gradio_client.documentation import document
 
-from gradio.events import EventListener
-from gradio.exceptions import ComponentDefinitionError
-from gradio.utils import no_raise_exception
+from gradio.components.base import Component
+from gradio.events import Events
 
-INTERFACE_TEMPLATE = '''
-{{ contents }}
+
+def default_delete_callback(x: Any) -> None:
+    pass
+
+from gradio.events import Dependency
+
+@document()
+class State(Component):
+    EVENTS = [Events.change]
+    """
+    Special hidden component that stores session state across runs of the demo by the
+    same user. Can attach .change listeners that trigger when the state changes.
+    Demos: interface_state, blocks_simple_squares, state_cleanup
+    Guides: interface-state, state-in-blocks
+    """
+
+    allow_string_shortcut = False
+
+    def __init__(
+        self,
+        value: Any = None,
+        render: bool = True,
+        *,
+        time_to_live: int | float | None = None,
+        delete_callback: Callable[[Any], None] | None = None,
+    ):
+        """
+        Parameters:
+            value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
+            render: should always be True, is included for consistency with other components.
+            time_to_live: the number of seconds the state should be stored for after it is created or updated. If None, the state will be stored indefinitely. Gradio automatically deletes state variables after a user closes the browser tab or refreshes the page, so this is useful for clearing state for potentially long running sessions.
+            delete_callback: a function that is called when the state is deleted. The function should take the state value as an argument.
+        """
+        self.time_to_live = self.time_to_live = (
+            math.inf if time_to_live is None else time_to_live
+        )
+        self.delete_callback = delete_callback or default_delete_callback  # noqa: ARG005
+        try:
+            value = deepcopy(value)
+        except TypeError as err:
+            raise TypeError(
+                f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
+            ) from err
+        super().__init__(value=value, render=render)
+        self.value = value
+
+    @property
+    def stateful(self) -> bool:
+        return True
+
+    def preprocess(self, payload: Any) -> Any:
+        """
+        Parameters:
+            payload: Value
+        Returns:
+            Passes a value of arbitrary type through.
+        """
+        return payload
+
+    def postprocess(self, value: Any) -> Any:
+        """
+        Parameters:
+            value: Expects a value of arbitrary type, as long as it can be deepcopied.
+        Returns:
+            Passes a value of arbitrary type through.
+        """
+        return value
+
+    def api_info(self) -> dict[str, Any]:
+        return {"type": {}, "description": "any valid json"}
+
+    def example_payload(self) -> Any:
+        return None
+
+    def example_value(self) -> Any:
+        return None
+
+    @property
+    def skip_api(self):
+        return True
+
+    def get_config(self):  # type: ignore[override]
+        config = super().get_config()
+        del config["value"]
+        return config
+
+    def breaks_grouping(self) -> bool:
+        """State components should not break wrapper grouping chains."""
+        return False
     from typing import Callable, Literal, Sequence, Any, TYPE_CHECKING
     from gradio.blocks import Block
     if TYPE_CHECKING:
         from gradio.components import Timer
         from gradio.components.base import Component
 
-    {% for event in events %}
-    def {{ event.event_name }}(self,
+
+    def change(self,
         fn: Callable[..., Any] | None = None,
         inputs: Block | Sequence[Block] | set[Block] | None = None,
         outputs: Block | Sequence[Block] | None = None,
@@ -44,9 +131,7 @@ INTERFACE_TEMPLATE = '''
         key: int | str | tuple[int | str, ...] | None = None,
         api_description: str | None | Literal[False] = None,
         validator: Callable[..., Any] | None = None,
-    {% for arg in event.event_specific_args %}
-        {{ arg.name }}: {{ arg.type }},
-    {% endfor %}
+
         ) -> Dependency:
         """
         Parameters:
@@ -72,165 +157,6 @@ INTERFACE_TEMPLATE = '''
             key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function.
-        {% for arg in event.event_specific_args %}
-            {{ arg.name }}: {{ arg.doc }},
-        {% endfor %}
+
         """
         ...
-    {% endfor %}
-'''
-
-
-def create_pyi(class_code: str, events: list[EventListener | str]):
-    template = Template(INTERFACE_TEMPLATE)
-    event_template = [
-        e
-        if isinstance(e, EventListener)
-        else EventListener(event_name=e, event_specific_args=[])
-        for e in events
-    ]
-    rendered = template.render(events=event_template, contents=class_code)
-    return "\n".join(line.rstrip() for line in rendered.splitlines())
-
-
-def extract_class_source_code(
-    code: str, class_name: str
-) -> tuple[str, int] | tuple[None, None]:
-    class_start_line = code.find(f"class {class_name}")
-    if class_start_line == -1:
-        return None, None
-
-    class_ast = ast.parse(code)
-    for node in ast.walk(class_ast):
-        if isinstance(node, ast.ClassDef) and node.name == class_name:
-            segment = ast.get_source_segment(code, node)
-            if not segment:
-                raise ValueError("segment not found")
-            return segment, node.lineno
-    return None, None
-
-
-def create_or_modify_pyi(
-    component_class: type, class_name: str, events: list[str | EventListener]
-):
-    try:
-        source_file = Path(inspect.getfile(component_class))
-    except OSError:
-        # This can happen if the component is not a file, e.g. a custom HTML component
-        # We don't want to need to create a pyi file for these components
-        return
-
-    source_code = source_file.read_text(encoding="utf-8")
-
-    current_impl, lineno = extract_class_source_code(source_code, class_name)
-
-    if not (current_impl and lineno):
-        raise ValueError("Couldn't find class source code")
-
-    new_interface = create_pyi(current_impl, events)
-
-    pyi_file = source_file.with_suffix(".pyi")
-    if not pyi_file.exists():
-        last_empty_line_before_class = -1
-        lines = source_code.splitlines()
-        for i, line in enumerate(lines):
-            if line in ["", " "]:
-                last_empty_line_before_class = i
-            if i >= lineno:
-                break
-        lines = (
-            lines[:last_empty_line_before_class]
-            + ["from gradio.events import Dependency"]
-            + lines[last_empty_line_before_class:]
-        )
-        with no_raise_exception():
-            pyi_file.write_text("\n".join(lines))
-    with no_raise_exception():
-        current_interface, _ = extract_class_source_code(
-            pyi_file.read_text(), class_name
-        )
-        if not current_interface:
-            with open(str(pyi_file), mode="a") as f:
-                f.write(new_interface)
-        else:
-            contents = pyi_file.read_text()
-            contents = contents.replace(current_interface, new_interface.strip())
-            current_contents = pyi_file.read_text()
-            if current_contents != contents:
-                pyi_file.write_text(contents)
-
-
-def get_local_contexts():
-    from gradio.context import LocalContext
-
-    return (
-        LocalContext.in_event_listener.get(False),
-        LocalContext.renderable.get(None) is not None,
-    )
-
-
-def updateable(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        fn_args = inspect.getfullargspec(fn).args
-        self = args[0]
-
-        # We need to ensure __init__ is always called at least once
-        # so that the component has all the variables in self defined
-        # test_blocks.py::test_async_iterator_update_with_new_component
-        # checks this
-        initialized_before = hasattr(self, "_constructor_args")
-        if not initialized_before:
-            self._constructor_args = []
-        for i, arg in enumerate(args):
-            if i == 0 or i >= len(fn_args):  #  skip self, *args
-                continue
-            arg_name = fn_args[i]
-            kwargs[arg_name] = arg
-        self._constructor_args.append(kwargs)
-        in_event_listener, is_render = get_local_contexts()
-        if in_event_listener and initialized_before and not is_render:
-            return None
-        else:
-            return fn(self, **kwargs)
-
-    return wrapper
-
-
-class ComponentMeta(ABCMeta):
-    def __new__(cls, name, bases, attrs):
-        if "__init__" in attrs:
-            attrs["__init__"] = updateable(attrs["__init__"])
-        if "EVENTS" not in attrs:
-            found = False
-            for base in bases:
-                if hasattr(base, "EVENTS"):
-                    found = True
-                    break
-            if not found:
-                raise ComponentDefinitionError(
-                    f"{name} or its base classes must define an EVENTS list. "
-                    "If no events are supported, set it to an empty list."
-                )
-        events = attrs.get("EVENTS", [])
-        if not all(isinstance(e, (str, EventListener)) for e in events):
-            raise ComponentDefinitionError(
-                f"All events for {name} must either be an string or an instance "
-                "of EventListener."
-            )
-        new_events = []
-        for event in events:
-            trigger = (
-                event
-                if isinstance(event, EventListener)
-                else EventListener(event_name=event)
-            ).copy()
-            new_events.append(trigger)
-            trigger.set_doc(component=name)
-            attrs[event] = trigger.listener
-        if "EVENTS" in attrs:
-            attrs["EVENTS"] = new_events
-        component_class = super().__new__(cls, name, bases, attrs)
-
-        create_or_modify_pyi(component_class, name, events)
-        return component_class
