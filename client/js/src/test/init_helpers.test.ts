@@ -40,14 +40,13 @@ describe("resolve_config", () => {
 		).toBe("https://remote.example/gradio");
 	});
 
-	it("uses the browser-visible URL for a Colab proxy root", () => {
+	it("recognizes a modern Colab internal root without the backend flag", () => {
 		expect(
 			resolve_config_root(
-				"http://runtime-id.us-central1.c.colab-user-runtimes.internal:7860",
-				"https://runtime-id-7860.us-central1.colab.googleusercontent.com/",
-				true
+				"http://runtime-id.us-central1-b.c.codatalab-user-runtimes.internal:8007",
+				"https://runtime-id-8007.us-central1.colab.googleusercontent.com/"
 			)
-		).toBe("https://runtime-id-7860.us-central1.colab.googleusercontent.com");
+		).toBe("https://runtime-id-8007.us-central1.colab.googleusercontent.com");
 	});
 
 	it("requests /config without a Content-Type header and with same-origin credentials, so the cross-origin embed fetch is not blocked by CORS", async () => {

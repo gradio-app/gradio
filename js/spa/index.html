@@ -95,7 +95,10 @@
 				const rootUrl = new URL(root || "/", window.location.href);
 				const script = document.createElement("script");
 				const rootPath = rootUrl.pathname.replace(/\/$/, "");
-				const isColab = window.gradio_config?.is_colab === true;
+				const isColab =
+					window.gradio_config?.is_colab === true ||
+					rootUrl.hostname.endsWith(".colab-user-runtimes.internal") ||
+					rootUrl.hostname.endsWith(".codatalab-user-runtimes.internal");
 				if (isColab) {
 					window.gradio_config.root = new URL(rootPath || "/", window.location.origin)
 						.toString()

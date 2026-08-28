@@ -87,13 +87,18 @@ export function resolve_config_root(
 	prioritize_current_location = false
 ): string {
 	const current_url = new URL(current_location);
-	if (prioritize_current_location) {
+	const root_url = new URL(root, current_url);
+	// Modern Colab configs can omit is_colab even though the backend root still
+	// uses one of Colab's internal-only hostname families.
+	const is_colab_runtime =
+		root_url.hostname.endsWith(".colab-user-runtimes.internal") ||
+		root_url.hostname.endsWith(".codatalab-user-runtimes.internal");
+	if (prioritize_current_location || is_colab_runtime) {
 		return new URL(new URL(root, current_url).pathname, current_url)
 			.toString()
 			.replace(/\/$/, "");
 	}
 
-	const root_url = new URL(root, current_url);
 	if (root_url.hostname !== current_url.hostname) {
 		return root;
 	}

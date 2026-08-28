@@ -47,8 +47,8 @@ function run_asset_bootstrap(
 describe("Colab asset bootstrap", () => {
 	test("uses the browser-visible Colab proxy before loading assets", () => {
 		const result = run_asset_bootstrap(
-			"http://runtime-id.us-central1.c.colab-user-runtimes.internal:7860",
-			true
+			"http://runtime-id.us-central1-b.c.codatalab-user-runtimes.internal:8007",
+			false
 		);
 
 		expect(result.config_root).toBe(
