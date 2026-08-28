@@ -142,6 +142,11 @@ jobs:
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           uv pip freeze
+      - name: Generate .pyi files for source-code tests
+        shell: bash
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          python -c "import gradio"
       - name: Copy wheels for docker tests
         shell: bash
         run: |
