@@ -24,6 +24,7 @@
 		auth,
 		onSpace = false,
 		recordedRun = null,
+		isLoadable,
 		onsignin,
 		onload,
 		onclose,
@@ -34,6 +35,7 @@
 		auth: any;
 		onSpace?: boolean;
 		recordedRun?: HistoryRecord | null;
+		isLoadable?: (record: HistoryRecord) => boolean;
 		onsignin?: () => void;
 		onload: (record: {
 			record_id: string;
@@ -348,13 +350,22 @@
 								{#if summary}
 									<div class="card-inputs">{summary}</div>
 								{/if}
-								<button
-									class="card-load-btn"
-									onclick={() => handleLoad(record)}
-									title="Load inputs and outputs back into the canvas"
-								>
-									Load
-								</button>
+								{#if !isLoadable || isLoadable(record)}
+									<button
+										class="card-load-btn"
+										onclick={() => handleLoad(record)}
+										title="Load inputs and outputs back into the canvas"
+									>
+										Load
+									</button>
+								{:else}
+									<span
+										class="card-stale"
+										title="This run's nodes are no longer in the workflow"
+									>
+										Different workflow
+									</span>
+								{/if}
 							</div>
 						</div>
 					{/each}
@@ -747,6 +758,17 @@
 	}
 
 	:global(body:not(.dark)) .card-inputs {
+		color: #9ca3af;
+	}
+
+	.card-stale {
+		font-size: 10px;
+		padding: 3px 8px;
+		color: #5a5c6b;
+		font-style: italic;
+	}
+
+	:global(body:not(.dark)) .card-stale {
 		color: #9ca3af;
 	}
 

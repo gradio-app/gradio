@@ -610,6 +610,24 @@
 		}
 	}
 
+	function recordIsLoadable(record: any): boolean {
+		const entries = [
+			...Object.entries(record?.inputs ?? {}),
+			...Object.entries(record?.outputs ?? {})
+		] as [string, any][];
+		if (entries.length === 0) return false;
+		return entries.every(([nodeId, entry]) => {
+			const node = legacyView.nodes.find((n) => n.id === nodeId);
+			if (!node) return false;
+			const ports = [...(node.inputs ?? []), ...(node.outputs ?? [])];
+			const port = entry?.port_id
+				? ports.find((p) => p.id === entry.port_id)
+				: ports[0];
+			if (!port) return false;
+			return !entry?.type || port.type === entry.type;
+		});
+	}
+
 	function setBucketId(id: string): void {
 		bucketId = id;
 		try {
@@ -3148,7 +3166,7 @@
 			</div>
 		{/if}
 
-		<div class="zoom-controls">
+		<div class="zoom-controls" class:history-open={showHistoryPanel}>
 			{#if !readOnly}
 				<button
 					class="zoom-ctrl-btn"
@@ -3408,6 +3426,7 @@
 			{auth}
 			{onSpace}
 			{recordedRun}
+			isLoadable={recordIsLoadable}
 			onsignin={signInPreservingEdits}
 			onclose={() => (showHistoryPanel = false)}
 			onchange={() => {

@@ -360,6 +360,7 @@
 	position: absolute;
 	bottom: 12px;
 	right: 12px;
+	transition: right 0.2s ease;
 	display: flex;
 	align-items: center;
 	gap: 2px;
@@ -367,6 +368,10 @@
 	border: 1px solid #1e1f2a;
 	border-radius: 6px;
 	padding: 2px;
+}
+
+.zoom-controls.history-open {
+	right: calc(min(380px, 95vw) + 12px);
 }
 
 .zoom-ctrl-btn {
