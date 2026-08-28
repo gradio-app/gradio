@@ -1,8 +1,10 @@
 <script lang="ts">
 	import Layers from "./Layers.svelte";
 	import type { Writable } from "svelte/store";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	let {
+		i18n,
 		layers,
 		enable_additional_layers = true,
 		enable_layers = true,
@@ -13,6 +15,7 @@
 		ondelete_layer,
 		ontoggle_layer_visibility
 	}: {
+		i18n: I18nFormatter;
 		layers: Writable<{
 			active_layer: string;
 			layers: {
@@ -37,6 +40,7 @@
 	<div class="toolbar-wrap">
 		{#if enable_layers}
 			<Layers
+				{i18n}
 				{layers}
 				{enable_additional_layers}
 				{enable_layers}
