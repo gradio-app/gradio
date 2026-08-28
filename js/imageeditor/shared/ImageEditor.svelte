@@ -58,6 +58,7 @@
 		full_history = $bindable(null),
 		has_drawn = $bindable(false),
 		can_undo = $bindable(false),
+		has_user_edits = $bindable(false),
 		onclear,
 		onsave,
 		onchange,
@@ -90,6 +91,7 @@
 		full_history?: CommandNode | null;
 		has_drawn?: boolean;
 		can_undo?: boolean;
+		has_user_edits?: boolean;
 		onclear?: () => void;
 		onsave?: () => void;
 		onchange?: () => void;
@@ -182,6 +184,7 @@
 	}
 
 	let pending_bg: Promise<void>;
+	let loading_value = 0;
 	/**
 	 * Adds an image to the editor from a URL
 	 * @param {string | FileData} source - The URL of the image or a FileData object
@@ -199,6 +202,8 @@
 			| any
 	): Promise<void> {
 		if (!editor || !source || !check_if_should_init()) return;
+		has_user_edits = false;
+		loading_value += 1;
 		let url: string;
 
 		if (typeof source === "string") {
@@ -207,6 +212,7 @@
 			url = source.url;
 		} else {
 			console.warn("Invalid source provided to add_image_from_url:", source);
+			loading_value -= 1;
 			return;
 		}
 
@@ -222,6 +228,8 @@
 			oninput?.();
 		} catch (error) {
 			console.error("Error adding image from URL:", error);
+		} finally {
+			loading_value -= 1;
 		}
 	}
 
@@ -234,19 +242,23 @@
 		source: FileData[] | any
 	): Promise<void> {
 		if (!editor || !source.length || !check_if_should_init()) return;
+		has_user_edits = false;
+		loading_value += 1;
 
-		if (
-			Array.isArray(source) &&
-			source.every((item) => item?.meta?._type === "gradio.FileData")
-		) {
-			try {
+		try {
+			if (
+				Array.isArray(source) &&
+				source.every((item) => item?.meta?._type === "gradio.FileData")
+			) {
 				await pending_bg;
 				await editor.add_layers_from_url(source.map((item) => item.url));
 				onchange?.();
 				oninput?.();
-			} catch (error) {
-				console.error("Error adding layer from URL:", error);
 			}
+		} catch (error) {
+			console.error("Error adding layer from URL:", error);
+		} finally {
+			loading_value -= 1;
 		}
 	}
 
@@ -425,6 +437,7 @@
 		});
 
 		editor.on("change", () => {
+			if (loading_value === 0) has_user_edits = true;
 			onchange?.();
 			oninput?.();
 			full_history = editor.command_manager.history;
@@ -782,6 +795,7 @@
 	{#if ready}
 		{#if current_subtool !== "crop"}
 			<Controls
+				{i18n}
 				{changeable}
 				onset_zoom={(zoom) => handle_zoom_change(zoom)}
 				onzoom_in={() => zoom_in_out("in")}
@@ -806,6 +820,7 @@
 
 		{#if current_subtool !== "crop"}
 			<Toolbar
+				{i18n}
 				{sources}
 				{transforms}
 				background={background_image}
@@ -846,6 +861,7 @@
 
 		{#if current_subtool !== "crop" && !layer_options.disabled}
 			<SecondaryToolbar
+				{i18n}
 				enable_additional_layers={layer_options.allow_additional_layers}
 				layers={editor.layers}
 				onnew_layer={() => {
@@ -884,7 +900,7 @@
 		<div class="crop-confirm-button">
 			<IconButton
 				Icon={Check}
-				label="Confirm crop"
+				label={i18n("image_editor.confirm_crop")}
 				show_label={true}
 				size="large"
 				padded={true}

@@ -1543,7 +1543,8 @@ class GradioMCPServer:
                 svg_path = processing_utils.save_bytes_to_cache(
                     svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR
                 )
-                svg_url = f"{root_url}/gradio_api/file={svg_path}"
+                encoded_path = client_utils.encode_file_path(svg_path)
+                svg_url = f"{root_url}/gradio_api/file={encoded_path}"
                 return_value = [
                     self.types.ImageContent(  # type: ignore
                         type="image", data=base64_data, mimeType=mimetype

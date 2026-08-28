@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from gradio_client import utils as client_utils
 
 import gradio as gr
 import gradio.workflow as workflow_module
@@ -945,6 +946,27 @@ class TestCallSpaceFileArgs:
             call_space(["o/r", "/run", json.dumps([{"url": saved["url"]}])])
 
         assert client.predict.call_args.args[0]["path"] == saved["path"]
+
+    def test_sends_a_canvas_url_whose_filename_needed_encoding(
+        self, tmp_path, monkeypatch
+    ):
+        # A Space node can hand a file back under its uploaded name, so the URL
+        # the canvas chains is percent-encoded. The prefix strip has to decode
+        # it, or the path that reaches the next node does not exist on disk.
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
+        upload_folder = get_upload_folder()
+        os.makedirs(upload_folder, exist_ok=True)
+        owned = os.path.join(upload_folder, "computer vision #1 100%.png")
+        with open(owned, "wb") as f:
+            f.write(b"operator-output")
+        url = f"/gradio_api/file={client_utils.encode_file_path(owned)}"
+        client = MagicMock()
+        client.predict.return_value = "ok"
+
+        with patch("gradio.workflow.Client", return_value=client):
+            call_space(["o/r", "/run", json.dumps([{"url": url}])])
+
+        assert client.predict.call_args.args[0]["path"] == owned
 
 
 class TestSendableRef:

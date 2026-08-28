@@ -32,7 +32,7 @@ from typing import (
     Union,
     cast,
 )
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import anyio
 import fastapi
@@ -1193,6 +1193,24 @@ STATIC_ROUTE_PREFIXES = (
     "/upload",
     "/custom_component/",
 )
+
+
+def requote_proxied_url(url_path: str) -> str:
+    """Restore the encoding of a URL that reached the `/proxy=` route.
+
+    The ASGI server percent-decodes the request path once before routing, so a
+    filename that legitimately contains `%`, `#` or `?` arrives here with those
+    characters literal. Re-encoding everything after the authority hands the
+    upstream server the same path we were originally asked to proxy, instead of
+    one that decodes a level too far (or, for `#`, gets truncated as a fragment).
+    """
+    scheme, separator, rest = url_path.partition("://")
+    if not separator:
+        return url_path
+    authority, slash, path = rest.partition("/")
+    if not slash:
+        return url_path
+    return f"{scheme}://{authority}/{quote(path, safe='/=')}"
 
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
