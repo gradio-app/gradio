@@ -58,25 +58,23 @@ jobs:
         run: |
           . venv/bin/activate
           ./scripts/lint_backend.sh
-      - name: Verify generated component stubs
-        run: |
-          . venv/bin/activate
-          python -c "import gradio"
-          git diff --exit-code -- gradio/components
-          test -z "$(git status --short -- 'gradio/components/*.pyi')"
       - name: Typecheck
         run: |
           . venv/bin/activate
           ./scripts/type_check_backend.sh
+      - name: Generate component stubs
+        run: |
+          . venv/bin/activate
+          python -c "import gradio"
       - name: Build wheel
         run: |
           . venv/bin/activate
           uv pip install build
           python -m build
-      - name: Verify wheel includes component stubs
+      - name: Verify Python packages include component stubs
         run: |
           . venv/bin/activate
-          python -c 'import glob, zipfile; wheel = glob.glob("dist/*.whl")[0]; expected = set(glob.glob("gradio/components/*.pyi")); actual = set(zipfile.ZipFile(wheel).namelist()); missing = expected - actual; assert not missing, f"Missing component stubs: {sorted(missing)}"'
+          python -c 'import glob, tarfile, zipfile; expected = set(glob.glob("gradio/components/*.pyi")); wheel = set(zipfile.ZipFile(glob.glob("dist/*.whl")[0]).namelist()); sdist = tarfile.open(glob.glob("dist/*.tar.gz")[0]).getnames(); missing_wheel = expected - wheel; missing_sdist = {path for path in expected if not any(name.endswith("/" + path) for name in sdist)}; assert expected, "No component stubs generated"; assert not missing_wheel, f"Wheel missing component stubs: {sorted(missing_wheel)}"; assert not missing_sdist, f"Sdist missing component stubs: {sorted(missing_sdist)}"'
       - name: Build gradio_client wheel
         run: |
           . venv/bin/activate

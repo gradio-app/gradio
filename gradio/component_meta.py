@@ -89,8 +89,7 @@ def create_pyi(class_code: str, events: list[EventListener | str]):
         else EventListener(event_name=e, event_specific_args=[])
         for e in events
     ]
-    rendered = template.render(events=event_template, contents=class_code)
-    return "\n".join(line.rstrip() for line in rendered.splitlines())
+    return template.render(events=event_template, contents=class_code)
 
 
 def extract_class_source_code(
