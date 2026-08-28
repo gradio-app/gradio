@@ -95,12 +95,20 @@
 				const rootUrl = new URL(root || "/", window.location.href);
 				const script = document.createElement("script");
 				const rootPath = rootUrl.pathname.replace(/\/$/, "");
+				const isColab = window.gradio_config?.is_colab === true;
+				if (isColab) {
+					window.gradio_config.root = new URL(rootPath || "/", window.location.origin)
+						.toString()
+						.replace(/\/$/, "");
+				}
 				// Same-hostname check as resolve_current_origin_url in
 				// @gradio/utils: this page is served by the gradio server, so
 				// when the hostnames match, the page's origin (which reflects
-				// the public proxy port/protocol) is the reachable one.
+				// the public proxy port/protocol) is the reachable one. Colab's
+				// public proxy has a different hostname, but config.is_colab tells
+				// us the page still came from this Gradio server.
 				const origin =
-					rootUrl.hostname === window.location.hostname
+					isColab || rootUrl.hostname === window.location.hostname
 						? window.location.origin
 						: rootUrl.origin;
 				script.src = new URL(
