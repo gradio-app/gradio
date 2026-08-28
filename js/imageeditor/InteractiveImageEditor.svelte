@@ -115,11 +115,53 @@
 		return !!o;
 	}
 
+	async function upload_original(
+		file_data: FileData | null,
+		fallback_name: string
+	): Promise<FileData | null> {
+		if (!file_data) return null;
+
+		let file = file_data.blob;
+		if (!file) {
+			if (!file_data.url) throw new Error("Image file has no URL");
+			const response = await fetch(file_data.url);
+			if (!response.ok) throw new Error("Image file could not be fetched");
+			const blob = await response.blob();
+			file = new File([blob], file_data.orig_name || fallback_name, {
+				type: file_data.mime_type || blob.type
+			});
+		}
+
+		const uploaded = await upload(await prepare_files([file]), root);
+		return Array.isArray(uploaded) ? uploaded[0] : uploaded;
+	}
+
+	async function upload_original_data(): Promise<ImageBlobs> {
+		const [uploaded_background, uploaded_composite, ...uploaded_layers] =
+			await Promise.all([
+				upload_original(background, "background.png"),
+				upload_original(composite, "composite.png"),
+				...layers.map((layer, i) => upload_original(layer, `layer_${i}.png`))
+			]);
+
+		return {
+			background: uploaded_background,
+			layers: uploaded_layers.filter(is_file_data),
+			composite: uploaded_composite
+		};
+	}
+
 	$effect(() => {
 		if (background_image) onupload?.();
 	});
 
 	export async function get_data(): Promise<ImageBlobs> {
+		if (!has_user_edits) {
+			try {
+				return await upload_original_data();
+			} catch {}
+		}
+
 		let blobs;
 		try {
 			blobs = await editor.get_blobs();
@@ -127,38 +169,43 @@
 			return { background: null, layers: [], composite: null };
 		}
 
-		const bg = blobs.background
+		const background_upload = blobs.background
 			? upload(
 					await prepare_files([new File([blobs.background], "background.png")]),
 					root
 				)
 			: Promise.resolve(null);
 
-		const layers = blobs.layers
+		const layer_uploads = blobs.layers
 			.filter(is_not_null)
 			.map(async (blob, i) =>
 				upload(await prepare_files([new File([blob], `layer_${i}.png`)]), root)
 			);
 
-		const composite = blobs.composite
+		const composite_upload = blobs.composite
 			? upload(
 					await prepare_files([new File([blobs.composite], "composite.png")]),
 					root
 				)
 			: Promise.resolve(null);
 
-		const [background, composite_, ...layers_] = await Promise.all([
-			bg,
-			composite,
-			...layers
-		]);
+		const [uploaded_background, uploaded_composite, ...uploaded_layers] =
+			await Promise.all([
+				background_upload,
+				composite_upload,
+				...layer_uploads
+			]);
 
 		return {
-			background: Array.isArray(background) ? background[0] : background,
-			layers: layers_
+			background: Array.isArray(uploaded_background)
+				? uploaded_background[0]
+				: uploaded_background,
+			layers: uploaded_layers
 				.flatMap((layer) => (Array.isArray(layer) ? layer : [layer]))
 				.filter(is_file_data),
-			composite: Array.isArray(composite_) ? composite_[0] : composite_
+			composite: Array.isArray(uploaded_composite)
+				? uploaded_composite[0]
+				: uploaded_composite
 		};
 	}
 
@@ -176,6 +223,7 @@
 
 	let background_image = $state(false);
 	let can_undo = $state(false);
+	let has_user_edits = $state(false);
 
 	type BinaryImages = [string, string, File, number | null][];
 
@@ -282,6 +330,7 @@
 	{show_download_button}
 	{theme_mode}
 	bind:can_undo
+	bind:has_user_edits
 	bind:full_history
 >
 	{#if current_tool === "image" && !can_undo}
@@ -295,15 +344,15 @@
 						<p>{paragraph}</p>
 					{/if}
 				{:else}
-					<div>Upload an image</div>
+					<div>{i18n("image_editor.upload_image")}</div>
 				{/if}
 			{/if}
 
 			{#if sources && sources.length && brush && !placeholder}
-				<div class="or">or</div>
+				<div class="or">{i18n("common.or")}</div>
 			{/if}
 			{#if brush && !placeholder}
-				<div>select the draw tool to start</div>
+				<div>{i18n("image_editor.select_draw_tool")}</div>
 			{/if}
 		</div>
 	{/if}
