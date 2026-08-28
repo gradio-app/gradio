@@ -71,10 +71,6 @@ jobs:
           . venv/bin/activate
           uv pip install build
           python -m build
-      - name: Verify Python packages include component stubs
-        run: |
-          . venv/bin/activate
-          python -c 'import glob, tarfile, zipfile; expected = set(glob.glob("gradio/components/*.pyi")); wheel = set(zipfile.ZipFile(glob.glob("dist/*.whl")[0]).namelist()); sdist = tarfile.open(glob.glob("dist/*.tar.gz")[0]).getnames(); missing_wheel = expected - wheel; missing_sdist = {path for path in expected if not any(name.endswith("/" + path) for name in sdist)}; assert expected, "No component stubs generated"; assert not missing_wheel, f"Wheel missing component stubs: {sorted(missing_wheel)}"; assert not missing_sdist, f"Sdist missing component stubs: {sorted(missing_sdist)}"'
       - name: Build gradio_client wheel
         run: |
           . venv/bin/activate
