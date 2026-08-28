@@ -21,6 +21,7 @@
 
 	let {
 		value = $bindable<null | FileData | Base64File>(null),
+		alt_text = null,
 		label = undefined,
 		show_label,
 		sources = ["upload", "clipboard", "webcam"],
@@ -54,6 +55,7 @@
 		children
 	}: {
 		value?: null | FileData | Base64File;
+		alt_text?: string | null;
 		label?: string;
 		show_label: boolean;
 		sources?: source_type[];
@@ -289,7 +291,7 @@
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div class:selectable class="image-frame" onclick={handle_click}>
-				<Image src={value.url} restProps={{ alt: value.alt_text }} />
+				<Image src={value.url} restProps={{ alt: alt_text ?? "" }} />
 			</div>
 		{/if}
 	</div>
@@ -322,6 +324,16 @@
 
 	.reduced-height {
 		height: calc(100% - var(--size-10));
+	}
+
+	.image-container:has(:global([data-upload-density="minimal"]))
+		.upload-container {
+		height: 100%;
+	}
+
+	.image-container:has(:global([data-upload-density="minimal"]))
+		:global(.source-selection) {
+		display: none;
 	}
 
 	.image-container {

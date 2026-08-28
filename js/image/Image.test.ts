@@ -45,7 +45,8 @@ const default_props = {
 	placeholder: "",
 	buttons: [] as (string | { value: string; id: number; icon: null })[],
 	webcam_options: { mirror: false, constraints: {} },
-	watermark: null
+	watermark: null,
+	alt_text: null
 };
 
 run_shared_prop_tests({
@@ -70,6 +71,65 @@ describe("Image", () => {
 		expect(getByLabelText("image.drop_to_upload")).toBeVisible();
 	});
 
+	test("shows the full upload prompt when enough height is available", async () => {
+		const { getByTestId } = await render(Image, {
+			...default_props,
+			height: 300,
+			value: null
+		});
+
+		await waitFor(() => expect(getByTestId("upload-icon")).toBeVisible());
+		const upload_text = getByTestId("upload-text");
+		expect(upload_text).toHaveTextContent(
+			"upload_text.drop_image - common.or - upload_text.click_to_upload"
+		);
+		expect(getComputedStyle(upload_text).flexDirection).toBe("column");
+	});
+
+	test.each([80, 130])(
+		"uses a single-line prompt without an icon at %ipx",
+		async (height) => {
+			const { getByTestId, getByText } = await render(Image, {
+				...default_props,
+				height,
+				value: null
+			});
+
+			await waitFor(() => expect(getByTestId("upload-icon")).not.toBeVisible());
+			const drop_text = getByText("upload_text.drop_image");
+			const or_text = getByText("common.or");
+			const click_text = getByText("upload_text.click_to_upload");
+			const selector = getByTestId("source-select");
+
+			expect(drop_text).toBeVisible();
+			expect(or_text).toBeVisible();
+			expect(click_text).toBeVisible();
+			expect(or_text.getBoundingClientRect().top).toBeCloseTo(
+				drop_text.getBoundingClientRect().top,
+				0
+			);
+			expect(click_text.getBoundingClientRect().top).toBeCloseTo(
+				drop_text.getBoundingClientRect().top,
+				0
+			);
+			expect(click_text.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+				selector.getBoundingClientRect().top
+			);
+		}
+	);
+
+	test("keeps a 40px Image as an empty accessible drop zone", async () => {
+		const { getByLabelText, getByTestId } = await render(Image, {
+			...default_props,
+			height: 40,
+			value: null
+		});
+
+		await waitFor(() => expect(getByTestId("upload-text")).not.toBeVisible());
+		expect(getByLabelText("image.drop_to_upload")).toBeVisible();
+		expect(getByTestId("source-select")).not.toBeVisible();
+	});
+
 	test("renders image when value is set", async () => {
 		const { container } = await render(Image, {
 			...default_props,
@@ -79,6 +139,40 @@ describe("Image", () => {
 		const img = container.querySelector("img");
 		expect(img).toBeTruthy();
 		expect(img?.getAttribute("src")).toBe("https://example.com/test.png");
+	});
+
+	test("uses the provided alternative text for static images", async () => {
+		const { getByRole } = await render(Image, {
+			...default_props,
+			interactive: false,
+			value: fake_value,
+			alt_text: "Three vertical color bands"
+		});
+
+		expect(
+			getByRole("img", { name: "Three vertical color bands" })
+		).toBeVisible();
+	});
+
+	test("uses the provided alternative text for interactive previews", async () => {
+		const { getByRole } = await render(Image, {
+			...default_props,
+			interactive: true,
+			value: fake_value,
+			alt_text: "An uploaded city bus"
+		});
+
+		expect(getByRole("img", { name: "An uploaded city bus" })).toBeVisible();
+	});
+
+	test("treats static images without alternative text as decorative", async () => {
+		const { getByRole } = await render(Image, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		expect(getByRole("presentation")).toBeVisible();
 	});
 });
 

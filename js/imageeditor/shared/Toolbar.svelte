@@ -13,6 +13,7 @@
 
 <script lang="ts">
 	import IconButton from "./IconButton.svelte";
+	import type { I18nFormatter } from "@gradio/utils";
 	import {
 		Image,
 		Brush,
@@ -33,6 +34,7 @@
 	} from "./brush/types";
 
 	let {
+		i18n,
 		tool = "image",
 		subtool = null,
 		background = false,
@@ -51,6 +53,7 @@
 		ontool_change,
 		onsubtool_change
 	}: {
+		i18n: I18nFormatter;
 		tool?: Tool;
 		subtool?: Subtool;
 		background?: boolean;
@@ -113,7 +116,7 @@
 		{#if can_edit_image}
 			<IconButton
 				Icon={Image}
-				label="Image"
+				label={i18n("image.image")}
 				highlight={tool === "image"}
 				onclick={(e) => handle_tool_click(e, "image")}
 				size="medium"
@@ -124,7 +127,7 @@
 		{#if brush_options}
 			<IconButton
 				Icon={Brush}
-				label="Brush"
+				label={i18n("image_editor.brush")}
 				onclick={(e) => handle_tool_click(e, "draw")}
 				highlight={tool === "draw"}
 				size="medium"
@@ -135,7 +138,7 @@
 		{#if eraser_options}
 			<IconButton
 				Icon={Erase}
-				label="Erase"
+				label={i18n("image_editor.erase")}
 				onclick={(e) => handle_tool_click(e, "erase")}
 				highlight={tool === "erase"}
 				size="medium"
@@ -155,7 +158,7 @@
 				{#if can_crop}
 					<IconButton
 						Icon={Crop}
-						label="Crop"
+						label={i18n("image_editor.crop")}
 						onclick={(e) => handle_subtool_click(e, "crop")}
 						highlight={subtool === "crop"}
 						size="medium"
@@ -167,7 +170,7 @@
 				{#if can_resize}
 					<IconButton
 						Icon={Resize}
-						label="Resize"
+						label={i18n("image_editor.resize")}
 						onclick={(e) => handle_subtool_click(e, "size")}
 						highlight={subtool === "size"}
 						size="medium"
@@ -180,7 +183,7 @@
 				{#if can_upload}
 					<IconButton
 						Icon={Upload}
-						label="Upload"
+						label={i18n("image_editor.upload")}
 						onclick={(e) => handle_subtool_click(e, "upload")}
 						highlight={subtool === "upload"}
 						size="medium"
@@ -192,7 +195,7 @@
 				{#if can_paste}
 					<IconButton
 						Icon={ImagePaste}
-						label="Paste"
+						label={i18n("image_editor.paste")}
 						onclick={(e) => handle_subtool_click(e, "paste")}
 						highlight={subtool === "paste"}
 						size="large"
@@ -204,7 +207,7 @@
 				{#if can_webcam}
 					<IconButton
 						Icon={Webcam}
-						label="Webcam"
+						label={i18n("image_editor.webcam")}
 						onclick={(e) => handle_subtool_click(e, "webcam")}
 						highlight={subtool === "webcam"}
 						size="medium"
@@ -219,7 +222,7 @@
 		{#if tool === "draw" && brush_options}
 			<IconButton
 				Icon={ColorPickerSolid}
-				label="Color"
+				label={i18n("image_editor.color")}
 				color={selected_color}
 				onclick={(e) => handle_subtool_click(e, "color")}
 				size="medium"
@@ -229,7 +232,7 @@
 			/>
 			<IconButton
 				Icon={BrushSize}
-				label="Brush Size"
+				label={i18n("image_editor.brush_size")}
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
 				size="medium"
@@ -264,7 +267,7 @@
 		{#if tool === "erase" && eraser_options}
 			<IconButton
 				Icon={BrushSize}
-				label="Eraser Size"
+				label={i18n("image_editor.eraser_size")}
 				onclick={(e) => handle_subtool_click(e, "size")}
 				highlight={subtool === "size"}
 				size="medium"
