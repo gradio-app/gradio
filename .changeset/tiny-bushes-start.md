@@ -1,5 +1,6 @@
 ---
 "@gradio/client": patch
+"@self/spa": patch
 "gradio": patch
 ---
 
