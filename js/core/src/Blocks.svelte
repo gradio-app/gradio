@@ -488,13 +488,11 @@
 			handle_resize
 		);
 
-		app_tree.ready.then(async () => {
+		app_tree.ready.then(() => {
 			if (js) {
-				try {
-					await execute_custom_js(js);
-				} catch (e) {
+				void execute_custom_js(js).catch((e) => {
 					console.error("Error executing custom JS:", e);
-				}
+				});
 			}
 
 			ready = true;

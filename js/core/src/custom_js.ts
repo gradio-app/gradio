@@ -5,7 +5,7 @@ export async function execute_custom_js(js: string): Promise<void> {
 	const expression = js.trim().replace(/;+$/, "");
 
 	try {
-		custom_js = new AsyncFunction(`return (${expression});`);
+		custom_js = new AsyncFunction(`return (\n${expression}\n);`);
 	} catch {
 		custom_js = new AsyncFunction(js);
 	}

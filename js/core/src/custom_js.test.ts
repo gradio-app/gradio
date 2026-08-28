@@ -18,6 +18,14 @@ describe("execute_custom_js", () => {
 		expect(globalThis.custom_js_result).toBe("function");
 	});
 
+	test("invokes a function expression ending in a line comment", async () => {
+		await execute_custom_js(
+			"() => { globalThis.custom_js_result = 'line-comment'; } // set result"
+		);
+
+		expect(globalThis.custom_js_result).toBe("line-comment");
+	});
+
 	test("awaits an async function expression", async () => {
 		await execute_custom_js(
 			"async () => { await Promise.resolve(); globalThis.custom_js_result = 'async'; };"
