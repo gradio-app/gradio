@@ -11,6 +11,7 @@
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
 	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
 	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
+	import HfAuthControl from "./HfAuthControl.svelte";
 	import { asset_url } from "@gradio/client";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
@@ -573,6 +574,7 @@
 	let showApiPanel = $state(false);
 	let showHistoryPanel = $state(false);
 	let showHistoryConnect = $state(false);
+	let recordedRun = $state<any>(null);
 
 	// Root URL for the /gradio_api/run-history/* routes. Prefers the client's
 	// configured root (correct for tunnels / mount_gradio_app subpaths). When it
@@ -2188,6 +2190,8 @@
 						5000,
 						"warning"
 					);
+				} else if (result?.record) {
+					recordedRun = result.record;
 				}
 			} catch (e: any) {
 				// Never let a history failure look like a successful save.
@@ -2864,33 +2868,8 @@
 							</div>
 						{/if}
 					</div>
-				{:else if onSpace}
-					<button
-						class="toolbar-login-btn"
-						onclick={signInPreservingEdits}
-						disabled={!auth.oauthAvailable}
-						title={auth.oauthAvailable
-							? undefined
-							: "OAuth is not enabled for this Space. If you're the owner, add `hf_oauth: true` to the Space README and redeploy."}
-						>Sign in with 🤗</button
-					>
 				{:else}
-					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
-						<input
-							class="toolbar-token-input"
-							class:invalid={auth.status === "invalid"}
-							type="password"
-							placeholder="Paste HF token (hf_...)"
-							value={auth.token}
-							onchange={(e) => auth.setPAT(e.currentTarget.value)}
-							title="HuggingFace token for GPU access"
-						/>
-						{#if auth.status === "validating"}
-							<span class="toolbar-token-status validating">checking…</span>
-						{:else if auth.status === "invalid"}
-							<span class="toolbar-token-status invalid">invalid</span>
-						{/if}
-					</form>
+					<HfAuthControl {auth} {onSpace} onsignin={signInPreservingEdits} />
 				{/if}
 			{/if}
 			{#if !readOnly && onSpace && spaceId && isDirty}
@@ -3426,6 +3405,10 @@
 		<WorkflowHistoryPanel
 			root={historyRoot}
 			{bucketId}
+			{auth}
+			{onSpace}
+			{recordedRun}
+			onsignin={signInPreservingEdits}
 			onclose={() => (showHistoryPanel = false)}
 			onchange={() => {
 				showHistoryPanel = false;
@@ -3694,19 +3677,6 @@
 		color: #3e4050;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-login-btn) {
-		border-color: #e2e4ea;
-		color: #6b6e78;
-	}
-	:global(body:not(.dark) .toolbar-login-btn:hover:not(:disabled)) {
-		background: #f0f1f5;
-		color: #1a1b25;
-		border-color: #d0d2dc;
-	}
-	:global(.toolbar-login-btn:disabled) {
-		opacity: 0.45;
-		cursor: not-allowed;
-	}
 	:global(body:not(.dark) .toolbar-user-chip) {
 		border-color: #e2e4ea;
 		color: #3e4050;
@@ -3738,18 +3708,6 @@
 	:global(body:not(.dark) .toolbar-user-menu-btn:hover) {
 		background: #f0f1f5;
 		border-color: #d0d2dc;
-	}
-	:global(body:not(.dark) .toolbar-token-input) {
-		background: #ffffff;
-		color: #6b6e78;
-		border-color: #e2e4ea;
-	}
-	:global(body:not(.dark) .toolbar-token-input::placeholder) {
-		color: #c0c2cc;
-	}
-	:global(body:not(.dark) .toolbar-token-input:focus) {
-		background: #ffffff;
-		color: #3e4050;
 	}
 	:global(body:not(.dark) .tool-btn.save-space-btn) {
 		color: #d95f0b;

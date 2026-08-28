@@ -13,6 +13,7 @@ import secrets
 import tempfile
 import threading
 import time
+from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Annotated, Any, NamedTuple
@@ -215,6 +216,17 @@ def asset_prefix(app_id: str, endpoint: str, record_id: str) -> str:
 _ensured: set[tuple[str, str]] = set()
 _ensure_lock = threading.Lock()
 
+_LIST_CACHE_TTL = 30.0
+_LIST_CACHE_MAX = 64
+_list_cache: OrderedDict[tuple[str, str, str, int], tuple[float, list]] = OrderedDict()
+_list_lock = threading.Lock()
+
+
+def _invalidate_list_cache(bucket: str, app_id: str) -> None:
+    with _list_lock:
+        for key in [k for k in _list_cache if k[1] == bucket and k[2] == app_id]:
+            _list_cache.pop(key, None)
+
 
 def ensure_bucket(target: HistoryTarget) -> None:
     """Create the bucket if it does not exist; new ones default to private."""
@@ -285,10 +297,19 @@ def save_record(
                 logger.debug("history: cleanup delete failed", exc_info=True)
         raise HistoryError(f"save_record failed: {e}", 502) from e
 
+    _invalidate_list_cache(target.bucket, target.app_id)
+
 
 def list_records(target: HistoryTarget, limit: int = 50) -> list[HistoryRecord]:
     """The newest *limit* records for this app."""
     limit = max(1, min(int(limit), MAX_RECORDS_PER_PAGE))
+    cache_key = (target.token, target.bucket, target.app_id, limit)
+    now = time.monotonic()
+    with _list_lock:
+        hit = _list_cache.get(cache_key)
+        if hit is not None and (now - hit[0]) < _LIST_CACHE_TTL:
+            _list_cache.move_to_end(cache_key)
+            return list(hit[1])
     prefix = f"{RUNS_PREFIX}/{target.app_id}/"
     paths = [p for p in _list_paths(target, prefix) if p.endswith(".json")]
     paths.sort(key=lambda p: p.rsplit("/", 1)[-1], reverse=True)
@@ -302,6 +323,11 @@ def list_records(target: HistoryTarget, limit: int = 50) -> list[HistoryRecord]:
         except Exception:
             logger.debug("history: skipping unreadable record %s", path)
     records.sort(key=lambda r: r.record_id, reverse=True)
+    with _list_lock:
+        _list_cache[cache_key] = (time.monotonic(), list(records))
+        _list_cache.move_to_end(cache_key)
+        while len(_list_cache) > _LIST_CACHE_MAX:
+            _list_cache.popitem(last=False)
     return records
 
 
@@ -603,8 +629,8 @@ async def record_run(
     started_at: str | None = None,
     bucket_id: str | None = None,
     app_id: str | None = None,
-) -> str | None:
-    """Persist one run. Returns the record id, or None if nothing was written."""
+) -> HistoryRecord | None:
+    """Persist one run. Returns the stored record, or None if nothing was written."""
     target = resolve_target(app, request, bucket_id=bucket_id, app_id=app_id)
     if target is None:
         return None
@@ -625,7 +651,7 @@ async def record_run(
     limiter: anyio.CapacityLimiter = app.state.history_write_limiter
     async with limiter:
         await anyio.to_thread.run_sync(save_record, target, record, merged)
-    return record.record_id
+    return record
 
 
 def schedule_record_run(app, **kwargs) -> None:

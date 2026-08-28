@@ -32,7 +32,10 @@
 	let buckets_loading = $state(false);
 	let buckets = $state<string[]>([]);
 	let bucket_input = $state("");
-	let connect_error: string | null = $state(null);
+	/** Signing in is the next step, not a failure. Only `failure` gets the alert
+	 * treatment; `auth` is guidance and reads as such. */
+	let connect_error: { kind: "auth" | "failure"; message: string } | null =
+		$state(null);
 
 	const bucket_id = $derived(storage.bucket_id ?? "");
 	const using_bucket = $derived(storage.type === "bucket");
@@ -74,10 +77,14 @@
 		if (!result.ok) {
 			connect_error =
 				result.status === 401
-					? authentication_error()
-					: result.status === 403
-						? `You do not have write access to “${id}”.`
-						: (result.detail ?? "Could not connect this bucket.");
+					? { kind: "auth", message: authentication_error() }
+					: {
+							kind: "failure",
+							message:
+								result.status === 403
+									? `You do not have write access to “${id}”.`
+									: (result.detail ?? "Could not connect this bucket.")
+						};
 			return;
 		}
 		storage = { type: "bucket", bucket_id: id };
@@ -97,8 +104,11 @@
 			buckets = [];
 			connect_error =
 				result.status === 401
-					? authentication_error()
-					: (result.detail ?? "Could not load your buckets.");
+					? { kind: "auth", message: authentication_error() }
+					: {
+							kind: "failure",
+							message: result.detail ?? "Could not load your buckets."
+						};
 			return;
 		}
 		buckets = result.data.slice(0, 50);
@@ -271,9 +281,13 @@
 				</p>
 
 				{#if connect_error}
-					<div class="connect-error" role="alert">
-						<span>{connect_error}</span>
-						{#if oauth_available && connect_error.startsWith("Sign in")}
+					<div
+						class="connect-note"
+						class:failure={connect_error.kind === "failure"}
+						role={connect_error.kind === "failure" ? "alert" : "status"}
+					>
+						<span>{connect_error.message}</span>
+						{#if oauth_available && connect_error.kind === "auth"}
 							<button onclick={sign_in}>Sign in with Hugging Face</button>
 						{/if}
 					</div>
@@ -600,21 +614,28 @@
 		color: var(--body-text-color-subdued, #71717a);
 		font-size: 11px;
 	}
-	.connect-error {
+	/* Theme tokens, like every other rule in this file — the previous hardcoded
+	   reds ignored a custom theme entirely. Guidance is quiet; only a real
+	   failure takes the red edge. */
+	.connect-note {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 12px;
 		margin-top: 16px;
 		padding: 11px 12px;
-		border: 1px solid #fca5a5;
+		border: 1px solid var(--border-color-primary, #e4e4e7);
 		border-radius: 10px;
-		background: #fef2f2;
-		color: #991b1b;
+		background: var(--background-fill-secondary, #fafafa);
+		color: var(--body-text-color, #27272a);
 		font-size: 12px;
 		line-height: 1.4;
 	}
-	.connect-error button {
+	.connect-note.failure {
+		border-left: 2px solid var(--color-red-500, #ef4444);
+	}
+
+	.connect-note button {
 		flex: none;
 		padding: 6px 9px;
 		border: 1px solid currentColor;
@@ -624,11 +645,6 @@
 		font: inherit;
 		font-weight: 700;
 		cursor: pointer;
-	}
-	:global(.dark) .connect-error {
-		border-color: #7f1d1d;
-		background: rgb(127 29 29 / 22%);
-		color: #fca5a5;
 	}
 	@keyframes spin {
 		to {
@@ -657,7 +673,7 @@
 			border-radius: 18px 18px 0 0;
 		}
 		.bucket-entry,
-		.connect-error {
+		.connect-note {
 			align-items: stretch;
 			flex-direction: column;
 		}

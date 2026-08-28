@@ -1,10 +1,15 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import {
 		asset_url,
 		list_bucket_records,
 		type HistoryRecord
 	} from "@gradio/client";
+	import HfAuthControl from "./HfAuthControl.svelte";
+
+	/** Needing to sign in is the next step, not a failure, so it is rendered as
+	 * an invitation. Red is reserved for something that actually broke. */
+	type PanelError = { kind: "auth" | "failure"; message: string };
 
 	interface HistoryValue {
 		value: any;
@@ -16,12 +21,20 @@
 	let {
 		root,
 		bucketId,
+		auth,
+		onSpace = false,
+		recordedRun = null,
+		onsignin,
 		onload,
 		onclose,
 		onchange
 	}: {
 		root: string;
 		bucketId: string;
+		auth: any;
+		onSpace?: boolean;
+		recordedRun?: HistoryRecord | null;
+		onsignin?: () => void;
 		onload: (record: {
 			record_id: string;
 			endpoint: string;
@@ -35,7 +48,7 @@
 	let records = $state<HistoryRecord[]>([]);
 	let loading = $state(true);
 	let refreshing = $state(false);
-	let error = $state<string | null>(null);
+	let error = $state<PanelError | null>(null);
 	let selectedEndpoint = $state<string | null>(null);
 
 	const MEDIA_TYPES = new Set(["image", "audio", "video"]);
@@ -121,41 +134,63 @@
 		});
 	}
 
-	async function fetchRecords() {
+	async function fetchRecords(): Promise<void> {
 		// The bucket is named on the request; the server keeps no binding, so
 		// there is nothing to re-assert and no way for another tab to have
 		// pointed this read somewhere else.
 		const result = await list_bucket_records(root, bucketId);
-		if (!result.ok) {
-			throw new Error(
-				result.status === 401
-					? "Sign in with Hugging Face to see your history."
-					: (result.detail ?? "Could not load history")
-			);
+		if (result.ok) {
+			records = result.data;
+			error = null;
+			return;
 		}
-		records = result.data;
+		error =
+			result.status === 401
+				? { kind: "auth", message: "" }
+				: {
+						kind: "failure",
+						message: result.detail ?? `Couldn't reach ${bucketId}.`
+					};
 	}
 
 	async function refresh() {
 		refreshing = true;
-		error = null;
 		try {
 			await fetchRecords();
 		} catch (e: any) {
-			error = e?.message ?? "Failed to refresh";
+			error = { kind: "failure", message: e?.message ?? "Couldn't load runs." };
 		} finally {
 			refreshing = false;
 		}
 	}
 
 	onMount(async () => {
-		try {
-			await fetchRecords();
-		} catch (e: any) {
-			error = e?.message ?? "Failed to load history";
-		} finally {
-			loading = false;
-		}
+		await refresh();
+		loading = false;
+	});
+
+	let handled_record = "";
+	$effect(() => {
+		const incoming = recordedRun;
+		untrack(() => {
+			if (!incoming || incoming.record_id === handled_record) return;
+			handled_record = incoming.record_id;
+			if (records.some((r) => r.record_id === incoming.record_id)) return;
+			records = [incoming, ...records];
+			error = null;
+		});
+	});
+
+	// Signing in from the panel should show the runs, not leave the reader on
+	// the prompt they just satisfied.
+	let handled_token = "";
+	$effect(() => {
+		const token = auth?.token ?? "";
+		untrack(() => {
+			if (!token || token === handled_token) return;
+			handled_token = token;
+			if (error?.kind === "auth") void refresh();
+		});
 	});
 </script>
 
@@ -252,9 +287,24 @@
 
 		<div class="history-body">
 			{#if loading}
-				<div class="history-empty">Loading...</div>
-			{:else if error}
-				<div class="history-empty history-error">{error}</div>
+				<div class="history-empty">Loading…</div>
+			{:else if error?.kind === "auth"}
+				<div class="history-cta">
+					<div class="history-cta-title">Sign in to see your runs</div>
+					<p class="history-cta-sub">
+						Runs are saved to <code>{bucketId}</code>.
+					</p>
+					<div class="history-cta-action">
+						<HfAuthControl {auth} {onSpace} {onsignin} variant="panel" />
+					</div>
+				</div>
+			{:else if error?.kind === "failure"}
+				<div class="history-notice" role="alert">
+					<p class="history-notice-body">{error.message}</p>
+					<button class="history-retry" onclick={refresh} disabled={refreshing}>
+						{refreshing ? "Trying…" : "Try again"}
+					</button>
+				</div>
 			{:else if filtered.length === 0}
 				<div class="history-empty">
 					No generations yet. Run the workflow to start building history.
@@ -509,8 +559,104 @@
 		padding: 48px 16px;
 	}
 
-	.history-error {
-		color: #ef4444;
+	.history-cta {
+		padding: 48px 16px;
+		text-align: center;
+	}
+
+	.history-cta-title {
+		color: #e8e9f0;
+		font-size: 13px;
+		font-weight: 600;
+	}
+
+	.history-cta-sub {
+		color: #7c7f99;
+		font-size: 12px;
+		line-height: 1.5;
+		margin: 6px 0 14px;
+	}
+
+	.history-cta-sub code {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 11.5px;
+		color: #c8cad8;
+		word-break: break-all;
+	}
+
+	.history-cta-action {
+		display: flex;
+		justify-content: center;
+	}
+
+	/* Red carries the alarm as a single edge, not as body text, so a genuine
+	   failure still reads as one without shouting. */
+	.history-notice {
+		margin: 32px 12px;
+		padding: 12px;
+		background: #1e1f2a;
+		border: 1px solid #2a2b38;
+		border-left: 2px solid #ef4444;
+		border-radius: 6px;
+		text-align: left;
+	}
+
+	.history-notice-body {
+		color: #c8cad8;
+		font-size: 12px;
+		line-height: 1.5;
+		margin: 0;
+		word-break: break-word;
+	}
+
+	.history-retry {
+		margin-top: 10px;
+		background: #22232f;
+		border: 1px solid #3a3b4a;
+		border-radius: 6px;
+		color: #c8cad8;
+		font-size: 12px;
+		font-weight: 500;
+		padding: 6px 12px;
+		cursor: pointer;
+	}
+
+	.history-retry:hover:not(:disabled) {
+		background: #2a2b38;
+		color: #e8e9f0;
+	}
+
+	.history-retry:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	:global(body:not(.dark)) .history-cta-title {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .history-cta-sub {
+		color: #6b7280;
+	}
+
+	:global(body:not(.dark)) .history-cta-sub code {
+		color: #374151;
+	}
+
+	:global(body:not(.dark)) .history-notice {
+		background: #f9fafb;
+		border-color: #e5e7eb;
+		border-left-color: #ef4444;
+	}
+
+	:global(body:not(.dark)) .history-notice-body {
+		color: #374151;
+	}
+
+	:global(body:not(.dark)) .history-retry {
+		background: #f3f4f6;
+		border-color: #e5e7eb;
+		color: #374151;
 	}
 
 	.history-grid {

@@ -586,7 +586,7 @@ class TestWorkflowRecording:
         assert r.status_code == 200, r.text
         payload = json.loads(r.json())
         assert "error" not in payload, payload
-        assert payload["endpoint"] == "Result-Image"
+        assert payload["record"]["endpoint"] == "Result-Image"
 
         assert _wait_for(lambda: len(hub.files) == 1)
         (path,) = list(hub.files)

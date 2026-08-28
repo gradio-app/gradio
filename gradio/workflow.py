@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import dataclasses
 import hashlib
 import inspect
 import json
@@ -2030,7 +2031,7 @@ class Workflow(Blocks):
 
                 endpoint = history.endpoint_key(str(endpoint_label), None)
 
-                record_id = await history.record_run(
+                record = await history.record_run(
                     app,
                     request=request,
                     inputs=inputs,
@@ -2038,7 +2039,7 @@ class Workflow(Blocks):
                     endpoint=endpoint,
                     bucket_id=bucket_id or None,
                 )
-                if record_id is None:
+                if record is None:
                     return json.dumps(
                         {
                             "error": "History is not available — sign in with "
@@ -2046,7 +2047,7 @@ class Workflow(Blocks):
                             "error_type": "auth",
                         }
                     )
-                return json.dumps({"record_id": record_id, "endpoint": endpoint})
+                return json.dumps({"record": dataclasses.asdict(record)})
             except Exception as e:
                 logger.error("record_workflow_run failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
