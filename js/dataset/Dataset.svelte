@@ -24,11 +24,11 @@
 		layout?: "gallery" | "table" | null;
 	}
 
-	type ComponentMeta = {
+	type DatasetCellMeta = {
 		value: any;
 		component: LoadingComponent;
 		runtime: false | typeof import("svelte");
-	}[][];
+	};
 
 	let {
 		components,
@@ -115,7 +115,7 @@
 		current_hover = -1;
 	}
 
-	function select_sample(i: number, sample_row: ComponentMeta[number]): void {
+	function select_sample(i: number, sample_row: DatasetCellMeta[]): void {
 		value = i + page * samples_per_page;
 		onclick({ index: value, value: sample_row });
 		onselect({ index: value, value: selected_samples[i] });
@@ -133,7 +133,7 @@
 		event: KeyboardEvent,
 		row: number,
 		col: number,
-		sample_row: ComponentMeta[number]
+		sample_row: DatasetCellMeta[]
 	): void {
 		let next_row = row;
 		let next_col = col;
@@ -176,7 +176,7 @@
 		focus_cell(next_row, next_col);
 	}
 
-	let component_meta: ComponentMeta = $state([]);
+	let component_meta: DatasetCellMeta[][] = $state([]);
 
 	async function get_component_meta(
 		selected_samples_json: string
