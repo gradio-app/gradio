@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SvelteComponent, ComponentType } from "svelte";
+	import { tick, type SvelteComponent, type ComponentType } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { BaseExample } from "@gradio/textbox";
 	import type {
@@ -24,6 +24,12 @@
 		layout?: "gallery" | "table" | null;
 	}
 
+	type DatasetCellMeta = {
+		value: any;
+		component: LoadingComponent;
+		runtime: false | typeof import("svelte");
+	};
+
 	let {
 		components,
 		component_props,
@@ -47,6 +53,8 @@
 	);
 
 	let current_hover = $state(-1);
+	let active_cell: [number, number] = $state([0, 0]);
+	let table: HTMLTableElement | undefined = $state();
 
 	let gallery = $derived(
 		(components.length < 2 || sample_labels !== null) && layout !== "table"
@@ -107,11 +115,78 @@
 		current_hover = -1;
 	}
 
-	let component_meta: {
-		value: any;
-		component: LoadingComponent;
-		runtime: false | typeof import("svelte");
-	}[][] = $state([]);
+	function select_sample(i: number, sample_row: DatasetCellMeta[]): void {
+		value = i + page * samples_per_page;
+		onclick({ index: value, value: sample_row });
+		onselect({ index: value, value: selected_samples[i] });
+	}
+
+	async function focus_cell(row: number, col: number): Promise<void> {
+		active_cell = [row, col];
+		await tick();
+		table
+			?.querySelector<HTMLElement>(`[data-testid="dataset-cell-${row}-${col}"]`)
+			?.focus();
+	}
+
+	function handle_cell_keydown(
+		event: KeyboardEvent,
+		row: number,
+		col: number,
+		sample_row: DatasetCellMeta[]
+	): void {
+		let next_row = row;
+		let next_col = col;
+		const last_row = component_meta.length - 1;
+		const last_col = (component_meta[row]?.length ?? 1) - 1;
+
+		switch (event.key) {
+			case "ArrowUp":
+				next_row = Math.max(0, row - 1);
+				break;
+			case "ArrowDown":
+				next_row = Math.min(last_row, row + 1);
+				break;
+			case "ArrowLeft":
+				next_col = Math.max(0, col - 1);
+				break;
+			case "ArrowRight":
+				next_col = Math.min(last_col, col + 1);
+				break;
+			case "Home":
+				if (event.ctrlKey || event.metaKey) next_row = 0;
+				next_col = 0;
+				break;
+			case "End":
+				if (event.ctrlKey || event.metaKey) next_row = last_row;
+				next_col = (component_meta[next_row]?.length ?? 1) - 1;
+				break;
+			case "Enter":
+			case " ":
+			case "Spacebar":
+				event.preventDefault();
+				select_sample(row, sample_row);
+				return;
+			default:
+				return;
+		}
+
+		event.preventDefault();
+		next_col = Math.min(next_col, (component_meta[next_row]?.length ?? 1) - 1);
+		focus_cell(next_row, next_col);
+	}
+
+	let component_meta: DatasetCellMeta[][] = $state([]);
+	let keyboard_active = $derived.by((): [number, number] | null => {
+		const [row, col] = active_cell;
+		if (component_meta[row]?.[col] !== undefined) {
+			return active_cell;
+		}
+		if (component_meta[0]?.[0] !== undefined) {
+			return [0, 0];
+		}
+		return null;
+	});
 
 	async function get_component_meta(
 		selected_samples_json: string
@@ -219,11 +294,16 @@
 		</div>
 	{:else if selected_samples.length > 0}
 		<div class="table-wrap">
-			<table tabindex="0" role="grid">
+			<table
+				bind:this={table}
+				role="grid"
+				aria-rowcount={effective_samples.length + 1}
+				aria-colcount={components.length}
+			>
 				<thead>
-					<tr class="tr-head">
-						{#each headers as header (header)}
-							<th>
+					<tr class="tr-head" aria-rowindex="1">
+						{#each headers as header, j (header)}
+							<th role="columnheader" aria-colindex={j + 1}>
 								{header}
 							</th>
 						{/each}
@@ -233,14 +313,9 @@
 					{#each component_meta as sample_row, i (i)}
 						<tr
 							class="tr-body"
-							onclick={() => {
-								value = i + page * samples_per_page;
-								onclick({ index: value, value: sample_row });
-								onselect({
-									index: value,
-									value: selected_samples[i]
-								});
-							}}
+							aria-rowindex={page * samples_per_page + i + 2}
+							aria-selected={value === i + page * samples_per_page}
+							onclick={() => select_sample(i, sample_row)}
 							onmouseenter={() => handle_mouseenter(i)}
 							onmouseleave={() => handle_mouseleave()}
 						>
@@ -249,6 +324,16 @@
 
 								{#if component_name !== undefined}
 									<td
+										role="gridcell"
+										aria-colindex={j + 1}
+										tabindex={keyboard_active?.[0] === i &&
+										keyboard_active?.[1] === j
+											? 0
+											: -1}
+										data-testid={`dataset-cell-${i}-${j}`}
+										onfocus={() => (active_cell = [i, j])}
+										onkeydown={(event) =>
+											handle_cell_keydown(event, i, j, sample_row)}
 										style="max-width: {component_name === 'textbox'
 											? '35ch'
 											: 'auto'}"
@@ -285,7 +370,10 @@
 				{:else}
 					<button
 						class:current-page={page === visible_page}
-						onclick={() => (page = visible_page)}
+						onclick={() => {
+							page = visible_page;
+							active_cell = [0, 0];
+						}}
 					>
 						{visible_page + 1}
 					</button>
@@ -384,6 +472,18 @@
 	td {
 		padding: var(--size-2);
 		text-align: center;
+	}
+
+	td:focus-visible {
+		outline: 2px solid var(--color-accent);
+		outline-offset: -2px;
+		background: var(--table-row-focus);
+	}
+
+	@media (forced-colors: active) {
+		td:focus-visible {
+			outline-color: CanvasText;
+		}
 	}
 
 	.paginate {
