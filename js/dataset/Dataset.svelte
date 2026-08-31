@@ -177,6 +177,16 @@
 	}
 
 	let component_meta: DatasetCellMeta[][] = $state([]);
+	let keyboard_active = $derived.by((): [number, number] | null => {
+		const [row, col] = active_cell;
+		if (component_meta[row]?.[col] !== undefined) {
+			return active_cell;
+		}
+		if (component_meta[0]?.[0] !== undefined) {
+			return [0, 0];
+		}
+		return null;
+	});
 
 	async function get_component_meta(
 		selected_samples_json: string
@@ -287,8 +297,8 @@
 			<table
 				bind:this={table}
 				role="grid"
-				aria-rowcount={component_meta.length + 1}
-				aria-colcount={headers.length}
+				aria-rowcount={effective_samples.length + 1}
+				aria-colcount={components.length}
 			>
 				<thead>
 					<tr class="tr-head" aria-rowindex="1">
@@ -303,7 +313,7 @@
 					{#each component_meta as sample_row, i (i)}
 						<tr
 							class="tr-body"
-							aria-rowindex={i + 2}
+							aria-rowindex={page * samples_per_page + i + 2}
 							aria-selected={value === i + page * samples_per_page}
 							onclick={() => select_sample(i, sample_row)}
 							onmouseenter={() => handle_mouseenter(i)}
@@ -316,7 +326,8 @@
 									<td
 										role="gridcell"
 										aria-colindex={j + 1}
-										tabindex={active_cell[0] === i && active_cell[1] === j
+										tabindex={keyboard_active?.[0] === i &&
+										keyboard_active?.[1] === j
 											? 0
 											: -1}
 										data-testid={`dataset-cell-${i}-${j}`}

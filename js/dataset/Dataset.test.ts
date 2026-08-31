@@ -124,4 +124,57 @@ describe("Dataset", () => {
 		});
 		expect(cells[0].closest("tr")).toHaveAttribute("aria-selected", "true");
 	});
+
+	test("keeps a cell in the tab order when the active row is removed", async () => {
+		const result = await render(Dataset, {
+			...table_props,
+			samples: [...table_props.samples, ["Katherine", "Orbital mechanics"]]
+		});
+		let cells = await waitFor(() => result.getAllByRole("gridcell"));
+
+		cells[4].focus();
+		await waitFor(() => expect(cells[4]).toHaveAttribute("tabindex", "0"));
+
+		await result.set_data({ samples: table_props.samples });
+		cells = await waitFor(() => {
+			const updated_cells = result.getAllByRole("gridcell");
+			expect(updated_cells).toHaveLength(4);
+			return updated_cells;
+		});
+
+		expect(cells[0]).toHaveAttribute("tabindex", "0");
+		cells
+			.slice(1)
+			.forEach((cell) => expect(cell).toHaveAttribute("tabindex", "-1"));
+	});
+
+	test("reports the rendered column count when headers are missing", async () => {
+		const result = await render(Dataset, { ...table_props, headers: [] });
+		const grid = await waitFor(() => result.getByRole("grid"));
+
+		expect(grid).toHaveAttribute("aria-colcount", "2");
+	});
+
+	test("reports row positions across all pages", async () => {
+		const samples = Array.from({ length: 25 }, (_, i) => [
+			`Person ${i + 1}`,
+			`Field ${i + 1}`
+		]);
+		const result = await render(Dataset, {
+			...table_props,
+			samples,
+			samples_per_page: 10
+		});
+		const grid = await waitFor(() => result.getByRole("grid"));
+
+		expect(grid).toHaveAttribute("aria-rowcount", "26");
+		await event.click(result.getByRole("button", { name: "3" }));
+
+		const rows = await waitFor(() => {
+			const updated_rows = result.getAllByRole("row");
+			expect(updated_rows).toHaveLength(6);
+			return updated_rows;
+		});
+		expect(rows[1]).toHaveAttribute("aria-rowindex", "22");
+	});
 });
