@@ -322,8 +322,9 @@
 			return;
 		}
 
-		// the image is a rendering of the pasted text, not an attachment (#10910)
-		if (text) return;
+		// text plus HTML means the image is a rendering of that content; text
+		// alone can be a file path sitting next to its own file (#10910)
+		if (text && event.clipboardData.types.includes("text/html")) return;
 
 		for (let index in items) {
 			const item = items[index];
@@ -381,10 +382,10 @@
 				}
 
 				if (valid_files.length > 0) {
-					upload_component.load_files(valid_files);
+					upload_component?.load_files(valid_files);
 				}
 			} else {
-				upload_component.load_files(files);
+				upload_component?.load_files(files);
 			}
 		}
 	}

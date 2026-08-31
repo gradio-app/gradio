@@ -87,11 +87,15 @@ describe("MultimodalTextbox", () => {
 
 	function paste_event(
 		text: string | null,
-		image_name?: string
+		image_name?: string,
+		with_html = true
 	): ClipboardEvent {
 		const data = new DataTransfer();
 		if (text) {
 			data.setData("text/plain", text);
+			if (with_html) {
+				data.setData("text/html", `<table><tr><td>${text}</td></tr></table>`);
+			}
 		}
 		if (image_name) {
 			data.items.add(
@@ -131,14 +135,15 @@ describe("MultimodalTextbox", () => {
 		const image_paste = paste_event(null, "screenshot.png");
 		textbox.dispatchEvent(image_paste);
 
-		await vi.waitFor(() => expect(upload).toHaveBeenCalled());
+		const uploaded = (): string[] =>
+			upload.mock.calls.flat(2).map((file) => file.orig_name);
+
+		// wait for the screenshot itself, so a regression that uploads
+		// cells.png first cannot satisfy the wait and slip past
+		await vi.waitFor(() => expect(uploaded()).toContain("screenshot.png"));
 		await tick();
 
-		const uploaded = upload.mock.calls.flat(2);
-		assert.deepEqual(
-			uploaded.map((file) => file.orig_name),
-			["screenshot.png"]
-		);
+		assert.deepEqual(uploaded(), ["screenshot.png"]);
 		assert.isFalse(excel_paste.defaultPrevented);
 		assert.isTrue(image_paste.defaultPrevented);
 	});
@@ -185,5 +190,33 @@ describe("MultimodalTextbox", () => {
 		assert.isTrue(image_paste.defaultPrevented);
 		// the text is its own fallback, so it must not be swallowed
 		assert.isFalse(long_paste.defaultPrevented);
+	});
+	test("text with no HTML flavor leaves the image alone", async () => {
+		const { getByTestId, listen } = await render(MultimodalTextbox, {
+			show_label: true,
+			max_lines: 1,
+			loading_status,
+			lines: 1,
+			value: { text: "", files: [] },
+			label: "MultimodalTextbox",
+			interactive: true,
+			root: "http://localhost:7860",
+			sources: ["upload"],
+			client: mock_client()
+		});
+
+		const upload = listen("upload");
+		// a file manager copying an image can put its path in text/plain with
+		// no text/html, and there the image is the point of the paste
+		getByTestId("textbox").dispatchEvent(
+			paste_event("file:///cats.jpg", "cats.jpg", false)
+		);
+
+		await vi.waitFor(() => expect(upload).toHaveBeenCalled());
+
+		assert.deepEqual(
+			upload.mock.calls.flat(2).map((file) => file.orig_name),
+			["cats.jpg"]
+		);
 	});
 });
