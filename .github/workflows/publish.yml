@@ -77,6 +77,11 @@ jobs:
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
+      - name: Generate component stubs
+        if: steps.changesets.outputs.hasChangesets != 'true'
+        run: |
+          . venv/bin/activate
+          python -c "import gradio"
       - name: publish to pypi
         if: steps.changesets.outputs.hasChangesets != 'true'
         uses: "gradio-app/github/actions/publish-pypi@main"
