@@ -1162,9 +1162,10 @@ class App(FastAPI):
             for segment in stream.segments:
                 playlist += f"#EXTINF:{segment['duration']:.3f},\n"
                 playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
-                # HLS expects the start time of the video segments to be continuous
-                # Instead of re-encoding the user video chunks, we add a discontinuity tag
-                if segment["extension"] == ".ts":
+                # Each chunk is encoded independently, so its timestamps and audio
+                # encoder delay restart. Let the player align the next segment to
+                # the playlist timeline instead of treating the media as continuous.
+                if segment["extension"] in [".aac", ".ts"]:
                     playlist += "#EXT-X-DISCONTINUITY\n"
 
             if stream.ended:

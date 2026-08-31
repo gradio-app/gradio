@@ -1,4 +1,5 @@
 import filecmp
+import math
 from copy import deepcopy
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -14,6 +15,24 @@ from gradio.media import get_audio
 
 
 class TestAudio:
+    def test_stream_encoding_removes_per_chunk_encoder_delay(self):
+        audio = Path("test/test_files/audio_sample.wav").read_bytes()
+
+        adts, duration = gr.Audio._convert_to_adts(audio)
+        frame_count = 0
+        offset = 0
+        while offset + 7 <= len(adts):
+            frame_length = (
+                ((adts[offset + 3] & 0x03) << 11)
+                | (adts[offset + 4] << 3)
+                | ((adts[offset + 5] & 0xE0) >> 5)
+            )
+            offset += frame_length
+            frame_count += 1
+
+        assert offset == len(adts)
+        assert frame_count == math.ceil(duration * 8000 / 1024)
+
     @pytest.mark.asyncio
     async def test_component_functions(self, gradio_temp_dir, media_data):
         """

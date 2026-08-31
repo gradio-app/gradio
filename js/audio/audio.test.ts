@@ -452,6 +452,7 @@ describe("Events: microphone recording", () => {
 	});
 
 	test("finishing a recording uploads the audio exactly once", async () => {
+		const close_audio_context = vi.spyOn(AudioContext.prototype, "close");
 		const upload = vi.fn(async (file_data: any[]) => file_data);
 		const { listen, get_data } = await render(Audio, {
 			...default_props,
@@ -477,6 +478,7 @@ describe("Events: microphone recording", () => {
 		expect(upload).toHaveBeenCalledTimes(1);
 		expect(input).toHaveBeenCalledTimes(1);
 		expect((await get_data()).value).toBeTruthy();
+		expect(close_audio_context).toHaveBeenCalledTimes(2);
 	});
 });
 
