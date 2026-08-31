@@ -331,10 +331,10 @@
 			const item = items[index];
 			if (item.kind === "file" && item.type.includes("image")) {
 				const blob = item.getAsFile();
-				if (blob && upload_component) {
+				if (blob) {
 					// browsers otherwise paste the file name as text next to it
 					event.preventDefault();
-					upload_component.load_files([blob]);
+					upload_component?.load_files([blob]);
 				}
 			}
 		}
