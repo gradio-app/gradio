@@ -25,6 +25,7 @@ const single_select_props = {
 	interactive: true,
 	multiselect: false,
 	max_choices: null,
+	max_values_shown: 100,
 	allow_custom_value: false
 };
 
@@ -47,6 +48,7 @@ const multiselect_props = {
 	interactive: true,
 	multiselect: true,
 	max_choices: null,
+	max_values_shown: 100,
 	allow_custom_value: false
 };
 
@@ -62,7 +64,8 @@ run_shared_prop_tests({
 		filterable: true,
 		interactive: true,
 		multiselect: false,
-		max_choices: null
+		max_choices: null,
+		max_values_shown: 100
 	}
 });
 
@@ -155,6 +158,34 @@ describe("Single-select: Options display", () => {
 
 		const options = getAllByTestId("dropdown-option");
 		expect(options).toHaveLength(3);
+	});
+
+	test("max_values_shown limits the displayed options", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			max_values_shown: 2
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(2);
+		expect(options[0]).toHaveAttribute("aria-label", "apple");
+		expect(options[1]).toHaveAttribute("aria-label", "banana");
+	});
+
+	test("max_values_shown does not hide choices when filtering is disabled", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			filterable: false,
+			max_values_shown: 2
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		expect(getAllByTestId("dropdown-option")).toHaveLength(3);
 	});
 
 	test("options display names, not internal values", async () => {
@@ -270,6 +301,28 @@ describe("Single-select: Filtering", () => {
 
 		const options = getAllByTestId("dropdown-option");
 		expect(options).toHaveLength(2);
+	});
+
+	test("max_values_shown limits the filtered options", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			value: null,
+			max_values_shown: 2,
+			choices: [
+				["apple", "apple"],
+				["banana", "banana"],
+				["grape", "grape"]
+			] as [string, string][]
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("a");
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(2);
+		expect(options[0]).toHaveAttribute("aria-label", "apple");
+		expect(options[1]).toHaveAttribute("aria-label", "banana");
 	});
 });
 
@@ -1002,6 +1055,19 @@ describe("Multiselect: Options display", () => {
 		expect(options).toHaveLength(3);
 	});
 
+	test("max_values_shown limits the displayed options", async () => {
+		const { container, getAllByTestId } = await render(Dropdown, {
+			...multiselect_props,
+			max_values_shown: 2
+		});
+
+		const input = container.querySelector("input") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(2);
+	});
+
 	test("selected options are marked as selected", async () => {
 		const { container, getAllByTestId } = await render(Dropdown, {
 			...multiselect_props,
@@ -1646,6 +1712,10 @@ describe("handle_filter", () => {
 
 	test("matches substring anywhere in display name", () => {
 		expect(handle_filter(choices, "an")).toEqual([1]);
+	});
+
+	test("stops after the maximum number of matching values", () => {
+		expect(handle_filter(choices, "a", 2)).toEqual([0, 1]);
 	});
 });
 

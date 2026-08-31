@@ -39,7 +39,11 @@
 
 	// All of these are indices with respect to the choices array
 	let [filtered_indices, active_index] = $derived.by(() => {
-		const filtered = handle_filter(translated_choices, input_text);
+		const filtered = handle_filter(
+			translated_choices,
+			input_text,
+			gradio.props.filterable ? gradio.props.max_values_shown : null
+		);
 		return [
 			filtered,
 			filtered.length > 0 && !gradio.props.allow_custom_value
@@ -150,7 +154,11 @@
 	}
 
 	function handle_focus(e: FocusEvent): void {
-		filtered_indices = gradio.props.choices.map((_, i) => i);
+		filtered_indices = handle_filter(
+			translated_choices,
+			"",
+			gradio.props.filterable ? gradio.props.max_values_shown : null
+		);
 		if (
 			gradio.props.max_choices === null ||
 			selected_indices.length < gradio.props.max_choices

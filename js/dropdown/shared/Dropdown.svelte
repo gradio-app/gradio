@@ -22,6 +22,7 @@
 		container = true,
 		allow_custom_value = false,
 		filterable = true,
+		max_values_shown = 100,
 		buttons = null,
 		oncustom_button_click = null,
 		on_change,
@@ -40,6 +41,7 @@
 		container?: boolean;
 		allow_custom_value?: boolean;
 		filterable?: boolean;
+		max_values_shown?: number | null;
 		buttons?: (string | CustomButtonType)[] | null;
 		oncustom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
@@ -95,9 +97,12 @@
 	});
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
+	let visible_values_limit = $derived(filterable ? max_values_shown : null);
 
 	// All of these are indices with respect to the choices array
-	let filtered_indices = $state(choices.map((_, i) => i));
+	let filtered_indices = $state(
+		handle_filter(choices, "", visible_values_limit)
+	);
 	let active_index: number | null = $state(null);
 	let selected_indices = $derived(
 		selected_index === null ? [] : [selected_index]
@@ -105,7 +110,7 @@
 
 	$effect(() => {
 		choices;
-		filtered_indices = choices.map((_, i) => i);
+		filtered_indices = handle_filter(choices, "", visible_values_limit);
 	});
 
 	function handle_option_selected(index: any): void {
@@ -133,7 +138,7 @@
 
 	function handle_focus(e: FocusEvent): void {
 		focused = true;
-		filtered_indices = choices.map((_, i) => i);
+		filtered_indices = handle_filter(choices, "", visible_values_limit);
 		active_index = selected_index;
 		show_options = true;
 		on_focus?.();
@@ -154,7 +159,7 @@
 		}
 		show_options = false;
 		active_index = null;
-		filtered_indices = choices.map((_, i) => i);
+		filtered_indices = handle_filter(choices, "", visible_values_limit);
 		focused = false;
 		on_blur?.();
 		on_input?.();
@@ -169,15 +174,19 @@
 			e.key === "Escape";
 		const is_filtering = input_text !== last_typed_value;
 		if (!is_navigation_key) {
-			filtered_indices = handle_filter(choices, input_text);
+			filtered_indices = handle_filter(
+				choices,
+				input_text,
+				visible_values_limit
+			);
 			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 		} else {
 			// Recompute the visible options so navigation always spans the full
 			// current list. Filter by the typed text when the user is filtering,
 			// otherwise (a value is just displayed/selected) show every option.
 			filtered_indices = is_filtering
-				? handle_filter(choices, input_text)
-				: choices.map((_, i) => i);
+				? handle_filter(choices, input_text, visible_values_limit)
+				: handle_filter(choices, "", visible_values_limit);
 			if (active_index !== null && !filtered_indices.includes(active_index)) {
 				active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 			}

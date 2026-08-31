@@ -6,6 +6,7 @@ export type Item = string | number;
 export interface DropdownProps {
 	multiselect: boolean;
 	max_choices: number | null;
+	max_values_shown: number | null;
 	choices: [string, Item][];
 	allow_custom_value: boolean;
 	value: Item | Item[];
