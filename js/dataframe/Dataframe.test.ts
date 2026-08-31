@@ -458,6 +458,35 @@ describe("Keyboard accessibility", () => {
 		expect(second_cell).toHaveFocus();
 	});
 
+	test("link key events are handled by the link instead of grid navigation", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [['<a href="#model">Model</a>', "Details"]],
+				headers: ["Model", "Details"],
+				metadata: null
+			},
+			datatype: ["markdown", "str"] as const,
+			col_count: [2, "fixed"] as [number, "fixed"],
+			row_count: [1, "fixed"] as [number, "fixed"]
+		});
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+		const link = await waitFor(() => within(first_cell).getByRole("link"));
+
+		first_cell.focus();
+		await event.tab();
+		expect(link).toHaveFocus();
+
+		await fireEvent.keyDown(link, { key: "Enter" });
+		expect(queryByRole("textbox", { name: "Edit cell" })).toBeNull();
+		expect(link).toHaveFocus();
+
+		await fireEvent.keyDown(link, { key: "ArrowRight" });
+		expect(link).toHaveFocus();
+		expect(second_cell).not.toHaveFocus();
+	});
+
 	test("Home and End move to row and grid boundaries", async () => {
 		const { getByTestId } = await render(Dataframe, navigation_props);
 		const first_cell = await waitFor(() => getByTestId("cell-0-0"));

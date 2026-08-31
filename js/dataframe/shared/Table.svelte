@@ -808,6 +808,7 @@
 	}
 
 	function handle_keydown(e: KeyboardEvent): void {
+		if (e.target instanceof HTMLAnchorElement) return;
 		if (!selected && selected_header === false) return;
 
 		const num_cols = resolved_headers.length;
