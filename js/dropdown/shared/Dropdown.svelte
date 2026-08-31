@@ -22,7 +22,7 @@
 		container = true,
 		allow_custom_value = false,
 		filterable = true,
-		max_values_shown = null,
+		max_values_shown = 100,
 		buttons = null,
 		oncustom_button_click = null,
 		on_change,

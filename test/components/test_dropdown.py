@@ -95,7 +95,7 @@ class TestDropdown:
             gr.Dropdown(["a"], max_values_shown=0)
         assert (
             gr.Dropdown(["a", "b"], filterable=False).get_config()["max_values_shown"]
-            is None
+            == 100
         )
         assert (
             gr.Dropdown(["a", "b"], filterable=False, max_values_shown=1).get_config()[
@@ -103,7 +103,7 @@ class TestDropdown:
             ]
             == 1
         )
-        assert gr.Dropdown(["a", "b"]).get_config()["max_values_shown"] is None
+        assert gr.Dropdown(["a", "b"]).get_config()["max_values_shown"] == 100
 
         dropdown = gr.Dropdown(choices=["a", "b"], value="c")
         assert dropdown.get_config()["value"] == "c"

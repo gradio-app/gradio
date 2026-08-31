@@ -25,7 +25,7 @@ const single_select_props = {
 	interactive: true,
 	multiselect: false,
 	max_choices: null,
-	max_values_shown: null,
+	max_values_shown: 100,
 	allow_custom_value: false
 };
 
@@ -48,7 +48,7 @@ const multiselect_props = {
 	interactive: true,
 	multiselect: true,
 	max_choices: null,
-	max_values_shown: null,
+	max_values_shown: 100,
 	allow_custom_value: false
 };
 
@@ -65,7 +65,7 @@ run_shared_prop_tests({
 		interactive: true,
 		multiselect: false,
 		max_choices: null,
-		max_values_shown: null
+		max_values_shown: 100
 	}
 });
 

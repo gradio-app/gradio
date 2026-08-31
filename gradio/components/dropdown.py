@@ -62,7 +62,7 @@ class Dropdown(FormComponent):
         multiselect: bool | None = None,
         allow_custom_value: bool = False,
         max_choices: int | None = None,
-        max_values_shown: int | None = None,
+        max_values_shown: int | None = 100,
         filterable: bool = True,
         label: str | I18nData | None = None,
         info: str | I18nData | None = None,
