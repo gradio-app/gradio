@@ -42,7 +42,7 @@
 		const filtered = handle_filter(
 			translated_choices,
 			input_text,
-			gradio.props.filterable ? gradio.props.max_values_shown : null
+			gradio.props.max_values_shown
 		);
 		return [
 			filtered,
@@ -157,7 +157,7 @@
 		filtered_indices = handle_filter(
 			translated_choices,
 			"",
-			gradio.props.filterable ? gradio.props.max_values_shown : null
+			gradio.props.max_values_shown
 		);
 		if (
 			gradio.props.max_choices === null ||

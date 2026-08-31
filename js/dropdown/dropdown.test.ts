@@ -25,7 +25,7 @@ const single_select_props = {
 	interactive: true,
 	multiselect: false,
 	max_choices: null,
-	max_values_shown: 100,
+	max_values_shown: null,
 	allow_custom_value: false
 };
 
@@ -48,7 +48,7 @@ const multiselect_props = {
 	interactive: true,
 	multiselect: true,
 	max_choices: null,
-	max_values_shown: 100,
+	max_values_shown: null,
 	allow_custom_value: false
 };
 
@@ -65,7 +65,7 @@ run_shared_prop_tests({
 		interactive: true,
 		multiselect: false,
 		max_choices: null,
-		max_values_shown: 100
+		max_values_shown: null
 	}
 });
 
@@ -175,7 +175,7 @@ describe("Single-select: Options display", () => {
 		expect(options[1]).toHaveAttribute("aria-label", "banana");
 	});
 
-	test("max_values_shown does not hide choices when filtering is disabled", async () => {
+	test("max_values_shown limits choices when filtering is disabled", async () => {
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...single_select_props,
 			filterable: false,
@@ -185,7 +185,7 @@ describe("Single-select: Options display", () => {
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
 		await input.focus();
 
-		expect(getAllByTestId("dropdown-option")).toHaveLength(3);
+		expect(getAllByTestId("dropdown-option")).toHaveLength(2);
 	});
 
 	test("options display names, not internal values", async () => {

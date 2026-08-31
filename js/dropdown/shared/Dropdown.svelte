@@ -22,7 +22,7 @@
 		container = true,
 		allow_custom_value = false,
 		filterable = true,
-		max_values_shown = 100,
+		max_values_shown = null,
 		buttons = null,
 		oncustom_button_click = null,
 		on_change,
@@ -97,7 +97,7 @@
 	});
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
-	let visible_values_limit = $derived(filterable ? max_values_shown : null);
+	let visible_values_limit = $derived(max_values_shown);
 
 	// All of these are indices with respect to the choices array
 	let filtered_indices = $state(
