@@ -324,11 +324,18 @@
 			return;
 		}
 
+		// the image is a rendering of the pasted text, not an attachment (#10910)
+		if (text) return;
+
 		for (let index in items) {
 			const item = items[index];
 			if (item.kind === "file" && item.type.includes("image")) {
 				const blob = item.getAsFile();
-				if (blob) upload_component.load_files([blob]);
+				if (blob && upload_component) {
+					// browsers otherwise paste the file name as text next to it
+					event.preventDefault();
+					upload_component.load_files([blob]);
+				}
 			}
 		}
 	}

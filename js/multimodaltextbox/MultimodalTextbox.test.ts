@@ -1,6 +1,7 @@
-import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@self/tootils/render";
+import { test, describe, assert, afterEach, expect, vi } from "vitest";
+import { cleanup, render, mock_client } from "@self/tootils/render";
 import event from "@testing-library/user-event";
+import { tick } from "svelte";
 
 import MultimodalTextbox from "./Index.svelte";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
@@ -82,5 +83,63 @@ describe("MultimodalTextbox", () => {
 		const submitButton = getByTestId("submit-button");
 		await event.click(submitButton);
 		assert.equal(mock.callCount, 1);
+	});
+
+	function paste_event(
+		text: string | null,
+		image_name?: string
+	): ClipboardEvent {
+		const data = new DataTransfer();
+		if (text) {
+			data.setData("text/plain", text);
+		}
+		if (image_name) {
+			data.items.add(
+				new File([new Uint8Array([1, 2, 3])], image_name, {
+					type: "image/png"
+				})
+			);
+		}
+		return new ClipboardEvent("paste", {
+			clipboardData: data,
+			bubbles: true,
+			cancelable: true
+		});
+	}
+
+	test("a paste is handled as text or as an image, never both", async () => {
+		const { getByTestId, listen } = await render(MultimodalTextbox, {
+			show_label: true,
+			max_lines: 1,
+			loading_status,
+			lines: 1,
+			value: { text: "", files: [] },
+			label: "MultimodalTextbox",
+			interactive: true,
+			root: "http://localhost:7860",
+			sources: ["upload"],
+			client: mock_client()
+		});
+
+		const upload = listen("upload");
+		const textbox = getByTestId("textbox");
+
+		const excel_paste = paste_event("1\t2\n3\t4", "cells.png");
+		textbox.dispatchEvent(excel_paste);
+		// an image alone is still attached, and waiting for it gives the paste
+		// above time to have uploaded anything
+		const image_paste = paste_event(null, "screenshot.png");
+		textbox.dispatchEvent(image_paste);
+
+		await vi.waitFor(() => expect(upload).toHaveBeenCalled());
+		await tick();
+
+		const uploaded = upload.mock.calls.flat(2);
+		assert.deepEqual(
+			uploaded.map((file) => file.orig_name),
+			["screenshot.png"]
+		);
+		assert.isFalse(excel_paste.defaultPrevented);
+		assert.isTrue(image_paste.defaultPrevented);
 	});
 });
