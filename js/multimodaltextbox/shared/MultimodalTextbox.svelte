@@ -312,15 +312,13 @@
 		const items = event.clipboardData.items;
 		const text = event.clipboardData.getData("text");
 
-		if (text && text.length > max_plain_text_length) {
+		if (text && text.length > max_plain_text_length && upload_component) {
 			event.preventDefault();
 			const file = new window.File([text], "pasted_text.txt", {
 				type: "text/plain",
 				lastModified: Date.now()
 			});
-			if (upload_component) {
-				upload_component.load_files([file]);
-			}
+			upload_component.load_files([file]);
 			return;
 		}
 

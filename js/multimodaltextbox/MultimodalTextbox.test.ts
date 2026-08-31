@@ -126,8 +126,8 @@ describe("MultimodalTextbox", () => {
 
 		const excel_paste = paste_event("1\t2\n3\t4", "cells.png");
 		textbox.dispatchEvent(excel_paste);
-		// an image alone is still attached, and waiting for it gives the paste
-		// above time to have uploaded anything
+		// an image alone is still attached. Waiting for that upload also bounds
+		// the assertion that the paste above uploaded nothing.
 		const image_paste = paste_event(null, "screenshot.png");
 		textbox.dispatchEvent(image_paste);
 
@@ -141,5 +141,49 @@ describe("MultimodalTextbox", () => {
 		);
 		assert.isFalse(excel_paste.defaultPrevented);
 		assert.isTrue(image_paste.defaultPrevented);
+	});
+	test("with nowhere to upload, only a text paste falls back to the browser", async () => {
+		const { getByTestId, listen } = await render(MultimodalTextbox, {
+			show_label: true,
+			max_lines: 1,
+			loading_status,
+			lines: 1,
+			// file_count "single" with a file already attached unmounts Upload
+			file_count: "single",
+			value: {
+				text: "",
+				files: [
+					{
+						path: "cats.jpg",
+						orig_name: "cats.jpg",
+						mime_type: "image/jpeg",
+						meta: { _type: "gradio.FileData" }
+					}
+				]
+			},
+			label: "MultimodalTextbox",
+			interactive: true,
+			root: "http://localhost:7860",
+			max_plain_text_length: 1000,
+			sources: ["upload"],
+			client: mock_client()
+		});
+
+		const upload = listen("upload");
+		const textbox = getByTestId("textbox");
+
+		const image_paste = paste_event(null, "screenshot.png");
+		textbox.dispatchEvent(image_paste);
+		const long_paste = paste_event("x".repeat(2000));
+		textbox.dispatchEvent(long_paste);
+
+		await tick();
+		await tick();
+
+		expect(upload).not.toHaveBeenCalled();
+		// the browser would paste the image's file name, which is worth nothing
+		assert.isTrue(image_paste.defaultPrevented);
+		// the text is its own fallback, so it must not be swallowed
+		assert.isFalse(long_paste.defaultPrevented);
 	});
 });
