@@ -332,6 +332,12 @@ class Audio(
 
     @staticmethod
     def _strip_adts_encoder_delay(data: bytes) -> bytes:
+        """Remove the extra first AAC frame that an encoder adds to each audio chunk.
+
+        Keeping that frame on every streaming chunk creates a small silence between
+        chunks. If the data does not look like a multi-frame ADTS stream, return it
+        unchanged.
+        """
         if len(data) < 7 or data[0] != 0xFF or data[1] & 0xF0 != 0xF0:
             return data
         first_frame_length = (
