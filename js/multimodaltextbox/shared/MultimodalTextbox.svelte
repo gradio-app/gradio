@@ -322,8 +322,9 @@
 			return;
 		}
 
-		// text plus HTML means the image is a rendering of that content; text
-		// alone can be a file path sitting next to its own file (#10910)
+		// text plus HTML means the image is a rendering of that content. Text
+		// alone may be an image's own file path on platforms we have not
+		// measured, so leave those pastes to the image branch (#10910)
 		if (text && event.clipboardData.types.includes("text/html")) return;
 
 		for (let index in items) {
@@ -331,8 +332,9 @@
 			if (item.kind === "file" && item.type.includes("image")) {
 				const blob = item.getAsFile();
 				if (blob) {
-					// browsers otherwise paste the file name as text next to it
-					event.preventDefault();
+					// claim the paste so the browser cannot insert the file name,
+					// unless that would leave text with nothing to replace it
+					if (upload_component || !text) event.preventDefault();
 					upload_component?.load_files([blob]);
 				}
 			}

@@ -147,6 +147,7 @@ describe("MultimodalTextbox", () => {
 		assert.isFalse(excel_paste.defaultPrevented);
 		assert.isTrue(image_paste.defaultPrevented);
 	});
+
 	test("with nowhere to upload, only a text paste falls back to the browser", async () => {
 		const { getByTestId, listen } = await render(MultimodalTextbox, {
 			show_label: true,
@@ -181,6 +182,8 @@ describe("MultimodalTextbox", () => {
 		textbox.dispatchEvent(image_paste);
 		const long_paste = paste_event("x".repeat(2000));
 		textbox.dispatchEvent(long_paste);
+		const path_paste = paste_event("file:///cats.jpg", "cats.jpg", false);
+		textbox.dispatchEvent(path_paste);
 
 		await tick();
 		await tick();
@@ -188,9 +191,11 @@ describe("MultimodalTextbox", () => {
 		expect(upload).not.toHaveBeenCalled();
 		// the browser would paste the image's file name, which is worth nothing
 		assert.isTrue(image_paste.defaultPrevented);
-		// the text is its own fallback, so it must not be swallowed
+		// text is its own fallback, so it must not be swallowed either way
 		assert.isFalse(long_paste.defaultPrevented);
+		assert.isFalse(path_paste.defaultPrevented);
 	});
+
 	test("text with no HTML flavor leaves the image alone", async () => {
 		const { getByTestId, listen } = await render(MultimodalTextbox, {
 			show_label: true,
