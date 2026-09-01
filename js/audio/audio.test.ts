@@ -846,14 +846,16 @@ describe("Streaming output", () => {
 		cleanup();
 	});
 
+	// An unroutable host: these URLs land on real media elements, and a
+	// resolvable one would send actual requests out of the unit tests.
 	const run_1 = {
 		...TEST_WAV,
 		is_stream: true,
-		url: "https://example.com/stream/abc/1/1/playlist.m3u8"
+		url: "https://stream.invalid/abc/1/1/playlist.m3u8"
 	};
 	const run_2 = {
 		...run_1,
-		url: "https://example.com/stream/abc/2/1/playlist.m3u8"
+		url: "https://stream.invalid/abc/2/1/playlist.m3u8"
 	};
 
 	test("a new streaming run attaches a new source", async () => {
@@ -950,6 +952,42 @@ describe("Streaming output", () => {
 
 		expect(player.src).toBe(run_2.url);
 		expect(load_source).not.toHaveBeenCalled();
+
+		// The element stays mounted after clearing, so the teardown has to
+		// stop the stream or it keeps playing behind the empty state.
+		await set_data({ value: null });
+
+		expect(player.getAttribute("src")).toBeNull();
+		expect(player.paused).toBe(true);
+	});
+
+	test("a stale load rejection does not downgrade the current file", async () => {
+		let reject_first: ((e: Error) => void) | undefined;
+		wavesurfer_load
+			.mockImplementationOnce(
+				() =>
+					new Promise((_, reject) => {
+						reject_first = reject;
+					})
+			)
+			.mockImplementationOnce(() => Promise.resolve());
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: { ...fake_value, url: fake_value.url + "?v=2" } });
+		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(2));
+
+		// The first file's decode fails only after the value moved on.
+		reject_first?.(new Error("decode failed"));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		expect(player.getAttribute("src")).toBeNull();
 	});
 });
 

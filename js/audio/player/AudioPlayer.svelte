@@ -84,12 +84,10 @@
 	let waveform_load_failed = $state(false);
 
 	let use_waveform = $derived(
-		waveform_options.show_recording_waveform && !value?.is_stream
+		waveform_options.show_recording_waveform && !is_stream
 	);
 
-	let native_fallback_active = $derived(
-		waveform_load_failed && value?.url !== undefined && value?.url !== null
-	);
+	let native_fallback_active = $derived(waveform_load_failed && url != null);
 
 	// The native element is the player, rather than a hidden decoy, whenever
 	// there is no working waveform to drive playback: the waveform is turned
@@ -194,24 +192,29 @@
 
 	$effect(() => {
 		if (url && waveform_ready && use_waveform) {
+			const loading_url = url;
 			untrack(() => {
-				if (value?.url && waveform) {
+				if (waveform) {
 					waveform_load_failed = false;
-					waveform.load(value.url).catch(handle_waveform_error);
+					waveform
+						.load(loading_url)
+						.catch((e: Error) => handle_waveform_error(e, loading_url));
 				}
 			});
 		}
 	});
 
-	function handle_waveform_error(e: Error): void {
-		// A late rejection from a torn-down waveform must not steer the native
-		// player onto a stream playlist it cannot decode.
-		if (value?.is_stream) return;
+	function handle_waveform_error(e: Error, failed_url?: string): void {
+		// A late rejection from a load the value has moved past (a stream, or
+		// an earlier file) must not downgrade the current source to the
+		// native fallback.
+		if (failed_url !== undefined && failed_url !== url) return;
+		if (is_stream) return;
 		if (e?.name === "AbortError" || waveform_load_failed) return;
 		console.error("Waveform load error:", e);
 		waveform_load_failed = true;
-		if (audio_player && value?.url) {
-			audio_player.src = value.url;
+		if (audio_player && url) {
+			audio_player.src = url;
 		}
 	}
 
@@ -250,20 +253,31 @@
 	});
 
 	// This effect owns the stream: it attaches one per playlist URL and the
-	// teardown destroys it on a new run, on clearing and on unmount. `value` is
+	// teardown stops it on a new run, on clearing and on unmount. `value` is
 	// a fresh object on every chunk, so the effect must only depend on the
 	// equality-stable deriveds, or each chunk would restart the stream.
 	$effect(() => {
 		if (!audio_player || !is_stream || !url) return;
 		const media = audio_player;
+		const autoplay = untrack(() => waveform_settings.autoplay);
 		if (is_hls_supported()) {
 			const hls = create_hls_stream(media, url, () => {
-				if (waveform_settings.autoplay) media.play();
+				if (autoplay) media.play();
 			});
 			return () => hls.destroy();
 		}
 		media.src = url;
-		if (untrack(() => waveform_settings.autoplay)) media.play();
+		if (autoplay) media.play();
+		return () => {
+			// Only tear down a source this effect still owns; effects run in
+			// declaration order, so the next value's source may already be in
+			// place (hls.js guards its detach the same way).
+			if (media.getAttribute("src") === url) {
+				media.pause();
+				media.removeAttribute("src");
+				media.load();
+			}
+		};
 	});
 
 	$effect(() => {

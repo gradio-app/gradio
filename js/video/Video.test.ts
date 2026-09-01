@@ -554,14 +554,16 @@ describe("Streaming output", () => {
 		cleanup();
 	});
 
+	// An unroutable host: these URLs land on real media elements, and a
+	// resolvable one would send actual requests out of the unit tests.
 	const run_1 = {
 		...fake_value,
 		is_stream: true,
-		url: "https://example.com/stream/abc/1/1/playlist.m3u8"
+		url: "https://stream.invalid/abc/1/1/playlist.m3u8"
 	};
 	const run_2 = {
 		...run_1,
-		url: "https://example.com/stream/abc/2/1/playlist.m3u8"
+		url: "https://stream.invalid/abc/2/1/playlist.m3u8"
 	};
 
 	test("a new streaming run replaces the previous instance", async () => {
