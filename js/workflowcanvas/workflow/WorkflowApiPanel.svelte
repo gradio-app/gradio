@@ -552,4 +552,45 @@
 	.api-code code {
 		font-family: inherit;
 	}
+
+	@media (max-width: 640px), (pointer: coarse) {
+		.api-overlay {
+			padding: 0;
+			align-items: flex-end;
+		}
+		.api-panel {
+			width: 100%;
+			max-height: 92dvh;
+			border-radius: 16px 16px 0 0;
+			border-bottom: none;
+			padding-bottom: env(safe-area-inset-bottom);
+		}
+		.api-header {
+			padding: 14px 14px 12px;
+		}
+		.api-title-main {
+			font-size: 14px;
+		}
+		.api-title-sub {
+			font-size: 11.5px;
+		}
+		.api-body {
+			padding: 12px 14px 16px;
+			gap: 12px;
+		}
+		.api-io {
+			flex-direction: column;
+			gap: 10px;
+			padding: 12px;
+		}
+		.api-code {
+			padding: 12px 60px 12px 12px;
+			font-size: 11.5px;
+			max-height: 260px;
+		}
+		.api-copy {
+			padding: 3px 8px;
+			font-size: 10.5px;
+		}
+	}
 </style>
