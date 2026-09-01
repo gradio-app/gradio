@@ -118,6 +118,24 @@ class TestVideo:
         postprocessed_video["path"] = os.path.basename(postprocessed_video["path"])
         assert processed_video == postprocessed_video
 
+    @pytest.mark.asyncio
+    async def test_stream_output_value_is_a_flat_file_payload(self):
+        # The streamed value must have the same shape as postprocess() output
+        # (a plain FileData); the frontend reads value.url and never renders a
+        # stream that is still wrapped in the legacy {"video": ...} envelope.
+        component = gr.Video(streaming=True)
+
+        _, output_file = await component.stream_output(
+            None, "sess/0/1/playlist.m3u8", first_chunk=True
+        )
+
+        assert output_file == {
+            "path": "sess/0/1/playlist.m3u8",
+            "is_stream": True,
+            "orig_name": "video-stream.mp4",
+            "meta": {"_type": "gradio.FileData"},
+        }
+
     def test_in_interface(self, media_data):
         """
         Interface, process
