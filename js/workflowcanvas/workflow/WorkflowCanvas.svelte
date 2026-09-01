@@ -2072,11 +2072,12 @@
 			fetchDatasetWithToken,
 			callFnWithToken,
 			auth.token
-				? (modelId, content, provider, signal, onChunk) =>
+				? (modelId, content, provider, signal, onChunk, params) =>
 						stream_text_generation({
 							modelId,
 							content,
 							provider,
+							params,
 							hfToken: auth.token,
 							signal: signal ?? undefined,
 							onChunk

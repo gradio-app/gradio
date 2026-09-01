@@ -51,27 +51,66 @@ type StreamTextFn = (
 	content: string | ChatContentPart[],
 	provider: string | undefined,
 	signal: AbortSignal | undefined,
-	onChunk: (delta: string, accumulated: string) => void
+	onChunk: (delta: string, accumulated: string) => void,
+	params?: Record<string, string | number>
 ) => Promise<string>;
 
-function buildChatContent(
+async function toDataUrl(url: string): Promise<string> {
+	if (/^data:/.test(url)) return url;
+	if (/^https?:\/\//.test(url)) {
+		try {
+			if (new URL(url).origin !== location.origin) return url;
+		} catch {
+			return url;
+		}
+	}
+	const blob = await (await fetch(url)).blob();
+	return await new Promise<string>((resolve, reject) => {
+		const r = new FileReader();
+		r.onload = () => resolve(r.result as string);
+		r.onerror = () => reject(r.error);
+		r.readAsDataURL(blob);
+	});
+}
+
+async function buildChatBody(
 	ports: Port[],
 	args: unknown[]
-): string | ChatContentPart[] {
+): Promise<{
+	content: string | ChatContentPart[];
+	params: Record<string, string | number>;
+}> {
 	const parts: ChatContentPart[] = [];
-	ports.forEach((port, i) => {
+	const params: Record<string, string | number> = {};
+	for (let i = 0; i < ports.length; i++) {
+		const port = ports[i];
 		const arg = args[i];
-		if (arg == null || arg === "") return;
+		if (arg == null || arg === "") continue;
+		if (port.custom) {
+			if (typeof arg === "string" || typeof arg === "number") {
+				params[port.id] = arg;
+			}
+			continue;
+		}
 		if (port.type === "image") {
 			const url = (arg as { url?: string })?.url;
-			if (url) parts.push({ type: "image_url", image_url: { url } });
+			if (url) {
+				parts.push({
+					type: "image_url",
+					image_url: { url: await toDataUrl(url) }
+				});
+			}
 		} else if (typeof arg === "string" || typeof arg === "number") {
 			parts.push({ type: "text", text: String(arg) });
 		}
-	});
-	if (parts.length === 0) return "";
-	if (parts.length === 1 && parts[0].type === "text") return parts[0].text;
-	return parts;
+	}
+	const content =
+		parts.length === 0
+			? ""
+			: parts.length === 1 && parts[0].type === "text"
+				? parts[0].text
+				: parts;
+	return { content, params };
 }
 
 function resolveInputs(
@@ -453,20 +492,18 @@ export async function executeWorkflow(
 								node.inputs.map((port, i) => [port.id, args[i]])
 							) as unknown)
 						: args;
-					// Prefer browser-side streaming for chat-completion-compatible
-					// text tasks so the UI receives tokens as they arrive. Skip
-					// streaming when there are custom ports — the streaming path
-					// only sends the prompt and would drop the extras.
 					const tag = node.pipeline_tag ?? "text-generation";
 					const streamable =
 						(tag === "text-generation" ||
 							tag === "text2text-generation" ||
 							tag === "conversational" ||
 							tag === "image-text-to-text") &&
-						!hasCustomPorts &&
 						!!stream_text_generation;
 					if (streamable) {
-						const content = buildChatContent(node.inputs, args);
+						const { content, params } = await buildChatBody(
+							node.inputs,
+							args
+						);
 						const outputPort = node.outputs[0];
 						const downstream = outputPort
 							? edges.filter(
@@ -486,7 +523,8 @@ export async function executeWorkflow(
 								for (const e of downstream) {
 									onOutput(e.to_node_id, e.to_port_id, accumulated);
 								}
-							}
+							},
+							params
 						);
 						resultJson = JSON.stringify([final]);
 					} else {
