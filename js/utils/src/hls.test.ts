@@ -1,22 +1,24 @@
-import { describe, expect, test, vi } from "vitest";
-import Hls from "hls.js";
-import { attach_hls_stream } from "./hls";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { Hls, create_hls_stream } from "./hls";
 
-function attach(callbacks = {}): Hls {
+function attach(on_manifest_parsed?: () => void): Hls {
 	vi.spyOn(Hls.prototype, "loadSource").mockImplementation(() => {});
 	vi.spyOn(Hls.prototype, "attachMedia").mockImplementation(() => {});
-	return attach_hls_stream(
+	return create_hls_stream(
 		document.createElement("audio"),
 		"https://example.com/playlist.m3u8",
-		callbacks
+		on_manifest_parsed
 	);
 }
 
-describe("attach_hls_stream", () => {
-	test("an unrecoverable error destroys the instance and reports it", () => {
+describe("create_hls_stream", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("an unrecoverable error destroys the instance", () => {
 		const destroy = vi.spyOn(Hls.prototype, "destroy");
-		const on_unrecoverable = vi.fn();
-		const hls = attach({ on_unrecoverable });
+		const hls = attach();
 
 		hls.trigger(Hls.Events.ERROR, {
 			type: Hls.ErrorTypes.OTHER_ERROR,
@@ -25,11 +27,6 @@ describe("attach_hls_stream", () => {
 		} as any);
 
 		expect(destroy).toHaveBeenCalledTimes(1);
-		// The caller holds the reference, so it has to hear about the teardown
-		// or it keeps a dead instance and destroys it a second time later.
-		expect(on_unrecoverable).toHaveBeenCalledTimes(1);
-
-		vi.restoreAllMocks();
 	});
 
 	test("a recoverable error is retried rather than destroyed", () => {
@@ -37,8 +34,7 @@ describe("attach_hls_stream", () => {
 		const start_load = vi
 			.spyOn(Hls.prototype, "startLoad")
 			.mockImplementation(() => {});
-		const on_unrecoverable = vi.fn();
-		const hls = attach({ on_unrecoverable });
+		const hls = attach();
 
 		hls.trigger(Hls.Events.ERROR, {
 			type: Hls.ErrorTypes.NETWORK_ERROR,
@@ -48,8 +44,15 @@ describe("attach_hls_stream", () => {
 
 		expect(start_load).toHaveBeenCalledTimes(1);
 		expect(destroy).not.toHaveBeenCalled();
-		expect(on_unrecoverable).not.toHaveBeenCalled();
+	});
 
-		vi.restoreAllMocks();
+	// The owning effect's teardown destroys the instance even when a fatal
+	// error already destroyed it, so a second destroy() has to stay safe.
+	test("destroying an already-destroyed instance does not throw", () => {
+		const hls = attach();
+
+		hls.destroy();
+
+		expect(() => hls.destroy()).not.toThrow();
 	});
 });

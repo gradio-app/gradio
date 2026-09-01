@@ -37,7 +37,7 @@ vi.mock("@ffmpeg/util", () => ({
 }));
 
 import Video from "./Index.svelte";
-import Hls from "hls.js";
+import { Hls } from "@gradio/utils/hls";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -591,6 +591,35 @@ describe("Streaming output", () => {
 
 		await set_data({ value: null });
 
+		expect(destroy).toHaveBeenCalledTimes(1);
+	});
+
+	test("a fatal unrecoverable error does not re-attach", async () => {
+		// Only the first few attempts fail: against a re-attach loop an
+		// unbounded injection would keep the browser spinning forever.
+		let attempts = 0;
+		load_source.mockImplementation(function (this: Hls) {
+			if (attempts++ < 5) {
+				queueMicrotask(() => {
+					this.trigger(Hls.Events.ERROR, {
+						type: Hls.ErrorTypes.OTHER_ERROR,
+						details: Hls.ErrorDetails.INTERNAL_EXCEPTION,
+						fatal: true
+					} as any);
+				});
+			}
+		});
+
+		await render(Video, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(destroy).toHaveBeenCalled());
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		expect(load_source).toHaveBeenCalledTimes(1);
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 });

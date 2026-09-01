@@ -1,27 +1,24 @@
 import Hls from "hls.js";
 
-export interface HlsStreamCallbacks {
-	/** Called once the playlist is readable, which is where playback can start. */
-	on_manifest_parsed?: () => void;
-	/**
-	 * Called after a fatal error has destroyed the instance. The caller owns the
-	 * reference, so it has to drop it here or it keeps a dead instance around.
-	 */
-	on_unrecoverable?: () => void;
+export { Hls };
+
+export function is_hls_supported(): boolean {
+	return Hls.isSupported();
 }
 
 /**
- * Attach an HLS stream to a media element.
+ * Create an HLS stream attached to a media element.
  *
- * The returned instance belongs to the caller, which must `destroy()` it before
- * attaching another stream and when the component goes away. Both `gr.Audio`
- * and `gr.Video` stream through this so the buffer config, the error recovery
- * and those lifetime rules stay in one place.
+ * The returned instance belongs to the caller, which must `destroy()` it when
+ * the stream is replaced or the component goes away; `destroy()` is safe to
+ * call on an instance that already destroyed itself after a fatal error. Both
+ * `gr.Audio` and `gr.Video` stream through this so the buffer config and the
+ * error recovery stay in one place.
  */
-export function attach_hls_stream(
+export function create_hls_stream(
 	media: HTMLMediaElement,
 	url: string,
-	{ on_manifest_parsed, on_unrecoverable }: HlsStreamCallbacks = {}
+	on_manifest_parsed?: () => void
 ): Hls {
 	// Start playback after one second of data rather than filling a buffer.
 	const hls = new Hls({
@@ -30,9 +27,7 @@ export function attach_hls_stream(
 		lowLatencyMode: true
 	});
 
-	hls.loadSource(url);
-	hls.attachMedia(media);
-
+	// Listeners are registered before loading, which can emit synchronously.
 	hls.on(Hls.Events.MANIFEST_PARSED, () => on_manifest_parsed?.());
 
 	hls.on(Hls.Events.ERROR, (event, data) => {
@@ -50,10 +45,12 @@ export function attach_hls_stream(
 			default:
 				console.error("Fatal error, cannot recover");
 				hls.destroy();
-				on_unrecoverable?.();
 				break;
 		}
 	});
+
+	hls.loadSource(url);
+	hls.attachMedia(media);
 
 	return hls;
 }

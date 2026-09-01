@@ -9,8 +9,7 @@
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
-	import Hls from "hls.js";
-	import { attach_hls_stream } from "@gradio/utils/hls";
+	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
 
 	let {
 		value = null,
@@ -58,6 +57,7 @@
 	} = $props();
 
 	let url = $derived(value?.url);
+	let is_stream = $derived(value?.is_stream ?? false);
 	let old_playback_position = $state(0);
 
 	let container = $state<HTMLDivElement | undefined>(undefined);
@@ -78,8 +78,6 @@
 	let show_volume_slider = $state(false);
 	let audio_player = $state<HTMLAudioElement | undefined>(undefined);
 
-	let stream_active = $state(false);
-	let active_hls: Hls | undefined;
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
@@ -206,6 +204,9 @@
 	});
 
 	function handle_waveform_error(e: Error): void {
+		// A late rejection from a torn-down waveform must not steer the native
+		// player onto a stream playlist it cannot decode.
+		if (value?.is_stream) return;
 		if (e?.name === "AbortError" || waveform_load_failed) return;
 		console.error("Waveform load error:", e);
 		waveform_load_failed = true;
@@ -232,14 +233,6 @@
 		onedit?.();
 	};
 
-	async function load_audio(data: string): Promise<void> {
-		if (waveform_options.show_recording_waveform) {
-			waveform?.load(data);
-		} else if (audio_player) {
-			audio_player.src = data;
-		}
-	}
-
 	$effect(() => {
 		if (subtitles && waveform) {
 			if (subtitles_toggle) {
@@ -250,58 +243,34 @@
 		}
 	});
 
-	function load_stream(value: FileData | null): void {
-		if (!value || !value.is_stream || !value.url || !audio_player) return;
+	$effect(() => {
+		if (audio_player && url && !is_stream && !use_waveform) {
+			audio_player.src = url;
+		}
+	});
 
-		if (Hls.isSupported() && !stream_active) {
-			active_hls = attach_hls_stream(audio_player, value.url, {
-				on_manifest_parsed: () => {
-					if (waveform_settings.autoplay) audio_player?.play();
-				},
-				on_unrecoverable: () => {
-					active_hls = undefined;
-					stream_active = false;
-				}
+	// This effect owns the stream: it attaches one per playlist URL and the
+	// teardown destroys it on a new run, on clearing and on unmount. `value` is
+	// a fresh object on every chunk, so the effect must only depend on the
+	// equality-stable deriveds, or each chunk would restart the stream.
+	$effect(() => {
+		if (!audio_player || !is_stream || !url) return;
+		const media = audio_player;
+		if (is_hls_supported()) {
+			const hls = create_hls_stream(media, url, () => {
+				if (waveform_settings.autoplay) media.play();
 			});
-			stream_active = true;
-		} else if (!stream_active) {
-			audio_player.src = value.url;
-			if (waveform_settings.autoplay) audio_player.play();
-			stream_active = true;
+			return () => hls.destroy();
 		}
-	}
-
-	// A run re-sends its URL with every chunk, so a new URL ends the stream.
-	$effect(() => {
-		url;
-		active_hls?.destroy();
-		active_hls = undefined;
-		stream_active = false;
-	});
-
-	$effect(() => {
-		// Without a waveform there is nothing to become ready, so gating the load
-		// on `waveform_ready` left the native player with no source at all.
-		if (
-			audio_player &&
-			url &&
-			!value?.is_stream &&
-			(waveform_ready || !waveform_options.show_recording_waveform)
-		) {
-			load_audio(url);
-		}
-	});
-
-	$effect(() => {
-		if (audio_player && value?.is_stream) {
-			load_stream(value);
-		}
+		media.src = url;
+		if (untrack(() => waveform_settings.autoplay)) media.play();
 	});
 
 	$effect(() => {
 		if (container) {
 			untrack(() => create_waveform());
 		} else if (waveform) {
+			clear_subtitles();
 			waveform.destroy();
 			waveform = undefined;
 			waveform_container = undefined;
@@ -328,7 +297,6 @@
 
 		return () => {
 			waveform?.destroy();
-			active_hls?.destroy();
 			window.removeEventListener("keydown", handleKeydown);
 		};
 	});

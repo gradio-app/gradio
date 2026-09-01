@@ -20,7 +20,7 @@ import {
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Audio from "./";
 import WaveSurfer from "wavesurfer.js";
-import Hls from "hls.js";
+import { Hls } from "@gradio/utils/hls";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
@@ -827,6 +827,7 @@ describe("Streaming output", () => {
 	setupi18n();
 	let load_source: ReturnType<typeof vi.spyOn>;
 	let destroy: ReturnType<typeof vi.spyOn>;
+	let wavesurfer_load: ReturnType<typeof vi.spyOn>;
 	let is_supported: ReturnType<typeof vi.spyOn> | undefined;
 
 	beforeEach(() => {
@@ -834,10 +835,12 @@ describe("Streaming output", () => {
 			.spyOn(Hls.prototype, "loadSource")
 			.mockImplementation(() => {});
 		destroy = vi.spyOn(Hls.prototype, "destroy");
+		wavesurfer_load = vi.spyOn(WaveSurfer.prototype, "load");
 	});
 	afterEach(() => {
 		load_source.mockRestore();
 		destroy.mockRestore();
+		wavesurfer_load.mockRestore();
 		is_supported?.mockRestore();
 		is_supported = undefined;
 		cleanup();
@@ -888,20 +891,48 @@ describe("Streaming output", () => {
 	});
 
 	test("switching from a file to a stream tears down the waveform", async () => {
-		const load = vi.spyOn(WaveSurfer.prototype, "load");
 		const { set_data } = await render(Audio, {
 			...default_props,
 			interactive: false,
 			value: fake_value
 		});
 
-		await waitFor(() => expect(load).toHaveBeenCalled());
-		load.mockClear();
+		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalled());
+		wavesurfer_load.mockClear();
 
 		await set_data({ value: run_1 });
 
 		// The playlist belongs to the HLS player; wavesurfer cannot decode it.
-		expect(load).not.toHaveBeenCalled();
+		expect(wavesurfer_load).not.toHaveBeenCalled();
+	});
+
+	test("a fatal unrecoverable error does not re-attach", async () => {
+		// Only the first few attempts fail: against a re-attach loop an
+		// unbounded injection would keep the browser spinning forever.
+		let attempts = 0;
+		load_source.mockImplementation(function (this: Hls) {
+			if (attempts++ < 5) {
+				queueMicrotask(() => {
+					this.trigger(Hls.Events.ERROR, {
+						type: Hls.ErrorTypes.OTHER_ERROR,
+						details: Hls.ErrorDetails.INTERNAL_EXCEPTION,
+						fatal: true
+					} as any);
+				});
+			}
+		});
+
+		await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(destroy).toHaveBeenCalled());
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		expect(load_source).toHaveBeenCalledTimes(1);
+		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 
 	test("without HLS support the native player reattaches too", async () => {

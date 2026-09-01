@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { HTMLVideoAttributes } from "svelte/elements";
 	import { loaded } from "./utils";
-	import { onDestroy, type Snippet } from "svelte";
+	import type { Snippet } from "svelte";
 
-	import Hls from "hls.js";
-	import { attach_hls_stream } from "@gradio/utils/hls";
+	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
 
 	interface Props {
 		src?: HTMLVideoAttributes["src"];
@@ -67,43 +66,15 @@
 		children
 	}: Props = $props();
 
-	let stream_active = $state(false);
-	let active_hls: Hls | undefined;
-
-	function load_stream(
-		src: string | null | undefined,
-		is_stream: boolean,
-		node: HTMLVideoElement
-	): void {
-		if (!src || !is_stream) return;
-
-		if (Hls.isSupported() && !stream_active) {
-			active_hls = attach_hls_stream(node, src, {
-				on_manifest_parsed: () => node.play(),
-				on_unrecoverable: () => {
-					active_hls = undefined;
-					stream_active = false;
-				}
-			});
-			stream_active = true;
-		}
-	}
-
-	// A run re-sends its URL with every chunk, so a new URL ends the stream.
+	// This effect owns the stream: it attaches one per playlist URL and the
+	// teardown destroys it on a new run, on clearing and on unmount. Without
+	// MSE support the native element plays the bound `src` itself.
 	$effect(() => {
-		src;
-		active_hls?.destroy();
-		active_hls = undefined;
-		stream_active = false;
-	});
-
-	onDestroy(() => {
-		active_hls?.destroy();
-	});
-
-	$effect(() => {
-		if (node && src && is_stream) {
-			load_stream(src, is_stream, node);
+		if (!node || !is_stream || !src) return;
+		const media = node;
+		if (is_hls_supported()) {
+			const hls = create_hls_stream(media, src, () => media.play());
+			return () => hls.destroy();
 		}
 	});
 </script>

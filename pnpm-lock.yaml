@@ -674,9 +674,6 @@ importers:
       extendable-media-recorder-wav-encoder:
         specifier: 7.0.76
         version: 7.0.76
-      hls.js:
-        specifier: 1.6.15
-        version: 1.6.15
       resize-observer-polyfill:
         specifier: 1.5.1
         version: 1.5.1
@@ -2498,9 +2495,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      hls.js:
-        specifier: 1.6.15
-        version: 1.6.15
       mrmime:
         specifier: ^2.0.1
         version: 2.0.1
