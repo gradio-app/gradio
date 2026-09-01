@@ -107,6 +107,16 @@
 	let selected_indices = $derived(
 		selected_index === null ? [] : [selected_index]
 	);
+	function include_selected_option(indices: number[]): number[] {
+		if (
+			selected_index === null ||
+			indices.includes(selected_index) ||
+			indices.length === 0
+		) {
+			return indices;
+		}
+		return [...indices.slice(0, -1), selected_index];
+	}
 
 	$effect(() => {
 		choices;
@@ -138,7 +148,9 @@
 
 	function handle_focus(e: FocusEvent): void {
 		focused = true;
-		filtered_indices = handle_filter(choices, "", visible_values_limit);
+		filtered_indices = include_selected_option(
+			handle_filter(choices, "", visible_values_limit)
+		);
 		active_index = selected_index;
 		show_options = true;
 		on_focus?.();
@@ -186,7 +198,9 @@
 			// otherwise (a value is just displayed/selected) show every option.
 			filtered_indices = is_filtering
 				? handle_filter(choices, input_text, visible_values_limit)
-				: handle_filter(choices, "", visible_values_limit);
+				: include_selected_option(
+						handle_filter(choices, "", visible_values_limit)
+					);
 			if (active_index !== null && !filtered_indices.includes(active_index)) {
 				active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 			}

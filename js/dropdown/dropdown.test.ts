@@ -35,6 +35,11 @@ const tuple_choices: [string, string | number][] = [
 	["Cherry Display", "cherry_val"]
 ];
 
+const many_choices = Array.from(
+	{ length: 105 },
+	(_, index) => [`choice-${index}`, `choice-${index}`] as [string, string]
+);
+
 const multiselect_props = {
 	label: "Multiselect",
 	show_label: true,
@@ -173,6 +178,43 @@ describe("Single-select: Options display", () => {
 		expect(options).toHaveLength(2);
 		expect(options[0]).toHaveAttribute("aria-label", "apple");
 		expect(options[1]).toHaveAttribute("aria-label", "banana");
+	});
+
+	test("max_values_shown keeps a selected option beyond the limit available", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				choices: many_choices,
+				value: "choice-104",
+				max_values_shown: 100
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(100);
+		expect(options[99]).toHaveAttribute("aria-label", "choice-104");
+		const active_id = input.getAttribute("aria-activedescendant");
+		expect(document.getElementById(active_id as string)).toBe(options[99]);
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toBe("choice-104");
+	});
+
+	test("max_values_shown=null displays every matching option", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			choices: many_choices,
+			max_values_shown: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		expect(getAllByTestId("dropdown-option")).toHaveLength(105);
 	});
 
 	test("options display names, not internal values", async () => {
@@ -1043,16 +1085,29 @@ describe("Multiselect: Options display", () => {
 	});
 
 	test("max_values_shown limits the displayed options", async () => {
-		const { container, getAllByTestId } = await render(Dropdown, {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...multiselect_props,
 			max_values_shown: 2
 		});
 
-		const input = container.querySelector("input") as HTMLInputElement;
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
 		await input.focus();
 
 		const options = getAllByTestId("dropdown-option");
 		expect(options).toHaveLength(2);
+	});
+
+	test("max_values_shown=null displays every matching option", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...multiselect_props,
+			choices: many_choices,
+			max_values_shown: null
+		});
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+
+		expect(getAllByTestId("dropdown-option")).toHaveLength(105);
 	});
 
 	test("selected options are marked as selected", async () => {
