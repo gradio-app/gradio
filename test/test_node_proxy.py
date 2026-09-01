@@ -276,6 +276,49 @@ class TestNodeProxyStartupOrdering:
         finally:
             self._cleanup(demo)
 
+    def test_colab_embeds_user_facing_node_port(self, monkeypatch):
+        """Colab must proxy the public Node port, not internal Python."""
+        import sys
+        from types import ModuleType
+
+        import gradio as gr
+        from gradio import utils
+
+        class FakeDisplayArtifact:
+            def __init__(self, data):
+                self.data = data
+
+        ipython_module = ModuleType("IPython")
+        display_module = ModuleType("IPython.display")
+        display_module.HTML = FakeDisplayArtifact
+        display_module.Javascript = FakeDisplayArtifact
+        display_module.display = lambda _: None
+        ipython_module.display = display_module
+        monkeypatch.setitem(sys.modules, "IPython", ipython_module)
+        monkeypatch.setitem(sys.modules, "IPython.display", display_module)
+        monkeypatch.setattr(utils, "colab_check", lambda: True)
+        monkeypatch.setattr(utils, "ipython_check", lambda: True)
+
+        demo = gr.Interface(lambda x: x, "text", "text")
+        try:
+            demo.launch(
+                share=False,
+                inline=True,
+                ssr_mode=True,
+                server_port=18862,
+                prevent_thread_lock=True,
+                quiet=True,
+            )
+            if not getattr(demo, "_node_is_proxy", False):
+                pytest.skip("Node proxy mode did not engage in this environment")
+
+            assert demo.node_port is not None
+            assert demo.server_port != demo.node_port
+            assert f"}})({demo.node_port}," in demo.artifact.data
+            assert f"}})({demo.server_port}," not in demo.artifact.data
+        finally:
+            self._cleanup(demo)
+
     def test_node_port_does_not_serve_502_during_python_startup(self, monkeypatch):
         """Probe the user-facing Node port DURING the Python startup
         window (achieved by injecting a delay into start_server). If the
