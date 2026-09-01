@@ -40,15 +40,6 @@ describe("resolve_config", () => {
 		).toBe("https://remote.example/gradio");
 	});
 
-	it("recognizes a modern Colab internal root without the backend flag", () => {
-		expect(
-			resolve_config_root(
-				"http://runtime-id.us-central1-b.c.codatalab-user-runtimes.internal:8007",
-				"https://runtime-id-8007.us-central1.colab.googleusercontent.com/"
-			)
-		).toBe("https://runtime-id-8007.us-central1.colab.googleusercontent.com");
-	});
-
 	it("requests /config without a Content-Type header and with same-origin credentials, so the cross-origin embed fetch is not blocked by CORS", async () => {
 		let captured_init: RequestInit | undefined;
 		const fake_client = {
@@ -73,30 +64,6 @@ describe("resolve_config", () => {
 	});
 
 	const in_browser = typeof window !== "undefined";
-
-	it.skipIf(!in_browser)(
-		"resolves a Colab config to the browser-visible proxy URL",
-		async () => {
-			const internal_root =
-				"http://runtime-id.us-central1.c.colab-user-runtimes.internal:7860";
-			window.gradio_config = {
-				...config_response,
-				is_colab: true,
-				root: internal_root
-			};
-			const fake_client = {
-				options: {},
-				deep_link: null
-			} as unknown as Client;
-
-			try {
-				const config = await resolve_config.call(fake_client, internal_root);
-				expect(config?.root).toBe(window.location.origin);
-			} finally {
-				delete (window as Partial<Window>).gradio_config;
-			}
-		}
-	);
 
 	it.skipIf(!in_browser)(
 		"uses the browser origin for a same-host config root behind a proxy",

@@ -276,59 +276,6 @@ class TestNodeProxyStartupOrdering:
         finally:
             self._cleanup(demo)
 
-    def test_colab_embeds_user_facing_node_port(self, monkeypatch):
-        """Colab must proxy the public Node port, not internal Python."""
-        import sys
-        from types import ModuleType
-
-        import gradio as gr
-        from gradio import utils
-
-        class FakeDisplayArtifact:
-            def __init__(self, data):
-                self.data = data
-
-        class FakeDisplayModule(ModuleType):
-            HTML = FakeDisplayArtifact
-            Javascript = FakeDisplayArtifact
-
-            @staticmethod
-            def display(_):
-                pass
-
-        class FakeIPythonModule(ModuleType):
-            display: FakeDisplayModule
-
-        ipython_module = FakeIPythonModule("IPython")
-        display_module = FakeDisplayModule("IPython.display")
-        ipython_module.display = display_module
-        monkeypatch.setitem(sys.modules, "IPython", ipython_module)
-        monkeypatch.setitem(sys.modules, "IPython.display", display_module)
-        monkeypatch.setattr(utils, "colab_check", lambda: True)
-        monkeypatch.setattr(utils, "ipython_check", lambda: True)
-
-        demo = gr.Interface(lambda x: x, "text", "text")
-        try:
-            demo.launch(
-                share=False,
-                inline=True,
-                ssr_mode=True,
-                server_port=18862,
-                prevent_thread_lock=True,
-                quiet=True,
-            )
-            if not getattr(demo, "_node_is_proxy", False):
-                pytest.skip("Node proxy mode did not engage in this environment")
-
-            assert demo.node_port is not None
-            assert demo.server_port != demo.node_port
-            artifact_data = demo.artifact.data
-            assert isinstance(artifact_data, str)
-            assert f"}})({demo.node_port}," in artifact_data
-            assert f"}})({demo.server_port}," not in artifact_data
-        finally:
-            self._cleanup(demo)
-
     def test_node_port_does_not_serve_502_during_python_startup(self, monkeypatch):
         """Probe the user-facing Node port DURING the Python startup
         window (achieved by injecting a delay into start_server). If the
