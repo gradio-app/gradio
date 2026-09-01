@@ -296,7 +296,7 @@ def _output_matches_port_type(item: Any, port_type: str) -> bool:
         if isinstance(item, str):
             return item.startswith(("http://", "https://", "blob:", "data:", "/"))
         return isinstance(item, dict) and ("path" in item or "url" in item)
-    if port_type == "text":
+    if port_type in ("text", "markdown"):
         return isinstance(item, str)
     if port_type == "number":
         return isinstance(item, (int, float)) and not isinstance(item, bool)
@@ -609,6 +609,7 @@ def _slugify(label: str) -> str:
 # for display in the "View API" panel and generated snippets.
 _PY_TYPE = {
     "text": "str",
+    "markdown": "str",
     "number": "float",
     "boolean": "bool",
     "image": "filepath",

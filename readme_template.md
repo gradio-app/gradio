@@ -37,18 +37,18 @@ $getting_started
 
 ### AI Coding Skills
 
-Gradio provides a "skill" that enriches AI coding assistants (like Cursor, Claude Code, Codex, etc.) with Gradio-specific knowledge, so that they can build Gradio apps more effectively. This is especially useful when creating custom Gradio components or styling. Install the Gradio skill for your coding assistant with a single command:
+Gradio provides a "skill" that enriches AI coding assistants (like Cursor, Claude Code, Codex, etc.) with Gradio-specific knowledge, so that they can build Gradio apps more effectively. This is especially useful when creating custom Gradio components or styling. Install the Gradio skill for coding assistants with a single command:
 
 ```bash
-gradio skills add --cursor   # or --claude, --codex, --opencode
+gradio skills add
 ```
 
-Use `--global` to install at the user level (applies to all projects). Your skill will be automatically available for the particular coding agent.
+This installs to the shared `.agents/skills` directory used by Codex, Cursor, OpenCode, and other compatible agents. Use `--global` to install at the user level (applies to all projects), or an agent flag such as `--claude` to also create a link in that agent's skills directory.
 
 You can also install a skill for a **specific Gradio Space**, which generates API usage docs (Python, JS, cURL) on the fly:
 
 ```bash
-gradio skills add abidlabs/en2fr --cursor
+gradio skills add abidlabs/en2fr
 ```
 
 ## Questions?

@@ -62,6 +62,10 @@ jobs:
         run: |
           . venv/bin/activate
           ./scripts/type_check_backend.sh
+      - name: Generate component stubs
+        run: |
+          . venv/bin/activate
+          python -c "import gradio"
       - name: Build wheel
         run: |
           . venv/bin/activate
@@ -134,7 +138,7 @@ jobs:
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           uv pip freeze
-      - name: Generate .pyi files
+      - name: Generate .pyi files for source-code tests
         shell: bash
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
