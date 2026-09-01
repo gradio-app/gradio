@@ -253,7 +253,6 @@
 		if (!value || !value.is_stream || !value.url || !audio_player) return;
 
 		if (Hls.isSupported() && !stream_active) {
-			active_hls?.destroy();
 			// Set config to start playback after 1 second of data received
 			const hls = new Hls({
 				maxBufferLength: 1,
@@ -295,6 +294,14 @@
 		}
 	}
 
+	// A run re-sends its URL with every chunk, so a new URL ends the stream.
+	$effect(() => {
+		url;
+		active_hls?.destroy();
+		active_hls = undefined;
+		stream_active = false;
+	});
+
 	$effect(() => {
 		// Without a waveform there is nothing to become ready, so gating the load
 		// on `waveform_ready` left the native player with no source at all.
@@ -305,12 +312,6 @@
 		) {
 			load_audio(url);
 		}
-	});
-
-	// A run re-sends its URL with every chunk, so only a new URL is a new stream.
-	$effect(() => {
-		url;
-		stream_active = false;
 	});
 
 	$effect(() => {
@@ -343,6 +344,7 @@
 
 		return () => {
 			waveform?.destroy();
+			active_hls?.destroy();
 			window.removeEventListener("keydown", handleKeydown);
 		};
 	});

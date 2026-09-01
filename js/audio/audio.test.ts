@@ -865,6 +865,21 @@ describe("Streaming output", () => {
 		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
 		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
 	});
+
+	test("clearing the value tears down the attached stream", async () => {
+		const destroy = vi.spyOn(Hls.prototype, "destroy");
+		const { set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: null });
+
+		expect(destroy).toHaveBeenCalledTimes(1);
+	});
 });
 
 describe("Subtitles", () => {
