@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Limit visible Dropdown options for large choice lists
+feat:Load large Dropdown choices progressively on scroll
