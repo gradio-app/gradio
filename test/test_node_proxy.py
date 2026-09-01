@@ -290,10 +290,10 @@ class TestNodeProxyStartupOrdering:
 
         ipython_module = ModuleType("IPython")
         display_module = ModuleType("IPython.display")
-        display_module.HTML = FakeDisplayArtifact
-        display_module.Javascript = FakeDisplayArtifact
-        display_module.display = lambda _: None
-        ipython_module.display = display_module
+        setattr(display_module, "HTML", FakeDisplayArtifact)
+        setattr(display_module, "Javascript", FakeDisplayArtifact)
+        setattr(display_module, "display", lambda _: None)
+        setattr(ipython_module, "display", display_module)
         monkeypatch.setitem(sys.modules, "IPython", ipython_module)
         monkeypatch.setitem(sys.modules, "IPython.display", display_module)
         monkeypatch.setattr(utils, "colab_check", lambda: True)
@@ -314,8 +314,10 @@ class TestNodeProxyStartupOrdering:
 
             assert demo.node_port is not None
             assert demo.server_port != demo.node_port
-            assert f"}})({demo.node_port}," in demo.artifact.data
-            assert f"}})({demo.server_port}," not in demo.artifact.data
+            artifact_data = demo.artifact.data
+            assert isinstance(artifact_data, str)
+            assert f"}})({demo.node_port}," in artifact_data
+            assert f"}})({demo.server_port}," not in artifact_data
         finally:
             self._cleanup(demo)
 
