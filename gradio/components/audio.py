@@ -331,34 +331,12 @@ class Audio(
         return FileData(path=file_path, orig_name=orig_name)
 
     @staticmethod
-    def _strip_adts_encoder_delay(data: bytes) -> bytes:
-        """Remove the extra first AAC frame that an encoder adds to each audio chunk.
-
-        Keeping that frame on every streaming chunk creates a small silence between
-        chunks. If the data does not look like a multi-frame ADTS stream, return it
-        unchanged.
-        """
-        if len(data) < 7 or data[0] != 0xFF or data[1] & 0xF0 != 0xF0:
-            return data
-        first_frame_length = (
-            ((data[3] & 0x03) << 11) | (data[4] << 3) | ((data[5] & 0xE0) >> 5)
-        )
-        if first_frame_length < 7 or first_frame_length + 7 > len(data):
-            return data
-        if (
-            data[first_frame_length] != 0xFF
-            or data[first_frame_length + 1] & 0xF0 != 0xF0
-        ):
-            return data
-        return data[first_frame_length:]
-
-    @staticmethod
     def _convert_to_adts(data: bytes):
         segment = AudioSegment.from_file(io.BytesIO(data))
 
         buffer = io.BytesIO()
         segment.export(buffer, format="adts")  # ADTS is a container format for AAC
-        aac_data = Audio._strip_adts_encoder_delay(buffer.getvalue())
+        aac_data = buffer.getvalue()
         return aac_data, len(segment) / 1000.0
 
     @staticmethod

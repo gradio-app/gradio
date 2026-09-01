@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix Audio streaming continuity and repeated recording previews
+Fix Audio stream reload timing and repeated recording previews

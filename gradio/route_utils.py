@@ -1140,8 +1140,6 @@ class MediaStream:
         self.segments: list[MediaStreamChunk] = []
         self.combined_file: str | None = None
         self.ended = False
-        self.segment_index = 0
-        self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:1\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
         self.max_duration = 1
         self.desired_output_format = desired_output_format
 

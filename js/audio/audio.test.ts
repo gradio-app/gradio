@@ -19,6 +19,7 @@ import {
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Audio from "./";
+import MinimalAudioRecorderHarness from "./MinimalAudioRecorderHarness.svelte";
 import WaveSurfer from "wavesurfer.js";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
@@ -452,7 +453,6 @@ describe("Events: microphone recording", () => {
 	});
 
 	test("finishing a recording uploads the audio exactly once", async () => {
-		const close_audio_context = vi.spyOn(AudioContext.prototype, "close");
 		const upload = vi.fn(async (file_data: any[]) => file_data);
 		const { listen, get_data } = await render(Audio, {
 			...default_props,
@@ -478,7 +478,44 @@ describe("Events: microphone recording", () => {
 		expect(upload).toHaveBeenCalledTimes(1);
 		expect(input).toHaveBeenCalledTimes(1);
 		expect((await get_data()).value).toBeTruthy();
-		expect(close_audio_context).toHaveBeenCalledTimes(2);
+	});
+});
+
+describe("MinimalAudioRecorder", () => {
+	setupi18n();
+	let record_create: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		record_create = vi.spyOn(RecordPlugin, "create");
+	});
+
+	afterEach(() => {
+		record_create.mockRestore();
+		cleanup();
+	});
+
+	test("repeated chat input recordings are processed and uploaded", async () => {
+		const upload = vi.fn(async (file_data: any[]) => file_data);
+		const onchange = vi.fn();
+		const onstoprecording = vi.fn();
+
+		await render(MinimalAudioRecorderHarness, {
+			upload_fn: upload,
+			onchange,
+			onstoprecording
+		});
+
+		await waitFor(() => expect(record_create).toHaveBeenCalledTimes(1));
+		const record = record_create.mock.results[0].value as any;
+
+		for (let recording = 1; recording <= 8; recording++) {
+			record.emit("record-end", make_wav_blob());
+			await waitFor(() => {
+				expect(upload).toHaveBeenCalledTimes(recording);
+				expect(onchange).toHaveBeenCalledTimes(recording);
+				expect(onstoprecording).toHaveBeenCalledTimes(recording);
+			});
+		}
 	});
 });
 

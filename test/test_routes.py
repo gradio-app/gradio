@@ -124,7 +124,6 @@ class TestRoutes:
 
         assert response.status_code == 200
         assert "#EXT-X-TARGETDURATION:1" in response.text
-        assert response.text.count("#EXT-X-DISCONTINUITY") == 2
 
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")

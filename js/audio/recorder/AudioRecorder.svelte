@@ -89,12 +89,13 @@
 		seconds = 0;
 		timing = false;
 		clearInterval(interval);
-		let context: AudioContext | undefined;
 		try {
 			const array_buffer = await blob.arrayBuffer();
-			context = new AudioContext({
-				sampleRate: waveform_settings.sampleRate
-			});
+			const context = new OfflineAudioContext(
+				1,
+				1,
+				waveform_settings.sampleRate || 44100
+			);
 			const audio_buffer = await context.decodeAudioData(array_buffer);
 
 			if (audio_buffer)
@@ -104,8 +105,6 @@
 				});
 		} catch (e) {
 			console.error(e);
-		} finally {
-			await context?.close();
 		}
 	}
 

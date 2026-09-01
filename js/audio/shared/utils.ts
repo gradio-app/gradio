@@ -20,39 +20,33 @@ export const process_audio = async (
 	end?: number,
 	waveform_sample_rate?: number
 ): Promise<Uint8Array> => {
-	const audioContext = new AudioContext({
-		sampleRate: waveform_sample_rate || audioBuffer.sampleRate
-	});
-	try {
-		const numberOfChannels = audioBuffer.numberOfChannels;
-		const sampleRate = waveform_sample_rate || audioBuffer.sampleRate;
+	const numberOfChannels = audioBuffer.numberOfChannels;
+	const sampleRate = waveform_sample_rate || audioBuffer.sampleRate;
+	const audioContext = new OfflineAudioContext(1, 1, sampleRate);
 
-		let trimmedLength = audioBuffer.length;
-		let startOffset = 0;
-		if (start != null && end != null) {
-			startOffset = Math.round(start * sampleRate);
-			const endOffset = Math.round(end * sampleRate);
-			trimmedLength = endOffset - startOffset;
-		}
-
-		const trimmedAudioBuffer = audioContext.createBuffer(
-			numberOfChannels,
-			trimmedLength,
-			sampleRate
-		);
-
-		for (let channel = 0; channel < numberOfChannels; channel++) {
-			const channelData = audioBuffer.getChannelData(channel);
-			const trimmedData = trimmedAudioBuffer.getChannelData(channel);
-			for (let i = 0; i < trimmedLength; i++) {
-				trimmedData[i] = channelData[startOffset + i];
-			}
-		}
-
-		return audioBufferToWav(trimmedAudioBuffer);
-	} finally {
-		await audioContext.close();
+	let trimmedLength = audioBuffer.length;
+	let startOffset = 0;
+	if (start != null && end != null) {
+		startOffset = Math.round(start * sampleRate);
+		const endOffset = Math.round(end * sampleRate);
+		trimmedLength = endOffset - startOffset;
 	}
+
+	const trimmedAudioBuffer = audioContext.createBuffer(
+		numberOfChannels,
+		trimmedLength,
+		sampleRate
+	);
+
+	for (let channel = 0; channel < numberOfChannels; channel++) {
+		const channelData = audioBuffer.getChannelData(channel);
+		const trimmedData = trimmedAudioBuffer.getChannelData(channel);
+		for (let i = 0; i < trimmedLength; i++) {
+			trimmedData[i] = channelData[startOffset + i];
+		}
+	}
+
+	return audioBufferToWav(trimmedAudioBuffer);
 };
 
 export function loaded(
