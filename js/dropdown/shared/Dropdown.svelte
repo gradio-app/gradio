@@ -212,6 +212,13 @@
 			if (active_index !== null && !filtered_indices.includes(active_index)) {
 				active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 			}
+			if (
+				e.key === "ArrowDown" &&
+				remaining_choices > 0 &&
+				active_index === filtered_indices[filtered_indices.length - 1]
+			) {
+				handle_load_more();
+			}
 		}
 		[show_options, active_index] = handle_shared_keys(
 			e,
@@ -250,7 +257,7 @@
 		const is_filtering = input_text !== last_typed_value;
 		update_filtered_choices(
 			is_filtering ? input_text : "",
-			visible_choices_limit
+			num_choices_shown * batches_shown
 		);
 	}
 

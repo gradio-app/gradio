@@ -181,7 +181,40 @@ describe("Single-select: Options display", () => {
 	});
 
 	test("scrolling to the bottom automatically loads the next batch", async () => {
-		const { getByLabelText, getAllByTestId, getByRole } = await render(
+		const { getByLabelText, getAllByTestId, getByRole, getByText } =
+			await render(Dropdown, {
+				...single_select_props,
+				value: null,
+				choices: many_choices,
+				num_choices_shown: 4
+			});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		expect(getAllByTestId("dropdown-option")).toHaveLength(4);
+		expect(getByText("4 choices shown, 101 remaining")).toBeInTheDocument();
+
+		const listbox = getByRole("listbox");
+		await waitFor(() => {
+			expect(listbox.scrollHeight).toBeGreaterThan(listbox.clientHeight);
+		});
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+			expect(getByText("8 choices shown, 97 remaining")).toBeInTheDocument();
+		});
+
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(12);
+		});
+	});
+
+	test("keyboard navigation loads and selects from the next batch", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
 			Dropdown,
 			{
 				...single_select_props,
@@ -193,24 +226,20 @@ describe("Single-select: Options display", () => {
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
 		await input.focus();
-		expect(getAllByTestId("dropdown-option")).toHaveLength(4);
-
-		const listbox = getByRole("listbox");
-		await waitFor(() => {
-			expect(listbox.scrollHeight).toBeGreaterThan(listbox.clientHeight);
-		});
-		listbox.scrollTop = listbox.scrollHeight;
-		await fireEvent.scroll(listbox);
+		for (let index = 0; index < 5; index++) {
+			await event.keyboard("{ArrowDown}");
+		}
 
 		await waitFor(() => {
 			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-4")
+			);
 		});
 
-		listbox.scrollTop = listbox.scrollHeight;
-		await fireEvent.scroll(listbox);
-		await waitFor(() => {
-			expect(getAllByTestId("dropdown-option")).toHaveLength(12);
-		});
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toBe("choice-4");
 	});
 
 	test("a selected option beyond the initial batch does not replace a visible choice", async () => {
@@ -1154,6 +1183,34 @@ describe("Multiselect: Options display", () => {
 		await waitFor(() => {
 			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
 		});
+	});
+
+	test("keyboard navigation loads and selects from the next multiselect batch", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...multiselect_props,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+		for (let index = 0; index < 4; index++) {
+			await event.keyboard("{ArrowDown}");
+		}
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-4")
+			);
+		});
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toEqual(["choice-4"]);
 	});
 
 	test("num_choices_shown=null displays every matching option", async () => {

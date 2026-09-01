@@ -99,11 +99,7 @@
 			if (remember_scroll) {
 				restore_last_scroll();
 			} else {
-				if (
-					listElement &&
-					selected_indices.length > 0 &&
-					remaining_choices === 0
-				) {
+				if (listElement && selected_indices.length > 0) {
 					let elements = listElement.querySelectorAll("li");
 					for (const element of Array.from(elements)) {
 						if (

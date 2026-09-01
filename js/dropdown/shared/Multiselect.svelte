@@ -44,22 +44,15 @@
 	);
 
 	// All of these are indices with respect to the choices array
-	let [filtered_indices, active_index, total_matching_choices] = $derived.by(
-		() => {
-			const result = handle_filter_with_count(
+	let { filtered_indices, total_matches: total_matching_choices } = $derived.by(
+		() =>
+			handle_filter_with_count(
 				translated_choices,
 				input_text,
 				visible_choices_limit
-			);
-			return [
-				result.filtered_indices,
-				result.filtered_indices.length > 0 && !gradio.props.allow_custom_value
-					? result.filtered_indices[0]
-					: null,
-				result.total_matches
-			];
-		}
+			)
 	);
+	let active_index: number | null = $state(null);
 	let remaining_choices = $derived(
 		Math.max(0, total_matching_choices - filtered_indices.length)
 	);
@@ -74,6 +67,15 @@
 			current_num_choices_shown !== previous_num_choices_shown
 		) {
 			batches_shown = 1;
+			const result = handle_filter_with_count(
+				translated_choices,
+				current_filter_text,
+				current_num_choices_shown
+			);
+			active_index =
+				result.filtered_indices.length > 0 && !gradio.props.allow_custom_value
+					? result.filtered_indices[0]
+					: null;
 			previous_filter_text = current_filter_text;
 			previous_num_choices_shown = current_num_choices_shown;
 		}
@@ -182,6 +184,10 @@
 
 	function handle_focus(e: FocusEvent): void {
 		batches_shown = 1;
+		active_index =
+			filtered_indices.length > 0 && !gradio.props.allow_custom_value
+				? filtered_indices[0]
+				: null;
 		if (
 			gradio.props.max_choices === null ||
 			selected_indices.length < gradio.props.max_choices
@@ -193,6 +199,28 @@
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
+		if (
+			e.key === "ArrowDown" &&
+			remaining_choices > 0 &&
+			active_index === filtered_indices[filtered_indices.length - 1]
+		) {
+			const previous_active_index = active_index;
+			handle_load_more();
+			const next_result = handle_filter_with_count(
+				translated_choices,
+				input_text,
+				gradio.props.num_choices_shown === null
+					? null
+					: gradio.props.num_choices_shown * batches_shown
+			);
+			const previous_position = next_result.filtered_indices.indexOf(
+				previous_active_index
+			);
+			active_index =
+				next_result.filtered_indices[previous_position + 1] ?? null;
+			show_options = true;
+			return;
+		}
 		[show_options, active_index] = handle_shared_keys(
 			e,
 			active_index,
