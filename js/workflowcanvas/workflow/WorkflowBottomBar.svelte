@@ -547,4 +547,43 @@
 		background: #f0f1f5;
 		color: #1a1b25;
 	}
+
+	@media (max-width: 640px), (pointer: coarse) {
+		.bottom-bar {
+			bottom: calc(10px + env(safe-area-inset-bottom));
+			max-width: calc(100vw - 16px);
+			overflow-x: auto;
+			overflow-y: hidden;
+			scrollbar-width: none;
+			padding: 4px 6px;
+			gap: 4px;
+		}
+		.bottom-bar::-webkit-scrollbar {
+			display: none;
+		}
+		.bb-group-label {
+			display: none;
+		}
+		.bb-modality-group {
+			padding: 2px 4px;
+			gap: 2px;
+		}
+		.bb-btn,
+		.bb-input-btn {
+			padding: 6px 10px;
+			font-size: 11.5px;
+			flex-shrink: 0;
+		}
+		.bb-label {
+			display: none;
+		}
+		.bb-input-btn {
+			gap: 4px;
+		}
+		.bb-run-btn {
+			padding: 7px 14px;
+			font-size: 12px;
+			flex-shrink: 0;
+		}
+	}
 </style>
