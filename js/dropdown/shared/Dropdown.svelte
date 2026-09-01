@@ -113,27 +113,14 @@
 	let selected_indices = $derived(
 		selected_index === null ? [] : [selected_index]
 	);
-	function include_selected_option(indices: number[]): number[] {
-		if (
-			selected_index === null ||
-			indices.includes(selected_index) ||
-			indices.length === 0
-		) {
-			return indices;
-		}
-		return [...indices.slice(0, -1), selected_index];
-	}
 
 	function update_filtered_choices(
 		filter_text: string,
-		limit: number | null,
-		include_selected = false
+		limit: number | null
 	): void {
 		const result = handle_filter_with_count(choices, filter_text, limit);
 		total_matching_choices = result.total_matches;
-		filtered_indices = include_selected
-			? include_selected_option(result.filtered_indices)
-			: result.filtered_indices;
+		filtered_indices = result.filtered_indices;
 	}
 
 	$effect(() => {
@@ -171,8 +158,11 @@
 	function handle_focus(e: FocusEvent): void {
 		focused = true;
 		batches_shown = 1;
-		update_filtered_choices("", num_choices_shown, true);
-		active_index = selected_index;
+		update_filtered_choices("", num_choices_shown);
+		active_index =
+			selected_index !== null && filtered_indices.includes(selected_index)
+				? selected_index
+				: null;
 		show_options = true;
 		on_focus?.();
 	}
@@ -217,8 +207,7 @@
 			// otherwise (a value is just displayed/selected) show every option.
 			update_filtered_choices(
 				is_filtering ? input_text : "",
-				visible_choices_limit,
-				!is_filtering
+				visible_choices_limit
 			);
 			if (active_index !== null && !filtered_indices.includes(active_index)) {
 				active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
@@ -261,8 +250,7 @@
 		const is_filtering = input_text !== last_typed_value;
 		update_filtered_choices(
 			is_filtering ? input_text : "",
-			visible_choices_limit,
-			!is_filtering
+			visible_choices_limit
 		);
 	}
 

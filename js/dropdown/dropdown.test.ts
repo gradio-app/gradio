@@ -213,7 +213,7 @@ describe("Single-select: Options display", () => {
 		});
 	});
 
-	test("num_choices_shown keeps a selected option beyond the initial batch available", async () => {
+	test("a selected option beyond the initial batch does not replace a visible choice", async () => {
 		const { getByLabelText, getAllByTestId, get_data } = await render(
 			Dropdown,
 			{
@@ -229,9 +229,9 @@ describe("Single-select: Options display", () => {
 
 		const options = getAllByTestId("dropdown-option");
 		expect(options).toHaveLength(100);
-		expect(options[99]).toHaveAttribute("aria-label", "choice-104");
-		const active_id = input.getAttribute("aria-activedescendant");
-		expect(document.getElementById(active_id as string)).toBe(options[99]);
+		expect(options[0]).toHaveAttribute("aria-label", "choice-0");
+		expect(options[99]).toHaveAttribute("aria-label", "choice-99");
+		expect(input).not.toHaveAttribute("aria-activedescendant");
 
 		await event.keyboard("{Enter}");
 		expect((await get_data()).value).toBe("choice-104");
