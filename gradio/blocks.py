@@ -1116,6 +1116,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
+        # Run keys for streaming runs that have no event id, keyed weakly by
+        # the iterator so a finished run's key goes away with it
+        self._stream_run_ids: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
         self.show_error = True
         self.fill_height = fill_height
         self.fill_width = fill_width
@@ -2358,10 +2361,15 @@ Received inputs:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
-                # The run key goes into the playlist URL, so it has to be the
-                # same for every chunk of a run and never repeat. A run with no
-                # event id cannot be resumed, so a throwaway key is enough.
-                run = event_id or uuid.uuid4().hex
+                # The run key goes into the playlist URL, so it has to be
+                # the same for every chunk of a run and never repeat. Queued
+                # runs have an event id; a direct call has only the iterator,
+                # so key off that weakly rather than off its reusable address.
+                if event_id is not None:
+                    run = event_id
+                else:
+                    it = old_iterator if was_generating else iterator
+                    run = self._stream_run_ids.setdefault(it, uuid.uuid4().hex)
                 async with trace_phase("streaming_diff"):
                     data = await self.handle_streaming_outputs(
                         block_fn,

@@ -1660,6 +1660,27 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
+async def drive_streaming_run(demo, block_fn, session_hash, event_id):
+    """Run a generator to completion the way the queue does, one call per chunk.
+
+    Returns the playlist URL from the first chunk.
+    """
+    iterator, url = None, None
+    while True:
+        output = await demo.process_api(
+            block_fn=block_fn,
+            inputs=[],
+            state=None,
+            iterator=iterator,
+            session_hash=session_hash,
+            event_id=event_id,
+        )
+        iterator = output["iterator"]
+        url = url or output["data"][0]["url"]
+        if not output["is_generating"]:
+            return url
+
+
 class TestHandleStreamingOutputs:
     @pytest.mark.asyncio
     async def test_final_chunk_with_no_open_stream_is_a_no_op(self):
@@ -1700,24 +1721,8 @@ class TestHandleStreamingOutputs:
 
         block_fn = next(iter(demo.fns.values()))
 
-        async def run_stream(event_id: str) -> str:
-            iterator, url = None, None
-            while True:
-                output = await demo.process_api(
-                    block_fn=block_fn,
-                    inputs=[],
-                    state=None,
-                    iterator=iterator,
-                    session_hash="s",
-                    event_id=event_id,
-                )
-                iterator = output["iterator"]
-                url = url or output["data"][0]["url"]
-                if not output["is_generating"]:
-                    return url
-
-        first = await run_stream("event-1")
-        second = await run_stream("event-2")
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-2")
 
         assert first == f"{API_PREFIX}/stream/s/event-1/{audio._id}/playlist.m3u8"
         assert second == f"{API_PREFIX}/stream/s/event-2/{audio._id}/playlist.m3u8"
@@ -1725,6 +1730,35 @@ class TestHandleStreamingOutputs:
         streams = demo.pending_streams["s"]
         assert list(streams) == ["event-1", "event-2"]
         assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
+
+    @pytest.mark.asyncio
+    async def test_run_without_an_event_id_is_still_one_stream(self):
+        # A caller that drives `process_api` itself has no event id, so the run
+        # is keyed off the iterator. That key still has to hold for the whole
+        # run, and still has to differ from the next run's.
+        chunk = (
+            pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+        ).read_bytes()
+
+        def stream():
+            yield chunk
+            yield chunk
+
+        with gr.Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+
+        first = await drive_streaming_run(demo, block_fn, "s", None)
+        second = await drive_streaming_run(demo, block_fn, "s", None)
+
+        streams = demo.pending_streams["s"]
+        assert len(streams) == 2
+        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
+        assert {first, second} == {
+            f"{API_PREFIX}/stream/s/{key}/{audio._id}/playlist.m3u8" for key in streams
+        }
 
 
 class TestGetAPIInfo:
