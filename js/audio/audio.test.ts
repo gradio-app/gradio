@@ -19,6 +19,7 @@ import {
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Audio from "./";
+import AudioRecorderHarness from "./AudioRecorderHarness.svelte";
 import MinimalAudioRecorderHarness from "./MinimalAudioRecorderHarness.svelte";
 import WaveSurfer from "wavesurfer.js";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
@@ -443,12 +444,14 @@ function make_wav_blob(): Blob {
 describe("Events: microphone recording", () => {
 	setupi18n();
 	let record_create: ReturnType<typeof vi.spyOn>;
+	let waveform_create: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		record_create = vi.spyOn(RecordPlugin, "create");
+		waveform_create = vi.spyOn(WaveSurfer, "create");
 	});
 	afterEach(() => {
-		record_create.mockRestore();
+		vi.restoreAllMocks();
 		cleanup();
 	});
 
@@ -478,6 +481,50 @@ describe("Events: microphone recording", () => {
 		expect(upload).toHaveBeenCalledTimes(1);
 		expect(input).toHaveBeenCalledTimes(1);
 		expect((await get_data()).value).toBeTruthy();
+	});
+
+	test("repeated recordings replace preview resources and unmount cleans the latest preview", async () => {
+		const dispatch_blob = vi.fn(async () => {});
+		// These resources have no DOM-visible cleanup signal, so spies verify release.
+		const create_object_url = vi.spyOn(URL, "createObjectURL");
+		const revoke_object_url = vi.spyOn(URL, "revokeObjectURL");
+
+		const { unmount } = await render(AudioRecorderHarness, { dispatch_blob });
+
+		await waitFor(() => {
+			expect(record_create).toHaveBeenCalledTimes(1);
+			expect(waveform_create).toHaveBeenCalledTimes(1);
+		});
+		const record = record_create.mock.results[0].value as any;
+		const mic_waveform = waveform_create.mock.results[0].value;
+		const destroy_mic_waveform = vi.spyOn(mic_waveform, "destroy");
+
+		record.emit("record-end", make_wav_blob());
+		await waitFor(() => {
+			expect(dispatch_blob).toHaveBeenCalledTimes(1);
+			expect(waveform_create).toHaveBeenCalledTimes(2);
+		});
+		const first_preview = waveform_create.mock.results[1].value;
+		const destroy_first_preview = vi.spyOn(first_preview, "destroy");
+		const first_url = create_object_url.mock.results[0].value;
+
+		record.emit("record-end", make_wav_blob());
+		await waitFor(() => {
+			expect(dispatch_blob).toHaveBeenCalledTimes(2);
+			expect(waveform_create).toHaveBeenCalledTimes(3);
+		});
+		expect(destroy_first_preview).toHaveBeenCalledTimes(1);
+		expect(revoke_object_url).toHaveBeenCalledWith(first_url);
+
+		const latest_preview = waveform_create.mock.results[2].value;
+		const destroy_latest_preview = vi.spyOn(latest_preview, "destroy");
+		const latest_url = create_object_url.mock.results[1].value;
+
+		unmount();
+
+		expect(destroy_latest_preview).toHaveBeenCalledTimes(1);
+		expect(destroy_mic_waveform).toHaveBeenCalledTimes(1);
+		expect(revoke_object_url).toHaveBeenCalledWith(latest_url);
 	});
 });
 

@@ -108,7 +108,7 @@ class TestRoutes:
         stream = MediaStream()
         asyncio.run(
             stream.add_segment(
-                {"data": b"first", "duration": 0.25, "extension": ".aac"}
+                {"data": b"first", "duration": 1.25, "extension": ".aac"}
             )
         )
         asyncio.run(
@@ -123,7 +123,7 @@ class TestRoutes:
         )
 
         assert response.status_code == 200
-        assert "#EXT-X-TARGETDURATION:1" in response.text
+        assert "#EXT-X-TARGETDURATION:2" in response.text
 
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")
