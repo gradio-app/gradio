@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { HTMLVideoAttributes } from "svelte/elements";
 	import { loaded } from "./utils";
-	import type { Snippet } from "svelte";
+	import { onDestroy, type Snippet } from "svelte";
 
 	import Hls from "hls.js";
+	import { attach_hls_stream } from "@gradio/utils/hls";
 
 	interface Props {
 		src?: HTMLVideoAttributes["src"];
@@ -67,6 +68,7 @@
 	}: Props = $props();
 
 	let stream_active = $state(false);
+	let active_hls: Hls | undefined;
 
 	function load_stream(
 		src: string | null | undefined,
@@ -76,44 +78,27 @@
 		if (!src || !is_stream) return;
 
 		if (Hls.isSupported() && !stream_active) {
-			const hls = new Hls({
-				maxBufferLength: 1, // 0.5 seconds (500 ms)
-				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
-				lowLatencyMode: true // Enable low latency mode
-			});
-			hls.loadSource(src);
-			hls.attachMedia(node);
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				(node as HTMLVideoElement).play();
-			});
-			hls.on(Hls.Events.ERROR, function (event, data) {
-				console.error("HLS error:", event, data);
-				if (data.fatal) {
-					switch (data.type) {
-						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error(
-								"Fatal network error encountered, trying to recover"
-							);
-							hls.startLoad();
-							break;
-						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error("Fatal media error encountered, trying to recover");
-							hls.recoverMediaError();
-							break;
-						default:
-							console.error("Fatal error, cannot recover");
-							hls.destroy();
-							break;
-					}
+			active_hls = attach_hls_stream(node, src, {
+				on_manifest_parsed: () => node.play(),
+				on_unrecoverable: () => {
+					active_hls = undefined;
+					stream_active = false;
 				}
 			});
 			stream_active = true;
 		}
 	}
 
+	// A run re-sends its URL with every chunk, so a new URL ends the stream.
 	$effect(() => {
 		src;
+		active_hls?.destroy();
+		active_hls = undefined;
 		stream_active = false;
+	});
+
+	onDestroy(() => {
+		active_hls?.destroy();
 	});
 
 	$effect(() => {

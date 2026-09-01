@@ -37,6 +37,7 @@ vi.mock("@ffmpeg/util", () => ({
 }));
 
 import Video from "./Index.svelte";
+import Hls from "hls.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -533,5 +534,63 @@ describe("Events: upload via file input", () => {
 			expect(error).toHaveBeenCalledTimes(1);
 		});
 		expect(error).toHaveBeenCalledWith("File too large");
+	});
+});
+
+describe("Streaming output", () => {
+	setupi18n();
+	let load_source: ReturnType<typeof vi.spyOn>;
+	let destroy: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		load_source = vi
+			.spyOn(Hls.prototype, "loadSource")
+			.mockImplementation(() => {});
+		destroy = vi.spyOn(Hls.prototype, "destroy");
+	});
+	afterEach(() => {
+		load_source.mockRestore();
+		destroy.mockRestore();
+		cleanup();
+	});
+
+	const run_1 = {
+		...fake_value,
+		is_stream: true,
+		url: "https://example.com/stream/abc/1/1/playlist.m3u8"
+	};
+	const run_2 = {
+		...run_1,
+		url: "https://example.com/stream/abc/2/1/playlist.m3u8"
+	};
+
+	test("a new streaming run replaces the previous instance", async () => {
+		const { set_data } = await render(Video, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: run_2 });
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
+		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
+		expect(destroy).toHaveBeenCalledTimes(1);
+	});
+
+	test("clearing the value tears down the attached stream", async () => {
+		const { set_data } = await render(Video, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: null });
+
+		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 });

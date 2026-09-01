@@ -827,6 +827,7 @@ describe("Streaming output", () => {
 	setupi18n();
 	let load_source: ReturnType<typeof vi.spyOn>;
 	let destroy: ReturnType<typeof vi.spyOn>;
+	let is_supported: ReturnType<typeof vi.spyOn> | undefined;
 
 	beforeEach(() => {
 		load_source = vi
@@ -835,7 +836,10 @@ describe("Streaming output", () => {
 		destroy = vi.spyOn(Hls.prototype, "destroy");
 	});
 	afterEach(() => {
-		vi.restoreAllMocks();
+		load_source.mockRestore();
+		destroy.mockRestore();
+		is_supported?.mockRestore();
+		is_supported = undefined;
 		cleanup();
 	});
 
@@ -883,8 +887,25 @@ describe("Streaming output", () => {
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 
+	test("switching from a file to a stream tears down the waveform", async () => {
+		const load = vi.spyOn(WaveSurfer.prototype, "load");
+		const { set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		await waitFor(() => expect(load).toHaveBeenCalled());
+		load.mockClear();
+
+		await set_data({ value: run_1 });
+
+		// The playlist belongs to the HLS player; wavesurfer cannot decode it.
+		expect(load).not.toHaveBeenCalled();
+	});
+
 	test("without HLS support the native player reattaches too", async () => {
-		vi.spyOn(Hls, "isSupported").mockReturnValue(false);
+		is_supported = vi.spyOn(Hls, "isSupported").mockReturnValue(false);
 		const { getByTestId, set_data } = await render(Audio, {
 			...default_props,
 			interactive: false,

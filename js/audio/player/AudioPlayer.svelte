@@ -10,6 +10,7 @@
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
 	import Hls from "hls.js";
+	import { attach_hls_stream } from "@gradio/utils/hls";
 
 	let {
 		value = null,
@@ -77,7 +78,7 @@
 	let show_volume_slider = $state(false);
 	let audio_player = $state<HTMLAudioElement | undefined>(undefined);
 
-	let stream_active = false;
+	let stream_active = $state(false);
 	let active_hls: Hls | undefined;
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
@@ -194,7 +195,7 @@
 	};
 
 	$effect(() => {
-		if (url && waveform_ready) {
+		if (url && waveform_ready && use_waveform) {
 			untrack(() => {
 				if (value?.url && waveform) {
 					waveform_load_failed = false;
@@ -253,37 +254,13 @@
 		if (!value || !value.is_stream || !value.url || !audio_player) return;
 
 		if (Hls.isSupported() && !stream_active) {
-			// Set config to start playback after 1 second of data received
-			const hls = new Hls({
-				maxBufferLength: 1,
-				maxMaxBufferLength: 1,
-				lowLatencyMode: true
-			});
-			active_hls = hls;
-			hls.loadSource(value.url);
-			hls.attachMedia(audio_player);
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player?.play();
-			});
-			hls.on(Hls.Events.ERROR, function (event, data) {
-				console.error("HLS error:", event, data);
-				if (data.fatal) {
-					switch (data.type) {
-						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error(
-								"Fatal network error encountered, trying to recover"
-							);
-							hls.startLoad();
-							break;
-						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error("Fatal media error encountered, trying to recover");
-							hls.recoverMediaError();
-							break;
-						default:
-							console.error("Fatal error, cannot recover");
-							hls.destroy();
-							break;
-					}
+			active_hls = attach_hls_stream(audio_player, value.url, {
+				on_manifest_parsed: () => {
+					if (waveform_settings.autoplay) audio_player?.play();
+				},
+				on_unrecoverable: () => {
+					active_hls = undefined;
+					stream_active = false;
 				}
 			});
 			stream_active = true;
@@ -308,6 +285,7 @@
 		if (
 			audio_player &&
 			url &&
+			!value?.is_stream &&
 			(waveform_ready || !waveform_options.show_recording_waveform)
 		) {
 			load_audio(url);
@@ -323,6 +301,12 @@
 	$effect(() => {
 		if (container) {
 			untrack(() => create_waveform());
+		} else if (waveform) {
+			waveform.destroy();
+			waveform = undefined;
+			waveform_container = undefined;
+			waveform_ready = false;
+			waveform_load_failed = false;
 		}
 	});
 
