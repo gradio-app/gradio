@@ -69,6 +69,10 @@
 		pages.length > 1 && (navbar === null || navbar.visible !== false)
 	);
 
+	let is_workflow = $derived(
+		components.some((c: any) => c.type === "workflowcanvas")
+	);
+
 	function normalize_path(path: string): string {
 		// Remove query parameters, hash fragments, and leading/trailing slashes from the path
 		let normalized = path.split("?")[0].split("#")[0];
@@ -121,7 +125,7 @@
 <div
 	bind:this={wrapper}
 	class:fill_width
-	class:embed-container={display}
+	class:embed-container={display && !is_workflow}
 	class:with-info={info}
 	class="gradio-container gradio-container-{version}"
 	style:min-height={loaded ? "initial" : initial_height}
