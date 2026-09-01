@@ -500,10 +500,7 @@ export async function executeWorkflow(
 							tag === "image-text-to-text") &&
 						!!stream_text_generation;
 					if (streamable) {
-						const { content, params } = await buildChatBody(
-							node.inputs,
-							args
-						);
+						const { content, params } = await buildChatBody(node.inputs, args);
 						const outputPort = node.outputs[0];
 						const downstream = outputPort
 							? edges.filter(
