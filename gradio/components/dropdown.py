@@ -62,7 +62,7 @@ class Dropdown(FormComponent):
         multiselect: bool | None = None,
         allow_custom_value: bool = False,
         max_choices: int | None = None,
-        max_values_shown: int | None = 100,
+        num_choices_shown: int | None = 100,
         filterable: bool = True,
         label: str | I18nData | None = None,
         info: str | I18nData | None = None,
@@ -89,7 +89,7 @@ class Dropdown(FormComponent):
             multiselect: if True, multiple choices can be selected.
             allow_custom_value: if True, allows user to enter a custom value that is not in the list of choices.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
-            max_values_shown: maximum number of matching choices to display in the dropdown at once. Additional choices remain searchable when `filterable` is True. If None, all matching choices are shown. When `filterable` is False, choices beyond this limit are not shown.
+            num_choices_shown: number of matching choices to show initially. More choices are loaded automatically as the user scrolls. If None, all matching choices are shown immediately.
             filterable: if True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
@@ -140,10 +140,12 @@ class Dropdown(FormComponent):
             warnings.warn(
                 "The `filterable` parameter cannot be set to False when `allow_custom_value` is True. Setting `filterable` to True."
             )
-        if max_values_shown is not None and max_values_shown <= 0:
-            raise ValueError("The `max_values_shown` parameter must be greater than 0.")
+        if num_choices_shown is not None and num_choices_shown <= 0:
+            raise ValueError(
+                "The `num_choices_shown` parameter must be greater than 0."
+            )
         self.max_choices = max_choices
-        self.max_values_shown = max_values_shown
+        self.num_choices_shown = num_choices_shown
         self.allow_custom_value = allow_custom_value
         self.filterable = filterable
         super().__init__(

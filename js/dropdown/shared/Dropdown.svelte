@@ -2,7 +2,7 @@
 	import DropdownOptions from "./DropdownOptions.svelte";
 	import { BlockTitle, IconButtonWrapper } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
-	import { handle_filter, handle_shared_keys } from "./utils";
+	import { handle_filter_with_count, handle_shared_keys } from "./utils";
 	import {
 		type SelectData,
 		type KeyUpData,
@@ -22,7 +22,7 @@
 		container = true,
 		allow_custom_value = false,
 		filterable = true,
-		max_values_shown = 100,
+		num_choices_shown = 100,
 		buttons = null,
 		oncustom_button_click = null,
 		on_change,
@@ -41,7 +41,7 @@
 		container?: boolean;
 		allow_custom_value?: boolean;
 		filterable?: boolean;
-		max_values_shown?: number | null;
+		num_choices_shown?: number | null;
 		buttons?: (string | CustomButtonType)[] | null;
 		oncustom_button_click?: ((id: number) => void) | null;
 		on_change?: (value: string | number | null) => void;
@@ -97,11 +97,17 @@
 	});
 	let initialized = $state(false);
 	let disabled = $derived(!interactive);
-	let visible_values_limit = $derived(max_values_shown);
+	let batches_shown = $state(1);
+	let visible_choices_limit = $derived(
+		num_choices_shown === null ? null : num_choices_shown * batches_shown
+	);
 
 	// All of these are indices with respect to the choices array
-	let filtered_indices = $state(
-		handle_filter(choices, "", visible_values_limit)
+	let initial_filter = handle_filter_with_count(choices, "", num_choices_shown);
+	let filtered_indices = $state(initial_filter.filtered_indices);
+	let total_matching_choices = $state(initial_filter.total_matches);
+	let remaining_choices = $derived(
+		Math.max(0, total_matching_choices - filtered_indices.length)
 	);
 	let active_index: number | null = $state(null);
 	let selected_indices = $derived(
@@ -118,9 +124,25 @@
 		return [...indices.slice(0, -1), selected_index];
 	}
 
+	function update_filtered_choices(
+		filter_text: string,
+		limit: number | null,
+		include_selected = false
+	): void {
+		const result = handle_filter_with_count(choices, filter_text, limit);
+		total_matching_choices = result.total_matches;
+		filtered_indices = include_selected
+			? include_selected_option(result.filtered_indices)
+			: result.filtered_indices;
+	}
+
 	$effect(() => {
-		choices;
-		filtered_indices = handle_filter(choices, "", visible_values_limit);
+		const current_choices = choices;
+		const initial_count = num_choices_shown;
+		batches_shown = 1;
+		const result = handle_filter_with_count(current_choices, "", initial_count);
+		total_matching_choices = result.total_matches;
+		filtered_indices = result.filtered_indices;
 	});
 
 	function handle_option_selected(index: any): void {
@@ -148,9 +170,8 @@
 
 	function handle_focus(e: FocusEvent): void {
 		focused = true;
-		filtered_indices = include_selected_option(
-			handle_filter(choices, "", visible_values_limit)
-		);
+		batches_shown = 1;
+		update_filtered_choices("", num_choices_shown, true);
 		active_index = selected_index;
 		show_options = true;
 		on_focus?.();
@@ -159,7 +180,7 @@
 	function handle_blur(): void {
 		if (!allow_custom_value) {
 			input_text =
-				choices_names[choices_values.indexOf(value as string | number)];
+				choices_names[choices_values.indexOf(value as string | number)] ?? "";
 		} else if (input_text !== last_typed_value) {
 			if (choices_names.includes(input_text)) {
 				selected_index = choices_names.indexOf(input_text);
@@ -171,7 +192,8 @@
 		}
 		show_options = false;
 		active_index = null;
-		filtered_indices = handle_filter(choices, "", visible_values_limit);
+		batches_shown = 1;
+		update_filtered_choices("", num_choices_shown);
 		focused = false;
 		on_blur?.();
 		on_input?.();
@@ -186,21 +208,18 @@
 			e.key === "Escape";
 		const is_filtering = input_text !== last_typed_value;
 		if (!is_navigation_key) {
-			filtered_indices = handle_filter(
-				choices,
-				input_text,
-				visible_values_limit
-			);
+			batches_shown = 1;
+			update_filtered_choices(input_text, num_choices_shown);
 			active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 		} else {
 			// Recompute the visible options so navigation always spans the full
 			// current list. Filter by the typed text when the user is filtering,
 			// otherwise (a value is just displayed/selected) show every option.
-			filtered_indices = is_filtering
-				? handle_filter(choices, input_text, visible_values_limit)
-				: include_selected_option(
-						handle_filter(choices, "", visible_values_limit)
-					);
+			update_filtered_choices(
+				is_filtering ? input_text : "",
+				visible_choices_limit,
+				!is_filtering
+			);
 			if (active_index !== null && !filtered_indices.includes(active_index)) {
 				active_index = filtered_indices.length > 0 ? filtered_indices[0] : null;
 			}
@@ -232,6 +251,19 @@
 				filter_input.blur();
 			}
 		}
+	}
+
+	function handle_load_more(): void {
+		if (num_choices_shown === null) {
+			return;
+		}
+		batches_shown += 1;
+		const is_filtering = input_text !== last_typed_value;
+		update_filtered_choices(
+			is_filtering ? input_text : "",
+			visible_choices_limit,
+			!is_filtering
+		);
 	}
 
 	let old_value = $state(value);
@@ -297,7 +329,10 @@
 			{selected_indices}
 			{active_index}
 			{listbox_id}
+			{num_choices_shown}
+			{remaining_choices}
 			onchange={handle_option_selected}
+			onload_more={handle_load_more}
 			onload={() => (initialized = true)}
 		/>
 	</div>

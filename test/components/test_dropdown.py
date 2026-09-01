@@ -61,7 +61,7 @@ class TestDropdown:
             label="Select Your Inputs",
             multiselect=True,
             max_choices=2,
-            max_values_shown=2,
+            num_choices_shown=2,
         )
         assert dropdown_input_multiselect.get_config() == {
             "allow_custom_value": False,
@@ -81,7 +81,7 @@ class TestDropdown:
             "multiselect": True,
             "filterable": True,
             "max_choices": 2,
-            "max_values_shown": 2,
+            "num_choices_shown": 2,
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
@@ -91,19 +91,19 @@ class TestDropdown:
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")  # type: ignore
-        with pytest.raises(ValueError, match="max_values_shown"):
-            gr.Dropdown(["a"], max_values_shown=0)
+        with pytest.raises(ValueError, match="num_choices_shown"):
+            gr.Dropdown(["a"], num_choices_shown=0)
         assert (
-            gr.Dropdown(["a", "b"], filterable=False).get_config()["max_values_shown"]
+            gr.Dropdown(["a", "b"], filterable=False).get_config()["num_choices_shown"]
             == 100
         )
         assert (
-            gr.Dropdown(["a", "b"], filterable=False, max_values_shown=1).get_config()[
-                "max_values_shown"
+            gr.Dropdown(["a", "b"], filterable=False, num_choices_shown=1).get_config()[
+                "num_choices_shown"
             ]
             == 1
         )
-        assert gr.Dropdown(["a", "b"]).get_config()["max_values_shown"] == 100
+        assert gr.Dropdown(["a", "b"]).get_config()["num_choices_shown"] == 100
 
         dropdown = gr.Dropdown(choices=["a", "b"], value="c")
         assert dropdown.get_config()["value"] == "c"

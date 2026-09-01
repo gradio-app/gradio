@@ -6,7 +6,7 @@ import { setupi18n, changeLocale } from "../core/src/i18n";
 import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
-import { handle_filter } from "./shared/utils";
+import { handle_filter, handle_filter_with_count } from "./shared/utils";
 
 // Build a real i18n marker the way the backend's I18nData does.
 const marker = (key: string): string =>
@@ -25,7 +25,7 @@ const single_select_props = {
 	interactive: true,
 	multiselect: false,
 	max_choices: null,
-	max_values_shown: 100,
+	num_choices_shown: 100,
 	allow_custom_value: false
 };
 
@@ -53,7 +53,7 @@ const multiselect_props = {
 	interactive: true,
 	multiselect: true,
 	max_choices: null,
-	max_values_shown: 100,
+	num_choices_shown: 100,
 	allow_custom_value: false
 };
 
@@ -70,7 +70,7 @@ run_shared_prop_tests({
 		interactive: true,
 		multiselect: false,
 		max_choices: null,
-		max_values_shown: 100
+		num_choices_shown: 100
 	}
 });
 
@@ -165,10 +165,10 @@ describe("Single-select: Options display", () => {
 		expect(options).toHaveLength(3);
 	});
 
-	test("max_values_shown limits the displayed options", async () => {
+	test("num_choices_shown limits the initially displayed options", async () => {
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...single_select_props,
-			max_values_shown: 2
+			num_choices_shown: 2
 		});
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
@@ -180,14 +180,47 @@ describe("Single-select: Options display", () => {
 		expect(options[1]).toHaveAttribute("aria-label", "banana");
 	});
 
-	test("max_values_shown keeps a selected option beyond the limit available", async () => {
+	test("scrolling to the bottom automatically loads the next batch", async () => {
+		const { getByLabelText, getAllByTestId, getByRole } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: null,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		expect(getAllByTestId("dropdown-option")).toHaveLength(4);
+
+		const listbox = getByRole("listbox");
+		await waitFor(() => {
+			expect(listbox.scrollHeight).toBeGreaterThan(listbox.clientHeight);
+		});
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+		});
+
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(12);
+		});
+	});
+
+	test("num_choices_shown keeps a selected option beyond the initial batch available", async () => {
 		const { getByLabelText, getAllByTestId, get_data } = await render(
 			Dropdown,
 			{
 				...single_select_props,
 				choices: many_choices,
 				value: "choice-104",
-				max_values_shown: 100
+				num_choices_shown: 100
 			}
 		);
 
@@ -204,11 +237,11 @@ describe("Single-select: Options display", () => {
 		expect((await get_data()).value).toBe("choice-104");
 	});
 
-	test("max_values_shown=null displays every matching option", async () => {
+	test("num_choices_shown=null displays every matching option", async () => {
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...single_select_props,
 			choices: many_choices,
-			max_values_shown: null
+			num_choices_shown: null
 		});
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
@@ -332,11 +365,11 @@ describe("Single-select: Filtering", () => {
 		expect(options).toHaveLength(2);
 	});
 
-	test("max_values_shown limits the filtered options", async () => {
+	test("num_choices_shown limits the initially filtered options", async () => {
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...single_select_props,
 			value: null,
-			max_values_shown: 2,
+			num_choices_shown: 2,
 			choices: [
 				["apple", "apple"],
 				["banana", "banana"],
@@ -1084,10 +1117,10 @@ describe("Multiselect: Options display", () => {
 		expect(options).toHaveLength(3);
 	});
 
-	test("max_values_shown limits the displayed options", async () => {
+	test("num_choices_shown limits the initially displayed options", async () => {
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...multiselect_props,
-			max_values_shown: 2
+			num_choices_shown: 2
 		});
 
 		const input = getByLabelText("Multiselect") as HTMLInputElement;
@@ -1097,11 +1130,37 @@ describe("Multiselect: Options display", () => {
 		expect(options).toHaveLength(2);
 	});
 
-	test("max_values_shown=null displays every matching option", async () => {
+	test("scrolling to the bottom automatically loads the next multiselect batch", async () => {
+		const { getByLabelText, getAllByTestId, getByRole } = await render(
+			Dropdown,
+			{
+				...multiselect_props,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+		expect(getAllByTestId("dropdown-option")).toHaveLength(4);
+
+		const listbox = getByRole("listbox");
+		await waitFor(() => {
+			expect(listbox.scrollHeight).toBeGreaterThan(listbox.clientHeight);
+		});
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+		});
+	});
+
+	test("num_choices_shown=null displays every matching option", async () => {
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...multiselect_props,
 			choices: many_choices,
-			max_values_shown: null
+			num_choices_shown: null
 		});
 
 		const input = getByLabelText("Multiselect") as HTMLInputElement;
@@ -1756,8 +1815,15 @@ describe("handle_filter", () => {
 		expect(handle_filter(choices, "an")).toEqual([1]);
 	});
 
-	test("stops after the maximum number of matching values", () => {
+	test("returns only the requested prefix of matching choices", () => {
 		expect(handle_filter(choices, "a", 2)).toEqual([0, 1]);
+	});
+
+	test("counts all matches while returning only the requested prefix", () => {
+		expect(handle_filter_with_count(choices, "a", 2)).toEqual({
+			filtered_indices: [0, 1],
+			total_matches: 3
+		});
 	});
 });
 

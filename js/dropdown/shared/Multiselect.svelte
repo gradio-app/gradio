@@ -4,7 +4,7 @@
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { Gradio } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { handle_filter, handle_shared_keys } from "./utils";
+	import { handle_filter_with_count, handle_shared_keys } from "./utils";
 	import type { DropdownEvents, DropdownProps, Item } from "../types.ts";
 
 	const props = $props();
@@ -36,20 +36,47 @@
 	let disabled = $derived(!gradio.shared.interactive);
 
 	let show_options = $state(false);
+	let batches_shown = $state(1);
+	let visible_choices_limit = $derived(
+		gradio.props.num_choices_shown === null
+			? null
+			: gradio.props.num_choices_shown * batches_shown
+	);
 
 	// All of these are indices with respect to the choices array
-	let [filtered_indices, active_index] = $derived.by(() => {
-		const filtered = handle_filter(
-			translated_choices,
-			input_text,
-			gradio.props.max_values_shown
-		);
-		return [
-			filtered,
-			filtered.length > 0 && !gradio.props.allow_custom_value
-				? filtered[0]
-				: null
-		];
+	let [filtered_indices, active_index, total_matching_choices] = $derived.by(
+		() => {
+			const result = handle_filter_with_count(
+				translated_choices,
+				input_text,
+				visible_choices_limit
+			);
+			return [
+				result.filtered_indices,
+				result.filtered_indices.length > 0 && !gradio.props.allow_custom_value
+					? result.filtered_indices[0]
+					: null,
+				result.total_matches
+			];
+		}
+	);
+	let remaining_choices = $derived(
+		Math.max(0, total_matching_choices - filtered_indices.length)
+	);
+	let previous_filter_text = $state(input_text);
+	let previous_num_choices_shown = $state(gradio.props.num_choices_shown);
+
+	$effect(() => {
+		const current_filter_text = input_text;
+		const current_num_choices_shown = gradio.props.num_choices_shown;
+		if (
+			current_filter_text !== previous_filter_text ||
+			current_num_choices_shown !== previous_num_choices_shown
+		) {
+			batches_shown = 1;
+			previous_filter_text = current_filter_text;
+			previous_num_choices_shown = current_num_choices_shown;
+		}
 	});
 
 	function set_selected_indices(): Item[] {
@@ -154,11 +181,7 @@
 	}
 
 	function handle_focus(e: FocusEvent): void {
-		filtered_indices = handle_filter(
-			translated_choices,
-			"",
-			gradio.props.max_values_shown
-		);
+		batches_shown = 1;
 		if (
 			gradio.props.max_choices === null ||
 			selected_indices.length < gradio.props.max_choices
@@ -194,6 +217,12 @@
 		if (selected_indices.length === gradio.props.max_choices) {
 			show_options = false;
 			active_index = null;
+		}
+	}
+
+	function handle_load_more(): void {
+		if (gradio.props.num_choices_shown !== null) {
+			batches_shown += 1;
 		}
 	}
 
@@ -313,8 +342,11 @@
 			{selected_indices}
 			{active_index}
 			{listbox_id}
+			num_choices_shown={gradio.props.num_choices_shown}
+			{remaining_choices}
 			remember_scroll={true}
 			onchange={handle_option_selected}
+			onload_more={handle_load_more}
 		/>
 	</div>
 </div>

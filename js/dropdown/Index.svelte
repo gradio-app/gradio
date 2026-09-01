@@ -55,7 +55,7 @@
 			container={gradio.shared.container}
 			allow_custom_value={gradio.props.allow_custom_value}
 			filterable={gradio.props.filterable}
-			max_values_shown={gradio.props.max_values_shown}
+			num_choices_shown={gradio.props.num_choices_shown}
 			buttons={gradio.props.buttons}
 			oncustom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });

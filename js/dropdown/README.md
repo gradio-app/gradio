@@ -19,7 +19,7 @@ BaseDropdown
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
-	export let max_values_shown: number | null = 100; // Limits rendered matches; null renders all matches.
+	export let num_choices_shown: number | null = 100; // Initial matches shown; scrolling loads more. null shows all matches.
 ```
 
 BaseMultiselect
@@ -36,7 +36,7 @@ BaseMultiselect
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
-	export let max_values_shown: number | null = 100; // Limits rendered matches; null renders all matches.
+	export let num_choices_shown: number | null = 100; // Initial matches shown; scrolling loads more. null shows all matches.
 	export let i18n: I18nFormatter;
 ```
 
