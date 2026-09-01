@@ -13,6 +13,7 @@ import string
 import sys
 import threading
 import time
+import uuid
 import warnings
 import weakref
 import webbrowser
@@ -2129,7 +2130,7 @@ Received inputs:
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         root_path: str | None = None,
         final: bool = False,
     ) -> list:
@@ -2189,7 +2190,7 @@ Received inputs:
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         final: bool,
         simple_format: bool = False,
     ) -> list:
@@ -2357,7 +2358,10 @@ Received inputs:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
-                run = id(old_iterator) if was_generating else id(iterator)
+                # The run key goes into the playlist URL, so it has to be the
+                # same for every chunk of a run and never repeat. A run with no
+                # event id cannot be resumed, so a throwaway key is enough.
+                run = event_id or uuid.uuid4().hex
                 async with trace_phase("streaming_diff"):
                     data = await self.handle_streaming_outputs(
                         block_fn,

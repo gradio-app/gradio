@@ -45,6 +45,7 @@ from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
+    MediaStream,
     _delete_state_handler,
     _lifespan_handler,
     compare_passwords_securely,
@@ -1013,6 +1014,20 @@ class TestRoutes:
         assert response.status_code == 403
         response = client.get("/monitoring/summary")
         assert response.status_code == 403
+
+    def test_stream_playlist_route_takes_the_event_id_as_the_run(self):
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        demo.pending_streams["session"] = {"event-1": {audio._id: MediaStream()}}
+
+        response = client.get(
+            f"{API_PREFIX}/stream/session/event-1/{audio._id}/playlist.m3u8"
+        )
+        assert response.status_code == 200
+        assert response.text.startswith("#EXTM3U")
 
 
 def test_api_listener(connect):

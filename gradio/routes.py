@@ -1146,7 +1146,7 @@ class App(FastAPI):
             return {"msg": "success"}
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
-        async def _(session_hash: str, run: int, component_id: int):
+        async def _(session_hash: str, run: str, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams.get(session_hash, {})
@@ -1176,7 +1176,7 @@ class App(FastAPI):
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
         async def _(
-            session_hash: str, run: int, component_id: int, segment_id: str, ext: str
+            session_hash: str, run: str, component_id: int, segment_id: str, ext: str
         ):
             if ext not in ["aac", "ts"]:
                 return Response(status_code=400, content="Unsupported file extension")
@@ -1201,7 +1201,7 @@ class App(FastAPI):
                 return Response(content=segment["data"], media_type="video/MP2T")
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
-        async def _(session_hash: str, run: int, component_id: int):
+        async def _(session_hash: str, run: str, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams.get(session_hash, {})

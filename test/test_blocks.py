@@ -1673,11 +1673,58 @@ class TestHandleStreamingOutputs:
 
         block_fn = next(iter(demo.fns.values()))
         data = await demo.handle_streaming_outputs(
-            block_fn, [b"final"], session_hash="s", run=0, final=True
+            block_fn, [b"final"], session_hash="s", run="run-1", final=True
         )
 
         assert data == [b"final"]
-        assert demo.pending_streams["s"][0] == {}
+        assert demo.pending_streams["s"]["run-1"] == {}
+
+    @pytest.mark.asyncio
+    async def test_each_run_gets_its_own_stream(self):
+        # The run key goes into the playlist URL, and a new URL is what tells the
+        # player that a new stream has started. `id(iterator)` is only unique among
+        # objects that are alive at the same time, so a later run could land on the
+        # address a finished run had just freed and append to a stream that was
+        # already ended. See https://github.com/gradio-app/gradio/issues/13809
+        chunk = (
+            pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+        ).read_bytes()
+
+        def stream():
+            yield chunk
+            yield chunk
+
+        with gr.Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+
+        async def run_stream(event_id: str) -> str:
+            iterator, url = None, None
+            while True:
+                output = await demo.process_api(
+                    block_fn=block_fn,
+                    inputs=[],
+                    state=None,
+                    iterator=iterator,
+                    session_hash="s",
+                    event_id=event_id,
+                )
+                iterator = output["iterator"]
+                url = url or output["data"][0]["url"]
+                if not output["is_generating"]:
+                    return url
+
+        first = await run_stream("event-1")
+        second = await run_stream("event-2")
+
+        assert first == f"{API_PREFIX}/stream/s/event-1/{audio._id}/playlist.m3u8"
+        assert second == f"{API_PREFIX}/stream/s/event-2/{audio._id}/playlist.m3u8"
+
+        streams = demo.pending_streams["s"]
+        assert list(streams) == ["event-1", "event-2"]
+        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
 
 
 class TestGetAPIInfo:
