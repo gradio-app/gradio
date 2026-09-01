@@ -288,12 +288,20 @@ class TestNodeProxyStartupOrdering:
             def __init__(self, data):
                 self.data = data
 
-        ipython_module = ModuleType("IPython")
-        display_module = ModuleType("IPython.display")
-        setattr(display_module, "HTML", FakeDisplayArtifact)
-        setattr(display_module, "Javascript", FakeDisplayArtifact)
-        setattr(display_module, "display", lambda _: None)
-        setattr(ipython_module, "display", display_module)
+        class FakeDisplayModule(ModuleType):
+            HTML = FakeDisplayArtifact
+            Javascript = FakeDisplayArtifact
+
+            @staticmethod
+            def display(_):
+                pass
+
+        class FakeIPythonModule(ModuleType):
+            display: FakeDisplayModule
+
+        ipython_module = FakeIPythonModule("IPython")
+        display_module = FakeDisplayModule("IPython.display")
+        ipython_module.display = display_module
         monkeypatch.setitem(sys.modules, "IPython", ipython_module)
         monkeypatch.setitem(sys.modules, "IPython.display", display_module)
         monkeypatch.setattr(utils, "colab_check", lambda: True)
