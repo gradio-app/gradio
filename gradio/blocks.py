@@ -3298,6 +3298,15 @@ Received inputs:
 
                 elif self.is_colab:
                     # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
+                    # In production SSR mode, Node owns the user-facing port and
+                    # proxies to Python on ``self.server_port``. Exposing the
+                    # Python port here bypasses SSR and gives the browser a config
+                    # rooted at Colab's internal runtime hostname.
+                    colab_port = (
+                        self.node_port
+                        if self._node_is_proxy and self.node_port is not None
+                        else self.server_port
+                    )
                     code = """(async (port, path, width, height, cache, element) => {
                         if (!google.colab.kernel.accessAllowed && !cache) {
                             return;
@@ -3323,7 +3332,7 @@ Received inputs:
                         iframe.style.border = 0;
                         element.appendChild(iframe);
                     })""" + "({port}, {path}, {width}, {height}, {cache}, window.element)".format(
-                        port=json.dumps(self.server_port),
+                        port=json.dumps(colab_port),
                         path=json.dumps("/"),
                         width=json.dumps(self.width),
                         height=json.dumps(self.height),
