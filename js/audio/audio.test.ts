@@ -826,11 +826,13 @@ describe("Props: show_recording_waveform", () => {
 describe("Streaming output", () => {
 	setupi18n();
 	let load_source: ReturnType<typeof vi.spyOn>;
+	let destroy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		load_source = vi
 			.spyOn(Hls.prototype, "loadSource")
 			.mockImplementation(() => {});
+		destroy = vi.spyOn(Hls.prototype, "destroy");
 	});
 	afterEach(() => {
 		vi.restoreAllMocks();
@@ -864,10 +866,10 @@ describe("Streaming output", () => {
 
 		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
 		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
+		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 
 	test("clearing the value tears down the attached stream", async () => {
-		const destroy = vi.spyOn(Hls.prototype, "destroy");
 		const { set_data } = await render(Audio, {
 			...default_props,
 			interactive: false,
@@ -879,6 +881,23 @@ describe("Streaming output", () => {
 		await set_data({ value: null });
 
 		expect(destroy).toHaveBeenCalledTimes(1);
+	});
+
+	test("without HLS support the native player reattaches too", async () => {
+		vi.spyOn(Hls, "isSupported").mockReturnValue(false);
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		expect(player.src).toBe(run_1.url);
+
+		await set_data({ value: run_2 });
+
+		expect(player.src).toBe(run_2.url);
+		expect(load_source).not.toHaveBeenCalled();
 	});
 });
 
