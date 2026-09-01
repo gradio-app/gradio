@@ -20,6 +20,7 @@ import {
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import Audio from "./";
 import WaveSurfer from "wavesurfer.js";
+import Hls from "hls.js";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
@@ -819,6 +820,50 @@ describe("Props: show_recording_waveform", () => {
 
 		await set_data({ playback_position: quarter });
 		expect(player.currentTime).toBeCloseTo(quarter, 1);
+	});
+});
+
+describe("Streaming output", () => {
+	setupi18n();
+	let load_source: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		load_source = vi
+			.spyOn(Hls.prototype, "loadSource")
+			.mockImplementation(() => {});
+	});
+	afterEach(() => {
+		vi.restoreAllMocks();
+		cleanup();
+	});
+
+	const run_1 = {
+		...TEST_WAV,
+		is_stream: true,
+		url: "https://example.com/stream/abc/1/1/playlist.m3u8"
+	};
+	const run_2 = {
+		...run_1,
+		url: "https://example.com/stream/abc/2/1/playlist.m3u8"
+	};
+
+	test("a new streaming run attaches a new source", async () => {
+		const { set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		// A run re-sends its own URL with every chunk.
+		await set_data({ value: { ...run_1 } });
+		expect(load_source).toHaveBeenCalledTimes(1);
+
+		await set_data({ value: run_2 });
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
+		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
 	});
 });
 

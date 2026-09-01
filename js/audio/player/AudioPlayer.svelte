@@ -78,6 +78,7 @@
 	let audio_player = $state<HTMLAudioElement | undefined>(undefined);
 
 	let stream_active = false;
+	let active_hls: Hls | undefined;
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
@@ -231,8 +232,6 @@
 	};
 
 	async function load_audio(data: string): Promise<void> {
-		stream_active = false;
-
 		if (waveform_options.show_recording_waveform) {
 			waveform?.load(data);
 		} else if (audio_player) {
@@ -254,12 +253,14 @@
 		if (!value || !value.is_stream || !value.url || !audio_player) return;
 
 		if (Hls.isSupported() && !stream_active) {
+			active_hls?.destroy();
 			// Set config to start playback after 1 second of data received
 			const hls = new Hls({
 				maxBufferLength: 1,
 				maxMaxBufferLength: 1,
 				lowLatencyMode: true
 			});
+			active_hls = hls;
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -304,6 +305,12 @@
 		) {
 			load_audio(url);
 		}
+	});
+
+	// A run re-sends its URL with every chunk, so only a new URL is a new stream.
+	$effect(() => {
+		url;
+		stream_active = false;
 	});
 
 	$effect(() => {
