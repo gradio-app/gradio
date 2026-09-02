@@ -48,8 +48,14 @@ describe("create_hls_stream", () => {
 
 	// The owning effect's teardown destroys the instance even when a fatal
 	// error already destroyed it, so a second destroy() has to stay safe.
+	// `attachMedia` runs for real here so the second destroy walks the detach
+	// path with a MediaSource in place, which is the state the teardown meets.
 	test("destroying an already-destroyed instance does not throw", () => {
-		const hls = attach();
+		vi.spyOn(Hls.prototype, "loadSource").mockImplementation(() => {});
+		const hls = create_hls_stream(
+			document.createElement("audio"),
+			"https://example.com/playlist.m3u8"
+		);
 
 		hls.destroy();
 

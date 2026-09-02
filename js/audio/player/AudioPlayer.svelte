@@ -82,6 +82,7 @@
 	let subtitle_event_handlers: (() => void)[] = [];
 
 	let waveform_load_failed = $state(false);
+	let load_in_flight = 0;
 
 	let use_waveform = $derived(
 		waveform_options.show_recording_waveform && !is_stream
@@ -117,6 +118,7 @@
 		// a fresh element every time that branch remounts, so bail out when there
 		// is nothing to draw into and rebuild when the element is replaced.
 		if (!container || waveform_container === container) return;
+		clear_subtitles();
 		waveform?.destroy();
 		waveform_ready = false;
 		waveform_container = container;
@@ -187,7 +189,13 @@
 			onload?.();
 		});
 
-		waveform?.on("error", handle_waveform_error);
+		// wavesurfer emits `error` for a failed load and for a media element
+		// error. A failed load also rejects the load promise, the only path
+		// that knows which URL failed, so the event handles the rest.
+		waveform?.on("error", (e: Error) => {
+			if (load_in_flight > 0) return;
+			handle_waveform_error(e);
+		});
 	};
 
 	$effect(() => {
@@ -195,10 +203,20 @@
 			const loading_url = url;
 			untrack(() => {
 				if (waveform) {
+					if (waveform_load_failed) {
+						// The failed file is still attached to the native element
+						// and keeps playing behind the waveform unless released.
+						audio_player?.removeAttribute("src");
+						audio_player?.load();
+					}
 					waveform_load_failed = false;
+					load_in_flight += 1;
 					waveform
 						.load(loading_url)
-						.catch((e: Error) => handle_waveform_error(e, loading_url));
+						.catch((e: Error) => handle_waveform_error(e, loading_url))
+						.finally(() => {
+							load_in_flight -= 1;
+						});
 				}
 			});
 		}
@@ -259,21 +277,20 @@
 	$effect(() => {
 		if (!audio_player || !is_stream || !url) return;
 		const media = audio_player;
-		const autoplay = untrack(() => waveform_settings.autoplay);
 		if (is_hls_supported()) {
 			const hls = create_hls_stream(media, url, () => {
-				if (autoplay) media.play();
+				if (untrack(() => waveform_settings.autoplay)) media.play();
 			});
 			return () => hls.destroy();
 		}
 		media.src = url;
-		if (autoplay) media.play();
+		if (untrack(() => waveform_settings.autoplay)) media.play();
 		return () => {
 			// Only tear down a source this effect still owns; effects run in
 			// declaration order, so the next value's source may already be in
-			// place (hls.js guards its detach the same way).
+			// place (hls.js guards its detach the same way). `load()` stops
+			// playback without dispatching a `pause` the app never caused.
 			if (media.getAttribute("src") === url) {
-				media.pause();
 				media.removeAttribute("src");
 				media.load();
 			}

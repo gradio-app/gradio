@@ -31,8 +31,9 @@ export function create_hls_stream(
 	hls.on(Hls.Events.MANIFEST_PARSED, () => on_manifest_parsed?.());
 
 	hls.on(Hls.Events.ERROR, (event, data) => {
-		console.error("HLS error:", event, data);
+		// Non-fatal errors are routine with a one-second buffer.
 		if (!data.fatal) return;
+		console.error("HLS error:", event, data);
 		switch (data.type) {
 			case Hls.ErrorTypes.NETWORK_ERROR:
 				console.error("Fatal network error encountered, trying to recover");

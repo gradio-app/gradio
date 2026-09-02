@@ -3,6 +3,7 @@ import {
 	describe,
 	assert,
 	afterEach,
+	beforeEach,
 	vi,
 	beforeAll,
 	expect
@@ -579,6 +580,8 @@ describe("Streaming output", () => {
 
 		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
 		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
+		// VideoPreview keys the player on the URL, so a new run remounts it
+		// and this destroy comes from the unmount teardown.
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 

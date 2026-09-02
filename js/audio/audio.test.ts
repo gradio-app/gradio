@@ -828,6 +828,7 @@ describe("Streaming output", () => {
 	let load_source: ReturnType<typeof vi.spyOn>;
 	let destroy: ReturnType<typeof vi.spyOn>;
 	let wavesurfer_load: ReturnType<typeof vi.spyOn>;
+	let media_pause: ReturnType<typeof vi.spyOn>;
 	let is_supported: ReturnType<typeof vi.spyOn> | undefined;
 
 	beforeEach(() => {
@@ -836,15 +837,25 @@ describe("Streaming output", () => {
 			.mockImplementation(() => {});
 		destroy = vi.spyOn(Hls.prototype, "destroy");
 		wavesurfer_load = vi.spyOn(WaveSurfer.prototype, "load");
+		media_pause = vi.spyOn(HTMLMediaElement.prototype, "pause");
 	});
 	afterEach(() => {
 		load_source.mockRestore();
 		destroy.mockRestore();
 		wavesurfer_load.mockRestore();
+		media_pause.mockRestore();
 		is_supported?.mockRestore();
 		is_supported = undefined;
 		cleanup();
 	});
+
+	// wavesurfer's load() emits `error` before it rejects, and the event
+	// carries no URL, so a mocked failure has to reproduce that ordering.
+	function emit_load_error(instance: WaveSurfer, message: string): Error {
+		const e = new Error(message);
+		(instance as any).emit("error", e);
+		return e;
+	}
 
 	// An unroutable host: these URLs land on real media elements, and a
 	// resolvable one would send actual requests out of the unit tests.
@@ -948,28 +959,31 @@ describe("Streaming output", () => {
 		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
 		expect(player.src).toBe(run_1.url);
 
+		media_pause.mockClear();
 		await set_data({ value: run_2 });
 
 		expect(player.src).toBe(run_2.url);
 		expect(load_source).not.toHaveBeenCalled();
+		// A programmatic pause would dispatch a `pause` the user never caused;
+		// the teardown stops playback with `load()` instead.
+		expect(media_pause).not.toHaveBeenCalled();
 
-		// The element stays mounted after clearing, so the teardown has to
-		// stop the stream or it keeps playing behind the empty state.
+		// Clearing unmounts the player, so this covers the unmount teardown:
+		// it has to release the source or the stream keeps playing.
 		await set_data({ value: null });
 
 		expect(player.getAttribute("src")).toBeNull();
 		expect(player.paused).toBe(true);
 	});
 
-	test("a stale load rejection does not downgrade the current file", async () => {
-		let reject_first: ((e: Error) => void) | undefined;
+	test("a stale load failure does not downgrade the current file", async () => {
+		let fail_first: (() => void) | undefined;
 		wavesurfer_load
-			.mockImplementationOnce(
-				() =>
-					new Promise((_, reject) => {
-						reject_first = reject;
-					})
-			)
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				return new Promise((_, reject) => {
+					fail_first = () => reject(emit_load_error(this, "decode failed"));
+				});
+			})
 			.mockImplementationOnce(() => Promise.resolve());
 		const { getByTestId, set_data } = await render(Audio, {
 			...default_props,
@@ -983,11 +997,35 @@ describe("Streaming output", () => {
 		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(2));
 
 		// The first file's decode fails only after the value moved on.
-		reject_first?.(new Error("decode failed"));
+		fail_first?.();
 		await new Promise((resolve) => setTimeout(resolve, 0));
 
 		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
 		expect(player.getAttribute("src")).toBeNull();
+	});
+
+	test("a recovered waveform releases the native fallback", async () => {
+		wavesurfer_load
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				return Promise.reject(emit_load_error(this, "decode failed"));
+			})
+			.mockImplementationOnce(() => Promise.resolve());
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+
+		await set_data({ value: { ...fake_value, url: fake_value.url + "?v=2" } });
+
+		// The failed file must not keep playing behind the new waveform.
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
 	});
 });
 
