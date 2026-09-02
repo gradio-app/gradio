@@ -437,12 +437,19 @@ async def call_process_api(
             if iterator is not None
             else None
         )
-        if run_id is not None:  # close off any streams that are still open
-            pending_streams: dict[int, MediaStream] = (
-                app.get_blocks().pending_streams.get(session_hash, {}).get(run_id, {})
-            )
+        if run_id is not None:
+            blocks = app.get_blocks()
+            # close off any streams that are still open
+            pending_streams: dict[int, MediaStream] = blocks.pending_streams.get(
+                session_hash, {}
+            ).get(run_id, {})
             for stream in pending_streams.values():
                 stream.end_stream()
+            # The run never reaches its final chunk, so this is the only place
+            # its diff state gets dropped. Nothing else does: unlike
+            # `pending_streams`, `pending_diff_streams` is not cleared when the
+            # session disconnects, so the entry would outlive the process.
+            blocks.pending_diff_streams.get(session_hash, {}).pop(run_id, None)
         raise
 
     if batch_in_single_out:

@@ -2156,9 +2156,10 @@ Received inputs:
     ) -> list:
         if session_hash is None or run is None:
             return data
-        if run not in self.pending_streams[session_hash]:
-            self.pending_streams[session_hash][run] = {}
-        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
+        stream_runs = self.pending_streams[session_hash]
+        if run not in stream_runs:
+            stream_runs[run] = {}
+        stream_run: dict[int, MediaStream] = stream_runs[run]
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
@@ -2206,7 +2207,7 @@ Received inputs:
             # This run opened no stream, so nothing will ever fetch it. Entries
             # that do hold a stream have to stay: the playlist is fetched after
             # the run ends.
-            self.pending_streams[session_hash].pop(run, None)
+            stream_runs.pop(run, None)
 
         return data
 

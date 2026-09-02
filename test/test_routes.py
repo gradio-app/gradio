@@ -39,8 +39,10 @@ from gradio import (
     Textbox,
     close_all,
     oauth,
+    route_utils,
     routes,
 )
+from gradio.data_classes import PredictBodyInternal
 from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
     API_PREFIX,
@@ -1043,6 +1045,43 @@ class TestRoutes:
 
         response = client.get(f"{API_PREFIX}/stream/session/{run}/{audio._id}/{suffix}")
         assert response.status_code == 404
+
+    def test_an_aborted_run_ends_its_streams_and_drops_its_diffs(self):
+        # A run that raises never reaches its final chunk, so this handler is
+        # the only place that ends its streams and drops its diff state. The
+        # diff entry matters most: unlike `pending_streams`, that dict is not
+        # cleared when the session disconnects.
+        def stream():
+            yield None
+            raise RuntimeError("boom")
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        async def drive():
+            for _ in range(5):
+                body = PredictBodyInternal(
+                    data=[], session_hash="s", event_id="e1", request=None
+                )
+                await route_utils.call_process_api(
+                    app=app,
+                    body=body,
+                    gr_request=gr.Request(),
+                    fn=fn,
+                    root_path="",
+                )
+
+        run = None
+        with pytest.raises(RuntimeError):
+            asyncio.run(drive())
+        run = next(iter(demo.pending_streams["s"]))
+
+        assert demo.pending_streams["s"][run][audio._id].ended is True
+        assert demo.pending_diff_streams["s"] == {}
 
 
 def test_api_listener(connect):

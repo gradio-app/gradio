@@ -6,7 +6,6 @@ import json
 import os
 import pathlib
 import random
-import shutil
 import sys
 import threading
 import time
@@ -27,7 +26,7 @@ from gradio_client import Client
 from PIL import Image
 
 import gradio as gr
-from gradio import blocks, helpers
+from gradio import blocks, helpers, processing_utils
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
@@ -1663,7 +1662,7 @@ class TestCancel:
 
 
 requires_ffmpeg = pytest.mark.skipif(
-    shutil.which("ffmpeg") is None, reason="ffmpeg not installed"
+    not processing_utils.ffmpeg_installed(), reason="ffmpeg not installed"
 )
 
 
@@ -1700,8 +1699,17 @@ async def drive_streaming_run(demo, block_fn, session_hash, event_id):
             event_id=event_id,
         )
         iterator = output["iterator"]
-        url = url or output["data"][0]["url"]
+        if url is None:
+            url = output["data"][0]["url"]
         if not output["is_generating"]:
+            # The final chunk carries the whole value again, so its URL has to
+            # still be the first chunk's. A key that changed mid-run would have
+            # opened a second stream under a second URL. The chunks in between
+            # carry a diff, so there is nothing to compare there.
+            final = output["data"][0]
+            assert isinstance(final, dict) and final.get("url") == url, (
+                "the run key changed mid-run"
+            )
             return url
     raise AssertionError("the generator never stopped generating")
 
