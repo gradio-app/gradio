@@ -2141,9 +2141,10 @@ Received inputs:
                 run = uuid.uuid4().hex
                 self._stream_run_ids[iterator] = run
         except TypeError:
-            # No weak reference means no stable key without leaking the
-            # iterator, so such a run gets a throwaway key per chunk.
-            run = uuid.uuid4().hex
+            # No weak reference available. The address is stable while the
+            # iterator lives, which is the whole run, so it is the best key
+            # left; it is also what this used to be for every run.
+            run = str(id(iterator))
         return run
 
     async def handle_streaming_outputs(
@@ -2202,6 +2203,12 @@ Received inputs:
                         output_data, root_path, None
                     )
                 data[i] = output_data
+
+        if final and not stream_run:
+            # This run opened no stream, so nothing will ever fetch it. Entries
+            # that do hold a stream have to stay: the playlist is fetched after
+            # the run ends.
+            del self.pending_streams[session_hash][run]
 
         return data
 

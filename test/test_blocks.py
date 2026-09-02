@@ -1,5 +1,6 @@
 import asyncio
 import copy
+import gc
 import io
 import json
 import os
@@ -1722,22 +1723,41 @@ class TestHandleStreamingOutputs:
         )
 
         assert data == [b"final"]
-        assert demo.pending_streams["s"]["run-1"] == {}
+        # and the run leaves nothing behind, since nothing can fetch it
+        assert "run-1" not in demo.pending_streams["s"]
 
-    def test_run_keys_do_not_repeat_across_sequential_runs(self):
+    @pytest.mark.asyncio
+    async def test_sequential_runs_get_distinct_run_keys(self):
         # A later run used to land on the address a finished run had just freed
         # and inherit the stream that run had already ended.
         # See https://github.com/gradio-app/gradio/issues/13809
+        def stream():
+            yield None
+            yield None
+
+        with gr.Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+        for i in range(100):
+            await drive_streaming_run(demo, block_fn, "s", f"event-{i}")
+
+        assert len(demo.pending_streams["s"]) == 100
+
+    def test_run_keys_are_released_with_their_iterator(self):
+        # Holding the keys strongly would also give every run its own key, by
+        # keeping every iterator alive, which is a leak rather than a fix.
         from gradio.utils import SyncToAsyncIterator
 
         demo = gr.Blocks()
-        keys = set()
-        for _ in range(200):
+        for _ in range(100):
             iterator = SyncToAsyncIterator(iter([1]), None)
-            keys.add(demo._stream_run_key(iterator))
-            del iterator  # free it so the next one can land on its address
+            demo._stream_run_key(iterator)
+            del iterator
 
-        assert len(keys) == 200
+        gc.collect()
+        assert len(demo._stream_run_ids) == 0
 
     @requires_ffmpeg
     @pytest.mark.asyncio
@@ -1757,20 +1777,18 @@ class TestHandleStreamingOutputs:
 
     @requires_ffmpeg
     @pytest.mark.asyncio
-    async def test_restarting_a_cancelled_run_opens_a_new_stream(self):
-        # Cancelling an event puts it in `app.iterators_to_reset`, so the next
-        # call for that event id starts the generator over. Keying the run on
-        # the event id would hand the restart the streams the cancel had ended.
+    async def test_two_runs_under_one_event_id_get_separate_streams(self):
+        # An event id is not a run id. Cancelling an event puts it in
+        # `app.iterators_to_reset`, so the next call for that event id starts
+        # the generator over, and keying the run on the event id would hand the
+        # restart the streams the first run had already ended.
         demo, block_fn, audio = streaming_audio_demo()
 
-        cancelled = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-1")
+
         streams = demo.pending_streams["s"]
-        for stream in next(iter(streams.values())).values():
-            stream.end_stream()
-
-        restarted = await drive_streaming_run(demo, block_fn, "s", "event-1")
-
-        assert restarted != cancelled
+        assert first != second
         assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
 
 
