@@ -2135,16 +2135,10 @@ Received inputs:
         a run and never repeat. `id()` only holds while the object is alive, so
         the key is held weakly against the iterator and dies with it instead.
         """
-        try:
-            run = self._stream_run_ids.get(iterator)
-            if run is None:
-                run = uuid.uuid4().hex
-                self._stream_run_ids[iterator] = run
-        except TypeError:
-            # No weak reference available. The address is stable while the
-            # iterator lives, which is the whole run, so it is the best key
-            # left; it is also what this used to be for every run.
-            run = str(id(iterator))
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            run = uuid.uuid4().hex
+            self._stream_run_ids[iterator] = run
         return run
 
     async def handle_streaming_outputs(
@@ -2208,7 +2202,7 @@ Received inputs:
             # This run opened no stream, so nothing will ever fetch it. Entries
             # that do hold a stream have to stay: the playlist is fetched after
             # the run ends.
-            del self.pending_streams[session_hash][run]
+            self.pending_streams[session_hash].pop(run, None)
 
         return data
 

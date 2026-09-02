@@ -1708,7 +1708,7 @@ async def drive_streaming_run(demo, block_fn, session_hash, event_id):
 
 class TestHandleStreamingOutputs:
     @pytest.mark.asyncio
-    async def test_final_chunk_with_no_open_stream_is_a_no_op(self):
+    async def test_final_chunk_with_no_open_stream_leaves_nothing_behind(self):
         # The session's streams may be gone by the time the final chunk lands —
         # a disconnect drops them — and a generator that sends only prop updates
         # never opens one at all. Neither should cost the caller their output.
@@ -1740,10 +1740,12 @@ class TestHandleStreamingOutputs:
             gr.Button().click(stream, None, audio)
 
         block_fn = next(iter(demo.fns.values()))
-        for i in range(100):
+        urls = [
             await drive_streaming_run(demo, block_fn, "s", f"event-{i}")
+            for i in range(100)
+        ]
 
-        assert len(demo.pending_streams["s"]) == 100
+        assert len(set(urls)) == 100
 
     def test_run_keys_are_released_with_their_iterator(self):
         # Holding the keys strongly would also give every run its own key, by

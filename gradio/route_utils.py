@@ -428,8 +428,15 @@ async def call_process_api(
             raise output
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
-        if iterator is not None:  # close off any streams that are still open
-            run_id = app.get_blocks()._stream_run_key(iterator)
+        # Look the run up rather than keying it: minting one here would write to
+        # `_stream_run_ids` while another exception is in flight, for a run that
+        # by definition has no streams to close.
+        run_id = (
+            app.get_blocks()._stream_run_ids.get(iterator)
+            if iterator is not None
+            else None
+        )
+        if run_id is not None:  # close off any streams that are still open
             pending_streams: dict[int, MediaStream] = (
                 app.get_blocks().pending_streams.get(session_hash, {}).get(run_id, {})
             )

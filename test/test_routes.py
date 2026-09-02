@@ -1030,6 +1030,20 @@ class TestRoutes:
         assert response.status_code == 200
         assert response.text.startswith("#EXTM3U")
 
+    @pytest.mark.parametrize("suffix", ["segment-1.aac", "playlist-file"])
+    def test_stream_routes_do_not_reject_a_string_run_key(self, suffix):
+        # A `run: int` here would 422 on every uuid key, which would break the
+        # segments the player fetches and the download button, not the playlist.
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        run = "2b0e1cb7f4a34d4b9f2b6d1c8a7e5f30"
+
+        response = client.get(f"{API_PREFIX}/stream/session/{run}/{audio._id}/{suffix}")
+        assert response.status_code != 422
+
 
 def test_api_listener(connect):
     with gr.Blocks() as demo:
