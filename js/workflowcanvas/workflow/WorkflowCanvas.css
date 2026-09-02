@@ -8,6 +8,7 @@
 	border: 1px solid #1e1f2a;
 	border-radius: 14px;
 	overflow: hidden;
+	overscroll-behavior: none;
 	font-family: "Manrope", sans-serif;
 	color-scheme: dark;
 	box-shadow:
@@ -418,6 +419,7 @@
 	flex: 1;
 	overflow: hidden;
 	position: relative;
+	touch-action: none;
 }
 
 .canvas {
@@ -425,6 +427,7 @@
 	position: relative;
 	overflow: hidden;
 	background-color: #0c0d10;
+	touch-action: none;
 	/* Block the browser's "select word/paragraph" behaviour on
 	 * dbl-click. Input fields, textboxes, and node labels opt back
 	 * in to text selection where needed. */
@@ -951,4 +954,97 @@
 	pointer-events: none;
 	z-index: 20;
 	white-space: nowrap;
+}
+
+@media (max-width: 640px), (pointer: coarse) {
+	.workflow-root {
+		min-height: 100dvh;
+		border-radius: 0;
+		border: none;
+		box-shadow: none;
+	}
+	.toolbar {
+		height: auto;
+		min-height: 44px;
+		padding: 6px 8px;
+		flex-wrap: wrap;
+		gap: 6px;
+		row-gap: 6px;
+	}
+	.toolbar-left,
+	.toolbar-right {
+		gap: 6px;
+		flex-wrap: wrap;
+	}
+	.toolbar-stat {
+		display: none;
+	}
+	.name-text {
+		font-size: 13px;
+	}
+	.name-btn,
+	.name-readonly,
+	.tool-btn,
+	.toolbar-login-btn,
+	.toolbar-user-chip {
+		white-space: nowrap;
+	}
+	.tool-btn {
+		padding: 5px 8px;
+		font-size: 11px;
+	}
+	.toolbar-token-form {
+		flex-basis: 100%;
+		min-width: 0;
+		order: 10;
+	}
+	.toolbar-token-input {
+		width: 100%;
+		min-width: 0;
+		flex: 1;
+	}
+	.toolbar-login-btn {
+		padding: 5px 10px;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+	.toolbar-user-name {
+		max-width: 84px;
+	}
+	.toolbar-user-menu,
+	.save-menu {
+		width: min(280px, calc(100vw - 24px));
+	}
+	.save-menu {
+		right: 0;
+	}
+	.zoom-controls {
+		bottom: calc(84px + env(safe-area-inset-bottom));
+		right: 8px;
+	}
+	.shortcuts-panel,
+	.zoom-ctrl-shortcuts {
+		display: none;
+	}
+	.wf-toast-stack {
+		bottom: calc(96px + env(safe-area-inset-bottom));
+		left: 8px;
+		right: 8px;
+		transform: none;
+		width: auto;
+	}
+	.wf-toast {
+		max-width: none;
+		font-size: 10px;
+		padding: 6px 10px 6px 12px;
+	}
+	.wf-modal {
+		min-width: 0;
+		max-width: none;
+		width: calc(100vw - 24px);
+	}
+	.drop-menu,
+	.add-node-menu {
+		max-width: calc(100vw - 16px);
+	}
 }

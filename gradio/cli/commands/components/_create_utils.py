@@ -266,7 +266,7 @@ def _get_js_dependency_version(name: str, local_js_dir: Path) -> str:
 
 def copy_svelte_to_deps(package_json: dict):
     svelte_version = package_json.get("peerDependencies", {}).get("svelte", "latest")
-    package_json["dependencies"]["svelte"] = svelte_version
+    package_json.setdefault("dependencies", {})["svelte"] = svelte_version
     return package_json
 
 
