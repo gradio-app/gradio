@@ -1,5 +1,7 @@
-import { test, describe, assert, afterEach } from "vitest";
+import { test, describe, assert, afterEach, expect } from "vitest";
 import { cleanup, fireEvent, render } from "@self/tootils/render";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+import event from "@testing-library/user-event";
 import { setupi18n } from "../core/src/i18n";
 
 import HighlightedText from "./Index.svelte";
@@ -15,6 +17,16 @@ const loading_status: LoadingStatus = {
 	fn_index: 0,
 	show_progress: "full"
 };
+
+run_shared_prop_tests({
+	component: HighlightedText,
+	name: "HighlightedText",
+	has_label: false,
+	base_props: {
+		value: [{ token: "Hello", class_or_confidence: null }],
+		interactive: false
+	}
+});
 
 describe("HighlightedText", () => {
 	afterEach(() => cleanup());
@@ -162,6 +174,64 @@ describe("HighlightedText", () => {
 	});
 
 	describe("Select events", () => {
+		test("dispatches select when clicking an unlabeled selectable token", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: true,
+				value: [{ token: "clickable", class_or_confidence: null }]
+			});
+
+			const select = listen("select");
+			await fireEvent.click(getByRole("button", { name: "clickable" }));
+
+			expect(select).toHaveBeenCalledTimes(1);
+			expect(select).toHaveBeenCalledWith({
+				index: 0,
+				value: ["clickable", null]
+			});
+		});
+
+		test("does not select an unlabeled token without a select listener", async () => {
+			const { getByText, queryByRole, listen } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: false,
+				value: [{ token: "static", class_or_confidence: null }]
+			});
+
+			const select = listen("select");
+			expect(queryByRole("button", { name: "static" })).not.toBeInTheDocument();
+			await fireEvent.click(getByText("static"));
+
+			expect(select).not.toHaveBeenCalled();
+		});
+
+		test.each([
+			["Enter", "{Enter}"],
+			["Space", " "]
+		])(
+			"dispatches select from the %s key on an unlabeled selectable token",
+			async (_key_name, key) => {
+				const { getByRole, listen } = await render(HighlightedText, {
+					interactive: false,
+					loading_status,
+					_selectable: true,
+					value: [{ token: "keyboard", class_or_confidence: null }]
+				});
+
+				const select = listen("select");
+				getByRole("button", { name: "keyboard" }).focus();
+				await event.keyboard(key);
+
+				expect(select).toHaveBeenCalledTimes(1);
+				expect(select).toHaveBeenCalledWith({
+					index: 0,
+					value: ["keyboard", null]
+				});
+			}
+		);
+
 		test.skip("dispatches select event when clicking highlighted token", async () => {
 			const { getByText, listen } = await render(HighlightedText, {
 				interactive: true,

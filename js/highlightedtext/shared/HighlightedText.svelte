@@ -22,6 +22,7 @@
 		color_map = {},
 		show_whitespaces = false,
 		interactive = false,
+		selectable = false,
 		onselect,
 		onchange
 	}: {
@@ -32,6 +33,7 @@
 		color_map?: Record<string, string>;
 		show_whitespaces?: boolean;
 		interactive?: boolean;
+		selectable?: boolean;
 		onselect?: (data: SelectData) => void;
 		onchange?: (data: HighlightedToken[]) => void;
 	} = $props();
@@ -141,6 +143,21 @@
 		label_to_edit = -1;
 	}
 
+	function handle_token_select(
+		index: number,
+		token: string,
+		class_or_confidence: string | number | null
+	): void {
+		onselect?.({
+			index,
+			value: [token, class_or_confidence]
+		});
+
+		if (interactive && class_or_confidence !== null) {
+			label_to_edit = index;
+		}
+	}
+
 	function get_background_color(
 		class_or_confidence: string | number | null
 	): string {
@@ -185,12 +202,15 @@
 		<div class="textfield">
 			{#each value as { token, class_or_confidence }, i}
 				{@const lines = token.split("\n")}
+				{@const token_is_selectable =
+					selectable || class_or_confidence !== null}
 				{#each lines as line, j}
 					{#if show_whitespaces ? line !== "" : line.trim()}
 						{@const bg_color = get_background_color(class_or_confidence)}
 						<span class="token-container">
 							<span
 								class="token"
+								class:selectable={selectable && class_or_confidence === null}
 								class:highlighted={class_or_confidence !== null}
 								class:transparent={class_or_confidence !== null &&
 									is_transparent(bg_color)}
@@ -198,27 +218,19 @@
 									active_legend !== class_or_confidence}
 								style:background-color={bg_color}
 								style:color={get_text_color(class_or_confidence)}
-								role={class_or_confidence !== null ? "button" : undefined}
-								tabindex={class_or_confidence !== null ? 0 : undefined}
+								role={token_is_selectable ? "button" : undefined}
+								tabindex={token_is_selectable ? 0 : undefined}
 								onclick={() => {
-									if (class_or_confidence === null) return;
-									if (interactive) {
-										onselect?.({
-											index: i,
-											value: [token, class_or_confidence]
-										});
-										label_to_edit = i;
-									} else {
-										onselect?.({
-											index: i,
-											value: [token, class_or_confidence]
-										});
-									}
+									if (!token_is_selectable) return;
+									handle_token_select(i, token, class_or_confidence);
 								}}
 								onkeydown={(e) => {
-									if (!interactive) return;
-									if (e.key === "Enter" && class_or_confidence !== null) {
-										label_to_edit = i;
+									if (
+										token_is_selectable &&
+										(e.key === "Enter" || e.key === " ")
+									) {
+										e.preventDefault();
+										handle_token_select(i, token, class_or_confidence);
 									}
 								}}
 								onfocus={() => (active_element_index = i)}
@@ -406,6 +418,10 @@
 	.token {
 		transition: 150ms;
 		border-radius: var(--radius-xs);
+	}
+
+	.token.selectable {
+		cursor: pointer;
 	}
 
 	.token.highlighted {
