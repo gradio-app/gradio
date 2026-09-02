@@ -15,6 +15,7 @@ from tqdm import tqdm
 
 import gradio as gr
 from gradio import helpers, oauth, routes, utils
+from gradio.context import LocalContext
 from gradio.media import get_audio, get_image
 from gradio.route_utils import API_PREFIX
 
@@ -672,6 +673,35 @@ class TestProcessExamples:
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
         assert data[0]["path"].endswith("image.webp")
+
+    def test_lazy_cache_examples_preserves_request_context(self, patched_cache_folder):
+        def get_ip_token(value):
+            request = LocalContext.request.get(None)
+            return request.headers.get("x-ip-token") if request else None
+
+        with gr.Blocks() as demo:
+            textbox = gr.Textbox()
+            output = gr.Textbox()
+            gr.Examples(
+                examples=["example"],
+                inputs=[textbox],
+                outputs=[output],
+                fn=get_ip_token,
+                cache_examples=True,
+                cache_mode="lazy",
+                api_name="load_example",
+            )
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+
+        response = client.post(
+            f"{API_PREFIX}/api/load_example/",
+            json={"data": [0]},
+            headers={"x-ip-token": "test-token"},
+        )
+
+        assert response.json()["data"] == ["test-token"]
 
 
 def test_multiple_file_flagging(tmp_path, connect):
