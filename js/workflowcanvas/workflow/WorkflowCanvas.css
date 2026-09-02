@@ -215,28 +215,6 @@
 	color: var(--color-accent, #f97316);
 }
 
-.toolbar-login-btn {
-	font-family: "Manrope", sans-serif;
-	font-size: 12px;
-	font-weight: 500;
-	padding: 5px 12px;
-	border: 1px solid #1e1f2a;
-	border-radius: 6px;
-	background: transparent;
-	color: #a0a2ae;
-	cursor: pointer;
-	transition:
-		background 0.15s,
-		color 0.15s,
-		border-color 0.15s;
-}
-
-.toolbar-login-btn:hover {
-	background: #16171f;
-	color: #e0e1e6;
-	border-color: #2a2b36;
-}
-
 .toolbar-user-wrap {
 	position: relative;
 	display: flex;
@@ -342,78 +320,6 @@
 	border-color: #3a3b48;
 }
 
-.toolbar-token-input {
-	font-family: "JetBrains Mono", monospace;
-	font-size: 11px;
-	padding: 5px 10px;
-	border: 1px solid #1e1f2a;
-	border-radius: 6px;
-	background: #0c0d10;
-	color: #6b6e78;
-	outline: none;
-	transition:
-		background 0.15s,
-		color 0.15s,
-		border-color 0.15s;
-}
-
-.toolbar-token-input::placeholder {
-	color: #4a4d57;
-}
-
-.toolbar-token-input:focus {
-	background: #16171f;
-	color: #a0a2ae;
-	border-color: #f5a623;
-	box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.1);
-}
-
-.toolbar-token-input.has-user {
-	border-color: #4fd1a5;
-	box-shadow: 0 0 0 2px rgba(79, 209, 165, 0.08);
-}
-
-.toolbar-token-input.invalid {
-	border-color: #ef4444;
-	box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
-}
-
-.toolbar-token-form {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.toolbar-token-status {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	font-family: "Manrope", sans-serif;
-	font-size: 11px;
-	font-weight: 600;
-	white-space: nowrap;
-}
-
-.toolbar-token-status.valid {
-	color: #4fd1a5;
-}
-
-.toolbar-token-status.validating {
-	color: #8b8d98;
-	font-weight: 500;
-	font-style: italic;
-}
-
-.toolbar-token-status.invalid {
-	color: #ef4444;
-}
-
-.toolbar-divider {
-	width: 1px;
-	height: 20px;
-	background: #1e1f2a;
-}
-
 .editor {
 	display: flex;
 	flex: 1;
@@ -457,6 +363,7 @@
 	position: absolute;
 	bottom: 12px;
 	right: 12px;
+	transition: right 0.2s ease;
 	display: flex;
 	align-items: center;
 	gap: 2px;
@@ -464,6 +371,10 @@
 	border: 1px solid #1e1f2a;
 	border-radius: 6px;
 	padding: 2px;
+}
+
+.zoom-controls.history-open {
+	right: calc(min(380px, 95vw) + 12px);
 }
 
 .zoom-ctrl-btn {
