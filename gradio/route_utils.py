@@ -686,7 +686,8 @@ class GradioMultiPartParser:
 
     Made the following modifications
         - Use GradioUploadFile instead of UploadFile
-        - Use NamedTemporaryFile instead of SpooledTemporaryFile
+        - Use NamedTemporaryFile instead of SpooledTemporaryFile, optionally
+          placing it in Gradio's upload directory
         - Compute hash of data as the request is streamed
 
     """
@@ -700,6 +701,7 @@ class GradioMultiPartParser:
         *,
         max_files: Union[int, float] = 1000,
         max_fields: Union[int, float] = 1000,
+        upload_dir: str | Path | None = None,
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
         max_file_size: int | float,
@@ -709,6 +711,7 @@ class GradioMultiPartParser:
         self.stream = stream
         self.max_files = max_files
         self.max_fields = max_fields
+        self.upload_dir = upload_dir
         self.items: list[tuple[str, Union[str, UploadFile]]] = []
         self.upload_id = upload_id
         self.upload_progress = upload_progress
@@ -804,7 +807,7 @@ class GradioMultiPartParser:
                     f"Too many files. Maximum number of files is {self.max_files}."
                 )
             filename = _user_safe_decode(options[b"filename"], str(self._charset))
-            tempfile = NamedTemporaryFile(delete=False)
+            tempfile = NamedTemporaryFile(delete=False, dir=self.upload_dir)
             self._files_to_close_on_error.append(tempfile)
             self._current_part.file = GradioUploadFile(
                 file=tempfile,  # type: ignore[arg-type]
@@ -1542,6 +1545,7 @@ async def upload_fn(
     if content_type != b"multipart/form-data":
         raise HTTPException(status_code=400, detail="Invalid content type.")
 
+    Path(upload_dir).mkdir(exist_ok=True, parents=True)
     if upload_id and upload_progress:
         upload_progress.track(upload_id)
 
@@ -1550,6 +1554,7 @@ async def upload_fn(
         request.stream(),
         max_files=1000,
         max_fields=1000,
+        upload_dir=upload_dir,
         max_file_size=max_file_size,
         upload_id=upload_id,
         upload_progress=upload_progress,

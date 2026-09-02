@@ -144,6 +144,38 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    def test_upload_is_staged_in_custom_upload_path(self, gradio_temp_dir, monkeypatch):
+        blocks = Blocks()
+        blocks.max_file_size = None
+        blocks.upload_file_set = set()
+        blocks.share = False
+        app = routes.App.create_app(blocks)
+        test_client = TestClient(app)
+        original_rename = os.rename
+        staged_paths = []
+
+        def record_rename(source, destination):
+            source = Path(source).resolve()
+            staged_paths.append(source)
+            if not source.is_relative_to(gradio_temp_dir.resolve()):
+                raise OSError("simulated cross-filesystem rename")
+            return original_rename(source, destination)
+
+        def reject_background_move(*_args):
+            raise AssertionError("upload must be published before the response")
+
+        monkeypatch.setattr(os, "rename", record_rename)
+        monkeypatch.setattr(
+            routes, "move_uploaded_files_to_cache", reject_background_move
+        )
+        with open("test/test_files/alphabet.txt", "rb") as file:
+            response = test_client.post(f"{API_PREFIX}/upload", files={"files": file})
+
+        assert response.status_code == 200
+        assert len(staged_paths) == 1
+        assert staged_paths[0].is_relative_to(gradio_temp_dir.resolve())
+        assert Path(response.json()[0]).read_bytes() == b"abcdefghijklmnopqrstuvwxyz"
+
     @pytest.mark.skipif(
         sys.platform == "win32",
         reason="On Windows CI python_multipart raises MultipartParseError while "
