@@ -2141,7 +2141,7 @@ Received inputs:
             self._stream_run_ids[iterator] = run
         return run
 
-    def lookup_stream_run_key(self, iterator: Any) -> str | None:
+    def _lookup_stream_run_key(self, iterator: Any) -> str | None:
         """The key of `iterator`'s run, or None if it never opened one."""
         return self._stream_run_ids.get(iterator)
 

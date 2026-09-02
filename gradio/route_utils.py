@@ -433,7 +433,7 @@ async def call_process_api(
         # can reach this unkeyed: a call with an event id but no session hash
         # stores one without ever opening a run.
         run_id = (
-            app.get_blocks().lookup_stream_run_key(iterator)
+            app.get_blocks()._lookup_stream_run_key(iterator)
             if iterator is not None
             else None
         )

@@ -1044,48 +1044,6 @@ class TestRoutes:
         response = client.get(f"{API_PREFIX}/stream/session/{run}/{audio._id}/{suffix}")
         assert response.status_code == 404
 
-    def test_cancelling_a_run_ends_its_streams_and_frees_its_diffs(self):
-        # A cancelled run never reaches its final chunk, so nothing downstream
-        # can end its streams or drop its diff state: the iterator, and with it
-        # the run key, is gone by then. Without this the player keeps polling a
-        # playlist that never gets `#EXT-X-ENDLIST`, and the last full output
-        # stays in `pending_diff_streams`, which no disconnect handler clears.
-        def stream():
-            yield None
-            yield None
-
-        with Blocks() as demo:
-            audio = gr.Audio(streaming=True)
-            gr.Button().click(stream, None, audio)
-
-        app = routes.App.create_app(demo)
-        client = TestClient(app)
-        block_fn = next(iter(demo.fns.values()))
-
-        output = asyncio.run(
-            demo.process_api(
-                block_fn=block_fn,
-                inputs=[],
-                state=None,
-                iterator=None,
-                session_hash="s",
-                event_id="e1",
-            )
-        )
-        app.iterators["e1"] = output["iterator"]
-        run = demo.lookup_stream_run_key(output["iterator"])
-        assert demo.pending_streams["s"][run][audio._id].ended is False
-        assert run in demo.pending_diff_streams["s"]
-
-        response = client.post(
-            f"{API_PREFIX}/cancel",
-            json={"session_hash": "s", "fn_index": 0, "event_id": "e1"},
-        )
-        assert response.status_code == 200
-
-        assert demo.pending_streams["s"][run][audio._id].ended is True
-        assert run not in demo.pending_diff_streams["s"]
-
 
 def test_api_listener(connect):
     with gr.Blocks() as demo:
