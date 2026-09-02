@@ -526,6 +526,29 @@ describe("Events: microphone recording", () => {
 		expect(destroy_mic_waveform).toHaveBeenCalledTimes(1);
 		expect(revoke_object_url).toHaveBeenCalledWith(latest_url);
 	});
+
+	test("unmounting while recording discards the abandoned take", async () => {
+		const dispatch_blob = vi.fn(async () => {});
+		const { unmount } = await render(AudioRecorderHarness, { dispatch_blob });
+
+		await waitFor(() => {
+			expect(record_create).toHaveBeenCalledTimes(1);
+			expect(waveform_create).toHaveBeenCalledTimes(1);
+		});
+		const record = record_create.mock.results[0].value as any;
+		const mic_waveform = waveform_create.mock.results[0].value;
+
+		// WaveSurfer's RecordPlugin emits record-end from destroy() when the
+		// MediaRecorder is still active, which requires a teardown simulation here.
+		vi.spyOn(mic_waveform, "destroy").mockImplementation(() => {
+			record.emit("record-end", make_wav_blob());
+		});
+
+		unmount();
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
+		expect(dispatch_blob).not.toHaveBeenCalled();
+	});
 });
 
 describe("MinimalAudioRecorder", () => {

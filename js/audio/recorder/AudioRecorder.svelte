@@ -241,6 +241,7 @@
 			clearInterval(interval);
 			window.removeEventListener("keydown", handle_keydown);
 			clear_recording_preview();
+			record?.unAll();
 			micWaveform?.destroy();
 		};
 	});

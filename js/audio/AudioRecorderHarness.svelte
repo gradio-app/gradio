@@ -14,7 +14,7 @@
 </script>
 
 <AudioRecorder
-	i18n={(text) => text ?? ""}
+	i18n={(text: string) => text}
 	dispatch_blob={props.dispatch_blob}
 	waveform_settings={{ sampleRate: 44100 }}
 	handle_reset_value={() => {}}
