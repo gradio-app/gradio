@@ -509,11 +509,16 @@ class Examples:
         if self.cache_examples is True:
             await self.cache()
 
-    async def cache(self, example_id: int | None = None) -> None:
+    async def cache(
+        self,
+        example_id: int | None = None,
+        request: routes.Request | None = None,
+    ) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
         Parameters:
             example_id: The id of the example to process (zero-indexed). If None, all examples are cached.
+            request: The request that triggered lazy caching, if any.
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
@@ -560,7 +565,7 @@ class Examples:
                     prediction = await self.root_block.process_api(
                         block_fn=self.root_block.default_config.fns[fn_index],
                         inputs=processed_input,
-                        request=None,
+                        request=request,
                         in_event_listener=self.cache_examples != "lazy",
                     )
                 output = prediction["data"]
@@ -586,7 +591,8 @@ class Examples:
         """
         cached_index = self._get_cached_index_if_cached(example_id)
         if cached_index is None:
-            client_utils.synchronize_async(self.cache, example_id)
+            request = LocalContext.request.get(None)
+            client_utils.synchronize_async(self.cache, example_id, request)
             with open(self.cached_indices_file) as f:
                 cached_index = len(f.readlines()) - 1
 
