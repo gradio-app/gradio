@@ -8,6 +8,7 @@
 	border: 1px solid #1e1f2a;
 	border-radius: 14px;
 	overflow: hidden;
+	overscroll-behavior: none;
 	font-family: "Manrope", sans-serif;
 	color-scheme: dark;
 	box-shadow:
@@ -214,28 +215,6 @@
 	color: var(--color-accent, #f97316);
 }
 
-.toolbar-login-btn {
-	font-family: "Manrope", sans-serif;
-	font-size: 12px;
-	font-weight: 500;
-	padding: 5px 12px;
-	border: 1px solid #1e1f2a;
-	border-radius: 6px;
-	background: transparent;
-	color: #a0a2ae;
-	cursor: pointer;
-	transition:
-		background 0.15s,
-		color 0.15s,
-		border-color 0.15s;
-}
-
-.toolbar-login-btn:hover {
-	background: #16171f;
-	color: #e0e1e6;
-	border-color: #2a2b36;
-}
-
 .toolbar-user-wrap {
 	position: relative;
 	display: flex;
@@ -341,83 +320,12 @@
 	border-color: #3a3b48;
 }
 
-.toolbar-token-input {
-	font-family: "JetBrains Mono", monospace;
-	font-size: 11px;
-	padding: 5px 10px;
-	border: 1px solid #1e1f2a;
-	border-radius: 6px;
-	background: #0c0d10;
-	color: #6b6e78;
-	outline: none;
-	transition:
-		background 0.15s,
-		color 0.15s,
-		border-color 0.15s;
-}
-
-.toolbar-token-input::placeholder {
-	color: #4a4d57;
-}
-
-.toolbar-token-input:focus {
-	background: #16171f;
-	color: #a0a2ae;
-	border-color: #f5a623;
-	box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.1);
-}
-
-.toolbar-token-input.has-user {
-	border-color: #4fd1a5;
-	box-shadow: 0 0 0 2px rgba(79, 209, 165, 0.08);
-}
-
-.toolbar-token-input.invalid {
-	border-color: #ef4444;
-	box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
-}
-
-.toolbar-token-form {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.toolbar-token-status {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	font-family: "Manrope", sans-serif;
-	font-size: 11px;
-	font-weight: 600;
-	white-space: nowrap;
-}
-
-.toolbar-token-status.valid {
-	color: #4fd1a5;
-}
-
-.toolbar-token-status.validating {
-	color: #8b8d98;
-	font-weight: 500;
-	font-style: italic;
-}
-
-.toolbar-token-status.invalid {
-	color: #ef4444;
-}
-
-.toolbar-divider {
-	width: 1px;
-	height: 20px;
-	background: #1e1f2a;
-}
-
 .editor {
 	display: flex;
 	flex: 1;
 	overflow: hidden;
 	position: relative;
+	touch-action: none;
 }
 
 .canvas {
@@ -425,6 +333,7 @@
 	position: relative;
 	overflow: hidden;
 	background-color: #0c0d10;
+	touch-action: none;
 	/* Block the browser's "select word/paragraph" behaviour on
 	 * dbl-click. Input fields, textboxes, and node labels opt back
 	 * in to text selection where needed. */
@@ -454,6 +363,7 @@
 	position: absolute;
 	bottom: 12px;
 	right: 12px;
+	transition: right 0.2s ease;
 	display: flex;
 	align-items: center;
 	gap: 2px;
@@ -461,6 +371,10 @@
 	border: 1px solid #1e1f2a;
 	border-radius: 6px;
 	padding: 2px;
+}
+
+.zoom-controls.history-open {
+	right: calc(min(380px, 95vw) + 12px);
 }
 
 .zoom-ctrl-btn {
@@ -951,4 +865,97 @@
 	pointer-events: none;
 	z-index: 20;
 	white-space: nowrap;
+}
+
+@media (max-width: 640px), (pointer: coarse) {
+	.workflow-root {
+		min-height: 100dvh;
+		border-radius: 0;
+		border: none;
+		box-shadow: none;
+	}
+	.toolbar {
+		height: auto;
+		min-height: 44px;
+		padding: 6px 8px;
+		flex-wrap: wrap;
+		gap: 6px;
+		row-gap: 6px;
+	}
+	.toolbar-left,
+	.toolbar-right {
+		gap: 6px;
+		flex-wrap: wrap;
+	}
+	.toolbar-stat {
+		display: none;
+	}
+	.name-text {
+		font-size: 13px;
+	}
+	.name-btn,
+	.name-readonly,
+	.tool-btn,
+	.toolbar-login-btn,
+	.toolbar-user-chip {
+		white-space: nowrap;
+	}
+	.tool-btn {
+		padding: 5px 8px;
+		font-size: 11px;
+	}
+	.toolbar-token-form {
+		flex-basis: 100%;
+		min-width: 0;
+		order: 10;
+	}
+	.toolbar-token-input {
+		width: 100%;
+		min-width: 0;
+		flex: 1;
+	}
+	.toolbar-login-btn {
+		padding: 5px 10px;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+	.toolbar-user-name {
+		max-width: 84px;
+	}
+	.toolbar-user-menu,
+	.save-menu {
+		width: min(280px, calc(100vw - 24px));
+	}
+	.save-menu {
+		right: 0;
+	}
+	.zoom-controls {
+		bottom: calc(84px + env(safe-area-inset-bottom));
+		right: 8px;
+	}
+	.shortcuts-panel,
+	.zoom-ctrl-shortcuts {
+		display: none;
+	}
+	.wf-toast-stack {
+		bottom: calc(96px + env(safe-area-inset-bottom));
+		left: 8px;
+		right: 8px;
+		transform: none;
+		width: auto;
+	}
+	.wf-toast {
+		max-width: none;
+		font-size: 10px;
+		padding: 6px 10px 6px 12px;
+	}
+	.wf-modal {
+		min-width: 0;
+		max-width: none;
+		width: calc(100vw - 24px);
+	}
+	.drop-menu,
+	.add-node-menu {
+		max-width: calc(100vw - 16px);
+	}
 }

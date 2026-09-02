@@ -7,7 +7,9 @@ import {
 	delete_run_history,
 	on_run_history_change,
 	read_run_history,
+	read_run_history_storage,
 	run_history_url,
+	set_run_history_storage,
 	stage_run_history_replay,
 	start_run_history,
 	update_run_history,
@@ -25,6 +27,8 @@ const replacement_apps = Array.from(
 const in_browser = typeof window !== "undefined";
 
 afterEach(() => {
+	set_run_history_storage(scope, { type: "browser" });
+	set_run_history_storage(other_scope, { type: "browser" });
 	clear_run_history(scope);
 	clear_run_history(other_scope);
 	for (const replacement_app of replacement_apps) {
@@ -34,6 +38,48 @@ afterEach(() => {
 });
 
 describe.skipIf(!in_browser)("run history", () => {
+	test("uses this browser as the default history storage", () => {
+		expect(read_run_history_storage(scope)).toEqual({ type: "browser" });
+	});
+
+	test("remembers a bucket while switching storage destinations", () => {
+		set_run_history_storage(scope, {
+			type: "bucket",
+			bucket_id: "alice/app-history"
+		});
+		expect(read_run_history_storage(scope)).toEqual({
+			type: "bucket",
+			bucket_id: "alice/app-history"
+		});
+
+		set_run_history_storage(scope, {
+			type: "browser",
+			bucket_id: "alice/app-history"
+		});
+		expect(read_run_history_storage(scope)).toEqual({
+			type: "browser",
+			bucket_id: "alice/app-history"
+		});
+	});
+
+	test("does not duplicate bucket runs in local storage", () => {
+		set_run_history_storage(scope, {
+			type: "bucket",
+			bucket_id: "alice/app-history"
+		});
+
+		const id = start_run_history({
+			app_id,
+			endpoint: "/predict",
+			api_name: "/predict",
+			fn_index: 0,
+			inputs: ["hello"]
+		});
+
+		expect(id).toBeNull();
+		expect(read_run_history(scope)).toEqual([]);
+	});
+
 	test("stores runs per app id with the page and inputs", () => {
 		const id = start_run_history({
 			app_id,

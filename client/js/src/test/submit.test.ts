@@ -1,6 +1,9 @@
 import { describe, beforeAll, afterEach, afterAll, test, expect } from "vitest";
+import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
+import { set_run_history_storage } from "../utils/run_history";
+import { direct_space_url } from "./handlers";
 import { initialise_server } from "./server";
 
 let server: Awaited<ReturnType<typeof initialise_server>>;
@@ -9,7 +12,12 @@ beforeAll(async () => {
 	server = await initialise_server();
 	await server.start({ quiet: true });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+	server.resetHandlers();
+	if (typeof window !== "undefined") {
+		set_run_history_storage({ app_id: 123 }, { type: "browser" });
+	}
+});
 afterAll(() => server.stop());
 
 async function race_with_timeout<T>(
@@ -29,6 +37,35 @@ async function race_with_timeout<T>(
 }
 
 describe("submit iterator", () => {
+	test.skipIf(typeof window === "undefined")(
+		"sends the selected history bucket with queued submissions",
+		async () => {
+			const app = await Client.connect("hmb/hello_world");
+			const scope = {
+				app_id: app.config?.app_id,
+				username: app.config?.username
+			};
+			set_run_history_storage(scope, {
+				type: "bucket",
+				bucket_id: "alice/app-history"
+			});
+
+			let header: string | null = null;
+			server.resetHandlers(
+				http.post(`${direct_space_url}/queue/join`, ({ request }) => {
+					header = request.headers.get("x-gradio-history-bucket");
+					return HttpResponse.json({ event_id: "bucket-event" });
+				})
+			);
+
+			const iterator = app.submit("/predict", ["hi"]);
+			await expect(iterator.wait_for_id()).resolves.toBe("bucket-event");
+			expect(header).toBe("alice/app-history");
+			await iterator.return();
+			set_run_history_storage(scope, { type: "browser" });
+		}
+	);
+
 	test("next() after the iterator is closed resolves to {done: true}", async () => {
 		const app = await Client.connect("hmb/hello_world");
 		// Avoid opening a real SSE stream — the test does not need one.
