@@ -1495,8 +1495,24 @@ class App(FastAPI):
                 ].put_nowait(message)
             if body.event_id in app.iterators:
                 async with app.lock:
+                    iterator = app.iterators[body.event_id]
+                    # The cancelled run never reaches its final chunk, so this
+                    # is the last point that can end its streams and drop its
+                    # diff state. Afterwards the iterator, and with it the run
+                    # key, is gone.
+                    run = blocks.lookup_stream_run_key(iterator)
+                    if run is not None:
+                        for stream in (
+                            blocks.pending_streams.get(body.session_hash, {})
+                            .get(run, {})
+                            .values()
+                        ):
+                            stream.end_stream()
+                        blocks.pending_diff_streams.get(body.session_hash, {}).pop(
+                            run, None
+                        )
                     try:
-                        await safe_aclose_iterator(app.iterators[body.event_id])
+                        await safe_aclose_iterator(iterator)
                     except Exception:
                         pass
                     del app.iterators[body.event_id]

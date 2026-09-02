@@ -428,11 +428,12 @@ async def call_process_api(
             raise output
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
-        # Look the run up rather than keying it: minting one here would write to
-        # `_stream_run_ids` while another exception is in flight, for a run that
-        # by definition has no streams to close.
+        # Look the run up rather than keying it. Minting a key here would write
+        # to the run table while another exception is in flight, and an iterator
+        # can reach this unkeyed: a call with an event id but no session hash
+        # stores one without ever opening a run.
         run_id = (
-            app.get_blocks()._stream_run_ids.get(iterator)
+            app.get_blocks().lookup_stream_run_key(iterator)
             if iterator is not None
             else None
         )
