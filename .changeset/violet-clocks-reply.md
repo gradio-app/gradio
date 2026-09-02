@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Fix streaming run key colliding across sequential runs
+fix:Fix streaming run key colliding across sequential runs
