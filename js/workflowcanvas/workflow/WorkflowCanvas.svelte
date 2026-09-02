@@ -524,6 +524,16 @@
 	let spaceHeld = $state(false);
 	let last_node_drag_moved = false;
 
+	const activeTouches = new Map<number, { clientX: number; clientY: number }>();
+	let pinchState: {
+		startDist: number;
+		startZoom: number;
+		startCenterX: number;
+		startCenterY: number;
+		startVX: number;
+		startVY: number;
+	} | null = null;
+
 	// ─── App state ──────────────────────────────────────────────────────────────
 	let canvasEl: HTMLDivElement;
 	let rootEl: HTMLDivElement;
@@ -1047,7 +1057,30 @@
 		) {
 			return;
 		}
-		const pan_requested = e.button === 1 || spaceHeld;
+		const is_touch = e.pointerType === "touch";
+		if (is_touch) {
+			activeTouches.set(e.pointerId, {
+				clientX: e.clientX,
+				clientY: e.clientY
+			});
+			// Second finger down → start pinch-zoom, drop any single-touch pan.
+			if (activeTouches.size === 2) {
+				const [a, b] = Array.from(activeTouches.values());
+				const r = canvasEl.getBoundingClientRect();
+				pinchState = {
+					startDist:
+						Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
+					startZoom: viewport.zoom,
+					startCenterX: (a.clientX + b.clientX) / 2 - r.left,
+					startCenterY: (a.clientY + b.clientY) / 2 - r.top,
+					startVX: viewport.x,
+					startVY: viewport.y
+				};
+				dragMode = null;
+				return;
+			}
+		}
+		const pan_requested = e.button === 1 || spaceHeld || is_touch;
 		if (pan_requested) {
 			dragMode = {
 				kind: "pan",
@@ -1161,6 +1194,34 @@
 	}
 
 	function onCanvasPointerMove(e: PointerEvent): void {
+		if (e.pointerType === "touch" && activeTouches.has(e.pointerId)) {
+			activeTouches.set(e.pointerId, {
+				clientX: e.clientX,
+				clientY: e.clientY
+			});
+			if (pinchState && activeTouches.size >= 2) {
+				const [a, b] = Array.from(activeTouches.values()).slice(0, 2);
+				const dist =
+					Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+				const newZoom = Math.max(
+					0.15,
+					Math.min(4, pinchState.startZoom * (dist / pinchState.startDist))
+				);
+				const r = canvasEl.getBoundingClientRect();
+				const cx = (a.clientX + b.clientX) / 2 - r.left;
+				const cy = (a.clientY + b.clientY) / 2 - r.top;
+				const worldCX =
+					(pinchState.startCenterX - pinchState.startVX) / pinchState.startZoom;
+				const worldCY =
+					(pinchState.startCenterY - pinchState.startVY) / pinchState.startZoom;
+				viewport = {
+					zoom: newZoom,
+					x: cx - worldCX * newZoom,
+					y: cy - worldCY * newZoom
+				};
+				return;
+			}
+		}
 		if (!dragMode) return;
 		if (dragMode.kind === "pan") {
 			viewport = {
@@ -1197,6 +1258,10 @@
 	}
 
 	function onCanvasPointerUp(e: PointerEvent): void {
+		if (e.pointerType === "touch") {
+			activeTouches.delete(e.pointerId);
+			if (activeTouches.size < 2) pinchState = null;
+		}
 		if (!dragMode) return;
 		const mode = dragMode;
 		if (mode.kind === "marquee") {
@@ -2882,6 +2947,7 @@
 		onpointerdown={onCanvasPointerDown}
 		onpointermove={onCanvasPointerMove}
 		onpointerup={onCanvasPointerUp}
+		onpointercancel={onCanvasPointerUp}
 		onwheel={onWheel}
 	>
 		<!-- Dot grid background — fixed in screen space, parallax-free -->
@@ -3054,7 +3120,7 @@
 				<div class="zoom-ctrl-divider"></div>
 			{/if}
 			<button
-				class="zoom-ctrl-btn"
+				class="zoom-ctrl-btn zoom-ctrl-shortcuts"
 				onclick={() => (showShortcuts = !showShortcuts)}
 				title="Keyboard shortcuts">?</button
 			>

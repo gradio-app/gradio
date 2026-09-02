@@ -812,6 +812,7 @@ def get_all_components() -> "list[type[Component] | type[BlockContext]]":
             "Interface",
             "Blocks",
             "TabbedInterface",
+            "Workflow",
             "NativePlot",
             "SketchBox",
         ]
