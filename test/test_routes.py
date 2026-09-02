@@ -1015,16 +1015,17 @@ class TestRoutes:
         response = client.get("/monitoring/summary")
         assert response.status_code == 403
 
-    def test_stream_playlist_route_takes_the_event_id_as_the_run(self):
+    def test_stream_playlist_route_takes_a_string_run_key(self):
         with Blocks() as demo:
             audio = gr.Audio(streaming=True)
 
         app = routes.App.create_app(demo)
         client = TestClient(app)
-        demo.pending_streams["session"] = {"event-1": {audio._id: MediaStream()}}
+        run = "2b0e1cb7f4a34d4b9f2b6d1c8a7e5f30"
+        demo.pending_streams["session"] = {run: {audio._id: MediaStream()}}
 
         response = client.get(
-            f"{API_PREFIX}/stream/session/event-1/{audio._id}/playlist.m3u8"
+            f"{API_PREFIX}/stream/session/{run}/{audio._id}/playlist.m3u8"
         )
         assert response.status_code == 200
         assert response.text.startswith("#EXTM3U")

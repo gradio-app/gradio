@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import random
+import shutil
 import sys
 import threading
 import time
@@ -1660,13 +1661,35 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
+requires_ffmpeg = pytest.mark.skipif(
+    shutil.which("ffmpeg") is None, reason="ffmpeg not installed"
+)
+
+
+def streaming_audio_demo():
+    """A Blocks whose button streams two audio chunks into a streaming Audio."""
+    chunk = (
+        pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+    ).read_bytes()
+
+    def stream():
+        yield chunk
+        yield chunk
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, None, audio)
+
+    return demo, next(iter(demo.fns.values())), audio
+
+
 async def drive_streaming_run(demo, block_fn, session_hash, event_id):
     """Run a generator to completion the way the queue does, one call per chunk.
 
     Returns the playlist URL from the first chunk.
     """
     iterator, url = None, None
-    while True:
+    for _ in range(10):
         output = await demo.process_api(
             block_fn=block_fn,
             inputs=[],
@@ -1679,6 +1702,7 @@ async def drive_streaming_run(demo, block_fn, session_hash, event_id):
         url = url or output["data"][0]["url"]
         if not output["is_generating"]:
             return url
+    raise AssertionError("the generator never stopped generating")
 
 
 class TestHandleStreamingOutputs:
@@ -1700,65 +1724,59 @@ class TestHandleStreamingOutputs:
         assert data == [b"final"]
         assert demo.pending_streams["s"]["run-1"] == {}
 
+    def test_run_keys_do_not_repeat_across_sequential_runs(self):
+        # The run key goes into the playlist URL, and a new URL is what tells the
+        # player that a new stream has started. `id(iterator)` is only unique
+        # among objects that are alive at the same time, so a later run landed on
+        # the address a finished run had just freed and inherited the stream that
+        # run had already ended.
+        # See https://github.com/gradio-app/gradio/issues/13809
+        from gradio.utils import SyncToAsyncIterator
+
+        demo = gr.Blocks()
+        keys = set()
+        for _ in range(200):
+            iterator = SyncToAsyncIterator(iter([1]), None)
+            keys.add(demo._stream_run_key(iterator))
+            del iterator  # free it so the next one can land on its address
+
+        assert len(keys) == 200
+
+    @requires_ffmpeg
     @pytest.mark.asyncio
     async def test_each_run_gets_its_own_stream(self):
-        # The run key goes into the playlist URL, and a new URL is what tells the
-        # player that a new stream has started. `id(iterator)` is only unique among
-        # objects that are alive at the same time, so a later run could land on the
-        # address a finished run had just freed and append to a stream that was
-        # already ended. See https://github.com/gradio-app/gradio/issues/13809
-        chunk = (
-            pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
-        ).read_bytes()
-
-        def stream():
-            yield chunk
-            yield chunk
-
-        with gr.Blocks() as demo:
-            audio = gr.Audio(streaming=True)
-            gr.Button().click(stream, None, audio)
-
-        block_fn = next(iter(demo.fns.values()))
+        demo, block_fn, audio = streaming_audio_demo()
 
         first = await drive_streaming_run(demo, block_fn, "s", "event-1")
         second = await drive_streaming_run(demo, block_fn, "s", "event-2")
 
-        assert first == f"{API_PREFIX}/stream/s/event-1/{audio._id}/playlist.m3u8"
-        assert second == f"{API_PREFIX}/stream/s/event-2/{audio._id}/playlist.m3u8"
-
         streams = demo.pending_streams["s"]
-        assert list(streams) == ["event-1", "event-2"]
-        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
-
-    @pytest.mark.asyncio
-    async def test_run_without_an_event_id_is_still_one_stream(self):
-        # A caller that drives `process_api` itself has no event id, so the run
-        # is keyed off the iterator. That key still has to hold for the whole
-        # run, and still has to differ from the next run's.
-        chunk = (
-            pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
-        ).read_bytes()
-
-        def stream():
-            yield chunk
-            yield chunk
-
-        with gr.Blocks() as demo:
-            audio = gr.Audio(streaming=True)
-            gr.Button().click(stream, None, audio)
-
-        block_fn = next(iter(demo.fns.values()))
-
-        first = await drive_streaming_run(demo, block_fn, "s", None)
-        second = await drive_streaming_run(demo, block_fn, "s", None)
-
-        streams = demo.pending_streams["s"]
-        assert len(streams) == 2
-        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
+        assert first != second
         assert {first, second} == {
             f"{API_PREFIX}/stream/s/{key}/{audio._id}/playlist.m3u8" for key in streams
         }
+        # two segments each, so neither run appended to the other's stream
+        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
+
+    @requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_restarting_a_cancelled_run_opens_a_new_stream(self):
+        # Cancelling an event puts it in `app.iterators_to_reset`, so the next
+        # call for that same event id starts the generator over. Keying the run
+        # on the event id would hand the restarted run the streams the cancel
+        # had already ended, and an unchanged playlist URL leaves the player on
+        # the source it is done with.
+        demo, block_fn, audio = streaming_audio_demo()
+
+        cancelled = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        streams = demo.pending_streams["s"]
+        for stream in next(iter(streams.values())).values():
+            stream.end_stream()
+
+        restarted = await drive_streaming_run(demo, block_fn, "s", "event-1")
+
+        assert restarted != cancelled
+        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
 
 
 class TestGetAPIInfo:

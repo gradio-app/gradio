@@ -1116,8 +1116,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
-        # Run keys for streaming runs that have no event id, keyed weakly by
-        # the iterator so a finished run's key goes away with it
+        # Per-run keys for streaming outputs, held weakly against the iterator
+        # so that a finished run's key goes away with it
         self._stream_run_ids: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
         self.show_error = True
         self.fill_height = fill_height
@@ -2128,6 +2128,26 @@ Received inputs:
 
         return output
 
+    def _stream_run_key(self, iterator: Any) -> str:
+        """Return the key of the streaming run that `iterator` is driving.
+
+        The key goes into the playlist URL, so it has to hold for every chunk of
+        a run and never repeat. `id(iterator)` is only unique among objects that
+        are alive at the same time, so a finished run's address comes back and
+        the next run inherits its already-ended streams. Holding the key weakly
+        against the iterator instead gives it exactly the lifetime of the run.
+        """
+        try:
+            run = self._stream_run_ids.get(iterator)
+            if run is None:
+                run = uuid.uuid4().hex
+                self._stream_run_ids[iterator] = run
+        except TypeError:
+            # Not every object an async generator function can return supports
+            # weak references, so such a run gets a throwaway key.
+            run = uuid.uuid4().hex
+        return run
+
     async def handle_streaming_outputs(
         self,
         block_fn: BlockFunction,
@@ -2172,7 +2192,6 @@ Received inputs:
                     stream_run[output_id] = MediaStream(
                         desired_output_format=desired_output_format
                     )
-                    stream_run[output_id]
 
                 await stream_run[output_id].add_segment(binary_data)
                 output_data = await processing_utils.async_move_files_to_cache(
@@ -2361,15 +2380,11 @@ Received inputs:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
-                # The run key goes into the playlist URL, so it has to be
-                # the same for every chunk of a run and never repeat. Queued
-                # runs have an event id; a direct call has only the iterator,
-                # so key off that weakly rather than off its reusable address.
-                if event_id is not None:
-                    run = event_id
-                else:
-                    it = old_iterator if was_generating else iterator
-                    run = self._stream_run_ids.setdefault(it, uuid.uuid4().hex)
+                run = (
+                    self._stream_run_key(old_iterator if was_generating else iterator)
+                    if session_hash is not None
+                    else None
+                )
                 async with trace_phase("streaming_diff"):
                     data = await self.handle_streaming_outputs(
                         block_fn,
