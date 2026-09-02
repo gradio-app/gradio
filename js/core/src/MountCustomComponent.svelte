@@ -24,16 +24,17 @@
 		const _props = node.props.props;
 		const _runtime = runtime;
 		// Recreate the snippet in the custom component's Svelte runtime, then
-		// mount the original children with Gradio's runtime inside its placeholder.
+		// replace its temporary marker with children from Gradio's runtime.
 		const runtime_children =
 			children && _runtime.createRawSnippet
 				? _runtime.createRawSnippet(() => ({
-						render: () => "<span></span>",
+						render: () => "<span hidden></span>",
 						setup: (target) => {
 							const mounted_children = mount(MountChildren, {
 								target,
 								props: { children }
 							});
+							target.replaceWith(...target.childNodes);
 
 							return () => {
 								void unmount(mounted_children);
