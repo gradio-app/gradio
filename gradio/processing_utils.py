@@ -463,7 +463,12 @@ def move_files_to_cache(
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
         # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        if (
+            payload.url
+            and postprocess
+            and client_utils.is_http_url_like(payload.url)
+            and not block.proxy_url
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -482,7 +487,7 @@ def move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
             encoded_path = client_utils.encode_file_path(payload.path)
             url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
@@ -584,7 +589,12 @@ async def async_move_files_to_cache(
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
         # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        if (
+            payload.url
+            and postprocess
+            and client_utils.is_http_url_like(payload.url)
+            and not block.proxy_url
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -605,7 +615,7 @@ async def async_move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
             encoded_path = client_utils.encode_file_path(payload.path)
             url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"

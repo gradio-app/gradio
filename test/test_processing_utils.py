@@ -11,6 +11,7 @@ from unittest.mock import patch
 import httpx
 import numpy as np
 import pytest
+from gradio_client import utils as client_utils
 from PIL import Image, ImageCms
 from pydantic import BaseModel
 from pydub import AudioSegment
@@ -77,6 +78,50 @@ class TestTempFileManagement:
 
         for result in (sync_result, async_result, proxy_result):
             assert result["url"].endswith("/report%2520%23final.txt")
+
+    @pytest.mark.asyncio
+    async def test_move_files_to_cache_proxies_loaded_space_files(self):
+        proxy_url = "https://private-space.hf.space"
+        remote_path = "/tmp/gradio/private-cat.png"
+        data = data_classes.FileData(
+            path=remote_path,
+            url=f"{proxy_url}{API_PREFIX}/file={remote_path}",
+        ).model_dump()
+        proxy_component = gr.Image()
+        proxy_component.proxy_url = f"{proxy_url}/"
+
+        sync_result = processing_utils.move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+        async_result = await processing_utils.async_move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+        expected_url = (
+            f"{API_PREFIX}/proxy={proxy_url}{API_PREFIX}/file="
+            f"{client_utils.encode_file_path(remote_path)}"
+        )
+
+        for result in (sync_result, async_result):
+            assert result["path"] == remote_path
+            assert result["url"] == expected_url
+
+    @pytest.mark.asyncio
+    async def test_move_files_to_cache_does_not_proxy_external_urls(self):
+        external_url = "https://example.com/cat.png"
+        data = data_classes.FileData(path=external_url, url=external_url).model_dump()
+        proxy_component = gr.Image()
+        proxy_component.proxy_url = "https://private-space.hf.space/"
+
+        sync_result = processing_utils.move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+        async_result = await processing_utils.async_move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+
+        for result in (sync_result, async_result):
+            assert result["path"] == external_url
+            assert result["url"] == external_url
 
     def test_save_b64_to_cache(self, gradio_temp_dir, media_data):
         base64_file_1 = media_data.BASE64_IMAGE
