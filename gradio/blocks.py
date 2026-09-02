@@ -2132,10 +2132,8 @@ Received inputs:
         """Return the key of the streaming run that `iterator` is driving.
 
         The key goes into the playlist URL, so it has to hold for every chunk of
-        a run and never repeat. `id(iterator)` is only unique among objects that
-        are alive at the same time, so a finished run's address comes back and
-        the next run inherits its already-ended streams. Holding the key weakly
-        against the iterator instead gives it exactly the lifetime of the run.
+        a run and never repeat. `id()` only holds while the object is alive, so
+        the key is held weakly against the iterator and dies with it instead.
         """
         try:
             run = self._stream_run_ids.get(iterator)
@@ -2143,8 +2141,8 @@ Received inputs:
                 run = uuid.uuid4().hex
                 self._stream_run_ids[iterator] = run
         except TypeError:
-            # Not every object an async generator function can return supports
-            # weak references, so such a run gets a throwaway key.
+            # No weak reference means no stable key without leaking the
+            # iterator, so such a run gets a throwaway key per chunk.
             run = uuid.uuid4().hex
         return run
 

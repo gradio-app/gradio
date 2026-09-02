@@ -1725,11 +1725,8 @@ class TestHandleStreamingOutputs:
         assert demo.pending_streams["s"]["run-1"] == {}
 
     def test_run_keys_do_not_repeat_across_sequential_runs(self):
-        # The run key goes into the playlist URL, and a new URL is what tells the
-        # player that a new stream has started. `id(iterator)` is only unique
-        # among objects that are alive at the same time, so a later run landed on
-        # the address a finished run had just freed and inherited the stream that
-        # run had already ended.
+        # A later run used to land on the address a finished run had just freed
+        # and inherit the stream that run had already ended.
         # See https://github.com/gradio-app/gradio/issues/13809
         from gradio.utils import SyncToAsyncIterator
 
@@ -1762,10 +1759,8 @@ class TestHandleStreamingOutputs:
     @pytest.mark.asyncio
     async def test_restarting_a_cancelled_run_opens_a_new_stream(self):
         # Cancelling an event puts it in `app.iterators_to_reset`, so the next
-        # call for that same event id starts the generator over. Keying the run
-        # on the event id would hand the restarted run the streams the cancel
-        # had already ended, and an unchanged playlist URL leaves the player on
-        # the source it is done with.
+        # call for that event id starts the generator over. Keying the run on
+        # the event id would hand the restart the streams the cancel had ended.
         demo, block_fn, audio = streaming_audio_demo()
 
         cancelled = await drive_streaming_run(demo, block_fn, "s", "event-1")
