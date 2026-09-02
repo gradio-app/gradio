@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import importlib.resources
 import json
+import logging
 import mimetypes
 import os
 import pickle
@@ -61,7 +62,7 @@ from starlette.responses import (
 )
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from gradio import processing_utils, utils
+from gradio import history, processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
     DeveloperPath,
@@ -86,6 +87,8 @@ API_PREFIX = "/gradio_api"
 
 
 mimetypes.init()
+
+logger = logging.getLogger(__name__)
 
 
 class Obj:
@@ -402,6 +405,9 @@ async def call_process_api(
     if batch_in_single_out:
         inputs = [inputs]
 
+    submitted_inputs = body.data
+    started_at = history.now_utc_iso()
+
     try:
         from gradio.profiling import trace_phase
 
@@ -439,7 +445,44 @@ async def call_process_api(
 
     if batch_in_single_out:
         output["data"] = output["data"][0]
+
+    _record_run_history(
+        app,
+        fn=fn,
+        gr_request=gr_request,
+        inputs=submitted_inputs,
+        outputs=output.get("data"),
+        started_at=started_at,
+        is_final=not output.get("is_generating"),
+    )
     return output
+
+
+def _record_run_history(
+    app: App,
+    *,
+    fn: BlockFunction,
+    gr_request: Union[Request, list[Request]],
+    inputs: Any,
+    outputs: Any,
+    started_at: str,
+    is_final: bool = True,
+) -> None:
+    """Hand a finished run to the recorder; records only public endpoints."""
+    if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
+        return
+    try:
+        history.schedule_record_run(
+            app,
+            request=gr_request,
+            inputs=inputs,
+            outputs=outputs,
+            api_name=fn.api_name,
+            fn_index=fn._id,
+            started_at=started_at,
+        )
+    except Exception:
+        logger.debug("history: scheduling failed", exc_info=True)
 
 
 def get_first_header_value(request: fastapi.Request, header_name: str):

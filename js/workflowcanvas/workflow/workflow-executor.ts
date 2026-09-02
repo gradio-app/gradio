@@ -81,33 +81,59 @@ async function toGradioArg(value: NodeDataValue): Promise<unknown> {
 	if (typeof value === "boolean") return value;
 	if (Array.isArray(value)) return value;
 	const fileVal = value as FileValue;
-	// Blob URLs need to be uploaded to our Gradio server first
-	if (fileVal.url.startsWith("blob:") || fileVal.url.startsWith("data:")) {
-		try {
-			const response = await fetch(fileVal.url);
-			if (!response.ok)
-				throw new Error(`Blob fetch failed: ${response.status}`);
-			const blob = await response.blob();
-			const formData = new FormData();
-			formData.append("files", blob, fileVal.name || "file");
-			// Try /gradio_api/upload first, then /upload
-			for (const path of ["/gradio_api/upload", "/upload"]) {
-				const uploadRes = await fetch(path, { method: "POST", body: formData });
-				if (uploadRes.ok) {
-					const files = await uploadRes.json();
-					return { path: files[0], url: files[0] };
-				}
-			}
-			throw new Error("Upload failed");
-		} catch (err) {
-			console.error("[Executor] File upload error:", err);
-			throw new Error(
-				`Failed to upload file: ${err instanceof Error ? err.message : err}`
-			);
-		}
+	if (is_client_only_media(fileVal)) {
+		const uploaded = await upload_local_media(fileVal);
+		return { path: uploaded.path, url: uploaded.url };
 	}
 	// Remote URLs can be passed directly
 	return { url: fileVal.url };
+}
+
+export interface LocalMediaValue {
+	url: string;
+	name?: string;
+}
+
+/** True for values that only exist in this browser tab and would not survive a
+ * reload — `blob:` object URLs and inline `data:` payloads.
+ *
+ * Deliberately not a type predicate: narrowing an already-`FileValue` argument
+ * would leave the else branch typed `never`. */
+export function is_client_only_media(value: unknown): boolean {
+	const url = (value as { url?: unknown } | null | undefined)?.url;
+	return (
+		typeof url === "string" &&
+		(url.startsWith("blob:") || url.startsWith("data:"))
+	);
+}
+
+/** Upload a `blob:`/`data:` media value to this Gradio server and return the
+ * server-side path. Used both when calling a model and when persisting a run to
+ * bucket history, so a stored record never points at a revoked object URL. */
+export async function upload_local_media(
+	fileVal: LocalMediaValue
+): Promise<{ path: string; url: string }> {
+	try {
+		const response = await fetch(fileVal.url);
+		if (!response.ok) throw new Error(`Blob fetch failed: ${response.status}`);
+		const blob = await response.blob();
+		const formData = new FormData();
+		formData.append("files", blob, fileVal.name || "file");
+		// Try /gradio_api/upload first, then /upload
+		for (const path of ["/gradio_api/upload", "/upload"]) {
+			const uploadRes = await fetch(path, { method: "POST", body: formData });
+			if (uploadRes.ok) {
+				const files = await uploadRes.json();
+				return { path: files[0], url: files[0] };
+			}
+		}
+		throw new Error("Upload failed");
+	} catch (err) {
+		console.error("[Executor] File upload error:", err);
+		throw new Error(
+			`Failed to upload file: ${err instanceof Error ? err.message : err}`
+		);
+	}
 }
 
 const MEDIA_PORT_TYPES = new Set([
@@ -218,7 +244,18 @@ function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 			...(typeof obj.size === "number" ? { size: obj.size } : {})
 		} satisfies FileValue;
 	}
-	return String(result);
+
+	if (result === null || result === undefined) return null;
+	// JSON.stringify(undefined) is `undefined`, not a string, so the null check
+	// above has to come first for the return type to hold.
+	const as_text = JSON.stringify(result) ?? String(result);
+	if (portType === "text" || portType === "html" || portType === "json") {
+		return as_text;
+	}
+	// Unexpected shape for a media/number port. Keep it visible rather than
+	// blanking the node with no explanation.
+	console.warn("[Executor] unexpected result for port type", portType, result);
+	return as_text;
 }
 
 export async function executeWorkflow(
