@@ -2151,9 +2151,7 @@ Received inputs:
         """End and forget what both streaming dicts hold for a session.
 
         A run the client walked away from reaches neither its final chunk nor
-        an exception handler, so this is the only place its diff state gets
-        dropped, and that entry holds the last full postprocessed output of
-        every component.
+        an exception handler, so nothing else drops its diff state.
         """
         for run in self.pending_streams.pop(session_hash, {}).values():
             for stream in run.values():

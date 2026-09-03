@@ -434,30 +434,23 @@ async def call_process_api(
             raise output
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
-        # Look the run up rather than keying it. Minting a key here would write
-        # to the run table while another exception is in flight, and an iterator
-        # can reach this unkeyed: a call with an event id but no session hash
-        # stores one without ever opening a run.
+        # Look the run up rather than mint a key: minting would write to the run
+        # table mid-exception, and an iterator can reach this unkeyed, since a
+        # call with an event id but no session hash opens no run.
         blocks = app.get_blocks()
         run_id = (
             blocks._lookup_stream_run_key(iterator) if iterator is not None else None
         )
         if run_id is not None:
-            # close off any streams that are still open
+            # The final chunk that would have ended these streams and dropped
+            # what they leave behind never arrives, so do both here. An entry
+            # that holds a stream stays, since its playlist is fetched later.
             stream_runs = blocks.pending_streams.get(session_hash, {})
             pending_streams: dict[int, MediaStream] = stream_runs.get(run_id, {})
             for stream in pending_streams.values():
                 stream.end_stream()
             if not pending_streams:
-                # The entry was filed before the run was known to have any
-                # streaming output, and it never opened one, so nothing can
-                # fetch it. A run that finishes drops it on its final chunk;
-                # one that raises has to drop it here.
                 stream_runs.pop(run_id, None)
-            # The run never reaches its final chunk, so this is the only place
-            # its diff state gets dropped. Nothing else does: unlike
-            # `pending_streams`, `pending_diff_streams` is not cleared when the
-            # session disconnects, so the entry would outlive the process.
             blocks.pending_diff_streams.get(session_hash, {}).pop(run_id, None)
         raise
 
