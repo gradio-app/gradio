@@ -1089,16 +1089,18 @@ class Queue:
                 # https://github.com/gradio-app/gradio/blob/f09aea34d6bd18c1e2fef80c86ab2476a6d1dd83/gradio/routes.py#L594-L596
                 pass
             app = self.server_app
-            for event in events:
-                if app is not None:
+            if app is not None:
+                blocks = app.get_blocks()
+                for event in events:
                     # A run that raised, was cancelled or lost its client reaches
                     # no final chunk, so close out its streams here, while the
                     # iterator that keys them is still stored (a finished run's
                     # is already None). /cancel awaits this task before dropping
                     # that iterator itself.
-                    app.get_blocks()._drop_run_streams(
+                    blocks._drop_run_streams(
                         event.session_hash, app.iterators.get(event._id)
                     )
+            for event in events:
                 # Always reset the state of the iterator
                 # If the job finished successfully, this has no effect
                 # If the job is cancelled, this will enable future runs

@@ -2420,7 +2420,8 @@ Received inputs:
                         final=not is_generating,
                     )
                     # Diff state serves the later chunks of a run, which can
-                    # only be fetched under an event id
+                    # only be fetched under an event id. A call without one
+                    # gets full values, which is what its clients expect.
                     data = self.handle_streaming_diffs(
                         block_fn,
                         data,

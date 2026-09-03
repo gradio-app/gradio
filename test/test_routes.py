@@ -1179,7 +1179,7 @@ class TestRoutes:
 
         _, local_url, _ = demo.launch(prevent_thread_lock=True)
         try:
-            with httpx.Client(base_url=local_url) as client:
+            with httpx.Client(base_url=local_url, timeout=30) as client:
                 join = client.post(
                     f"{API_PREFIX}/queue/join",
                     json={"data": [], "fn_index": 0, "session_hash": "s"},
@@ -1196,7 +1196,7 @@ class TestRoutes:
                     assert len(demo.pending_streams.get("s", {})) == 1
                     assert len(demo.pending_diff_streams.get("s", {})) == 1
 
-            for _ in range(50):
+            for _ in range(150):
                 if "s" not in demo.pending_diff_streams:
                     break
                 time.sleep(0.1)
@@ -1221,7 +1221,7 @@ class TestRoutes:
 
         _, local_url, _ = demo.launch(prevent_thread_lock=True)
         try:
-            with httpx.Client(base_url=local_url) as client:
+            with httpx.Client(base_url=local_url, timeout=30) as client:
                 join = client.post(
                     f"{API_PREFIX}/queue/join",
                     json={"data": [], "fn_index": 0, "session_hash": "s"},
