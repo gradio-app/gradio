@@ -1078,10 +1078,15 @@ class TestRoutes:
 
         with pytest.raises(RuntimeError):
             asyncio.run(drive_aborted_run(app, fn))
-        run = next(iter(demo.pending_streams["s"]))
 
-        assert demo.pending_streams["s"][run][audio._id].ended is True
-        assert demo.pending_diff_streams["s"] == {}
+        # `.get`, not a subscript: both dicts are defaultdicts, so reading a
+        # missing session would create it and pass the assertion below.
+        runs = demo.pending_streams.get("s")
+        assert runs is not None and len(runs) == 1
+        run = next(iter(runs))
+
+        assert runs[run][audio._id].ended is True
+        assert demo.pending_diff_streams.get("s") == {}
 
     def test_an_aborted_run_with_no_stream_drops_its_entry(self):
         # `handle_streaming_outputs` files an entry for every generator, before
@@ -1102,7 +1107,42 @@ class TestRoutes:
         with pytest.raises(RuntimeError):
             asyncio.run(drive_aborted_run(app, fn))
 
-        assert demo.pending_streams["s"] == {}
+        assert demo.pending_streams.get("s") == {}
+
+    def test_a_disconnected_session_drops_its_diff_state(self):
+        # A client that walks away mid-run does not raise: the queue drops the
+        # event and returns, so neither the final chunk nor the exception
+        # handler runs. `pending_diff_streams` has no other cleanup, and each
+        # entry holds the last full postprocessed output of every component.
+        def stream():
+            for _ in range(5):
+                yield "x" * 1000
+
+        with Blocks() as demo:
+            box = gr.Textbox()
+            gr.Button().click(stream, None, box)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        async def one_chunk_then_leave():
+            await route_utils.call_process_api(
+                app=app,
+                body=PredictBodyInternal(
+                    data=[], session_hash="s", event_id="e1", request=None
+                ),
+                gr_request=gr.Request(),
+                fn=fn,
+                root_path="",
+            )
+
+        asyncio.run(one_chunk_then_leave())
+        assert demo.pending_diff_streams.get("s") != {}
+
+        demo._drop_session_streams("s")
+
+        assert "s" not in demo.pending_streams
+        assert "s" not in demo.pending_diff_streams
 
 
 def test_api_listener(connect):

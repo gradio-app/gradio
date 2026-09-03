@@ -1118,7 +1118,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pending_diff_streams = defaultdict(dict)
         # Per-run keys for streaming outputs, held weakly against the iterator
         # so that a finished run's key goes away with it
-        self._stream_run_ids: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+        self._stream_run_ids: weakref.WeakKeyDictionary[Any, str] = (
+            weakref.WeakKeyDictionary()
+        )
         self.show_error = True
         self.fill_height = fill_height
         self.fill_width = fill_width
@@ -2144,6 +2146,19 @@ Received inputs:
     def _lookup_stream_run_key(self, iterator: Any) -> str | None:
         """The key of `iterator`'s run, or None if it never opened one."""
         return self._stream_run_ids.get(iterator)
+
+    def _drop_session_streams(self, session_hash: str) -> None:
+        """End and forget what both streaming dicts hold for a session.
+
+        A run the client walked away from reaches neither its final chunk nor
+        an exception handler, so this is the only place its diff state gets
+        dropped, and that entry holds the last full postprocessed output of
+        every component.
+        """
+        for run in self.pending_streams.pop(session_hash, {}).values():
+            for stream in run.values():
+                stream.end_stream()
+        self.pending_diff_streams.pop(session_hash, None)
 
     async def handle_streaming_outputs(
         self,
