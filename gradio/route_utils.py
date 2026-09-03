@@ -7,6 +7,7 @@ import hmac
 import importlib.resources
 import json
 import logging
+import math
 import mimetypes
 import os
 import pickle
@@ -1193,9 +1194,7 @@ class MediaStream:
         self.segments: list[MediaStreamChunk] = []
         self.combined_file: str | None = None
         self.ended = False
-        self.segment_index = 0
-        self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
-        self.max_duration = 5
+        self.max_duration = 1
         self.desired_output_format = desired_output_format
 
     async def add_segment(self, data: MediaStreamChunk | None):
@@ -1204,7 +1203,7 @@ class MediaStream:
 
         segment_id = str(uuid.uuid4())
         self.segments.append({"id": segment_id, **data})  # type: ignore
-        self.max_duration = max(self.max_duration, data["duration"]) + 1
+        self.max_duration = max(self.max_duration, math.ceil(data["duration"]))
 
     def end_stream(self):
         self.ended = True
