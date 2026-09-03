@@ -1083,6 +1083,40 @@ class TestRoutes:
         assert demo.pending_streams["s"][run][audio._id].ended is True
         assert demo.pending_diff_streams["s"] == {}
 
+    def test_an_aborted_run_with_no_stream_drops_its_entry(self):
+        # `handle_streaming_outputs` files an entry for every generator, before
+        # it knows whether any of its outputs stream. A run that finishes drops
+        # such an entry on its final chunk; a run that raises never gets there,
+        # so this handler has to drop it instead.
+        def stream():
+            yield "chunk one"
+            raise RuntimeError("boom")
+
+        with Blocks() as demo:
+            box = gr.Textbox()
+            gr.Button().click(stream, None, box)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        async def drive():
+            for _ in range(5):
+                body = PredictBodyInternal(
+                    data=[], session_hash="s", event_id="e1", request=None
+                )
+                await route_utils.call_process_api(
+                    app=app,
+                    body=body,
+                    gr_request=gr.Request(),
+                    fn=fn,
+                    root_path="",
+                )
+
+        with pytest.raises(RuntimeError):
+            asyncio.run(drive())
+
+        assert demo.pending_streams["s"] == {}
+
 
 def test_api_listener(connect):
     with gr.Blocks() as demo:

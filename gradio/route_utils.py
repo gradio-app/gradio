@@ -451,6 +451,12 @@ async def call_process_api(
             ).get(run_id, {})
             for stream in pending_streams.values():
                 stream.end_stream()
+            if not pending_streams:
+                # The entry was filed before the run was known to have any
+                # streaming output, and it never opened one, so nothing can
+                # fetch it. A run that finishes drops it on its final chunk;
+                # one that raises has to drop it here.
+                blocks.pending_streams.get(session_hash, {}).pop(run_id, None)
             # The run never reaches its final chunk, so this is the only place
             # its diff state gets dropped. Nothing else does: unlike
             # `pending_streams`, `pending_diff_streams` is not cleared when the
