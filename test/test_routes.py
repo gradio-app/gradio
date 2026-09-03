@@ -60,6 +60,20 @@ from gradio.route_utils import (
 )
 
 
+async def drive_aborted_run(app, fn, chunks=2):
+    """Drive a generator that raises on its second chunk through the route."""
+    for _ in range(chunks):
+        await route_utils.call_process_api(
+            app=app,
+            body=PredictBodyInternal(
+                data=[], session_hash="s", event_id="e1", request=None
+            ),
+            gr_request=gr.Request(),
+            fn=fn,
+            root_path="",
+        )
+
+
 @pytest.fixture()
 def test_client():
     io = Interface(lambda x: x + x, "text", "text", api_name="predict")
@@ -1062,21 +1076,8 @@ class TestRoutes:
         app = routes.App.create_app(demo)
         fn = next(iter(demo.fns.values()))
 
-        async def drive():
-            for _ in range(5):
-                body = PredictBodyInternal(
-                    data=[], session_hash="s", event_id="e1", request=None
-                )
-                await route_utils.call_process_api(
-                    app=app,
-                    body=body,
-                    gr_request=gr.Request(),
-                    fn=fn,
-                    root_path="",
-                )
-
         with pytest.raises(RuntimeError):
-            asyncio.run(drive())
+            asyncio.run(drive_aborted_run(app, fn))
         run = next(iter(demo.pending_streams["s"]))
 
         assert demo.pending_streams["s"][run][audio._id].ended is True
@@ -1098,21 +1099,8 @@ class TestRoutes:
         app = routes.App.create_app(demo)
         fn = next(iter(demo.fns.values()))
 
-        async def drive():
-            for _ in range(5):
-                body = PredictBodyInternal(
-                    data=[], session_hash="s", event_id="e1", request=None
-                )
-                await route_utils.call_process_api(
-                    app=app,
-                    body=body,
-                    gr_request=gr.Request(),
-                    fn=fn,
-                    root_path="",
-                )
-
         with pytest.raises(RuntimeError):
-            asyncio.run(drive())
+            asyncio.run(drive_aborted_run(app, fn))
 
         assert demo.pending_streams["s"] == {}
 

@@ -438,13 +438,11 @@ async def call_process_api(
         # to the run table while another exception is in flight, and an iterator
         # can reach this unkeyed: a call with an event id but no session hash
         # stores one without ever opening a run.
+        blocks = app.get_blocks()
         run_id = (
-            app.get_blocks()._lookup_stream_run_key(iterator)
-            if iterator is not None
-            else None
+            blocks._lookup_stream_run_key(iterator) if iterator is not None else None
         )
         if run_id is not None:
-            blocks = app.get_blocks()
             # close off any streams that are still open
             stream_runs = blocks.pending_streams.get(session_hash, {})
             pending_streams: dict[int, MediaStream] = stream_runs.get(run_id, {})
