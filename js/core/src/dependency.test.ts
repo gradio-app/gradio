@@ -90,6 +90,22 @@ describe("DependencyManager.reload", () => {
 		expect(active_dependency.outputs).toEqual([32]);
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
 	});
+
+	test("accepts the js=True marker used by transpiled dependencies", async () => {
+		const transpiled_dependency = dependency(0, "transpiled", [10]);
+		transpiled_dependency.js = true;
+		transpiled_dependency.js_implementation = "() => 'client result'";
+		const active_dependency = manager([
+			transpiled_dependency
+		]).dependencies_by_fn.get(0)!;
+
+		await expect(
+			active_dependency.run({} as never, [], null, null)
+		).resolves.toEqual({
+			type: "data",
+			data: ["client result"]
+		});
+	});
 });
 
 describe("process_frontend_fn", () => {

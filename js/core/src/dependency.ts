@@ -64,14 +64,15 @@ export class Dependency {
 		this.connection_type = dep_config.connection;
 		this.show_progress = dep_config.show_progress;
 		this.functions = {
-			frontend: dep_config.js
-				? process_frontend_fn(
-						dep_config.js,
-						dep_config.backend_fn,
-						dep_config.inputs.length,
-						dep_config.outputs.length
-					)
-				: undefined,
+			frontend:
+				typeof dep_config.js === "string"
+					? process_frontend_fn(
+							dep_config.js,
+							dep_config.backend_fn,
+							dep_config.inputs.length,
+							dep_config.outputs.length
+						)
+					: undefined,
 			backend: dep_config.backend_fn,
 			backend_js: dep_config.js_implementation
 				? new AsyncFunction(
