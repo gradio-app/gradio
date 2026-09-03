@@ -1097,8 +1097,7 @@ class Queue:
                     # is already None). /cancel awaits this task before dropping
                     # that iterator itself.
                     app.get_blocks()._drop_run_streams(
-                        event.data.session_hash if event.data else None,
-                        app.iterators.get(event._id),
+                        event.session_hash, app.iterators.get(event._id)
                     )
                 # Always reset the state of the iterator
                 # If the job finished successfully, this has no effect

@@ -1117,7 +1117,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
         # Per-run keys for streaming outputs, held weakly against the iterator
-        # so that a finished run's key goes away with it
+        # so that a finished run's key goes away with it. The iterators are
+        # what call_function hands back, a generator, an async generator or a
+        # SyncToAsyncIterator, all weak-referenceable and hashed by identity.
         self._stream_run_ids: weakref.WeakKeyDictionary[Any, str] = (
             weakref.WeakKeyDictionary()
         )
@@ -2417,11 +2419,13 @@ Received inputs:
                         root_path=root_path,
                         final=not is_generating,
                     )
+                    # Diff state serves the later chunks of a run, which can
+                    # only be fetched under an event id
                     data = self.handle_streaming_diffs(
                         block_fn,
                         data,
                         session_hash=session_hash,
-                        run=run,
+                        run=run if event_id is not None else None,
                         final=not is_generating,
                         simple_format=simple_format,
                     )

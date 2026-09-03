@@ -1130,6 +1130,37 @@ class TestRoutes:
 
         assert "s" not in demo.pending_streams
 
+    def test_a_call_with_no_event_id_keeps_no_diff_state(self):
+        # Diff state serves the later chunks of a run, and without an event id
+        # there is no way to fetch them: /run/{api_name} makes one call and
+        # returns. Keeping it would leave an entry per call for the life of the
+        # process.
+        def stream():
+            yield "chunk one"
+            yield "chunk two"
+
+        with Blocks() as demo:
+            box = gr.Textbox()
+            gr.Button().click(stream, None, box)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        async def one_call():
+            return await route_utils.call_process_api(
+                app=app,
+                body=PredictBodyInternal(data=[], session_hash="s", request=None),
+                gr_request=gr.Request(),
+                fn=fn,
+                root_path="",
+            )
+
+        output = asyncio.run(one_call())
+
+        assert output["data"] == ["chunk one"]
+        assert "s" not in demo.pending_diff_streams
+        assert "s" not in demo.pending_streams
+
     def test_a_run_whose_client_goes_away_drops_its_diff_state(self):
         # A client that closes the tab mid-run does not raise, and no final
         # chunk arrives, so neither of the other two cleanups runs. The queue
