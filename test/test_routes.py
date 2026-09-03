@@ -1130,11 +1130,11 @@ class TestRoutes:
 
         assert "s" not in demo.pending_streams
 
-    def test_a_run_whose_client_goes_away_drops_its_state(self):
+    def test_a_run_whose_client_goes_away_drops_its_diff_state(self):
         # A client that closes the tab mid-run does not raise, and no final
         # chunk arrives, so neither of the other two cleanups runs. The queue
-        # closes the run out when the event ends, heartbeat or not, and since
-        # nobody is left to fetch the playlist the stream goes too.
+        # closes the run out when the event ends, heartbeat or not: the stream
+        # is ended and kept, the diff state goes.
         stop = Event()
 
         def stream():
@@ -1166,18 +1166,20 @@ class TestRoutes:
                     assert len(demo.pending_diff_streams.get("s", {})) == 1
 
             for _ in range(50):
-                if "s" not in demo.pending_streams:
+                if "s" not in demo.pending_diff_streams:
                     break
                 time.sleep(0.1)
-            assert "s" not in demo.pending_streams
             assert "s" not in demo.pending_diff_streams
+            runs = demo.pending_streams.get("s", {})
+            assert len(runs) == 1
+            assert next(iter(runs.values()))[audio._id].ended is True
         finally:
             stop.set()
             demo.close()
 
     def test_a_finished_run_keeps_its_stream_for_its_client(self):
-        # The other half of the orphan rule: a client that saw the run finish
-        # fetches the playlist afterwards, so the stream has to stay.
+        # A client that saw the run finish fetches the playlist afterwards, so
+        # the stream has to stay, ended, once the run is closed out.
         def stream():
             for _ in range(3):
                 yield None

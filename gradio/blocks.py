@@ -2143,15 +2143,12 @@ Received inputs:
             self._stream_run_ids[iterator] = run
         return run
 
-    def _drop_run_streams(
-        self, session_hash: str | None, iterator: Any, *, orphaned: bool = False
-    ) -> None:
+    def _drop_run_streams(self, session_hash: str | None, iterator: Any) -> None:
         """Close out the streaming state of the run `iterator` was driving.
 
         For a run that reaches no final chunk: it raised, was cancelled, or its
-        client went away. A client that is still there fetches the playlist
-        after the run ends, so its streams stay; an orphaned run's go with it,
-        since nothing will ask for them.
+        client went away. Its streams are ended but stay, since the playlist is
+        fetched after the run ends; its diff state goes, nothing reads it again.
         """
         if session_hash is None or iterator is None:
             return
@@ -2160,19 +2157,16 @@ Received inputs:
             return
         for stream in self.pending_streams.get(session_hash, {}).get(run, {}).values():
             stream.end_stream()
-        if orphaned:
-            self._pop_run_entry(self.pending_streams, session_hash, run)
-        self._pop_run_entry(self.pending_diff_streams, session_hash, run)
+        self._pop_run_diffs(session_hash, run)
 
-    @staticmethod
-    def _pop_run_entry(table: dict, session_hash: str, run: str) -> None:
-        """Drop a run's entry, and the session's dict if that leaves it empty."""
-        runs = table.get(session_hash)
+    def _pop_run_diffs(self, session_hash: str, run: str) -> None:
+        """Drop a run's diff state, and its session's dict if that leaves it empty."""
+        runs = self.pending_diff_streams.get(session_hash)
         if runs is None:
             return
         runs.pop(run, None)
         if not runs:
-            del table[session_hash]
+            del self.pending_diff_streams[session_hash]
 
     async def handle_streaming_outputs(
         self,
@@ -2270,7 +2264,7 @@ Received inputs:
                     data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
-            self._pop_run_entry(self.pending_diff_streams, session_hash, run)
+            self._pop_run_diffs(session_hash, run)
 
         return data
 

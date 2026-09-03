@@ -1095,12 +1095,10 @@ class Queue:
                     # no final chunk, so close out its streams here, while the
                     # iterator that keys them is still stored (a finished run's
                     # is already None). /cancel awaits this task before dropping
-                    # that iterator itself, and only the /queue/data disconnect
-                    # clears `alive`, so a dead event is one whose client left.
-                    self.blocks._drop_run_streams(
+                    # that iterator itself.
+                    app.get_blocks()._drop_run_streams(
                         event.data.session_hash if event.data else None,
                         app.iterators.get(event._id),
-                        orphaned=not event.alive,
                     )
                 # Always reset the state of the iterator
                 # If the job finished successfully, this has no effect
