@@ -9,6 +9,10 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
+	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
+	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
+	import HfAuthControl from "./HfAuthControl.svelte";
+	import { asset_url } from "@gradio/client";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
@@ -58,7 +62,12 @@
 		NodeDataValue,
 		Workflow
 	} from "./workflow-types";
-	import { executeWorkflow } from "./workflow-executor";
+	import {
+		executeWorkflow,
+		is_client_only_media,
+		upload_local_media,
+		type LocalMediaValue
+	} from "./workflow-executor";
 	import { stream_text_generation } from "./inference-stream";
 	import {
 		findFreeSpot as findFreeSpotImpl,
@@ -573,6 +582,70 @@
 	let showUserMenu = $state(false);
 	let showSaveMenu = $state(false);
 	let showApiPanel = $state(false);
+	let showHistoryPanel = $state(false);
+	let showHistoryConnect = $state(false);
+	let recordedRun = $state<any>(null);
+
+	// Root URL for the /gradio_api/run-history/* routes. Prefers the client's
+	// configured root (correct for tunnels / mount_gradio_app subpaths). When it
+	// is empty, `url()` in bucket_sync resolves against document.baseURI rather
+	// than emitting a root-absolute path, which would drop a mount subpath.
+	const historyRoot = $derived(gradio_client?.config?.root ?? "");
+
+	// Per-workflow bucket id, persisted in localStorage. Keyed by workflow
+	// `id` when available so renames don't drop the binding; falls back to
+	// `name` for un-ided workflows.
+	const bucketStorageKey = $derived(
+		`gradio:workflow-history:bucket:${encodeURIComponent($workflow.id || $workflow.name || "default")}`
+	);
+	let bucketId = $state<string>("");
+	$effect(() => {
+		try {
+			bucketId = window.localStorage.getItem(bucketStorageKey) ?? "";
+		} catch {
+			bucketId = "";
+		}
+	});
+	// A `blob:`/`data:` value only exists in this tab, so a record referencing
+	// one is dead the moment the page reloads. Upload it to this server first so
+	// the backend can externalize it into the bucket like any other asset.
+	async function persistValueForHistory(value: unknown): Promise<unknown> {
+		if (!is_client_only_media(value)) return value;
+		try {
+			const uploaded = await upload_local_media(value as LocalMediaValue);
+			return { ...(value as object), path: uploaded.path, url: uploaded.url };
+		} catch (e) {
+			console.warn("[run-history] could not persist input media:", e);
+			return value;
+		}
+	}
+
+	function recordIsLoadable(record: any): boolean {
+		const entries = [
+			...Object.entries(record?.inputs ?? {}),
+			...Object.entries(record?.outputs ?? {})
+		] as [string, any][];
+		if (entries.length === 0) return false;
+		return entries.every(([nodeId, entry]) => {
+			const node = legacyView.nodes.find((n) => n.id === nodeId);
+			if (!node) return false;
+			const ports = [...(node.inputs ?? []), ...(node.outputs ?? [])];
+			const port = entry?.port_id
+				? ports.find((p) => p.id === entry.port_id)
+				: ports[0];
+			if (!port) return false;
+			return !entry?.type || port.type === entry.type;
+		});
+	}
+
+	function setBucketId(id: string): void {
+		bucketId = id;
+		try {
+			if (id) window.localStorage.setItem(bucketStorageKey, id);
+			else window.localStorage.removeItem(bucketStorageKey);
+		} catch {}
+	}
+
 	let saveToSpaceConfirm = $state(false);
 	let savingToSpace = $state(false);
 	let saveAsCopyConfirm = $state(false);
@@ -2153,6 +2226,66 @@
 		abortController = null;
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
+
+		if (!hasErrors && bucketId && server?.record_workflow_run) {
+			try {
+				const inputs: Record<string, unknown> = {};
+				for (const ref of wfToRun.references) {
+					const node = legacyView.nodes.find((n) => n.id === ref.id);
+					const outPort = node?.outputs?.[0];
+					if (!node || !outPort) continue;
+					// User-supplied media lives in a `blob:` object URL that dies
+					// with the tab, and the server can only store a file it can
+					// reach. Upload it first so the record stays loadable.
+					inputs[ref.id] = {
+						value: await persistValueForHistory(
+							node.data?.[outPort.id] ?? null
+						),
+						type: outPort.type,
+						label: node.label ?? ref.id,
+						port_id: outPort.id
+					};
+				}
+				const outputs: Record<string, unknown> = {};
+				for (const subj of wfToRun.subjects) {
+					const node = legacyView.nodes.find((n) => n.id === subj.id);
+					const inPort = node?.inputs?.[0];
+					if (!node || !inPort) continue;
+					outputs[subj.id] = {
+						value: await persistValueForHistory(node.data?.[inPort.id] ?? null),
+						type: inPort.type,
+						label: node.label ?? subj.id,
+						port_id: inPort.id
+					};
+				}
+				const endpoint =
+					wfToRun.subjects[0]?.label ?? wfToRun.subjects[0]?.id ?? "workflow";
+				const raw = await server.record_workflow_run([
+					bucketId,
+					endpoint,
+					inputs,
+					outputs
+				]);
+				const result = typeof raw === "string" ? JSON.parse(raw) : raw;
+				if (result?.error) {
+					showToast(
+						`Could not save to history: ${result.error}`,
+						5000,
+						"warning"
+					);
+				} else if (result?.record) {
+					recordedRun = result.record;
+				}
+			} catch (e: any) {
+				// Never let a history failure look like a successful save.
+				showToast(
+					`Could not save to history: ${e?.message ?? e}`,
+					5000,
+					"warning"
+				);
+			}
+		}
+
 		showToast(
 			hasErrors ? "Workflow finished with errors" : "Workflow complete",
 			hasErrors ? 5000 : 3000,
@@ -2748,6 +2881,23 @@
 				<CodeIcon />
 				View API
 			</button>
+			{#if bucketId}
+				<button
+					class="tool-btn history-btn"
+					onclick={() => (showHistoryPanel = true)}
+					title="Browse generation history"
+				>
+					History
+				</button>
+			{:else}
+				<button
+					class="tool-btn connect-bucket-btn"
+					onclick={() => (showHistoryConnect = true)}
+					title="Save generations to a private HF bucket so they persist"
+				>
+					Connect history
+				</button>
+			{/if}
 			{#if saveIndicator && !onSpace}
 				<span
 					class="save-indicator"
@@ -2801,33 +2951,8 @@
 							</div>
 						{/if}
 					</div>
-				{:else if onSpace}
-					<button
-						class="toolbar-login-btn"
-						onclick={signInPreservingEdits}
-						disabled={!auth.oauthAvailable}
-						title={auth.oauthAvailable
-							? undefined
-							: "OAuth is not enabled for this Space. If you're the owner, add `hf_oauth: true` to the Space README and redeploy."}
-						>Sign in with 🤗</button
-					>
 				{:else}
-					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
-						<input
-							class="toolbar-token-input"
-							class:invalid={auth.status === "invalid"}
-							type="password"
-							placeholder="Paste HF token (hf_...)"
-							value={auth.token}
-							onchange={(e) => auth.setPAT(e.currentTarget.value)}
-							title="HuggingFace token for GPU access"
-						/>
-						{#if auth.status === "validating"}
-							<span class="toolbar-token-status validating">checking…</span>
-						{:else if auth.status === "invalid"}
-							<span class="toolbar-token-status invalid">invalid</span>
-						{/if}
-					</form>
+					<HfAuthControl {auth} {onSpace} onsignin={signInPreservingEdits} />
 				{/if}
 			{/if}
 			{#if !readOnly && onSpace && spaceId && isDirty}
@@ -3107,7 +3232,7 @@
 			</div>
 		{/if}
 
-		<div class="zoom-controls">
+		<div class="zoom-controls" class:history-open={showHistoryPanel}>
 			{#if !readOnly}
 				<button
 					class="zoom-ctrl-btn"
@@ -3344,6 +3469,108 @@
 		/>
 	{/if}
 
+	{#if showHistoryConnect}
+		<WorkflowHistoryConnect
+			root={historyRoot}
+			workflowName={$workflow.name}
+			username={auth.user ?? ""}
+			signedIn={!!auth.token}
+			onsignin={auth.signIn}
+			onconnected={(id) => {
+				setBucketId(id);
+				showHistoryConnect = false;
+				showHistoryPanel = true;
+			}}
+			onclose={() => (showHistoryConnect = false)}
+		/>
+	{/if}
+
+	{#if showHistoryPanel && bucketId}
+		<WorkflowHistoryPanel
+			root={historyRoot}
+			{bucketId}
+			{auth}
+			{onSpace}
+			{recordedRun}
+			isLoadable={recordIsLoadable}
+			onsignin={signInPreservingEdits}
+			onclose={() => (showHistoryPanel = false)}
+			onchange={() => {
+				showHistoryPanel = false;
+				showHistoryConnect = true;
+			}}
+			onload={({
+				record_id,
+				endpoint,
+				inputs,
+				outputs
+			}: {
+				record_id: string;
+				endpoint: string;
+				inputs: Record<
+					string,
+					{ value: unknown; type: string; port_id?: string }
+				>;
+				outputs: Record<
+					string,
+					{ value: unknown; type: string; port_id?: string }
+				>;
+			}) => {
+				const MEDIA = new Set(["image", "audio", "video", "file"]);
+				const MIME: Record<string, string> = {
+					image: "image/*",
+					audio: "audio/*",
+					video: "video/*",
+					file: ""
+				};
+				const resolve = (v: unknown): unknown => {
+					if (
+						v &&
+						typeof v === "object" &&
+						typeof (v as any).__asset__ === "string"
+					) {
+						return asset_url(
+							historyRoot,
+							bucketId,
+							endpoint,
+							record_id,
+							(v as any).__asset__
+						);
+					}
+					return v;
+				};
+				const wrap = (v: unknown, type: string): unknown => {
+					const resolved = resolve(v);
+					return typeof resolved === "string" && MEDIA.has(type)
+						? {
+								url: resolved,
+								name: resolved.split("/").pop() ?? "",
+								mime: MIME[type] ?? ""
+							}
+						: resolved;
+				};
+				for (const [nodeId, input] of Object.entries(inputs)) {
+					const portId = input.port_id ?? "out_0";
+					updateNodeData(
+						nodeId,
+						portId,
+						wrap(input.value, input.type) as NodeDataValue
+					);
+				}
+				for (const [nodeId, output] of Object.entries(outputs)) {
+					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const inPortId = output.port_id ?? node?.inputs?.[0]?.id ?? "in_0";
+					updateNodeData(
+						nodeId,
+						inPortId,
+						wrap(output.value, output.type) as NodeDataValue
+					);
+				}
+				showHistoryPanel = false;
+			}}
+		/>
+	{/if}
+
 	{#if fullscreenImage}
 		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 		<div
@@ -3535,19 +3762,6 @@
 		color: #3e4050;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-login-btn) {
-		border-color: #e2e4ea;
-		color: #6b6e78;
-	}
-	:global(body:not(.dark) .toolbar-login-btn:hover:not(:disabled)) {
-		background: #f0f1f5;
-		color: #1a1b25;
-		border-color: #d0d2dc;
-	}
-	:global(.toolbar-login-btn:disabled) {
-		opacity: 0.45;
-		cursor: not-allowed;
-	}
 	:global(body:not(.dark) .toolbar-user-chip) {
 		border-color: #e2e4ea;
 		color: #3e4050;
@@ -3579,21 +3793,6 @@
 	:global(body:not(.dark) .toolbar-user-menu-btn:hover) {
 		background: #f0f1f5;
 		border-color: #d0d2dc;
-	}
-	:global(body:not(.dark) .toolbar-token-input) {
-		background: #ffffff;
-		color: #6b6e78;
-		border-color: #e2e4ea;
-	}
-	:global(body:not(.dark) .toolbar-token-input::placeholder) {
-		color: #c0c2cc;
-	}
-	:global(body:not(.dark) .toolbar-token-input:focus) {
-		background: #ffffff;
-		color: #3e4050;
-	}
-	:global(body:not(.dark) .toolbar-divider) {
-		background: #e2e4ea;
 	}
 	:global(body:not(.dark) .tool-btn.save-space-btn) {
 		color: #d95f0b;
