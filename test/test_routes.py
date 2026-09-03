@@ -45,6 +45,7 @@ from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
+    MediaStream,
     _delete_state_handler,
     _lifespan_handler,
     compare_passwords_securely,
@@ -99,6 +100,30 @@ class TestRoutes:
     def test_get_config_route(self, test_client):
         response = test_client.get("/config/")
         assert response.status_code == 200
+
+    def test_audio_stream_playlist_uses_stable_target_duration(self):
+        with Blocks() as demo:
+            audio = gr.Audio()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment(
+                {"data": b"first", "duration": 1.25, "extension": ".aac"}
+            )
+        )
+        asyncio.run(
+            stream.add_segment(
+                {"data": b"second", "duration": 0.5, "extension": ".aac"}
+            )
+        )
+        demo.pending_streams["session"][0] = {audio._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{audio._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-TARGETDURATION:2" in response.text
 
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")
