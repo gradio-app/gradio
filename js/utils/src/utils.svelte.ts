@@ -263,9 +263,11 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
  * find.
  */
 export const play_media = (media: HTMLMediaElement): void => {
-	media.play().catch((e: DOMException) => {
+	// `play()` predates promises, so an old or embedded implementation can
+	// return nothing at all.
+	Promise.resolve(media.play()).catch((e: DOMException) => {
 		if (e?.name === "AbortError" || e?.name === "NotAllowedError") return;
-		console.debug("play() was rejected:", e);
+		console.warn("play() was rejected:", e);
 	});
 };
 

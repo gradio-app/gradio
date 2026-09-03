@@ -607,7 +607,9 @@ class Video(StreamingOutput, Component):
                 raise RuntimeError(
                     "Video must be in .mp4 or .ts format to be streamed as chunks",
                 )
-            ts_file = value.replace(".mp4", ".ts")
+            # Only the extension: `replace` also rewrote a directory whose
+            # name ends in .mp4, handing ffmpeg a path that does not exist.
+            ts_file = str(Path(value).with_suffix(".ts"))
             await self.async_convert_mp4_to_ts(value, ts_file)
 
         duration = self.get_video_duration_ffprobe(ts_file)

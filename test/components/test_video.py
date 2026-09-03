@@ -164,6 +164,33 @@ class TestVideo:
             "extension": ".ts",
         }
 
+    @pytest.mark.asyncio
+    async def test_stream_output_replaces_only_the_chunk_extension(self, tmp_path):
+        # A directory whose name ends in .mp4 was rewritten along with the
+        # file, so ffmpeg was handed a path in a directory that does not exist.
+        component = gr.Video(streaming=True)
+        chunk_dir = tmp_path / "clips.mp4"
+        chunk_dir.mkdir()
+        chunk_source = chunk_dir / "frame_0.mp4"
+        chunk_source.write_bytes(b"mp4-bytes")
+
+        async def convert(mp4_file, ts_file):
+            Path(ts_file).write_bytes(b"ts-bytes")
+
+        with (
+            # `staticmethod` because that is what it replaces; a plain
+            # function would be bound and receive the component as well.
+            patch.object(gr.Video, "async_convert_mp4_to_ts", staticmethod(convert)),
+            patch.object(gr.Video, "get_video_duration_ffprobe", return_value=1.0),
+        ):
+            chunk, _ = await component.stream_output(
+                str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
+            )
+
+        assert (chunk_dir / "frame_0.ts").exists()
+        assert chunk is not None
+        assert chunk["data"] == b"ts-bytes"
+
     def test_in_interface(self, media_data):
         """
         Interface, process
