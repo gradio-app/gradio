@@ -31,8 +31,13 @@ export function create_hls_stream(
 	hls.on(Hls.Events.MANIFEST_PARSED, () => on_manifest_parsed?.());
 
 	hls.on(Hls.Events.ERROR, (event, data) => {
-		// Non-fatal errors are routine with a one-second buffer.
-		if (!data.fatal) return;
+		// Non-fatal errors are routine with a one-second buffer, so they are
+		// too noisy for `error`. They are also the signal for a stream that
+		// connects and plays nothing, which is worth keeping reachable.
+		if (!data.fatal) {
+			console.debug("HLS non-fatal error:", data.details);
+			return;
+		}
 		console.error("HLS error:", event, data);
 		switch (data.type) {
 			case Hls.ErrorTypes.NETWORK_ERROR:

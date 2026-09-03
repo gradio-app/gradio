@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, untrack } from "svelte";
 	import { Music } from "@gradio/icons";
-	import { format_time, type I18nFormatter } from "@gradio/utils";
+	import { format_time, play_media, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
@@ -55,6 +55,9 @@
 		onedit?: () => void;
 		onload?: () => void;
 	} = $props();
+
+	// What wavesurfer emits when the media element reports no error object.
+	const MEDIA_ERROR_FALLBACK = "Media error";
 
 	let url = $derived(value?.url);
 	let is_stream = $derived(value?.is_stream ?? false);
@@ -195,11 +198,13 @@
 		// waiting for `loadedmetadata`, an error means that event never
 		// arrives, and the wait has no reject path, so the load hangs. The
 		// event is the only signal for it, and `MediaError` is what separates
-		// the two. A real element always has its `error` set before the event
-		// fires, so wavesurfer's `new Error("Media error")` substitute cannot
-		// reach this.
+		// the two. A real element has its `error` set before the event fires,
+		// so wavesurfer's substitute for a missing one should be unreachable,
+		// but it is matched as well: if it ever does arrive, dropping it
+		// leaves a blank waveform, no fallback and an empty console.
 		waveform?.on("error", (e: Error | MediaError) => {
-			if (!(e instanceof MediaError)) return;
+			if (!(e instanceof MediaError) && e.message !== MEDIA_ERROR_FALLBACK)
+				return;
 			handle_waveform_error(e);
 		});
 	};
@@ -223,8 +228,13 @@
 							// by the file the value moved past can land on this
 							// one while it is still loading. Reaching here means
 							// this file does play, so the fallback it was pushed
-							// into is released. A hung load never resolves, so it
-							// cannot release the fallback it belongs to.
+							// into is released. That holds for an error raised
+							// before this file's own metadata, which is what
+							// leaves the load hanging. One raised later, while
+							// wavesurfer runs its own decode, lets the load
+							// resolve and is released along with the stale ones;
+							// the native element it fell back to is pointed at
+							// the same bytes, so it was not buying much.
 							if (loading_url !== url || !waveform_load_failed) return;
 							audio_player?.removeAttribute("src");
 							audio_player?.load();
@@ -307,17 +317,13 @@
 				// dependency, which would tear the stream down mid-run
 				// whenever the parent re-created that object.
 				const hls = create_hls_stream(media, url, () => {
-					// A pending play promise is rejected by the teardown's
-					// detach, and an autoplay policy can block playback
-					// outright; neither is something the app can act on.
-					if (untrack(() => waveform_settings.autoplay))
-						media.play().catch(() => {});
+					if (untrack(() => waveform_settings.autoplay)) play_media(media);
 				});
 				return () => hls.destroy();
 			}
+			// The element carries `autoplay={waveform_settings.autoplay}`, so
+			// assigning the source is all it takes to start playback.
 			media.src = url;
-			if (untrack(() => waveform_settings.autoplay))
-				media.play().catch(() => {});
 			return () => {
 				// `load()` stops playback without dispatching a `pause` the
 				// app never caused.

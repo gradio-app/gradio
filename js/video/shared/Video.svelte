@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { HTMLVideoAttributes } from "svelte/elements";
 	import { loaded } from "./utils";
-	import type { Snippet } from "svelte";
+	import { untrack, type Snippet } from "svelte";
+	import { play_media } from "@gradio/utils";
 
 	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
 
@@ -73,12 +74,13 @@
 		if (!node || !is_stream || !src) return;
 		const media = node;
 		if (is_hls_supported()) {
-			// A pending play promise is rejected by the teardown's detach, and
-			// an autoplay policy can block playback outright; neither is
-			// something the app can act on.
-			const hls = create_hls_stream(media, src, () =>
-				media.play().catch(() => {})
-			);
+			// The manifest is parsed off the network, so the callback never
+			// runs in a reactive context; the `untrack` keeps a synchronous
+			// emit from making `autoplay` a dependency, which would tear the
+			// stream down mid-run whenever the parent changed it.
+			const hls = create_hls_stream(media, src, () => {
+				if (untrack(() => autoplay)) play_media(media);
+			});
 			return () => hls.destroy();
 		}
 	});

@@ -49,6 +49,9 @@ const loading_status: LoadingStatus = {
 	stream_state: "closed" as const
 };
 
+// Captured before any test spies on it, so a stub can still call through.
+const real_hls_destroy = Hls.prototype.destroy;
+
 const fake_value = {
 	...TEST_WAV,
 	is_stream: false
@@ -949,13 +952,15 @@ describe("Streaming output", () => {
 		media_pause = vi.spyOn(HTMLMediaElement.prototype, "pause");
 	});
 	afterEach(() => {
+		// `cleanup()` unmounts, which is what runs the effect teardowns, so it
+		// has to happen while the spies are still in place.
+		cleanup();
 		load_source.mockRestore();
 		destroy.mockRestore();
 		wavesurfer_load.mockRestore();
 		media_pause.mockRestore();
 		is_supported?.mockRestore();
 		is_supported = undefined;
-		cleanup();
 	});
 
 	// wavesurfer's load() emits `error` before it rejects, and the event
@@ -1170,6 +1175,25 @@ describe("Streaming output", () => {
 		);
 	});
 
+	test("the substitute for a missing MediaError falls back too", async () => {
+		wavesurfer_load.mockImplementation(function (this: WaveSurfer) {
+			// wavesurfer emits this when the element reports no error object.
+			(this as any).emit("error", new Error("Media error"));
+			return new Promise(() => {});
+		});
+
+		const { getByTestId } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+	});
+
 	test("a hung load does not disable the fallback for later files", async () => {
 		let report_second: (() => void) | undefined;
 		wavesurfer_load
@@ -1249,8 +1273,12 @@ describe("Streaming output", () => {
 		// another source. The player must not rely on that guard to keep the
 		// source it just set.
 		destroy.mockImplementation(function (this: Hls) {
-			this.media?.removeAttribute("src");
-			this.media?.load();
+			const media = this.media;
+			// Call through so the instance really goes away, then reproduce
+			// what its detach does on that path.
+			real_hls_destroy.call(this);
+			media?.removeAttribute("src");
+			media?.load();
 		});
 
 		const { getByTestId, set_data } = await render(Audio, {

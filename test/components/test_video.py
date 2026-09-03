@@ -136,6 +136,29 @@ class TestVideo:
             "meta": {"_type": "gradio.FileData"},
         }
 
+    @pytest.mark.asyncio
+    async def test_stream_output_keeps_the_payload_across_chunks(self, tmp_path):
+        # The call above returns before any chunk is converted, so the shape
+        # is pinned here on the path a streaming run actually takes.
+        component = gr.Video(streaming=True)
+        chunk_source = tmp_path / "chunk.mp4"
+        shutil.copy("test/test_files/video_sample.mp4", chunk_source)
+
+        chunk, output_file = await component.stream_output(
+            str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
+        )
+
+        assert output_file == {
+            "path": "sess/0/1/playlist.m3u8",
+            "is_stream": True,
+            "orig_name": "video-stream.mp4",
+            "meta": {"_type": "gradio.FileData"},
+        }
+        assert chunk is not None
+        assert chunk["extension"] == ".ts"
+        assert chunk["duration"] > 0
+        assert chunk["data"]
+
     def test_in_interface(self, media_data):
         """
         Interface, process

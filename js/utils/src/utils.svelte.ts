@@ -254,6 +254,21 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	return copied;
 }
 
+/**
+ * Start playback, absorbing the two rejections that are not the app's doing:
+ * `AbortError`, from a `load()` that interrupts a pending play (which is how
+ * a stream teardown stops playback), and `NotAllowedError`, from the
+ * browser's autoplay policy. Anything else reaches the console, since a
+ * player that silently refuses to start is what makes these bugs hard to
+ * find.
+ */
+export const play_media = (media: HTMLMediaElement): void => {
+	media.play().catch((e: DOMException) => {
+		if (e?.name === "AbortError" || e?.name === "NotAllowedError") return;
+		console.debug("play() was rejected:", e);
+	});
+};
+
 export const format_time = (seconds: number): string => {
 	const hours = Math.floor(seconds / 3600);
 	const minutes = Math.floor((seconds % 3600) / 60);

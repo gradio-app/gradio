@@ -552,9 +552,11 @@ describe("Streaming output", () => {
 		destroy = vi.spyOn(Hls.prototype, "destroy");
 	});
 	afterEach(() => {
+		// `cleanup()` unmounts, which is what runs the effect teardowns, so it
+		// has to happen while the spies are still in place.
+		cleanup();
 		load_source.mockRestore();
 		destroy.mockRestore();
-		cleanup();
 	});
 
 	// An unroutable host: these URLs land on real media elements, and a
@@ -568,6 +570,53 @@ describe("Streaming output", () => {
 		...run_1,
 		url: "https://stream.invalid/abc/2/1/playlist.m3u8"
 	};
+
+	// The manifest callback is what starts playback for a stream, and it is
+	// the only place the `autoplay` prop can still be overridden. Triggering
+	// the event on the instance is no good: hls.js's own listeners run first
+	// and throw on a hand-made payload, which aborts the emit before the
+	// component's callback. `create_hls_stream` registers its listeners
+	// immediately before `loadSource`, so inside that call the last
+	// `MANIFEST_PARSED` listener is the component's own.
+	async function parse_manifest(
+		props: Record<string, any>
+	): Promise<ReturnType<typeof vi.fn>> {
+		let fire: (() => void) | undefined;
+		load_source.mockImplementation(function (this: Hls) {
+			const listeners = (this as any).listeners(Hls.Events.MANIFEST_PARSED);
+			fire = listeners[listeners.length - 1];
+		});
+
+		const { getByTestId } = await render(Video, {
+			...default_props,
+			interactive: false,
+			value: run_1,
+			...props
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		// `play` is stubbed on the prototype for the whole file, so `vi.spyOn`
+		// would hand back that shared mock with every earlier call on it.
+		const play = vi.fn(() => Promise.resolve());
+		const video = getByTestId("Video-player") as HTMLVideoElement;
+		Object.defineProperty(video, "play", { value: play, configurable: true });
+		expect(fire).toBeTypeOf("function");
+		fire?.();
+		return play;
+	}
+
+	test("a streaming run does not autoplay unless asked to", async () => {
+		const play = await parse_manifest({ autoplay: false });
+
+		expect(play).not.toHaveBeenCalled();
+	});
+
+	test("a streaming run autoplays when asked to", async () => {
+		const play = await parse_manifest({ autoplay: true });
+
+		expect(play).toHaveBeenCalledTimes(1);
+	});
 
 	test("a new streaming run replaces the previous instance", async () => {
 		const { set_data } = await render(Video, {
