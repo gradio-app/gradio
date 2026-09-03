@@ -79,6 +79,11 @@
 			"svelte": "./dist/src/Login.svelte",
 			"types": "./dist/src/Login.svelte.d.ts"
 		},
+		"./history_storage_control": {
+			"gradio": "./src/api_docs/HistoryStorageControl.svelte",
+			"svelte": "./dist/src/api_docs/HistoryStorageControl.svelte",
+			"types": "./dist/src/api_docs/HistoryStorageControl.svelte.d.ts"
+		},
 		"./page_footer": {
 			"gradio": "./src/PageFooter.svelte",
 			"svelte": "./dist/src/PageFooter.svelte",
