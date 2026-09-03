@@ -1,7 +1,15 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Client } from "@gradio/client";
-import { DependencyManager } from "./dependency";
+import { DependencyManager, process_frontend_fn } from "./dependency";
 import type { Dependency as DependencyConfig } from "./types";
+
+declare global {
+	var event_js_result: string | undefined;
+}
+
+afterEach(() => {
+	delete globalThis.event_js_result;
+});
 
 function dependency(
 	id: number,
@@ -81,5 +89,41 @@ describe("DependencyManager.reload", () => {
 
 		expect(active_dependency.outputs).toEqual([32]);
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
+	});
+});
+
+describe("process_frontend_fn", () => {
+	test("invokes a JavaScript function with event inputs", async () => {
+		const fn = process_frontend_fn(
+			"(value) => value.toUpperCase();",
+			true,
+			1,
+			1
+		);
+
+		await expect(fn(["hello"])).resolves.toEqual(["HELLO"]);
+	});
+
+	test("executes a raw JavaScript body with event inputs", async () => {
+		const fn = process_frontend_fn(
+			"const value = arguments[0]; return value.toUpperCase();",
+			true,
+			1,
+			1
+		);
+
+		await expect(fn(["hello"])).resolves.toEqual(["HELLO"]);
+	});
+
+	test("executes a raw JavaScript expression without returning its value", async () => {
+		const fn = process_frontend_fn(
+			"globalThis.event_js_result = 'raw';",
+			false,
+			0,
+			0
+		);
+
+		await expect(fn([])).resolves.toEqual([]);
+		expect(globalThis.event_js_result).toBe("raw");
 	});
 });

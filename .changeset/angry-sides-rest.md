@@ -5,4 +5,4 @@
 "gradio": patch
 ---
 
-fix:Fix launch JavaScript function execution
+fix: Align launch and event JavaScript execution
