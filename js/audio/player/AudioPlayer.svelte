@@ -195,7 +195,9 @@
 		// waiting for `loadedmetadata`, an error means that event never
 		// arrives, and the wait has no reject path, so the load hangs. The
 		// event is the only signal for it, and `MediaError` is what separates
-		// the two.
+		// the two. A real element always has its `error` set before the event
+		// fires, so wavesurfer's `new Error("Media error")` substitute cannot
+		// reach this.
 		waveform?.on("error", (e: Error | MediaError) => {
 			if (!(e instanceof MediaError)) return;
 			handle_waveform_error(e);
@@ -216,6 +218,18 @@
 					waveform_load_failed = false;
 					waveform
 						.load(loading_url)
+						.then(() => {
+							// A media element error carries no URL, so one raised
+							// by the file the value moved past can land on this
+							// one while it is still loading. Reaching here means
+							// this file does play, so the fallback it was pushed
+							// into is released. A hung load never resolves, so it
+							// cannot release the fallback it belongs to.
+							if (loading_url !== url || !waveform_load_failed) return;
+							audio_player?.removeAttribute("src");
+							audio_player?.load();
+							waveform_load_failed = false;
+						})
 						.catch((e: Error) => handle_waveform_error(e, loading_url));
 				}
 			});
@@ -276,9 +290,12 @@
 	// body, so releasing the old source and putting the new one in place can
 	// never happen out of order, which two effects could not guarantee: the
 	// player would then be left with a source hls.js had already discarded.
-	// `value` is a fresh object on every chunk, so the effect must only
-	// depend on the equality-stable deriveds, or each chunk would restart
-	// the stream.
+	// Only the stream branches take a teardown, since a stream holds an HLS
+	// instance and a MediaSource that have to be released; an assigned file
+	// URL is replaced by the next assignment, and the player unmounts with
+	// the value. `value` is a fresh object on every chunk, so the effect must
+	// only depend on the equality-stable deriveds, or each chunk would
+	// restart the stream.
 	$effect(() => {
 		if (!audio_player || !url) return;
 		const media = audio_player;

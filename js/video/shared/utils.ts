@@ -27,7 +27,10 @@ export function loaded(
 ): any {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
-		await node.play();
+		// Nobody holds this promise, and detaching a stream rejects a pending
+		// play with `AbortError`, so an uncaught rejection would surface on
+		// every teardown. An autoplay policy block lands here too.
+		await node.play().catch(() => {});
 	}
 
 	node.addEventListener("loadeddata", handle_playback);

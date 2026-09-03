@@ -79,7 +79,9 @@ const default_props = {
 };
 
 beforeAll(() => {
-	window.HTMLMediaElement.prototype.play = vi.fn();
+	// `play()` returns a promise the component and the `loaded` action both
+	// attach a `catch` to, so the stub has to return one as well.
+	window.HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
 	window.HTMLMediaElement.prototype.pause = vi.fn();
 });
 

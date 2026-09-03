@@ -1203,6 +1203,45 @@ describe("Streaming output", () => {
 		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
 	});
 
+	test("a stale media element error is undone when the file loads", async () => {
+		let instance: WaveSurfer | undefined;
+		let resolve_second: (() => void) | undefined;
+		wavesurfer_load
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				instance = this;
+				// The first file is still waiting on its element's metadata.
+				return new Promise(() => {});
+			})
+			.mockImplementationOnce(function () {
+				return new Promise<void>((resolve) => {
+					resolve_second = () => resolve();
+				});
+			});
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(1));
+
+		const second = { ...fake_value, url: fake_value.url + "?v=2" };
+		await set_data({ value: second });
+		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(2));
+
+		// The first file's element error lands while the second one is still
+		// loading, and it carries no URL, so it downgrades the second one.
+		emit_media_error(instance as WaveSurfer);
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
+
+		resolve_second?.();
+
+		// The second file does play, so the fallback has to be released.
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+	});
+
 	test("a stream giving way to a file leaves the file attached", async () => {
 		// Attaching through a ManagedMediaSource (Safari 17+/iOS 17+) leaves
 		// hls.js's object URL in a `<source>` child, so on detach it finds its
