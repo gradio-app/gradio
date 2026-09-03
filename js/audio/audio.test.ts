@@ -1136,6 +1136,102 @@ describe("Streaming output", () => {
 		// The failed file must not keep playing behind the new waveform.
 		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
 	});
+
+	// wavesurfer reports a media element error through the same `error` event
+	// as a load failure, but the load it interrupts never settles: it is
+	// blocked on a duration that only `loadedmetadata` resolves, and an
+	// errored element never fires that event.
+	function emit_media_error(instance: WaveSurfer): MediaError {
+		// MediaError has no public constructor, so an instance has to come
+		// from its prototype for the type check to hold.
+		const e = Object.create(MediaError.prototype, {
+			code: { value: MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED },
+			message: { value: "unsupported container" }
+		}) as MediaError;
+		(instance as any).emit("error", e);
+		return e;
+	}
+
+	test("a media element error falls back to the native player", async () => {
+		wavesurfer_load.mockImplementation(function (this: WaveSurfer) {
+			emit_media_error(this);
+			return new Promise(() => {});
+		});
+
+		const { getByTestId } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+	});
+
+	test("a hung load does not disable the fallback for later files", async () => {
+		let report_second: (() => void) | undefined;
+		wavesurfer_load
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				emit_media_error(this);
+				return new Promise(() => {});
+			})
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				report_second = () => emit_media_error(this);
+				return Promise.resolve();
+			});
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+
+		const second = { ...fake_value, url: fake_value.url + "?v=2" };
+		await set_data({ value: second });
+		// The waveform recovers on the new file, so the fallback is released,
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+
+		// and an error on that file still has to reach the fallback.
+		report_second?.();
+		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
+	});
+
+	test("a stream giving way to a file leaves the file attached", async () => {
+		// Attaching through a ManagedMediaSource (Safari 17+/iOS 17+) leaves
+		// hls.js's object URL in a `<source>` child, so on detach it finds its
+		// own URL there and clears the element even when `src` has moved on to
+		// another source. The player must not rely on that guard to keep the
+		// source it just set.
+		destroy.mockImplementation(function (this: Hls) {
+			this.media?.removeAttribute("src");
+			this.media?.load();
+		});
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			waveform_options: {
+				...default_props.waveform_options,
+				show_recording_waveform: false
+			},
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: fake_value });
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		expect(destroy).toHaveBeenCalledTimes(1);
+		expect(player.getAttribute("src")).toBe(fake_value.url);
+	});
 });
 
 describe("Subtitles", () => {

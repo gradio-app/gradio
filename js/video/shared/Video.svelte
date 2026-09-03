@@ -73,7 +73,12 @@
 		if (!node || !is_stream || !src) return;
 		const media = node;
 		if (is_hls_supported()) {
-			const hls = create_hls_stream(media, src, () => media.play());
+			// A pending play promise is rejected by the teardown's detach, and
+			// an autoplay policy can block playback outright; neither is
+			// something the app can act on.
+			const hls = create_hls_stream(media, src, () =>
+				media.play().catch(() => {})
+			);
 			return () => hls.destroy();
 		}
 	});
