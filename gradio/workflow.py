@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import dataclasses
 import hashlib
 import inspect
 import json
@@ -2009,6 +2010,48 @@ class Workflow(Blocks):
         def get_workflow_key(_data=None) -> str:
             return _workflow_key(workflow_file)
 
+        async def record_workflow_run(
+            data,
+            request: Optional[Request] = None,
+        ) -> str:
+            """Record a completed canvas run."""
+            from gradio import history
+
+            try:
+                bucket_id = data[0] if data else ""
+                endpoint_label = data[1] if len(data) > 1 else "workflow"
+                inputs = data[2] if len(data) > 2 else {}
+                outputs = data[3] if len(data) > 3 else {}
+                if not isinstance(inputs, dict) or not isinstance(outputs, dict):
+                    return json.dumps({"error": "Malformed run payload"})
+
+                app = history.app_from_request(request)
+                if app is None:
+                    return json.dumps({"error": "No server app for this request"})
+
+                endpoint = history.endpoint_key(str(endpoint_label), None)
+
+                record = await history.record_run(
+                    app,
+                    request=request,
+                    inputs=inputs,
+                    outputs=outputs,
+                    endpoint=endpoint,
+                    bucket_id=bucket_id or None,
+                )
+                if record is None:
+                    return json.dumps(
+                        {
+                            "error": "History is not available — sign in with "
+                            "Hugging Face and connect a bucket first.",
+                            "error_type": "auth",
+                        }
+                    )
+                return json.dumps({"record": dataclasses.asdict(record)})
+            except Exception as e:
+                logger.error("record_workflow_run failed: %s", e, exc_info=True)
+                return json.dumps({"error": str(e)})
+
         server_functions = [
             get_token,
             get_write_access,
@@ -2016,6 +2059,7 @@ class Workflow(Blocks):
             get_oauth_scopes,
             get_space_id,
             get_workflow_key,
+            record_workflow_run,
             call_space,
             call_model,
             fetch_dataset,

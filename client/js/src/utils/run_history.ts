@@ -11,6 +11,7 @@ import type { GradioEvent, StatusMessage } from "../types";
 const KEY_ROOT = "gradio:run-history:";
 const STORAGE_PREFIX = `${KEY_ROOT}v2:`;
 const REPLAY_PREFIX = `${KEY_ROOT}replay:v2:`;
+const DESTINATION_PREFIX = `${KEY_ROOT}destination:v1:`;
 const MAX_RUNS = 100;
 const MAX_APPS = 8;
 
@@ -25,6 +26,10 @@ export interface RunHistoryScope {
 	/** The authenticated user, when the app uses `auth`. */
 	username?: string | null;
 }
+
+export type RunHistoryStorage =
+	| { type: "browser"; bucket_id?: string }
+	| { type: "bucket"; bucket_id: string };
 
 /**
  * Run history is a side effect of submitting, never the point of it, so no
@@ -115,6 +120,45 @@ function replay_key(scope: RunHistoryScope | null | undefined): string | null {
 	return key ? key.replace(STORAGE_PREFIX, REPLAY_PREFIX) : null;
 }
 
+function destination_key(
+	scope: RunHistoryScope | null | undefined
+): string | null {
+	const key = storage_key(scope);
+	return key ? key.replace(STORAGE_PREFIX, DESTINATION_PREFIX) : null;
+}
+
+function read_run_history_storage_impl(
+	scope: RunHistoryScope | null | undefined
+): RunHistoryStorage {
+	const key = destination_key(scope);
+	if (!key) return { type: "browser" };
+	try {
+		const value = JSON.parse(window.localStorage.getItem(key) || "null");
+		if (typeof value?.bucket_id === "string") {
+			return value.type === "bucket"
+				? { type: "bucket", bucket_id: value.bucket_id }
+				: { type: "browser", bucket_id: value.bucket_id };
+		}
+		return { type: "browser" };
+	} catch {
+		return { type: "browser" };
+	}
+}
+
+function set_run_history_storage_impl(
+	scope: RunHistoryScope | null | undefined,
+	storage: RunHistoryStorage
+): void {
+	const key = destination_key(scope);
+	if (!key) return;
+	if (storage.type === "browser" && !storage.bucket_id) {
+		window.localStorage.removeItem(key);
+	} else {
+		window.localStorage.setItem(key, JSON.stringify(storage));
+	}
+	notify_run_history_change();
+}
+
 /** When a run was most recently saved under a key, for deciding what to drop. */
 function last_saved_at(key: string): number {
 	try {
@@ -140,7 +184,10 @@ function prune_apps(current_key: string): void {
 	const stale = [
 		// Keys written by an older layout can never be read again.
 		...keys.filter(
-			(key) => !key.startsWith(STORAGE_PREFIX) && !key.startsWith(REPLAY_PREFIX)
+			(key) =>
+				!key.startsWith(STORAGE_PREFIX) &&
+				!key.startsWith(REPLAY_PREFIX) &&
+				!key.startsWith(DESTINATION_PREFIX)
 		),
 		...keys
 			.filter((key) => key.startsWith(STORAGE_PREFIX) && key !== current_key)
@@ -365,6 +412,7 @@ function apply_run_history_replay_impl(
 }
 
 function start_run_history_impl(options: StartRunOptions): string | null {
+	if (read_run_history_storage_impl(options).type === "bucket") return null;
 	const key = storage_key(options);
 	if (!key) return null;
 
@@ -520,6 +568,21 @@ export function read_run_history(
 	scope: RunHistoryScope | null | undefined
 ): StoredRun[] {
 	return safely(() => read_run_history_impl(scope), []);
+}
+
+export function read_run_history_storage(
+	scope: RunHistoryScope | null | undefined
+): RunHistoryStorage {
+	return safely(() => read_run_history_storage_impl(scope), {
+		type: "browser"
+	});
+}
+
+export function set_run_history_storage(
+	scope: RunHistoryScope | null | undefined,
+	storage: RunHistoryStorage
+): void {
+	safely(() => set_run_history_storage_impl(scope, storage), undefined);
 }
 
 export function clear_run_history(
