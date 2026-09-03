@@ -2143,12 +2143,15 @@ Received inputs:
             self._stream_run_ids[iterator] = run
         return run
 
-    def _drop_run_streams(self, session_hash: str | None, iterator: Any) -> None:
+    def _drop_run_streams(
+        self, session_hash: str | None, iterator: Any, *, orphaned: bool = False
+    ) -> None:
         """Close out the streaming state of the run `iterator` was driving.
 
         For a run that reaches no final chunk: it raised, was cancelled, or its
-        client went away. An entry that holds a stream stays, since its
-        playlist is fetched after the run ends.
+        client went away. A client that is still there fetches the playlist
+        after the run ends, so its streams stay; an orphaned run's go with it,
+        since nothing will ask for them.
         """
         if session_hash is None or iterator is None:
             return
@@ -2156,10 +2159,9 @@ Received inputs:
         if run is None:
             return
         stream_runs = self.pending_streams.get(session_hash, {})
-        streams = stream_runs.get(run, {})
-        for stream in streams.values():
+        for stream in stream_runs.get(run, {}).values():
             stream.end_stream()
-        if not streams:
+        if orphaned:
             stream_runs.pop(run, None)
         self.pending_diff_streams.get(session_hash, {}).pop(run, None)
 
@@ -2174,10 +2176,11 @@ Received inputs:
     ) -> list:
         if session_hash is None or run is None:
             return data
-        stream_runs = self.pending_streams[session_hash]
-        if run not in stream_runs:
-            stream_runs[run] = {}
-        stream_run: dict[int, MediaStream] = stream_runs[run]
+        # Filed only once an output opens a stream, so a run with no streaming
+        # output never touches this dict
+        stream_run: dict[int, MediaStream] = self.pending_streams.get(
+            session_hash, {}
+        ).get(run, {})
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
@@ -2205,6 +2208,9 @@ Received inputs:
                     desired_output_format = None
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
+                    stream_run = self.pending_streams[session_hash].setdefault(
+                        run, stream_run
+                    )
                     stream_run[output_id] = MediaStream(
                         desired_output_format=desired_output_format
                     )
@@ -2220,12 +2226,6 @@ Received inputs:
                         output_data, root_path, None
                     )
                 data[i] = output_data
-
-        if final and not stream_run:
-            # This run opened no stream, so nothing will ever fetch it. Entries
-            # that do hold a stream have to stay: the playlist is fetched after
-            # the run ends.
-            stream_runs.pop(run, None)
 
         return data
 

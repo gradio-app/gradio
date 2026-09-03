@@ -1373,6 +1373,7 @@ class App(FastAPI):
                         ):
                             for stream in run.values():
                                 stream.end_stream()
+                        app.get_blocks().pending_diff_streams.pop(session_hash, None)
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(

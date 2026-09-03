@@ -1110,11 +1110,10 @@ class TestRoutes:
         assert runs[run][audio._id].ended is True
         assert demo.pending_diff_streams.get("s") == {}
 
-    def test_an_aborted_run_with_no_stream_drops_its_entry(self):
-        # `handle_streaming_outputs` files an entry for every generator, before
-        # it knows whether any of its outputs stream. A run that finishes drops
-        # such an entry on its final chunk; a run that raises never gets there,
-        # so this handler has to drop it instead.
+    def test_a_run_with_no_streaming_output_files_no_stream_entry(self):
+        # The entry is filed when an output opens a stream, not up front, so a
+        # generator with no streaming output leaves nothing behind however it
+        # ends.
         def stream():
             yield "chunk one"
             raise RuntimeError("boom")
@@ -1129,20 +1128,21 @@ class TestRoutes:
         with pytest.raises(RuntimeError):
             asyncio.run(drive_aborted_run(app, fn))
 
-        assert demo.pending_streams.get("s") == {}
+        assert "s" not in demo.pending_streams
 
     def test_a_run_whose_client_goes_away_drops_its_state(self):
         # A client that closes the tab mid-run does not raise, and no final
         # chunk arrives, so neither of the other two cleanups runs. The queue
-        # closes the run out when the event ends, heartbeat or not.
+        # closes the run out when the event ends, heartbeat or not, and since
+        # nobody is left to fetch the playlist the stream goes too.
         def stream():
             for _ in range(20):
                 time.sleep(0.1)
-                yield "x" * 1000
+                yield None
 
         with Blocks() as demo:
-            box = gr.Textbox()
-            gr.Button().click(stream, None, box)
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
 
         _, local_url, _ = demo.launch(prevent_thread_lock=True)
         try:
@@ -1158,14 +1158,54 @@ class TestRoutes:
                     for line in sse.iter_lines():
                         if "process_generating" in line:
                             break
-            assert demo.pending_diff_streams.get("s")
+                    # Checked while the connection is still open, so the run
+                    # cannot have been torn down yet
+                    assert len(demo.pending_streams.get("s", {})) == 1
+                    assert len(demo.pending_diff_streams.get("s", {})) == 1
 
             for _ in range(50):
-                if not demo.pending_diff_streams.get("s"):
+                if not demo.pending_streams.get("s"):
                     break
                 time.sleep(0.1)
-            assert demo.pending_diff_streams.get("s") == {}
             assert demo.pending_streams.get("s") == {}
+            assert demo.pending_diff_streams.get("s") == {}
+        finally:
+            demo.close()
+
+    def test_a_finished_run_keeps_its_stream_for_its_client(self):
+        # The other half of the orphan rule: a client that saw the run finish
+        # fetches the playlist afterwards, so the stream has to stay.
+        def stream():
+            for _ in range(3):
+                yield None
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            with httpx.Client(base_url=local_url) as client:
+                join = client.post(
+                    f"{API_PREFIX}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": "s"},
+                )
+                assert join.status_code == 200
+                with client.stream(
+                    "GET", f"{API_PREFIX}/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if "process_completed" in line:
+                            break
+
+                runs = demo.pending_streams.get("s", {})
+                assert len(runs) == 1
+                run = next(iter(runs))
+                assert runs[run][audio._id].ended is True
+                playlist = client.get(
+                    f"{API_PREFIX}/stream/s/{run}/{audio._id}/playlist.m3u8"
+                )
+                assert playlist.status_code == 200
         finally:
             demo.close()
 
