@@ -2143,20 +2143,25 @@ Received inputs:
             self._stream_run_ids[iterator] = run
         return run
 
-    def _lookup_stream_run_key(self, iterator: Any) -> str | None:
-        """The key of `iterator`'s run, or None if it never opened one."""
-        return self._stream_run_ids.get(iterator)
+    def _drop_run_streams(self, session_hash: str | None, iterator: Any) -> None:
+        """Close out the streaming state of the run `iterator` was driving.
 
-    def _drop_session_streams(self, session_hash: str) -> None:
-        """End and forget what both streaming dicts hold for a session.
-
-        A run the client walked away from reaches neither its final chunk nor
-        an exception handler, so nothing else drops its diff state.
+        For a run that reaches no final chunk: it raised, was cancelled, or its
+        client went away. An entry that holds a stream stays, since its
+        playlist is fetched after the run ends.
         """
-        for run in self.pending_streams.pop(session_hash, {}).values():
-            for stream in run.values():
-                stream.end_stream()
-        self.pending_diff_streams.pop(session_hash, None)
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        stream_runs = self.pending_streams.get(session_hash, {})
+        streams = stream_runs.get(run, {})
+        for stream in streams.values():
+            stream.end_stream()
+        if not streams:
+            stream_runs.pop(run, None)
+        self.pending_diff_streams.get(session_hash, {}).pop(run, None)
 
     async def handle_streaming_outputs(
         self,

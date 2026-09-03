@@ -435,24 +435,7 @@ async def call_process_api(
             raise output
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
-        # Look the run up rather than mint a key: minting would write to the run
-        # table mid-exception, and an iterator can reach this unkeyed, since a
-        # call with an event id but no session hash opens no run.
-        blocks = app.get_blocks()
-        run_id = (
-            blocks._lookup_stream_run_key(iterator) if iterator is not None else None
-        )
-        if run_id is not None:
-            # The final chunk that would have ended these streams and dropped
-            # what they leave behind never arrives, so do both here. An entry
-            # that holds a stream stays, since its playlist is fetched later.
-            stream_runs = blocks.pending_streams.get(session_hash, {})
-            pending_streams: dict[int, MediaStream] = stream_runs.get(run_id, {})
-            for stream in pending_streams.values():
-                stream.end_stream()
-            if not pending_streams:
-                stream_runs.pop(run_id, None)
-            blocks.pending_diff_streams.get(session_hash, {}).pop(run_id, None)
+        app.get_blocks()._drop_run_streams(session_hash, iterator)
         raise
 
     if batch_in_single_out:

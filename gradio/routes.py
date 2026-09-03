@@ -1366,7 +1366,13 @@ class App(FastAPI):
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
                         caching.clear_session_caches(session_hash)
-                        app.get_blocks()._drop_session_streams(session_hash)
+                        for run in (
+                            app.get_blocks()
+                            .pending_streams.pop(session_hash, {})
+                            .values()
+                        ):
+                            for stream in run.values():
+                                stream.end_stream()
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(

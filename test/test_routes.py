@@ -1085,10 +1085,8 @@ class TestRoutes:
         assert response.status_code == 404
 
     def test_an_aborted_run_ends_its_streams_and_drops_its_diffs(self):
-        # A run that raises never reaches its final chunk, so this handler is
-        # the only place that ends its streams and drops its diff state. The
-        # diff entry matters most: unlike `pending_streams`, that dict is not
-        # cleared when the session disconnects.
+        # A run that raises never reaches its final chunk, so the exception
+        # path has to end its streams and drop its diff state itself.
         def stream():
             yield None
             raise RuntimeError("boom")
@@ -1133,40 +1131,43 @@ class TestRoutes:
 
         assert demo.pending_streams.get("s") == {}
 
-    def test_a_disconnected_session_drops_its_diff_state(self):
-        # A client that walks away mid-run does not raise: the queue drops the
-        # event and returns, so neither the final chunk nor the exception
-        # handler runs. `pending_diff_streams` has no other cleanup, and each
-        # entry holds the last full postprocessed output of every component.
+    def test_a_run_whose_client_goes_away_drops_its_state(self):
+        # A client that closes the tab mid-run does not raise, and no final
+        # chunk arrives, so neither of the other two cleanups runs. The queue
+        # closes the run out when the event ends, heartbeat or not.
         def stream():
-            for _ in range(5):
+            for _ in range(20):
+                time.sleep(0.1)
                 yield "x" * 1000
 
         with Blocks() as demo:
             box = gr.Textbox()
             gr.Button().click(stream, None, box)
 
-        app = routes.App.create_app(demo)
-        fn = next(iter(demo.fns.values()))
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            with httpx.Client(base_url=local_url) as client:
+                join = client.post(
+                    f"{API_PREFIX}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": "s"},
+                )
+                assert join.status_code == 200
+                with client.stream(
+                    "GET", f"{API_PREFIX}/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if "process_generating" in line:
+                            break
+            assert demo.pending_diff_streams.get("s")
 
-        async def one_chunk_then_leave():
-            await route_utils.call_process_api(
-                app=app,
-                body=PredictBodyInternal(
-                    data=[], session_hash="s", event_id="e1", request=None
-                ),
-                gr_request=gr.Request(),
-                fn=fn,
-                root_path="",
-            )
-
-        asyncio.run(one_chunk_then_leave())
-        assert demo.pending_diff_streams.get("s") != {}
-
-        demo._drop_session_streams("s")
-
-        assert "s" not in demo.pending_streams
-        assert "s" not in demo.pending_diff_streams
+            for _ in range(50):
+                if not demo.pending_diff_streams.get("s"):
+                    break
+                time.sleep(0.1)
+            assert demo.pending_diff_streams.get("s") == {}
+            assert demo.pending_streams.get("s") == {}
+        finally:
+            demo.close()
 
 
 def test_api_listener(connect):
