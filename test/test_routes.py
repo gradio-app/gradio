@@ -1075,7 +1075,6 @@ class TestRoutes:
                     root_path="",
                 )
 
-        run = None
         with pytest.raises(RuntimeError):
             asyncio.run(drive())
         run = next(iter(demo.pending_streams["s"]))

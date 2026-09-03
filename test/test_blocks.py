@@ -1788,8 +1788,8 @@ class TestHandleStreamingOutputs:
     @requires_ffmpeg
     @pytest.mark.asyncio
     async def test_two_runs_under_one_event_id_get_separate_streams(self):
-        # An event id is not a run id. Cancelling an event puts it in
-        # `app.iterators_to_reset`, so the next call for that event id starts
+        # An event id is not a run id. Cancelling an event drops
+        # `app.iterators[event_id]`, so the next call for that event id starts
         # the generator over, and keying the run on the event id would hand the
         # restart the streams the first run had already ended.
         demo, block_fn, audio = streaming_audio_demo()

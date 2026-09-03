@@ -446,9 +446,8 @@ async def call_process_api(
         if run_id is not None:
             blocks = app.get_blocks()
             # close off any streams that are still open
-            pending_streams: dict[int, MediaStream] = blocks.pending_streams.get(
-                session_hash, {}
-            ).get(run_id, {})
+            stream_runs = blocks.pending_streams.get(session_hash, {})
+            pending_streams: dict[int, MediaStream] = stream_runs.get(run_id, {})
             for stream in pending_streams.values():
                 stream.end_stream()
             if not pending_streams:
@@ -456,7 +455,7 @@ async def call_process_api(
                 # streaming output, and it never opened one, so nothing can
                 # fetch it. A run that finishes drops it on its final chunk;
                 # one that raises has to drop it here.
-                blocks.pending_streams.get(session_hash, {}).pop(run_id, None)
+                stream_runs.pop(run_id, None)
             # The run never reaches its final chunk, so this is the only place
             # its diff state gets dropped. Nothing else does: unlike
             # `pending_streams`, `pending_diff_streams` is not cleared when the
