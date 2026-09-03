@@ -138,15 +138,19 @@ class TestVideo:
 
     @pytest.mark.asyncio
     async def test_stream_output_keeps_the_payload_across_chunks(self, tmp_path):
-        # The call above returns before any chunk is converted, so the shape
-        # is pinned here on the path a streaming run actually takes.
+        # The call above returns before a chunk is assembled, so the shape is
+        # pinned here on the path a streaming run actually takes. A `.ts`
+        # chunk needs no conversion, and the duration lookup is patched out:
+        # it is not what this pins, and shelling out to ffprobe segfaulted on
+        # CI's build.
         component = gr.Video(streaming=True)
-        chunk_source = tmp_path / "chunk.mp4"
-        shutil.copy("test/test_files/video_sample.mp4", chunk_source)
+        chunk_source = tmp_path / "chunk.ts"
+        chunk_source.write_bytes(b"transport-stream-bytes")
 
-        chunk, output_file = await component.stream_output(
-            str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
-        )
+        with patch.object(gr.Video, "get_video_duration_ffprobe", return_value=1.5):
+            chunk, output_file = await component.stream_output(
+                str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
+            )
 
         assert output_file == {
             "path": "sess/0/1/playlist.m3u8",
@@ -154,10 +158,11 @@ class TestVideo:
             "orig_name": "video-stream.mp4",
             "meta": {"_type": "gradio.FileData"},
         }
-        assert chunk is not None
-        assert chunk["extension"] == ".ts"
-        assert chunk["duration"] > 0
-        assert chunk["data"]
+        assert chunk == {
+            "data": b"transport-stream-bytes",
+            "duration": 1.5,
+            "extension": ".ts",
+        }
 
     def test_in_interface(self, media_data):
         """
