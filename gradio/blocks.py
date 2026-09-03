@@ -2158,12 +2158,21 @@ Received inputs:
         run = self._stream_run_ids.get(iterator)
         if run is None:
             return
-        stream_runs = self.pending_streams.get(session_hash, {})
-        for stream in stream_runs.get(run, {}).values():
+        for stream in self.pending_streams.get(session_hash, {}).get(run, {}).values():
             stream.end_stream()
         if orphaned:
-            stream_runs.pop(run, None)
-        self.pending_diff_streams.get(session_hash, {}).pop(run, None)
+            self._pop_run_entry(self.pending_streams, session_hash, run)
+        self._pop_run_entry(self.pending_diff_streams, session_hash, run)
+
+    @staticmethod
+    def _pop_run_entry(table: dict, session_hash: str, run: str) -> None:
+        """Drop a run's entry, and the session's dict if that leaves it empty."""
+        runs = table.get(session_hash)
+        if runs is None:
+            return
+        runs.pop(run, None)
+        if not runs:
+            del table[session_hash]
 
     async def handle_streaming_outputs(
         self,
@@ -2208,9 +2217,7 @@ Received inputs:
                     desired_output_format = None
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
-                    stream_run = self.pending_streams[session_hash].setdefault(
-                        run, stream_run
-                    )
+                    stream_run = self.pending_streams[session_hash].setdefault(run, {})
                     stream_run[output_id] = MediaStream(
                         desired_output_format=desired_output_format
                     )
@@ -2263,7 +2270,7 @@ Received inputs:
                     data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
-            del self.pending_diff_streams[session_hash][run]
+            self._pop_run_entry(self.pending_diff_streams, session_hash, run)
 
         return data
 

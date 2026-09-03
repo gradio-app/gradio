@@ -11,7 +11,7 @@ import tempfile
 import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
-from threading import Thread
+from threading import Event, Thread
 from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import parse_qs, unquote, urlparse
@@ -1108,7 +1108,7 @@ class TestRoutes:
         run = next(iter(runs))
 
         assert runs[run][audio._id].ended is True
-        assert demo.pending_diff_streams.get("s") == {}
+        assert "s" not in demo.pending_diff_streams
 
     def test_a_run_with_no_streaming_output_files_no_stream_entry(self):
         # The entry is filed when an output opens a stream, not up front, so a
@@ -1135,8 +1135,10 @@ class TestRoutes:
         # chunk arrives, so neither of the other two cleanups runs. The queue
         # closes the run out when the event ends, heartbeat or not, and since
         # nobody is left to fetch the playlist the stream goes too.
+        stop = Event()
+
         def stream():
-            for _ in range(20):
+            while not stop.is_set():
                 time.sleep(0.1)
                 yield None
 
@@ -1164,12 +1166,13 @@ class TestRoutes:
                     assert len(demo.pending_diff_streams.get("s", {})) == 1
 
             for _ in range(50):
-                if not demo.pending_streams.get("s"):
+                if "s" not in demo.pending_streams:
                     break
                 time.sleep(0.1)
-            assert demo.pending_streams.get("s") == {}
-            assert demo.pending_diff_streams.get("s") == {}
+            assert "s" not in demo.pending_streams
+            assert "s" not in demo.pending_diff_streams
         finally:
+            stop.set()
             demo.close()
 
     def test_a_finished_run_keeps_its_stream_for_its_client(self):

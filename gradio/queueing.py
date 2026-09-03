@@ -1093,11 +1093,11 @@ class Queue:
                 if app is not None:
                     # A run that raised, was cancelled or lost its client reaches
                     # no final chunk, so close out its streams here, while the
-                    # iterator that keys them is still stored. /cancel awaits
-                    # this task before dropping that iterator itself. A run that
-                    # finished is still alive here: nothing awaits between its
-                    # completion message and this point.
-                    app.get_blocks()._drop_run_streams(
+                    # iterator that keys them is still stored (a finished run's
+                    # is already None). /cancel awaits this task before dropping
+                    # that iterator itself, and only the /queue/data disconnect
+                    # clears `alive`, so a dead event is one whose client left.
+                    self.blocks._drop_run_streams(
                         event.data.session_hash if event.data else None,
                         app.iterators.get(event._id),
                         orphaned=not event.alive,

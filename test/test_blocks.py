@@ -1732,7 +1732,7 @@ class TestHandleStreamingOutputs:
 
         assert data == [b"final"]
         # and the run leaves nothing behind, since nothing can fetch it
-        assert "run-1" not in demo.pending_streams["s"]
+        assert "s" not in demo.pending_streams
 
     @pytest.mark.asyncio
     async def test_sequential_runs_get_distinct_run_keys(self):
