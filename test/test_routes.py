@@ -124,11 +124,7 @@ class TestRoutes:
 
         assert response.status_code == 200
         assert "#EXT-X-TARGETDURATION:2" in response.text
-        # A player places each segment by accumulating these, so three decimals
-        # is not precise enough for a stream cut out of one continuous encode.
         assert "#EXTINF:1.250000," in response.text
-        # Nothing in the playlist should tell a player to reset its decoder
-        # between audio segments.
         assert "#EXT-X-DISCONTINUITY" not in response.text
 
     def test_favicon_route(self, test_client):

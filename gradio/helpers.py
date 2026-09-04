@@ -629,10 +629,8 @@ async def merge_generated_values_into_output(
         if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
             desired_output_format = None
-            # A component may hold per-stream state (an encoder, say) keyed by
-            # this id, so it has to be unique per cached example and released
-            # afterwards. Only `orig_name` is read back out of the result here,
-            # so the id never reaches the caller.
+            # A component may key per-stream state on this id, so it has to be
+            # unique per cached example and released afterwards.
             stream_id = f"cache/{uuid.uuid4()}"
             try:
                 for i, chunk in enumerate(generated_values):

@@ -2171,14 +2171,11 @@ Received inputs:
                         functools.partial(block.end_stream_output, stream_id)
                     )
                     # A client that drops the event stream without closing the
-                    # session never reaches `end_stream()`, so also release the
-                    # resources when the stream itself is collected.
+                    # session does not reach `end_stream()` until much later.
                     weakref.finalize(stream, block.end_stream_output, stream_id)
 
                 await stream_run[output_id].add_segment(binary_data)
                 if final:
-                    # An encoder can be holding a frame's worth of audio that
-                    # only comes out when its input closes.
                     await stream_run[output_id].add_segment(
                         await block.flush_stream_output(stream_id)
                     )

@@ -1231,10 +1231,8 @@ class App(FastAPI):
             playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
 
             for segment in stream.segments:
-                # Packed audio carries no timestamps of its own, so the player
-                # derives each segment's start by accumulating these. Three
-                # decimals is not enough for that: a 1024-sample frame at
-                # 44.1 kHz is 0.0232199 s, and the rounding error adds up.
+                # Packed audio has no timestamps of its own, so a player places
+                # each segment by accumulating these and the rounding adds up.
                 playlist += f"#EXTINF:{segment['duration']:.6f},\n"
                 playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
                 # HLS expects the start time of the video segments to be continuous

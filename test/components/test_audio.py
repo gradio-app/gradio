@@ -20,24 +20,16 @@ from gradio.media import get_audio
 class TestAudio:
     @pytest.mark.asyncio
     async def test_streamed_audio_is_one_continuous_aac_stream(self):
-        """Chunks share a single encoder, so only the stream gets a priming frame.
-
-        A per-chunk encoder adds one to every chunk, and that frame has no
-        overlap-add partner, which is what the audible gap between chunks was.
-        """
+        """Chunks share one encoder, so only the stream gets a priming frame."""
         sample_rate, chunk_samples, chunk_count = 16000, 4000, 8
 
-        def wav_chunk(index: int) -> bytes:
-            positions = np.arange(index * chunk_samples, (index + 1) * chunk_samples)
-            pcm = (
-                0.2 * np.sin(2 * np.pi * 440 * positions / sample_rate) * 32767
-            ).astype(np.int16)
+        def wav_chunk() -> bytes:
             buffer = io.BytesIO()
             with wave.open(buffer, "wb") as writer:
                 writer.setnchannels(1)
                 writer.setsampwidth(2)
                 writer.setframerate(sample_rate)
-                writer.writeframes(pcm.tobytes())
+                writer.writeframes(np.zeros(chunk_samples, dtype=np.int16).tobytes())
             return buffer.getvalue()
 
         audio = gr.Audio(streaming=True)
@@ -46,7 +38,7 @@ class TestAudio:
         try:
             for index in range(chunk_count):
                 segment, _ = await audio.stream_output(
-                    wav_chunk(index), stream_id, index == 0
+                    wav_chunk(), stream_id, index == 0
                 )
                 if segment:
                     segments.append(segment)

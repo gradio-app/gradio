@@ -211,13 +211,11 @@ class AacStreamEncoder:
     def take(self, timeout: float = 0.1) -> list[bytes]:
         """Pop every whole frame the encoder has emitted so far.
 
-        `timeout` only covers the case where nothing is ready yet, which in
-        practice is the first chunk of a stream. It deliberately does not wait
-        for a predicted frame count: how far the encoder runs behind its input
-        is its own business, and a prediction that is one frame too high costs
-        the whole timeout on every chunk it is wrong about. Anything still
-        inside the encoder simply goes out with the next chunk, or with
-        `flush()` at the end.
+        `timeout` only covers having nothing ready yet, which in practice is the
+        first chunk; frames still inside the encoder go out with the next chunk,
+        or with `flush()`. Do not make it wait for a predicted frame count: the
+        prediction is sometimes one too high, and then every chunk it is wrong
+        about pays the whole timeout.
         """
         deadline = time.monotonic() + timeout
         with self._condition:
@@ -251,10 +249,8 @@ class AacStreamEncoder:
         with self._condition:
             frames = list(self._ready)
             self._ready.clear()
-        # The process is reaped by now, so this only has the pipes left to
-        # close. Doing it here rather than leaving them to the garbage
-        # collector means a caller that flushes and drops the encoder, which is
-        # what `flush_stream_output` does, still releases the descriptors.
+        # The process is reaped by now, so this is just the pipes, which a
+        # caller that flushes and drops the encoder would otherwise leave to gc.
         self.close()
         return frames
 

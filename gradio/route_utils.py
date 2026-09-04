@@ -1185,11 +1185,9 @@ class MediaStream:
         self.ended = False
         self.max_duration = 1
         self.desired_output_format = desired_output_format
-        # Callbacks that release resources tied to this stream, such as a
-        # component's long-lived encoder process. `end_stream()` is reached from
-        # several places (normal completion, the exception handler in
-        # `call_process_api`, session teardown), which is why the cleanup hangs
-        # off the stream rather than off any one of them.
+        # Cleanup for resources tied to this stream, such as a component's
+        # encoder process. It hangs off the stream because `end_stream()` is
+        # reached from several places, not just normal completion.
         self.on_end: list[Callable[[], None]] = []
 
     async def add_segment(self, data: MediaStreamChunk | None):
@@ -1207,10 +1205,8 @@ class MediaStream:
             try:
                 callback()
             except Exception:  # noqa: BLE001
-                # end_stream() runs inside exception handling, so a failure to
-                # tear down must not replace the error being propagated. It
-                # would leak whatever the callback was releasing, though, so
-                # leave a trace of it.
+                # This runs inside exception handling, so a teardown failure
+                # must not replace the error being propagated. It leaks, though.
                 logger.debug("stream cleanup callback failed", exc_info=True)
 
 

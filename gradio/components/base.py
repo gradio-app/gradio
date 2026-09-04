@@ -392,8 +392,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         """Emit whatever an encoder is still holding once the stream has ended."""
         return None
 
-    # Deliberately concrete and empty: most streaming outputs hold nothing that
-    # needs releasing, so making this abstract would break existing components.
+    # Concrete on purpose: abstract would break existing components.
     def end_stream_output(self, output_id: str) -> None:  # noqa: B027
         """Release any per-stream resources held for `output_id`."""
 
