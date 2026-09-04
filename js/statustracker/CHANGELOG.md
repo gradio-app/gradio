@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/atoms@0.26.2
+
+## 0.15.3
+
+### Dependency updates
+
 - @gradio/sanitize@0.4.2
 
 ## 0.15.3

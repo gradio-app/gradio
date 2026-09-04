@@ -2,6 +2,12 @@
 
 ## 0.12.0
 
+### Dependency updates
+
+- @gradio/atoms@0.26.2
+
+## 0.12.0
+
 ### Features
 
 - [#13697](https://github.com/gradio-app/gradio/pull/13697) [`3ac9d5d`](https://github.com/gradio-app/gradio/commit/3ac9d5db5892e88f57260215793feeaa06bdde59) - Fix release CI regressions for assets and bundles.  Thanks @abidlabs!
