@@ -13,12 +13,17 @@
 
 const ROUTER_URL = "https://router.huggingface.co/v1/chat/completions";
 
+export type ChatContentPart =
+	| { type: "text"; text: string }
+	| { type: "image_url"; image_url: { url: string } };
+
 export interface StreamTextOptions {
 	modelId: string;
-	prompt: string;
+	content: string | ChatContentPart[];
 	hfToken?: string;
 	provider?: string;
 	maxTokens?: number;
+	params?: Record<string, string | number>;
 	signal?: AbortSignal;
 	onChunk: (delta: string, accumulated: string) => void;
 }
@@ -46,8 +51,9 @@ export async function stream_text_generation(
 
 	const body = JSON.stringify({
 		model,
-		messages: [{ role: "user", content: opts.prompt }],
-		max_tokens: opts.maxTokens ?? 512,
+		messages: [{ role: "user", content: opts.content }],
+		max_tokens: opts.maxTokens ?? 16384,
+		...(opts.params ?? {}),
 		stream: true
 	});
 
@@ -121,6 +127,7 @@ export function is_streamable_text_task(
 	return (
 		pipelineTag === "text-generation" ||
 		pipelineTag === "text2text-generation" ||
-		pipelineTag === "conversational"
+		pipelineTag === "conversational" ||
+		pipelineTag === "image-text-to-text"
 	);
 }
