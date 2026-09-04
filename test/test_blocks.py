@@ -96,6 +96,39 @@ class TestBlocksMethods:
         config2 = demo2.get_config_file()
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
+    def test_load_from_config_proxies_initial_file_values(self):
+        proxy_url = "https://private-space.hf.space"
+        remote_path = "/tmp/gradio/private-cat.png"
+        upstream_url = f"{proxy_url}{API_PREFIX}/file={remote_path}"
+        file_data = {
+            "path": remote_path,
+            "url": upstream_url,
+            "meta": {"_type": "gradio.FileData"},
+        }
+
+        with gr.Blocks() as demo:
+            gallery = gr.Gallery()
+
+        config = demo.get_config_file()
+        gallery_config = next(
+            component
+            for component in config["components"]
+            if component["id"] == gallery._id
+        )
+        gallery_config["props"]["value"] = [
+            {"image": file_data, "caption": "Private image"}
+        ]
+
+        loaded = gr.Blocks.from_config(config, [], proxy_url)
+        loaded_gallery = next(
+            block for block in loaded.blocks.values() if isinstance(block, gr.Gallery)
+        )
+        image = loaded_gallery.value[0]["image"]  # type: ignore
+        assert image["path"] == remote_path
+        assert image["url"] == (
+            f"{API_PREFIX}/proxy={proxy_url}{API_PREFIX}/file={remote_path}"
+        )
+
     def test_from_config_rejects_non_hf_space_proxy_url(self):
         """`Blocks.from_config()` must only register `proxy_url`s whose host
         ends in `.hf.space` — otherwise a malicious config (or a malicious

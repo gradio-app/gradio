@@ -459,15 +459,17 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
+        # Developer-returned URLs on regular components can be displayed directly.
+        # Loaded components are different: on output their URL may point to a private
+        # upstream app and must be proxied; on input it points to that loader proxy
+        # and is the path the upstream app can fetch.
         if (
             payload.url
-            and postprocess
             and client_utils.is_http_url_like(payload.url)
-            and not block.proxy_url
+            and (
+                (postprocess and not block.proxy_url)
+                or (not postprocess and block.proxy_url)
+            )
         ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
@@ -494,6 +496,8 @@ def move_files_to_cache(
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = f"{payload.path}"
         else:
             url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
@@ -585,15 +589,17 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
+        # Developer-returned URLs on regular components can be displayed directly.
+        # Loaded components are different: on output their URL may point to a private
+        # upstream app and must be proxied; on input it points to that loader proxy
+        # and is the path the upstream app can fetch.
         if (
             payload.url
-            and postprocess
             and client_utils.is_http_url_like(payload.url)
-            and not block.proxy_url
+            and (
+                (postprocess and not block.proxy_url)
+                or (not postprocess and block.proxy_url)
+            )
         ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
@@ -622,6 +628,8 @@ async def async_move_files_to_cache(
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = payload.path
         else:
             url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"

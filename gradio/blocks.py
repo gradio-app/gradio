@@ -1277,11 +1277,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
-            if postprocessed_value is not None:
-                block.value = postprocessed_value  # type: ignore
-
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
+            if postprocessed_value is not None:
+                block.value = processing_utils.move_files_to_cache(  # type: ignore
+                    postprocessed_value, block, postprocess=True
+                )
             # Only add proxy URLs that point to known Hugging Face Space
             # hosts to prevent SSRF via malicious configs.
             if httpx.URL(block_proxy_url).host.endswith(".hf.space"):

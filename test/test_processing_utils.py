@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import json
 import os
@@ -12,6 +13,7 @@ import httpx
 import numpy as np
 import pytest
 from gradio_client import utils as client_utils
+from gradio_client.client import Endpoint
 from PIL import Image, ImageCms
 from pydantic import BaseModel
 from pydub import AudioSegment
@@ -80,12 +82,20 @@ class TestTempFileManagement:
             assert result["url"].endswith("/report%2520%23final.txt")
 
     @pytest.mark.asyncio
-    async def test_move_files_to_cache_proxies_loaded_space_files(self):
+    @pytest.mark.parametrize(
+        ("is_stream", "url_prefix"),
+        [(False, f"{API_PREFIX}/file="), (True, f"{API_PREFIX}/stream/")],
+    )
+    async def test_move_files_to_cache_proxies_loaded_space_files(
+        self, is_stream, url_prefix, monkeypatch, tmp_path
+    ):
         proxy_url = "https://private-space.hf.space"
         remote_path = "/tmp/gradio/private-cat.png"
+        upstream_url = f"{proxy_url}{url_prefix}{remote_path}"
         data = data_classes.FileData(
             path=remote_path,
-            url=f"{proxy_url}{API_PREFIX}/file={remote_path}",
+            url=upstream_url,
+            is_stream=is_stream,
         ).model_dump()
         proxy_component = gr.Image()
         proxy_component.proxy_url = f"{proxy_url}/"
@@ -97,13 +107,26 @@ class TestTempFileManagement:
             data, proxy_component, postprocess=True
         )
         expected_url = (
-            f"{API_PREFIX}/proxy={proxy_url}{API_PREFIX}/file="
+            f"{API_PREFIX}/proxy={proxy_url}{url_prefix}"
             f"{client_utils.encode_file_path(remote_path)}"
         )
 
         for result in (sync_result, async_result):
             assert result["path"] == remote_path
             assert result["url"] == expected_url
+
+            browser_result = processing_utils.add_root_url(
+                copy.deepcopy(result), "https://loader.hf.space", None
+            )
+            round_trip = await processing_utils.async_move_files_to_cache(
+                browser_result, proxy_component, postprocess=False
+            )
+            monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "loader-cache"))
+            processing_utils.check_all_files_in_cache(round_trip)  # type: ignore[arg-type]
+
+            endpoint = Endpoint.__new__(Endpoint)
+            processed_input = endpoint.process_input_files(round_trip)[0]
+            assert processed_input["path"] == browser_result["url"]
 
     @pytest.mark.asyncio
     async def test_move_files_to_cache_does_not_proxy_external_urls(self):

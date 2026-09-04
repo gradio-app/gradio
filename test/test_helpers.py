@@ -953,6 +953,36 @@ def test_check_event_data_in_cache():
         )
 
 
+def test_loaded_space_event_data_uses_proxy_url(monkeypatch, tmp_path):
+    def get_select_value(evt: gr.SelectData):
+        return evt.value
+
+    target = gr.Gallery()
+    target.proxy_url = "https://private-space.hf.space/"
+    proxy_file_url = (
+        "https://loader.hf.space/gradio_api/proxy="
+        "https://private-space.hf.space/gradio_api/file=/tmp/gradio/cat.png"
+    )
+    event_data = helpers.EventData(
+        target,
+        {
+            "index": 0,
+            "value": {
+                "path": "/tmp/gradio/cat.png",
+                "url": proxy_file_url,
+                "meta": {"_type": "gradio.FileData"},
+            },
+        },
+    )
+    monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "loader-cache"))
+
+    inputs, *_ = helpers.special_args(
+        get_select_value, inputs=[], event_data=event_data
+    )
+
+    assert inputs[0].value["path"] == proxy_file_url
+
+
 def test_request_session_none_without_sessionmiddleware():
     from starlette.requests import Request
 
