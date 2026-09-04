@@ -23,6 +23,7 @@
 		bind:value
 		label=""
 		interactive={editable}
+		tab_index={-1}
 		on_change={handle_change}
 	/>
 </div>
