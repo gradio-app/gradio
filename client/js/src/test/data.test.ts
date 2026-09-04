@@ -5,6 +5,7 @@ import {
 	skip_queue,
 	post_message,
 	handle_file,
+	sign_file_urls,
 	handle_payload
 } from "../helpers/data";
 import { config_response, endpoint_info } from "./test_data";
@@ -357,6 +358,69 @@ describe("post_message", () => {
 			post_message_spy.mockRestore();
 		}
 	);
+});
+
+describe("sign_file_urls", () => {
+	it("signs nested file and stream URLs on the private Space origin", () => {
+		const data = {
+			image: {
+				path: "/tmp/cat.png",
+				url: "gradio_api/file=/tmp/cat.png?download=true",
+				meta: { _type: "gradio.FileData" }
+			},
+			gallery: [
+				{
+					image: {
+						path: "/tmp/tone.wav",
+						url: "/gradio_api/stream/tone.wav",
+						is_stream: true,
+						meta: { _type: "gradio.FileData" }
+					}
+				}
+			]
+		};
+
+		sign_file_urls(data, "https://private-space.hf.space/app", "jwt_123");
+
+		expect(data.image.url).toBe(
+			"https://private-space.hf.space/app/gradio_api/file=/tmp/cat.png?download=true&__sign=jwt_123"
+		);
+		expect(data.gallery[0].image.url).toBe(
+			"https://private-space.hf.space/gradio_api/stream/tone.wav?__sign=jwt_123"
+		);
+	});
+
+	it("does not sign external URLs or objects that are not FileData", () => {
+		const data = {
+			external: {
+				path: "https://cdn.example.com/cat.png",
+				url: "https://cdn.example.com/cat.png",
+				meta: { _type: "gradio.FileData" }
+			},
+			plain: {
+				url: "https://private-space.hf.space/gradio_api/file=/tmp/cat.png"
+			}
+		};
+
+		sign_file_urls(data, "https://private-space.hf.space", "jwt_123");
+
+		expect(data.external.url).toBe("https://cdn.example.com/cat.png");
+		expect(data.plain.url).toBe(
+			"https://private-space.hf.space/gradio_api/file=/tmp/cat.png"
+		);
+	});
+
+	it("does nothing without a Space JWT", () => {
+		const file = {
+			path: "/tmp/cat.png",
+			url: "https://private-space.hf.space/gradio_api/file=/tmp/cat.png",
+			meta: { _type: "gradio.FileData" }
+		};
+
+		sign_file_urls(file, "https://private-space.hf.space", false);
+
+		expect(file.url).not.toContain("__sign");
+	});
 });
 
 describe("handle_file", () => {
