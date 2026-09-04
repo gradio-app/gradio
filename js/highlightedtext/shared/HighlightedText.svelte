@@ -45,6 +45,23 @@
 
 	let mode: "categories" | "scores" = $state("categories");
 	let resolved_color_map: Record<string, ColorPair> = $state({});
+	let roving_token_key = $state("");
+
+	let category_selectable_token_keys = $derived.by(() =>
+		value.flatMap(({ token, class_or_confidence }, i) => {
+			if (!is_token_selectable(class_or_confidence)) return [];
+			return token
+				.split("\n")
+				.flatMap((line, j) =>
+					is_visible_line(line) ? [category_token_key(i, j)] : []
+				);
+		})
+	);
+	let score_selectable_token_keys = $derived(
+		value.flatMap(({ class_or_confidence }, i) =>
+			is_token_selectable(class_or_confidence) ? [score_token_key(i)] : []
+		)
+	);
 
 	$effect(() => {
 		let local_colors = { ...color_map };
@@ -158,6 +175,88 @@
 		}
 	}
 
+	function handle_score_token_select(
+		index: number,
+		token: string,
+		class_or_confidence: string | number | null
+	): void {
+		if (interactive && class_or_confidence !== null) {
+			label_to_edit = index;
+		} else {
+			onselect?.({
+				index,
+				value: [token, class_or_confidence]
+			});
+		}
+	}
+
+	function is_token_selectable(
+		class_or_confidence: string | number | null
+	): boolean {
+		return selectable || (interactive && class_or_confidence !== null);
+	}
+
+	function is_visible_line(line: string): boolean {
+		return show_whitespaces ? line !== "" : Boolean(line.trim());
+	}
+
+	function category_token_key(index: number, line_index: number): string {
+		return `category-${index}-${line_index}`;
+	}
+
+	function score_token_key(index: number): string {
+		return `score-${index}`;
+	}
+
+	function get_roving_tabindex(key: string, selectable_keys: string[]): 0 | -1 {
+		const current_key = selectable_keys.includes(roving_token_key)
+			? roving_token_key
+			: selectable_keys[0];
+		return key === current_key ? 0 : -1;
+	}
+
+	function handle_token_keydown(e: KeyboardEvent, activate: () => void): void {
+		if (e.target !== e.currentTarget || e.repeat) return;
+
+		if (
+			e.key === "ArrowRight" ||
+			e.key === "ArrowDown" ||
+			e.key === "ArrowLeft" ||
+			e.key === "ArrowUp" ||
+			e.key === "Home" ||
+			e.key === "End"
+		) {
+			e.preventDefault();
+			const current_token = e.currentTarget as HTMLElement;
+			const tokens = Array.from(
+				current_token
+					.closest(".textfield")
+					?.querySelectorAll<HTMLElement>('.token[role="button"]') ?? []
+			);
+			const current_index = tokens.indexOf(current_token);
+			let next_index: number;
+
+			if (e.key === "Home") {
+				next_index = 0;
+			} else if (e.key === "End") {
+				next_index = tokens.length - 1;
+			} else {
+				const direction =
+					e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+				next_index =
+					(current_index + direction + tokens.length) % tokens.length;
+			}
+
+			tokens[next_index]?.focus();
+			return;
+		}
+
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			activate();
+		}
+	}
+
 	function get_background_color(
 		class_or_confidence: string | number | null
 	): string {
@@ -202,11 +301,11 @@
 		<div class="textfield">
 			{#each value as { token, class_or_confidence }, i}
 				{@const lines = token.split("\n")}
-				{@const token_is_selectable =
-					selectable || class_or_confidence !== null}
+				{@const token_is_selectable = is_token_selectable(class_or_confidence)}
 				{#each lines as line, j}
 					{#if show_whitespaces ? line !== "" : line.trim()}
 						{@const bg_color = get_background_color(class_or_confidence)}
+						{@const token_key = category_token_key(i, j)}
 						<span class="token-container">
 							<span
 								class="token"
@@ -219,21 +318,24 @@
 								style:background-color={bg_color}
 								style:color={get_text_color(class_or_confidence)}
 								role={token_is_selectable ? "button" : undefined}
-								tabindex={token_is_selectable ? 0 : undefined}
+								tabindex={token_is_selectable
+									? get_roving_tabindex(
+											token_key,
+											category_selectable_token_keys
+										)
+									: undefined}
 								onclick={() => {
 									if (!token_is_selectable) return;
-									handle_token_select(i, token, class_or_confidence);
+									handle_token_select(i, line, class_or_confidence);
 								}}
-								onkeydown={(e) => {
-									if (
-										token_is_selectable &&
-										(e.key === "Enter" || e.key === " ")
-									) {
-										e.preventDefault();
-										handle_token_select(i, token, class_or_confidence);
-									}
+								onkeydown={(e) =>
+									handle_token_keydown(e, () =>
+										handle_token_select(i, line, class_or_confidence)
+									)}
+								onfocus={() => {
+									active_element_index = i;
+									roving_token_key = token_key;
 								}}
-								onfocus={() => (active_element_index = i)}
 								onmouseenter={() => (active_element_index = i)}
 							>
 								<span
@@ -298,37 +400,31 @@
 					typeof class_or_confidence === "string"
 						? parseFloat(class_or_confidence)
 						: class_or_confidence}
+				{@const token_is_selectable = is_token_selectable(class_or_confidence)}
+				{@const token_key = score_token_key(i)}
 				<span class="token-container">
 					<span
 						class="token score-token"
+						class:selectable={selectable && score === null}
 						class:highlighted={score !== null}
 						style:background-color={get_score_color(score)}
-						role="button"
-						tabindex={0}
+						role={token_is_selectable ? "button" : undefined}
+						tabindex={token_is_selectable
+							? get_roving_tabindex(token_key, score_selectable_token_keys)
+							: undefined}
 						onmouseenter={() => (active_element_index = i)}
-						onfocus={() => (active_element_index = i)}
+						onfocus={() => {
+							active_element_index = i;
+							roving_token_key = token_key;
+						}}
 						onclick={() => {
-							if (interactive) {
-								label_to_edit = i;
-							} else {
-								onselect?.({
-									index: i,
-									value: [token, class_or_confidence]
-								});
-							}
+							if (!token_is_selectable) return;
+							handle_score_token_select(i, token, class_or_confidence);
 						}}
-						onkeydown={(e) => {
-							if (e.key === "Enter") {
-								if (interactive) {
-									label_to_edit = i;
-								} else {
-									onselect?.({
-										index: i,
-										value: [token, class_or_confidence]
-									});
-								}
-							}
-						}}
+						onkeydown={(e) =>
+							handle_token_keydown(e, () =>
+								handle_score_token_select(i, token, class_or_confidence)
+							)}
 					>
 						<span class="text">{token}</span>
 
