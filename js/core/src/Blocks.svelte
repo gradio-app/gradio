@@ -22,6 +22,7 @@
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
+	import { execute_custom_js } from "./custom_js";
 	import { reactive_formatter } from "./gradio_helper";
 
 	import logo from "./images/logo.svg";
@@ -488,6 +489,12 @@
 		);
 
 		app_tree.ready.then(() => {
+			if (js) {
+				void execute_custom_js(js).catch((e) => {
+					console.error("Error executing custom JS:", e);
+				});
+			}
+
 			ready = true;
 			reset_resize_growth(resize_state);
 			void settled().then(handle_resize);
