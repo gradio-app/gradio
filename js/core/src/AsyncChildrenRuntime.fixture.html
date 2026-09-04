@@ -1,0 +1,9 @@
+<script type="module">
+	import * as runtime from "./AsyncChildrenRuntime.fixture.ts";
+
+	window.async_children_runtime = runtime;
+	window.parent.postMessage(
+		"async-children-runtime-ready",
+		window.location.origin
+	);
+</script>
