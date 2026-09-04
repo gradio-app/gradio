@@ -1,9 +1,10 @@
-import { waitFor } from "@testing-library/dom";
-import { afterEach, expect, test } from "vitest";
-import { createRawSnippet, mount, unmount } from "svelte";
+import { getByRole, waitFor } from "@testing-library/dom";
+import { afterEach, expect, test, vi } from "vitest";
+import { createRawSnippet, flushSync, mount, unmount } from "svelte";
 import type { Component } from "svelte";
 
 import MountCustomComponent from "./MountCustomComponent.svelte";
+import MountCustomComponentHost from "./MountCustomComponentHost.test.svelte";
 
 let mounted: Record<string, never> | undefined;
 let runtime_frame: HTMLIFrameElement | undefined;
@@ -12,6 +13,8 @@ type AsyncChildrenRuntime = Pick<
 	typeof import("svelte"),
 	"createRawSnippet" | "mount" | "unmount"
 > & { default: Component };
+
+type RemountProbeRuntime = AsyncChildrenRuntime & { RemountProbe: Component };
 
 async function load_async_children_runtime(): Promise<AsyncChildrenRuntime> {
 	runtime_frame = document.createElement("iframe");
@@ -59,7 +62,7 @@ afterEach(async () => {
 });
 
 test("renders host children from an isolated Svelte runtime", async () => {
-	const runtime = await load_async_children_runtime();
+	const runtime = (await load_async_children_runtime()) as RemountProbeRuntime;
 	const children = createRawSnippet(() => ({
 		render: () => "<button>Child button</button>"
 	}));
@@ -81,8 +84,33 @@ test("renders host children from an isolated Svelte runtime", async () => {
 
 	await waitFor(() => {
 		expect(document.body).toHaveTextContent("hello");
-		const button = document.querySelector("button");
+		const button = getByRole(document.body, "button", {
+			name: "Child button"
+		});
 		expect(button).toHaveTextContent("Child button");
 		expect(button?.parentElement?.textContent).toContain("hello");
 	});
+});
+
+test("does not remount an isolated component when its prop proxy updates", async () => {
+	const runtime = (await load_async_children_runtime()) as RemountProbeRuntime;
+	const on_mount = vi.fn();
+
+	mounted = mount(MountCustomComponentHost, {
+		target: document.body,
+		props: {
+			component: runtime.RemountProbe,
+			runtime,
+			on_mount
+		}
+	});
+
+	await waitFor(() => expect(on_mount).toHaveBeenCalledOnce());
+	flushSync(() => {
+		(mounted as { update_value: (value: string) => void }).update_value(
+			"updated"
+		);
+	});
+
+	expect(on_mount).toHaveBeenCalledOnce();
 });

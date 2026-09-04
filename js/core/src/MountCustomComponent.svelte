@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { mount, unmount } from "svelte";
+	import { mount, unmount, untrack } from "svelte";
 	import MountChildren from "./MountChildren.svelte";
 
 	let { node, children, ...rest } = $props();
@@ -43,14 +43,16 @@
 					}))
 				: children;
 
-		const mounted = _runtime.mount(component.default, {
-			target: el,
-			props: {
-				shared_props: _shared_props,
-				props: _props,
-				children: runtime_children
-			}
-		});
+		const mounted = untrack(() =>
+			_runtime.mount(component.default, {
+				target: el,
+				props: {
+					shared_props: _shared_props,
+					props: _props,
+					children: runtime_children
+				}
+			})
+		);
 
 		return () => {
 			_runtime.unmount(mounted);
