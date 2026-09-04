@@ -2146,31 +2146,48 @@ Received inputs:
                 and block.streaming
                 and not utils.is_prop_update(data[i])
             ):
-                if final:
-                    # Nothing to finalize if this output never opened a stream —
-                    # the session may have been dropped on disconnect, or every
-                    # chunk before this one may have been a prop update. Falling
-                    # through would leave `first_chunk` true and build a fresh
-                    # stream that nothing ever ends.
-                    if (existing := stream_run.get(output_id)) is None:
-                        continue
-                    existing.end_stream()
+                # Nothing to finalize if this output never opened a stream —
+                # the session may have been dropped on disconnect, or every
+                # chunk before this one may have been a prop update. Falling
+                # through would leave `first_chunk` true and build a fresh
+                # stream that nothing ever ends.
+                if final and stream_run.get(output_id) is None:
+                    continue
+                stream_id = f"{session_hash}/{run}/{output_id}/playlist.m3u8"
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
-                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    stream_id,
                     first_chunk,
                 )
                 if first_chunk:
                     desired_output_format = None
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
-                    stream_run[output_id] = MediaStream(
-                        desired_output_format=desired_output_format
+                    stream = MediaStream(desired_output_format=desired_output_format)
+                    stream_run[output_id] = stream
+                    # One registration for both jobs: calling a finalize handle
+                    # runs it and disarms it, so ending the stream releases the
+                    # encoder and leaves nothing armed to fire later against a
+                    # key that a newer run may by then own. What the unarmed
+                    # case covers is interpreter exit, not a dropped event
+                    # stream: the session cleanup that discards this stream
+                    # ends it first.
+                    stream.on_end.append(
+                        weakref.finalize(stream, block.end_stream_output, stream_id)
                     )
-                    stream_run[output_id]
 
                 await stream_run[output_id].add_segment(binary_data)
+                if final:
+                    try:
+                        await stream_run[output_id].add_segment(
+                            await block.flush_stream_output(stream_id)
+                        )
+                    finally:
+                        # A flush that fails still has to end the stream, or the
+                        # playlist never gets its #EXT-X-ENDLIST and the client
+                        # polls something that will not grow again.
+                        stream_run[output_id].end_stream()
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,

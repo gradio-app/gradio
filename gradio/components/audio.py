@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import dataclasses
-import io
 import json
 import warnings
 from collections.abc import Callable, Sequence
@@ -19,6 +18,7 @@ from gradio_client.documentation import document
 from pydub import AudioSegment
 
 from gradio import processing_utils
+from gradio.audio_stream_encoder import AacStreamEncoder, decode_to_pcm
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.components.button import Button
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
@@ -28,6 +28,24 @@ from gradio.utils import set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
+
+# One encoder per live stream, keyed by the stream's playlist path. The
+# component instance is shared by every session, so it cannot hold these.
+_stream_encoders: dict[str, AacStreamEncoder] = {}
+
+
+def _segment_from_frames(
+    encoder: AacStreamEncoder, frames: list[bytes]
+) -> MediaStreamChunk | None:
+    if not frames:
+        return None
+    return {
+        "data": b"".join(frames),
+        # Derived from the frame count rather than from the source chunk's
+        # length, so the playlist's #EXTINF matches what the segment decodes to.
+        "duration": len(frames) * encoder.frame_duration,
+        "extension": ".aac",
+    }
 
 
 @document()
@@ -330,24 +348,32 @@ class Audio(
             raise ValueError(f"Cannot process {value} as Audio")
         return FileData(path=file_path, orig_name=orig_name)
 
-    @staticmethod
-    def _convert_to_adts(data: bytes):
-        segment = AudioSegment.from_file(io.BytesIO(data))
-
-        buffer = io.BytesIO()
-        segment.export(buffer, format="adts")  # ADTS is a container format for AAC
-        aac_data = buffer.getvalue()
-        return aac_data, len(segment) / 1000.0
-
-    @staticmethod
-    async def covert_to_adts(data: bytes) -> tuple[bytes, float]:
-        return await anyio.to_thread.run_sync(Audio._convert_to_adts, data)
+    def _encode_chunk(
+        self, output_id: str, data: bytes, first_chunk: bool
+    ) -> MediaStreamChunk | None:
+        encoder = None if first_chunk else _stream_encoders.get(output_id)
+        if encoder is None:
+            # A first chunk means a new stream, so anything parked under this
+            # key belongs to a finished one. The key carries `id(iterator)`
+            # (see #13809), which CPython can hand to a later run, and feeding
+            # a new stream's audio to the old encoder would resample it to the
+            # old stream's parameters or fail on a dead process.
+            stale = _stream_encoders.pop(output_id, None)
+            if stale is not None:
+                stale.close()
+            sample_rate, channels, pcm = decode_to_pcm(data)
+            encoder = AacStreamEncoder(sample_rate, channels)
+            _stream_encoders[output_id] = encoder
+        else:
+            _, _, pcm = decode_to_pcm(data, encoder.sample_rate, encoder.channels)
+        encoder.feed(pcm)
+        return _segment_from_frames(encoder, encoder.take())
 
     async def stream_output(
         self,
         value,
         output_id: str,
-        first_chunk: bool,  # noqa: ARG002
+        first_chunk: bool,
     ) -> tuple[MediaStreamChunk | None, FileDataDict]:
         output_file: FileDataDict = {
             "path": output_id,
@@ -358,22 +384,39 @@ class Audio(
         if value is None:
             return None, output_file
         if isinstance(value, bytes):
-            value, duration = await self.covert_to_adts(value)
-            return {
-                "data": value,
-                "duration": duration,
-                "extension": ".aac",
-            }, output_file
-        if client_utils.is_http_url_like(value["path"]):
+            binary_data = value
+        elif client_utils.is_http_url_like(value["path"]):
             response = await processing_utils.async_ssrf_protected_get(value["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = value["orig_name"]
-            file_path = value["path"]
-            with open(file_path, "rb") as f:
+            with open(value["path"], "rb") as f:
                 binary_data = f.read()
-        value, duration = await self.covert_to_adts(binary_data)
-        return {"data": value, "duration": duration, "extension": ".aac"}, output_file
+        chunk = await anyio.to_thread.run_sync(
+            self._encode_chunk, output_id, binary_data, first_chunk
+        )
+        return chunk, output_file
+
+    async def flush_stream_output(self, output_id: str) -> MediaStreamChunk | None:
+        encoder = _stream_encoders.pop(output_id, None)
+        if encoder is None:
+            return None
+
+        def flush_and_release() -> MediaStreamChunk | None:
+            # The encoder is out of the registry either way, so a flush that
+            # raises would leave nothing able to release the process.
+            try:
+                return _segment_from_frames(encoder, encoder.flush())
+            except Exception:
+                encoder.close()
+                raise
+
+        return await anyio.to_thread.run_sync(flush_and_release)
+
+    def end_stream_output(self, output_id: str) -> None:
+        encoder = _stream_encoders.pop(output_id, None)
+        if encoder is not None:
+            encoder.close()
 
     async def combine_stream(
         self,

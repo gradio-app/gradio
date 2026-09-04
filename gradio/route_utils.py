@@ -387,6 +387,17 @@ def oauth_token_from_body(body: PredictBodyInternal) -> Optional[OAuthToken]:
     return _OAuthToken(token=token, scope="", expires_at=0)
 
 
+def _end_run_streams(app: App, session_hash: str | None, iterator: Any) -> None:
+    """End every stream one run opened, so each releases what it holds."""
+    if iterator is None:
+        return
+    pending_streams: dict[int, MediaStream] = (
+        app.get_blocks().pending_streams.get(session_hash, {}).get(id(iterator), {})
+    )
+    for stream in pending_streams.values():
+        stream.end_stream()
+
+
 async def call_process_api(
     app: App,
     body: PredictBodyInternal,
@@ -431,17 +442,22 @@ async def call_process_api(
         iterator = output.pop("iterator", None)
         if event_id is not None:
             app.iterators[event_id] = iterator  # type: ignore
+        elif iterator is not None:
+            # Nobody will come back for this one. Only the queue continues a
+            # generator, and it always carries an event id; without one
+            # `restore_session_state` hands back no iterator at all. So the
+            # audio this run produced is all there will ever be, and leaving
+            # its streams open holds a component's encoder for the session's
+            # lifetime while the client polls a playlist that cannot grow.
+            _end_run_streams(app, session_hash, iterator)
         if isinstance(output, Error):
             raise output
     except BaseException:
-        iterator = app.iterators.get(event_id) if event_id is not None else None
-        if iterator is not None:  # close off any streams that are still open
-            run_id = id(iterator)
-            pending_streams: dict[int, MediaStream] = (
-                app.get_blocks().pending_streams.get(session_hash, {}).get(run_id, {})
-            )
-            for stream in pending_streams.values():
-                stream.end_stream()
+        _end_run_streams(
+            app,
+            session_hash,
+            app.iterators.get(event_id) if event_id is not None else None,
+        )
         raise
 
     if batch_in_single_out:
@@ -1185,6 +1201,10 @@ class MediaStream:
         self.ended = False
         self.max_duration = 1
         self.desired_output_format = desired_output_format
+        # Cleanup for resources tied to this stream, such as a component's
+        # encoder process. It hangs off the stream because `end_stream()` is
+        # reached from several places, not just normal completion.
+        self.on_end: list[Callable[[], None]] = []
 
     async def add_segment(self, data: MediaStreamChunk | None):
         if not data:
@@ -1196,6 +1216,14 @@ class MediaStream:
 
     def end_stream(self):
         self.ended = True
+        while self.on_end:
+            callback = self.on_end.pop()
+            try:
+                callback()
+            except Exception:  # noqa: BLE001
+                # This runs inside exception handling, so a teardown failure
+                # must not replace the error being propagated. It leaks, though.
+                logger.debug("stream cleanup callback failed", exc_info=True)
 
 
 def create_url_safe_hash(data: bytes, digest_size=8):
