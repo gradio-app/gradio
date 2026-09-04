@@ -11,7 +11,7 @@ import tempfile
 import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
-from threading import Thread
+from threading import Event, Thread
 from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import parse_qs, unquote, urlparse
@@ -39,8 +39,10 @@ from gradio import (
     Textbox,
     close_all,
     oauth,
+    route_utils,
     routes,
 )
+from gradio.data_classes import PredictBodyInternal
 from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
     API_PREFIX,
@@ -56,6 +58,20 @@ from gradio.route_utils import (
     slugify,
     starts_with_protocol,
 )
+
+
+async def drive_aborted_run(app, fn, chunks=2):
+    """Drive a generator that raises on its second chunk through the route."""
+    for _ in range(chunks):
+        await route_utils.call_process_api(
+            app=app,
+            body=PredictBodyInternal(
+                data=[], session_hash="s", event_id="e1", request=None
+            ),
+            gr_request=gr.Request(),
+            fn=fn,
+            root_path="",
+        )
 
 
 @pytest.fixture()
@@ -116,7 +132,7 @@ class TestRoutes:
                 {"data": b"second", "duration": 0.5, "extension": ".aac"}
             )
         )
-        demo.pending_streams["session"][0] = {audio._id: stream}
+        demo.pending_streams["session"]["0"] = {audio._id: stream}
 
         response = TestClient(app).get(
             f"{API_PREFIX}/stream/session/0/{audio._id}/playlist.m3u8"
@@ -1038,6 +1054,196 @@ class TestRoutes:
         assert response.status_code == 403
         response = client.get("/monitoring/summary")
         assert response.status_code == 403
+
+    def test_stream_playlist_route_takes_a_string_run_key(self):
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        run = "2b0e1cb7f4a34d4b9f2b6d1c8a7e5f30"
+        demo.pending_streams["session"] = {run: {audio._id: MediaStream()}}
+
+        response = client.get(
+            f"{API_PREFIX}/stream/session/{run}/{audio._id}/playlist.m3u8"
+        )
+        assert response.status_code == 200
+        assert response.text.startswith("#EXTM3U")
+
+    @pytest.mark.parametrize("suffix", ["segment-1.aac", "playlist-file"])
+    def test_stream_routes_do_not_reject_a_string_run_key(self, suffix):
+        # A `run: int` here would 422 on every uuid key, which would break the
+        # segments the player fetches and the download button, not the playlist.
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        run = "2b0e1cb7f4a34d4b9f2b6d1c8a7e5f30"
+
+        response = client.get(f"{API_PREFIX}/stream/session/{run}/{audio._id}/{suffix}")
+        assert response.status_code == 404
+
+    def test_an_aborted_run_ends_its_streams_and_drops_its_diffs(self):
+        # A run that raises never reaches its final chunk, so the exception
+        # path has to end its streams and drop its diff state itself.
+        def stream():
+            yield None
+            raise RuntimeError("boom")
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        with pytest.raises(RuntimeError):
+            asyncio.run(drive_aborted_run(app, fn))
+
+        # `.get`, not a subscript: both dicts are defaultdicts, so reading a
+        # missing session would create it and pass the assertion below.
+        runs = demo.pending_streams.get("s")
+        assert runs is not None and len(runs) == 1
+        run = next(iter(runs))
+
+        assert runs[run][audio._id].ended is True
+        assert "s" not in demo.pending_diff_streams
+
+    def test_a_run_with_no_streaming_output_files_no_stream_entry(self):
+        # The entry is filed when an output opens a stream, not up front, so a
+        # generator with no streaming output leaves nothing behind however it
+        # ends.
+        def stream():
+            yield "chunk one"
+            raise RuntimeError("boom")
+
+        with Blocks() as demo:
+            box = gr.Textbox()
+            gr.Button().click(stream, None, box)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        with pytest.raises(RuntimeError):
+            asyncio.run(drive_aborted_run(app, fn))
+
+        assert "s" not in demo.pending_streams
+
+    def test_a_call_with_no_event_id_keeps_no_diff_state(self):
+        # Diff state serves the later chunks of a run, and without an event id
+        # there is no way to fetch them: /run/{api_name} makes one call and
+        # returns. Keeping it would leave an entry per call for the life of the
+        # process.
+        def stream():
+            yield "chunk one"
+            yield "chunk two"
+
+        with Blocks() as demo:
+            box = gr.Textbox()
+            gr.Button().click(stream, None, box)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        async def one_call():
+            return await route_utils.call_process_api(
+                app=app,
+                body=PredictBodyInternal(data=[], session_hash="s", request=None),
+                gr_request=gr.Request(),
+                fn=fn,
+                root_path="",
+            )
+
+        output = asyncio.run(one_call())
+
+        assert output["data"] == ["chunk one"]
+        assert "s" not in demo.pending_diff_streams
+        assert "s" not in demo.pending_streams
+
+    def test_a_run_whose_client_goes_away_drops_its_diff_state(self):
+        # A client that closes the tab mid-run does not raise, and no final
+        # chunk arrives, so neither of the other two cleanups runs. The queue
+        # closes the run out when the event ends, heartbeat or not: the stream
+        # is ended and kept, the diff state goes.
+        stop = Event()
+
+        def stream():
+            while not stop.is_set():
+                time.sleep(0.1)
+                yield None
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            with httpx.Client(base_url=local_url, timeout=30) as client:
+                join = client.post(
+                    f"{API_PREFIX}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": "s"},
+                )
+                assert join.status_code == 200
+                with client.stream(
+                    "GET", f"{API_PREFIX}/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if "process_generating" in line:
+                            break
+                    # Checked while the connection is still open, so the run
+                    # cannot have been torn down yet
+                    assert len(demo.pending_streams.get("s", {})) == 1
+                    assert len(demo.pending_diff_streams.get("s", {})) == 1
+
+            for _ in range(150):
+                if "s" not in demo.pending_diff_streams:
+                    break
+                time.sleep(0.1)
+            assert "s" not in demo.pending_diff_streams
+            runs = demo.pending_streams.get("s", {})
+            assert len(runs) == 1
+            assert next(iter(runs.values()))[audio._id].ended is True
+        finally:
+            stop.set()
+            demo.close()
+
+    def test_a_finished_run_keeps_its_stream_for_its_client(self):
+        # A client that saw the run finish fetches the playlist afterwards, so
+        # the stream has to stay, ended, once the run is closed out.
+        def stream():
+            for _ in range(3):
+                yield None
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            with httpx.Client(base_url=local_url, timeout=30) as client:
+                join = client.post(
+                    f"{API_PREFIX}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": "s"},
+                )
+                assert join.status_code == 200
+                with client.stream(
+                    "GET", f"{API_PREFIX}/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if "process_completed" in line:
+                            break
+
+                runs = demo.pending_streams.get("s", {})
+                assert len(runs) == 1
+                run = next(iter(runs))
+                assert runs[run][audio._id].ended is True
+                playlist = client.get(
+                    f"{API_PREFIX}/stream/s/{run}/{audio._id}/playlist.m3u8"
+                )
+                assert playlist.status_code == 200
+        finally:
+            demo.close()
 
 
 def test_api_listener(connect):
