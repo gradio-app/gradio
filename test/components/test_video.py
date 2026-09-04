@@ -118,6 +118,79 @@ class TestVideo:
         postprocessed_video["path"] = os.path.basename(postprocessed_video["path"])
         assert processed_video == postprocessed_video
 
+    @pytest.mark.asyncio
+    async def test_stream_output_value_is_a_flat_file_payload(self):
+        # The streamed value must have the same shape as postprocess() output
+        # (a plain FileData); the frontend reads value.url and never renders a
+        # stream that is still wrapped in the legacy {"video": ...} envelope.
+        component = gr.Video(streaming=True)
+
+        _, output_file = await component.stream_output(
+            None, "sess/0/1/playlist.m3u8", first_chunk=True
+        )
+
+        assert output_file == {
+            "path": "sess/0/1/playlist.m3u8",
+            "is_stream": True,
+            "orig_name": "video-stream.mp4",
+            "meta": {"_type": "gradio.FileData"},
+        }
+
+    @pytest.mark.asyncio
+    async def test_stream_output_keeps_the_payload_across_chunks(self, tmp_path):
+        # The call above returns before a chunk is assembled, so the shape is
+        # pinned here on the path a streaming run actually takes. A `.ts`
+        # chunk needs no conversion, and the duration lookup is patched out:
+        # it is not what this pins, and shelling out to ffprobe segfaulted on
+        # CI's build.
+        component = gr.Video(streaming=True)
+        chunk_source = tmp_path / "chunk.ts"
+        chunk_source.write_bytes(b"transport-stream-bytes")
+
+        with patch.object(gr.Video, "get_video_duration_ffprobe", return_value=1.5):
+            chunk, output_file = await component.stream_output(
+                str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
+            )
+
+        assert output_file == {
+            "path": "sess/0/1/playlist.m3u8",
+            "is_stream": True,
+            "orig_name": "video-stream.mp4",
+            "meta": {"_type": "gradio.FileData"},
+        }
+        assert chunk == {
+            "data": b"transport-stream-bytes",
+            "duration": 1.5,
+            "extension": ".ts",
+        }
+
+    @pytest.mark.asyncio
+    async def test_stream_output_replaces_only_the_chunk_extension(self, tmp_path):
+        # A directory whose name ends in .mp4 was rewritten along with the
+        # file, so ffmpeg was handed a path in a directory that does not exist.
+        component = gr.Video(streaming=True)
+        chunk_dir = tmp_path / "clips.mp4"
+        chunk_dir.mkdir()
+        chunk_source = chunk_dir / "frame_0.mp4"
+        chunk_source.write_bytes(b"mp4-bytes")
+
+        async def convert(mp4_file, ts_file):
+            Path(ts_file).write_bytes(b"ts-bytes")
+
+        with (
+            # `staticmethod` because that is what it replaces; a plain
+            # function would be bound and receive the component as well.
+            patch.object(gr.Video, "async_convert_mp4_to_ts", staticmethod(convert)),
+            patch.object(gr.Video, "get_video_duration_ffprobe", return_value=1.0),
+        ):
+            chunk, _ = await component.stream_output(
+                str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
+            )
+
+        assert (chunk_dir / "frame_0.ts").exists()
+        assert chunk is not None
+        assert chunk["data"] == b"ts-bytes"
+
     def test_in_interface(self, media_data):
         """
         Interface, process

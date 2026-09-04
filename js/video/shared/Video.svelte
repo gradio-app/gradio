@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { HTMLVideoAttributes } from "svelte/elements";
 	import { loaded } from "./utils";
-	import type { Snippet } from "svelte";
+	import { untrack, type Snippet } from "svelte";
+	import { play_media } from "@gradio/utils";
 
-	import Hls from "hls.js";
+	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
 
 	interface Props {
 		src?: HTMLVideoAttributes["src"];
@@ -66,59 +67,21 @@
 		children
 	}: Props = $props();
 
-	let stream_active = $state(false);
-
-	function load_stream(
-		src: string | null | undefined,
-		is_stream: boolean,
-		node: HTMLVideoElement
-	): void {
-		if (!src || !is_stream) return;
-
-		if (Hls.isSupported() && !stream_active) {
-			const hls = new Hls({
-				maxBufferLength: 1, // 0.5 seconds (500 ms)
-				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
-				lowLatencyMode: true // Enable low latency mode
-			});
-			hls.loadSource(src);
-			hls.attachMedia(node);
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				(node as HTMLVideoElement).play();
-			});
-			hls.on(Hls.Events.ERROR, function (event, data) {
-				console.error("HLS error:", event, data);
-				if (data.fatal) {
-					switch (data.type) {
-						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error(
-								"Fatal network error encountered, trying to recover"
-							);
-							hls.startLoad();
-							break;
-						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error("Fatal media error encountered, trying to recover");
-							hls.recoverMediaError();
-							break;
-						default:
-							console.error("Fatal error, cannot recover");
-							hls.destroy();
-							break;
-					}
-				}
-			});
-			stream_active = true;
-		}
-	}
-
+	// This effect owns the stream: it attaches one per playlist URL and the
+	// teardown destroys it on a new run, on clearing and on unmount. Without
+	// MSE support the native element plays the bound `src` itself.
 	$effect(() => {
-		src;
-		stream_active = false;
-	});
-
-	$effect(() => {
-		if (node && src && is_stream) {
-			load_stream(src, is_stream, node);
+		if (!node || !is_stream || !src) return;
+		const media = node;
+		if (is_hls_supported()) {
+			// The manifest is parsed off the network, so the callback never
+			// runs in a reactive context; the `untrack` keeps a synchronous
+			// emit from making `autoplay` a dependency, which would tear the
+			// stream down mid-run whenever the parent changed it.
+			const hls = create_hls_stream(media, src, () => {
+				if (untrack(() => autoplay)) play_media(media);
+			});
+			return () => hls.destroy();
 		}
 	});
 </script>

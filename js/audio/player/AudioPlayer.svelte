@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, untrack } from "svelte";
 	import { Music } from "@gradio/icons";
-	import { format_time, type I18nFormatter } from "@gradio/utils";
+	import { format_time, play_media, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
@@ -9,7 +9,7 @@
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
-	import Hls from "hls.js";
+	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
 
 	let {
 		value = null,
@@ -56,7 +56,11 @@
 		onload?: () => void;
 	} = $props();
 
+	// What wavesurfer emits when the media element reports no error object.
+	const MEDIA_ERROR_FALLBACK = "Media error";
+
 	let url = $derived(value?.url);
+	let is_stream = $derived(value?.is_stream ?? false);
 	let old_playback_position = $state(0);
 
 	let container = $state<HTMLDivElement | undefined>(undefined);
@@ -77,19 +81,16 @@
 	let show_volume_slider = $state(false);
 	let audio_player = $state<HTMLAudioElement | undefined>(undefined);
 
-	let stream_active = false;
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
 	let waveform_load_failed = $state(false);
 
 	let use_waveform = $derived(
-		waveform_options.show_recording_waveform && !value?.is_stream
+		waveform_options.show_recording_waveform && !is_stream
 	);
 
-	let native_fallback_active = $derived(
-		waveform_load_failed && value?.url !== undefined && value?.url !== null
-	);
+	let native_fallback_active = $derived(waveform_load_failed && url != null);
 
 	// The native element is the player, rather than a hidden decoy, whenever
 	// there is no working waveform to drive playback: the waveform is turned
@@ -119,6 +120,7 @@
 		// a fresh element every time that branch remounts, so bail out when there
 		// is nothing to draw into and rebuild when the element is replaced.
 		if (!container || waveform_container === container) return;
+		clear_subtitles();
 		waveform?.destroy();
 		waveform_ready = false;
 		waveform_container = container;
@@ -189,26 +191,77 @@
 			onload?.();
 		});
 
-		waveform?.on("error", handle_waveform_error);
+		// wavesurfer emits `error` for a failed load and for a media element
+		// error. A failed load also rejects the load promise, the only path
+		// that knows which URL failed, so it is handled there. A media element
+		// error never reaches that promise: wavesurfer reads the duration by
+		// waiting for `loadedmetadata`, an error means that event never
+		// arrives, and the wait has no reject path, so the load hangs. The
+		// event is the only signal for it, and `MediaError` is what separates
+		// the two. A real element has its `error` set before the event fires,
+		// so wavesurfer's substitute for a missing one should be unreachable,
+		// but it is matched as well: if it ever does arrive, dropping it
+		// leaves a blank waveform, no fallback and an empty console.
+		waveform?.on("error", (e: Error | MediaError) => {
+			if (!(e instanceof MediaError) && e.message !== MEDIA_ERROR_FALLBACK)
+				return;
+			handle_waveform_error(e);
+		});
 	};
 
 	$effect(() => {
-		if (url && waveform_ready) {
+		if (url && waveform_ready && use_waveform) {
+			const loading_url = url;
 			untrack(() => {
-				if (value?.url && waveform) {
+				if (waveform) {
+					if (waveform_load_failed) {
+						// The failed file is still attached to the native element
+						// and keeps playing behind the waveform unless released.
+						audio_player?.removeAttribute("src");
+						audio_player?.load();
+					}
 					waveform_load_failed = false;
-					waveform.load(value.url).catch(handle_waveform_error);
+					waveform
+						.load(loading_url)
+						.then(() => {
+							// A media element error carries no URL, so one raised
+							// by the file the value moved past can land on this
+							// one while it is still loading. Reaching here means
+							// this file does play, so the fallback it was pushed
+							// into is released. That holds for an error raised
+							// before this file's own metadata, which is what
+							// leaves the load hanging. One raised later, while
+							// wavesurfer runs its own decode, lets the load
+							// resolve and is released along with the stale ones;
+							// the native element it fell back to is pointed at
+							// the same bytes, so it was not buying much.
+							if (loading_url !== url || !waveform_load_failed) return;
+							audio_player?.removeAttribute("src");
+							audio_player?.load();
+							waveform_load_failed = false;
+						})
+						.catch((e: Error) => handle_waveform_error(e, loading_url));
 				}
 			});
 		}
 	});
 
-	function handle_waveform_error(e: Error): void {
-		if (e?.name === "AbortError" || waveform_load_failed) return;
+	function handle_waveform_error(
+		e: Error | MediaError,
+		failed_url?: string
+	): void {
+		// A late rejection from a load the value has moved past (a stream, or
+		// an earlier file) must not downgrade the current source to the
+		// native fallback. A media element error carries no URL, so it is
+		// taken to be about the file currently attached.
+		if (failed_url !== undefined && failed_url !== url) return;
+		if (is_stream) return;
+		if (("name" in e && e.name === "AbortError") || waveform_load_failed)
+			return;
 		console.error("Waveform load error:", e);
 		waveform_load_failed = true;
-		if (audio_player && value?.url) {
-			audio_player.src = value.url;
+		if (audio_player && url) {
+			audio_player.src = url;
 		}
 	}
 
@@ -230,16 +283,6 @@
 		onedit?.();
 	};
 
-	async function load_audio(data: string): Promise<void> {
-		stream_active = false;
-
-		if (waveform_options.show_recording_waveform) {
-			waveform?.load(data);
-		} else if (audio_player) {
-			audio_player.src = data;
-		}
-	}
-
 	$effect(() => {
 		if (subtitles && waveform) {
 			if (subtitles_toggle) {
@@ -250,71 +293,61 @@
 		}
 	});
 
-	function load_stream(value: FileData | null): void {
-		if (!value || !value.is_stream || !value.url || !audio_player) return;
-
-		if (Hls.isSupported() && !stream_active) {
-			// Set config to start playback after 1 second of data received
-			const hls = new Hls({
-				maxBufferLength: 1,
-				maxMaxBufferLength: 1,
-				lowLatencyMode: true
-			});
-			hls.loadSource(value.url);
-			hls.attachMedia(audio_player);
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player?.play();
-			});
-			hls.on(Hls.Events.ERROR, function (event, data) {
-				console.error("HLS error:", event, data);
-				if (data.fatal) {
-					switch (data.type) {
-						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error(
-								"Fatal network error encountered, trying to recover"
-							);
-							hls.startLoad();
-							break;
-						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error("Fatal media error encountered, trying to recover");
-							hls.recoverMediaError();
-							break;
-						default:
-							console.error("Fatal error, cannot recover");
-							hls.destroy();
-							break;
-					}
-				}
-			});
-			stream_active = true;
-		} else if (!stream_active) {
-			audio_player.src = value.url;
-			if (waveform_settings.autoplay) audio_player.play();
-			stream_active = true;
-		}
-	}
-
+	// This effect owns the native element's source: a stream gets one HLS
+	// instance per playlist URL, and a plain file is assigned directly when
+	// there is no waveform to play it. Both live in one effect because they
+	// are one resource. Svelte runs an effect's teardown before its next
+	// body, so releasing the old source and putting the new one in place can
+	// never happen out of order, which two effects could not guarantee: the
+	// player would then be left with a source hls.js had already discarded.
+	// Only the stream branches take a teardown, since a stream holds an HLS
+	// instance and a MediaSource that have to be released. An assigned file
+	// URL needs none: the next assignment replaces it, and a cleared value
+	// takes the whole player with it, since both parents render it only when
+	// there is a value (StaticAudio's `{#if value !== null}` and
+	// InteractiveAudio's else branch). `value` is a fresh object on every
+	// chunk, so the effect must only depend on the equality-stable deriveds,
+	// or each chunk would restart the stream.
 	$effect(() => {
-		// Without a waveform there is nothing to become ready, so gating the load
-		// on `waveform_ready` left the native player with no source at all.
-		if (
-			audio_player &&
-			url &&
-			(waveform_ready || !waveform_options.show_recording_waveform)
-		) {
-			load_audio(url);
+		if (!audio_player || !url) return;
+		const media = audio_player;
+		if (is_stream) {
+			if (is_hls_supported()) {
+				// A manifest parsed off the network never runs in a reactive
+				// context, so the `untrack` is defensive: it keeps a
+				// synchronous emit from making `waveform_settings` a
+				// dependency, which would tear the stream down mid-run
+				// whenever the parent re-created that object.
+				const hls = create_hls_stream(media, url, () => {
+					if (untrack(() => waveform_settings.autoplay)) play_media(media);
+				});
+				return () => hls.destroy();
+			}
+			// The element carries `autoplay={waveform_settings.autoplay}`, so
+			// assigning the source is all it takes to start playback.
+			media.src = url;
+			return () => {
+				// `load()` stops playback without dispatching a `pause` the
+				// app never caused.
+				media.removeAttribute("src");
+				media.load();
+			};
 		}
-	});
-
-	$effect(() => {
-		if (audio_player && value?.is_stream) {
-			load_stream(value);
+		if (!use_waveform) {
+			media.src = url;
 		}
 	});
 
 	$effect(() => {
 		if (container) {
 			untrack(() => create_waveform());
+		} else if (waveform) {
+			clear_subtitles();
+			waveform.destroy();
+			waveform = undefined;
+			waveform_container = undefined;
+			waveform_ready = false;
+			waveform_load_failed = false;
 		}
 	});
 
