@@ -10,6 +10,7 @@ import csv
 import inspect
 import os
 import shutil
+import uuid
 import warnings
 from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from functools import partial
@@ -628,19 +629,29 @@ async def merge_generated_values_into_output(
         if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
             desired_output_format = None
-            for i, chunk in enumerate(generated_values):
-                if len(components) > 1:
-                    chunk = chunk[output_index]
-                processed_chunk = output_component.postprocess(chunk)
-                if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
-                    processed_chunk = processed_chunk.model_dump()
-                stream_chunk = await output_component.stream_output(
-                    processed_chunk, "", i == 0
-                )
-                if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
-                    desired_output_format = Path(orig_name).suffix[1:]
-                if stream_chunk[0]:
-                    binary_chunks.append(stream_chunk[0]["data"])
+            # A component may hold per-stream state (an encoder, say) keyed by
+            # this id, so it has to be unique per cached example and released
+            # afterwards. Only `orig_name` is read back out of the result here,
+            # so the id never reaches the caller.
+            stream_id = f"cache/{uuid.uuid4()}"
+            try:
+                for i, chunk in enumerate(generated_values):
+                    if len(components) > 1:
+                        chunk = chunk[output_index]
+                    processed_chunk = output_component.postprocess(chunk)
+                    if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
+                        processed_chunk = processed_chunk.model_dump()
+                    stream_chunk = await output_component.stream_output(
+                        processed_chunk, stream_id, i == 0
+                    )
+                    if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
+                        desired_output_format = Path(orig_name).suffix[1:]
+                    if stream_chunk[0]:
+                        binary_chunks.append(stream_chunk[0]["data"])
+                if final_chunk := await output_component.flush_stream_output(stream_id):
+                    binary_chunks.append(final_chunk["data"])
+            finally:
+                output_component.end_stream_output(stream_id)
             combined_output = await output_component.combine_stream(
                 binary_chunks, desired_output_format=desired_output_format
             )

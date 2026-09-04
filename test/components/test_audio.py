@@ -1,4 +1,7 @@
 import filecmp
+import io
+import math
+import wave
 from copy import deepcopy
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -9,11 +12,59 @@ from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.audio_stream_encoder import parse_adts_frames
 from gradio.data_classes import FileData
 from gradio.media import get_audio
 
 
 class TestAudio:
+    @pytest.mark.asyncio
+    async def test_streamed_audio_is_one_continuous_aac_stream(self):
+        """Chunks share a single encoder, so only the stream gets a priming frame.
+
+        A per-chunk encoder adds one to every chunk, and that frame has no
+        overlap-add partner, which is what the audible gap between chunks was.
+        """
+        sample_rate, chunk_samples, chunk_count = 16000, 4000, 8
+
+        def wav_chunk(index: int) -> bytes:
+            positions = np.arange(index * chunk_samples, (index + 1) * chunk_samples)
+            pcm = (
+                0.2 * np.sin(2 * np.pi * 440 * positions / sample_rate) * 32767
+            ).astype(np.int16)
+            buffer = io.BytesIO()
+            with wave.open(buffer, "wb") as writer:
+                writer.setnchannels(1)
+                writer.setsampwidth(2)
+                writer.setframerate(sample_rate)
+                writer.writeframes(pcm.tobytes())
+            return buffer.getvalue()
+
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        segments = []
+        try:
+            for index in range(chunk_count):
+                segment, _ = await audio.stream_output(
+                    wav_chunk(index), stream_id, index == 0
+                )
+                if segment:
+                    segments.append(segment)
+            if final_segment := await audio.flush_stream_output(stream_id):
+                segments.append(final_segment)
+        finally:
+            audio.end_stream_output(stream_id)
+
+        data = b"".join(segment["data"] for segment in segments)
+        frames, consumed = parse_adts_frames(data)
+        assert consumed == len(data)
+        # every 1024 samples, plus the stream's single priming frame
+        expected = math.ceil(chunk_count * chunk_samples / 1024) + 1
+        assert len(frames) == expected
+        assert sum(segment["duration"] for segment in segments) == pytest.approx(
+            len(frames) * 1024 / sample_rate
+        )
+
     @pytest.mark.asyncio
     async def test_component_functions(self, gradio_temp_dir, media_data):
         """

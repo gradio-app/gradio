@@ -385,6 +385,18 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     ) -> tuple[MediaStreamChunk | None, FileDataDict | dict]:
         pass
 
+    async def flush_stream_output(
+        self,
+        output_id: str,  # noqa: ARG002
+    ) -> MediaStreamChunk | None:
+        """Emit whatever an encoder is still holding once the stream has ended."""
+        return None
+
+    # Deliberately concrete and empty: most streaming outputs hold nothing that
+    # needs releasing, so making this abstract would break existing components.
+    def end_stream_output(self, output_id: str) -> None:  # noqa: B027
+        """Release any per-stream resources held for `output_id`."""
+
     @abc.abstractmethod
     async def combine_stream(
         self,

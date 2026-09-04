@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import dataclasses
+import functools
 import hashlib
 import inspect
 import json
@@ -2146,31 +2147,42 @@ Received inputs:
                 and block.streaming
                 and not utils.is_prop_update(data[i])
             ):
-                if final:
-                    # Nothing to finalize if this output never opened a stream —
-                    # the session may have been dropped on disconnect, or every
-                    # chunk before this one may have been a prop update. Falling
-                    # through would leave `first_chunk` true and build a fresh
-                    # stream that nothing ever ends.
-                    if (existing := stream_run.get(output_id)) is None:
-                        continue
-                    existing.end_stream()
+                # Nothing to finalize if this output never opened a stream —
+                # the session may have been dropped on disconnect, or every
+                # chunk before this one may have been a prop update. Falling
+                # through would leave `first_chunk` true and build a fresh
+                # stream that nothing ever ends.
+                if final and stream_run.get(output_id) is None:
+                    continue
+                stream_id = f"{session_hash}/{run}/{output_id}/playlist.m3u8"
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
-                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    stream_id,
                     first_chunk,
                 )
                 if first_chunk:
                     desired_output_format = None
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
-                    stream_run[output_id] = MediaStream(
-                        desired_output_format=desired_output_format
+                    stream = MediaStream(desired_output_format=desired_output_format)
+                    stream_run[output_id] = stream
+                    stream.on_end.append(
+                        functools.partial(block.end_stream_output, stream_id)
                     )
-                    stream_run[output_id]
+                    # A client that drops the event stream without closing the
+                    # session never reaches `end_stream()`, so also release the
+                    # resources when the stream itself is collected.
+                    weakref.finalize(stream, block.end_stream_output, stream_id)
 
                 await stream_run[output_id].add_segment(binary_data)
+                if final:
+                    # An encoder can be holding a frame's worth of audio that
+                    # only comes out when its input closes.
+                    await stream_run[output_id].add_segment(
+                        await block.flush_stream_output(stream_id)
+                    )
+                    stream_run[output_id].end_stream()
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
