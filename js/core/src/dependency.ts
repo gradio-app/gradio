@@ -6,6 +6,7 @@ import type {
 	Payload
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
+import { create_custom_js_handler } from "./custom_js";
 import { Client, type client_return } from "@gradio/client";
 import {
 	LoadingStatusState,
@@ -63,14 +64,15 @@ export class Dependency {
 		this.connection_type = dep_config.connection;
 		this.show_progress = dep_config.show_progress;
 		this.functions = {
-			frontend: dep_config.js
-				? process_frontend_fn(
-						dep_config.js,
-						dep_config.backend_fn,
-						dep_config.inputs.length,
-						dep_config.outputs.length
-					)
-				: undefined,
+			frontend:
+				typeof dep_config.js === "string"
+					? process_frontend_fn(
+							dep_config.js,
+							dep_config.backend_fn,
+							dep_config.inputs.length,
+							dep_config.outputs.length
+						)
+					: undefined,
 			backend: dep_config.backend_fn,
 			backend_js: dep_config.js_implementation
 				? new AsyncFunction(
@@ -1025,16 +1027,15 @@ export function process_frontend_fn(
 	output_length: number
 ): (...args: unknown[]) => Promise<unknown[]> {
 	const wrap = backend_fn ? input_length === 1 : output_length === 1;
-	try {
-		return new AsyncFunction(
-			"__fn_args",
-			`  let result = await (${source})(...__fn_args);
-  if (typeof result === "undefined") return [];
-  return (${wrap} && !Array.isArray(result)) ? [result] : result;`
-		);
-	} catch (e) {
-		throw e;
-	}
+	const frontend_fn = create_custom_js_handler(source);
+
+	return async (...args: unknown[]) => {
+		const fn_args = args[0] as unknown[];
+		const result = await frontend_fn(...fn_args);
+
+		if (typeof result === "undefined") return [];
+		return (wrap && !Array.isArray(result) ? [result] : result) as unknown[];
+	};
 }
 
 /**
