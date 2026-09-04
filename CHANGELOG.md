@@ -1,5 +1,30 @@
 # gradio
 
+## 6.27.0
+
+### Features
+
+- [#13806](https://github.com/gradio-app/gradio/pull/13806) [`17f0e9e`](https://github.com/gradio-app/gradio/commit/17f0e9e54d38d66ad3e8a8271aec98688173068b) - Fix Audio stream reload timing and repeated recording previews.  Thanks @abidlabs!
+- [#13763](https://github.com/gradio-app/gradio/pull/13763) [`7e83999`](https://github.com/gradio-app/gradio/commit/7e839990a092c11e049db171c98ceba76896e6b1) - add server-side run history in HF Hub buckets.  Thanks @hannahblair!
+- [#13755](https://github.com/gradio-app/gradio/pull/13755) [`6dd0224`](https://github.com/gradio-app/gradio/commit/6dd02249b7a04dae62b430c2ffecaface5fb1238) - Send only app-owned files to the models and Spaces a workflow names.  Thanks @abidlabs!
+- [#13783](https://github.com/gradio-app/gradio/pull/13783) [`f881a04`](https://github.com/gradio-app/gradio/commit/f881a0442658073dbf3a5b06779c1d7ad1d20869) - workflow: move delete button.  Thanks @hannahblair!
+- [#13794](https://github.com/gradio-app/gradio/pull/13794) [`44f8712`](https://github.com/gradio-app/gradio/commit/44f8712bfc11d53b714c9fc9b44cd7486a407777) - wf: delete button v2.  Thanks @hannahblair!
+- [#13795](https://github.com/gradio-app/gradio/pull/13795) [`40dbb52`](https://github.com/gradio-app/gradio/commit/40dbb52f057d42a275a4e8a53fdfd133d3ec7d97) - workflow: improve mobile experience.  Thanks @hannahblair!
+- [#13779](https://github.com/gradio-app/gradio/pull/13779) [`4eafc18`](https://github.com/gradio-app/gradio/commit/4eafc18cc5b7d42926eacf20231d94952d4b37a8) - Fix file URLs and sanitize invalid uploaded filenames.  Thanks @abidlabs!
+- [#13790](https://github.com/gradio-app/gradio/pull/13790) [`1e9b643`](https://github.com/gradio-app/gradio/commit/1e9b6434564b3329d56f0281de84a3192e0967f0) - workflow: node value meta + a markdown node type.  Thanks @abidlabs!
+- [#13710](https://github.com/gradio-app/gradio/pull/13710) [`e7fd8f4`](https://github.com/gradio-app/gradio/commit/e7fd8f482027cdd76376fcb383cc5e6866bab5a9) - workflow: inference hardcoded endpoint improvements.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13642](https://github.com/gradio-app/gradio/pull/13642) [`19cb8f7`](https://github.com/gradio-app/gradio/commit/19cb8f7bce14a7961cd4f81adb7f629c64df4988) - Align launch and event JavaScript execution.  Thanks @dawoodkhan82!
+- [#13787](https://github.com/gradio-app/gradio/pull/13787) [`2ae6f97`](https://github.com/gradio-app/gradio/commit/2ae6f97d0f5284c8f351ffe6d45da61944284d5a) - Fix Image and ImageEditor UI/UX issues.  Thanks @abidlabs!
+- [#13800](https://github.com/gradio-app/gradio/pull/13800) [`7542edb`](https://github.com/gradio-app/gradio/commit/7542edb7ab6f3d987af6e2d7948eda6d35d8f26f) - Fix Colab connections when share=False.  Thanks @abidlabs!
+- [#13804](https://github.com/gradio-app/gradio/pull/13804) [`0cceb3d`](https://github.com/gradio-app/gradio/commit/0cceb3d4fb2b09539a70cf9c1325cc75234e4697) - Fix custom component template generation.  Thanks @abidlabs!
+- [#13803](https://github.com/gradio-app/gradio/pull/13803) [`ec369a5`](https://github.com/gradio-app/gradio/commit/ec369a5830f0ba5a2387225b9db4eeb00ce8ce84) - Install skills by default and support Windows without symlinks.  Thanks @abidlabs!
+- [#13748](https://github.com/gradio-app/gradio/pull/13748) [`d37d528`](https://github.com/gradio-app/gradio/commit/d37d528ca1426062c7eead73008d111ebb63b036) - workflow: improve handling of `Any` output type.  Thanks @hannahblair!
+- [#13802](https://github.com/gradio-app/gradio/pull/13802) [`d857094`](https://github.com/gradio-app/gradio/commit/d857094868c85167dd332b6093a3914dee960840) - Handle a paste in `gr.MultimodalTextbox` as text or as an image, not both.  Thanks @hysts!
+- [#13729](https://github.com/gradio-app/gradio/pull/13729) [`82ca180`](https://github.com/gradio-app/gradio/commit/82ca180c5c9a77d36b9097a62e63318317dc9d1f) - Fix Dataframe keyboard navigation accessibility.  Thanks @dawoodkhan82!
+
 ## 6.26.0
 
 ### Features

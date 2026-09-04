@@ -1,5 +1,16 @@
 # @gradio/upload
 
+## 0.18.3
+
+### Fixes
+
+- [#13729](https://github.com/gradio-app/gradio/pull/13729) [`82ca180`](https://github.com/gradio-app/gradio/commit/82ca180c5c9a77d36b9097a62e63318317dc9d1f) - Fix Dataframe keyboard navigation accessibility.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+
 ## 0.18.2
 
 ### Dependency updates

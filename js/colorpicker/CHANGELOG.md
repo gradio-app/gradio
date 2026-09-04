@@ -2,6 +2,12 @@
 
 ## 0.5.15
 
+### Dependency updates
+
+- @gradio/atoms@0.26.2
+
+## 0.5.15
+
 ### Fixes
 
 - [#13658](https://github.com/gradio-app/gradio/pull/13658) [`bad052c`](https://github.com/gradio-app/gradio/commit/bad052c132c7f812fe1a4c91a8ed521af3317cad) - Fix ColorPicker dispatching blur while the user is still using the picker dialog.  Thanks @hysts!

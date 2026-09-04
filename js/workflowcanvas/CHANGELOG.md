@@ -1,5 +1,25 @@
 # @gradio/workflowcanvas
 
+## 0.11.0
+
+### Features
+
+- [#13763](https://github.com/gradio-app/gradio/pull/13763) [`7e83999`](https://github.com/gradio-app/gradio/commit/7e839990a092c11e049db171c98ceba76896e6b1) - add server-side run history in HF Hub buckets.  Thanks @hannahblair!
+- [#13783](https://github.com/gradio-app/gradio/pull/13783) [`f881a04`](https://github.com/gradio-app/gradio/commit/f881a0442658073dbf3a5b06779c1d7ad1d20869) - workflow: move delete button.  Thanks @hannahblair!
+- [#13794](https://github.com/gradio-app/gradio/pull/13794) [`44f8712`](https://github.com/gradio-app/gradio/commit/44f8712bfc11d53b714c9fc9b44cd7486a407777) - wf: delete button v2.  Thanks @hannahblair!
+- [#13795](https://github.com/gradio-app/gradio/pull/13795) [`40dbb52`](https://github.com/gradio-app/gradio/commit/40dbb52f057d42a275a4e8a53fdfd133d3ec7d97) - workflow: improve mobile experience.  Thanks @hannahblair!
+- [#13790](https://github.com/gradio-app/gradio/pull/13790) [`1e9b643`](https://github.com/gradio-app/gradio/commit/1e9b6434564b3329d56f0281de84a3192e0967f0) - workflow: node value meta + a markdown node type.  Thanks @abidlabs!
+- [#13710](https://github.com/gradio-app/gradio/pull/13710) [`e7fd8f4`](https://github.com/gradio-app/gradio/commit/e7fd8f482027cdd76376fcb383cc5e6866bab5a9) - workflow: inference hardcoded endpoint improvements.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13748](https://github.com/gradio-app/gradio/pull/13748) [`d37d528`](https://github.com/gradio-app/gradio/commit/d37d528ca1426062c7eead73008d111ebb63b036) - workflow: improve handling of `Any` output type.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+
 ## 0.10.0
 
 ### Features

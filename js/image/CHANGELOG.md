@@ -1,5 +1,17 @@
 # @gradio/image
 
+## 0.28.3
+
+### Fixes
+
+- [#13787](https://github.com/gradio-app/gradio/pull/13787) [`2ae6f97`](https://github.com/gradio-app/gradio/commit/2ae6f97d0f5284c8f351ffe6d45da61944284d5a) - Fix Image and ImageEditor UI/UX issues.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/upload@0.18.3
+
 ## 0.28.2
 
 ### Dependency updates
