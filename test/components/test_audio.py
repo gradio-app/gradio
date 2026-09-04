@@ -18,7 +18,6 @@ from gradio.media import get_audio
 
 
 class TestAudio:
-    @pytest.mark.serial
     @pytest.mark.asyncio
     async def test_streamed_audio_is_one_continuous_aac_stream(self):
         """Chunks share one encoder, so only the stream gets a priming frame."""
