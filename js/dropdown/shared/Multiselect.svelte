@@ -4,7 +4,7 @@
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { Gradio } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { handle_filter, handle_shared_keys } from "./utils";
+	import { handle_filter_with_count, handle_shared_keys } from "./utils";
 	import type { DropdownEvents, DropdownProps, Item } from "../types.ts";
 
 	const props = $props();
@@ -36,16 +36,49 @@
 	let disabled = $derived(!gradio.shared.interactive);
 
 	let show_options = $state(false);
+	let batches_shown = $state(1);
+	let visible_choices_limit = $derived(
+		gradio.props.num_choices_shown === null
+			? null
+			: gradio.props.num_choices_shown * batches_shown
+	);
 
 	// All of these are indices with respect to the choices array
-	let [filtered_indices, active_index] = $derived.by(() => {
-		const filtered = handle_filter(translated_choices, input_text);
-		return [
-			filtered,
-			filtered.length > 0 && !gradio.props.allow_custom_value
-				? filtered[0]
-				: null
-		];
+	let { filtered_indices, total_matches: total_matching_choices } = $derived.by(
+		() =>
+			handle_filter_with_count(
+				translated_choices,
+				input_text,
+				visible_choices_limit
+			)
+	);
+	let active_index: number | null = $state(null);
+	let remaining_choices = $derived(
+		Math.max(0, total_matching_choices - filtered_indices.length)
+	);
+	let previous_filter_text = $state(input_text);
+	let previous_num_choices_shown = $state(gradio.props.num_choices_shown);
+
+	$effect(() => {
+		const current_filter_text = input_text;
+		const current_num_choices_shown = gradio.props.num_choices_shown;
+		if (
+			current_filter_text !== previous_filter_text ||
+			current_num_choices_shown !== previous_num_choices_shown
+		) {
+			batches_shown = 1;
+			const result = handle_filter_with_count(
+				translated_choices,
+				current_filter_text,
+				current_num_choices_shown
+			);
+			active_index =
+				result.filtered_indices.length > 0 && !gradio.props.allow_custom_value
+					? result.filtered_indices[0]
+					: null;
+			previous_filter_text = current_filter_text;
+			previous_num_choices_shown = current_num_choices_shown;
+		}
 	});
 
 	function set_selected_indices(): Item[] {
@@ -150,7 +183,11 @@
 	}
 
 	function handle_focus(e: FocusEvent): void {
-		filtered_indices = gradio.props.choices.map((_, i) => i);
+		batches_shown = 1;
+		active_index =
+			filtered_indices.length > 0 && !gradio.props.allow_custom_value
+				? filtered_indices[0]
+				: null;
 		if (
 			gradio.props.max_choices === null ||
 			selected_indices.length < gradio.props.max_choices
@@ -162,6 +199,28 @@
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
+		if (
+			e.key === "ArrowDown" &&
+			remaining_choices > 0 &&
+			active_index === filtered_indices[filtered_indices.length - 1]
+		) {
+			const previous_active_index = active_index;
+			handle_load_more();
+			const next_result = handle_filter_with_count(
+				translated_choices,
+				input_text,
+				gradio.props.num_choices_shown === null
+					? null
+					: gradio.props.num_choices_shown * batches_shown
+			);
+			const previous_position = next_result.filtered_indices.indexOf(
+				previous_active_index
+			);
+			active_index =
+				next_result.filtered_indices[previous_position + 1] ?? null;
+			show_options = true;
+			return;
+		}
 		[show_options, active_index] = handle_shared_keys(
 			e,
 			active_index,
@@ -186,6 +245,12 @@
 		if (selected_indices.length === gradio.props.max_choices) {
 			show_options = false;
 			active_index = null;
+		}
+	}
+
+	function handle_load_more(): void {
+		if (gradio.props.num_choices_shown !== null) {
+			batches_shown += 1;
 		}
 	}
 
@@ -305,8 +370,11 @@
 			{selected_indices}
 			{active_index}
 			{listbox_id}
+			num_choices_shown={gradio.props.num_choices_shown}
+			{remaining_choices}
 			remember_scroll={true}
 			onchange={handle_option_selected}
+			onload_more={handle_load_more}
 		/>
 	</div>
 </div>

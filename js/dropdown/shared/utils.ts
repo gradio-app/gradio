@@ -4,16 +4,38 @@ function positive_mod(n: number, m: number): number {
 
 export function handle_filter(
 	choices: [string, string | number][],
-	input_text: string
+	input_text: string,
+	num_choices_shown: number | null = null
 ): number[] {
-	return choices.reduce((filtered_indices, o, index) => {
+	return handle_filter_with_count(choices, input_text, num_choices_shown)
+		.filtered_indices;
+}
+
+export function handle_filter_with_count(
+	choices: [string, string | number][],
+	input_text: string,
+	num_choices_shown: number | null = null
+): { filtered_indices: number[]; total_matches: number } {
+	const filtered_indices: number[] = [];
+	const normalized_input = input_text.toLowerCase();
+	let total_matches = 0;
+
+	for (let index = 0; index < choices.length; index++) {
 		if (
-			input_text ? o[0].toLowerCase().includes(input_text.toLowerCase()) : true
+			!normalized_input ||
+			choices[index][0].toLowerCase().includes(normalized_input)
 		) {
-			filtered_indices.push(index);
+			total_matches += 1;
+			if (
+				num_choices_shown === null ||
+				filtered_indices.length < num_choices_shown
+			) {
+				filtered_indices.push(index);
+			}
 		}
-		return filtered_indices;
-	}, [] as number[]);
+	}
+
+	return { filtered_indices, total_matches };
 }
 
 export function handle_change(
