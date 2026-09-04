@@ -725,7 +725,7 @@ class BlocksConfig:
             show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
             api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values that will be passed as inputs to the Python function (`fn`)
+            js: Optional frontend JavaScript to run before 'fn', provided as either a function or a raw code string. A function receives the values of 'inputs' and 'outputs' as arguments; raw code can access them through `arguments`. Return a list of values to pass as inputs to the Python function (`fn`).
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
@@ -2758,7 +2758,7 @@ Received inputs:
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
-            js: Custom js as a code string. The js code will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
         Returns:
