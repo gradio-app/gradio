@@ -125,6 +125,31 @@ class TestRoutes:
         assert response.status_code == 200
         assert "#EXT-X-TARGETDURATION:2" in response.text
 
+    def test_audio_stream_playlist_propagates_space_signature(self):
+        with Blocks() as demo:
+            audio = gr.Audio()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment(
+                {"data": b"first", "duration": 1.25, "extension": ".aac"}
+            )
+        )
+        demo.pending_streams["session"][0] = {audio._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{audio._id}/playlist.m3u8",
+            params={"__sign": "jwt&with=special characters"},
+        )
+
+        assert response.status_code == 200
+        segment_line = next(
+            line
+            for line in response.text.splitlines()
+            if line and not line.startswith("#")
+        )
+        assert segment_line.endswith("?__sign=jwt%26with%3Dspecial+characters")
+
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")
         assert response.status_code == 200

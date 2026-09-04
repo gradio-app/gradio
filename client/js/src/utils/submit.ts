@@ -10,7 +10,12 @@ import type {
 	SubmitIterable
 } from "../types";
 
-import { skip_queue, post_message, handle_payload } from "../helpers/data";
+import {
+	skip_queue,
+	post_message,
+	handle_payload,
+	sign_file_urls
+} from "../helpers/data";
 import { get_zerogpu_origin } from "../helpers/zerogpu";
 import {
 	handle_message,
@@ -70,6 +75,7 @@ export function submit(
 
 		if (!api_info) throw new Error(NO_API_INFO_MSG);
 		if (!config) throw new Error("Could not resolve app config");
+		const root = config.root;
 
 		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
 			api_info,
@@ -170,6 +176,9 @@ export function submit(
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
 			update_run_history(history_scope, history_run_id, event);
+			if (event.type === "data" || event.type === "render") {
+				sign_file_urls(event.data, root, that.jwt);
+			}
 			if (all_events || events_to_publish[event.type]) {
 				push_event(event);
 			}

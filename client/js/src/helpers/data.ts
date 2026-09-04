@@ -224,3 +224,40 @@ export function handle_payload(
 
 	return updated_payload;
 }
+
+/**
+ * Add the scoped Space JWT to file URLs returned by a private Space.
+ *
+ * Media elements cannot attach the bearer token that the client uses for API
+ * requests. Hugging Face accepts the short-lived Space JWT in the query string,
+ * which lets the browser load the file without exposing the user's access token.
+ */
+export function sign_file_urls(
+	data: unknown,
+	root: string,
+	jwt: string | false
+): void {
+	if (!jwt || data === null || typeof data !== "object") return;
+
+	const root_url = new URL(root);
+	const value = data as Record<string, unknown>;
+	const meta = value.meta as Record<string, unknown> | undefined;
+
+	if (meta?._type === "gradio.FileData" && typeof value.url === "string") {
+		const file_url = new URL(
+			value.url,
+			`${root_url.toString().replace(/\/$/, "")}/`
+		);
+		if (
+			(file_url.protocol === "http:" || file_url.protocol === "https:") &&
+			file_url.origin === root_url.origin
+		) {
+			file_url.searchParams.set("__sign", jwt);
+			value.url = file_url.toString();
+		}
+	}
+
+	for (const child of Object.values(value)) {
+		sign_file_urls(child, root, jwt);
+	}
+}
