@@ -673,6 +673,33 @@ class TestProcessExamples:
         data = response.json()["data"]
         assert data[0]["path"].endswith("image.webp")
 
+    def test_lazy_cache_examples_preserves_request(self, patched_cache_folder):
+        def get_ip_token(value, request: gr.Request):
+            return request.headers.get("x-ip-token") if request else None
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            output = gr.Textbox()
+            gr.Examples(
+                examples=["hello"],
+                inputs=text,
+                outputs=output,
+                fn=get_ip_token,
+                cache_examples=True,
+                cache_mode="lazy",
+                api_name="load_example",
+            )
+
+        app = routes.App.create_app(demo)
+        with TestClient(app) as client:
+            response = client.post(
+                f"{API_PREFIX}/api/load_example/",
+                json={"data": [0]},
+                headers={"x-ip-token": "visitor-token"},
+            )
+
+        assert response.json()["data"] == ["visitor-token"]
+
 
 def test_multiple_file_flagging(tmp_path, connect):
     with patch("gradio.utils.get_cache_folder", return_value=tmp_path):
