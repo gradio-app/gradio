@@ -348,13 +348,22 @@ class Audio(
             raise ValueError(f"Cannot process {value} as Audio")
         return FileData(path=file_path, orig_name=orig_name)
 
-    def _encode_chunk(self, output_id: str, data: bytes) -> MediaStreamChunk | None:
-        encoder = _stream_encoders.get(output_id)
+    def _encode_chunk(
+        self, output_id: str, data: bytes, first_chunk: bool
+    ) -> MediaStreamChunk | None:
+        encoder = None if first_chunk else _stream_encoders.get(output_id)
         if encoder is None:
+            # A first chunk means a new stream, so anything parked under this
+            # key belongs to a finished one. The key carries `id(iterator)`
+            # (see #13809), which CPython can hand to a later run, and feeding
+            # a new stream's audio to the old encoder would resample it to the
+            # old stream's parameters or fail on a dead process.
+            stale = _stream_encoders.pop(output_id, None)
+            if stale is not None:
+                stale.close()
             sample_rate, channels, pcm = decode_to_pcm(data)
-            encoder = _stream_encoders[output_id] = AacStreamEncoder(
-                sample_rate, channels
-            )
+            encoder = AacStreamEncoder(sample_rate, channels)
+            _stream_encoders[output_id] = encoder
         else:
             _, _, pcm = decode_to_pcm(data, encoder.sample_rate, encoder.channels)
         encoder.feed(pcm)
@@ -364,7 +373,7 @@ class Audio(
         self,
         value,
         output_id: str,
-        first_chunk: bool,  # noqa: ARG002
+        first_chunk: bool,
     ) -> tuple[MediaStreamChunk | None, FileDataDict]:
         output_file: FileDataDict = {
             "path": output_id,
@@ -384,7 +393,7 @@ class Audio(
             with open(value["path"], "rb") as f:
                 binary_data = f.read()
         chunk = await anyio.to_thread.run_sync(
-            self._encode_chunk, output_id, binary_data
+            self._encode_chunk, output_id, binary_data, first_chunk
         )
         return chunk, output_file
 
