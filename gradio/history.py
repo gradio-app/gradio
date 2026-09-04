@@ -649,15 +649,8 @@ async def record_run(
     merged: dict[str, PendingAsset] = {**assets, **output_assets}
 
     limiter: anyio.CapacityLimiter = app.state.history_write_limiter
-    print(  # noqa: T201
-        f"CIPROBE record_run: at limiter, borrowed={limiter.borrowed_tokens}"
-        f"/{limiter.total_tokens}",
-        flush=True,
-    )
     async with limiter:
-        print("CIPROBE record_run: got limiter, offloading", flush=True)  # noqa: T201
         await anyio.to_thread.run_sync(save_record, target, record, merged)
-        print("CIPROBE record_run: offload returned", flush=True)  # noqa: T201
     return record
 
 
@@ -668,30 +661,20 @@ def schedule_record_run(app, **kwargs) -> None:
     except AttributeError:
         return
     if limiter.borrowed_tokens >= limiter.total_tokens:
-        print("CIPROBE dropped: write pool saturated", flush=True)  # noqa: T201
         logger.debug("history: write pool saturated, dropping record")
         return
 
     async def _run() -> None:
-        names = sorted(t.name for t in threading.enumerate())
-        print(  # noqa: T201
-            f"CIPROBE task started, {len(names)} threads: {names}", flush=True
-        )
         try:
             await record_run(app, **kwargs)
-            print("CIPROBE task wrote the record", flush=True)  # noqa: T201
         except HistoryError as exc:
-            print(f"CIPROBE task HistoryError: {exc}", flush=True)  # noqa: T201
             logger.warning("history: could not record run: %s", exc)
-        except Exception as exc:  # noqa: BLE001
-            print(f"CIPROBE task raised {type(exc).__name__}: {exc}", flush=True)  # noqa: T201
+        except Exception:
             logger.warning("history: could not record run", exc_info=True)
 
     try:
         task = asyncio.get_running_loop().create_task(_run())
-        print("CIPROBE task created", flush=True)  # noqa: T201
     except RuntimeError:
-        print("CIPROBE no running loop", flush=True)  # noqa: T201
         return
     tasks = getattr(app.state, "history_tasks", None)
     if tasks is None:
