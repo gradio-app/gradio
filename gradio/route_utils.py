@@ -1206,10 +1206,12 @@ class MediaStream:
             callback = self.on_end.pop()
             try:
                 callback()
-            except Exception:  # noqa: BLE001, S110
+            except Exception:  # noqa: BLE001
                 # end_stream() runs inside exception handling, so a failure to
-                # tear down must not replace the error being propagated.
-                pass
+                # tear down must not replace the error being propagated. It
+                # would leak whatever the callback was releasing, though, so
+                # leave a trace of it.
+                logger.debug("stream cleanup callback failed", exc_info=True)
 
 
 def create_url_safe_hash(data: bytes, digest_size=8):
