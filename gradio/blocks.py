@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import dataclasses
-import functools
 import hashlib
 import inspect
 import json
@@ -2167,19 +2166,28 @@ Received inputs:
                         desired_output_format = Path(orig_name).suffix[1:]
                     stream = MediaStream(desired_output_format=desired_output_format)
                     stream_run[output_id] = stream
+                    # One registration for both jobs: calling a finalize handle
+                    # runs it and disarms it, so ending the stream releases the
+                    # encoder and leaves nothing armed to fire later against a
+                    # key that a newer run may by then own. What the unarmed
+                    # case covers is interpreter exit, not a dropped event
+                    # stream: the session cleanup that discards this stream
+                    # ends it first.
                     stream.on_end.append(
-                        functools.partial(block.end_stream_output, stream_id)
+                        weakref.finalize(stream, block.end_stream_output, stream_id)
                     )
-                    # A client that drops the event stream without closing the
-                    # session does not reach `end_stream()` until much later.
-                    weakref.finalize(stream, block.end_stream_output, stream_id)
 
                 await stream_run[output_id].add_segment(binary_data)
                 if final:
-                    await stream_run[output_id].add_segment(
-                        await block.flush_stream_output(stream_id)
-                    )
-                    stream_run[output_id].end_stream()
+                    try:
+                        await stream_run[output_id].add_segment(
+                            await block.flush_stream_output(stream_id)
+                        )
+                    finally:
+                        # A flush that fails still has to end the stream, or the
+                        # playlist never gets its #EXT-X-ENDLIST and the client
+                        # polls something that will not grow again.
+                        stream_run[output_id].end_stream()
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,

@@ -392,9 +392,17 @@ class Audio(
         encoder = _stream_encoders.pop(output_id, None)
         if encoder is None:
             return None
-        return await anyio.to_thread.run_sync(
-            lambda: _segment_from_frames(encoder, encoder.flush())
-        )
+
+        def flush_and_release() -> MediaStreamChunk | None:
+            # The encoder is out of the registry either way, so a flush that
+            # raises would leave nothing able to release the process.
+            try:
+                return _segment_from_frames(encoder, encoder.flush())
+            except Exception:
+                encoder.close()
+                raise
+
+        return await anyio.to_thread.run_sync(flush_and_release)
 
     def end_stream_output(self, output_id: str) -> None:
         encoder = _stream_encoders.pop(output_id, None)

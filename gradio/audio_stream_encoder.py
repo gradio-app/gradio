@@ -15,6 +15,34 @@ from pydub import AudioSegment
 
 AAC_FRAME_SAMPLES = 1024
 
+# The only sample rates an ADTS stream can declare. Anything else gets
+# resampled by the encoder, and a frame is 1024 samples at the rate that comes
+# out, not the one that went in, so the playlist has to be told which is which.
+ADTS_SAMPLE_RATES = (
+    96000,
+    88200,
+    64000,
+    48000,
+    44100,
+    32000,
+    24000,
+    22050,
+    16000,
+    12000,
+    11025,
+    8000,
+    7350,
+)
+
+
+def nearest_adts_rate(sample_rate: int) -> int:
+    return min(ADTS_SAMPLE_RATES, key=lambda rate: abs(rate - sample_rate))
+
+
+# How long a chunk that completes no frame waits before giving up on one, once
+# the encoder is known to be up. See `AacStreamEncoder.take`.
+STEADY_WAIT = 0.005
+
 
 def parse_adts_frames(data: bytes | bytearray) -> tuple[list[bytes], int]:
     """Split `data` on ADTS frame headers.
@@ -51,11 +79,13 @@ def _read_wav_pcm(data: bytes) -> tuple[int, int, bytes] | None:
         with wave.open(io.BytesIO(data), "rb") as reader:
             if reader.getsampwidth() != 2 or reader.getcomptype() != "NONE":
                 return None
-            return (
-                reader.getframerate(),
-                reader.getnchannels(),
-                reader.readframes(reader.getnframes()),
-            )
+            pcm = reader.readframes(reader.getnframes())
+            if not pcm:
+                # A wav written for a stream often declares a `data` size of 0
+                # because the length is not known yet. Trusting it would drop
+                # the chunk's audio silently; ffmpeg reads such a file to EOF.
+                return None
+            return reader.getframerate(), reader.getnchannels(), pcm
     except (wave.Error, EOFError):
         return None
 
@@ -120,6 +150,10 @@ class AacStreamEncoder:
             )
         self.sample_rate = sample_rate
         self.channels = channels
+        # Asking for the resample rather than letting the encoder pick one:
+        # `frame_duration` has to match what the frames actually carry, and it
+        # is needed before the first frame exists to read it from.
+        self.output_rate = nearest_adts_rate(sample_rate)
         self.process = subprocess.Popen(
             [
                 "ffmpeg",
@@ -144,6 +178,8 @@ class AacStreamEncoder:
                 "pipe:0",
                 "-c:a",
                 "aac",
+                "-ar",
+                str(self.output_rate),
                 "-flush_packets",
                 "1",
                 "-f",
@@ -156,6 +192,7 @@ class AacStreamEncoder:
         self._buffer = bytearray()
         self._ready: deque[bytes] = deque()
         self._at_eof = False
+        self._waited_for_startup = False
         self._stdin_closed = False
         self._condition = threading.Condition()
         # A full stdout pipe blocks the encoder, and at 48 kHz stereo the pipe
@@ -168,7 +205,7 @@ class AacStreamEncoder:
 
     @property
     def frame_duration(self) -> float:
-        return AAC_FRAME_SAMPLES / self.sample_rate
+        return AAC_FRAME_SAMPLES / self.output_rate
 
     def _read_loop(self) -> None:
         stdout = self.process.stdout
@@ -203,7 +240,10 @@ class AacStreamEncoder:
         try:
             stdin.write(pcm)
             stdin.flush()
-        except (BrokenPipeError, OSError) as e:
+        except (OSError, ValueError) as e:
+            # ValueError is what a write to an already-closed pipe raises, which
+            # is reachable because `close()` can land between the check above
+            # and here.
             raise RuntimeError(
                 f"The audio encoder exited with code {self.process.poll()}."
             ) from e
@@ -211,14 +251,22 @@ class AacStreamEncoder:
     def take(self, timeout: float = 0.1) -> list[bytes]:
         """Pop every whole frame the encoder has emitted so far.
 
-        `timeout` only covers having nothing ready yet, which in practice is the
-        first chunk; frames still inside the encoder go out with the next chunk,
-        or with `flush()`. Do not make it wait for a predicted frame count: the
-        prediction is sometimes one too high, and then every chunk it is wrong
-        about pays the whole timeout.
+        The wait is for the encoder to start up, so `timeout` is paid once, on
+        the first call. After that a chunk that completes no frame waits
+        `STEADY_WAIT` and leaves its audio inside the encoder, to go out with a
+        later chunk or with `flush()`. Paying the full timeout again on every
+        chunk too short to complete a frame costs far more than the audio is
+        worth: with 20 ms chunks it holds the supply rate at a quarter of real
+        time, which no amount of player buffering can make up.
+
+        Do not make it wait for a predicted frame count instead: the prediction
+        is sometimes one too high, and then every chunk it is wrong about pays
+        the whole timeout anyway.
         """
-        deadline = time.monotonic() + timeout
         with self._condition:
+            wait_for = timeout if not self._waited_for_startup else STEADY_WAIT
+            self._waited_for_startup = True
+            deadline = time.monotonic() + wait_for
             while not self._ready and not self._at_eof:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
@@ -226,7 +274,16 @@ class AacStreamEncoder:
                 self._condition.wait(remaining)
             frames = list(self._ready)
             self._ready.clear()
+        self._raise_if_encoder_died()
         return frames
+
+    def _raise_if_encoder_died(self) -> None:
+        """A stream that stops growing silently is worse than a loud failure."""
+        if not self._at_eof:
+            return
+        code = self.process.poll()
+        if code is not None and code != 0:
+            raise RuntimeError(f"The audio encoder exited with code {code}.")
 
     def flush(self, timeout: float = 5.0) -> list[bytes]:
         """Close the input, return what the encoder had left, and release it.
@@ -249,9 +306,12 @@ class AacStreamEncoder:
         with self._condition:
             frames = list(self._ready)
             self._ready.clear()
+        code = self.process.returncode
         # The process is reaped by now, so this is just the pipes, which a
         # caller that flushes and drops the encoder would otherwise leave to gc.
         self.close()
+        if code:
+            raise RuntimeError(f"The audio encoder exited with code {code}.")
         return frames
 
     def close(self) -> None:
