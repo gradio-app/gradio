@@ -231,7 +231,10 @@ class AacStreamEncoder:
         return frames
 
     def flush(self, timeout: float = 5.0) -> list[bytes]:
-        """Close the input and return whatever the encoder had left."""
+        """Close the input, return what the encoder had left, and release it.
+
+        Terminal: the encoder cannot be fed again afterwards.
+        """
         if not self._stdin_closed:
             self._stdin_closed = True
             if self.process.stdin is not None:
@@ -248,6 +251,11 @@ class AacStreamEncoder:
         with self._condition:
             frames = list(self._ready)
             self._ready.clear()
+        # The process is reaped by now, so this only has the pipes left to
+        # close. Doing it here rather than leaving them to the garbage
+        # collector means a caller that flushes and drops the encoder, which is
+        # what `flush_stream_output` does, still releases the descriptors.
+        self.close()
         return frames
 
     def close(self) -> None:
