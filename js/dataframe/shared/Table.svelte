@@ -255,6 +255,13 @@
 	let editing: CellCoordinate | false = $state(false);
 	let header_edit: number | false = $state(false);
 	let selected_header: number | false = $state(false);
+	let keyboard_header: number | false = $derived(
+		selected_header !== false &&
+			selected_header >= 0 &&
+			selected_header < resolved_headers.length
+			? selected_header
+			: false
+	);
 	let active_cell_menu: {
 		row: number;
 		col: number;
@@ -293,7 +300,7 @@
 			keyboard_active &&
 			keyboard_active[0] === row &&
 			keyboard_active[1] === col &&
-			selected_header === false
+			keyboard_header === false
 		);
 	}
 
@@ -395,6 +402,13 @@
 
 	function get_dtype(col: number): Datatype {
 		return Array.isArray(datatype) ? (datatype[col] ?? "str") : datatype;
+	}
+
+	function is_static_column(col: number): boolean {
+		return (
+			static_columns.includes(col) ||
+			static_columns.includes(resolved_headers[col])
+		);
 	}
 
 	type SizingEntry = { val: string; col_idx: number; dtype: Datatype };
@@ -590,7 +604,6 @@
 		if (event.target instanceof HTMLAnchorElement) return;
 		event.preventDefault();
 		event.stopPropagation();
-		if (!editable) return;
 
 		editing = false;
 		selected = false;
@@ -598,8 +611,8 @@
 		active_cell_menu = null;
 		active_header_menu = null;
 		selected_header = col;
-		header_edit = editable ? col : false;
-		if (!editable) focus_header(col);
+		header_edit = editable && !is_static_column(col) ? col : false;
+		if (header_edit === false) focus_header(col);
 	}
 
 	function end_header_edit(event: KeyboardEvent): void {
@@ -714,15 +727,21 @@
 
 	function delete_row_at(index: number): void {
 		if (values.length <= 1) return;
+		const target_col = selected ? selected[1] : 0;
 		values = [...values.slice(0, index), ...values.slice(index + 1)];
 		push_change(values);
 		active_cell_menu = null;
 		active_header_menu = null;
+		set_active_cell([
+			Math.min(index, values.length - 1),
+			Math.min(target_col, resolved_headers.length - 1)
+		]);
 	}
 
 	function delete_col_at(index: number): void {
 		if (col_count[1] !== "dynamic") return;
 		if ((values[0]?.length ?? 0) <= 1) return;
+		const target_row = selected ? selected[0] : (rows[0]?.original._index ?? 0);
 		values = values.map((row) => [
 			...row.slice(0, index),
 			...row.slice(index + 1)
@@ -734,9 +753,8 @@
 		push_change(values, headers as string[]);
 		active_cell_menu = null;
 		active_header_menu = null;
-		selected = false;
-		selected_cells = [];
 		editing = false;
+		set_active_cell([target_row, Math.min(index, headers.length - 1)]);
 	}
 
 	function add_row_at(index: number, position: "above" | "below"): void {
@@ -809,13 +827,13 @@
 
 	function handle_keydown(e: KeyboardEvent): void {
 		if (e.target instanceof HTMLAnchorElement) return;
-		if (!selected && selected_header === false) return;
+		if (!selected && keyboard_header === false) return;
 
 		const num_cols = resolved_headers.length;
 
-		if (selected_header !== false) {
+		if (keyboard_header !== false) {
 			if (header_edit !== false) return;
-			const col = selected_header;
+			const col = keyboard_header;
 			switch (e.key) {
 				case "ArrowDown": {
 					e.preventDefault();
@@ -840,12 +858,12 @@
 				case "Enter":
 				case "F2":
 					e.preventDefault();
-					if (editable && !static_columns.includes(col)) header_edit = col;
+					if (editable && !is_static_column(col)) header_edit = col;
 					break;
 				case " ":
 				case "Spacebar":
-					if (editable && get_dtype(col) === "bool") {
-						e.preventDefault();
+					e.preventDefault();
+					if (editable && !is_static_column(col) && get_dtype(col) === "bool") {
 						handle_select_all(col, get_select_all_state(col) !== "checked");
 					}
 					break;
@@ -922,9 +940,7 @@
 				}
 				set_active_cell(next_cell, false);
 				const next_col = next_cell[1];
-				const next_is_static =
-					static_columns.includes(next_col) ||
-					static_columns.includes(resolved_headers[next_col]);
+				const next_is_static = is_static_column(next_col);
 				if (editable && !next_is_static && get_dtype(next_col) !== "bool") {
 					editing = next_cell;
 				} else {
@@ -940,9 +956,7 @@
 					focus_cell([row, col]);
 				} else {
 					dispatch_select(row, col);
-					const enter_static =
-						static_columns.includes(col) ||
-						static_columns.includes(resolved_headers[col]);
+					const enter_static = is_static_column(col);
 					if (editable && !enter_static && get_dtype(col) !== "bool") {
 						editing = [row, col];
 					}
@@ -955,7 +969,7 @@
 					focus_cell([row, col]);
 				} else if (
 					editable &&
-					!static_columns.includes(col) &&
+					!is_static_column(col) &&
 					get_dtype(col) !== "bool"
 				) {
 					editing = [row, col];
@@ -965,9 +979,7 @@
 			case "Spacebar":
 				if (!editing) {
 					e.preventDefault();
-					const col_is_static =
-						static_columns.includes(col) ||
-						static_columns.includes(resolved_headers[col]);
+					const col_is_static = is_static_column(col);
 					if (editable && !col_is_static && get_dtype(col) === "bool") {
 						const new_values = values.map((value_row) => [...value_row]);
 						new_values[row][col] = !new_values[row][col];
@@ -990,7 +1002,7 @@
 					e.preventDefault();
 					const new_values = values.map((value_row) => [...value_row]);
 					selected_cells.forEach(([selected_row, selected_col]) => {
-						if (!static_columns.includes(selected_col)) {
+						if (!is_static_column(selected_col)) {
 							new_values[selected_row][selected_col] = "";
 						}
 					});
@@ -1005,7 +1017,7 @@
 					e.key.length === 1 &&
 					!e.ctrlKey &&
 					!e.metaKey &&
-					!static_columns.includes(col) &&
+					!is_static_column(col) &&
 					get_dtype(col) !== "bool"
 				) {
 					editing = [row, col];
@@ -1180,9 +1192,6 @@
 				role="none"
 				style="max-height: {max_height}px;"
 			>
-				{#if label && label.length !== 0}
-					<span class="sr-only">{label}</span>
-				{/if}
 				<!-- header row: uses table layout to auto-size columns by content -->
 				<table class="header-table" bind:this={header_table_el} role="none">
 					<thead role="rowgroup">
@@ -1203,7 +1212,7 @@
 										{col_idx}
 										aria_col_index={col_idx + (show_row_numbers ? 2 : 1)}
 										is_editing={header_edit === col_idx}
-										is_selected={selected_header === col_idx}
+										is_selected={keyboard_header === col_idx}
 										is_static={!!(header.column.columnDef.meta as any)
 											?.isStatic}
 										is_bool={get_dtype(col_idx) === "bool"}

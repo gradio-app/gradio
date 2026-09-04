@@ -76,6 +76,7 @@
 	});
 
 	let paginate = $derived(effective_samples.length > samples_per_page);
+	let has_headers = $derived(headers.length > 0);
 
 	let selected_samples = $derived.by(() => {
 		if (paginate) {
@@ -297,23 +298,28 @@
 			<table
 				bind:this={table}
 				role="grid"
-				aria-rowcount={effective_samples.length + 1}
+				aria-rowcount={effective_samples.length + Number(has_headers)}
 				aria-colcount={components.length}
 			>
-				<thead>
-					<tr class="tr-head" aria-rowindex="1">
-						{#each headers as header, j (header)}
-							<th role="columnheader" aria-colindex={j + 1}>
-								{header}
-							</th>
-						{/each}
-					</tr>
-				</thead>
+				{#if has_headers}
+					<thead>
+						<tr class="tr-head" aria-rowindex="1">
+							{#each headers as header, j (header)}
+								<th role="columnheader" aria-colindex={j + 1}>
+									{header}
+								</th>
+							{/each}
+						</tr>
+					</thead>
+				{/if}
 				<tbody>
 					{#each component_meta as sample_row, i (i)}
 						<tr
 							class="tr-body"
-							aria-rowindex={page * samples_per_page + i + 2}
+							aria-rowindex={page * samples_per_page +
+								i +
+								1 +
+								Number(has_headers)}
 							aria-selected={value === i + page * samples_per_page}
 							onclick={() => select_sample(i, sample_row)}
 							onmouseenter={() => handle_mouseenter(i)}

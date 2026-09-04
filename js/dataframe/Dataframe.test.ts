@@ -135,7 +135,7 @@ describe("Dataframe rendering", () => {
 	});
 
 	test("renders label when show_label is true", async () => {
-		const { container } = await render(Dataframe, {
+		const { container, getByRole } = await render(Dataframe, {
 			...default_props,
 			label: "Test Table",
 			show_label: true
@@ -143,6 +143,9 @@ describe("Dataframe rendering", () => {
 		await wait();
 
 		expect(container.textContent).toContain("Test Table");
+		const grid = getByRole("grid");
+		expect(grid).toHaveAttribute("aria-label", "Test Table");
+		expect(grid.querySelector(".sr-only")).not.toBeInTheDocument();
 	});
 
 	test("renders row numbers when show_row_numbers is true", async () => {
@@ -456,6 +459,89 @@ describe("Keyboard accessibility", () => {
 
 		await event.keyboard("{ArrowDown}");
 		expect(second_cell).toHaveFocus();
+	});
+
+	test("Space does not change a static boolean column from its header", async () => {
+		const { getByTestId, listen } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [[true], [false], [true]],
+				headers: ["Flag"],
+				metadata: null
+			},
+			datatype: ["bool"] as const,
+			static_columns: [0],
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [3, "fixed"] as [number, "fixed"]
+		});
+		const change = listen("change");
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const header = getByTestId("header-0");
+
+		cell.focus();
+		await event.keyboard("{ArrowUp}");
+		expect(header).toHaveFocus();
+		await event.keyboard(" ");
+
+		expect(change).not.toHaveBeenCalled();
+		expect(header).toHaveFocus();
+	});
+
+	test("static headers named by label never enter edit mode", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			static_columns: ["Name"]
+		});
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const header = getByTestId("header-0");
+
+		cell.focus();
+		await event.keyboard("{ArrowUp}{Enter}");
+		expect(queryByRole("textbox", { name: "Cell is read-only" })).toBeNull();
+		expect(header).toHaveFocus();
+
+		await fireEvent.click(header);
+		await waitFor(() => expect(header).toHaveFocus());
+		expect(queryByRole("textbox", { name: "Cell is read-only" })).toBeNull();
+	});
+
+	test("clicking a read-only header selects and focuses it", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			interactive: false,
+			editable: false
+		});
+		const header = await waitFor(() => getByTestId("header-0"));
+
+		await fireEvent.click(header);
+
+		await waitFor(() => expect(header).toHaveFocus());
+		expect(header).toHaveAttribute("tabindex", "0");
+		expect(queryByRole("textbox")).toBeNull();
+	});
+
+	test("restores a cell tab stop when the selected header is removed", async () => {
+		const result = await render(Dataframe, navigation_props);
+		const last_cell = await waitFor(() => result.getByTestId("cell-0-2"));
+
+		last_cell.focus();
+		await event.keyboard("{ArrowUp}");
+		expect(result.getByTestId("header-2")).toHaveFocus();
+
+		await result.set_data({
+			value: {
+				data: [["Alice"], ["Bob"], ["Carol"]],
+				headers: ["Name"],
+				metadata: null
+			},
+			col_count: [1, "fixed"]
+		});
+
+		const first_cell = await waitFor(() => result.getByTestId("cell-0-0"));
+		expect(first_cell).toHaveAttribute("tabindex", "0");
+		expect(
+			result.getByRole("grid").querySelectorAll('[tabindex="0"]')
+		).toHaveLength(1);
 	});
 
 	test("link key events are handled by the link instead of grid navigation", async () => {
@@ -877,7 +963,7 @@ describe("Add/remove rows and columns", () => {
 	test.todo("add row below via cell menu");
 
 	test("delete row via cell menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const cell = get_cell(container, 1, 0)!;
@@ -897,6 +983,7 @@ describe("Add/remove rows and columns", () => {
 		await wait();
 
 		expect(get_rows(container).length).toBe(2);
+		await waitFor(() => expect(getByTestId("cell-1-0")).toHaveFocus());
 	});
 
 	test("add column via header menu", async () => {
@@ -926,7 +1013,7 @@ describe("Add/remove rows and columns", () => {
 	});
 
 	test("delete column via header menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const initial_headers = get_header_cells(container).length;
@@ -946,6 +1033,7 @@ describe("Add/remove rows and columns", () => {
 				await wait();
 
 				expect(get_header_cells(container).length).toBe(initial_headers - 1);
+				await waitFor(() => expect(getByTestId("cell-0-0")).toHaveFocus());
 			}
 		}
 	});

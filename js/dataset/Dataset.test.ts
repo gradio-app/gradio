@@ -148,11 +148,17 @@ describe("Dataset", () => {
 			.forEach((cell) => expect(cell).toHaveAttribute("tabindex", "-1"));
 	});
 
-	test("reports the rendered column count when headers are missing", async () => {
+	test("omits the header row and reports row positions when headers are missing", async () => {
 		const result = await render(Dataset, { ...table_props, headers: [] });
 		const grid = await waitFor(() => result.getByRole("grid"));
 
 		expect(grid).toHaveAttribute("aria-colcount", "2");
+		expect(grid).toHaveAttribute("aria-rowcount", "2");
+		expect(result.queryByRole("columnheader")).not.toBeInTheDocument();
+		const rows = result.getAllByRole("row");
+		expect(rows).toHaveLength(2);
+		expect(rows[0]).toHaveAttribute("aria-rowindex", "1");
+		expect(rows[1]).toHaveAttribute("aria-rowindex", "2");
 	});
 
 	test("reports row positions across all pages", async () => {
