@@ -1172,9 +1172,11 @@ async def _drain_history_tasks(app: App, timeout: float = HISTORY_DRAIN_TIMEOUT)
     try:
         yield
     finally:
+        # `state` itself is absent on the stand-in apps the lifespan tests use.
+        state = getattr(app, "state", None)
         tasks = {
             task
-            for task in getattr(app.state, "history_tasks", None) or ()
+            for task in getattr(state, "history_tasks", None) or ()
             if not task.done()
         }
         if tasks:
