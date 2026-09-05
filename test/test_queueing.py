@@ -198,8 +198,10 @@ def test_heartbeat_task_cancelled_after_stream_completes():
         heartbeat_tasks.append(task)
         return task
 
-    with patch("gradio.routes.asyncio.create_task", side_effect=tracking_create_task):
-        test_client = TestClient(app)
+    with (
+        patch("gradio.routes.asyncio.create_task", side_effect=tracking_create_task),
+        TestClient(app) as test_client,
+    ):
         r = test_client.post(
             f"{API_PREFIX}/queue/join",
             json={
