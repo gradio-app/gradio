@@ -458,6 +458,43 @@ class TestServerSideRecording:
         assert r.json()["data"] == ["hello world"]
 
 
+def test_a_record_still_in_flight_survives_shutdown(monkeypatch):
+    """Records are filed as detached tasks, so a shutdown that does not wait for
+    them loses whatever has not reached the Hub yet. The delay goes in the
+    prelude rather than in the Hub call on purpose: `anyio.to_thread.run_sync`
+    cannot interrupt its worker thread, so a write that has already started
+    finishes either way and would not tell the two behaviours apart."""
+    monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+    hub = FakeHub()
+    original = history_mod.externalize_assets
+
+    async def slow_externalize(*args, **kwargs):
+        await asyncio.sleep(0.3)
+        return await original(*args, **kwargs)
+
+    def greet(name):
+        return f"hello {name}"
+
+    io = gr.Interface(greet, "text", "text", api_name="greet")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    with (
+        patch("gradio.history.resolve_token", return_value="tok"),
+        patch("gradio.history.HfApi", return_value=hub),
+        patch("gradio.history.externalize_assets", slow_externalize),
+        TestClient(app) as client,
+    ):
+        r = client.post(
+            "/gradio_api/run/greet",
+            json={"data": ["world"]},
+            headers={"X-Gradio-History-Bucket": "alice/hist"},
+        )
+        assert r.status_code == 200, r.text
+    # Leaving the block runs the lifespan shutdown, which is where the drain is.
+    assert len(hub.files) == 1, "the record was dropped by the shutdown"
+    io.close()
+    close_all()
+
+
 # ------------------------------------------------- end-to-end: workflow canvas
 
 

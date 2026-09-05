@@ -1157,6 +1157,32 @@ async def _delete_state_handler(app: App):
         await _cancel_background_task(task)
 
 
+HISTORY_DRAIN_TIMEOUT = 5.0
+
+
+@asynccontextmanager
+async def _drain_history_tasks(app: App, timeout: float = HISTORY_DRAIN_TIMEOUT):
+    """On shutdown, give in-flight run-history writes a bounded chance to finish.
+
+    A record is filed as a detached task so a prediction never waits on the Hub,
+    and nothing else ever awaits those tasks. Without this, a shutdown cancels
+    whatever is still in `record_run`, and a record that has not yet reached the
+    Hub call is lost outright.
+    """
+    try:
+        yield
+    finally:
+        tasks = {
+            task
+            for task in getattr(app.state, "history_tasks", None) or ()
+            if not task.done()
+        }
+        if tasks:
+            _, pending = await asyncio.wait(tasks, timeout=timeout)
+            for task in pending:
+                task.cancel()
+
+
 def create_lifespan_handler(
     user_lifespan: Callable[[App], AbstractAsyncContextManager] | None,
     frequency: int | None = 1,
@@ -1173,6 +1199,9 @@ def create_lifespan_handler(
                 await stack.enter_async_context(_lifespan_handler(app, frequency, age))
             if user_lifespan is not None:
                 state = await stack.enter_async_context(user_lifespan(app))
+            # Entered last so it unwinds first: the records are drained while
+            # the rest of the app is still up.
+            await stack.enter_async_context(_drain_history_tasks(app))
             yield state
 
     return _handler
