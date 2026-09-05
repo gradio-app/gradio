@@ -180,6 +180,7 @@
 		token: string,
 		class_or_confidence: string | number | null
 	): void {
+		// Preserve score-mode behavior: edit interactive labels or dispatch select, not both.
 		if (interactive && class_or_confidence !== null) {
 			label_to_edit = index;
 		} else {
@@ -303,7 +304,7 @@
 				{@const lines = token.split("\n")}
 				{@const token_is_selectable = is_token_selectable(class_or_confidence)}
 				{#each lines as line, j}
-					{#if show_whitespaces ? line !== "" : line.trim()}
+					{#if is_visible_line(line)}
 						{@const bg_color = get_background_color(class_or_confidence)}
 						{@const token_key = category_token_key(i, j)}
 						<span class="token-container">

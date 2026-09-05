@@ -310,38 +310,41 @@ describe("HighlightedText", () => {
 			).not.toBeInTheDocument();
 		});
 
-		test.skip("dispatches select event when clicking highlighted token", async () => {
-			const { getByText, listen } = await render(HighlightedText, {
+		test("dispatches select event when clicking highlighted token", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
 				interactive: true,
 				loading_status,
 				value: [{ token: "clickable", class_or_confidence: "label" }]
 			});
 
-			const mock = listen("select");
-			const token = getByText("clickable");
+			const select = listen("select");
+			const token = getByRole("button", { name: /clickable/ });
 
 			await fireEvent.click(token);
 
-			assert.equal(mock.callCount, 1);
-			assert.deepEqual(mock.calls[0][0].detail.data, {
+			expect(select).toHaveBeenCalledWith({
 				index: 0,
 				value: ["clickable", "label"]
 			});
 		});
 
-		test.skip("dispatches select event in non-interactive mode too", async () => {
-			const { getByText, listen } = await render(HighlightedText, {
+		test("dispatches select event in non-interactive mode too", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
 				interactive: false,
 				loading_status,
+				_selectable: true,
 				value: [{ token: "clickable", class_or_confidence: "label" }]
 			});
 
-			const mock = listen("select");
-			const token = getByText("clickable");
+			const select = listen("select");
+			const token = getByRole("button", { name: /clickable/ });
 
 			await fireEvent.click(token);
 
-			assert.equal(mock.callCount, 1);
+			expect(select).toHaveBeenCalledWith({
+				index: 0,
+				value: ["clickable", "label"]
+			});
 		});
 	});
 
