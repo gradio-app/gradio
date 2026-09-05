@@ -100,7 +100,10 @@ jobs:
           - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
           - test-type: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'flaky-tests') && 'dummy' || 'flaky' }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
+    # The flaky suite and windows are expected to be unreliable and should not
+    # fail the run. ubuntu + not-flaky should, so that a red job shows up as a
+    # red run rather than only inside the job.
+    continue-on-error: ${{ matrix.test-type == 'flaky' || matrix.os == 'windows-latest' }}
     steps:
       - uses: actions/checkout@v4
       - name: Download gradio wheel
