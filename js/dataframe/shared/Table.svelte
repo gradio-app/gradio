@@ -829,11 +829,12 @@
 		const cells =
 			selected_cells.length > 0
 				? selected_cells.filter(([r]) => visible.has(r))
-				: rows.flatMap((row) =>
-						resolved_headers.map(
-							(_, c) => [row.original._index, c] as CellCoordinate
-						)
-					);
+				: rows.flatMap((row) => {
+						// a row can be shorter than the header count, since only the
+						// headers are padded out to the column count on the way in
+						const r = row.original._index;
+						return (values[r] ?? []).map((_, c) => [r, c] as CellCoordinate);
+					});
 		if (cells.length === 0) return false;
 
 		const data_for_copy = values.map((row) =>

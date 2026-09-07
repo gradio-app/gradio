@@ -542,6 +542,36 @@ describe("Cell selection", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
+	// `postprocess` pads the headers out to the column count but leaves the rows
+	// as they came, so a row can be shorter than the header row
+	test("the copy button copies a ragged table with nothing selected", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [["a", "b"], ["c"]],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		const copy_button = container.querySelector(
+			'[aria-label="Copy table data"]'
+		) as HTMLElement;
+		await fireEvent.click(copy_button);
+
+		// enumerating the columns from the header count instead of the row's own
+		// length walks off the end of the short row, and `copy_table_data`
+		// dereferences that without a guard, so the button never reacts
+		await waitFor(() => {
+			expect(
+				container.querySelector('[aria-label="Copied to clipboard"]')
+			).not.toBeNull();
+		});
+	});
+
 	// the toolbar button is the reachable path here: `handle_keydown` bails out
 	// before Ctrl+C whenever the row `selected` points at is off screen
 	test("the copy button does not report success with nothing on screen to copy", async () => {
