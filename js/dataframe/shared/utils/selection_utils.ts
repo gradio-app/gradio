@@ -10,15 +10,20 @@ export function is_cell_in_selection(
 	return selected_cells.some(([r, c]) => r === row && c === col);
 }
 
+// row_above/row_below are the rows on either side of `cell` in the order the
+// caller is rendering, given as indices into the data. A search or a sort makes
+// those differ from row ± 1, so the caller has to supply them.
 export function is_cell_selected(
 	cell: CellCoordinate,
-	selected_cells: CellCoordinate[]
+	selected_cells: CellCoordinate[],
+	row_above: number,
+	row_below: number
 ): string {
 	const [row, col] = cell;
 	if (!selected_cells.some(([r, c]) => r === row && c === col)) return "";
 
-	const up = selected_cells.some(([r, c]) => r === row - 1 && c === col);
-	const down = selected_cells.some(([r, c]) => r === row + 1 && c === col);
+	const up = selected_cells.some(([r, c]) => r === row_above && c === col);
+	const down = selected_cells.some(([r, c]) => r === row_below && c === col);
 	const left = selected_cells.some(([r, c]) => r === row && c === col - 1);
 	const right = selected_cells.some(([r, c]) => r === row && c === col + 1);
 

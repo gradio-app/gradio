@@ -70,11 +70,11 @@ describe("is_cell_in_selection", () => {
 
 describe("is_cell_selected", () => {
 	test("returns empty string when cell not selected", () => {
-		expect(is_cell_selected([0, 0], [[1, 1]])).toBe("");
+		expect(is_cell_selected([0, 0], [[1, 1]], -1, -1)).toBe("");
 	});
 
 	test("returns 'cell-selected' for isolated cell", () => {
-		expect(is_cell_selected([1, 1], [[1, 1]])).toBe("cell-selected");
+		expect(is_cell_selected([1, 1], [[1, 1]], -1, -1)).toBe("cell-selected");
 	});
 
 	test("adds 'no-top' when neighbor above is selected", () => {
@@ -83,7 +83,9 @@ describe("is_cell_selected", () => {
 			[
 				[0, 0],
 				[1, 0]
-			]
+			],
+			0,
+			-1
 		);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-top");
@@ -95,9 +97,23 @@ describe("is_cell_selected", () => {
 			[
 				[0, 0],
 				[1, 0]
-			]
+			],
+			-1,
+			1
 		);
 		expect(result).toContain("cell-selected");
+		expect(result).toContain("no-bottom");
+	});
+
+	test("merges rows that are adjacent in the view but not in the data", () => {
+		// what a search leaves behind: data rows 0, 2, 4 shown next to each other
+		const selection: CellCoordinate[] = [
+			[0, 0],
+			[2, 0],
+			[4, 0]
+		];
+		const result = is_cell_selected([2, 0], selection, 0, 4);
+		expect(result).toContain("no-top");
 		expect(result).toContain("no-bottom");
 	});
 
@@ -107,7 +123,9 @@ describe("is_cell_selected", () => {
 			[
 				[0, 0],
 				[0, 1]
-			]
+			],
+			-1,
+			-1
 		);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-left");
@@ -119,7 +137,9 @@ describe("is_cell_selected", () => {
 			[
 				[0, 0],
 				[0, 1]
-			]
+			],
+			-1,
+			-1
 		);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-right");
@@ -133,7 +153,7 @@ describe("is_cell_selected", () => {
 			[1, 0],
 			[1, 1]
 		];
-		const result = is_cell_selected([1, 1], selection);
+		const result = is_cell_selected([1, 1], selection, 0, -1);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-top");
 		expect(result).toContain("no-left");

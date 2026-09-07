@@ -357,30 +357,34 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 1, 1)!.className).toContain("cell-selected");
 	});
 
+	// only the even rows match "target", so every row between two visible
+	// endpoints is one the search hides
+	const search_props = {
+		...default_props,
+		value: {
+			data: Array.from({ length: 40 }, (_, i) => [
+				`row ${i}`,
+				i % 2 === 0 ? "target" : `keep-${i}`
+			]),
+			headers: ["Name", "Tag"],
+			metadata: null
+		},
+		col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+		row_count: [40, "fixed"] as [number, "fixed" | "dynamic"],
+		show_search: "search" as const
+	};
+
+	function get_search_input(container: HTMLElement) {
+		return container.querySelector("input.search-input") as HTMLInputElement;
+	}
+
 	// The hidden rows are never rendered, so what Delete touches is the only way
 	// to see whether they were in the range.
 	test("shift+click range skips rows the search is hiding", async () => {
-		const { container } = await render(Dataframe, {
-			...default_props,
-			// only the even rows match the search, so every row between two
-			// visible endpoints is one the search hides
-			value: {
-				data: Array.from({ length: 40 }, (_, i) => [
-					`row ${i}`,
-					i % 2 === 0 ? "target" : `keep-${i}`
-				]),
-				headers: ["Name", "Tag"],
-				metadata: null
-			},
-			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
-			row_count: [40, "fixed"] as [number, "fixed" | "dynamic"],
-			show_search: "search" as const
-		});
+		const { container } = await render(Dataframe, search_props);
 		await wait();
 
-		const search_input = container.querySelector(
-			"input.search-input"
-		) as HTMLInputElement;
+		const search_input = get_search_input(container);
 		await fireEvent.input(search_input, { target: { value: "target" } });
 		await wait(100);
 
@@ -389,6 +393,12 @@ describe("Cell selection", () => {
 		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
 		await wait();
 
+		// rows 0, 2 and 4 sit next to each other on screen, so the selection ring
+		// around them has to merge into one block
+		const middle = get_cell(container, 2, 1)!.className;
+		expect(middle).toContain("no-top");
+		expect(middle).toContain("no-bottom");
+
 		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
 		await wait();
 
@@ -396,11 +406,76 @@ describe("Cell selection", () => {
 		await wait(100);
 
 		for (const row of [0, 2, 4]) {
-			const text = get_cell(container, row, 1)?.textContent?.trim();
-			expect(text === "" || text === "⋮").toBe(true);
+			expect(get_cell(container, row, 1)?.textContent?.trim()).toBe("");
 		}
 		expect(get_cell(container, 1, 1)?.textContent).toContain("keep-1");
 		expect(get_cell(container, 3, 1)?.textContent).toContain("keep-3");
+	});
+
+	test("shift+click falls back to one cell when the anchor is filtered out", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		// row 1 does not match "target", so the search is about to hide it
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		expect(container.querySelectorAll(".cell-selected")).toHaveLength(1);
+		expect(get_cell(container, 4, 1)!.className).toContain("cell-selected");
+	});
+
+	test("shift+click range follows the sorted order, not the data order", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					["A", "1"],
+					["B", "3"],
+					["C", "2"],
+					["D", "4"]
+				],
+				headers: ["Name", "Age"],
+				metadata: null
+			},
+			// the header menu, and so the sort control, only renders for dynamic columns
+			col_count: [2, "dynamic"] as [number, "fixed" | "dynamic"],
+			row_count: [4, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		const age_header = Array.from(get_header_cells(container)).find((h) =>
+			h.textContent?.includes("Age")
+		) as HTMLElement;
+		await fireEvent.click(
+			age_header.querySelector(".cell-menu-button") as HTMLElement
+		);
+		await wait();
+		await fireEvent.click(
+			Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
+				el.textContent?.includes("sort_descending")
+			) as HTMLElement
+		);
+		await wait();
+
+		// screen order is now D(4) B(3) C(2) A(1), so the span from D to B holds
+		// only those two even though data rows 3 and 1 straddle row 2
+		await fireEvent.mouseDown(get_cell(container, 3, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
+		await wait();
+
+		expect(container.querySelectorAll(".cell-selected")).toHaveLength(2);
+		expect(get_cell(container, 3, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 2, 0)!.className).not.toContain("cell-selected");
 	});
 
 	// Regression: pressing Ctrl between mousedown and mouseup must not call

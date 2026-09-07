@@ -526,15 +526,13 @@
 
 		const coord: CellCoordinate = [row, col];
 		if (event.shiftKey && selected) {
-			// the anchor is a data index, so the search can have hidden it since
-			// it was selected
+			// -1 when the search has hidden the row since it was selected
 			const anchor_row = visible_row_position(selected[0]);
 			const target_row = visible_row_position(row);
 			if (anchor_row === -1 || target_row === -1) {
 				selected_cells = [coord];
 			} else {
-				// range select: walk the view, which a search or a sort makes
-				// differ from the data order
+				// range select over the view, which a search or sort reorders
 				const c1 = selected[1];
 				const new_cells: CellCoordinate[] = [];
 				for (
@@ -1337,7 +1335,9 @@
 										cell_style={get_styling(row_idx, col_idx)}
 										selection_classes={is_cell_selected(
 											[row_idx, col_idx],
-											selected_cells
+											selected_cells,
+											rows[virtual_row.index - 1]?.original._index ?? -1,
+											rows[virtual_row.index + 1]?.original._index ?? -1
 										)}
 										is_active={is_active_cell(row_idx, col_idx)}
 										aria_row_index={virtual_row.index + 2}
