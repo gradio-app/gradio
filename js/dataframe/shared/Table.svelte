@@ -819,7 +819,11 @@
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		const cells_to_copy = selected_cells.length > 0 ? selected_cells : null;
+		const visible_selection = selected_cells.filter(
+			([r]) => visible_row_position(r) !== -1
+		);
+		const cells_to_copy =
+			visible_selection.length > 0 ? visible_selection : null;
 		await copy_table_data(data_for_copy, cells_to_copy);
 		copy_flash = true;
 		setTimeout(() => (copy_flash = false), 800);
@@ -1014,7 +1018,10 @@
 					e.preventDefault();
 					const new_values = values.map((value_row) => [...value_row]);
 					selected_cells.forEach(([selected_row, selected_col]) => {
-						if (!is_static_column(selected_col)) {
+						if (
+							!is_static_column(selected_col) &&
+							visible_row_position(selected_row) !== -1
+						) {
 							new_values[selected_row][selected_col] = "";
 						}
 					});

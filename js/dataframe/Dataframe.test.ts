@@ -435,6 +435,58 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 3, 1)?.textContent).toContain("keep-3");
 	});
 
+	// the same data loss with the two steps swapped: the range is built while
+	// everything is on screen, and the search hides part of it afterwards
+	test("Delete leaves rows the search hid after they were selected", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2]) {
+			expect(get_cell(container, row, 1)?.textContent?.trim()).toBe("");
+		}
+		expect(get_cell(container, 1, 1)?.textContent).toContain("keep-1");
+	});
+
+	test("copy leaves out rows the search hid after they were selected", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// rows 0 and 2 are on screen, row 1 holds "keep-1" and is not
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("target\ntarget");
+		});
+	});
+
 	test("shift+click falls back to one cell when the anchor is filtered out", async () => {
 		const { container } = await render(Dataframe, search_props);
 		await wait();
@@ -483,8 +535,12 @@ describe("Cell selection", () => {
 		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
 		await wait();
 
-		// D is the top of the block on screen, so its top edge has to be drawn
+		// D and B are the top and bottom of the block on screen, so the outer
+		// edges are drawn and the two facing each other are suppressed
 		expect(get_cell(container, 3, 0)!.className).not.toContain("no-top");
+		expect(get_cell(container, 3, 0)!.className).toContain("no-bottom");
+		expect(get_cell(container, 1, 0)!.className).toContain("no-top");
+		expect(get_cell(container, 1, 0)!.className).not.toContain("no-bottom");
 
 		expect(container.querySelectorAll(".cell-selected")).toHaveLength(2);
 		expect(get_cell(container, 3, 0)!.className).toContain("cell-selected");
