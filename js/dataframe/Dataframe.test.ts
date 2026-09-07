@@ -515,11 +515,38 @@ describe("Cell selection", () => {
 		});
 	});
 
-	test("copy does nothing when the search hides the whole selection", async () => {
-		const { container } = await render(Dataframe, search_props);
+	test("Delete fires no events when every selected row is hidden", async () => {
+		const { container, listen } = await render(Dataframe, search_props);
 		await wait();
 
-		await navigator.clipboard.writeText("untouched");
+		// build a selection holding only row 1, with the anchor left on row 0 so
+		// `handle_keydown` still runs
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { ctrlKey: true });
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		const change = listen("change");
+		const input = listen("input");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
+	// the toolbar button is the reachable path here: `handle_keydown` bails out
+	// before Ctrl+C whenever the row `selected` points at is off screen
+	test("the copy button does not report success with nothing on screen to copy", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
 
 		// row 1 is the only selected row, and the search is about to hide it
 		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
@@ -529,15 +556,16 @@ describe("Cell selection", () => {
 		});
 		await wait(100);
 
-		await fireEvent.keyDown(get_table_wrap(container), {
-			key: "c",
-			metaKey: true
-		});
-		await wait(100);
+		const copy_button = container.querySelector(
+			'[aria-label="Copy table data"]'
+		) as HTMLElement;
+		expect(copy_button).toBeTruthy();
+		await fireEvent.click(copy_button);
+		await wait(150);
 
-		// an empty visible selection must not read as "no selection", which
-		// would copy the entire table
-		expect(await navigator.clipboard.readText()).toBe("untouched");
+		expect(
+			container.querySelector('[aria-label="Copied to clipboard"]')
+		).toBeNull();
 	});
 
 	test("shift+click falls back to one cell when the anchor is filtered out", async () => {

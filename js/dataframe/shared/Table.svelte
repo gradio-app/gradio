@@ -519,7 +519,8 @@
 	function handle_cell_click(
 		event: MouseEvent,
 		row: number,
-		col: number
+		col: number,
+		view_index: number
 	): void {
 		const col_is_static =
 			!editable ||
@@ -532,20 +533,18 @@
 
 		const coord: CellCoordinate = [row, col];
 		if (event.shiftKey && selected) {
-			// the range runs from the previously selected cell, whose row the
-			// search may have hidden in the meantime; `row` is always on screen,
-			// so its -1 is only here to keep the loop in bounds
+			// the range runs from the previously selected cell, and the search may
+			// have hidden its row since
 			const from_row = visible_row_position(selected[0]);
-			const to_row = visible_row_position(row);
-			if (from_row === -1 || to_row === -1) {
+			if (from_row === -1) {
 				selected_cells = [coord];
 			} else {
 				// range select over the view, which a search or sort reorders
 				const c1 = selected[1];
 				const new_cells: CellCoordinate[] = [];
 				for (
-					let p = Math.min(from_row, to_row);
-					p <= Math.max(from_row, to_row);
+					let p = Math.min(from_row, view_index);
+					p <= Math.max(from_row, view_index);
 					p++
 				) {
 					for (let c = Math.min(c1, col); c <= Math.max(c1, col); c++) {
@@ -821,23 +820,29 @@
 		push_change(filtered_values);
 	}
 
-	async function handle_copy(): Promise<void> {
+	// false when there was nothing on screen to copy, so the toolbar can hold
+	// back its "Copied to clipboard" state
+	async function handle_copy(): Promise<boolean> {
 		const visible = visible_row_set();
-		const visible_selection = selected_cells.filter(([r]) => visible.has(r));
-		// `copy_table_data` reads a null selection as "copy the whole table", so
-		// a selection the view is hiding entirely has to stop here rather than
-		// fall through to that
-		if (selected_cells.length > 0 && visible_selection.length === 0) return;
+		// spell out the cells rather than leaning on `copy_table_data`'s null
+		// case, which walks every row in `values` and so reaches past the view
+		const cells =
+			selected_cells.length > 0
+				? selected_cells.filter(([r]) => visible.has(r))
+				: rows.flatMap((row) =>
+						resolved_headers.map(
+							(_, c) => [row.original._index, c] as CellCoordinate
+						)
+					);
+		if (cells.length === 0) return false;
 
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		await copy_table_data(
-			data_for_copy,
-			visible_selection.length > 0 ? visible_selection : null
-		);
+		await copy_table_data(data_for_copy, cells);
 		copy_flash = true;
 		setTimeout(() => (copy_flash = false), 800);
+		return true;
 	}
 
 	function handle_click_outside(event: Event): void {
@@ -1397,7 +1402,8 @@
 										{components}
 										{is_dragging}
 										wrap_text={wrap}
-										onmousedown={(e) => handle_cell_click(e, row_idx, col_idx)}
+										onmousedown={(e) =>
+											handle_cell_click(e, row_idx, col_idx, virtual_row.index)}
 										ondblclick={(e) =>
 											handle_cell_dblclick(e, row_idx, col_idx)}
 										oncontextmenu={(e) => {
