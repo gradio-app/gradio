@@ -435,6 +435,34 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 3, 1)?.textContent).toContain("keep-3");
 	});
 
+	// the range itself, not just what Delete goes on to touch: clearing the
+	// query renders the skipped rows again, so the selection becomes visible
+	test("shift+click range holds only the rows the search was showing", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2, 4]) {
+			expect(get_cell(container, row, 1)!.className).toContain("cell-selected");
+		}
+		for (const row of [1, 3]) {
+			expect(get_cell(container, row, 1)!.className).not.toContain(
+				"cell-selected"
+			);
+		}
+	});
+
 	// the same data loss with the two steps swapped: the range is built while
 	// everything is on screen, and the search hides part of it afterwards
 	test("Delete leaves rows the search hid after they were selected", async () => {
@@ -485,6 +513,31 @@ describe("Cell selection", () => {
 		await waitFor(async () => {
 			expect(await navigator.clipboard.readText()).toBe("target\ntarget");
 		});
+	});
+
+	test("copy does nothing when the search hides the whole selection", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		await navigator.clipboard.writeText("untouched");
+
+		// row 1 is the only selected row, and the search is about to hide it
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
+		await wait();
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+		await wait(100);
+
+		// an empty visible selection must not read as "no selection", which
+		// would copy the entire table
+		expect(await navigator.clipboard.readText()).toBe("untouched");
 	});
 
 	test("shift+click falls back to one cell when the anchor is filtered out", async () => {

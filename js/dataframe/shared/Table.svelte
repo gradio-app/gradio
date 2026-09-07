@@ -822,14 +822,20 @@
 	}
 
 	async function handle_copy(): Promise<void> {
+		const visible = visible_row_set();
+		const visible_selection = selected_cells.filter(([r]) => visible.has(r));
+		// `copy_table_data` reads a null selection as "copy the whole table", so
+		// a selection the view is hiding entirely has to stop here rather than
+		// fall through to that
+		if (selected_cells.length > 0 && visible_selection.length === 0) return;
+
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		const visible = visible_row_set();
-		const visible_selection = selected_cells.filter(([r]) => visible.has(r));
-		const cells_to_copy =
-			visible_selection.length > 0 ? visible_selection : null;
-		await copy_table_data(data_for_copy, cells_to_copy);
+		await copy_table_data(
+			data_for_copy,
+			visible_selection.length > 0 ? visible_selection : null
+		);
 		copy_flash = true;
 		setTimeout(() => (copy_flash = false), 800);
 	}
@@ -1023,13 +1029,19 @@
 					e.preventDefault();
 					const new_values = values.map((value_row) => [...value_row]);
 					const visible = visible_row_set();
+					let cleared = false;
 					selected_cells.forEach(([selected_row, selected_col]) => {
 						if (!is_static_column(selected_col) && visible.has(selected_row)) {
 							new_values[selected_row][selected_col] = "";
+							cleared = true;
 						}
 					});
-					values = new_values;
-					push_change(new_values);
+					// with every selected row hidden there is nothing to write, and
+					// pushing anyway would fire change and input for an identical table
+					if (cleared) {
+						values = new_values;
+						push_change(new_values);
+					}
 				}
 				break;
 			default:
