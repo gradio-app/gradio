@@ -357,6 +357,52 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 1, 1)!.className).toContain("cell-selected");
 	});
 
+	// The hidden rows are never rendered, so what Delete touches is the only way
+	// to see whether they were in the range.
+	test("shift+click range skips rows the search is hiding", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			// only the even rows match the search, so every row between two
+			// visible endpoints is one the search hides
+			value: {
+				data: Array.from({ length: 40 }, (_, i) => [
+					`row ${i}`,
+					i % 2 === 0 ? "target" : `keep-${i}`
+				]),
+				headers: ["Name", "Tag"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [40, "fixed"] as [number, "fixed" | "dynamic"],
+			show_search: "search" as const
+		});
+		await wait();
+
+		const search_input = container.querySelector(
+			"input.search-input"
+		) as HTMLInputElement;
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2, 4]) {
+			const text = get_cell(container, row, 1)?.textContent?.trim();
+			expect(text === "" || text === "⋮").toBe(true);
+		}
+		expect(get_cell(container, 1, 1)?.textContent).toContain("keep-1");
+		expect(get_cell(container, 3, 1)?.textContent).toContain("keep-3");
+	});
+
 	// Regression: pressing Ctrl between mousedown and mouseup must not call
 	// handle_cell_click a second time via the click event.  If it did, the
 	// Ctrl+click path would toggle the already-selected cell back off,

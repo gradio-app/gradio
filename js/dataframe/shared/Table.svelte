@@ -526,16 +526,28 @@
 
 		const coord: CellCoordinate = [row, col];
 		if (event.shiftKey && selected) {
-			// range select
-			const [r1, c1] = selected;
-			const [r2, c2] = coord;
-			const new_cells: CellCoordinate[] = [];
-			for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) {
-				for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) {
-					new_cells.push([r, c]);
+			// the anchor is a data index, so the search can have hidden it since
+			// it was selected
+			const anchor_row = visible_row_position(selected[0]);
+			const target_row = visible_row_position(row);
+			if (anchor_row === -1 || target_row === -1) {
+				selected_cells = [coord];
+			} else {
+				// range select: walk the view, which a search or a sort makes
+				// differ from the data order
+				const c1 = selected[1];
+				const new_cells: CellCoordinate[] = [];
+				for (
+					let p = Math.min(anchor_row, target_row);
+					p <= Math.max(anchor_row, target_row);
+					p++
+				) {
+					for (let c = Math.min(c1, col); c <= Math.max(c1, col); c++) {
+						new_cells.push([rows[p].original._index, c]);
+					}
 				}
+				selected_cells = new_cells;
 			}
-			selected_cells = new_cells;
 		} else if (event.metaKey || event.ctrlKey) {
 			// toggle select
 			const exists = selected_cells.some(([r, c]) => r === row && c === col);
