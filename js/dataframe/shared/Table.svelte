@@ -295,6 +295,12 @@
 		return rows.findIndex((row) => row.original._index === row_index);
 	}
 
+	// for the whole-selection sweeps, where one findIndex per cell would make
+	// Delete and copy quadratic on a column selection
+	function visible_row_set(): Set<number> {
+		return new Set(rows.map((row) => row.original._index));
+	}
+
 	function is_active_cell(row: number, col: number): boolean {
 		return !!(
 			keyboard_active &&
@@ -819,9 +825,8 @@
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		const visible_selection = selected_cells.filter(
-			([r]) => visible_row_position(r) !== -1
-		);
+		const visible = visible_row_set();
+		const visible_selection = selected_cells.filter(([r]) => visible.has(r));
 		const cells_to_copy =
 			visible_selection.length > 0 ? visible_selection : null;
 		await copy_table_data(data_for_copy, cells_to_copy);
@@ -1017,11 +1022,9 @@
 				if (!editing && editable) {
 					e.preventDefault();
 					const new_values = values.map((value_row) => [...value_row]);
+					const visible = visible_row_set();
 					selected_cells.forEach(([selected_row, selected_col]) => {
-						if (
-							!is_static_column(selected_col) &&
-							visible_row_position(selected_row) !== -1
-						) {
+						if (!is_static_column(selected_col) && visible.has(selected_row)) {
 							new_values[selected_row][selected_col] = "";
 						}
 					});
