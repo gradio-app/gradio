@@ -70,11 +70,13 @@ describe("is_cell_in_selection", () => {
 
 describe("is_cell_selected", () => {
 	test("returns empty string when cell not selected", () => {
-		expect(is_cell_selected([0, 0], [[1, 1]], -1, -1)).toBe("");
+		expect(is_cell_selected([0, 0], [[1, 1]], null, null)).toBe("");
 	});
 
 	test("returns 'cell-selected' for isolated cell", () => {
-		expect(is_cell_selected([1, 1], [[1, 1]], -1, -1)).toBe("cell-selected");
+		expect(is_cell_selected([1, 1], [[1, 1]], null, null)).toBe(
+			"cell-selected"
+		);
 	});
 
 	test("adds 'no-top' when neighbor above is selected", () => {
@@ -85,7 +87,7 @@ describe("is_cell_selected", () => {
 				[1, 0]
 			],
 			0,
-			-1
+			null
 		);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-top");
@@ -98,7 +100,7 @@ describe("is_cell_selected", () => {
 				[0, 0],
 				[1, 0]
 			],
-			-1,
+			null,
 			1
 		);
 		expect(result).toContain("cell-selected");
@@ -117,6 +119,17 @@ describe("is_cell_selected", () => {
 		expect(result).toContain("no-bottom");
 	});
 
+	test("does not merge a selected row the view is not showing next to it", () => {
+		// row 1 is selected but the search has hidden it, so row 2's neighbours on
+		// screen are rows 0 and 4. Comparing row ± 1 instead would merge the top.
+		const selection: CellCoordinate[] = [
+			[1, 0],
+			[2, 0]
+		];
+		const result = is_cell_selected([2, 0], selection, 0, 4);
+		expect(result).toBe("cell-selected");
+	});
+
 	test("adds 'no-left' when neighbor left is selected", () => {
 		const result = is_cell_selected(
 			[0, 1],
@@ -124,8 +137,8 @@ describe("is_cell_selected", () => {
 				[0, 0],
 				[0, 1]
 			],
-			-1,
-			-1
+			null,
+			null
 		);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-left");
@@ -138,8 +151,8 @@ describe("is_cell_selected", () => {
 				[0, 0],
 				[0, 1]
 			],
-			-1,
-			-1
+			null,
+			null
 		);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-right");
@@ -153,7 +166,7 @@ describe("is_cell_selected", () => {
 			[1, 0],
 			[1, 1]
 		];
-		const result = is_cell_selected([1, 1], selection, 0, -1);
+		const result = is_cell_selected([1, 1], selection, 0, null);
 		expect(result).toContain("cell-selected");
 		expect(result).toContain("no-top");
 		expect(result).toContain("no-left");

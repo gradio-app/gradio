@@ -71,6 +71,29 @@ async function wait(ms = 50) {
 	await tick();
 }
 
+async function sort_column(
+	container: HTMLElement,
+	header_text: string,
+	direction: "ascending" | "descending"
+) {
+	const header = Array.from(get_header_cells(container)).find((h) =>
+		h.textContent?.includes(header_text)
+	) as HTMLElement;
+	expect(header).toBeTruthy();
+
+	const menu_btn = header.querySelector(".cell-menu-button") as HTMLElement;
+	expect(menu_btn).toBeTruthy();
+	await fireEvent.click(menu_btn);
+	await wait();
+
+	const sort_btn = Array.from(
+		document.querySelectorAll('[role="menuitem"]')
+	).find((el) => el.textContent?.includes(`sort_${direction}`)) as HTMLElement;
+	expect(sort_btn).toBeTruthy();
+	await fireEvent.click(sort_btn);
+	await wait();
+}
+
 describe("Dataframe rendering", () => {
 	afterEach(() => cleanup());
 
@@ -451,19 +474,7 @@ describe("Cell selection", () => {
 		});
 		await wait();
 
-		const age_header = Array.from(get_header_cells(container)).find((h) =>
-			h.textContent?.includes("Age")
-		) as HTMLElement;
-		await fireEvent.click(
-			age_header.querySelector(".cell-menu-button") as HTMLElement
-		);
-		await wait();
-		await fireEvent.click(
-			Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
-				el.textContent?.includes("sort_descending")
-			) as HTMLElement
-		);
-		await wait();
+		await sort_column(container, "Age", "descending");
 
 		// screen order is now D(4) B(3) C(2) A(1), so the span from D to B holds
 		// only those two even though data rows 3 and 1 straddle row 2
@@ -471,6 +482,9 @@ describe("Cell selection", () => {
 		await wait();
 		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
 		await wait();
+
+		// D is the top of the block on screen, so its top edge has to be drawn
+		expect(get_cell(container, 3, 0)!.className).not.toContain("no-top");
 
 		expect(container.querySelectorAll(".cell-selected")).toHaveLength(2);
 		expect(get_cell(container, 3, 0)!.className).toContain("cell-selected");
@@ -951,28 +965,7 @@ describe("Sorting", () => {
 		});
 		await wait();
 
-		// Click on the "Age" header — find by content containing "Age"
-		const headers = get_header_cells(container);
-		const age_header = Array.from(headers).find((h) =>
-			h.textContent?.includes("Age")
-		) as HTMLElement;
-		expect(age_header).toBeTruthy();
-
-		// Click the menu button on the header
-		const menu_btn = age_header.querySelector(
-			".cell-menu-button"
-		) as HTMLElement;
-		expect(menu_btn).toBeTruthy();
-		await fireEvent.click(menu_btn);
-		await wait();
-
-		// Click "Sort ascending" in the menu
-		const sort_asc_btn = Array.from(
-			document.querySelectorAll('[role="menuitem"]')
-		).find((el) => el.textContent?.includes("sort_ascending")) as HTMLElement;
-		expect(sort_asc_btn).toBeTruthy();
-		await fireEvent.click(sort_asc_btn);
-		await wait();
+		await sort_column(container, "Age", "ascending");
 
 		// After sorting by Age ascending, Bob (25) should be first visible row
 		const first_row = container.querySelector(".virtual-row");

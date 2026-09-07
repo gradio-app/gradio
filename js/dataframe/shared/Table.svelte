@@ -526,18 +526,20 @@
 
 		const coord: CellCoordinate = [row, col];
 		if (event.shiftKey && selected) {
-			// -1 when the search has hidden the row since it was selected
-			const anchor_row = visible_row_position(selected[0]);
-			const target_row = visible_row_position(row);
-			if (anchor_row === -1 || target_row === -1) {
+			// the range runs from the previously selected cell, whose row the
+			// search may have hidden in the meantime; `row` is always on screen,
+			// so its -1 is only here to keep the loop in bounds
+			const from_row = visible_row_position(selected[0]);
+			const to_row = visible_row_position(row);
+			if (from_row === -1 || to_row === -1) {
 				selected_cells = [coord];
 			} else {
 				// range select over the view, which a search or sort reorders
 				const c1 = selected[1];
 				const new_cells: CellCoordinate[] = [];
 				for (
-					let p = Math.min(anchor_row, target_row);
-					p <= Math.max(anchor_row, target_row);
+					let p = Math.min(from_row, to_row);
+					p <= Math.max(from_row, to_row);
 					p++
 				) {
 					for (let c = Math.min(c1, col); c <= Math.max(c1, col); c++) {
@@ -1291,6 +1293,10 @@
 					{#each virtual_items as virtual_row (virtual_row.key)}
 						{@const row = rows[virtual_row.index]}
 						{@const row_idx = row?.original._index ?? virtual_row.index}
+						{@const row_above =
+							rows[virtual_row.index - 1]?.original._index ?? null}
+						{@const row_below =
+							rows[virtual_row.index + 1]?.original._index ?? null}
 						{#if row}
 							<div
 								class="virtual-row"
@@ -1336,8 +1342,8 @@
 										selection_classes={is_cell_selected(
 											[row_idx, col_idx],
 											selected_cells,
-											rows[virtual_row.index - 1]?.original._index ?? -1,
-											rows[virtual_row.index + 1]?.original._index ?? -1
+											row_above,
+											row_below
 										)}
 										is_active={is_active_cell(row_idx, col_idx)}
 										aria_row_index={virtual_row.index + 2}
