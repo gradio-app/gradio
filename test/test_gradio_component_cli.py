@@ -22,6 +22,21 @@ core = [
 ]
 
 
+def test_copy_svelte_to_deps_creates_missing_dependencies():
+    package_json = {
+        "peerDependencies": {"svelte": "^5.0.0"},
+    }
+
+    assert _create_utils.copy_svelte_to_deps(package_json) == {
+        "dependencies": {"svelte": "^5.0.0"},
+        "peerDependencies": {"svelte": "^5.0.0"},
+    }
+
+
+def test_custom_component_templates_exclude_workflow():
+    assert "Workflow" not in core
+
+
 def test_component_root_downloads_missing_version_to_snapshot_cache(
     tmp_path, monkeypatch
 ):

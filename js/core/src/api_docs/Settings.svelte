@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import HistoryStorageControl from "./HistoryStorageControl.svelte";
 	import SettingsBanner from "./SettingsBanner.svelte";
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
 	import { BaseCheckbox as Checkbox } from "@gradio/checkbox";
@@ -7,9 +8,12 @@
 	import { locale, _ } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import {
+		list_bucket_records,
 		on_run_history_change,
 		read_run_history,
-		run_history_url
+		read_run_history_storage,
+		run_history_url,
+		type RunHistoryStorage
 	} from "@gradio/client";
 	import record from "./img/record.svg";
 
@@ -56,8 +60,10 @@
 		current_theme = (theme as "light" | "dark" | "system") || "system";
 		let unsubscribe_run_history = (): void => {};
 		if (run_history_enabled) {
-			refreshRunCount();
-			unsubscribe_run_history = on_run_history_change(refreshRunCount);
+			void refreshRunCount();
+			unsubscribe_run_history = on_run_history_change(() => {
+				void refreshRunCount();
+			});
 		}
 		return () => {
 			unsubscribe_run_history();
@@ -68,9 +74,19 @@
 	let current_locale: string = $state(get(locale) ?? "en");
 	let current_theme: "light" | "dark" | "system" = $state("system");
 	let run_count = $state(0);
+	let history_storage = $state<RunHistoryStorage>({ type: "browser" });
+	let run_count_version = 0;
 
-	function refreshRunCount(): void {
-		run_count = read_run_history(run_history_scope).length;
+	async function refreshRunCount(): Promise<void> {
+		const version = ++run_count_version;
+		history_storage = read_run_history_storage(run_history_scope);
+		if (history_storage.type === "browser") {
+			run_count = read_run_history(run_history_scope).length;
+			return;
+		}
+		const result = await list_bucket_records(root, history_storage.bucket_id);
+		if (version !== run_count_version) return;
+		run_count = result.ok ? result.data.length : 0;
 	}
 
 	function handleLanguageChange(value: string): void {
@@ -184,11 +200,21 @@
 	</button>
 </div>
 {#if run_history_enabled}
-	<div class="banner-wrap">
-		<h2>Run History ({run_count})</h2>
-		<a class="run-history-button" href={run_history_url(root)}>
-			View run history
-		</a>
+	<div class="banner-wrap history-section">
+		<div class="history-heading">
+			<div>
+				<h2>Run history ({run_count})</h2>
+				<p>Choose where new runs are saved and revisit earlier results.</p>
+			</div>
+			<a class="run-history-button" href={run_history_url(root)}>
+				View run history <span aria-hidden="true">→</span>
+			</a>
+		</div>
+		<HistoryStorageControl
+			{root}
+			scope={run_history_scope}
+			bind:storage={history_storage}
+		/>
 	</div>
 {/if}
 
@@ -241,17 +267,40 @@
 	}
 
 	.run-history-button {
-		margin-top: var(--size-3);
-		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
+		gap: var(--size-1);
+		flex: none;
+		background: var(--color-accent-soft);
+		color: var(--color-accent);
 		font-weight: var(--button-large-text-weight);
 		text-decoration: none;
 	}
 
 	.run-history-button:hover,
 	.run-history-button:focus-visible {
-		border-color: var(--button-secondary-border-color-hover);
-		background: var(--button-secondary-background-fill-hover);
+		border-color: var(--color-accent);
+		background: var(--background-fill-primary);
+	}
+
+	.history-section {
+		padding-block: var(--size-6);
+	}
+
+	.history-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--size-4);
+		margin-bottom: var(--size-4);
+	}
+
+	.history-heading h2 {
+		margin: 0;
+	}
+
+	.history-heading p {
+		margin: var(--size-1) 0 0;
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-sm);
 	}
 
 	.record-button img {
@@ -294,5 +343,18 @@
 		margin-left: 5px;
 		font-weight: normal;
 		text-transform: uppercase;
+	}
+
+	@media (max-width: 700px) {
+		.history-heading {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+
+		.run-history-button {
+			box-sizing: border-box;
+			width: 100%;
+			justify-content: center;
+		}
 	}
 </style>

@@ -7,6 +7,8 @@ import {
 	within
 } from "@self/tootils/render";
 import { tick } from "svelte";
+import event from "@testing-library/user-event";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import Dataframe from "./Index.svelte";
 
@@ -36,6 +38,14 @@ const default_props = {
 	fullscreen: false,
 	max_height: 500
 };
+
+run_shared_prop_tests({
+	component: Dataframe,
+	name: "Dataframe",
+	base_props: default_props,
+	has_label: false,
+	has_validation_error: false
+});
 
 function get_cell(container: HTMLElement, row: number, col: number) {
 	return container.querySelector(
@@ -125,7 +135,7 @@ describe("Dataframe rendering", () => {
 	});
 
 	test("renders label when show_label is true", async () => {
-		const { container } = await render(Dataframe, {
+		const { container, getByRole } = await render(Dataframe, {
 			...default_props,
 			label: "Test Table",
 			show_label: true
@@ -133,6 +143,9 @@ describe("Dataframe rendering", () => {
 		await wait();
 
 		expect(container.textContent).toContain("Test Table");
+		const grid = getByRole("grid");
+		expect(grid).toHaveAttribute("aria-label", "Test Table");
+		expect(grid.querySelector(".sr-only")).not.toBeInTheDocument();
 	});
 
 	test("renders row numbers when show_row_numbers is true", async () => {
@@ -144,6 +157,47 @@ describe("Dataframe rendering", () => {
 
 		const row_number_cells = container.querySelectorAll(".row-number-cell");
 		expect(row_number_cells.length).toBeGreaterThan(0);
+		expect(get_table_wrap(container)).toHaveAttribute("aria-colcount", "4");
+		expect(container.querySelector(".row-number-header")).toHaveAttribute(
+			"aria-colindex",
+			"1"
+		);
+		expect(get_header_cells(container)[0]).toHaveAttribute(
+			"aria-colindex",
+			"2"
+		);
+		const row_header = container.querySelector('[role="rowheader"]');
+		expect(row_header).toHaveAttribute("aria-colindex", "1");
+		expect(get_cell(container, 0, 0)).toHaveAttribute("aria-colindex", "2");
+	});
+
+	test("exposes grid rows through presentational layout wrappers", async () => {
+		const { getByRole } = await render(Dataframe, default_props);
+		await wait();
+
+		const grid = getByRole("grid");
+		const upload_container = grid.querySelector<HTMLElement>(
+			":scope > .upload-container"
+		)!;
+		const viewport = upload_container.querySelector<HTMLElement>(
+			":scope > .virtual-table-viewport"
+		)!;
+		const header_table = viewport.querySelector<HTMLElement>(
+			":scope > .header-table"
+		)!;
+		const header_rowgroup = header_table.querySelector(":scope > thead");
+		const virtual_body = viewport.querySelector<HTMLElement>(
+			":scope > .virtual-body"
+		)!;
+
+		expect(upload_container).toHaveAttribute("role", "none");
+		expect(upload_container).not.toHaveAttribute("tabindex");
+		expect(upload_container).not.toHaveAttribute("aria-label");
+		expect(upload_container).not.toHaveAttribute("aria-dropeffect");
+		expect(viewport).toHaveAttribute("role", "none");
+		expect(header_table).toHaveAttribute("role", "none");
+		expect(header_rowgroup).toHaveAttribute("role", "rowgroup");
+		expect(virtual_body).toHaveAttribute("role", "none");
 	});
 
 	test("renders search input when show_search is 'search'", async () => {
@@ -284,22 +338,6 @@ describe("Cell selection", () => {
 		expect(next_cell.className).toContain("cell-selected");
 	});
 
-	test("Tab moves to next cell", async () => {
-		const { container } = await render(Dataframe, default_props);
-		await wait();
-
-		const cell = get_cell(container, 0, 0)!;
-		await fireEvent.mouseDown(cell);
-		await wait();
-
-		const table_wrap = get_table_wrap(container)!;
-		await fireEvent.keyDown(table_wrap, { key: "Tab" });
-		await wait();
-
-		const next_cell = get_cell(container, 0, 1)!;
-		expect(next_cell.className).toContain("cell-selected");
-	});
-
 	test("shift+click selects a range", async () => {
 		const { container } = await render(Dataframe, default_props);
 		await wait();
@@ -343,6 +381,389 @@ describe("Cell selection", () => {
 
 		expect(cell.className).toContain("cell-selected");
 	});
+});
+
+describe("Keyboard accessibility", () => {
+	const external_buttons: HTMLButtonElement[] = [];
+
+	function append_external_button(text: string): HTMLButtonElement {
+		const button = document.createElement("button");
+		button.textContent = text;
+		document.body.appendChild(button);
+		external_buttons.push(button);
+		return button;
+	}
+
+	afterEach(() => {
+		cleanup();
+		external_buttons.forEach((button) => button.remove());
+		external_buttons.length = 0;
+	});
+
+	const navigation_props = {
+		...default_props,
+		buttons: [] as string[]
+	};
+
+	test("Tab bypasses the grid container and enters on a single active cell", async () => {
+		const before = append_external_button("Before dataframe");
+
+		const { getByRole, getByTestId } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+
+		before.focus();
+		await event.tab();
+
+		expect(first_cell).toHaveFocus();
+		expect(first_cell).toHaveAttribute("tabindex", "0");
+		expect(second_cell).toHaveAttribute("tabindex", "-1");
+		const grid = getByRole("grid");
+		expect(grid).toHaveAttribute("tabindex", "-1");
+		expect(grid).not.toHaveFocus();
+		expect(grid).toHaveAttribute("aria-rowcount", "4");
+		expect(grid).toHaveAttribute("aria-colcount", "3");
+	});
+
+	test("Tab and Shift+Tab leave the grid in navigation mode", async () => {
+		const before = append_external_button("Before dataframe");
+
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const after = append_external_button("After dataframe");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.tab();
+		expect(after).toHaveFocus();
+
+		first_cell.focus();
+		await event.tab({ shift: true });
+		expect(before).toHaveFocus();
+	});
+
+	test("arrow keys move DOM focus between cells and headers", async () => {
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+		const second_header = getByTestId("header-1");
+
+		first_cell.focus();
+		await event.keyboard("{ArrowRight}");
+		expect(second_cell).toHaveFocus();
+
+		await event.keyboard("{ArrowUp}");
+		expect(second_header).toHaveFocus();
+
+		await event.keyboard("{ArrowDown}");
+		expect(second_cell).toHaveFocus();
+	});
+
+	test("Space does not change a static boolean column from its header", async () => {
+		const { getByTestId, listen } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [[true], [false], [true]],
+				headers: ["Flag"],
+				metadata: null
+			},
+			datatype: ["bool"] as const,
+			static_columns: [0],
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [3, "fixed"] as [number, "fixed"]
+		});
+		const change = listen("change");
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const header = getByTestId("header-0");
+
+		cell.focus();
+		await event.keyboard("{ArrowUp}");
+		expect(header).toHaveFocus();
+		await event.keyboard(" ");
+
+		expect(change).not.toHaveBeenCalled();
+		expect(header).toHaveFocus();
+	});
+
+	test("static headers named by label never enter edit mode", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			static_columns: ["Name"]
+		});
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const header = getByTestId("header-0");
+
+		cell.focus();
+		await event.keyboard("{ArrowUp}{Enter}");
+		expect(queryByRole("textbox", { name: "Cell is read-only" })).toBeNull();
+		expect(header).toHaveFocus();
+
+		await fireEvent.click(header);
+		await waitFor(() => expect(header).toHaveFocus());
+		expect(queryByRole("textbox", { name: "Cell is read-only" })).toBeNull();
+	});
+
+	test("clicking a read-only header selects and focuses it", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			interactive: false,
+			editable: false
+		});
+		const header = await waitFor(() => getByTestId("header-0"));
+
+		await fireEvent.click(header);
+
+		await waitFor(() => expect(header).toHaveFocus());
+		expect(header).toHaveAttribute("tabindex", "0");
+		expect(queryByRole("textbox")).toBeNull();
+	});
+
+	test("restores a cell tab stop when the selected header is removed", async () => {
+		const result = await render(Dataframe, navigation_props);
+		const last_cell = await waitFor(() => result.getByTestId("cell-0-2"));
+
+		last_cell.focus();
+		await event.keyboard("{ArrowUp}");
+		expect(result.getByTestId("header-2")).toHaveFocus();
+
+		await result.set_data({
+			value: {
+				data: [["Alice"], ["Bob"], ["Carol"]],
+				headers: ["Name"],
+				metadata: null
+			},
+			col_count: [1, "fixed"]
+		});
+
+		const first_cell = await waitFor(() => result.getByTestId("cell-0-0"));
+		expect(first_cell).toHaveAttribute("tabindex", "0");
+		expect(
+			result.getByRole("grid").querySelectorAll('[tabindex="0"]')
+		).toHaveLength(1);
+	});
+
+	test("link key events are handled by the link instead of grid navigation", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [['<a href="#model">Model</a>', "Details"]],
+				headers: ["Model", "Details"],
+				metadata: null
+			},
+			datatype: ["markdown", "str"] as const,
+			col_count: [2, "fixed"] as [number, "fixed"],
+			row_count: [1, "fixed"] as [number, "fixed"]
+		});
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+		const link = await waitFor(() => within(first_cell).getByRole("link"));
+
+		first_cell.focus();
+		await event.tab();
+		expect(link).toHaveFocus();
+
+		await fireEvent.keyDown(link, { key: "Enter" });
+		expect(queryByRole("textbox", { name: "Edit cell" })).toBeNull();
+		expect(link).toHaveFocus();
+
+		await fireEvent.keyDown(link, { key: "ArrowRight" });
+		expect(link).toHaveFocus();
+		expect(second_cell).not.toHaveFocus();
+	});
+
+	test("Home and End move to row and grid boundaries", async () => {
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard("{End}");
+		expect(getByTestId("cell-0-2")).toHaveFocus();
+
+		await event.keyboard("{Control>}{End}{/Control}");
+		expect(getByTestId("cell-2-2")).toHaveFocus();
+
+		await event.keyboard("{Home}");
+		expect(getByTestId("cell-2-0")).toHaveFocus();
+
+		await event.keyboard("{Control>}{Home}{/Control}");
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Enter activates the selected cell, enters editing, and commits back to grid navigation", async () => {
+		const { getByRole, getByTestId, queryByRole, listen } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const select = listen("select");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+
+		const editor = getByRole("textbox", { name: "Edit cell" });
+		await waitFor(() => expect(editor).toHaveFocus());
+		expect(select).toHaveBeenCalledWith({
+			index: [0, 0],
+			value: "Alice",
+			row_value: ["Alice", "30", "Engineer"],
+			col_value: ["Alice", "Bob", "Carol"]
+		});
+
+		await event.keyboard("{Enter}");
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Space activates a cell without entering edit mode", async () => {
+		const { getByTestId, queryByRole, listen } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const select = listen("select");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard(" ");
+
+		expect(select).toHaveBeenCalledTimes(1);
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Space toggles an editable boolean cell", async () => {
+		const { getByTestId } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [[false]],
+				headers: ["Enabled"],
+				metadata: null
+			},
+			datatype: ["bool"] as const,
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [1, "fixed"] as [number, "fixed"]
+		});
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const checkbox = within(cell).getByTestId("checkbox");
+
+		cell.focus();
+		await event.keyboard(" ");
+
+		await waitFor(() => expect(checkbox).toBeChecked());
+		expect(cell).toHaveFocus();
+	});
+
+	test("F2 toggles edit mode and Escape returns to grid navigation", async () => {
+		const { getByRole, getByTestId, queryByRole } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard("{F2}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
+		await event.keyboard("{F2}");
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+
+		await event.keyboard("{F2}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
+
+		await event.keyboard("{Escape}");
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Tab moves between cells while editing and leaves at the grid boundary", async () => {
+		const before = append_external_button("Before dataframe");
+		const { getByRole, getByTestId } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const after = append_external_button("After dataframe");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const last_cell = getByTestId("cell-2-2");
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
+		await event.tab();
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
+		expect(getByTestId("cell-0-1")).toHaveAttribute("tabindex", "0");
+
+		last_cell.focus();
+		await event.keyboard("{Enter}");
+		await event.tab();
+		expect(after).toHaveFocus();
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+		await waitFor(() =>
+			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
+		);
+		await event.tab({ shift: true });
+		expect(before).toHaveFocus();
+	});
+
+	test("arrow navigation follows visible filtered rows while select reports original indices", async () => {
+		const filtered_props = {
+			...navigation_props,
+			value: {
+				data: [["match one"], ["skip"], ["match two"]],
+				headers: ["Value"],
+				metadata: null
+			},
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [3, "fixed"] as [number, "fixed"],
+			show_search: "search" as const
+		};
+		const { getByPlaceholderText, getByTestId, queryByTestId, listen } =
+			await render(Dataframe, filtered_props);
+		const search = getByPlaceholderText("Search...");
+
+		await event.type(search, "match");
+		await waitFor(() => {
+			expect(queryByTestId("cell-1-0")).not.toBeInTheDocument();
+		});
+
+		const first_match = getByTestId("cell-0-0");
+		const second_match = getByTestId("cell-2-0");
+		first_match.focus();
+		await event.keyboard("{ArrowDown}");
+		expect(second_match).toHaveFocus();
+		expect(second_match).toHaveAttribute("aria-rowindex", "3");
+
+		const select = listen("select");
+		await event.keyboard(" ");
+		expect(select).toHaveBeenCalledWith({
+			index: [2, 0],
+			value: "match two",
+			row_value: ["match two"],
+			col_value: ["match one", "skip", "match two"]
+		});
+	});
+
+	test.todo(
+		"VISUAL: keyboard focus shows a visible outline around the active Dataframe cell — needs Playwright visual regression screenshot comparison"
+	);
 });
 
 describe("Header overflow", () => {
@@ -515,20 +936,23 @@ describe("Add/remove rows and columns", () => {
 		row_count: [3, "dynamic"] as [number, "fixed" | "dynamic"]
 	};
 
-	test("add row button appends a new row", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+	test("add row button appends a row and focuses its first cell", async () => {
+		const { container, getByRole, getByTestId } = await render(Dataframe, {
+			...dynamic_props,
+			value: {
+				data: [],
+				headers: default_props.value.headers,
+				metadata: null
+			},
+			row_count: [0, "dynamic"] as [number, "dynamic"]
+		});
 		await wait();
 
-		const initial_rows = get_rows(container).length;
+		await fireEvent.click(getByRole("button", { name: "Add row" }));
 
-		// The empty row button should be present for dynamic row_count
-		const add_btn = container.querySelector(".empty-row-button") as HTMLElement;
-		if (add_btn) {
-			await fireEvent.click(add_btn);
-			await wait();
-
-			expect(get_rows(container).length).toBe(initial_rows + 1);
-		}
+		const added_cell = await waitFor(() => getByTestId("cell-0-0"));
+		expect(get_rows(container)).toHaveLength(1);
+		expect(added_cell).toHaveFocus();
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
@@ -539,7 +963,7 @@ describe("Add/remove rows and columns", () => {
 	test.todo("add row below via cell menu");
 
 	test("delete row via cell menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const cell = get_cell(container, 1, 0)!;
@@ -559,10 +983,11 @@ describe("Add/remove rows and columns", () => {
 		await wait();
 
 		expect(get_rows(container).length).toBe(2);
+		await waitFor(() => expect(getByTestId("cell-1-0")).toHaveFocus());
 	});
 
 	test("add column via header menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const initial_headers = get_header_cells(container).length;
@@ -571,24 +996,24 @@ describe("Add/remove rows and columns", () => {
 		const headers = get_header_cells(container);
 		const header = headers[0] as HTMLElement;
 		const menu_btn = header.querySelector(".cell-menu-button") as HTMLElement;
-		if (menu_btn) {
-			await fireEvent.click(menu_btn);
-			await wait();
+		expect(menu_btn).toBeTruthy();
+		await fireEvent.click(menu_btn);
+		await wait();
 
-			const add_col_btn = document.querySelector(
-				'[aria-label="Add column to the right"]'
-			) as HTMLElement;
-			if (add_col_btn) {
-				await fireEvent.click(add_col_btn);
-				await wait();
+		const add_col_btn = document.querySelector(
+			'[aria-label="Add column to the right"]'
+		) as HTMLElement;
+		expect(add_col_btn).toBeTruthy();
+		await fireEvent.click(add_col_btn);
 
-				expect(get_header_cells(container).length).toBe(initial_headers + 1);
-			}
-		}
+		await waitFor(() =>
+			expect(get_header_cells(container)).toHaveLength(initial_headers + 1)
+		);
+		expect(getByTestId("header-1")).toHaveFocus();
 	});
 
 	test("delete column via header menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const initial_headers = get_header_cells(container).length;
@@ -608,6 +1033,7 @@ describe("Add/remove rows and columns", () => {
 				await wait();
 
 				expect(get_header_cells(container).length).toBe(initial_headers - 1);
+				await waitFor(() => expect(getByTestId("cell-0-0")).toHaveFocus());
 			}
 		}
 	});

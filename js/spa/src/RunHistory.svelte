@@ -1,23 +1,45 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import {
+		asset_url,
 		clear_run_history,
 		delete_run_history,
+		list_bucket_records,
 		on_run_history_change,
 		read_run_history,
+		read_run_history_storage,
 		stage_run_history_replay,
+		type HistoryRecord,
 		type RunHistoryScope,
+		type RunHistoryStorage,
 		type StoredRun,
 		type StoredRunComponent
 	} from "@gradio/client";
+	import HistoryStorageControl from "@gradio/core/history_storage_control";
 	import PageFooter from "@gradio/core/page_footer";
 	import { _ } from "svelte-i18n";
 	import RunValue from "./RunValue.svelte";
 	import { summarize } from "./run_value";
 
+	interface HistoryConfig extends RunHistoryScope {
+		title?: string;
+		components: {
+			id: number;
+			type: string;
+			component_class_id: string;
+			props: Record<string, unknown>;
+		}[];
+		dependencies: {
+			id: number;
+			api_name?: string | null;
+			inputs: number[];
+			outputs: number[];
+		}[];
+	}
+
 	interface Props {
 		root: string;
-		scope: RunHistoryScope;
+		scope: HistoryConfig;
 		footer_links?: (string | Record<string, string>)[];
 	}
 
@@ -25,6 +47,21 @@
 
 	let app_url = $derived(new URL(root, window.location.href).href);
 	let runs: StoredRun[] = $state([]);
+	let storage = $state<RunHistoryStorage>({ type: "browser" });
+	let loading = $state(false);
+	let error: string | null = $state(null);
+	let refresh_version = 0;
+
+	const bucket_id = $derived(storage.bucket_id ?? "");
+	const using_bucket = $derived(storage.type === "bucket");
+	const oauth_available = $derived(
+		scope.components.some((component) => component.type === "loginbutton")
+	);
+	const running_locally = $derived(
+		["localhost", "127.0.0.1", "::1", "[::1]"].includes(
+			window.location.hostname
+		)
+	);
 
 	let groups = $derived.by(() => {
 		const grouped = new Map<string, StoredRun[]>();
@@ -36,18 +73,131 @@
 		return Array.from(grouped.entries());
 	});
 
-	function refresh(): void {
-		runs = read_run_history(scope);
+	function endpoint_key(
+		api_name: string | null | undefined,
+		id: number
+	): string {
+		if (!api_name) return `fn-${id}`;
+		const slug = api_name
+			.replace(/^\//, "")
+			.replace(/[^A-Za-z0-9_.-]+/g, "-")
+			.replace(/^[-.]+|[-.]+$/g, "")
+			.slice(0, 80)
+			.replace(/^[-.]+|[-.]+$/g, "");
+		return slug || "endpoint";
+	}
+
+	function dependency_for(endpoint: string) {
+		return scope.dependencies.find(
+			(dependency) =>
+				endpoint_key(dependency.api_name, dependency.id) === endpoint
+		);
+	}
+
+	function component_metadata(id: number): StoredRunComponent | null {
+		const component = scope.components.find((item) => item.id === id);
+		return component
+			? {
+					type: component.type,
+					component_class_id: component.component_class_id,
+					props: component.props
+				}
+			: null;
+	}
+
+	function restore_assets(value: unknown, record: HistoryRecord): unknown {
+		if (Array.isArray(value)) {
+			return value.map((item) => restore_assets(item, record));
+		}
+		if (!value || typeof value !== "object") return value;
+		const marker = (value as { __asset__?: unknown }).__asset__;
+		if (typeof marker === "string") {
+			const url = asset_url(
+				root,
+				bucket_id,
+				record.endpoint,
+				record.record_id,
+				marker
+			);
+			return {
+				path: url,
+				url,
+				orig_name: marker,
+				meta: { _type: "gradio.FileData" }
+			};
+		}
+		return Object.fromEntries(
+			Object.entries(value).map(([key, item]) => [
+				key,
+				restore_assets(item, record)
+			])
+		);
+	}
+
+	function bucket_run(record: HistoryRecord): StoredRun {
+		const dependency = dependency_for(record.endpoint);
+		return {
+			id: record.record_id,
+			endpoint: dependency?.id ?? record.endpoint,
+			api_name: dependency?.api_name
+				? `/${dependency.api_name.replace(/^\//, "")}`
+				: `/${record.endpoint}`,
+			fn_index: dependency?.id ?? -1,
+			page: new URL(root, window.location.href).pathname,
+			inputs: restore_assets(record.inputs, record),
+			outputs: restore_assets(record.outputs, record),
+			input_components: dependency?.inputs.map(component_metadata),
+			output_components: dependency?.outputs.map(component_metadata),
+			status: "completed",
+			started_at: record.started_at
+		};
+	}
+
+	function authentication_error(): string {
+		if (running_locally) {
+			return "Log in locally with `hf auth login`, then try again.";
+		}
+		if (oauth_available) {
+			return "Sign in with Hugging Face to connect a bucket.";
+		}
+		return "This app must enable Hugging Face OAuth before visitors can connect buckets.";
+	}
+
+	async function refresh(): Promise<void> {
+		const version = ++refresh_version;
+		error = null;
+		if (storage.type === "browser") {
+			loading = false;
+			runs = read_run_history(scope);
+			return;
+		}
+		loading = true;
+		const result = await list_bucket_records(root, storage.bucket_id);
+		if (version !== refresh_version) return;
+		loading = false;
+		if (!result.ok) {
+			runs = [];
+			error =
+				result.status === 401
+					? authentication_error()
+					: (result.detail ?? "Could not load bucket history.");
+			return;
+		}
+		runs = result.data.map(bucket_run);
 	}
 
 	onMount(() => {
+		storage = read_run_history_storage(scope);
 		// Embedded on Spaces this page loads inside an iframe the parent has
 		// already scrolled past, so it opens mid-list unless we ask for the top.
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.scrollTo(0, 0);
 		}
-		refresh();
-		return on_run_history_change(refresh);
+		void refresh();
+		return on_run_history_change(() => {
+			storage = read_run_history_storage(scope);
+			void refresh();
+		});
 	});
 
 	function values(value: unknown): unknown[] {
@@ -139,6 +289,7 @@
 	}
 
 	function load(run: StoredRun): void {
+		if (run.fn_index < 0) return;
 		stage_run_history_replay(scope, run);
 		const app_url = new URL(root, window.location.href);
 		let target = new URL(run.page || app_url.pathname, app_url);
@@ -149,13 +300,13 @@
 	function clear_all(): void {
 		if (!window.confirm("Clear all saved runs for this app?")) return;
 		clear_run_history(scope);
-		refresh();
+		void refresh();
 	}
 
 	function delete_run(run: StoredRun): void {
 		if (!window.confirm("Delete this saved run?")) return;
 		delete_run_history(scope, run.id);
-		refresh();
+		void refresh();
 	}
 </script>
 
@@ -163,25 +314,42 @@
 
 <main class="history-page" data-testid="run-history">
 	<header class="page-header">
-		<div class="title-line">
+		<div class="title-block">
 			<h1>Run history ({runs.length})</h1>
-			<div class="storage-copy">
-				<span>saved in</span>
-				<span
-					><code class="storage-code">Local Storage</code>, privately in this
-					browser.</span
-				>
-			</div>
+			<HistoryStorageControl {root} {scope} bind:storage />
 		</div>
-		{#if runs.length}
+		{#if using_bucket}
+			<a
+				class="view-bucket"
+				href="https://huggingface.co/buckets/{bucket_id}"
+				target="_blank"
+				rel="noopener noreferrer">View bucket ↗</a
+			>
+		{:else if runs.length}
 			<button class="clear" onclick={clear_all}>Clear history</button>
 		{/if}
 	</header>
 
-	{#if groups.length === 0}
+	{#if loading}
+		<section class="empty loading-state">
+			<div class="spinner" aria-hidden="true"></div>
+			<h2>Loading history</h2>
+			<p>Fetching runs from {bucket_id}…</p>
+		</section>
+	{:else if error}
+		<section class="empty error-state">
+			<h2>History unavailable</h2>
+			<p>{error}</p>
+			<button class="retry" onclick={() => refresh()}>Try again</button>
+		</section>
+	{:else if groups.length === 0}
 		<section class="empty">
 			<h2>No runs yet</h2>
-			<p>Use the app, then return here to load previous runs.</p>
+			<p>
+				{using_bucket
+					? `New runs will be saved to ${bucket_id}.`
+					: "Use the app, then return here to load previous runs."}
+			</p>
 		</section>
 	{:else}
 		{#each groups as [api_name, endpoint_runs]}
@@ -285,12 +453,20 @@
 								>{format_time(run.started_at)}</time
 							>
 							<div class="actions">
-								<button class="load" onclick={() => load(run)}
+								<button
+									class="load"
+									disabled={run.fn_index < 0}
+									title={run.fn_index < 0
+										? "This endpoint is not available in the current app version"
+										: "Load this run into the app"}
+									onclick={() => load(run)}
 									><span class="play" aria-hidden="true">▶</span> Load run</button
 								>
-								<button class="delete" onclick={() => delete_run(run)}
-									>Delete</button
-								>
+								{#if !using_bucket}
+									<button class="delete" onclick={() => delete_run(run)}
+										>Delete</button
+									>
+								{/if}
 							</div>
 						</footer>
 					</article>
@@ -305,9 +481,9 @@
 <style>
 	.history-page {
 		box-sizing: border-box;
-		width: min(100%, 1080px);
+		width: min(100%, 1120px);
 		margin: 0 auto;
-		padding: 40px 24px 80px;
+		padding: 44px 24px 80px;
 		color: var(--body-text-color);
 	}
 	.page-header,
@@ -318,8 +494,8 @@
 	}
 	.page-header {
 		justify-content: space-between;
-		gap: 16px;
-		padding-bottom: 24px;
+		gap: 24px;
+		padding: 0 2px 26px;
 		border-bottom: 1px solid var(--border-color-primary, #e4e4e7);
 	}
 	h1 {
@@ -328,34 +504,20 @@
 		font-weight: var(--weight-semibold, 600);
 		line-height: 1.2;
 	}
-	.title-line {
+	.title-block {
 		display: flex;
-		align-items: baseline;
-		gap: 14px;
-		white-space: nowrap;
+		min-width: 0;
+		flex-direction: column;
+		gap: 10px;
 	}
-	.storage-copy,
 	.empty p {
 		margin: 0;
 		color: var(--body-text-color-subdued, #71717a);
 	}
-	.storage-copy {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 5px;
-	}
-	.storage-code {
-		padding: 2px 6px;
-		border-radius: var(--radius-sm, 4px);
-		background: var(--code-background-fill, #f4f4f5);
-		color: var(--body-text-color, #27272a);
-		font-family: var(--font-mono, monospace);
-		font-size: 0.9em;
-		font-weight: 600;
-	}
 	.clear,
-	.delete {
+	.delete,
+	.retry,
+	.view-bucket {
 		border: var(--button-border-width, 1px) solid
 			var(--button-secondary-border-color, #d4d4d8);
 		border-radius: var(--button-medium-radius, 8px);
@@ -369,8 +531,11 @@
 		cursor: pointer;
 		box-shadow: var(--button-secondary-shadow, 0 1px 2px rgb(0 0 0 / 8%));
 		transition: var(--button-transition, 0.1s ease);
+		text-decoration: none;
 	}
-	.clear {
+	.clear,
+	.view-bucket,
+	.retry {
 		padding: 8px 12px;
 	}
 	.load {
@@ -406,6 +571,10 @@
 	}
 	.load:hover {
 		border-color: var(--color-accent, #ea580c);
+	}
+	.load:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
 	}
 	.group {
 		/* Not `overflow: hidden`, so an error bubble is never clipped. The
@@ -614,6 +783,32 @@
 	.empty h2 {
 		margin: 0;
 	}
+	.loading-state,
+	.error-state {
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		gap: 10px;
+	}
+	.spinner {
+		width: 20px;
+		height: 20px;
+		border: 2px solid var(--border-color-primary, #e4e4e7);
+		border-top-color: var(--color-accent, #f97316);
+		border-radius: 50%;
+		animation: spin 700ms linear infinite;
+	}
+	.retry:hover,
+	.view-bucket:hover {
+		border-color: var(--button-secondary-border-color-hover, #a1a1aa);
+		background: var(--button-secondary-background-fill-hover, #f4f4f5);
+		color: var(--button-secondary-text-color-hover, #18181b);
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
 	:global(.dark) .completed {
 		color: #4ade80;
 	}
@@ -625,16 +820,16 @@
 	}
 	@media (max-width: 700px) {
 		.history-page {
-			padding-inline: 16px;
+			padding: 28px 16px 60px;
 		}
-		.page-header,
-		.title-line {
+		.page-header {
 			align-items: flex-start;
 			flex-direction: column;
 		}
-		.title-line {
-			gap: 6px;
-			white-space: normal;
+		.clear,
+		.view-bucket {
+			align-self: stretch;
+			text-align: center;
 		}
 		.table-header {
 			display: none;
@@ -657,6 +852,11 @@
 		/* The row wraps here, so the separator would dangle at a line end. */
 		.separator {
 			display: none;
+		}
+		.actions {
+			width: 100%;
+			margin-left: 0;
+			justify-content: flex-end;
 		}
 	}
 </style>
