@@ -967,28 +967,45 @@ describe("Add/remove rows and columns", () => {
 		});
 		await wait();
 
-		const wrap_height = () =>
-			(
-				document.querySelector(".table-wrap") as HTMLElement
-			).getBoundingClientRect().height;
 		const toggle = () =>
 			document.querySelector(
 				'button[aria-label="Fullscreen"], button[aria-label="Exit fullscreen mode"]'
 			) as HTMLElement;
 
-		const normal_height = wrap_height();
+		function expect_button_under_header(): void {
+			const button = document.querySelector(
+				".table-container .add-row-button"
+			) as HTMLElement | null;
+			expect(button).not.toBeNull();
+			const box = button!.getBoundingClientRect();
+			const header = (
+				document.querySelector("thead") as HTMLElement
+			).getBoundingClientRect();
+			expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);
+			expect(box.top - header.bottom).toBeLessThan(50);
+		}
+
+		expect_button_under_header();
+
+		// Block animates into fullscreen over 0.1s and the container reaches its
+		// final size a frame before the layout inside it does, so there is no DOM
+		// state to wait on that is not still mid-settle. Measuring early reads the
+		// pre-fullscreen geometry and passes against any layout.
+		await fireEvent.click(toggle());
+		await waitFor(() =>
+			expect(
+				document.querySelector(".table-container.fullscreen")
+			).not.toBeNull()
+		);
+		await wait(300);
+		expect_button_under_header();
 
 		await fireEvent.click(toggle());
-		await wait(200);
-		expect(
-			document.querySelector(".table-container .add-row-button")
-		).not.toBeNull();
-		// stretching the empty body is what carries the button off screen
-		expect(Math.abs(wrap_height() - normal_height)).toBeLessThan(20);
-
-		await fireEvent.click(toggle());
-		await wait(200);
-		expect(Math.abs(wrap_height() - normal_height)).toBeLessThan(20);
+		await waitFor(() =>
+			expect(document.querySelector(".table-container.fullscreen")).toBeNull()
+		);
+		await wait(300);
+		expect_button_under_header();
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
