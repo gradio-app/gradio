@@ -562,13 +562,45 @@ describe("Cell selection", () => {
 		) as HTMLElement;
 		await fireEvent.click(copy_button);
 
-		// enumerating the columns from the header count instead of the row's own
-		// length walks off the end of the short row, and `copy_table_data`
-		// dereferences that without a guard, so the button never reacts
+		// a ragged table is what broke this branch's cell enumeration; the guard
+		// in `copy_table_data` is what now keeps a missing cell from throwing
 		await waitFor(() => {
 			expect(
 				container.querySelector('[aria-label="Copied to clipboard"]')
 			).not.toBeNull();
+		});
+	});
+
+	// the selection branch cannot bound anything by the row: `on_select_row` and
+	// a plain click both hand out coordinates taken from the header count, since
+	// every row renders a cell per header
+	test("Ctrl+C copies a selection that runs past the end of a short row", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [["a", "b"], ["c"]],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// cell [1, 1] has no value behind it, so it copies as empty rather than
+		// throwing inside `copy_table_data`
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("c,");
 		});
 	});
 

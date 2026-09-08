@@ -22,7 +22,13 @@ export async function copy_table_data(
 	const csv = cells_to_copy.reduce(
 		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
 			acc[row] = acc[row] || {};
-			const value = String(data[row][col].value);
+			// only the headers are padded out to the column count on the way in,
+			// so a row can be shorter than the header row and a selection can
+			// hold a cell that is not in the data at all. a cell that is there
+			// keeps going through `String`, `null` included, so this covers the
+			// missing one and nothing else
+			const cell = data[row]?.[col];
+			const value = cell ? String(cell.value) : "";
 			acc[row][col] =
 				value.includes(",") || value.includes('"') || value.includes("\n")
 					? `"${value.replace(/"/g, '""')}"`
