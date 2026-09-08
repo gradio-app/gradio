@@ -36,13 +36,14 @@ test("Column selection removes columns to the dataframe.", async ({ page }) => {
 });
 
 test("Model Types Checkbox filters models from the table", async ({ page }) => {
-	await expect(
-		page.getByRole("button", { name: "Qwen/Qwen-72B", exact: true }).first()
-	).not.toBeInViewport();
+	const qwen_cell = page
+		.getByRole("gridcell")
+		.filter({ hasText: "Qwen/Qwen-72B" })
+		.first();
+
+	await expect(qwen_cell).not.toBeInViewport();
 	await page.getByLabel("🔶").uncheck();
 	await page.getByLabel("💬").uncheck();
 	await page.getByLabel("🤝").uncheck();
-	await expect(
-		page.getByRole("button", { name: "Qwen/Qwen-72B", exact: true }).first()
-	).toBeInViewport();
+	await expect(qwen_cell).toBeInViewport();
 });
