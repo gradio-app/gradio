@@ -205,12 +205,52 @@ describe("Single-select: Options display", () => {
 			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
 			expect(getByText("8 choices shown, 97 remaining")).toBeInTheDocument();
 		});
+		for (const [index, option] of getAllByTestId("dropdown-option").entries()) {
+			expect(option).toHaveAttribute("aria-setsize", "105");
+			expect(option).toHaveAttribute("aria-posinset", String(index + 1));
+		}
 
 		listbox.scrollTop = listbox.scrollHeight;
 		await fireEvent.scroll(listbox);
 		await waitFor(() => {
 			expect(getAllByTestId("dropdown-option")).toHaveLength(12);
 		});
+	});
+
+	test("loading a batch keeps the scroll position when a value is selected", async () => {
+		const { getByLabelText, getAllByTestId, getByRole } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: "choice-2",
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const listbox = getByRole("listbox");
+		listbox.scrollTop = listbox.scrollHeight;
+		const parked = listbox.scrollTop;
+		await fireEvent.scroll(listbox);
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+		});
+		expect(listbox.scrollTop).toBe(parked);
+	});
+
+	test("an untruncated list does not announce progressive loading", async () => {
+		const { getByLabelText, queryByText } = await render(Dropdown, {
+			...single_select_props
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		expect(queryByText("3 choices shown, 0 remaining")).not.toBeInTheDocument();
 	});
 
 	test("keyboard navigation loads and selects from the next batch", async () => {

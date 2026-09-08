@@ -13,6 +13,7 @@
 		listbox_id = undefined,
 		num_choices_shown = null,
 		remaining_choices = 0,
+		total_matching_choices = filtered_indices.length,
 		onchange,
 		onload_more,
 		onload
@@ -29,6 +30,7 @@
 		listbox_id?: string;
 		num_choices_shown?: number | null;
 		remaining_choices?: number;
+		total_matching_choices?: number;
 		onchange?: (index: any) => void;
 		onload_more?: () => void;
 		onload?: () => void;
@@ -48,6 +50,7 @@
 	let list_scroll_y = 0;
 	let loading_more = false;
 	let previous_filtered_count = filtered_indices.length;
+	let was_open = false;
 
 	function calculate_window_distance(): void {
 		const { top: ref_top, bottom: ref_bottom } =
@@ -91,6 +94,8 @@
 	}
 
 	$effect(() => {
+		const just_opened = show_options && !was_open;
+		was_open = show_options;
 		if (filtered_indices.length !== previous_filtered_count) {
 			loading_more = false;
 			previous_filtered_count = filtered_indices.length;
@@ -99,7 +104,7 @@
 			if (remember_scroll) {
 				restore_last_scroll();
 			} else {
-				if (listElement && selected_indices.length > 0) {
+				if (just_opened && listElement && selected_indices.length > 0) {
 					let elements = listElement.querySelectorAll("li");
 					for (const element of Array.from(elements)) {
 						if (
@@ -174,7 +179,7 @@
 			id={listbox_id}
 			role="listbox"
 		>
-			{#each filtered_indices as index}
+			{#each filtered_indices as index, i}
 				<li
 					class="item"
 					class:selected={selected_indices.includes(index)}
@@ -188,6 +193,8 @@
 					data-testid="dropdown-option"
 					role="option"
 					aria-selected={selected_indices.includes(index)}
+					aria-setsize={total_matching_choices}
+					aria-posinset={i + 1}
 				>
 					<span
 						class:hide={!selected_indices.includes(index)}
@@ -202,9 +209,11 @@
 				<li class="scroll-sentinel" role="presentation" aria-hidden="true"></li>
 			{/if}
 		</ul>
-		<span class="sr-only" aria-live="polite">
-			{filtered_indices.length} choices shown, {remaining_choices} remaining
-		</span>
+		{#if remaining_choices > 0}
+			<span class="sr-only" aria-live="polite">
+				{filtered_indices.length} choices shown, {remaining_choices} remaining
+			</span>
+		{/if}
 	</div>
 {/if}
 

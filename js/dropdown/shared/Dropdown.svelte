@@ -326,6 +326,7 @@
 			{listbox_id}
 			{num_choices_shown}
 			{remaining_choices}
+			{total_matching_choices}
 			onchange={handle_option_selected}
 			onload_more={handle_load_more}
 			onload={() => (initialized = true)}

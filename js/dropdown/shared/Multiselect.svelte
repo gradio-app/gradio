@@ -372,6 +372,7 @@
 			{listbox_id}
 			num_choices_shown={gradio.props.num_choices_shown}
 			{remaining_choices}
+			{total_matching_choices}
 			remember_scroll={true}
 			onchange={handle_option_selected}
 			onload_more={handle_load_more}
