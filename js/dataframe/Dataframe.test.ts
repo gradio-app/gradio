@@ -547,6 +547,36 @@ describe("Cell selection", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
+	// the visible half of the same rule: Delete on cells that are already blank
+	// has nothing to write either
+	test("Delete fires no events when the selected cells are already empty", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					["", "b"],
+					["c", "d"]
+				],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+
+		const change = listen("change");
+		const input = listen("input");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
 	// `postprocess` pads the headers out to the column count but leaves the rows
 	// as they came, so a row can be shorter than the header row
 	test("the copy button copies a ragged table with nothing selected", async () => {

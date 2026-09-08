@@ -1044,13 +1044,18 @@
 					const visible = visible_row_set();
 					let cleared = false;
 					selected_cells.forEach(([selected_row, selected_col]) => {
-						if (!is_static_column(selected_col) && visible.has(selected_row)) {
+						if (
+							!is_static_column(selected_col) &&
+							visible.has(selected_row) &&
+							new_values[selected_row][selected_col] !== ""
+						) {
 							new_values[selected_row][selected_col] = "";
 							cleared = true;
 						}
 					});
-					// with every selected row hidden there is nothing to write, and
-					// pushing anyway would fire change and input for an identical table
+					// nothing to write when every selected row is hidden, or when the
+					// cells on screen are already blank; pushing anyway would fire
+					// change and input for an identical table
 					if (cleared) {
 						values = new_values;
 						push_change(new_values);
