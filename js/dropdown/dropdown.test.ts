@@ -254,18 +254,17 @@ describe("Single-select: Options display", () => {
 	});
 
 	test("keyboard navigation loads and selects from the next batch", async () => {
-		const { getByLabelText, getAllByTestId, get_data } = await render(
-			Dropdown,
-			{
+		const { getByLabelText, getAllByTestId, getByRole, get_data } =
+			await render(Dropdown, {
 				...single_select_props,
 				value: null,
 				choices: many_choices,
 				num_choices_shown: 4
-			}
-		);
+			});
 
 		const input = getByLabelText("Dropdown") as HTMLInputElement;
 		await input.focus();
+		const listbox = getByRole("listbox");
 		for (let index = 0; index < 5; index++) {
 			await event.keyboard("{ArrowDown}");
 		}
@@ -276,6 +275,7 @@ describe("Single-select: Options display", () => {
 				"aria-activedescendant",
 				expect.stringContaining("-option-4")
 			);
+			expect(listbox.scrollTop).toBeGreaterThan(0);
 		});
 
 		await event.keyboard("{Enter}");

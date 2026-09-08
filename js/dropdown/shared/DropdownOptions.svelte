@@ -50,6 +50,7 @@
 	let list_scroll_y = 0;
 	let loading_more = false;
 	let previous_filtered_count = filtered_indices.length;
+	let previous_active_index = active_index;
 	let was_open = false;
 
 	function calculate_window_distance(): void {
@@ -95,7 +96,9 @@
 
 	$effect(() => {
 		const just_opened = show_options && !was_open;
+		const active_index_changed = active_index !== previous_active_index;
 		was_open = show_options;
+		previous_active_index = active_index;
 		if (filtered_indices.length !== previous_filtered_count) {
 			loading_more = false;
 			previous_filtered_count = filtered_indices.length;
@@ -151,6 +154,17 @@
 					: null;
 		} else {
 			choices_viewport_height = null;
+		}
+		if (
+			show_options &&
+			!just_opened &&
+			active_index_changed &&
+			active_index !== null &&
+			listElement
+		) {
+			listElement
+				.querySelector<HTMLLIElement>(`li.item[data-index="${active_index}"]`)
+				?.scrollIntoView({ block: "nearest" });
 		}
 	});
 </script>
