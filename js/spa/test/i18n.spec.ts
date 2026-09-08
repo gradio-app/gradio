@@ -64,6 +64,26 @@ test("changing language via settings updates UI and persists selection", async (
 	await expect(languageInputGerman).toHaveValue("Deutsch");
 });
 
+test("settings exposes the run history storage controls", async ({ page }) => {
+	await page.locator("footer").getByText("Settings").click();
+	const settings = page.getByRole("dialog", { name: "Settings" });
+
+	await expect(
+		settings.getByRole("heading", { name: /Run history/ })
+	).toBeVisible();
+	await expect(
+		settings.getByRole("link", { name: "View run history" })
+	).toHaveAttribute("href", /\/gradio_api\/runs$/);
+
+	await settings.getByRole("button", { name: /This browser/ }).click();
+	await expect(
+		settings.getByRole("menuitemradio", { name: /This browser/ })
+	).toBeChecked();
+	await expect(
+		settings.getByRole("button", { name: "Connect a bucket" })
+	).toBeVisible();
+});
+
 test("choice display names re-translate when the language is switched at runtime", async ({
 	page
 }) => {

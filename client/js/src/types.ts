@@ -354,11 +354,11 @@ export interface ClientOptions {
 	 */
 	oauth_token?: string;
 	/**
-	 * Whether to save each call's inputs and outputs in this browser's local
-	 * storage, so they can be reviewed on the app's run history page. Defaults
-	 * to true, and only ever applies in a browser: in Node there is no storage
-	 * to write to and nothing is recorded. The app can turn it off for everyone
-	 * with `run_history=False` on `launch()`, which takes precedence over this.
+	 * Whether to save each call's inputs and outputs to the history destination
+	 * selected in this browser (local storage by default, or a connected bucket).
+	 * Defaults to true, and only ever applies in a browser: in Node there is no
+	 * selected destination and nothing is recorded. The app can turn it off for
+	 * everyone with `run_history=False` on `launch()`, which takes precedence.
 	 */
 	record_history?: boolean;
 }
