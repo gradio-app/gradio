@@ -48,7 +48,6 @@
 	}
 
 	async function handle_copy(): Promise<void> {
-		// only report success when something actually reached the clipboard
 		if (await on_copy()) copy_feedback();
 	}
 

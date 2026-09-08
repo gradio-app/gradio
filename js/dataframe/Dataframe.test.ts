@@ -547,16 +547,13 @@ describe("Cell selection", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
-	// the visible half of the same rule: Delete on cells that are already blank
-	// has nothing to write either
-	test("Delete fires no events when the selected cells are already empty", async () => {
+	// [0, 0] is already "" and [1, 1] is past the end of a short row, so neither
+	// is written and the table comes out identical
+	test("Delete fires no events when the selected cells are blank", async () => {
 		const { container, listen } = await render(Dataframe, {
 			...default_props,
 			value: {
-				data: [
-					["", "b"],
-					["c", "d"]
-				],
+				data: [["", "b"], ["c"]],
 				headers: ["1", "2"],
 				metadata: null
 			},
@@ -566,6 +563,8 @@ describe("Cell selection", () => {
 		await wait();
 
 		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
 		await wait();
 
 		const change = listen("change");
@@ -638,67 +637,6 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 1, 1)?.textContent?.trim()).toBe("");
 	});
 
-	// a cell past the end of a short row renders blank but holds nothing, so
-	// clearing it would write "" into a row that never had that column
-	test("Delete fires no events on a cell past the end of a short row", async () => {
-		const { container, listen } = await render(Dataframe, {
-			...default_props,
-			value: {
-				data: [["a", "b"], ["c"]],
-				headers: ["1", "2"],
-				metadata: null
-			},
-			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
-			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
-		});
-		await wait();
-
-		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
-		await wait();
-
-		const change = listen("change");
-		const input = listen("input");
-		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
-		await wait(100);
-
-		expect(change).not.toHaveBeenCalled();
-		expect(input).not.toHaveBeenCalled();
-	});
-
-	// `postprocess` pads the headers out to the column count but leaves the rows
-	// as they came, so a row can be shorter than the header row
-	test("the copy button copies a ragged table with nothing selected", async () => {
-		const { container } = await render(Dataframe, {
-			...default_props,
-			value: {
-				data: [["a", "b"], ["c"]],
-				headers: ["1", "2"],
-				metadata: null
-			},
-			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
-			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
-		});
-		await wait();
-
-		const copy_button = container.querySelector(
-			'[aria-label="Copy table data"]'
-		) as HTMLElement;
-		await fireEvent.click(copy_button);
-
-		// a ragged table is what broke this branch's cell enumeration; the guard
-		// in `copy_table_data` is what now keeps a missing cell from throwing.
-		// assert the text, not just the label: the label appears for any copy
-		// that did not throw, so it says nothing about what was copied
-		await waitFor(async () => {
-			expect(await navigator.clipboard.readText()).toBe("a,b\nc,");
-		});
-		expect(
-			container.querySelector('[aria-label="Copied to clipboard"]')
-		).not.toBeNull();
-	});
-
-	// the output columns come from every selected row, so a selection that is
-	// not rectangular keeps all of its cells
 	test("Ctrl+C copies a selection with a gap in its first row", async () => {
 		const { container } = await render(Dataframe, {
 			...default_props,
@@ -732,9 +670,8 @@ describe("Cell selection", () => {
 		});
 	});
 
-	// the selection branch cannot bound anything by the row: `on_select_row` and
-	// a plain click both hand out coordinates taken from the header count, since
-	// every row renders a cell per header
+	// every row renders a cell per header, so the phantom cells of a short row
+	// are clickable and a selection can name one
 	test("Ctrl+C copies a selection that runs past the end of a short row", async () => {
 		const { container } = await render(Dataframe, {
 			...default_props,

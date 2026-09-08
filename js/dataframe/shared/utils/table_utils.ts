@@ -9,9 +9,6 @@ export function make_header_id(col: number): string {
 	return `header-${col}`;
 }
 
-// the cells are always spelled out by the caller. a `null` here used to mean
-// "every row in `data`", which reaches past whatever the view is showing, so
-// the parameter no longer accepts one
 export async function copy_table_data(
 	data: TableData,
 	selected_cells: [number, number][]
@@ -21,11 +18,8 @@ export async function copy_table_data(
 	const csv = selected_cells.reduce(
 		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
 			acc[row] = acc[row] || {};
-			// only the headers are padded out to the column count on the way in,
-			// so a row can be shorter than the header row and a selection can
-			// hold a cell that is not in the data at all. a cell that is there
-			// keeps going through `String`, `null` included, so this covers the
-			// missing one and nothing else
+			// only the headers are padded out to the column count on the way in, so
+			// a selection can name a cell a short row does not have
 			const cell = data[row]?.[col];
 			const value = cell ? String(cell.value) : "";
 			acc[row][col] =
@@ -40,9 +34,8 @@ export async function copy_table_data(
 	const rows = Object.keys(csv).sort((a, b) => +a - +b);
 	if (!rows.length) return;
 
-	// every column any selected row contributes, not just the ones the first of
-	// them happens to hold: a selection that is not rectangular there would
-	// otherwise have its remaining cells dropped from the output entirely
+	// every column any selected row contributes: taking them from the first row
+	// alone drops the rest of a selection that is not rectangular there
 	const cols = Array.from(
 		new Set(rows.flatMap((r) => Object.keys(csv[r])))
 	).sort((a, b) => +a - +b);

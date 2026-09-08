@@ -10,11 +10,9 @@ export function is_cell_in_selection(
 	return selected_cells.some(([r, c]) => r === row && c === col);
 }
 
-// row_above/row_below are the rows on either side of `cell` in the order the
-// caller is rendering, given as indices into the data, or null at an edge of the
-// view. A search or a sort makes them differ from row ± 1, so the caller has to
-// supply them; they are required rather than optional so that a caller cannot
-// quietly opt out of view order and get data order back.
+// row_above/row_below are the data indices of the rows the caller is rendering
+// on either side of `cell`, or null at an edge of the view. A search or a sort
+// makes them differ from row ± 1, so only the caller knows them.
 export function is_cell_selected(
 	cell: CellCoordinate,
 	selected_cells: CellCoordinate[],

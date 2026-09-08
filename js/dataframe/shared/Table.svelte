@@ -539,7 +539,6 @@
 			if (from_row === -1) {
 				selected_cells = [coord];
 			} else {
-				// range select over the view, which a search or sort reorders
 				const c1 = selected[1];
 				const new_cells: CellCoordinate[] = [];
 				for (
@@ -820,18 +819,14 @@
 		push_change(filtered_values);
 	}
 
-	// false when there was nothing on screen to copy, so the toolbar can hold
-	// back its "Copied to clipboard" state
+	// false when nothing reached the clipboard, so the toolbar can hold back its
+	// "Copied to clipboard" state
 	async function handle_copy(): Promise<boolean> {
 		const visible = visible_row_set();
-		// spell out the cells rather than leaning on `copy_table_data`'s null
-		// case, which walks every row in `values` and so reaches past the view
 		const cells =
 			selected_cells.length > 0
 				? selected_cells.filter(([r]) => visible.has(r))
 				: rows.flatMap((row) => {
-						// a row can be shorter than the header count, since only the
-						// headers are padded out to the column count on the way in
 						const r = row.original._index;
 						return (values[r] ?? []).map((_, c) => [r, c] as CellCoordinate);
 					});
@@ -843,11 +838,8 @@
 		try {
 			await copy_table_data(data_for_copy, cells);
 		} catch (err) {
-			// the clipboard write can be refused outright, on an insecure origin
-			// or without permission, and the toolbar has to hear about that
-			// rather than report a copy that did not happen. log it, since this
-			// also catches anything thrown on the way there, and a swallowed
-			// error with no trace is worse than the one it was added for
+			// the write can be refused outright, on an insecure origin or without
+			// permission. logged because this catches anything else thrown too
 			console.error(err);
 			return false;
 		}
@@ -1047,11 +1039,8 @@
 					const visible = visible_row_set();
 					let cleared = false;
 					selected_cells.forEach(([selected_row, selected_col]) => {
-						// a cell past the end of a short row reads as undefined, and
-						// writing "" there would grow the row for no visible reason.
-						// the row itself can be gone too, if the selection outlived a
-						// table that shrank, hence the `?.`. a `null` is left to fall
-						// through and be cleared, the way it always has been
+						// undefined is a cell past the end of a short row, or a row a
+						// shrunk table no longer has; a null is a value, so it is cleared
 						const current = new_values[selected_row]?.[selected_col];
 						if (
 							!is_static_column(selected_col) &&
@@ -1063,9 +1052,8 @@
 							cleared = true;
 						}
 					});
-					// nothing to write when every selected row is hidden, or when the
-					// cells on screen are already blank; pushing anyway would fire
-					// change and input for an identical table
+					// pushing with nothing written would fire change and input for an
+					// identical table
 					if (cleared) {
 						values = new_values;
 						push_change(new_values);
