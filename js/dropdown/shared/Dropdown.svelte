@@ -194,6 +194,8 @@
 		const is_navigation_key =
 			e.key === "ArrowUp" ||
 			e.key === "ArrowDown" ||
+			e.key === "Home" ||
+			e.key === "End" ||
 			e.key === "Enter" ||
 			e.key === "Escape";
 		const is_filtering = input_text !== last_typed_value;
@@ -218,6 +220,14 @@
 				active_index === filtered_indices[filtered_indices.length - 1]
 			) {
 				handle_load_more();
+			}
+			if (
+				remaining_choices > 0 &&
+				(e.key === "End" ||
+					(e.key === "ArrowUp" &&
+						(active_index === null || active_index === filtered_indices[0])))
+			) {
+				handle_load_all();
 			}
 		}
 		[show_options, active_index] = handle_shared_keys(
@@ -259,6 +269,15 @@
 			is_filtering ? input_text : "",
 			num_choices_shown * batches_shown
 		);
+	}
+
+	function handle_load_all(): void {
+		if (num_choices_shown === null) {
+			return;
+		}
+		batches_shown = Math.ceil(total_matching_choices / num_choices_shown);
+		const is_filtering = input_text !== last_typed_value;
+		update_filtered_choices(is_filtering ? input_text : "", null);
 	}
 
 	let old_value = $state(value);

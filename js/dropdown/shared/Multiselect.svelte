@@ -199,6 +199,22 @@
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
+		let navigation_indices = filtered_indices;
+		const initial_batch_size = gradio.props.num_choices_shown;
+		if (
+			initial_batch_size !== null &&
+			remaining_choices > 0 &&
+			(e.key === "End" ||
+				(e.key === "ArrowUp" &&
+					(active_index === null || active_index === filtered_indices[0])))
+		) {
+			batches_shown = Math.ceil(total_matching_choices / initial_batch_size);
+			navigation_indices = handle_filter_with_count(
+				translated_choices,
+				input_text,
+				null
+			).filtered_indices;
+		}
 		if (
 			e.key === "ArrowDown" &&
 			remaining_choices > 0 &&
@@ -224,7 +240,7 @@
 		[show_options, active_index] = handle_shared_keys(
 			e,
 			active_index,
-			filtered_indices
+			navigation_indices
 		);
 		if (e.key === "Enter") {
 			if (active_index !== null) {

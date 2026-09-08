@@ -2,15 +2,6 @@ function positive_mod(n: number, m: number): number {
 	return ((n % m) + m) % m;
 }
 
-export function handle_filter(
-	choices: [string, string | number][],
-	input_text: string,
-	num_choices_shown: number | null = null
-): number[] {
-	return handle_filter_with_count(choices, input_text, num_choices_shown)
-		.filtered_indices;
-}
-
 export function handle_filter_with_count(
 	choices: [string, string | number][],
 	input_text: string,
@@ -57,9 +48,18 @@ export function handle_shared_keys(
 	if (e.key === "Escape") {
 		return [false, active_index];
 	}
-	if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+	if (
+		e.key === "ArrowDown" ||
+		e.key === "ArrowUp" ||
+		e.key === "Home" ||
+		e.key === "End"
+	) {
 		if (filtered_indices.length > 0) {
-			if (active_index === null) {
+			if (e.key === "Home") {
+				active_index = filtered_indices[0];
+			} else if (e.key === "End") {
+				active_index = filtered_indices[filtered_indices.length - 1];
+			} else if (active_index === null) {
 				active_index =
 					e.key === "ArrowDown"
 						? filtered_indices[0]

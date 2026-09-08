@@ -6,7 +6,7 @@ import { setupi18n, changeLocale } from "../core/src/i18n";
 import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
-import { handle_filter, handle_filter_with_count } from "./shared/utils";
+import { handle_filter_with_count } from "./shared/utils";
 
 // Build a real i18n marker the way the backend's I18nData does.
 const marker = (key: string): string =>
@@ -280,6 +280,60 @@ describe("Single-select: Options display", () => {
 
 		await event.keyboard("{Enter}");
 		expect((await get_data()).value).toBe("choice-4");
+	});
+
+	test("ArrowUp from the first option wraps to the last matching option", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: null,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("{ArrowDown}{ArrowUp}");
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(105);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-104")
+			);
+		});
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toBe("choice-104");
+	});
+
+	test("Home and End move to the first and last matching options", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			value: null,
+			choices: many_choices,
+			num_choices_shown: 4
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("{End}");
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(105);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-104")
+			);
+		});
+
+		await event.keyboard("{Home}");
+		expect(input).toHaveAttribute(
+			"aria-activedescendant",
+			expect.stringContaining("-option-0")
+		);
 	});
 
 	test("a selected option beyond the initial batch does not replace a visible choice", async () => {
@@ -1253,6 +1307,32 @@ describe("Multiselect: Options display", () => {
 		expect((await get_data()).value).toEqual(["choice-4"]);
 	});
 
+	test("End loads and selects the last matching multiselect option", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...multiselect_props,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("{End}");
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(105);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-104")
+			);
+		});
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toEqual(["choice-104"]);
+	});
+
 	test("num_choices_shown=null displays every matching option", async () => {
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			...multiselect_props,
@@ -1876,44 +1956,46 @@ describe("Edge cases", () => {
 	});
 });
 
-describe("handle_filter", () => {
+describe("handle_filter_with_count", () => {
 	const choices: [string, string | number][] = [
 		["Apple", "apple"],
 		["Banana", "banana"],
 		["Cherry", "cherry"],
 		["Apricot", "apricot"]
 	];
+	const filter_indices = (input_text: string, limit: number | null = null) =>
+		handle_filter_with_count(choices, input_text, limit).filtered_indices;
 
 	test("returns all indices when input_text is empty", () => {
-		expect(handle_filter(choices, "")).toEqual([0, 1, 2, 3]);
+		expect(filter_indices("")).toEqual([0, 1, 2, 3]);
 	});
 
 	test("filters by case-insensitive substring match on display name", () => {
-		expect(handle_filter(choices, "ap")).toEqual([0, 3]);
+		expect(filter_indices("ap")).toEqual([0, 3]);
 	});
 
 	test("returns empty array when no choices match", () => {
-		expect(handle_filter(choices, "xyz")).toEqual([]);
+		expect(filter_indices("xyz")).toEqual([]);
 	});
 
 	test("matches full display name", () => {
-		expect(handle_filter(choices, "banana")).toEqual([1]);
+		expect(filter_indices("banana")).toEqual([1]);
 	});
 
 	test("is case-insensitive", () => {
-		expect(handle_filter(choices, "CHERRY")).toEqual([2]);
+		expect(filter_indices("CHERRY")).toEqual([2]);
 	});
 
 	test("handles empty choices array", () => {
-		expect(handle_filter([], "test")).toEqual([]);
+		expect(handle_filter_with_count([], "test").filtered_indices).toEqual([]);
 	});
 
 	test("matches substring anywhere in display name", () => {
-		expect(handle_filter(choices, "an")).toEqual([1]);
+		expect(filter_indices("an")).toEqual([1]);
 	});
 
 	test("returns only the requested prefix of matching choices", () => {
-		expect(handle_filter(choices, "a", 2)).toEqual([0, 1]);
+		expect(filter_indices("a", 2)).toEqual([0, 1]);
 	});
 
 	test("counts all matches while returning only the requested prefix", () => {
