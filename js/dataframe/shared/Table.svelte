@@ -1048,13 +1048,16 @@
 					let cleared = false;
 					selected_cells.forEach(([selected_row, selected_col]) => {
 						// a cell past the end of a short row reads as undefined, and
-						// writing "" there would grow the row for no visible reason
-						const current = new_values[selected_row][selected_col];
+						// writing "" there would grow the row for no visible reason.
+						// the row itself can be gone too, if the selection outlived a
+						// table that shrank, hence the `?.`. a `null` is left to fall
+						// through and be cleared, the way it always has been
+						const current = new_values[selected_row]?.[selected_col];
 						if (
 							!is_static_column(selected_col) &&
 							visible.has(selected_row) &&
 							current !== "" &&
-							current != null
+							current !== undefined
 						) {
 							new_values[selected_row][selected_col] = "";
 							cleared = true;

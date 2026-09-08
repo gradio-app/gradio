@@ -577,6 +577,67 @@ describe("Cell selection", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
+	// `null` renders blank like "" does, but it is a value the backend sent, so
+	// Delete clears it rather than treating it as nothing to do
+	test("Delete clears a null cell", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					[null, "b"],
+					["c", "d"]
+				] as any,
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+
+		const change = listen("change");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).toHaveBeenCalled();
+	});
+
+	// the selection is data-space and survives a value update, so it can name a
+	// row that no longer exists
+	test("Delete skips selected rows a shrunk table no longer has", async () => {
+		const { container, set_data } = await render(Dataframe, search_props);
+		await wait();
+
+		// anchor on row 0, which survives the shrink, so `handle_keydown` runs
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		await set_data({
+			value: {
+				data: [
+					["row 0", "target"],
+					["row 1", "keep-1"]
+				],
+				headers: ["Name", "Tag"],
+				metadata: null
+			}
+		});
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		// rows 2-4 are gone; reading `new_values[2]` before the visibility check
+		// threw here and left rows 0 and 1 untouched
+		expect(get_cell(container, 0, 1)?.textContent?.trim()).toBe("");
+		expect(get_cell(container, 1, 1)?.textContent?.trim()).toBe("");
+	});
+
 	// a cell past the end of a short row renders blank but holds nothing, so
 	// clearing it would write "" into a row that never had that column
 	test("Delete fires no events on a cell past the end of a short row", async () => {
@@ -634,6 +695,41 @@ describe("Cell selection", () => {
 		expect(
 			container.querySelector('[aria-label="Copied to clipboard"]')
 		).not.toBeNull();
+	});
+
+	// the output columns come from every selected row, so a selection that is
+	// not rectangular keeps all of its cells
+	test("Ctrl+C copies a selection with a gap in its first row", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					["a", "b"],
+					["c", "d"]
+				],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// row 0 holds only column 0, so taking the columns from it alone dropped
+		// "d" from the clipboard
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("a,\n,d");
+		});
 	});
 
 	// the selection branch cannot bound anything by the row: `on_select_row` and

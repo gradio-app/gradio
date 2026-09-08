@@ -40,7 +40,12 @@ export async function copy_table_data(
 	const rows = Object.keys(csv).sort((a, b) => +a - +b);
 	if (!rows.length) return;
 
-	const cols = Object.keys(csv[rows[0]]).sort((a, b) => +a - +b);
+	// every column any selected row contributes, not just the ones the first of
+	// them happens to hold: a selection that is not rectangular there would
+	// otherwise have its remaining cells dropped from the output entirely
+	const cols = Array.from(
+		new Set(rows.flatMap((r) => Object.keys(csv[r])))
+	).sort((a, b) => +a - +b);
 	const text = rows
 		.map((r) => cols.map((c) => csv[r][c] || "").join(","))
 		.join("\n");
