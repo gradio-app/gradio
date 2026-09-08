@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
-feat:Keep the empty Dataframe's add row button on screen in fullscreen
+fix:Keep the empty Dataframe's add row button on screen in fullscreen
