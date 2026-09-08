@@ -1,8 +1,21 @@
+<script module lang="ts">
+	const custom_component_context = Symbol("custom component context");
+</script>
+
 <script lang="ts">
-	import { mount, unmount, untrack } from "svelte";
+	import { getAllContexts, getContext, mount, unmount, untrack } from "svelte";
+	import type { Snippet } from "svelte";
 	import MountChildren from "./MountChildren.svelte";
 
-	let { node, children, ...rest } = $props();
+	let {
+		node,
+		children,
+		...rest
+	}: { node: any; children?: Snippet; [key: string]: any } = $props();
+	const host_context = getAllContexts();
+	const parent_custom_component_context = getContext<
+		Map<unknown, unknown> | undefined
+	>(custom_component_context);
 
 	let component = $derived(await node.component);
 	let runtime = $derived(
@@ -10,12 +23,14 @@
 			mount: typeof import("svelte").mount;
 			unmount: typeof import("svelte").unmount;
 			createRawSnippet?: typeof import("svelte").createRawSnippet;
+			getAllContexts?: typeof import("svelte").getAllContexts;
 		}
 	);
 	let el: HTMLElement | null = $state(null);
 
 	$effect(() => {
 		if (!el || !runtime || !component) return;
+		const target = el;
 
 		// Read prop references so the effect re-runs when the node is
 		// replaced during a dev reload (new objects are created by
@@ -30,9 +45,18 @@
 				? _runtime.createRawSnippet(() => ({
 						render: () => "<span hidden></span>",
 						setup: (target) => {
+							// This callback runs in the ancestor custom component's context.
+							const child_host_context = new Map(host_context);
+							if (_runtime.getAllContexts) {
+								child_host_context.set(
+									custom_component_context,
+									_runtime.getAllContexts()
+								);
+							}
 							const mounted_children = mount(MountChildren, {
 								target,
-								props: { children }
+								props: { children },
+								context: child_host_context
 							});
 							target.replaceWith(...target.childNodes);
 
@@ -45,7 +69,8 @@
 
 		const mounted = untrack(() =>
 			_runtime.mount(component.default, {
-				target: el,
+				target,
+				context: parent_custom_component_context,
 				props: {
 					shared_props: _shared_props,
 					props: _props,

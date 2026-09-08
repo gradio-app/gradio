@@ -1,13 +1,14 @@
-import { getByRole, waitFor } from "@testing-library/dom";
+import { getByRole, getByText, waitFor } from "@testing-library/dom";
 import { afterEach, expect, test, vi } from "vitest";
 import { createRawSnippet, flushSync, mount, unmount } from "svelte";
 import type { Component } from "svelte";
 
 import MountCustomComponent from "./MountCustomComponent.svelte";
 import MountCustomComponentHost from "./MountCustomComponentHost.test.svelte";
+import NestedCustomComponentHost from "./NestedCustomComponentHost.test.svelte";
 
 let mounted: Record<string, never> | undefined;
-let runtime_frame: HTMLIFrameElement | undefined;
+const runtime_frames: HTMLIFrameElement[] = [];
 
 type AsyncChildrenRuntime = Pick<
 	typeof import("svelte"),
@@ -16,14 +17,21 @@ type AsyncChildrenRuntime = Pick<
 
 type RemountProbeRuntime = AsyncChildrenRuntime & { RemountProbe: Component };
 
+type ContextRuntime = AsyncChildrenRuntime & {
+	ContextConsumer: Component;
+	ContextProvider: Component;
+	getAllContexts: typeof import("svelte").getAllContexts;
+};
+
 async function load_async_children_runtime(): Promise<AsyncChildrenRuntime> {
-	runtime_frame = document.createElement("iframe");
+	const runtime_frame = document.createElement("iframe");
 	runtime_frame.hidden = true;
+	runtime_frames.push(runtime_frame);
 
 	const runtime = new Promise<AsyncChildrenRuntime>((resolve) => {
 		const handle_message = (event: MessageEvent) => {
 			if (
-				event.source !== runtime_frame?.contentWindow ||
+				event.source !== runtime_frame.contentWindow ||
 				event.data !== "async-children-runtime-ready"
 			) {
 				return;
@@ -56,8 +64,8 @@ afterEach(async () => {
 		await unmount(mounted);
 		mounted = undefined;
 	}
-	runtime_frame?.remove();
-	runtime_frame = undefined;
+	runtime_frames.forEach((frame) => frame.remove());
+	runtime_frames.length = 0;
 	document.body.innerHTML = "";
 });
 
@@ -113,4 +121,27 @@ test("does not remount an isolated component when its prop proxy updates", async
 	});
 
 	expect(on_mount).toHaveBeenCalledOnce();
+});
+
+test("preserves context across nested custom components", async () => {
+	const provider_runtime =
+		(await load_async_children_runtime()) as ContextRuntime;
+	const consumer_runtime =
+		(await load_async_children_runtime()) as ContextRuntime;
+
+	mounted = mount(NestedCustomComponentHost, {
+		target: document.body,
+		props: {
+			provider: provider_runtime.ContextProvider,
+			consumer: consumer_runtime.ContextConsumer,
+			provider_runtime,
+			consumer_runtime
+		}
+	});
+
+	await waitFor(() => {
+		expect(
+			getByText(document.body, "Context: provided by parent").textContent
+		).toBe("Context: provided by parent");
+	});
 });
