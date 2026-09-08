@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Restore the Dataframe's outer border
+fix:Restore the Dataframe's outer border
