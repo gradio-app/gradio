@@ -1133,7 +1133,11 @@
 	}}
 />
 
-<div class="table-container" class:fullscreen>
+<div
+	class="table-container"
+	class:fullscreen
+	class:no-rows={values.length === 0}
+>
 	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
@@ -1396,6 +1400,10 @@
 			<button class="scroll-top-button" onclick={scroll_to_top}>&uarr;</button>
 		{/if}
 	</div>
+
+	{#if values.length === 0 && editable && row_count[1] === "dynamic"}
+		<EmptyRowButton on_click={() => add_row()} />
+	{/if}
 </div>
 
 {#if active_cell_menu || active_header_menu}
@@ -1462,10 +1470,6 @@
 	/>
 {/if}
 
-{#if values.length === 0 && editable && row_count[1] === "dynamic"}
-	<EmptyRowButton on_click={() => add_row()} />
-{/if}
-
 <style>
 	.table-container {
 		display: flex;
@@ -1500,6 +1504,13 @@
 		max-height: none !important;
 		flex: 1 1 auto;
 		min-height: 0;
+	}
+
+	/* An empty body would otherwise fill the screen, carrying the add-row button off it */
+	.table-container.fullscreen.no-rows .table-wrap,
+	.table-container.fullscreen.no-rows .table-wrap > :global(*),
+	.table-container.fullscreen.no-rows .virtual-table-viewport {
+		flex: 0 0 auto;
 	}
 
 	.table-wrap {

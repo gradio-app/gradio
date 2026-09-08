@@ -955,6 +955,42 @@ describe("Add/remove rows and columns", () => {
 		expect(added_cell).toHaveFocus();
 	});
 
+	test("empty table keeps its add row button on screen in fullscreen", async () => {
+		await render(Dataframe, {
+			...dynamic_props,
+			value: {
+				data: [],
+				headers: default_props.value.headers,
+				metadata: null
+			},
+			row_count: [0, "dynamic"] as [number, "dynamic"]
+		});
+		await wait();
+
+		const wrap_height = () =>
+			(
+				document.querySelector(".table-wrap") as HTMLElement
+			).getBoundingClientRect().height;
+		const toggle = () =>
+			document.querySelector(
+				'button[aria-label="Fullscreen"], button[aria-label="Exit fullscreen mode"]'
+			) as HTMLElement;
+
+		const normal_height = wrap_height();
+
+		await fireEvent.click(toggle());
+		await wait(200);
+		expect(
+			document.querySelector(".table-container .add-row-button")
+		).not.toBeNull();
+		// stretching the empty body is what carries the button off screen
+		expect(Math.abs(wrap_height() - normal_height)).toBeLessThan(20);
+
+		await fireEvent.click(toggle());
+		await wait(200);
+		expect(Math.abs(wrap_height() - normal_height)).toBeLessThan(20);
+	});
+
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
 	// so the document click handler (handle_click_outside) unmounts it before
 	// the menu button's onclick fires in synthetic event dispatch. These
