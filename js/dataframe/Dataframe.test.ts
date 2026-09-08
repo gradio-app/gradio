@@ -1,4 +1,4 @@
-import { test, describe, afterEach, expect } from "vitest";
+import { test, describe, afterEach, expect, vi } from "vitest";
 import {
 	cleanup,
 	render,
@@ -331,7 +331,12 @@ describe("Cell editing", () => {
 });
 
 describe("Cell selection", () => {
-	afterEach(() => cleanup());
+	afterEach(() => {
+		cleanup();
+		// a test that stubs the clipboard and then fails would otherwise leave the
+		// stub in place for everything after it
+		vi.restoreAllMocks();
+	});
 
 	test("click selects a cell", async () => {
 		const { container } = await render(Dataframe, default_props);
@@ -628,6 +633,34 @@ describe("Cell selection", () => {
 		expect(
 			container.querySelector('[aria-label="Copied to clipboard"]')
 		).toBeNull();
+	});
+
+	// a refused write already left the copied state alone, by rejecting through
+	// `Toolbar.handle_copy` before it could run; what the boolean adds is that
+	// the rejection stops there instead of floating away unhandled
+	test("a refused clipboard write is reported, not left unhandled", async () => {
+		const { container } = await render(Dataframe, default_props);
+		await wait();
+
+		const write_text = vi
+			.spyOn(navigator.clipboard, "writeText")
+			.mockRejectedValue(new Error("denied"));
+		const unhandled = vi.fn();
+		window.addEventListener("unhandledrejection", unhandled);
+
+		const copy_button = container.querySelector(
+			'[aria-label="Copy table data"]'
+		) as HTMLElement;
+		await fireEvent.click(copy_button);
+		await wait(150);
+
+		expect(write_text).toHaveBeenCalled();
+		expect(
+			container.querySelector('[aria-label="Copied to clipboard"]')
+		).toBeNull();
+		expect(unhandled).not.toHaveBeenCalled();
+
+		window.removeEventListener("unhandledrejection", unhandled);
 	});
 
 	test("shift+click falls back to one cell when the anchor is filtered out", async () => {

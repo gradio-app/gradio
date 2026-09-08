@@ -840,7 +840,14 @@
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		await copy_table_data(data_for_copy, cells);
+		try {
+			await copy_table_data(data_for_copy, cells);
+		} catch {
+			// the clipboard write can be refused outright, on an insecure origin
+			// or without permission, and the toolbar has to hear about that
+			// rather than report a copy that did not happen
+			return false;
+		}
 		copy_flash = true;
 		setTimeout(() => (copy_flash = false), 800);
 		return true;
