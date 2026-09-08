@@ -842,10 +842,13 @@
 		);
 		try {
 			await copy_table_data(data_for_copy, cells);
-		} catch {
+		} catch (err) {
 			// the clipboard write can be refused outright, on an insecure origin
 			// or without permission, and the toolbar has to hear about that
-			// rather than report a copy that did not happen
+			// rather than report a copy that did not happen. log it, since this
+			// also catches anything thrown on the way there, and a swallowed
+			// error with no trace is worse than the one it was added for
+			console.error(err);
 			return false;
 		}
 		copy_flash = true;
@@ -1044,10 +1047,14 @@
 					const visible = visible_row_set();
 					let cleared = false;
 					selected_cells.forEach(([selected_row, selected_col]) => {
+						// a cell past the end of a short row reads as undefined, and
+						// writing "" there would grow the row for no visible reason
+						const current = new_values[selected_row][selected_col];
 						if (
 							!is_static_column(selected_col) &&
 							visible.has(selected_row) &&
-							new_values[selected_row][selected_col] !== ""
+							current !== "" &&
+							current != null
 						) {
 							new_values[selected_row][selected_col] = "";
 							cleared = true;

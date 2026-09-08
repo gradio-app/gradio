@@ -9,17 +9,16 @@ export function make_header_id(col: number): string {
 	return `header-${col}`;
 }
 
+// the cells are always spelled out by the caller. a `null` here used to mean
+// "every row in `data`", which reaches past whatever the view is showing, so
+// the parameter no longer accepts one
 export async function copy_table_data(
 	data: TableData,
-	selected_cells: [number, number][] | null
+	selected_cells: [number, number][]
 ): Promise<void> {
 	if (!data || !data.length) return;
 
-	const cells_to_copy =
-		selected_cells ||
-		data.flatMap((row, r) => row.map((_, c) => [r, c] as [number, number]));
-
-	const csv = cells_to_copy.reduce(
+	const csv = selected_cells.reduce(
 		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
 			acc[row] = acc[row] || {};
 			// only the headers are padded out to the column count on the way in,

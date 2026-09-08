@@ -1,4 +1,4 @@
-import { test, describe, afterEach, expect, vi } from "vitest";
+import { test, describe, afterEach, expect, vi, onTestFinished } from "vitest";
 import {
 	cleanup,
 	render,
@@ -577,6 +577,33 @@ describe("Cell selection", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
+	// a cell past the end of a short row renders blank but holds nothing, so
+	// clearing it would write "" into a row that never had that column
+	test("Delete fires no events on a cell past the end of a short row", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [["a", "b"], ["c"]],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
+		await wait();
+
+		const change = listen("change");
+		const input = listen("input");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
 	// `postprocess` pads the headers out to the column count but leaves the rows
 	// as they came, so a row can be shorter than the header row
 	test("the copy button copies a ragged table with nothing selected", async () => {
@@ -598,12 +625,15 @@ describe("Cell selection", () => {
 		await fireEvent.click(copy_button);
 
 		// a ragged table is what broke this branch's cell enumeration; the guard
-		// in `copy_table_data` is what now keeps a missing cell from throwing
-		await waitFor(() => {
-			expect(
-				container.querySelector('[aria-label="Copied to clipboard"]')
-			).not.toBeNull();
+		// in `copy_table_data` is what now keeps a missing cell from throwing.
+		// assert the text, not just the label: the label appears for any copy
+		// that did not throw, so it says nothing about what was copied
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("a,b\nc,");
 		});
+		expect(
+			container.querySelector('[aria-label="Copied to clipboard"]')
+		).not.toBeNull();
 	});
 
 	// the selection branch cannot bound anything by the row: `on_select_row` and
@@ -677,6 +707,11 @@ describe("Cell selection", () => {
 			.mockRejectedValue(new Error("denied"));
 		const unhandled = vi.fn();
 		window.addEventListener("unhandledrejection", unhandled);
+		// not at the end of the body: an assertion below would skip it and leak
+		// the listener into every later test
+		onTestFinished(() =>
+			window.removeEventListener("unhandledrejection", unhandled)
+		);
 
 		const copy_button = container.querySelector(
 			'[aria-label="Copy table data"]'
@@ -689,8 +724,6 @@ describe("Cell selection", () => {
 			container.querySelector('[aria-label="Copied to clipboard"]')
 		).toBeNull();
 		expect(unhandled).not.toHaveBeenCalled();
-
-		window.removeEventListener("unhandledrejection", unhandled);
 	});
 
 	test("shift+click falls back to one cell when the anchor is filtered out", async () => {
