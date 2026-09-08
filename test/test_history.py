@@ -409,8 +409,9 @@ def recording_app(monkeypatch):
     with (
         patch("gradio.history.resolve_token", return_value="tok"),
         patch("gradio.history.HfApi", return_value=hub),
+        TestClient(app) as client,
     ):
-        yield TestClient(app), hub, io
+        yield client, hub, io
     io.close()
     close_all()
 
@@ -537,8 +538,9 @@ def workflow_app(tmp_path, monkeypatch):
     with (
         patch("gradio.history.resolve_token", return_value="tok"),
         patch("gradio.history.HfApi", return_value=hub),
+        TestClient(app) as client,
     ):
-        yield TestClient(app), hub, wf, canvas._id
+        yield client, hub, wf, canvas._id
     wf.close()
     close_all()
 
@@ -636,8 +638,8 @@ class TestWorkflowRecording:
         with (
             patch("gradio.history.resolve_token", return_value="tok"),
             patch("gradio.history.HfApi", return_value=hub),
+            TestClient(app) as client,
         ):
-            client = TestClient(app)
             headers = {"X-Gradio-History-Bucket": "alice/hist"}
             r = client.post(
                 f"/gradio_api/run/{internal._id}",
