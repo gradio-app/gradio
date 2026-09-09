@@ -225,39 +225,79 @@ export function handle_payload(
 	return updated_payload;
 }
 
+const FILE_ROUTE_PREFIXES = ["/file=", "/file/", "/stream/", "/proxy="];
+
 /**
- * Add the scoped Space JWT to file URLs returned by a private Space.
+ * Add the Space JWT required for browser-managed media requests.
  *
- * Media elements cannot attach the bearer token that the client uses for API
- * requests. Hugging Face accepts the short-lived Space JWT in the query string,
- * which lets the browser load the file without exposing the user's access token.
+ * This is a bearer credential and must not be logged or persisted. Restrict it
+ * to Gradio routes that serve files; the user's Hugging Face token remains in
+ * the Authorization header used to obtain this credential.
  */
 export function sign_file_urls(
 	data: unknown,
 	root: string,
+	api_prefix: string,
 	jwt: string | false
 ): void {
 	if (!jwt || data === null || typeof data !== "object") return;
 
+	const signature = jwt;
 	const root_url = new URL(root);
-	const value = data as Record<string, unknown>;
-	const meta = value.meta as Record<string, unknown> | undefined;
-
-	if (meta?._type === "gradio.FileData" && typeof value.url === "string") {
-		const file_url = new URL(
-			value.url,
-			`${root_url.toString().replace(/\/$/, "")}/`
-		);
-		if (
-			(file_url.protocol === "http:" || file_url.protocol === "https:") &&
-			file_url.origin === root_url.origin
-		) {
-			file_url.searchParams.set("__sign", jwt);
-			value.url = file_url.toString();
-		}
+	const root_path = root_url.pathname.replace(/\/+$/, "");
+	const normalized_api_prefix = api_prefix
+		? `/${api_prefix.replace(/^\/+|\/+$/g, "")}`
+		: "";
+	const route_bases = new Set([
+		`${root_path}${normalized_api_prefix}`,
+		normalized_api_prefix
+	]);
+	if (!normalized_api_prefix) {
+		route_bases.add(`${root_path}/gradio_api`);
+		route_bases.add("/gradio_api");
 	}
 
-	for (const child of Object.values(value)) {
-		sign_file_urls(child, root, jwt);
+	function visit(value: unknown): void {
+		if (value === null || typeof value !== "object") return;
+
+		const object = value as Record<string, unknown>;
+		const meta = object.meta as Record<string, unknown> | undefined;
+		if (meta?._type === "gradio.FileData" && typeof object.url === "string") {
+			const file_url = new URL(
+				object.url,
+				`${root_url.toString().replace(/\/$/, "")}/`
+			);
+			const is_file_route = [...route_bases].some((base) =>
+				FILE_ROUTE_PREFIXES.some((route) =>
+					file_url.pathname.startsWith(`${base}${route}`)
+				)
+			);
+			if (
+				(file_url.protocol === "http:" || file_url.protocol === "https:") &&
+				file_url.origin === root_url.origin &&
+				is_file_route
+			) {
+				file_url.searchParams.set("__sign", signature);
+				object.url = file_url.toString();
+			}
+		}
+
+		for (const child of Object.values(object)) visit(child);
+	}
+
+	visit(data);
+}
+
+export function sign_config_file_urls(
+	config: Config,
+	jwt: string | false
+): void {
+	for (const component of config.components) {
+		sign_file_urls(
+			component.props.value,
+			config.root,
+			config.api_prefix || "",
+			jwt
+		);
 	}
 }

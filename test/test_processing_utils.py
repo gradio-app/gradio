@@ -12,7 +12,6 @@ from unittest.mock import patch
 import httpx
 import numpy as np
 import pytest
-from gradio_client import utils as client_utils
 from gradio_client.client import Endpoint
 from PIL import Image, ImageCms
 from pydantic import BaseModel
@@ -106,13 +105,10 @@ class TestTempFileManagement:
         async_result = await processing_utils.async_move_files_to_cache(
             data, proxy_component, postprocess=True
         )
-        expected_url = (
-            f"{API_PREFIX}/proxy={proxy_url}{url_prefix}"
-            f"{client_utils.encode_file_path(remote_path)}"
-        )
+        expected_url = f"{API_PREFIX}/proxy={upstream_url}"
 
         for result in (sync_result, async_result):
-            assert result["path"] == remote_path
+            assert result["path"] == upstream_url
             assert result["url"] == expected_url
 
             browser_result = processing_utils.add_root_url(
@@ -126,7 +122,7 @@ class TestTempFileManagement:
 
             endpoint = Endpoint.__new__(Endpoint)
             processed_input = endpoint.process_input_files(round_trip)[0]
-            assert processed_input["path"] == browser_result["url"]
+            assert processed_input["path"] == upstream_url
 
     @pytest.mark.asyncio
     async def test_move_files_to_cache_does_not_proxy_external_urls(self):

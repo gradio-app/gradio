@@ -177,7 +177,7 @@ export function submit(
 		function fire_event(event: GradioEvent): void {
 			update_run_history(history_scope, history_run_id, event);
 			if (event.type === "data" || event.type === "render") {
-				sign_file_urls(event.data, root, that.jwt);
+				sign_file_urls(event.data, root, api_prefix, that.jwt);
 			}
 			if (all_events || events_to_publish[event.type]) {
 				push_event(event);

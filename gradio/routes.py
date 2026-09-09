@@ -1220,7 +1220,7 @@ class App(FastAPI):
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
         async def _(
             session_hash: str,
-            run: int,
+            run: str,
             component_id: int,
             request: fastapi.Request,
         ):
@@ -1253,13 +1253,16 @@ class App(FastAPI):
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
 
+            headers = {"Cache-Control": "private, no-store"} if signature else None
             return Response(
-                content=playlist, media_type="application/vnd.apple.mpegurl"
+                content=playlist,
+                media_type="application/vnd.apple.mpegurl",
+                headers=headers,
             )
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
         async def _(
-            session_hash: str, run: int, component_id: int, segment_id: str, ext: str
+            session_hash: str, run: str, component_id: int, segment_id: str, ext: str
         ):
             if ext not in ["aac", "ts"]:
                 return Response(status_code=400, content="Unsupported file extension")
@@ -1284,7 +1287,7 @@ class App(FastAPI):
                 return Response(content=segment["data"], media_type="video/MP2T")
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
-        async def _(session_hash: str, run: int, component_id: int):
+        async def _(session_hash: str, run: str, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams.get(session_hash, {})
@@ -1378,6 +1381,8 @@ class App(FastAPI):
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
                         caching.clear_session_caches(session_hash)
+                        # Streams only; diff state is dropped by the queue when
+                        # the run ends
                         for run in (
                             app.get_blocks()
                             .pending_streams.pop(session_hash, {})

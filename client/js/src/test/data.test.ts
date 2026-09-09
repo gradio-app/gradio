@@ -377,10 +377,20 @@ describe("sign_file_urls", () => {
 						meta: { _type: "gradio.FileData" }
 					}
 				}
-			]
+			],
+			proxied: {
+				path: "https://nested-space.hf.space/gradio_api/file=/tmp/cat.png",
+				url: "/app/gradio_api/proxy=https://nested-space.hf.space/gradio_api/file=/tmp/cat.png",
+				meta: { _type: "gradio.FileData" }
+			}
 		};
 
-		sign_file_urls(data, "https://private-space.hf.space/app", "jwt_123");
+		sign_file_urls(
+			data,
+			"https://private-space.hf.space/app",
+			"/gradio_api",
+			"jwt_123"
+		);
 
 		expect(data.image.url).toBe(
 			"https://private-space.hf.space/app/gradio_api/file=/tmp/cat.png?download=true&__sign=jwt_123"
@@ -388,9 +398,12 @@ describe("sign_file_urls", () => {
 		expect(data.gallery[0].image.url).toBe(
 			"https://private-space.hf.space/gradio_api/stream/tone.wav?__sign=jwt_123"
 		);
+		expect(data.proxied.url).toBe(
+			"https://private-space.hf.space/app/gradio_api/proxy=https://nested-space.hf.space/gradio_api/file=/tmp/cat.png?__sign=jwt_123"
+		);
 	});
 
-	it("does not sign external URLs or objects that are not FileData", () => {
+	it("does not sign external or unrelated same-origin URLs", () => {
 		const data = {
 			external: {
 				path: "https://cdn.example.com/cat.png",
@@ -399,14 +412,27 @@ describe("sign_file_urls", () => {
 			},
 			plain: {
 				url: "https://private-space.hf.space/gradio_api/file=/tmp/cat.png"
+			},
+			unrelated: {
+				path: "/tmp/cat.png",
+				url: "https://private-space.hf.space/api/custom-file",
+				meta: { _type: "gradio.FileData" }
 			}
 		};
 
-		sign_file_urls(data, "https://private-space.hf.space", "jwt_123");
+		sign_file_urls(
+			data,
+			"https://private-space.hf.space",
+			"/gradio_api",
+			"jwt_123"
+		);
 
 		expect(data.external.url).toBe("https://cdn.example.com/cat.png");
 		expect(data.plain.url).toBe(
 			"https://private-space.hf.space/gradio_api/file=/tmp/cat.png"
+		);
+		expect(data.unrelated.url).toBe(
+			"https://private-space.hf.space/api/custom-file"
 		);
 	});
 
@@ -417,7 +443,12 @@ describe("sign_file_urls", () => {
 			meta: { _type: "gradio.FileData" }
 		};
 
-		sign_file_urls(file, "https://private-space.hf.space", false);
+		sign_file_urls(
+			file,
+			"https://private-space.hf.space",
+			"/gradio_api",
+			false
+		);
 
 		expect(file.url).not.toContain("__sign");
 	});

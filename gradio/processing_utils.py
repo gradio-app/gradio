@@ -459,18 +459,9 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # Developer-returned URLs on regular components can be displayed directly.
-        # Loaded components are different: on output their URL may point to a private
-        # upstream app and must be proxied; on input it points to that loader proxy
-        # and is the path the upstream app can fetch.
-        if (
-            payload.url
-            and client_utils.is_http_url_like(payload.url)
-            and (
-                (postprocess and not block.proxy_url)
-                or (not postprocess and block.proxy_url)
-            )
-        ):
+        # Keep remote paths as URLs so loaded apps can send them back upstream on
+        # later events without treating another container's path as a local file.
+        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -489,7 +480,13 @@ def move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url and not client_utils.is_http_url_like(payload.path):
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
             encoded_path = client_utils.encode_file_path(payload.path)
             url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
@@ -589,18 +586,9 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # Developer-returned URLs on regular components can be displayed directly.
-        # Loaded components are different: on output their URL may point to a private
-        # upstream app and must be proxied; on input it points to that loader proxy
-        # and is the path the upstream app can fetch.
-        if (
-            payload.url
-            and client_utils.is_http_url_like(payload.url)
-            and (
-                (postprocess and not block.proxy_url)
-                or (not postprocess and block.proxy_url)
-            )
-        ):
+        # Keep remote paths as URLs so loaded apps can send them back upstream on
+        # later events without treating another container's path as a local file.
+        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -621,7 +609,13 @@ async def async_move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url and not client_utils.is_http_url_like(payload.path):
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
             encoded_path = client_utils.encode_file_path(payload.path)
             url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
