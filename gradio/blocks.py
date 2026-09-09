@@ -13,6 +13,7 @@ import string
 import sys
 import threading
 import time
+import uuid
 import warnings
 import weakref
 import webbrowser
@@ -1115,6 +1116,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
+        # Per-run keys for streaming outputs, held weakly against the iterator
+        # so that a finished run's key goes away with it. The iterators are
+        # what call_function hands back, a generator, an async generator or a
+        # SyncToAsyncIterator, all weak-referenceable and hashed by identity.
+        self._stream_run_ids: weakref.WeakKeyDictionary[Any, str] = (
+            weakref.WeakKeyDictionary()
+        )
         self.show_error = True
         self.fill_height = fill_height
         self.fill_width = fill_width
@@ -2124,20 +2132,60 @@ Received inputs:
 
         return output
 
+    def _stream_run_key(self, iterator: Any) -> str:
+        """Return the key of the streaming run that `iterator` is driving.
+
+        The key goes into the playlist URL, so it has to hold for every chunk of
+        a run and never repeat. `id()` only holds while the object is alive, so
+        the key is held weakly against the iterator and dies with it instead.
+        """
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            run = uuid.uuid4().hex
+            self._stream_run_ids[iterator] = run
+        return run
+
+    def _drop_run_streams(self, session_hash: str | None, iterator: Any) -> None:
+        """Close out the streaming state of the run `iterator` was driving.
+
+        For a run that reaches no final chunk: it raised, was cancelled, or its
+        client went away. Its streams are ended but stay, since the playlist is
+        fetched after the run ends; its diff state goes, nothing reads it again.
+        """
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        for stream in self.pending_streams.get(session_hash, {}).get(run, {}).values():
+            stream.end_stream()
+        self._pop_run_diffs(session_hash, run)
+
+    def _pop_run_diffs(self, session_hash: str, run: str) -> None:
+        """Drop a run's diff state, and its session's dict if that leaves it empty."""
+        runs = self.pending_diff_streams.get(session_hash)
+        if runs is None:
+            return
+        runs.pop(run, None)
+        if not runs:
+            del self.pending_diff_streams[session_hash]
+
     async def handle_streaming_outputs(
         self,
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         root_path: str | None = None,
         final: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
-        if run not in self.pending_streams[session_hash]:
-            self.pending_streams[session_hash][run] = {}
-        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
+        # Filed only once an output opens a stream, so a run with no streaming
+        # output never touches this dict
+        stream_run: dict[int, MediaStream] = self.pending_streams.get(
+            session_hash, {}
+        ).get(run, {})
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
@@ -2165,10 +2213,10 @@ Received inputs:
                     desired_output_format = None
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
+                    stream_run = self.pending_streams[session_hash].setdefault(run, {})
                     stream_run[output_id] = MediaStream(
                         desired_output_format=desired_output_format
                     )
-                    stream_run[output_id]
 
                 await stream_run[output_id].add_segment(binary_data)
                 output_data = await processing_utils.async_move_files_to_cache(
@@ -2189,7 +2237,7 @@ Received inputs:
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         final: bool,
         simple_format: bool = False,
     ) -> list:
@@ -2218,7 +2266,7 @@ Received inputs:
                     data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
-            del self.pending_diff_streams[session_hash][run]
+            self._pop_run_diffs(session_hash, run)
 
         return data
 
@@ -2357,7 +2405,11 @@ Received inputs:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
-                run = id(old_iterator) if was_generating else id(iterator)
+                run = (
+                    self._stream_run_key(old_iterator if was_generating else iterator)
+                    if session_hash is not None
+                    else None
+                )
                 async with trace_phase("streaming_diff"):
                     data = await self.handle_streaming_outputs(
                         block_fn,
@@ -2367,11 +2419,14 @@ Received inputs:
                         root_path=root_path,
                         final=not is_generating,
                     )
+                    # Diff state serves the later chunks of a run, which can
+                    # only be fetched under an event id. A call without one
+                    # gets full values, which is what its clients expect.
                     data = self.handle_streaming_diffs(
                         block_fn,
                         data,
                         session_hash=session_hash,
-                        run=run,
+                        run=run if event_id is not None else None,
                         final=not is_generating,
                         simple_format=simple_format,
                     )

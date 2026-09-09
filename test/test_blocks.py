@@ -1,5 +1,6 @@
 import asyncio
 import copy
+import gc
 import io
 import json
 import os
@@ -25,7 +26,7 @@ from gradio_client import Client
 from PIL import Image
 
 import gradio as gr
-from gradio import blocks, helpers
+from gradio import blocks, helpers, processing_utils
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
@@ -1660,9 +1661,62 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
+requires_ffmpeg = pytest.mark.skipif(
+    not processing_utils.ffmpeg_installed(), reason="ffmpeg not installed"
+)
+
+
+def streaming_audio_demo():
+    """A Blocks whose button streams two audio chunks into a streaming Audio."""
+    chunk = (
+        pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+    ).read_bytes()
+
+    def stream():
+        yield chunk
+        yield chunk
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, None, audio)
+
+    return demo, next(iter(demo.fns.values())), audio
+
+
+async def drive_streaming_run(demo, block_fn, session_hash, event_id):
+    """Run a generator to completion the way the queue does, one call per chunk.
+
+    Returns the playlist URL from the first chunk.
+    """
+    iterator, url = None, None
+    for _ in range(10):
+        output = await demo.process_api(
+            block_fn=block_fn,
+            inputs=[],
+            state=None,
+            iterator=iterator,
+            session_hash=session_hash,
+            event_id=event_id,
+        )
+        iterator = output["iterator"]
+        if url is None:
+            url = output["data"][0]["url"]
+        if not output["is_generating"]:
+            # The final chunk carries the whole value again, so its URL has to
+            # still be the first chunk's. A key that changed mid-run would have
+            # opened a second stream under a second URL. The chunks in between
+            # carry a diff, so there is nothing to compare there.
+            final = output["data"][0]
+            assert isinstance(final, dict) and final.get("url") == url, (
+                "the run key changed mid-run"
+            )
+            return url
+    raise AssertionError("the generator never stopped generating")
+
+
 class TestHandleStreamingOutputs:
     @pytest.mark.asyncio
-    async def test_final_chunk_with_no_open_stream_is_a_no_op(self):
+    async def test_final_chunk_with_no_open_stream_leaves_nothing_behind(self):
         # The session's streams may be gone by the time the final chunk lands —
         # a disconnect drops them — and a generator that sends only prop updates
         # never opens one at all. Neither should cost the caller their output.
@@ -1673,11 +1727,80 @@ class TestHandleStreamingOutputs:
 
         block_fn = next(iter(demo.fns.values()))
         data = await demo.handle_streaming_outputs(
-            block_fn, [b"final"], session_hash="s", run=0, final=True
+            block_fn, [b"final"], session_hash="s", run="run-1", final=True
         )
 
         assert data == [b"final"]
-        assert demo.pending_streams["s"][0] == {}
+        # and the run leaves nothing behind, since nothing can fetch it
+        assert "s" not in demo.pending_streams
+
+    @pytest.mark.asyncio
+    async def test_sequential_runs_get_distinct_run_keys(self):
+        # A later run used to land on the address a finished run had just freed
+        # and inherit the stream that run had already ended.
+        # See https://github.com/gradio-app/gradio/issues/13809
+        def stream():
+            yield None
+            yield None
+
+        with gr.Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+        urls = [
+            await drive_streaming_run(demo, block_fn, "s", f"event-{i}")
+            for i in range(100)
+        ]
+
+        assert len(set(urls)) == 100
+
+    def test_run_keys_are_released_with_their_iterator(self):
+        # Holding the keys strongly would also give every run its own key, by
+        # keeping every iterator alive, which is a leak rather than a fix.
+        from gradio.utils import SyncToAsyncIterator
+
+        demo = gr.Blocks()
+        for _ in range(100):
+            iterator = SyncToAsyncIterator(iter([1]), None)
+            demo._stream_run_key(iterator)
+            del iterator
+
+        gc.collect()
+        assert len(demo._stream_run_ids) == 0
+
+    @requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_each_run_gets_its_own_stream(self):
+        demo, block_fn, audio = streaming_audio_demo()
+
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-2")
+
+        streams = demo.pending_streams["s"]
+        assert first != second
+        assert {first, second} == {
+            f"{API_PREFIX}/stream/s/{key}/{audio._id}/playlist.m3u8" for key in streams
+        }
+        # two segments each, so neither run appended to the other's stream
+        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
+
+    @requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_runs_are_keyed_by_iterator_not_event_id(self):
+        # An event id is not a run id. Cancelling an event drops
+        # `app.iterators[event_id]`, so the next call for that event id starts
+        # the generator over, and keying the run on the event id would hand the
+        # restart the streams the first run had already ended. This drives
+        # `process_api` directly, so it pins the keying, not the cancel path.
+        demo, block_fn, audio = streaming_audio_demo()
+
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-1")
+
+        streams = demo.pending_streams["s"]
+        assert first != second
+        assert [len(streams[key][audio._id].segments) for key in streams] == [2, 2]
 
 
 class TestGetAPIInfo:
