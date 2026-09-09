@@ -4,7 +4,11 @@
 	import { onDestroy, untrack, type Snippet } from "svelte";
 	import { play_media } from "@gradio/utils";
 
-	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
+	import {
+		create_hls_stream,
+		is_hls_supported,
+		refresh_hls_stream
+	} from "@gradio/utils/hls";
 
 	interface Props {
 		src?: HTMLVideoAttributes["src"];
@@ -85,7 +89,10 @@
 			return;
 		}
 		const media = node;
-		if (hls_stream && hls_media === media && hls_src === src) return;
+		if (hls_stream && hls_media === media && hls_src === src) {
+			refresh_hls_stream(hls_stream);
+			return;
+		}
 
 		destroy_hls_stream();
 		hls_media = media;

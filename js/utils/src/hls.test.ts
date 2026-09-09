@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { Hls, create_hls_stream } from "./hls";
+import { Hls, create_hls_stream, refresh_hls_stream } from "./hls";
 
 function attach(on_manifest_parsed?: () => void): Hls {
 	vi.spyOn(Hls.prototype, "loadSource").mockImplementation(() => {});
@@ -56,5 +56,44 @@ describe("create_hls_stream", () => {
 		hls.destroy();
 
 		expect(() => hls.destroy()).not.toThrow();
+	});
+});
+
+describe("refresh_hls_stream", () => {
+	test("reloads the active media playlist", () => {
+		const trigger = vi.fn();
+		const level = {
+			uri: "https://example.com/playlist.m3u8",
+			attrs: { "PATHWAY-ID": "main" }
+		};
+		const hls = {
+			loadLevelObj: level,
+			loadLevel: 2,
+			trigger
+		} as unknown as Hls;
+
+		refresh_hls_stream(hls);
+
+		expect(trigger).toHaveBeenCalledWith(Hls.Events.LEVEL_LOADING, {
+			url: level.uri,
+			level: 2,
+			levelInfo: level,
+			pathwayId: "main",
+			id: 0,
+			deliveryDirectives: null
+		});
+	});
+
+	test("does nothing before a level is selected", () => {
+		const trigger = vi.fn();
+		const hls = {
+			loadLevelObj: null,
+			loadLevel: -1,
+			trigger
+		} as unknown as Hls;
+
+		refresh_hls_stream(hls);
+
+		expect(trigger).not.toHaveBeenCalled();
 	});
 });

@@ -46,3 +46,18 @@ export function create_hls_stream(
 
 	return hls;
 }
+
+export function refresh_hls_stream(hls: Hls): void {
+	const level = hls.loadLevelObj;
+	const level_index = hls.loadLevel;
+	if (!level || level_index < 0) return;
+
+	hls.trigger(Hls.Events.LEVEL_LOADING, {
+		url: level.uri,
+		level: level_index,
+		levelInfo: level,
+		pathwayId: level.attrs["PATHWAY-ID"],
+		id: 0,
+		deliveryDirectives: null
+	});
+}
