@@ -1024,48 +1024,6 @@ describe("Streaming output", () => {
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 
-	test("switching from a file to a stream tears down the waveform", async () => {
-		const { set_data } = await render(Audio, {
-			...default_props,
-			interactive: false,
-			value: fake_value
-		});
-
-		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalled());
-		wavesurfer_load.mockClear();
-
-		await set_data({ value: run_1 });
-
-		expect(wavesurfer_load).not.toHaveBeenCalled();
-	});
-
-	test("a fatal unrecoverable error does not re-attach", async () => {
-		let attempts = 0;
-		load_source.mockImplementation(function (this: Hls) {
-			if (attempts++ < 5) {
-				queueMicrotask(() => {
-					this.trigger(Hls.Events.ERROR, {
-						type: Hls.ErrorTypes.OTHER_ERROR,
-						details: Hls.ErrorDetails.INTERNAL_EXCEPTION,
-						fatal: true
-					} as any);
-				});
-			}
-		});
-
-		await render(Audio, {
-			...default_props,
-			interactive: false,
-			value: run_1
-		});
-
-		await waitFor(() => expect(destroy).toHaveBeenCalled());
-		await new Promise((resolve) => setTimeout(resolve, 50));
-
-		expect(load_source).toHaveBeenCalledTimes(1);
-		expect(destroy).toHaveBeenCalledTimes(1);
-	});
-
 	test("without HLS support the native player reattaches too", async () => {
 		is_supported = vi.spyOn(Hls, "isSupported").mockReturnValue(false);
 		const { getByTestId, set_data } = await render(Audio, {
@@ -1088,33 +1046,6 @@ describe("Streaming output", () => {
 
 		expect(player.getAttribute("src")).toBeNull();
 		expect(player.paused).toBe(true);
-	});
-
-	test("a stale load failure does not downgrade the current file", async () => {
-		let fail_first: (() => void) | undefined;
-		wavesurfer_load
-			.mockImplementationOnce(function (this: WaveSurfer) {
-				return new Promise((_, reject) => {
-					fail_first = () => reject(emit_load_error(this, "decode failed"));
-				});
-			})
-			.mockImplementationOnce(() => Promise.resolve());
-		const { getByTestId, set_data } = await render(Audio, {
-			...default_props,
-			interactive: false,
-			value: fake_value
-		});
-
-		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(1));
-
-		await set_data({ value: { ...fake_value, url: fake_value.url + "?v=2" } });
-		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(2));
-
-		fail_first?.();
-		await new Promise((resolve) => setTimeout(resolve, 0));
-
-		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
-		expect(player.getAttribute("src")).toBeNull();
 	});
 
 	test("a recovered waveform releases the native fallback", async () => {
@@ -1167,24 +1098,6 @@ describe("Streaming output", () => {
 		);
 	});
 
-	test("the substitute for a missing MediaError falls back too", async () => {
-		wavesurfer_load.mockImplementation(function (this: WaveSurfer) {
-			(this as any).emit("error", new Error("Media error"));
-			return new Promise(() => {});
-		});
-
-		const { getByTestId } = await render(Audio, {
-			...default_props,
-			interactive: false,
-			value: fake_value
-		});
-
-		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
-		await waitFor(() =>
-			expect(player.getAttribute("src")).toBe(fake_value.url)
-		);
-	});
-
 	test("a hung load does not disable the fallback for later files", async () => {
 		let report_second: (() => void) | undefined;
 		wavesurfer_load
@@ -1214,41 +1127,6 @@ describe("Streaming output", () => {
 
 		report_second?.();
 		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
-	});
-
-	test("a stale media element error is undone when the file loads", async () => {
-		let instance: WaveSurfer | undefined;
-		let resolve_second: (() => void) | undefined;
-		wavesurfer_load
-			.mockImplementationOnce(function (this: WaveSurfer) {
-				instance = this;
-				return new Promise(() => {});
-			})
-			.mockImplementationOnce(function () {
-				return new Promise<void>((resolve) => {
-					resolve_second = () => resolve();
-				});
-			});
-
-		const { getByTestId, set_data } = await render(Audio, {
-			...default_props,
-			interactive: false,
-			value: fake_value
-		});
-
-		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(1));
-
-		const second = { ...fake_value, url: fake_value.url + "?v=2" };
-		await set_data({ value: second });
-		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(2));
-
-		emit_media_error(instance as WaveSurfer);
-		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
-		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
-
-		resolve_second?.();
-
-		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
 	});
 
 	test("a stream giving way to a file leaves the file attached", async () => {

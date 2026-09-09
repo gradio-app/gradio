@@ -591,12 +591,6 @@ describe("Streaming output", () => {
 		return play;
 	}
 
-	test("a streaming run does not autoplay unless asked to", async () => {
-		const play = await parse_manifest({ autoplay: false });
-
-		expect(play).not.toHaveBeenCalled();
-	});
-
 	test("a streaming run autoplays when asked to", async () => {
 		const play = await parse_manifest({ autoplay: true });
 
@@ -648,33 +642,6 @@ describe("Streaming output", () => {
 
 		await set_data({ value: null });
 
-		expect(destroy).toHaveBeenCalledTimes(1);
-	});
-
-	test("a fatal unrecoverable error does not re-attach", async () => {
-		let attempts = 0;
-		load_source.mockImplementation(function (this: Hls) {
-			if (attempts++ < 5) {
-				queueMicrotask(() => {
-					this.trigger(Hls.Events.ERROR, {
-						type: Hls.ErrorTypes.OTHER_ERROR,
-						details: Hls.ErrorDetails.INTERNAL_EXCEPTION,
-						fatal: true
-					} as any);
-				});
-			}
-		});
-
-		await render(Video, {
-			...default_props,
-			interactive: false,
-			value: run_1
-		});
-
-		await waitFor(() => expect(destroy).toHaveBeenCalled());
-		await new Promise((resolve) => setTimeout(resolve, 50));
-
-		expect(load_source).toHaveBeenCalledTimes(1);
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 });

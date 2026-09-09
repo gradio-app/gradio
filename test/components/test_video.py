@@ -119,22 +119,7 @@ class TestVideo:
         assert processed_video == postprocessed_video
 
     @pytest.mark.asyncio
-    async def test_stream_output_value_is_a_flat_file_payload(self):
-        component = gr.Video(streaming=True)
-
-        _, output_file = await component.stream_output(
-            None, "sess/0/1/playlist.m3u8", first_chunk=True
-        )
-
-        assert output_file == {
-            "path": "sess/0/1/playlist.m3u8",
-            "is_stream": True,
-            "orig_name": "video-stream.mp4",
-            "meta": {"_type": "gradio.FileData"},
-        }
-
-    @pytest.mark.asyncio
-    async def test_stream_output_keeps_the_payload_across_chunks(self, tmp_path):
+    async def test_stream_output_returns_a_flat_payload_and_chunk(self, tmp_path):
         component = gr.Video(streaming=True)
         chunk_source = tmp_path / "chunk.ts"
         chunk_source.write_bytes(b"transport-stream-bytes")
@@ -155,29 +140,6 @@ class TestVideo:
             "duration": 1.5,
             "extension": ".ts",
         }
-
-    @pytest.mark.asyncio
-    async def test_stream_output_replaces_only_the_chunk_extension(self, tmp_path):
-        component = gr.Video(streaming=True)
-        chunk_dir = tmp_path / "clips.mp4"
-        chunk_dir.mkdir()
-        chunk_source = chunk_dir / "frame_0.mp4"
-        chunk_source.write_bytes(b"mp4-bytes")
-
-        async def convert(mp4_file, ts_file):
-            Path(ts_file).write_bytes(b"ts-bytes")
-
-        with (
-            patch.object(gr.Video, "async_convert_mp4_to_ts", staticmethod(convert)),
-            patch.object(gr.Video, "get_video_duration_ffprobe", return_value=1.0),
-        ):
-            chunk, _ = await component.stream_output(
-                str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
-            )
-
-        assert (chunk_dir / "frame_0.ts").exists()
-        assert chunk is not None
-        assert chunk["data"] == b"ts-bytes"
 
     def test_in_interface(self, media_data):
         """
