@@ -584,7 +584,7 @@ class Video(StreamingOutput, Component):
 
     async def stream_output(
         self,
-        value: str | None,
+        value: str | Path | None,
         output_id: str,
         first_chunk: bool,  # noqa: ARG002
     ) -> tuple[MediaStreamChunk | None, FileDataDict]:
@@ -600,6 +600,7 @@ class Video(StreamingOutput, Component):
         }
         if value is None:
             return None, output_file
+        value = str(value)
 
         ts_file = value
         if not value.endswith(".ts"):
