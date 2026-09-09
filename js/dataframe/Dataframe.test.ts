@@ -956,7 +956,7 @@ describe("Add/remove rows and columns", () => {
 	});
 
 	test("empty table keeps its add row button on screen in fullscreen", async () => {
-		await render(Dataframe, {
+		const { getByRole } = await render(Dataframe, {
 			...dynamic_props,
 			value: {
 				data: [],
@@ -967,17 +967,19 @@ describe("Add/remove rows and columns", () => {
 		});
 		await wait();
 
-		const toggle = () =>
-			document.querySelector(
-				'button[aria-label="Fullscreen"], button[aria-label="Exit fullscreen mode"]'
-			) as HTMLElement;
+		const toggle = (): HTMLElement =>
+			getByRole("button", { name: /fullscreen/i });
+
+		// A sibling that follows `.table-container` is laid out past the bottom of
+		// the fixed fullscreen viewport, so the button has to be inside it.
+		expect(
+			document.querySelector(".table-container .add-row-button")
+		).not.toBeNull();
 
 		function expect_button_under_header(): void {
-			const button = document.querySelector(
-				".table-container .add-row-button"
-			) as HTMLElement | null;
-			expect(button).not.toBeNull();
-			const box = button!.getBoundingClientRect();
+			const box = getByRole("button", {
+				name: "Add row"
+			}).getBoundingClientRect();
 			const header = (
 				document.querySelector("thead") as HTMLElement
 			).getBoundingClientRect();
