@@ -67,17 +67,10 @@
 		children
 	}: Props = $props();
 
-	// This effect owns the stream: it attaches one per playlist URL and the
-	// teardown destroys it on a new run, on clearing and on unmount. Without
-	// MSE support the native element plays the bound `src` itself.
 	$effect(() => {
 		if (!node || !is_stream || !src) return;
 		const media = node;
 		if (is_hls_supported()) {
-			// The manifest is parsed off the network, so the callback never
-			// runs in a reactive context; the `untrack` keeps a synchronous
-			// emit from making `autoplay` a dependency, which would tear the
-			// stream down mid-run whenever the parent changed it.
 			const hls = create_hls_stream(media, src, () => {
 				if (untrack(() => autoplay)) play_media(media);
 			});

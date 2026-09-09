@@ -49,7 +49,6 @@ const loading_status: LoadingStatus = {
 	stream_state: "closed" as const
 };
 
-// Captured before any test spies on it, so a stub can still call through.
 const real_hls_destroy = Hls.prototype.destroy;
 
 const fake_value = {
@@ -967,8 +966,6 @@ describe("Streaming output", () => {
 		media_pause = vi.spyOn(HTMLMediaElement.prototype, "pause");
 	});
 	afterEach(() => {
-		// `cleanup()` unmounts, which is what runs the effect teardowns, so it
-		// has to happen while the spies are still in place.
 		cleanup();
 		load_source.mockRestore();
 		destroy.mockRestore();
@@ -978,16 +975,12 @@ describe("Streaming output", () => {
 		is_supported = undefined;
 	});
 
-	// wavesurfer's load() emits `error` before it rejects, and the event
-	// carries no URL, so a mocked failure has to reproduce that ordering.
 	function emit_load_error(instance: WaveSurfer, message: string): Error {
 		const e = new Error(message);
 		(instance as any).emit("error", e);
 		return e;
 	}
 
-	// An unroutable host: these URLs land on real media elements, and a
-	// resolvable one would send actual requests out of the unit tests.
 	const run_1 = {
 		...TEST_WAV,
 		is_stream: true,
@@ -1007,7 +1000,6 @@ describe("Streaming output", () => {
 
 		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
 
-		// A run re-sends its own URL with every chunk.
 		await set_data({ value: { ...run_1 } });
 		expect(load_source).toHaveBeenCalledTimes(1);
 
@@ -1044,13 +1036,10 @@ describe("Streaming output", () => {
 
 		await set_data({ value: run_1 });
 
-		// The playlist belongs to the HLS player; wavesurfer cannot decode it.
 		expect(wavesurfer_load).not.toHaveBeenCalled();
 	});
 
 	test("a fatal unrecoverable error does not re-attach", async () => {
-		// Only the first few attempts fail: against a re-attach loop an
-		// unbounded injection would keep the browser spinning forever.
 		let attempts = 0;
 		load_source.mockImplementation(function (this: Hls) {
 			if (attempts++ < 5) {
@@ -1093,12 +1082,8 @@ describe("Streaming output", () => {
 
 		expect(player.src).toBe(run_2.url);
 		expect(load_source).not.toHaveBeenCalled();
-		// A programmatic pause would dispatch a `pause` the user never caused;
-		// the teardown stops playback with `load()` instead.
 		expect(media_pause).not.toHaveBeenCalled();
 
-		// Clearing unmounts the player, so this covers the unmount teardown:
-		// it has to release the source or the stream keeps playing.
 		await set_data({ value: null });
 
 		expect(player.getAttribute("src")).toBeNull();
@@ -1125,7 +1110,6 @@ describe("Streaming output", () => {
 		await set_data({ value: { ...fake_value, url: fake_value.url + "?v=2" } });
 		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(2));
 
-		// The first file's decode fails only after the value moved on.
 		fail_first?.();
 		await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -1153,17 +1137,10 @@ describe("Streaming output", () => {
 
 		await set_data({ value: { ...fake_value, url: fake_value.url + "?v=2" } });
 
-		// The failed file must not keep playing behind the new waveform.
 		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
 	});
 
-	// wavesurfer reports a media element error through the same `error` event
-	// as a load failure, but the load it interrupts never settles: it is
-	// blocked on a duration that only `loadedmetadata` resolves, and an
-	// errored element never fires that event.
 	function emit_media_error(instance: WaveSurfer): MediaError {
-		// MediaError has no public constructor, so an instance has to come
-		// from its prototype for the type check to hold.
 		const e = Object.create(MediaError.prototype, {
 			code: { value: MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED },
 			message: { value: "unsupported container" }
@@ -1192,7 +1169,6 @@ describe("Streaming output", () => {
 
 	test("the substitute for a missing MediaError falls back too", async () => {
 		wavesurfer_load.mockImplementation(function (this: WaveSurfer) {
-			// wavesurfer emits this when the element reports no error object.
 			(this as any).emit("error", new Error("Media error"));
 			return new Promise(() => {});
 		});
@@ -1234,10 +1210,8 @@ describe("Streaming output", () => {
 
 		const second = { ...fake_value, url: fake_value.url + "?v=2" };
 		await set_data({ value: second });
-		// The waveform recovers on the new file, so the fallback is released,
 		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
 
-		// and an error on that file still has to reach the fallback.
 		report_second?.();
 		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
 	});
@@ -1248,7 +1222,6 @@ describe("Streaming output", () => {
 		wavesurfer_load
 			.mockImplementationOnce(function (this: WaveSurfer) {
 				instance = this;
-				// The first file is still waiting on its element's metadata.
 				return new Promise(() => {});
 			})
 			.mockImplementationOnce(function () {
@@ -1269,28 +1242,18 @@ describe("Streaming output", () => {
 		await set_data({ value: second });
 		await waitFor(() => expect(wavesurfer_load).toHaveBeenCalledTimes(2));
 
-		// The first file's element error lands while the second one is still
-		// loading, and it carries no URL, so it downgrades the second one.
 		emit_media_error(instance as WaveSurfer);
 		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
 		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
 
 		resolve_second?.();
 
-		// The second file does play, so the fallback has to be released.
 		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
 	});
 
 	test("a stream giving way to a file leaves the file attached", async () => {
-		// Attaching through a ManagedMediaSource (Safari 17+/iOS 17+) leaves
-		// hls.js's object URL in a `<source>` child, so on detach it finds its
-		// own URL there and clears the element even when `src` has moved on to
-		// another source. The player must not rely on that guard to keep the
-		// source it just set.
 		destroy.mockImplementation(function (this: Hls) {
 			const media = this.media;
-			// Call through so the instance really goes away, then reproduce
-			// what its detach does on that path.
 			real_hls_destroy.call(this);
 			media?.removeAttribute("src");
 			media?.load();

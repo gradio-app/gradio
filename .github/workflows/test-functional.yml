@@ -124,9 +124,7 @@ jobs:
         if: matrix.suite == 'browser'
         env:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
-          # Each worker runs Chromium alongside its own Gradio app. Eight
-          # workers overload the runner often enough that unrelated queued
-          # events exceed Playwright's timeout, so keep the stable default.
+          # Each worker runs Chromium and a Gradio app; eight overloads the runner.
           PW_BROWSER_WORKERS: 4
         run: |
           . venv/bin/activate

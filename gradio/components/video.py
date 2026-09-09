@@ -588,13 +588,9 @@ class Video(StreamingOutput, Component):
         output_id: str,
         first_chunk: bool,  # noqa: ARG002
     ) -> tuple[MediaStreamChunk | None, FileDataDict]:
-        # The streamed value has the same shape as postprocess() output: a
-        # plain FileData. The frontend reads value.url off it directly.
         output_file: FileDataDict = {
             "path": output_id,
             "is_stream": True,
-            # Need to set orig_name so that downloaded file has correct
-            # extension
             "orig_name": "video-stream.mp4",
             "meta": {"_type": "gradio.FileData"},
         }
@@ -608,8 +604,6 @@ class Video(StreamingOutput, Component):
                 raise RuntimeError(
                     "Video must be in .mp4 or .ts format to be streamed as chunks",
                 )
-            # Only the extension: `replace` also rewrote a directory whose
-            # name ends in .mp4, handing ffmpeg a path that does not exist.
             ts_file = str(Path(value).with_suffix(".ts"))
             await self.async_convert_mp4_to_ts(value, ts_file)
 

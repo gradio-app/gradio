@@ -79,8 +79,6 @@ const default_props = {
 };
 
 beforeAll(() => {
-	// `play()` returns a promise the component and the `loaded` action both
-	// attach a `catch` to, so the stub has to return one as well.
 	window.HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
 	window.HTMLMediaElement.prototype.pause = vi.fn();
 });
@@ -552,15 +550,11 @@ describe("Streaming output", () => {
 		destroy = vi.spyOn(Hls.prototype, "destroy");
 	});
 	afterEach(() => {
-		// `cleanup()` unmounts, which is what runs the effect teardowns, so it
-		// has to happen while the spies are still in place.
 		cleanup();
 		load_source.mockRestore();
 		destroy.mockRestore();
 	});
 
-	// An unroutable host: these URLs land on real media elements, and a
-	// resolvable one would send actual requests out of the unit tests.
 	const run_1 = {
 		...fake_value,
 		is_stream: true,
@@ -571,13 +565,6 @@ describe("Streaming output", () => {
 		url: "https://stream.invalid/abc/2/1/playlist.m3u8"
 	};
 
-	// The manifest callback is what starts playback for a stream, and it is
-	// the only place the `autoplay` prop can still be overridden. Triggering
-	// the event on the instance is no good: hls.js's own listeners run first
-	// and throw on a hand-made payload, which aborts the emit before the
-	// component's callback. `create_hls_stream` registers its listeners
-	// immediately before `loadSource`, so inside that call the last
-	// `MANIFEST_PARSED` listener is the component's own.
 	async function parse_manifest(
 		props: Record<string, any>
 	): Promise<ReturnType<typeof vi.fn>> {
@@ -596,8 +583,6 @@ describe("Streaming output", () => {
 
 		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
 
-		// `play` is stubbed on the prototype for the whole file, so `vi.spyOn`
-		// would hand back that shared mock with every earlier call on it.
 		const play = vi.fn(() => Promise.resolve());
 		const video = getByTestId("Video-player") as HTMLVideoElement;
 		Object.defineProperty(video, "play", { value: play, configurable: true });
@@ -631,8 +616,6 @@ describe("Streaming output", () => {
 
 		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
 		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
-		// VideoPreview keys the player on the URL, so a new run remounts it
-		// and this destroy comes from the unmount teardown.
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 
@@ -651,8 +634,6 @@ describe("Streaming output", () => {
 	});
 
 	test("a fatal unrecoverable error does not re-attach", async () => {
-		// Only the first few attempts fail: against a re-attach loop an
-		// unbounded injection would keep the browser spinning forever.
 		let attempts = 0;
 		load_source.mockImplementation(function (this: Hls) {
 			if (attempts++ < 5) {

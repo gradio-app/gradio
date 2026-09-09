@@ -56,7 +56,6 @@
 		onload?: () => void;
 	} = $props();
 
-	// What wavesurfer emits when the media element reports no error object.
 	const MEDIA_ERROR_FALLBACK = "Media error";
 
 	let url = $derived(value?.url);
@@ -191,17 +190,7 @@
 			onload?.();
 		});
 
-		// wavesurfer emits `error` for a failed load and for a media element
-		// error. A failed load also rejects the load promise, the only path
-		// that knows which URL failed, so it is handled there. A media element
-		// error never reaches that promise: wavesurfer reads the duration by
-		// waiting for `loadedmetadata`, an error means that event never
-		// arrives, and the wait has no reject path, so the load hangs. The
-		// event is the only signal for it, and `MediaError` is what separates
-		// the two. A real element has its `error` set before the event fires,
-		// so wavesurfer's substitute for a missing one should be unreachable,
-		// but it is matched as well: if it ever does arrive, dropping it
-		// leaves a blank waveform, no fallback and an empty console.
+		// Media element errors can leave WaveSurfer's load promise pending.
 		waveform?.on("error", (e: Error | MediaError) => {
 			if (!(e instanceof MediaError) && e.message !== MEDIA_ERROR_FALLBACK)
 				return;
@@ -215,8 +204,6 @@
 			untrack(() => {
 				if (waveform) {
 					if (waveform_load_failed) {
-						// The failed file is still attached to the native element
-						// and keeps playing behind the waveform unless released.
 						audio_player?.removeAttribute("src");
 						audio_player?.load();
 					}
@@ -224,17 +211,6 @@
 					waveform
 						.load(loading_url)
 						.then(() => {
-							// A media element error carries no URL, so one raised
-							// by the file the value moved past can land on this
-							// one while it is still loading. Reaching here means
-							// this file does play, so the fallback it was pushed
-							// into is released. That holds for an error raised
-							// before this file's own metadata, which is what
-							// leaves the load hanging. One raised later, while
-							// wavesurfer runs its own decode, lets the load
-							// resolve and is released along with the stale ones;
-							// the native element it fell back to is pointed at
-							// the same bytes, so it was not buying much.
 							if (loading_url !== url || !waveform_load_failed) return;
 							audio_player?.removeAttribute("src");
 							audio_player?.load();
@@ -250,10 +226,6 @@
 		e: Error | MediaError,
 		failed_url?: string
 	): void {
-		// A late rejection from a load the value has moved past (a stream, or
-		// an earlier file) must not downgrade the current source to the
-		// native fallback. A media element error carries no URL, so it is
-		// taken to be about the file currently attached.
 		if (failed_url !== undefined && failed_url !== url) return;
 		if (is_stream) return;
 		if (("name" in e && e.name === "AbortError") || waveform_load_failed)
@@ -293,38 +265,20 @@
 		}
 	});
 
-	// This effect owns the native element's source: a stream gets one HLS
-	// instance per playlist URL, and a plain file is assigned directly when
-	// there is no waveform to play it. Both live in one effect because they
-	// are one resource. Svelte runs an effect's teardown before its next
-	// body, so releasing the old source and putting the new one in place can
-	// never happen out of order, which two effects could not guarantee: the
-	// player would then be left with a source hls.js had already discarded.
-	// Every branch takes a teardown so changing player modes cannot leave a
-	// hidden native source playing. `value` is a fresh object on every chunk,
-	// so the effect must only depend on the equality-stable deriveds, or each
-	// chunk would restart the stream.
+	// Keep teardown and source replacement in one effect and depend only on
+	// stable derived values so repeated chunks do not restart the stream.
 	$effect(() => {
 		if (!audio_player || !url) return;
 		const media = audio_player;
 		if (is_stream) {
 			if (is_hls_supported()) {
-				// A manifest parsed off the network never runs in a reactive
-				// context, so the `untrack` is defensive: it keeps a
-				// synchronous emit from making `waveform_settings` a
-				// dependency, which would tear the stream down mid-run
-				// whenever the parent re-created that object.
 				const hls = create_hls_stream(media, url, () => {
 					if (untrack(() => waveform_settings.autoplay)) play_media(media);
 				});
 				return () => hls.destroy();
 			}
-			// The element carries `autoplay={waveform_settings.autoplay}`, so
-			// assigning the source is all it takes to start playback.
 			media.src = url;
 			return () => {
-				// `load()` stops playback without dispatching a `pause` the
-				// app never caused.
 				media.removeAttribute("src");
 				media.load();
 			};

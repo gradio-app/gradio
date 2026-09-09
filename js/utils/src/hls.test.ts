@@ -46,10 +46,6 @@ describe("create_hls_stream", () => {
 		expect(destroy).not.toHaveBeenCalled();
 	});
 
-	// The owning effect's teardown destroys the instance even when a fatal
-	// error already destroyed it, so a second destroy() has to stay safe.
-	// `attachMedia` runs for real here so the second destroy walks the detach
-	// path with a MediaSource in place, which is the state the teardown meets.
 	test("destroying an already-destroyed instance does not throw", () => {
 		vi.spyOn(Hls.prototype, "loadSource").mockImplementation(() => {});
 		const hls = create_hls_stream(
