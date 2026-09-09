@@ -2,11 +2,12 @@
 
 ```html
 <script>
-    import {BaseDropdown, BaseMultiselect, BaseExample } from "@gradio/dropdown";
+	import { BaseDropdown, BaseMultiselect, BaseExample } from "@gradio/dropdown";
 </script>
 ```
 
 BaseDropdown
+
 ```javascript
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -18,9 +19,11 @@ BaseDropdown
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
+	export let num_choices_shown: number | null = 100; // Initial matches shown; scrolling loads more. null shows all matches.
 ```
 
 BaseMultiselect
+
 ```javascript
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -33,12 +36,14 @@ BaseMultiselect
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
+	export let num_choices_shown: number | null = 100; // Initial matches shown; scrolling loads more. null shows all matches.
 	export let i18n: I18nFormatter;
 ```
 
 BaseExample
+
 ```javascript
 	export let value: string;
 	export let type: "gallery" | "table";
-	export let selected = false;    
+	export let selected = false;
 ```

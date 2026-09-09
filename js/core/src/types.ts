@@ -65,7 +65,7 @@ export interface Dependency {
 	inputs: number[];
 	outputs: number[];
 	backend_fn: boolean;
-	js: string | null; // frontend fn
+	js: string | true | null; // frontend fn or Python-to-JS transpilation marker
 	scroll_to_output: boolean; // used by loading_status
 	show_progress: "full" | "minimal" | "hidden"; // used by loading_status
 	show_progress_on: number[] | null; // used by loading_status
