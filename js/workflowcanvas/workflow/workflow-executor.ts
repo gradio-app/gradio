@@ -9,6 +9,10 @@ import type {
 } from "./workflow-types";
 import { toLegacyShape } from "./workflow-migration";
 import { topoSort } from "./workflow-graph";
+import {
+	is_streamable_text_task,
+	type ChatContentPart
+} from "./inference-stream";
 
 type StatusCallback = (
 	nodeId: string,
@@ -47,11 +51,75 @@ type ServerCallPyFn = (fnName: string, argsJson: string) => Promise<string>;
  */
 type StreamTextFn = (
 	modelId: string,
-	prompt: string,
+	content: string | ChatContentPart[],
 	provider: string | undefined,
 	signal: AbortSignal | undefined,
-	onChunk: (delta: string, accumulated: string) => void
+	onChunk: (delta: string, accumulated: string) => void,
+	params?: Record<string, string | number>
 ) => Promise<string>;
+
+async function toDataUrl(url: string): Promise<string> {
+	if (/^data:/.test(url)) return url;
+	if (/^https?:\/\//.test(url)) {
+		try {
+			if (new URL(url).origin !== location.origin) return url;
+		} catch {
+			return url;
+		}
+	}
+	const res = await fetch(url);
+	if (!res.ok) throw new Error(`Could not read image (${res.status})`);
+	const blob = await res.blob();
+	if (blob.type && !blob.type.startsWith("image/")) {
+		throw new Error(`Expected an image, got "${blob.type}"`);
+	}
+	return await new Promise<string>((resolve, reject) => {
+		const r = new FileReader();
+		r.onload = () => resolve(r.result as string);
+		r.onerror = () => reject(r.error);
+		r.readAsDataURL(blob);
+	});
+}
+
+async function buildChatBody(
+	ports: Port[],
+	args: unknown[]
+): Promise<{
+	content: string | ChatContentPart[];
+	params: Record<string, string | number>;
+}> {
+	const parts: ChatContentPart[] = [];
+	const params: Record<string, string | number> = {};
+	for (let i = 0; i < ports.length; i++) {
+		const port = ports[i];
+		const arg = args[i];
+		if (arg == null || arg === "") continue;
+		if (port.custom) {
+			if (typeof arg === "string" || typeof arg === "number") {
+				params[port.id] = arg;
+			}
+			continue;
+		}
+		if (port.type === "image") {
+			const url = (arg as { url?: string })?.url;
+			if (url) {
+				parts.push({
+					type: "image_url",
+					image_url: { url: await toDataUrl(url) }
+				});
+			}
+		} else if (typeof arg === "string" || typeof arg === "number") {
+			parts.push({ type: "text", text: String(arg) });
+		}
+	}
+	const content =
+		parts.length === 0
+			? ""
+			: parts.length === 1 && parts[0].type === "text"
+				? parts[0].text
+				: parts;
+	return { content, params };
+}
 
 function resolveInputs(
 	node: WFNode,
@@ -453,50 +521,58 @@ export async function executeWorkflow(
 						throw new Error(missing_input_message(node, port));
 					}
 				}
-				const args = await Promise.all(
-					node.inputs.map((port) => toGradioArg(inputs[port.id]))
-				);
+				const tag = node.pipeline_tag ?? "text-generation";
+				const streamable =
+					node.source === "model" &&
+					!!node.model_id &&
+					is_streamable_text_task(tag) &&
+					!!stream_text_generation;
+				const args = streamable
+					? node.inputs.map((port) => inputs[port.id] as unknown)
+					: await Promise.all(
+							node.inputs.map((port) => toGradioArg(inputs[port.id]))
+						);
 
 				let resultJson: string;
 
 				if (node.source === "model" && node.model_id) {
-					if (!serverCallModel) {
-						throw new Error("Model call function not available");
-					}
-					// Custom-port values need names — pack as a keyed dict so
-					// the backend's dict-args branch can pass them as kwargs.
-					const hasCustomPorts = node.inputs.some((p) => p.custom);
-					const modelArgs = hasCustomPorts
-						? (Object.fromEntries(
-								node.inputs.map((port, i) => [port.id, args[i]])
-							) as unknown)
-						: args;
-					// Prefer browser-side streaming for chat-completion-compatible
-					// text tasks so the UI receives tokens as they arrive. Skip
-					// streaming when there are custom ports — the streaming path
-					// only sends the prompt and would drop the extras.
-					const tag = node.pipeline_tag ?? "text-generation";
-					const streamable =
-						(tag === "text-generation" ||
-							tag === "text2text-generation" ||
-							tag === "conversational") &&
-						!hasCustomPorts &&
-						!!stream_text_generation;
 					if (streamable) {
-						const prompt =
-							typeof args[0] === "string" ? args[0] : String(args[0] ?? "");
+						const { content, params } = await buildChatBody(node.inputs, args);
 						const outputPort = node.outputs[0];
+						const downstream = outputPort
+							? edges.filter(
+									(e) =>
+										e.from_node_id === node.id &&
+										e.from_port_id === outputPort.id
+								)
+							: [];
 						const final = await stream_text_generation!(
 							node.model_id,
-							prompt,
+							content,
 							node.provider,
 							signal,
 							(_delta, accumulated) => {
-								if (outputPort) onOutput(node.id, outputPort.id, accumulated);
-							}
+								if (!outputPort) return;
+								onOutput(node.id, outputPort.id, accumulated);
+								for (const e of downstream) {
+									onOutput(e.to_node_id, e.to_port_id, accumulated);
+								}
+							},
+							params
 						);
 						resultJson = JSON.stringify([final]);
 					} else {
+						if (!serverCallModel) {
+							throw new Error("Model call function not available");
+						}
+						// Custom-port values need names — pack as a keyed dict so
+						// the backend's dict-args branch can pass them as kwargs.
+						const hasCustomPorts = node.inputs.some((p) => p.custom);
+						const modelArgs = hasCustomPorts
+							? (Object.fromEntries(
+									node.inputs.map((port, i) => [port.id, args[i]])
+								) as unknown)
+							: args;
 						resultJson = await Promise.race([
 							serverCallModel(
 								node.model_id,
