@@ -619,6 +619,24 @@ describe("Streaming output", () => {
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 
+	test("an update to the current streaming run keeps the player", async () => {
+		const { getByTestId, set_data } = await render(Video, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		const player = getByTestId("Video-player") as HTMLVideoElement;
+		player.currentTime = 1.5;
+		await set_data({ value: { ...run_1 } });
+
+		expect(destroy).not.toHaveBeenCalled();
+		expect(load_source).toHaveBeenCalledTimes(1);
+		expect(player.currentTime).toBe(1.5);
+	});
+
 	test("clearing the value tears down the attached stream", async () => {
 		const { set_data } = await render(Video, {
 			...default_props,

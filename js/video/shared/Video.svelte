@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { HTMLVideoAttributes } from "svelte/elements";
 	import { loaded } from "./utils";
-	import { untrack, type Snippet } from "svelte";
+	import { onDestroy, untrack, type Snippet } from "svelte";
 	import { play_media } from "@gradio/utils";
 
 	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
@@ -66,16 +66,33 @@
 		"data-testid": dataTestid,
 		children
 	}: Props = $props();
+	let hls_stream: ReturnType<typeof create_hls_stream> | undefined;
+	let hls_media: HTMLMediaElement | undefined;
+	let hls_src: string | undefined;
+
+	function destroy_hls_stream(): void {
+		hls_stream?.destroy();
+		hls_stream = undefined;
+		hls_media = undefined;
+		hls_src = undefined;
+	}
+
+	onDestroy(destroy_hls_stream);
 
 	$effect(() => {
-		if (!node || !is_stream || !src) return;
-		const media = node;
-		if (is_hls_supported()) {
-			const hls = create_hls_stream(media, src, () => {
-				if (untrack(() => autoplay)) play_media(media);
-			});
-			return () => hls.destroy();
+		if (!node || !is_stream || !src || !is_hls_supported()) {
+			destroy_hls_stream();
+			return;
 		}
+		const media = node;
+		if (hls_stream && hls_media === media && hls_src === src) return;
+
+		destroy_hls_stream();
+		hls_media = media;
+		hls_src = src;
+		hls_stream = create_hls_stream(media, src, () => {
+			if (untrack(() => autoplay)) play_media(media);
+		});
 	});
 </script>
 
