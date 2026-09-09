@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Fix async child rendering in custom components
+fix:Several fixes related to rendering of custom components
