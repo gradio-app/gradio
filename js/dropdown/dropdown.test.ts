@@ -6,7 +6,7 @@ import { setupi18n, changeLocale } from "../core/src/i18n";
 import { formatter, reactive_formatter } from "../core/src/gradio_helper";
 
 import Dropdown from "./Index.svelte";
-import { handle_filter } from "./shared/utils";
+import { handle_filter_with_count } from "./shared/utils";
 
 // Build a real i18n marker the way the backend's I18nData does.
 const marker = (key: string): string =>
@@ -25,6 +25,7 @@ const single_select_props = {
 	interactive: true,
 	multiselect: false,
 	max_choices: null,
+	num_choices_shown: 100,
 	allow_custom_value: false
 };
 
@@ -33,6 +34,11 @@ const tuple_choices: [string, string | number][] = [
 	["Banana Display", "banana_val"],
 	["Cherry Display", "cherry_val"]
 ];
+
+const many_choices = Array.from(
+	{ length: 105 },
+	(_, index) => [`choice-${index}`, `choice-${index}`] as [string, string]
+);
 
 const multiselect_props = {
 	label: "Multiselect",
@@ -47,6 +53,7 @@ const multiselect_props = {
 	interactive: true,
 	multiselect: true,
 	max_choices: null,
+	num_choices_shown: 100,
 	allow_custom_value: false
 };
 
@@ -62,7 +69,8 @@ run_shared_prop_tests({
 		filterable: true,
 		interactive: true,
 		multiselect: false,
-		max_choices: null
+		max_choices: null,
+		num_choices_shown: 100
 	}
 });
 
@@ -155,6 +163,214 @@ describe("Single-select: Options display", () => {
 
 		const options = getAllByTestId("dropdown-option");
 		expect(options).toHaveLength(3);
+	});
+
+	test("num_choices_shown limits the initially displayed options", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			num_choices_shown: 2
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(2);
+		expect(options[0]).toHaveAttribute("aria-label", "apple");
+		expect(options[1]).toHaveAttribute("aria-label", "banana");
+	});
+
+	test("scrolling to the bottom automatically loads the next batch", async () => {
+		const { getByLabelText, getAllByTestId, getByRole, getByText } =
+			await render(Dropdown, {
+				...single_select_props,
+				value: null,
+				choices: many_choices,
+				num_choices_shown: 4
+			});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		expect(getAllByTestId("dropdown-option")).toHaveLength(4);
+		expect(getByText("4 choices shown, 101 remaining")).toBeInTheDocument();
+
+		const listbox = getByRole("listbox");
+		await waitFor(() => {
+			expect(listbox.scrollHeight).toBeGreaterThan(listbox.clientHeight);
+		});
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+			expect(getByText("8 choices shown, 97 remaining")).toBeInTheDocument();
+		});
+		for (const [index, option] of getAllByTestId("dropdown-option").entries()) {
+			expect(option).toHaveAttribute("aria-setsize", "105");
+			expect(option).toHaveAttribute("aria-posinset", String(index + 1));
+		}
+
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(12);
+		});
+	});
+
+	test("loading a batch keeps the scroll position when a value is selected", async () => {
+		const { getByLabelText, getAllByTestId, getByRole } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: "choice-2",
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const listbox = getByRole("listbox");
+		listbox.scrollTop = listbox.scrollHeight;
+		const parked = listbox.scrollTop;
+		await fireEvent.scroll(listbox);
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+		});
+		expect(listbox.scrollTop).toBe(parked);
+	});
+
+	test("an untruncated list does not announce progressive loading", async () => {
+		const { getByLabelText, queryByText } = await render(Dropdown, {
+			...single_select_props
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		expect(queryByText("3 choices shown, 0 remaining")).not.toBeInTheDocument();
+	});
+
+	test("keyboard navigation loads and selects from the next batch", async () => {
+		const { getByLabelText, getAllByTestId, getByRole, get_data } =
+			await render(Dropdown, {
+				...single_select_props,
+				value: null,
+				choices: many_choices,
+				num_choices_shown: 4
+			});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		const listbox = getByRole("listbox");
+		for (let index = 0; index < 5; index++) {
+			await event.keyboard("{ArrowDown}");
+		}
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-4")
+			);
+			expect(listbox.scrollTop).toBeGreaterThan(0);
+		});
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toBe("choice-4");
+	});
+
+	test("ArrowUp from the first option wraps to the last matching option", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				value: null,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("{ArrowDown}{ArrowUp}");
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(105);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-104")
+			);
+		});
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toBe("choice-104");
+	});
+
+	test("Home and End move to the first and last matching options", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			value: null,
+			choices: many_choices,
+			num_choices_shown: 4
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("{End}");
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(105);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-104")
+			);
+		});
+
+		await event.keyboard("{Home}");
+		expect(input).toHaveAttribute(
+			"aria-activedescendant",
+			expect.stringContaining("-option-0")
+		);
+	});
+
+	test("a selected option beyond the initial batch does not replace a visible choice", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				choices: many_choices,
+				value: "choice-104",
+				num_choices_shown: 100
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(100);
+		expect(options[0]).toHaveAttribute("aria-label", "choice-0");
+		expect(options[99]).toHaveAttribute("aria-label", "choice-99");
+		expect(input).not.toHaveAttribute("aria-activedescendant");
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toBe("choice-104");
+	});
+
+	test("num_choices_shown=null displays every matching option", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			choices: many_choices,
+			num_choices_shown: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+
+		expect(getAllByTestId("dropdown-option")).toHaveLength(105);
 	});
 
 	test("options display names, not internal values", async () => {
@@ -270,6 +486,28 @@ describe("Single-select: Filtering", () => {
 
 		const options = getAllByTestId("dropdown-option");
 		expect(options).toHaveLength(2);
+	});
+
+	test("num_choices_shown limits the initially filtered options", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...single_select_props,
+			value: null,
+			num_choices_shown: 2,
+			choices: [
+				["apple", "apple"],
+				["banana", "banana"],
+				["grape", "grape"]
+			] as [string, string][]
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("a");
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(2);
+		expect(options[0]).toHaveAttribute("aria-label", "apple");
+		expect(options[1]).toHaveAttribute("aria-label", "banana");
 	});
 });
 
@@ -1002,6 +1240,112 @@ describe("Multiselect: Options display", () => {
 		expect(options).toHaveLength(3);
 	});
 
+	test("num_choices_shown limits the initially displayed options", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...multiselect_props,
+			num_choices_shown: 2
+		});
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+
+		const options = getAllByTestId("dropdown-option");
+		expect(options).toHaveLength(2);
+	});
+
+	test("scrolling to the bottom automatically loads the next multiselect batch", async () => {
+		const { getByLabelText, getAllByTestId, getByRole } = await render(
+			Dropdown,
+			{
+				...multiselect_props,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+		expect(getAllByTestId("dropdown-option")).toHaveLength(4);
+
+		const listbox = getByRole("listbox");
+		await waitFor(() => {
+			expect(listbox.scrollHeight).toBeGreaterThan(listbox.clientHeight);
+		});
+		listbox.scrollTop = listbox.scrollHeight;
+		await fireEvent.scroll(listbox);
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+		});
+	});
+
+	test("keyboard navigation loads and selects from the next multiselect batch", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...multiselect_props,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+		for (let index = 0; index < 4; index++) {
+			await event.keyboard("{ArrowDown}");
+		}
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(8);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-4")
+			);
+		});
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toEqual(["choice-4"]);
+	});
+
+	test("End loads and selects the last matching multiselect option", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...multiselect_props,
+				choices: many_choices,
+				num_choices_shown: 4
+			}
+		);
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+		await event.keyboard("{End}");
+
+		await waitFor(() => {
+			expect(getAllByTestId("dropdown-option")).toHaveLength(105);
+			expect(input).toHaveAttribute(
+				"aria-activedescendant",
+				expect.stringContaining("-option-104")
+			);
+		});
+
+		await event.keyboard("{Enter}");
+		expect((await get_data()).value).toEqual(["choice-104"]);
+	});
+
+	test("num_choices_shown=null displays every matching option", async () => {
+		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+			...multiselect_props,
+			choices: many_choices,
+			num_choices_shown: null
+		});
+
+		const input = getByLabelText("Multiselect") as HTMLInputElement;
+		await input.focus();
+
+		expect(getAllByTestId("dropdown-option")).toHaveLength(105);
+	});
+
 	test("selected options are marked as selected", async () => {
 		const { container, getAllByTestId } = await render(Dropdown, {
 			...multiselect_props,
@@ -1612,40 +1956,53 @@ describe("Edge cases", () => {
 	});
 });
 
-describe("handle_filter", () => {
+describe("handle_filter_with_count", () => {
 	const choices: [string, string | number][] = [
 		["Apple", "apple"],
 		["Banana", "banana"],
 		["Cherry", "cherry"],
 		["Apricot", "apricot"]
 	];
+	const filter_indices = (input_text: string, limit: number | null = null) =>
+		handle_filter_with_count(choices, input_text, limit).filtered_indices;
 
 	test("returns all indices when input_text is empty", () => {
-		expect(handle_filter(choices, "")).toEqual([0, 1, 2, 3]);
+		expect(filter_indices("")).toEqual([0, 1, 2, 3]);
 	});
 
 	test("filters by case-insensitive substring match on display name", () => {
-		expect(handle_filter(choices, "ap")).toEqual([0, 3]);
+		expect(filter_indices("ap")).toEqual([0, 3]);
 	});
 
 	test("returns empty array when no choices match", () => {
-		expect(handle_filter(choices, "xyz")).toEqual([]);
+		expect(filter_indices("xyz")).toEqual([]);
 	});
 
 	test("matches full display name", () => {
-		expect(handle_filter(choices, "banana")).toEqual([1]);
+		expect(filter_indices("banana")).toEqual([1]);
 	});
 
 	test("is case-insensitive", () => {
-		expect(handle_filter(choices, "CHERRY")).toEqual([2]);
+		expect(filter_indices("CHERRY")).toEqual([2]);
 	});
 
 	test("handles empty choices array", () => {
-		expect(handle_filter([], "test")).toEqual([]);
+		expect(handle_filter_with_count([], "test").filtered_indices).toEqual([]);
 	});
 
 	test("matches substring anywhere in display name", () => {
-		expect(handle_filter(choices, "an")).toEqual([1]);
+		expect(filter_indices("an")).toEqual([1]);
+	});
+
+	test("returns only the requested prefix of matching choices", () => {
+		expect(filter_indices("a", 2)).toEqual([0, 1]);
+	});
+
+	test("counts all matches while returning only the requested prefix", () => {
+		expect(handle_filter_with_count(choices, "a", 2)).toEqual({
+			filtered_indices: [0, 1],
+			total_matches: 3
+		});
 	});
 });
 
