@@ -292,9 +292,9 @@ export function sign_config_file_urls(
 	config: Config,
 	jwt: string | false
 ): void {
-	for (const component of config.components) {
+	for (const component of config.components || []) {
 		sign_file_urls(
-			component.props.value,
+			component.props?.value,
 			config.root,
 			config.api_prefix || "",
 			jwt
