@@ -933,6 +933,21 @@ describe("Props: show_recording_waveform", () => {
 		await set_data({ playback_position: quarter });
 		expect(player.currentTime).toBeCloseTo(quarter, 1);
 	});
+
+	test("enabling the waveform releases the native player's source", async () => {
+		const { getByTestId, set_data } = await render(Audio, native_props);
+		const player = getByTestId("audio-player-music") as HTMLAudioElement;
+		expect(player.getAttribute("src")).toBe(fake_value.url);
+
+		await set_data({
+			waveform_options: {
+				...native_props.waveform_options,
+				show_recording_waveform: true
+			}
+		});
+
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+	});
 });
 
 describe("Streaming output", () => {

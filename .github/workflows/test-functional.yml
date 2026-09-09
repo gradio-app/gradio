@@ -124,9 +124,10 @@ jobs:
         if: matrix.suite == 'browser'
         env:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
-          # 16-core runner + largely wait-bound tests → parallelize beyond the
-          # historical default of 4 workers (see .config/playwright.config.js).
-          PW_BROWSER_WORKERS: 8
+          # Each worker runs Chromium alongside its own Gradio app. Eight
+          # workers overload the runner often enough that unrelated queued
+          # events exceed Playwright's timeout, so keep the stable default.
+          PW_BROWSER_WORKERS: 4
         run: |
           . venv/bin/activate
           pnpm test:browser

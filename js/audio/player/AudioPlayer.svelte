@@ -300,14 +300,10 @@
 	// body, so releasing the old source and putting the new one in place can
 	// never happen out of order, which two effects could not guarantee: the
 	// player would then be left with a source hls.js had already discarded.
-	// Only the stream branches take a teardown, since a stream holds an HLS
-	// instance and a MediaSource that have to be released. An assigned file
-	// URL needs none: the next assignment replaces it, and a cleared value
-	// takes the whole player with it, since both parents render it only when
-	// there is a value (StaticAudio's `{#if value !== null}` and
-	// InteractiveAudio's else branch). `value` is a fresh object on every
-	// chunk, so the effect must only depend on the equality-stable deriveds,
-	// or each chunk would restart the stream.
+	// Every branch takes a teardown so changing player modes cannot leave a
+	// hidden native source playing. `value` is a fresh object on every chunk,
+	// so the effect must only depend on the equality-stable deriveds, or each
+	// chunk would restart the stream.
 	$effect(() => {
 		if (!audio_player || !url) return;
 		const media = audio_player;
@@ -335,6 +331,10 @@
 		}
 		if (!use_waveform) {
 			media.src = url;
+			return () => {
+				media.removeAttribute("src");
+				media.load();
+			};
 		}
 	});
 
