@@ -108,7 +108,7 @@ class TestTempFileManagement:
         expected_url = f"{API_PREFIX}/proxy={upstream_url}"
 
         for result in (sync_result, async_result):
-            assert result["path"] == upstream_url
+            assert result["path"] == remote_path
             assert result["url"] == expected_url
 
             browser_result = processing_utils.add_root_url(
@@ -122,7 +122,7 @@ class TestTempFileManagement:
 
             endpoint = Endpoint.__new__(Endpoint)
             processed_input = endpoint.process_input_files(round_trip)[0]
-            assert processed_input["path"] == upstream_url
+            assert processed_input["path"] == ("https://loader.hf.space" + expected_url)
 
     @pytest.mark.asyncio
     async def test_move_files_to_cache_does_not_proxy_external_urls(self):

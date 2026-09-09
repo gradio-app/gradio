@@ -459,9 +459,17 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # Keep remote paths as URLs so loaded apps can send them back upstream on
-        # later events without treating another container's path as a local file.
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        # Regular app outputs use their returned URL directly. Loaded apps keep
+        # upstream paths for outputs, then use the loader's proxy URL as the path
+        # when browser data comes back as an input.
+        if (
+            payload.url
+            and client_utils.is_http_url_like(payload.url)
+            and (
+                (block.proxy_url and not postprocess)
+                or (not block.proxy_url and postprocess)
+            )
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -586,9 +594,17 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # Keep remote paths as URLs so loaded apps can send them back upstream on
-        # later events without treating another container's path as a local file.
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        # Regular app outputs use their returned URL directly. Loaded apps keep
+        # upstream paths for outputs, then use the loader's proxy URL as the path
+        # when browser data comes back as an input.
+        if (
+            payload.url
+            and client_utils.is_http_url_like(payload.url)
+            and (
+                (block.proxy_url and not postprocess)
+                or (not block.proxy_url and postprocess)
+            )
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass

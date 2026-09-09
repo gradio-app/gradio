@@ -125,7 +125,7 @@ class TestBlocksMethods:
             block for block in loaded.blocks.values() if isinstance(block, gr.Gallery)
         )
         image = loaded_gallery.value[0]["image"]  # type: ignore
-        assert image["path"] == upstream_url
+        assert image["path"] == remote_path
         assert image["url"] == (
             f"{API_PREFIX}/proxy={proxy_url}{API_PREFIX}/file={remote_path}"
         )

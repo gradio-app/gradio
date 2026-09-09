@@ -952,6 +952,21 @@ def test_check_event_data_in_cache():
             ),
         )
 
+    proxy_component = gr.Image()
+    proxy_component.proxy_url = "https://private-space.hf.space"
+    inputs, *_ = helpers.special_args(
+        get_select_index,
+        inputs=[],
+        event_data=helpers.EventData(
+            proxy_component,
+            {
+                "index": {"path": "foo", "meta": {"_type": "gradio.FileData"}},
+                "value": "whatever",
+            },
+        ),
+    )
+    assert inputs[0].index["path"] == "foo"
+
 
 def test_request_session_none_without_sessionmiddleware():
     from starlette.requests import Request
