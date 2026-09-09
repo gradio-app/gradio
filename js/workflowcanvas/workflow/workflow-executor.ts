@@ -9,7 +9,10 @@ import type {
 } from "./workflow-types";
 import { toLegacyShape } from "./workflow-migration";
 import { topoSort } from "./workflow-graph";
-import type { ChatContentPart } from "./inference-stream";
+import {
+	is_streamable_text_task,
+	type ChatContentPart
+} from "./inference-stream";
 
 type StatusCallback = (
 	nodeId: string,
@@ -64,7 +67,12 @@ async function toDataUrl(url: string): Promise<string> {
 			return url;
 		}
 	}
-	const blob = await (await fetch(url)).blob();
+	const res = await fetch(url);
+	if (!res.ok) throw new Error(`Could not read image (${res.status})`);
+	const blob = await res.blob();
+	if (blob.type && !blob.type.startsWith("image/")) {
+		throw new Error(`Expected an image, got "${blob.type}"`);
+	}
 	return await new Promise<string>((resolve, reject) => {
 		const r = new FileReader();
 		r.onload = () => resolve(r.result as string);
@@ -474,31 +482,21 @@ export async function executeWorkflow(
 						throw new Error(missing_input_message(node, port));
 					}
 				}
-				const args = await Promise.all(
-					node.inputs.map((port) => toGradioArg(inputs[port.id]))
-				);
+				const tag = node.pipeline_tag ?? "text-generation";
+				const streamable =
+					node.source === "model" &&
+					!!node.model_id &&
+					is_streamable_text_task(tag) &&
+					!!stream_text_generation;
+				const args = streamable
+					? node.inputs.map((port) => inputs[port.id] as unknown)
+					: await Promise.all(
+							node.inputs.map((port) => toGradioArg(inputs[port.id]))
+						);
 
 				let resultJson: string;
 
 				if (node.source === "model" && node.model_id) {
-					if (!serverCallModel) {
-						throw new Error("Model call function not available");
-					}
-					// Custom-port values need names — pack as a keyed dict so
-					// the backend's dict-args branch can pass them as kwargs.
-					const hasCustomPorts = node.inputs.some((p) => p.custom);
-					const modelArgs = hasCustomPorts
-						? (Object.fromEntries(
-								node.inputs.map((port, i) => [port.id, args[i]])
-							) as unknown)
-						: args;
-					const tag = node.pipeline_tag ?? "text-generation";
-					const streamable =
-						(tag === "text-generation" ||
-							tag === "text2text-generation" ||
-							tag === "conversational" ||
-							tag === "image-text-to-text") &&
-						!!stream_text_generation;
 					if (streamable) {
 						const { content, params } = await buildChatBody(node.inputs, args);
 						const outputPort = node.outputs[0];
@@ -525,6 +523,17 @@ export async function executeWorkflow(
 						);
 						resultJson = JSON.stringify([final]);
 					} else {
+						if (!serverCallModel) {
+							throw new Error("Model call function not available");
+						}
+						// Custom-port values need names — pack as a keyed dict so
+						// the backend's dict-args branch can pass them as kwargs.
+						const hasCustomPorts = node.inputs.some((p) => p.custom);
+						const modelArgs = hasCustomPorts
+							? (Object.fromEntries(
+									node.inputs.map((port, i) => [port.id, args[i]])
+								) as unknown)
+							: args;
 						resultJson = await Promise.race([
 							serverCallModel(
 								node.model_id,

@@ -77,7 +77,7 @@ export async function stream_text_generation(
 	let accumulated = "";
 
 	try {
-		while (true) {
+		stream: while (true) {
 			const { value, done } = await reader.read();
 			if (done) break;
 			buffer += decoder.decode(value, { stream: true });
@@ -90,7 +90,7 @@ export async function stream_text_generation(
 				buffer = buffer.slice(nl + 1);
 				if (!line.startsWith("data:")) continue;
 				const payload = line.slice(5).trim();
-				if (payload === "[DONE]") return accumulated;
+				if (payload === "[DONE]") break stream;
 				try {
 					const chunk = JSON.parse(payload);
 					const delta = chunk?.choices?.[0]?.delta?.content ?? "";
@@ -111,6 +111,8 @@ export async function stream_text_generation(
 		}
 	}
 
+	// A stream that produced no content is a failure, not an empty answer.
+	if (!accumulated) throw new Error("Model returned an empty response");
 	return accumulated;
 }
 
