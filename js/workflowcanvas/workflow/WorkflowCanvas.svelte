@@ -966,6 +966,7 @@
 		nodeErrors: {} as Record<string, string>,
 		nodeDurations: {} as Record<string, number>,
 		staleNodes: new Set<string>(),
+		nodesInRun: new Set<string>(),
 		connectedPorts: new Set<string>(),
 		readOnly: false,
 		// Resize drags happen in screen pixels but node width is canvas units.
@@ -1076,6 +1077,9 @@
 	});
 	$effect(() => {
 		wfCtx.staleNodes = staleNodes;
+	});
+	$effect(() => {
+		wfCtx.nodesInRun = nodesInRun;
 	});
 	$effect(() => {
 		wfCtx.connectedPorts = connectedPortsSet();
@@ -2049,6 +2053,8 @@
 		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId));
 	}
 
+	let nodesInRun = $state(new Set<string>());
+
 	async function runWorkflow(target?: Workflow): Promise<void> {
 		if (running) return;
 		running = true;
@@ -2060,6 +2066,7 @@
 			...wfToRun.operators.map((n) => n.id),
 			...wfToRun.subjects.map((n) => n.id)
 		]);
+		nodesInRun = runningIds;
 		nodeStatus = Object.fromEntries(
 			Object.entries(nodeStatus).filter(([id]) => !runningIds.has(id))
 		);
@@ -2224,6 +2231,7 @@
 		);
 
 		running = false;
+		nodesInRun = new Set();
 		abortController = null;
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
@@ -2303,6 +2311,7 @@
 	function stopWorkflow(): void {
 		abortController?.abort();
 		running = false;
+		nodesInRun = new Set();
 		abortController = null;
 		nodeStatus = Object.fromEntries(
 			Object.entries(nodeStatus).map(([id, s]) => [
