@@ -118,6 +118,29 @@ class TestVideo:
         postprocessed_video["path"] = os.path.basename(postprocessed_video["path"])
         assert processed_video == postprocessed_video
 
+    @pytest.mark.asyncio
+    async def test_stream_output_returns_a_flat_payload_and_chunk(self, tmp_path):
+        component = gr.Video(streaming=True)
+        chunk_source = tmp_path / "chunk.ts"
+        chunk_source.write_bytes(b"transport-stream-bytes")
+
+        with patch.object(gr.Video, "get_video_duration_ffprobe", return_value=1.5):
+            chunk, output_file = await component.stream_output(
+                str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
+            )
+
+        assert output_file == {
+            "path": "sess/0/1/playlist.m3u8",
+            "is_stream": True,
+            "orig_name": "video-stream.mp4",
+            "meta": {"_type": "gradio.FileData"},
+        }
+        assert chunk == {
+            "data": b"transport-stream-bytes",
+            "duration": 1.5,
+            "extension": ".ts",
+        }
+
     def test_in_interface(self, media_data):
         """
         Interface, process
