@@ -74,17 +74,23 @@ test("apply events work as expected", async ({ page }) => {
 test("image editor can be cleared twice by setting value to None", async ({
 	page
 }) => {
+	test.setTimeout(90_000);
+	const editor_status = page.locator(
+		'#image_editor [data-testid="status-tracker"]'
+	);
+
 	await page.getByLabel("Brush").first().click();
 	const canvas = page.locator("canvas").first();
 	await canvas.click({ position: { x: 200, y: 100 } });
 	await page.getByRole("button", { name: "Clear Button" }).click();
-	await page.waitForTimeout(1000);
+	await expect(editor_status).toHaveClass(/hide/, { timeout: 60_000 });
 
 	await page.getByLabel("Brush").first().click();
 	const canvas_2 = page.locator("canvas").first();
 	await canvas_2.click({ position: { x: 200, y: 100 } });
 	await canvas_2.click({ position: { x: 201, y: 100 } });
 	await page.getByRole("button", { name: "Clear Button" }).click();
+	await expect(editor_status).toHaveClass(/hide/, { timeout: 60_000 });
 
 	await expect(page.getByLabel("cleared properly")).toHaveValue("1");
 });

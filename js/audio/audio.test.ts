@@ -22,6 +22,7 @@ import Audio from "./";
 import AudioRecorderHarness from "./AudioRecorderHarness.svelte";
 import MinimalAudioRecorderHarness from "./MinimalAudioRecorderHarness.svelte";
 import WaveSurfer from "wavesurfer.js";
+import { Hls } from "@gradio/utils/hls";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
@@ -47,6 +48,8 @@ const loading_status: LoadingStatus = {
 	type: "input" as const,
 	stream_state: "closed" as const
 };
+
+const real_hls_destroy = Hls.prototype.destroy;
 
 const fake_value = {
 	...TEST_WAV,
@@ -928,6 +931,229 @@ describe("Props: show_recording_waveform", () => {
 
 		await set_data({ playback_position: quarter });
 		expect(player.currentTime).toBeCloseTo(quarter, 1);
+	});
+
+	test("enabling the waveform releases the native player's source", async () => {
+		const { getByTestId, set_data } = await render(Audio, native_props);
+		const player = getByTestId("audio-player-music") as HTMLAudioElement;
+		expect(player.getAttribute("src")).toBe(fake_value.url);
+
+		await set_data({
+			waveform_options: {
+				...native_props.waveform_options,
+				show_recording_waveform: true
+			}
+		});
+
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+	});
+});
+
+describe("Streaming output", () => {
+	setupi18n();
+	let load_source: ReturnType<typeof vi.spyOn>;
+	let destroy: ReturnType<typeof vi.spyOn>;
+	let wavesurfer_load: ReturnType<typeof vi.spyOn>;
+	let media_pause: ReturnType<typeof vi.spyOn>;
+	let is_supported: ReturnType<typeof vi.spyOn> | undefined;
+
+	beforeEach(() => {
+		load_source = vi
+			.spyOn(Hls.prototype, "loadSource")
+			.mockImplementation(() => {});
+		destroy = vi.spyOn(Hls.prototype, "destroy");
+		wavesurfer_load = vi.spyOn(WaveSurfer.prototype, "load");
+		media_pause = vi.spyOn(HTMLMediaElement.prototype, "pause");
+	});
+	afterEach(() => {
+		cleanup();
+		load_source.mockRestore();
+		destroy.mockRestore();
+		wavesurfer_load.mockRestore();
+		media_pause.mockRestore();
+		is_supported?.mockRestore();
+		is_supported = undefined;
+	});
+
+	function emit_load_error(instance: WaveSurfer, message: string): Error {
+		const e = new Error(message);
+		(instance as any).emit("error", e);
+		return e;
+	}
+
+	const run_1 = {
+		...TEST_WAV,
+		is_stream: true,
+		url: "https://stream.invalid/abc/1/1/playlist.m3u8"
+	};
+	const run_2 = {
+		...run_1,
+		url: "https://stream.invalid/abc/2/1/playlist.m3u8"
+	};
+
+	test("a new streaming run attaches a new source", async () => {
+		const { set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: { ...run_1 } });
+		expect(load_source).toHaveBeenCalledTimes(1);
+
+		await set_data({ value: run_2 });
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
+		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
+		expect(destroy).toHaveBeenCalledTimes(1);
+	});
+
+	test("clearing the value tears down the attached stream", async () => {
+		const { set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: null });
+
+		expect(destroy).toHaveBeenCalledTimes(1);
+	});
+
+	test("without HLS support the native player reattaches too", async () => {
+		is_supported = vi.spyOn(Hls, "isSupported").mockReturnValue(false);
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		expect(player.src).toBe(run_1.url);
+
+		media_pause.mockClear();
+		await set_data({ value: run_2 });
+
+		expect(player.src).toBe(run_2.url);
+		expect(load_source).not.toHaveBeenCalled();
+		expect(media_pause).not.toHaveBeenCalled();
+
+		await set_data({ value: null });
+
+		expect(player.getAttribute("src")).toBeNull();
+		expect(player.paused).toBe(true);
+	});
+
+	test("a recovered waveform releases the native fallback", async () => {
+		wavesurfer_load
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				return Promise.reject(emit_load_error(this, "decode failed"));
+			})
+			.mockImplementationOnce(() => Promise.resolve());
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+
+		await set_data({ value: { ...fake_value, url: fake_value.url + "?v=2" } });
+
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+	});
+
+	function emit_media_error(instance: WaveSurfer): MediaError {
+		const e = Object.create(MediaError.prototype, {
+			code: { value: MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED },
+			message: { value: "unsupported container" }
+		}) as MediaError;
+		(instance as any).emit("error", e);
+		return e;
+	}
+
+	test("a media element error falls back to the native player", async () => {
+		wavesurfer_load.mockImplementation(function (this: WaveSurfer) {
+			emit_media_error(this);
+			return new Promise(() => {});
+		});
+
+		const { getByTestId } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+	});
+
+	test("a hung load does not disable the fallback for later files", async () => {
+		let report_second: (() => void) | undefined;
+		wavesurfer_load
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				emit_media_error(this);
+				return new Promise(() => {});
+			})
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				report_second = () => emit_media_error(this);
+				return Promise.resolve();
+			});
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+
+		const second = { ...fake_value, url: fake_value.url + "?v=2" };
+		await set_data({ value: second });
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+
+		report_second?.();
+		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
+	});
+
+	test("a stream giving way to a file leaves the file attached", async () => {
+		destroy.mockImplementation(function (this: Hls) {
+			const media = this.media;
+			real_hls_destroy.call(this);
+			media?.removeAttribute("src");
+			media?.load();
+		});
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			waveform_options: {
+				...default_props.waveform_options,
+				show_recording_waveform: false
+			},
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: fake_value });
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		expect(destroy).toHaveBeenCalledTimes(1);
+		expect(player.getAttribute("src")).toBe(fake_value.url);
 	});
 });
 
