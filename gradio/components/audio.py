@@ -415,6 +415,16 @@ class Audio(
             "orig_name": "audio-stream.mp3",
             "meta": {"_type": "gradio.FileData"},
         }
+        if first_chunk:
+            # Made here, on the event loop, so that a cancel landing while the
+            # thread runs has something to end, and made whether or not this
+            # chunk carries audio, since a stream may open on a None and get
+            # its first audio later. A key is never shared by two live
+            # streams, so anything already here was left behind.
+            stale = _stream_encoders.pop(output_id, None)
+            if stale is not None:
+                stale.end()
+            _stream_encoders[output_id] = _EncoderSlot()
         if value is None:
             return None, output_file
         if isinstance(value, bytes):
@@ -426,14 +436,6 @@ class Audio(
             output_file["orig_name"] = value["orig_name"]
             with open(value["path"], "rb") as f:
                 binary_data = f.read()
-        if first_chunk:
-            # Made here, on the event loop, so that a cancel landing while the
-            # thread runs has something to end. A key is never shared by two
-            # live streams, so anything already here was left behind.
-            stale = _stream_encoders.pop(output_id, None)
-            if stale is not None:
-                stale.end()
-            _stream_encoders[output_id] = _EncoderSlot()
         try:
             chunk = await anyio.to_thread.run_sync(
                 self._encode_chunk, output_id, binary_data

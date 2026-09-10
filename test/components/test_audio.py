@@ -139,6 +139,29 @@ class TestAudio:
             await asyncio.sleep(0.005)
 
     @pytest.mark.requires_ffmpeg
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_stream_that_opens_on_none_plays_its_later_chunks(self):
+        """A generator's first yield may carry no audio yet."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        value = audio.postprocess((16000, np.zeros(4000, np.int16)))
+        assert isinstance(value, FileData)
+        segments = []
+        try:
+            await audio.stream_output(None, stream_id, True)
+            for _ in range(2):
+                segment, _ = await audio.stream_output(
+                    value.model_dump(), stream_id, False
+                )
+                segments.append(segment)
+            segments.append(await audio.flush_stream_output(stream_id))
+        finally:
+            audio.end_stream_output(stream_id)
+
+        assert sum(segment["duration"] for segment in segments if segment) > 0
+        assert stream_id not in _stream_encoders
+
     def test_a_closed_encoder_stays_quiet(self):
         """`close()` is a teardown, not a failure, so a chunk that was in
         flight when it landed must not turn into an error."""
