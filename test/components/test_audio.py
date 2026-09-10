@@ -12,7 +12,8 @@ from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio import processing_utils, utils
-from gradio.audio_stream_encoder import parse_adts_frames
+from gradio.audio_stream_encoder import AacStreamEncoder, parse_adts_frames
+from gradio.components.audio import _stream_encoders
 from gradio.data_classes import FileData
 from gradio.media import get_audio
 
@@ -56,6 +57,23 @@ class TestAudio:
         assert sum(segment["duration"] for segment in segments) == pytest.approx(
             len(frames) * 1024 / sample_rate
         )
+
+    @pytest.mark.asyncio
+    async def test_a_failed_first_chunk_releases_its_encoder(self, monkeypatch):
+        """Until `stream_output` returns, nothing else holds the encoder."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+
+        def fail(self, pcm):  # noqa: ARG001
+            raise RuntimeError("the encoder died mid-chunk")
+
+        monkeypatch.setattr(AacStreamEncoder, "feed", fail)
+        with pytest.raises(RuntimeError):
+            await audio.stream_output(
+                Path(get_audio("audio_sample.wav")).read_bytes(), stream_id, True
+            )
+
+        assert stream_id not in _stream_encoders
 
     @pytest.mark.asyncio
     async def test_component_functions(self, gradio_temp_dir, media_data):

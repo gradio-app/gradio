@@ -353,11 +353,10 @@ class Audio(
     ) -> MediaStreamChunk | None:
         encoder = None if first_chunk else _stream_encoders.get(output_id)
         if encoder is None:
-            # A first chunk means a new stream, so anything parked under this
-            # key belongs to a finished one. The key carries `id(iterator)`
-            # (see #13809), which CPython can hand to a later run, and feeding
-            # a new stream's audio to the old encoder would resample it to the
-            # old stream's parameters or fail on a dead process.
+            # Nothing reachable parks an encoder here: every path that
+            # discards a `MediaStream` ends it first, and ending it is what
+            # releases the encoder. Closing whatever is parked keeps a stray
+            # ffmpeg from outliving the app should that stop holding.
             stale = _stream_encoders.pop(output_id, None)
             if stale is not None:
                 stale.close()
@@ -366,8 +365,16 @@ class Audio(
             _stream_encoders[output_id] = encoder
         else:
             _, _, pcm = decode_to_pcm(data, encoder.sample_rate, encoder.channels)
-        encoder.feed(pcm)
-        return _segment_from_frames(encoder, encoder.take())
+        try:
+            encoder.feed(pcm)
+            return _segment_from_frames(encoder, encoder.take())
+        except Exception:
+            # A first chunk that fails has nothing holding its encoder yet: the
+            # stream's finalize is armed only once `stream_output` returns. A
+            # later chunk has one, through the stream ended on the way out.
+            if first_chunk:
+                self.end_stream_output(output_id)
+            raise
 
     async def stream_output(
         self,
