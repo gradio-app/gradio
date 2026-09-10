@@ -97,6 +97,12 @@ test("renders host children from an isolated Svelte runtime", async () => {
 		});
 		expect(button).toHaveTextContent("Child button");
 		expect(button?.parentElement?.textContent).toContain("hello");
+
+		const mount_target = button.parentElement?.parentElement;
+		expect(mount_target).toBeInstanceOf(HTMLSpanElement);
+		expect(getComputedStyle(mount_target as HTMLElement).display).toBe(
+			"contents"
+		);
 	});
 });
 

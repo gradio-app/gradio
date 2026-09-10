@@ -85,4 +85,4 @@
 	});
 </script>
 
-<span bind:this={el}></span>
+<span bind:this={el} style="display: contents"></span>
