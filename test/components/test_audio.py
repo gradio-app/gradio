@@ -15,7 +15,12 @@ from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio import processing_utils, utils
-from gradio.audio_stream_encoder import AacStreamEncoder, parse_adts_frames
+from gradio.audio_stream_encoder import (
+    ADTS_SAMPLE_RATES,
+    AacStreamEncoder,
+    nearest_adts_rate,
+    parse_adts_frames,
+)
 from gradio.components.audio import _stream_encoders
 from gradio.data_classes import FileData
 from gradio.media import get_audio
@@ -24,9 +29,14 @@ from gradio.media import get_audio
 class TestAudio:
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
-    async def test_streamed_audio_is_one_continuous_aac_stream(self):
-        """Chunks share one encoder, so only the stream gets a priming frame."""
-        sample_rate, chunk_samples, chunk_count = 16000, 4000, 8
+    @pytest.mark.parametrize("sample_rate", [16000, 20000])
+    async def test_streamed_audio_is_one_continuous_aac_stream(self, sample_rate):
+        """Chunks share one encoder, so only the stream gets a priming frame.
+
+        20 kHz is not a rate ADTS can declare, so the encoder resamples it to
+        22.05 kHz, and the durations have to be the frames' at that rate.
+        """
+        chunk_samples, chunk_count = 4000, 8
 
         def wav_chunk() -> bytes:
             buffer = io.BytesIO()
@@ -55,12 +65,19 @@ class TestAudio:
         data = b"".join(segment["data"] for segment in segments)
         frames, consumed = parse_adts_frames(data)
         assert consumed == len(data)
-        # every 1024 samples, plus the stream's single priming frame
-        expected = math.ceil(chunk_count * chunk_samples / 1024) + 1
-        assert len(frames) == expected
-        assert sum(segment["duration"] for segment in segments) == pytest.approx(
-            len(frames) * 1024 / sample_rate
+        # bits 2-5 of the third header byte index ADTS_SAMPLE_RATES
+        declared = {ADTS_SAMPLE_RATES[(frame[2] >> 2) & 0x0F] for frame in frames}
+        assert declared == {nearest_adts_rate(sample_rate)}
+        (output_rate,) = declared
+        total = sum(segment["duration"] for segment in segments)
+        assert total == pytest.approx(len(frames) * 1024 / output_rate)
+        # the input, plus the priming frame and the resampler's tail
+        assert total == pytest.approx(
+            chunk_count * chunk_samples / sample_rate, abs=3 * 1024 / output_rate
         )
+        if output_rate == sample_rate:
+            # every 1024 samples, plus the stream's single priming frame
+            assert len(frames) == math.ceil(chunk_count * chunk_samples / 1024) + 1
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
