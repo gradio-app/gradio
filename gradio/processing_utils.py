@@ -459,11 +459,17 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        # Regular app outputs use their returned URL directly. Loaded apps keep
+        # upstream paths for outputs, then use the loader's proxy URL as the path
+        # when browser data comes back as an input.
+        if (
+            payload.url
+            and client_utils.is_http_url_like(payload.url)
+            and (
+                (block.proxy_url and not postprocess)
+                or (not block.proxy_url and postprocess)
+            )
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -482,13 +488,21 @@ def move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
             encoded_path = client_utils.encode_file_path(payload.path)
             url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = f"{payload.path}"
         else:
             url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
@@ -580,11 +594,17 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        # Regular app outputs use their returned URL directly. Loaded apps keep
+        # upstream paths for outputs, then use the loader's proxy URL as the path
+        # when browser data comes back as an input.
+        if (
+            payload.url
+            and client_utils.is_http_url_like(payload.url)
+            and (
+                (block.proxy_url and not postprocess)
+                or (not block.proxy_url and postprocess)
+            )
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -605,13 +625,21 @@ async def async_move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
             encoded_path = client_utils.encode_file_path(payload.path)
             url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = payload.path
         else:
             url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"

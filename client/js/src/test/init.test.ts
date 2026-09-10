@@ -7,7 +7,6 @@ import {
 	expect,
 	vi
 } from "vitest";
-
 import { Client, client, duplicate } from "..";
 import {
 	transformed_api_info,
@@ -74,6 +73,29 @@ describe("Client class", () => {
 				...config_response,
 				root: "https://hmb-secret-world.hf.space"
 			});
+		});
+
+		test("signs initial file values in a private Space config", async () => {
+			const props = config_response.components[0].props;
+			props.value = {
+				path: "/tmp/cat.png",
+				url: `${secret_direct_app_reference}/gradio_api/file=/tmp/cat.png`,
+				meta: { _type: "gradio.FileData" }
+			};
+			try {
+				const app = await Client.connect("hmb/secret_world", {
+					token: "hf_123"
+				});
+				const value = app.config?.components[0].props.value as {
+					url: string;
+				};
+
+				expect(value.url).toBe(
+					`${secret_direct_app_reference}/gradio_api/file=/tmp/cat.png?__sign=jwt_123`
+				);
+			} finally {
+				delete props.value;
+			}
 		});
 
 		test("connecting successfully to a private running app with a direct app URL ", async () => {

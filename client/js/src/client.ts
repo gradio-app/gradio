@@ -35,6 +35,7 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history } from "./utils/run_history";
+import { sign_config_file_urls, sign_file_urls } from "./helpers/data";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
@@ -250,24 +251,18 @@ export class Client {
 	}
 
 	async _resolve_heartbeat(_config: Config): Promise<void> {
-		if (_config) {
-			this.config = _config;
-			this.api_prefix = _config.api_prefix || "";
-
-			if (this.config && this.config.connect_heartbeat) {
-				if (this.config.space_id && this.options.token) {
-					this.jwt = await get_jwt(
-						this.config.space_id,
-						this.options.token,
-						this.cookies
-					);
-				}
-			}
-		}
+		this.config = _config;
+		this.api_prefix = _config.api_prefix || "";
 
 		if (_config.space_id && this.options.token) {
-			this.jwt = await get_jwt(_config.space_id, this.options.token);
+			this.jwt = await get_jwt(
+				_config.space_id,
+				this.options.token,
+				this.cookies
+			);
 		}
+
+		sign_config_file_urls(this.config, this.jwt);
 
 		if (this.config && this.config.connect_heartbeat) {
 			// connect to the heartbeat endpoint via GET request
@@ -344,6 +339,7 @@ export class Client {
 		this.config = config;
 		this.api_prefix = config.api_prefix || "";
 		this.api_map = map_names_to_ids(config.dependencies || []);
+		sign_config_file_urls(this.config, this.jwt);
 		try {
 			this.api_info = await this.view_api();
 		} catch (e) {
@@ -545,6 +541,12 @@ export class Client {
 			}
 
 			const output = await response.json();
+			sign_file_urls(
+				output,
+				this.config.root,
+				this.config.api_prefix || "",
+				this.jwt
+			);
 			return output;
 		} catch (e) {
 			console.warn(e);
