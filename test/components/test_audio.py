@@ -22,6 +22,7 @@ from gradio.media import get_audio
 
 
 class TestAudio:
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_streamed_audio_is_one_continuous_aac_stream(self):
         """Chunks share one encoder, so only the stream gets a priming frame."""
@@ -61,6 +62,7 @@ class TestAudio:
             len(frames) * 1024 / sample_rate
         )
 
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_a_failed_first_chunk_releases_its_encoder(self, monkeypatch):
         """Until `stream_output` returns, nothing else holds the encoder."""
@@ -78,6 +80,7 @@ class TestAudio:
 
         assert stream_id not in _stream_encoders
 
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     @pytest.mark.parametrize("gate", ["__init__", "feed"])
     async def test_a_cancelled_first_chunk_releases_its_encoder(
@@ -118,6 +121,7 @@ class TestAudio:
             assert time.monotonic() < deadline, "the encoder was never released"
             await asyncio.sleep(0.005)
 
+    @pytest.mark.requires_ffmpeg
     def test_a_closed_encoder_stays_quiet(self):
         """`close()` is a teardown, not a failure, so a chunk that was in
         flight when it landed must not turn into an error."""
@@ -128,6 +132,7 @@ class TestAudio:
         assert encoder.take() == []
         assert encoder.flush() == []
 
+    @pytest.mark.requires_ffmpeg
     def test_flush_keeps_its_frames_when_it_has_to_kill_the_encoder(self, caplog):
         encoder = AacStreamEncoder(16000, 1)
         encoder.feed(bytes(2 * 16000))

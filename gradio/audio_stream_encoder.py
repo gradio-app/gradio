@@ -5,7 +5,6 @@ from __future__ import annotations
 import io
 import logging
 import os
-import shutil
 import subprocess
 import threading
 import time
@@ -13,6 +12,8 @@ import wave
 from collections import deque
 
 from pydub import AudioSegment
+
+from gradio import processing_utils
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +148,7 @@ class AacStreamEncoder:
     """
 
     def __init__(self, sample_rate: int, channels: int):
-        if not shutil.which("ffmpeg"):
+        if not processing_utils.ffmpeg_installed():
             raise RuntimeError(
                 "Streaming audio output requires `ffmpeg` to be installed and on PATH."
             )

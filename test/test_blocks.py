@@ -26,7 +26,7 @@ from gradio_client import Client
 from PIL import Image
 
 import gradio as gr
-from gradio import blocks, helpers, processing_utils
+from gradio import blocks, helpers
 from gradio.components.audio import _stream_encoders
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
@@ -1662,11 +1662,6 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
-requires_ffmpeg = pytest.mark.skipif(
-    not processing_utils.ffmpeg_installed(), reason="ffmpeg not installed"
-)
-
-
 def streaming_audio_demo():
     """A Blocks whose button streams two audio chunks into a streaming Audio."""
     chunk = (
@@ -1770,7 +1765,7 @@ class TestHandleStreamingOutputs:
         gc.collect()
         assert len(demo._stream_run_ids) == 0
 
-    @requires_ffmpeg
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_each_run_gets_its_own_stream(self):
         demo, block_fn, audio = streaming_audio_demo()
@@ -1783,11 +1778,17 @@ class TestHandleStreamingOutputs:
         assert {first, second} == {
             f"{API_PREFIX}/stream/s/{key}/{audio._id}/playlist.m3u8" for key in streams
         }
-        # equal and non-empty, so neither run appended to the other's stream
-        counts = [len(streams[key][audio._id].segments) for key in streams]
-        assert counts[0] == counts[1] > 0
+        # The same input encodes to the same bytes, so equal and non-empty
+        # totals mean neither run appended to the other's stream. Segment
+        # counts would not do: how many a run has depends on when the encoder
+        # emitted its frames.
+        totals = [
+            sum(len(segment["data"]) for segment in streams[key][audio._id].segments)
+            for key in streams
+        ]
+        assert totals[0] == totals[1] > 0
 
-    @requires_ffmpeg
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_a_first_call_that_fails_ends_the_streams_it_opened(self):
         # `call_process_api` and the queue find a run through
@@ -1821,7 +1822,7 @@ class TestHandleStreamingOutputs:
         assert streams[first._id].ended
         assert not _stream_encoders
 
-    @requires_ffmpeg
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_runs_are_keyed_by_iterator_not_event_id(self):
         # An event id is not a run id. Cancelling an event drops
@@ -1836,8 +1837,11 @@ class TestHandleStreamingOutputs:
 
         streams = demo.pending_streams["s"]
         assert first != second
-        counts = [len(streams[key][audio._id].segments) for key in streams]
-        assert counts[0] == counts[1] > 0
+        totals = [
+            sum(len(segment["data"]) for segment in streams[key][audio._id].segments)
+            for key in streams
+        ]
+        assert totals[0] == totals[1] > 0
 
 
 class TestGetAPIInfo:

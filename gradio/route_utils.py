@@ -1212,7 +1212,7 @@ class MediaStream:
             except Exception:  # noqa: BLE001
                 # This runs inside exception handling, so a teardown failure
                 # must not replace the error being propagated. It leaks, though.
-                logger.debug("stream cleanup callback failed", exc_info=True)
+                logger.warning("stream cleanup callback failed", exc_info=True)
 
 
 def create_url_safe_hash(data: bytes, digest_size=8):
