@@ -7,7 +7,8 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@gradio/theme": "workspace:^"
+		"@gradio/theme": "workspace:^",
+		"hls.js": "1.6.15"
 	},
 	"main_changeset": true,
 	"repository": {
@@ -21,7 +22,12 @@
 			"types": "./dist/src/index.d.ts",
 			"import": "./dist/src/index.js"
 		},
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./hls": {
+			"gradio": "./src/hls.ts",
+			"types": "./dist/src/hls.d.ts",
+			"import": "./dist/src/hls.js"
+		}
 	},
 	"scripts": {
 		"package": "svelte-package --input=. --tsconfig=../../tsconfig.json"
