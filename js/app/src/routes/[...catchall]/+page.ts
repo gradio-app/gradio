@@ -9,6 +9,16 @@ import { setupi18n } from "@gradio/core";
 
 export let ssr = true;
 
+function get_current_page(url: URL, root_url: string): string {
+	const strip_slashes = (path: string): string =>
+		path.replace(/^\/+|\/+$/g, "");
+	const root_path = strip_slashes(new URL(root_url).pathname);
+	const url_path = strip_slashes(url.pathname);
+	if (url_path === root_path) return "";
+	if (!url_path.startsWith(root_path + "/")) return "";
+	return url_path.slice(root_path.length + 1);
+}
+
 export async function load({
 	url,
 	data: {
@@ -34,6 +44,7 @@ export async function load({
 			? new URL(mount_path || "/", root_url).href
 			: server;
 	const deepLink = url.searchParams.get("deep_link");
+	const currentPage = get_current_page(url, root_url);
 	const headers = new Headers();
 	if (!browser) {
 		headers.append("x-gradio-server", root_url);
@@ -96,7 +107,10 @@ export async function load({
 		app = await Client.connect(api_url, {
 			with_null_state: true,
 			events: ["data", "log", "status", "render"],
-			query_params: deepLink ? { deep_link: deepLink } : undefined,
+			query_params: {
+				...(deepLink ? { deep_link: deepLink } : {}),
+				page: currentPage
+			},
 			headers,
 			cookies: cookie || undefined
 		});

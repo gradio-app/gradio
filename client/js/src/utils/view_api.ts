@@ -28,7 +28,10 @@ export async function view_api(this: Client): Promise<any> {
 		if (typeof window !== "undefined" && window.gradio_api_info) {
 			api_info = window.gradio_api_info;
 		} else {
-			const url = join_urls(config.root, this.api_prefix, API_INFO_URL);
+			const url = new URL(
+				join_urls(config.root, this.api_prefix, API_INFO_URL)
+			);
+			if (this.page !== null) url.searchParams.set("page", this.page);
 			response = await this.fetch(url, {
 				headers,
 				credentials: this.options.credentials ?? "same-origin"

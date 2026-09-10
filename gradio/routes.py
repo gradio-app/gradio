@@ -614,13 +614,50 @@ class App(FastAPI):
             except (FileNotFoundError, OSError, orjson.JSONDecodeError):
                 deep_link_state = "invalid"
                 components = []
-            if page:
+            if page is not None:
                 components = [
                     component
                     for component in components
                     if component["id"] in config["page"][page]["components"]
                 ]
             return components, deep_link_state
+
+        def get_page_config(
+            config: dict[str, Any],
+            page: str,
+            components: list[dict[str, Any]] | None = None,
+        ) -> dict[str, Any]:
+            """Copy only the component and dependency data needed by one page."""
+            page_config = config["page"][page]
+            component_ids = set(page_config["components"])
+            dependency_ids = set(page_config["dependencies"])
+            page_components = (
+                components
+                if components is not None
+                else [
+                    component
+                    for component in config["components"]
+                    if component["id"] in component_ids
+                ]
+            )
+            filtered_config = utils.safe_deepcopy(
+                {
+                    key: value
+                    for key, value in config.items()
+                    if key not in {"components", "dependencies", "layout"}
+                }
+            )
+            filtered_config["components"] = utils.safe_deepcopy(page_components)
+            filtered_config["dependencies"] = utils.safe_deepcopy(
+                [
+                    dependency
+                    for dependency in config.get("dependencies", [])
+                    if dependency["id"] in dependency_ids
+                ]
+            )
+            filtered_config["layout"] = utils.safe_deepcopy(page_config["layout"])
+            filtered_config["current_page"] = page
+            return filtered_config
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
@@ -641,29 +678,18 @@ class App(FastAPI):
                 or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
-                config = utils.safe_deepcopy(blocks.config)
+                source_config = blocks.config
                 deep_link_state = "none"
-                components = [
-                    component
-                    for component in config["components"]
-                    if component["id"] in config["page"][page]["components"]
-                ]
+                components = None
                 if deep_link:
                     components, deep_link_state = load_deep_link(
                         deep_link,
-                        config,  # type: ignore
+                        source_config,  # type: ignore
                         page,
                     )
+                config = get_page_config(source_config, page, components)  # type: ignore
                 config["username"] = user
                 config["deep_link_state"] = deep_link_state
-                config["components"] = components  # type: ignore
-                config["dependencies"] = [
-                    dependency
-                    for dependency in config.get("dependencies", [])
-                    if dependency["id"] in config["page"][page]["dependencies"]
-                ]
-                config["layout"] = config["page"][page]["layout"]
-                config["current_page"] = page
                 # Update root after loading the deep link state (if applicable)
                 # so that static files are served from the correct root
                 config = route_utils.update_root_in_config(config, root)
@@ -692,7 +718,7 @@ class App(FastAPI):
                 template = (
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
-                gradio_api_info = api_info(request)
+                gradio_api_info = api_info(request, page=page)
                 resp = templates.TemplateResponse(
                     request=request,
                     name=template,
@@ -819,37 +845,48 @@ class App(FastAPI):
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
-        def api_info(request: fastapi.Request):
+        def api_info(request: fastapi.Request, page: str | None = None):
             all_endpoints = request.query_params.get("all_endpoints", False)
+            if page is not None and page in app.get_blocks().config["page"]:
+                info = app.get_blocks().get_api_info(
+                    all_endpoints=bool(all_endpoints), page=page
+                )
+                return prepare_api_info(request, info)
             if all_endpoints:
                 if not app.all_app_info:
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
                 return app.all_app_info
             if not app.api_info:
-                api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
-                api_info = cast(dict[str, Any], api_info)
-                api_info = route_utils.update_example_values_to_use_public_url(api_info)
-                root = route_utils.get_root_url(
-                    request=request,
-                    route_path=f"{API_PREFIX}/info",
-                    root_path=app.root_path,
+                app.api_info = prepare_api_info(
+                    request, app.get_blocks().get_api_info()
                 )
-                space_id = app.get_blocks().space_id
-                cli_snippets = generate_cli_snippet(api_info["named_endpoints"])
-                for k, v in cli_snippets.items():
-                    cli_snippets[k] = v.replace("{space_id}", space_id or str(root))
-                api_prefix = API_PREFIX + "/"
-                for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
-                    ep_info["code_snippets"] = generate_code_snippets(
-                        ep_name,
-                        ep_info,
-                        str(root),
-                        space_id=space_id,
-                        api_prefix=api_prefix,
-                    )
-                    ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
-                app.api_info = api_info
             return app.api_info
+
+        def prepare_api_info(
+            request: fastapi.Request, info: dict[str, Any]
+        ) -> dict[str, Any]:
+            info = cast(dict[str, Any], utils.safe_deepcopy(info))
+            info = route_utils.update_example_values_to_use_public_url(info)
+            root = route_utils.get_root_url(
+                request=request,
+                route_path=f"{API_PREFIX}/info",
+                root_path=app.root_path,
+            )
+            space_id = app.get_blocks().space_id
+            cli_snippets = generate_cli_snippet(info["named_endpoints"])
+            for k, v in cli_snippets.items():
+                cli_snippets[k] = v.replace("{space_id}", space_id or str(root))
+            api_prefix = API_PREFIX + "/"
+            for ep_name, ep_info in info.get("named_endpoints", {}).items():
+                ep_info["code_snippets"] = generate_code_snippets(
+                    ep_name,
+                    ep_info,
+                    str(root),
+                    space_id=space_id,
+                    api_prefix=api_prefix,
+                )
+                ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
+            return info
 
         @router.get("/openapi.json", dependencies=[Depends(login_check)])
         def openapi_schema(request: fastapi.Request):
@@ -1062,8 +1099,24 @@ class App(FastAPI):
             request: fastapi.Request,
             user: str = Depends(get_current_user),
             deep_link: str = "",
+            page: str | None = None,
         ):
-            config = utils.safe_deepcopy(app.get_blocks().config)
+            source_config = app.get_blocks().config
+            selected_page = (
+                page if page is not None and page in source_config["page"] else None
+            )
+            components = None
+            deep_link_state = None
+            if deep_link:
+                components, deep_link_state = load_deep_link(
+                    deep_link,
+                    source_config,
+                    selected_page if selected_page is not None else "",
+                )
+            if selected_page is not None:
+                config = get_page_config(source_config, selected_page, components)
+            else:
+                config = utils.safe_deepcopy(source_config)
             root = route_utils.get_root_url(
                 request=request,
                 route_path="/config",
@@ -1073,7 +1126,6 @@ class App(FastAPI):
             )
             config["username"] = user
             if deep_link:
-                components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:

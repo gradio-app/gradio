@@ -117,6 +117,56 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
+    def test_multipage_config_and_info_can_be_scoped_to_page(self):
+        with Blocks() as demo:
+            home_input = Textbox()
+            home_output = Textbox()
+            home_input.change(
+                lambda value: value,
+                home_input,
+                home_output,
+                api_name="home_endpoint",
+            )
+        with demo.route("Details", path="details"):
+            details_input = Textbox()
+            details_output = Textbox()
+            details_input.change(
+                lambda value: value,
+                details_input,
+                details_output,
+                api_name="details_endpoint",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+            page_config = client.get("/config?page=details").json()
+
+            assert page_config["current_page"] == "details"
+            assert page_config["pages"] == full_config["pages"]
+            assert {component["id"] for component in page_config["components"]} == set(
+                page_config["page"]["details"]["components"]
+            )
+            assert {
+                dependency["id"] for dependency in page_config["dependencies"]
+            } == set(page_config["page"]["details"]["dependencies"])
+            assert len(page_config["components"]) < len(full_config["components"])
+            assert len(page_config["dependencies"]) < len(full_config["dependencies"])
+
+            page_info = client.get(f"{API_PREFIX}/info?page=details").json()
+            assert set(page_info["named_endpoints"]) == {"/details_endpoint"}
+
+            home_config = client.get("/config?page=").json()
+            assert home_config["current_page"] == ""
+            assert {component["id"] for component in home_config["components"]} == set(
+                home_config["page"][""]["components"]
+            )
+            home_info = client.get(f"{API_PREFIX}/info?page=").json()
+            assert set(home_info["named_endpoints"]) == {"/home_endpoint"}
+        finally:
+            demo.close()
+
     def test_audio_stream_playlist_uses_stable_target_duration(self):
         with Blocks() as demo:
             audio = gr.Audio()
