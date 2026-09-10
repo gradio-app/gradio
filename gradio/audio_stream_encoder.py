@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import os
 import shutil
 import subprocess
@@ -12,6 +13,8 @@ import wave
 from collections import deque
 
 from pydub import AudioSegment
+
+logger = logging.getLogger(__name__)
 
 AAC_FRAME_SAMPLES = 1024
 
@@ -194,6 +197,7 @@ class AacStreamEncoder:
         self._at_eof = False
         self._waited_for_startup = False
         self._stdin_closed = False
+        self._closed = False
         self._condition = threading.Condition()
         # A full stdout pipe blocks the encoder, and at 48 kHz stereo the pipe
         # holds only a third of a second of audio, so it has to be drained
@@ -214,7 +218,7 @@ class AacStreamEncoder:
         # until the requested size is filled instead of returning what has
         # arrived, and works the same way on Windows.
         fd = stdout.fileno()
-        while True:
+        while not self._closed:
             try:
                 data = os.read(fd, 1 << 16)
             except (OSError, ValueError):
@@ -232,7 +236,13 @@ class AacStreamEncoder:
             self._condition.notify_all()
 
     def feed(self, pcm: bytes) -> None:
-        """Write signed 16-bit little-endian PCM into the encoder."""
+        """Write signed 16-bit little-endian PCM into the encoder.
+
+        A no-op once `close()` has run: the stream was torn down under the
+        chunk being encoded, and the run is over.
+        """
+        if self._closed:
+            return
         if self._stdin_closed:
             raise RuntimeError("encoder stdin is already closed")
         stdin = self.process.stdin
@@ -244,6 +254,8 @@ class AacStreamEncoder:
             # ValueError is what a write to an already-closed pipe raises, which
             # is reachable because `close()` can land between the check above
             # and here.
+            if self._closed:
+                return
             raise RuntimeError(
                 f"The audio encoder exited with code {self.process.poll()}."
             ) from e
@@ -279,7 +291,7 @@ class AacStreamEncoder:
 
     def _raise_if_encoder_died(self) -> None:
         """A stream that stops growing silently is worse than a loud failure."""
-        if not self._at_eof:
+        if self._closed or not self._at_eof:
             return
         code = self.process.poll()
         if code is not None and code != 0:
@@ -297,25 +309,36 @@ class AacStreamEncoder:
                     self.process.stdin.close()
                 except OSError:
                     pass
+        killed = False
         try:
             self.process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             self.process.kill()
             self.process.wait()
+            killed = True
         self._reader.join(timeout=1.0)
         with self._condition:
             frames = list(self._ready)
             self._ready.clear()
         code = self.process.returncode
+        was_closed = self._closed
         # The process is reaped by now, so this is just the pipes, which a
         # caller that flushes and drops the encoder would otherwise leave to gc.
         self.close()
-        if code:
+        if killed:
+            logger.warning(
+                "The audio encoder was still running %.0f s after its input "
+                "ended and was killed; the last frames of the stream may be "
+                "missing.",
+                timeout,
+            )
+        elif code and not was_closed:
             raise RuntimeError(f"The audio encoder exited with code {code}.")
         return frames
 
     def close(self) -> None:
         """Give up on the process without waiting for its remaining output."""
+        self._closed = True
         self._stdin_closed = True
         if self.process.poll() is None:
             self.process.kill()
@@ -323,10 +346,12 @@ class AacStreamEncoder:
                 self.process.wait(timeout=2.0)
             except subprocess.TimeoutExpired:
                 pass
+        # The reader has to be done with the pipe's fd before the fd is
+        # closed, since a closed fd number can be reused by another thread.
+        self._reader.join(timeout=1.0)
         for pipe in (self.process.stdin, self.process.stdout):
             if pipe is not None:
                 try:
                     pipe.close()
                 except OSError:
                     pass
-        self._reader.join(timeout=1.0)

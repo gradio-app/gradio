@@ -118,6 +118,28 @@ class TestAudio:
             assert time.monotonic() < deadline, "the encoder was never released"
             await asyncio.sleep(0.005)
 
+    def test_a_closed_encoder_stays_quiet(self):
+        """`close()` is a teardown, not a failure, so a chunk that was in
+        flight when it landed must not turn into an error."""
+        encoder = AacStreamEncoder(16000, 1)
+        encoder.close()
+
+        encoder.feed(bytes(2 * 1024))
+        assert encoder.take() == []
+        assert encoder.flush() == []
+
+    def test_flush_keeps_its_frames_when_it_has_to_kill_the_encoder(self, caplog):
+        encoder = AacStreamEncoder(16000, 1)
+        encoder.feed(bytes(2 * 16000))
+        encoder.take()
+
+        # A zero timeout is a process that is still running when the wait ends.
+        frames = encoder.flush(timeout=0)
+
+        assert isinstance(frames, list)
+        assert encoder.process.poll() is not None
+        assert "was killed" in caplog.text
+
     @pytest.mark.asyncio
     async def test_component_functions(self, gradio_temp_dir, media_data):
         """
