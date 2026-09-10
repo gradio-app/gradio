@@ -4,6 +4,7 @@ import asyncio
 import functools
 import inspect
 import json
+import math
 import os
 import pickle
 import sys
@@ -42,6 +43,7 @@ from gradio import (
     route_utils,
     routes,
 )
+from gradio.audio_stream_encoder import parse_adts_frames
 from gradio.data_classes import PredictBodyInternal
 from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
@@ -3315,3 +3317,38 @@ class TestOAuthSecurity:
             info = _get_mocked_oauth_info()
             assert info["access_token"] != "hf_real_secret_token"
             assert info["access_token"] == "mock-oauth-token-for-local-dev"
+
+
+@pytest.mark.requires_ffmpeg
+def test_a_direct_run_call_returns_the_whole_first_chunk():
+    """The run route takes a generator's first yield and drops the rest, so
+    the stream it hands back has to carry that one chunk in full."""
+    sample_rate, chunk_samples = 16000, 4000
+
+    def stream():
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, outputs=audio, api_name="stream")
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/gradio_api/run/stream", json={"data": [], "session_hash": "direct"}
+        )
+        assert response.status_code == 200
+        url = response.json()["data"][0]["url"]
+        playlist = client.get(url).text
+        assert "#EXT-X-ENDLIST" in playlist
+        names = [
+            line for line in playlist.splitlines() if line and not line.startswith("#")
+        ]
+        base = url.rsplit("/", 1)[0]
+        data = b"".join(client.get(f"{base}/{name}").content for name in names)
+        frames, _ = parse_adts_frames(data)
+        # one per 1024 samples of the chunk, plus the stream's priming frame
+        assert len(frames) >= math.ceil(chunk_samples / 1024)
+    finally:
+        demo.close()

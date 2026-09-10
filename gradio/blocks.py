@@ -2164,6 +2164,44 @@ Received inputs:
             stream.end_stream()
         self._pop_run_diffs(session_hash, run)
 
+    async def _finish_run_streams(
+        self, session_hash: str | None, iterator: Any
+    ) -> None:
+        """Complete the streams of a run nobody will continue: a generator called
+        through the run route yields once and is dropped, so what it produced is
+        all there is, and it has to come out whole rather than be cut off."""
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        streams = self.pending_streams.get(session_hash, {}).get(run, {})
+        for output_id, stream in streams.items():
+            block = self.blocks[output_id]
+            if isinstance(block, components.StreamingOutput):
+                await self._finish_stream(
+                    block, stream, self._stream_id(session_hash, run, output_id)
+                )
+            else:
+                stream.end_stream()
+        self._pop_run_diffs(session_hash, run)
+
+    @staticmethod
+    def _stream_id(session_hash: str, run: str, output_id: int) -> str:
+        return f"{session_hash}/{run}/{output_id}/playlist.m3u8"
+
+    @staticmethod
+    async def _finish_stream(
+        block: components.StreamingOutput, stream: MediaStream, stream_id: str
+    ) -> None:
+        try:
+            await stream.add_segment(await block.flush_stream_output(stream_id))
+        finally:
+            # A flush that fails still has to end the stream, or the playlist
+            # never gets its #EXT-X-ENDLIST and the client polls something that
+            # will not grow again.
+            stream.end_stream()
+
     def _pop_run_diffs(self, session_hash: str, run: str) -> None:
         """Drop a run's diff state, and its session's dict if that leaves it empty."""
         runs = self.pending_diff_streams.get(session_hash)
@@ -2204,7 +2242,7 @@ Received inputs:
                 # stream that nothing ever ends.
                 if final and stream_run.get(output_id) is None:
                     continue
-                stream_id = f"{session_hash}/{run}/{output_id}/playlist.m3u8"
+                stream_id = self._stream_id(session_hash, run, output_id)
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
@@ -2228,15 +2266,7 @@ Received inputs:
 
                 await stream_run[output_id].add_segment(binary_data)
                 if final:
-                    try:
-                        await stream_run[output_id].add_segment(
-                            await block.flush_stream_output(stream_id)
-                        )
-                    finally:
-                        # A flush that fails still has to end the stream, or the
-                        # playlist never gets its #EXT-X-ENDLIST and the client
-                        # polls something that will not grow again.
-                        stream_run[output_id].end_stream()
+                    await self._finish_stream(block, stream_run[output_id], stream_id)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
