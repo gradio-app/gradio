@@ -206,7 +206,16 @@ class AacStreamEncoder:
         self._reader = threading.Thread(
             target=self._read_loop, name="gradio-aac-encoder", daemon=True
         )
-        self._reader.start()
+        try:
+            self._reader.start()
+        except BaseException:
+            # The process is already running; with no reader it never exits.
+            self.process.kill()
+            self.process.wait()
+            for pipe in (self.process.stdin, self.process.stdout):
+                if pipe is not None:
+                    pipe.close()
+            raise
 
     @property
     def frame_duration(self) -> float:

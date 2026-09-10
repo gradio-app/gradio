@@ -425,18 +425,20 @@ class Audio(
             if stale is not None:
                 stale.end()
             _stream_encoders[output_id] = _EncoderSlot()
-        if value is None:
-            return None, output_file
-        if isinstance(value, bytes):
-            binary_data = value
-        elif client_utils.is_http_url_like(value["path"]):
-            response = await processing_utils.async_ssrf_protected_get(value["path"])
-            binary_data = response.content
-        else:
-            output_file["orig_name"] = value["orig_name"]
-            with open(value["path"], "rb") as f:
-                binary_data = f.read()
         try:
+            if value is None:
+                return None, output_file
+            if isinstance(value, bytes):
+                binary_data = value
+            elif client_utils.is_http_url_like(value["path"]):
+                response = await processing_utils.async_ssrf_protected_get(
+                    value["path"]
+                )
+                binary_data = response.content
+            else:
+                output_file["orig_name"] = value["orig_name"]
+                with open(value["path"], "rb") as f:
+                    binary_data = f.read()
             chunk = await anyio.to_thread.run_sync(
                 self._encode_chunk, output_id, binary_data
             )
@@ -455,15 +457,17 @@ class Audio(
             return None
 
         def flush_and_release() -> MediaStreamChunk | None:
-            # The encoder is out of the registry either way, so a flush that
-            # raises would leave nothing able to release the process.
-            try:
-                return _segment_from_frames(encoder, encoder.flush())
-            except Exception:
-                encoder.close()
-                raise
+            return _segment_from_frames(encoder, encoder.flush())
 
-        return await anyio.to_thread.run_sync(flush_and_release)
+        try:
+            return await anyio.to_thread.run_sync(flush_and_release)
+        except BaseException:
+            # The encoder is out of the registry and the slot, so nothing else
+            # can release it: not after a flush that raised, and not after a
+            # cancel that landed before the thread was dispatched. A cancel
+            # that lands later races the thread's own close, which is safe.
+            encoder.close()
+            raise
 
     def end_stream_output(self, output_id: str) -> None:
         slot = _stream_encoders.pop(output_id, None)

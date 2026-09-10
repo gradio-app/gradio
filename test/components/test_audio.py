@@ -2,6 +2,7 @@ import asyncio
 import filecmp
 import io
 import math
+import subprocess
 import threading
 import time
 import wave
@@ -9,6 +10,7 @@ from copy import deepcopy
 from difflib import SequenceMatcher
 from pathlib import Path
 
+import anyio
 import numpy as np
 import pytest
 from gradio_client import utils as client_utils
@@ -162,6 +164,62 @@ class TestAudio:
         assert sum(segment["duration"] for segment in segments if segment) > 0
         assert stream_id not in _stream_encoders
 
+    @pytest.mark.asyncio
+    async def test_a_first_chunk_that_fails_before_encoding_leaves_no_slot(self):
+        """The registry entry exists before the chunk is even read."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        missing = {"path": "/nonexistent/chunk.wav", "orig_name": "chunk.wav"}
+        with pytest.raises(FileNotFoundError):
+            await audio.stream_output(missing, stream_id, True)
+
+        assert stream_id not in _stream_encoders
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_flush_cancelled_before_its_thread_runs_releases_the_encoder(
+        self, monkeypatch
+    ):
+        """The flush detaches the encoder before it awaits, so nothing else can
+        release it if the await never dispatches the thread."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        await audio.stream_output(wav_chunk(4000), stream_id, True)
+        encoder = _stream_encoders[stream_id].encoder
+        assert encoder is not None
+
+        async def cancelled_before_dispatch(func, *args, **kwargs):
+            raise asyncio.CancelledError
+
+        monkeypatch.setattr(anyio.to_thread, "run_sync", cancelled_before_dispatch)
+        with pytest.raises(asyncio.CancelledError):
+            await audio.flush_stream_output(stream_id)
+
+        assert stream_id not in _stream_encoders
+        assert encoder.process.poll() is not None
+
+    @pytest.mark.requires_ffmpeg
+    def test_an_encoder_whose_reader_cannot_start_kills_its_process(self, monkeypatch):
+        from gradio import audio_stream_encoder
+
+        started = []
+
+        class RecordingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+        def cannot_start(self):
+            raise RuntimeError("can't start new thread")
+
+        monkeypatch.setattr(audio_stream_encoder.subprocess, "Popen", RecordingPopen)
+        monkeypatch.setattr(threading.Thread, "start", cannot_start)
+        with pytest.raises(RuntimeError, match="can't start new thread"):
+            AacStreamEncoder(16000, 1)
+
+        (process,) = started
+        assert process.poll() is not None
+
     @pytest.mark.requires_ffmpeg
     def test_a_closed_encoder_stays_quiet(self):
         """`close()` is a teardown, not a failure, so a chunk that was in
@@ -177,12 +235,17 @@ class TestAudio:
     def test_flush_keeps_its_frames_when_it_has_to_kill_the_encoder(self, caplog):
         encoder = AacStreamEncoder(16000, 1)
         encoder.feed(bytes(2 * 16000))
-        encoder.take()
+        # Wait for output to exist without taking it, so the flush has
+        # something to keep.
+        deadline = time.monotonic() + 5
+        while not encoder._ready:
+            assert time.monotonic() < deadline, "the encoder produced nothing"
+            time.sleep(0.005)
 
         # A zero timeout is a process that is still running when the wait ends.
         frames = encoder.flush(timeout=0)
 
-        assert isinstance(frames, list)
+        assert frames
         assert encoder.process.poll() is not None
         assert "was killed" in caplog.text
 
