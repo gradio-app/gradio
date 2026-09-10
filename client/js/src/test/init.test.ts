@@ -68,7 +68,7 @@ describe("Client class", () => {
 
 		test("forwards a page query when resolving config and API info", async () => {
 			const requested_urls: string[] = [];
-			server.resetHandlers(
+			server.use(
 				http.get(`${direct_app_reference}/config`, ({ request }) => {
 					requested_urls.push(request.url);
 					return HttpResponse.json(config_response);
