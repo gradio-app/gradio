@@ -1206,7 +1206,7 @@ class MediaStream:
             callback = self.on_end.pop()
             try:
                 callback()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 # This runs inside exception handling, so a teardown failure
                 # must not replace the error being propagated. It leaks, though.
                 logger.warning("stream cleanup callback failed", exc_info=True)

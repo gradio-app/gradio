@@ -2197,7 +2197,7 @@ Received inputs:
                 and block.streaming
                 and not utils.is_prop_update(data[i])
             ):
-                # Nothing to finalize if this output never opened a stream —
+                # Nothing to finalize if this output never opened a stream:
                 # the session may have been dropped on disconnect, or every
                 # chunk before this one may have been a prop update. Falling
                 # through would leave `first_chunk` true and build a fresh

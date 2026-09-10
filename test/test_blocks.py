@@ -1807,6 +1807,7 @@ class TestHandleStreamingOutputs:
             first, second = gr.Audio(streaming=True), gr.Audio(streaming=True)
             gr.Button().click(stream, None, [first, second])
         block_fn = next(iter(demo.fns.values()))
+        registered_before = set(_stream_encoders)
 
         with pytest.raises(CouldntDecodeError):
             await demo.process_api(
@@ -1820,7 +1821,7 @@ class TestHandleStreamingOutputs:
 
         (streams,) = demo.pending_streams["s"].values()
         assert streams[first._id].ended
-        assert not _stream_encoders
+        assert set(_stream_encoders) <= registered_before
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
