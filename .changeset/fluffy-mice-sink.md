@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: add pending node
+feat:workflow: add pending node UI
