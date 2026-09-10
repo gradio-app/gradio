@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import threading
 import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -29,9 +30,45 @@ from gradio.utils import set_default_buttons
 if TYPE_CHECKING:
     from gradio.components import Timer
 
-# One encoder per live stream, keyed by the stream's playlist path. The
+
+class _EncoderSlot:
+    """The registry's entry for one stream, made before its encoder exists.
+
+    The encoder is created on a worker thread, and the coroutine waiting for
+    it can be cancelled without the thread being stopped, so the thread can
+    go on to publish an encoder after the coroutine is gone. The two hand
+    over under a lock: the thread attaches unless the slot has been ended,
+    and ending the slot closes whatever is attached, whichever comes first.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._ended = False
+        self.encoder: AacStreamEncoder | None = None
+
+    def attach(self, encoder: AacStreamEncoder) -> bool:
+        with self._lock:
+            if self._ended:
+                return False
+            self.encoder = encoder
+            return True
+
+    def detach(self) -> AacStreamEncoder | None:
+        """Take the encoder out and refuse any that arrives later."""
+        with self._lock:
+            self._ended = True
+            encoder, self.encoder = self.encoder, None
+            return encoder
+
+    def end(self) -> None:
+        encoder = self.detach()
+        if encoder is not None:
+            encoder.close()
+
+
+# One slot per live stream, keyed by the stream's playlist path. The
 # component instance is shared by every session, so it cannot hold these.
-_stream_encoders: dict[str, AacStreamEncoder] = {}
+_stream_encoders: dict[str, _EncoderSlot] = {}
 
 
 def _segment_from_frames(
@@ -348,33 +385,23 @@ class Audio(
             raise ValueError(f"Cannot process {value} as Audio")
         return FileData(path=file_path, orig_name=orig_name)
 
-    def _encode_chunk(
-        self, output_id: str, data: bytes, first_chunk: bool
-    ) -> MediaStreamChunk | None:
-        encoder = None if first_chunk else _stream_encoders.get(output_id)
+    def _encode_chunk(self, output_id: str, data: bytes) -> MediaStreamChunk | None:
+        slot = _stream_encoders.get(output_id)
+        if slot is None:
+            # Ended while this chunk was in flight, by a disconnect or a
+            # cancel. The run is over and nothing will play this.
+            return None
+        encoder = slot.encoder
         if encoder is None:
-            # Nothing reachable parks an encoder here: every path that
-            # discards a `MediaStream` ends it first, and ending it is what
-            # releases the encoder. Closing whatever is parked keeps a stray
-            # ffmpeg from outliving the app should that stop holding.
-            stale = _stream_encoders.pop(output_id, None)
-            if stale is not None:
-                stale.close()
             sample_rate, channels, pcm = decode_to_pcm(data)
             encoder = AacStreamEncoder(sample_rate, channels)
-            _stream_encoders[output_id] = encoder
+            if not slot.attach(encoder):
+                encoder.close()
+                return None
         else:
             _, _, pcm = decode_to_pcm(data, encoder.sample_rate, encoder.channels)
-        try:
-            encoder.feed(pcm)
-            return _segment_from_frames(encoder, encoder.take())
-        except Exception:
-            # A first chunk that fails has nothing holding its encoder yet: the
-            # stream's finalize is armed only once `stream_output` returns. A
-            # later chunk has one, through the stream ended on the way out.
-            if first_chunk:
-                self.end_stream_output(output_id)
-            raise
+        encoder.feed(pcm)
+        return _segment_from_frames(encoder, encoder.take())
 
     async def stream_output(
         self,
@@ -399,13 +426,29 @@ class Audio(
             output_file["orig_name"] = value["orig_name"]
             with open(value["path"], "rb") as f:
                 binary_data = f.read()
-        chunk = await anyio.to_thread.run_sync(
-            self._encode_chunk, output_id, binary_data, first_chunk
-        )
+        if first_chunk:
+            # Made here, on the event loop, so that a cancel landing while the
+            # thread runs has something to end. A key is never shared by two
+            # live streams, so anything already here was left behind.
+            stale = _stream_encoders.pop(output_id, None)
+            if stale is not None:
+                stale.end()
+            _stream_encoders[output_id] = _EncoderSlot()
+        try:
+            chunk = await anyio.to_thread.run_sync(
+                self._encode_chunk, output_id, binary_data
+            )
+        except BaseException:
+            # Until this returns and the stream exists, nothing else holds
+            # the slot.
+            if first_chunk:
+                self.end_stream_output(output_id)
+            raise
         return chunk, output_file
 
     async def flush_stream_output(self, output_id: str) -> MediaStreamChunk | None:
-        encoder = _stream_encoders.pop(output_id, None)
+        slot = _stream_encoders.pop(output_id, None)
+        encoder = slot.detach() if slot is not None else None
         if encoder is None:
             return None
 
@@ -421,9 +464,9 @@ class Audio(
         return await anyio.to_thread.run_sync(flush_and_release)
 
     def end_stream_output(self, output_id: str) -> None:
-        encoder = _stream_encoders.pop(output_id, None)
-        if encoder is not None:
-            encoder.close()
+        slot = _stream_encoders.pop(output_id, None)
+        if slot is not None:
+            slot.end()
 
     async def combine_stream(
         self,

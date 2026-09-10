@@ -1,6 +1,9 @@
+import asyncio
 import filecmp
 import io
 import math
+import threading
+import time
 import wave
 from copy import deepcopy
 from difflib import SequenceMatcher
@@ -68,12 +71,52 @@ class TestAudio:
             raise RuntimeError("the encoder died mid-chunk")
 
         monkeypatch.setattr(AacStreamEncoder, "feed", fail)
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError, match="died mid-chunk"):
             await audio.stream_output(
                 Path(get_audio("audio_sample.wav")).read_bytes(), stream_id, True
             )
 
         assert stream_id not in _stream_encoders
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("gate", ["__init__", "feed"])
+    async def test_a_cancelled_first_chunk_releases_its_encoder(
+        self, monkeypatch, gate
+    ):
+        """Cancelling the await does not stop the thread, which may not even
+        have made its encoder yet; whichever order they finish in, the encoder
+        has to be released."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        reached, proceed = threading.Event(), threading.Event()
+        encoders: list[AacStreamEncoder] = []
+        original = getattr(AacStreamEncoder, gate)
+
+        def gated(self, *args, **kwargs):
+            reached.set()
+            proceed.wait(timeout=5)
+            result = original(self, *args, **kwargs)
+            encoders.append(self)
+            return result
+
+        monkeypatch.setattr(AacStreamEncoder, gate, gated)
+        task = asyncio.ensure_future(
+            audio.stream_output(
+                Path(get_audio("audio_sample.wav")).read_bytes(), stream_id, True
+            )
+        )
+        while not reached.is_set():
+            await asyncio.sleep(0.001)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert stream_id not in _stream_encoders
+
+        proceed.set()
+        deadline = time.monotonic() + 5
+        while not (encoders and encoders[0].process.poll() is not None):
+            assert time.monotonic() < deadline, "the encoder was never released"
+            await asyncio.sleep(0.005)
 
     @pytest.mark.asyncio
     async def test_component_functions(self, gradio_temp_dir, media_data):

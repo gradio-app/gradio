@@ -27,6 +27,7 @@ from PIL import Image
 
 import gradio as gr
 from gradio import blocks, helpers, processing_utils
+from gradio.components.audio import _stream_encoders
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
@@ -1785,6 +1786,40 @@ class TestHandleStreamingOutputs:
         # equal and non-empty, so neither run appended to the other's stream
         counts = [len(streams[key][audio._id].segments) for key in streams]
         assert counts[0] == counts[1] > 0
+
+    @requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_first_call_that_fails_ends_the_streams_it_opened(self):
+        # `call_process_api` and the queue find a run through
+        # `app.iterators[event_id]`, which is assigned only after `process_api`
+        # returns, so on a first call neither can end its streams.
+        from pydub.exceptions import CouldntDecodeError
+
+        chunk = (
+            pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+        ).read_bytes()
+
+        def stream():
+            yield chunk, b"not audio"
+
+        with gr.Blocks() as demo:
+            first, second = gr.Audio(streaming=True), gr.Audio(streaming=True)
+            gr.Button().click(stream, None, [first, second])
+        block_fn = next(iter(demo.fns.values()))
+
+        with pytest.raises(CouldntDecodeError):
+            await demo.process_api(
+                block_fn=block_fn,
+                inputs=[],
+                state=None,
+                iterator=None,
+                session_hash="s",
+                event_id="event-1",
+            )
+
+        (streams,) = demo.pending_streams["s"].values()
+        assert streams[first._id].ended
+        assert not _stream_encoders
 
     @requires_ffmpeg
     @pytest.mark.asyncio

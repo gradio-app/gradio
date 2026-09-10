@@ -2157,6 +2157,9 @@ Received inputs:
         run = self._stream_run_ids.get(iterator)
         if run is None:
             return
+        self._drop_run(session_hash, run)
+
+    def _drop_run(self, session_hash: str, run: str) -> None:
         for stream in self.pending_streams.get(session_hash, {}).get(run, {}).values():
             stream.end_stream()
         self._pop_run_diffs(session_hash, run)
@@ -2428,26 +2431,35 @@ Received inputs:
                     if session_hash is not None
                     else None
                 )
-                async with trace_phase("streaming_diff"):
-                    data = await self.handle_streaming_outputs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run,
-                        root_path=root_path,
-                        final=not is_generating,
-                    )
-                    # Diff state serves the later chunks of a run, which can
-                    # only be fetched under an event id. A call without one
-                    # gets full values, which is what its clients expect.
-                    data = self.handle_streaming_diffs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run if event_id is not None else None,
-                        final=not is_generating,
-                        simple_format=simple_format,
-                    )
+                try:
+                    async with trace_phase("streaming_diff"):
+                        data = await self.handle_streaming_outputs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run,
+                            root_path=root_path,
+                            final=not is_generating,
+                        )
+                        # Diff state serves the later chunks of a run, which
+                        # can only be fetched under an event id. A call without
+                        # one gets full values, which is what its clients
+                        # expect.
+                        data = self.handle_streaming_diffs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run if event_id is not None else None,
+                            final=not is_generating,
+                            simple_format=simple_format,
+                        )
+                except BaseException:
+                    # The callers' handlers find a run through
+                    # `app.iterators`, which is assigned only once this has
+                    # returned, so on a first call they cannot.
+                    if session_hash is not None and run is not None:
+                        self._drop_run(session_hash, run)
+                    raise
 
         if not manual_cache_used:
             block_fn.total_runtime += result["duration"]
