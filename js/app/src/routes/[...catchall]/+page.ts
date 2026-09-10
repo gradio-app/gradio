@@ -6,18 +6,9 @@ import { apply_run_history_replay, Client } from "@gradio/client";
 import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
 import { setupi18n } from "@gradio/core";
+import { get_current_page } from "$lib/page_utils.js";
 
 export let ssr = true;
-
-function get_current_page(url: URL, root_url: string): string {
-	const strip_slashes = (path: string): string =>
-		path.replace(/^\/+|\/+$/g, "");
-	const root_path = strip_slashes(new URL(root_url).pathname);
-	const url_path = strip_slashes(url.pathname);
-	if (url_path === root_path) return "";
-	if (!url_path.startsWith(root_path + "/")) return "";
-	return url_path.slice(root_path.length + 1);
-}
 
 export async function load({
 	url,
@@ -44,7 +35,7 @@ export async function load({
 			? new URL(mount_path || "/", root_url).href
 			: server;
 	const deepLink = url.searchParams.get("deep_link");
-	const currentPage = get_current_page(url, root_url);
+	const currentPage = get_current_page(url.pathname, root_url);
 	const headers = new Headers();
 	if (!browser) {
 		headers.append("x-gradio-server", root_url);
