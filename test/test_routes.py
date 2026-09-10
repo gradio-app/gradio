@@ -164,6 +164,15 @@ class TestRoutes:
             )
             home_info = client.get(f"{API_PREFIX}/info?page=").json()
             assert set(home_info["named_endpoints"]) == {"/home_endpoint"}
+
+            # Page-scoped requests leave the full API-info cache empty. The cURL
+            # endpoint must initialize it lazily instead of returning a 500.
+            assert app.api_info is None
+            curl_response = client.post(
+                f"{API_PREFIX}/call/v2/home_endpoint", json={"value": "hello"}
+            )
+            assert curl_response.status_code == 200
+            assert app.api_info is not None
         finally:
             demo.close()
 

@@ -1517,7 +1517,11 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            endpoint_info = app.api_info["named_endpoints"]["/" + api_name]  # type: ignore
+            # A page-scoped HTML or /info request deliberately does not populate
+            # the full API-info cache. Build it lazily for this endpoint instead
+            # of relying on the app's home page having been requested first.
+            full_api_info = app.api_info or api_info(request)
+            endpoint_info = full_api_info["named_endpoints"]["/" + api_name]
             parameters_info = endpoint_info["parameters"]
             body = dict(body)
             oauth_token = None
