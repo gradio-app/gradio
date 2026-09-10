@@ -139,7 +139,6 @@ class TestAudio:
             await asyncio.sleep(0.005)
 
     @pytest.mark.requires_ffmpeg
-    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_a_stream_that_opens_on_none_plays_its_later_chunks(self):
         """A generator's first yield may carry no audio yet."""
@@ -162,6 +161,7 @@ class TestAudio:
         assert sum(segment["duration"] for segment in segments if segment) > 0
         assert stream_id not in _stream_encoders
 
+    @pytest.mark.requires_ffmpeg
     def test_a_closed_encoder_stays_quiet(self):
         """`close()` is a teardown, not a failure, so a chunk that was in
         flight when it landed must not turn into an error."""
