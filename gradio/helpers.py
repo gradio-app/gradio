@@ -14,6 +14,7 @@ import warnings
 from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from functools import partial
 from pathlib import Path
+from threading import Lock
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Optional, get_origin
 
@@ -300,6 +301,7 @@ class Examples:
         self.run_on_click = run_on_click
         self.cache_event: Dependency | None = None
         self.non_none_processed_examples = UnhashableKeyDict()
+        self._cache_locks = [Lock() for _ in self.examples]
 
         if self.dataset.samples:
             for index, example in enumerate(self.non_none_examples):
@@ -513,7 +515,7 @@ class Examples:
         self,
         example_id: int | None = None,
         request: routes.Request | None = None,
-    ) -> None:
+    ) -> int | None:
         """
         Caches examples so that their predictions can be shown immediately.
         Parameters:
@@ -547,42 +549,46 @@ class Examples:
                 batch=self.batch,
             )
 
-            if self.outputs is None:
-                raise ValueError("self.outputs is missing")
-            for i, example in enumerate(self.non_none_examples):
-                if example_id is not None and i != example_id:
-                    continue
-                processed_input = self._get_processed_example(example)
-                for index, keep in enumerate(self.input_has_examples):
-                    if not keep:
-                        processed_input.insert(index, None)
-                if self.batch:
-                    processed_input = [[value] for value in processed_input]
-                with utils.MatplotlibBackendMananger():
-                    # When caching examples lazily, set in_event_listener to False
-                    # so that all components are properly instantiated
-                    # See https://github.com/gradio-app/gradio/issues/12564
-                    prediction = await self.root_block.process_api(
-                        block_fn=self.root_block.default_config.fns[fn_index],
-                        inputs=processed_input,
-                        request=request,
-                        in_event_listener=self.cache_examples != "lazy",
-                    )
-                output = prediction["data"]
-                if generated_values:
-                    output = await merge_generated_values_into_output(
-                        self.outputs,  # type: ignore
-                        generated_values,
-                        output,  # type: ignore
-                    )
-                if self.batch:
-                    output = [value[0] for value in output]
-                self.cache_logger.flag(output)
-                with open(self.cached_indices_file, "a") as f:
-                    f.write(f"{example_id or i}\n")
-
-            # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
-            self.root_block.default_config.fns.pop(fn_index)
+            try:
+                if self.outputs is None:
+                    raise ValueError("self.outputs is missing")
+                cached_index = None
+                for i, example in enumerate(self.non_none_examples):
+                    if example_id is not None and i != example_id:
+                        continue
+                    processed_input = self._get_processed_example(example)
+                    for index, keep in enumerate(self.input_has_examples):
+                        if not keep:
+                            processed_input.insert(index, None)
+                    if self.batch:
+                        processed_input = [[value] for value in processed_input]
+                    with utils.MatplotlibBackendMananger():
+                        # When caching examples lazily, set in_event_listener to False
+                        # so that all components are properly instantiated
+                        # See https://github.com/gradio-app/gradio/issues/12564
+                        prediction = await self.root_block.process_api(
+                            block_fn=self.root_block.default_config.fns[fn_index],
+                            inputs=processed_input,
+                            request=request,
+                            in_event_listener=self.cache_examples != "lazy",
+                        )
+                    output = prediction["data"]
+                    if generated_values:
+                        output = await merge_generated_values_into_output(
+                            self.outputs,  # type: ignore
+                            generated_values,
+                            output,  # type: ignore
+                        )
+                    if self.batch:
+                        output = [value[0] for value in output]
+                    cached_index = self.cache_logger.flag(output) - 1
+                    with open(self.cached_indices_file, "a") as f:
+                        f.write(f"{example_id if example_id is not None else i}\n")
+                return cached_index
+            finally:
+                # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
+                self.root_block.default_config.fns.pop(fn_index)
+        return None
 
     def load_from_cache(
         self,
@@ -594,11 +600,14 @@ class Examples:
             example_id: The id of the example to process (zero-indexed).
             request: The request that triggered lazy caching, if any.
         """
-        cached_index = self._get_cached_index_if_cached(example_id)
-        if cached_index is None:
-            client_utils.synchronize_async(self.cache, example_id, request)
-            with open(self.cached_indices_file) as f:
-                cached_index = len(f.readlines()) - 1
+        with self._cache_locks[example_id]:
+            cached_index = self._get_cached_index_if_cached(example_id)
+            if cached_index is None:
+                cached_index = client_utils.synchronize_async(
+                    self.cache, example_id, request
+                )
+                if cached_index is None:
+                    raise IndexError("Cached example not found in cache file")
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))

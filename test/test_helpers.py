@@ -1,7 +1,9 @@
 import asyncio
 import os
 import tempfile
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import cast
 from unittest.mock import patch
@@ -699,6 +701,84 @@ class TestProcessExamples:
             )
 
         assert response.json()["data"] == ["visitor-token"]
+
+    def test_lazy_cache_coalesces_concurrent_requests(self, patched_cache_folder):
+        calls = 0
+
+        def slow_identity(value):
+            nonlocal calls
+            calls += 1
+            time.sleep(0.1)
+            return value
+
+        with gr.Blocks():
+            text = gr.Textbox()
+            examples = gr.Examples(
+                examples=["hello"],
+                inputs=text,
+                outputs=text,
+                fn=slow_identity,
+                cache_examples=True,
+                cache_mode="lazy",
+            )
+
+        ready = threading.Barrier(3)
+
+        def load_example():
+            ready.wait()
+            return examples.load_from_cache(0)
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [executor.submit(load_example) for _ in range(2)]
+            ready.wait()
+            results = [future.result() for future in futures]
+
+        assert results == [["hello"], ["hello"]]
+        assert calls == 1
+
+    def test_lazy_cache_uses_index_returned_by_cache(self, patched_cache_folder):
+        with gr.Blocks():
+            text = gr.Textbox()
+            examples = gr.Examples(
+                examples=["first", "second"],
+                inputs=text,
+                outputs=text,
+                fn=lambda value: value,
+                cache_examples=True,
+                cache_mode="lazy",
+            )
+
+        examples.cached_folder.mkdir(parents=True)
+        examples.cached_file.write_text(
+            "component 0,timestamp\nfirst,now\nsecond,now\n"
+        )
+        examples.cached_indices_file.write_text("0\n1\n")
+
+        with (
+            patch.object(examples, "_get_cached_index_if_cached", return_value=None),
+            patch.object(client_utils, "synchronize_async", return_value=0),
+        ):
+            assert examples.load_from_cache(0) == ["first"]
+
+    def test_lazy_cache_removes_temporary_event_after_error(self, patched_cache_folder):
+        def fail(value):
+            raise gr.Error(f"Could not process {value}")
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            examples = gr.Examples(
+                examples=["hello"],
+                inputs=text,
+                outputs=text,
+                fn=fail,
+                cache_examples=True,
+                cache_mode="lazy",
+            )
+
+        event_count = len(demo.default_config.fns)
+        with pytest.raises(gr.Error, match="Could not process hello"):
+            examples.load_from_cache(0)
+        assert len(demo.default_config.fns) == event_count
 
 
 def test_multiple_file_flagging(tmp_path, connect):
