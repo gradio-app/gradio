@@ -435,13 +435,7 @@ async def call_process_api(
             raise output
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
-        if iterator is not None:  # close off any streams that are still open
-            run_id = id(iterator)
-            pending_streams: dict[int, MediaStream] = (
-                app.get_blocks().pending_streams.get(session_hash, {}).get(run_id, {})
-            )
-            for stream in pending_streams.values():
-                stream.end_stream()
+        app.get_blocks()._drop_run_streams(session_hash, iterator)
         raise
 
     if batch_in_single_out:
@@ -687,7 +681,8 @@ class GradioMultiPartParser:
 
     Made the following modifications
         - Use GradioUploadFile instead of UploadFile
-        - Use NamedTemporaryFile instead of SpooledTemporaryFile
+        - Use NamedTemporaryFile instead of SpooledTemporaryFile, optionally
+          placing it in Gradio's upload directory
         - Compute hash of data as the request is streamed
 
     """
@@ -701,6 +696,7 @@ class GradioMultiPartParser:
         *,
         max_files: Union[int, float] = 1000,
         max_fields: Union[int, float] = 1000,
+        upload_dir: str | Path | None = None,
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
         max_file_size: int | float,
@@ -710,6 +706,7 @@ class GradioMultiPartParser:
         self.stream = stream
         self.max_files = max_files
         self.max_fields = max_fields
+        self.upload_dir = upload_dir
         self.items: list[tuple[str, Union[str, UploadFile]]] = []
         self.upload_id = upload_id
         self.upload_progress = upload_progress
@@ -805,7 +802,7 @@ class GradioMultiPartParser:
                     f"Too many files. Maximum number of files is {self.max_files}."
                 )
             filename = _user_safe_decode(options[b"filename"], str(self._charset))
-            tempfile = NamedTemporaryFile(delete=False)
+            tempfile = NamedTemporaryFile(delete=False, dir=self.upload_dir)
             self._files_to_close_on_error.append(tempfile)
             self._current_part.file = GradioUploadFile(
                 file=tempfile,  # type: ignore[arg-type]
@@ -1541,6 +1538,7 @@ async def upload_fn(
     if content_type != b"multipart/form-data":
         raise HTTPException(status_code=400, detail="Invalid content type.")
 
+    Path(upload_dir).mkdir(exist_ok=True, parents=True)
     if upload_id and upload_progress:
         upload_progress.track(upload_id)
 
@@ -1549,6 +1547,7 @@ async def upload_fn(
         request.stream(),
         max_files=1000,
         max_fields=1000,
+        upload_dir=upload_dir,
         max_file_size=max_file_size,
         upload_id=upload_id,
         upload_progress=upload_progress,

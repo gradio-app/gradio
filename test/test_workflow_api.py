@@ -402,12 +402,72 @@ class TestLiveSchemaUpdate:
 # End-to-end through real /info + /call via gradio_client
 # ─────────────────────────────────────────────────────────────────────────────
 
-DEMO_API = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "demo",
-    "workflow_api",
-    "workflow.json",
-)
+
+def _edge(eid, src, src_port, dst, dst_port, type="text"):
+    return {
+        "id": eid,
+        "from_node_id": src,
+        "from_port_id": src_port,
+        "to_node_id": dst,
+        "to_port_id": dst_port,
+        "type": type,
+    }
+
+
+def _graph_two_fns() -> str:
+    """One text reference feeding two `fn` operators, each into its own subject.
+    Locally bound functions only, so nothing here reaches the network. Kept
+    independent of `demo/workflow_api` so re-saving that demo can't break these
+    assertions."""
+    ops, subs, edges = [], [], []
+    for i, (fn, label) in enumerate([("shout", "Loud"), ("reverse", "Reversed")]):
+        ops.append(
+            {
+                "id": f"op{i}",
+                "label": fn,
+                "role": "operator",
+                "kind": "fn",
+                "fn": fn,
+                "inputs": [{"id": "in_text", "type": "text", "required": True}],
+                "outputs": [{"id": "out_0", "type": "text", "output_index": 0}],
+                "data": {},
+            }
+        )
+        subs.append(
+            {
+                "id": f"sub{i}",
+                "label": label,
+                "role": "subject",
+                "asset_type": "text",
+                "inputs": [{"id": "in", "type": "text"}],
+                "outputs": [{"id": "out", "type": "text"}],
+                "data": {},
+            }
+        )
+        edges += [
+            _edge(f"a{i}", "ref", "out", f"op{i}", "in_text"),
+            _edge(f"b{i}", f"op{i}", "out_0", f"sub{i}", "in"),
+        ]
+    return json.dumps(
+        {
+            "schema_version": "2",
+            "name": "Text Tools",
+            "references": [
+                {
+                    "id": "ref",
+                    "label": "Text",
+                    "role": "reference",
+                    "asset_type": "text",
+                    "inputs": [{"id": "in", "type": "text"}],
+                    "outputs": [{"id": "out", "type": "text"}],
+                    "data": {},
+                }
+            ],
+            "operators": ops,
+            "subjects": subs,
+            "edges": edges,
+        }
+    )
 
 
 def _frontend_built() -> bool:
@@ -428,7 +488,7 @@ class TestEndToEndClient:
         not _frontend_built(),
         reason="frontend build required (gradio_client fetches the root page)",
     )
-    def test_multi_output_endpoint_callable_via_gradio_client(self):
+    def test_multi_output_endpoint_callable_via_gradio_client(self, tmp_path):
         from gradio_client import Client
 
         import gradio as gr
@@ -441,7 +501,9 @@ class TestEndToEndClient:
 
         # "Loud" and "Reversed" share the "Text" input, so they're one subgraph
         # → one endpoint (slug from the first subject) returning both outputs.
-        demo = gr.Workflow(graph=DEMO_API, bind={"shout": shout, "reverse": reverse})
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_two_fns())
+        demo = gr.Workflow(graph=str(path), bind={"shout": shout, "reverse": reverse})
         _, local_url, _ = demo.launch(prevent_thread_lock=True, quiet=True)
         try:
             client = Client(local_url, verbose=False)
@@ -454,7 +516,7 @@ class TestEndToEndClient:
         finally:
             demo.close()
 
-    def test_info_route_lists_endpoints(self):
+    def test_info_route_lists_endpoints(self, tmp_path):
         """The HTTP /info route serves the workflow endpoints (no frontend build
         needed — this is the discovery half; gradio_client covers /call in CI)."""
         from fastapi.testclient import TestClient
@@ -467,7 +529,9 @@ class TestEndToEndClient:
         def reverse(text: str) -> str:
             return (text or "")[::-1]
 
-        demo = gr.Workflow(graph=DEMO_API, bind={"shout": shout, "reverse": reverse})
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_two_fns())
+        demo = gr.Workflow(graph=str(path), bind={"shout": shout, "reverse": reverse})
         client = TestClient(demo.app)
         resp = client.get("/gradio_api/info")
         assert resp.status_code == 200
