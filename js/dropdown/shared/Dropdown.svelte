@@ -78,7 +78,6 @@
 		}
 		if (
 			current_value === undefined ||
-			current_value === null ||
 			(Array.isArray(current_value) && current_value.length === 0)
 		) {
 			input_text = "";
@@ -86,6 +85,9 @@
 		} else if (values.includes(current_value as string | number)) {
 			input_text = names[values.indexOf(current_value as string | number)];
 			selected_index = values.indexOf(current_value as string | number);
+		} else if (current_value === null) {
+			input_text = "";
+			selected_index = null;
 		} else if (allow_custom_value) {
 			input_text = current_value as string;
 			selected_index = null;
