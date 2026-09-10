@@ -254,6 +254,13 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	return copied;
 }
 
+export const play_media = (media: HTMLMediaElement): void => {
+	Promise.resolve(media.play()).catch((e: DOMException) => {
+		if (e?.name === "AbortError" || e?.name === "NotAllowedError") return;
+		console.warn("play() was rejected:", e);
+	});
+};
+
 export const format_time = (seconds: number): string => {
 	const hours = Math.floor(seconds / 3600);
 	const minutes = Math.floor((seconds % 3600) / 60);

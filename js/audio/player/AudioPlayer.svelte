@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, untrack } from "svelte";
 	import { Music } from "@gradio/icons";
-	import { format_time, type I18nFormatter } from "@gradio/utils";
+	import { format_time, play_media, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
@@ -9,7 +9,7 @@
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
-	import Hls from "hls.js";
+	import { create_hls_stream, is_hls_supported } from "@gradio/utils/hls";
 
 	let {
 		value = null,
@@ -56,7 +56,10 @@
 		onload?: () => void;
 	} = $props();
 
+	const MEDIA_ERROR_FALLBACK = "Media error";
+
 	let url = $derived(value?.url);
+	let is_stream = $derived(value?.is_stream ?? false);
 	let old_playback_position = $state(0);
 
 	let container = $state<HTMLDivElement | undefined>(undefined);
@@ -77,19 +80,16 @@
 	let show_volume_slider = $state(false);
 	let audio_player = $state<HTMLAudioElement | undefined>(undefined);
 
-	let stream_active = false;
 	let subtitles_toggle = $state(true);
 	let subtitle_event_handlers: (() => void)[] = [];
 
 	let waveform_load_failed = $state(false);
 
 	let use_waveform = $derived(
-		waveform_options.show_recording_waveform && !value?.is_stream
+		waveform_options.show_recording_waveform && !is_stream
 	);
 
-	let native_fallback_active = $derived(
-		waveform_load_failed && value?.url !== undefined && value?.url !== null
-	);
+	let native_fallback_active = $derived(waveform_load_failed && url != null);
 
 	// The native element is the player, rather than a hidden decoy, whenever
 	// there is no working waveform to drive playback: the waveform is turned
@@ -119,6 +119,7 @@
 		// a fresh element every time that branch remounts, so bail out when there
 		// is nothing to draw into and rebuild when the element is replaced.
 		if (!container || waveform_container === container) return;
+		clear_subtitles();
 		waveform?.destroy();
 		waveform_ready = false;
 		waveform_container = container;
@@ -189,26 +190,50 @@
 			onload?.();
 		});
 
-		waveform?.on("error", handle_waveform_error);
+		// Media element errors can leave WaveSurfer's load promise pending.
+		waveform?.on("error", (e: Error | MediaError) => {
+			if (!(e instanceof MediaError) && e.message !== MEDIA_ERROR_FALLBACK)
+				return;
+			handle_waveform_error(e);
+		});
 	};
 
 	$effect(() => {
-		if (url && waveform_ready) {
+		if (url && waveform_ready && use_waveform) {
+			const loading_url = url;
 			untrack(() => {
-				if (value?.url && waveform) {
+				if (waveform) {
+					if (waveform_load_failed) {
+						audio_player?.removeAttribute("src");
+						audio_player?.load();
+					}
 					waveform_load_failed = false;
-					waveform.load(value.url).catch(handle_waveform_error);
+					waveform
+						.load(loading_url)
+						.then(() => {
+							if (loading_url !== url || !waveform_load_failed) return;
+							audio_player?.removeAttribute("src");
+							audio_player?.load();
+							waveform_load_failed = false;
+						})
+						.catch((e: Error) => handle_waveform_error(e, loading_url));
 				}
 			});
 		}
 	});
 
-	function handle_waveform_error(e: Error): void {
-		if (e?.name === "AbortError" || waveform_load_failed) return;
+	function handle_waveform_error(
+		e: Error | MediaError,
+		failed_url?: string
+	): void {
+		if (failed_url !== undefined && failed_url !== url) return;
+		if (is_stream) return;
+		if (("name" in e && e.name === "AbortError") || waveform_load_failed)
+			return;
 		console.error("Waveform load error:", e);
 		waveform_load_failed = true;
-		if (audio_player && value?.url) {
-			audio_player.src = value.url;
+		if (audio_player && url) {
+			audio_player.src = url;
 		}
 	}
 
@@ -230,16 +255,6 @@
 		onedit?.();
 	};
 
-	async function load_audio(data: string): Promise<void> {
-		stream_active = false;
-
-		if (waveform_options.show_recording_waveform) {
-			waveform?.load(data);
-		} else if (audio_player) {
-			audio_player.src = data;
-		}
-	}
-
 	$effect(() => {
 		if (subtitles && waveform) {
 			if (subtitles_toggle) {
@@ -250,71 +265,43 @@
 		}
 	});
 
-	function load_stream(value: FileData | null): void {
-		if (!value || !value.is_stream || !value.url || !audio_player) return;
-
-		if (Hls.isSupported() && !stream_active) {
-			// Set config to start playback after 1 second of data received
-			const hls = new Hls({
-				maxBufferLength: 1,
-				maxMaxBufferLength: 1,
-				lowLatencyMode: true
-			});
-			hls.loadSource(value.url);
-			hls.attachMedia(audio_player);
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player?.play();
-			});
-			hls.on(Hls.Events.ERROR, function (event, data) {
-				console.error("HLS error:", event, data);
-				if (data.fatal) {
-					switch (data.type) {
-						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error(
-								"Fatal network error encountered, trying to recover"
-							);
-							hls.startLoad();
-							break;
-						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error("Fatal media error encountered, trying to recover");
-							hls.recoverMediaError();
-							break;
-						default:
-							console.error("Fatal error, cannot recover");
-							hls.destroy();
-							break;
-					}
-				}
-			});
-			stream_active = true;
-		} else if (!stream_active) {
-			audio_player.src = value.url;
-			if (waveform_settings.autoplay) audio_player.play();
-			stream_active = true;
-		}
-	}
-
+	// Keep teardown and source replacement in one effect and depend only on
+	// stable derived values so repeated chunks do not restart the stream.
 	$effect(() => {
-		// Without a waveform there is nothing to become ready, so gating the load
-		// on `waveform_ready` left the native player with no source at all.
-		if (
-			audio_player &&
-			url &&
-			(waveform_ready || !waveform_options.show_recording_waveform)
-		) {
-			load_audio(url);
+		if (!audio_player || !url) return;
+		const media = audio_player;
+		if (is_stream) {
+			if (is_hls_supported()) {
+				const hls = create_hls_stream(media, url, () => {
+					if (untrack(() => waveform_settings.autoplay)) play_media(media);
+				});
+				return () => hls.destroy();
+			}
+			media.src = url;
+			return () => {
+				media.removeAttribute("src");
+				media.load();
+			};
 		}
-	});
-
-	$effect(() => {
-		if (audio_player && value?.is_stream) {
-			load_stream(value);
+		if (!use_waveform) {
+			media.src = url;
+			return () => {
+				media.removeAttribute("src");
+				media.load();
+			};
 		}
 	});
 
 	$effect(() => {
 		if (container) {
 			untrack(() => create_waveform());
+		} else if (waveform) {
+			clear_subtitles();
+			waveform.destroy();
+			waveform = undefined;
+			waveform_container = undefined;
+			waveform_ready = false;
+			waveform_load_failed = false;
 		}
 	});
 
