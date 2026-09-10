@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Forward visitor requests when lazily caching examples
+fix:Forward visitor requests when lazily caching examples
