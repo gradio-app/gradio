@@ -7,6 +7,7 @@
 		setNodeSize,
 		workflow
 	} from "./workflow-store";
+	import { portRequirement } from "./workflow-graph";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -22,7 +23,7 @@
 		NodeStatus,
 		FileValue
 	} from "./workflow-types";
-	import { nodeMetaLabel, resolveFileSize } from "./node-meta";
+	import { isBlankValue, nodeMetaLabel, resolveFileSize } from "./node-meta";
 
 	interface Props {
 		id: string;
@@ -334,6 +335,15 @@
 		hasWidget ? nodeMetaLabel(widgetType, widgetValue, measuredSize) : null
 	);
 
+	const requirement = $derived(
+		mode === "input" &&
+			widgetPortId &&
+			isBlankValue(widgetValue) &&
+			!node.inputs.some((p) => connectedPorts.has(`${node.id}:${p.id}:input`))
+			? portRequirement($workflow, node.id, widgetPortId)
+			: null
+	);
+
 	function sourceHFUrl(n: WFNode): string {
 		if (n.space_id) return `https://huggingface.co/spaces/${n.space_id}`;
 		if (n.model_id) return `https://huggingface.co/${n.model_id}`;
@@ -374,6 +384,7 @@
 	class:node-done={status === "done"}
 	class:node-error={status === "error"}
 	class:node-stale={isStale}
+	class:node-required-input={requirement === "required"}
 	class:node-selected={selected}
 	class:node-droptarget={isDropTarget}
 	class:has-pending={pending !== null}
@@ -416,6 +427,18 @@
 						editingLabel = true;
 						requestAnimationFrame(() => labelInput?.select());
 					}}>{node.label}</span
+				>
+			{/if}
+			{#if requirement}
+				<span
+					class="node-requirement"
+					class:node-requirement-optional={requirement === "optional"}
+					title={requirement === "required"
+						? "The workflow needs a value here before it can run"
+						: "You can leave this empty"}
+					>{requirement === "required"
+						? "Required input"
+						: "Optional input"}</span
 				>
 			{/if}
 			{#if metaLabel}
@@ -1020,6 +1043,12 @@
 		box-shadow:
 			0 0 0 1px var(--accent-dim),
 			0 4px 20px rgba(0, 0, 0, 0.4);
+	}
+
+	.wf-node.node-required-input {
+		border-color: var(--accent);
+		border-style: dashed;
+		box-shadow: 0 0 12px var(--accent-dim);
 	}
 
 	.wf-node.node-selected {
@@ -1783,8 +1812,33 @@
 			0 4px 20px rgba(0, 0, 0, 0.08);
 	}
 
+	.node-requirement {
+		flex: 0 0 auto;
+		font-size: 8.5px;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--accent);
+		background: var(--accent-dim);
+		border-radius: 3px;
+		padding: 3px 5px;
+		white-space: nowrap;
+		user-select: none;
+	}
+
+	.node-requirement-optional {
+		color: #55576a;
+		background: rgba(85, 87, 106, 0.14);
+	}
+
 	:global(body:not(.dark)) .node-meta {
 		color: #a3a6b4;
+	}
+
+	:global(body:not(.dark)) .node-requirement-optional {
+		color: #a3a6b4;
+		background: rgba(163, 166, 180, 0.16);
 	}
 
 	:global(body:not(.dark)) .node-header {
