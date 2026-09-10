@@ -1,9 +1,14 @@
 <script lang="ts">
 	import type { HTMLVideoAttributes } from "svelte/elements";
 	import { loaded } from "./utils";
-	import type { Snippet } from "svelte";
+	import { onDestroy, untrack, type Snippet } from "svelte";
+	import { play_media } from "@gradio/utils";
 
-	import Hls from "hls.js";
+	import {
+		create_hls_stream,
+		is_hls_supported,
+		refresh_hls_stream
+	} from "@gradio/utils/hls";
 
 	interface Props {
 		src?: HTMLVideoAttributes["src"];
@@ -65,61 +70,36 @@
 		"data-testid": dataTestid,
 		children
 	}: Props = $props();
+	let hls_stream: ReturnType<typeof create_hls_stream> | undefined;
+	let hls_media: HTMLMediaElement | undefined;
+	let hls_src: string | undefined;
 
-	let stream_active = $state(false);
-
-	function load_stream(
-		src: string | null | undefined,
-		is_stream: boolean,
-		node: HTMLVideoElement
-	): void {
-		if (!src || !is_stream) return;
-
-		if (Hls.isSupported() && !stream_active) {
-			const hls = new Hls({
-				maxBufferLength: 1, // 0.5 seconds (500 ms)
-				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
-				lowLatencyMode: true // Enable low latency mode
-			});
-			hls.loadSource(src);
-			hls.attachMedia(node);
-			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				(node as HTMLVideoElement).play();
-			});
-			hls.on(Hls.Events.ERROR, function (event, data) {
-				console.error("HLS error:", event, data);
-				if (data.fatal) {
-					switch (data.type) {
-						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error(
-								"Fatal network error encountered, trying to recover"
-							);
-							hls.startLoad();
-							break;
-						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error("Fatal media error encountered, trying to recover");
-							hls.recoverMediaError();
-							break;
-						default:
-							console.error("Fatal error, cannot recover");
-							hls.destroy();
-							break;
-					}
-				}
-			});
-			stream_active = true;
-		}
+	function destroy_hls_stream(): void {
+		hls_stream?.destroy();
+		hls_stream = undefined;
+		hls_media = undefined;
+		hls_src = undefined;
 	}
 
-	$effect(() => {
-		src;
-		stream_active = false;
-	});
+	onDestroy(destroy_hls_stream);
 
 	$effect(() => {
-		if (node && src && is_stream) {
-			load_stream(src, is_stream, node);
+		if (!node || !is_stream || !src || !is_hls_supported()) {
+			destroy_hls_stream();
+			return;
 		}
+		const media = node;
+		if (hls_stream && hls_media === media && hls_src === src) {
+			refresh_hls_stream(hls_stream);
+			return;
+		}
+
+		destroy_hls_stream();
+		hls_media = media;
+		hls_src = src;
+		hls_stream = create_hls_stream(media, src, () => {
+			if (untrack(() => autoplay)) play_media(media);
+		});
 	});
 </script>
 

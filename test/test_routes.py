@@ -140,6 +140,7 @@ class TestRoutes:
 
         assert response.status_code == 200
         assert "#EXT-X-TARGETDURATION:2" in response.text
+        assert response.headers["cache-control"] == "no-store"
 
     def test_audio_stream_playlist_propagates_space_signature(self):
         with Blocks() as demo:

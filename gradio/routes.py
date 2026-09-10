@@ -1253,7 +1253,9 @@ class App(FastAPI):
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
 
-            headers = {"Cache-Control": "private, no-store"} if signature else None
+            headers = {
+                "Cache-Control": "private, no-store" if signature else "no-store"
+            }
             return Response(
                 content=playlist,
                 media_type="application/vnd.apple.mpegurl",
