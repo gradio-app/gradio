@@ -2218,13 +2218,10 @@ Received inputs:
                     stream_run = self.pending_streams[session_hash].setdefault(run, {})
                     stream = MediaStream(desired_output_format=desired_output_format)
                     stream_run[output_id] = stream
-                    # One registration for both jobs: calling a finalize handle
-                    # runs it and disarms it, so ending the stream releases the
-                    # encoder and leaves nothing armed to fire later against a
-                    # key that a newer run may by then own. What the unarmed
-                    # case covers is interpreter exit, not a dropped event
-                    # stream: the session cleanup that discards this stream
-                    # ends it first.
+                    # A finalize handle runs once and disarms, so ending the
+                    # stream releases the encoder and leaves nothing armed; the
+                    # unarmed case is interpreter exit, since a discarded
+                    # stream is ended by the session cleanup first.
                     stream.on_end.append(
                         weakref.finalize(stream, block.end_stream_output, stream_id)
                     )

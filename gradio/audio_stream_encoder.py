@@ -140,14 +140,11 @@ def decode_to_pcm(
 class AacStreamEncoder:
     """One ffmpeg process for the whole lifetime of a streamed output.
 
-    AAC is an MDCT codec: a frame's second half only reconstructs once it has
-    been overlap-added with the next frame's first half. Encoding every chunk
-    with its own encoder therefore makes each chunk boundary a discontinuity,
-    and the frame that becomes first has no partner to cancel against, which
-    decodes as roughly 36 ms of near-silence four times a second. Feeding one
-    encoder instead never creates the discontinuity, and chunk boundaries stop
-    mattering: the encoder keeps the sub-frame remainder between writes, so
-    input does not have to arrive in multiples of 1024 samples.
+    An AAC frame only reconstructs once overlap-added with its neighbours, so
+    an encoder started per chunk makes every chunk boundary a discontinuity
+    that decodes as roughly 36 ms of near-silence. One encoder never creates
+    it, and keeps the sub-frame remainder between writes, so chunks need not
+    arrive in multiples of 1024 samples.
     """
 
     def __init__(self, sample_rate: int, channels: int):
@@ -267,17 +264,12 @@ class AacStreamEncoder:
     def take(self, timeout: float = 0.1) -> list[bytes]:
         """Pop every whole frame the encoder has emitted so far.
 
-        The wait is for the encoder to start up, so `timeout` is paid once, on
-        the first call. After that a chunk that completes no frame waits
-        `STEADY_WAIT` and leaves its audio inside the encoder, to go out with a
-        later chunk or with `flush()`. Paying the full timeout again on every
-        chunk too short to complete a frame costs far more than the audio is
-        worth: with 20 ms chunks it holds the supply rate at a quarter of real
-        time, which no amount of player buffering can make up.
-
-        Do not make it wait for a predicted frame count instead: the prediction
-        is sometimes one too high, and then every chunk it is wrong about pays
-        the whole timeout anyway.
+        `timeout` covers the encoder's startup and is paid once. A later chunk
+        that completes no frame waits `STEADY_WAIT` and leaves its audio for
+        the next chunk or `flush()`; paying the full timeout per short chunk
+        held 20 ms chunks at a quarter of real time. Do not wait for a
+        predicted frame count instead: the prediction is sometimes one too
+        high, and then every chunk it is wrong about pays the whole timeout.
         """
         with self._condition:
             wait_for = timeout if not self._waited_for_startup else STEADY_WAIT

@@ -432,12 +432,9 @@ async def call_process_api(
         if event_id is not None:
             app.iterators[event_id] = iterator  # type: ignore
         elif iterator is not None:
-            # Nobody will come back for this one. Only the queue continues a
-            # generator, and it always carries an event id; without one
-            # `restore_session_state` hands back no iterator at all. So the
-            # audio this run produced is all there will ever be, and leaving
-            # its streams open holds a component's encoder for the session's
-            # lifetime while the client polls a playlist that cannot grow.
+            # Only the queue continues a generator, and it always carries an
+            # event id, so nobody will come back for this run. Left open, its
+            # streams hold a component's encoder for the session's lifetime.
             app.get_blocks()._drop_run_streams(session_hash, iterator)
         if isinstance(output, Error):
             raise output

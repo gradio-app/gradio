@@ -26,6 +26,17 @@ from gradio.data_classes import FileData
 from gradio.media import get_audio
 
 
+def wav_chunk(samples: int, sample_rate: int = 16000) -> bytes:
+    """16-bit mono wav of `samples` zeros; zero samples is the 44-byte header."""
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as writer:
+        writer.setnchannels(1)
+        writer.setsampwidth(2)
+        writer.setframerate(sample_rate)
+        writer.writeframes(np.zeros(samples, dtype=np.int16).tobytes())
+    return buffer.getvalue()
+
+
 class TestAudio:
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
@@ -37,23 +48,13 @@ class TestAudio:
         22.05 kHz, and the durations have to be the frames' at that rate.
         """
         chunk_samples, chunk_count = 4000, 8
-
-        def wav_chunk() -> bytes:
-            buffer = io.BytesIO()
-            with wave.open(buffer, "wb") as writer:
-                writer.setnchannels(1)
-                writer.setsampwidth(2)
-                writer.setframerate(sample_rate)
-                writer.writeframes(np.zeros(chunk_samples, dtype=np.int16).tobytes())
-            return buffer.getvalue()
-
         audio = gr.Audio(streaming=True)
         stream_id = "session/0/1/playlist.m3u8"
         segments = []
         try:
             for index in range(chunk_count):
                 segment, _ = await audio.stream_output(
-                    wav_chunk(), stream_id, index == 0
+                    wav_chunk(chunk_samples, sample_rate), stream_id, index == 0
                 )
                 if segment:
                     segments.append(segment)
@@ -191,19 +192,11 @@ class TestAudio:
         """A tick that produced no audio yields `(rate, np.zeros(0))`."""
         audio = gr.Audio(streaming=True)
         stream_id = "session/0/1/playlist.m3u8"
-        chunks = [
-            np.zeros(4000, np.int16),
-            np.zeros(0, np.int16),
-            np.zeros(4000, np.int16),
-        ]
+        chunks = [wav_chunk(4000), wav_chunk(0), wav_chunk(4000)]
         segments = []
         try:
-            for index, samples in enumerate(chunks):
-                value = audio.postprocess((16000, samples))
-                assert isinstance(value, FileData)
-                segment, _ = await audio.stream_output(
-                    value.model_dump(), stream_id, index == 0
-                )
+            for index, chunk in enumerate(chunks):
+                segment, _ = await audio.stream_output(chunk, stream_id, index == 0)
                 if segment:
                     segments.append(segment)
             if final_segment := await audio.flush_stream_output(stream_id):
