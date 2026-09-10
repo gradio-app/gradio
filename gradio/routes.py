@@ -1242,7 +1242,9 @@ class App(FastAPI):
                 playlist += "#EXT-X-ENDLIST\n"
 
             return Response(
-                content=playlist, media_type="application/vnd.apple.mpegurl"
+                content=playlist,
+                media_type="application/vnd.apple.mpegurl",
+                headers={"Cache-Control": "no-store"},
             )
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
