@@ -97,7 +97,7 @@ def _read_wav_pcm(data: bytes) -> tuple[int, int, bytes] | None:
 def _ffmpeg_decode(data: bytes, sample_rate: int, channels: int) -> bytes:
     result = subprocess.run(
         [
-            "ffmpeg", "-v", "quiet", "-nostdin",
+            "ffmpeg", "-v", "error", "-nostdin",
             "-i", "pipe:0",
             "-f", "s16le", "-acodec", "pcm_s16le",
             "-ar", str(sample_rate), "-ac", str(channels),
@@ -107,8 +107,11 @@ def _ffmpeg_decode(data: bytes, sample_rate: int, channels: int) -> bytes:
         capture_output=True,
         check=False,
     )  # fmt: skip
-    if not result.stdout:
-        raise RuntimeError("Could not decode the streamed audio chunk.")
+    if result.returncode != 0:
+        detail = result.stderr.decode(errors="replace").strip()
+        raise RuntimeError(f"Could not decode the streamed audio chunk: {detail}")
+    # Empty is a chunk that carries no samples, which a generator yields for a
+    # tick that produced no audio; the encoder takes an empty write in stride.
     return result.stdout
 
 
@@ -162,7 +165,7 @@ class AacStreamEncoder:
             [
                 "ffmpeg",
                 "-v",
-                "quiet",
+                "error",
                 "-nostdin",
                 # Without these two, ffmpeg probes the input before emitting
                 # anything and holds back roughly 64 KB of PCM, which is 2

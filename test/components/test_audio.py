@@ -145,6 +145,50 @@ class TestAudio:
         assert encoder.process.poll() is not None
         assert "was killed" in caplog.text
 
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_an_empty_chunk_mid_stream_is_not_an_error(self):
+        """A tick that produced no audio yields `(rate, np.zeros(0))`."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        chunks = [
+            np.zeros(4000, np.int16),
+            np.zeros(0, np.int16),
+            np.zeros(4000, np.int16),
+        ]
+        segments = []
+        try:
+            for index, samples in enumerate(chunks):
+                value = audio.postprocess((16000, samples))
+                assert isinstance(value, FileData)
+                segment, _ = await audio.stream_output(
+                    value.model_dump(), stream_id, index == 0
+                )
+                if segment:
+                    segments.append(segment)
+            if final_segment := await audio.flush_stream_output(stream_id):
+                segments.append(final_segment)
+        finally:
+            audio.end_stream_output(stream_id)
+
+        assert sum(segment["duration"] for segment in segments) == pytest.approx(
+            8000 / 16000, abs=3 * 1024 / 16000
+        )
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_chunk_that_is_not_audio_says_why(self):
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        try:
+            value = audio.postprocess((16000, np.zeros(4000, np.int16)))
+            assert isinstance(value, FileData)
+            await audio.stream_output(value.model_dump(), stream_id, True)
+            with pytest.raises(RuntimeError, match="Could not decode.*Invalid data"):
+                await audio.stream_output(b"not audio", stream_id, False)
+        finally:
+            audio.end_stream_output(stream_id)
+
     @pytest.mark.asyncio
     async def test_component_functions(self, gradio_temp_dir, media_data):
         """
