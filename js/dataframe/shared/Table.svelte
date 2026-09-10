@@ -1531,7 +1531,7 @@
 		user-select: none;
 	}
 
-	.table-wrap > :global(button) {
+	.table-wrap > :global(.upload-container) {
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
 		overflow: hidden;
