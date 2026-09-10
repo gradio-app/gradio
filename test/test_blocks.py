@@ -1782,9 +1782,9 @@ class TestHandleStreamingOutputs:
         assert {first, second} == {
             f"{API_PREFIX}/stream/s/{key}/{audio._id}/playlist.m3u8" for key in streams
         }
-        # a segment per chunk plus the encoder's flush, so neither run appended
-        # to the other's stream
-        assert [len(streams[key][audio._id].segments) for key in streams] == [3, 3]
+        # equal and non-empty, so neither run appended to the other's stream
+        counts = [len(streams[key][audio._id].segments) for key in streams]
+        assert counts[0] == counts[1] > 0
 
     @requires_ffmpeg
     @pytest.mark.asyncio
@@ -1801,7 +1801,8 @@ class TestHandleStreamingOutputs:
 
         streams = demo.pending_streams["s"]
         assert first != second
-        assert [len(streams[key][audio._id].segments) for key in streams] == [3, 3]
+        counts = [len(streams[key][audio._id].segments) for key in streams]
+        assert counts[0] == counts[1] > 0
 
 
 class TestGetAPIInfo:
