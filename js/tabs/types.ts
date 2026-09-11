@@ -6,6 +6,7 @@ export interface TabsProps {
 	elem_id: string;
 	elem_classes: string[];
 	selected: number | string;
+	overflow_behavior: "menu" | "wrap";
 	initial_tabs: Tab[];
 	name: "tabs" | "walkthrough";
 }
