@@ -1251,7 +1251,12 @@ def oauth_token_requirement(
     return None
 
 
-def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
+def check_function_inputs_match(
+    fn: Callable,
+    inputs: Sequence,
+    inputs_as_dict: bool,
+    inputs_kwargs: dict[str, Any] | None = None,
+):
     """
     Checks if the input component set matches the function
     Returns: None if valid or if the function does not have a signature (e.g. is a built in),
@@ -1265,17 +1270,45 @@ def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: 
     min_args = 0
     max_args = 0
     infinity = -1
+    input_keyword_names = set(inputs_kwargs or {})
+    positional_input_names: set[str] = set()
+    positional_inputs_remaining = 1 if inputs_as_dict else len(inputs)
+    accepts_kwargs = False
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
             if not is_special_typed_parameter(name, parameter_types):
-                if not has_default:
+                if positional_inputs_remaining:
+                    positional_input_names.add(name)
+                    positional_inputs_remaining -= 1
+                if not has_default and name not in input_keyword_names:
                     min_args += 1
                 max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
             max_args = infinity
-        elif param.kind == param.KEYWORD_ONLY and not has_default:
+        elif param.kind == param.VAR_KEYWORD:
+            accepts_kwargs = True
+        elif (
+            param.kind == param.KEYWORD_ONLY
+            and not has_default
+            and name not in input_keyword_names
+        ):
             return f"Keyword-only args must have default values for function {fn}"
+    invalid_keyword_names = {
+        name
+        for name in input_keyword_names
+        if name not in signature.parameters
+        or signature.parameters[name].kind == inspect.Parameter.POSITIONAL_ONLY
+    }
+    if invalid_keyword_names and not accepts_kwargs:
+        warnings.warn(
+            f"Unexpected keyword arguments {sorted(invalid_keyword_names)} for function {fn}."
+        )
+    duplicate_names = input_keyword_names & positional_input_names
+    if duplicate_names:
+        warnings.warn(
+            f"Arguments {sorted(duplicate_names)} were provided as both positional and keyword inputs for function {fn}."
+        )
     arg_count = 1 if inputs_as_dict else len(inputs)
     if min_args == max_args and max_args != arg_count:
         warnings.warn(

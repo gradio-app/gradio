@@ -1121,6 +1121,100 @@ class TestStateHolder:
 
 class TestCallFunction:
     @pytest.mark.asyncio
+    async def test_call_function_with_keyword_inputs(self):
+        def greet(first_name: str, *, last_name: str):
+            return f"Hello, {first_name} {last_name}!"
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        assert demo.fns[0].inputs == [first_name, last_name]
+        assert demo.fns[0].input_keyword_names == ["last_name"]
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Hello, Ada Lovelace!"
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_support_async_and_generator_functions(self):
+        async def async_greet(*, name: str):
+            return f"Hello, {name}!"
+
+        def count(*, maximum: int):
+            yield from range(maximum)
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            maximum = gr.Number()
+            output = gr.Textbox()
+            gr.Button().click(
+                async_greet,
+                inputs_kwargs={"name": name},
+                outputs=output,
+            )
+            gr.Button().click(
+                count,
+                inputs_kwargs={"maximum": maximum},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada"])
+        assert result["prediction"] == "Hello, Ada!"
+
+        result = await demo.call_function(1, [2])
+        assert result["prediction"] == 0
+        result = await demo.call_function(1, [2], iterator=result["iterator"])
+        assert result["prediction"] == 1
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_support_positional_or_keyword_parameters(self):
+        def greet(first_name: str, last_name: str):
+            return f"{first_name} {last_name}"
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Ada Lovelace"
+
+    def test_keyword_input_names_are_preserved_in_api_info(self):
+        def greet(first_name: str, title: str | None = None, *, last_name: str):
+            return f"{title or ''} {first_name} {last_name}".strip()
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        parameter_names = [
+            parameter["parameter_name"]
+            for parameter in demo.get_api_info()["named_endpoints"]["/greet"][
+                "parameters"
+            ]
+        ]
+        assert parameter_names == ["first_name", "last_name"]
+
+    @pytest.mark.asyncio
     async def test_call_regular_function(self):
         with gr.Blocks() as demo:
             text = gr.Textbox()
