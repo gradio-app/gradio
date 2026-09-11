@@ -936,16 +936,21 @@ describe("Add/remove rows and columns", () => {
 		row_count: [3, "dynamic"] as [number, "fixed" | "dynamic"]
 	};
 
+	const empty_dynamic_props = {
+		...dynamic_props,
+		value: {
+			data: [],
+			headers: default_props.value.headers,
+			metadata: null
+		},
+		row_count: [0, "dynamic"] as [number, "dynamic"]
+	};
+
 	test("add row button appends a row and focuses its first cell", async () => {
-		const { container, getByRole, getByTestId } = await render(Dataframe, {
-			...dynamic_props,
-			value: {
-				data: [],
-				headers: default_props.value.headers,
-				metadata: null
-			},
-			row_count: [0, "dynamic"] as [number, "dynamic"]
-		});
+		const { container, getByRole, getByTestId } = await render(
+			Dataframe,
+			empty_dynamic_props
+		);
 		await wait();
 
 		await fireEvent.click(getByRole("button", { name: "Add row" }));
@@ -956,15 +961,7 @@ describe("Add/remove rows and columns", () => {
 	});
 
 	test("empty table keeps its add row button on screen in fullscreen", async () => {
-		const { getByRole } = await render(Dataframe, {
-			...dynamic_props,
-			value: {
-				data: [],
-				headers: default_props.value.headers,
-				metadata: null
-			},
-			row_count: [0, "dynamic"] as [number, "dynamic"]
-		});
+		const { getByRole } = await render(Dataframe, empty_dynamic_props);
 		await wait();
 
 		const toggle = (): HTMLElement =>
@@ -1023,6 +1020,20 @@ describe("Add/remove rows and columns", () => {
 		const { getByRole } = await render(Dataframe, dynamic_props);
 		await wait();
 
+		// The body, not the wrap. `.table-wrap` keeps `flex: 1 1 auto` from the
+		// rule above it and stays tall even when the viewport inside it collapses,
+		// so measuring the wrap passes against a half-applied gate.
+		function viewport_height(): number {
+			const el = document.querySelector(
+				".table-container .virtual-table-viewport"
+			);
+			expect(el).not.toBeNull();
+			return (el as HTMLElement).getBoundingClientRect().height;
+		}
+
+		const before = viewport_height();
+		expect(before).toBeGreaterThan(0);
+
 		await fireEvent.click(getByRole("button", { name: /fullscreen/i }));
 		await waitFor(() =>
 			expect(
@@ -1034,13 +1045,9 @@ describe("Add/remove rows and columns", () => {
 		expect(
 			document.querySelector(".table-container.fullscreen.no-rows")
 		).toBeNull();
-
-		const wrap = document.querySelector(
-			".table-container.fullscreen .table-wrap"
-		) as HTMLElement;
-		expect(wrap.getBoundingClientRect().height).toBeGreaterThan(
-			window.innerHeight / 2
-		);
+		// Against its own pre-fullscreen height, not a fraction of the viewport:
+		// on a short screen a normal-view table can already cover half of it.
+		expect(viewport_height()).toBeGreaterThan(before * 2);
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
