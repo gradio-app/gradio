@@ -81,15 +81,29 @@ def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 2
 
 
 def ffmpeg_identity() -> str:
-    """Which ffmpeg binary ran. TEMPORARY: CI's crashes inside ffmpeg itself
-    and this says whether its build is the one it claims to be."""
+    """Which ffmpeg binary ran, and on what. TEMPORARY: CI crashes inside
+    ffmpeg itself, on a build whose hash matches a clean download and which
+    reads the same files elsewhere, so what is left is the machine."""
     path = shutil.which("ffmpeg") or "?"
     digest = (
         hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16] if path != "?" else "?"
     )
     banner = subprocess.run(["ffmpeg", "-version"], check=False, capture_output=True)
     first = banner.stdout.decode(errors="replace").splitlines()[:1]
-    return f"{path} sha256:{digest} {first}"
+    cpu = [
+        line.split(":", 1)[1].strip()
+        for line in Path("/proc/cpuinfo").read_text().splitlines()
+        if line.startswith("model name")
+    ][:1]
+    return f"{path} sha256:{digest} {first} on {cpu}"
+
+
+def retry_without_simd(args: list[str], stdin: bytes | None) -> str:
+    """Whether the same command survives with ffmpeg's hand-written assembly
+    turned off, which says whether the crash is in a SIMD path. TEMPORARY."""
+    plain = [args[0], "-cpuflags", "0", *args[1:]]
+    result = subprocess.run(plain, check=False, input=stdin, capture_output=True)
+    return f"exit {result.returncode}, {len(result.stdout)} bytes out"
 
 
 def decode_mono(payload: bytes | Path) -> np.ndarray:
@@ -107,7 +121,8 @@ def decode_mono(payload: bytes | Path) -> np.ndarray:
     result = subprocess.run(args, check=False, input=stdin, capture_output=True)
     if result.returncode != 0:
         raise RuntimeError(
-            f"decode exited {result.returncode} with {ffmpeg_identity()}"
+            f"decode exited {result.returncode} with {ffmpeg_identity()};"
+            f" without SIMD: {retry_without_simd(args, stdin)}"
         )
     return np.frombuffer(result.stdout, dtype="<i2").astype(np.float32) / 32767.0
 
@@ -377,7 +392,8 @@ class TestVideo:
             check=False, capture_output=True,
         )  # fmt: skip
         assert result.returncode == 0, (
-            f"decode exited {result.returncode} with {ffmpeg_identity()}"
+            f"decode exited {result.returncode} with {ffmpeg_identity()};"
+            f" without SIMD: {retry_without_simd(['ffmpeg', '-v', 'warning', '-nostdin', '-i', str(served), '-f', 'null', '-'], None)}"
         )
         assert result.stderr.decode() == ""
 
