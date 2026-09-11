@@ -320,13 +320,15 @@ class TestVideo:
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
-    async def test_streamed_video_does_not_drift_out_of_sync(self, tmp_path):
-        """The audio sets the pace, so it cannot fall behind as the stream runs.
+    async def test_streamed_video_is_one_continuous_stream(self, tmp_path):
+        """The segments have to follow each other, not just line up in time.
 
-        A chunk asking for 0.25 s at 15 fps carries four frames, which is
-        16.7 ms more video than audio, every time. Advancing the timeline by
-        the video's length would bank that difference on every chunk and walk
-        the two tracks apart for as long as the generator keeps yielding.
+        Each is muxed by its own ffmpeg, which restarts the MPEG-TS continuity
+        counter every PID carries, and a player reading them in sequence takes
+        that for packet loss. The tracks also have to stay together: a chunk
+        asking for 0.25 s at 15 fps carries four frames, 16.7 ms more video
+        than audio, and banking that every chunk would walk them apart for as
+        long as the generator keeps yielding.
         """
         chunks = rendered_chunks(tmp_path)
         video = gr.Video(streaming=True)
@@ -342,14 +344,22 @@ class TestVideo:
         finally:
             video.end_stream_output(stream_id)
 
-        served = b"".join(segment["data"] for segment in segments)
-        video_pts = packet_timestamps(served, "v", tmp_path, "pts_time")
-        audio_pts = packet_timestamps(served, "a", tmp_path, "pts_time")
-        # What separates the ends is the encoder's unflushed tail plus the last
-        # frame, both fixed; drift would add 16.7 ms per chunk on top.
-        apart = (max(video_pts) - min(video_pts)) - (max(audio_pts) - min(audio_pts))
-        assert apart < 0.35
+        served = tmp_path / "served.ts"
+        served.write_bytes(b"".join(segment["data"] for segment in segments))
+        result = subprocess.run(
+            ["ffmpeg", "-v", "warning", "-nostdin", "-i", str(served), "-f", "null", "-"],
+            capture_output=True,
+            check=True,
+        )  # fmt: skip
+        assert result.stderr.decode() == ""
 
+        video_pts = packet_timestamps(served.read_bytes(), "v", tmp_path, "pts_time")
+        audio_pts = packet_timestamps(served.read_bytes(), "a", tmp_path, "pts_time")
+        # What separates the ends is the audio's one frame of lead and the last
+        # video frame, both fixed, which comes to -0.075 s here. Banking the
+        # per-chunk difference instead takes it to +0.203 s over these 24.
+        apart = (max(video_pts) - min(video_pts)) - (max(audio_pts) - min(audio_pts))
+        assert abs(apart) < 0.12
         # And the video is evenly paced, not stretched to follow the audio.
         steps = [b - a for a, b in zip(video_pts[:-1], video_pts[1:], strict=False)]
         assert max(steps) == pytest.approx(1 / VIDEO_FPS, abs=0.005)
@@ -414,48 +424,6 @@ class TestVideo:
         assert encoders, "the thread never got as far as an encoder"
         for encoder in encoders:
             assert encoder.process.poll() is not None
-
-    @pytest.mark.requires_ffmpeg
-    @pytest.mark.asyncio
-    async def test_streamed_video_segments_read_as_one_stream(self, tmp_path):
-        """The segments have to follow each other, not just line up in time.
-
-        Each is muxed by its own ffmpeg, so each restarts the MPEG-TS
-        continuity counter every PID carries, and a player reading them in
-        sequence takes that for packet loss and throws the packets away.
-        """
-        chunks = rendered_chunks(tmp_path, count=8)
-        video = gr.Video(streaming=True)
-        stream_id = "session/0/1/playlist.m3u8"
-        segments = []
-        try:
-            for index, chunk in enumerate(chunks):
-                segment, _ = await video.stream_output(chunk, stream_id, index == 0)
-                if segment:
-                    segments.append(segment)
-            if final_segment := await video.flush_stream_output(stream_id):
-                segments.append(final_segment)
-        finally:
-            video.end_stream_output(stream_id)
-
-        served = tmp_path / "served.ts"
-        served.write_bytes(b"".join(segment["data"] for segment in segments))
-        result = subprocess.run(
-            [
-                "ffmpeg",
-                "-v",
-                "warning",
-                "-nostdin",
-                "-i",
-                str(served),
-                "-f",
-                "null",
-                "-",
-            ],
-            capture_output=True,
-            check=True,
-        )
-        assert result.stderr.decode() == ""
 
     def test_in_interface(self, media_data):
         """

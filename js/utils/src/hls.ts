@@ -25,16 +25,14 @@ function buffered_ahead(media: HTMLMediaElement): number {
 /**
  * Get playback going again whenever it stalls with data to spare.
  *
- * A generator slower than real time drains the buffer and the element stalls,
- * which is expected. What is not is that it stays stalled: the playhead stops,
- * so the buffer ahead of it grows past `maxBufferLength` and hls.js stops
- * loading, and nothing then prods the element even though the data it was
- * waiting for has arrived. hls.js nudges the playhead across a hole in the
- * buffer but not across the end of one, so this covers the other case.
+ * A generator slower than real time drains the buffer and playback stalls,
+ * which cannot be helped. That it never restarts can be: once the playhead
+ * freezes the buffer ahead of it grows past `maxBufferLength`, so hls.js stops
+ * loading and nothing prods the element. hls.js nudges across a hole in the
+ * buffer but not across the end of one.
  *
- * It has to be polled rather than driven off the stall event: hls.js reports
- * the stall while the buffer is still empty, which is exactly when nudging
- * would skip real media, and says nothing later when the data has turned up.
+ * Polled rather than driven off the stall event, which hls.js raises while the
+ * buffer is still empty and not again once the data has turned up.
  */
 export function watch_for_stalls(media: HTMLMediaElement): () => void {
 	let last_time = -1;
@@ -64,9 +62,7 @@ export function create_hls_stream(
 	on_manifest_parsed?: () => void
 ): Hls {
 	const hls = new Hls({
-		// Enough of a cushion that a generator which hiccups does not starve
-		// the player outright. One second held so little that any pause in
-		// supply stalled playback immediately.
+		// One second was too little to absorb any pause in supply.
 		maxBufferLength: 4,
 		maxMaxBufferLength: 30,
 		lowLatencyMode: true
