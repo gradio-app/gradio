@@ -1,5 +1,6 @@
 import asyncio
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -56,7 +57,15 @@ def tone_chunks(
 
 def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24):
     """What a generator that renders its own frames yields: each chunk encoded
-    on its own, carrying its share of one continuous tone."""
+    on its own, carrying its share of one continuous tone.
+
+    The video covers the chunk in whole frames, so it runs 16.7 ms past the
+    audio. Asking for the chunk's own length and cutting with `-shortest`
+    leaves that to the ffmpeg build: 7.0.2 drops the frame that crosses the
+    audio's end where 4.4.2 keeps it, which turns the video into the shorter
+    track and sends the test looking for a defect that is in its own input.
+    """
+    video_seconds = math.ceil(chunk_seconds * VIDEO_FPS) / VIDEO_FPS
     out = directory / "rendered"
     out.mkdir()
     for index in range(count):
@@ -64,12 +73,12 @@ def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 2
         subprocess.run([
             "ffmpeg", "-y", "-v", "error",
             "-f", "lavfi", "-i",
-            f"testsrc=size=320x240:rate={VIDEO_FPS}:duration={chunk_seconds}",
+            f"testsrc=size=320x240:rate={VIDEO_FPS}:duration={video_seconds}",
             "-f", "lavfi", "-i",
             f"aevalsrc='0.8*sin(2*PI*440*(t+{start}))'"
             f":s={AUDIO_RATE}:d={chunk_seconds}",
             "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-shortest", str(out / f"chunk{index:03d}.mp4"),
+            "-c:a", "aac", str(out / f"chunk{index:03d}.mp4"),
         ], check=True)  # fmt: skip
     return sorted(out.glob("chunk*.mp4"))
 
@@ -314,7 +323,8 @@ class TestVideo:
         # The download button and cached examples concatenate the same
         # segments, including the audio-only one the flush leaves at the end.
         combined = await video.combine_stream(
-            [segment["data"] for segment in segments], only_file=True
+            [segment["data"] for segment in segments] + [final_segment["data"]],
+            only_file=True,
         )
         assert silence_ratio(decode_mono(Path(combined.path))) < supplied + 0.02
 
