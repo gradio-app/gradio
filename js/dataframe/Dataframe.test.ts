@@ -983,6 +983,11 @@ describe("Add/remove rows and columns", () => {
 			const header = (
 				document.querySelector("thead") as HTMLElement
 			).getBoundingClientRect();
+			// getByRole already rules out a button that has left the accessibility
+			// tree, but a zero-sized one would still satisfy the bounds below, and
+			// an upper bound on its own also admits a button above the header.
+			expect(box.height).toBeGreaterThan(0);
+			expect(box.top).toBeGreaterThanOrEqual(header.bottom);
 			expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);
 			expect(box.top - header.bottom).toBeLessThan(50);
 		}
@@ -1008,6 +1013,34 @@ describe("Add/remove rows and columns", () => {
 		);
 		await wait(300);
 		expect_button_under_header();
+	});
+
+	test("table with rows still fills the screen in fullscreen", async () => {
+		// The collapse above is gated on the table being empty. Without this test
+		// the gate itself is unguarded: dropping the condition and letting every
+		// table collapse leaves the whole suite green, while every populated
+		// fullscreen table quietly loses its full-height body.
+		const { getByRole } = await render(Dataframe, dynamic_props);
+		await wait();
+
+		await fireEvent.click(getByRole("button", { name: /fullscreen/i }));
+		await waitFor(() =>
+			expect(
+				document.querySelector(".table-container.fullscreen")
+			).not.toBeNull()
+		);
+		await wait(300);
+
+		expect(
+			document.querySelector(".table-container.fullscreen.no-rows")
+		).toBeNull();
+
+		const wrap = document.querySelector(
+			".table-container.fullscreen .table-wrap"
+		) as HTMLElement;
+		expect(wrap.getBoundingClientRect().height).toBeGreaterThan(
+			window.innerHeight / 2
+		);
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
