@@ -1,5 +1,6 @@
 ---
 "@gradio/dataframe": patch
+"@gradio/upload": patch
 "gradio": patch
 ---
 
