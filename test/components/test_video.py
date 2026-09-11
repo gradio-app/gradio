@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import hashlib
 import json
 import math
@@ -173,6 +174,42 @@ def silence_ratio(pcm: np.ndarray) -> float:
     )
 
 
+@functools.cache
+def mpegts_readable() -> bool:
+    """Whether the ffmpeg on PATH can read back an MPEG-TS file it just wrote.
+
+    The static 7.0.2 build CI pins segfaults on any MPEG-TS on the runners it
+    gets, and a test that has to decode a served stream cannot say anything
+    about the stream when the decoder dies. The pin moves in this PR, but
+    workflows take the action from `@main`, so it only takes effect once this
+    is merged; until then these skip there and run everywhere else.
+    """
+    if not processing_utils.ffmpeg_installed():
+        return True  # `requires_ffmpeg` skips these anyway
+    with tempfile.TemporaryDirectory() as name:
+        path = Path(name) / "probe.ts"
+        written = subprocess.run([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "lavfi", "-i", "testsrc=size=64x48:rate=10:duration=0.2",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            "-f", "mpegts", str(path),
+        ], check=False, capture_output=True)  # fmt: skip
+        if written.returncode != 0:
+            return False
+        read = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_streams", str(path)],
+            check=False,
+            capture_output=True,
+        )
+        return read.returncode == 0
+
+
+reads_mpegts = pytest.mark.skipif(
+    not mpegts_readable(),
+    reason="this ffmpeg build cannot read MPEG-TS back",
+)
+
+
 def packet_timestamps(
     data: bytes, kind: str, directory: Path, entry: str = "dts_time"
 ) -> list[float]:
@@ -321,6 +358,7 @@ class TestVideo:
         assert chunk["data"].startswith(b"\x47")  # an MPEG-TS sync byte
 
     @pytest.mark.requires_ffmpeg
+    @reads_mpegts
     @pytest.mark.asyncio
     @pytest.mark.parametrize("extension", ["mp4", "ts"])
     async def test_streamed_video_keeps_the_audio_in_one_encode(
@@ -397,6 +435,7 @@ class TestVideo:
         assert len(downloaded) == pytest.approx(len(decode_mono(served)), abs=1024)
 
     @pytest.mark.requires_ffmpeg
+    @reads_mpegts
     @pytest.mark.asyncio
     async def test_streamed_video_adds_no_silence_of_its_own(self, tmp_path):
         """What the stream adds, measured against chunks that carry no damage.
@@ -434,6 +473,7 @@ class TestVideo:
         assert inside == []
 
     @pytest.mark.requires_ffmpeg
+    @reads_mpegts
     @pytest.mark.asyncio
     async def test_streamed_video_is_one_continuous_stream(self, tmp_path):
         """The segments have to follow each other, not just line up in time.
