@@ -85,4 +85,5 @@
 	});
 </script>
 
-<span bind:this={el} style="display: contents"></span>
+<gradio-custom-component bind:this={el} style="display: contents"
+></gradio-custom-component>
