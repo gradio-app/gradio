@@ -1744,6 +1744,39 @@ describe("Dataframe CSV drop", () => {
 		]);
 	});
 
+	// the narrower and shorter cases above are caught by the bounds guard in
+	// handle_blur. this one is not: the edited cell is still in range after the
+	// import, so the teardown commit lands on a row that exists
+	test("drops an in-flight cell edit when the imported table is the same shape", async () => {
+		const { container, listen } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const change = listen("change");
+		const edit = listen("edit");
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.mouseDown(cell);
+		await fireEvent.dblClick(cell);
+		await wait();
+
+		const textarea = container.querySelector(
+			"textarea[aria-label='Edit cell']"
+		) as HTMLTextAreaElement;
+		textarea.value = "typed";
+		await fireEvent.input(textarea);
+		await wait();
+
+		drop_csv(container, "x,y,z\n1,2,3\n4,5,6\n7,8,9\n");
+		await wait();
+
+		expect(edit).not.toHaveBeenCalled();
+		expect(get_cell(container, 0, 0)?.textContent).toContain("1");
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([
+			["1", "2", "3"],
+			["4", "5", "6"],
+			["7", "8", "9"]
+		]);
+	});
+
 	// a coordinate kept from the old table reaches handle_copy, which reads it
 	// out of the new one. asserted against an import of the same shape, so the
 	// cell is still in the DOM and its class means something

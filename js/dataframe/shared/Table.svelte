@@ -276,6 +276,7 @@
 	let is_dragging = $state(false);
 	let show_scroll_button = $state(false);
 	let file_dragging = $state(false);
+	let discard_pending_edit = false;
 
 	let parent: HTMLDivElement;
 
@@ -580,13 +581,17 @@
 		blur_event: FocusEvent;
 		coords: [number, number];
 	}): void {
+		// an import replaces the table under an open editor, and EditableCell
+		// commits when it leaves edit mode either way. that half-typed value
+		// belongs to the table that just went away
+		if (discard_pending_edit) return;
+
 		const { coords } = detail;
 		const input_el = detail.blur_event.target as HTMLTextAreaElement;
 		if (!input_el || input_el.value === undefined) return;
 
 		const [row, col] = coords;
-		// EditableCell commits on teardown, so a cell that was being edited when
-		// the table shrank blurs against coordinates that no longer exist
+		// and any other path that shrinks the table leaves coordinates behind
 		if (col >= (values?.[row]?.length ?? 0)) return;
 		const old_value = values[row][col];
 		const new_value = input_el.value;
@@ -1085,10 +1090,12 @@
 			);
 		}
 
+		discard_pending_edit = true;
 		headers = new_headers;
 		values = new_values;
 		reset_interaction_state();
 		push_change(new_values, headers as string[]);
+		tick().then(() => (discard_pending_edit = false));
 	}
 
 	// undefined when every dropped file was filtered out by `filetype`
