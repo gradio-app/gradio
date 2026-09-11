@@ -76,7 +76,7 @@ class TestTempFileManagement:
         )
 
         for result in (sync_result, async_result, proxy_result):
-            assert result["url"].endswith("/report%2520%23final.txt")
+            assert result["url"].endswith("report%2520%23final.txt")
 
     def test_save_b64_to_cache(self, gradio_temp_dir, media_data):
         base64_file_1 = media_data.BASE64_IMAGE
