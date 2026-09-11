@@ -6,6 +6,7 @@ import asyncio
 import json
 import subprocess
 import tempfile
+import time
 import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -42,6 +43,44 @@ if TYPE_CHECKING:
 # leaves a step exactly where the playlist promises there is none.
 STREAM_PTS_BASE = 10.0
 
+# How long a chunk waits for the frames covering the audio it has already fed
+# in. See `Video._encode_chunk`.
+DRAIN_TIMEOUT = 0.5
+
+
+TS_PACKET_SIZE = 188
+TS_NULL_PID = 0x1FFF
+
+
+def _continue_counters(data: bytes, counters: dict[int, int] | None) -> bytes:
+    """Renumber a segment's MPEG-TS continuity counters to follow the last one.
+
+    Every packet carries a four bit counter that has to step by one per packet
+    on its own PID, and each segment is muxed by its own ffmpeg, so each one
+    restarts them from zero. A player reading the segments in sequence sees
+    that as packet loss: ffmpeg calls it `Packet corrupt` and drops the
+    packets, and a browser stops advancing the playhead with a buffer that
+    looks full. `#EXT-X-DISCONTINUITY` used to declare the reset, which is
+    partly what it was there for; without it the counters have to be real.
+    """
+    if counters is None or len(data) % TS_PACKET_SIZE or not data:
+        return data
+    buffer = bytearray(data)
+    for offset in range(0, len(buffer), TS_PACKET_SIZE):
+        if buffer[offset] != 0x47:
+            # Not a transport stream after all; leave it exactly as it came.
+            return data
+        pid = ((buffer[offset + 1] & 0x1F) << 8) | buffer[offset + 2]
+        if pid == TS_NULL_PID:
+            continue
+        value = counters.get(pid, 0)
+        buffer[offset + 3] = (buffer[offset + 3] & 0xF0) | value
+        # A packet that carries no payload repeats the counter rather than
+        # advancing it.
+        if (buffer[offset + 3] >> 4) & 0x01:
+            counters[pid] = (value + 1) & 0x0F
+    return bytes(buffer)
+
 
 class _VideoStream:
     """One streamed output's encoder and its place on the timeline."""
@@ -51,40 +90,37 @@ class _VideoStream:
         self.video_time = 0.0
         self.frames_emitted = 0
         self.samples_written = 0
+        # The MPEG-TS continuity counter each PID is up to. See
+        # `_continue_counters`.
+        self.counters: dict[int, int] = {}
 
-    def advance(self, info: dict, encoder: AacStreamEncoder | None) -> float:
-        """How far the timeline moves on for this chunk.
+    def catch_up(self, encoder: AacStreamEncoder) -> bytes:
+        """Silence for any of the video's timeline the audio has not filled.
 
-        The audio's clock is driven by however much PCM has arrived and the
-        video's by each chunk's own length, and nothing ties them together, so
-        a generator whose chunks carry a little less audio than video walks
+        The two clocks are driven by different things - the audio's by however
+        much PCM has arrived, the video's by each chunk's own length - and a
+        generator whose chunks carry a little less audio than video would walk
         them apart for as long as the stream lasts. The old per-chunk segments
         hid that, the player resetting at each one. Asking for 0.25 s at 30 fps
         is enough to cause it: the video rounds up to eight frames and runs
-        16.7 ms long every chunk, which is a second and a half of drift per
-        half minute.
+        16.7 ms long every chunk, a second and a half of drift per half minute.
 
-        So the audio leads and the video follows it. What stops the video from
-        being compressed into nothing is that a chunk still has to leave room
-        for every frame but the last, whose display time is cut short by the
-        next chunk arriving rather than lost. Where the audio falls further
-        behind than that - a `-c copy` split trims whole frames' worth at every
-        cut - the video wins and the two drift, which beats timestamps that run
-        backwards.
+        So the audio is topped up to where the video has reached before the
+        chunk's own samples go in, and it goes through the same encoder as
+        everything else, so it costs no priming frame. A generator whose chunks
+        are whole frames long, with audio to match, never triggers it.
 
-        Padding the audio with silence instead would hold them together in
-        every case, but it puts back the thing this is meant to remove: on
-        chunks that are 16.7 ms short it turns 2.4% of the stream silent into
-        6.4%, which is audible as exactly the stutter the re-encode used to
-        cause.
+        Letting the audio set the pace instead and following it with the video
+        looks tempting and is worse: the frames then land between the positions
+        the video's own timebase can express, two of them round onto the same
+        timestamp about once a chunk, and a decoder will not cross that. It is
+        what froze the playhead on a real clip.
+
+        Audio that runs ahead of the video is left alone rather than trimmed:
+        dropping it would throw away something the generator did supply.
         """
-        if encoder is None:
-            return info["duration"]
-        supplied = self.samples_written / encoder.sample_rate - self.video_time
-        # The floor keeps the next chunk's first frame clear of this one's
-        # last, whose display time it may cut short by up to half a frame but
-        # must not land on top of.
-        return max(supplied, info["duration"] - info["frame_interval"] / 2)
+        behind = round(self.video_time * encoder.sample_rate) - self.samples_written
+        return b"\x00" * (max(behind, 0) * encoder.channels * 2)
 
     def audio_time(self, encoder: AacStreamEncoder) -> float:
         """Where the frames emitted so far belong on the stream's clock.
@@ -579,15 +615,8 @@ class Video(StreamingOutput, Component):
         ]
         if not durations:
             raise RuntimeError("Cannot determine video chunk duration")
-        rate = (video or {}).get("r_frame_rate", "0/0").split("/")
-        interval = (
-            float(rate[1]) / float(rate[0])
-            if len(rate) == 2 and float(rate[0]) > 0
-            else 0.0
-        )
         return {
             "duration": durations[0],
-            "frame_interval": interval,
             "video_start": float(video["start_time"])
             if video and "start_time" in video
             else 0.0,
@@ -604,6 +633,7 @@ class Video(StreamingOutput, Component):
         video_time: float,
         audio_time: float,
         video_start: float = 0.0,
+        counters: dict[int, int] | None = None,
     ) -> bytes:
         """One `.ts` holding the chunk's own video and the encoder's own audio.
 
@@ -655,7 +685,7 @@ class Video(StreamingOutput, Component):
         if result.returncode != 0:
             detail = result.stderr.decode(errors="replace").strip()
             raise RuntimeError(f"FFmpeg command failed: {detail}")
-        return result.stdout
+        return _continue_counters(result.stdout, counters)
 
     async def combine_stream(
         self,
@@ -729,10 +759,27 @@ class Video(StreamingOutput, Component):
                 if not state.slot.attach(encoder):
                     encoder.close()
                     return None
-            pcm = decode_file_to_pcm(path, encoder.sample_rate, encoder.channels)
+            pcm = state.catch_up(encoder) + decode_file_to_pcm(
+                path, encoder.sample_rate, encoder.channels
+            )
             encoder.feed(pcm)
             state.samples_written += len(pcm) // (encoder.channels * 2)
             frames = encoder.take()
+            # `take` returns what the encoder has got round to emitting and no
+            # more, which for audio alone is the right trade: a segment that is
+            # a few frames short is made up by the next one. Here the audio has
+            # to sit alongside the chunk's video, and a segment whose audio
+            # starts a third of a second before the playlist says it does stops
+            # hls.js dead, so the stragglers are worth waiting for.
+            wanted = int(
+                state.samples_written / encoder.sample_rate / encoder.frame_duration
+            )
+            deadline = time.monotonic() + DRAIN_TIMEOUT
+            while (
+                state.frames_emitted + len(frames) < wanted
+                and time.monotonic() < deadline
+            ):
+                frames += encoder.take()
         audio_time = state.audio_time(encoder) if encoder else 0.0
         data = self.mux_segment(
             path,
@@ -741,11 +788,11 @@ class Video(StreamingOutput, Component):
             state.video_time,
             audio_time,
             info["video_start"],
+            state.counters,
         )
         state.frames_emitted += len(frames)
-        advance = state.advance(info, encoder)
-        state.video_time += advance
-        return {"data": data, "duration": advance, "extension": ".ts"}
+        state.video_time += info["duration"]
+        return {"data": data, "duration": info["duration"], "extension": ".ts"}
 
     async def stream_output(
         self,
@@ -800,7 +847,9 @@ class Video(StreamingOutput, Component):
             # No video is left to go with it, so the stream ends on a segment
             # carrying only the frames the encoder was still holding.
             return {
-                "data": self.mux_segment(None, None, b"".join(frames), 0.0, audio_time),
+                "data": self.mux_segment(
+                    None, None, b"".join(frames), 0.0, audio_time, 0.0, state.counters
+                ),
                 "duration": len(frames) * encoder.frame_duration,
                 "extension": ".ts",
             }

@@ -415,6 +415,48 @@ class TestVideo:
         for encoder in encoders:
             assert encoder.process.poll() is not None
 
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_streamed_video_segments_read_as_one_stream(self, tmp_path):
+        """The segments have to follow each other, not just line up in time.
+
+        Each is muxed by its own ffmpeg, so each restarts the MPEG-TS
+        continuity counter every PID carries, and a player reading them in
+        sequence takes that for packet loss and throws the packets away.
+        """
+        chunks = rendered_chunks(tmp_path, count=8)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        segments = []
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await video.stream_output(chunk, stream_id, index == 0)
+                if segment:
+                    segments.append(segment)
+            if final_segment := await video.flush_stream_output(stream_id):
+                segments.append(final_segment)
+        finally:
+            video.end_stream_output(stream_id)
+
+        served = tmp_path / "served.ts"
+        served.write_bytes(b"".join(segment["data"] for segment in segments))
+        result = subprocess.run(
+            [
+                "ffmpeg",
+                "-v",
+                "warning",
+                "-nostdin",
+                "-i",
+                str(served),
+                "-f",
+                "null",
+                "-",
+            ],
+            capture_output=True,
+            check=True,
+        )
+        assert result.stderr.decode() == ""
+
     def test_in_interface(self, media_data):
         """
         Interface, process
