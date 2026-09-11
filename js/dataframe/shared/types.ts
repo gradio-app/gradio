@@ -3,12 +3,6 @@ export type EditingState = CellCoordinate | false;
 
 export type Headers = (string | null)[];
 
-export interface HeadersWithIDs {
-	id: string;
-	value: string;
-}
-[];
-
 export type CellValue = string | number | boolean;
 
 export interface TableCell {

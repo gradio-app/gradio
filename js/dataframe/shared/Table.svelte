@@ -594,8 +594,10 @@
 		if (!input_el || input_el.value === undefined) return;
 
 		const [row, col] = coords;
-		// and any other path that shrinks the table leaves coordinates behind
-		if (col >= (values?.[row]?.length ?? 0)) return;
+		// and deleting a row leaves the editor's row behind. a column short of
+		// the header is not the same thing: a value can arrive ragged, and the
+		// cell past the end of its own row still renders and still takes an edit
+		if (!values?.[row]) return;
 		const old_value = values[row][col];
 		const new_value = input_el.value;
 
@@ -1077,6 +1079,11 @@
 		if (!new_headers.length) {
 			throw new Error("The dropped file is empty.");
 		}
+		// a file of separators alone parses into a header of blank names, and
+		// importing it would replace the table with unnamed columns
+		if (new_headers.every((h) => !h?.trim())) {
+			throw new Error("The dropped file has no column names.");
+		}
 		// a row the header cannot account for would reach the backend as a ragged
 		// value, and the column checks below only see the header
 		const ragged = new_values.findIndex(
@@ -1245,7 +1252,7 @@
 			filetype={[".csv", ".tsv"]}
 			{root}
 			onload={on_file_upload}
-			{onerror}
+			onerror={editable ? onerror : undefined}
 			bind:dragging={file_dragging}
 			tab_index={-1}
 			container_element="div"

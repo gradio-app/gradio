@@ -1545,8 +1545,8 @@ describe("Dataframe CSV drop", () => {
 		expect(get_cell(container, 1, 1)?.textContent).toContain("25");
 	});
 
-	// guess_delimiter counts raw tabs, so the quoted one makes the tab counts
-	// disagree between the two lines and it detects nothing
+	// counting raw tabs misses this: the quoted one makes the counts disagree
+	// between the two lines, so nothing looks consistent
 	test("imports a dropped TSV whose field contains a quoted tab", async () => {
 		const { container } = await render(Dataframe, drop_props);
 		await wait();
@@ -1585,16 +1585,14 @@ describe("Dataframe CSV drop", () => {
 		expect(get_cell(container, 1, 0)?.textContent).toContain("Bob");
 	});
 
-	function drag_file(
-		container: HTMLElement,
-		type: "dragenter" | "dragleave"
-	): void {
-		const upload_container = container.querySelector(
-			".upload-container"
-		) as HTMLElement;
-		upload_container.dispatchEvent(
+	function drag_over(target: Element, type: "dragenter" | "dragleave"): void {
+		target.dispatchEvent(
 			new DragEvent(type, { bubbles: true, cancelable: true })
 		);
+	}
+
+	function drop_target(container: HTMLElement): Element {
+		return container.querySelector(".upload-container")!;
 	}
 
 	test("highlights the table while a file is dragged over it", async () => {
@@ -1602,11 +1600,11 @@ describe("Dataframe CSV drop", () => {
 		await wait();
 		const table_wrap = get_table_wrap(container);
 
-		drag_file(container, "dragenter");
+		drag_over(drop_target(container), "dragenter");
 		await wait();
 		expect(table_wrap).toHaveClass("file-dragging");
 
-		drag_file(container, "dragleave");
+		drag_over(drop_target(container), "dragleave");
 		await wait();
 		expect(table_wrap).not.toHaveClass("file-dragging");
 	});
@@ -1651,7 +1649,7 @@ describe("Dataframe CSV drop", () => {
 		});
 		await wait();
 
-		drag_file(container, "dragenter");
+		drag_over(drop_target(container), "dragenter");
 		await wait();
 
 		expect(get_table_wrap(container)).not.toHaveClass("file-dragging");
@@ -1703,14 +1701,8 @@ describe("Dataframe CSV drop", () => {
 		row_count: [2, "fixed"] as [number, "fixed"]
 	};
 
-	function drag_over(target: Element, type: "dragenter" | "dragleave"): void {
-		target.dispatchEvent(
-			new DragEvent(type, { bubbles: true, cancelable: true })
-		);
-	}
-
-	// both delimiters split every line into the same number of fields, so
-	// guess_delimiter returns both and the extension breaks the tie
+	// both delimiters split every line into the same number of fields, so the
+	// extension breaks the tie
 	test("imports a dropped TSV whose fields contain commas", async () => {
 		const { container } = await render(Dataframe, drop_props);
 		await wait();
@@ -1772,6 +1764,98 @@ describe("Dataframe CSV drop", () => {
 		expect(error).toHaveBeenCalled();
 	});
 
+	// separators alone parse into a header of blank names, which would replace
+	// the table with unnamed columns instead of reporting anything
+	test("reports an error and keeps the table when the file has no column names", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, ",\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	test("imports a dropped CSV that ends with a blank line", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(error).not.toHaveBeenCalled();
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([["Alice", "30"]]);
+	});
+
+	// the name says comma and the header does split on one, but only the tab
+	// splits every line, so the name loses to the file's own shape
+	test("imports a mislabeled CSV whose header holds a tab", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const error = listen("error");
+
+		drop_csv(container, "first,last\tage\nAlice\t30\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["first,last", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(error).not.toHaveBeenCalled();
+	});
+
+	// a dropped file the upload rejects would otherwise report a type error on a
+	// table that ignores dropped files in the first place
+	test("reports nothing for a file dropped on a read-only table", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n", "data.png");
+		await wait();
+
+		expect(error).not.toHaveBeenCalled();
+	});
+
+	// a value can reach the frontend ragged, and a cell past the end of its own
+	// row still renders and still takes an edit
+	test("keeps an edit to a cell in a row shorter than the header", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			value: {
+				data: [["a1"], ["a2", "b2"]],
+				headers: ["A", "B"],
+				metadata: null
+			}
+		});
+		await wait();
+		const edit = listen("edit");
+
+		const cell = get_cell(container, 0, 1)!;
+		await fireEvent.mouseDown(cell);
+		await fireEvent.dblClick(cell);
+		await wait();
+
+		const textarea = container.querySelector(
+			"textarea[aria-label='Edit cell']"
+		) as HTMLTextAreaElement;
+		textarea.value = "typed";
+		await fireEvent.input(textarea);
+		await fireEvent.blur(textarea);
+		await wait();
+
+		expect(edit).toHaveBeenCalled();
+		expect(get_cell(container, 0, 1)?.textContent).toContain("typed");
+	});
+
 	// the cell unmounts while still in edit mode, and EditableCell commits on
 	// teardown, so the stale coordinates land in the table that replaced it
 	test("drops an in-flight cell edit when the imported table is narrower", async () => {
@@ -1808,9 +1892,9 @@ describe("Dataframe CSV drop", () => {
 		]);
 	});
 
-	// the narrower and shorter cases above are caught by the bounds guard in
-	// handle_blur. this one is not: the edited cell is still in range after the
-	// import, so the teardown commit lands on a row that exists
+	// the shorter case above is caught by the row guard in handle_blur. this one
+	// is not: the edited cell is still in range after the import, so the
+	// teardown commit lands on a row that exists
 	test("drops an in-flight cell edit when the imported table is the same shape", async () => {
 		const { container, listen } = await render(Dataframe, dynamic_3x3_props);
 		await wait();

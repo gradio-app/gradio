@@ -117,6 +117,55 @@ describe("parse_table_file", () => {
 		});
 	});
 
+	// the extension says comma and the header does split on one, but only the
+	// tab splits every line, so the name loses to the file's own shape
+	test("reads a mislabeled file whose header holds the other separator", async () => {
+		const file = new File(["first,last\tage\nAlice\t30\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["first,last", "age"],
+			values: [["Alice", "30"]]
+		});
+	});
+
+	// nothing splits this file consistently, so the separator that at least
+	// splits the header wins and the caller gets to report a useful mismatch
+	test("falls back to the separator that splits the header", async () => {
+		const file = new File(["name,age\nAlice,30,Engineer\n"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "age"],
+			values: [["Alice", "30", "Engineer"]]
+		});
+	});
+
+	test("ignores blank lines", async () => {
+		const file = new File(["a,b\n1,2\n\n3,4\n\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b"],
+			values: [
+				["1", "2"],
+				["3", "4"]
+			]
+		});
+	});
+
+	test("ignores blank lines in a file with windows line endings", async () => {
+		const file = new File(["a,b\r\n1,2\r\n\r\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b"],
+			values: [["1", "2"]]
+		});
+	});
+
+	// excel writes one in front of its csv export. Blob.text() decodes as UTF-8,
+	// which drops it, so this holds as long as the file is read that way
+	test("strips a byte order mark from the first header", async () => {
+		const file = new File(["﻿name,age\nAlice,30\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "age"],
+			values: [["Alice", "30"]]
+		});
+	});
+
 	test("returns nothing for a file that holds only whitespace", async () => {
 		const file = new File(["   \n"], "data.csv");
 		expect(await parse_table_file(file)).toEqual({ headers: [], values: [] });

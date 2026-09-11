@@ -53,20 +53,37 @@ export async function parse_table_file(
 	const text = await file.text();
 	if (!text.trim()) return { headers: [], values: [] };
 	// the drop zone only accepts .csv and .tsv, so the extension goes first and
-	// decides on its own for a single-column file, where neither separator splits
-	// anything. a mislabeled file is still read by its content, and the split is
-	// d3's rather than a raw count so a separator inside a quoted field does not
-	// throw the detection off.
+	// wins any tie, but a mislabeled file is still read by its content: a
+	// separator only takes the file if it splits every line the same way, which
+	// is what tells a real separator from one that sits in a header name. the
+	// split is d3's rather than a raw count, so a separator inside a quoted
+	// field does not throw the detection off.
 	const by_extension = file.name.toLowerCase().endsWith(".tsv") ? "\t" : ",";
 	const candidates = by_extension === "\t" ? ["\t", ","] : [",", "\t"];
-	let rows: string[][] | undefined;
+	let consistent: string[][] | undefined;
+	let ragged: string[][] | undefined;
+	let unsplit: string[][] | undefined;
 	for (const delimiter of candidates) {
-		const parsed = dsvFormat(delimiter).parseRows(text);
-		if ((parsed[0]?.length ?? 0) > 1) {
-			rows = parsed;
+		// a blank line parses to a single empty field, which both the width
+		// checks below and the caller's ragged check would read as a short row
+		const parsed = dsvFormat(delimiter)
+			.parseRows(text)
+			.filter((row) => row.length > 1 || row[0] !== "");
+		const width = parsed[0]?.length ?? 0;
+		// the extension is first in `candidates`, so this keeps its parse for the
+		// single-column case rather than running it again at the end
+		unsplit ??= parsed;
+		if (width < 2) continue;
+		if (parsed.every((row) => row.length === width)) {
+			consistent = parsed;
 			break;
 		}
+		// a separator that splits the header but leaves the rows uneven is
+		// usually the one that just happens to appear in a header name. keep it
+		// only in case the other does not split at all, where a ragged table is
+		// still better to report on than an unsplit one
+		ragged ??= parsed;
 	}
-	const [head = [], ...rest] = rows ?? dsvFormat(by_extension).parseRows(text);
+	const [head = [], ...rest] = consistent ?? ragged ?? unsplit ?? [];
 	return { headers: head.map((h) => h ?? ""), values: rest };
 }
