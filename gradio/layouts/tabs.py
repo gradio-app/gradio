@@ -42,6 +42,10 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
+        if overflow_behavior not in ("menu", "wrap"):
+            raise ValueError(
+                "The `overflow_behavior` parameter must be either 'menu' or 'wrap'."
+            )
         BlockContext.__init__(
             self,
             visible=visible,
@@ -140,6 +144,10 @@ class Tab(BlockContext, metaclass=ComponentMeta):
             interactive: If False, Tab will not be clickable.
             render_children: If True, the children of this Tab will be rendered on the page (but hidden) when the Tab is visible but inactive. This can be useful if you want to ensure that any components (e.g. videos or audio) within the Tab are pre-loaded before the user clicks on the Tab.
         """
+        if alignment not in ("left", "right"):
+            raise ValueError(
+                "The `alignment` parameter must be either 'left' or 'right'."
+            )
         BlockContext.__init__(
             self,
             elem_id=elem_id,

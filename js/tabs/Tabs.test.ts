@@ -159,6 +159,89 @@ describe("Props: overflow_behavior", () => {
 		expect(queryByRole("tab", { name: "Long tab label 20" })).toBeNull();
 	});
 
+	test("menu keeps the selected tab visible ahead of right-aligned tabs", async () => {
+		const selected_label = "Train";
+		const first_right_label =
+			"A very long right-aligned utility tab that cannot fit in the available space";
+		const { getByRole, queryByRole } = await render(Tabs, {
+			...default_props,
+			selected: "train",
+			overflow_behavior: "menu",
+			initial_tabs: [
+				make_tab({ label: "Home", id: "home", component_id: 1 }),
+				make_tab({ label: "Data", id: "data", component_id: 2 }),
+				make_tab({ label: selected_label, id: "train", component_id: 3 }),
+				make_tab({
+					label: first_right_label,
+					id: "utility",
+					alignment: "right",
+					component_id: 4
+				}),
+				make_tab({
+					label: "Help",
+					id: "help",
+					alignment: "right",
+					component_id: 5
+				})
+			]
+		});
+		const tablist = getByRole("tablist");
+		tablist.style.width = "420px";
+		window.dispatchEvent(new Event("resize"));
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		});
+		expect(getByRole("tab", { name: selected_label })).toBeVisible();
+		expect(queryByRole("tab", { name: first_right_label })).toBeNull();
+		expect(queryByRole("tab", { name: "Help" })).toBeNull();
+	});
+
+	test("menu keeps an oversized first tab visible", async () => {
+		const first_label =
+			"A first tab label that is much wider than the available tab bar";
+		const { getByRole, queryByRole } = await render(Tabs, {
+			...default_props,
+			selected: "first",
+			overflow_behavior: "menu",
+			initial_tabs: [
+				make_tab({ label: first_label, id: "first", component_id: 1 }),
+				make_tab({ label: "B", id: "b", component_id: 2 }),
+				make_tab({ label: "C", id: "c", component_id: 3 })
+			]
+		});
+		const tablist = getByRole("tablist");
+		tablist.style.width = "260px";
+		window.dispatchEvent(new Event("resize"));
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		});
+		expect(getByRole("tab", { name: first_label })).toBeVisible();
+		expect(queryByRole("tab", { name: "B" })).toBeNull();
+		expect(queryByRole("tab", { name: "C" })).toBeNull();
+	});
+
+	test("menu promotes a newly selected overflow tab into the tab bar", async () => {
+		const { getByRole } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "menu",
+			initial_tabs: many_tabs
+		});
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		});
+		await fireEvent.click(getByRole("button", { name: "More tabs" }));
+		await fireEvent.click(getByRole("button", { name: "Long tab label 20" }));
+
+		await waitFor(() => {
+			expect(
+				getByRole("tab", { name: "Long tab label 20", selected: true })
+			).toBeVisible();
+		});
+	});
+
 	test("wrap keeps every tab visible and removes the overflow button", async () => {
 		const { getByRole, queryByRole } = await render(Tabs, {
 			...default_props,
@@ -166,6 +249,47 @@ describe("Props: overflow_behavior", () => {
 			initial_tabs: many_tabs
 		});
 
+		await waitFor(() => {
+			expect(getByRole("tab", { name: "Long tab label 20" })).toBeVisible();
+		});
+		expect(queryByRole("button", { name: "More tabs" })).toBeNull();
+	});
+
+	test("wrap prevents a long label from overflowing horizontally", async () => {
+		const long_label =
+			"A tab label that is substantially wider than the available tab bar width";
+		const { getByRole } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "wrap",
+			initial_tabs: [
+				make_tab({ label: long_label, id: "long", component_id: 1 })
+			]
+		});
+		const tablist = getByRole("tablist");
+		tablist.style.width = "200px";
+		window.dispatchEvent(new Event("resize"));
+
+		await waitFor(() => {
+			expect(tablist.scrollWidth).toBeLessThanOrEqual(tablist.clientWidth);
+		});
+		expect(getByRole("tab", { name: long_label })).toBeVisible();
+	});
+
+	test("switches between menu and wrap without a resize", async () => {
+		const { getByRole, queryByRole, set_data } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "wrap",
+			initial_tabs: many_tabs
+		});
+
+		expect(getByRole("tab", { name: "Long tab label 20" })).toBeVisible();
+		await set_data({ overflow_behavior: "menu" });
+		await waitFor(() => {
+			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		});
+		expect(queryByRole("tab", { name: "Long tab label 20" })).toBeNull();
+
+		await set_data({ overflow_behavior: "wrap" });
 		await waitFor(() => {
 			expect(getByRole("tab", { name: "Long tab label 20" })).toBeVisible();
 		});

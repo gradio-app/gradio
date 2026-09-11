@@ -161,6 +161,12 @@
 	});
 
 	$effect(() => {
+		overflow_behavior;
+		$selected_tab;
+		handle_menu_overflow();
+	});
+
+	$effect(() => {
 		if (!tab_nav_el) return;
 		handle_menu_overflow();
 		const ro = new ResizeObserver(() => {
@@ -218,31 +224,44 @@
 				(tab) => tab.alignment === "right"
 			);
 			const limit = Math.max(0, available - OVERFLOW_BTN_RESERVE);
-			const visible_left_tabs: Tab[] = [];
-			const visible_right_tabs: Tab[] = [];
+			const visible_tab_ids = new Set<string | number>();
 			let used_width = 0;
 
-			const first_left_tab = left_tabs[0];
-			if (first_left_tab && tab_width(first_left_tab) <= limit) {
-				visible_left_tabs.push(first_left_tab);
-				used_width += tab_width(first_left_tab);
+			function reserve_tab(tab: Tab | undefined): void {
+				if (!tab || visible_tab_ids.has(tab.id)) return;
+				visible_tab_ids.add(tab.id);
+				used_width += tab_width(tab);
 			}
+
+			const first_left_tab = left_tabs[0];
+			const selected_rendered_tab = rendered_tabs.find(
+				(tab) => tab.id === $selected_tab
+			);
+			reserve_tab(first_left_tab);
+			reserve_tab(selected_rendered_tab);
 
 			for (const tab of right_tabs) {
-				const width = tab_width(tab);
-				if (used_width + width <= limit) {
-					visible_right_tabs.push(tab);
-					used_width += width;
-				}
-			}
-
-			for (const tab of left_tabs.slice(first_left_tab ? 1 : 0)) {
+				if (visible_tab_ids.has(tab.id)) continue;
 				const width = tab_width(tab);
 				if (used_width + width > limit) break;
-				visible_left_tabs.push(tab);
+				visible_tab_ids.add(tab.id);
 				used_width += width;
 			}
 
+			for (const tab of left_tabs.slice(first_left_tab ? 1 : 0)) {
+				if (visible_tab_ids.has(tab.id)) continue;
+				const width = tab_width(tab);
+				if (used_width + width > limit) break;
+				visible_tab_ids.add(tab.id);
+				used_width += width;
+			}
+
+			const visible_left_tabs = left_tabs.filter((tab) =>
+				visible_tab_ids.has(tab.id)
+			);
+			const visible_right_tabs = right_tabs.filter((tab) =>
+				visible_tab_ids.has(tab.id)
+			);
 			visible_tabs = [...visible_left_tabs, ...visible_right_tabs];
 			overflow_tabs = rendered_tabs.filter(
 				(tab) => !visible_tabs.some((visible_tab) => visible_tab?.id === tab.id)
@@ -431,6 +450,14 @@
 			color-mix(in srgb, var(--border-color-primary) 45%, transparent)
 				var(--size-8)
 		);
+	}
+
+	.tab-container:not(.visually-hidden) > button,
+	.right-tab-group button {
+		max-width: 100%;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.tab-container.wrap button {
