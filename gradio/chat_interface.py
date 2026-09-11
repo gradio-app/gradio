@@ -16,7 +16,7 @@ from typing import Any, Literal, Union, cast
 from anyio.to_thread import run_sync
 from gradio_client.documentation import document
 
-from gradio import utils
+from gradio import routes, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     JSON,
@@ -39,6 +39,7 @@ from gradio.components.chatbot import (
     NormalizedMessageDict,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
+from gradio.context import LocalContext
 from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
@@ -1027,7 +1028,7 @@ class ChatInterface(Blocks):
         return history, history, edit_data.value
 
     def example_clicked(
-        self, example: SelectData
+        self, example: SelectData, request: routes.Request
     ) -> Generator[tuple[list[MessageDict], str | MultimodalPostprocess], None, None]:
         """
         When an example is clicked, the chat history (and saved input) is initially set only
@@ -1039,7 +1040,9 @@ class ChatInterface(Blocks):
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
         if self.cache_examples:
-            history = self.examples_handler.load_from_cache(example.index)[0].root
+            history = self.examples_handler.load_from_cache(example.index, request)[
+                0
+            ].root
             yield history, message
 
     def _process_example(
@@ -1067,7 +1070,9 @@ class ChatInterface(Blocks):
         self, message: ExampleMessage | str, *args
     ) -> list[MessageDict]:
         inputs, _, _, _ = special_args(
-            self.fn, inputs=[message, [], *args], request=None
+            self.fn,
+            inputs=[message, [], *args],
+            request=LocalContext.request.get(None),
         )
         if self.is_async:
             response = await self.fn(*inputs)
@@ -1081,7 +1086,9 @@ class ChatInterface(Blocks):
         *args,
     ) -> AsyncGenerator:
         inputs, _, _, _ = special_args(
-            self.fn, inputs=[message, [], *args], request=None
+            self.fn,
+            inputs=[message, [], *args],
+            request=LocalContext.request.get(None),
         )
 
         if self.is_async:
