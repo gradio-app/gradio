@@ -1530,6 +1530,8 @@
 	.table-wrap.file-dragging {
 		outline: 2px solid var(--color-accent);
 		outline-offset: -2px;
+		/* matches the .upload-container border the outline covers */
+		border-radius: var(--table-radius);
 	}
 
 	.table-wrap.dragging {
