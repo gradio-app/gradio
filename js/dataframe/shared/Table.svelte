@@ -1107,6 +1107,12 @@
 		headers = new_headers;
 		values = new_values;
 		reset_interaction_state();
+		// tanstack keys these by positional col_N, so they would land on whichever
+		// column now sits at that index. a search is worse than misplaced: it hides
+		// imported rows, and commit_filter then drops the hidden ones from the value
+		sorting = [];
+		column_filters = [];
+		global_filter = "";
 		push_change(new_values, headers as string[]);
 		tick().then(() => (discard_pending_edit = false));
 	}

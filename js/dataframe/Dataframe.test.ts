@@ -1858,6 +1858,31 @@ describe("Dataframe CSV drop", () => {
 		expect(get_cell(container, 2, 2)?.className).not.toContain("cell-selected");
 	});
 
+	// tanstack keys sorting and column filters by positional col_N, and a search
+	// left over from the old table hides imported rows, which commit_filter then
+	// drops from the value entirely
+	test("clears the search when a file is imported", async () => {
+		const { container } = await render(Dataframe, {
+			...dynamic_3x3_props,
+			show_search: "search"
+		});
+		await wait();
+
+		const search = container.querySelector(
+			"input.search-input"
+		) as HTMLInputElement;
+		search.value = "a1";
+		await fireEvent.input(search);
+		await wait();
+		expect(get_cell(container, 1, 0)).toBeNull();
+
+		drop_csv(container, "x,y,z\n1,2,3\n4,5,6\n7,8,9\n");
+		await wait();
+
+		expect(get_cell(container, 0, 0)?.textContent).toContain("1");
+		expect(get_cell(container, 2, 0)?.textContent).toContain("7");
+	});
+
 	// dragenter on the cell being entered arrives before dragleave on the one
 	// being left, and both bubble to the drop target
 	test("keeps the highlight while the file moves between cells", async () => {
