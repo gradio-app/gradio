@@ -118,6 +118,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         interactive: bool = True,
         *,
         id: int | str | None = None,
+        alignment: Literal["left", "right"] = "left",
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         scale: int | None = None,
@@ -130,6 +131,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         Parameters:
             label: The visual label for the tab
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
+            alignment: The side of the tab bar where the tab is placed. Right-aligned tabs are grouped together while preserving their relative order.
             elem_id: An optional string that is assigned as the id of the <div> containing the contents of the Tab layout. The same string followed by "-button" is attached to the Tab button. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, this layout will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
@@ -148,6 +150,7 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         )
         self.label = label
         self.id = id
+        self.alignment = alignment
         self.visible = visible
         self.scale = scale
         self.interactive = interactive

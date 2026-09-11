@@ -87,6 +87,20 @@ describe("TabItem", () => {
 			);
 		});
 	});
+
+	test("registers its alignment with the parent tabs", async () => {
+		const on_register = vi.fn();
+		await render(TabItemHarness, {
+			tab_alignment: "right",
+			on_register
+		});
+
+		await waitFor(() => {
+			expect(on_register).toHaveBeenCalledWith(
+				expect.objectContaining({ alignment: "right" })
+			);
+		});
+	});
 });
 
 describe("Events: select", () => {

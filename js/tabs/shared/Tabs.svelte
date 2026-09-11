@@ -11,6 +11,7 @@
 		interactive: boolean;
 		scale: number | null;
 		component_id: number;
+		alignment?: "left" | "right";
 	}
 
 	export type TabSelectData = Omit<SelectData, "index"> & {
@@ -26,6 +27,13 @@
 	function find_tab_index(tabs: (Tab | null)[], id: string | number): number {
 		const index = tabs.findIndex((t) => t?.id === id);
 		return index === -1 ? 0 : index;
+	}
+
+	function order_tabs_by_alignment(tabs: (Tab | null)[]): (Tab | null)[] {
+		return [
+			...tabs.filter((tab) => tab?.alignment !== "right"),
+			...tabs.filter((tab) => tab?.alignment === "right")
+		];
 	}
 </script>
 
@@ -57,7 +65,9 @@
 	} = $props();
 
 	let tabs = $state<(Tab | null)[]>([...initial_tabs]);
-	let visible_tabs = $state<(Tab | null)[]>([...initial_tabs]);
+	let visible_tabs = $state<(Tab | null)[]>(
+		order_tabs_by_alignment(initial_tabs)
+	);
 	let overflow_tabs = $state<(Tab | null)[]>([]);
 	let overflow_menu_open = $state(false);
 	let overflow_menu: HTMLElement;
@@ -174,8 +184,9 @@
 
 	async function handle_menu_overflow(): Promise<void> {
 		if (!tab_nav_el) return;
+		const ordered_tabs = order_tabs_by_alignment(tabs);
 		if (overflow_behavior === "wrap") {
-			visible_tabs = tabs;
+			visible_tabs = ordered_tabs;
 			overflow_tabs = [];
 			overflow_has_selected_tab = false;
 			is_overflowing = false;
@@ -188,26 +199,55 @@
 		if (!tab_nav_el) return;
 
 		const available = tab_nav_el.clientWidth;
+		const rendered_tabs = ordered_tabs.filter(is_visible_tab);
+		const tab_width = (tab: Tab): number =>
+			tab_els[tab.id]?.getBoundingClientRect().width ?? 0;
+		const total_width = rendered_tabs.reduce(
+			(total, tab) => total + tab_width(tab),
+			0
+		);
 
-		let cumulative = 0;
-		let split_index = tabs.length;
+		if (total_width <= available) {
+			visible_tabs = ordered_tabs;
+			overflow_tabs = [];
+		} else {
+			const left_tabs = rendered_tabs.filter(
+				(tab) => tab.alignment !== "right"
+			);
+			const right_tabs = rendered_tabs.filter(
+				(tab) => tab.alignment === "right"
+			);
+			const limit = Math.max(0, available - OVERFLOW_BTN_RESERVE);
+			const visible_left_tabs: Tab[] = [];
+			const visible_right_tabs: Tab[] = [];
+			let used_width = 0;
 
-		for (let i = 0; i < tabs.length; i++) {
-			const tab = tabs[i];
-			if (!is_visible_tab(tab)) continue;
-			const el = tab_els[tab.id];
-			if (!el) continue;
-			cumulative += el.getBoundingClientRect().width;
-			const has_more = tabs.slice(i + 1).some((t) => is_visible_tab(t));
-			const limit = has_more ? available - OVERFLOW_BTN_RESERVE : available;
-			if (cumulative > limit) {
-				split_index = i;
-				break;
+			const first_left_tab = left_tabs[0];
+			if (first_left_tab && tab_width(first_left_tab) <= limit) {
+				visible_left_tabs.push(first_left_tab);
+				used_width += tab_width(first_left_tab);
 			}
-		}
 
-		visible_tabs = tabs.slice(0, split_index);
-		overflow_tabs = tabs.slice(split_index);
+			for (const tab of right_tabs) {
+				const width = tab_width(tab);
+				if (used_width + width <= limit) {
+					visible_right_tabs.push(tab);
+					used_width += width;
+				}
+			}
+
+			for (const tab of left_tabs.slice(first_left_tab ? 1 : 0)) {
+				const width = tab_width(tab);
+				if (used_width + width > limit) break;
+				visible_left_tabs.push(tab);
+				used_width += width;
+			}
+
+			visible_tabs = [...visible_left_tabs, ...visible_right_tabs];
+			overflow_tabs = rendered_tabs.filter(
+				(tab) => !visible_tabs.some((visible_tab) => visible_tab?.id === tab.id)
+			);
+		}
 
 		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
 		is_overflowing = overflow_tabs.filter((t) => is_visible_tab(t)).length > 0;
@@ -257,33 +297,45 @@
 				bind:this={tab_nav_el}
 				role="tablist"
 			>
+				{#snippet tab_button(t: Tab, display_index: number)}
+					<button
+						role="tab"
+						class:selected={t.id === $selected_tab}
+						aria-selected={t.id === $selected_tab}
+						aria-controls={t.elem_id}
+						disabled={!t.interactive}
+						aria-disabled={!t.interactive}
+						id={t.elem_id ? t.elem_id + "-button" : null}
+						data-tab-id={t.id}
+						onclick={() => {
+							if (t.id !== $selected_tab) {
+								change_tab(t.id);
+								onselect?.({
+									value: t.label,
+									index: tabs.findIndex((tab) => tab?.id === t.id),
+									id: t.id,
+									component_id: t.component_id
+								});
+							}
+						}}
+					>
+						{t.label !== undefined ? t.label : "Tab " + (display_index + 1)}
+					</button>
+				{/snippet}
 				{#each visible_tabs as t, i}
-					{#if is_visible_tab(t)}
-						<button
-							role="tab"
-							class:selected={t.id === $selected_tab}
-							aria-selected={t.id === $selected_tab}
-							aria-controls={t.elem_id}
-							disabled={!t.interactive}
-							aria-disabled={!t.interactive}
-							id={t.elem_id ? t.elem_id + "-button" : null}
-							data-tab-id={t.id}
-							onclick={() => {
-								if (t.id !== $selected_tab) {
-									change_tab(t.id);
-									onselect?.({
-										value: t.label,
-										index: i,
-										id: t.id,
-										component_id: t.component_id
-									});
-								}
-							}}
-						>
-							{t?.label !== undefined ? t?.label : "Tab " + (i + 1)}
-						</button>
+					{#if is_visible_tab(t) && t.alignment !== "right"}
+						{@render tab_button(t, i)}
 					{/if}
 				{/each}
+				{#if visible_tabs.some((t) => is_visible_tab(t) && t.alignment === "right")}
+					<div class="right-tab-group" role="presentation">
+						{#each visible_tabs as t, i}
+							{#if is_visible_tab(t) && t.alignment === "right"}
+								{@render tab_button(t, i)}
+							{/if}
+						{/each}
+					</div>
+				{/if}
 			</div>
 			{#if overflow_behavior === "menu"}
 				<span
@@ -310,7 +362,7 @@
 										change_tab(t?.id);
 										onselect?.({
 											value: t.label,
-											index: i,
+											index: tabs.findIndex((tab) => tab?.id === t.id),
 											id: t.id,
 											component_id: t.component_id
 										});
@@ -370,6 +422,15 @@
 		flex-wrap: wrap;
 		overflow: visible;
 		height: auto;
+		background: repeating-linear-gradient(
+			to bottom,
+			transparent 0,
+			transparent calc(var(--size-8) - 1px),
+			color-mix(in srgb, var(--border-color-primary) 45%, transparent)
+				calc(var(--size-8) - 1px),
+			color-mix(in srgb, var(--border-color-primary) 45%, transparent)
+				var(--size-8)
+		);
 	}
 
 	.tab-container.wrap button {
@@ -406,6 +467,21 @@
 		align-items: center;
 		white-space: nowrap;
 		position: relative;
+	}
+
+	.right-tab-group {
+		margin-left: auto;
+		display: flex;
+		align-items: center;
+		flex-shrink: 1;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		max-width: 100%;
+	}
+
+	.tab-container:not(.wrap) .right-tab-group {
+		flex-wrap: nowrap;
+		height: 100%;
 	}
 
 	button:disabled {

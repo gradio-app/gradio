@@ -136,6 +136,29 @@ describe("Props: overflow_behavior", () => {
 		expect(queryByRole("tab", { name: "Long tab label 20" })).toBeNull();
 	});
 
+	test("menu keeps right-aligned tabs visible while left tabs overflow", async () => {
+		const aligned_tabs = [
+			...many_tabs,
+			make_tab({
+				label: "Settings",
+				id: "settings",
+				alignment: "right",
+				component_id: 21
+			})
+		];
+		const { getByRole, queryByRole } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "menu",
+			initial_tabs: aligned_tabs
+		});
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		});
+		expect(getByRole("tab", { name: "Settings" })).toBeVisible();
+		expect(queryByRole("tab", { name: "Long tab label 20" })).toBeNull();
+	});
+
 	test("wrap keeps every tab visible and removes the overflow button", async () => {
 		const { getByRole, queryByRole } = await render(Tabs, {
 			...default_props,
@@ -147,6 +170,42 @@ describe("Props: overflow_behavior", () => {
 			expect(getByRole("tab", { name: "Long tab label 20" })).toBeVisible();
 		});
 		expect(queryByRole("button", { name: "More tabs" })).toBeNull();
+	});
+
+	test("wrap preserves left and right alignment while tabs overflow", async () => {
+		const aligned_tabs = [
+			make_tab({
+				label: "Settings",
+				id: "settings",
+				alignment: "right",
+				component_id: 1
+			}),
+			...many_tabs,
+			make_tab({
+				label: "About",
+				id: "about",
+				alignment: "right",
+				component_id: 22
+			})
+		];
+		const { getAllByRole, getByRole, queryByRole } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "wrap",
+			initial_tabs: aligned_tabs
+		});
+
+		await waitFor(() => {
+			expect(getByRole("tab", { name: "About" })).toBeVisible();
+		});
+		expect(queryByRole("button", { name: "More tabs" })).toBeNull();
+		expect(getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+			...many_tabs.map((tab) => tab.label),
+			"Settings",
+			"About"
+		]);
+		expect(getByRole("tab", { name: "Settings" }).parentElement).toHaveClass(
+			"right-tab-group"
+		);
 	});
 });
 
@@ -188,6 +247,33 @@ describe("Events: select", () => {
 			index: 1,
 			id: "t2",
 			component_id: 2
+		});
+	});
+
+	test("right alignment does not change the tab's select index", async () => {
+		const { listen, getByRole } = await render(Tabs, {
+			...default_props,
+			selected: "home",
+			overflow_behavior: "wrap",
+			initial_tabs: [
+				make_tab({
+					label: "Settings",
+					id: "settings",
+					alignment: "right",
+					component_id: 1
+				}),
+				make_tab({ label: "Home", id: "home", component_id: 2 })
+			]
+		});
+		const select = listen("select");
+
+		await fireEvent.click(getByRole("tab", { name: "Settings" }));
+
+		expect(select).toHaveBeenCalledWith({
+			value: "Settings",
+			index: 0,
+			id: "settings",
+			component_id: 1
 		});
 	});
 
