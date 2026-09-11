@@ -1013,16 +1013,13 @@ describe("Add/remove rows and columns", () => {
 	});
 
 	test("table with rows still fills the screen in fullscreen", async () => {
-		// The collapse above is gated on the table being empty. Without this test
-		// the gate itself is unguarded: dropping the condition and letting every
-		// table collapse leaves the whole suite green, while every populated
-		// fullscreen table quietly loses its full-height body.
+		// Without this the gate is unguarded: letting every table collapse leaves
+		// the suite green while populated bodies quietly lose their height.
 		const { getByRole } = await render(Dataframe, dynamic_props);
 		await wait();
 
-		// The body, not the wrap. `.table-wrap` keeps `flex: 1 1 auto` from the
-		// rule above it and stays tall even when the viewport inside it collapses,
-		// so measuring the wrap passes against a half-applied gate.
+		// The body, not the wrap: `.table-wrap` keeps `flex: 1 1 auto` from the
+		// rule above and stays tall even when the viewport inside it collapses.
 		function viewport_height(): number {
 			const el = document.querySelector(
 				".table-container .virtual-table-viewport"
@@ -1045,8 +1042,8 @@ describe("Add/remove rows and columns", () => {
 		expect(
 			document.querySelector(".table-container.fullscreen.no-rows")
 		).toBeNull();
-		// Against its own pre-fullscreen height, not a fraction of the viewport:
-		// on a short screen a normal-view table can already cover half of it.
+		// Its own pre-fullscreen height: on a short screen a fixed fraction of
+		// the window is a weak bound.
 		expect(viewport_height()).toBeGreaterThan(before * 2);
 	});
 

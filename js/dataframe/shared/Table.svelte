@@ -1507,8 +1507,7 @@
 	}
 
 	/* An empty body would otherwise fill the screen and carry the add-row button off it.
-	   Gated on the data alone, so empty tables that show no button stop stretching too,
-	   which is what the same table already does outside fullscreen. */
+	   Gated on the data alone, so empty tables that show no button stop stretching too. */
 	.table-container.fullscreen.no-rows .table-wrap,
 	.table-container.fullscreen.no-rows .table-wrap > :global(*),
 	.table-container.fullscreen.no-rows .virtual-table-viewport {
