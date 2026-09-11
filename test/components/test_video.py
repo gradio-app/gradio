@@ -482,6 +482,18 @@ class TestVideo:
         steps = [b - a for a, b in zip(video_pts[:-1], video_pts[1:], strict=False)]
         assert max(steps) == pytest.approx(1 / VIDEO_FPS, abs=0.005)
 
+        # A segment's audio also has to sit with its own video. The encoder
+        # hands frames over a burst behind, so a chunk has to take what has
+        # arrived rather than one burst's worth, and a segment whose audio
+        # starts a third of a second before its video stops hls.js dead.
+        for segment in segments:
+            within = [
+                packet_timestamps(segment["data"], kind, tmp_path, "pts_time")
+                for kind in ("v", "a")
+            ]
+            if all(within):
+                assert min(within[0]) - min(within[1]) < 0.25
+
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_a_failed_first_chunk_releases_its_encoder(
