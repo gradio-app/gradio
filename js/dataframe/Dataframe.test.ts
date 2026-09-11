@@ -1545,6 +1545,20 @@ describe("Dataframe CSV drop", () => {
 		expect(get_cell(container, 1, 1)?.textContent).toContain("25");
 	});
 
+	// guess_delimiter counts raw tabs, so the quoted one makes the tab counts
+	// disagree between the two lines and it detects nothing
+	test("imports a dropped TSV whose field contains a quoted tab", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, 'name\tnote\nAlice\t"hello\tworld"\n', "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "note"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 0, 1)?.textContent).toContain("hello\tworld");
+	});
+
 	test("ignores a dropped file that is neither CSV nor TSV", async () => {
 		const { container, listen } = await render(Dataframe, drop_props);
 		await wait();

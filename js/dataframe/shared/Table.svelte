@@ -1052,7 +1052,7 @@
 	}
 
 	// undefined when every dropped file was filtered out by `filetype`
-	function on_file_upload(file: Blob | undefined): void {
+	function on_file_upload(file: File | undefined): void {
 		if (!editable || !file) return;
 		handle_file_upload(
 			file,

@@ -67,14 +67,17 @@ export function guess_delimiter(
 }
 
 export async function handle_file_upload(
-	file: Blob,
+	file: File,
 	update_headers: (headers: Headers) => HeadersWithIDs[],
 	update_values: (values: CellValue[][]) => void
 ): Promise<void> {
 	const text = await file.text();
 	if (!text) return;
-	// a single-column file has no delimiter to find, so fall back to a comma
-	const [delimiter = ","] = guess_delimiter(text, [",", "\t"]);
+	// guess_delimiter counts raw separators, so it finds nothing for a single
+	// column, or when a quoted field contains the separator. The drop zone only
+	// accepts .csv and .tsv, so the extension settles those cases.
+	const by_extension = file.name.toLowerCase().endsWith(".tsv") ? "\t" : ",";
+	const [delimiter = by_extension] = guess_delimiter(text, [",", "\t"]);
 	const [head, ...rest] = dsvFormat(delimiter).parseRows(text);
 	update_headers(head);
 	update_values(rest);
