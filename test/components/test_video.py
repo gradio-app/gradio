@@ -1,15 +1,118 @@
+import json
 import os
 import shutil
+import subprocess
 import tempfile
 from copy import deepcopy
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 
 import gradio as gr
 from gradio import processing_utils
 from gradio.data_classes import FileData
+
+AUDIO_RATE = 44100
+VIDEO_FPS = 15
+
+
+def tone_chunks(
+    directory: Path, chunk_seconds: float = 0.25, count: int = 8, extension: str = "mp4"
+):
+    """Pieces of one continuous encode carrying an unbroken 440 Hz tone.
+
+    This is what a generator that splits a file yields. `-c copy` can only cut
+    on a keyframe, so the source is encoded with one at every cut, and the cut
+    still trims the audio short of the video, which is the case that catches a
+    video clock advanced by the audio's length.
+    """
+    seconds = chunk_seconds * count
+    source = directory / "source.mp4"
+    subprocess.run([
+        "ffmpeg", "-y", "-v", "error",
+        "-f", "lavfi", "-i",
+        f"testsrc=size=320x240:rate={VIDEO_FPS}:duration={seconds}",
+        "-f", "lavfi", "-i",
+        f"sine=frequency=440:sample_rate={AUDIO_RATE}:duration={seconds}",
+        "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+        "-force_key_frames", f"expr:gte(t,n_forced*{chunk_seconds})",
+        "-c:a", "aac", "-shortest", str(source),
+    ], check=True)  # fmt: skip
+    chunk_dir = directory / "chunks"
+    chunk_dir.mkdir()
+    subprocess.run([
+        "ffmpeg", "-y", "-v", "error", "-i", str(source),
+        "-c", "copy", "-f", "segment", "-segment_time", str(chunk_seconds),
+        "-reset_timestamps", "1", str(chunk_dir / f"chunk%03d.{extension}"),
+    ], check=True)  # fmt: skip
+    return sorted(chunk_dir.glob(f"chunk*.{extension}"))
+
+
+def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24):
+    """What a generator that renders its own frames yields: each chunk encoded
+    on its own, carrying its share of one continuous tone."""
+    out = directory / "rendered"
+    out.mkdir()
+    for index in range(count):
+        start = index * chunk_seconds
+        subprocess.run([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "lavfi", "-i",
+            f"testsrc=size=320x240:rate={VIDEO_FPS}:duration={chunk_seconds}",
+            "-f", "lavfi", "-i",
+            f"aevalsrc='0.8*sin(2*PI*440*(t+{start}))'"
+            f":s={AUDIO_RATE}:d={chunk_seconds}",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-shortest", str(out / f"chunk{index:03d}.mp4"),
+        ], check=True)  # fmt: skip
+    return sorted(out.glob("chunk*.mp4"))
+
+
+def decode_mono(payload: bytes | Path) -> np.ndarray:
+    args = ["ffmpeg", "-v", "quiet", "-nostdin"]
+    stdin: bytes | None = None
+    if isinstance(payload, Path):
+        args += ["-i", str(payload)]
+    else:
+        args += ["-f", "mpegts", "-i", "pipe:0"]
+        stdin = payload
+    args += [
+        "-vn", "-f", "s16le", "-acodec", "pcm_s16le",
+        "-ar", str(AUDIO_RATE), "-ac", "1", "pipe:1",
+    ]  # fmt: skip
+    result = subprocess.run(args, input=stdin, capture_output=True, check=True)
+    return np.frombuffer(result.stdout, dtype="<i2").astype(np.float32) / 32767.0
+
+
+def silence_ratio(pcm: np.ndarray) -> float:
+    """How much of the tone decoded as near-silence, gaps of 2 ms and up."""
+    quiet = np.abs(pcm) < 0.02
+    edges = np.flatnonzero(np.diff(quiet.astype(np.int8)))
+    bounds = np.concatenate(([0], edges + 1, [len(quiet)]))
+    runs = [
+        stop - start
+        for start, stop in zip(bounds[:-1], bounds[1:], strict=False)
+        if quiet[start] and (stop - start) / AUDIO_RATE > 0.002
+    ]
+    return sum(runs) / max(len(pcm), 1)
+
+
+def packet_timestamps(
+    data: bytes, kind: str, directory: Path, entry: str = "dts_time"
+) -> list[float]:
+    joined = directory / f"joined-{kind}.ts"
+    joined.write_bytes(data)
+    result = subprocess.run([
+        "ffprobe", "-v", "error", "-select_streams", kind, "-show_packets",
+        "-show_entries", f"packet={entry}", "-of", "json", str(joined),
+    ], capture_output=True, check=True)  # fmt: skip
+    return [
+        float(packet[entry])
+        for packet in json.loads(result.stdout)["packets"]
+        if packet.get(entry) not in (None, "N/A")
+    ]
 
 
 class TestVideo:
@@ -118,28 +221,134 @@ class TestVideo:
         postprocessed_video["path"] = os.path.basename(postprocessed_video["path"])
         assert processed_video == postprocessed_video
 
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_stream_output_returns_a_flat_payload_and_chunk(self, tmp_path):
         component = gr.Video(streaming=True)
-        chunk_source = tmp_path / "chunk.ts"
-        chunk_source.write_bytes(b"transport-stream-bytes")
+        (source,) = tone_chunks(tmp_path, count=1)
+        stream_id = "sess/0/1/playlist.m3u8"
 
-        with patch.object(gr.Video, "get_video_duration_ffprobe", return_value=1.5):
+        try:
             chunk, output_file = await component.stream_output(
-                str(chunk_source), "sess/0/1/playlist.m3u8", first_chunk=False
+                str(source), stream_id, first_chunk=True
             )
+        finally:
+            component.end_stream_output(stream_id)
 
         assert output_file == {
-            "path": "sess/0/1/playlist.m3u8",
+            "path": stream_id,
             "is_stream": True,
             "orig_name": "video-stream.mp4",
             "meta": {"_type": "gradio.FileData"},
         }
-        assert chunk == {
-            "data": b"transport-stream-bytes",
-            "duration": 1.5,
-            "extension": ".ts",
-        }
+        assert chunk is not None
+        assert chunk["extension"] == ".ts"
+        assert chunk["duration"] == pytest.approx(0.25, abs=0.05)
+        assert chunk["data"].startswith(b"\x47")  # an MPEG-TS sync byte
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("extension", ["mp4", "ts"])
+    async def test_streamed_video_keeps_the_audio_in_one_encode(
+        self, tmp_path, extension
+    ):
+        """One AAC encoder for the stream, and timestamps that never restart.
+
+        Re-encoding each chunk gave every one of them its own priming frame,
+        which decodes as a gap at each boundary, and left each segment starting
+        at the muxer's own zero so the playlist had to mark a discontinuity. A
+        chunk that arrived as `.ts` was passed through untouched and so carried
+        both problems too.
+        """
+        chunks = tone_chunks(tmp_path, extension=extension)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        segments = []
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await video.stream_output(chunk, stream_id, index == 0)
+                if segment:
+                    segments.append(segment)
+            final_segment = await video.flush_stream_output(stream_id)
+        finally:
+            video.end_stream_output(stream_id)
+
+        assert final_segment is not None
+        body = b"".join(segment["data"] for segment in segments)
+        served = body + final_segment["data"]
+        # Against the chunks as they were handed over, not against the source:
+        # the `-c copy` split trims audio at every cut all by itself.
+        supplied = silence_ratio(np.concatenate([decode_mono(c) for c in chunks]))
+        assert silence_ratio(decode_mono(served)) < supplied + 0.02
+
+        # The flush segment carries only audio, so the muxer would give it the
+        # stream id the others use for H.264 and a player reading the segments
+        # in sequence would take it for video and drop it, losing the last
+        # third of a second every time.
+        tail = len(decode_mono(served)) - len(decode_mono(body))
+        assert tail > 0.9 * len(decode_mono(final_segment["data"]))
+
+        for kind in ("v", "a"):
+            stamps = packet_timestamps(served, kind, tmp_path)
+            assert stamps == sorted(stamps)
+
+        # A chunk need not start at zero, and carrying its own start through
+        # would leave the video that far behind the audio and stretch the
+        # timeline by the same amount at every boundary. `.ts` chunks make it
+        # obvious, the mpegts muxer starting them 1.4 s in.
+        # The audio sits one AAC frame ahead of the video to cancel the
+        # encoder's own delay, which MPEG-TS cannot record the way mp4 can.
+        video_pts = packet_timestamps(served, "v", tmp_path, "pts_time")
+        audio_pts = packet_timestamps(served, "a", tmp_path, "pts_time")
+        assert video_pts[0] - audio_pts[0] == pytest.approx(
+            1024 / AUDIO_RATE, abs=0.005
+        )
+        assert max(video_pts) - min(video_pts) == pytest.approx(
+            2.0 - 1 / VIDEO_FPS, abs=0.05
+        )
+
+        # The download button and cached examples concatenate the same
+        # segments, including the audio-only one the flush leaves at the end.
+        combined = await video.combine_stream(
+            [segment["data"] for segment in segments], only_file=True
+        )
+        assert silence_ratio(decode_mono(Path(combined.path))) < supplied + 0.02
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_streamed_video_does_not_drift_out_of_sync(self, tmp_path):
+        """The audio sets the pace, so it cannot fall behind as the stream runs.
+
+        A chunk asking for 0.25 s at 15 fps carries four frames, which is
+        16.7 ms more video than audio, every time. Advancing the timeline by
+        the video's length would bank that difference on every chunk and walk
+        the two tracks apart for as long as the generator keeps yielding.
+        """
+        chunks = rendered_chunks(tmp_path)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        segments = []
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await video.stream_output(chunk, stream_id, index == 0)
+                if segment:
+                    segments.append(segment)
+            if final_segment := await video.flush_stream_output(stream_id):
+                segments.append(final_segment)
+        finally:
+            video.end_stream_output(stream_id)
+
+        served = b"".join(segment["data"] for segment in segments)
+        video_pts = packet_timestamps(served, "v", tmp_path, "pts_time")
+        audio_pts = packet_timestamps(served, "a", tmp_path, "pts_time")
+        # What separates the ends is the encoder's unflushed tail plus the last
+        # frame, both fixed; drift would add 16.7 ms per chunk on top.
+        apart = (max(video_pts) - min(video_pts)) - (max(audio_pts) - min(audio_pts))
+        assert apart < 0.35
+
+        # And the video is evenly paced, not stretched to follow the audio.
+        steps = [b - a for a, b in zip(video_pts[:-1], video_pts[1:], strict=False)]
+        assert max(steps) == pytest.approx(1 / VIDEO_FPS, abs=0.005)
 
     def test_in_interface(self, media_data):
         """

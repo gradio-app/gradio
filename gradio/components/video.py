@@ -11,12 +11,18 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import anyio
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
 from gradio._vendor.ffmpy import FFmpeg
+from gradio.audio_stream_encoder import (
+    AacStreamEncoder,
+    EncoderSlot,
+    decode_file_to_pcm,
+)
 from gradio.components.base import Component, StreamingOutput
 from gradio.components.button import Button
 from gradio.components.image_editor import WatermarkOptions, WebcamOptions
@@ -28,6 +34,73 @@ from gradio.utils import get_upload_folder, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
+
+
+# Where a stream's timeline starts. H.264 with B-frames carries a DTS that runs
+# ahead of its first PTS, and MPEG-TS cannot hold a negative timestamp, so a
+# stream anchored at zero has its first segment quietly shifted forward, which
+# leaves a step exactly where the playlist promises there is none.
+STREAM_PTS_BASE = 10.0
+
+
+class _VideoStream:
+    """One streamed output's encoder and its place on the timeline."""
+
+    def __init__(self) -> None:
+        self.slot = EncoderSlot()
+        self.video_time = 0.0
+        self.frames_emitted = 0
+        self.samples_written = 0
+
+    def advance(self, info: dict, encoder: AacStreamEncoder | None) -> float:
+        """How far the timeline moves on for this chunk.
+
+        The audio's clock is driven by however much PCM has arrived and the
+        video's by each chunk's own length, and nothing ties them together, so
+        a generator whose chunks carry a little less audio than video walks
+        them apart for as long as the stream lasts. The old per-chunk segments
+        hid that, the player resetting at each one. Asking for 0.25 s at 30 fps
+        is enough to cause it: the video rounds up to eight frames and runs
+        16.7 ms long every chunk, which is a second and a half of drift per
+        half minute.
+
+        So the audio leads and the video follows it. What stops the video from
+        being compressed into nothing is that a chunk still has to leave room
+        for every frame but the last, whose display time is cut short by the
+        next chunk arriving rather than lost. Where the audio falls further
+        behind than that - a `-c copy` split trims whole frames' worth at every
+        cut - the video wins and the two drift, which beats timestamps that run
+        backwards.
+
+        Padding the audio with silence instead would hold them together in
+        every case, but it puts back the thing this is meant to remove: on
+        chunks that are 16.7 ms short it turns 2.4% of the stream silent into
+        6.4%, which is audible as exactly the stutter the re-encode used to
+        cause.
+        """
+        if encoder is None:
+            return info["duration"]
+        supplied = self.samples_written / encoder.sample_rate - self.video_time
+        # The floor keeps the next chunk's first frame clear of this one's
+        # last, whose display time it may cut short by up to half a frame but
+        # must not land on top of.
+        return max(supplied, info["duration"] - info["frame_interval"] / 2)
+
+    def audio_time(self, encoder: AacStreamEncoder) -> float:
+        """Where the frames emitted so far belong on the stream's clock.
+
+        One frame ahead of where they were written: the encoder's own delay is
+        exactly one frame at every sample rate measured, and ADTS inside
+        MPEG-TS has nowhere to record it the way mp4's edit list does. Left
+        alone the audio plays 23 ms behind the video at 44.1 kHz, and 64 ms
+        behind at 16 kHz, which is past where people notice.
+        """
+        return (self.frames_emitted - 1) * encoder.frame_duration
+
+
+# One entry per live stream, keyed by the stream's playlist path. The component
+# instance is shared by every session, so it cannot hold these.
+_stream_states: dict[str, _VideoStream] = {}
 
 
 @document()
@@ -471,59 +544,118 @@ class Video(StreamingOutput, Component):
         return "https://github.com/gradio-app/gradio/raw/main/gradio/media_assets/videos/world.mp4"
 
     @staticmethod
-    def get_video_duration_ffprobe(filename: str):
+    def probe_chunk(path: str) -> dict[str, Any]:
+        """What the muxer needs to know about one chunk, in one call.
+
+        The video track's own duration is what the timeline advances by, and
+        the two obvious alternatives are both wrong. The audio's length is
+        short of it whenever a `-c copy` split cuts on a keyframe, which
+        overlaps the next chunk's video and walks its timestamps backwards.
+        `format.duration` runs long, by the encoder padding on mp4 and by the
+        muxer's own 1.4 s head start on `.ts`.
+
+        `start_time` comes back for the same reason. A chunk need not begin at
+        zero - an mp4's edit list and an MPEG-TS chunk's mux delay both push it
+        - and `-copyts` would carry that straight into the output, leaving the
+        video that far behind the audio in every segment.
+        """
         result = subprocess.run(
-            [
-                "ffprobe",
-                "-v",
-                "quiet",
-                "-print_format",
-                "json",
-                "-show_format",
-                "-show_streams",
-                filename,
-            ],
+            ["ffprobe", "-v", "error", "-print_format", "json",
+             "-show_format", "-show_streams", path],
             capture_output=True,
-            check=True,
-        )
-
+            check=False,
+        )  # fmt: skip
+        if result.returncode != 0:
+            detail = result.stderr.decode(errors="replace").strip()
+            raise RuntimeError(f"Could not read the streamed video chunk: {detail}")
         data = json.loads(result.stdout)
-
-        duration = None
-        if "format" in data and "duration" in data["format"]:
-            duration = float(data["format"]["duration"])
-        else:
-            for stream in data.get("streams", []):
-                if "duration" in stream:
-                    duration = float(stream["duration"])
-                    break
-
-        return duration
+        streams = data.get("streams", [])
+        audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
+        video = next((s for s in streams if s.get("codec_type") == "video"), None)
+        durations = [
+            float(stream["duration"])
+            for stream in (video, audio, data.get("format"))
+            if stream is not None and "duration" in stream
+        ]
+        if not durations:
+            raise RuntimeError("Cannot determine video chunk duration")
+        rate = (video or {}).get("r_frame_rate", "0/0").split("/")
+        interval = (
+            float(rate[1]) / float(rate[0])
+            if len(rate) == 2 and float(rate[0]) > 0
+            else 0.0
+        )
+        return {
+            "duration": durations[0],
+            "frame_interval": interval,
+            "video_start": float(video["start_time"])
+            if video and "start_time" in video
+            else 0.0,
+            "sample_rate": int(audio["sample_rate"]) if audio else None,
+            "channels": int(audio["channels"]) if audio else None,
+            "video_codec": video["codec_name"] if video else None,
+        }
 
     @staticmethod
-    async def async_convert_mp4_to_ts(mp4_file, ts_file):
-        ff = FFmpeg(  # type: ignore
-            inputs={mp4_file: None},
-            outputs={
-                ts_file: "-c:v libx264 -c:a aac -f mpegts -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc"
-            },
-            global_options=["-y"],
-        )
+    def mux_segment(
+        path: str | None,
+        video_codec: str | None,
+        adts: bytes,
+        video_time: float,
+        audio_time: float,
+        video_start: float = 0.0,
+    ) -> bytes:
+        """One `.ts` holding the chunk's own video and the encoder's own audio.
 
-        command = ff.cmd.split(" ")
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,  # type: ignore
-            stderr=asyncio.subprocess.PIPE,  # type: ignore
-        )
+        Neither track is encoded here. The video is copied when the browser can
+        play it as it stands, and the audio arrives already encoded by the
+        stream's single AAC encoder, so the only work is placing both on the
+        stream's timeline.
 
-        _, stderr = await process.communicate()
-
-        if process.returncode != 0:
-            error_message = stderr.decode().strip()
-            raise RuntimeError(f"FFmpeg command failed: {error_message}")
-
-        return ts_file
+        That placement cannot be asked of the ADTS input: whichever of its
+        frames ffmpeg reads while probing keeps the timestamp it had before the
+        offset was applied, so a segment carrying one frame - which the first
+        one usually does, the encoder having just started - puts it at zero.
+        The audio therefore keeps its own zero, the video is placed relative to
+        it, and a single `-output_ts_offset` lifts the segment onto the
+        timeline at the muxer, which runs once probing is over.
+        """
+        base = audio_time if adts else video_time
+        args = ["ffmpeg", "-v", "error", "-nostdin", "-copyts"]
+        maps: list[str] = []
+        # Every segment has to name its tracks the same way. Left to itself the
+        # muxer numbers them in the order they are mapped, so the audio-only
+        # segment the flush produces would put audio on the id the other
+        # segments use for H.264, and anything reading the segments as one
+        # stream takes those packets for video and drops the lot.
+        pids: list[str] = []
+        index = 0
+        if video_codec is not None and path is not None:
+            offset = video_time - base - video_start
+            args += ["-itsoffset", f"{offset:.6f}", "-i", path]
+            maps += ["-map", f"{index}:v:0"]
+            maps += (
+                ["-c:v", "copy", "-bsf:v", "h264_mp4toannexb"]
+                if video_codec == "h264"
+                # Anything else would reach the browser in a codec hls.js will
+                # not play, so it is encoded, as every chunk used to be.
+                else ["-c:v", "libx264"]
+            )
+            pids += ["-streamid", f"{len(pids) // 2}:256"]
+            index += 1
+        if adts:
+            args += ["-f", "aac", "-i", "pipe:0"]
+            maps += ["-map", f"{index}:a:0", "-c:a", "copy"]
+            pids += ["-streamid", f"{len(pids) // 2}:257"]
+        args += maps + pids + [
+            "-output_ts_offset", f"{STREAM_PTS_BASE + base:.6f}",
+            "-muxdelay", "0", "-muxpreload", "0", "-f", "mpegts", "pipe:1",
+        ]  # fmt: skip
+        result = subprocess.run(args, input=adts, capture_output=True, check=False)
+        if result.returncode != 0:
+            detail = result.stderr.decode(errors="replace").strip()
+            raise RuntimeError(f"FFmpeg command failed: {detail}")
+        return result.stdout
 
     async def combine_stream(
         self,
@@ -582,11 +714,44 @@ class Video(StreamingOutput, Component):
 
         return video
 
+    def _encode_chunk(self, output_id: str, path: str) -> MediaStreamChunk | None:
+        state = _stream_states.get(output_id)
+        if state is None:
+            # Ended while this chunk was in flight, by a disconnect or a
+            # cancel. The run is over and nothing will play this.
+            return None
+        info = self.probe_chunk(path)
+        frames: list[bytes] = []
+        encoder = state.slot.encoder
+        if info["sample_rate"] is not None:
+            if encoder is None:
+                encoder = AacStreamEncoder(info["sample_rate"], info["channels"])
+                if not state.slot.attach(encoder):
+                    encoder.close()
+                    return None
+            pcm = decode_file_to_pcm(path, encoder.sample_rate, encoder.channels)
+            encoder.feed(pcm)
+            state.samples_written += len(pcm) // (encoder.channels * 2)
+            frames = encoder.take()
+        audio_time = state.audio_time(encoder) if encoder else 0.0
+        data = self.mux_segment(
+            path,
+            info["video_codec"],
+            b"".join(frames),
+            state.video_time,
+            audio_time,
+            info["video_start"],
+        )
+        state.frames_emitted += len(frames)
+        advance = state.advance(info, encoder)
+        state.video_time += advance
+        return {"data": data, "duration": advance, "extension": ".ts"}
+
     async def stream_output(
         self,
         value: str | Path | None,
         output_id: str,
-        first_chunk: bool,  # noqa: ARG002
+        first_chunk: bool,
     ) -> tuple[MediaStreamChunk | None, FileDataDict]:
         output_file: FileDataDict = {
             "path": output_id,
@@ -594,25 +759,62 @@ class Video(StreamingOutput, Component):
             "orig_name": "video-stream.mp4",
             "meta": {"_type": "gradio.FileData"},
         }
-        if value is None:
-            return None, output_file
-        value = str(value)
-
-        ts_file = value
-        if not value.endswith(".ts"):
-            if not value.endswith(".mp4"):
+        if first_chunk:
+            # Made here, on the event loop, so that a cancel landing while the
+            # thread runs has something to end, and made whether or not this
+            # chunk carries video, since a stream may open on a None. A key is
+            # never shared by two live streams, so anything already here was
+            # left behind.
+            stale = _stream_states.pop(output_id, None)
+            if stale is not None:
+                stale.slot.end()
+            _stream_states[output_id] = _VideoStream()
+        try:
+            if value is None:
+                return None, output_file
+            value = str(value)
+            if not value.endswith((".mp4", ".ts")):
                 raise RuntimeError(
                     "Video must be in .mp4 or .ts format to be streamed as chunks",
                 )
-            ts_file = str(Path(value).with_suffix(".ts"))
-            await self.async_convert_mp4_to_ts(value, ts_file)
-
-        duration = self.get_video_duration_ffprobe(ts_file)
-        if not duration:
-            raise RuntimeError("Cannot determine video chunk duration")
-        chunk: MediaStreamChunk = {
-            "data": Path(ts_file).read_bytes(),
-            "duration": duration,
-            "extension": ".ts",
-        }
+            chunk = await anyio.to_thread.run_sync(self._encode_chunk, output_id, value)
+        except BaseException:
+            # Until this returns and the stream exists, nothing else holds the
+            # state.
+            if first_chunk:
+                self.end_stream_output(output_id)
+            raise
         return chunk, output_file
+
+    async def flush_stream_output(self, output_id: str) -> MediaStreamChunk | None:
+        state = _stream_states.pop(output_id, None)
+        encoder = state.slot.detach() if state is not None else None
+        if state is None or encoder is None:
+            return None
+        audio_time = state.audio_time(encoder)
+
+        def flush_and_release() -> MediaStreamChunk | None:
+            frames = encoder.flush()
+            if not frames:
+                return None
+            # No video is left to go with it, so the stream ends on a segment
+            # carrying only the frames the encoder was still holding.
+            return {
+                "data": self.mux_segment(None, None, b"".join(frames), 0.0, audio_time),
+                "duration": len(frames) * encoder.frame_duration,
+                "extension": ".ts",
+            }
+
+        try:
+            return await anyio.to_thread.run_sync(flush_and_release)
+        except BaseException:
+            # The encoder is out of the registry and the slot, so nothing else
+            # can release it: not after a flush that raised, and not after a
+            # cancel that landed before the thread was dispatched.
+            encoder.close()
+            raise
+
+    def end_stream_output(self, output_id: str) -> None:
+        state = _stream_states.pop(output_id, None)
+        if state is not None:
+            state.slot.end()
