@@ -431,6 +431,12 @@ async def call_process_api(
         iterator = output.pop("iterator", None)
         if event_id is not None:
             app.iterators[event_id] = iterator  # type: ignore
+        elif iterator is not None:
+            # Only the queue continues a generator, and it always carries an
+            # event id, so nobody will come back for this run: its streams are
+            # completed here, or they hold an encoder for the session's lifetime
+            # with the tail of the only chunk it will ever get still inside.
+            await app.get_blocks()._finish_run_streams(session_hash, iterator)
         if isinstance(output, Error):
             raise output
     except BaseException:
@@ -1182,6 +1188,10 @@ class MediaStream:
         self.ended = False
         self.max_duration = 1
         self.desired_output_format = desired_output_format
+        # Cleanup for resources tied to this stream, such as a component's
+        # encoder process. It hangs off the stream because `end_stream()` is
+        # reached from several places, not just normal completion.
+        self.on_end: list[Callable[[], None]] = []
 
     async def add_segment(self, data: MediaStreamChunk | None):
         if not data:
@@ -1193,6 +1203,14 @@ class MediaStream:
 
     def end_stream(self):
         self.ended = True
+        while self.on_end:
+            callback = self.on_end.pop()
+            try:
+                callback()
+            except Exception:
+                # This runs inside exception handling, so a teardown failure
+                # must not replace the error being propagated. It leaks, though.
+                logger.warning("stream cleanup callback failed", exc_info=True)
 
 
 def create_url_safe_hash(data: bytes, digest_size=8):
