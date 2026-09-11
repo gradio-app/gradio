@@ -70,6 +70,20 @@ It is a matter of preference which syntax you prefer! For functions with many in
 
 $demo_calculator_list_and_dict
 
+## Passing Inputs by Parameter Name
+
+Use `inputs_kwargs` when a component value should be passed to an event function by parameter name instead of by position. This is especially useful when calling an existing function with keyword-only parameters: the function can be connected directly without writing a wrapper just to rearrange its arguments.
+
+$code_keyword_inputs_simple
+$demo_keyword_inputs_simple
+
+In this example, `first_name` is passed positionally through `inputs`, while the `last_name` component is mapped to the keyword-only `last_name` parameter. Each key in `inputs_kwargs` must match a parameter accepted by the event function. Keyword inputs can be combined with a component or list of components in `inputs`, but not with the set syntax described above, since a set already passes all input values together as one component-keyed dictionary.
+
+Named inputs are particularly helpful for larger forms because the mapping remains clear even when controls are arranged differently in the interface. The following live inventory dashboard connects five filter controls to explicit keyword-only parameters. Because `gr.on()` has no explicit triggers, it listens to changes from both `inputs` and `inputs_kwargs`, as well as the app's load event.
+
+$code_keyword_inputs_inventory
+$demo_keyword_inputs_inventory
+
 ## Function Return List vs Dict
 
 Similarly, you may return values for multiple output components either as:
