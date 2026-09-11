@@ -57,13 +57,9 @@ def tone_chunks(
 
 def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24):
     """What a generator that renders its own frames yields: each chunk encoded
-    on its own, carrying its share of one continuous tone.
-
-    The video covers the chunk in whole frames, so it runs 16.7 ms past the
-    audio. Asking for the chunk's own length and cutting with `-shortest`
-    leaves that to the ffmpeg build: 7.0.2 drops the frame that crosses the
-    audio's end where 4.4.2 keeps it, which turns the video into the shorter
-    track and sends the test looking for a defect that is in its own input.
+    on its own, carrying its share of one continuous tone. The video is asked
+    for in whole frames, so it runs 16.7 ms past the audio on any ffmpeg
+    build; `-shortest` leaves that to the build and 7.0.2 disagrees with 4.4.2.
     """
     video_seconds = math.ceil(chunk_seconds * VIDEO_FPS) / VIDEO_FPS
     out = directory / "rendered"
@@ -321,12 +317,15 @@ class TestVideo:
         )
 
         # The download button and cached examples concatenate the same
-        # segments, including the audio-only one the flush leaves at the end.
+        # segments, including the audio-only one the flush leaves at the end,
+        # which `-c copy` carries over sample for sample.
         combined = await video.combine_stream(
             [segment["data"] for segment in segments] + [final_segment["data"]],
             only_file=True,
         )
-        assert silence_ratio(decode_mono(Path(combined.path))) < supplied + 0.02
+        downloaded = decode_mono(Path(combined.path))
+        assert silence_ratio(downloaded) < supplied + 0.02
+        assert len(downloaded) == pytest.approx(len(decode_mono(served)), abs=1024)
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
