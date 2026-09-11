@@ -1,6 +1,8 @@
 ---
+"@gradio/core": minor
+"@gradio/tabitem": minor
 "@gradio/tabs": minor
 "gradio": minor
 ---
 
-feat:Add configurable overflow behavior to Tabs
+feat:Add configurable tab overflow and alignment
