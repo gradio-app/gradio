@@ -1609,6 +1609,10 @@ describe("Dataframe CSV drop", () => {
 		expect(table_wrap).not.toHaveClass("file-dragging");
 	});
 
+	test.todo(
+		"VISUAL: the file drag outline is drawn inside the table's border and follows its corner radius, needs Playwright visual regression screenshot comparison"
+	);
+
 	test("does not highlight the table when it is not interactive", async () => {
 		const { container } = await render(Dataframe, {
 			...drop_props,
