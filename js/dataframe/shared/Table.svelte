@@ -252,6 +252,10 @@
 
 	let selected_cells: CellCoordinate[] = $state([]);
 	let selected: CellCoordinate | false = $state(false);
+	// where a shift+click range starts. `selected` cannot serve, because it
+	// follows every click, the shift+clicks that extend the range included.
+	// nothing renders from it, so it does not need to be reactive
+	let range_anchor: CellCoordinate | false = false;
 	let editing: CellCoordinate | false = $state(false);
 	let header_edit: number | false = $state(false);
 	let selected_header: number | false = $state(false);
@@ -328,6 +332,7 @@
 
 	function set_active_cell(coord: CellCoordinate, move_focus = true): void {
 		selected = coord;
+		range_anchor = coord;
 		selected_cells = [coord];
 		selected_header = false;
 		header_edit = false;
@@ -347,6 +352,7 @@
 	function handle_header_focus(col: number): void {
 		if (header_edit !== false) return;
 		selected = false;
+		range_anchor = false;
 		selected_cells = [];
 		selected_header = col;
 	}
@@ -532,14 +538,15 @@
 		event.stopPropagation();
 
 		const coord: CellCoordinate = [row, col];
-		if (event.shiftKey && selected) {
-			// the range runs from the previously selected cell, and the search may
-			// have hidden its row since
-			const from_row = visible_row_position(selected[0]);
+		if (event.shiftKey && range_anchor) {
+			// the range runs from the anchor, and the search may have hidden its
+			// row since
+			const from_row = visible_row_position(range_anchor[0]);
 			if (from_row === -1) {
 				selected_cells = [coord];
+				range_anchor = coord;
 			} else {
-				const c1 = selected[1];
+				const c1 = range_anchor[1];
 				const new_cells: CellCoordinate[] = [];
 				for (
 					let p = Math.min(from_row, view_index);
@@ -558,8 +565,10 @@
 			selected_cells = exists
 				? selected_cells.filter(([r, c]) => !(r === row && c === col))
 				: [...selected_cells, coord];
+			range_anchor = coord;
 		} else {
 			selected_cells = [coord];
+			range_anchor = coord;
 		}
 
 		selected = coord;
@@ -623,6 +632,7 @@
 
 		editing = false;
 		selected = false;
+		range_anchor = false;
 		selected_cells = [];
 		active_cell_menu = null;
 		active_header_menu = null;
@@ -852,6 +862,7 @@
 		if (handle_click_outside_util(event, parent)) {
 			selected_cells = [];
 			selected = false;
+			range_anchor = false;
 			editing = false;
 			header_edit = false;
 			selected_header = false;
@@ -930,6 +941,7 @@
 					set_active_cell([rows[row_position - 1].original._index, col]);
 				} else {
 					selected = false;
+					range_anchor = false;
 					selected_cells = [];
 					selected_header = col;
 					focus_header(col);

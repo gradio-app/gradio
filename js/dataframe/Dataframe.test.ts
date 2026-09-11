@@ -385,6 +385,22 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 1, 1)!.className).toContain("cell-selected");
 	});
 
+	test("a second shift+click extends from the first click, not the last", async () => {
+		const { container } = await render(Dataframe, default_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 2, 0)!, { shiftKey: true });
+		await wait();
+
+		expect(get_cell(container, 0, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 2, 0)!.className).toContain("cell-selected");
+	});
+
 	// only the even rows match "target", so every row between two visible
 	// endpoints is one the search hides
 	const search_props = {
