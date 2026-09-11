@@ -1,5 +1,22 @@
 # @gradio/audio
 
+## 0.24.3
+
+### Features
+
+- [#13806](https://github.com/gradio-app/gradio/pull/13806) [`17f0e9e`](https://github.com/gradio-app/gradio/commit/17f0e9e54d38d66ad3e8a8271aec98688173068b) - Fix Audio stream reload timing and repeated recording previews.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13808](https://github.com/gradio-app/gradio/pull/13808) [`3cbdf8e`](https://github.com/gradio-app/gradio/commit/3cbdf8e57babfdd6bead5be387e3ec46b067d76a) - Fix streaming playback and HLS lifetime in `gr.Audio` and `gr.Video`.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+
 ## 0.24.2
 
 ### Dependency updates
