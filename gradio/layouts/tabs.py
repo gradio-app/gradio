@@ -23,6 +23,7 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
         self,
         *,
         selected: int | str | None = None,
+        overflow_behavior: Literal["menu", "wrap"] = "menu",
         visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -33,6 +34,7 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
         """
         Parameters:
             selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
+            overflow_behavior: Controls how tabs that exceed the available width are displayed. If "menu", overflowing tabs are hidden in a dropdown menu. If "wrap", tabs wrap onto additional rows.
             visible: If False, Tabs will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -50,6 +52,7 @@ class Tabs(BlockContext, metaclass=ComponentMeta):
             preserved_by_key=preserved_by_key,
         )
         self.selected = selected
+        self.overflow_behavior = overflow_behavior
 
     def __exit__(self, exc_type=None, *args):
         super().__exit__(exc_type, *args)

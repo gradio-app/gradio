@@ -39,6 +39,7 @@
 		elem_id = "",
 		elem_classes = [],
 		selected = $bindable(),
+		overflow_behavior = "menu",
 		initial_tabs,
 		onchange,
 		onselect,
@@ -48,6 +49,7 @@
 		elem_id?: string;
 		elem_classes?: string[];
 		selected: number | string;
+		overflow_behavior?: "menu" | "wrap";
 		initial_tabs: Tab[];
 		onchange?: () => void;
 		onselect?: (data: TabSelectData) => void;
@@ -172,6 +174,13 @@
 
 	async function handle_menu_overflow(): Promise<void> {
 		if (!tab_nav_el) return;
+		if (overflow_behavior === "wrap") {
+			visible_tabs = tabs;
+			overflow_tabs = [];
+			overflow_has_selected_tab = false;
+			is_overflowing = false;
+			return;
+		}
 
 		await tick();
 		await new Promise((r) => requestAnimationFrame(r));
@@ -230,17 +239,24 @@
 	style:flex-grow={tab_scale}
 >
 	{#if has_tabs}
-		<div class="tab-wrapper">
-			<div class="tab-container visually-hidden" aria-hidden="true">
-				{#each tabs as t, i}
-					{#if is_visible_tab(t)}
-						<button tabindex="-1" bind:this={tab_els[t.id]}>
-							{t?.label}
-						</button>
-					{/if}
-				{/each}
-			</div>
-			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
+		<div class="tab-wrapper" class:wrap={overflow_behavior === "wrap"}>
+			{#if overflow_behavior === "menu"}
+				<div class="tab-container visually-hidden" aria-hidden="true">
+					{#each tabs as t, i}
+						{#if is_visible_tab(t)}
+							<button tabindex="-1" bind:this={tab_els[t.id]}>
+								{t?.label}
+							</button>
+						{/if}
+					{/each}
+				</div>
+			{/if}
+			<div
+				class="tab-container"
+				class:wrap={overflow_behavior === "wrap"}
+				bind:this={tab_nav_el}
+				role="tablist"
+			>
 				{#each visible_tabs as t, i}
 					{#if is_visible_tab(t)}
 						<button
@@ -269,43 +285,45 @@
 					{/if}
 				{/each}
 			</div>
-			<span
-				class="overflow-menu"
-				class:hide={!is_overflowing ||
-					!overflow_tabs.some((t) => is_visible_tab(t))}
-				bind:this={overflow_menu}
-			>
-				<button
-					aria-label="More tabs"
-					onclick={(e) => {
-						e.stopPropagation();
-						overflow_menu_open = !overflow_menu_open;
-					}}
-					class:overflow-item-selected={overflow_has_selected_tab}
+			{#if overflow_behavior === "menu"}
+				<span
+					class="overflow-menu"
+					class:hide={!is_overflowing ||
+						!overflow_tabs.some((t) => is_visible_tab(t))}
+					bind:this={overflow_menu}
 				>
-					<OverflowIcon />
-				</button>
-				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
-					{#each overflow_tabs as t, i}
-						{#if is_visible_tab(t)}
-							<button
-								onclick={() => {
-									change_tab(t?.id);
-									onselect?.({
-										value: t.label,
-										index: i,
-										id: t.id,
-										component_id: t.component_id
-									});
-								}}
-								class:selected={t?.id === $selected_tab}
-							>
-								{t?.label}
-							</button>
-						{/if}
-					{/each}
-				</div>
-			</span>
+					<button
+						aria-label="More tabs"
+						onclick={(e) => {
+							e.stopPropagation();
+							overflow_menu_open = !overflow_menu_open;
+						}}
+						class:overflow-item-selected={overflow_has_selected_tab}
+					>
+						<OverflowIcon />
+					</button>
+					<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
+						{#each overflow_tabs as t, i}
+							{#if is_visible_tab(t)}
+								<button
+									onclick={() => {
+										change_tab(t?.id);
+										onselect?.({
+											value: t.label,
+											index: i,
+											id: t.id,
+											component_id: t.component_id
+										});
+									}}
+									class:selected={t?.id === $selected_tab}
+								>
+									{t?.label}
+								</button>
+							{/if}
+						{/each}
+					</div>
+				</span>
+			{/if}
 		</div>
 	{/if}
 	{@render children?.()}
@@ -335,12 +353,26 @@
 		margin-bottom: var(--layout-gap);
 	}
 
+	.tab-wrapper.wrap {
+		height: auto;
+	}
+
 	.tab-container {
 		display: flex;
 		align-items: center;
 		width: 100%;
 		position: relative;
 		overflow: hidden;
+		height: var(--size-8);
+	}
+
+	.tab-container.wrap {
+		flex-wrap: wrap;
+		overflow: visible;
+		height: auto;
+	}
+
+	.tab-container.wrap button {
 		height: var(--size-8);
 	}
 

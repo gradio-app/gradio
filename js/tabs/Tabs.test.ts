@@ -112,6 +112,44 @@ describe("Accessibility", () => {
 	});
 });
 
+describe("Props: overflow_behavior", () => {
+	afterEach(() => cleanup());
+
+	const many_tabs = Array.from({ length: 20 }, (_, index) =>
+		make_tab({
+			label: `Long tab label ${index + 1}`,
+			id: `t${index + 1}`,
+			component_id: index + 1
+		})
+	);
+
+	test("menu hides overflowing tabs behind the overflow button", async () => {
+		const { getByRole, queryByRole } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "menu",
+			initial_tabs: many_tabs
+		});
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		});
+		expect(queryByRole("tab", { name: "Long tab label 20" })).toBeNull();
+	});
+
+	test("wrap keeps every tab visible and removes the overflow button", async () => {
+		const { getByRole, queryByRole } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "wrap",
+			initial_tabs: many_tabs
+		});
+
+		await waitFor(() => {
+			expect(getByRole("tab", { name: "Long tab label 20" })).toBeVisible();
+		});
+		expect(queryByRole("button", { name: "More tabs" })).toBeNull();
+	});
+});
+
 describe("Props: interactive", () => {
 	afterEach(() => cleanup());
 
