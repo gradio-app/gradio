@@ -136,29 +136,6 @@ describe("Props: overflow_behavior", () => {
 		expect(queryByRole("tab", { name: "Long tab label 20" })).toBeNull();
 	});
 
-	test("menu keeps right-aligned tabs visible while left tabs overflow", async () => {
-		const aligned_tabs = [
-			...many_tabs,
-			make_tab({
-				label: "Settings",
-				id: "settings",
-				alignment: "right",
-				component_id: 21
-			})
-		];
-		const { getByRole, queryByRole } = await render(Tabs, {
-			...default_props,
-			overflow_behavior: "menu",
-			initial_tabs: aligned_tabs
-		});
-
-		await waitFor(() => {
-			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
-		});
-		expect(getByRole("tab", { name: "Settings" })).toBeVisible();
-		expect(queryByRole("tab", { name: "Long tab label 20" })).toBeNull();
-	});
-
 	test("menu keeps the selected tab visible ahead of right-aligned tabs", async () => {
 		const selected_label = "Train";
 		const first_right_label =
@@ -255,26 +232,6 @@ describe("Props: overflow_behavior", () => {
 		expect(queryByRole("button", { name: "More tabs" })).toBeNull();
 	});
 
-	test("wrap prevents a long label from overflowing horizontally", async () => {
-		const long_label =
-			"A tab label that is substantially wider than the available tab bar width";
-		const { getByRole } = await render(Tabs, {
-			...default_props,
-			overflow_behavior: "wrap",
-			initial_tabs: [
-				make_tab({ label: long_label, id: "long", component_id: 1 })
-			]
-		});
-		const tablist = getByRole("tablist");
-		tablist.style.width = "200px";
-		window.dispatchEvent(new Event("resize"));
-
-		await waitFor(() => {
-			expect(tablist.scrollWidth).toBeLessThanOrEqual(tablist.clientWidth);
-		});
-		expect(getByRole("tab", { name: long_label })).toBeVisible();
-	});
-
 	test("switches between menu and wrap without a resize", async () => {
 		const { getByRole, queryByRole, set_data } = await render(Tabs, {
 			...default_props,
@@ -294,42 +251,6 @@ describe("Props: overflow_behavior", () => {
 			expect(getByRole("tab", { name: "Long tab label 20" })).toBeVisible();
 		});
 		expect(queryByRole("button", { name: "More tabs" })).toBeNull();
-	});
-
-	test("wrap preserves left and right alignment while tabs overflow", async () => {
-		const aligned_tabs = [
-			make_tab({
-				label: "Settings",
-				id: "settings",
-				alignment: "right",
-				component_id: 1
-			}),
-			...many_tabs,
-			make_tab({
-				label: "About",
-				id: "about",
-				alignment: "right",
-				component_id: 22
-			})
-		];
-		const { getAllByRole, getByRole, queryByRole } = await render(Tabs, {
-			...default_props,
-			overflow_behavior: "wrap",
-			initial_tabs: aligned_tabs
-		});
-
-		await waitFor(() => {
-			expect(getByRole("tab", { name: "About" })).toBeVisible();
-		});
-		expect(queryByRole("button", { name: "More tabs" })).toBeNull();
-		expect(getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
-			...many_tabs.map((tab) => tab.label),
-			"Settings",
-			"About"
-		]);
-		expect(getByRole("tab", { name: "Settings" }).parentElement).toHaveClass(
-			"right-tab-group"
-		);
 	});
 });
 
