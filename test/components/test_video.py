@@ -80,6 +80,33 @@ def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 2
     return sorted(out.glob("chunk*.mp4"))
 
 
+def lossless_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 8):
+    """Chunks that carry no damage of their own, to measure what is added here.
+
+    Two things have to go: AAC, which gives every chunk its own encoder edges,
+    so the audio is ALAC and decodes back to the tone exactly; and the video
+    overrunning the audio, so the rate is one where the chunk is a whole number
+    of frames. What the overrun costs is a question for a stream that has it
+    (`catch_up` pads the difference as silence), not for this one.
+    """
+    out = directory / "lossless"
+    out.mkdir()
+    fps = round(1 / chunk_seconds) * 4
+    for index in range(count):
+        start = index * chunk_seconds
+        subprocess.run([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "lavfi", "-i",
+            f"testsrc=size=320x240:rate={fps}:duration={chunk_seconds}",
+            "-f", "lavfi", "-i",
+            f"aevalsrc='0.8*sin(2*PI*440*(t+{start}))'"
+            f":s={AUDIO_RATE}:d={chunk_seconds}",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            "-c:a", "alac", str(out / f"chunk{index:03d}.mp4"),
+        ], check=True)  # fmt: skip
+    return sorted(out.glob("chunk*.mp4"))
+
+
 def ffmpeg_identity() -> str:
     """Which ffmpeg binary ran, and on what. TEMPORARY: CI crashes inside
     ffmpeg itself, on a build whose hash matches a clean download and which
@@ -127,17 +154,23 @@ def decode_mono(payload: bytes | Path) -> np.ndarray:
     return np.frombuffer(result.stdout, dtype="<i2").astype(np.float32) / 32767.0
 
 
-def silence_ratio(pcm: np.ndarray) -> float:
-    """How much of the tone decoded as near-silence, gaps of 2 ms and up."""
+def silence_gaps(pcm: np.ndarray) -> list[tuple[float, float]]:
+    """Every stretch of near-silence of 2 ms and up, as (start, length)."""
     quiet = np.abs(pcm) < 0.02
     edges = np.flatnonzero(np.diff(quiet.astype(np.int8)))
     bounds = np.concatenate(([0], edges + 1, [len(quiet)]))
-    runs = [
-        stop - start
+    return [
+        (start / AUDIO_RATE, (stop - start) / AUDIO_RATE)
         for start, stop in zip(bounds[:-1], bounds[1:], strict=False)
         if quiet[start] and (stop - start) / AUDIO_RATE > 0.002
     ]
-    return sum(runs) / max(len(pcm), 1)
+
+
+def silence_ratio(pcm: np.ndarray) -> float:
+    """How much of the tone decoded as near-silence."""
+    return sum(length for _, length in silence_gaps(pcm)) / max(
+        len(pcm) / AUDIO_RATE, 1e-9
+    )
 
 
 def packet_timestamps(
@@ -317,10 +350,14 @@ class TestVideo:
         assert final_segment is not None
         body = b"".join(segment["data"] for segment in segments)
         served = body + final_segment["data"]
-        # Against the chunks as they were handed over, not against the source:
-        # the `-c copy` split trims audio at every cut all by itself.
+        # A loose bound, and deliberately so: the `-c copy` split trims audio
+        # at every cut, and the trimmed time reappears as the silence the video
+        # clock is padded with, so this measures the splitter as much as it
+        # measures the stream. It still separates a stream that re-encodes
+        # every chunk, which ran to 16% against the same input. What this code
+        # adds on its own is measured on lossless chunks below.
         supplied = silence_ratio(np.concatenate([decode_mono(c) for c in chunks]))
-        assert silence_ratio(decode_mono(served)) < supplied + 0.02
+        assert silence_ratio(decode_mono(served)) < supplied + 0.05
 
         # The flush segment carries only audio, so the muxer would give it the
         # stream id the others use for H.264 and a player reading the segments
@@ -356,8 +393,45 @@ class TestVideo:
             only_file=True,
         )
         downloaded = decode_mono(Path(combined.path))
-        assert silence_ratio(downloaded) < supplied + 0.02
+        assert silence_ratio(downloaded) < supplied + 0.05
         assert len(downloaded) == pytest.approx(len(decode_mono(served)), abs=1024)
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_streamed_video_adds_no_silence_of_its_own(self, tmp_path):
+        """What the stream adds, measured against chunks that carry no damage.
+
+        Both realistic ways of making chunks lose audio before gradio sees it:
+        a `-c copy` split cuts mid-AAC, and encoding each chunk gives every one
+        its own encoder edges. ALAC chunks decode back to their source sample
+        for sample, so any gap in what comes out was added here.
+        """
+        chunks = lossless_chunks(tmp_path)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/lossless.m3u8"
+        served = b""
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await video.stream_output(chunk, stream_id, index == 0)
+                if segment:
+                    served += segment["data"]
+            if final_segment := await video.flush_stream_output(stream_id):
+                served += final_segment["data"]
+        finally:
+            video.end_stream_output(stream_id)
+
+        supplied = np.concatenate([decode_mono(chunk) for chunk in chunks])
+        assert silence_gaps(supplied) == []
+        # The encoder's own priming opens the stream and its flush closes it,
+        # both around 20 ms. Anything between the two is a chunk boundary, and
+        # re-encoding every chunk left one at each of them, 8.4% of the stream.
+        played = decode_mono(served)
+        inside = [
+            at
+            for at, _ in silence_gaps(played)
+            if 0.05 < at < len(played) / AUDIO_RATE - 0.05
+        ]
+        assert inside == []
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
