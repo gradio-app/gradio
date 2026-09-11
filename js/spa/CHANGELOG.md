@@ -1,5 +1,17 @@
 # @self/spa
 
+## 1.7.1
+
+### Fixes
+
+- [#13642](https://github.com/gradio-app/gradio/pull/13642) [`19cb8f7`](https://github.com/gradio-app/gradio/commit/19cb8f7bce14a7961cd4f81adb7f629c64df4988) - Align launch and event JavaScript execution.  Thanks @dawoodkhan82!
+- [#13800](https://github.com/gradio-app/gradio/pull/13800) [`7542edb`](https://github.com/gradio-app/gradio/commit/7542edb7ab6f3d987af6e2d7948eda6d35d8f26f) - Fix Colab connections when share=False.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/core@1.11.2
+- @gradio/client@2.6.0
+
 ## 1.7.0
 
 ### Dependency updates
