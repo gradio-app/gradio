@@ -1407,6 +1407,9 @@ class App(FastAPI):
             username: str = Depends(get_current_user),
         ):
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
+            # The queue mints its own event id, so one arriving in the body of
+            # a direct call names no job and nothing would continue the run.
+            body.event_id = None
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )

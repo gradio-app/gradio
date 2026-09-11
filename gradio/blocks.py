@@ -2176,15 +2176,19 @@ Received inputs:
         if run is None:
             return
         streams = self.pending_streams.get(session_hash, {}).get(run, {})
-        for output_id, stream in streams.items():
-            block = self.blocks[output_id]
-            if isinstance(block, components.StreamingOutput):
-                await self._finish_stream(
-                    block, stream, self._stream_id(session_hash, run, output_id)
-                )
-            else:
-                stream.end_stream()
-        self._pop_run_diffs(session_hash, run)
+        try:
+            for output_id, stream in streams.items():
+                block = self.blocks[output_id]
+                if isinstance(block, components.StreamingOutput):
+                    await self._finish_stream(
+                        block, stream, self._stream_id(session_hash, run, output_id)
+                    )
+                else:
+                    stream.end_stream()
+        finally:
+            # A flush that raises must not strand the streams after it: without
+            # an event id the caller's handler cannot resolve this run either.
+            self._drop_run(session_hash, run)
 
     @staticmethod
     def _stream_id(session_hash: str, run: str, output_id: int) -> str:
