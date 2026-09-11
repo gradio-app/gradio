@@ -6,7 +6,6 @@ import asyncio
 import json
 import subprocess
 import tempfile
-import time
 import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -41,9 +40,6 @@ if TYPE_CHECKING:
 # first PTS, and MPEG-TS cannot hold a negative one, so a stream anchored at
 # zero has its first segment quietly shifted forward.
 STREAM_PTS_BASE = 10.0
-
-# How long a chunk waits for the frames covering the audio it has fed in.
-DRAIN_TIMEOUT = 0.5
 
 TS_PACKET_SIZE = 188
 TS_NULL_PID = 0x1FFF
@@ -725,19 +721,16 @@ class Video(StreamingOutput, Component):
             encoder.feed(pcm)
             state.samples_written += len(pcm) // (encoder.channels * 2)
             frames = encoder.take()
-            # `take` does not wait for stragglers, which for audio alone is the
-            # right trade. Here they have to sit alongside the chunk's video,
-            # and a segment whose audio starts a third of a second early stops
-            # hls.js dead.
-            wanted = int(
-                state.samples_written / encoder.sample_rate / encoder.frame_duration
-            )
-            deadline = time.monotonic() + DRAIN_TIMEOUT
-            while (
-                state.frames_emitted + len(frames) < wanted
-                and time.monotonic() < deadline
-            ):
-                frames += encoder.take()
+            # One `take` leaves the stragglers for the next chunk, which for
+            # audio alone is the right trade. Here they have to sit alongside
+            # the chunk's own video, and a segment whose audio starts a third
+            # of a second early stops hls.js dead. So keep taking while frames
+            # are still arriving, and stop at the first empty one rather than
+            # waiting for a frame per sample fed in: the encoder holds its last
+            # frames back until the next chunk's samples arrive, so that count
+            # is never reached and every chunk paid the whole deadline for it.
+            while more := encoder.take():
+                frames += more
         audio_time = state.audio_time(encoder) if encoder else 0.0
         data = self.mux_segment(
             path,
