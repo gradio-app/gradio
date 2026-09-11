@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import math
 import os
@@ -79,6 +80,18 @@ def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 2
     return sorted(out.glob("chunk*.mp4"))
 
 
+def ffmpeg_identity() -> str:
+    """Which ffmpeg binary ran. TEMPORARY: CI's crashes inside ffmpeg itself
+    and this says whether its build is the one it claims to be."""
+    path = shutil.which("ffmpeg") or "?"
+    digest = (
+        hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16] if path != "?" else "?"
+    )
+    banner = subprocess.run(["ffmpeg", "-version"], check=False, capture_output=True)
+    first = banner.stdout.decode(errors="replace").splitlines()[:1]
+    return f"{path} sha256:{digest} {first}"
+
+
 def decode_mono(payload: bytes | Path) -> np.ndarray:
     args = ["ffmpeg", "-v", "quiet", "-nostdin"]
     stdin: bytes | None = None
@@ -91,7 +104,11 @@ def decode_mono(payload: bytes | Path) -> np.ndarray:
         "-vn", "-f", "s16le", "-acodec", "pcm_s16le",
         "-ar", str(AUDIO_RATE), "-ac", "1", "pipe:1",
     ]  # fmt: skip
-    result = subprocess.run(args, input=stdin, capture_output=True, check=True)
+    result = subprocess.run(args, check=False, input=stdin, capture_output=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"decode exited {result.returncode} with {ffmpeg_identity()}"
+        )
     return np.frombuffer(result.stdout, dtype="<i2").astype(np.float32) / 32767.0
 
 
@@ -357,9 +374,11 @@ class TestVideo:
         served.write_bytes(b"".join(segment["data"] for segment in segments))
         result = subprocess.run(
             ["ffmpeg", "-v", "warning", "-nostdin", "-i", str(served), "-f", "null", "-"],
-            capture_output=True,
-            check=True,
+            check=False, capture_output=True,
         )  # fmt: skip
+        assert result.returncode == 0, (
+            f"decode exited {result.returncode} with {ffmpeg_identity()}"
+        )
         assert result.stderr.decode() == ""
 
         video_pts = packet_timestamps(served.read_bytes(), "v", tmp_path, "pts_time")

@@ -568,7 +568,10 @@ class Video(StreamingOutput, Component):
             check=False,
         )  # fmt: skip
         if result.returncode != 0:
-            detail = result.stderr.decode(errors="replace").strip()
+            detail = (
+                result.stderr.decode(errors="replace").strip()
+                or f"ffprobe exited with {result.returncode}"
+            )
             raise RuntimeError(f"Could not read the streamed video chunk: {detail}")
         data = json.loads(result.stdout)
         streams = data.get("streams", [])
