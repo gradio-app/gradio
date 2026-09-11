@@ -1559,16 +1559,18 @@ describe("Dataframe CSV drop", () => {
 		expect(get_cell(container, 0, 1)?.textContent).toContain("hello\tworld");
 	});
 
-	test("ignores a dropped file that is neither CSV nor TSV", async () => {
+	test("reports a dropped file that is neither CSV nor TSV", async () => {
 		const { container, listen } = await render(Dataframe, drop_props);
 		await wait();
 		const change = listen("change");
+		const error = listen("error");
 
 		drop_csv(container, "name,age\nAlice,30\n", "data.png");
 		await wait();
 
 		expect(header_texts(container)).toEqual(["a", "b"]);
 		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
 	});
 
 	test("imports a dropped single-column CSV", async () => {
@@ -1641,5 +1643,200 @@ describe("Dataframe CSV drop", () => {
 		expect(header_texts(container)).toEqual(["a", "b"]);
 		expect(change).not.toHaveBeenCalled();
 		expect(input).not.toHaveBeenCalled();
+	});
+
+	const dynamic_3x3_props = {
+		...drop_props,
+		value: {
+			data: [
+				["a1", "b1", "c1"],
+				["a2", "b2", "c2"],
+				["a3", "b3", "c3"]
+			],
+			headers: ["A", "B", "C"],
+			metadata: null
+		},
+		col_count: [3, "dynamic"] as [number, "dynamic"],
+		row_count: [3, "dynamic"] as [number, "dynamic"]
+	};
+
+	const fixed_props = {
+		...drop_props,
+		value: {
+			data: [
+				["", ""],
+				["", ""]
+			],
+			headers: ["a", "b"],
+			metadata: null
+		},
+		col_count: [2, "fixed"] as [number, "fixed"],
+		row_count: [2, "fixed"] as [number, "fixed"]
+	};
+
+	function drag_over(target: Element, type: "dragenter" | "dragleave"): void {
+		target.dispatchEvent(
+			new DragEvent(type, { bubbles: true, cancelable: true })
+		);
+	}
+
+	// both delimiters split every line into the same number of fields, so
+	// guess_delimiter returns both and the extension breaks the tie
+	test("imports a dropped TSV whose fields contain commas", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, "first,last\tage\nAlice,Smith\t30\n", "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["first,last", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice,Smith");
+		expect(get_cell(container, 0, 1)?.textContent).toContain("30");
+	});
+
+	test("reports an error and keeps the table when the file is blank", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "   \n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	// the cell unmounts while still in edit mode, and EditableCell commits on
+	// teardown, so the stale coordinates land in the table that replaced it
+	test("drops an in-flight cell edit when the imported table is narrower", async () => {
+		const { container, listen } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const change = listen("change");
+		const edit = listen("edit");
+
+		await fireEvent.dblClick(get_cell(container, 0, 2)!);
+		await wait();
+
+		drop_csv(container, "name,age\nAlice,30\n");
+		await wait();
+
+		expect(edit).not.toHaveBeenCalled();
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([["Alice", "30"]]);
+	});
+
+	test("drops an in-flight cell edit when the imported table is shorter", async () => {
+		const { container, listen } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const change = listen("change");
+		const edit = listen("edit");
+
+		await fireEvent.dblClick(get_cell(container, 2, 0)!);
+		await wait();
+
+		drop_csv(container, "name,age,role\nAlice,30,Engineer\n");
+		await wait();
+
+		expect(edit).not.toHaveBeenCalled();
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([
+			["Alice", "30", "Engineer"]
+		]);
+	});
+
+	// a coordinate kept from the old table reaches handle_copy, which reads it
+	// out of the new one. asserted against an import of the same shape, so the
+	// cell is still in the DOM and its class means something
+	test("clears the cell selection when a file is imported", async () => {
+		const { container } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 2)!);
+		await wait();
+		expect(get_cell(container, 2, 2)?.className).toContain("cell-selected");
+
+		drop_csv(container, "x,y,z\n1,2,3\n4,5,6\n7,8,9\n");
+		await wait();
+
+		expect(get_cell(container, 2, 2)?.className).not.toContain("cell-selected");
+	});
+
+	// dragenter on the cell being entered arrives before dragleave on the one
+	// being left, and both bubble to the drop target
+	test("keeps the highlight while the file moves between cells", async () => {
+		const { container } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const table_wrap = get_table_wrap(container);
+		const first = get_cell(container, 0, 0)!;
+		const second = get_cell(container, 0, 1)!;
+
+		drag_over(first, "dragenter");
+		await wait();
+		expect(table_wrap).toHaveClass("file-dragging");
+
+		drag_over(second, "dragenter");
+		drag_over(first, "dragleave");
+		await wait();
+		expect(table_wrap).toHaveClass("file-dragging");
+
+		drag_over(second, "dragleave");
+		await wait();
+		expect(table_wrap).not.toHaveClass("file-dragging");
+	});
+
+	test("imports into a fixed-shape dataframe when the file matches", async () => {
+		const { container } = await render(Dataframe, fixed_props);
+		await wait();
+
+		drop_csv(container, "name,age\nAlice,30\nBob,25\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(get_cell(container, 1, 0)?.textContent).toContain("Bob");
+	});
+
+	test("rejects a dropped file that does not fit a fixed column count", async () => {
+		const { container, listen } = await render(Dataframe, fixed_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age,role\nAlice,30,Engineer\nBob,25,Designer\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	test("rejects a dropped file that does not fit a fixed row count", async () => {
+		const { container, listen } = await render(Dataframe, fixed_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	test("rejects a dropped file when a column is read-only", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			static_columns: [0]
+		});
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
 	});
 });

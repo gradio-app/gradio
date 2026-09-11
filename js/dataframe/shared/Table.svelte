@@ -35,7 +35,7 @@
 		is_cell_selected,
 		handle_click_outside as handle_click_outside_util
 	} from "./utils/selection_utils";
-	import { copy_table_data, handle_file_upload } from "./utils/table_utils";
+	import { copy_table_data, parse_table_file } from "./utils/table_utils";
 	import { gradio_filter_fn } from "./utils/filter";
 	import { create_column_measurement } from "./column_measurement.svelte.js";
 
@@ -73,7 +73,8 @@
 		onselect,
 		onedit,
 		onsearch,
-		onfullscreen
+		onfullscreen,
+		onerror
 	}: {
 		datatype: Datatype | Datatype[];
 		label?: string | null;
@@ -109,6 +110,7 @@
 		onedit?: (detail: EditData) => void;
 		onsearch?: (detail: string | null) => void;
 		onfullscreen?: () => void;
+		onerror?: (message: string) => void;
 	} = $props();
 
 	type GradioRow = Record<string, CellValue> & { _index: number };
@@ -583,7 +585,10 @@
 		if (!input_el || input_el.value === undefined) return;
 
 		const [row, col] = coords;
-		const old_value = values?.[row]?.[col];
+		// EditableCell commits on teardown, so a cell that was being edited when
+		// the table shrank blurs against coordinates that no longer exist
+		if (col >= (values?.[row]?.length ?? 0)) return;
+		const old_value = values[row][col];
 		const new_value = input_el.value;
 
 		if (String(old_value) !== String(new_value)) {
@@ -813,15 +818,21 @@
 		setTimeout(() => (copy_flash = false), 800);
 	}
 
+	// every one of these holds a row or column index, so they have to go
+	// whenever the table stops being the one they were recorded against
+	function reset_interaction_state(): void {
+		selected_cells = [];
+		selected = false;
+		editing = false;
+		header_edit = false;
+		selected_header = false;
+		active_cell_menu = null;
+		active_header_menu = null;
+	}
+
 	function handle_click_outside(event: Event): void {
 		if (handle_click_outside_util(event, parent)) {
-			selected_cells = [];
-			selected = false;
-			editing = false;
-			header_edit = false;
-			selected_header = false;
-			active_cell_menu = null;
-			active_header_menu = null;
+			reset_interaction_state();
 		}
 	}
 
@@ -1051,23 +1062,47 @@
 		}
 	}
 
+	function apply_imported_table(
+		new_headers: (string | null)[],
+		new_values: CellValue[][]
+	): void {
+		if (!new_headers.length) {
+			throw new Error("The dropped file is empty.");
+		}
+		// the menu paths already refuse to change a fixed shape or write to a
+		// read-only column, so an import must not be the way around them
+		if (static_columns.length > 0) {
+			throw new Error("Cannot import into a table with read-only columns.");
+		}
+		if (col_count[1] === "fixed" && new_headers.length !== col_count[0]) {
+			throw new Error(
+				`This table takes exactly ${col_count[0]} columns, the file has ${new_headers.length}.`
+			);
+		}
+		if (row_count[1] === "fixed" && new_values.length !== row_count[0]) {
+			throw new Error(
+				`This table takes exactly ${row_count[0]} rows, the file has ${new_values.length}.`
+			);
+		}
+
+		headers = new_headers;
+		values = new_values;
+		reset_interaction_state();
+		push_change(new_values, headers as string[]);
+	}
+
 	// undefined when every dropped file was filtered out by `filetype`
 	function on_file_upload(file: File | undefined): void {
 		if (!editable || !file) return;
-		handle_file_upload(
-			file,
-			(head) => {
-				headers = head.map((h: any) => h ?? "");
-				return (headers as string[]).map((h: string, i: number) => ({
-					id: `h_${i}`,
-					value: h
-				}));
-			},
-			(vals) => {
-				values = vals;
-				push_change(vals, headers as string[]);
-			}
-		);
+		parse_table_file(file)
+			.then(({ headers: new_headers, values: new_values }) =>
+				apply_imported_table(new_headers, new_values)
+			)
+			.catch((e) => {
+				const message = e instanceof Error ? e.message : String(e);
+				if (onerror) onerror(message);
+				else console.error(message);
+			});
 	}
 
 	onMount(() => {
@@ -1183,6 +1218,7 @@
 			filetype={[".csv", ".tsv"]}
 			{root}
 			onload={on_file_upload}
+			{onerror}
 			bind:dragging={file_dragging}
 			aria_label={i18n("dataframe.drop_to_upload")}
 			tab_index={-1}
@@ -1509,8 +1545,13 @@
 
 	.table-wrap {
 		position: relative;
-		transition: 150ms;
 		width: 100%;
+		/* the duration used to stand alone, which means every property. that
+		   swept the drag outline in from `currentcolor`, near-white in dark
+		   mode, before it reached the accent. the list is what the fullscreen
+		   rules above actually change */
+		transition-property: flex-grow, flex-shrink, flex-basis, min-height;
+		transition-duration: 150ms;
 	}
 
 	/* Constrain Upload component wrapper */

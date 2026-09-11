@@ -7,6 +7,7 @@ export interface DataframeEvents {
 	input: never;
 	select: SelectData;
 	edit: EditData;
+	error: string;
 	clear_status: LoadingStatus;
 }
 

@@ -1,4 +1,4 @@
-import type { CellValue, Headers, HeadersWithIDs, TableData } from "../types";
+import type { CellValue, Headers, TableData } from "../types";
 import { dsvFormat } from "d3-dsv";
 
 export function make_cell_id(row: number, col: number): string {
@@ -66,19 +66,19 @@ export function guess_delimiter(
 	}
 }
 
-export async function handle_file_upload(
-	file: File,
-	update_headers: (headers: Headers) => HeadersWithIDs[],
-	update_values: (values: CellValue[][]) => void
-): Promise<void> {
+export async function parse_table_file(
+	file: File
+): Promise<{ headers: Headers; values: CellValue[][] }> {
 	const text = await file.text();
-	if (!text) return;
-	// guess_delimiter counts raw separators, so it finds nothing for a single
-	// column, or when a quoted field contains the separator. The drop zone only
-	// accepts .csv and .tsv, so the extension settles those cases.
+	if (!text.trim()) return { headers: [], values: [] };
+	// the drop zone only accepts .csv and .tsv, so the extension is the
+	// authoritative separator. guessing still goes first, with the extension's
+	// separator ahead of the other, so a mislabeled file is read by its content:
+	// both separators can look consistent at once (a TSV with a comma in every
+	// row), and neither does for a single column or a quoted separator.
 	const by_extension = file.name.toLowerCase().endsWith(".tsv") ? "\t" : ",";
-	const [delimiter = by_extension] = guess_delimiter(text, [",", "\t"]);
-	const [head, ...rest] = dsvFormat(delimiter).parseRows(text);
-	update_headers(head);
-	update_values(rest);
+	const candidates = by_extension === "\t" ? ["\t", ","] : [",", "\t"];
+	const [delimiter = by_extension] = guess_delimiter(text, candidates);
+	const [head = [], ...rest] = dsvFormat(delimiter).parseRows(text);
+	return { headers: head.map((h) => h ?? ""), values: rest };
 }

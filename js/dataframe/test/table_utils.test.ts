@@ -2,7 +2,8 @@ import { describe, test, expect } from "vitest";
 import {
 	make_cell_id,
 	make_header_id,
-	guess_delimiter
+	guess_delimiter,
+	parse_table_file
 } from "../shared/utils/table_utils";
 import { cast_value_to_type } from "../shared/utils/utils";
 
@@ -88,5 +89,28 @@ describe("guess_delimiter", () => {
 		// single line with commas — cache set once, always matches
 		const text = "a,b,c";
 		expect(guess_delimiter(text, [",", "\t"])).toContain(",");
+	});
+});
+
+describe("parse_table_file", () => {
+	test("picks the extension's delimiter when both look consistent", async () => {
+		const file = new File(["first,last\tage\nAlice,Smith\t30\n"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["first,last", "age"],
+			values: [["Alice,Smith", "30"]]
+		});
+	});
+
+	test("reads a mislabeled file by its content", async () => {
+		const file = new File(["name,age\nAlice,30\n"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "age"],
+			values: [["Alice", "30"]]
+		});
+	});
+
+	test("returns nothing for a file that holds only whitespace", async () => {
+		const file = new File(["   \n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({ headers: [], values: [] });
 	});
 });
