@@ -36,6 +36,14 @@ async def async_stream(message, history):
         yield message[: i + 1]
 
 
+def request_token(message, history, request: gr.Request):
+    return request.headers["x-ip-token"]
+
+
+def stream_request_token(message, history, request: gr.Request):
+    yield request.headers["x-ip-token"]
+
+
 def stream_or_nothing(message, history):
     if message == "skip":
         return
@@ -138,6 +146,30 @@ class TestInit:
             assert prediction_hi[0].root == [
                 Message(role="user", content=[TextMessage(text="hi")]),
                 Message(role="assistant", content=[TextMessage(text="hi hi")]),
+            ]
+
+    @pytest.mark.parametrize("fn", [request_token, stream_request_token])
+    def test_lazy_example_caching_preserves_request(self, fn):
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                fn,
+                examples=["hello"],
+                cache_examples=True,
+                cache_mode="lazy",
+            )
+            event = gr.SelectData(
+                target=chatbot.chatbot,
+                data={"index": 0, "value": {"text": "hello"}},
+            )
+            request = gr.Request(headers={"x-ip-token": "visitor-token"})
+
+            predictions = list(chatbot.example_clicked(event, request))
+
+            assert predictions[-1][0] == [
+                Message(role="user", content=[TextMessage(text="hello")]),
+                Message(role="assistant", content=[TextMessage(text="visitor-token")]),
             ]
 
     def test_example_caching_async(self, connect):
