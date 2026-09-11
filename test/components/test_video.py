@@ -1,8 +1,10 @@
+import asyncio
 import json
 import os
 import shutil
 import subprocess
 import tempfile
+import threading
 from copy import deepcopy
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -12,6 +14,8 @@ import pytest
 
 import gradio as gr
 from gradio import processing_utils
+from gradio.audio_stream_encoder import AacStreamEncoder
+from gradio.components.video import _stream_states
 from gradio.data_classes import FileData
 
 AUDIO_RATE = 44100
@@ -349,6 +353,67 @@ class TestVideo:
         # And the video is evenly paced, not stretched to follow the audio.
         steps = [b - a for a, b in zip(video_pts[:-1], video_pts[1:], strict=False)]
         assert max(steps) == pytest.approx(1 / VIDEO_FPS, abs=0.005)
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_failed_first_chunk_releases_its_encoder(
+        self, tmp_path, monkeypatch
+    ):
+        """Until `stream_output` returns, nothing else holds the encoder."""
+        (chunk,) = tone_chunks(tmp_path, count=1)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+
+        def fail(self, pcm):  # noqa: ARG001
+            raise RuntimeError("the encoder died mid-chunk")
+
+        monkeypatch.setattr(AacStreamEncoder, "feed", fail)
+        with pytest.raises(RuntimeError, match="died mid-chunk"):
+            await video.stream_output(str(chunk), stream_id, True)
+
+        assert stream_id not in _stream_states
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("gate", ["__init__", "feed"])
+    async def test_a_cancelled_first_chunk_releases_its_encoder(
+        self, tmp_path, monkeypatch, gate
+    ):
+        """Cancelling the await does not stop the thread, which may not even
+        have made its encoder yet; whichever order they finish in, the encoder
+        has to be released."""
+        (chunk,) = tone_chunks(tmp_path, count=1)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        reached, proceed = threading.Event(), threading.Event()
+        encoders: list[AacStreamEncoder] = []
+        original = getattr(AacStreamEncoder, gate)
+
+        def gated(self, *args, **kwargs):
+            reached.set()
+            proceed.wait(timeout=5)
+            result = original(self, *args, **kwargs)
+            encoders.append(self)
+            return result
+
+        monkeypatch.setattr(AacStreamEncoder, gate, gated)
+        task = asyncio.ensure_future(video.stream_output(str(chunk), stream_id, True))
+        while not reached.is_set():
+            await asyncio.sleep(0.001)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert stream_id not in _stream_states
+        proceed.set()
+        # The worker thread runs on and may publish an encoder after the
+        # coroutine is gone; the slot has to refuse it and close it.
+        for _ in range(500):
+            if encoders:
+                break
+            await asyncio.sleep(0.01)
+        assert encoders, "the thread never got as far as an encoder"
+        for encoder in encoders:
+            assert encoder.process.poll() is not None
 
     def test_in_interface(self, media_data):
         """
