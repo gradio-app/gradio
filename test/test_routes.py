@@ -119,6 +119,85 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
+    def test_multipage_config_and_info_can_be_scoped_to_page(self, gradio_temp_dir):
+        with Blocks() as demo:
+            home_input = Textbox()
+            home_output = Textbox()
+            home_input.change(
+                lambda value: value,
+                home_input,
+                home_output,
+                api_name="home_endpoint",
+            )
+        with demo.route("Details", path="details"):
+            details_input = Textbox()
+            details_output = Textbox()
+            details_input.change(
+                lambda value: value,
+                details_input,
+                details_output,
+                api_name="details_endpoint",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+            page_config = client.get("/config?page=details").json()
+
+            assert page_config["current_page"] == "details"
+            assert page_config["pages"] == full_config["pages"]
+            assert {component["id"] for component in page_config["components"]} == set(
+                page_config["page"]["details"]["components"]
+            )
+            assert {
+                dependency["id"] for dependency in page_config["dependencies"]
+            } == set(page_config["page"]["details"]["dependencies"])
+            assert len(page_config["components"]) < len(full_config["components"])
+            assert len(page_config["dependencies"]) < len(full_config["dependencies"])
+
+            page_info = client.get(f"{API_PREFIX}/info?page=details").json()
+            assert set(page_info["named_endpoints"]) == {"/details_endpoint"}
+
+            home_config = client.get("/config?page=").json()
+            assert home_config["current_page"] == ""
+            assert {component["id"] for component in home_config["components"]} == set(
+                home_config["page"][""]["components"]
+            )
+            home_info = client.get(f"{API_PREFIX}/info?page=").json()
+            assert set(home_info["named_endpoints"]) == {"/home_endpoint"}
+
+            # Page-scoped requests leave the full API-info cache empty. The cURL
+            # endpoint must initialize it lazily instead of returning a 500.
+            assert app.api_info is None
+            curl_response = client.post(
+                f"{API_PREFIX}/call/v2/home_endpoint", json={"value": "hello"}
+            )
+            assert curl_response.status_code == 200
+            assert app.api_info is not None
+
+            deep_link_dir = gradio_temp_dir / "deep_links" / "multipage"
+            deep_link_dir.mkdir(parents=True)
+            (deep_link_dir / "state.json").write_text(
+                json.dumps(full_config["components"])
+            )
+            legacy_deep_link_config = client.get("/config?deep_link=multipage").json()
+            assert {
+                component["id"] for component in legacy_deep_link_config["components"]
+            } == {component["id"] for component in full_config["components"]}
+            assert details_input._id in {
+                component["id"] for component in legacy_deep_link_config["components"]
+            }
+
+            home_deep_link_config = client.get(
+                "/config?deep_link=multipage&page="
+            ).json()
+            assert {
+                component["id"] for component in home_deep_link_config["components"]
+            } == set(home_deep_link_config["page"][""]["components"])
+        finally:
+            demo.close()
+
     def test_audio_stream_playlist_uses_stable_target_duration(self):
         with Blocks() as demo:
             audio = gr.Audio()

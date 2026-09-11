@@ -3706,16 +3706,21 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> APIInfo:
+    def get_api_info(
+        self, all_endpoints: bool = False, page: str | None = None
+    ) -> APIInfo:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
             all_endpoints: If True, returns information about all endpoints, including those with api_visibility="undocumented".
+            page: If provided, returns information only for endpoints on this page.
         """
         config = self.config
         api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
+            if page is not None and fn.page != page:
+                continue
             if not fn.fn or fn.api_visibility == "private":
                 continue
             if not all_endpoints and fn.api_visibility != "public":
