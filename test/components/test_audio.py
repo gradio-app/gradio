@@ -1,19 +1,290 @@
+import asyncio
 import filecmp
+import io
+import math
+import subprocess
+import threading
+import time
+import wave
 from copy import deepcopy
 from difflib import SequenceMatcher
 from pathlib import Path
 
+import anyio
 import numpy as np
 import pytest
 from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.audio_stream_encoder import (
+    ADTS_SAMPLE_RATES,
+    AacStreamEncoder,
+    nearest_adts_rate,
+    parse_adts_frames,
+)
+from gradio.components.audio import _stream_encoders
 from gradio.data_classes import FileData
 from gradio.media import get_audio
 
 
+def wav_chunk(samples: int, sample_rate: int = 16000) -> bytes:
+    """16-bit mono wav of `samples` zeros; zero samples is the 44-byte header."""
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as writer:
+        writer.setnchannels(1)
+        writer.setsampwidth(2)
+        writer.setframerate(sample_rate)
+        writer.writeframes(np.zeros(samples, dtype=np.int16).tobytes())
+    return buffer.getvalue()
+
+
 class TestAudio:
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("sample_rate", [16000, 20000])
+    async def test_streamed_audio_is_one_continuous_aac_stream(self, sample_rate):
+        """Chunks share one encoder, so only the stream gets a priming frame.
+
+        20 kHz is not a rate ADTS can declare, so the encoder resamples it to
+        22.05 kHz, and the durations have to be the frames' at that rate.
+        """
+        chunk_samples, chunk_count = 4000, 8
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        segments = []
+        try:
+            for index in range(chunk_count):
+                segment, _ = await audio.stream_output(
+                    wav_chunk(chunk_samples, sample_rate), stream_id, index == 0
+                )
+                if segment:
+                    segments.append(segment)
+            if final_segment := await audio.flush_stream_output(stream_id):
+                segments.append(final_segment)
+        finally:
+            audio.end_stream_output(stream_id)
+
+        data = b"".join(segment["data"] for segment in segments)
+        frames, consumed = parse_adts_frames(data)
+        assert consumed == len(data)
+        # bits 2-5 of the third header byte index ADTS_SAMPLE_RATES
+        declared = {ADTS_SAMPLE_RATES[(frame[2] >> 2) & 0x0F] for frame in frames}
+        assert declared == {nearest_adts_rate(sample_rate)}
+        (output_rate,) = declared
+        total = sum(segment["duration"] for segment in segments)
+        assert total == pytest.approx(len(frames) * 1024 / output_rate)
+        # the input, plus the priming frame and the resampler's tail
+        assert total == pytest.approx(
+            chunk_count * chunk_samples / sample_rate, abs=3 * 1024 / output_rate
+        )
+        if output_rate == sample_rate:
+            # every 1024 samples, plus the stream's single priming frame
+            assert len(frames) == math.ceil(chunk_count * chunk_samples / 1024) + 1
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_failed_first_chunk_releases_its_encoder(self, monkeypatch):
+        """Until `stream_output` returns, nothing else holds the encoder."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+
+        def fail(self, pcm):  # noqa: ARG001
+            raise RuntimeError("the encoder died mid-chunk")
+
+        monkeypatch.setattr(AacStreamEncoder, "feed", fail)
+        with pytest.raises(RuntimeError, match="died mid-chunk"):
+            await audio.stream_output(
+                Path(get_audio("audio_sample.wav")).read_bytes(), stream_id, True
+            )
+
+        assert stream_id not in _stream_encoders
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("gate", ["__init__", "feed"])
+    async def test_a_cancelled_first_chunk_releases_its_encoder(
+        self, monkeypatch, gate
+    ):
+        """Cancelling the await does not stop the thread, which may not even
+        have made its encoder yet; whichever order they finish in, the encoder
+        has to be released."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        reached, proceed = threading.Event(), threading.Event()
+        encoders: list[AacStreamEncoder] = []
+        original = getattr(AacStreamEncoder, gate)
+
+        def gated(self, *args, **kwargs):
+            reached.set()
+            proceed.wait(timeout=5)
+            result = original(self, *args, **kwargs)
+            encoders.append(self)
+            return result
+
+        monkeypatch.setattr(AacStreamEncoder, gate, gated)
+        task = asyncio.ensure_future(
+            audio.stream_output(
+                Path(get_audio("audio_sample.wav")).read_bytes(), stream_id, True
+            )
+        )
+        while not reached.is_set():
+            await asyncio.sleep(0.001)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert stream_id not in _stream_encoders
+
+        proceed.set()
+        deadline = time.monotonic() + 5
+        while not (encoders and encoders[0].process.poll() is not None):
+            assert time.monotonic() < deadline, "the encoder was never released"
+            await asyncio.sleep(0.005)
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_stream_that_opens_on_none_plays_its_later_chunks(self):
+        """A generator's first yield may carry no audio yet."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        value = audio.postprocess((16000, np.zeros(4000, np.int16)))
+        assert isinstance(value, FileData)
+        segments = []
+        try:
+            await audio.stream_output(None, stream_id, True)
+            for _ in range(2):
+                segment, _ = await audio.stream_output(
+                    value.model_dump(), stream_id, False
+                )
+                segments.append(segment)
+            segments.append(await audio.flush_stream_output(stream_id))
+        finally:
+            audio.end_stream_output(stream_id)
+
+        assert sum(segment["duration"] for segment in segments if segment) > 0
+        assert stream_id not in _stream_encoders
+
+    @pytest.mark.asyncio
+    async def test_a_first_chunk_that_fails_before_encoding_leaves_no_slot(self):
+        """The registry entry exists before the chunk is even read."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        missing = {"path": "/nonexistent/chunk.wav", "orig_name": "chunk.wav"}
+        with pytest.raises(FileNotFoundError):
+            await audio.stream_output(missing, stream_id, True)
+
+        assert stream_id not in _stream_encoders
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_flush_cancelled_before_its_thread_runs_releases_the_encoder(
+        self, monkeypatch
+    ):
+        """The flush detaches the encoder before it awaits, so nothing else can
+        release it if the await never dispatches the thread."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        await audio.stream_output(wav_chunk(4000), stream_id, True)
+        encoder = _stream_encoders[stream_id].encoder
+        assert encoder is not None
+
+        async def cancelled_before_dispatch(func, *args, **kwargs):
+            raise asyncio.CancelledError
+
+        monkeypatch.setattr(anyio.to_thread, "run_sync", cancelled_before_dispatch)
+        with pytest.raises(asyncio.CancelledError):
+            await audio.flush_stream_output(stream_id)
+
+        assert stream_id not in _stream_encoders
+        assert encoder.process.poll() is not None
+
+    @pytest.mark.requires_ffmpeg
+    def test_an_encoder_whose_reader_cannot_start_kills_its_process(self, monkeypatch):
+        from gradio import audio_stream_encoder
+
+        started = []
+
+        class RecordingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+        def cannot_start(self):
+            raise RuntimeError("can't start new thread")
+
+        monkeypatch.setattr(audio_stream_encoder.subprocess, "Popen", RecordingPopen)
+        monkeypatch.setattr(threading.Thread, "start", cannot_start)
+        with pytest.raises(RuntimeError, match="can't start new thread"):
+            AacStreamEncoder(16000, 1)
+
+        (process,) = started
+        assert process.poll() is not None
+
+    @pytest.mark.requires_ffmpeg
+    def test_a_closed_encoder_stays_quiet(self):
+        """`close()` is a teardown, not a failure, so a chunk that was in
+        flight when it landed must not turn into an error."""
+        encoder = AacStreamEncoder(16000, 1)
+        encoder.close()
+
+        encoder.feed(bytes(2 * 1024))
+        assert encoder.take() == []
+        assert encoder.flush() == []
+
+    @pytest.mark.requires_ffmpeg
+    def test_flush_keeps_its_frames_when_it_has_to_kill_the_encoder(self, caplog):
+        encoder = AacStreamEncoder(16000, 1)
+        encoder.feed(bytes(2 * 16000))
+        # Wait for output to exist without taking it, so the flush has
+        # something to keep.
+        deadline = time.monotonic() + 5
+        while not encoder._ready:
+            assert time.monotonic() < deadline, "the encoder produced nothing"
+            time.sleep(0.005)
+
+        # A zero timeout is a process that is still running when the wait ends.
+        frames = encoder.flush(timeout=0)
+
+        assert frames
+        assert encoder.process.poll() is not None
+        assert "was killed" in caplog.text
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_an_empty_chunk_mid_stream_is_not_an_error(self):
+        """A tick that produced no audio yields `(rate, np.zeros(0))`."""
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        chunks = [wav_chunk(4000), wav_chunk(0), wav_chunk(4000)]
+        segments = []
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await audio.stream_output(chunk, stream_id, index == 0)
+                if segment:
+                    segments.append(segment)
+            if final_segment := await audio.flush_stream_output(stream_id):
+                segments.append(final_segment)
+        finally:
+            audio.end_stream_output(stream_id)
+
+        assert sum(segment["duration"] for segment in segments) == pytest.approx(
+            8000 / 16000, abs=3 * 1024 / 16000
+        )
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_chunk_that_is_not_audio_says_why(self):
+        audio = gr.Audio(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        try:
+            value = audio.postprocess((16000, np.zeros(4000, np.int16)))
+            assert isinstance(value, FileData)
+            await audio.stream_output(value.model_dump(), stream_id, True)
+            with pytest.raises(RuntimeError, match="Could not decode.*Invalid data"):
+                await audio.stream_output(b"not audio", stream_id, False)
+        finally:
+            audio.end_stream_output(stream_id)
+
     @pytest.mark.asyncio
     async def test_component_functions(self, gradio_temp_dir, media_data):
         """
