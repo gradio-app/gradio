@@ -4,6 +4,7 @@ import asyncio
 import functools
 import inspect
 import json
+import math
 import os
 import pickle
 import sys
@@ -42,6 +43,7 @@ from gradio import (
     route_utils,
     routes,
 )
+from gradio.audio_stream_encoder import parse_adts_frames
 from gradio.data_classes import PredictBodyInternal
 from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
@@ -219,6 +221,8 @@ class TestRoutes:
 
         assert response.status_code == 200
         assert "#EXT-X-TARGETDURATION:2" in response.text
+        assert "#EXTINF:1.250000," in response.text
+        assert "#EXT-X-DISCONTINUITY" not in response.text
         assert response.headers["cache-control"] == "no-store"
 
     def test_favicon_route(self, test_client):
@@ -3392,3 +3396,73 @@ class TestOAuthSecurity:
             info = _get_mocked_oauth_info()
             assert info["access_token"] != "hf_real_secret_token"
             assert info["access_token"] == "mock-oauth-token-for-local-dev"
+
+
+@pytest.mark.requires_ffmpeg
+@pytest.mark.parametrize("event_id", [None, "not-a-queue-job"])
+def test_a_direct_run_call_returns_the_whole_first_chunk(event_id):
+    """The run route takes a generator's first yield and drops the rest, so
+    the stream it hands back has to carry that one chunk in full. An event id
+    is the queue's to mint, so one in the body cannot make the run look
+    continuable and leave its iterator and encoder held for good."""
+    sample_rate, chunk_samples = 16000, 4000
+
+    def stream():
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, outputs=audio, api_name="stream")
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        client = TestClient(app)
+        body = {"data": [], "session_hash": "direct", "event_id": event_id}
+        response = client.post("/gradio_api/run/stream", json=body)
+        assert response.status_code == 200
+        assert not app.iterators
+        url = response.json()["data"][0]["url"]
+        playlist = client.get(url).text
+        assert "#EXT-X-ENDLIST" in playlist
+        names = [
+            line for line in playlist.splitlines() if line and not line.startswith("#")
+        ]
+        base = url.rsplit("/", 1)[0]
+        data = b"".join(client.get(f"{base}/{name}").content for name in names)
+        frames, _ = parse_adts_frames(data)
+        # one per 1024 samples of the chunk, plus the stream's priming frame
+        assert len(frames) >= math.ceil(chunk_samples / 1024)
+    finally:
+        demo.close()
+
+
+@pytest.mark.requires_ffmpeg
+def test_a_failed_flush_still_ends_the_runs_other_streams(monkeypatch):
+    """Each stream has to be ended even when an earlier one's flush raises, or
+    its playlist never gets an #EXT-X-ENDLIST and its encoder is never freed."""
+
+    def stream():
+        chunk = (16000, np.zeros(4000, dtype=np.int16))
+        yield chunk, chunk
+
+    with gr.Blocks() as demo:
+        first = gr.Audio(streaming=True)
+        second = gr.Audio(streaming=True)
+        gr.Button().click(stream, outputs=[first, second], api_name="stream")
+
+    async def failing_flush(self, output_id):  # noqa: ARG001
+        raise RuntimeError("flush failed")
+
+    monkeypatch.setattr(gr.Audio, "flush_stream_output", failing_flush)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        response = TestClient(app).post(
+            "/gradio_api/run/stream", json={"data": [], "session_hash": "direct"}
+        )
+        assert response.status_code == 500
+        runs = demo.pending_streams.get("direct") or {}
+        streams = next(iter(runs.values()))
+        assert [stream.ended for stream in streams.values()] == [True, True]
+        assert "direct" not in demo.pending_diff_streams
+    finally:
+        demo.close()

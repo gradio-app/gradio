@@ -7,6 +7,7 @@ from gradio_client import Client
 
 import gradio as gr
 import gradio.utils
+from gradio import processing_utils
 
 
 def pytest_configure(config):
@@ -14,6 +15,18 @@ def pytest_configure(config):
         "markers", "flaky: mark test as flaky. Failure will not cause te"
     )
     config.addinivalue_line("markers", "serial: mark test as serial")
+    config.addinivalue_line(
+        "markers", "requires_ffmpeg: skip the test when ffmpeg is not on PATH"
+    )
+
+
+def pytest_collection_modifyitems(items):
+    if processing_utils.ffmpeg_installed():
+        return
+    skip = pytest.mark.skip(reason="ffmpeg not installed")
+    for item in items:
+        if "requires_ffmpeg" in item.keywords:
+            item.add_marker(skip)
 
 
 @pytest.fixture

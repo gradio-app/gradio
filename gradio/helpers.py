@@ -10,10 +10,12 @@ import csv
 import inspect
 import os
 import shutil
+import uuid
 import warnings
 from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from functools import partial
 from pathlib import Path
+from threading import Lock
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Optional, get_origin
 
@@ -300,6 +302,7 @@ class Examples:
         self.run_on_click = run_on_click
         self.cache_event: Dependency | None = None
         self.non_none_processed_examples = UnhashableKeyDict()
+        self._cache_locks = [Lock() for _ in self.examples]
 
         if self.dataset.samples:
             for index, example in enumerate(self.non_none_examples):
@@ -366,9 +369,9 @@ class Examples:
                     processed_example = self._get_processed_example(example_value)
                     return utils.resolve_singleton(processed_example)
 
-                def load_example_output(example_tuple):
+                def load_example_output(example_tuple, request: routes.Request):
                     example_id, _ = example_tuple
-                    cached_outputs = self.load_from_cache(example_id)
+                    cached_outputs = self.load_from_cache(example_id, request)
                     return utils.resolve_singleton(cached_outputs)
 
                 self.cache_event = self.load_input_event = self.dataset.click(
@@ -509,11 +512,16 @@ class Examples:
         if self.cache_examples is True:
             await self.cache()
 
-    async def cache(self, example_id: int | None = None) -> None:
+    async def cache(
+        self,
+        example_id: int | None = None,
+        request: routes.Request | None = None,
+    ) -> int | None:
         """
         Caches examples so that their predictions can be shown immediately.
         Parameters:
             example_id: The id of the example to process (zero-indexed). If None, all examples are cached.
+            request: The request that triggered lazy caching, if any.
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
@@ -542,53 +550,65 @@ class Examples:
                 batch=self.batch,
             )
 
-            if self.outputs is None:
-                raise ValueError("self.outputs is missing")
-            for i, example in enumerate(self.non_none_examples):
-                if example_id is not None and i != example_id:
-                    continue
-                processed_input = self._get_processed_example(example)
-                for index, keep in enumerate(self.input_has_examples):
-                    if not keep:
-                        processed_input.insert(index, None)
-                if self.batch:
-                    processed_input = [[value] for value in processed_input]
-                with utils.MatplotlibBackendMananger():
-                    # When caching examples lazily, set in_event_listener to False
-                    # so that all components are properly instantiated
-                    # See https://github.com/gradio-app/gradio/issues/12564
-                    prediction = await self.root_block.process_api(
-                        block_fn=self.root_block.default_config.fns[fn_index],
-                        inputs=processed_input,
-                        request=None,
-                        in_event_listener=self.cache_examples != "lazy",
-                    )
-                output = prediction["data"]
-                if generated_values:
-                    output = await merge_generated_values_into_output(
-                        self.outputs,  # type: ignore
-                        generated_values,
-                        output,  # type: ignore
-                    )
-                if self.batch:
-                    output = [value[0] for value in output]
-                self.cache_logger.flag(output)
-                with open(self.cached_indices_file, "a") as f:
-                    f.write(f"{example_id or i}\n")
+            try:
+                if self.outputs is None:
+                    raise ValueError("self.outputs is missing")
+                cached_index = None
+                for i, example in enumerate(self.non_none_examples):
+                    if example_id is not None and i != example_id:
+                        continue
+                    processed_input = self._get_processed_example(example)
+                    for index, keep in enumerate(self.input_has_examples):
+                        if not keep:
+                            processed_input.insert(index, None)
+                    if self.batch:
+                        processed_input = [[value] for value in processed_input]
+                    with utils.MatplotlibBackendMananger():
+                        # When caching examples lazily, set in_event_listener to False
+                        # so that all components are properly instantiated
+                        # See https://github.com/gradio-app/gradio/issues/12564
+                        prediction = await self.root_block.process_api(
+                            block_fn=self.root_block.default_config.fns[fn_index],
+                            inputs=processed_input,
+                            request=request,
+                            in_event_listener=self.cache_examples != "lazy",
+                        )
+                    output = prediction["data"]
+                    if generated_values:
+                        output = await merge_generated_values_into_output(
+                            self.outputs,  # type: ignore
+                            generated_values,
+                            output,  # type: ignore
+                        )
+                    if self.batch:
+                        output = [value[0] for value in output]
+                    cached_index = self.cache_logger.flag(output) - 1
+                    with open(self.cached_indices_file, "a") as f:
+                        f.write(f"{example_id if example_id is not None else i}\n")
+                return cached_index
+            finally:
+                # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
+                self.root_block.default_config.fns.pop(fn_index)
+        return None
 
-            # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
-            self.root_block.default_config.fns.pop(fn_index)
-
-    def load_from_cache(self, example_id: int) -> list[Any]:
+    def load_from_cache(
+        self,
+        example_id: int,
+        request: routes.Request | None = None,
+    ) -> list[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
+            request: The request that triggered lazy caching, if any.
         """
-        cached_index = self._get_cached_index_if_cached(example_id)
-        if cached_index is None:
-            client_utils.synchronize_async(self.cache, example_id)
-            with open(self.cached_indices_file) as f:
-                cached_index = len(f.readlines()) - 1
+        with self._cache_locks[example_id]:
+            cached_index = self._get_cached_index_if_cached(example_id)
+            if cached_index is None:
+                cached_index = client_utils.synchronize_async(
+                    self.cache, example_id, request
+                )
+                if cached_index is None:
+                    raise IndexError("Cached example not found in cache file")
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
@@ -628,19 +648,27 @@ async def merge_generated_values_into_output(
         if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
             desired_output_format = None
-            for i, chunk in enumerate(generated_values):
-                if len(components) > 1:
-                    chunk = chunk[output_index]
-                processed_chunk = output_component.postprocess(chunk)
-                if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
-                    processed_chunk = processed_chunk.model_dump()
-                stream_chunk = await output_component.stream_output(
-                    processed_chunk, "", i == 0
-                )
-                if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
-                    desired_output_format = Path(orig_name).suffix[1:]
-                if stream_chunk[0]:
-                    binary_chunks.append(stream_chunk[0]["data"])
+            # A component may key per-stream state on this id, so it has to be
+            # unique per cached example and released afterwards.
+            stream_id = f"cache/{uuid.uuid4()}"
+            try:
+                for i, chunk in enumerate(generated_values):
+                    if len(components) > 1:
+                        chunk = chunk[output_index]
+                    processed_chunk = output_component.postprocess(chunk)
+                    if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
+                        processed_chunk = processed_chunk.model_dump()
+                    stream_chunk = await output_component.stream_output(
+                        processed_chunk, stream_id, i == 0
+                    )
+                    if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
+                        desired_output_format = Path(orig_name).suffix[1:]
+                    if stream_chunk[0]:
+                        binary_chunks.append(stream_chunk[0]["data"])
+                if final_chunk := await output_component.flush_stream_output(stream_id):
+                    binary_chunks.append(final_chunk["data"])
+            finally:
+                output_component.end_stream_output(stream_id)
             combined_output = await output_component.combine_stream(
                 binary_chunks, desired_output_format=desired_output_format
             )
