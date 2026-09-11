@@ -1051,8 +1051,9 @@
 		}
 	}
 
-	function on_file_upload(file: Blob): void {
-		if (!editable) return;
+	// undefined when every dropped file was filtered out by `filetype`
+	function on_file_upload(file: Blob | undefined): void {
+		if (!editable || !file) return;
 		handle_file_upload(
 			file,
 			(head) => {
@@ -1179,6 +1180,7 @@
 			boundedheight={false}
 			disable_click={true}
 			format="blob"
+			filetype={[".csv", ".tsv"]}
 			{root}
 			onload={on_file_upload}
 			bind:dragging={file_dragging}

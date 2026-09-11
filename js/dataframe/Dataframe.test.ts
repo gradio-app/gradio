@@ -1533,6 +1533,30 @@ describe("Dataframe CSV drop", () => {
 		]);
 	});
 
+	test("imports a dropped TSV as headers and values", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, "name\tage\nAlice\t30\nBob\t25\n", "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 1, 1)?.textContent).toContain("25");
+	});
+
+	test("ignores a dropped file that is neither CSV nor TSV", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+
+		drop_csv(container, "name,age\nAlice,30\n", "data.png");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+	});
+
 	test("imports a dropped single-column CSV", async () => {
 		const { container } = await render(Dataframe, drop_props);
 		await wait();
@@ -1591,11 +1615,13 @@ describe("Dataframe CSV drop", () => {
 		});
 		await wait();
 		const change = listen("change");
+		const input = listen("input");
 
 		drop_csv(container, "name,age\nAlice,30\nBob,25\n");
 		await wait();
 
 		expect(header_texts(container)).toEqual(["a", "b"]);
 		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
 	});
 });
