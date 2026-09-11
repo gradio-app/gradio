@@ -84,7 +84,7 @@ with gr.Blocks() as demo:
 
     results = gr.Dataframe(
         headers=["Product", "Category", "Price ($)", "In stock"],
-        datatype=["str", "str", "number", "number"],
+        datatype=("str", "str", "number", "number"),
         interactive=False,
     )
     status = gr.Markdown()
