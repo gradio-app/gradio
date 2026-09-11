@@ -1,5 +1,19 @@
 # @gradio/video
 
+## 0.23.1
+
+### Fixes
+
+- [#13808](https://github.com/gradio-app/gradio/pull/13808) [`3cbdf8e`](https://github.com/gradio-app/gradio/commit/3cbdf8e57babfdd6bead5be387e3ec46b067d76a) - Fix streaming playback and HLS lifetime in `gr.Audio` and `gr.Video`.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+- @gradio/image@0.28.3
+
 ## 0.23.0
 
 ### Dependency updates

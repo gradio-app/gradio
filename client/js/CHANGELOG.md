@@ -1,5 +1,16 @@
 # @gradio/client
 
+## 2.6.0
+
+### Features
+
+- [#13763](https://github.com/gradio-app/gradio/pull/13763) [`7e83999`](https://github.com/gradio-app/gradio/commit/7e839990a092c11e049db171c98ceba76896e6b1) - add server-side run history in HF Hub buckets.  Thanks @hannahblair!
+- [#13779](https://github.com/gradio-app/gradio/pull/13779) [`4eafc18`](https://github.com/gradio-app/gradio/commit/4eafc18cc5b7d42926eacf20231d94952d4b37a8) - Fix file URLs and sanitize invalid uploaded filenames.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13800](https://github.com/gradio-app/gradio/pull/13800) [`7542edb`](https://github.com/gradio-app/gradio/commit/7542edb7ab6f3d987af6e2d7948eda6d35d8f26f) - Fix Colab connections when share=False.  Thanks @abidlabs!
+
 ## 2.5.1
 
 ### Fixes
