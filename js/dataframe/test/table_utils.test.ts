@@ -2,8 +2,7 @@ import { describe, test, expect } from "vitest";
 import {
 	make_cell_id,
 	make_header_id,
-	guess_delimiter,
-	data_uri_to_blob
+	guess_delimiter
 } from "../shared/utils/table_utils";
 import { cast_value_to_type } from "../shared/utils/utils";
 
@@ -89,21 +88,5 @@ describe("guess_delimiter", () => {
 		// single line with commas — cache set once, always matches
 		const text = "a,b,c";
 		expect(guess_delimiter(text, [",", "\t"])).toContain(",");
-	});
-});
-
-describe("data_uri_to_blob", () => {
-	test("converts data URI to Blob with correct MIME type", () => {
-		const data_uri = "data:text/plain;base64,SGVsbG8=";
-		const blob = data_uri_to_blob(data_uri);
-		expect(blob.type).toBe("text/plain");
-	});
-
-	test("converts data URI to Blob with correct content", async () => {
-		// "Hello" in base64 is "SGVsbG8="
-		const data_uri = "data:text/plain;base64,SGVsbG8=";
-		const blob = data_uri_to_blob(data_uri);
-		const text = await blob.text();
-		expect(text).toBe("Hello");
 	});
 });

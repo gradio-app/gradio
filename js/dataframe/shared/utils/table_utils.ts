@@ -66,30 +66,16 @@ export function guess_delimiter(
 	}
 }
 
-export function data_uri_to_blob(data_uri: string): Blob {
-	const byte_str = atob(data_uri.split(",")[1]);
-	const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
-	const ab = new ArrayBuffer(byte_str.length);
-	const ia = new Uint8Array(ab);
-	for (let i = 0; i < byte_str.length; i++) {
-		ia[i] = byte_str.charCodeAt(i);
-	}
-	return new Blob([ab], { type: mime_str });
-}
-
-export function handle_file_upload(
-	data_uri: string,
+export async function handle_file_upload(
+	file: Blob,
 	update_headers: (headers: Headers) => HeadersWithIDs[],
 	update_values: (values: CellValue[][]) => void
-): void {
-	const blob = data_uri_to_blob(data_uri);
-	const reader = new FileReader();
-	reader.addEventListener("loadend", (e) => {
-		if (!e?.target?.result || typeof e.target.result !== "string") return;
-		const [delimiter] = guess_delimiter(e.target.result, [",", "\t"]);
-		const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
-		update_headers(head);
-		update_values(rest);
-	});
-	reader.readAsText(blob);
+): Promise<void> {
+	const text = await file.text();
+	if (!text) return;
+	// a single-column file has no delimiter to find, so fall back to a comma
+	const [delimiter = ","] = guess_delimiter(text, [",", "\t"]);
+	const [head, ...rest] = dsvFormat(delimiter).parseRows(text);
+	update_headers(head);
+	update_values(rest);
 }

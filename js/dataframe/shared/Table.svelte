@@ -273,7 +273,7 @@
 	let copy_flash = $state(false);
 	let is_dragging = $state(false);
 	let show_scroll_button = $state(false);
-	let dragging = $state(false); // file drag
+	let file_dragging = $state(false);
 
 	let parent: HTMLDivElement;
 
@@ -1051,9 +1051,10 @@
 		}
 	}
 
-	function on_file_upload(file_data: any): void {
+	function on_file_upload(file: Blob): void {
+		if (!editable) return;
 		handle_file_upload(
-			typeof file_data === "string" ? file_data : (file_data?.data ?? ""),
+			file,
 			(head) => {
 				headers = head.map((h: any) => h ?? "");
 				return (headers as string[]).map((h: string, i: number) => ({
@@ -1159,6 +1160,7 @@
 		bind:this={parent}
 		class="table-wrap"
 		class:dragging={is_dragging}
+		class:file-dragging={file_dragging && editable}
 		class:menu-open={active_cell_menu || active_header_menu}
 		onkeydown={handle_keydown}
 		role="grid"
@@ -1176,9 +1178,10 @@
 			center={false}
 			boundedheight={false}
 			disable_click={true}
+			format="blob"
 			{root}
 			onload={on_file_upload}
-			bind:dragging
+			bind:dragging={file_dragging}
 			aria_label={i18n("dataframe.drop_to_upload")}
 			tab_index={-1}
 			container_element="div"
@@ -1519,6 +1522,14 @@
 
 	.table-wrap:focus-within {
 		outline: none;
+	}
+
+	/* after :focus-within, which is equally specific and would otherwise
+	   clear the outline whenever a cell is focused. drawn inside the box so
+	   hovering a file over the table shifts nothing */
+	.table-wrap.file-dragging {
+		outline: 2px solid var(--color-accent);
+		outline-offset: -2px;
 	}
 
 	.table-wrap.dragging {

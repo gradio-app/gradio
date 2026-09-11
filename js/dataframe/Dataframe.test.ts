@@ -1473,3 +1473,129 @@ describe("Boolean column select-all header checkbox", () => {
 		expect(admin.indeterminate).toBe(false);
 	});
 });
+
+describe("Dataframe CSV drop", () => {
+	afterEach(() => cleanup());
+
+	const drop_props = {
+		...default_props,
+		value: {
+			data: [["", ""]],
+			headers: ["a", "b"],
+			metadata: null
+		},
+		col_count: [2, "dynamic"] as [number, "dynamic"],
+		row_count: [1, "dynamic"] as [number, "dynamic"]
+	};
+
+	// dispatched natively rather than through fireEvent: testing-library builds
+	// its own DataTransfer and copies only own properties across, which leaves
+	// the file list empty
+	function drop_csv(
+		container: HTMLElement,
+		text: string,
+		name = "data.csv"
+	): void {
+		const data_transfer = new DataTransfer();
+		data_transfer.items.add(new File([text], name, { type: "text/csv" }));
+		const upload_container = container.querySelector(
+			".upload-container"
+		) as HTMLElement;
+		upload_container.dispatchEvent(
+			new DragEvent("drop", {
+				bubbles: true,
+				cancelable: true,
+				dataTransfer: data_transfer
+			})
+		);
+	}
+
+	function header_texts(container: HTMLElement): string[] {
+		return Array.from(
+			container.querySelectorAll("th.header-cell .header-content")
+		).map((h) => h.textContent?.trim() ?? "");
+	}
+
+	test("imports a dropped CSV as headers and values", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+
+		drop_csv(container, "name,age\nAlice,30\nBob,25\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 1, 1)?.textContent).toContain("25");
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([
+			["Alice", "30"],
+			["Bob", "25"]
+		]);
+	});
+
+	test("imports a dropped single-column CSV", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, "name\nAlice\nBob\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 1, 0)?.textContent).toContain("Bob");
+	});
+
+	function drag_file(
+		container: HTMLElement,
+		type: "dragenter" | "dragleave"
+	): void {
+		const upload_container = container.querySelector(
+			".upload-container"
+		) as HTMLElement;
+		upload_container.dispatchEvent(
+			new DragEvent(type, { bubbles: true, cancelable: true })
+		);
+	}
+
+	test("highlights the table while a file is dragged over it", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+		const table_wrap = get_table_wrap(container);
+
+		drag_file(container, "dragenter");
+		await wait();
+		expect(table_wrap).toHaveClass("file-dragging");
+
+		drag_file(container, "dragleave");
+		await wait();
+		expect(table_wrap).not.toHaveClass("file-dragging");
+	});
+
+	test("does not highlight the table when it is not interactive", async () => {
+		const { container } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+
+		drag_file(container, "dragenter");
+		await wait();
+
+		expect(get_table_wrap(container)).not.toHaveClass("file-dragging");
+	});
+
+	test("ignores a dropped CSV when the dataframe is not interactive", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+		const change = listen("change");
+
+		drop_csv(container, "name,age\nAlice,30\nBob,25\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+	});
+});
