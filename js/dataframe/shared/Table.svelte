@@ -35,7 +35,7 @@
 		is_cell_selected,
 		handle_click_outside as handle_click_outside_util
 	} from "./utils/selection_utils";
-	import { copy_table_data, handle_file_upload } from "./utils/table_utils";
+	import { copy_table_data, parse_table_file } from "./utils/table_utils";
 	import { gradio_filter_fn } from "./utils/filter";
 	import { create_column_measurement } from "./column_measurement.svelte.js";
 
@@ -73,7 +73,8 @@
 		onselect,
 		onedit,
 		onsearch,
-		onfullscreen
+		onfullscreen,
+		onerror
 	}: {
 		datatype: Datatype | Datatype[];
 		label?: string | null;
@@ -109,6 +110,7 @@
 		onedit?: (detail: EditData) => void;
 		onsearch?: (detail: string | null) => void;
 		onfullscreen?: () => void;
+		onerror?: (message: string) => void;
 	} = $props();
 
 	type GradioRow = Record<string, CellValue> & { _index: number };
@@ -273,7 +275,11 @@
 	let copy_flash = $state(false);
 	let is_dragging = $state(false);
 	let show_scroll_button = $state(false);
-	let dragging = $state(false); // file drag
+	let file_dragging = $state(false);
+	let discard_pending_edit = false;
+	// document-unique so several dataframes on a page do not describe each
+	// other's grids
+	const drop_hint_id = $props.id();
 
 	let parent: HTMLDivElement;
 
@@ -578,12 +584,21 @@
 		blur_event: FocusEvent;
 		coords: [number, number];
 	}): void {
+		// an import replaces the table under an open editor, and EditableCell
+		// commits when it leaves edit mode either way. that half-typed value
+		// belongs to the table that just went away
+		if (discard_pending_edit) return;
+
 		const { coords } = detail;
 		const input_el = detail.blur_event.target as HTMLTextAreaElement;
 		if (!input_el || input_el.value === undefined) return;
 
 		const [row, col] = coords;
-		const old_value = values?.[row]?.[col];
+		// and deleting a row leaves the editor's row behind. a column short of
+		// the header is not the same thing: a value can arrive ragged, and the
+		// cell past the end of its own row still renders and still takes an edit
+		if (!values?.[row]) return;
+		const old_value = values[row][col];
 		const new_value = input_el.value;
 
 		if (String(old_value) !== String(new_value)) {
@@ -813,15 +828,21 @@
 		setTimeout(() => (copy_flash = false), 800);
 	}
 
+	// every one of these holds a row or column index, so they have to go
+	// whenever the table stops being the one they were recorded against
+	function reset_interaction_state(): void {
+		selected_cells = [];
+		selected = false;
+		editing = false;
+		header_edit = false;
+		selected_header = false;
+		active_cell_menu = null;
+		active_header_menu = null;
+	}
+
 	function handle_click_outside(event: Event): void {
 		if (handle_click_outside_util(event, parent)) {
-			selected_cells = [];
-			selected = false;
-			editing = false;
-			header_edit = false;
-			selected_header = false;
-			active_cell_menu = null;
-			active_header_menu = null;
+			reset_interaction_state();
 		}
 	}
 
@@ -1051,21 +1072,70 @@
 		}
 	}
 
-	function on_file_upload(file_data: any): void {
-		handle_file_upload(
-			typeof file_data === "string" ? file_data : (file_data?.data ?? ""),
-			(head) => {
-				headers = head.map((h: any) => h ?? "");
-				return (headers as string[]).map((h: string, i: number) => ({
-					id: `h_${i}`,
-					value: h
-				}));
-			},
-			(vals) => {
-				values = vals;
-				push_change(vals, headers as string[]);
-			}
+	function apply_imported_table(
+		new_headers: (string | null)[],
+		new_values: CellValue[][]
+	): void {
+		if (!new_headers.length) {
+			throw new Error("The dropped file is empty.");
+		}
+		// a file of separators alone parses into a header of blank names, and
+		// importing it would replace the table with unnamed columns
+		if (new_headers.every((h) => !h?.trim())) {
+			throw new Error("The dropped file has no column names.");
+		}
+		// a row the header cannot account for would reach the backend as a ragged
+		// value, and the column checks below only see the header
+		const ragged = new_values.findIndex(
+			(row) => row.length !== new_headers.length
 		);
+		if (ragged !== -1) {
+			throw new Error(
+				`Line ${ragged + 2} of the file has ${new_values[ragged].length} fields, the header has ${new_headers.length}.`
+			);
+		}
+		// the menu paths already refuse to change a fixed shape or write to a
+		// read-only column, so an import must not be the way around them
+		if (static_columns.length > 0) {
+			throw new Error("Cannot import into a table with read-only columns.");
+		}
+		if (col_count[1] === "fixed" && new_headers.length !== col_count[0]) {
+			throw new Error(
+				`This table takes exactly ${col_count[0]} columns, the file has ${new_headers.length}.`
+			);
+		}
+		if (row_count[1] === "fixed" && new_values.length !== row_count[0]) {
+			throw new Error(
+				`This table takes exactly ${row_count[0]} rows, the file has ${new_values.length}.`
+			);
+		}
+
+		discard_pending_edit = true;
+		headers = new_headers;
+		values = new_values;
+		reset_interaction_state();
+		// tanstack keys these by positional col_N, so they would land on whichever
+		// column now sits at that index. a search is worse than misplaced: it hides
+		// imported rows, and commit_filter then drops the hidden ones from the value
+		sorting = [];
+		column_filters = [];
+		global_filter = "";
+		push_change(new_values, headers as string[]);
+		tick().then(() => (discard_pending_edit = false));
+	}
+
+	// undefined when every dropped file was filtered out by `filetype`
+	function on_file_upload(file: File | undefined): void {
+		if (!editable || !file) return;
+		parse_table_file(file)
+			.then(({ headers: new_headers, values: new_values }) =>
+				apply_imported_table(new_headers, new_values)
+			)
+			.catch((e) => {
+				const message = e instanceof Error ? e.message : String(e);
+				if (onerror) onerror(message);
+				else console.error(message);
+			});
 	}
 
 	onMount(() => {
@@ -1159,6 +1229,7 @@
 		bind:this={parent}
 		class="table-wrap"
 		class:dragging={is_dragging}
+		class:file-dragging={file_dragging && editable}
 		class:menu-open={active_cell_menu || active_header_menu}
 		onkeydown={handle_keydown}
 		role="grid"
@@ -1166,6 +1237,7 @@
 		aria-rowcount={rows.length + 1}
 		aria-colcount={resolved_headers.length + Number(show_row_numbers)}
 		aria-readonly={!editable}
+		aria-describedby={editable ? drop_hint_id : undefined}
 		tabindex={rows.length === 0 ? 0 : -1}
 		style="--df-max-col-width: {viewport_width}px;"
 	>
@@ -1176,10 +1248,12 @@
 			center={false}
 			boundedheight={false}
 			disable_click={true}
+			format="blob"
+			filetype={[".csv", ".tsv"]}
 			{root}
 			onload={on_file_upload}
-			bind:dragging
-			aria_label={i18n("dataframe.drop_to_upload")}
+			onerror={editable ? onerror : undefined}
+			bind:dragging={file_dragging}
 			tab_index={-1}
 			container_element="div"
 		>
@@ -1396,6 +1470,15 @@
 			<button class="scroll-top-button" onclick={scroll_to_top}>&uarr;</button>
 		{/if}
 	</div>
+
+	<!-- outside the grid: #13729 took the label off a span like this one and put it
+	     on the grid as an attribute, and a test pins that there is no sr-only text
+	     inside. a description has no equally well supported attribute form -->
+	{#if editable}
+		<span id={drop_hint_id} class="drop-hint"
+			>{i18n("dataframe.drop_to_upload")}</span
+		>
+	{/if}
 </div>
 
 {#if active_cell_menu || active_header_menu}
@@ -1504,8 +1587,13 @@
 
 	.table-wrap {
 		position: relative;
-		transition: 150ms;
 		width: 100%;
+		/* the duration used to stand alone, which means every property. that
+		   swept the drag outline in from `currentcolor`, near-white in dark
+		   mode, before it reached the accent. the list is what the fullscreen
+		   rules above actually change */
+		transition-property: flex-grow, flex-shrink, flex-basis, min-height;
+		transition-duration: 150ms;
 	}
 
 	/* Constrain Upload component wrapper */
@@ -1519,6 +1607,27 @@
 
 	.table-wrap:focus-within {
 		outline: none;
+	}
+
+	/* after :focus-within, which is equally specific and would otherwise
+	   clear the outline whenever a cell is focused. drawn inside the box so
+	   hovering a file over the table shifts nothing */
+	.table-wrap.file-dragging {
+		outline: 2px solid var(--color-accent);
+		outline-offset: -2px;
+		/* matches the .upload-container border the outline covers */
+		border-radius: var(--table-radius);
+	}
+
+	/* an aria-describedby target, so it has to stay in the accessibility tree
+	   rather than be hidden with display: none */
+	.drop-hint {
+		position: absolute;
+		clip-path: inset(50%);
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		white-space: nowrap;
 	}
 
 	.table-wrap.dragging {

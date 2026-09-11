@@ -2,8 +2,7 @@ import { describe, test, expect } from "vitest";
 import {
 	make_cell_id,
 	make_header_id,
-	guess_delimiter,
-	data_uri_to_blob
+	parse_table_file
 } from "../shared/utils/table_utils";
 import { cast_value_to_type } from "../shared/utils/utils";
 
@@ -69,41 +68,106 @@ describe("cast_value_to_type", () => {
 	});
 });
 
-describe("guess_delimiter", () => {
-	test("detects comma delimiter", () => {
-		const csv = "a,b,c\n1,2,3\n4,5,6";
-		expect(guess_delimiter(csv, [",", "\t"])).toContain(",");
+describe("parse_table_file", () => {
+	test("detects a comma-separated file", async () => {
+		const file = new File(["a,b,c\n1,2,3\n4,5,6"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b", "c"],
+			values: [
+				["1", "2", "3"],
+				["4", "5", "6"]
+			]
+		});
 	});
 
-	test("detects tab delimiter", () => {
-		const tsv = "a\tb\tc\n1\t2\t3\n4\t5\t6";
-		expect(guess_delimiter(tsv, [",", "\t"])).toContain("\t");
+	test("detects a tab-separated file", async () => {
+		const file = new File(["a\tb\tc\n1\t2\t3\n4\t5\t6"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b", "c"],
+			values: [
+				["1", "2", "3"],
+				["4", "5", "6"]
+			]
+		});
 	});
 
-	test("returns empty array when no consistent delimiter", () => {
-		const text = "abc\ndef\nghi";
-		expect(guess_delimiter(text, [",", "\t"])).toEqual([]);
+	test("picks the extension's delimiter when both look consistent", async () => {
+		const file = new File(["first,last\tage\nAlice,Smith\t30\n"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["first,last", "age"],
+			values: [["Alice,Smith", "30"]]
+		});
 	});
 
-	test("handles single-line input", () => {
-		// single line with commas — cache set once, always matches
-		const text = "a,b,c";
-		expect(guess_delimiter(text, [",", "\t"])).toContain(",");
-	});
-});
-
-describe("data_uri_to_blob", () => {
-	test("converts data URI to Blob with correct MIME type", () => {
-		const data_uri = "data:text/plain;base64,SGVsbG8=";
-		const blob = data_uri_to_blob(data_uri);
-		expect(blob.type).toBe("text/plain");
+	test("reads a mislabeled file by its content", async () => {
+		const file = new File(["name,age\nAlice,30\n"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "age"],
+			values: [["Alice", "30"]]
+		});
 	});
 
-	test("converts data URI to Blob with correct content", async () => {
-		// "Hello" in base64 is "SGVsbG8="
-		const data_uri = "data:text/plain;base64,SGVsbG8=";
-		const blob = data_uri_to_blob(data_uri);
-		const text = await blob.text();
-		expect(text).toBe("Hello");
+	// counting raw separators misses this: the quoted comma makes the comma counts
+	// disagree between the two lines, so nothing looks consistent
+	test("reads a mislabeled file whose field holds a quoted comma", async () => {
+		const file = new File(['name,note\nA,"x,y"\n'], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "note"],
+			values: [["A", "x,y"]]
+		});
+	});
+
+	// the extension says comma and the header does split on one, but only the
+	// tab splits every line, so the name loses to the file's own shape
+	test("reads a mislabeled file whose header holds the other separator", async () => {
+		const file = new File(["first,last\tage\nAlice\t30\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["first,last", "age"],
+			values: [["Alice", "30"]]
+		});
+	});
+
+	// nothing splits this file consistently, so the separator that at least
+	// splits the header wins and the caller gets to report a useful mismatch
+	test("falls back to the separator that splits the header", async () => {
+		const file = new File(["name,age\nAlice,30,Engineer\n"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "age"],
+			values: [["Alice", "30", "Engineer"]]
+		});
+	});
+
+	test("ignores blank lines", async () => {
+		const file = new File(["a,b\n1,2\n\n3,4\n\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b"],
+			values: [
+				["1", "2"],
+				["3", "4"]
+			]
+		});
+	});
+
+	test("ignores blank lines in a file with windows line endings", async () => {
+		const file = new File(["a,b\r\n1,2\r\n\r\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b"],
+			values: [["1", "2"]]
+		});
+	});
+
+	// excel writes one in front of its csv export. Blob.text() decodes as UTF-8,
+	// which drops it, so this holds as long as the file is read that way
+	test("strips a byte order mark from the first header", async () => {
+		const file = new File(["﻿name,age\nAlice,30\n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "age"],
+			values: [["Alice", "30"]]
+		});
+	});
+
+	test("returns nothing for a file that holds only whitespace", async () => {
+		const file = new File(["   \n"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({ headers: [], values: [] });
 	});
 });
