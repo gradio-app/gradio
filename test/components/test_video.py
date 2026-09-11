@@ -1,6 +1,5 @@
 import asyncio
 import functools
-import hashlib
 import json
 import math
 import os
@@ -108,32 +107,6 @@ def lossless_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 8
     return sorted(out.glob("chunk*.mp4"))
 
 
-def ffmpeg_identity() -> str:
-    """Which ffmpeg binary ran, and on what. TEMPORARY: CI crashes inside
-    ffmpeg itself, on a build whose hash matches a clean download and which
-    reads the same files elsewhere, so what is left is the machine."""
-    path = shutil.which("ffmpeg") or "?"
-    digest = (
-        hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16] if path != "?" else "?"
-    )
-    banner = subprocess.run(["ffmpeg", "-version"], check=False, capture_output=True)
-    first = banner.stdout.decode(errors="replace").splitlines()[:1]
-    cpu = [
-        line.split(":", 1)[1].strip()
-        for line in Path("/proc/cpuinfo").read_text().splitlines()
-        if line.startswith("model name")
-    ][:1]
-    return f"{path} sha256:{digest} {first} on {cpu}"
-
-
-def retry_without_simd(args: list[str], stdin: bytes | None) -> str:
-    """Whether the same command survives with ffmpeg's hand-written assembly
-    turned off, which says whether the crash is in a SIMD path. TEMPORARY."""
-    plain = [args[0], "-cpuflags", "0", *args[1:]]
-    result = subprocess.run(plain, check=False, input=stdin, capture_output=True)
-    return f"exit {result.returncode}, {len(result.stdout)} bytes out"
-
-
 def decode_mono(payload: bytes | Path) -> np.ndarray:
     args = ["ffmpeg", "-v", "quiet", "-nostdin"]
     stdin: bytes | None = None
@@ -146,12 +119,7 @@ def decode_mono(payload: bytes | Path) -> np.ndarray:
         "-vn", "-f", "s16le", "-acodec", "pcm_s16le",
         "-ar", str(AUDIO_RATE), "-ac", "1", "pipe:1",
     ]  # fmt: skip
-    result = subprocess.run(args, check=False, input=stdin, capture_output=True)
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"decode exited {result.returncode} with {ffmpeg_identity()};"
-            f" without SIMD: {retry_without_simd(args, stdin)}"
-        )
+    result = subprocess.run(args, input=stdin, capture_output=True, check=True)
     return np.frombuffer(result.stdout, dtype="<i2").astype(np.float32) / 32767.0
 
 
@@ -180,9 +148,9 @@ def mpegts_readable() -> bool:
 
     The static 7.0.2 build CI pins segfaults on any MPEG-TS on the runners it
     gets, and a test that has to decode a served stream cannot say anything
-    about the stream when the decoder dies. The pin moves in this PR, but
-    workflows take the action from `@main`, so it only takes effect once this
-    is merged; until then these skip there and run everywhere else.
+    about the stream when the decoder dies. Moving that pin is a change of its
+    own, since workflows take the action from `@main` and an edit to it only
+    counts once merged, so until then these skip there and run everywhere else.
     """
     if not processing_utils.ffmpeg_installed():
         return True  # `requires_ffmpeg` skips these anyway
@@ -503,12 +471,9 @@ class TestVideo:
         served.write_bytes(b"".join(segment["data"] for segment in segments))
         result = subprocess.run(
             ["ffmpeg", "-v", "warning", "-nostdin", "-i", str(served), "-f", "null", "-"],
-            check=False, capture_output=True,
+            capture_output=True,
+            check=True,
         )  # fmt: skip
-        assert result.returncode == 0, (
-            f"decode exited {result.returncode} with {ffmpeg_identity()};"
-            f" without SIMD: {retry_without_simd(['ffmpeg', '-v', 'warning', '-nostdin', '-i', str(served), '-f', 'null', '-'], None)}"
-        )
         assert result.stderr.decode() == ""
 
         video_pts = packet_timestamps(served.read_bytes(), "v", tmp_path, "pts_time")
