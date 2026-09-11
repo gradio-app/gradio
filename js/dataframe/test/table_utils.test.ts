@@ -2,7 +2,6 @@ import { describe, test, expect } from "vitest";
 import {
 	make_cell_id,
 	make_header_id,
-	guess_delimiter,
 	parse_table_file
 } from "../shared/utils/table_utils";
 import { cast_value_to_type } from "../shared/utils/utils";
@@ -69,30 +68,29 @@ describe("cast_value_to_type", () => {
 	});
 });
 
-describe("guess_delimiter", () => {
-	test("detects comma delimiter", () => {
-		const csv = "a,b,c\n1,2,3\n4,5,6";
-		expect(guess_delimiter(csv, [",", "\t"])).toContain(",");
-	});
-
-	test("detects tab delimiter", () => {
-		const tsv = "a\tb\tc\n1\t2\t3\n4\t5\t6";
-		expect(guess_delimiter(tsv, [",", "\t"])).toContain("\t");
-	});
-
-	test("returns empty array when no consistent delimiter", () => {
-		const text = "abc\ndef\nghi";
-		expect(guess_delimiter(text, [",", "\t"])).toEqual([]);
-	});
-
-	test("handles single-line input", () => {
-		// single line with commas — cache set once, always matches
-		const text = "a,b,c";
-		expect(guess_delimiter(text, [",", "\t"])).toContain(",");
-	});
-});
-
 describe("parse_table_file", () => {
+	test("detects a comma-separated file", async () => {
+		const file = new File(["a,b,c\n1,2,3\n4,5,6"], "data.csv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b", "c"],
+			values: [
+				["1", "2", "3"],
+				["4", "5", "6"]
+			]
+		});
+	});
+
+	test("detects a tab-separated file", async () => {
+		const file = new File(["a\tb\tc\n1\t2\t3\n4\t5\t6"], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["a", "b", "c"],
+			values: [
+				["1", "2", "3"],
+				["4", "5", "6"]
+			]
+		});
+	});
+
 	test("picks the extension's delimiter when both look consistent", async () => {
 		const file = new File(["first,last\tage\nAlice,Smith\t30\n"], "data.tsv");
 		expect(await parse_table_file(file)).toEqual({
@@ -106,6 +104,16 @@ describe("parse_table_file", () => {
 		expect(await parse_table_file(file)).toEqual({
 			headers: ["name", "age"],
 			values: [["Alice", "30"]]
+		});
+	});
+
+	// counting raw separators misses this: the quoted comma makes the comma counts
+	// disagree between the two lines, so nothing looks consistent
+	test("reads a mislabeled file whose field holds a quoted comma", async () => {
+		const file = new File(['name,note\nA,"x,y"\n'], "data.tsv");
+		expect(await parse_table_file(file)).toEqual({
+			headers: ["name", "note"],
+			values: [["A", "x,y"]]
 		});
 	});
 

@@ -1694,6 +1694,41 @@ describe("Dataframe CSV drop", () => {
 		expect(get_cell(container, 0, 1)?.textContent).toContain("30");
 	});
 
+	// the name says tab, but every tab-split of this file is one field wide, so it
+	// has to be read as the comma-separated file it actually is
+	test("imports a mislabeled TSV whose field holds a quoted comma", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, 'name,note\nAlice,"x,y"\n', "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "note"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 0, 1)?.textContent).toContain("x,y");
+	});
+
+	test("rejects a dropped file whose rows do not match its header", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30,Engineer\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalledTimes(1);
+
+		drop_csv(container, "name,age\nAlice\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalledTimes(2);
+	});
+
 	test("reports an error and keeps the table when the file is blank", async () => {
 		const { container, listen } = await render(Dataframe, drop_props);
 		await wait();

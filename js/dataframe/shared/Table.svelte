@@ -1074,6 +1074,16 @@
 		if (!new_headers.length) {
 			throw new Error("The dropped file is empty.");
 		}
+		// a row the header cannot account for would reach the backend as a ragged
+		// value, and the column checks below only see the header
+		const ragged = new_values.findIndex(
+			(row) => row.length !== new_headers.length
+		);
+		if (ragged !== -1) {
+			throw new Error(
+				`Line ${ragged + 2} of the file has ${new_values[ragged].length} fields, the header has ${new_headers.length}.`
+			);
+		}
 		// the menu paths already refuse to change a fixed shape or write to a
 		// read-only column, so an import must not be the way around them
 		if (static_columns.length > 0) {

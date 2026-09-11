@@ -47,38 +47,26 @@ export async function copy_table_data(
 	}
 }
 
-export function guess_delimiter(
-	text: string,
-	possibleDelimiters: string[]
-): string[] {
-	return possibleDelimiters.filter(weedOut);
-
-	function weedOut(delimiter: string): boolean {
-		var cache = -1;
-		return text.split("\n").every(checkLength);
-
-		function checkLength(line: string): boolean {
-			if (!line) return true;
-			var length = line.split(delimiter).length;
-			if (cache < 0) cache = length;
-			return cache === length && length > 1;
-		}
-	}
-}
-
 export async function parse_table_file(
 	file: File
 ): Promise<{ headers: Headers; values: CellValue[][] }> {
 	const text = await file.text();
 	if (!text.trim()) return { headers: [], values: [] };
-	// the drop zone only accepts .csv and .tsv, so the extension is the
-	// authoritative separator. guessing still goes first, with the extension's
-	// separator ahead of the other, so a mislabeled file is read by its content:
-	// both separators can look consistent at once (a TSV with a comma in every
-	// row), and neither does for a single column or a quoted separator.
+	// the drop zone only accepts .csv and .tsv, so the extension goes first and
+	// decides on its own for a single-column file, where neither separator splits
+	// anything. a mislabeled file is still read by its content, and the split is
+	// d3's rather than a raw count so a separator inside a quoted field does not
+	// throw the detection off.
 	const by_extension = file.name.toLowerCase().endsWith(".tsv") ? "\t" : ",";
 	const candidates = by_extension === "\t" ? ["\t", ","] : [",", "\t"];
-	const [delimiter = by_extension] = guess_delimiter(text, candidates);
-	const [head = [], ...rest] = dsvFormat(delimiter).parseRows(text);
+	let rows: string[][] | undefined;
+	for (const delimiter of candidates) {
+		const parsed = dsvFormat(delimiter).parseRows(text);
+		if ((parsed[0]?.length ?? 0) > 1) {
+			rows = parsed;
+			break;
+		}
+	}
+	const [head = [], ...rest] = rows ?? dsvFormat(by_extension).parseRows(text);
 	return { headers: head.map((h) => h ?? ""), values: rest };
 }
