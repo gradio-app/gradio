@@ -1615,6 +1615,35 @@ describe("Dataframe CSV drop", () => {
 		"VISUAL: the file drag outline is drawn inside the table's border and follows its corner radius, needs Playwright visual regression screenshot comparison"
 	);
 
+	// #13729 moved this component off hidden sr-only text and onto ARIA attributes
+	// on the grid, so the drop hint goes there too rather than into <Upload>, which
+	// discards a label on its div branch
+	test("announces the drop target on an editable table", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		const described_by =
+			get_table_wrap(container).getAttribute("aria-describedby");
+		expect(described_by).toBeTruthy();
+		// tootils stubs i18n as a passthrough, so the key stands in for the string
+		// it resolves to (en.json: "Drop CSV or TSV files here to import data into
+		// dataframe")
+		expect(document.getElementById(described_by!)?.textContent).toBe(
+			"dataframe.drop_to_upload"
+		);
+	});
+
+	test("does not announce a drop target on a read-only table", async () => {
+		const { container } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+
+		expect(get_table_wrap(container)).not.toHaveAttribute("aria-describedby");
+		expect(container.querySelector(".drop-hint")).toBeNull();
+	});
+
 	test("does not highlight the table when it is not interactive", async () => {
 		const { container } = await render(Dataframe, {
 			...drop_props,

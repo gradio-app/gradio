@@ -277,6 +277,9 @@
 	let show_scroll_button = $state(false);
 	let file_dragging = $state(false);
 	let discard_pending_edit = false;
+	// document-unique so several dataframes on a page do not describe each
+	// other's grids
+	const drop_hint_id = $props.id();
 
 	let parent: HTMLDivElement;
 
@@ -1221,6 +1224,7 @@
 		aria-rowcount={rows.length + 1}
 		aria-colcount={resolved_headers.length + Number(show_row_numbers)}
 		aria-readonly={!editable}
+		aria-describedby={editable ? drop_hint_id : undefined}
 		tabindex={rows.length === 0 ? 0 : -1}
 		style="--df-max-col-width: {viewport_width}px;"
 	>
@@ -1237,7 +1241,6 @@
 			onload={on_file_upload}
 			{onerror}
 			bind:dragging={file_dragging}
-			aria_label={i18n("dataframe.drop_to_upload")}
 			tab_index={-1}
 			container_element="div"
 		>
@@ -1454,6 +1457,15 @@
 			<button class="scroll-top-button" onclick={scroll_to_top}>&uarr;</button>
 		{/if}
 	</div>
+
+	<!-- outside the grid: #13729 took the label off a span like this one and put it
+	     on the grid as an attribute, and a test pins that there is no sr-only text
+	     inside. a description has no equally well supported attribute form -->
+	{#if editable}
+		<span id={drop_hint_id} class="drop-hint"
+			>{i18n("dataframe.drop_to_upload")}</span
+		>
+	{/if}
 </div>
 
 {#if active_cell_menu || active_header_menu}
@@ -1592,6 +1604,17 @@
 		outline-offset: -2px;
 		/* matches the .upload-container border the outline covers */
 		border-radius: var(--table-radius);
+	}
+
+	/* an aria-describedby target, so it has to stay in the accessibility tree
+	   rather than be hidden with display: none */
+	.drop-hint {
+		position: absolute;
+		clip-path: inset(50%);
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		white-space: nowrap;
 	}
 
 	.table-wrap.dragging {
