@@ -117,7 +117,7 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
-    def test_multipage_config_and_info_can_be_scoped_to_page(self):
+    def test_multipage_config_and_info_can_be_scoped_to_page(self, gradio_temp_dir):
         with Blocks() as demo:
             home_input = Textbox()
             home_output = Textbox()
@@ -173,6 +173,26 @@ class TestRoutes:
             )
             assert curl_response.status_code == 200
             assert app.api_info is not None
+
+            deep_link_dir = gradio_temp_dir / "deep_links" / "multipage"
+            deep_link_dir.mkdir(parents=True)
+            (deep_link_dir / "state.json").write_text(
+                json.dumps(full_config["components"])
+            )
+            legacy_deep_link_config = client.get("/config?deep_link=multipage").json()
+            assert {
+                component["id"] for component in legacy_deep_link_config["components"]
+            } == {component["id"] for component in full_config["components"]}
+            assert details_input._id in {
+                component["id"] for component in legacy_deep_link_config["components"]
+            }
+
+            home_deep_link_config = client.get(
+                "/config?deep_link=multipage&page="
+            ).json()
+            assert {
+                component["id"] for component in home_deep_link_config["components"]
+            } == set(home_deep_link_config["page"][""]["components"])
         finally:
             demo.close()
 

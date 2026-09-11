@@ -1116,7 +1116,7 @@ class App(FastAPI):
                 components, deep_link_state = load_deep_link(
                     deep_link,
                     source_config,
-                    selected_page if selected_page is not None else "",
+                    selected_page,
                 )
             if selected_page is not None:
                 config = get_page_config(source_config, selected_page, components)
