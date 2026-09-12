@@ -1394,16 +1394,21 @@ describe("Add/remove rows and columns", () => {
 		row_count: [3, "dynamic"] as [number, "fixed" | "dynamic"]
 	};
 
+	const empty_dynamic_props = {
+		...dynamic_props,
+		value: {
+			data: [],
+			headers: default_props.value.headers,
+			metadata: null
+		},
+		row_count: [0, "dynamic"] as [number, "dynamic"]
+	};
+
 	test("add row button appends a row and focuses its first cell", async () => {
-		const { container, getByRole, getByTestId } = await render(Dataframe, {
-			...dynamic_props,
-			value: {
-				data: [],
-				headers: default_props.value.headers,
-				metadata: null
-			},
-			row_count: [0, "dynamic"] as [number, "dynamic"]
-		});
+		const { container, getByRole, getByTestId } = await render(
+			Dataframe,
+			empty_dynamic_props
+		);
 		await wait();
 
 		await fireEvent.click(getByRole("button", { name: "Add row" }));
@@ -1411,6 +1416,93 @@ describe("Add/remove rows and columns", () => {
 		const added_cell = await waitFor(() => getByTestId("cell-0-0"));
 		expect(get_rows(container)).toHaveLength(1);
 		expect(added_cell).toHaveFocus();
+	});
+
+	test("empty table keeps its add row button on screen in fullscreen", async () => {
+		const { getByRole } = await render(Dataframe, empty_dynamic_props);
+		await wait();
+
+		const toggle = (): HTMLElement =>
+			getByRole("button", { name: /fullscreen/i });
+
+		// A sibling that follows `.table-container` is laid out past the bottom of
+		// the fixed fullscreen viewport, so the button has to be inside it.
+		expect(
+			document.querySelector(".table-container .add-row-button")
+		).not.toBeNull();
+
+		function expect_button_under_header(): void {
+			const box = getByRole("button", {
+				name: "Add row"
+			}).getBoundingClientRect();
+			const header = (
+				document.querySelector("thead") as HTMLElement
+			).getBoundingClientRect();
+			// getByRole already rules out a button that has left the accessibility
+			// tree, but a zero-sized one would still satisfy the bounds below, and
+			// an upper bound on its own also admits a button above the header.
+			expect(box.height).toBeGreaterThan(0);
+			expect(box.top).toBeGreaterThanOrEqual(header.bottom);
+			expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);
+			expect(box.top - header.bottom).toBeLessThan(50);
+		}
+
+		expect_button_under_header();
+
+		// Block animates into fullscreen over 0.1s and the container reaches its
+		// final size a frame before the layout inside it does, so there is no DOM
+		// state to wait on that is not still mid-settle. Measuring early reads the
+		// pre-fullscreen geometry and passes against any layout.
+		await fireEvent.click(toggle());
+		await waitFor(() =>
+			expect(
+				document.querySelector(".table-container.fullscreen")
+			).not.toBeNull()
+		);
+		await wait(300);
+		expect_button_under_header();
+
+		await fireEvent.click(toggle());
+		await waitFor(() =>
+			expect(document.querySelector(".table-container.fullscreen")).toBeNull()
+		);
+		await wait(300);
+		expect_button_under_header();
+	});
+
+	test("table with rows still fills the screen in fullscreen", async () => {
+		// Without this the gate is unguarded: letting every table collapse leaves
+		// the suite green while populated bodies quietly lose their height.
+		const { getByRole } = await render(Dataframe, dynamic_props);
+		await wait();
+
+		// The body, not the wrap: `.table-wrap` keeps `flex: 1 1 auto` from the
+		// rule above and stays tall even when the viewport inside it collapses.
+		function viewport_height(): number {
+			const el = document.querySelector(
+				".table-container .virtual-table-viewport"
+			);
+			expect(el).not.toBeNull();
+			return (el as HTMLElement).getBoundingClientRect().height;
+		}
+
+		const before = viewport_height();
+		expect(before).toBeGreaterThan(0);
+
+		await fireEvent.click(getByRole("button", { name: /fullscreen/i }));
+		await waitFor(() =>
+			expect(
+				document.querySelector(".table-container.fullscreen")
+			).not.toBeNull()
+		);
+		await wait(300);
+
+		expect(
+			document.querySelector(".table-container.fullscreen.no-rows")
+		).toBeNull();
+		// Its own pre-fullscreen height: on a short screen a fixed fraction of
+		// the window is a weak bound.
+		expect(viewport_height()).toBeGreaterThan(before * 2);
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
