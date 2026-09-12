@@ -5,6 +5,7 @@ import {
 	topoSort,
 	resolveCurrentInputs,
 	computeStaleNodes,
+	portRequirement,
 	buildUpstreamSubgraph
 } from "./workflow-graph";
 import type {
@@ -361,5 +362,48 @@ describe("buildUpstreamSubgraph", () => {
 		const result = buildUpstreamSubgraph(source, "a");
 		expect(result.schema_version).toBe("2");
 		expect(result.name).toBe("Original");
+	});
+});
+
+describe("portRequirement", () => {
+	test("required when it feeds a required port", () => {
+		const graph = wf({
+			references: [ref("r")],
+			operators: [
+				op("o", {
+					inputs: [{ id: "in", label: "in", type: "text", required: true }]
+				})
+			],
+			edges: [edge("r", "o")]
+		});
+		expect(portRequirement(graph, "r", "out")).toBe("required");
+	});
+
+	test("required when the target port says nothing", () => {
+		const graph = wf({
+			references: [ref("r")],
+			operators: [op("o")],
+			edges: [edge("r", "o")]
+		});
+		expect(portRequirement(graph, "r", "out")).toBe("required");
+	});
+
+	test("optional when every port it feeds is optional", () => {
+		const graph = wf({
+			references: [ref("r")],
+			operators: [
+				op("o", {
+					inputs: [{ id: "in", label: "in", type: "text", required: false }]
+				})
+			],
+			edges: [edge("r", "o")]
+		});
+		expect(portRequirement(graph, "r", "out")).toBe("optional");
+	});
+
+	test("optional when it feeds nothing", () => {
+		expect(portRequirement(wf({ references: [ref("r")] }), "r", "out")).toBe(
+			"optional"
+		);
 	});
 });
