@@ -1235,10 +1235,6 @@ class App(FastAPI):
                 # each segment by accumulating these and the rounding adds up.
                 playlist += f"#EXTINF:{segment['duration']:.6f},\n"
                 playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
-                # HLS expects the start time of the video segments to be continuous
-                # Instead of re-encoding the user video chunks, we add a discontinuity tag
-                if segment["extension"] == ".ts":
-                    playlist += "#EXT-X-DISCONTINUITY\n"
 
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"

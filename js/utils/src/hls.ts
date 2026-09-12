@@ -6,14 +6,65 @@ export function is_hls_supported(): boolean {
 	return Hls.isSupported();
 }
 
+// How much has to be buffered past the playhead before a stall counts as the
+// player being stuck rather than the stream still arriving.
+const STUCK_AHEAD_SECONDS = 0.25;
+
+function buffered_ahead(media: HTMLMediaElement): number {
+	for (let i = 0; i < media.buffered.length; i++) {
+		if (
+			media.buffered.start(i) <= media.currentTime &&
+			media.buffered.end(i) > media.currentTime
+		) {
+			return media.buffered.end(i) - media.currentTime;
+		}
+	}
+	return 0;
+}
+
+/**
+ * Get playback going again whenever it stalls with data to spare.
+ *
+ * A generator slower than real time drains the buffer and playback stalls,
+ * which cannot be helped. That it never restarts can be: once the playhead
+ * freezes the buffer ahead of it grows past `maxBufferLength`, so hls.js stops
+ * loading and nothing prods the element. hls.js nudges across a hole in the
+ * buffer but not across the end of one.
+ *
+ * Polled rather than driven off the stall event, which hls.js raises while the
+ * buffer is still empty and not again once the data has turned up.
+ */
+export function watch_for_stalls(media: HTMLMediaElement): () => void {
+	let last_time = -1;
+	let still = 0;
+	const timer = setInterval(() => {
+		if (media.paused || media.ended || media.seeking) {
+			still = 0;
+			return;
+		}
+		if (media.currentTime !== last_time) {
+			last_time = media.currentTime;
+			still = 0;
+			return;
+		}
+		still += 1;
+		if (still < 3 || buffered_ahead(media) < STUCK_AHEAD_SECONDS) return;
+		still = 0;
+		media.currentTime = media.currentTime + 0.01;
+		media.play().catch(() => {});
+	}, 250);
+	return () => clearInterval(timer);
+}
+
 export function create_hls_stream(
 	media: HTMLMediaElement,
 	url: string,
 	on_manifest_parsed?: () => void
 ): Hls {
 	const hls = new Hls({
-		maxBufferLength: 1,
-		maxMaxBufferLength: 1,
+		// One second was too little to absorb any pause in supply.
+		maxBufferLength: 4,
+		maxMaxBufferLength: 30,
 		lowLatencyMode: true
 	});
 
@@ -40,6 +91,9 @@ export function create_hls_stream(
 				break;
 		}
 	});
+
+	const stop_watching = watch_for_stalls(media);
+	hls.on(Hls.Events.DESTROYING, stop_watching);
 
 	hls.loadSource(url);
 	hls.attachMedia(media);

@@ -146,6 +146,32 @@ class TestRoutes:
         assert "#EXT-X-DISCONTINUITY" not in response.text
         assert response.headers["cache-control"] == "no-store"
 
+    def test_video_stream_playlist_is_continuous(self):
+        """The segments share one timeline, so nothing tells the player to reset.
+
+        The tag used to be written after every `.ts` because each segment was
+        muxed on its own and started at the muxer's zero. It would now throw
+        away the continuity the stream's single audio encoder gives it.
+        """
+        with Blocks() as demo:
+            video = gr.Video()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        for index in range(2):
+            asyncio.run(
+                stream.add_segment(
+                    {"data": bytes([index]), "duration": 0.5, "extension": ".ts"}
+                )
+            )
+        demo.pending_streams["session"]["0"] = {video._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{video._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-DISCONTINUITY" not in response.text
+
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")
         assert response.status_code == 200
