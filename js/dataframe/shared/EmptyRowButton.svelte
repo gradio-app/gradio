@@ -16,7 +16,6 @@
 		color: var(--body-text-color);
 		cursor: pointer;
 		transition: all 150ms;
-		margin-top: var(--size-2);
 		z-index: 10;
 		position: relative;
 		pointer-events: auto;
