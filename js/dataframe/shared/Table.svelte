@@ -252,6 +252,10 @@
 
 	let selected_cells: CellCoordinate[] = $state([]);
 	let selected: CellCoordinate | false = $state(false);
+	// where a shift+click range starts. `selected` cannot serve, because it
+	// follows every click, the shift+clicks that extend the range included.
+	// nothing renders from it, so it does not need to be reactive
+	let range_anchor: CellCoordinate | false = false;
 	let editing: CellCoordinate | false = $state(false);
 	let header_edit: number | false = $state(false);
 	let selected_header: number | false = $state(false);
@@ -295,6 +299,12 @@
 		return rows.findIndex((row) => row.original._index === row_index);
 	}
 
+	// for the whole-selection sweeps, where one findIndex per cell would make
+	// Delete and copy quadratic on a column selection
+	function visible_row_set(): Set<number> {
+		return new Set(rows.map((row) => row.original._index));
+	}
+
 	function is_active_cell(row: number, col: number): boolean {
 		return !!(
 			keyboard_active &&
@@ -322,6 +332,7 @@
 
 	function set_active_cell(coord: CellCoordinate, move_focus = true): void {
 		selected = coord;
+		range_anchor = coord;
 		selected_cells = [coord];
 		selected_header = false;
 		header_edit = false;
@@ -341,6 +352,7 @@
 	function handle_header_focus(col: number): void {
 		if (header_edit !== false) return;
 		selected = false;
+		range_anchor = false;
 		selected_cells = [];
 		selected_header = col;
 	}
@@ -513,7 +525,8 @@
 	function handle_cell_click(
 		event: MouseEvent,
 		row: number,
-		col: number
+		col: number,
+		view_index: number
 	): void {
 		const col_is_static =
 			!editable ||
@@ -525,25 +538,37 @@
 		event.stopPropagation();
 
 		const coord: CellCoordinate = [row, col];
-		if (event.shiftKey && selected) {
-			// range select
-			const [r1, c1] = selected;
-			const [r2, c2] = coord;
-			const new_cells: CellCoordinate[] = [];
-			for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) {
-				for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) {
-					new_cells.push([r, c]);
+		if (event.shiftKey && range_anchor) {
+			// the range runs from the anchor, and the search may have hidden its
+			// row since
+			const from_row = visible_row_position(range_anchor[0]);
+			if (from_row === -1) {
+				selected_cells = [coord];
+				range_anchor = coord;
+			} else {
+				const c1 = range_anchor[1];
+				const new_cells: CellCoordinate[] = [];
+				for (
+					let p = Math.min(from_row, view_index);
+					p <= Math.max(from_row, view_index);
+					p++
+				) {
+					for (let c = Math.min(c1, col); c <= Math.max(c1, col); c++) {
+						new_cells.push([rows[p].original._index, c]);
+					}
 				}
+				selected_cells = new_cells;
 			}
-			selected_cells = new_cells;
 		} else if (event.metaKey || event.ctrlKey) {
 			// toggle select
 			const exists = selected_cells.some(([r, c]) => r === row && c === col);
 			selected_cells = exists
 				? selected_cells.filter(([r, c]) => !(r === row && c === col))
 				: [...selected_cells, coord];
+			range_anchor = coord;
 		} else {
 			selected_cells = [coord];
+			range_anchor = coord;
 		}
 
 		selected = coord;
@@ -607,6 +632,7 @@
 
 		editing = false;
 		selected = false;
+		range_anchor = false;
 		selected_cells = [];
 		active_cell_menu = null;
 		active_header_menu = null;
@@ -803,20 +829,40 @@
 		push_change(filtered_values);
 	}
 
-	async function handle_copy(): Promise<void> {
+	// false when nothing reached the clipboard, so the toolbar can hold back its
+	// "Copied to clipboard" state
+	async function handle_copy(): Promise<boolean> {
+		const visible = visible_row_set();
+		const cells =
+			selected_cells.length > 0
+				? selected_cells.filter(([r]) => visible.has(r))
+				: rows.flatMap((row) => {
+						const r = row.original._index;
+						return (values[r] ?? []).map((_, c) => [r, c] as CellCoordinate);
+					});
+		if (cells.length === 0) return false;
+
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		const cells_to_copy = selected_cells.length > 0 ? selected_cells : null;
-		await copy_table_data(data_for_copy, cells_to_copy);
+		try {
+			await copy_table_data(data_for_copy, cells);
+		} catch (err) {
+			// the write can be refused outright, on an insecure origin or without
+			// permission. logged because this catches anything else thrown too
+			console.error(err);
+			return false;
+		}
 		copy_flash = true;
 		setTimeout(() => (copy_flash = false), 800);
+		return true;
 	}
 
 	function handle_click_outside(event: Event): void {
 		if (handle_click_outside_util(event, parent)) {
 			selected_cells = [];
 			selected = false;
+			range_anchor = false;
 			editing = false;
 			header_edit = false;
 			selected_header = false;
@@ -895,6 +941,7 @@
 					set_active_cell([rows[row_position - 1].original._index, col]);
 				} else {
 					selected = false;
+					range_anchor = false;
 					selected_cells = [];
 					selected_header = col;
 					focus_header(col);
@@ -1001,13 +1048,28 @@
 				if (!editing && editable) {
 					e.preventDefault();
 					const new_values = values.map((value_row) => [...value_row]);
+					const visible = visible_row_set();
+					let cleared = false;
 					selected_cells.forEach(([selected_row, selected_col]) => {
-						if (!is_static_column(selected_col)) {
+						// undefined is a cell past the end of a short row, or a row a
+						// shrunk table no longer has; a null is a value, so it is cleared
+						const current = new_values[selected_row]?.[selected_col];
+						if (
+							!is_static_column(selected_col) &&
+							visible.has(selected_row) &&
+							current !== "" &&
+							current !== undefined
+						) {
 							new_values[selected_row][selected_col] = "";
+							cleared = true;
 						}
 					});
-					values = new_values;
-					push_change(new_values);
+					// pushing with nothing written would fire change and input for an
+					// identical table
+					if (cleared) {
+						values = new_values;
+						push_change(new_values);
+					}
 				}
 				break;
 			default:
@@ -1281,6 +1343,10 @@
 					{#each virtual_items as virtual_row (virtual_row.key)}
 						{@const row = rows[virtual_row.index]}
 						{@const row_idx = row?.original._index ?? virtual_row.index}
+						{@const row_above =
+							rows[virtual_row.index - 1]?.original._index ?? null}
+						{@const row_below =
+							rows[virtual_row.index + 1]?.original._index ?? null}
 						{#if row}
 							<div
 								class="virtual-row"
@@ -1325,7 +1391,9 @@
 										cell_style={get_styling(row_idx, col_idx)}
 										selection_classes={is_cell_selected(
 											[row_idx, col_idx],
-											selected_cells
+											selected_cells,
+											row_above,
+											row_below
 										)}
 										is_active={is_active_cell(row_idx, col_idx)}
 										aria_row_index={virtual_row.index + 2}
@@ -1357,7 +1425,8 @@
 										{components}
 										{is_dragging}
 										wrap_text={wrap}
-										onmousedown={(e) => handle_cell_click(e, row_idx, col_idx)}
+										onmousedown={(e) =>
+											handle_cell_click(e, row_idx, col_idx, virtual_row.index)}
 										ondblclick={(e) =>
 											handle_cell_dblclick(e, row_idx, col_idx)}
 										oncontextmenu={(e) => {

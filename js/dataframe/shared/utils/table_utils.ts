@@ -11,18 +11,17 @@ export function make_header_id(col: number): string {
 
 export async function copy_table_data(
 	data: TableData,
-	selected_cells: [number, number][] | null
+	selected_cells: [number, number][]
 ): Promise<void> {
 	if (!data || !data.length) return;
 
-	const cells_to_copy =
-		selected_cells ||
-		data.flatMap((row, r) => row.map((_, c) => [r, c] as [number, number]));
-
-	const csv = cells_to_copy.reduce(
+	const csv = selected_cells.reduce(
 		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
 			acc[row] = acc[row] || {};
-			const value = String(data[row][col].value);
+			// only the headers are padded out to the column count on the way in, so
+			// a selection can name a cell a short row does not have
+			const cell = data[row]?.[col];
+			const value = cell ? String(cell.value) : "";
 			acc[row][col] =
 				value.includes(",") || value.includes('"') || value.includes("\n")
 					? `"${value.replace(/"/g, '""')}"`
@@ -35,7 +34,11 @@ export async function copy_table_data(
 	const rows = Object.keys(csv).sort((a, b) => +a - +b);
 	if (!rows.length) return;
 
-	const cols = Object.keys(csv[rows[0]]).sort((a, b) => +a - +b);
+	// every column any selected row contributes: taking them from the first row
+	// alone drops the rest of a selection that is not rectangular there
+	const cols = Array.from(
+		new Set(rows.flatMap((r) => Object.keys(csv[r])))
+	).sort((a, b) => +a - +b);
 	const text = rows
 		.map((r) => cols.map((c) => csv[r][c] || "").join(","))
 		.join("\n");
