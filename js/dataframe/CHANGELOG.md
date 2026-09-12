@@ -1,5 +1,12 @@
 # @gradio/dataframe
 
+## 0.24.5
+
+### Fixes
+
+- [#13829](https://github.com/gradio-app/gradio/pull/13829) [`908b427`](https://github.com/gradio-app/gradio/commit/908b427466c2ac1d2950ca3b9fb39371f167fba0) - Fix `gr.Dataframe` shift+click range selecting rows hidden by the search.  Thanks @hysts!
+- [#13831](https://github.com/gradio-app/gradio/pull/13831) [`d99a49a`](https://github.com/gradio-app/gradio/commit/d99a49a1456dd11efbec75b74c29657466b12b30) - Keep the empty Dataframe's add row button on screen in fullscreen.  Thanks @hysts!
+
 ## 0.24.4
 
 ### Fixes
