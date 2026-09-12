@@ -87,23 +87,25 @@ runs:
       uses: actions/cache@v4
       with:
         path: ffmpeg-bin
-        key: ffmpeg-${{ inputs.os }}-7.0.2-v1
+        key: ffmpeg-${{ inputs.os }}-8.1.2-v1
     - name: Install ffmpeg (linux)
       if: ${{ inputs.os == 'ubuntu-latest' && steps.cache-ffmpeg.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         mkdir -p ffmpeg-bin
-        curl -fsSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-7.0.2-amd64-static.tar.xz -o /tmp/ffmpeg.tar.xz
+        curl -fsSL https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-10-15-31/ffmpeg-n8.1.2-51-g7ba069f4f1-linux64-gpl-8.1.tar.xz -o /tmp/ffmpeg.tar.xz
+        echo "7ba4cbcd627eb4d06903910d46ec65e8ddbb6aa17ca0f36f649cf180b6954bf9  /tmp/ffmpeg.tar.xz" | sha256sum -c -
         tar -xf /tmp/ffmpeg.tar.xz -C /tmp
-        cp /tmp/ffmpeg-7.0.2-amd64-static/ffmpeg /tmp/ffmpeg-7.0.2-amd64-static/ffprobe ffmpeg-bin/
+        cp /tmp/ffmpeg-n8.1.2-51-g7ba069f4f1-linux64-gpl-8.1/bin/ffmpeg /tmp/ffmpeg-n8.1.2-51-g7ba069f4f1-linux64-gpl-8.1/bin/ffprobe ffmpeg-bin/
     - name: Install ffmpeg (windows)
       if: ${{ inputs.os == 'windows-latest' && steps.cache-ffmpeg.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         mkdir -p ffmpeg-bin
-        curl -fsSL https://github.com/GyanD/codexffmpeg/releases/download/7.0.2/ffmpeg-7.0.2-essentials_build.zip -o ffmpeg.zip
+        curl -fsSL https://github.com/GyanD/codexffmpeg/releases/download/8.1.2/ffmpeg-8.1.2-essentials_build.zip -o ffmpeg.zip
+        echo "db580001caa24ac104c8cb856cd113a87b0a443f7bdf47d8c12b1d740584a2ec  ffmpeg.zip" | sha256sum -c -
         unzip -q ffmpeg.zip
-        mv ffmpeg-7.0.2-essentials_build/bin/ffmpeg.exe ffmpeg-7.0.2-essentials_build/bin/ffprobe.exe ffmpeg-bin/
+        mv ffmpeg-8.1.2-essentials_build/bin/ffmpeg.exe ffmpeg-8.1.2-essentials_build/bin/ffprobe.exe ffmpeg-bin/
     - name: Add ffmpeg to PATH
       shell: bash
       run: echo "$GITHUB_WORKSPACE/ffmpeg-bin" >> "$GITHUB_PATH"
