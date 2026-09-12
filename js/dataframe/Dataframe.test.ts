@@ -1,4 +1,4 @@
-import { test, describe, afterEach, expect } from "vitest";
+import { test, describe, afterEach, expect, vi, onTestFinished } from "vitest";
 import {
 	cleanup,
 	render,
@@ -69,6 +69,29 @@ async function wait(ms = 50) {
 	await new Promise((r) => setTimeout(r, ms));
 	await tick();
 	await tick();
+}
+
+async function sort_column(
+	container: HTMLElement,
+	header_text: string,
+	direction: "ascending" | "descending"
+) {
+	const header = Array.from(get_header_cells(container)).find((h) =>
+		h.textContent?.includes(header_text)
+	) as HTMLElement;
+	expect(header).toBeTruthy();
+
+	const menu_btn = header.querySelector(".cell-menu-button") as HTMLElement;
+	expect(menu_btn).toBeTruthy();
+	await fireEvent.click(menu_btn);
+	await wait();
+
+	const sort_btn = Array.from(
+		document.querySelectorAll('[role="menuitem"]')
+	).find((el) => el.textContent?.includes(`sort_${direction}`)) as HTMLElement;
+	expect(sort_btn).toBeTruthy();
+	await fireEvent.click(sort_btn);
+	await wait();
 }
 
 describe("Dataframe rendering", () => {
@@ -308,7 +331,12 @@ describe("Cell editing", () => {
 });
 
 describe("Cell selection", () => {
-	afterEach(() => cleanup());
+	afterEach(() => {
+		cleanup();
+		// a test that stubs the clipboard and then fails would otherwise leave the
+		// stub in place for everything after it
+		vi.restoreAllMocks();
+	});
 
 	test("click selects a cell", async () => {
 		const { container } = await render(Dataframe, default_props);
@@ -355,6 +383,457 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 0, 1)!.className).toContain("cell-selected");
 		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
 		expect(get_cell(container, 1, 1)!.className).toContain("cell-selected");
+	});
+
+	test("a second shift+click extends from the first click, not the last", async () => {
+		const { container } = await render(Dataframe, default_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 2, 0)!, { shiftKey: true });
+		await wait();
+
+		expect(get_cell(container, 0, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 2, 0)!.className).toContain("cell-selected");
+	});
+
+	// only the even rows match "target", so every row between two visible
+	// endpoints is one the search hides
+	const search_props = {
+		...default_props,
+		value: {
+			data: Array.from({ length: 40 }, (_, i) => [
+				`row ${i}`,
+				i % 2 === 0 ? "target" : `keep-${i}`
+			]),
+			headers: ["Name", "Tag"],
+			metadata: null
+		},
+		col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+		row_count: [40, "fixed"] as [number, "fixed" | "dynamic"],
+		show_search: "search" as const
+	};
+
+	function get_search_input(container: HTMLElement) {
+		return container.querySelector("input.search-input") as HTMLInputElement;
+	}
+
+	// The hidden rows are never rendered, so what Delete touches is the only way
+	// to see whether they were in the range.
+	test("shift+click range skips rows the search is hiding", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		// rows 0, 2 and 4 sit next to each other on screen, so the selection ring
+		// around them has to merge into one block
+		const middle = get_cell(container, 2, 1)!.className;
+		expect(middle).toContain("no-top");
+		expect(middle).toContain("no-bottom");
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2, 4]) {
+			expect(get_cell(container, row, 1)?.textContent?.trim()).toBe("");
+		}
+		expect(get_cell(container, 1, 1)?.textContent).toContain("keep-1");
+		expect(get_cell(container, 3, 1)?.textContent).toContain("keep-3");
+	});
+
+	// the range itself, not just what Delete goes on to touch: clearing the
+	// query renders the skipped rows again, so the selection becomes visible
+	test("shift+click range holds only the rows the search was showing", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2, 4]) {
+			expect(get_cell(container, row, 1)!.className).toContain("cell-selected");
+		}
+		for (const row of [1, 3]) {
+			expect(get_cell(container, row, 1)!.className).not.toContain(
+				"cell-selected"
+			);
+		}
+	});
+
+	// the same data loss with the two steps swapped: the range is built while
+	// everything is on screen, and the search hides part of it afterwards
+	test("Delete leaves rows the search hid after they were selected", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2]) {
+			expect(get_cell(container, row, 1)?.textContent?.trim()).toBe("");
+		}
+		expect(get_cell(container, 1, 1)?.textContent).toContain("keep-1");
+	});
+
+	test("copy leaves out rows the search hid after they were selected", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// rows 0 and 2 are on screen, row 1 holds "keep-1" and is not
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("target\ntarget");
+		});
+	});
+
+	test("Delete fires no events when every selected row is hidden", async () => {
+		const { container, listen } = await render(Dataframe, search_props);
+		await wait();
+
+		// build a selection holding only row 1, with the anchor left on row 0 so
+		// `handle_keydown` still runs
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { ctrlKey: true });
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		const change = listen("change");
+		const input = listen("input");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
+	// [0, 0] is already "" and [1, 1] is past the end of a short row, so neither
+	// is written and the table comes out identical
+	test("Delete fires no events when the selected cells are blank", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [["", "b"], ["c"]],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+
+		const change = listen("change");
+		const input = listen("input");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
+	// `null` renders blank like "" does, but it is a value the backend sent, so
+	// Delete clears it rather than treating it as nothing to do
+	test("Delete clears a null cell", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					[null, "b"],
+					["c", "d"]
+				] as any,
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+
+		const change = listen("change");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).toHaveBeenCalled();
+	});
+
+	// the selection is data-space and survives a value update, so it can name a
+	// row that no longer exists
+	test("Delete skips selected rows a shrunk table no longer has", async () => {
+		const { container, set_data } = await render(Dataframe, search_props);
+		await wait();
+
+		// anchor on row 0, which survives the shrink, so `handle_keydown` runs
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		await set_data({
+			value: {
+				data: [
+					["row 0", "target"],
+					["row 1", "keep-1"]
+				],
+				headers: ["Name", "Tag"],
+				metadata: null
+			}
+		});
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		// rows 2-4 are gone; reading `new_values[2]` before the visibility check
+		// threw here and left rows 0 and 1 untouched
+		expect(get_cell(container, 0, 1)?.textContent?.trim()).toBe("");
+		expect(get_cell(container, 1, 1)?.textContent?.trim()).toBe("");
+	});
+
+	test("Ctrl+C copies a selection with a gap in its first row", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					["a", "b"],
+					["c", "d"]
+				],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// row 0 holds only column 0, so taking the columns from it alone dropped
+		// "d" from the clipboard
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("a,\n,d");
+		});
+	});
+
+	// every row renders a cell per header, so the phantom cells of a short row
+	// are clickable and a selection can name one
+	test("Ctrl+C copies a selection that runs past the end of a short row", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [["a", "b"], ["c"]],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// cell [1, 1] has no value behind it, so it copies as empty rather than
+		// throwing inside `copy_table_data`
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("c,");
+		});
+	});
+
+	// the toolbar button is the reachable path here: `handle_keydown` bails out
+	// before Ctrl+C whenever the row `selected` points at is off screen
+	test("the copy button does not report success with nothing on screen to copy", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		// row 1 is the only selected row, and the search is about to hide it
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
+		await wait();
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		const copy_button = container.querySelector(
+			'[aria-label="Copy table data"]'
+		) as HTMLElement;
+		expect(copy_button).toBeTruthy();
+		await fireEvent.click(copy_button);
+		await wait(150);
+
+		expect(
+			container.querySelector('[aria-label="Copied to clipboard"]')
+		).toBeNull();
+	});
+
+	// a refused write already left the copied state alone, by rejecting through
+	// `Toolbar.handle_copy` before it could run; what the boolean adds is that
+	// the rejection stops there instead of floating away unhandled
+	test("a refused clipboard write is reported, not left unhandled", async () => {
+		const { container } = await render(Dataframe, default_props);
+		await wait();
+
+		const write_text = vi
+			.spyOn(navigator.clipboard, "writeText")
+			.mockRejectedValue(new Error("denied"));
+		const unhandled = vi.fn();
+		window.addEventListener("unhandledrejection", unhandled);
+		// not at the end of the body: an assertion below would skip it and leak
+		// the listener into every later test
+		onTestFinished(() =>
+			window.removeEventListener("unhandledrejection", unhandled)
+		);
+
+		const copy_button = container.querySelector(
+			'[aria-label="Copy table data"]'
+		) as HTMLElement;
+		await fireEvent.click(copy_button);
+		await wait(150);
+
+		expect(write_text).toHaveBeenCalled();
+		expect(
+			container.querySelector('[aria-label="Copied to clipboard"]')
+		).toBeNull();
+		expect(unhandled).not.toHaveBeenCalled();
+	});
+
+	test("shift+click falls back to one cell when the anchor is filtered out", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		// row 1 does not match "target", so the search is about to hide it
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		expect(container.querySelectorAll(".cell-selected")).toHaveLength(1);
+		expect(get_cell(container, 4, 1)!.className).toContain("cell-selected");
+	});
+
+	test("shift+click range follows the sorted order, not the data order", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					["A", "1"],
+					["B", "3"],
+					["C", "2"],
+					["D", "4"]
+				],
+				headers: ["Name", "Age"],
+				metadata: null
+			},
+			// the header menu, and so the sort control, only renders for dynamic columns
+			col_count: [2, "dynamic"] as [number, "fixed" | "dynamic"],
+			row_count: [4, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await sort_column(container, "Age", "descending");
+
+		// screen order is now D(4) B(3) C(2) A(1), so the span from D to B holds
+		// only those two even though data rows 3 and 1 straddle row 2
+		await fireEvent.mouseDown(get_cell(container, 3, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
+		await wait();
+
+		// D and B are the top and bottom of the block on screen, so the outer
+		// edges are drawn and the two facing each other are suppressed
+		expect(get_cell(container, 3, 0)!.className).not.toContain("no-top");
+		expect(get_cell(container, 3, 0)!.className).toContain("no-bottom");
+		expect(get_cell(container, 1, 0)!.className).toContain("no-top");
+		expect(get_cell(container, 1, 0)!.className).not.toContain("no-bottom");
+
+		expect(container.querySelectorAll(".cell-selected")).toHaveLength(2);
+		expect(get_cell(container, 3, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 2, 0)!.className).not.toContain("cell-selected");
 	});
 
 	// Regression: pressing Ctrl between mousedown and mouseup must not call
@@ -830,28 +1309,7 @@ describe("Sorting", () => {
 		});
 		await wait();
 
-		// Click on the "Age" header — find by content containing "Age"
-		const headers = get_header_cells(container);
-		const age_header = Array.from(headers).find((h) =>
-			h.textContent?.includes("Age")
-		) as HTMLElement;
-		expect(age_header).toBeTruthy();
-
-		// Click the menu button on the header
-		const menu_btn = age_header.querySelector(
-			".cell-menu-button"
-		) as HTMLElement;
-		expect(menu_btn).toBeTruthy();
-		await fireEvent.click(menu_btn);
-		await wait();
-
-		// Click "Sort ascending" in the menu
-		const sort_asc_btn = Array.from(
-			document.querySelectorAll('[role="menuitem"]')
-		).find((el) => el.textContent?.includes("sort_ascending")) as HTMLElement;
-		expect(sort_asc_btn).toBeTruthy();
-		await fireEvent.click(sort_asc_btn);
-		await wait();
+		await sort_column(container, "Age", "ascending");
 
 		// After sorting by Age ascending, Bob (25) should be first visible row
 		const first_row = container.querySelector(".virtual-row");
