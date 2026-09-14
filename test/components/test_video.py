@@ -192,6 +192,16 @@ reads_mpegts = pytest.mark.skipif(
 )
 
 
+def stream_kinds(data: bytes, directory: Path) -> list[str]:
+    """Which tracks a segment actually carries."""
+    path = directory / "kinds.ts"
+    path.write_bytes(data)
+    probed = subprocess.run([
+        "ffprobe", "-v", "error", "-print_format", "json", "-show_streams", str(path),
+    ], capture_output=True, check=True)  # fmt: skip
+    return sorted(s["codec_type"] for s in json.loads(probed.stdout)["streams"])
+
+
 def packet_timestamps(
     data: bytes, kind: str, directory: Path, entry: str = "dts_time"
 ) -> list[float]:
@@ -573,6 +583,55 @@ class TestVideo:
         assert encoders, "the thread never got as far as an encoder"
         for encoder in encoders:
             assert encoder.process.poll() is not None
+
+    @reads_mpegts
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("hold_up", [True, False])
+    async def test_the_first_segment_carries_the_audio_it_was_given(
+        self, tmp_path, monkeypatch, hold_up
+    ):
+        """Or the stream loses its audio, not just its opening.
+
+        hls.js settles its SourceBuffers on the first segment and refuses the
+        transition when a later one arrives with audio, so a first segment that
+        goes out silent costs every segment after it too.
+
+        Two ways to get one. `hold_up` starves the first `take` the way a
+        loaded box does, the encoder being a process of its own; otherwise the
+        chunk is 10 ms, short of the 23 ms a frame needs at 44.1 kHz, and no
+        waiting would conjure the samples.
+        """
+        seconds = 0.25 if hold_up else 0.01
+        chunks = rendered_chunks(tmp_path, chunk_seconds=seconds, count=2)
+        if hold_up:
+            first = AacStreamEncoder.take
+            calls = {"n": 0}
+
+            def starve(self, timeout=None):
+                calls["n"] += 1
+                # Every take the chunk makes on its own, but not the deliberate
+                # wait the fix adds.
+                return (
+                    [] if timeout is None and calls["n"] <= 2 else first(self, timeout)
+                )
+
+            monkeypatch.setattr(AacStreamEncoder, "take", starve)
+
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        segments = []
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await video.stream_output(
+                    str(chunk), stream_id, index == 0
+                )
+                if segment:
+                    segments.append(segment)
+        finally:
+            video.end_stream_output(stream_id)
+
+        assert segments
+        assert "audio" in stream_kinds(segments[0]["data"], tmp_path)
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio

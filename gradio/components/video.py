@@ -19,6 +19,7 @@ from gradio_client.documentation import document
 from gradio import processing_utils, utils
 from gradio._vendor.ffmpy import FFmpeg
 from gradio.audio_stream_encoder import (
+    AAC_FRAME_SAMPLES,
     AacStreamEncoder,
     EncoderSlot,
     decode_file_to_pcm,
@@ -40,6 +41,16 @@ if TYPE_CHECKING:
 # first PTS, and MPEG-TS cannot hold a negative one, so a stream anchored at
 # zero has its first segment quietly shifted forward.
 STREAM_PTS_BASE = 10.0
+
+# How long the first segment waits for the audio it knows the chunk carries.
+# Paid once per stream and only when the encoder has not delivered, so a
+# loaded box can take its time; the frame arrives in about 8 ms on an idle one.
+FIRST_FRAME_WAIT = 2.0
+
+# How many frames' worth of samples the encoder wants before it parts with its
+# first frame. Four at 44.1 and 48 kHz and two at 16, so four covers the rates
+# measured; a build that wanted more would leave the first segment as it is now.
+FIRST_FRAME_LOOKAHEAD = 4
 
 TS_PACKET_SIZE = 188
 TS_NULL_PID = 0x1FFF
@@ -91,6 +102,36 @@ class _VideoStream:
         """
         behind = round(self.video_time * encoder.sample_rate) - self.samples_written
         return b"\x00" * (max(behind, 0) * encoder.channels * 2)
+
+    def first_frame(self, encoder: AacStreamEncoder) -> list[bytes]:
+        """Whatever it takes to get one frame into the stream's first segment.
+
+        A segment with no audio track is not one segment's worth of silence,
+        it is the whole stream's: hls.js fixes its SourceBuffers from the first
+        segment it sees and refuses the transition when a later one turns up
+        with audio, so every segment after it has its audio thrown away
+        (`buffer-controller.ts`, "Unsupported transition"). Nothing recovers
+        from that, and nothing reports it either.
+
+        Two ways to arrive here. The encoder is a process of its own, and on a
+        loaded box it can take longer to produce its first frame than the
+        startup wait allows, which is a busy server rather than a broken one
+        and worth waiting out. Or the chunk is too short to answer for: the
+        encoder holds several frames back before parting with the first,
+        measured as four frames' worth at 44.1 and 48 kHz and two at 16, so no
+        wait would conjure samples that were never fed. Silence makes up that
+        difference, which lands behind the chunk's own audio rather than in
+        front of it, and pushes what follows back by up to 93 ms. Only a
+        generator yielding chunks shorter than a frame pays it, and it buys
+        back the audio for the whole stream.
+        """
+        frame = AAC_FRAME_SAMPLES * encoder.sample_rate // encoder.output_rate
+        wanted = FIRST_FRAME_LOOKAHEAD * frame
+        if self.samples_written < wanted:
+            short = wanted - self.samples_written
+            encoder.feed(b"\x00" * (short * encoder.channels * 2))
+            self.samples_written += short
+        return encoder.take(timeout=FIRST_FRAME_WAIT)
 
     def audio_time(self, encoder: AacStreamEncoder) -> float:
         """Where the frames emitted so far belong on the stream's clock.
@@ -743,6 +784,8 @@ class Video(StreamingOutput, Component):
             # is never reached and every chunk paid the whole deadline for it.
             while more := encoder.take():
                 frames += more
+            if not frames and state.frames_emitted == 0:
+                frames = state.first_frame(encoder)
         audio_time = state.audio_time(encoder) if encoder else 0.0
         data = self.mux_segment(
             path,

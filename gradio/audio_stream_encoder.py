@@ -44,8 +44,10 @@ def nearest_adts_rate(sample_rate: int) -> int:
     return min(ADTS_SAMPLE_RATES, key=lambda rate: abs(rate - sample_rate))
 
 
-# How long a chunk that completes no frame waits before giving up on one, once
-# the encoder is known to be up. See `AacStreamEncoder.take`.
+# How long the first chunk waits for the encoder process to come up, and how
+# long a later chunk that completes no frame waits before giving up on one.
+# See `AacStreamEncoder.take`.
+STARTUP_WAIT = 0.1
 STEADY_WAIT = 0.005
 
 
@@ -284,18 +286,24 @@ class AacStreamEncoder:
                 f"The audio encoder exited with code {self.process.poll()}."
             ) from e
 
-    def take(self, timeout: float = 0.1) -> list[bytes]:
+    def take(self, timeout: float | None = None) -> list[bytes]:
         """Pop every whole frame the encoder has emitted so far.
 
-        `timeout` covers the encoder's startup and is paid once. A later chunk
+        Waits `STARTUP_WAIT` for the encoder to come up, once. A later chunk
         that completes no frame waits `STEADY_WAIT` and leaves its audio for
-        the next chunk or `flush()`; paying the full timeout per short chunk
+        the next chunk or `flush()`; paying the startup wait per short chunk
         held 20 ms chunks at a quarter of real time. Do not wait for a
         predicted frame count instead: the prediction is sometimes one too
         high, and then every chunk it is wrong about pays the whole timeout.
+
+        An explicit `timeout` overrides both, for the caller that cannot take
+        no frames for an answer.
         """
         with self._condition:
-            wait_for = timeout if not self._waited_for_startup else STEADY_WAIT
+            if timeout is not None:
+                wait_for = timeout
+            else:
+                wait_for = STEADY_WAIT if self._waited_for_startup else STARTUP_WAIT
             self._waited_for_startup = True
             deadline = time.monotonic() + wait_for
             while not self._ready and not self._at_eof:
