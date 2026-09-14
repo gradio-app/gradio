@@ -172,6 +172,35 @@ class TestRoutes:
         assert response.status_code == 200
         assert "#EXT-X-DISCONTINUITY" not in response.text
 
+    def test_stream_playlist_starts_at_the_first_chunk(self):
+        """A viewer wants the stream from its start, not from wherever it got to.
+
+        The playlist carries no ENDLIST until the run finishes, which players
+        read as live and open near the newest segment: hls.js starts three
+        target durations back from the end, so a generator that ran ahead of
+        playback has its opening skipped and never played. Measured against
+        hls.js 1.6.15 on a 12 s playlist: playback starts at 9.02 s without the
+        tag and 0.02 s with it.
+
+        The `=` matters. `TIME-OFFSET:0` parses to nothing and is ignored, the
+        attribute list wanting `KEY=VALUE`, and the tag then does nothing at all.
+        """
+        with Blocks() as demo:
+            video = gr.Video()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment({"data": b"0", "duration": 1.0, "extension": ".ts"})
+        )
+        demo.pending_streams["session"]["0"] = {video._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{video._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-START:TIME-OFFSET=0" in response.text
+
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")
         assert response.status_code == 200
