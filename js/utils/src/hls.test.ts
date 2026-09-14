@@ -1,9 +1,18 @@
 import { describe, expect, test, vi } from "vitest";
 import { watch_for_stalls } from "./hls";
 
-function fake_media(buffered_end: number): HTMLMediaElement {
+function fake_media(buffered_end: number, fps = 0): HTMLMediaElement {
+	// A real element settles a seek on a frame it can decode rather than where
+	// it was put, so a nudge lands past what was asked for. Pass `fps` to get
+	// that; leave it off and the value assigned is the value kept.
+	let time = 1;
 	return {
-		currentTime: 1,
+		get currentTime() {
+			return time;
+		},
+		set currentTime(value: number) {
+			time = fps ? Math.ceil(value * fps) / fps : value;
+		},
 		paused: false,
 		ended: false,
 		seeking: false,
@@ -53,6 +62,21 @@ describe("watch_for_stalls", () => {
 
 		vi.advanceTimersByTime(30000);
 		expect(media.currentTime).toBeCloseTo(1.03, 5);
+
+		stop();
+		vi.useRealTimers();
+	});
+
+	test("gives up even when the seek lands past where it was put", () => {
+		vi.useFakeTimers();
+		// 24 fps, so each nudge settles about 0.042 s on rather than the 0.01 s
+		// asked for. Reading that as playback would hand back the budget every
+		// time and the watcher would walk the stream for as long as it lived.
+		const media = fake_media(30, 24);
+		const stop = watch_for_stalls(media);
+
+		vi.advanceTimersByTime(30000);
+		expect(media.currentTime).toBeLessThan(1.2);
 
 		stop();
 		vi.useRealTimers();

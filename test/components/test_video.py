@@ -584,6 +584,50 @@ class TestVideo:
         for encoder in encoders:
             assert encoder.process.poll() is not None
 
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_chunks_with_nothing_to_mux_are_passed_over(self, tmp_path):
+        """ffmpeg refuses a command with no input, and it took the run with it.
+
+        A run of audio-only chunks too short to complete a frame leaves the
+        muxer a chunk with no video and an encoder still holding its audio.
+        One such chunk is survivable, the encoder having a chunk's worth in
+        hand, but a few in a row are not.
+        """
+        source = tmp_path / "chunks"
+        source.mkdir()
+        paths = []
+        for index in range(5):
+            path = source / f"chunk{index}.mp4"
+            args = ["ffmpeg", "-y", "-v", "error"]
+            if index == 0:
+                args += ["-f", "lavfi", "-i",
+                         f"testsrc=size=160x120:rate={VIDEO_FPS}:duration=0.25"]  # fmt: skip
+            seconds = 0.25 if index == 0 else 0.01
+            args += ["-f", "lavfi", "-i",
+                     f"sine=frequency=440:sample_rate={AUDIO_RATE}:duration={seconds}"]  # fmt: skip
+            if index == 0:
+                args += ["-c:v", "libx264", "-preset", "ultrafast",
+                         "-pix_fmt", "yuv420p"]  # fmt: skip
+            args += ["-c:a", "aac", "-shortest", str(path)]
+            subprocess.run(args, check=True)
+            paths.append(path)
+
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/playlist.m3u8"
+        segments = []
+        try:
+            for index, path in enumerate(paths):
+                segment, _ = await video.stream_output(str(path), stream_id, index == 0)
+                segments.append(segment)
+        finally:
+            video.end_stream_output(stream_id)
+
+        # The first chunk still gets a segment; the rest simply have none, and
+        # their audio goes out with whatever segment comes next.
+        assert segments[0] is not None
+
+    @pytest.mark.requires_ffmpeg
     @reads_mpegts
     @pytest.mark.asyncio
     @pytest.mark.parametrize("hold_up", [True, False])

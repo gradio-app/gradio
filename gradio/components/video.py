@@ -66,9 +66,14 @@ def _continue_counters(data: bytes, counters: dict[int, int] | None) -> bytes:
     if counters is None or len(data) % TS_PACKET_SIZE or not data:
         return data
     buffer = bytearray(data)
-    for offset in range(0, len(buffer), TS_PACKET_SIZE):
-        if buffer[offset] != 0x47:
-            return data
+    offsets = range(0, len(buffer), TS_PACKET_SIZE)
+    # Every packet before any of them, or a segment that turned out not to be
+    # packets after all would leave `counters` advanced for the part that was
+    # walked and the original bytes returned, which is the jump this exists to
+    # prevent, on every segment after it.
+    if any(buffer[offset] != 0x47 for offset in offsets):
+        return data
+    for offset in offsets:
         pid = ((buffer[offset + 1] & 0x1F) << 8) | buffer[offset + 2]
         if pid == TS_NULL_PID:
             continue
@@ -620,8 +625,15 @@ class Video(StreamingOutput, Component):
             for stream in (video, audio, data.get("format"))
             if stream is not None and "duration" in stream
         ]
-        if not durations:
+        # A duration of zero is as useless as none at all: it would go into the
+        # playlist as `#EXTINF:0.000000`, which no player is obliged to take,
+        # and leave the video clock where it was for the next chunk to land on.
+        if not durations or not durations[0]:
             raise RuntimeError("Cannot determine video chunk duration")
+        # ffprobe leaves out what it could not work out, so an audio stream
+        # missing either of these is one there is no encoding to be done for.
+        if audio is not None and not {"sample_rate", "channels"} <= audio.keys():
+            audio = None
         return {
             "duration": durations[0],
             "video_start": float(video["start_time"])
@@ -786,6 +798,12 @@ class Video(StreamingOutput, Component):
                 frames += more
             if not frames and state.frames_emitted == 0:
                 frames = state.first_frame(encoder)
+        if info["video_codec"] is None and not frames:
+            # Nothing to make a segment out of: the chunk brought no video and
+            # the encoder is still holding its audio back. ffmpeg refuses a
+            # command with no input at all, which took the run down with it.
+            # The audio is not lost; it goes out with the next segment.
+            return None
         audio_time = state.audio_time(encoder) if encoder else 0.0
         data = self.mux_segment(
             path,

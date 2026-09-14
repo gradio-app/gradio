@@ -17,6 +17,13 @@ const STUCK_AHEAD_SECONDS = 0.25;
 const NUDGE_SECONDS = 0.01;
 const MAX_NUDGES = 3;
 
+// How far the playhead has to move between polls to have done it by playing.
+// A nudge is a seek, and the browser settles a seek on a frame it can decode
+// rather than exactly where it was put, so a move the size of a nudge cannot
+// be told from a nudge. Playing covers a quarter of a second between polls,
+// which no frame boundary comes near.
+const PLAYING_AHEAD_SECONDS = 0.1;
+
 function buffered_ahead(media: HTMLMediaElement): number {
 	for (let i = 0; i < media.buffered.length; i++) {
 		if (
@@ -51,10 +58,9 @@ export function watch_for_stalls(media: HTMLMediaElement): () => void {
 			return;
 		}
 		if (media.currentTime !== last_time) {
-			// Further than a nudge of its own accord, so playback is running
-			// again and the next stall starts with a full budget. A move of
-			// exactly the nudge is this watcher's own and settles nothing.
-			if (media.currentTime > last_time + NUDGE_SECONDS) nudges = 0;
+			// Far enough to have played there, so the next stall starts with a
+			// full budget again.
+			if (media.currentTime > last_time + PLAYING_AHEAD_SECONDS) nudges = 0;
 			last_time = media.currentTime;
 			still = 0;
 			return;
