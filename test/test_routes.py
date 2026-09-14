@@ -176,14 +176,10 @@ class TestRoutes:
         """A viewer wants the stream from its start, not from wherever it got to.
 
         The playlist carries no ENDLIST until the run finishes, which players
-        read as live and open near the newest segment: hls.js starts three
-        target durations back from the end, so a generator that ran ahead of
-        playback has its opening skipped and never played. Measured against
-        hls.js 1.6.15 on a 12 s playlist: playback starts at 9.02 s without the
-        tag and 0.02 s with it.
-
-        The `=` matters. `TIME-OFFSET:0` parses to nothing and is ignored, the
-        attribute list wanting `KEY=VALUE`, and the tag then does nothing at all.
+        read as live and open near the newest segment, skipping however far the
+        generator had run ahead. The `=` is load bearing: `TIME-OFFSET:0` parses
+        to nothing, the attribute list wanting `KEY=VALUE`, and the tag is then
+        accepted and ignored.
         """
         with Blocks() as demo:
             video = gr.Video()

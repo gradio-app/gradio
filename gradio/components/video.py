@@ -660,8 +660,7 @@ class Video(StreamingOutput, Component):
         mp4 is a safe format for playing in browser.
         """
 
-        # Reached outside `stream_output`, when an example is cached or a run
-        # ends, so it checks for itself rather than relying on that guard.
+        # Example caching and the end of a run reach this without `stream_output`.
         processing_utils.require_ffmpeg("Combining a streamed video", "ffmpeg")
 
         # Use an mp4 extension here so that the cached example
@@ -786,8 +785,6 @@ class Video(StreamingOutput, Component):
                 raise RuntimeError(
                     "Video must be in .mp4 or .ts format to be streamed as chunks",
                 )
-            # Every chunk is probed and then muxed, so both have to be there
-            # before the first one is touched.
             processing_utils.require_ffmpeg(
                 "Streaming video output", "ffmpeg", "ffprobe"
             )

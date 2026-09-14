@@ -1228,12 +1228,10 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404)
 
-            # A stream is generated for the request that asked for it, so there
-            # is no broadcast to catch up with and the viewer wants its first
-            # chunk. Without this players take a playlist with no ENDLIST for a
-            # live one and open it near the newest segment instead: hls.js
-            # starts 3x EXT-X-TARGETDURATION back from the end, so whatever the
-            # generator managed to get ahead by is skipped and never played.
+            # There is no broadcast to catch up with, and without EXT-X-START a
+            # player takes a playlist with no ENDLIST for a live one and opens
+            # it near the newest segment, skipping however far the generator
+            # had run ahead.
             playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-START:TIME-OFFSET=0\n"
 
             for segment in stream.segments:
