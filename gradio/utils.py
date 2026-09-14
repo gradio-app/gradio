@@ -1294,20 +1294,28 @@ def check_function_inputs_match(
             and name not in input_keyword_names
         ):
             return f"Keyword-only args must have default values for function {fn}"
-    invalid_keyword_names = {
+    positional_only_keyword_names = {
         name
         for name in input_keyword_names
-        if name not in signature.parameters
-        or signature.parameters[name].kind == inspect.Parameter.POSITIONAL_ONLY
+        if name in signature.parameters
+        and signature.parameters[name].kind == inspect.Parameter.POSITIONAL_ONLY
     }
-    if invalid_keyword_names and not accepts_kwargs:
-        warnings.warn(
-            f"Unexpected keyword arguments {sorted(invalid_keyword_names)} for function {fn}."
+    if positional_only_keyword_names:
+        raise ValueError(
+            "Positional-only arguments cannot be provided through `inputs_kwargs`: "
+            f"{sorted(positional_only_keyword_names)}."
         )
     duplicate_names = input_keyword_names & positional_input_names
     if duplicate_names:
-        warnings.warn(
-            f"Arguments {sorted(duplicate_names)} were provided as both positional and keyword inputs for function {fn}."
+        raise ValueError(
+            "Arguments cannot be provided through both `inputs` and "
+            f"`inputs_kwargs`: {sorted(duplicate_names)}."
+        )
+    unexpected_keyword_names = input_keyword_names - signature.parameters.keys()
+    if unexpected_keyword_names and not accepts_kwargs:
+        raise ValueError(
+            f"Unexpected keyword arguments for function {fn}: "
+            f"{sorted(unexpected_keyword_names)}."
         )
     arg_count = 1 if inputs_as_dict else len(inputs)
     if min_args == max_args and max_args != arg_count:

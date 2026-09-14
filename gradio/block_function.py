@@ -59,7 +59,7 @@ class BlockFunction:
         event_specific_args: list[str] | None = None,
         component_prop_inputs: list[int] | None = None,
         input_keyword_names: list[str] | None = None,
-        input_parameter_names: list[str] | None = None,
+        input_parameter_names: list[str | None] | None = None,
         page: str = "",
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
