@@ -82,10 +82,6 @@ runs:
       shell: bash
       run: |
         uv venv --allow-existing venv --python=${{ inputs.python_version }}
-    # Both archives are byte-for-byte copies of the upstream releases, mirrored
-    # into a bucket we control because BtbN keeps only its last 14 daily builds.
-    # The bucket records where each one came from, in provenance.json next to
-    # them, and the paths are never rewritten: a different build gets a new one.
     - name: Pin ffmpeg
       id: ffmpeg-pin
       shell: bash
