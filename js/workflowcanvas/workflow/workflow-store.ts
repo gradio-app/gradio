@@ -13,10 +13,17 @@ import type {
 	SavedWorkflow,
 	SubjectNode,
 	WFEdge,
+	WFGroup,
 	Workflow
 } from "./workflow-types";
 import { ports_compatible } from "./workflow-types";
 import { allNodes, findNode, isV2, migrateToV2 } from "./workflow-migration";
+import {
+	create_group as create_group_in,
+	prune_groups,
+	rename_group as rename_group_in,
+	ungroup as ungroup_in
+} from "./workflow-groups";
 
 function uuid(): string {
 	return crypto.randomUUID();
@@ -157,11 +164,19 @@ export function structural_signature(wf: Workflow): string {
 		const { width: _width, ...rest } = node;
 		return rest;
 	};
+	// `collapsed` gets the same treatment as `width` one level up: it stays in
+	// the file as the author's first-open default, but a viewer folding a group
+	// away is a view change, not an edit.
+	const drop_collapsed = (group: WFGroup): unknown => {
+		const { collapsed: _collapsed, ...rest } = group;
+		return rest;
+	};
 	return JSON.stringify({
 		...saved,
 		references: saved.references.map(drop_width),
 		operators: saved.operators.map(drop_width),
-		subjects: saved.subjects.map(drop_width)
+		subjects: saved.subjects.map(drop_width),
+		...(saved.groups ? { groups: saved.groups.map(drop_collapsed) } : {})
 	});
 }
 
@@ -450,17 +465,35 @@ export function removeNode(id: string): void {
 		const node = findNode(wf, id);
 		if (node) revoke_blob_urls(node.data);
 		// Deleting a node also drops its edges, which can un-drive a downstream
-		// component — hence the reconcile here too.
-		return reconcileComponentRoles({
-			...wf,
-			references: wf.references.filter((n) => n.id !== id),
-			operators: wf.operators.filter((n) => n.id !== id),
-			subjects: wf.subjects.filter((n) => n.id !== id),
-			edges: wf.edges.filter(
-				(e) => e.from_node_id !== id && e.to_node_id !== id
-			)
-		});
+		// component — hence the reconcile here too. `prune_groups` is here rather
+		// than at the call sites because both ways to delete a node (the keyboard
+		// handler and the card's own X button) route through here.
+		return prune_groups(
+			reconcileComponentRoles({
+				...wf,
+				references: wf.references.filter((n) => n.id !== id),
+				operators: wf.operators.filter((n) => n.id !== id),
+				subjects: wf.subjects.filter((n) => n.id !== id),
+				edges: wf.edges.filter(
+					(e) => e.from_node_id !== id && e.to_node_id !== id
+				)
+			})
+		);
 	});
+}
+
+export function createGroup(member_ids: string[]): string {
+	const id = uuid();
+	workflow.update((wf) => create_group_in(wf, member_ids, id));
+	return id;
+}
+
+export function ungroupNodes(group_id: string): void {
+	workflow.update((wf) => ungroup_in(wf, group_id));
+}
+
+export function renameGroup(group_id: string, label: string): void {
+	workflow.update((wf) => rename_group_in(wf, group_id, label));
 }
 
 export function addEdge(e: Omit<WFEdge, "id">): void {
