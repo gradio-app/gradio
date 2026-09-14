@@ -25,12 +25,6 @@
 
 </div>
 
-<div align="center">
-
-English | [中文](readme_files/zh-cn#readme)
-
-</div>
-
 # Gradio: Build Machine Learning Web Apps — in Python
 
 $getting_started
