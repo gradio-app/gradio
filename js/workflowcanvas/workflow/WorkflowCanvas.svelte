@@ -4,6 +4,7 @@
 	import { fade } from "svelte/transition";
 
 	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
+	import WorkflowGroupBox from "./WorkflowGroupBox.svelte";
 	import WorkflowBottomBar from "./WorkflowBottomBar.svelte";
 	import type { BoundFnTemplate } from "./WorkflowBottomBar.svelte";
 	import NodeModelPicker from "./NodeModelPicker.svelte";
@@ -44,7 +45,10 @@
 		init_model_node_ports,
 		sanitize_for_save,
 		structural_signature,
-		reconcileComponentRoles
+		reconcileComponentRoles,
+		createGroup,
+		ungroupNodes,
+		renameGroup
 	} from "./workflow-store";
 	import {
 		hasMissingNodeGeometry,
@@ -90,6 +94,15 @@
 		save_layout
 	} from "./layout-persistence";
 	import { create_history } from "./workflow-history";
+	import {
+		collapse_view,
+		expand_selection,
+		group_of,
+		is_collapsed,
+		is_proxy_edge
+	} from "./workflow-groups";
+	import { load_collapsed, save_collapsed } from "./collapse-persistence";
+	import type { CollapseState } from "./collapse-persistence";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -849,6 +862,96 @@
 	// v1 shape for read paths; writes go through v2 store actions.
 	const legacyView = $derived(toLegacyShape($workflow));
 
+	// ─── Group collapse ─────────────────────────────────────────────────────────
+	// Which groups this viewer has folded. Sparse and per-viewer: a group with no
+	// entry here follows the file's own `collapsed` default. Deliberately outside
+	// the store, so toggling never dirties the workflow or needs write access —
+	// and so undo doesn't reach it.
+	let collapsedGroups = $state<CollapseState>({});
+	let collapsedLoaded = false;
+	$effect(() => {
+		if (layoutKey === null || collapsedLoaded) return;
+		collapsedLoaded = true;
+		collapsedGroups = load_collapsed(layoutScope($workflow.name));
+	});
+	$effect(() => {
+		if (layoutKey === null || !collapsedLoaded) return;
+		const scope = layoutScope($workflow.name);
+		const state = collapsedGroups;
+		const timer = setTimeout(() => save_collapsed(scope, state), 250);
+		return () => clearTimeout(timer);
+	});
+
+	const groups = $derived($workflow.groups ?? []);
+
+	/**
+	 * What actually gets drawn: members of collapsed groups removed and their
+	 * crossing edges rerouted onto the group's proxy stubs. Only the render layer
+	 * and hit-testing read this — everything else (the executor, auto-layout, the
+	 * run paths) keeps reading `legacyView`, which is always the real graph.
+	 */
+	const visible = $derived(
+		collapse_view(legacyView.nodes, legacyView.edges, groups, collapsedGroups)
+	);
+
+	function toggleGroup(id: string): void {
+		const group = groups.find((g) => g.id === id);
+		if (!group) return;
+		collapsedGroups = {
+			...collapsedGroups,
+			[id]: !is_collapsed(group, collapsedGroups)
+		};
+	}
+
+	const allCollapsed = $derived(
+		groups.length > 0 && groups.every((g) => is_collapsed(g, collapsedGroups))
+	);
+
+	function toggleAllGroups(): void {
+		const next = !allCollapsed;
+		collapsedGroups = Object.fromEntries(groups.map((g) => [g.id, next]));
+	}
+
+	function groupSelection(): void {
+		if (readOnly) return;
+		const members = [...expand_selection(groups, selectedNodeIds)];
+		if (members.length < 2) {
+			showToast("Select at least two nodes to group", 2500);
+			return;
+		}
+		createGroup(members);
+	}
+
+	function ungroupSelection(): void {
+		if (readOnly) return;
+		const hit = new Set<string>();
+		for (const id of selectedNodeIds) {
+			if (groups.some((g) => g.id === id)) hit.add(id);
+			const owner = group_of(groups, id);
+			if (owner) hit.add(owner.id);
+		}
+		for (const id of hit) {
+			ungroupNodes(id);
+			const { [id]: _dropped, ...rest } = collapsedGroups;
+			collapsedGroups = rest;
+		}
+	}
+
+	/**
+	 * Dragging a group header moves every member. `startNodeDrag` bails on an id
+	 * it can't find in `legacyView.nodes`, and only moves the whole selection when
+	 * the id it was handed is part of a multi-selection — so select the members
+	 * and hand it one of them. This is why `prune_groups` dissolving a group below
+	 * two members is load-bearing rather than cosmetic.
+	 */
+	function startGroupDrag(e: PointerEvent, id: string): void {
+		const group = groups.find((g) => g.id === id);
+		if (!group || group.member_ids.length < 2) return;
+		selectedNodeIds = new Set(group.member_ids);
+		selectedEdgeIds = new Set();
+		startNodeDrag(e, group.member_ids[0]);
+	}
+
 	const gridTile = $derived.by(() => {
 		let tile = 22 * viewport.zoom;
 		while (tile < 16) tile *= 2;
@@ -1125,7 +1228,7 @@
 		const target = e.target as HTMLElement;
 		if (
 			target.closest(
-				".node-pos-wrap, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar"
+				".node-pos-wrap, .group-header, .group-card, .edge-path, .picker-panel, .drop-menu, .add-node-menu, .bottom-bar, .zoom-controls, .toolbar"
 			)
 		) {
 			return;
@@ -1211,12 +1314,14 @@
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
-		const drag_whole_group =
-			selectedNodeIds.has(nodeId) && selectedNodeIds.size > 1;
+		// The selection can hold a collapsed group's id, which matches no node —
+		// expand it, or dragging the selection would leave that group behind.
+		const dragging = expand_selection(groups, selectedNodeIds);
+		const drag_whole_group = dragging.has(nodeId) && dragging.size > 1;
 		const groupStart = new Map<string, { x: number; y: number }>();
 		if (drag_whole_group) {
 			for (const n of legacyView.nodes) {
-				if (selectedNodeIds.has(n.id)) {
+				if (dragging.has(n.id)) {
 					groupStart.set(n.id, { x: n.x, y: n.y });
 				}
 			}
@@ -1579,7 +1684,14 @@
 	}
 
 	$effect(() => {
-		legacyView.nodes;
+		// `visible.nodes`, not `legacyView.nodes`: collapse state lives outside the
+		// store, so depending on the real graph would leave this never re-running
+		// when a group folds — the members' stale entries would linger, the group's
+		// own stubs would never be measured, and its proxy edges would stay hidden
+		// for good. (Expanding happens to recover on its own, because remounted
+		// cards write their measured height back to the store, which is exactly
+		// what makes the bug easy to miss.)
+		visible.nodes;
 		// Defer until after Svelte commits this render so the handle elements
 		// have their final positions in the DOM.
 		const raf = requestAnimationFrame(() => {
@@ -1805,6 +1917,8 @@
 		const target = e.target as HTMLElement;
 		if (
 			target.closest(".node-pos-wrap") ||
+			target.closest(".group-header") ||
+			target.closest(".group-card") ||
 			target.closest(".drop-menu") ||
 			target.closest(".picker-panel")
 		)
@@ -1995,6 +2109,11 @@
 	}
 
 	// Layout only — safe for read-only viewers, same as dragging a card by hand.
+	// ponytail: not group-aware — layered layout scatters a group's members, and
+	// the derived bbox then stretches to enclose whatever sits between them.
+	// Membership is by id so nothing corrupts, it just looks wrong until the user
+	// rearranges. Upgrade path is to lay each group out as a unit and place the
+	// group as a single box in the column ordering.
 	function autoLayout(): void {
 		const sorted = topoSort(legacyView.nodes, $workflow.edges);
 		const edges = $workflow.edges;
@@ -2341,7 +2460,9 @@
 	}
 
 	function zoomToFit(): void {
-		const nodes = legacyView.nodes;
+		// The drawn graph: collapsed members occupy no screen space, and an
+		// expanded frame sticks out past its members by the padding and header.
+		const nodes = [...visible.nodes, ...visible.boxes];
 		if (nodes.length === 0) {
 			viewport = { x: 0, y: 0, zoom: 1 };
 			return;
@@ -2413,9 +2534,21 @@
 		const rw = Math.abs(x2 - x1);
 		const rh = Math.abs(y2 - y1);
 		const out = new Set<string>();
-		for (const n of legacyView.nodes) {
+		// Marquee over the drawn graph, not the real one — a hidden member must not
+		// end up selected and then silently deleted. A collapsed group is picked up
+		// as itself, and `expand_selection` turns that back into members wherever a
+		// consumer needs real nodes.
+		for (const n of visible.nodes) {
 			if (rects_intersect(n.x, n.y, n.width, n.height, rx, ry, rw, rh)) {
 				out.add(n.id);
+			}
+		}
+		for (const box of visible.boxes) {
+			if (
+				box.collapsed &&
+				rects_intersect(box.x, box.y, box.width, box.height, rx, ry, rw, rh)
+			) {
+				out.add(box.id);
 			}
 		}
 		return out;
@@ -2434,7 +2567,10 @@
 		const out = new Set<string>();
 		const point_in = (px: number, py: number): boolean =>
 			px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
-		for (const e of $workflow.edges) {
+		for (const e of visible.edges) {
+			// A proxy stands in for several real edges; there is no single id to
+			// select, and deleting it would remove wires the user can't see.
+			if (is_proxy_edge(e)) continue;
 			const a = portPos(e.from_node_id, e.from_port_id, "output");
 			const b = portPos(e.to_node_id, e.to_port_id, "input");
 			if (!a || !b) continue;
@@ -2504,7 +2640,9 @@
 			(selectedNodeIds.size > 0 || selectedEdgeIds.size > 0)
 		) {
 			e.preventDefault();
-			const node_ids = [...selectedNodeIds];
+			// A collapsed group can be in the selection; deleting it means deleting
+			// what it contains. `removeNode` prunes the now-empty group itself.
+			const node_ids = [...expand_selection(groups, selectedNodeIds)];
 			const edge_ids = [...selectedEdgeIds];
 			selectedNodeIds = new Set();
 			selectedEdgeIds = new Set();
@@ -2526,22 +2664,34 @@
 			redoEdit();
 			return;
 		}
-		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
+		if (
+			e.key.toLowerCase() === "d" &&
+			(e.metaKey || e.ctrlKey) &&
+			selectedNodeId
+		) {
 			e.preventDefault();
 			if (!readOnly) duplicateNode(selectedNodeId);
+		}
+		// Cmd+G is the browser's find-next, so it always needs preventDefault.
+		if (e.key.toLowerCase() === "g" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			if (e.shiftKey) ungroupSelection();
+			else groupSelection();
+			return;
 		}
 		if (e.key === "f" && !e.metaKey && !e.ctrlKey) {
 			e.preventDefault();
 			zoomToFit();
 		}
-		if (
-			e.key === "a" &&
-			(e.metaKey || e.ctrlKey) &&
-			legacyView.nodes.length > 0
-		) {
+		if (e.key === "a" && (e.metaKey || e.ctrlKey) && visible.nodes.length > 0) {
 			e.preventDefault();
-			selectedNodeIds = new Set(legacyView.nodes.map((n) => n.id));
-			selectedEdgeIds = new Set($workflow.edges.map((edge) => edge.id));
+			selectedNodeIds = new Set([
+				...visible.nodes.map((n) => n.id),
+				...visible.boxes.filter((b) => b.collapsed).map((b) => b.id)
+			]);
+			selectedEdgeIds = new Set(
+				visible.edges.filter((edge) => !is_proxy_edge(edge)).map((e) => e.id)
+			);
 		}
 		if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
@@ -3087,9 +3237,24 @@
 			class="canvas-viewport"
 			style="transform: translate({viewport.x}px, {viewport.y}px) scale({viewport.zoom});"
 		>
+			<!-- Group frames, below the edges so wires read as running through a
+			     group. Their headers are a separate pass after the edges layer. -->
+			{#each visible.boxes as box (box.id)}
+				<WorkflowGroupBox
+					{box}
+					layer="back"
+					selected={selectedNodeIds.has(box.id) ||
+						box.member_ids.some((m) => selectedNodeIds.has(m))}
+					{readOnly}
+					ontoggle={toggleGroup}
+					onrename={renameGroup}
+					onheaderpointerdown={startGroupDrag}
+				/>
+			{/each}
+
 			<!-- Edges layer (SVG). overflow:visible so edges aren't clipped. -->
 			<svg class="edges-layer" width="1" height="1" style="overflow: visible;">
-				{#each legacyView.edges as edge (edge.id)}
+				{#each visible.edges as edge (edge.id)}
 					{@const path = edgePath(edge)}
 					{#if path}
 						<path
@@ -3101,6 +3266,7 @@
 								viewport.zoom}
 							fill="none"
 							onclick={(e) => {
+								if (is_proxy_edge(edge)) return;
 								if (e.shiftKey)
 									selectedEdgeIds = toggle_set(selectedEdgeIds, edge.id);
 								else if (!readOnly) removeEdge(edge.id);
@@ -3123,8 +3289,24 @@
 				{/if}
 			</svg>
 
+			<!-- Group headers and collapsed cards, above the edges: `.edge-path` has
+			     `pointer-events: stroke` and a click handler that deletes, so a
+			     header underneath would make every edge crossing it a trap. -->
+			{#each visible.boxes as box (box.id)}
+				<WorkflowGroupBox
+					{box}
+					layer="front"
+					selected={selectedNodeIds.has(box.id) ||
+						box.member_ids.some((m) => selectedNodeIds.has(m))}
+					{readOnly}
+					ontoggle={toggleGroup}
+					onrename={renameGroup}
+					onheaderpointerdown={startGroupDrag}
+				/>
+			{/each}
+
 			<!-- Nodes layer -->
-			{#each legacyView.nodes as n (n.id)}
+			{#each visible.nodes as n (n.id)}
 				<div
 					class="node-pos-wrap"
 					class:node-pos-selected={selectedNodeIds.has(n.id)}
@@ -3243,6 +3425,27 @@
 				>
 					<LayoutIcon />
 				</button>
+				<button
+					class="zoom-ctrl-btn"
+					onclick={groupSelection}
+					disabled={selectedNodeIds.size < 2}
+					title="Group selection (&#8984;G)"
+					aria-label="Group selection">&#x25a2;</button
+				>
+				<div class="zoom-ctrl-divider"></div>
+			{/if}
+			<!-- Folding is a view change, so it stays available to read-only
+			     viewers — they're the ones stuck with someone else's tangle. -->
+			{#if groups.length > 0}
+				<button
+					class="zoom-ctrl-btn"
+					onclick={toggleAllGroups}
+					title={allCollapsed ? "Expand all groups" : "Collapse all groups"}
+					aria-label={allCollapsed
+						? "Expand all groups"
+						: "Collapse all groups"}
+					>{allCollapsed ? "\u25b8" : "\u25be"}</button
+				>
 				<div class="zoom-ctrl-divider"></div>
 			{/if}
 			<button

@@ -63,7 +63,11 @@ export function history_signature(wf: Workflow): string {
 		references: wf.references.map(node_signature),
 		operators: wf.operators.map(node_signature),
 		subjects: wf.subjects.map(node_signature),
-		edges: wf.edges
+		edges: wf.edges,
+		// Unlike `structural_signature` this is an allowlist, so a new top-level
+		// key has to be named here or grouping silently isn't undoable. Collapse
+		// state isn't in the store at all, so undo deliberately doesn't touch it.
+		groups: wf.groups
 	});
 }
 

@@ -187,6 +187,24 @@ export interface SubjectNode extends BaseNode {
 
 export type AnyNode = ReferenceNode | OperatorNode | SubjectNode;
 
+/**
+ * A visual group of nodes — a labelled box the canvas draws around its members
+ * and can fold into a single card. Presentation only: the executor and the API
+ * endpoint derivation never see it. See `workflow-groups.ts`.
+ */
+export interface WFGroup {
+	id: string;
+	label: string;
+	member_ids: string[];
+	/**
+	 * The author's first-open default, not the live state — a viewer's own
+	 * toggles live in localStorage (`collapse-persistence.ts`). Deliberately
+	 * excluded from `structural_signature` so collapsing never dirties the
+	 * workflow, exactly as `width` is.
+	 */
+	collapsed?: boolean;
+}
+
 export interface Workflow {
 	schema_version: "2";
 	/** Optional hub repo identifier, e.g. "username/my-workflow". */
@@ -202,6 +220,7 @@ export interface Workflow {
 	operators: OperatorNode[];
 	subjects: SubjectNode[];
 	edges: WFEdge[];
+	groups?: WFGroup[];
 	view?: {
 		default?: "studio" | "canvas";
 	};
