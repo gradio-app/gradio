@@ -43,6 +43,39 @@ describe("watch_for_stalls", () => {
 		vi.useRealTimers();
 	});
 
+	test("gives up on a playhead that will not restart", () => {
+		vi.useFakeTimers();
+		// Buffer to spare and nothing moving: not a drained buffer, so
+		// something is wrong with the media itself and stepping through it
+		// forever would skip what the viewer came for while hiding the fault.
+		const media = fake_media(30);
+		const stop = watch_for_stalls(media);
+
+		vi.advanceTimersByTime(30000);
+		expect(media.currentTime).toBeCloseTo(1.03, 5);
+
+		stop();
+		vi.useRealTimers();
+	});
+
+	test("nudges again once playback has recovered in between", () => {
+		vi.useFakeTimers();
+		const media = fake_media(30);
+		const stop = watch_for_stalls(media);
+
+		vi.advanceTimersByTime(30000);
+		expect(media.currentTime).toBeCloseTo(1.03, 5);
+		// Playback runs again of its own accord, so the next stall is a new
+		// one rather than a continuation of the one that gave up.
+		media.currentTime = 5;
+		vi.advanceTimersByTime(250);
+		vi.advanceTimersByTime(30000);
+		expect(media.currentTime).toBeCloseTo(5.03, 5);
+
+		stop();
+		vi.useRealTimers();
+	});
+
 	test("leaves a playhead alone while it is still moving", () => {
 		vi.useFakeTimers();
 		const media = fake_media(10);

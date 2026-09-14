@@ -10,6 +10,13 @@ export function is_hls_supported(): boolean {
 // player being stuck rather than the stream still arriving.
 const STUCK_AHEAD_SECONDS = 0.25;
 
+// How far each nudge moves the playhead, and how many in a row are worth
+// trying. hls.js gives up after three of its own and raises a fatal error;
+// something that will not restart after three is not a drained buffer, and
+// walking on through it would step over the media rather than play it.
+const NUDGE_SECONDS = 0.01;
+const MAX_NUDGES = 3;
+
 function buffered_ahead(media: HTMLMediaElement): number {
 	for (let i = 0; i < media.buffered.length; i++) {
 		if (
@@ -37,12 +44,17 @@ function buffered_ahead(media: HTMLMediaElement): number {
 export function watch_for_stalls(media: HTMLMediaElement): () => void {
 	let last_time = -1;
 	let still = 0;
+	let nudges = 0;
 	const timer = setInterval(() => {
 		if (media.paused || media.ended || media.seeking) {
 			still = 0;
 			return;
 		}
 		if (media.currentTime !== last_time) {
+			// Further than a nudge of its own accord, so playback is running
+			// again and the next stall starts with a full budget. A move of
+			// exactly the nudge is this watcher's own and settles nothing.
+			if (media.currentTime > last_time + NUDGE_SECONDS) nudges = 0;
 			last_time = media.currentTime;
 			still = 0;
 			return;
@@ -50,7 +62,9 @@ export function watch_for_stalls(media: HTMLMediaElement): () => void {
 		still += 1;
 		if (still < 3 || buffered_ahead(media) < STUCK_AHEAD_SECONDS) return;
 		still = 0;
-		media.currentTime = media.currentTime + 0.01;
+		if (nudges >= MAX_NUDGES) return;
+		nudges += 1;
+		media.currentTime = media.currentTime + NUDGE_SECONDS;
 		media.play().catch(() => {});
 	}, 250);
 	return () => clearInterval(timer);
