@@ -722,6 +722,60 @@ class TestVideo:
         assert "ffprobe version" in message
         assert "different FFmpeg build" in message
 
+    def test_a_zero_video_duration_falls_back_to_the_format(self, monkeypatch):
+        """ffprobe can report a video stream duration of 0 while the format
+        carries a real one. The old duration helper preferred the format, so a
+        chunk that used to stream must not now abort the run."""
+        payload = json.dumps(
+            {
+                "streams": [
+                    {
+                        "codec_type": "video",
+                        "codec_name": "h264",
+                        "duration": "0.000000",
+                        "start_time": "0.000000",
+                    }
+                ],
+                "format": {"duration": "0.250000"},
+            }
+        ).encode()
+        real_run = subprocess.run
+
+        def fake_probe(args, **kwargs):
+            if args[0] == "ffprobe" and "-version" not in args:
+                return subprocess.CompletedProcess(args, 0, payload, b"")
+            return real_run(args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", fake_probe)
+        info = gr.Video.probe_chunk("chunk.mp4")
+        assert info["duration"] == pytest.approx(0.25)
+
+    @pytest.mark.requires_ffmpeg
+    @reads_mpegts
+    def test_a_non_h264_chunk_is_re_encoded_to_a_playable_pixel_format(self, tmp_path):
+        """A codec hls.js cannot play is re-encoded with libx264, which left to
+        itself keeps the source's pixel format. A 4:4:4 or 10-bit source would
+        then come out in a High profile no browser decodes, so it is pinned to
+        yuv420p."""
+        source = tmp_path / "wide.mp4"
+        subprocess.run([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "lavfi", "-i", "testsrc=size=160x120:rate=15:duration=0.25",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv444p",
+            str(source),
+        ], check=True)  # fmt: skip
+        # The source is H.264, but a non-H.264 codec forces the re-encode
+        # branch without needing a VP9 or AV1 encoder in the test environment.
+        segment = gr.Video.mux_segment(str(source), "vp9", b"", 0.0, 0.0)
+        served = tmp_path / "segment.ts"
+        served.write_bytes(segment)
+        probed = subprocess.run([
+            "ffprobe", "-v", "error", "-select_streams", "v:0",
+            "-show_entries", "stream=pix_fmt", "-of", "json", str(served),
+        ], capture_output=True, check=True)  # fmt: skip
+        pix_fmt = json.loads(probed.stdout)["streams"][0]["pix_fmt"]
+        assert pix_fmt == "yuv420p"
+
     def test_in_interface(self, media_data):
         """
         Interface, process

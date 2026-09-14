@@ -620,15 +620,23 @@ class Video(StreamingOutput, Component):
         streams = data.get("streams", [])
         audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
         video = next((s for s in streams if s.get("codec_type") == "video"), None)
+        # The video's own duration first, since the audio's runs short on a
+        # `-c copy` split and `format.duration` runs long by the muxer's head
+        # start on `.ts`. A duration of zero is as useless as none at all: it
+        # would go into the playlist as `#EXTINF:0.000000`, which no player is
+        # obliged to take, and leave the video clock where it was for the next
+        # chunk to land on. ffprobe can report zero for a stream while the
+        # format carries a real value, so a zero falls through to the next
+        # source rather than aborting the run, which is what the old duration
+        # helper did by reading `format.duration`.
         durations = [
             float(stream["duration"])
             for stream in (video, audio, data.get("format"))
-            if stream is not None and "duration" in stream
+            if stream is not None
+            and "duration" in stream
+            and float(stream["duration"]) > 0
         ]
-        # A duration of zero is as useless as none at all: it would go into the
-        # playlist as `#EXTINF:0.000000`, which no player is obliged to take,
-        # and leave the video clock where it was for the next chunk to land on.
-        if not durations or not durations[0]:
+        if not durations:
             raise RuntimeError("Cannot determine video chunk duration")
         # ffprobe leaves out what it could not work out, so an audio stream
         # missing either of these is one there is no encoding to be done for.
@@ -679,7 +687,10 @@ class Video(StreamingOutput, Component):
                 ["-c:v", "copy", "-bsf:v", "h264_mp4toannexb"]
                 if video_codec == "h264"
                 # hls.js plays nothing else, so it is encoded, as it used to be.
-                else ["-c:v", "libx264"]
+                # Pinned to yuv420p: left to itself libx264 keeps the source's
+                # pixel format, so a 10-bit or 4:4:4 chunk would come out in a
+                # High profile no browser decodes.
+                else ["-c:v", "libx264", "-pix_fmt", "yuv420p"]
             )
             pids += ["-streamid", f"{len(pids) // 2}:256"]
             index += 1
