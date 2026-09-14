@@ -564,11 +564,12 @@ class Video(StreamingOutput, Component):
             check=False,
         )  # fmt: skip
         if result.returncode != 0:
-            detail = (
-                result.stderr.decode(errors="replace").strip()
-                or f"ffprobe exited with {result.returncode}"
+            raise processing_utils.ffmpeg_failed(
+                "ffprobe",
+                result.returncode,
+                result.stderr,
+                "Reading the streamed video chunk",
             )
-            raise RuntimeError(f"Could not read the streamed video chunk: {detail}")
         data = json.loads(result.stdout)
         streams = data.get("streams", [])
         audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
@@ -639,8 +640,12 @@ class Video(StreamingOutput, Component):
         ]  # fmt: skip
         result = subprocess.run(args, input=adts, capture_output=True, check=False)
         if result.returncode != 0:
-            detail = result.stderr.decode(errors="replace").strip()
-            raise RuntimeError(f"FFmpeg command failed: {detail}")
+            raise processing_utils.ffmpeg_failed(
+                "ffmpeg",
+                result.returncode,
+                result.stderr,
+                "Muxing the streamed video segment",
+            )
         return _continue_counters(result.stdout, counters)
 
     async def combine_stream(
@@ -654,6 +659,10 @@ class Video(StreamingOutput, Component):
         Do not take desired_output_format into consideration as
         mp4 is a safe format for playing in browser.
         """
+
+        # Reached outside `stream_output`, when an example is cached or a run
+        # ends, so it checks for itself rather than relying on that guard.
+        processing_utils.require_ffmpeg("Combining a streamed video", "ffmpeg")
 
         # Use an mp4 extension here so that the cached example
         # is playable in the browser
@@ -688,8 +697,12 @@ class Video(StreamingOutput, Component):
         _, stderr = await process.communicate()
 
         if process.returncode != 0:
-            error_message = stderr.decode().strip()
-            raise RuntimeError(f"FFmpeg command failed: {error_message}")
+            raise processing_utils.ffmpeg_failed(
+                "ffmpeg",
+                process.returncode or 0,
+                stderr,
+                "Combining the streamed video chunks",
+            )
         video = FileData(
             path=output_file.name,
             is_stream=False,
@@ -773,6 +786,11 @@ class Video(StreamingOutput, Component):
                 raise RuntimeError(
                     "Video must be in .mp4 or .ts format to be streamed as chunks",
                 )
+            # Every chunk is probed and then muxed, so both have to be there
+            # before the first one is touched.
+            processing_utils.require_ffmpeg(
+                "Streaming video output", "ffmpeg", "ffprobe"
+            )
             chunk = await anyio.to_thread.run_sync(self._encode_chunk, output_id, value)
         except BaseException:
             # Until this returns and the stream exists, nothing else holds the

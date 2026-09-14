@@ -4,6 +4,7 @@ import json
 import math
 import os
 import shutil
+import signal
 import subprocess
 import tempfile
 import threading
@@ -146,11 +147,14 @@ def silence_ratio(pcm: np.ndarray) -> float:
 def mpegts_readable() -> bool:
     """Whether the ffmpeg on PATH can read back an MPEG-TS file it just wrote.
 
-    The static 7.0.2 build CI pins segfaults on any MPEG-TS on the runners it
-    gets, and a test that has to decode a served stream cannot say anything
-    about the stream when the decoder dies. Moving that pin is a change of its
-    own, since workflows take the action from `@main` and an edit to it only
-    counts once merged, so until then these skip there and run everywhere else.
+    A build that dies on MPEG-TS says nothing about a stream these tests have
+    to decode, so they skip on one rather than fail. The 7.0.2 static build CI
+    used to pin was such a build on the runners it gets; the pin has moved, but
+    anyone running the suite against their own ffmpeg can still have one.
+
+    Both tools are asked, because the tests probe with ffprobe and decode with
+    ffmpeg, and a build whose prober survives while its decoder dies would sail
+    past a guard that only probed.
     """
     if not processing_utils.ffmpeg_installed():
         return True  # `requires_ffmpeg` skips these anyway
@@ -164,12 +168,19 @@ def mpegts_readable() -> bool:
         ], check=False, capture_output=True)  # fmt: skip
         if written.returncode != 0:
             return False
-        read = subprocess.run(
+        probed = subprocess.run(
             ["ffprobe", "-v", "error", "-show_streams", str(path)],
             check=False,
             capture_output=True,
         )
-        return read.returncode == 0
+        if probed.returncode != 0:
+            return False
+        decoded = subprocess.run(
+            ["ffmpeg", "-v", "error", "-i", str(path), "-f", "null", "-"],
+            check=False,
+            capture_output=True,
+        )
+        return decoded.returncode == 0
 
 
 reads_mpegts = pytest.mark.skipif(
@@ -559,6 +570,51 @@ class TestVideo:
         assert encoders, "the thread never got as far as an encoder"
         for encoder in encoders:
             assert encoder.process.poll() is not None
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_missing_ffprobe_says_so_before_any_chunk_is_read(
+        self, tmp_path, monkeypatch
+    ):
+        """ffmpeg alone is not enough, and the error has to say which is gone."""
+        (chunk,) = tone_chunks(tmp_path, count=1)
+        video = gr.Video(streaming=True)
+
+        monkeypatch.setattr(
+            processing_utils.shutil,
+            "which",
+            lambda name: None if name == "ffprobe" else "/usr/bin/ffmpeg",
+        )
+        with pytest.raises(RuntimeError) as caught:
+            await video.stream_output(str(chunk), "session/0/1/playlist.m3u8", True)
+
+        message = str(caught.value)
+        assert "ffprobe" in message and "PATH" in message
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_an_ffprobe_killed_by_a_signal_names_the_build(
+        self, tmp_path, monkeypatch
+    ):
+        """A crash writes nothing to stderr, so the message came out empty and
+        said nothing about what had died. It names the signal and the build."""
+        (chunk,) = tone_chunks(tmp_path, count=1)
+        video = gr.Video(streaming=True)
+        real_run = subprocess.run
+
+        def segfault(args, **kwargs):
+            if args[0] == "ffprobe" and "-version" not in args:
+                return subprocess.CompletedProcess(args, -signal.SIGSEGV, b"", b"")
+            return real_run(args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", segfault)
+        with pytest.raises(RuntimeError) as caught:
+            await video.stream_output(str(chunk), "session/0/1/playlist.m3u8", True)
+
+        message = str(caught.value)
+        assert "SIGSEGV" in message
+        assert "ffprobe version" in message
+        assert "different FFmpeg build" in message
 
     def test_in_interface(self, media_data):
         """

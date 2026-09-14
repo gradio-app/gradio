@@ -111,8 +111,12 @@ def _ffmpeg_decode(source: bytes | str, sample_rate: int, channels: int) -> byte
         check=False,
     )  # fmt: skip
     if result.returncode != 0:
-        detail = result.stderr.decode(errors="replace").strip()
-        raise RuntimeError(f"Could not decode the streamed audio chunk: {detail}")
+        raise processing_utils.ffmpeg_failed(
+            "ffmpeg",
+            result.returncode,
+            result.stderr,
+            "Decoding the streamed audio chunk",
+        )
     # Empty is a chunk that carries no samples, which a generator yields for a
     # tick that produced no audio; the encoder takes an empty write in stride.
     return result.stdout
@@ -160,10 +164,8 @@ class AacStreamEncoder:
     """
 
     def __init__(self, sample_rate: int, channels: int):
-        if not processing_utils.ffmpeg_installed():
-            raise RuntimeError(
-                "Streaming audio output requires `ffmpeg` to be installed and on PATH."
-            )
+        # Encoding only, so ffprobe is not wanted here.
+        processing_utils.require_ffmpeg("Streaming audio output", "ffmpeg")
         self.sample_rate = sample_rate
         self.channels = channels
         # Asking for the resample rather than letting the encoder pick one:
