@@ -30,6 +30,27 @@ export function ports_compatible(a: PortType, b: PortType): boolean {
 	return TEXTUAL.has(a) && TEXTUAL.has(b);
 }
 
+const AMBIGUOUS = new Set<PortType>(["any", "json", "file"]);
+
+/** How to render a read-only value: the declared type, or the value's own
+ * shape when that type is ambiguous. `any` matched no branch in `NodeWidget`,
+ * so those tiles drew nothing at all. Falls back to `json`, never to nothing. */
+export function widget_type_for(declared: PortType, value: unknown): PortType {
+	if (!AMBIGUOUS.has(declared)) return declared;
+	if (typeof value === "string") return "text";
+	if (typeof value === "number") return "number";
+	if (typeof value === "boolean") return "boolean";
+	if (value && typeof value === "object" && !Array.isArray(value)) {
+		const { mime, url } = value as FileValue;
+		if (typeof url === "string" && url && typeof mime === "string") {
+			if (mime.startsWith("video/")) return "video";
+			if (mime.startsWith("image/")) return "image";
+			if (mime.startsWith("audio/")) return "audio";
+		}
+	}
+	return declared === "file" ? "file" : "json";
+}
+
 export interface Port {
 	id: string;
 	label: string;

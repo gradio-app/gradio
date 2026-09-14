@@ -190,6 +190,36 @@ function pick_response_item(
 	return primary ?? output_data[0] ?? null;
 }
 
+const MIME_BY_EXT: Record<string, string> = {
+	png: "image/png",
+	jpg: "image/jpeg",
+	jpeg: "image/jpeg",
+	gif: "image/gif",
+	webp: "image/webp",
+	bmp: "image/bmp",
+	svg: "image/svg+xml",
+	wav: "audio/wav",
+	mp3: "audio/mpeg",
+	ogg: "audio/ogg",
+	flac: "audio/flac",
+	m4a: "audio/mp4",
+	mp4: "video/mp4",
+	webm: "video/webm",
+	mov: "video/quicktime"
+};
+
+/** MIME for a produced file: extension first, port type as fallback, null if
+ * neither knows. Guessing from the port type alone made every URL on a
+ * non-image/audio port `video/mp4`. */
+export function mime_for(url: string, portType: string): string | null {
+	const ext = /\.([a-z0-9]+)(?:[?#]|$)/i.exec(url)?.[1]?.toLowerCase();
+	if (ext && MIME_BY_EXT[ext]) return MIME_BY_EXT[ext];
+	if (portType === "image" || portType === "gallery") return "image/png";
+	if (portType === "audio") return "audio/wav";
+	if (portType === "video") return "video/mp4";
+	return null;
+}
+
 function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 	if (result === null || result === undefined) return null;
 	if (
@@ -219,16 +249,11 @@ function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 				result.startsWith("blob:") ||
 				result.startsWith("data:"))
 		) {
-			return {
-				name: "output",
-				url: result,
-				mime:
-					portType === "image"
-						? "image/png"
-						: portType === "audio"
-							? "audio/wav"
-							: "video/mp4"
-			} satisfies FileValue;
+			const mime = mime_for(result, portType);
+			// Unidentifiable: keep the string rather than invent a type.
+			if (mime) {
+				return { name: "output", url: result, mime } satisfies FileValue;
+			}
 		}
 		return result;
 	}
@@ -240,7 +265,10 @@ function fromGradioOutput(result: unknown, portType: string): NodeDataValue {
 		return {
 			name: (obj.orig_name as string) ?? "output",
 			url: obj.url as string,
-			mime: (obj.mime_type as string) ?? "application/octet-stream",
+			mime:
+				(obj.mime_type as string) ??
+				mime_for(obj.url as string, portType) ??
+				"application/octet-stream",
 			...(typeof obj.size === "number" ? { size: obj.size } : {})
 		} satisfies FileValue;
 	}

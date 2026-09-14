@@ -428,7 +428,13 @@ def _save_tmp(result, ext: str) -> dict:
         with open(path, "wb") as f:
             f.write(result)
     url = f"/gradio_api/file={client_utils.encode_file_path(path)}"
-    return {"path": path, "url": url, "is_file": True}
+    # The canvas reads `mime_type` to draw ambiguously-typed values.
+    return {
+        "path": path,
+        "url": url,
+        "is_file": True,
+        "mime_type": mimetypes.guess_type(path)[0],
+    }
 
 
 def _file_ref(a) -> str:

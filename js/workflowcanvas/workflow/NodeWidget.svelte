@@ -5,6 +5,7 @@
 		NodeDataValue,
 		FileValue
 	} from "./workflow-types";
+	import { widget_type_for } from "./workflow-types";
 	import { getContext } from "svelte";
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
@@ -22,7 +23,6 @@
 		widgetPortId: string;
 		widgetType: PortType;
 		isReadonly: boolean;
-		/** The node has a user-pinned height, so stretch to fill it. */
 		fillHeight?: boolean;
 		ondatachange: (
 			nodeId: string,
@@ -70,27 +70,12 @@
 	const choices = $derived(widgetPort?.choices ?? null);
 	const hasChoices = $derived(!!choices?.length);
 
-	// When the schema is ambiguous (any/json/file) but the runtime value carries
-	// a media MIME, render the media instead of a JSON blob.
+	// Read-only tiles already hold the value, so an ambiguous type defers to
+	// its shape. Inputs keep the declared type.
 	const effectiveWidgetType = $derived<PortType>(
-		((): PortType => {
-			if (!isReadonly) return widgetType;
-			if (
-				widgetType !== "any" &&
-				widgetType !== "json" &&
-				widgetType !== "file"
-			)
-				return widgetType;
-			const v = node.data?.[widgetPortId];
-			if (!v || typeof v !== "object" || Array.isArray(v)) return widgetType;
-			const { mime, url } = v as FileValue;
-			if (typeof mime !== "string" || typeof url !== "string" || !url)
-				return widgetType;
-			if (mime.startsWith("video/")) return "video";
-			if (mime.startsWith("image/")) return "image";
-			if (mime.startsWith("audio/")) return "audio";
-			return widgetType;
-		})()
+		isReadonly
+			? widget_type_for(widgetType, node.data?.[widgetPortId])
+			: widgetType
 	);
 	const multiselect = $derived(!!widgetPort?.multiselect);
 
