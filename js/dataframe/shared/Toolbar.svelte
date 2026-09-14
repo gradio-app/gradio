@@ -18,7 +18,7 @@
 		show_copy_button?: boolean;
 		show_search?: "none" | "search" | "filter";
 		fullscreen?: boolean;
-		on_copy: () => Promise<void>;
+		on_copy: () => Promise<boolean>;
 		on_commit_filter: () => void;
 		current_search_query?: string | null;
 		onsearch?: (query: string | null) => void;
@@ -48,8 +48,7 @@
 	}
 
 	async function handle_copy(): Promise<void> {
-		await on_copy();
-		copy_feedback();
+		if (await on_copy()) copy_feedback();
 	}
 
 	$effect(() => {
