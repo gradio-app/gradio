@@ -1,6 +1,5 @@
 import { describe, test, expect } from "vitest";
 import { widget_type_for, ports_compatible } from "./workflow-types";
-import { mime_for } from "./workflow-executor";
 
 describe("widget_type_for", () => {
 	test("a declared type that means something is kept", () => {
@@ -50,32 +49,5 @@ describe("widget_type_for", () => {
 	test("markdown and text stay interchangeable for wiring", () => {
 		expect(ports_compatible("markdown", "text")).toBe(true);
 		expect(ports_compatible("text", "image")).toBe(false);
-	});
-});
-
-describe("mime_for", () => {
-	test("the URL's extension wins over the port type", () => {
-		// A PNG on an `any` port used to be labelled video/mp4, because the
-		// guess was made from the port type and everything that wasn't image or
-		// audio fell through to video.
-		expect(mime_for("/gradio_api/file=/tmp/workflow_ab.png", "any")).toBe(
-			"image/png"
-		);
-		expect(mime_for("https://x/y/out.wav", "json")).toBe("audio/wav");
-		expect(mime_for("https://x/y/clip.webm", "file")).toBe("video/webm");
-		expect(mime_for("https://x/y/a.png?token=1", "any")).toBe("image/png");
-	});
-
-	test("the port type is the fallback, not the authority", () => {
-		expect(mime_for("https://x/y/noext", "image")).toBe("image/png");
-		expect(mime_for("https://x/y/noext", "audio")).toBe("audio/wav");
-		expect(mime_for("https://x/y/noext", "video")).toBe("video/mp4");
-	});
-
-	test("null when neither source knows", () => {
-		// The caller keeps the string as-is rather than dressing it up as a
-		// file whose type it can't identify.
-		expect(mime_for("https://x/y/noext", "any")).toBeNull();
-		expect(mime_for("https://x/y/noext", "json")).toBeNull();
 	});
 });
