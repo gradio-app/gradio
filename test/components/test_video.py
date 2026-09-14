@@ -156,7 +156,10 @@ def mpegts_readable() -> bool:
     ffmpeg, and a build whose prober survives while its decoder dies would sail
     past a guard that only probed.
     """
-    if not processing_utils.ffmpeg_installed():
+    # This runs at import, so it cannot reach for a tool that may not be there:
+    # `check=False` covers an exit code, not a missing executable, and the
+    # FileNotFoundError would take the whole module's collection down with it.
+    if not processing_utils.ffmpeg_installed() or shutil.which("ffprobe") is None:
         return True  # `requires_ffmpeg` skips these anyway
     with tempfile.TemporaryDirectory() as name:
         path = Path(name) / "probe.ts"
