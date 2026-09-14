@@ -32,11 +32,14 @@
 		if (!el || !runtime || !component) return;
 		const target = el;
 
-		// Read prop references so the effect re-runs when the node is
-		// replaced during a dev reload (new objects are created by
-		// app_tree.reload).
-		const _shared_props = node.props.shared_props;
-		const _props = node.props.props;
+		// Prop updates are pushed through the component's registered set_data
+		// callback. Do not track these object references here: lazy rendering can
+		// replace shared_props while revealing a tab, which would otherwise cause
+		// an unnecessary unmount/mount cycle.
+		const [_shared_props, _props] = untrack(() => [
+			node.props.shared_props,
+			node.props.props
+		]);
 		const _runtime = runtime;
 		// Recreate the snippet in the custom component's Svelte runtime, then
 		// replace its temporary marker with children from Gradio's runtime.

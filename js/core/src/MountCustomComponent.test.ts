@@ -129,6 +129,27 @@ test("does not remount an isolated component when its prop proxy updates", async
 	expect(on_mount).toHaveBeenCalledOnce();
 });
 
+test("does not remount when lazy rendering replaces shared props", async () => {
+	const runtime = (await load_async_children_runtime()) as RemountProbeRuntime;
+	const on_mount = vi.fn();
+
+	mounted = mount(MountCustomComponentHost, {
+		target: document.body,
+		props: {
+			component: runtime.RemountProbe,
+			runtime,
+			on_mount
+		}
+	});
+
+	await waitFor(() => expect(on_mount).toHaveBeenCalledOnce());
+	flushSync(() => {
+		(mounted as { replace_shared_props: () => void }).replace_shared_props();
+	});
+
+	expect(on_mount).toHaveBeenCalledOnce();
+});
+
 test("preserves context across nested custom components", async () => {
 	const provider_runtime =
 		(await load_async_children_runtime()) as ContextRuntime;

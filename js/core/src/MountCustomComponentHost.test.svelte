@@ -17,6 +17,7 @@
 	} = $props();
 
 	let value = $state("initial");
+	let shared_props = $state({});
 	const component_props = {
 		get value() {
 			return value;
@@ -26,11 +27,20 @@
 	const node = {
 		component: Promise.resolve({ default: component }),
 		runtime: Promise.resolve(runtime),
-		props: { shared_props: {}, props: component_props }
+		props: {
+			get shared_props() {
+				return shared_props;
+			},
+			props: component_props
+		}
 	};
 
 	export function update_value(next_value: string): void {
 		value = next_value;
+	}
+
+	export function replace_shared_props(): void {
+		shared_props = { ...shared_props };
 	}
 </script>
 
