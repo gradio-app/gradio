@@ -347,7 +347,13 @@
 					{/if}
 				{/each}
 				{#if visible_tabs.some((t) => is_visible_tab(t) && t.alignment === "right")}
-					<div class="right-tab-group" role="presentation">
+					<div
+						class="right-tab-group"
+						class:with-left-tabs={visible_tabs.some(
+							(t) => is_visible_tab(t) && t.alignment !== "right"
+						)}
+						role="presentation"
+					>
 						{#each visible_tabs as t, i}
 							{#if is_visible_tab(t) && t.alignment === "right"}
 								{@render tab_button(t, i)}
@@ -509,6 +515,17 @@
 	.tab-container:not(.wrap) .right-tab-group {
 		flex-wrap: nowrap;
 		height: 100%;
+	}
+
+	.right-tab-group.with-left-tabs > button:first-child::before {
+		content: "";
+		position: absolute;
+		bottom: 0;
+		inset-inline-start: 0;
+		width: 1px;
+		height: var(--size-6);
+		background-color: var(--border-color-primary);
+		opacity: 0.65;
 	}
 
 	button:disabled {
