@@ -880,6 +880,7 @@ class WorkflowEndpointManager:
         app = getattr(self.blocks, "server_app", None)
         if app is not None:
             app.api_info = None
+            app.page_api_info.clear()
             app.all_app_info = None
 
 
