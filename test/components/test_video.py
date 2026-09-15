@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import json
+import logging
 import math
 import os
 import shutil
@@ -600,6 +601,27 @@ class TestVideo:
             ]
             if all(within):
                 assert abs(min(within[0]) - min(within[1])) < 0.25
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_first_segment_going_out_without_audio_is_logged(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        """An encoder that gives nothing in time costs the stream its audio in
+        hls.js, and a silent video with a clean log is not something anyone
+        can diagnose."""
+        monkeypatch.setattr(AacStreamEncoder, "take", lambda self, timeout=None: [])
+        (source,) = tone_chunks(tmp_path, count=1)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/silent.m3u8"
+        try:
+            with caplog.at_level(logging.WARNING, logger="gradio.components.video"):
+                segment, _ = await video.stream_output(str(source), stream_id, True)
+        finally:
+            video.end_stream_output(stream_id)
+
+        assert segment is not None
+        assert "carries no audio" in caplog.text
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio

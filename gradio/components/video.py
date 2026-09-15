@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import subprocess
 import tempfile
 import warnings
@@ -35,6 +36,8 @@ from gradio.utils import get_upload_folder, set_default_buttons
 
 if TYPE_CHECKING:
     from gradio.components import Timer
+
+logger = logging.getLogger(__name__)
 
 
 # Where a stream's timeline starts. B-frames give H.264 a DTS ahead of its
@@ -831,6 +834,14 @@ class Video(StreamingOutput, Component):
                 frames += more
             if not frames and state.frames_emitted == 0:
                 frames = state.first_frame(encoder)
+                if not frames:
+                    logger.warning(
+                        "The first segment of a streamed video carries no audio: "
+                        "the encoder gave no frame within %.1f s. hls.js fixes "
+                        "its tracks on the first segment, so the browser will "
+                        "play this stream silent.",
+                        FIRST_FRAME_WAIT,
+                    )
         if info["video_codec"] is None and not frames:
             # Nothing to make a segment out of: the chunk brought no video and
             # the encoder is still holding its audio back. ffmpeg refuses a
