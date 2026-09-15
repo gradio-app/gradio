@@ -1,5 +1,18 @@
 # gradio
 
+## 6.28.0
+
+### Features
+
+- [#13840](https://github.com/gradio-app/gradio/pull/13840) [`aab9fcf`](https://github.com/gradio-app/gradio/commit/aab9fcf79ed77a5e5aeca8dd866b4ec94be08a70) - workflow: add styling to input nodes.  Thanks @hannahblair!
+- [#13851](https://github.com/gradio-app/gradio/pull/13851) [`afffecc`](https://github.com/gradio-app/gradio/commit/afffeccf69262a8070a091b50206c1e33b8c06c4) - Add configurable tab overflow and alignment.  Thanks @abidlabs!
+- [#13843](https://github.com/gradio-app/gradio/pull/13843) [`8193f16`](https://github.com/gradio-app/gradio/commit/8193f1644cf8e3746f1d10e5643240768169f5c0) - Speed up multipage app navigation.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13829](https://github.com/gradio-app/gradio/pull/13829) [`908b427`](https://github.com/gradio-app/gradio/commit/908b427466c2ac1d2950ca3b9fb39371f167fba0) - Fix `gr.Dataframe` shift+click range selecting rows hidden by the search.  Thanks @hysts!
+- [#13831](https://github.com/gradio-app/gradio/pull/13831) [`d99a49a`](https://github.com/gradio-app/gradio/commit/d99a49a1456dd11efbec75b74c29657466b12b30) - Keep the empty Dataframe's add row button on screen in fullscreen.  Thanks @hysts!
+
 ## 6.27.0
 
 ### Features

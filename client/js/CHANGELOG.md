@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 2.7.0
+
+### Features
+
+- [#13843](https://github.com/gradio-app/gradio/pull/13843) [`8193f16`](https://github.com/gradio-app/gradio/commit/8193f1644cf8e3746f1d10e5643240768169f5c0) - Speed up multipage app navigation.  Thanks @abidlabs!
+
 ## 2.6.0
 
 ### Features
