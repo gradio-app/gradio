@@ -20,6 +20,7 @@
 	interactive={gradio.shared.interactive}
 	id={gradio.props.id}
 	order={gradio.props.order}
+	alignment={gradio.props.alignment}
 	scale={gradio.shared.scale}
 	component_id={gradio.props.component_id}
 	onselect={(data) => gradio.dispatch("select", data)}

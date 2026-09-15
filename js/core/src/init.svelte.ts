@@ -32,6 +32,7 @@ type visitor<T> = (node: T) => ProcessedComponentMeta;
 type Tab = {
 	label: string;
 	id: string;
+	alignment: "left" | "right";
 	visible: boolean;
 	interactive: boolean;
 	elem_id: string | undefined;
@@ -655,6 +656,7 @@ export class AppTree {
 		initial_tabs[tab_index] = {
 			label: i18n ? i18n(raw_label) : raw_label,
 			id: node.props.props.id as string,
+			alignment: (node.props.props.alignment as "left" | "right") ?? "left",
 			elem_id: node.props.shared_props.elem_id,
 			visible: visible === "hidden" ? false : visible,
 			interactive: node.props.shared_props.interactive,
@@ -1017,6 +1019,7 @@ function _gather_initial_tabs(
 		initial_tabs[parent_tab_id].push({
 			label: i18n ? i18n(raw_label) : raw_label,
 			id: node.props.props.id as string,
+			alignment: (node.props.props.alignment as "left" | "right") ?? "left",
 			elem_id: node.props.shared_props.elem_id,
 			visible: node.props.shared_props.visible as boolean,
 			interactive: node.props.shared_props.interactive,

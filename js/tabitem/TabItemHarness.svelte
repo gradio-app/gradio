@@ -29,6 +29,7 @@
 	order={0}
 	visible={cfg.tab_visible ?? true}
 	interactive={true}
+	alignment={cfg.tab_alignment ?? "left"}
 	scale={0}
 	component_id={1}
 	onselect={(data) => cfg.on_tab_select?.(data)}

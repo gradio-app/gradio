@@ -222,6 +222,20 @@ class TestTabbedInterface:
             tabbed_interface.get_config_file(),  # type: ignore
         )
 
+    def test_tabbed_interface_passes_tabs_kwargs_to_tabs(self):
+        interface = Interface(lambda x: x, "textbox", "textbox")
+
+        tabbed_interface = TabbedInterface(
+            [interface], tabs_kwargs={"overflow_behavior": "wrap"}
+        )
+        tabs_config = next(
+            component
+            for component in tabbed_interface.get_config_file()["components"]
+            if component["type"] == "tabs"
+        )
+
+        assert tabs_config["props"]["overflow_behavior"] == "wrap"
+
 
 @pytest.mark.parametrize(
     "interface_type", ["standard", "input_only", "output_only", "unified"]

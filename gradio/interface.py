@@ -971,6 +971,7 @@ class TabbedInterface(Blocks):
         tab_names: list[str] | None = None,
         title: str | None = None,
         analytics_enabled: bool | None = None,
+        tabs_kwargs: dict[str, Any] | None = None,
     ):
         """
         Parameters:
@@ -978,6 +979,7 @@ class TabbedInterface(Blocks):
             tab_names: A list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
             title: The tab title to display when this demo is opened in a browser window.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            tabs_kwargs: Additional keyword arguments to pass to the internal `gr.Tabs` layout.
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
@@ -994,7 +996,7 @@ class TabbedInterface(Blocks):
                 Markdown(
                     f"<h1 style='text-align: center; margin-bottom: 1rem'>{title}</h1>"
                 )
-            with Tabs():
+            with Tabs(**(tabs_kwargs or {})):
                 for interface, tab_name in zip(interface_list, tab_names, strict=False):
                     with Tab(
                         label=tab_name,
