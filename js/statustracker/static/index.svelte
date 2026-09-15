@@ -230,6 +230,89 @@
 		};
 	});
 
+	const progress_aria = $derived.by<{
+		valuenow: number;
+		valuetext: string;
+	} | null>(() => {
+		if (progress_level.last_progress_level == null) return null;
+
+		const valuenow = Math.round(
+			Math.min(Math.max(progress_level.last_progress_level, 0), 1) * 100
+		);
+		let valuetext = `${valuenow}%`;
+		const last = progress?.[progress.length - 1];
+
+		if (last?.index != null && last?.length != null) {
+			valuetext = `${pretty_si(last.index)} / ${pretty_si(last.length)}`;
+			if (last.unit) valuetext += ` ${last.unit}`;
+		}
+		if (last?.desc) valuetext = `${last.desc}: ${valuetext}`;
+
+		return { valuenow, valuetext };
+	});
+
+	let live_message = $state("");
+	let announced_milestone = $state(0);
+	let last_announcement_time = Number.NEGATIVE_INFINITY;
+
+	const MILLISECONDS_BETWEEN_ANNOUNCEMENTS = 5000;
+
+	function announce(message: string, force = false): void {
+		if (!force && should_hide) return;
+
+		const now = performance.now();
+		if (
+			!force &&
+			now - last_announcement_time < MILLISECONDS_BETWEEN_ANNOUNCEMENTS
+		) {
+			return;
+		}
+
+		last_announcement_time = now;
+		live_message = message;
+	}
+
+	const milestone = $derived(
+		progress_aria ? Math.floor(progress_aria.valuenow / 10) : 0
+	);
+
+	$effect(() => {
+		if (status !== "pending") {
+			announced_milestone = 0;
+			last_announcement_time = Number.NEGATIVE_INFINITY;
+			return;
+		}
+
+		if (progress_aria && milestone > announced_milestone) {
+			announced_milestone = milestone;
+			announce(progress_aria.valuetext);
+		}
+	});
+
+	$effect(() => {
+		if (status !== "pending" || progress != null) return;
+
+		if (
+			queue_position != null &&
+			queue_size !== undefined &&
+			queue_position > 0
+		) {
+			announce(`In queue: ${queue_position + 1} of ${queue_size}`);
+		} else if (queue_position == null || queue_position === 0) {
+			announce("Processing");
+		}
+	});
+
+	$effect(() => {
+		if (
+			status === "complete" &&
+			type !== "input" &&
+			show_progress !== "hidden"
+		) {
+			announce("Complete", true);
+		}
+	});
+
 	function start_timer(): void {
 		if (_timer) return;
 
@@ -367,6 +450,9 @@
 	data-testid="status-tracker"
 	bind:this={el}
 >
+	<div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+		{live_message}
+	</div>
 	{#if validation_error && show_validation_error}
 		<div class="validation-error">
 			{validation_error}
@@ -444,6 +530,11 @@
 				<div class="progress-bar-wrap">
 					<div
 						class="progress-bar"
+						role="progressbar"
+						aria-valuemin="0"
+						aria-valuemax="100"
+						aria-valuenow={progress_aria?.valuenow}
+						aria-valuetext={progress_aria?.valuetext}
 						style:width="{progress_level.last_progress_level * 100}%"
 						style:transition={progress_level.progress_bar_transition}
 					/>

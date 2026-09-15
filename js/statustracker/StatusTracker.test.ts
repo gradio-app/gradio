@@ -11,7 +11,7 @@ describe("StatusTracker: validation errors", () => {
 		i18n: (s: string | null | undefined) => s ?? "",
 		autoscroll: false,
 		queue_position: null,
-		queue_size: null
+		queue_size: null,
 	};
 
 	afterEach(() => {
@@ -33,8 +33,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: "This field is required",
-				show_validation_error: true
-			}
+				show_validation_error: true,
+			},
 		});
 		await tick();
 
@@ -52,8 +52,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: "Can't be error",
-				show_validation_error: true
-			}
+				show_validation_error: true,
+			},
 		});
 		await tick();
 
@@ -71,8 +71,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: null,
-				show_validation_error: true
-			}
+				show_validation_error: true,
+			},
 		});
 		await tick();
 
@@ -90,8 +90,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: undefined as any,
 				validation_error: "Error message",
-				show_validation_error: true
-			}
+				show_validation_error: true,
+			},
 		});
 		await tick();
 
@@ -110,12 +110,102 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: "Error message",
-				show_validation_error: false
-			}
+				show_validation_error: false,
+			},
 		});
 		await tick();
 
 		const { getByTestId } = within(target);
 		expect(getByTestId("status-tracker")).not.toBeVisible();
+	});
+});
+
+describe("StatusTracker: progress accessibility", () => {
+	let target: HTMLDivElement;
+	let component: ReturnType<typeof mount>;
+
+	const base_props = {
+		i18n: (s: string | null | undefined) => s ?? "",
+		autoscroll: false,
+		queue_position: null,
+		queue_size: null,
+	};
+
+	afterEach(() => {
+		if (component) {
+			unmount(component);
+		}
+		if (target) {
+			target.remove();
+		}
+	});
+
+	test("exposes iteration progress to assistive technology", async () => {
+		target = document.createElement("div");
+		document.body.appendChild(target);
+
+		component = mount(StatusTracker, {
+			target,
+			props: {
+				...base_props,
+				status: "pending",
+				progress: [
+					{
+						progress: null,
+						index: 3,
+						length: 4,
+						unit: "steps",
+						desc: "Processing",
+					},
+				],
+			},
+		});
+		await tick();
+
+		const { getByRole } = within(target);
+		const progressbar = getByRole("progressbar");
+		expect(progressbar).toHaveAttribute("aria-valuemin", "0");
+		expect(progressbar).toHaveAttribute("aria-valuemax", "100");
+		expect(progressbar).toHaveAttribute("aria-valuenow", "75");
+		expect(progressbar).toHaveAttribute(
+			"aria-valuetext",
+			"Processing: 3 / 4 steps",
+		);
+
+		const status = getByRole("status");
+		expect(status).toHaveAttribute("aria-live", "polite");
+		expect(status).toHaveAttribute("aria-atomic", "true");
+		expect(status).toHaveTextContent("Processing: 3 / 4 steps");
+	});
+
+	test("announces queue position and completion", async () => {
+		target = document.createElement("div");
+		document.body.appendChild(target);
+
+		component = mount(StatusTracker, {
+			target,
+			props: {
+				...base_props,
+				status: "pending",
+				queue_position: 1,
+				queue_size: 3,
+			},
+		});
+		await tick();
+
+		const { getByRole } = within(target);
+		expect(getByRole("status")).toHaveTextContent("In queue: 2 of 3");
+
+		unmount(component);
+		component = mount(StatusTracker, {
+			target,
+			props: {
+				...base_props,
+				status: "complete",
+			},
+		});
+		await tick();
+
+		expect(getByRole("status")).toHaveTextContent("Complete");
 	});
 });
