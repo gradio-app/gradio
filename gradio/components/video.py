@@ -52,6 +52,14 @@ FIRST_FRAME_WAIT = 2.0
 # measured; a build that wanted more would leave the first segment as it is now.
 FIRST_FRAME_LOOKAHEAD = 4
 
+# How far the audio may run ahead of the video before the video is moved up to
+# it. A `-c copy` split's cuts land mid-frame and put the two tracks up to
+# 46 ms apart, measured, in a way that evens out over the stream, so that much
+# is left to float. A generator whose every chunk carries more audio than
+# video does not even out, and a tenth of a second is about where the sound
+# starts to read as early.
+MAX_AUDIO_LEAD = 0.1
+
 TS_PACKET_SIZE = 188
 TS_NULL_PID = 0x1FFF
 
@@ -103,8 +111,18 @@ class _VideoStream:
         as long as the stream lasts. Having the video follow the audio instead
         lands frames between the positions its own timebase can express, and
         two of them then round onto one timestamp, which no decoder will cross.
-        Audio running ahead of the video is left alone rather than trimmed.
+
+        Audio running ahead is the other way round, and trimming it would put
+        back the very gap this stream exists to remove. Up to `MAX_AUDIO_LEAD`
+        it is left where it falls; past that the video clock is moved up to
+        where the audio has reached, so the next chunk's picture starts with
+        its own sound again and the picture holds still for the difference,
+        once, instead of falling further behind with every chunk.
         """
+        audio_end = self.samples_written / encoder.sample_rate
+        if audio_end - self.video_time > MAX_AUDIO_LEAD:
+            self.video_time = audio_end
+            return b""
         behind = round(self.video_time * encoder.sample_rate) - self.samples_written
         return b"\x00" * (max(behind, 0) * encoder.channels * 2)
 
@@ -785,6 +803,10 @@ class Video(StreamingOutput, Component):
         info = self.probe_chunk(path)
         frames: list[bytes] = []
         encoder = state.slot.encoder
+        # Where the last segment left the timeline, before `catch_up` may move
+        # the video clock up to the audio: the playlist has to account for that
+        # move as well as the chunk's own length.
+        placed_from = state.video_time
         if info["sample_rate"] is not None:
             if encoder is None:
                 encoder = AacStreamEncoder(info["sample_rate"], info["channels"])
@@ -827,7 +849,11 @@ class Video(StreamingOutput, Component):
         )
         state.frames_emitted += len(frames)
         state.video_time += info["duration"]
-        return {"data": data, "duration": info["duration"], "extension": ".ts"}
+        return {
+            "data": data,
+            "duration": state.video_time - placed_from,
+            "extension": ".ts",
+        }
 
     async def stream_output(
         self,

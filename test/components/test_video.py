@@ -81,6 +81,33 @@ def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 2
     return sorted(out.glob("chunk*.mp4"))
 
 
+def overrun_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24):
+    """Chunks whose audio outlasts their video, every one of them.
+
+    A generator asked for 0.25 s at 15 fps and told to stop at the shorter
+    track keeps three frames, 0.2 s, against the full 0.25 s of audio, which
+    is what `-shortest` does from ffmpeg 7 on. Asked for outright here, the
+    video in whole frames and the audio in seconds, so the shape does not
+    depend on the build.
+    """
+    video_seconds = math.floor(chunk_seconds * VIDEO_FPS) / VIDEO_FPS
+    out = directory / "overrun"
+    out.mkdir()
+    for index in range(count):
+        start = index * chunk_seconds
+        subprocess.run([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "lavfi", "-i",
+            f"testsrc=size=320x240:rate={VIDEO_FPS}:duration={video_seconds}",
+            "-f", "lavfi", "-i",
+            f"aevalsrc='0.8*sin(2*PI*440*(t+{start}))'"
+            f":s={AUDIO_RATE}:d={chunk_seconds}",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", str(out / f"chunk{index:03d}.mp4"),
+        ], check=True)  # fmt: skip
+    return sorted(out.glob("chunk*.mp4"))
+
+
 def lossless_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 8):
     """Chunks that carry no damage of their own, to measure what is added here.
 
@@ -522,6 +549,57 @@ class TestVideo:
             ]
             if all(within):
                 assert min(within[0]) - min(within[1]) < 0.25
+
+    @pytest.mark.requires_ffmpeg
+    @reads_mpegts
+    @pytest.mark.asyncio
+    async def test_audio_that_outlasts_its_video_does_not_walk_ahead(self, tmp_path):
+        """The other way round from the chunk `catch_up` pads.
+
+        Padding covers a chunk whose video outlasts its audio. Audio outlasting
+        the video was left where it fell, and a generator whose every chunk
+        does that walks the sound ahead of the picture for as long as it
+        yields: 50 ms a chunk here, two seconds of it by the fortieth. Past a
+        tolerance the next chunk's video is placed where the audio has
+        reached, and the playlist reports how far the timeline moved.
+        """
+        chunks = overrun_chunks(tmp_path)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/overrun.m3u8"
+        segments = []
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await video.stream_output(chunk, stream_id, index == 0)
+                if segment:
+                    segments.append(segment)
+            if final_segment := await video.flush_stream_output(stream_id):
+                segments.append(final_segment)
+        finally:
+            video.end_stream_output(stream_id)
+
+        served = b"".join(segment["data"] for segment in segments)
+        video_pts = packet_timestamps(served, "v", tmp_path, "pts_time")
+        audio_pts = packet_timestamps(served, "a", tmp_path, "pts_time")
+        # Left alone, 24 chunks of 0.2 s of video against 0.25 s of audio end
+        # with the sound 0.8 s or more past the picture.
+        assert max(audio_pts) - max(video_pts) < 0.25
+        # The playlist's durations add up to the timeline served, the video's
+        # moves included, or a player has the stream shorter than it is.
+        span = max(audio_pts) + 1024 / AUDIO_RATE - min(video_pts)
+        assert sum(s["duration"] for s in segments) == pytest.approx(span, abs=0.25)
+        for kind in ("v", "a"):
+            stamps = packet_timestamps(served, kind, tmp_path)
+            assert stamps == sorted(stamps)
+        # Moving the video up puts a segment's picture after the audio the
+        # encoder is still holding back, and a segment whose audio starts a
+        # third of a second before its video stops hls.js dead.
+        for segment in segments:
+            within = [
+                packet_timestamps(segment["data"], kind, tmp_path, "pts_time")
+                for kind in ("v", "a")
+            ]
+            if all(within):
+                assert abs(min(within[0]) - min(within[1])) < 0.25
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
