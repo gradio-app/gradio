@@ -1812,6 +1812,11 @@
 			0 4px 20px rgba(0, 0, 0, 0.08);
 	}
 
+	:global(body:not(.dark)) .wf-node.node-required-input {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 3px var(--accent-dim);
+	}
+
 	.node-requirement {
 		flex: 0 0 auto;
 		font-size: 8.5px;
