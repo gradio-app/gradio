@@ -5,6 +5,8 @@ export const default_i18n: Record<string, string> = {
 	"dataframe.add_column_left": "Add column left",
 	"dataframe.add_column_right": "Add column right",
 	"dataframe.delete_column": "Delete column",
+	"dataframe.drop_to_upload":
+		"Drop CSV or TSV files here to import data into dataframe",
 	"dataframe.sort_asc": "Sort ascending",
 	"dataframe.sort_desc": "Sort descending",
 	"dataframe.sort_ascending": "Sort ascending",
