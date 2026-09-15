@@ -120,6 +120,14 @@
 		return typeof v === "boolean" ? v : false;
 	}
 
+	/** Has this port produced anything yet? `0` and `false` are real outputs;
+	 * an empty string or empty selection is not. */
+	const hasValue = $derived.by(() => {
+		const v = node.data?.[widgetPortId];
+		if (v == null || v === "") return false;
+		return !Array.isArray(v) || v.length > 0;
+	});
+
 	const HTML_PAGE_WIDTH = 1280;
 	const HTML_PAGE_HEIGHT = 800;
 
@@ -296,7 +304,9 @@
 	onmousedown={(e) => e.stopPropagation()}
 	onpointerdown={(e) => e.stopPropagation()}
 >
-	{#if hasChoices && choices}
+	{#if isReadonly && !hasValue}
+		{@render placeholder()}
+	{:else if hasChoices && choices}
 		{@const rawValue = node.data?.[widgetPortId]}
 		{@const selected = multiselect && Array.isArray(rawValue) ? rawValue : []}
 		{@const current =
@@ -347,33 +357,29 @@
 			{@render placeholder()}
 		{/if}
 	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json" || effectiveWidgetType === "markdown"}
-		{#if isReadonly && isPending && !getTextValue()}
-			{@render placeholder()}
-		{:else}
-			<div class="widget-text-wrap">
-				<div class="widget-gradio-wrap">
-					<BaseTextbox
-						value={getTextValue()}
-						label="text"
-						show_label={false}
-						lines={effectiveWidgetType === "json" ? 4 : 3}
-						max_lines={8}
-						placeholder={isReadonly
-							? "Waiting for output..."
-							: effectiveWidgetType === "json"
-								? '{"key": "value"}'
-								: effectiveWidgetType === "markdown"
-									? "Enter markdown..."
-									: "Enter text..."}
-						disabled={isReadonly}
-						onchange={(val) => {
-							if (node.data?.[widgetPortId] !== val)
-								ondatachange(node.id, widgetPortId, val);
-						}}
-					/>
-				</div>
+		<div class="widget-text-wrap">
+			<div class="widget-gradio-wrap">
+				<BaseTextbox
+					value={getTextValue()}
+					label="text"
+					show_label={false}
+					lines={effectiveWidgetType === "json" ? 4 : 3}
+					max_lines={8}
+					placeholder={isReadonly
+						? "Waiting for output..."
+						: effectiveWidgetType === "json"
+							? '{"key": "value"}'
+							: effectiveWidgetType === "markdown"
+								? "Enter markdown..."
+								: "Enter text..."}
+					disabled={isReadonly}
+					onchange={(val) => {
+						if (node.data?.[widgetPortId] !== val)
+							ondatachange(node.id, widgetPortId, val);
+					}}
+				/>
 			</div>
-		{/if}
+		</div>
 	{:else if effectiveWidgetType === "number"}
 		<div class="widget-number-wrap">
 			{#if isReadonly}
