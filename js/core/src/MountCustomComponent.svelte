@@ -31,6 +31,9 @@
 	$effect(() => {
 		if (!el || !runtime || !component) return;
 		const target = el;
+		// @gr.render can reuse this Svelte instance for a different Gradio node.
+		// Remount so the custom component registers its callbacks under the new id.
+		void node.id;
 
 		// Prop updates are pushed through the component's registered set_data
 		// callback. Do not track these object references here: lazy rendering can

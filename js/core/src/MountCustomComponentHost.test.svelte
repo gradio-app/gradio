@@ -16,8 +16,9 @@
 		on_mount: () => void;
 	} = $props();
 
+	let id = $state(1);
 	let value = $state("initial");
-	let shared_props = $state({});
+	let shared_props = $state({ id });
 	const component_props = {
 		get value() {
 			return value;
@@ -25,6 +26,9 @@
 		on_mount
 	};
 	const node = {
+		get id() {
+			return id;
+		},
 		component: Promise.resolve({ default: component }),
 		runtime: Promise.resolve(runtime),
 		props: {
@@ -41,6 +45,11 @@
 
 	export function replace_shared_props(): void {
 		shared_props = { ...shared_props };
+	}
+
+	export function replace_id(next_id: number): void {
+		id = next_id;
+		shared_props = { ...shared_props, id: next_id };
 	}
 </script>
 

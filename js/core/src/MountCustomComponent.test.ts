@@ -150,6 +150,27 @@ test("does not remount when lazy rendering replaces shared props", async () => {
 	expect(on_mount).toHaveBeenCalledOnce();
 });
 
+test("remounts when a render reuses the instance for a new id", async () => {
+	const runtime = (await load_async_children_runtime()) as RemountProbeRuntime;
+	const on_mount = vi.fn();
+
+	mounted = mount(MountCustomComponentHost, {
+		target: document.body,
+		props: {
+			component: runtime.RemountProbe,
+			runtime,
+			on_mount
+		}
+	});
+
+	await waitFor(() => expect(on_mount).toHaveBeenCalledOnce());
+	flushSync(() => {
+		(mounted as { replace_id: (id: number) => void }).replace_id(2);
+	});
+
+	expect(on_mount).toHaveBeenCalledTimes(2);
+});
+
 test("preserves context across nested custom components", async () => {
 	const provider_runtime =
 		(await load_async_children_runtime()) as ContextRuntime;
