@@ -72,6 +72,35 @@ def extract_base64_data(x: str) -> str:
     return x.rsplit(",", 1)[-1]
 
 
+def _get_original_url_from_proxy(url: str, proxy_url: str) -> str | None:
+    """Return the upstream URL wrapped by a loaded app's file proxy."""
+    parsed_url = urlparse(url)
+    marker = f"{API_PREFIX}/proxy="
+    if marker not in parsed_url.path:
+        return None
+
+    original_url = parsed_url.path.split(marker, 1)[1]
+    if not client_utils.is_http_url_like(original_url):
+        return None
+
+    try:
+        parsed_original_url = httpx.URL(original_url)
+        parsed_proxy_url = httpx.URL(proxy_url)
+    except httpx.InvalidURL:
+        return None
+    if (
+        parsed_original_url.scheme,
+        parsed_original_url.host,
+        parsed_original_url.port,
+    ) != (
+        parsed_proxy_url.scheme,
+        parsed_proxy_url.host,
+        parsed_proxy_url.port,
+    ):
+        return None
+    return original_url
+
+
 #########################
 # IMAGE PRE-PROCESSING
 #########################
@@ -459,16 +488,21 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # Regular app outputs use their returned URL directly. Loaded apps keep
-        # upstream paths for outputs, then use the loader's proxy URL as the path
-        # when browser data comes back as an input.
-        if (
+        original_url = (
+            _get_original_url_from_proxy(payload.url, block.proxy_url)
+            if payload.url and block.proxy_url and not postprocess
+            else None
+        )
+        # Loaded app inputs use the upstream URL wrapped by the loader's proxy.
+        # Ordinary local uploads keep their local cache path and follow the
+        # client's normal upload flow.
+        if original_url:
+            payload.path = original_url
+        elif (
             payload.url
+            and not block.proxy_url
+            and postprocess
             and client_utils.is_http_url_like(payload.url)
-            and (
-                (block.proxy_url and not postprocess)
-                or (not block.proxy_url and postprocess)
-            )
         ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
@@ -594,16 +628,21 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # Regular app outputs use their returned URL directly. Loaded apps keep
-        # upstream paths for outputs, then use the loader's proxy URL as the path
-        # when browser data comes back as an input.
-        if (
+        original_url = (
+            _get_original_url_from_proxy(payload.url, block.proxy_url)
+            if payload.url and block.proxy_url and not postprocess
+            else None
+        )
+        # Loaded app inputs use the upstream URL wrapped by the loader's proxy.
+        # Ordinary local uploads keep their local cache path and follow the
+        # client's normal upload flow.
+        if original_url:
+            payload.path = original_url
+        elif (
             payload.url
+            and not block.proxy_url
+            and postprocess
             and client_utils.is_http_url_like(payload.url)
-            and (
-                (block.proxy_url and not postprocess)
-                or (not block.proxy_url and postprocess)
-            )
         ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
