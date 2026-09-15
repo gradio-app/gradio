@@ -2157,9 +2157,54 @@ Received inputs:
         run = self._stream_run_ids.get(iterator)
         if run is None:
             return
+        self._drop_run(session_hash, run)
+
+    def _drop_run(self, session_hash: str, run: str) -> None:
         for stream in self.pending_streams.get(session_hash, {}).get(run, {}).values():
             stream.end_stream()
         self._pop_run_diffs(session_hash, run)
+
+    async def _finish_run_streams(
+        self, session_hash: str | None, iterator: Any
+    ) -> None:
+        """Complete the streams of a run nobody will continue: a generator called
+        through the run route yields once and is dropped, so what it produced is
+        all there is, and it has to come out whole rather than be cut off."""
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        streams = self.pending_streams.get(session_hash, {}).get(run, {})
+        try:
+            for output_id, stream in streams.items():
+                block = self.blocks[output_id]
+                if isinstance(block, components.StreamingOutput):
+                    await self._finish_stream(
+                        block, stream, self._stream_id(session_hash, run, output_id)
+                    )
+                else:
+                    stream.end_stream()
+        finally:
+            # A flush that raises must not strand the streams after it: without
+            # an event id the caller's handler cannot resolve this run either.
+            self._drop_run(session_hash, run)
+
+    @staticmethod
+    def _stream_id(session_hash: str, run: str, output_id: int) -> str:
+        return f"{session_hash}/{run}/{output_id}/playlist.m3u8"
+
+    @staticmethod
+    async def _finish_stream(
+        block: components.StreamingOutput, stream: MediaStream, stream_id: str
+    ) -> None:
+        try:
+            await stream.add_segment(await block.flush_stream_output(stream_id))
+        finally:
+            # A flush that fails still has to end the stream, or the playlist
+            # never gets its #EXT-X-ENDLIST and the client polls something that
+            # will not grow again.
+            stream.end_stream()
 
     def _pop_run_diffs(self, session_hash: str, run: str) -> None:
         """Drop a run's diff state, and its session's dict if that leaves it empty."""
@@ -2194,19 +2239,18 @@ Received inputs:
                 and block.streaming
                 and not utils.is_prop_update(data[i])
             ):
-                if final:
-                    # Nothing to finalize if this output never opened a stream —
-                    # the session may have been dropped on disconnect, or every
-                    # chunk before this one may have been a prop update. Falling
-                    # through would leave `first_chunk` true and build a fresh
-                    # stream that nothing ever ends.
-                    if (existing := stream_run.get(output_id)) is None:
-                        continue
-                    existing.end_stream()
+                # Nothing to finalize if this output never opened a stream:
+                # the session may have been dropped on disconnect, or every
+                # chunk before this one may have been a prop update. Falling
+                # through would leave `first_chunk` true and build a fresh
+                # stream that nothing ever ends.
+                if final and stream_run.get(output_id) is None:
+                    continue
+                stream_id = self._stream_id(session_hash, run, output_id)
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
-                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    stream_id,
                     first_chunk,
                 )
                 if first_chunk:
@@ -2214,11 +2258,19 @@ Received inputs:
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
                     stream_run = self.pending_streams[session_hash].setdefault(run, {})
-                    stream_run[output_id] = MediaStream(
-                        desired_output_format=desired_output_format
+                    stream = MediaStream(desired_output_format=desired_output_format)
+                    stream_run[output_id] = stream
+                    # A finalize handle runs once and disarms, so ending the
+                    # stream releases the encoder and leaves nothing armed; the
+                    # unarmed case is interpreter exit, since a discarded
+                    # stream is ended by the session cleanup first.
+                    stream.on_end.append(
+                        weakref.finalize(stream, block.end_stream_output, stream_id)
                     )
 
                 await stream_run[output_id].add_segment(binary_data)
+                if final:
+                    await self._finish_stream(block, stream_run[output_id], stream_id)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
@@ -2410,26 +2462,35 @@ Received inputs:
                     if session_hash is not None
                     else None
                 )
-                async with trace_phase("streaming_diff"):
-                    data = await self.handle_streaming_outputs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run,
-                        root_path=root_path,
-                        final=not is_generating,
-                    )
-                    # Diff state serves the later chunks of a run, which can
-                    # only be fetched under an event id. A call without one
-                    # gets full values, which is what its clients expect.
-                    data = self.handle_streaming_diffs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run if event_id is not None else None,
-                        final=not is_generating,
-                        simple_format=simple_format,
-                    )
+                try:
+                    async with trace_phase("streaming_diff"):
+                        data = await self.handle_streaming_outputs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run,
+                            root_path=root_path,
+                            final=not is_generating,
+                        )
+                        # Diff state serves the later chunks of a run, which
+                        # can only be fetched under an event id. A call without
+                        # one gets full values, which is what its clients
+                        # expect.
+                        data = self.handle_streaming_diffs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run if event_id is not None else None,
+                            final=not is_generating,
+                            simple_format=simple_format,
+                        )
+                except BaseException:
+                    # The callers' handlers find a run through
+                    # `app.iterators`, which is assigned only once this has
+                    # returned, so on a first call they cannot.
+                    if session_hash is not None and run is not None:
+                        self._drop_run(session_hash, run)
+                    raise
 
         if not manual_cache_used:
             block_fn.total_runtime += result["duration"]
