@@ -526,6 +526,7 @@ if TYPE_CHECKING:
             Union[int, None, Literal["default"]],
             Union[str, None],
             bool,
+            Union[dict[str, Component], None],
         ],
         Dependency,
     ]
@@ -644,11 +645,13 @@ class EventListener(str):
             stream_every: float = 0.5,
             key: int | str | tuple[int | str, ...] | None = None,
             validator: Callable | None = None,
+            inputs_kwargs: dict[str, Component | BlockContext] | None = None,
         ) -> Dependency:
             """
             Parameters:
                 fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+                inputs_kwargs: Dictionary mapping function parameter names to gradio.components. The component values are passed to the function as keyword arguments.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
                 api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
                 api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
@@ -667,7 +670,7 @@ class EventListener(str):
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
                 api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
                 key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
-                validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
+                validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
             """
 
             if fn == "decorator":
@@ -688,6 +691,7 @@ class EventListener(str):
                         fn=None,
                         inputs=inputs,
                         outputs=outputs,
+                        inputs_kwargs=inputs_kwargs,
                         api_name=api_name,
                         api_description=api_description,
                         scroll_to_output=scroll_to_output,
@@ -723,6 +727,7 @@ class EventListener(str):
                         fn=func,
                         inputs=inputs,
                         outputs=outputs,
+                        inputs_kwargs=inputs_kwargs,
                         api_name=api_name,
                         api_description=api_description,
                         scroll_to_output=scroll_to_output,
@@ -778,6 +783,7 @@ class EventListener(str):
                 fn,
                 inputs,
                 outputs,
+                inputs_kwargs=inputs_kwargs,
                 preprocess=preprocess,
                 postprocess=postprocess,
                 scroll_to_output=scroll_to_output,
@@ -849,6 +855,7 @@ def on(
     | Set[Component | BlockContext]
     | None = None,
     *,
+    inputs_kwargs: dict[str, Component | BlockContext] | None = None,
     api_visibility: Literal["public", "private", "undocumented"] = "public",
     api_name: str | None = None,
     api_description: str | None | Literal[False] = None,
@@ -879,6 +886,7 @@ def on(
         triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will run on app load and changes to any inputs.
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+        inputs_kwargs: Dictionary mapping function parameter names to gradio.components. The component values are passed to the function as keyword arguments.
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
         api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
         scroll_to_output: If True, will scroll to output component on completion
@@ -897,7 +905,7 @@ def on(
         api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
-        validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function and should return a `gr.validate()` for each input value.
+        validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -940,6 +948,7 @@ def on(
                 fn=None,
                 inputs=inputs,
                 outputs=outputs,
+                inputs_kwargs=inputs_kwargs,
                 api_name=api_name,
                 api_description=api_description,
                 scroll_to_output=scroll_to_output,
@@ -975,6 +984,7 @@ def on(
                 fn=func,
                 inputs=inputs,
                 outputs=outputs,
+                inputs_kwargs=inputs_kwargs,
                 api_name=api_name,
                 api_description=api_description,
                 scroll_to_output=scroll_to_output,
@@ -1012,9 +1022,11 @@ def on(
     if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
+        trigger_inputs = list(inputs or [])  # type: ignore[arg-type]
+        trigger_inputs.extend((inputs_kwargs or {}).values())
         methods = (
-            [EventListenerMethod(input, "change") for input in inputs]  # type: ignore
-            if inputs is not None
+            [EventListenerMethod(input, "change") for input in trigger_inputs]
+            if trigger_inputs
             else []
         ) + [EventListenerMethod(root_block, "load")]  # type: ignore
     else:
@@ -1031,6 +1043,7 @@ def on(
         fn,
         inputs,
         outputs,
+        inputs_kwargs=inputs_kwargs,
         preprocess=preprocess,
         postprocess=postprocess,
         scroll_to_output=scroll_to_output,

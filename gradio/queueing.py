@@ -337,6 +337,8 @@ class Queue:
                 preprocess=fn.preprocess,
                 postprocess=False,
                 inputs_as_dict=fn.inputs_as_dict,
+                input_keyword_names=fn.input_keyword_names,
+                input_parameter_names=fn.input_parameter_names,
                 targets=[],
                 _id=-1,
                 max_batch_size=fn.max_batch_size,

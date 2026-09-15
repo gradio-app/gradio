@@ -1121,6 +1121,238 @@ class TestStateHolder:
 
 class TestCallFunction:
     @pytest.mark.asyncio
+    async def test_call_function_with_keyword_inputs(self):
+        def greet(first_name: str, *, last_name: str):
+            return f"Hello, {first_name} {last_name}!"
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        assert demo.fns[0].inputs == [first_name, last_name]
+        assert demo.fns[0].input_keyword_names == ["last_name"]
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Hello, Ada Lovelace!"
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_support_async_and_generator_functions(self):
+        async def async_greet(*, name: str):
+            return f"Hello, {name}!"
+
+        def count(*, maximum: int):
+            yield from range(maximum)
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            maximum = gr.Number()
+            output = gr.Textbox()
+            gr.Button().click(
+                async_greet,
+                inputs_kwargs={"name": name},
+                outputs=output,
+            )
+            gr.Button().click(
+                count,
+                inputs_kwargs={"maximum": maximum},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada"])
+        assert result["prediction"] == "Hello, Ada!"
+
+        result = await demo.call_function(1, [2])
+        assert result["prediction"] == 0
+        result = await demo.call_function(1, [2], iterator=result["iterator"])
+        assert result["prediction"] == 1
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_support_positional_or_keyword_parameters(self):
+        def greet(first_name: str, last_name: str):
+            return f"{first_name} {last_name}"
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Ada Lovelace"
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_preserve_special_argument_injection(self):
+        default_progress = gr.Progress()
+
+        def request_after_keyword(first, last, request: gr.Request):
+            return f"{first} {last}: {request.headers['x-test']}"
+
+        def event_after_keyword(first, last, event: SelectData):
+            return f"{first} {last}: {event.value}"
+
+        def request_between_inputs(first, request: gr.Request, last):
+            return f"{first} {last}: {request.headers['x-test']}"
+
+        def progress_after_keyword(first, last, progress=default_progress):
+            return f"{first} {last}: {progress is not default_progress}"
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            output = gr.Textbox()
+            for fn in (
+                request_after_keyword,
+                event_after_keyword,
+                request_between_inputs,
+                progress_after_keyword,
+            ):
+                gr.Button().click(
+                    fn,
+                    inputs=[first],
+                    inputs_kwargs={"last": last},
+                    outputs=output,
+                )
+
+        request = gr.Request(headers={"x-test": "injected request"})
+        event_data = SelectData(
+            target=first, data={"index": 0, "value": "injected event"}
+        )
+        request_after = await demo.call_function(
+            0, ["Ada", "Lovelace"], requests=request
+        )
+        event_after = await demo.call_function(
+            1, ["Ada", "Lovelace"], event_data=event_data
+        )
+        request_between = await demo.call_function(
+            2, ["Ada", "Lovelace"], requests=request
+        )
+        progress_after = await demo.call_function(3, ["Ada", "Lovelace"])
+
+        assert request_after["prediction"] == "Ada Lovelace: injected request"
+        assert event_after["prediction"] == "Ada Lovelace: injected event"
+        assert request_between["prediction"] == "Ada Lovelace: injected request"
+        assert progress_after["prediction"] == "Ada Lovelace: True"
+
+    @pytest.mark.asyncio
+    async def test_keyword_positional_input_preserves_skipped_default(self):
+        def greet(first, title="Mx.", last=""):
+            return f"{title} {first} {last}"
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first],
+                inputs_kwargs={"last": last},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Mx. Ada Lovelace"
+
+    def test_keyword_input_names_are_preserved_in_api_info(self):
+        def greet(first_name: str, title: str | None = None, *, last_name: str):
+            return f"{title or ''} {first_name} {last_name}".strip()
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        parameter_names = [
+            parameter["parameter_name"]
+            for parameter in demo.get_api_info()["named_endpoints"]["/greet"][
+                "parameters"
+            ]
+        ]
+        assert parameter_names == ["first_name", "last_name"]
+
+    def test_keyword_input_names_follow_variadic_positional_inputs_in_api_info(self):
+        def variadic(*args, **kwargs):
+            return args, kwargs
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox(label="First")
+            second = gr.Textbox(label="Second")
+            third = gr.Textbox(label="Third")
+            gr.Button().click(
+                variadic,
+                inputs=[first, second],
+                inputs_kwargs={"third": third},
+            )
+
+        parameters = demo.get_api_info()["named_endpoints"]["/variadic"]["parameters"]
+        assert [parameter["parameter_name"] for parameter in parameters] == [
+            "param_0",
+            "param_1",
+            "third",
+        ]
+        assert [parameter["label"] for parameter in parameters] == [
+            "First",
+            "Second",
+            "Third",
+        ]
+
+    def test_invalid_keyword_input_configurations_raise_at_definition_time(self):
+        def named(first, second):
+            return first, second
+
+        def positional_only(first, second, /):
+            return first, second
+
+        with gr.Blocks():
+            first = gr.Textbox()
+            second = gr.Textbox()
+            button = gr.Button()
+
+            with pytest.raises(ValueError, match="both `inputs` and `inputs_kwargs`"):
+                button.click(
+                    named,
+                    inputs=[first, second],
+                    inputs_kwargs={"second": second},
+                )
+
+            with pytest.raises(ValueError, match="Positional-only arguments"):
+                button.click(
+                    positional_only,
+                    inputs=[first],
+                    inputs_kwargs={"second": second},
+                )
+
+            with pytest.raises(ValueError, match="must be Gradio components"):
+                button.click(
+                    named,
+                    inputs=[first],
+                    inputs_kwargs={"second": "not a component"},  # type: ignore[dict-item]
+                )
+
+            with pytest.raises(ValueError, match="Unexpected keyword arguments"):
+                button.click(
+                    named,
+                    inputs=[first],
+                    inputs_kwargs={"unknown": second},
+                )
+
+    @pytest.mark.asyncio
     async def test_call_regular_function(self):
         with gr.Blocks() as demo:
             text = gr.Textbox()

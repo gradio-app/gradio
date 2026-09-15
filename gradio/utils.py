@@ -1251,7 +1251,12 @@ def oauth_token_requirement(
     return None
 
 
-def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
+def check_function_inputs_match(
+    fn: Callable,
+    inputs: Sequence,
+    inputs_as_dict: bool,
+    inputs_kwargs: dict[str, Any] | None = None,
+):
     """
     Checks if the input component set matches the function
     Returns: None if valid or if the function does not have a signature (e.g. is a built in),
@@ -1265,17 +1270,53 @@ def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: 
     min_args = 0
     max_args = 0
     infinity = -1
+    input_keyword_names = set(inputs_kwargs or {})
+    positional_input_names: set[str] = set()
+    positional_inputs_remaining = 1 if inputs_as_dict else len(inputs)
+    accepts_kwargs = False
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
             if not is_special_typed_parameter(name, parameter_types):
-                if not has_default:
+                if positional_inputs_remaining:
+                    positional_input_names.add(name)
+                    positional_inputs_remaining -= 1
+                if not has_default and name not in input_keyword_names:
                     min_args += 1
                 max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
             max_args = infinity
-        elif param.kind == param.KEYWORD_ONLY and not has_default:
+        elif param.kind == param.VAR_KEYWORD:
+            accepts_kwargs = True
+        elif (
+            param.kind == param.KEYWORD_ONLY
+            and not has_default
+            and name not in input_keyword_names
+        ):
             return f"Keyword-only args must have default values for function {fn}"
+    positional_only_keyword_names = {
+        name
+        for name in input_keyword_names
+        if name in signature.parameters
+        and signature.parameters[name].kind == inspect.Parameter.POSITIONAL_ONLY
+    }
+    if positional_only_keyword_names:
+        raise ValueError(
+            "Positional-only arguments cannot be provided through `inputs_kwargs`: "
+            f"{sorted(positional_only_keyword_names)}."
+        )
+    duplicate_names = input_keyword_names & positional_input_names
+    if duplicate_names:
+        raise ValueError(
+            "Arguments cannot be provided through both `inputs` and "
+            f"`inputs_kwargs`: {sorted(duplicate_names)}."
+        )
+    unexpected_keyword_names = input_keyword_names - signature.parameters.keys()
+    if unexpected_keyword_names and not accepts_kwargs:
+        raise ValueError(
+            f"Unexpected keyword arguments for function {fn}: "
+            f"{sorted(unexpected_keyword_names)}."
+        )
     arg_count = 1 if inputs_as_dict else len(inputs)
     if min_args == max_args and max_args != arg_count:
         warnings.warn(

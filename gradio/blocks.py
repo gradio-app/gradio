@@ -19,6 +19,7 @@ import weakref
 import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Sequence, Set
+from functools import partial
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -43,7 +44,7 @@ from gradio import (
 )
 from gradio.block_function import BlockFunction
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
-from gradio.caching import TrackManualCacheUsage, used_manual_cache
+from gradio.caching import Cache, TrackManualCacheUsage, used_manual_cache
 from gradio.context import (
     Context,
     LocalContext,
@@ -76,7 +77,7 @@ from gradio.exceptions import (
     ServerFailedToStartError,
     ShareCertificateWriteError,
 )
-from gradio.helpers import create_tracker, skip, special_args
+from gradio.helpers import Progress, create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
@@ -653,6 +654,144 @@ def _port_is_free(host: str, port: int) -> bool:
     return True
 
 
+def _normalize_event_inputs(
+    inputs: (
+        Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | Set[Component | BlockContext]
+        | None
+    ),
+    inputs_kwargs: dict[str, Component | BlockContext] | None,
+) -> tuple[
+    list[Component | BlockContext],
+    list[Component | BlockContext],
+    dict[str, Component | BlockContext],
+    bool,
+]:
+    if isinstance(inputs, Set):
+        inputs_as_dict = True
+        normalized_inputs = sorted(inputs, key=lambda component: component._id)
+    else:
+        inputs_as_dict = False
+        if inputs is None:
+            normalized_inputs = []
+        elif isinstance(inputs, Sequence):
+            normalized_inputs = list(inputs)
+        else:
+            normalized_inputs = [inputs]
+
+    if inputs_as_dict and inputs_kwargs:
+        raise ValueError("`inputs_kwargs` cannot be used when `inputs` is a set.")
+
+    keyword_inputs = inputs_kwargs or {}
+    invalid_keyword_inputs = [
+        name
+        for name, component in keyword_inputs.items()
+        if not isinstance(component, (components.Component, BlockContext))
+    ]
+    if invalid_keyword_inputs:
+        raise ValueError(
+            "All values in `inputs_kwargs` must be Gradio components or block "
+            f"contexts. Invalid keys: {invalid_keyword_inputs}."
+        )
+    all_inputs = normalized_inputs + list(keyword_inputs.values())
+    return all_inputs, normalized_inputs, keyword_inputs, inputs_as_dict
+
+
+def _get_input_parameter_names(
+    fn: Callable | None,
+    positional_input_count: int,
+    keyword_input_names: Sequence[str],
+) -> list[str | None]:
+    positional_parameter_names: list[str | None] = []
+    if fn is not None:
+        positional_parameter_names = [
+            parameter[0]
+            for parameter in utils.get_function_params(fn)[:positional_input_count]
+        ]
+    positional_parameter_names.extend(
+        [None] * (positional_input_count - len(positional_parameter_names))
+    )
+    return [*positional_parameter_names, *keyword_input_names]
+
+
+def _split_call_inputs(
+    block_fn: BlockFunction, processed_input: list[Any]
+) -> tuple[list[Any], dict[str, Any]]:
+    if not block_fn.input_keyword_names:
+        return processed_input, {}
+
+    keyword_count = len(block_fn.input_keyword_names)
+    positional_values = processed_input[:-keyword_count]
+    keyword_values = processed_input[-keyword_count:]
+    keyword_values_by_name = dict(
+        zip(block_fn.input_keyword_names, keyword_values, strict=True)
+    )
+    return positional_values, keyword_values_by_name
+
+
+def _merge_positional_keyword_inputs(
+    fn: Callable, positional_values: list[Any], keyword_values: dict[str, Any]
+) -> tuple[list[Any], dict[str, Any]]:
+    """Move named positional parameters into place before injecting special args."""
+    if not keyword_values:
+        return positional_values, keyword_values
+    try:
+        signature = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return positional_values, keyword_values
+
+    type_hints = utils.get_type_hints(fn)
+    positional_parameters = [
+        parameter
+        for parameter in signature.parameters.values()
+        if parameter.kind
+        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+        and not isinstance(parameter.default, (Progress, Cache))
+        and not utils.is_special_typed_parameter(parameter.name, type_hints)
+    ]
+    merged_values = list(positional_values)
+    remaining_keyword_values = dict(keyword_values)
+
+    for index, parameter in enumerate(positional_parameters):
+        if (
+            parameter.kind != inspect.Parameter.POSITIONAL_OR_KEYWORD
+            or parameter.name not in remaining_keyword_values
+        ):
+            continue
+        while len(merged_values) < index:
+            skipped_parameter = positional_parameters[len(merged_values)]
+            default = skipped_parameter.default
+            merged_values.append(
+                None if default is inspect.Parameter.empty else default
+            )
+        if len(merged_values) > index:
+            raise ValueError(
+                f"Argument {parameter.name!r} was provided as both a positional and keyword input."
+            )
+        merged_values.append(remaining_keyword_values.pop(parameter.name))
+
+    return merged_values, remaining_keyword_values
+
+
+def _get_api_parameter_name(
+    block_fn: BlockFunction,
+    function_parameters: list[tuple[str, bool, Any, Any]],
+    index: int,
+) -> str:
+    reserved_names = {"api_name", "fn_index", "result_callbacks"}
+    if index < len(block_fn.input_parameter_names):
+        configured_name = block_fn.input_parameter_names[index]
+        if configured_name is not None and configured_name not in reserved_names:
+            return configured_name
+    if index < len(function_parameters):
+        inferred_name = function_parameters[index][0]
+        if inferred_name not in reserved_names:
+            return inferred_name
+    return f"param_{index}"
+
+
 class BlocksConfig:
     def __init__(self, root_block: Blocks):
         self._id: int = 0
@@ -711,6 +850,7 @@ class BlocksConfig:
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
         component_prop_inputs: list[int] | None = None,
+        inputs_kwargs: dict[str, Component | BlockContext] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -718,6 +858,7 @@ class BlocksConfig:
             targets: a list of EventListenerMethod objects that define the event trigger
             fn: the function to run when the event is triggered
             inputs: the list of input components whose values will be passed to the function
+            inputs_kwargs: a dictionary mapping function parameter names to input components whose values will be passed as keyword arguments
             outputs: the list of output components whose values will be updated by the function
             preprocess: whether to run the preprocess methods of the input components before running the function
             postprocess: whether to run the postprocess methods of the output components after running the function
@@ -744,7 +885,7 @@ class BlocksConfig:
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
-            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input. The validator receives the same keyword arguments as the main function when `inputs_kwargs` is used, so its signature must accept those keyword names.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -755,15 +896,9 @@ class BlocksConfig:
             )
             for target in targets
         ]
-        if isinstance(inputs, Set):
-            inputs_as_dict = True
-            inputs = sorted(inputs, key=lambda x: x._id)
-        else:
-            inputs_as_dict = False
-            if inputs is None:
-                inputs = []
-            elif not isinstance(inputs, Sequence):
-                inputs = [inputs]
+        inputs, positional_inputs, inputs_kwargs, inputs_as_dict = (
+            _normalize_event_inputs(inputs, inputs_kwargs)
+        )
 
         if isinstance(outputs, Set):
             outputs = sorted(outputs, key=lambda x: x._id)
@@ -775,7 +910,9 @@ class BlocksConfig:
             show_progress_on = [show_progress_on]
 
         if fn is not None and not cancels:
-            check_function_inputs_match(fn, inputs, inputs_as_dict)
+            check_function_inputs_match(
+                fn, positional_inputs, inputs_as_dict, inputs_kwargs
+            )
 
         if _targets and trigger_mode is None:
             if _targets[0][1] in ["change", "key_up"]:
@@ -795,6 +932,10 @@ class BlocksConfig:
         )
         if component_prop_inputs is None:
             component_prop_inputs = component_prop_indices or []
+
+        input_parameter_names = _get_input_parameter_names(
+            fn, len(positional_inputs), list(inputs_kwargs)
+        )
 
         # If api_name is None or empty string, use the function name
         if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
@@ -860,6 +1001,8 @@ class BlocksConfig:
             postprocess,
             _id=fn_id,
             inputs_as_dict=inputs_as_dict,
+            input_keyword_names=list(inputs_kwargs),
+            input_parameter_names=input_parameter_names,
             targets=_targets,
             batch=batch,
             max_batch_size=max_batch_size,
@@ -1666,8 +1809,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dict(zip(block_fn.inputs, processed_input, strict=False))
                 ]
 
-            fn_to_analyze = (
-                block_fn.renderable.fn if block_fn.renderable else block_fn.fn
+            processed_input, input_kwargs = _split_call_inputs(
+                block_fn, processed_input
+            )
+
+            fn_to_analyze = cast(
+                Callable,
+                block_fn.renderable.fn if block_fn.renderable else block_fn.fn,
+            )
+            processed_input, input_kwargs = _merge_positional_keyword_inputs(
+                fn_to_analyze, processed_input, input_kwargs
             )
             component_props = {}
             for idx in block_fn.component_prop_inputs:
@@ -1691,6 +1842,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(fn, progress_tracker.track_tqdm)
                 processed_input[progress_index] = progress_tracker
+
+            if input_kwargs:
+                fn = partial(fn, **input_kwargs)
 
             if inspect.iscoroutinefunction(fn):
                 prediction = await fn(*processed_input)
@@ -3765,15 +3919,7 @@ Received inputs:
                 # Since the clients use "api_name" and "fn_index" to designate the endpoint and
                 # "result_callbacks" to specify the callbacks, we need to make sure that no parameters
                 # have those names. Hence the final checks.
-                if (
-                    fn.fn
-                    and index < len(fn_info)
-                    and fn_info[index][0]
-                    not in ["api_name", "fn_index", "result_callbacks"]
-                ):
-                    parameter_name = fn_info[index][0]
-                else:
-                    parameter_name = f"param_{index}"
+                parameter_name = _get_api_parameter_name(fn, fn_info, index)
 
                 # How default values are set for the client: if a component has an initial value, then that parameter
                 # is optional in the client and the initial value from the config is used as default in the client.
@@ -3782,11 +3928,9 @@ Received inputs:
                 if component["props"].get("value") is not None:
                     parameter_has_default = True
                     parameter_default = component["props"]["value"]
-                elif (
-                    fn.fn
-                    and index < len(fn_info)
-                    and fn_info[index][1]
-                    and fn_info[index][2] is None
+                elif fn.fn and any(
+                    parameter_name == info[0] and info[1] and info[2] is None
+                    for info in fn_info
                 ):
                     parameter_has_default = True
                     parameter_default = None
