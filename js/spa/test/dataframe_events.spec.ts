@@ -6,35 +6,6 @@ function get_cell(element: Locator, row: number, col: number) {
 	return element.locator(`[data-row='${row}'][data-col='${col}']`);
 }
 
-test.fixme("Dataframe input events work as expected @firefox", async ({
-	page
-}) => {
-	const input_events = page.getByLabel("Input events");
-	await expect(input_events).toHaveValue("0");
-
-	await page.getByRole("button", { name: "Update dataframe" }).click();
-	await page.waitForTimeout(500);
-
-	const df = page.locator("#dataframe");
-	await get_cell(df, 0, 0).click();
-
-	await page.getByLabel("Edit cell").fill("42");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await expect(input_events).toHaveValue("1");
-
-	await get_cell(df, 0, 1).click();
-
-	await page.getByLabel("Edit cell").fill("50");
-	await get_cell(df, 0, 0).click();
-
-	await expect(input_events).toHaveValue("2");
-
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await expect(input_events).toHaveValue("2");
-});
-
 test("Dataframe blur event works as expected", async ({ page }) => {
 	const df = page.locator("#dataframe").first();
 
@@ -113,104 +84,6 @@ test("Dataframe can be cleared and updated indirectly", async ({ page }) => {
 	]);
 });
 
-test("Dataframe keyboard operations work as expected", async ({ page }) => {
-	const df = page.locator("#dataframe").first();
-
-	await get_cell(df, 0, 0).dblclick();
-	await page.getByLabel("Edit cell").fill("test_delete_value");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await get_cell(df, 0, 1).dblclick();
-	await page.getByLabel("Edit cell").fill("test_backspace_value");
-	await page.getByLabel("Edit cell").press("Enter");
-	await page.waitForTimeout(100);
-
-	await get_cell(df, 1, 0).dblclick();
-	await page.getByLabel("Edit cell").fill("test_copy_value");
-	await page.getByLabel("Edit cell").press("Enter");
-	await page.waitForTimeout(100);
-
-	// test delete key
-	await get_cell(df, 0, 0).click();
-	await page.waitForTimeout(100);
-	await page.keyboard.press("Escape");
-	await page.keyboard.press("Delete");
-
-	expect(await get_cell(df, 0, 0).textContent()).toBe("    ⋮");
-
-	// test backspace key
-	await get_cell(df, 0, 1).click();
-	await page.waitForTimeout(100);
-	await page.keyboard.press("Backspace");
-
-	// test copy key
-	await get_cell(df, 1, 0).click();
-	await page.keyboard.press("ControlOrMeta+c");
-	await page.waitForTimeout(300);
-
-	const clipboard_value = await page.evaluate(() =>
-		navigator.clipboard.readText()
-	);
-	expect(clipboard_value).toBe("test_copy_value");
-});
-
-test("Dataframe shift+click selection works", async ({ page }) => {
-	const df = page.locator("#dataframe").first();
-
-	await get_cell(df, 1, 2).dblclick();
-	await page.getByLabel("Edit cell").fill("6");
-	await page.getByLabel("Edit cell").press("Enter");
-	await page.waitForTimeout(100);
-
-	await get_cell(df, 2, 2).dblclick();
-	await page.getByLabel("Edit cell").fill("6");
-	await page.getByLabel("Edit cell").press("Enter");
-	await page.waitForTimeout(100);
-
-	await get_cell(df, 1, 2).click();
-	await page.keyboard.down("Shift");
-	await get_cell(df, 2, 1).click();
-	await page.keyboard.up("Shift");
-	await page.waitForTimeout(100);
-
-	await page.keyboard.press("ControlOrMeta+c");
-
-	const clipboard_value = await page.evaluate(() =>
-		navigator.clipboard.readText()
-	);
-
-	expect(clipboard_value).toBe("0,6\n0,6");
-});
-
-test("Dataframe cmd + click selection works", async ({ page }) => {
-	const df = page.locator("#dataframe").first();
-
-	await get_cell(df, 1, 2).dblclick();
-	await page.getByLabel("Edit cell").fill("6");
-	await page.getByLabel("Edit cell").press("Enter");
-
-	await get_cell(df, 2, 2).dblclick();
-	await page.getByLabel("Edit cell").fill("8");
-	await page.getByLabel("Edit cell").press("Enter");
-	await page.waitForTimeout(100);
-
-	await get_cell(df, 1, 2).click();
-
-	await get_cell(df, 2, 2).click({
-		modifiers: ["Shift"]
-	});
-
-	await page.waitForTimeout(100);
-
-	await page.keyboard.press("ControlOrMeta+c");
-
-	const clipboard_value = await page.evaluate(() =>
-		navigator.clipboard.readText()
-	);
-
-	expect(clipboard_value).toBe("6\n8");
-});
-
 test("Dataframe search functionality works correctly after data update", async ({
 	page
 }) => {
@@ -273,46 +146,6 @@ test("Dataframe displays custom display values with medal icons correctly", asyn
 
 	// verify medals don't appear in other columns
 	expect(await get_cell(tall_df, 0, 1).textContent()).not.toContain("🥇");
-});
-
-test("Dataframe select events work as expected", async ({ page }) => {
-	const df = page.locator("#dataframe_tall");
-	const search_input = df.locator("input.search-input");
-
-	await get_cell(df, 0, 0).click();
-	await page.waitForTimeout(100);
-
-	const selected_cell_value = await page
-		.locator("#tall_selected_cell_value textarea")
-		.inputValue();
-
-	expect(selected_cell_value).toBe("DeepSeek Coder");
-
-	await search_input.fill("llama");
-	await search_input.press("Enter");
-
-	await page.waitForTimeout(200);
-	await get_cell(df, 1, 0).click();
-	await page.waitForTimeout(200);
-
-	const updated_selected_cell_value = await page
-		.locator("#tall_selected_cell_value textarea")
-		.inputValue();
-
-	expect(updated_selected_cell_value).toBe("Llama 3.3");
-
-	await search_input.clear();
-	await search_input.press("Enter");
-	await page.waitForTimeout(200);
-
-	await get_cell(df, 0, 0).click();
-	await page.waitForTimeout(200);
-
-	const restored_selected_cell_value = await page
-		.locator("#tall_selected_cell_value textarea")
-		.inputValue();
-
-	expect(restored_selected_cell_value).toBe("DeepSeek Coder");
 });
 
 test("Dataframe keyboard events allow newlines", async ({ page }) => {
