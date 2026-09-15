@@ -9,6 +9,7 @@ import signal
 import subprocess
 import tempfile
 import threading
+import warnings
 from copy import deepcopy
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -192,27 +193,29 @@ def mpegts_readable() -> bool:
         return True  # `requires_ffmpeg` skips these anyway
     with tempfile.TemporaryDirectory() as name:
         path = Path(name) / "probe.ts"
-        written = subprocess.run([
-            "ffmpeg", "-y", "-v", "error",
-            "-f", "lavfi", "-i", "testsrc=size=64x48:rate=10:duration=0.2",
-            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
-            "-f", "mpegts", str(path),
-        ], check=False, capture_output=True)  # fmt: skip
-        if written.returncode != 0:
-            return False
-        probed = subprocess.run(
-            ["ffprobe", "-v", "error", "-show_streams", str(path)],
-            check=False,
-            capture_output=True,
-        )
-        if probed.returncode != 0:
-            return False
-        decoded = subprocess.run(
-            ["ffmpeg", "-v", "error", "-i", str(path), "-f", "null", "-"],
-            check=False,
-            capture_output=True,
-        )
-        return decoded.returncode == 0
+        steps = (
+            ("ffmpeg writing", [
+                "ffmpeg", "-y", "-v", "error",
+                "-f", "lavfi", "-i", "testsrc=size=64x48:rate=10:duration=0.2",
+                "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+                "-f", "mpegts", str(path),
+            ]),
+            ("ffprobe reading", ["ffprobe", "-v", "error", "-show_streams", str(path)]),
+            ("ffmpeg decoding", ["ffmpeg", "-v", "error", "-i", str(path), "-f", "null", "-"]),
+        )  # fmt: skip
+        for step, args in steps:
+            result = subprocess.run(args, check=False, capture_output=True)
+            if result.returncode != 0:
+                # CI prints no skip reasons, and a skip whose cause never
+                # shows is one nobody fixes. It does print warnings.
+                stderr = result.stderr.decode(errors="replace").strip()[-300:]
+                warnings.warn(
+                    f"{step} an MPEG-TS file exited {result.returncode}: "
+                    f"{stderr or 'no stderr'}",
+                    stacklevel=2,
+                )
+                return False
+    return True
 
 
 reads_mpegts = pytest.mark.skipif(
