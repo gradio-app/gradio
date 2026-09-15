@@ -175,6 +175,11 @@ class TestRoutes:
             )
             assert curl_response.status_code == 200
             assert app.api_info is not None
+            cached_info = client.get(f"{API_PREFIX}/info").json()
+            python_snippet = cached_info["named_endpoints"]["/home_endpoint"][
+                "code_snippets"
+            ]["python"]
+            assert 'Client("http://testserver")' in python_snippet
 
             deep_link_dir = gradio_temp_dir / "deep_links" / "multipage"
             deep_link_dir.mkdir(parents=True)
@@ -197,6 +202,77 @@ class TestRoutes:
             } == set(home_deep_link_config["page"][""]["components"])
         finally:
             demo.close()
+
+    @pytest.mark.parametrize("first_request", ["call", "openapi"])
+    def test_api_info_cache_uses_app_root(self, first_request):
+        with Blocks() as demo:
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        if first_request == "call":
+            response = client.post(
+                f"{API_PREFIX}/call/v2/echo", json={"value": "hello"}
+            )
+        else:
+            response = client.get(f"{API_PREFIX}/openapi.json")
+        assert response.status_code == 200
+
+        info = client.get(f"{API_PREFIX}/info").json()
+        snippets = info["named_endpoints"]["/echo"]["code_snippets"]
+        assert 'Client("http://testserver")' in snippets["python"]
+        assert 'Client.connect("http://testserver")' in snippets["javascript"]
+        assert (
+            f"curl -X POST http://testserver{API_PREFIX}/call/v2/echo"
+            in snippets["bash"]
+        )
+
+    def test_page_api_info_is_cached(self):
+        with Blocks() as demo:
+            Textbox()
+        with demo.route("Details", path="details"):
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        with patch.object(demo, "get_api_info", wraps=demo.get_api_info) as get_info:
+            first = client.get(f"{API_PREFIX}/info?page=details")
+            second = client.get(f"{API_PREFIX}/info?page=details")
+
+        assert first.status_code == second.status_code == 200
+        assert get_info.call_count == 1
+
+    def test_page_api_info_supports_legacy_blocks_override(self):
+        class CustomBlocks(Blocks):
+            # This intentionally models an override written against the public
+            # signature from before the page argument was added.
+            def get_api_info(  # ty: ignore[invalid-method-override]
+                self, all_endpoints=False
+            ):
+                info = super().get_api_info(all_endpoints=all_endpoints)
+                for endpoint in info["named_endpoints"].values():
+                    endpoint["description"] = "custom description"
+                return info
+
+        with CustomBlocks() as demo:
+            home = Textbox()
+            home.change(lambda value: value, home, home, api_name="home")
+        with demo.route("Details", path="details"):
+            details = Textbox()
+            details.change(lambda value: value, details, details, api_name="details")
+
+        response = TestClient(routes.App.create_app(demo)).get(
+            f"{API_PREFIX}/info?page=details"
+        )
+
+        assert response.status_code == 200
+        assert set(response.json()["named_endpoints"]) == {"/details"}
+        assert (
+            response.json()["named_endpoints"]["/details"]["description"]
+            == "custom description"
+        )
 
     def test_audio_stream_playlist_uses_stable_target_duration(self):
         with Blocks() as demo:

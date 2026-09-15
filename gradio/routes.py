@@ -260,6 +260,7 @@ class App(FastAPI):
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
+        self.page_api_info: dict[tuple[str, bool], APIInfo] = {}
         self.static_worker_pool = None  # Set by launch() when num_workers > 0
         self.all_app_info = None
         self._static_prefixes: tuple[
@@ -723,7 +724,11 @@ class App(FastAPI):
                 template = (
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
-                gradio_api_info = api_info(request, page=page)
+                gradio_api_info = get_api_info(
+                    request,
+                    page=page,
+                    route_path=(f"{API_PREFIX}/runs" if is_run_history else f"/{page}"),
+                )
                 resp = templates.TemplateResponse(
                     request=request,
                     name=template,
@@ -851,30 +856,80 @@ class App(FastAPI):
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
         def api_info(request: fastapi.Request, page: str | None = None):
+            return get_api_info(request, page=page, route_path=f"{API_PREFIX}/info")
+
+        def get_api_info(
+            request: fastapi.Request, page: str | None, route_path: str
+        ) -> dict[str, Any]:
             all_endpoints = request.query_params.get("all_endpoints", False)
             if page is not None and page in app.get_blocks().config["page"]:
-                info = app.get_blocks().get_api_info(
-                    all_endpoints=bool(all_endpoints), page=page
+                cache_key = (page, bool(all_endpoints))
+                if cache_key not in app.page_api_info:
+                    app.page_api_info[cache_key] = get_page_api_info(
+                        page, all_endpoints=bool(all_endpoints)
+                    )
+                return prepare_api_info(
+                    request, app.page_api_info[cache_key], route_path
                 )
-                return prepare_api_info(request, info)
             if all_endpoints:
                 if not app.all_app_info:
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
-                return app.all_app_info
+                return cast(dict[str, Any], app.all_app_info)
             if not app.api_info:
                 app.api_info = prepare_api_info(
-                    request, app.get_blocks().get_api_info()
+                    request, app.get_blocks().get_api_info(), route_path
                 )
             return app.api_info
 
-        def prepare_api_info(request: fastapi.Request, info: APIInfo) -> dict[str, Any]:
+        def get_page_api_info(page: str, all_endpoints: bool) -> APIInfo:
+            blocks = app.get_blocks()
+            get_info = blocks.get_api_info
+            parameters = inspect.signature(get_info).parameters.values()
+            supports_page = any(
+                (
+                    parameter.name == "page"
+                    and parameter.kind != inspect.Parameter.POSITIONAL_ONLY
+                )
+                or parameter.kind == inspect.Parameter.VAR_KEYWORD
+                for parameter in parameters
+            )
+            if supports_page:
+                return get_info(all_endpoints=all_endpoints, page=page)
+
+            # A subclass may override the pre-page get_api_info signature. Keep
+            # those overrides working, then scope their result to dependencies
+            # that belong to this page.
+            info = get_info(all_endpoints=True) if all_endpoints else get_info()
+            dependency_ids = set(blocks.config["page"][page]["dependencies"])
+            dependency_id_strings = {str(fn_id) for fn_id in dependency_ids}
+            endpoint_names = {
+                f"/{fn.api_name}"
+                for fn_id, fn in blocks.fns.items()
+                if fn_id in dependency_ids
+            }
+            return {
+                "named_endpoints": {
+                    name: endpoint
+                    for name, endpoint in info["named_endpoints"].items()
+                    if name in endpoint_names
+                },
+                "unnamed_endpoints": {
+                    name: endpoint
+                    for name, endpoint in info["unnamed_endpoints"].items()
+                    if str(name) in dependency_id_strings
+                },
+            }
+
+        def prepare_api_info(
+            request: fastapi.Request, info: APIInfo, route_path: str
+        ) -> dict[str, Any]:
             prepared_info = cast(dict[str, Any], utils.safe_deepcopy(info))
             prepared_info = route_utils.update_example_values_to_use_public_url(
                 prepared_info
             )
             root = route_utils.get_root_url(
                 request=request,
-                route_path=f"{API_PREFIX}/info",
+                route_path=route_path,
                 root_path=app.root_path,
             )
             space_id = app.get_blocks().space_id
@@ -896,7 +951,9 @@ class App(FastAPI):
         @router.get("/openapi.json", dependencies=[Depends(login_check)])
         def openapi_schema(request: fastapi.Request):
             """Generate an OpenAPI schema from the Gradio app's API info."""
-            info = api_info(request)
+            info = get_api_info(
+                request, page=None, route_path=f"{API_PREFIX}/openapi.json"
+            )
             info_simple = _condense_info(info, url_only=True)
             schema = {
                 "openapi": "3.0.2",
@@ -1525,7 +1582,11 @@ class App(FastAPI):
             # A page-scoped HTML or /info request deliberately does not populate
             # the full API-info cache. Build it lazily for this endpoint instead
             # of relying on the app's home page having been requested first.
-            full_api_info = app.api_info or api_info(request)
+            full_api_info = app.api_info or get_api_info(
+                request,
+                page=None,
+                route_path=f"{API_PREFIX}/call/v2/{api_name}",
+            )
             endpoint_info = full_api_info["named_endpoints"]["/" + api_name]
             parameters_info = endpoint_info["parameters"]
             body = dict(body)
