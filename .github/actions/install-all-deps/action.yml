@@ -82,28 +82,49 @@ runs:
       shell: bash
       run: |
         uv venv --allow-existing venv --python=${{ inputs.python_version }}
+    - name: Pin ffmpeg
+      id: ffmpeg-pin
+      shell: bash
+      run: |
+        prefix=https://huggingface.co/buckets/gradio/ci-deps/resolve/ffmpeg/8.1.2
+        if [ "${{ inputs.os }}" = "windows-latest" ]; then
+          url=$prefix/windows-x86_64/ffmpeg-8.1.2-essentials_build.zip
+          sha=db580001caa24ac104c8cb856cd113a87b0a443f7bdf47d8c12b1d740584a2ec
+          dir=ffmpeg-8.1.2-essentials_build
+        else
+          url=$prefix/linux-x86_64/ffmpeg-n8.1.2-50-g1a748fe2cd-linux64-gpl-8.1.tar.xz
+          sha=c733b4b2951e5957e15505f788b2c65a7a41b6da4b289e295852cc38079b4d2b
+          dir=ffmpeg-n8.1.2-50-g1a748fe2cd-linux64-gpl-8.1
+        fi
+        {
+          echo "url=$url"
+          echo "sha=$sha"
+          echo "dir=$dir"
+        } >> "$GITHUB_OUTPUT"
     - name: Cache ffmpeg
       id: cache-ffmpeg
       uses: actions/cache@v4
       with:
         path: ffmpeg-bin
-        key: ffmpeg-${{ inputs.os }}-7.0.2-v1
+        key: ffmpeg-${{ inputs.os }}-${{ steps.ffmpeg-pin.outputs.sha }}
     - name: Install ffmpeg (linux)
       if: ${{ inputs.os == 'ubuntu-latest' && steps.cache-ffmpeg.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         mkdir -p ffmpeg-bin
-        curl -fsSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-7.0.2-amd64-static.tar.xz -o /tmp/ffmpeg.tar.xz
+        curl -fsSL "${{ steps.ffmpeg-pin.outputs.url }}" -o /tmp/ffmpeg.tar.xz
+        echo "${{ steps.ffmpeg-pin.outputs.sha }}  /tmp/ffmpeg.tar.xz" | sha256sum -c -
         tar -xf /tmp/ffmpeg.tar.xz -C /tmp
-        cp /tmp/ffmpeg-7.0.2-amd64-static/ffmpeg /tmp/ffmpeg-7.0.2-amd64-static/ffprobe ffmpeg-bin/
+        cp "/tmp/${{ steps.ffmpeg-pin.outputs.dir }}/bin/ffmpeg" "/tmp/${{ steps.ffmpeg-pin.outputs.dir }}/bin/ffprobe" ffmpeg-bin/
     - name: Install ffmpeg (windows)
       if: ${{ inputs.os == 'windows-latest' && steps.cache-ffmpeg.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         mkdir -p ffmpeg-bin
-        curl -fsSL https://github.com/GyanD/codexffmpeg/releases/download/7.0.2/ffmpeg-7.0.2-essentials_build.zip -o ffmpeg.zip
+        curl -fsSL "${{ steps.ffmpeg-pin.outputs.url }}" -o ffmpeg.zip
+        echo "${{ steps.ffmpeg-pin.outputs.sha }}  ffmpeg.zip" | sha256sum -c -
         unzip -q ffmpeg.zip
-        mv ffmpeg-7.0.2-essentials_build/bin/ffmpeg.exe ffmpeg-7.0.2-essentials_build/bin/ffprobe.exe ffmpeg-bin/
+        mv "${{ steps.ffmpeg-pin.outputs.dir }}/bin/ffmpeg.exe" "${{ steps.ffmpeg-pin.outputs.dir }}/bin/ffprobe.exe" ffmpeg-bin/
     - name: Add ffmpeg to PATH
       shell: bash
       run: echo "$GITHUB_WORKSPACE/ffmpeg-bin" >> "$GITHUB_PATH"
