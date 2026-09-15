@@ -6,6 +6,7 @@ import { apply_run_history_replay, Client } from "@gradio/client";
 import type { Config } from "@gradio/client";
 import { MISSING_CREDENTIALS_MSG } from "@gradio/client";
 import { setupi18n } from "@gradio/core";
+import { get_current_page } from "$lib/page_utils.js";
 
 export let ssr = true;
 
@@ -34,6 +35,7 @@ export async function load({
 			? new URL(mount_path || "/", root_url).href
 			: server;
 	const deepLink = url.searchParams.get("deep_link");
+	const currentPage = get_current_page(url.pathname, root_url);
 	const headers = new Headers();
 	if (!browser) {
 		headers.append("x-gradio-server", root_url);
@@ -96,7 +98,10 @@ export async function load({
 		app = await Client.connect(api_url, {
 			with_null_state: true,
 			events: ["data", "log", "status", "render"],
-			query_params: deepLink ? { deep_link: deepLink } : undefined,
+			query_params: {
+				...(deepLink ? { deep_link: deepLink } : {}),
+				page: currentPage
+			},
 			headers,
 			cookies: cookie || undefined
 		});

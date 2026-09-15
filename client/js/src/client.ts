@@ -48,6 +48,7 @@ export class Client {
 	app_reference: string;
 	options: ClientOptions;
 	deep_link: string | null = null;
+	page: string | null = null;
 
 	config: Config | undefined;
 	api_prefix = "";
@@ -199,6 +200,7 @@ export class Client {
 	) {
 		this.app_reference = app_reference;
 		this.deep_link = options.query_params?.deep_link || null;
+		this.page = options.query_params?.page ?? null;
 		if (!options.events) {
 			options.events = ["data"];
 		}

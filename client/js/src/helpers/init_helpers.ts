@@ -129,12 +129,10 @@ export async function resolve_config(
 			window.gradio_config.dev_mode ||
 			(typeof window !== "undefined" && window?.BUILD_MODE === "dev")
 		) {
-			let config_url = join_urls(
-				endpoint,
-				this.deep_link
-					? CONFIG_URL + "?deep_link=" + this.deep_link
-					: CONFIG_URL
-			);
+			let config_url = new URL(join_urls(endpoint, CONFIG_URL));
+			if (this.deep_link)
+				config_url.searchParams.set("deep_link", this.deep_link);
+			if (this.page !== null) config_url.searchParams.set("page", this.page);
 			const response = await this.fetch(config_url, {
 				headers,
 				credentials: this.options.credentials ?? "same-origin"
@@ -160,10 +158,10 @@ export async function resolve_config(
 		);
 		return config;
 	} else if (endpoint) {
-		let config_url = join_urls(
-			endpoint,
-			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
-		);
+		let config_url = new URL(join_urls(endpoint, CONFIG_URL));
+		if (this.deep_link)
+			config_url.searchParams.set("deep_link", this.deep_link);
+		if (this.page !== null) config_url.searchParams.set("page", this.page);
 
 		const response = await this.fetch(config_url, {
 			headers,
