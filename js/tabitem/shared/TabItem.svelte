@@ -12,6 +12,7 @@
 		visible,
 		interactive,
 		order,
+		alignment = "left",
 		scale,
 		component_id,
 		onselect,
@@ -24,6 +25,7 @@
 		visible: boolean | "hidden";
 		interactive: boolean;
 		order: number;
+		alignment?: "left" | "right";
 		scale: number;
 		component_id: number;
 		onselect?: (data: SelectData) => void;
@@ -49,6 +51,7 @@
 			elem_id,
 			visible,
 			interactive,
+			alignment,
 			scale,
 			component_id
 		})
