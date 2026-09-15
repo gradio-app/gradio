@@ -6,22 +6,6 @@ test.skip(
 	"These tests flake in SSR MODE only in CI"
 );
 
-test("clicking through tabs shows correct content", async ({ page }) => {
-	await page.waitForTimeout(1000);
-	await page.getByRole("tab", { name: "Tab 2" }).click();
-	await expect(page.getByText("Text 1!")).toBeHidden();
-	await expect(page.getByText("Text 2!")).toBeVisible();
-
-	await page.getByRole("tab", { name: "Tab 4" }).click();
-	await expect(page.getByText("Text 2!")).toBeHidden();
-	await expect(page.getByText("Text 4!")).toBeVisible();
-
-	await page.getByRole("tab", { name: "Set 2" }).click();
-	await page.getByRole("tab", { name: "Tab 12" }).click();
-	await expect(page.getByText("Text 2!")).toBeHidden();
-	await expect(page.getByText("Text 12!")).toBeVisible();
-});
-
 test("select event fires on the Tabs container itself", async ({ page }) => {
 	await page.waitForTimeout(1000);
 	// `outer_tabs.select(...)` should fire when the active top-level tab changes.

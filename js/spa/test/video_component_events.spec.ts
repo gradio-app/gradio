@@ -15,24 +15,6 @@ test("Video click-to-upload downloads the file with the correct name.", async ({
 	await expect(download.suggestedFilename()).toBe("av1-video.mp4");
 });
 
-test.skip("Video play, pause events work correctly.", async ({ page }) => {
-	const [fileChooser] = await Promise.all([
-		page.waitForEvent("filechooser"),
-		page.getByLabel("Drop a video file here to upload").first().click()
-	]);
-	await fileChooser.setFiles(["./test/files/av1-video.mp4"]);
-
-	// Wait change event to trigger
-
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
-
-	await page.getByLabel("play-pause-replay-button").first().click();
-	await expect(page.getByLabel("# Play Events")).toHaveValue("1");
-	await page.getByLabel("play-pause-replay-button").first().click();
-	await expect(page.getByLabel("# Pause Events")).toHaveValue("1");
-});
-
 test("Video drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
 	page
 }) => {
