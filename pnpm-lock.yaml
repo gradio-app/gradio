@@ -674,9 +674,6 @@ importers:
       extendable-media-recorder-wav-encoder:
         specifier: 7.0.76
         version: 7.0.76
-      hls.js:
-        specifier: 1.5.13
-        version: 1.5.13
       resize-observer-polyfill:
         specifier: 1.5.1
         version: 1.5.1
@@ -2443,6 +2440,9 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
+      hls.js:
+        specifier: 1.6.15
+        version: 1.6.15
 
   js/vibeeditor:
     dependencies:
@@ -2495,9 +2495,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      hls.js:
-        specifier: ^1.6.13
-        version: 1.6.15
       mrmime:
         specifier: ^2.0.1
         version: 2.0.1
@@ -6534,9 +6531,6 @@ packages:
 
   headers-polyfill@4.0.3:
     resolution: {integrity: sha512-IScLbePpkvO846sIwOtOTDjutRMWdXdJmXdMvk6gCBHxFO8d+QKOQedyZSxFTTFYRSmlgSTDtXqqq4pcenBXLQ==}
-
-  hls.js@1.5.13:
-    resolution: {integrity: sha512-xRgKo84nsC7clEvSfIdgn/Tc0NOT+d7vdiL/wvkLO+0k0juc26NRBPPG1SfB8pd5bHXIjMW/F5VM8VYYkOYYdw==}
 
   hls.js@1.6.15:
     resolution: {integrity: sha512-E3a5VwgXimGHwpRGV+WxRTKeSp2DW5DI5MWv34ulL3t5UNmyJWCQ1KmLEHbYzcfThfXG8amBL+fCYPneGHC4VA==}
@@ -12706,8 +12700,6 @@ snapshots:
   he@1.2.0: {}
 
   headers-polyfill@4.0.3: {}
-
-  hls.js@1.5.13: {}
 
   hls.js@1.6.15: {}
 

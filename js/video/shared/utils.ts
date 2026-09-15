@@ -1,6 +1,7 @@
 import { toBlobURL } from "@ffmpeg/util";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { lookup } from "mrmime";
+import { play_media } from "@gradio/utils";
 
 export const prettyBytes = (bytes: number): string => {
 	let units = ["B", "KB", "MB", "GB", "PB"];
@@ -25,9 +26,9 @@ export function loaded(
 	node: HTMLVideoElement,
 	{ autoplay }: { autoplay: boolean }
 ): any {
-	async function handle_playback(): Promise<void> {
+	function handle_playback(): void {
 		if (!autoplay) return;
-		await node.play();
+		play_media(node);
 	}
 
 	node.addEventListener("loadeddata", handle_playback);

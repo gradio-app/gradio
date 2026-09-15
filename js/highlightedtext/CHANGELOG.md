@@ -1,5 +1,16 @@
 # @gradio/highlightedtext
 
+## 0.12.3
+
+### Fixes
+
+- [#13815](https://github.com/gradio-app/gradio/pull/13815) [`a9a571a`](https://github.com/gradio-app/gradio/commit/a9a571acf755f9c3aa7721a3275b53b171ba8cdf) - Allow selecting unlabeled HighlightedText tokens.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+
 ## 0.12.2
 
 ### Dependency updates
