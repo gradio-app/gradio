@@ -692,6 +692,10 @@ class Video(StreamingOutput, Component):
         - puts it at zero. The audio therefore keeps its own zero, the video is
         placed relative to it, and `-output_ts_offset` lifts the whole segment
         at the muxer, which runs after probing.
+
+        `counters` holds the stream's continuity counter per PID and is
+        advanced in place to follow this segment's packets, so the next
+        segment picks up where this one left off.
         """
         base = audio_time if adts else video_time
         args = ["ffmpeg", "-v", "error", "-nostdin", "-copyts"]
