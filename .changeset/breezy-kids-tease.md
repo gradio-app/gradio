@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: improve mobile experience
+feat:workflow: add styling to input nodes

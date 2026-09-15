@@ -3,43 +3,6 @@ import { chromium } from "playwright";
 // we cannot currently test the waveform canvas with playwright (https://github.com/microsoft/playwright/issues/23964)
 // so this test covers the interactive elements around the waveform canvas
 
-test.fixme("audio waveform", async ({ page }) => {
-	await expect(page.getByRole("tab", { name: "Audio" })).toHaveAttribute(
-		"aria-selected",
-		"true"
-	);
-	await page.getByRole("tab", { name: "Interface" }).click();
-	await page.getByRole("button", { name: "cantina.wav" }).click();
-
-	await expect(page.getByTestId("waveform-x")).toHaveCount(1);
-	await expect(page.getByTestId("waveform-output")).toHaveCount(1);
-
-	await page
-		.getByTestId("waveform-x")
-		.getByLabel("Adjust playback speed to 1.5x")
-		.first()
-		.click();
-	await page
-		.getByTestId("waveform-x")
-		.getByLabel("Adjust playback speed to 2x")
-		.first()
-		.click();
-
-	await page
-		.getByTestId("waveform-x")
-		.getByLabel("Skip forward by 0.15 seconds")
-		.click();
-	await page
-		.getByTestId("waveform-x")
-		.getByLabel("Skip backwards by 0.15 seconds")
-		.click();
-	await page.getByLabel("Trim audio to selection").click();
-	await page.getByRole("button", { name: "Trim" }).click();
-	await page.getByLabel("Reset audio").click();
-	await page.getByRole("button", { name: "Submit" }).click();
-	await expect(page.getByTestId("waveform-output")).toHaveCount(1);
-});
-
 test("audio streaming tab", async ({ page }) => {
 	const browser = await chromium.launch({
 		args: ["--use-fake-ui-for-media-stream"]

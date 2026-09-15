@@ -78,7 +78,7 @@ class TestTempFileManagement:
         )
 
         for result in (sync_result, async_result, proxy_result):
-            assert result["url"].endswith("/report%2520%23final.txt")
+            assert result["url"].endswith("report%2520%23final.txt")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

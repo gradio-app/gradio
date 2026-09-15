@@ -4,6 +4,7 @@ import asyncio
 import functools
 import inspect
 import json
+import math
 import os
 import pickle
 import sys
@@ -42,6 +43,7 @@ from gradio import (
     route_utils,
     routes,
 )
+from gradio.audio_stream_encoder import parse_adts_frames
 from gradio.data_classes import PredictBodyInternal
 from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
@@ -117,6 +119,161 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
+    def test_multipage_config_and_info_can_be_scoped_to_page(self, gradio_temp_dir):
+        with Blocks() as demo:
+            home_input = Textbox()
+            home_output = Textbox()
+            home_input.change(
+                lambda value: value,
+                home_input,
+                home_output,
+                api_name="home_endpoint",
+            )
+        with demo.route("Details", path="details"):
+            details_input = Textbox()
+            details_output = Textbox()
+            details_input.change(
+                lambda value: value,
+                details_input,
+                details_output,
+                api_name="details_endpoint",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+            page_config = client.get("/config?page=details").json()
+
+            assert page_config["current_page"] == "details"
+            assert page_config["pages"] == full_config["pages"]
+            assert {component["id"] for component in page_config["components"]} == set(
+                page_config["page"]["details"]["components"]
+            )
+            assert {
+                dependency["id"] for dependency in page_config["dependencies"]
+            } == set(page_config["page"]["details"]["dependencies"])
+            assert len(page_config["components"]) < len(full_config["components"])
+            assert len(page_config["dependencies"]) < len(full_config["dependencies"])
+
+            page_info = client.get(f"{API_PREFIX}/info?page=details").json()
+            assert set(page_info["named_endpoints"]) == {"/details_endpoint"}
+
+            home_config = client.get("/config?page=").json()
+            assert home_config["current_page"] == ""
+            assert {component["id"] for component in home_config["components"]} == set(
+                home_config["page"][""]["components"]
+            )
+            home_info = client.get(f"{API_PREFIX}/info?page=").json()
+            assert set(home_info["named_endpoints"]) == {"/home_endpoint"}
+
+            # Page-scoped requests leave the full API-info cache empty. The cURL
+            # endpoint must initialize it lazily instead of returning a 500.
+            assert app.api_info is None
+            curl_response = client.post(
+                f"{API_PREFIX}/call/v2/home_endpoint", json={"value": "hello"}
+            )
+            assert curl_response.status_code == 200
+            assert app.api_info is not None
+            cached_info = client.get(f"{API_PREFIX}/info").json()
+            python_snippet = cached_info["named_endpoints"]["/home_endpoint"][
+                "code_snippets"
+            ]["python"]
+            assert 'Client("http://testserver")' in python_snippet
+
+            deep_link_dir = gradio_temp_dir / "deep_links" / "multipage"
+            deep_link_dir.mkdir(parents=True)
+            (deep_link_dir / "state.json").write_text(
+                json.dumps(full_config["components"])
+            )
+            legacy_deep_link_config = client.get("/config?deep_link=multipage").json()
+            assert {
+                component["id"] for component in legacy_deep_link_config["components"]
+            } == {component["id"] for component in full_config["components"]}
+            assert details_input._id in {
+                component["id"] for component in legacy_deep_link_config["components"]
+            }
+
+            home_deep_link_config = client.get(
+                "/config?deep_link=multipage&page="
+            ).json()
+            assert {
+                component["id"] for component in home_deep_link_config["components"]
+            } == set(home_deep_link_config["page"][""]["components"])
+        finally:
+            demo.close()
+
+    @pytest.mark.parametrize("first_request", ["call", "openapi"])
+    def test_api_info_cache_uses_app_root(self, first_request):
+        with Blocks() as demo:
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        if first_request == "call":
+            response = client.post(
+                f"{API_PREFIX}/call/v2/echo", json={"value": "hello"}
+            )
+        else:
+            response = client.get(f"{API_PREFIX}/openapi.json")
+        assert response.status_code == 200
+
+        info = client.get(f"{API_PREFIX}/info").json()
+        snippets = info["named_endpoints"]["/echo"]["code_snippets"]
+        assert 'Client("http://testserver")' in snippets["python"]
+        assert 'Client.connect("http://testserver")' in snippets["javascript"]
+        assert (
+            f"curl -X POST http://testserver{API_PREFIX}/call/v2/echo"
+            in snippets["bash"]
+        )
+
+    def test_page_api_info_is_cached(self):
+        with Blocks() as demo:
+            Textbox()
+        with demo.route("Details", path="details"):
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        with patch.object(demo, "get_api_info", wraps=demo.get_api_info) as get_info:
+            first = client.get(f"{API_PREFIX}/info?page=details")
+            second = client.get(f"{API_PREFIX}/info?page=details")
+
+        assert first.status_code == second.status_code == 200
+        assert get_info.call_count == 1
+
+    def test_page_api_info_supports_legacy_blocks_override(self):
+        class CustomBlocks(Blocks):
+            # This intentionally models an override written against the public
+            # signature from before the page argument was added.
+            def get_api_info(  # ty: ignore[invalid-method-override]
+                self, all_endpoints=False
+            ):
+                info = super().get_api_info(all_endpoints=all_endpoints)
+                for endpoint in info["named_endpoints"].values():
+                    endpoint["description"] = "custom description"
+                return info
+
+        with CustomBlocks() as demo:
+            home = Textbox()
+            home.change(lambda value: value, home, home, api_name="home")
+        with demo.route("Details", path="details"):
+            details = Textbox()
+            details.change(lambda value: value, details, details, api_name="details")
+
+        response = TestClient(routes.App.create_app(demo)).get(
+            f"{API_PREFIX}/info?page=details"
+        )
+
+        assert response.status_code == 200
+        assert set(response.json()["named_endpoints"]) == {"/details"}
+        assert (
+            response.json()["named_endpoints"]["/details"]["description"]
+            == "custom description"
+        )
+
     def test_audio_stream_playlist_uses_stable_target_duration(self):
         with Blocks() as demo:
             audio = gr.Audio()
@@ -140,6 +297,8 @@ class TestRoutes:
 
         assert response.status_code == 200
         assert "#EXT-X-TARGETDURATION:2" in response.text
+        assert "#EXTINF:1.250000," in response.text
+        assert "#EXT-X-DISCONTINUITY" not in response.text
         assert response.headers["cache-control"] == "no-store"
 
     def test_audio_stream_playlist_propagates_space_signature(self):
@@ -3339,3 +3498,73 @@ class TestOAuthSecurity:
             info = _get_mocked_oauth_info()
             assert info["access_token"] != "hf_real_secret_token"
             assert info["access_token"] == "mock-oauth-token-for-local-dev"
+
+
+@pytest.mark.requires_ffmpeg
+@pytest.mark.parametrize("event_id", [None, "not-a-queue-job"])
+def test_a_direct_run_call_returns_the_whole_first_chunk(event_id):
+    """The run route takes a generator's first yield and drops the rest, so
+    the stream it hands back has to carry that one chunk in full. An event id
+    is the queue's to mint, so one in the body cannot make the run look
+    continuable and leave its iterator and encoder held for good."""
+    sample_rate, chunk_samples = 16000, 4000
+
+    def stream():
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, outputs=audio, api_name="stream")
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        client = TestClient(app)
+        body = {"data": [], "session_hash": "direct", "event_id": event_id}
+        response = client.post("/gradio_api/run/stream", json=body)
+        assert response.status_code == 200
+        assert not app.iterators
+        url = response.json()["data"][0]["url"]
+        playlist = client.get(url).text
+        assert "#EXT-X-ENDLIST" in playlist
+        names = [
+            line for line in playlist.splitlines() if line and not line.startswith("#")
+        ]
+        base = url.rsplit("/", 1)[0]
+        data = b"".join(client.get(f"{base}/{name}").content for name in names)
+        frames, _ = parse_adts_frames(data)
+        # one per 1024 samples of the chunk, plus the stream's priming frame
+        assert len(frames) >= math.ceil(chunk_samples / 1024)
+    finally:
+        demo.close()
+
+
+@pytest.mark.requires_ffmpeg
+def test_a_failed_flush_still_ends_the_runs_other_streams(monkeypatch):
+    """Each stream has to be ended even when an earlier one's flush raises, or
+    its playlist never gets an #EXT-X-ENDLIST and its encoder is never freed."""
+
+    def stream():
+        chunk = (16000, np.zeros(4000, dtype=np.int16))
+        yield chunk, chunk
+
+    with gr.Blocks() as demo:
+        first = gr.Audio(streaming=True)
+        second = gr.Audio(streaming=True)
+        gr.Button().click(stream, outputs=[first, second], api_name="stream")
+
+    async def failing_flush(self, output_id):  # noqa: ARG001
+        raise RuntimeError("flush failed")
+
+    monkeypatch.setattr(gr.Audio, "flush_stream_output", failing_flush)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        response = TestClient(app).post(
+            "/gradio_api/run/stream", json={"data": [], "session_hash": "direct"}
+        )
+        assert response.status_code == 500
+        runs = demo.pending_streams.get("direct") or {}
+        streams = next(iter(runs.values()))
+        assert [stream.ended for stream in streams.values()] == [True, True]
+        assert "direct" not in demo.pending_diff_streams
+    finally:
+        demo.close()

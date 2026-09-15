@@ -8,6 +8,15 @@ import type { NodeDataValue, PortType, FileValue } from "./workflow-types";
 /** Port types whose value is a string the user reads and counts. */
 const TEXTUAL_TYPES = new Set<PortType>(["text", "markdown", "html", "json"]);
 
+/** Numbers and booleans are never blank: 0 and false are real answers. */
+export function isBlankValue(value: NodeDataValue | undefined): boolean {
+	if (value === null || value === undefined) return true;
+	if (typeof value === "string") return value.trim() === "";
+	if (Array.isArray(value)) return value.length === 0;
+	if (typeof value === "object") return !value.url;
+	return false;
+}
+
 export function formatBytes(bytes: number): string {
 	if (!Number.isFinite(bytes) || bytes < 0) return "";
 	if (bytes < 1024) return `${bytes} B`;
