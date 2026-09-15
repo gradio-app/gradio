@@ -1,5 +1,15 @@
 # @gradio/workflowcanvas
 
+## 0.12.0
+
+### Features
+
+- [#13840](https://github.com/gradio-app/gradio/pull/13840) [`aab9fcf`](https://github.com/gradio-app/gradio/commit/aab9fcf79ed77a5e5aeca8dd866b4ec94be08a70) - workflow: add styling to input nodes.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@2.7.0
+
 ## 0.11.0
 
 ### Features
