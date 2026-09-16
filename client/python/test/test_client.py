@@ -18,7 +18,7 @@ import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, handle_file
-from gradio_client.client import DEFAULT_TEMP_DIR
+from gradio_client.client import DEFAULT_TEMP_DIR, Endpoint
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
@@ -50,6 +50,18 @@ def connect(
 
 
 class TestClientInitialization:
+    @pytest.mark.parametrize("private", [False, True])
+    def test_space_privacy_is_recorded(self, private):
+        client = Client.__new__(Client)
+        client.token = "hf_token"
+        client._space_is_private = False
+        space_info = MagicMock(host="https://source.hf.space", private=private)
+
+        with patch("huggingface_hub.space_info", return_value=space_info):
+            assert client._space_name_to_src("owner/source") == space_info.host
+
+        assert client._space_is_private is private
+
     def test_headers_constructed_correctly(self, increment_demo):
         if not HF_TOKEN:
             pytest.skip("HF_TOKEN is not set, skipping test")
@@ -1048,6 +1060,80 @@ class TestEndpoints:
                         handle_file(__file__), data_index=0
                     )
         assert results["path"] == "file1"
+
+    def test_private_upstream_file_is_downloaded_and_uploaded(self):
+        endpoint = Endpoint.__new__(Endpoint)
+        endpoint.dependency = {"inputs": [1]}
+        endpoint.client = MagicMock(
+            _space_is_private=True,
+            src_prefixed="https://source.hf.space/gradio_api/",
+            upload_url="https://source.hf.space/gradio_api/upload",
+            headers={"x-hf-authorization": "Bearer hf_token"},
+            cookies={"session": "cookie"},
+            ssl_verify=True,
+            httpx_kwargs={},
+            config={"components": [{"id": 1}], "max_file_size": None},
+        )
+        source_url = (
+            "https://source.hf.space/gradio_api/file=/tmp/gradio/private-cat.png"
+        )
+        download_response = MagicMock()
+        download_response.__enter__.return_value = download_response
+        download_response.iter_bytes.return_value = [b"private ", b"cat"]
+        upload_response = MagicMock()
+        upload_response.json.return_value = ["/tmp/gradio/uploaded/private-cat.png"]
+
+        with (
+            patch("httpx.stream", return_value=download_response) as stream,
+            patch("httpx.post", return_value=upload_response) as post,
+        ):
+            result = endpoint._upload_file(
+                {
+                    "path": source_url,
+                    "orig_name": "private-cat.png",
+                    "meta": {"_type": "gradio.FileData"},
+                },
+                data_index=0,
+            )
+
+        stream.assert_called_once_with(
+            "GET",
+            source_url,
+            headers={"x-hf-authorization": "Bearer hf_token"},
+            cookies={"session": "cookie"},
+            verify=True,
+            follow_redirects=False,
+        )
+        assert post.call_args.args[0] == endpoint.client.upload_url
+        assert post.call_args.kwargs["headers"] == endpoint.client.headers
+        assert result["path"] == "/tmp/gradio/uploaded/private-cat.png"
+
+    @pytest.mark.parametrize(
+        "file_data",
+        [
+            {
+                "path": "https://other.hf.space/gradio_api/file=/tmp/cat.png",
+                "meta": {"_type": "gradio.FileData"},
+            },
+            {
+                "path": "https://source.hf.space/gradio_api/stream/run/playlist.m3u8",
+                "is_stream": True,
+                "meta": {"_type": "gradio.FileData"},
+            },
+        ],
+    )
+    def test_private_upstream_auth_is_not_used_for_other_urls(self, file_data):
+        endpoint = Endpoint.__new__(Endpoint)
+        endpoint.client = MagicMock(
+            _space_is_private=True,
+            src_prefixed="https://source.hf.space/gradio_api/",
+        )
+
+        with patch("httpx.stream") as stream:
+            result = endpoint._upload_file(file_data, data_index=0)
+
+        stream.assert_not_called()
+        assert result["path"] == file_data["path"]
 
     @pytest.mark.flaky
     def test_download_private_file(self, gradio_temp_dir):

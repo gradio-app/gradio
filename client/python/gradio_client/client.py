@@ -122,6 +122,7 @@ class Client:
             self.headers.update(headers)
         self.ssl_verify = ssl_verify
         self.space_id = None
+        self._space_is_private = False
         self.httpx_kwargs = {} if httpx_kwargs is None else httpx_kwargs
         self.cookies: dict[str, str] = dict(
             (self.httpx_kwargs.pop("cookies", {})) or {}
@@ -977,7 +978,9 @@ class Client:
             self.stream_executor.shutdown(wait=False)
 
     def _space_name_to_src(self, space) -> str | None:
-        return huggingface_hub.space_info(space, token=self.token).host  # type: ignore
+        space_info = huggingface_hub.space_info(space, token=self.token)
+        self._space_is_private = bool(space_info.private)
+        return space_info.host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
         """
@@ -1366,6 +1369,13 @@ class Endpoint:
 
     def _upload_file(self, f: dict, data_index: int) -> dict[str, Any]:
         file_path = f["path"]
+        if (
+            self.client._space_is_private
+            and not f.get("is_stream", False)
+            and self._is_upstream_file_url(file_path)
+        ):
+            return self._upload_upstream_file(file_path, f, data_index)
+
         orig_name = Path(file_path)
         if not utils.is_http_url_like(file_path):
             component_id = self.dependency["inputs"][data_index]
@@ -1404,6 +1414,60 @@ class Endpoint:
             "orig_name": utils.strip_invalid_filename_characters(orig_name.name),
             "meta": {"_type": "gradio.FileData"},
         }
+
+    def _is_upstream_file_url(self, file_path: str) -> bool:
+        if not utils.is_http_url_like(file_path):
+            return False
+
+        try:
+            file_url = httpx.URL(file_path)
+            upstream_url = httpx.URL(self.client.src_prefixed)
+        except httpx.InvalidURL:
+            return False
+        if (
+            file_url.scheme,
+            file_url.host,
+            file_url.port,
+        ) != (
+            upstream_url.scheme,
+            upstream_url.host,
+            upstream_url.port,
+        ):
+            return False
+
+        api_path = upstream_url.path.rstrip("/")
+        return file_url.path.startswith(
+            (f"{api_path}/file=", f"{api_path}/file/", f"{api_path}/proxy=")
+        )
+
+    def _upload_upstream_file(
+        self, file_url: str, file_data: dict, data_index: int
+    ) -> dict[str, Any]:
+        """Copy a private upstream file into its cache before using it as input."""
+        original_name = (
+            file_data.get("orig_name") or urllib.parse.urlparse(file_url).path
+        )
+        file_name = Path(original_name).name or "file"
+        request_kwargs = {**self.client.httpx_kwargs, "follow_redirects": False}
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir) / file_name
+            with httpx.stream(
+                "GET",
+                file_url,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
+                verify=self.client.ssl_verify,
+                **request_kwargs,
+            ) as response:
+                response.raise_for_status()
+                with open(temp_path, "wb") as temp_file:
+                    for chunk in response.iter_bytes():
+                        temp_file.write(chunk)
+
+            upload_data = {**file_data, "path": str(temp_path)}
+            upload_data.pop("url", None)
+            return self._upload_file(upload_data, data_index)
 
     def _download_file(self, x: dict) -> str:
         # For streams, use the URL directly if available, as streams are located at different paths
