@@ -710,3 +710,42 @@ def test_a_remote_request_cannot_use_the_hosts_own_token():
         assert share_proxy.status_code == 401
         assert lan_visitor.status_code == 401
     close_all()
+
+
+def test_a_mocked_local_login_falls_back_to_the_hosts_own_token():
+    """Signing in locally must not be worse than not signing in at all.
+
+    Off Spaces the login routes are mocked and the session carries a sentinel
+    string rather than a credential; sending it to the Hub would 401 every
+    bucket call, so it has to fall through to the host's own token.
+    """
+    from types import SimpleNamespace
+
+    from gradio.oauth import MOCKED_OAUTH_TOKEN
+
+    request = SimpleNamespace(
+        session={"oauth_info": {"access_token": MOCKED_OAUTH_TOKEN}},
+        headers={},
+        query_params={},
+        url=SimpleNamespace(hostname="localhost"),
+        client=SimpleNamespace(host="127.0.0.1"),
+    )
+
+    with (
+        patch("gradio.workflow._get_locally_saved_hf_token", return_value="hf_local"),
+        patch(
+            "gradio.oauth._get_valid_oauth_info_from_session",
+            return_value=request.session["oauth_info"],
+        ),
+    ):
+        assert history_mod.resolve_token(request) == "hf_local"
+
+    # A real token still wins over the local one.
+    with (
+        patch("gradio.workflow._get_locally_saved_hf_token", return_value="hf_local"),
+        patch(
+            "gradio.oauth._get_valid_oauth_info_from_session",
+            return_value={"access_token": "hf_oauth"},
+        ),
+    ):
+        assert history_mod.resolve_token(request) == "hf_oauth"

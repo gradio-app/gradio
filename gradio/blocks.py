@@ -1182,7 +1182,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.vibe_mode = bool(os.getenv("GRADIO_VIBE_MODE", ""))
-        self.app_id = random.getrandbits(64)
+        # Run history is filed under the app id, in the browser and in a bucket
+        # alike, so a fresh one on every restart orphans everything saved before
+        # it. Apps that want a history that outlives a restart pin this.
+        self.app_id = os.getenv("GRADIO_APP_ID") or random.getrandbits(64)
+        # Server mode has no components, so nothing can imply OAuth the way a
+        # `LoginButton` does; `Server.launch(oauth=True)` sets this instead.
+        self._expects_oauth = False
         self.upload_file_set = set()
         self.temp_file_sets = [self.upload_file_set]
         self.title = title
@@ -1453,7 +1459,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @property
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
-        return any(
+        return self._expects_oauth or any(
             isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
 

@@ -361,6 +361,15 @@ export interface ClientOptions {
 	 * everyone with `run_history=False` on `launch()`, which takes precedence.
 	 */
 	record_history?: boolean;
+	/**
+	 * Record every call to this Hugging Face bucket (`username/bucket-name`)
+	 * instead of to the destination selected in this browser. The bucket is named
+	 * on each request and the server writes the record from the run it actually
+	 * executed, using the caller's own Hugging Face credentials — so the caller
+	 * must be signed in, and `credentials` has to let the session cookie through
+	 * when the page and the app are on different origins.
+	 */
+	history_bucket?: string;
 }
 
 export interface FileData {
