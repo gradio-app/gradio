@@ -22,7 +22,8 @@ import pytest
 import gradio as gr
 from gradio import processing_utils
 from gradio.audio_stream_encoder import AacStreamEncoder
-from gradio.components.video import _stream_states
+from gradio.components import video as video_module
+from gradio.components.video import _stream_states, _VideoStream
 from gradio.data_classes import FileData
 
 AUDIO_RATE = 44100
@@ -657,6 +658,85 @@ class TestVideo:
             ]
             if all(within):
                 assert abs(min(within[0]) - min(within[1])) < 0.25
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_chunk_that_emits_nothing_does_not_move_the_clock(
+        self, tmp_path, monkeypatch
+    ):
+        """Every advance of the video clock has to be billed to one `#EXTINF`.
+
+        `catch_up` moves the clock up to the audio once the audio has led for
+        longer than `MAX_AUDIO_LEAD`, and the segment's duration reports the
+        move. A chunk that brings no video and whose encoder hands nothing
+        back leaves without a segment, so there is no duration to report it
+        in, and the chunk after it starts from the moved clock: the jump is
+        billed to nobody and the playlist ends up shorter than the span its
+        segments cover.
+        """
+        (first,) = tone_chunks(tmp_path, count=1)
+        audio_only = tmp_path / "audio_only.mp4"
+        subprocess.run([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "lavfi", "-i", f"aevalsrc='0':s={AUDIO_RATE}:d=0.05",
+            "-c:a", "aac", str(audio_only),
+        ], check=True)  # fmt: skip
+
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/unbilled.m3u8"
+        try:
+            await video.stream_output(first, stream_id, True)
+            state = _stream_states[stream_id]
+            encoder = state.slot.encoder
+            assert encoder is not None
+            assert state.frames_emitted > 0
+            # Put the audio a clear `MAX_AUDIO_LEAD` ahead so the next chunk
+            # snaps, and stop the encoder handing anything back so that chunk
+            # leaves without a segment.
+            state.samples_written = round(
+                (state.video_time + 0.5) * encoder.sample_rate
+            )
+            monkeypatch.setattr(AacStreamEncoder, "take", lambda self, timeout=None: [])
+            before = state.video_time
+            segment, _ = await video.stream_output(audio_only, stream_id, False)
+        finally:
+            video.end_stream_output(stream_id)
+
+        assert segment is None
+        assert state.video_time == pytest.approx(before)
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_the_first_frame_wait_is_paid_once_for_the_stream(
+        self, tmp_path, monkeypatch
+    ):
+        """An encoder that declines the first frame declines it every time.
+
+        A failed attempt leaves `frames_emitted` at zero, so the condition
+        that guards the wait stays true, and every later chunk that also came
+        back empty paid `FIRST_FRAME_WAIT` again. Three chunks meant six
+        seconds of a worker thread waiting on a frame that was never coming.
+        """
+        monkeypatch.setattr(AacStreamEncoder, "take", lambda self, timeout=None: [])
+        calls = []
+        real_first_frame = _VideoStream.first_frame
+
+        def counted(self, encoder):
+            calls.append(1)
+            return real_first_frame(self, encoder)
+
+        monkeypatch.setattr(_VideoStream, "first_frame", counted)
+        monkeypatch.setattr(video_module, "FIRST_FRAME_WAIT", 0.05)
+        chunks = tone_chunks(tmp_path, count=3)
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/oncewait.m3u8"
+        try:
+            for index, chunk in enumerate(chunks):
+                await video.stream_output(chunk, stream_id, index == 0)
+        finally:
+            video.end_stream_output(stream_id)
+
+        assert len(calls) == 1
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio

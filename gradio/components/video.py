@@ -104,6 +104,7 @@ class _VideoStream:
         self.video_time = 0.0
         self.frames_emitted = 0
         self.samples_written = 0
+        self.first_frame_tried = False
         self.counters: dict[int, int] = {}
 
     def catch_up(self, encoder: AacStreamEncoder) -> bytes:
@@ -813,6 +814,12 @@ class Video(StreamingOutput, Component):
         # Where the last segment left the timeline, before `catch_up` may move
         # the video clock up to the audio: the playlist has to account for that
         # move as well as the chunk's own length.
+        #
+        # The rule every path below keeps: each advance of `state.video_time`
+        # is billed to exactly one segment's `duration`, so the playlist's
+        # durations sum to the span the segments cover. A path that returns
+        # without a segment therefore has to leave the clock where it found
+        # it.
         placed_from = state.video_time
         if info["sample_rate"] is not None:
             if encoder is None:
@@ -836,7 +843,12 @@ class Video(StreamingOutput, Component):
             # is never reached and every chunk paid the whole deadline for it.
             while more := encoder.take():
                 frames += more
-            if not frames and state.frames_emitted == 0:
+            # Once, for the first segment only. A failed attempt leaves
+            # `frames_emitted` at zero, so without the flag every later chunk
+            # that also came back empty would wait `FIRST_FRAME_WAIT` again,
+            # for a frame the encoder has already declined to hand over.
+            if not frames and state.frames_emitted == 0 and not state.first_frame_tried:
+                state.first_frame_tried = True
                 frames = state.first_frame(encoder)
                 if not frames:
                     logger.warning(
@@ -851,6 +863,15 @@ class Video(StreamingOutput, Component):
             # the encoder is still holding its audio back. ffmpeg refuses a
             # command with no input at all, which took the run down with it.
             # The audio is not lost; it goes out with the next segment.
+            #
+            # `catch_up` may have moved the clock up to the audio on the way
+            # here, and that move is only ever reported inside a segment's
+            # duration. Leaving without a segment means nothing would carry
+            # it, so put the clock back and let whichever chunk does emit make
+            # the move and bill it. Only the clock has to go back: that branch
+            # of `catch_up` feeds no silence, and the samples this chunk did
+            # feed belong to the encoder either way.
+            state.video_time = placed_from
             return None
         audio_time = state.audio_time(encoder) if encoder else 0.0
         data = self.mux_segment(
