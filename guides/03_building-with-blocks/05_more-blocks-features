@@ -94,7 +94,7 @@ The component must still be passed in as an input, and the annotation has to be 
 
 This is most useful for properties the user can change without triggering an event, which the backend would otherwise have no way of knowing about. `gr.Model3D` is a good example: `camera_position` tracks the camera as the user orbits and zooms, so you can read the view someone is actually looking at.
 
-Picking camera angles by editing numbers and reloading is tedious, so in the demo below you orbit the model until it looks right and the app hands you back the `camera_position` to paste into your own code. The same property works in the other direction, which is how the reset button snaps the view back.
+The demo below is a `gr.Interface` taking a `gr.Model3D` and returning a `gr.Image`. Orbit and zoom the model, press Submit, and the function reads `camera_position` off its annotated argument and photographs the model from that same viewpoint. Nothing else is wired up: the viewpoint arrives purely because the parameter is annotated `gr.Model3D`.
 
 $code_model3d_camera_position
 $demo_model3d_camera_position
