@@ -120,9 +120,7 @@ export function create_hls_stream(
 		hls.attachMedia(media);
 	} catch (error) {
 		// DESTROYING is the only thing that stops the watcher, and it is
-		// reached through the `Hls` the caller never receives if either of
-		// these throws. Left alone, a 250 ms interval holding the video
-		// element would run for the life of the page.
+		// reached through the `Hls` the caller never receives if these throw.
 		stop_watching();
 		hls.destroy();
 		throw error;

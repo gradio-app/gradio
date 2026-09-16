@@ -171,9 +171,8 @@ class AacStreamEncoder:
         channels: int,
         operation: str = "Streaming audio output",
     ):
-        # Encoding only, so ffprobe is not wanted here. `operation` names the
-        # caller, since `gr.Video` builds one of these too and a video app
-        # missing ffmpeg should not be told about audio output.
+        # Encoding only, so ffprobe is not wanted here. `gr.Video` builds one
+        # of these too, hence `operation` rather than a fixed message.
         processing_utils.require_ffmpeg(operation, "ffmpeg")
         self.sample_rate = sample_rate
         self.channels = channels

@@ -84,8 +84,6 @@ def _continue_counters(data: bytes, counters: dict[int, int] | None) -> bytes:
     # prevent, on every segment after it.
     stray = next((o for o in offsets if buffer[o] != 0x47), None)
     if stray is not None:
-        # Silence here would leave a stream whose counters never continued
-        # looking exactly like one whose segments happened not to need it.
         logger.debug(
             "A streamed video segment is not a run of MPEG-TS packets: no sync "
             "byte at offset %d of %d, so its continuity counters are left as "
@@ -816,10 +814,7 @@ class Video(StreamingOutput, Component):
         state = _stream_states.get(output_id)
         if state is None:
             # Ended while this chunk was in flight, by a disconnect or a
-            # cancel. The run is over and nothing will play this. A caller that
-            # never opened the stream lands here too, and dropping its chunks
-            # without a word is not something anyone could work out from the
-            # outside.
+            # cancel. The run is over and nothing will play this.
             logger.debug(
                 "A streamed video chunk arrived for %s, which has no stream: "
                 "either it ended while the chunk was encoding, or it was never "
@@ -833,30 +828,19 @@ class Video(StreamingOutput, Component):
         # Where the last segment left the timeline, before `catch_up` may move
         # the video clock up to the audio: the playlist has to account for that
         # move as well as the chunk's own length.
-        #
-        # The rule every path below keeps: each advance of `state.video_time`
-        # is billed to exactly one segment's `duration`, so the playlist's
-        # durations sum to the span the segments cover. A path that returns
-        # without a segment therefore has to leave the clock where it found
-        # it.
+        # Every advance of it is billed to exactly one segment's `duration`, so
+        # a path that returns without a segment leaves the clock as it found it.
         placed_from = state.video_time
-        # A chunk with no audio of its own still belongs in here once the
-        # stream has an encoder. Skipping it left the audio clock where the
-        # last audio-carrying chunk had put it while the video clock ran on,
-        # so the flush segment was placed at a position the earlier segments
-        # had already covered and billed fresh duration on the end of the
-        # playlist anyway. `catch_up` closes the same distance it closes
-        # everywhere else, and the silence keeps the audio track alive, which
-        # hls.js needs once it has fixed its tracks on the first segment.
+        # A chunk with no audio of its own belongs in here too once the stream
+        # has an encoder: hls.js fixed its tracks on the first segment and will
+        # not take one that loses the audio half-way, and the two clocks have
+        # to stay level for the flush segment to land where the video ended.
         if info["sample_rate"] is not None or encoder is not None:
             if encoder is None:
                 if placed_from > 0.0:
-                    # The safeguard in `first_frame` covers an encoder that was
-                    # too slow with the first segment's audio. It cannot cover
-                    # a first chunk that carried no audio stream at all, since
-                    # there was nothing to build an encoder from, and a stream
-                    # that stays silent throughout is fine. What is not fine is
-                    # sound arriving after segments have gone out without it.
+                    # A stream silent throughout is fine; `first_frame` covers
+                    # an encoder too slow with the first segment. This is the
+                    # case neither of them can: sound that turns up later.
                     logger.warning(
                         "A streamed video's audio starts %.3f s in, after "
                         "segments have already gone out without it. hls.js "
@@ -875,10 +859,8 @@ class Video(StreamingOutput, Component):
             if info["sample_rate"] is not None:
                 pcm += decode_file_to_pcm(path, encoder.sample_rate, encoder.channels)
             else:
-                # Silence for the whole of this chunk's video, not just up to
-                # where the last one ended: `catch_up` closes the distance
-                # behind, and closing only that leaves the audio a chunk short
-                # for every chunk that carries none.
+                # The whole of this chunk's video, not just the distance behind
+                # that `catch_up` closes, or the audio stays a chunk short.
                 silent = round(info["duration"] * encoder.sample_rate)
                 pcm += b"\x00" * (silent * encoder.channels * 2)
             encoder.feed(pcm)
@@ -894,10 +876,8 @@ class Video(StreamingOutput, Component):
             # is never reached and every chunk paid the whole deadline for it.
             while more := encoder.take():
                 frames += more
-            # Once, for the first segment only. A failed attempt leaves
-            # `frames_emitted` at zero, so without the flag every later chunk
-            # that also came back empty would wait `FIRST_FRAME_WAIT` again,
-            # for a frame the encoder has already declined to hand over.
+            # The flag, because a failed attempt leaves `frames_emitted` at
+            # zero and every later empty chunk would wait the deadline again.
             if not frames and state.frames_emitted == 0 and not state.first_frame_tried:
                 state.first_frame_tried = True
                 frames = state.first_frame(encoder)
@@ -914,14 +894,9 @@ class Video(StreamingOutput, Component):
             # the encoder is still holding its audio back. ffmpeg refuses a
             # command with no input at all, which took the run down with it.
             # The audio is not lost; it goes out with the next segment.
-            #
-            # `catch_up` may have moved the clock up to the audio on the way
-            # here, and that move is only ever reported inside a segment's
-            # duration. Leaving without a segment means nothing would carry
-            # it, so put the clock back and let whichever chunk does emit make
-            # the move and bill it. Only the clock has to go back: that branch
-            # of `catch_up` feeds no silence, and the samples this chunk did
-            # feed belong to the encoder either way.
+            # `catch_up` may have moved the clock on the way here, and no
+            # segment is leaving to bill it. Only the clock goes back: that
+            # branch of `catch_up` feeds nothing.
             state.video_time = placed_from
             return None
         audio_time = state.audio_time(encoder) if encoder else 0.0
