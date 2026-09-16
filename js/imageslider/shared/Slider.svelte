@@ -28,7 +28,6 @@
 		};
 		el?: HTMLDivElement;
 		parent_el?: HTMLDivElement;
-		/** Fired only when the user drags, never when `position` arrives as a prop. */
 		onposition?: (position: number) => void;
 		children?: Snippet;
 	} = $props();

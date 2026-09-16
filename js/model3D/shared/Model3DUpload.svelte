@@ -69,9 +69,6 @@
 		ondrag?.(dragging);
 	});
 
-	// Mirrors Model3D.svelte: without this the camera never follows a
-	// `camera_position` set from the backend, and the reported position
-	// overwrites it on the next frame.
 	$effect(() => {
 		if (
 			!dequal(current_settings.camera_position, camera_position) ||

@@ -42,18 +42,9 @@
 	let viewerDetails = $state<Readonly<ViewerDetails>>();
 	let mounted = $state(false);
 
-	// Bumped when a model starts loading. Reporting only resumes once
-	// `initialized_generation` catches up, i.e. once the configured camera has
-	// been applied to the newly loaded model, so an in-flight load cannot leak
-	// the previous model's camera into `camera_position`.
 	let load_generation = 0;
 	let initialized_generation = -1;
 
-	// The camera position as this component last applied or reported it, kept in
-	// both units. Radians are what the camera actually holds, so comparing
-	// against them tells a real movement apart from the float noise of a
-	// degrees -> radians -> degrees round trip. Degrees are what was reported,
-	// so a value coming back down the prop tree can be recognised as our own.
 	let settled_radians: [number, number, number] | null = null;
 	let settled_degrees: [number, number, number] | null = null;
 
@@ -125,7 +116,6 @@
 			}
 
 			if (!mounted || currentViewer !== viewer) return;
-			// A newer load superseded this one while it was in flight.
 			if (generation !== load_generation) return;
 
 			if (display_mode === "point_cloud") {
@@ -133,9 +123,6 @@
 			} else if (display_mode === "wireframe") {
 				setRenderingMode(false, true);
 			}
-			// Babylon frames the camera around the model it just loaded, so the
-			// configured position has to be applied again from scratch rather than
-			// being recognised as already settled.
 			settled_radians = null;
 			settled_degrees = null;
 			initialized_generation = generation;
@@ -188,19 +175,10 @@
 		return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 	}
 
-	/**
-	 * Applies `camera_position`, `zoom_speed` and `pan_speed` to the camera.
-	 * Reads the props directly so the camera can never be driven by values that
-	 * have drifted from the ones the component is rendering with.
-	 */
 	export function update_camera(): void {
 		if (!viewerDetails) return;
 		const camera = viewerDetails.camera;
 
-		// `camera_position` arriving back unchanged from what was last reported is
-		// this component's own value echoing through the prop tree. Re-applying it
-		// would write rounded degrees into the camera on every frame the user is
-		// dragging, so only the sensibility is refreshed.
 		const is_echo =
 			settled_degrees !== null &&
 			same_position(settled_degrees, camera_position);
@@ -215,9 +193,6 @@
 			if (camera_position[2] !== null) {
 				camera.radius = camera_position[2];
 			}
-			// Report back the values that were given rather than reading them off
-			// the camera, so a configured position survives verbatim instead of
-			// picking up the rounding of a degrees -> radians -> degrees round trip.
 			settled_degrees = [
 				camera_position[0] ?? to_degrees(camera.alpha),
 				camera_position[1] ?? to_degrees(camera.beta),
@@ -248,11 +223,6 @@
 		oncamera_position?.(camera_position);
 	}
 
-	/**
-	 * The degrees last reported for `alpha` or `beta`, if that axis has not moved
-	 * since. Babylon can clamp one axis while leaving the others alone, so an
-	 * untouched axis has to keep its value rather than be converted afresh.
-	 */
 	function unmoved_degrees(index: 0 | 1, radians: number): number | null {
 		if (!settled_radians || !settled_degrees) return null;
 		return settled_radians[index] === radians ? settled_degrees[index] : null;
@@ -266,8 +236,6 @@
 			camera.beta,
 			camera.radius
 		];
-		// Untouched since the last apply. Converting and reporting anyway would
-		// replace a configured `30` with `29.999999999999996`.
 		if (settled_radians && same_position(radians, settled_radians)) return;
 		settled_degrees = [
 			unmoved_degrees(0, camera.alpha) ?? to_degrees(camera.alpha),

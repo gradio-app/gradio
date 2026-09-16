@@ -80,9 +80,6 @@ test("component props", async ({ page }) => {
 	await expect(modelOutputJson).toContainText('"static_exact"');
 	const initialModelProps = await modelOutputJson.textContent();
 
-	// Moving the camera reports the new position back up to the backend. Polling
-	// also establishes that the viewer is live, which the canvas being visible
-	// does not: it mounts well before Babylon has initialised.
 	await expect
 		.poll(
 			async () => {
@@ -95,11 +92,6 @@ test("component props", async ({ page }) => {
 		)
 		.not.toBe(initialModelProps);
 
-	// A position set from the backend has to reach the camera and survive
-	// verbatim. `30` is deliberate: it does not survive a degrees -> radians ->
-	// degrees round trip, so a reported-back value would read 29.999999999999996.
-	// The editable model additionally covers the upload variant of the component
-	// and display_mode="point_cloud", neither of which applied camera_position.
 	await resetModelCameraBtn.click();
 	await showModelPropsBtn.click();
 	await expect(modelOutputJson).toContainText('"static_exact": true');
@@ -116,11 +108,9 @@ test("component props", async ({ page }) => {
 		name: "Restore Slider Position"
 	});
 
-	// Untouched, the configured position must come back verbatim.
 	await showSliderPropsBtn.click();
 	await expect(sliderOutputJson).toContainText('"exact": true');
 
-	// Dragging the divider has to report the new position.
 	const sliderBox = await sliderHandle.boundingBox();
 	if (!sliderBox) throw new Error("slider handle has no bounding box");
 	await page.mouse.move(
@@ -135,7 +125,6 @@ test("component props", async ({ page }) => {
 	await showSliderPropsBtn.click();
 	await expect(sliderOutputJson).toContainText('"exact": false');
 
-	// And a position set from the backend has to be applied and survive verbatim.
 	await resetSliderBtn.click();
 	await showSliderPropsBtn.click();
 	await expect(sliderOutputJson).toContainText('"exact": true');
