@@ -209,7 +209,7 @@ class HistoryTarget(NamedTuple):
     def save(self, record: HistoryRecord, assets: dict[str, PendingAsset] | None):
         return save_record(self, record, assets)
 
-    def list(self, limit: int = 50) -> list[HistoryRecord]:
+    def records(self, limit: int = 50) -> list[HistoryRecord]:
         return list_records(self, limit)
 
     def asset(self, endpoint: str, record_id: str, filename: str):

@@ -387,7 +387,9 @@ class BlocksConfigDict(TypedDict):
     version: str
     deep_link_state: NotRequired[Literal["valid", "invalid", "none"]]
     mode: str
-    app_id: int
+    # A string when the app pins it with `GRADIO_APP_ID`, so that run history
+    # survives a restart; otherwise the random per-process int.
+    app_id: Union[str, int]
     dev_mode: bool
     vibe_mode: bool
     analytics_enabled: bool

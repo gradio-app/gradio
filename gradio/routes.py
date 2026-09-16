@@ -806,7 +806,7 @@ class App(FastAPI):
                 ] = 50,
             ):
                 """The newest runs for this app, newest first."""
-                records = await history.offload(target.list, limit)
+                records = await history.offload(target.records, limit)
                 return {"records": [dataclasses.asdict(r) for r in records]}
 
             @router.get("/run-history/records/{endpoint}/{record_id}/assets/{asset_id}")
