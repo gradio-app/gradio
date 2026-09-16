@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Let a custom frontend record and read run history from a bucket
+feat:Record run history to a user's own bucket, from a custom frontend or via the host platform

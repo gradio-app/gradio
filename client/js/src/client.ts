@@ -562,20 +562,21 @@ export class Client {
 	}
 
 	/**
-	 * This app's runs from a bucket, newest first, with stored files resolved to
-	 * URLs the page can fetch. Defaults to the bucket this client records to.
+	 * This app's runs, newest first, with stored files resolved to URLs the page
+	 * can fetch.
 	 *
-	 * Reading needs the same credentials as recording, so an unauthenticated
-	 * caller gets a 401 rather than an empty list. A bucket that does not exist
-	 * yet reads as empty; the first recorded run creates it.
+	 * Reads whichever history the app would record this caller's runs to: the
+	 * bucket this client names, or — when it names none — whatever the app's
+	 * platform keeps for whoever is calling. So a page can show a visitor their
+	 * own history without ever asking them to pick somewhere to put it.
+	 *
+	 * Reading needs the same standing as recording, so a caller the app cannot
+	 * place gets a 401 rather than an empty list.
 	 */
 	public async read_history(
 		options: { bucket?: string; limit?: number } = {}
 	): Promise<HistoryResult<HistoryRecord[]>> {
 		const bucket = options.bucket ?? this.options.history_bucket;
-		if (!bucket) {
-			return { ok: false, status: 422, data: [], detail: "no bucket set" };
-		}
 		const root = this.config?.root || "";
 		const result = await list_bucket_records(root, bucket, options.limit);
 		if (!result.ok) return result;

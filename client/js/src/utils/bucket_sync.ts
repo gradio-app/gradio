@@ -127,12 +127,20 @@ export async function list_user_buckets(
 	);
 }
 
+/**
+ * `bucket` is omitted when the app records through its platform rather than to
+ * a bucket the caller named: there is no bucket to ask for, and the server
+ * answers for whoever the request says is calling.
+ */
 export async function list_bucket_records(
 	root: string,
-	bucket: string,
+	bucket?: string | null,
 	limit?: number
 ): Promise<HistoryResult<HistoryRecord[]>> {
-	const params = { bucket, ...(limit ? { limit: String(limit) } : {}) };
+	const params = {
+		...(bucket ? { bucket } : {}),
+		...(limit ? { limit: String(limit) } : {})
+	};
 	return request(url(root, "records", params), {}, [], (b) =>
 		Array.isArray(b?.records) ? b.records : []
 	);
@@ -140,7 +148,7 @@ export async function list_bucket_records(
 
 export function asset_url(
 	root: string,
-	bucket: string,
+	bucket: string | null | undefined,
 	endpoint: string,
 	record_id: string,
 	filename: string
@@ -150,7 +158,7 @@ export function asset_url(
 		`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(
 			record_id
 		)}/assets/${encodeURIComponent(filename)}`,
-		{ bucket }
+		bucket ? { bucket } : undefined
 	);
 }
 
@@ -164,7 +172,7 @@ export function asset_url(
  */
 export function resolve_record_assets(
 	root: string,
-	bucket: string,
+	bucket: string | null | undefined,
 	record: HistoryRecord
 ): HistoryRecord {
 	const resolve = (value: unknown): unknown => {

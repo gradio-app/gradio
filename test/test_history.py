@@ -749,3 +749,257 @@ def test_a_mocked_local_login_falls_back_to_the_hosts_own_token():
         ),
     ):
         assert history_mod.resolve_token(request) == "hf_oauth"
+
+
+# ------------------------------------------------------ platform ingest sink
+
+
+@dataclass
+class _Resp:
+    status_code: int
+    payload: dict | None = None
+    content: bytes = b""
+    content_type: str = "application/json"
+
+    def json(self):
+        return self.payload or {}
+
+    @property
+    def headers(self):
+        return {"content-type": self.content_type}
+
+
+class FakeIngest:
+    """An in-memory stand-in for the platform history service.
+
+    Stands in for `httpx.Client`, so the test exercises the wire protocol —
+    what is called in what order, and with which headers — rather than a mock
+    of gradio's own helpers.
+    """
+
+    def __init__(self):
+        self.calls: list[tuple[str, str]] = []
+        self.headers_seen: list[dict] = []
+        self.records: list[dict] = []
+        self.uploaded: dict[str, bytes] = {}
+
+    def __call__(self, **_kw):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_a):
+        return False
+
+    def post(self, url, headers=None, json=None):
+        self.calls.append(("POST", url))
+        self.headers_seen.append(dict(headers or {}))
+        if url.endswith("/runs/uploads"):
+            return _Resp(
+                200,
+                {
+                    "uploads": {
+                        a["filename"]: {"url": f"https://store.test/{a['filename']}"}
+                        for a in json["assets"]
+                    }
+                },
+            )
+        self.records.append(json)
+        return _Resp(200, {})
+
+    def request(self, method, url, headers=None, content=None):
+        self.calls.append((method, url))
+        self.uploaded[url.rsplit("/", 1)[-1]] = content
+        return _Resp(200, {})
+
+    def get(self, url, headers=None, params=None):
+        self.calls.append(("GET", url))
+        self.headers_seen.append(dict(headers or {}))
+        if url.endswith("/runs"):
+            return _Resp(200, {"records": [r["record"] for r in self.records]})
+        return _Resp(200, content=b"asset-bytes", content_type="image/png")
+
+
+@contextmanager
+def use_ingest(fake):
+    with patch.object(history_mod.httpx, "Client", fake):
+        yield
+
+
+def make_ingest_request(ip_token="ip-tok"):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        session={},
+        headers={"x-ip-token": ip_token} if ip_token else {},
+        query_params={},
+        url=SimpleNamespace(hostname="example.hf.space"),
+        client=SimpleNamespace(host="10.0.0.1"),
+    )
+
+
+def test_a_visitor_who_delegated_nothing_records_through_the_platform(monkeypatch):
+    """The ordinary Space visitor: no OAuth, no bucket, just the assertion the
+    proxy attached to their request."""
+    monkeypatch.setenv(history_mod.PLATFORM_INGEST_ENV, "https://hist.test")
+    target = history_mod.resolve_ingest(make_ingest_request(), "app")
+    assert isinstance(target, history_mod.IngestTarget)
+    assert target.ip_token == "ip-tok"
+
+
+def test_an_unattributed_request_records_nothing(monkeypatch):
+    """No assertion means the platform could not say who is calling, and a run
+    with no owner has nowhere to go."""
+    monkeypatch.setenv(history_mod.PLATFORM_INGEST_ENV, "https://hist.test")
+    assert history_mod.resolve_ingest(make_ingest_request(ip_token=None), "app") is None
+
+
+def test_the_platform_is_not_used_when_the_host_did_not_configure_one(monkeypatch):
+    monkeypatch.delenv(history_mod.PLATFORM_INGEST_ENV, raising=False)
+    assert history_mod.resolve_ingest(make_ingest_request(), "app") is None
+
+
+def test_an_explicitly_delegated_bucket_wins_over_the_platform(monkeypatch):
+    """Signing in and naming a bucket is a choice; the platform default must
+    not quietly override it."""
+    monkeypatch.setenv(history_mod.PLATFORM_INGEST_ENV, "https://hist.test")
+    app = MagicMock()
+    app.get_blocks.return_value = MagicMock(run_history=True, app_id="app")
+    request = make_ingest_request()
+    with (
+        patch("gradio.history.resolve_bucket_id", return_value="alice/hist"),
+        patch("gradio.history.resolve_token", return_value="hf_real"),
+    ):
+        target = history_mod.resolve_target(app, request)
+    assert isinstance(target, HistoryTarget)
+    assert target.bucket == "alice/hist"
+
+
+def test_ingest_stores_assets_before_the_record():
+    """Same ordering as the bucket sink: the record is the commit marker, so a
+    half-written run never shows up in a listing."""
+    fake = FakeIngest()
+    target = history_mod.IngestTarget("https://hist.test", "ip-tok", "app")
+    record = make_record(
+        endpoint="generate", outputs={"img": {"__asset__": "a001.png"}}
+    )
+    with use_ingest(fake):
+        target.save(record, {"a001.png": PendingAsset(data=b"PNGDATA")})
+
+    assert fake.uploaded["a001.png"] == b"PNGDATA"
+    methods = [f"{m} {u}" for m, u in fake.calls]
+    assert methods == [
+        "POST https://hist.test/runs/uploads",
+        "PUT https://store.test/a001.png",
+        "POST https://hist.test/runs",
+    ]
+
+
+def test_ingest_carries_the_assertion_and_no_credential():
+    """The whole point of this sink: nothing that could act as the user leaves
+    the app, because the app never had it."""
+    fake = FakeIngest()
+    target = history_mod.IngestTarget("https://hist.test", "ip-tok", "app")
+    with use_ingest(fake):
+        target.save(make_record(), None)
+        target.list(10)
+
+    assert fake.headers_seen, "no request was made"
+    for headers in fake.headers_seen:
+        assert headers == {"x-ip-token": "ip-tok"}
+
+
+def test_ingest_asset_bytes_come_back_with_their_type():
+    fake = FakeIngest()
+    target = history_mod.IngestTarget("https://hist.test", "ip-tok", "app")
+    with use_ingest(fake):
+        data, content_type = target.asset("generate", "r1", "a001.png")
+    assert data == b"asset-bytes"
+    assert content_type == "image/png"
+
+
+def test_ingest_reads_back_what_it_wrote():
+    fake = FakeIngest()
+    target = history_mod.IngestTarget("https://hist.test", "ip-tok", "app")
+    with use_ingest(fake):
+        target.save(make_record(endpoint="generate"), None)
+        records = target.list(50)
+    assert [r.endpoint for r in records] == ["generate"]
+
+
+def test_platform_reads_need_no_bucket(monkeypatch):
+    """A visitor has no bucket to name, so requiring one would make the
+    platform sink unreadable."""
+    from gradio.routes import App
+
+    monkeypatch.setenv(history_mod.PLATFORM_INGEST_ENV, "https://hist.test")
+    fake = FakeIngest()
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    with use_ingest(fake):
+        response = TestClient(app).get(
+            "/gradio_api/run-history/records", headers={"x-ip-token": "ip-tok"}
+        )
+    assert response.status_code == 200, response.text
+    assert response.json() == {"records": []}
+    close_all()
+
+
+def test_a_space_visitor_is_recorded_without_the_app_holding_a_credential(monkeypatch):
+    """The whole Spaces story, end to end through the recorder.
+
+    No bucket, no OAuth, no local token — only the assertion a proxy attached
+    to the request, exactly as `ip_token_middleware` does before forwarding.
+    """
+    monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+    monkeypatch.setenv(history_mod.PLATFORM_INGEST_ENV, "https://hist.test")
+    fake = FakeIngest()
+
+    io = gr.Interface(lambda name: f"hello {name}", "text", "text", api_name="greet")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    with (
+        # The platform never gives a Space a credential, so neither do we.
+        patch("gradio.history.resolve_token", return_value=None),
+        use_ingest(fake),
+        TestClient(app) as client,
+    ):
+        r = client.post(
+            "/gradio_api/run/greet",
+            json={"data": ["world"]},
+            headers={"X-IP-Token": "assertion-for-alice"},
+        )
+        assert r.status_code == 200, r.text
+        assert _wait_for(lambda: bool(fake.records)), "no record reached the service"
+
+    record = fake.records[0]["record"]
+    assert record["inputs"] == ["world"]
+    assert record["outputs"] == ["hello world"]
+    assert fake.records[0]["app_id"] == str(io.app_id)
+    # Nothing that could act as the user left the app.
+    assert all(h == {"x-ip-token": "assertion-for-alice"} for h in fake.headers_seen)
+    io.close()
+    close_all()
+
+
+def test_a_space_visitor_with_no_assertion_records_nothing(monkeypatch):
+    """An unattributable request must not be filed under someone else."""
+    monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+    monkeypatch.setenv(history_mod.PLATFORM_INGEST_ENV, "https://hist.test")
+    fake = FakeIngest()
+
+    io = gr.Interface(lambda name: f"hello {name}", "text", "text", api_name="greet")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    with (
+        patch("gradio.history.resolve_token", return_value=None),
+        use_ingest(fake),
+        TestClient(app) as client,
+    ):
+        assert (
+            client.post("/gradio_api/run/greet", json={"data": ["world"]}).status_code
+            == 200
+        )
+        assert not _wait_for(lambda: bool(fake.records), timeout=1.0)
+    io.close()
+    close_all()

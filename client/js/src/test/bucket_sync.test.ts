@@ -173,3 +173,30 @@ describe("resolve_record_assets", () => {
 		expect(resolve_record_assets("http://x", "alice/h", plain)).toEqual(plain);
 	});
 });
+
+describe("reading without a bucket", () => {
+	const orig = globalThis.fetch;
+	afterEach(() => {
+		globalThis.fetch = orig;
+	});
+
+	it("asks for no bucket when the app records through its platform", async () => {
+		let requested = "";
+		globalThis.fetch = vi.fn().mockImplementation((input: string) => {
+			requested = input;
+			return Promise.resolve({
+				ok: true,
+				status: 200,
+				json: async () => ({ records: [] })
+			});
+		}) as any;
+		await list_bucket_records("http://x", undefined, 10);
+		expect(requested).toBe("http://x/gradio_api/run-history/records?limit=10");
+	});
+
+	it("builds asset urls without a bucket too", () => {
+		expect(asset_url("http://x", null, "generate", "r1", "a001.png")).toBe(
+			"http://x/gradio_api/run-history/records/generate/r1/assets/a001.png"
+		);
+	});
+});
