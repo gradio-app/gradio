@@ -36,9 +36,7 @@ import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history } from "./utils/run_history";
 import {
-	connect_bucket,
 	list_bucket_records,
-	list_user_buckets,
 	resolve_record_assets,
 	type HistoryRecord,
 	type HistoryResult
@@ -564,58 +562,22 @@ export class Client {
 	}
 
 	/**
-	 * The bucket this client records to, if any.
-	 */
-	public get_history_bucket(): string | undefined {
-		return this.options.history_bucket;
-	}
-
-	/**
-	 * Record subsequent calls to `bucket_id`, or, with no argument, go back to
-	 * whatever destination this browser has selected. Takes effect on the next
-	 * `submit`; calls already in flight keep the bucket they started with.
-	 */
-	public set_history_bucket(bucket_id?: string): void {
-		this.options.history_bucket = bucket_id;
-	}
-
-	/**
-	 * The buckets the signed-in user can write to.
-	 */
-	public async history_buckets(): Promise<HistoryResult<string[]>> {
-		return list_user_buckets(this.config?.root || "");
-	}
-
-	/**
-	 * Create `bucket_id` if it does not exist and confirm it is writable. Call
-	 * this once before recording to a bucket the user has not used before;
-	 * creating one needs the `manage-repos` OAuth scope.
-	 */
-	public async connect_history_bucket(
-		bucket_id?: string
-	): Promise<HistoryResult<null>> {
-		const bucket = bucket_id ?? this.options.history_bucket;
-		if (!bucket) {
-			return { ok: false, status: 422, data: null, detail: "no bucket set" };
-		}
-		return connect_bucket(this.config?.root || "", bucket);
-	}
-
-	/**
 	 * This app's runs from a bucket, newest first, with stored files resolved to
-	 * URLs the page can fetch. Reading needs the same credentials as recording,
-	 * so an unauthenticated caller gets a 401 rather than an empty list.
+	 * URLs the page can fetch. Defaults to the bucket this client records to.
+	 *
+	 * Reading needs the same credentials as recording, so an unauthenticated
+	 * caller gets a 401 rather than an empty list. A bucket that does not exist
+	 * yet reads as empty; the first recorded run creates it.
 	 */
-	public async history_records(
-		bucket_id?: string,
-		limit?: number
+	public async read_history(
+		options: { bucket?: string; limit?: number } = {}
 	): Promise<HistoryResult<HistoryRecord[]>> {
-		const bucket = bucket_id ?? this.options.history_bucket;
+		const bucket = options.bucket ?? this.options.history_bucket;
 		if (!bucket) {
 			return { ok: false, status: 422, data: [], detail: "no bucket set" };
 		}
 		const root = this.config?.root || "";
-		const result = await list_bucket_records(root, bucket, limit);
+		const result = await list_bucket_records(root, bucket, options.limit);
 		if (!result.ok) return result;
 		return {
 			...result,
