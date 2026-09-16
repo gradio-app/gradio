@@ -28,8 +28,11 @@
 		readOnly = false,
 		ontoggle,
 		onrename,
-		onheaderpointerdown
+		onheaderpointerdown,
 	}: Props = $props();
+
+	/** Names shown on a collapsed card before the rest become a "+N" chip. */
+	const MEMBER_PREVIEW = 4;
 
 	let editing = $state(false);
 	let draft = $state("");
@@ -121,6 +124,16 @@
 		style="left: {box.x}px; top: {box.y}px; width: {box.width}px;"
 	>
 		{@render header()}
+		<div class="group-members">
+			{#each box.member_labels.slice(0, MEMBER_PREVIEW) as label, i (i)}
+				<span class="group-member">{label}</span>
+			{/each}
+			{#if box.member_labels.length > MEMBER_PREVIEW}
+				<span class="group-member group-member-more"
+					>+{box.member_labels.length - MEMBER_PREVIEW}</span
+				>
+			{/if}
+		</div>
 		<div class="group-stubs">
 			{#if box.in_type}
 				<div
@@ -240,6 +253,31 @@
 		font-variant-numeric: tabular-nums;
 	}
 
+	.group-members {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		padding: 8px 10px 0;
+	}
+
+	.group-member {
+		max-width: 100%;
+		padding: 2px 6px;
+		border-radius: 4px;
+		background: #1e1f29;
+		color: #9ca0ad;
+		font-size: 10px;
+		line-height: 14px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.group-member-more {
+		background: none;
+		color: #6b6e78;
+	}
+
 	.group-stubs {
 		position: relative;
 		display: flex;
@@ -286,6 +324,11 @@
 	:global(body:not(.dark)) .group-card .group-header {
 		color: #2b2d36;
 		border-bottom-color: #e6e8ee;
+	}
+
+	:global(body:not(.dark)) .group-member {
+		background: #f1f2f6;
+		color: #55576a;
 	}
 
 	:global(body:not(.dark)) .group-frame {

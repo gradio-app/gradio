@@ -4,7 +4,7 @@
 		fetchSpaceApi,
 		is_zero_gpu_space,
 		normalize_space_id,
-		normalizeOperatorPorts
+		normalizeOperatorPorts,
 	} from "./space-api";
 	import { PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import { MODALITIES } from "./workflow-modalities";
@@ -61,7 +61,7 @@
 		onupdate,
 		onclose,
 		oncleared,
-		onerror
+		onerror,
 	}: Props = $props();
 
 	const is_all = $derived(modality.key === "all");
@@ -109,8 +109,8 @@
 			.map((m) => ({
 				modality: m,
 				subtabs: m.subtabs.filter(
-					(st) => (!is_all || st.key !== "all") && subtab_available(st)
-				)
+					(st) => (!is_all || st.key !== "all") && subtab_available(st),
+				),
 			}))
 			.filter((g) => g.subtabs.length > 0);
 	});
@@ -122,7 +122,7 @@
 
 	let active_subtab = $state<SubTab>(
 		(initialSubtab && modality.subtabs.find((s) => s.key === initialSubtab)) ||
-			modality.subtabs[0]
+			modality.subtabs[0],
 	);
 	let active_task_modality = $state<string | null>(null);
 
@@ -147,7 +147,7 @@
 		"#ec4899",
 		"#f59e0b",
 		"#06b6d4",
-		"#84cc16"
+		"#84cc16",
 	];
 	function avatar_color(id: string): string {
 		let h = 5381;
@@ -171,7 +171,7 @@
 	const has_results = $derived(
 		is_dataset
 			? dataset_results.length > 0
-			: space_results.length + model_results.length > 0
+			: space_results.length + model_results.length > 0,
 	);
 
 	let search_timeout: ReturnType<typeof setTimeout> | null = null;
@@ -189,7 +189,7 @@
 			pipeline_tag: s.cardData?.pipeline_tag || s.pipeline_tag || undefined,
 			zero_gpu: is_zero_gpu_space(s),
 			curated: s._curated === true,
-			thumbnail: s._thumbnail || undefined
+			thumbnail: s._thumbnail || undefined,
 		};
 	}
 
@@ -202,7 +202,7 @@
 			type: "model",
 			pipeline_tag: m.pipeline_tag,
 			curated: m._curated === true,
-			thumbnail: m._thumbnail || undefined
+			thumbnail: m._thumbnail || undefined,
 		};
 	}
 
@@ -231,15 +231,15 @@
 						query,
 						space_tag,
 						backend_modality,
-						zero_gpu_only
-					])
+						zero_gpu_only,
+					]),
 				);
 			} else {
 				calls.push(Promise.resolve("[]"));
 			}
 			if (server?.search_models) {
 				calls.push(
-					server.search_models([kind, query, model_tag, backend_modality])
+					server.search_models([kind, query, model_tag, backend_modality]),
 				);
 			} else {
 				calls.push(Promise.resolve("[]"));
@@ -295,7 +295,7 @@
 				description: d.description || d.cardData?.summary || "",
 				likes: d.likes ?? 0,
 				type: "dataset" as const,
-				pipeline_tag: undefined
+				pipeline_tag: undefined,
 			}));
 		} catch {
 			if (token === fetch_token) dataset_results = [];
@@ -321,7 +321,7 @@
 		if (!is_dataset && looks_like_repo(search_query)) {
 			resolve_timeout = setTimeout(
 				() => void resolve_pinned(search_query),
-				120
+				120,
 			);
 		} else {
 			pinned_result = null;
@@ -354,15 +354,15 @@
 			inputs: normalizeOperatorPorts(
 				modality,
 				schema?.inputs ?? [],
-				inputHints
+				inputHints,
 			),
 			outputs: normalizeOperatorPorts(
 				modality,
 				schema?.outputs ?? [],
-				outputHints
+				outputHints,
 			),
 			width: 280,
-			height: 90
+			height: 90,
 		};
 		if (mode === "update" && nodeId) {
 			onupdate(nodeId, template);
@@ -391,10 +391,10 @@
 				outputs: normalizeOperatorPorts(
 					modality,
 					api_info.outputs,
-					outputHints
+					outputHints,
 				),
 				width: api_info.width,
-				height: 90
+				height: 90,
 			};
 			if (mode === "update" && nodeId) {
 				onupdate(nodeId, template);
@@ -430,7 +430,7 @@
 	async function select_dataset(dataset: SpaceResult) {
 		loading_space_id = dataset.id;
 		let outputs: { id: string; label: string; type: string }[] = [
-			{ id: "out_0", label: "Data", type: "json" }
+			{ id: "out_0", label: "Data", type: "json" },
 		];
 		let config = "default";
 		let split = "train";
@@ -448,7 +448,7 @@
 					const ports = schema.features.map((f: any, i: number) => ({
 						id: `out_${i}`,
 						label: f.name,
-						type: feature_to_port_type(f)
+						type: feature_to_port_type(f),
 					}));
 					if (ports.length > 0) outputs = ports;
 				}
@@ -472,12 +472,12 @@
 					id: "row_index",
 					label: "Row",
 					type: "number" as const,
-					default_value: 0
-				}
+					default_value: 0,
+				},
 			],
 			outputs,
 			width: 240,
-			height: 90
+			height: 90,
 		});
 		onclose();
 	}
@@ -557,7 +557,7 @@
 				pipeline_tag:
 					rec.cardData?.pipeline_tag || rec.pipeline_tag || undefined,
 				zero_gpu: kind === "space" ? is_zero_gpu_space(rec) : undefined,
-				curated
+				curated,
 			};
 		} catch {
 			if (myToken === pinned_token) pinned_error = null;
@@ -709,7 +709,13 @@
 						>
 							← All tasks
 						</button>
-						{#each sidebar_groups[0]?.subtabs ?? [] as st (st.key)}
+						{#each sidebar_groups[0]?.subtabs ?? [] as st, i (st.key)}
+							{@const subtabs = sidebar_groups[0].subtabs}
+							{#if st.group && st.group !== subtabs[i - 1]?.group}
+								<div class="picker-sidebar-group-heading">
+									<span>{st.group}</span>
+								</div>
+							{/if}
 							<button
 								class="picker-task-item"
 								class:active={active_subtab.key === st.key}
@@ -750,7 +756,7 @@
 						<div
 							class="space-avatar"
 							style="background:linear-gradient(135deg, {avatar_color(
-								pinned.id
+								pinned.id,
 							)}, {avatar_color(pinned.id + '_2')})"
 						>
 							{avatar_initial(pinned.id)}
@@ -844,7 +850,7 @@
 							<div
 								class="space-avatar"
 								style="background:linear-gradient(135deg, {avatar_color(
-									dataset.id
+									dataset.id,
 								)}, {avatar_color(dataset.id + '_2')})"
 							>
 								{avatar_initial(dataset.id)}
@@ -913,7 +919,7 @@
 											<div
 												class="space-card-avatar"
 												style="background:linear-gradient(135deg, {avatar_color(
-													space.id
+													space.id,
 												)}, {avatar_color(space.id + '_2')})"
 											></div>
 										{/if}
@@ -987,7 +993,7 @@
 											<div
 												class="space-card-avatar"
 												style="background:linear-gradient(135deg, {avatar_color(
-													model.id
+													model.id,
 												)}, {avatar_color(model.id + '_2')})"
 											></div>
 										{/if}

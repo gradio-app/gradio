@@ -5,6 +5,8 @@ export interface SubTab {
 	label: string;
 	pipelineTag: string;
 	spaceCategory?: string;
+	/** Optional sub-heading this task sits under in the picker sidebar. */
+	group?: string;
 	inputs: PortType[];
 	outputs: PortType[];
 }
@@ -22,7 +24,7 @@ const ALL: SubTab = {
 	label: "All",
 	pipelineTag: "",
 	inputs: [],
-	outputs: []
+	outputs: [],
 };
 
 function task(
@@ -30,7 +32,7 @@ function task(
 	pipelineTag: string,
 	inputs: PortType[],
 	outputs: PortType[],
-	opts?: { label?: string; spaceCategory?: string }
+	opts?: { label?: string; spaceCategory?: string; group?: string },
 ): SubTab {
 	const arrow = opts?.label ?? `${typeLabel(inputs)} → ${typeLabel(outputs)}`;
 	return {
@@ -38,8 +40,9 @@ function task(
 		label: arrow,
 		pipelineTag,
 		spaceCategory: opts?.spaceCategory,
+		group: opts?.group,
 		inputs,
-		outputs
+		outputs,
 	};
 }
 
@@ -59,7 +62,7 @@ const PORT_LABELS: Partial<Record<PortType, string>> = {
 	boolean: "Toggle",
 	json: "Data",
 	gallery: "Gallery",
-	html: "HTML"
+	html: "HTML",
 };
 
 export const DATASET_MODALITY: ModalityConfig = {
@@ -67,7 +70,7 @@ export const DATASET_MODALITY: ModalityConfig = {
 	label: "Data",
 	category: "data",
 	port_type: null,
-	subtabs: [ALL]
+	subtabs: [ALL],
 };
 
 export const ALL_MODALITY: ModalityConfig = {
@@ -75,7 +78,7 @@ export const ALL_MODALITY: ModalityConfig = {
 	label: "All",
 	category: "all",
 	port_type: null,
-	subtabs: [ALL]
+	subtabs: [ALL],
 };
 
 export const MODALITIES: ModalityConfig[] = [
@@ -88,25 +91,33 @@ export const MODALITIES: ModalityConfig[] = [
 			ALL,
 			task("text-to-image", "text-to-image", ["text"], ["image"], {
 				label: "Image Generation",
-				spaceCategory: "image-generation"
+				spaceCategory: "image-generation",
+				group: "Generate",
 			}),
 			task("image-to-image", "image-to-image", ["image"], ["image"], {
 				label: "Image Editing",
-				spaceCategory: "image-editing"
+				spaceCategory: "image-editing",
+				group: "Generate",
 			}),
 			task(
 				"image-text-to-text",
 				"image-text-to-text",
 				["image", "text"],
 				["text"],
-				{ label: "Image + Text → Text", spaceCategory: "image-captioning" }
+				{
+					label: "Image + Text → Text",
+					spaceCategory: "image-captioning",
+					group: "Describe",
+				},
 			),
 			task("object-detection", "object-detection", ["image"], ["json"], {
 				label: "Object Detection",
-				spaceCategory: "object-detection"
+				spaceCategory: "object-detection",
+				group: "Analyse",
 			}),
 			task("image-segmentation", "image-segmentation", ["image"], ["json"], {
-				label: "Image Segmentation"
+				label: "Image Segmentation",
+				group: "Analyse",
 			}),
 			task(
 				"image-classification",
@@ -114,33 +125,37 @@ export const MODALITIES: ModalityConfig[] = [
 				["image"],
 				["json"],
 				{
-					label: "Image Classification"
-				}
+					label: "Image Classification",
+					group: "Analyse",
+				},
 			),
 			task(
 				"zero-shot-image-classification",
 				"zero-shot-image-classification",
 				["image", "text"],
 				["json"],
-				{ label: "Zero-Shot Classification" }
+				{ label: "Zero-Shot Classification", group: "Analyse" },
 			),
 			task(
 				"zero-shot-object-detection",
 				"zero-shot-object-detection",
 				["image", "text"],
 				["json"],
-				{ label: "Zero-Shot Detection" }
+				{ label: "Zero-Shot Detection", group: "Analyse" },
 			),
 			task("mask-generation", "mask-generation", ["image"], ["image"], {
-				label: "Mask Generation"
+				label: "Mask Generation",
+				group: "Analyse",
 			}),
 			task("keypoint-detection", "keypoint-detection", ["image"], ["json"], {
-				label: "Keypoint Detection"
+				label: "Keypoint Detection",
+				group: "Analyse",
 			}),
 			task("depth-estimation", "depth-estimation", ["image"], ["image"], {
-				label: "Depth Estimation"
-			})
-		]
+				label: "Depth Estimation",
+				group: "Analyse",
+			}),
+		],
 	},
 	{
 		key: "audio",
@@ -151,22 +166,22 @@ export const MODALITIES: ModalityConfig[] = [
 			ALL,
 			task("text-to-speech", "text-to-speech", ["text"], ["audio"], {
 				label: "Speech Synthesis",
-				spaceCategory: "speech-synthesis"
+				spaceCategory: "speech-synthesis",
 			}),
 			task(
 				"automatic-speech-recognition",
 				"automatic-speech-recognition",
 				["audio"],
 				["text"],
-				{ label: "Speech Recognition" }
+				{ label: "Speech Recognition" },
 			),
 			task("audio-to-audio", "audio-to-audio", ["audio"], ["audio"], {
 				label: "Voice Cloning",
-				spaceCategory: "voice-cloning"
+				spaceCategory: "voice-cloning",
 			}),
 			task("text-to-audio", "text-to-audio", ["text"], ["audio"], {
 				label: "Music Generation",
-				spaceCategory: "music-generation"
+				spaceCategory: "music-generation",
 			}),
 			task(
 				"audio-classification",
@@ -174,10 +189,10 @@ export const MODALITIES: ModalityConfig[] = [
 				["audio"],
 				["json"],
 				{
-					label: "Audio Classification"
-				}
-			)
-		]
+					label: "Audio Classification",
+				},
+			),
+		],
 	},
 	{
 		key: "video",
@@ -188,11 +203,11 @@ export const MODALITIES: ModalityConfig[] = [
 			ALL,
 			task("text-to-video", "text-to-video", ["text"], ["video"], {
 				label: "Video Generation",
-				spaceCategory: "video-generation"
+				spaceCategory: "video-generation",
 			}),
 			task("image-to-video", "image-to-video", ["image"], ["video"], {
 				label: "Character Animation",
-				spaceCategory: "character-animation"
+				spaceCategory: "character-animation",
 			}),
 			task(
 				"video-classification",
@@ -200,10 +215,10 @@ export const MODALITIES: ModalityConfig[] = [
 				["video"],
 				["json"],
 				{
-					label: "Video Classification"
-				}
-			)
-		]
+					label: "Video Classification",
+				},
+			),
+		],
 	},
 	{
 		key: "text",
@@ -214,32 +229,32 @@ export const MODALITIES: ModalityConfig[] = [
 			ALL,
 			task("text-generation", "text-generation", ["text"], ["text"], {
 				label: "Text Generation",
-				spaceCategory: "text-generation"
+				spaceCategory: "text-generation",
 			}),
 			task("summarization", "summarization", ["text"], ["text"], {
 				label: "Text Summarization",
-				spaceCategory: "text-summarization"
+				spaceCategory: "text-summarization",
 			}),
 			task("translation", "translation", ["text"], ["text"], {
 				label: "Language Translation",
-				spaceCategory: "language-translation"
+				spaceCategory: "language-translation",
 			}),
 			task("text-classification", "text-classification", ["text"], ["json"], {
 				label: "Text Analysis",
-				spaceCategory: "text-analysis"
+				spaceCategory: "text-analysis",
 			}),
 			task(
 				"zero-shot-classification",
 				"zero-shot-classification",
 				["text"],
 				["json"],
-				{ label: "Zero-Shot Classification" }
+				{ label: "Zero-Shot Classification" },
 			),
 			task("question-answering", "question-answering", ["text"], ["text"], {
 				label: "Question Answering",
-				spaceCategory: "question-answering"
-			})
-		]
+				spaceCategory: "question-answering",
+			}),
+		],
 	},
 	{
 		key: "3d",
@@ -250,14 +265,14 @@ export const MODALITIES: ModalityConfig[] = [
 			ALL,
 			task("text-to-3d", "text-to-3d", ["text"], ["model3d"], {
 				label: "3D from Text",
-				spaceCategory: "3d-modeling"
+				spaceCategory: "3d-modeling",
 			}),
 			task("image-to-3d", "image-to-3d", ["image"], ["model3d"], {
 				label: "3D from Image",
-				spaceCategory: "3d-modeling"
-			})
-		]
-	}
+				spaceCategory: "3d-modeling",
+			}),
+		],
+	},
 ];
 
 export interface PortMeta {
@@ -277,7 +292,7 @@ export const PORT_REGISTRY: PortMeta[] = [
 	{ port_type: "boolean", label: "Toggle" },
 	{ port_type: "json", label: "JSON" },
 	{ port_type: "gallery", label: "Gallery", modality_key: "image" },
-	{ port_type: "html", label: "HTML" }
+	{ port_type: "html", label: "HTML" },
 ];
 
 export function portMeta(type: PortType): PortMeta | null {

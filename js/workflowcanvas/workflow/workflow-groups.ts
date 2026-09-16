@@ -47,6 +47,8 @@ export interface GroupBox {
 	id: string;
 	label: string;
 	member_ids: string[];
+	/** Member labels in graph order, so a collapsed card can say what it holds. */
+	member_labels: string[];
 	collapsed: boolean;
 	x: number;
 	y: number;
@@ -222,6 +224,7 @@ export function collapse_view(
 			id: group.id,
 			label: group.label,
 			member_ids: group.member_ids,
+			member_labels: members.map((n) => n.label),
 			collapsed,
 			x: box.x,
 			y: box.y,
