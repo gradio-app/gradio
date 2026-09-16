@@ -5,6 +5,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { dequal } from "dequal";
 	import type Canvas3D from "./Canvas3D.svelte";
 	import { create_renderer } from "./renderer.svelte.js";
 
@@ -58,6 +59,7 @@
 
 	let canvas3d = $state<Canvas3D | undefined>();
 	let dragging = $state(false);
+	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
 
 	const model = create_renderer(() => value);
 	const GaussianCanvas = $derived(model.gsplat_component);
@@ -65,6 +67,20 @@
 
 	$effect(() => {
 		ondrag?.(dragging);
+	});
+
+	// Mirrors Model3D.svelte: without this the camera never follows a
+	// `camera_position` set from the backend, and the reported position
+	// overwrites it on the next frame.
+	$effect(() => {
+		if (
+			!dequal(current_settings.camera_position, camera_position) ||
+			current_settings.zoom_speed !== zoom_speed ||
+			current_settings.pan_speed !== pan_speed
+		) {
+			canvas3d?.update_camera();
+			current_settings = { camera_position, zoom_speed, pan_speed };
+		}
 	});
 
 	async function handle_upload(detail: FileData): Promise<void> {

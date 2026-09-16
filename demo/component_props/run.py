@@ -2,7 +2,13 @@ import gradio as gr
 from gradio.media import get_image, get_model3d
 
 with gr.Blocks() as demo:
-    a = gr.Number(value=5, minimum=0, maximum=10, label="Input A", info="Enter a number between 0 and 10")
+    a = gr.Number(
+        value=5,
+        minimum=0,
+        maximum=10,
+        label="Input A",
+        info="Enter a number between 0 and 10",
+    )
     output_a = gr.JSON(label="Output", elem_id="output")
     with gr.Row():
         show_value_btn = gr.Button("Show Value")
@@ -15,6 +21,7 @@ with gr.Blocks() as demo:
             "maximum": x.maximum,
             "minimum": x.minimum,
         }
+
     show_value_btn.click(process_with_props, a, output_a)
 
     def double_value_and_max(x: gr.Number):
@@ -23,9 +30,7 @@ with gr.Blocks() as demo:
         x.info = f"Enter a number between 0 and {x.maximum}"
         return x
 
-    double_btn.click(double_value_and_max, a, a).then(
-        process_with_props, a, output_a
-    )
+    double_btn.click(double_value_and_max, a, a).then(process_with_props, a, output_a)
 
     def reset(x: gr.Number):
         x.maximum = 10
@@ -33,13 +38,17 @@ with gr.Blocks() as demo:
         x.info = "Enter a number between 0 and 10"
         return x
 
-    reset_btn.click(reset, a, a).then(
-        process_with_props, a, output_a
-    )
+    reset_btn.click(reset, a, a).then(process_with_props, a, output_a)
 
     # Image component demo
     gr.Markdown("## Image Component Props")
-    b = gr.Image(value=get_image("cheetah.jpg"), label="Input Image", width=300, height=300, type="filepath")
+    b = gr.Image(
+        value=get_image("cheetah.jpg"),
+        label="Input Image",
+        width=300,
+        height=300,
+        type="filepath",
+    )
     output_b = gr.JSON(label="Image Props Output", elem_id="image-output")
     with gr.Row():
         show_image_props_btn = gr.Button("Show Image Props")
@@ -53,6 +62,7 @@ with gr.Blocks() as demo:
             "height": x.height,
             "type": x.type,
         }
+
     show_image_props_btn.click(show_image_props, b, output_b)
 
     def change_image_size(x: gr.Image):
@@ -70,24 +80,45 @@ with gr.Blocks() as demo:
         x.value = get_image("cheetah.jpg")
         return x
 
-    reset_image_btn.click(reset_image, b, b).then(
-        show_image_props, b, output_b
-    )
+    reset_image_btn.click(reset_image, b, b).then(show_image_props, b, output_b)
 
     gr.Markdown("## Model3D Component Props")
+    STATIC_CAMERA = (0, 30, 200)
+    EDITABLE_CAMERA = (45, 30, 250)
     model = gr.Model3D(
         value=get_model3d("Fox.gltf"),
-        camera_position=(0, 90, 2.5),
+        camera_position=STATIC_CAMERA,
         interactive=False,
         elem_id="model3d-props",
     )
+    editable_model = gr.Model3D(
+        value=get_model3d("Fox.gltf"),
+        camera_position=EDITABLE_CAMERA,
+        display_mode="point_cloud",
+        interactive=True,
+        elem_id="model3d-editable",
+    )
     model_output = gr.JSON(label="Model3D Props", elem_id="model3d-output")
     show_model_props_btn = gr.Button("Show Model3D Props")
+    reset_model_camera_btn = gr.Button("Reset Model3D Camera")
 
-    def show_model_props(x: gr.Model3D):
-        return {"camera_position": x.camera_position}
+    def show_model_props(x: gr.Model3D, y: gr.Model3D):
+        return {
+            "static": x.camera_position,
+            "editable": y.camera_position,
+            "static_exact": list(x.camera_position) == list(STATIC_CAMERA),
+            "editable_exact": list(y.camera_position) == list(EDITABLE_CAMERA),
+        }
 
-    show_model_props_btn.click(show_model_props, model, model_output)
+    show_model_props_btn.click(show_model_props, [model, editable_model], model_output)
+    reset_model_camera_btn.click(
+        lambda: (
+            gr.Model3D(camera_position=STATIC_CAMERA),
+            gr.Model3D(camera_position=EDITABLE_CAMERA),
+        ),
+        None,
+        [model, editable_model],
+    )
 
 
 if __name__ == "__main__":
