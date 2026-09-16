@@ -16,14 +16,13 @@ import time
 from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Annotated, Any, NamedTuple, Union
+from typing import Annotated, Any, NamedTuple
 from urllib.parse import unquote, urlparse
 
 import anyio
 import anyio.to_thread
 import fastapi
 import gradio_client.utils as client_utils
-import httpx
 from fastapi import Depends, Path, Query, Request
 from huggingface_hub import HfApi
 from pydantic import BaseModel
@@ -183,21 +182,29 @@ class PendingAsset:
 class HistoryTarget(NamedTuple):
     """Where history goes: which bucket, whose credential, which app.
 
-    This sink writes to the Hub itself, so the process holds a token that can
-    act as the user. That is fine where the user has delegated to this app
-    explicitly — a local app, a self-hosted one, or an OAuth sign-in — and is
-    exactly what a Space must not have; see `IngestTarget`.
+    The credential is always one that can write this one bucket on the caller's
+    behalf, but it reaches the app two ways. Either the caller delegated to the
+    app directly — a local app, a self-hosted one, an OAuth sign-in — or the
+    platform hosting the app minted one for them, narrow enough that handing it
+    to code they never agreed to trust stays a small thing to do. `managed`
+    says which, because a minted credential is scoped to a bucket that already
+    exists and cannot create one.
     """
 
     bucket: str
     token: str
     app_id: str
+    #: Whether the platform minted this credential rather than the caller
+    #: handing it over.
+    managed: bool = False
 
     @classmethod
-    def build(cls, bucket: str, token: str, app_id: str) -> HistoryTarget:
+    def build(
+        cls, bucket: str, token: str, app_id: str, managed: bool = False
+    ) -> HistoryTarget:
         validate_bucket_id(bucket)
         validate_segment(app_id)
-        return cls(bucket, token, app_id)
+        return cls(bucket, token, app_id, managed)
 
     def save(self, record: HistoryRecord, assets: dict[str, PendingAsset] | None):
         return save_record(self, record, assets)
@@ -207,41 +214,6 @@ class HistoryTarget(NamedTuple):
 
     def asset(self, endpoint: str, record_id: str, filename: str):
         return get_asset_bytes(self, endpoint, record_id, filename)
-
-
-class IngestTarget(NamedTuple):
-    """Platform-side history, for an app the user has *not* delegated to.
-
-    A Space runs code its visitors never agreed to trust, so the platform never
-    hands it a credential: the Spaces proxy strips the token the browser sent
-    and forwards `X-IP-Token`, a short-lived assertion of who is calling that
-    the Space cannot even read. This sink carries that assertion straight back
-    to a platform endpoint, which resolves the caller and writes into their own
-    history with its own credential.
-
-    So the app can append a run for whoever actually made the request, and
-    nothing else: it cannot read the token, choose the user, or reach anything
-    else the caller owns.
-    """
-
-    endpoint: str
-    ip_token: str
-    app_id: str
-    #: Where the caller asked for their runs to go, when they asked at all. A
-    #: hint, not an instruction — the platform decides what it will honour.
-    bucket: str | None = None
-
-    def save(self, record: HistoryRecord, assets: dict[str, PendingAsset] | None):
-        return ingest_save_record(self, record, assets)
-
-    def list(self, limit: int = 50) -> list[HistoryRecord]:
-        return ingest_list_records(self, limit)
-
-    def asset(self, endpoint: str, record_id: str, filename: str):
-        return ingest_get_asset(self, endpoint, record_id, filename)
-
-
-AnyTarget = Union[HistoryTarget, "IngestTarget"]
 
 
 def _api(target: HistoryTarget) -> HfApi:
@@ -281,6 +253,11 @@ def _invalidate_list_cache(bucket: str, app_id: str) -> None:
 
 def ensure_bucket(target: HistoryTarget) -> None:
     """Create the bucket if it does not exist; new ones default to private."""
+    if target.managed:
+        # A minted credential is scoped to one bucket that the platform has
+        # already created, and creating repos is exactly the power it was
+        # narrowed to exclude. Asking would only ever 403.
+        return
     key = (target.token, target.bucket)
     with _ensure_lock:
         if key in _ensured:
@@ -525,213 +502,19 @@ def _content_type_of(node, path_or_url: str) -> str:
     return mimetypes.guess_type(path_or_url)[0] or "application/octet-stream"
 
 
-# ------------------------------------------------------------ platform ingest
-#
-# The wire protocol below is what gradio needs from a platform that wants to
-# record history on a user's behalf. It mirrors the bucket sink's ordering:
-# assets are stored first and the record is the commit marker, so a half-written
-# run never appears in a listing.
-#
-#   1. POST {endpoint}/runs/uploads   {app_id, bucket?, assets:[{filename,
-#                                      content_type, size}]}
-#      -> {uploads: {filename: {url, method?, headers?}}}
-#      Skipped entirely when a run has no assets.
-#   2. PUT (or the given method) each asset's bytes to its url. The bytes go
-#      straight to storage, never through the ingest service.
-#   3. POST {endpoint}/runs           {app_id, bucket?, record: {...}}
-#      -> 2xx once the run is visible.
-#
-# Reads are the same endpoint from the other side:
-#
-#   GET {endpoint}/runs?app_id=&limit=            -> {records: [...]}
-#   GET {endpoint}/runs/{endpoint}/{record_id}/assets/{filename}?app_id=
-#      -> the bytes, or a redirect to them.
-#
-# Every request carries `X-IP-Token`. That is the whole authorization story:
-# there is no bucket id to trust and no token to leak.
-
-PLATFORM_INGEST_ENV = "GRADIO_HISTORY_INGEST_URL"
-IP_TOKEN_HEADER = "x-ip-token"
-INGEST_TIMEOUT = 30.0
-
-
-def _ingest_headers(target: IngestTarget) -> dict[str, str]:
-    return {IP_TOKEN_HEADER: target.ip_token}
-
-
-def _ingest_url(target: IngestTarget, path: str) -> str:
-    return f"{target.endpoint.rstrip('/')}/{path.lstrip('/')}"
-
-
-def _ingest_error(response: httpx.Response, what: str) -> HistoryError:
-    # 401/403 travel back to the caller as they are: the assertion this app was
-    # given is the only credential in play, and a stale one is worth saying so.
-    status = response.status_code if response.status_code in (401, 403, 404) else 502
-    return HistoryError(f"{what} failed: {response.status_code}", status)
-
-
-def ingest_save_record(
-    target: IngestTarget,
-    record: HistoryRecord,
-    assets: dict[str, PendingAsset] | None = None,
-) -> None:
-    """Hand one run to the platform, uploading its assets first."""
-    validate_segment(record.record_id)
-    validate_segment(record.endpoint)
-    body: dict[str, Any] = {"app_id": target.app_id}
-    if target.bucket:
-        body["bucket"] = target.bucket
-
-    with httpx.Client(timeout=INGEST_TIMEOUT, follow_redirects=True) as client:
-        if assets:
-            manifest = []
-            payloads: dict[str, bytes] = {}
-            for filename, pending in assets.items():
-                validate_segment(filename)
-                data = _asset_bytes(filename, pending)
-                if data is None:
-                    continue
-                payloads[filename] = data
-                manifest.append(
-                    {
-                        "filename": filename,
-                        "content_type": mimetypes.guess_type(filename)[0]
-                        or "application/octet-stream",
-                        "size": len(data),
-                    }
-                )
-            if manifest:
-                reserved = client.post(
-                    _ingest_url(target, "runs/uploads"),
-                    headers=_ingest_headers(target),
-                    json={**body, "assets": manifest},
-                )
-                if reserved.status_code >= 400:
-                    raise _ingest_error(reserved, "asset upload reservation")
-                uploads = (reserved.json() or {}).get("uploads") or {}
-                for filename, data in payloads.items():
-                    upload = uploads.get(filename)
-                    if not upload or not upload.get("url"):
-                        # The platform declined to store this one. The run is
-                        # still worth keeping; the marker just resolves to
-                        # nothing.
-                        logger.debug("history: no upload target for %s", filename)
-                        continue
-                    stored = client.request(
-                        upload.get("method", "PUT"),
-                        upload["url"],
-                        headers=upload.get("headers") or {},
-                        content=data,
-                    )
-                    if stored.status_code >= 400:
-                        raise _ingest_error(stored, f"asset upload {filename}")
-
-        written = client.post(
-            _ingest_url(target, "runs"),
-            headers=_ingest_headers(target),
-            json={**body, "record": asdict(record)},
-        )
-        if written.status_code >= 400:
-            raise _ingest_error(written, "record write")
-
-
-def _asset_bytes(filename: str, pending: PendingAsset) -> bytes | None:
-    """The bytes to upload, or None if the path is not one we trust."""
-    if pending.data is not None:
-        return pending.data
-    if is_trusted_local_path(pending.local_path or ""):
-        with open(pending.local_path, "rb") as fh:  # type: ignore[arg-type]
-            return fh.read()
-    logger.warning(
-        "history: skipping asset %s — untrusted path %r", filename, pending.local_path
-    )
-    return None
-
-
-def ingest_list_records(target: IngestTarget, limit: int = 50) -> list[HistoryRecord]:
-    """The newest runs this caller has for this app, newest first."""
-    limit = max(1, min(int(limit), MAX_RECORDS_PER_PAGE))
-    try:
-        with httpx.Client(timeout=INGEST_TIMEOUT, follow_redirects=True) as client:
-            response = client.get(
-                _ingest_url(target, "runs"),
-                headers=_ingest_headers(target),
-                params={"app_id": target.app_id, "limit": limit},
-            )
-    except httpx.HTTPError as exc:
-        raise HistoryError(f"history service unreachable: {exc}", 502) from exc
-    if response.status_code == 404:
-        return []
-    if response.status_code >= 400:
-        raise _ingest_error(response, "record listing")
-    records = []
-    for item in (response.json() or {}).get("records") or []:
-        try:
-            records.append(
-                HistoryRecord(
-                    **{
-                        k: v
-                        for k, v in item.items()
-                        if k in HistoryRecord.__dataclass_fields__
-                    }
-                )
-            )
-        except Exception:
-            logger.debug("history: skipping unreadable record from the service")
-    return records
-
-
-def ingest_get_asset(
-    target: IngestTarget, endpoint: str, record_id: str, filename: str
-) -> tuple[bytes, str]:
-    validate_segment(endpoint)
-    validate_segment(record_id)
-    validate_segment(filename)
-    try:
-        with httpx.Client(timeout=INGEST_TIMEOUT, follow_redirects=True) as client:
-            response = client.get(
-                _ingest_url(target, f"runs/{endpoint}/{record_id}/assets/{filename}"),
-                headers=_ingest_headers(target),
-                params={"app_id": target.app_id},
-            )
-    except httpx.HTTPError as exc:
-        raise HistoryError(f"history service unreachable: {exc}", 502) from exc
-    if response.status_code >= 400:
-        raise _ingest_error(response, "asset download")
-    content_type = response.headers.get("content-type", "").split(";", 1)[0].strip()
-    return response.content, content_type or (
-        mimetypes.guess_type(filename)[0] or "application/octet-stream"
-    )
-
-
-def resolve_ingest(request, app_id: str, bucket: str | None = None):
-    """The platform sink for this request, if the platform offers one.
-
-    Needs both halves: an endpoint the host configured, and an identity
-    assertion on this particular request. A request with no assertion is one the
-    platform could not attribute, and an unattributed run has no owner to file
-    it under.
-    """
-    endpoint = os.getenv(PLATFORM_INGEST_ENV)
-    if not endpoint:
-        return None
-    raw = _fastapi_request(request)
-    if raw is None:
-        return None
-    try:
-        ip_token = raw.headers.get(IP_TOKEN_HEADER)
-    except Exception:
-        return None
-    if not ip_token:
-        return None
-    try:
-        validate_segment(app_id)
-    except ValueError:
-        return None
-    return IngestTarget(endpoint, ip_token, app_id, bucket or None)
-
-
 BUCKET_HEADER = "x-gradio-history-bucket"
+
+# What a platform hosting this app attaches to a request when it is willing to
+# keep history for whoever is calling: the bucket it keeps that caller's runs
+# in, and a credential narrowed to that one bucket. The pair is used whole or
+# not at all — a token scoped to one bucket is meaningless against another.
+#
+# Nothing here is trusted because of what it says. The headers are only ever
+# believed because the platform sits in front of the app and sets them itself,
+# the way the Spaces proxy already replaces what a browser sent with what it
+# will vouch for.
+PLATFORM_TOKEN_HEADER = "x-hf-history-token"
+PLATFORM_BUCKET_HEADER = "x-hf-history-bucket"
 MAX_CONCURRENT_WRITES = 8
 
 
@@ -829,6 +612,21 @@ def require_token(request: Request) -> str:
     return token
 
 
+def resolve_platform_credentials(request) -> tuple[str, str] | None:
+    """The bucket and credential this app's platform minted for the caller."""
+    raw = _fastapi_request(request)
+    if raw is None:
+        return None
+    try:
+        token = raw.headers.get(PLATFORM_TOKEN_HEADER)
+        bucket = raw.headers.get(PLATFORM_BUCKET_HEADER)
+    except Exception:
+        return None
+    if not token or not bucket:
+        return None
+    return bucket.strip(), token
+
+
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
     """Which bucket this run belongs in, resolved per request."""
     if explicit:
@@ -851,13 +649,18 @@ def resolve_target(
     *,
     bucket_id: str | None = None,
     app_id: str | None = None,
-) -> AnyTarget | None:
-    """The history sink for this caller, or None if nothing can be recorded.
+) -> HistoryTarget | None:
+    """Where this caller's runs go, or None if nothing can be recorded.
 
     A credential the caller handed this app directly wins: they chose to
-    delegate, and they chose the bucket. Only when there is no such credential
-    does the platform's assertion come into play — which is the ordinary case
-    for a visitor to a Space, who has delegated nothing.
+    delegate, and they chose the bucket, and a platform default must not
+    quietly overrule either. Only when there is no such credential does the
+    minted one come into play — which is the ordinary case for a visitor to a
+    Space, who has delegated nothing and is not being asked to.
+
+    The two never mix. A minted token is scoped to the bucket it came with, so
+    pairing it with a bucket the caller named would only produce a write that
+    is refused.
     """
     blocks = app.get_blocks()
     if not getattr(blocks, "run_history", True):
@@ -865,13 +668,18 @@ def resolve_target(
     app_id = app_id or app_id_of(blocks)
     bucket = resolve_bucket_id(blocks, request, bucket_id)
     token = resolve_token(request)
-    if bucket and token is not None:
-        try:
-            return HistoryTarget.build(bucket, token, app_id)
-        except ValueError:
-            logger.debug("history: ignoring invalid bucket id %r", bucket)
+    managed = False
+    if not (bucket and token is not None):
+        platform = resolve_platform_credentials(request)
+        if platform is None:
             return None
-    return resolve_ingest(request, app_id, bucket)
+        bucket, token = platform
+        managed = True
+    try:
+        return HistoryTarget.build(bucket, token, app_id, managed)
+    except ValueError:
+        logger.debug("history: ignoring invalid bucket id %r", bucket)
+        return None
 
 
 def endpoint_key(api_name: str | None, fn_index: int | None) -> str:
@@ -960,13 +768,14 @@ async def offload(fn, *args):
 def get_target(
     request: Request,
     bucket: Annotated[str | None, Query(min_length=3, max_length=200)] = None,
-) -> AnyTarget:
+) -> HistoryTarget:
     """Which history this request reads, resolved the way a write would be.
 
     Reading has to match writing or a run would be recorded somewhere it could
     never be read back from. A named bucket is addressed with the caller's own
-    token, as before; otherwise the platform answers for whoever the assertion
-    on this request says is calling, and needs no bucket at all.
+    token, as before; otherwise the platform's own bucket and credential
+    answer, and the caller needs to name nothing — which is just as well, since
+    a visitor has no idea where their history is kept.
     """
     app_id = app_id_of(request.app.get_blocks())
     token = resolve_token(request)
@@ -975,15 +784,18 @@ def get_target(
             return HistoryTarget.build(bucket, token, app_id)
         except ValueError as exc:
             raise fastapi.HTTPException(422, "invalid bucket id") from exc
-    ingest = resolve_ingest(request, app_id, bucket)
-    if ingest is not None:
-        return ingest
+    platform = resolve_platform_credentials(request)
+    if platform is not None:
+        try:
+            return HistoryTarget.build(platform[0], platform[1], app_id, True)
+        except ValueError as exc:
+            raise fastapi.HTTPException(422, "invalid bucket id") from exc
     if not token:
         raise fastapi.HTTPException(401, "sign in to use run history")
     raise fastapi.HTTPException(422, "bucket is required")
 
 
-TargetDep = Annotated[AnyTarget, Depends(get_target)]
+TargetDep = Annotated[HistoryTarget, Depends(get_target)]
 
 
 TokenDep = Annotated[str, Depends(require_token)]
