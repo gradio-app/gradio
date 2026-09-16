@@ -43,7 +43,10 @@
 	const wf = getContext<{
 		onviewfullscreen?: (src: string, alt: string) => void;
 		readOnly?: boolean;
+		nodesInRun?: Set<string>;
 	}>("wf");
+
+	const isPending = $derived(!!wf?.nodesInRun?.has(node.id));
 
 	// Editable canvases resize through the node's own corner handle, which does
 	// both axes and persists. A textarea's native grip sits in the same corner
@@ -116,6 +119,14 @@
 		const v = node.data?.[widgetPortId];
 		return typeof v === "boolean" ? v : false;
 	}
+
+	/** Has this port produced anything yet? `0` and `false` are real outputs;
+	 * an empty string or empty selection is not. */
+	const hasValue = $derived.by(() => {
+		const v = node.data?.[widgetPortId];
+		if (v == null || v === "") return false;
+		return !Array.isArray(v) || v.length > 0;
+	});
 
 	const HTML_PAGE_WIDTH = 1280;
 	const HTML_PAGE_HEIGHT = 800;
@@ -270,6 +281,17 @@
 	}
 </script>
 
+{#snippet placeholder()}
+	<div class="widget-placeholder" class:pending={isPending}>
+		{#if isPending}
+			<span class="widget-pending-spinner"></span>
+			<span>Running…</span>
+		{:else}
+			Waiting for output...
+		{/if}
+	</div>
+{/snippet}
+
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="widget-zone nodrag nopan nowheel"
@@ -282,7 +304,9 @@
 	onmousedown={(e) => e.stopPropagation()}
 	onpointerdown={(e) => e.stopPropagation()}
 >
-	{#if hasChoices && choices}
+	{#if isReadonly && !hasValue}
+		{@render placeholder()}
+	{:else if hasChoices && choices}
 		{@const rawValue = node.data?.[widgetPortId]}
 		{@const selected = multiselect && Array.isArray(rawValue) ? rawValue : []}
 		{@const current =
@@ -330,7 +354,7 @@
 				<BaseMarkdown value={md} line_breaks={true} />
 			</div>
 		{:else}
-			<div class="widget-placeholder">Waiting for output...</div>
+			{@render placeholder()}
 		{/if}
 	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json" || effectiveWidgetType === "markdown"}
 		<div class="widget-text-wrap">
@@ -415,7 +439,7 @@
 				</div>
 			</div>
 		{:else}
-			<div class="widget-placeholder">Waiting for output...</div>
+			{@render placeholder()}
 		{/if}
 	{:else if effectiveWidgetType === "image" || effectiveWidgetType === "audio" || effectiveWidgetType === "video" || effectiveWidgetType === "file" || effectiveWidgetType === "gallery" || effectiveWidgetType === "model3d"}
 		{@const fileVal = getFileValue()}
@@ -483,7 +507,7 @@
 				</div>
 			</div>
 		{:else if isReadonly}
-			<div class="widget-placeholder">Waiting for output...</div>
+			{@render placeholder()}
 		{:else if capturing && captureStreamPromise}
 			<NodeCapture
 				kind={widgetType === "audio" ? "audio" : "image"}
@@ -927,6 +951,30 @@
 	.widget-io-record:hover {
 		border-color: var(--accent);
 		color: var(--accent);
+	}
+
+	.widget-placeholder.pending {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 7px;
+		color: #f5a623;
+	}
+
+	.widget-pending-spinner {
+		width: 11px;
+		height: 11px;
+		border: 2px solid rgba(245, 166, 35, 0.25);
+		border-top-color: #f5a623;
+		border-radius: 50%;
+		animation: widget-pending-spin 0.7s linear infinite;
+		flex-shrink: 0;
+	}
+
+	@keyframes widget-pending-spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.widget-placeholder {
