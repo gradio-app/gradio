@@ -1428,11 +1428,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
-            if postprocessed_value is not None:
-                block.value = postprocessed_value  # type: ignore
-
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
+            if postprocessed_value is not None:
+                block.value = processing_utils.move_files_to_cache(  # type: ignore
+                    postprocessed_value, block, postprocess=True
+                )
             # Only add proxy URLs that point to known Hugging Face Space
             # hosts to prevent SSRF via malicious configs.
             if httpx.URL(block_proxy_url).host.endswith(".hf.space"):
@@ -3860,16 +3861,21 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> APIInfo:
+    def get_api_info(
+        self, all_endpoints: bool = False, page: str | None = None
+    ) -> APIInfo:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
             all_endpoints: If True, returns information about all endpoints, including those with api_visibility="undocumented".
+            page: If provided, returns information only for endpoints on this page.
         """
         config = self.config
         api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
+            if page is not None and fn.page != page:
+                continue
             if not fn.fn or fn.api_visibility == "private":
                 continue
             if not all_endpoints and fn.api_visibility != "public":
