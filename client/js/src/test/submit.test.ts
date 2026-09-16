@@ -132,8 +132,6 @@ describe("submit iterator", () => {
 		expect(header).toBe("alice/from-option");
 		await iterator.return();
 
-		app.set_history_bucket();
-		expect(app.get_history_bucket()).toBeUndefined();
 		set_run_history_storage(scope, { type: "browser" });
 	});
 

@@ -245,17 +245,24 @@
       import { Client } from "/client.js";
 
       const $ = (id) => document.getElementById(id);
-      const app = await Client.connect(location.origin);
 
       // ---- login state -------------------------------------------------
       const { user } = await (await fetch("/whoami")).json();
+      const saved = localStorage.getItem("badge-bucket");
+      const bucket = saved || (user ? `${user}/badge-history` : "");
       if (user) {
         $("who").textContent = `Signed in as ${user}`;
         $("login").hidden = true;
         $("logout").hidden = false;
-        $("bucket").value =
-          localStorage.getItem("badge-bucket") || `${user}/badge-history`;
+        $("bucket").value = bucket;
       }
+
+      // Naming the bucket here is the whole setup: every call this client makes
+      // is recorded into it, server side, under the caller's own credentials.
+      const app = await Client.connect(
+        location.origin,
+        bucket ? { history_bucket: bucket } : {},
+      );
 
       // ---- bucket ------------------------------------------------------
       const note = (msg, err = false) => {
@@ -263,24 +270,12 @@
         $("bucket-note").classList.toggle("err", err);
       };
 
-      async function connect() {
+      async function use_bucket() {
         const id = $("bucket").value.trim();
         if (!id) return;
-        note("Connecting…");
-        // Creates the bucket if it does not exist, and tells us early
-        // whether the signed-in user can actually write to it.
-        const result = await app.connect_history_bucket(id);
-        if (!result.ok) {
-          note(
-            result.status === 401
-              ? "Sign in with Hugging Face first."
-              : result.detail || "Could not connect that bucket.",
-            true,
-          );
-          return;
-        }
-        // From here every submit() is recorded into this bucket, server side.
-        app.set_history_bucket(id);
+        // Nothing to set up: the bucket is named on each call and created by
+        // the first run recorded to it.
+        app.options.history_bucket = id;
         localStorage.setItem("badge-bucket", id);
         note(`Saving runs to ${id}.`);
         await refresh();
@@ -288,9 +283,9 @@
 
       // ---- history -----------------------------------------------------
       async function refresh() {
-        const bucket = app.get_history_bucket();
+        const bucket = app.options.history_bucket;
         if (!bucket) return;
-        const result = await app.history_records();
+        const result = await app.read_history();
         if (!result.ok) {
           note(result.detail || "Could not read history.", true);
           return;
@@ -311,7 +306,11 @@
             return li;
           }),
         );
-        if (!result.data.length) note(`No runs in ${bucket} yet.`);
+        note(
+          result.data.length
+            ? `Saving runs to ${bucket}.`
+            : `No runs in ${bucket} yet.`,
+        );
       }
 
       function restore(record) {
@@ -347,12 +346,12 @@
         setTimeout(refresh, 3000);
       }
 
-      $("connect").onclick = connect;
+      $("connect").onclick = use_bucket;
       $("refresh").onclick = refresh;
       $("make").onclick = () => run("badge");
       $("shout").onclick = () => run("shout");
 
-      if (user && $("bucket").value) await connect();
+      if (bucket) await refresh();
     </script>
   </body>
 </html>
