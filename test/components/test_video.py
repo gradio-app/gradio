@@ -1,9 +1,11 @@
 import asyncio
 import functools
+import hashlib
 import json
 import logging
 import math
 import os
+import platform
 import shutil
 import signal
 import subprocess
@@ -172,6 +174,48 @@ def silence_ratio(pcm: np.ndarray) -> float:
     )
 
 
+def tool_provenance(name: str) -> str:
+    """Where a bare tool name resolves to, which build it is, and its hash.
+
+    CI reaches its pinned ffmpeg through an Actions cache that no step
+    re-checks on a hit, so "the workflow pins version X" and "this process ran
+    version X" are two different claims, and only the second one can explain a
+    crash. Nothing here may raise: it runs while a skip is being decided, and a
+    diagnostic that turns a skip into an error is worse than no diagnostic.
+    """
+    path = shutil.which(name)
+    if path is None:
+        return f"{name} not on PATH"
+    try:
+        digest = f"sha256:{hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16]}"
+    except OSError as e:
+        digest = f"unreadable ({e})"
+    try:
+        shown = subprocess.run(
+            [path, "-version"], check=False, capture_output=True, timeout=60
+        )
+        first = shown.stdout.decode(errors="replace").strip().splitlines()
+        banner = first[0] if first else f"no version output, exit {shown.returncode}"
+    except (OSError, subprocess.SubprocessError) as e:
+        banner = f"would not run ({e})"
+    return f"{path} {digest} {banner}"
+
+
+def host_cpu() -> str:
+    """The CPU model, because this crash has been blamed on the machine before.
+
+    #13848 saw the same segfault on two runner CPUs, and the build that
+    replaced it was only ever proven on one of them.
+    """
+    try:
+        for line in Path("/proc/cpuinfo").read_text().splitlines():
+            if line.startswith("model name"):
+                return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return platform.processor() or "unknown CPU"
+
+
 @functools.cache
 def mpegts_readable() -> bool:
     """Whether the ffmpeg on PATH can read back an MPEG-TS file it just wrote.
@@ -211,7 +255,10 @@ def mpegts_readable() -> bool:
                 stderr = result.stderr.decode(errors="replace").strip()[-300:]
                 warnings.warn(
                     f"{step} an MPEG-TS file exited {result.returncode}: "
-                    f"{stderr or 'no stderr'}",
+                    f"{stderr or 'no stderr'}"
+                    f"; ffmpeg {tool_provenance('ffmpeg')}"
+                    f"; ffprobe {tool_provenance('ffprobe')}"
+                    f"; on {host_cpu()}",
                     stacklevel=2,
                 )
                 return False
