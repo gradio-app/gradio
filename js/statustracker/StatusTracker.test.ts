@@ -11,7 +11,7 @@ describe("StatusTracker: validation errors", () => {
 		i18n: (s: string | null | undefined) => s ?? "",
 		autoscroll: false,
 		queue_position: null,
-		queue_size: null,
+		queue_size: null
 	};
 
 	afterEach(() => {
@@ -33,8 +33,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: "This field is required",
-				show_validation_error: true,
-			},
+				show_validation_error: true
+			}
 		});
 		await tick();
 
@@ -52,8 +52,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: "Can't be error",
-				show_validation_error: true,
-			},
+				show_validation_error: true
+			}
 		});
 		await tick();
 
@@ -71,8 +71,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: null,
-				show_validation_error: true,
-			},
+				show_validation_error: true
+			}
 		});
 		await tick();
 
@@ -90,8 +90,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: undefined as any,
 				validation_error: "Error message",
-				show_validation_error: true,
-			},
+				show_validation_error: true
+			}
 		});
 		await tick();
 
@@ -110,8 +110,8 @@ describe("StatusTracker: validation errors", () => {
 				...base_props,
 				status: null,
 				validation_error: "Error message",
-				show_validation_error: false,
-			},
+				show_validation_error: false
+			}
 		});
 		await tick();
 
@@ -128,7 +128,7 @@ describe("StatusTracker: progress accessibility", () => {
 		i18n: (s: string | null | undefined) => s ?? "",
 		autoscroll: false,
 		queue_position: null,
-		queue_size: null,
+		queue_size: null
 	};
 
 	afterEach(() => {
@@ -155,10 +155,10 @@ describe("StatusTracker: progress accessibility", () => {
 						index: 3,
 						length: 4,
 						unit: "steps",
-						desc: "Processing",
-					},
-				],
-			},
+						desc: "Processing"
+					}
+				]
+			}
 		});
 		await tick();
 
@@ -169,7 +169,7 @@ describe("StatusTracker: progress accessibility", () => {
 		expect(progressbar).toHaveAttribute("aria-valuenow", "75");
 		expect(progressbar).toHaveAttribute(
 			"aria-valuetext",
-			"Processing: 3 / 4 steps",
+			"Processing: 3 / 4 steps"
 		);
 
 		const status = getByRole("status");
@@ -188,8 +188,8 @@ describe("StatusTracker: progress accessibility", () => {
 				...base_props,
 				status: "pending",
 				queue_position: 1,
-				queue_size: 3,
-			},
+				queue_size: 3
+			}
 		});
 		await tick();
 
@@ -201,8 +201,8 @@ describe("StatusTracker: progress accessibility", () => {
 			target,
 			props: {
 				...base_props,
-				status: "complete",
-			},
+				status: "complete"
+			}
 		});
 		await tick();
 
