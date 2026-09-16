@@ -71,6 +71,36 @@ In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFra
 $code_tictactoe
 $demo_tictactoe
 
+## Accessing Component Properties
+
+Event data tells you about the event. Sometimes you want the other half of the picture: the current state of the component itself. You can get that by type hinting an argument with the component's own class.
+
+When a parameter is annotated with a component type, the argument you receive is not the component's value but an object carrying all of its current properties, exactly as they are in the browser at the moment the event fires.
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    number = gr.Number(value=5, minimum=0, maximum=10)
+    output = gr.Textbox()
+
+    def describe(x: gr.Number):
+        return f"{x.value} (allowed range: {x.minimum} to {x.maximum})"
+
+    gr.Button("Describe").click(describe, number, output)
+```
+
+The component must still be passed in as an input, and the annotation has to be a component class such as `gr.Number` or `gr.Model3D` — layout classes like `gr.Accordion` do not carry properties this way.
+
+This is most useful for properties the user can change without triggering an event, which the backend would otherwise have no way of knowing about. `gr.Model3D` is a good example: `camera_position` tracks the camera as the user orbits and zooms, so you can read the view someone is actually looking at.
+
+Picking camera angles by editing numbers and reloading is tedious, so in the demo below you orbit the model until it looks right and the app hands you back the `camera_position` to paste into your own code. The same property works in the other direction, which is how the reset button snaps the view back.
+
+$code_model3d_camera_position
+$demo_model3d_camera_position
+
+Other properties that follow the user this way include `slider_position` on `gr.ImageSlider`, `selected_index` on `gr.Gallery`, and `playback_position` on `gr.Audio` and `gr.Video`.
+
 ## Validation
 
 For certain apps, it is important to validate inputs prior to using them. While this can be done in the main event function, events also support a `validator` function dedicated to this task.

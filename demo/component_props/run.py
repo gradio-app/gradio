@@ -120,6 +120,29 @@ with gr.Blocks() as demo:
         [model, editable_model],
     )
 
+    gr.Markdown("## ImageSlider Component Props")
+    SLIDER_POSITION = 30
+    slider = gr.ImageSlider(
+        value=(get_image("cheetah.jpg"), get_image("cheetah.jpg")),
+        slider_position=SLIDER_POSITION,
+        interactive=False,
+        elem_id="imageslider-props",
+    )
+    slider_output = gr.JSON(label="ImageSlider Props", elem_id="imageslider-output")
+    show_slider_props_btn = gr.Button("Show Slider Props")
+    reset_slider_btn = gr.Button("Restore Slider Position")
+
+    def show_slider_props(x: gr.ImageSlider):
+        return {
+            "slider_position": x.slider_position,
+            "exact": x.slider_position == SLIDER_POSITION,
+        }
+
+    show_slider_props_btn.click(show_slider_props, slider, slider_output)
+    reset_slider_btn.click(
+        lambda: gr.ImageSlider(slider_position=SLIDER_POSITION), None, slider
+    )
+
 
 if __name__ == "__main__":
     demo.launch()

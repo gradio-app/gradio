@@ -37,6 +37,19 @@
 		Math.max(0, Math.min(100, gradio.props.slider_position)) / 100
 	);
 
+	function handle_slider_position(position: number): void {
+		// `Slider` works in 0-1 and does not clamp to the image bounds, while the
+		// prop is a 0-100 percentage. Rounding to the three decimals the slider's
+		// own rounding can produce keeps a drag from reporting 8.902000000000001.
+		const percentage = Math.max(
+			0,
+			Math.min(100, Math.round(position * 1e5) / 1e3)
+		);
+		if (gradio.props.slider_position !== percentage) {
+			gradio.props.slider_position = percentage;
+		}
+	}
+
 	gradio.watch_for_change();
 
 	$effect(() => {
@@ -94,6 +107,7 @@
 				gradio.dispatch("custom_button_click", { id });
 			}}
 			position={normalised_slider_position}
+			onposition={handle_slider_position}
 			slider_color={gradio.props.slider_color}
 			max_height={gradio.props.max_height}
 		/>
@@ -138,6 +152,8 @@
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			upload_count={gradio.props.upload_count}
+			position={normalised_slider_position}
+			onposition={handle_slider_position}
 			max_file_size={gradio.shared.max_file_size}
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.shared.client.upload(...args)}
