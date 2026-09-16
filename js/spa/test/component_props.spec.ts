@@ -71,12 +71,18 @@ test("component props", async ({ page }) => {
 	const showModelPropsBtn = page.getByRole("button", {
 		name: "Show Model3D Props"
 	});
+	const resetModelCameraBtn = page.getByRole("button", {
+		name: "Reset Model3D Camera"
+	});
 
 	await expect(modelCanvas).toBeVisible();
 	await showModelPropsBtn.click();
-	await expect(modelOutputJson).toContainText('"camera_position"');
+	await expect(modelOutputJson).toContainText('"static_exact"');
 	const initialModelProps = await modelOutputJson.textContent();
 
+	// Moving the camera reports the new position back up to the backend. Polling
+	// also establishes that the viewer is live, which the canvas being visible
+	// does not: it mounts well before Babylon has initialised.
 	await expect
 		.poll(
 			async () => {
@@ -88,4 +94,14 @@ test("component props", async ({ page }) => {
 			{ timeout: 15_000 }
 		)
 		.not.toBe(initialModelProps);
+
+	// A position set from the backend has to reach the camera and survive
+	// verbatim. `30` is deliberate: it does not survive a degrees -> radians ->
+	// degrees round trip, so a reported-back value would read 29.999999999999996.
+	// The editable model additionally covers the upload variant of the component
+	// and display_mode="point_cloud", neither of which applied camera_position.
+	await resetModelCameraBtn.click();
+	await showModelPropsBtn.click();
+	await expect(modelOutputJson).toContainText('"static_exact": true');
+	await expect(modelOutputJson).toContainText('"editable_exact": true');
 });

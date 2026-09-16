@@ -50,7 +50,7 @@
 			current_settings.zoom_speed !== zoom_speed ||
 			current_settings.pan_speed !== pan_speed
 		) {
-			canvas3d?.update_camera(camera_position, zoom_speed, pan_speed);
+			canvas3d?.update_camera();
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
 	});
