@@ -165,9 +165,16 @@ class AacStreamEncoder:
     arrive in multiples of 1024 samples.
     """
 
-    def __init__(self, sample_rate: int, channels: int):
-        # Encoding only, so ffprobe is not wanted here.
-        processing_utils.require_ffmpeg("Streaming audio output", "ffmpeg")
+    def __init__(
+        self,
+        sample_rate: int,
+        channels: int,
+        operation: str = "Streaming audio output",
+    ):
+        # Encoding only, so ffprobe is not wanted here. `operation` names the
+        # caller, since `gr.Video` builds one of these too and a video app
+        # missing ffmpeg should not be told about audio output.
+        processing_utils.require_ffmpeg(operation, "ffmpeg")
         self.sample_rate = sample_rate
         self.channels = channels
         # Asking for the resample rather than letting the encoder pick one:

@@ -115,8 +115,18 @@ export function create_hls_stream(
 	const stop_watching = watch_for_stalls(media);
 	hls.on(Hls.Events.DESTROYING, stop_watching);
 
-	hls.loadSource(url);
-	hls.attachMedia(media);
+	try {
+		hls.loadSource(url);
+		hls.attachMedia(media);
+	} catch (error) {
+		// DESTROYING is the only thing that stops the watcher, and it is
+		// reached through the `Hls` the caller never receives if either of
+		// these throws. Left alone, a 250 ms interval holding the video
+		// element would run for the life of the page.
+		stop_watching();
+		hls.destroy();
+		throw error;
+	}
 
 	return hls;
 }

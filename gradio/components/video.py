@@ -82,7 +82,17 @@ def _continue_counters(data: bytes, counters: dict[int, int] | None) -> bytes:
     # packets after all would leave `counters` advanced for the part that was
     # walked and the original bytes returned, which is the jump this exists to
     # prevent, on every segment after it.
-    if any(buffer[offset] != 0x47 for offset in offsets):
+    stray = next((o for o in offsets if buffer[o] != 0x47), None)
+    if stray is not None:
+        # Silence here would leave a stream whose counters never continued
+        # looking exactly like one whose segments happened not to need it.
+        logger.debug(
+            "A streamed video segment is not a run of MPEG-TS packets: no sync "
+            "byte at offset %d of %d, so its continuity counters are left as "
+            "the muxer wrote them.",
+            stray,
+            len(buffer),
+        )
         return data
     for offset in offsets:
         pid = ((buffer[offset + 1] & 0x1F) << 8) | buffer[offset + 2]
@@ -806,7 +816,16 @@ class Video(StreamingOutput, Component):
         state = _stream_states.get(output_id)
         if state is None:
             # Ended while this chunk was in flight, by a disconnect or a
-            # cancel. The run is over and nothing will play this.
+            # cancel. The run is over and nothing will play this. A caller that
+            # never opened the stream lands here too, and dropping its chunks
+            # without a word is not something anyone could work out from the
+            # outside.
+            logger.debug(
+                "A streamed video chunk arrived for %s, which has no stream: "
+                "either it ended while the chunk was encoding, or it was never "
+                "opened with first_chunk.",
+                output_id,
+            )
             return None
         info = self.probe_chunk(path)
         frames: list[bytes] = []
@@ -831,7 +850,24 @@ class Video(StreamingOutput, Component):
         # hls.js needs once it has fixed its tracks on the first segment.
         if info["sample_rate"] is not None or encoder is not None:
             if encoder is None:
-                encoder = AacStreamEncoder(info["sample_rate"], info["channels"])
+                if placed_from > 0.0:
+                    # The safeguard in `first_frame` covers an encoder that was
+                    # too slow with the first segment's audio. It cannot cover
+                    # a first chunk that carried no audio stream at all, since
+                    # there was nothing to build an encoder from, and a stream
+                    # that stays silent throughout is fine. What is not fine is
+                    # sound arriving after segments have gone out without it.
+                    logger.warning(
+                        "A streamed video's audio starts %.3f s in, after "
+                        "segments have already gone out without it. hls.js "
+                        "fixes its tracks on the first segment and refuses the "
+                        "transition, so the browser will play this stream "
+                        "silent.",
+                        placed_from,
+                    )
+                encoder = AacStreamEncoder(
+                    info["sample_rate"], info["channels"], "Streaming video output"
+                )
                 if not state.slot.attach(encoder):
                     encoder.close()
                     return None
