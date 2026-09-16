@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PORT_COLOR } from "./workflow-types";
+	import RenameIcon from "./icons/RenameIcon.svelte";
 	import { GROUP_HEADER, PROXY_IN, PROXY_OUT } from "./workflow-groups";
 	import type { GroupBox } from "./workflow-groups";
 
@@ -58,6 +59,7 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="group-header"
+		title={readOnly ? undefined : "Drag to move · double-click to rename"}
 		ondblclick={(e) => {
 			e.stopPropagation();
 			start_edit();
@@ -96,6 +98,20 @@
 			<span class="group-label">{box.label}</span>
 		{/if}
 		<span class="group-count">{box.member_ids.length}</span>
+		{#if !readOnly && !editing}
+			<button
+				class="group-rename"
+				aria-label="Rename group"
+				title="Rename group"
+				onpointerdown={(e) => e.stopPropagation()}
+				onclick={(e) => {
+					e.stopPropagation();
+					start_edit();
+				}}
+			>
+				<RenameIcon />
+			</button>
+		{/if}
 	</div>
 {/snippet}
 
@@ -245,6 +261,21 @@
 		color: #e8eaf0;
 		font: inherit;
 		padding: 1px 4px;
+	}
+
+	.group-rename {
+		display: inline-flex;
+		align-items: center;
+		background: none;
+		border: none;
+		padding: 0;
+		color: inherit;
+		opacity: 0.45;
+		cursor: pointer;
+	}
+
+	.group-rename:hover {
+		opacity: 1;
 	}
 
 	.group-count {
