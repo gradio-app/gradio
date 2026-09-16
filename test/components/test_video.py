@@ -15,6 +15,7 @@ import warnings
 from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -1071,7 +1072,12 @@ class TestVideo:
         than on any drift the stream has. A frame is 0.128 s at 8 kHz against
         0.023 s at 44.1, so the floor only binds at the low end.
         """
-        encoder = SimpleNamespace(frame_duration=AAC_FRAME_SAMPLES / output_rate)
+        # Only `frame_duration` is read, and a real encoder is an ffmpeg
+        # process; this is arithmetic and should not need one.
+        encoder = cast(
+            AacStreamEncoder,
+            SimpleNamespace(frame_duration=AAC_FRAME_SAMPLES / output_rate),
+        )
         assert _audio_lead_tolerance(encoder) == pytest.approx(expected, abs=0.001)
 
     @pytest.mark.requires_ffmpeg
