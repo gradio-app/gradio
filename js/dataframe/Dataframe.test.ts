@@ -1293,9 +1293,13 @@ describe("Header overflow", () => {
 		const viewport = wrapper.querySelector(
 			".virtual-table-viewport"
 		) as HTMLElement;
-		const viewport_rect = viewport.getBoundingClientRect();
-		const third_rect = headers[2].getBoundingClientRect();
-		expect(third_rect.left).toBeGreaterThanOrEqual(viewport_rect.right);
+		// Column widths are measured asynchronously; until that lands the columns
+		// share the container equally and the 3rd one is still in view.
+		await waitFor(() => {
+			const viewport_rect = viewport.getBoundingClientRect();
+			const third_rect = headers[2].getBoundingClientRect();
+			expect(third_rect.left).toBeGreaterThanOrEqual(viewport_rect.right);
+		});
 	});
 });
 

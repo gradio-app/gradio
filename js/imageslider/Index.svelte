@@ -38,9 +38,6 @@
 	);
 
 	function handle_slider_position(position: number): void {
-		// `Slider` works in 0-1 and does not clamp to the image bounds, while the
-		// prop is a 0-100 percentage. Rounding to the three decimals the slider's
-		// own rounding can produce keeps a drag from reporting 8.902000000000001.
 		const percentage = Math.max(
 			0,
 			Math.min(100, Math.round(position * 1e5) / 1e3)
