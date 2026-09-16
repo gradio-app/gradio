@@ -2194,7 +2194,8 @@
 				<button
 					class="tool-btn get-started-btn"
 					onclick={() => (showTemplatesOverlay = true)}
-				><LayoutIcon /> Templates</button>
+					><LayoutIcon /> Templates</button
+				>
 			{/if}
 			{#if auth.status !== "checking"}
 				{#if auth.user}
@@ -2401,7 +2402,8 @@
 						<button
 							class="templates-overlay-close"
 							onclick={() => (showTemplatesOverlay = false)}
-						><CloseIcon /></button>
+							><CloseIcon /></button
+						>
 					</div>
 					<WorkflowEmptyState onselect={load_template} inline />
 				</div>
@@ -2681,7 +2683,6 @@
 			onClose={() => (showApiPanel = false)}
 		/>
 	{/if}
-
 </div>
 
 <style>
@@ -2996,12 +2997,13 @@
 		display: flex;
 		align-items: center;
 		border-radius: 6px;
-		transition: color 0.12s ease, background 0.12s ease;
+		transition:
+			color 0.12s ease,
+			background 0.12s ease;
 	}
 
 	.templates-overlay-close:hover {
 		color: #d5d6de;
 		background: #1a1b25;
 	}
-
 </style>
