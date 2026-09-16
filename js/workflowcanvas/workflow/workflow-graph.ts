@@ -6,6 +6,7 @@
  */
 
 import type { NodeStatus, WFEdge, WFNode, Workflow } from "./workflow-types";
+import { allNodes } from "./workflow-migration";
 
 /**
  * Walk diagonally from (x, y) in 28px steps until an open spot is found
@@ -139,6 +140,28 @@ export function computeStaleNodes(
 		}
 	}
 	return stale;
+}
+
+/**
+ * Required as soon as any port it feeds is required — that's the port the run
+ * would fail on. Feeding nothing, or only optional ports, is the user's choice.
+ */
+export function portRequirement(
+	workflow: Workflow,
+	nodeId: string,
+	portId: string
+): "required" | "optional" {
+	const nodes = allNodes(workflow);
+	const feeds = workflow.edges.filter(
+		(e) => e.from_node_id === nodeId && e.from_port_id === portId
+	);
+	const required = feeds.some((e) => {
+		const target = nodes.find((n) => n.id === e.to_node_id);
+		return (
+			target?.inputs.find((p) => p.id === e.to_port_id)?.required !== false
+		);
+	});
+	return required ? "required" : "optional";
 }
 
 /**
