@@ -551,7 +551,11 @@ def resolve_token(request) -> str | None:
     except Exception:
         info = None
     token = (info or {}).get("access_token")
-    if isinstance(token, str) and token:
+    # Off Spaces, `attach_oauth` mocks the login routes and puts a sentinel in the
+    # session rather than a real credential. Returning it would send it to the Hub
+    # and 401, so a locally "signed in" user falls through to the host's own token
+    # — which is the identity the mocked session is standing in for anyway.
+    if isinstance(token, str) and token and token != oauth.MOCKED_OAUTH_TOKEN:
         return token
     if raw is not None and (
         _request_has_write_token(raw) or _is_direct_local_request(raw)

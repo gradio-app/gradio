@@ -4,7 +4,9 @@ import {
 	connect_bucket,
 	is_valid_bucket_id,
 	list_bucket_records,
-	list_user_buckets
+	list_user_buckets,
+	resolve_record_assets,
+	type HistoryRecord
 } from "../utils/bucket_sync";
 
 describe("is_valid_bucket_id", () => {
@@ -134,5 +136,40 @@ describe("asset_url", () => {
 		const url = asset_url("http://x", "alice/h", "predict", "r1", "a001.png");
 		expect(url).toContain("/run-history/records/predict/r1/assets/a001.png");
 		expect(url).toContain("bucket=alice%2Fh");
+	});
+});
+
+describe("resolve_record_assets", () => {
+	const record: HistoryRecord = {
+		record_id: "r1",
+		endpoint: "generate",
+		inputs: { prompt: "a cat" },
+		outputs: [{ __asset__: "a001.png" }],
+		started_at: "2026-01-01T00:00:00.000Z",
+		schema_version: 2
+	};
+
+	it("rewrites asset markers to proxy URLs the page can fetch", () => {
+		const resolved = resolve_record_assets("http://x", "alice/h", record);
+		const [file] = resolved.outputs as Record<string, string>[];
+		expect(file.url).toBe(
+			"http://x/gradio_api/run-history/records/generate/r1/assets/a001.png?bucket=alice%2Fh"
+		);
+		// Shaped like a gradio file value so a frontend can use it directly.
+		expect(file.path).toBe(file.url);
+		expect(file.orig_name).toBe("a001.png");
+		// Untouched values survive.
+		expect(resolved.inputs).toEqual({ prompt: "a cat" });
+	});
+
+	it("is idempotent, so re-resolving a record is harmless", () => {
+		const once = resolve_record_assets("http://x", "alice/h", record);
+		const twice = resolve_record_assets("http://x", "alice/h", once);
+		expect(twice).toEqual(once);
+	});
+
+	it("leaves a record with no assets alone", () => {
+		const plain = { ...record, outputs: ["just text"] };
+		expect(resolve_record_assets("http://x", "alice/h", plain)).toEqual(plain);
 	});
 });

@@ -103,6 +103,40 @@ describe("submit iterator", () => {
 		}
 	);
 
+	test("the history_bucket option overrides this browser's destination", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			history_bucket: "alice/from-option"
+		});
+		const scope = {
+			app_id: app.config?.app_id,
+			username: app.config?.username
+		};
+		// A destination selected in the browser must not win over the one the
+		// frontend named, and the option has to work with no destination at all
+		// (as in Node, where there is no local storage to read).
+		set_run_history_storage(scope, {
+			type: "bucket",
+			bucket_id: "alice/from-storage"
+		});
+
+		let header: string | null = null;
+		server.resetHandlers(
+			http.post(`${direct_space_url}/queue/join`, ({ request }) => {
+				header = request.headers.get("x-gradio-history-bucket");
+				return HttpResponse.json({ event_id: "bucket-event" });
+			})
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		await expect(iterator.wait_for_id()).resolves.toBe("bucket-event");
+		expect(header).toBe("alice/from-option");
+		await iterator.return();
+
+		app.set_history_bucket();
+		expect(app.get_history_bucket()).toBeUndefined();
+		set_run_history_storage(scope, { type: "browser" });
+	});
+
 	test("next() after the iterator is closed resolves to {done: true}", async () => {
 		const app = await Client.connect("hmb/hello_world");
 		// Avoid opening a real SSE stream — the test does not need one.
