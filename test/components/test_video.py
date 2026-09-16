@@ -14,6 +14,7 @@ import threading
 import warnings
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -21,9 +22,13 @@ import pytest
 
 import gradio as gr
 from gradio import processing_utils
-from gradio.audio_stream_encoder import AacStreamEncoder
+from gradio.audio_stream_encoder import AAC_FRAME_SAMPLES, AacStreamEncoder
 from gradio.components import video as video_module
-from gradio.components.video import _stream_states, _VideoStream
+from gradio.components.video import (
+    _audio_lead_tolerance,
+    _stream_states,
+    _VideoStream,
+)
 from gradio.data_classes import FileData
 
 AUDIO_RATE = 44100
@@ -109,6 +114,31 @@ def overrun_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24
             f":s={AUDIO_RATE}:d={chunk_seconds}",
             "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
             "-c:a", "aac", str(out / f"chunk{index:03d}.mp4"),
+        ], check=True)  # fmt: skip
+    return sorted(out.glob("chunk*.mp4"))
+
+
+def per_frame_chunks(directory: Path, sample_rate: int, fps: int = 30, count: int = 6):
+    """One video frame and its own audio per chunk, at a chosen sample rate.
+
+    The shape a generator that renders frame by frame yields, and the one that
+    reaches `first_frame`: a frame at 30 fps carries less audio than the
+    encoder holds back at any rate, so the first chunk completes no frame of
+    its own and has to be topped up with silence.
+    """
+    seconds = 1 / fps
+    out = directory / f"per_frame_{sample_rate}"
+    out.mkdir()
+    for index in range(count):
+        subprocess.run([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "lavfi", "-i", f"testsrc=size=160x120:rate={fps}",
+            "-f", "lavfi", "-i",
+            f"sine=frequency=440:sample_rate={sample_rate}",
+            "-frames:v", "1", "-t", str(seconds),
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-ar", str(sample_rate),
+            str(out / f"chunk{index:03d}.mp4"),
         ], check=True)  # fmt: skip
     return sorted(out.glob("chunk*.mp4"))
 
@@ -973,6 +1003,76 @@ class TestVideo:
 
         assert segments
         assert "audio" in stream_kinds(segments[0]["data"], tmp_path)
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("sample_rate", [16000, 22050, 44100])
+    async def test_the_first_segment_s_padding_stays_inside_the_lead_tolerance(
+        self, tmp_path, sample_rate
+    ):
+        """What the first segment is topped up with must not snap the clock.
+
+        The top-up is counted in frames, but what a frame costs is seconds:
+        four of them is 93 ms at 44.1 kHz and 512 ms at 8. Feeding the largest
+        count at every rate put more silence in than `_audio_lead_tolerance`
+        allows at every rate below 32 kHz, so the chunk after the first found
+        the audio leading, moved the video clock up to it, and froze the
+        opening picture for as long as the padding: 0.26 s at 16 kHz on a
+        generator yielding one frame at a time.
+
+        Both halves are needed. Topping up a frame at a time stops at what the
+        encoder actually holds back - two frames below 32 kHz, not four - and
+        the tolerance is never less than two frames of the rate in hand, since
+        the encoder cannot hand audio over in anything smaller.
+        """
+        # 8 kHz is not here: one frame is 0.128 s, so a chunk this short
+        # carries no encodable audio at all and ffmpeg drops the track.
+        # `test_the_lead_tolerance_is_never_under_two_frames` covers it.
+        # Two chunks, so what this measures is the top-up alone. A generator
+        # whose every chunk overruns rebuilds a lead of its own and is paid
+        # off again later; that cadence is `catch_up`'s, not the top-up's.
+        chunks = per_frame_chunks(tmp_path, sample_rate, count=2)
+        video = gr.Video(streaming=True)
+        stream_id = f"session/0/1/lookahead-{sample_rate}.m3u8"
+        try:
+            first, _ = await video.stream_output(str(chunks[0]), stream_id, True)
+            state = _stream_states[stream_id]
+            encoder = state.slot.encoder
+            assert encoder is not None
+            padded_lead = state.samples_written / encoder.sample_rate - state.video_time
+            tolerance = _audio_lead_tolerance(encoder)
+            second, _ = await video.stream_output(str(chunks[1]), stream_id, False)
+        finally:
+            video.end_stream_output(stream_id)
+
+        # The first segment still carries audio, which is what the top-up is
+        # for; a silent one costs the stream its audio track in hls.js.
+        assert first is not None
+        assert "audio" in stream_kinds(first["data"], tmp_path)
+        # The silence it took to get that left the audio inside the tolerance,
+        # so the chunk after it is not billed for a clock the top-up moved. At
+        # 16 kHz the old lookahead left a lead of 0.223 s against a 0.1 s
+        # tolerance, and at 8 kHz one of 0.479 s.
+        assert padded_lead <= tolerance
+        # Which shows as the second segment carrying its own frame and nothing
+        # else, a snap being billed to the segment that follows it.
+        assert second is not None
+        assert second["duration"] == pytest.approx(1 / 30, abs=0.005)
+
+    @pytest.mark.parametrize(
+        ("output_rate", "expected"),
+        [(8000, 0.256), (11025, 0.1858), (16000, 0.128), (22050, 0.1), (44100, 0.1)],
+    )
+    def test_the_lead_tolerance_is_never_under_two_frames(self, output_rate, expected):
+        """A tenth of a second is under one AAC frame at the bottom of the range.
+
+        The encoder hands audio over a whole frame at a time, so a tolerance
+        below that snaps the video clock on the encoder's granularity rather
+        than on any drift the stream has. A frame is 0.128 s at 8 kHz against
+        0.023 s at 44.1, so the floor only binds at the low end.
+        """
+        encoder = SimpleNamespace(frame_duration=AAC_FRAME_SAMPLES / output_rate)
+        assert _audio_lead_tolerance(encoder) == pytest.approx(expected, abs=0.001)
 
     @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio

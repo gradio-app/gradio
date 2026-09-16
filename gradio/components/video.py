@@ -50,21 +50,46 @@ STREAM_PTS_BASE = 10.0
 # loaded box can take its time; the frame arrives in about 8 ms on an idle one.
 FIRST_FRAME_WAIT = 2.0
 
-# How many frames' worth of samples the encoder wants before it parts with its
-# first frame. Four at 44.1 and 48 kHz and two at 16, so four covers the rates
-# measured; a build that wanted more would leave the first segment as it is now.
+# The most frames' worth of samples the encoder can be holding back before it
+# parts with its first frame: four at 44.1 and 48 kHz, two at 8, 16 and 22.05.
+# A cap rather than an amount to feed, since `first_frame` tops up a frame at a
+# time and stops at the first one out; a build that wanted more would leave the
+# first segment as it is now.
 FIRST_FRAME_LOOKAHEAD = 4
+
+# How long each of those top-ups waits before adding another frame. The first
+# frame arrives in about 8 ms on an idle box, so this is generous enough not to
+# add a frame the encoder was about to hand over anyway, and short enough that
+# walking the whole cap costs less than a tenth of a second. Too short only
+# costs an extra frame of padding, which is what feeding the cap outright did.
+FIRST_FRAME_STEP_WAIT = 0.02
 
 # How far the audio may run ahead of the video before the video is moved up to
 # it. A `-c copy` split's cuts land mid-frame and put the two tracks up to
 # 46 ms apart, measured, in a way that evens out over the stream, so that much
 # is left to float. A generator whose every chunk carries more audio than
 # video does not even out, and a tenth of a second is about where the sound
-# starts to read as early.
+# starts to read as early. A floor rather than the whole answer: see
+# `_audio_lead_tolerance`.
 MAX_AUDIO_LEAD = 0.1
+
 
 TS_PACKET_SIZE = 188
 TS_NULL_PID = 0x1FFF
+
+
+def _audio_lead_tolerance(encoder: AacStreamEncoder) -> float:
+    """How far the audio may lead the video before the video is moved up to it.
+
+    `MAX_AUDIO_LEAD` alone is a fixed tenth of a second, which is less than one
+    AAC frame at 8 kHz (0.128 s) and less than two at every rate below about
+    20 kHz. The encoder can only hand audio over a whole frame at a time, so a
+    tolerance under that snaps the video clock on the encoder's own
+    granularity rather than on any drift the stream actually has - which is
+    what put a 0.26 s freeze at the head of every 16 kHz stream whose first
+    chunk was too short to complete a frame.
+    """
+    return max(MAX_AUDIO_LEAD, 2 * encoder.frame_duration)
 
 
 def _continue_counters(data: bytes, counters: dict[int, int] | None) -> bytes:
@@ -125,14 +150,24 @@ class _VideoStream:
         two of them then round onto one timestamp, which no decoder will cross.
 
         Audio running ahead is the other way round, and trimming it would put
-        back the very gap this stream exists to remove. Up to `MAX_AUDIO_LEAD`
-        it is left where it falls; past that the video clock is moved up to
-        where the audio has reached, so the next chunk's picture starts with
-        its own sound again and the picture holds still for the difference,
-        once, instead of falling further behind with every chunk.
+        back the very gap this stream exists to remove. Up to the lead
+        tolerance it is left where it falls; past that the video clock is
+        moved up to where the audio has reached, so the next chunk's picture
+        starts with its own sound again and the picture holds still for the
+        difference instead of the sound walking further ahead with every
+        chunk.
+
+        That correction is a cadence, not a one-off. On a generator whose
+        every chunk overruns - what `-shortest` gives from ffmpeg 7 on, 0.2 s
+        of video against 0.25 s of audio at 15 fps - the lead rebuilds and is
+        paid off again: measured at 0.18 s of held picture every sixth frame,
+        11 times over 24 chunks, stretching 4.8 s of supplied video across a
+        5.95 s timeline. Held picture is the lesser of the two evils, the same
+        input left alone putting the sound 2.2 s ahead of it after ten seconds
+        of stream, but it is not something that happens once.
         """
         audio_end = self.samples_written / encoder.sample_rate
-        if audio_end - self.video_time > MAX_AUDIO_LEAD:
+        if audio_end - self.video_time > _audio_lead_tolerance(encoder):
             self.video_time = audio_end
             return b""
         behind = round(self.video_time * encoder.sample_rate) - self.samples_written
@@ -151,21 +186,34 @@ class _VideoStream:
         Two ways to arrive here. The encoder is a process of its own, and on a
         loaded box it can take longer to produce its first frame than the
         startup wait allows, which is a busy server rather than a broken one
-        and worth waiting out. Or the chunk is too short to answer for: the
-        encoder holds several frames back before parting with the first,
-        measured as four frames' worth at 44.1 and 48 kHz and two at 16, so no
-        wait would conjure samples that were never fed. Silence makes up that
-        difference, which lands behind the chunk's own audio rather than in
-        front of it, and pushes what follows back by up to 93 ms. Only a
-        generator yielding chunks shorter than a frame pays it, and it buys
-        back the audio for the whole stream.
+        and worth waiting out; a chunk that has already fed it more than it
+        can be holding back adds nothing here and simply waits. Or the chunk
+        is too short to answer for: the encoder keeps a few frames back before
+        parting with the first, so no wait would conjure samples that were
+        never fed, and silence makes up the difference behind the chunk's own
+        audio rather than in front of it.
+
+        A frame at a time, rather than the cap outright. How many frames the
+        encoder holds is a property of the build and the rate - four at 44.1
+        and 48 kHz, two at 8, 16 and 22.05 - but what a frame costs is
+        seconds, and one at 8 kHz is 128 ms against 23 ms at 44.1. Feeding the
+        largest count at every rate put 256 ms of silence onto a 16 kHz stream
+        that wanted 128 and 512 ms onto an 8 kHz one that wanted 256, which is
+        past `_audio_lead_tolerance` at every rate below 32 kHz: the next
+        chunk then moved the video clock up to the audio and the opening
+        picture froze for as long as the padding. Topping up until a frame
+        comes out finds the count instead, so no rate pays for another rate's
+        lookahead, and what is left is inside the tolerance at every rate.
         """
         frame = AAC_FRAME_SAMPLES * encoder.sample_rate // encoder.output_rate
-        wanted = FIRST_FRAME_LOOKAHEAD * frame
-        if self.samples_written < wanted:
-            short = wanted - self.samples_written
+        for step in range(1, FIRST_FRAME_LOOKAHEAD + 1):
+            if self.samples_written >= step * frame:
+                continue
+            short = step * frame - self.samples_written
             encoder.feed(b"\x00" * (short * encoder.channels * 2))
             self.samples_written += short
+            if frames := encoder.take(timeout=FIRST_FRAME_STEP_WAIT):
+                return frames
         return encoder.take(timeout=FIRST_FRAME_WAIT)
 
     def audio_time(self, encoder: AacStreamEncoder) -> float:
