@@ -65,4 +65,27 @@ test("component props", async ({ page }) => {
 	await expect(imageOutputJson).toContainText('"width": 300');
 	await expect(imageOutputJson).toContainText('"height": 300');
 	await expect(imageOutputJson).toContainText("cheetah.jpg");
+
+	const modelCanvas = page.locator("#model3d-props canvas");
+	const modelOutputJson = page.locator("#model3d-output");
+	const showModelPropsBtn = page.getByRole("button", {
+		name: "Show Model3D Props"
+	});
+
+	await expect(modelCanvas).toBeVisible();
+	await showModelPropsBtn.click();
+	await expect(modelOutputJson).toContainText('"camera_position"');
+	const initialModelProps = await modelOutputJson.textContent();
+
+	await expect
+		.poll(
+			async () => {
+				await modelCanvas.hover();
+				await page.mouse.wheel(0, 200);
+				await showModelPropsBtn.click();
+				return modelOutputJson.textContent();
+			},
+			{ timeout: 15_000 }
+		)
+		.not.toBe(initialModelProps);
 });

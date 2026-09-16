@@ -1,5 +1,5 @@
 import gradio as gr
-from gradio.media import get_image
+from gradio.media import get_image, get_model3d
 
 with gr.Blocks() as demo:
     a = gr.Number(value=5, minimum=0, maximum=10, label="Input A", info="Enter a number between 0 and 10")
@@ -73,6 +73,21 @@ with gr.Blocks() as demo:
     reset_image_btn.click(reset_image, b, b).then(
         show_image_props, b, output_b
     )
+
+    gr.Markdown("## Model3D Component Props")
+    model = gr.Model3D(
+        value=get_model3d("Fox.gltf"),
+        camera_position=(0, 90, 2.5),
+        interactive=False,
+        elem_id="model3d-props",
+    )
+    model_output = gr.JSON(label="Model3D Props", elem_id="model3d-output")
+    show_model_props_btn = gr.Button("Show Model3D Props")
+
+    def show_model_props(x: gr.Model3D):
+        return {"camera_position": x.camera_position}
+
+    show_model_props_btn.click(show_model_props, model, model_output)
 
 
 if __name__ == "__main__":

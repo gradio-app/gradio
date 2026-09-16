@@ -29,6 +29,7 @@
 		ondrag,
 		onload,
 		onerror,
+		oncamera_position,
 		children
 	}: {
 		value?: FileData | null;
@@ -51,6 +52,7 @@
 		ondrag?: (dragging: boolean) => void;
 		onload?: (value: FileData) => void;
 		onerror?: (error: string) => void;
+		oncamera_position?: (camera_position: [number, number, number]) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -127,6 +129,7 @@
 				{zoom_speed}
 				{pan_speed}
 				data={model.data}
+				{oncamera_position}
 			/>
 		{/if}
 	</div>

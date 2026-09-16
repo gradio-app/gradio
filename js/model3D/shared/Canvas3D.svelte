@@ -21,7 +21,8 @@
 		camera_position,
 		zoom_speed,
 		pan_speed,
-		data
+		data,
+		oncamera_position
 	}: {
 		value: FileData;
 		display_mode: "solid" | "point_cloud" | "wireframe";
@@ -31,6 +32,7 @@
 		pan_speed: number;
 		/** Already-decoded bytes to load instead of fetching `value.url`. */
 		data?: Uint8Array<ArrayBuffer>;
+		oncamera_position?: (camera_position: [number, number, number]) => void;
 	} = $props();
 
 	let url = $derived(value.url);
@@ -39,6 +41,7 @@
 	let viewer = $state<Viewer>();
 	let viewerDetails = $state<Readonly<ViewerDetails>>();
 	let mounted = $state(false);
+	let camera_ready = false;
 
 	onMount(() => {
 		let active = true;
@@ -93,6 +96,7 @@
 		if (!currentViewer) return;
 
 		if (source) {
+			camera_ready = false;
 			try {
 				await currentViewer.loadModel(source, LOAD_OPTIONS);
 				if (mounted && currentViewer === viewer) {
@@ -111,10 +115,10 @@
 				setRenderingMode(true, false);
 			} else if (display_mode === "wireframe") {
 				setRenderingMode(false, true);
-			} else {
-				update_camera(camera_position, zoom_speed, pan_speed);
 			}
+			update_camera(camera_position, zoom_speed, pan_speed);
 		} else {
+			camera_ready = false;
 			currentViewer.resetModel();
 		}
 	}
@@ -162,13 +166,37 @@
 			camera.radius = camera_position[2];
 		}
 		camera.lowerRadiusLimit = 0.1;
-		const updateCameraSensibility = (): void => {
-			camera.wheelPrecision = 250 / (camera.radius * zoom_speed);
-			camera.panningSensibility = (10000 * pan_speed) / camera.radius;
-		};
-		updateCameraSensibility();
-		camera.onAfterCheckInputsObservable.add(updateCameraSensibility);
+		camera_ready = true;
+		update_camera_sensibility();
+		update_camera_position();
 	}
+
+	function update_camera_sensibility(): void {
+		if (!viewerDetails) return;
+		const camera = viewerDetails.camera;
+		camera.wheelPrecision = 250 / (camera.radius * zoom_speed);
+		camera.panningSensibility = (10000 * pan_speed) / camera.radius;
+	}
+
+	function update_camera_position(): void {
+		if (!viewerDetails || !camera_ready) return;
+		const camera = viewerDetails.camera;
+		oncamera_position?.([
+			(camera.alpha * 180) / Math.PI,
+			(camera.beta * 180) / Math.PI,
+			camera.radius
+		]);
+	}
+
+	$effect(() => {
+		if (!viewerDetails) return;
+		const camera = viewerDetails.camera;
+		const observer = camera.onAfterCheckInputsObservable.add(() => {
+			update_camera_sensibility();
+			update_camera_position();
+		});
+		return () => camera.onAfterCheckInputsObservable.remove(observer);
+	});
 
 	export function reset_camera_position(): void {
 		if (viewerDetails && viewer) {
