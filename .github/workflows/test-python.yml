@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  HF_TOKEN: ${{ vars.HF_TOKEN }}
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
   UV_EXCLUDE_NEWER: 7 days
 
 permissions: {}
