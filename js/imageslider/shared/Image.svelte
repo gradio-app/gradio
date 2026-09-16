@@ -18,6 +18,7 @@
 		show_label,
 		root,
 		position = $bindable(0.5),
+		onposition,
 		upload_count = 2,
 		show_download_button = true,
 		slider_color,
@@ -38,6 +39,7 @@
 		show_label: boolean;
 		root: string;
 		position?: number;
+		onposition?: (position: number) => void;
 		upload_count?: number;
 		show_download_button?: boolean;
 		slider_color: string;
@@ -107,6 +109,7 @@
 		<ClearImage
 			onremove_image={() => {
 				position = 0.5;
+				onposition?.(position);
 				value = [null, null];
 				onclear?.();
 			}}
@@ -126,6 +129,7 @@
 	{/if}
 	<Slider
 		bind:position
+		{onposition}
 		disabled={upload_count == 2 || !value?.[0]}
 		{slider_color}
 	>

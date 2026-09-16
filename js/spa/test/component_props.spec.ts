@@ -104,4 +104,39 @@ test("component props", async ({ page }) => {
 	await showModelPropsBtn.click();
 	await expect(modelOutputJson).toContainText('"static_exact": true');
 	await expect(modelOutputJson).toContainText('"editable_exact": true');
+
+	const sliderHandle = page.locator(
+		'#imageslider-props [data-testid="slider"]'
+	);
+	const sliderOutputJson = page.locator("#imageslider-output");
+	const showSliderPropsBtn = page.getByRole("button", {
+		name: "Show Slider Props"
+	});
+	const resetSliderBtn = page.getByRole("button", {
+		name: "Restore Slider Position"
+	});
+
+	// Untouched, the configured position must come back verbatim.
+	await showSliderPropsBtn.click();
+	await expect(sliderOutputJson).toContainText('"exact": true');
+
+	// Dragging the divider has to report the new position.
+	const sliderBox = await sliderHandle.boundingBox();
+	if (!sliderBox) throw new Error("slider handle has no bounding box");
+	await page.mouse.move(
+		sliderBox.x + sliderBox.width / 2,
+		sliderBox.y + sliderBox.height / 2
+	);
+	await page.mouse.down();
+	await page.mouse.move(sliderBox.x + 120, sliderBox.y + sliderBox.height / 2, {
+		steps: 10
+	});
+	await page.mouse.up();
+	await showSliderPropsBtn.click();
+	await expect(sliderOutputJson).toContainText('"exact": false');
+
+	// And a position set from the backend has to be applied and survive verbatim.
+	await resetSliderBtn.click();
+	await showSliderPropsBtn.click();
+	await expect(sliderOutputJson).toContainText('"exact": true');
 });
