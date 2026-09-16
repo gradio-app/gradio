@@ -7,7 +7,6 @@ import {
 	expect,
 	vi
 } from "vitest";
-
 import { Client, client, duplicate } from "..";
 import {
 	transformed_api_info,
@@ -16,6 +15,7 @@ import {
 } from "./test_data";
 import { initialise_server } from "./server";
 import { SPACE_NOT_FOUND_MSG } from "../constants";
+import { HttpResponse, http } from "msw";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -65,6 +65,29 @@ describe("Client class", () => {
 			expect(app.config).toEqual(config_response);
 		});
 
+		test("forwards a page query when resolving config and API info", async () => {
+			const requested_urls: string[] = [];
+			server.use(
+				http.get(`${direct_app_reference}/config`, ({ request }) => {
+					requested_urls.push(request.url);
+					return HttpResponse.json(config_response);
+				}),
+				http.get(`${direct_app_reference}/info`, ({ request }) => {
+					requested_urls.push(request.url);
+					return HttpResponse.json(response_api_info);
+				})
+			);
+
+			await Client.connect(direct_app_reference, {
+				query_params: { page: "details" }
+			});
+
+			expect(requested_urls).toEqual([
+				`${direct_app_reference}/config?page=details`,
+				`${direct_app_reference}/info?page=details`
+			]);
+		});
+
 		test("connecting successfully to a private running app with a space reference", async () => {
 			const app = await Client.connect("hmb/secret_world", {
 				token: "hf_123"
@@ -74,6 +97,29 @@ describe("Client class", () => {
 				...config_response,
 				root: "https://hmb-secret-world.hf.space"
 			});
+		});
+
+		test("signs initial file values in a private Space config", async () => {
+			const props = config_response.components[0].props;
+			props.value = {
+				path: "/tmp/cat.png",
+				url: `${secret_direct_app_reference}/gradio_api/file=/tmp/cat.png`,
+				meta: { _type: "gradio.FileData" }
+			};
+			try {
+				const app = await Client.connect("hmb/secret_world", {
+					token: "hf_123"
+				});
+				const value = app.config?.components[0].props.value as {
+					url: string;
+				};
+
+				expect(value.url).toBe(
+					`${secret_direct_app_reference}/gradio_api/file=/tmp/cat.png?__sign=jwt_123`
+				);
+			} finally {
+				delete props.value;
+			}
 		});
 
 		test("connecting successfully to a private running app with a direct app URL ", async () => {

@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import json
 import os
@@ -6,11 +7,12 @@ import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import httpx
 import numpy as np
 import pytest
+from gradio_client.client import Endpoint
 from PIL import Image, ImageCms
 from pydantic import BaseModel
 from pydub import AudioSegment
@@ -77,6 +79,137 @@ class TestTempFileManagement:
 
         for result in (sync_result, async_result, proxy_result):
             assert result["url"].endswith("report%2520%23final.txt")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("is_stream", "url_prefix"),
+        [(False, f"{API_PREFIX}/file="), (True, f"{API_PREFIX}/stream/")],
+    )
+    @pytest.mark.parametrize(
+        ("loader_url", "signature", "source_private"),
+        [
+            ("http://127.0.0.1:7860", "", False),
+            ("http://127.0.0.1:7860", "", True),
+            ("https://public-loader.hf.space", "", True),
+            (
+                "https://private-loader.hf.space",
+                "?__sign=loader-jwt",
+                True,
+            ),
+        ],
+    )
+    async def test_move_files_to_cache_proxies_loaded_space_files(
+        self,
+        is_stream,
+        url_prefix,
+        loader_url,
+        signature,
+        source_private,
+        monkeypatch,
+        tmp_path,
+    ):
+        proxy_url = "https://source-space.hf.space"
+        remote_path = "/tmp/gradio/private-cat.png"
+        upstream_url = f"{proxy_url}{url_prefix}{remote_path}"
+        data = data_classes.FileData(
+            path=remote_path,
+            url=upstream_url,
+            is_stream=is_stream,
+        ).model_dump()
+        proxy_component = gr.Image()
+        proxy_component.proxy_url = f"{proxy_url}/"
+
+        sync_result = processing_utils.move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+        async_result = await processing_utils.async_move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+        expected_url = f"{API_PREFIX}/proxy={upstream_url}"
+
+        for result in (sync_result, async_result):
+            assert result["path"] == remote_path
+            assert result["url"] == expected_url
+
+            browser_result = processing_utils.add_root_url(
+                copy.deepcopy(result), loader_url, None
+            )
+            browser_result["url"] += signature
+            round_trip = await processing_utils.async_move_files_to_cache(
+                browser_result, proxy_component, postprocess=False
+            )
+            monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "loader-cache"))
+            processing_utils.check_all_files_in_cache(round_trip)  # type: ignore[arg-type]
+
+            endpoint = Endpoint.__new__(Endpoint)
+            endpoint.dependency = {"inputs": [1]}
+            endpoint.client = MagicMock(
+                _space_is_private=source_private,
+                src_prefixed=f"{proxy_url}{API_PREFIX}/",
+                upload_url=f"{proxy_url}{API_PREFIX}/upload",
+                headers={"x-hf-authorization": "Bearer hf_token"},
+                cookies={},
+                ssl_verify=True,
+                httpx_kwargs={},
+                config={"components": [{"id": 1}], "max_file_size": None},
+            )
+            download_response = MagicMock()
+            download_response.__enter__.return_value = download_response
+            download_response.iter_bytes.return_value = [b"private cat"]
+            upload_response = MagicMock()
+            upload_response.json.return_value = ["/tmp/gradio/uploaded/cat.png"]
+            with (
+                patch("httpx.stream", return_value=download_response) as stream,
+                patch("httpx.post", return_value=upload_response),
+            ):
+                processed_input = endpoint.process_input_files(round_trip)[0]
+
+            if source_private and not is_stream:
+                assert processed_input["path"] == "/tmp/gradio/uploaded/cat.png"
+                stream.assert_called_once()
+            else:
+                assert processed_input["path"] == upstream_url
+                stream.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_move_files_to_cache_keeps_loaded_app_local_upload(self, tmp_path):
+        local_file = tmp_path / "cat.png"
+        local_file.write_bytes(b"cat")
+        loader_url = "http://127.0.0.1:7860"
+        data = data_classes.FileData(
+            path=str(local_file),
+            url=f"{loader_url}{API_PREFIX}/file={local_file}",
+        ).model_dump()
+        proxy_component = gr.Image()
+        proxy_component.proxy_url = "https://source-space.hf.space/"
+
+        sync_result = processing_utils.move_files_to_cache(
+            data, proxy_component, postprocess=False
+        )
+        async_result = await processing_utils.async_move_files_to_cache(
+            data, proxy_component, postprocess=False
+        )
+
+        for result in (sync_result, async_result):
+            assert result["path"] == str(local_file)
+
+    @pytest.mark.asyncio
+    async def test_move_files_to_cache_does_not_proxy_external_urls(self):
+        external_url = "https://example.com/cat.png"
+        data = data_classes.FileData(path=external_url, url=external_url).model_dump()
+        proxy_component = gr.Image()
+        proxy_component.proxy_url = "https://private-space.hf.space/"
+
+        sync_result = processing_utils.move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+        async_result = await processing_utils.async_move_files_to_cache(
+            data, proxy_component, postprocess=True
+        )
+
+        for result in (sync_result, async_result):
+            assert result["path"] == external_url
+            assert result["url"] == external_url
 
     def test_save_b64_to_cache(self, gradio_temp_dir, media_data):
         base64_file_1 = media_data.BASE64_IMAGE

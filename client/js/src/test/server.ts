@@ -8,6 +8,7 @@ const IS_NODE =
 interface MockServer {
 	start: (opts: StartOptions) => void | ReturnType<SetupWorker["start"]>;
 	stop: () => void | Promise<void>;
+	use: (...handlers: any[]) => void;
 	resetHandlers: (...handlers: any[]) => void;
 }
 
@@ -18,6 +19,7 @@ export async function initialise_server(): Promise<MockServer> {
 		return {
 			start: (opts: StartOptions) => server.listen(opts),
 			stop: () => server.close(),
+			use: (...h) => server.use(...h),
 			resetHandlers: (...h) => server.resetHandlers(...h)
 		};
 	}
@@ -26,6 +28,7 @@ export async function initialise_server(): Promise<MockServer> {
 	return {
 		start: (opts: StartOptions) => worker.start(opts),
 		stop: () => worker.stop(),
+		use: (...h) => worker.use(...h),
 		resetHandlers: (...h) => worker.resetHandlers(...h)
 	};
 }
