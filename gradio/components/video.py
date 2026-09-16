@@ -821,15 +821,30 @@ class Video(StreamingOutput, Component):
         # without a segment therefore has to leave the clock where it found
         # it.
         placed_from = state.video_time
-        if info["sample_rate"] is not None:
+        # A chunk with no audio of its own still belongs in here once the
+        # stream has an encoder. Skipping it left the audio clock where the
+        # last audio-carrying chunk had put it while the video clock ran on,
+        # so the flush segment was placed at a position the earlier segments
+        # had already covered and billed fresh duration on the end of the
+        # playlist anyway. `catch_up` closes the same distance it closes
+        # everywhere else, and the silence keeps the audio track alive, which
+        # hls.js needs once it has fixed its tracks on the first segment.
+        if info["sample_rate"] is not None or encoder is not None:
             if encoder is None:
                 encoder = AacStreamEncoder(info["sample_rate"], info["channels"])
                 if not state.slot.attach(encoder):
                     encoder.close()
                     return None
-            pcm = state.catch_up(encoder) + decode_file_to_pcm(
-                path, encoder.sample_rate, encoder.channels
-            )
+            pcm = state.catch_up(encoder)
+            if info["sample_rate"] is not None:
+                pcm += decode_file_to_pcm(path, encoder.sample_rate, encoder.channels)
+            else:
+                # Silence for the whole of this chunk's video, not just up to
+                # where the last one ended: `catch_up` closes the distance
+                # behind, and closing only that leaves the audio a chunk short
+                # for every chunk that carries none.
+                silent = round(info["duration"] * encoder.sample_rate)
+                pcm += b"\x00" * (silent * encoder.channels * 2)
             encoder.feed(pcm)
             state.samples_written += len(pcm) // (encoder.channels * 2)
             frames = encoder.take()

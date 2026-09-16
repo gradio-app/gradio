@@ -660,6 +660,67 @@ class TestVideo:
                 assert abs(min(within[0]) - min(within[1])) < 0.25
 
     @pytest.mark.requires_ffmpeg
+    @reads_mpegts
+    @pytest.mark.asyncio
+    async def test_a_chunk_without_audio_keeps_the_stream_s_track(self, tmp_path):
+        """A stream that has an audio track has to keep carrying one.
+
+        Chunks that bring no audio of their own used to skip the encoder
+        entirely, so their segments went out with a video track and nothing
+        else, and the audio clock stood still while the video clock ran on.
+        hls.js fixes its tracks on the first segment and will not take the
+        transition, and the flush segment was then placed at a position the
+        earlier segments had already covered while the playlist billed its
+        length on the end regardless.
+        """
+        out = tmp_path / "mixed"
+        out.mkdir()
+        chunks = []
+        for index in range(6):
+            path = out / f"chunk{index:02d}.mp4"
+            args = [
+                "ffmpeg", "-y", "-v", "error",
+                "-f", "lavfi", "-i",
+                f"testsrc=size=160x120:rate={VIDEO_FPS}:duration=0.25",
+            ]  # fmt: skip
+            # The first half carries sound, the second half is picture alone.
+            if index < 3:
+                args += ["-f", "lavfi", "-i",
+                         f"aevalsrc='0.8*sin(2*PI*440*(t+{index * 0.25}))'"
+                         f":s={AUDIO_RATE}:d=0.25", "-c:a", "aac"]  # fmt: skip
+            args += [
+                "-c:v", "libx264", "-preset", "ultrafast",
+                "-pix_fmt", "yuv420p", str(path),
+            ]  # fmt: skip
+            subprocess.run(args, check=True)
+            chunks.append(path)
+
+        video = gr.Video(streaming=True)
+        stream_id = "session/0/1/mixed.m3u8"
+        segments = []
+        try:
+            for index, chunk in enumerate(chunks):
+                segment, _ = await video.stream_output(chunk, stream_id, index == 0)
+                if segment:
+                    segments.append(segment)
+            state = _stream_states[stream_id]
+            encoder = state.slot.encoder
+            assert encoder is not None
+            apart = state.video_time - state.audio_time(encoder)
+        finally:
+            video.end_stream_output(stream_id)
+
+        assert len(segments) == len(chunks)
+        for segment in segments:
+            assert "audio" in stream_kinds(segment["data"], tmp_path)
+        # What the encoder is still holding back, and nothing else: 0.067 s
+        # measured. Closing only the distance behind leaves 0.346, and not
+        # feeding the silent chunks at all leaves 0.903, the whole silent half
+        # of the stream, which is what put the flush segment 0.836 s before
+        # the video it was billed to follow.
+        assert apart < 0.15
+
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_a_chunk_that_emits_nothing_does_not_move_the_clock(
         self, tmp_path, monkeypatch
