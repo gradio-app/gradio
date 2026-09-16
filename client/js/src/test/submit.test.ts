@@ -37,6 +37,43 @@ async function race_with_timeout<T>(
 }
 
 describe("submit iterator", () => {
+	test("signs private Space file URLs before publishing data events", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			token: "hf_123",
+			events: ["data", "status"]
+		});
+		app.stream_status.open = true;
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = await iterator.wait_for_id();
+		const callback = app.event_callbacks[event_id as string];
+
+		const events: any[] = [];
+		const consumer = (async () => {
+			for await (const event of iterator) events.push(event);
+		})();
+
+		await callback({
+			msg: "process_completed",
+			output: {
+				data: [
+					{
+						path: "/tmp/cat.png",
+						url: `${direct_space_url}/gradio_api/file=/tmp/cat.png`,
+						meta: { _type: "gradio.FileData" }
+					}
+				]
+			},
+			success: true
+		});
+		await consumer;
+
+		const data_event = events.find((event) => event.type === "data");
+		expect(data_event.data[0].url).toBe(
+			`${direct_space_url}/gradio_api/file=/tmp/cat.png?__sign=jwt_123`
+		);
+	});
+
 	test.skipIf(typeof window === "undefined")(
 		"sends the selected history bucket with queued submissions",
 		async () => {
