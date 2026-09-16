@@ -593,14 +593,19 @@ class TestVideo:
         # A segment's audio also has to sit with its own video. The encoder
         # hands frames over a burst behind, so a chunk has to take what has
         # arrived rather than one burst's worth, and a segment whose audio
-        # starts a third of a second before its video stops hls.js dead.
+        # starts a third of a second before its video stops hls.js dead: 0.33 s
+        # is where it was measured stopping. Taking what has arrived holds the
+        # lead to 0.148 s at worst on an idle box, against 0.394 s worst and
+        # 0.309 s mean with no catching up at all. The bound is 0.3 rather than
+        # the idle figure because the encoder emits later under load and a full
+        # parallel suite on a CI runner has been seen at 0.286.
         for segment in segments:
             within = [
                 packet_timestamps(segment["data"], kind, tmp_path, "pts_time")
                 for kind in ("v", "a")
             ]
             if all(within):
-                assert min(within[0]) - min(within[1]) < 0.25
+                assert min(within[0]) - min(within[1]) < 0.3
 
     @pytest.mark.requires_ffmpeg
     @reads_mpegts
