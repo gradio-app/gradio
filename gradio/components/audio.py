@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import dataclasses
 import json
-import threading
 import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -19,7 +18,12 @@ from gradio_client.documentation import document
 from pydub import AudioSegment
 
 from gradio import processing_utils
-from gradio.audio_stream_encoder import AacStreamEncoder, decode_to_pcm
+from gradio.audio_stream_encoder import (
+    AacStreamEncoder,
+    EncoderSlot,
+    decode_to_pcm,
+    segment_from_frames,
+)
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.components.button import Button
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
@@ -31,58 +35,9 @@ if TYPE_CHECKING:
     from gradio.components import Timer
 
 
-class _EncoderSlot:
-    """The registry's entry for one stream, made before its encoder exists.
-
-    The encoder is created on a worker thread, and the coroutine waiting for
-    it can be cancelled without the thread being stopped, so the thread can
-    go on to publish an encoder after the coroutine is gone. The two hand
-    over under a lock: the thread attaches unless the slot has been ended,
-    and ending the slot closes whatever is attached, whichever comes first.
-    """
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._ended = False
-        self.encoder: AacStreamEncoder | None = None
-
-    def attach(self, encoder: AacStreamEncoder) -> bool:
-        with self._lock:
-            if self._ended:
-                return False
-            self.encoder = encoder
-            return True
-
-    def detach(self) -> AacStreamEncoder | None:
-        """Take the encoder out and refuse any that arrives later."""
-        with self._lock:
-            self._ended = True
-            encoder, self.encoder = self.encoder, None
-            return encoder
-
-    def end(self) -> None:
-        encoder = self.detach()
-        if encoder is not None:
-            encoder.close()
-
-
 # One slot per live stream, keyed by the stream's playlist path. The
 # component instance is shared by every session, so it cannot hold these.
-_stream_encoders: dict[str, _EncoderSlot] = {}
-
-
-def _segment_from_frames(
-    encoder: AacStreamEncoder, frames: list[bytes]
-) -> MediaStreamChunk | None:
-    if not frames:
-        return None
-    return {
-        "data": b"".join(frames),
-        # Derived from the frame count rather than from the source chunk's
-        # length, so the playlist's #EXTINF matches what the segment decodes to.
-        "duration": len(frames) * encoder.frame_duration,
-        "extension": ".aac",
-    }
+_stream_encoders: dict[str, EncoderSlot] = {}
 
 
 @document()
@@ -401,7 +356,7 @@ class Audio(
         else:
             _, _, pcm = decode_to_pcm(data, encoder.sample_rate, encoder.channels)
         encoder.feed(pcm)
-        return _segment_from_frames(encoder, encoder.take())
+        return segment_from_frames(encoder, encoder.take())
 
     async def stream_output(
         self,
@@ -424,7 +379,7 @@ class Audio(
             stale = _stream_encoders.pop(output_id, None)
             if stale is not None:
                 stale.end()
-            _stream_encoders[output_id] = _EncoderSlot()
+            _stream_encoders[output_id] = EncoderSlot()
         try:
             if value is None:
                 return None, output_file
@@ -457,7 +412,7 @@ class Audio(
             return None
 
         def flush_and_release() -> MediaStreamChunk | None:
-            return _segment_from_frames(encoder, encoder.flush())
+            return segment_from_frames(encoder, encoder.flush())
 
         try:
             return await anyio.to_thread.run_sync(flush_and_release)
