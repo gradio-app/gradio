@@ -17,7 +17,8 @@
 		zoom_speed = 1,
 		pan_speed = 1,
 		camera_position = [null, null, null],
-		has_change_history = false
+		has_change_history = false,
+		oncamera_position
 	}: {
 		value: FileData | null;
 		display_mode?: "solid" | "point_cloud" | "wireframe";
@@ -29,6 +30,7 @@
 		pan_speed?: number;
 		camera_position?: [number | null, number | null, number | null];
 		has_change_history?: boolean;
+		oncamera_position?: (camera_position: [number, number, number]) => void;
 	} = $props();
 
 	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
@@ -48,7 +50,7 @@
 			current_settings.zoom_speed !== zoom_speed ||
 			current_settings.pan_speed !== pan_speed
 		) {
-			canvas3d?.update_camera(camera_position, zoom_speed, pan_speed);
+			canvas3d?.update_camera();
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
 	});
@@ -93,6 +95,7 @@
 				{zoom_speed}
 				{pan_speed}
 				data={model.data}
+				{oncamera_position}
 			/>
 		{/if}
 	</div>

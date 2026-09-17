@@ -76,6 +76,18 @@
 			gradio.shared.loading_status.status = "error";
 		gradio.dispatch("error", detail);
 	}
+
+	function handle_camera_position(
+		camera_position: [number, number, number]
+	): void {
+		const current = gradio.props.camera_position;
+		if (
+			!Array.isArray(current) ||
+			current.some((value, index) => value !== camera_position[index])
+		) {
+			gradio.props.camera_position = camera_position;
+		}
+	}
 </script>
 
 {#if !gradio.shared.interactive}
@@ -109,7 +121,9 @@
 				show_label={gradio.shared.show_label}
 				camera_position={gradio.props.camera_position}
 				zoom_speed={gradio.props.zoom_speed}
+				pan_speed={gradio.props.pan_speed}
 				{has_change_history}
+				oncamera_position={handle_camera_position}
 			/>
 		{:else}
 			{#if gradio.shared.show_label && gradio.props.buttons && gradio.props.buttons.length > 0}
@@ -160,6 +174,8 @@
 			bind:value={gradio.props.value}
 			camera_position={gradio.props.camera_position}
 			zoom_speed={gradio.props.zoom_speed}
+			pan_speed={gradio.props.pan_speed}
+			oncamera_position={handle_camera_position}
 			bind:uploading
 			onchange={handle_change}
 			ondrag={handle_drag}
