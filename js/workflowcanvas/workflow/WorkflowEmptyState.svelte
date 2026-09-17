@@ -1,11 +1,14 @@
 <script lang="ts">
-	import { TEMPLATES } from "./workflow-templates";
+	import { load_templates } from "./workflow-templates";
 	import type { WorkflowTemplate } from "./workflow-templates";
 
 	let {
 		onselect,
 		inline = false
 	}: { onselect: (t: WorkflowTemplate) => void; inline?: boolean } = $props();
+
+	let templates = $state<WorkflowTemplate[]>([]);
+	load_templates().then((t) => (templates = t));
 </script>
 
 <div class="empty-state" class:inline>
@@ -14,7 +17,7 @@
 		onpointerdown={(e) => e.stopPropagation()}
 		onpointerup={(e) => e.stopPropagation()}
 	>
-		{#each TEMPLATES as template}
+		{#each templates as template (template.id)}
 			<button
 				class="template-card"
 				style="background: {template.gradient};"
@@ -29,6 +32,8 @@
 	</div>
 	{#if !inline}
 		<div class="footer-hint">or add a model from the toolbar below</div>
+	{:else if templates.length === 0}
+		<div class="footer-hint">Couldn't reach the template library.</div>
 	{/if}
 </div>
 
@@ -51,14 +56,27 @@
 	}
 
 	.template-grid {
-		display: flex;
+		display: grid;
+		grid-template-columns: repeat(3, 196px);
 		gap: 12px;
+		max-width: 100%;
 		pointer-events: all;
+	}
+
+	@media (max-width: 720px) {
+		.template-grid {
+			grid-template-columns: repeat(2, 196px);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.template-grid {
+			grid-template-columns: 196px;
+		}
 	}
 
 	.template-card {
 		position: relative;
-		width: 196px;
 		height: 148px;
 		border: none;
 		outline: none;

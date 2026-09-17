@@ -371,7 +371,15 @@ def _save_tmp(result, ext: str) -> dict:
 
 
 def _img_url(a) -> str:
-    return a.get("url") or a.get("path", "") if isinstance(a, dict) else a
+    url = a.get("url") or a.get("path", "") if isinstance(a, dict) else a
+    # A node's own output comes back as `/gradio_api/file=<path>` when chained
+    # into the next node; unwrap it, tempdir-only so no arbitrary file is named.
+    if isinstance(url, str) and url.startswith("/gradio_api/file="):
+        path = os.path.realpath(url.removeprefix("/gradio_api/file="))
+        tmpdir = os.path.realpath(tempfile.gettempdir())
+        if path.startswith(tmpdir + os.sep) and os.path.isfile(path):
+            return path
+    return url
 
 
 def _classify_error(e: Exception) -> dict:
@@ -538,7 +546,7 @@ def call_space(
         processed = []
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
-                url = arg.get("url") or arg.get("path", "")
+                url = _img_url(arg)
                 processed.append(handle_file(url) if url else None)
             else:
                 processed.append(arg)
