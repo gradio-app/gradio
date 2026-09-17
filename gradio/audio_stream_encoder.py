@@ -147,11 +147,7 @@ def decode_to_pcm(
 
 
 def decode_file_to_pcm(path: str, sample_rate: int, channels: int) -> bytes:
-    """Decode a file's audio track to PCM without reading it into memory first.
-
-    A streamed video chunk is mostly pictures, so handing ffmpeg the path costs
-    a great deal less than piping the file through.
-    """
+    """Decode a file's audio track to PCM without reading it into memory first."""
     return _ffmpeg_decode(path, sample_rate, channels)
 
 

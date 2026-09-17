@@ -77,9 +77,8 @@ def _audio_lead_tolerance(encoder: AacStreamEncoder) -> float:
 def _continue_counters(data: bytes, counters: dict[int, int] | None) -> bytes:
     """Renumber a segment's MPEG-TS continuity counters to follow the last one.
 
-    Each segment is muxed by its own ffmpeg, so each restarts the per-PID
-    counters at zero, and a player reading the segments in sequence reads that
-    as packet loss and drops the packets.
+    Each segment is muxed by its own ffmpeg and restarts the per-PID counters
+    at zero, which a player reads as packet loss.
     """
     if counters is None or len(data) % TS_PACKET_SIZE or not data:
         return data
@@ -124,19 +123,16 @@ class _VideoStream:
     def catch_up(self, encoder: AacStreamEncoder) -> bytes:
         """Silence for any of the video's timeline the audio has not filled.
 
-        Keeps the two clocks together: a chunk asking for 0.25 s at 30 fps
-        carries 16.7 ms more video than audio, which would otherwise drift for
-        as long as the stream lasts. Having the video follow the audio instead
-        lands frames between the positions its own timebase can express, and
-        two of them then round onto one timestamp, which no decoder will cross.
+        A chunk asking for 0.25 s at 30 fps carries 16.7 ms more video than
+        audio, and left alone that drifts for as long as the stream lasts.
+        Levelling it the other way round does not work: video that follows the
+        audio lands two frames on one timestamp, which no decoder will cross.
 
-        Audio running ahead is the other way round, and trimming it would put
-        back the very gap this stream exists to remove. Up to the lead
-        tolerance it is left where it falls; past that the video clock is moved
-        up to the audio, so the picture holds still for the difference instead
-        of the sound walking further ahead with every chunk. On a generator
-        whose every chunk overruns, that correction is a cadence rather than a
-        one-off.
+        Audio running ahead is left where it falls up to the lead tolerance,
+        since trimming it would put back the very gap this stream exists to
+        remove. Past that the video clock jumps to the audio and the picture
+        holds still for the difference, which on a generator whose every chunk
+        overruns is a cadence rather than a one-off.
         """
         audio_end = self.samples_written / encoder.sample_rate
         if audio_end - self.video_time > _audio_lead_tolerance(encoder):
@@ -148,22 +144,17 @@ class _VideoStream:
     def first_frame(self, encoder: AacStreamEncoder) -> list[bytes]:
         """Whatever it takes to get one frame into the stream's first segment.
 
-        A segment with no audio track is not one segment's worth of silence,
-        it is the whole stream's: hls.js fixes its SourceBuffers from the first
-        segment it sees and refuses the transition when a later one turns up
-        with audio, so every segment after it has its audio thrown away
-        (`buffer-controller.ts`, "Unsupported transition"). Nothing recovers
-        from that, and nothing reports it either.
+        A first segment with no audio track costs the whole stream its audio,
+        not its own: hls.js fixes its SourceBuffers from that segment and
+        refuses the transition when a later one arrives with audio
+        (`buffer-controller.ts`, "Unsupported transition"), silently.
 
-        Two ways to arrive here. The encoder is a process of its own and can
-        be slow with its first frame on a loaded box, which is worth waiting
-        out. Or the chunk is too short to complete a frame, which no wait can
-        fix, so silence makes up the difference behind the chunk's own audio.
-
-        Topped up a frame at a time rather than by the whole cap: how many
-        frames the encoder holds back is a property of the build and the rate,
-        and feeding the cap outright puts more silence in than
-        `_audio_lead_tolerance` allows at the lower rates, which freezes the
+        Either the encoder is slow with its first frame, which is worth
+        waiting out, or the chunk is too short to complete one, which no wait
+        can fix and silence has to cover. A frame at a time rather than the
+        whole cap: how many frames the encoder holds back varies with the
+        build and the rate, and feeding the cap outright puts in more silence
+        than `_audio_lead_tolerance` allows at the lower rates, freezing the
         opening picture for as long as the padding.
         """
         frame = AAC_FRAME_SAMPLES * encoder.sample_rate // encoder.output_rate
@@ -637,10 +628,9 @@ class Video(StreamingOutput, Component):
         """What the muxer needs to know about one chunk, in one call.
 
         The duration is the video track's own: the audio's runs short whenever
-        a `-c copy` split cuts on a keyframe, and `format.duration` runs long,
-        by the encoder padding on mp4 and by the muxer's 1.4 s head start on
-        `.ts`. `start_time` comes back because a chunk need not begin at zero
-        and `-copyts` would carry its own offset into the output.
+        a `-c copy` split cuts on a keyframe, and `format.duration` runs long.
+        `start_time` comes back because a chunk need not begin at zero and
+        `-copyts` would carry its own offset into the output.
         """
         result = subprocess.run(
             ["ffprobe", "-v", "error", "-print_format", "json",
@@ -701,14 +691,11 @@ class Video(StreamingOutput, Component):
         Neither track is encoded here, so the only work is placing both on the
         stream's timeline. The ADTS input cannot be given an `-itsoffset`:
         whichever frames ffmpeg reads while probing keep the timestamp they had
-        beforehand, so a segment carrying one frame - as the first usually does
-        - puts it at zero. The audio therefore keeps its own zero, the video is
+        beforehand, and a segment carrying one frame - as the first usually
+        does - puts it at zero. So the audio keeps its own zero, the video is
         placed relative to it, and `-output_ts_offset` lifts the whole segment
-        at the muxer, which runs after probing.
-
-        `counters` holds the stream's continuity counter per PID and is
-        advanced in place to follow this segment's packets, so the next
-        segment picks up where this one left off.
+        at the muxer, which runs after probing. `counters` is advanced in place
+        for the next segment to pick up from.
         """
         base = audio_time if adts else video_time
         args = ["ffmpeg", "-v", "error", "-nostdin", "-copyts"]
