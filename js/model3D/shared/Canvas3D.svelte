@@ -47,6 +47,8 @@
 
 	let settled_radians: [number, number, number] | null = null;
 	let settled_degrees: [number, number, number] | null = null;
+	let configured_position: [number | null, number | null, number | null] =
+		camera_position;
 
 	onMount(() => {
 		let active = true;
@@ -126,7 +128,7 @@
 			settled_radians = null;
 			settled_degrees = null;
 			initialized_generation = generation;
-			update_camera();
+			apply_camera(configured_position, false);
 		} else {
 			settled_radians = null;
 			settled_degrees = null;
@@ -176,27 +178,34 @@
 	}
 
 	export function update_camera(): void {
-		if (!viewerDetails) return;
-		const camera = viewerDetails.camera;
-
 		const is_echo =
 			settled_degrees !== null &&
 			same_position(settled_degrees, camera_position);
+		if (!is_echo) configured_position = camera_position;
+		apply_camera(camera_position, is_echo);
+	}
+
+	function apply_camera(
+		position: [number | null, number | null, number | null],
+		is_echo: boolean
+	): void {
+		if (!viewerDetails) return;
+		const camera = viewerDetails.camera;
 
 		if (!is_echo) {
-			if (camera_position[0] !== null) {
-				camera.alpha = to_radians(camera_position[0]);
+			if (position[0] !== null) {
+				camera.alpha = to_radians(position[0]);
 			}
-			if (camera_position[1] !== null) {
-				camera.beta = to_radians(camera_position[1]);
+			if (position[1] !== null) {
+				camera.beta = to_radians(position[1]);
 			}
-			if (camera_position[2] !== null) {
-				camera.radius = camera_position[2];
+			if (position[2] !== null) {
+				camera.radius = position[2];
 			}
 			settled_degrees = [
-				camera_position[0] ?? to_degrees(camera.alpha),
-				camera_position[1] ?? to_degrees(camera.beta),
-				camera_position[2] ?? camera.radius
+				position[0] ?? to_degrees(camera.alpha),
+				position[1] ?? to_degrees(camera.beta),
+				position[2] ?? camera.radius
 			];
 			settled_radians = [camera.alpha, camera.beta, camera.radius];
 		}

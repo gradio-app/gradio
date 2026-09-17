@@ -109,7 +109,6 @@
 		<ClearImage
 			onremove_image={() => {
 				position = 0.5;
-				onposition?.(position);
 				value = [null, null];
 				onclear?.();
 			}}

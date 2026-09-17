@@ -57,7 +57,7 @@
 
 	function update_position(x: number): void {
 		px = clamp(x, 0, container_width);
-		position = round((x - image_size.left) / image_size.width, 5);
+		position = clamp(round((x - image_size.left) / image_size.width, 5), 0, 1);
 		onposition?.(position);
 	}
 
