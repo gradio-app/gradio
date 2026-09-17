@@ -28,6 +28,7 @@ from typing import (
     Union,
     cast,
 )
+from urllib.parse import urlencode
 
 import anyio
 import fastapi
@@ -1331,7 +1332,12 @@ class App(FastAPI):
             return {"msg": "success"}
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
-        async def _(session_hash: str, run: str, component_id: int):
+        async def _(
+            session_hash: str,
+            run: str,
+            component_id: int,
+            request: fastapi.Request,
+        ):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams.get(session_hash, {})
@@ -1342,25 +1348,34 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404)
 
-            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+            # There is no broadcast to catch up with, and without EXT-X-START a
+            # player takes a playlist with no ENDLIST for a live one and opens
+            # it near the newest segment, skipping however far the generator
+            # had run ahead.
+            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-START:TIME-OFFSET=0\n"
 
+            signature = request.query_params.get("__sign")
+            signature_query = (
+                f"?{urlencode({'__sign': signature})}" if signature else ""
+            )
             for segment in stream.segments:
                 # Packed audio has no timestamps of its own, so a player places
                 # each segment by accumulating these and the rounding adds up.
                 playlist += f"#EXTINF:{segment['duration']:.6f},\n"
-                playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
-                # HLS expects the start time of the video segments to be continuous
-                # Instead of re-encoding the user video chunks, we add a discontinuity tag
-                if segment["extension"] == ".ts":
-                    playlist += "#EXT-X-DISCONTINUITY\n"
+                playlist += (  # type: ignore
+                    f"{segment['id']}{segment['extension']}{signature_query}\n"
+                )
 
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
 
+            headers = {
+                "Cache-Control": "private, no-store" if signature else "no-store"
+            }
             return Response(
                 content=playlist,
                 media_type="application/vnd.apple.mpegurl",
-                headers={"Cache-Control": "no-store"},
+                headers=headers,
             )
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
