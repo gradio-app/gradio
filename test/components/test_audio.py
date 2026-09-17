@@ -280,7 +280,9 @@ class TestAudio:
             value = audio.postprocess((16000, np.zeros(4000, np.int16)))
             assert isinstance(value, FileData)
             await audio.stream_output(value.model_dump(), stream_id, True)
-            with pytest.raises(RuntimeError, match="Could not decode.*Invalid data"):
+            with pytest.raises(
+                RuntimeError, match="Decoding the streamed audio chunk.*Invalid data"
+            ):
                 await audio.stream_output(b"not audio", stream_id, False)
         finally:
             audio.end_stream_output(stream_id)

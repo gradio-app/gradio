@@ -9,6 +9,7 @@ import logging
 import mimetypes
 import os
 import shutil
+import signal
 import subprocess
 import tempfile
 import warnings
@@ -1136,6 +1137,71 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
 def ffmpeg_installed() -> bool:
     return shutil.which("ffmpeg") is not None
+
+
+def require_ffmpeg(operation: str, *executables: str) -> None:
+    """Fail before running a tool that is not there, saying which one and why.
+
+    Checking `ffmpeg` alone is not enough for anything that also probes: a box
+    can have one without the other, and the call that goes missing is then a
+    bare FileNotFoundError from somewhere deep in the stream.
+    """
+    missing = [name for name in executables if shutil.which(name) is None]
+    if not missing:
+        return
+    raise RuntimeError(
+        f"{operation} requires {' and '.join(executables)}, but could not find "
+        f"{' and '.join(missing)} on PATH. Install FFmpeg and make sure its "
+        "executables are on PATH."
+    )
+
+
+def ffmpeg_version_line(executable: str) -> str:
+    """The first line of `<executable> -version`, or "" if it will not say."""
+    try:
+        result = subprocess.run(
+            [executable, "-version"], capture_output=True, check=False, timeout=10
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return (
+        result.stdout.decode(errors="replace").splitlines()[0].strip()
+        if result.stdout
+        else ""
+    )
+
+
+def ffmpeg_failed(
+    executable: str, returncode: int, stderr: bytes | str, doing: str
+) -> RuntimeError:
+    """The error for a media tool that did not exit cleanly.
+
+    Returns rather than raises so the traceback ends at the call that ran the
+    tool. A tool killed by a signal says nothing on stderr, which used to leave
+    the message empty and the cause invisible, so the build is named instead:
+    a crash on a file the tool itself just wrote is the build's fault and not
+    the input's.
+    """
+    detail = stderr.decode(errors="replace") if isinstance(stderr, bytes) else stderr
+    detail = detail.strip()
+    if returncode < 0:
+        try:
+            died = f"was killed by {signal.Signals(-returncode).name}"
+        except ValueError:
+            died = f"was killed by signal {-returncode}"
+    else:
+        died = f"exited with {returncode}"
+    parts = [f"{doing} failed: {executable} {died}."]
+    if version := ffmpeg_version_line(executable):
+        parts.append(f"The build is {version}.")
+    if detail:
+        parts.append(detail)
+    if returncode < 0:
+        parts.append(
+            "Try a different FFmpeg build: one that dies on a file it has just "
+            "written is failing on its own account rather than on the input."
+        )
+    return RuntimeError(" ".join(parts))
 
 
 def video_is_playable(video_filepath: str) -> bool:
