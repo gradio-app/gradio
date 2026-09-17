@@ -36,7 +36,7 @@ here's the bit that actually changes how you work.
 
 the sidebar ships with a curated set of spaces and models so it isn't an empty search box on day one, and searching it searches that set. everything else on the hub you reach by pasting: drop `owner/repo` or a url into the sidebar's space box, or into the picker on a node, and it resolves the repo and adds it. spaces, models, datasets.
 
-you don't install anything. you don't write a wrapper. drag a space on and gradio reads the endpoints, and draws the ports for you. if it has more than one endpoint you pick which one you want from the node itself. models work slightly differently. they're typed off the pipeline tag, so a `text-to-image` model gets a prompt in and an image out.
+you don't install anything. you don't write a wrapper. drag a space on and gradio fetches its `/info`, reads the endpoints, and draws the ports for you. if it has more than one endpoint you pick which one you want from the node itself. models work slightly differently — they're typed off the pipeline tag, so a `text-to-image` model gets a prompt in and an image out, no api call needed to work that out.
 
 so you type "background removal" in, drag the first thing that looks good, wire it to your image input. thirty seconds.
 
@@ -85,6 +85,8 @@ everything flows one way. no cycles, no while loops, no loop-until-it's-good-eno
 
 in the canvas, independent branches run at the same time. called as an api, the python executor walks the graph one node at a time — same results, no parallelism.
 
+saving is gated. locally you need the write-access link gradio prints at launch; on a space you need to be signed in as the owner. share-link visitors get read-only.
+
 and when a remote space blows up three hops downstream, you might have to duplicate it and fix it yourself, or change to another space.
 
 ## quick answers to stuff people ask
@@ -108,4 +110,4 @@ yeah. every output node becomes a normal gradio endpoint. connected ones come ba
 yep, that's what `bind` is for. pass your functions, they show up as nodes.
 
 **where does it actually run?**
-your app's python process does the calling: it hits the space over the gradio client, or hf inference for models, and runs your bound functions in-process. the browser drives the graph and renders it. it all goes against an hf token, so locally that's your quota, and if you deploy with oauth it's each visitor's own.
+your app's python process does the calling: it hits the space over the gradio client, or hf inference for models, and runs your bound functions in-process. the browser drives the graph and renders it, and streams text generation directly for the token-by-token effect. it all goes against an hf token, so locally that's your quota, and if you deploy with oauth it's each visitor's own.
