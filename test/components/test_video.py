@@ -41,10 +41,9 @@ def tone_chunks(
 ):
     """Pieces of one continuous encode carrying an unbroken 440 Hz tone.
 
-    This is what a generator that splits a file yields. `-c copy` can only cut
-    on a keyframe, so the source is encoded with one at every cut, and the cut
-    still trims the audio short of the video, which is the case that catches a
-    video clock advanced by the audio's length.
+    What a generator that splits a file yields. `-c copy` cuts only on a
+    keyframe, so the source carries one at every cut, and the cut still trims
+    the audio short of the video.
     """
     seconds = chunk_seconds * count
     source = directory / "source.mp4"
@@ -69,10 +68,9 @@ def tone_chunks(
 
 
 def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24):
-    """What a generator that renders its own frames yields: each chunk encoded
-    on its own, carrying its share of one continuous tone. The video is asked
-    for in whole frames, so it runs 16.7 ms past the audio on any ffmpeg
-    build; `-shortest` leaves that to the build and 7.0.2 disagrees with 4.4.2.
+    """What a generator that renders its own frames yields, each chunk encoded on
+    its own. The video is asked for in whole frames, since `-shortest` leaves
+    the count to the build and 7.0.2 disagrees with 4.4.2.
     """
     video_seconds = math.ceil(chunk_seconds * VIDEO_FPS) / VIDEO_FPS
     out = directory / "rendered"
@@ -95,11 +93,9 @@ def rendered_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 2
 def overrun_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24):
     """Chunks whose audio outlasts their video, every one of them.
 
-    A generator asked for 0.25 s at 15 fps and told to stop at the shorter
-    track keeps three frames, 0.2 s, against the full 0.25 s of audio, which
-    is what `-shortest` does from ffmpeg 7 on. Asked for outright here, the
-    video in whole frames and the audio in seconds, so the shape does not
-    depend on the build.
+    The shape `-shortest` gives from ffmpeg 7 on: 0.2 s of video against 0.25 s
+    of audio at 15 fps. Asked for outright here, video in whole frames and
+    audio in seconds, so it does not depend on the build.
     """
     video_seconds = math.floor(chunk_seconds * VIDEO_FPS) / VIDEO_FPS
     out = directory / "overrun"
@@ -122,10 +118,9 @@ def overrun_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 24
 def per_frame_chunks(directory: Path, sample_rate: int, fps: int = 30, count: int = 6):
     """One video frame and its own audio per chunk, at a chosen sample rate.
 
-    The shape a generator that renders frame by frame yields, and the one that
-    reaches `first_frame`: a frame at 30 fps carries less audio than the
-    encoder holds back at any rate, so the first chunk completes no frame of
-    its own and has to be topped up with silence.
+    The shape that reaches `first_frame`: a frame at 30 fps carries less audio
+    than the encoder holds back at any rate, so the first chunk completes no
+    frame of its own.
     """
     seconds = 1 / fps
     out = directory / f"per_frame_{sample_rate}"
@@ -149,9 +144,7 @@ def lossless_chunks(directory: Path, chunk_seconds: float = 0.25, count: int = 8
 
     Two things have to go: AAC, which gives every chunk its own encoder edges,
     so the audio is ALAC and decodes back to the tone exactly; and the video
-    overrunning the audio, so the rate is one where the chunk is a whole number
-    of frames. What the overrun costs is a question for a stream that has it
-    (`catch_up` pads the difference as silence), not for this one.
+    overrunning the audio, so the chunk is a whole number of frames.
     """
     out = directory / "lossless"
     out.mkdir()
@@ -252,14 +245,10 @@ def host_cpu() -> str:
 def mpegts_readable() -> bool:
     """Whether the ffmpeg on PATH can read back an MPEG-TS file it just wrote.
 
-    A build that dies on MPEG-TS says nothing about a stream these tests have
-    to decode, so they skip on one rather than fail. The 7.0.2 static build CI
-    used to pin was such a build on the runners it gets; the pin has moved, but
-    anyone running the suite against their own ffmpeg can still have one.
-
-    Both tools are asked, because the tests probe with ffprobe and decode with
-    ffmpeg, and a build whose prober survives while its decoder dies would sail
-    past a guard that only probed.
+    A build that dies on MPEG-TS says nothing about the streams these tests
+    decode, so they skip on one rather than fail. Both tools are asked: the
+    tests probe with ffprobe and decode with ffmpeg, and a build whose prober
+    survives while its decoder dies would sail past a guard that only probed.
     """
     # Evaluated when the first gated test is set up, and then cached, so a run
     # that selects none of them never spawns a process for it. It still cannot
@@ -469,11 +458,10 @@ class TestVideo:
     ):
         """One AAC encoder for the stream, and timestamps that never restart.
 
-        Re-encoding each chunk gave every one of them its own priming frame,
-        which decodes as a gap at each boundary, and left each segment starting
-        at the muxer's own zero so the playlist had to mark a discontinuity. A
-        chunk that arrived as `.ts` was passed through untouched and so carried
-        both problems too.
+        Re-encoding each chunk gave every one its own priming frame, which decodes
+        as a gap at each boundary, and left each segment starting at the muxer's
+        own zero. A chunk arriving as `.ts` was passed through untouched and
+        carried both.
         """
         chunks = tone_chunks(tmp_path, extension=extension)
         video = gr.Video(streaming=True)
@@ -491,19 +479,16 @@ class TestVideo:
         assert final_segment is not None
         body = b"".join(segment["data"] for segment in segments)
         served = body + final_segment["data"]
-        # A loose bound, and deliberately so: the `-c copy` split trims audio
-        # at every cut, and the trimmed time reappears as the silence the video
-        # clock is padded with, so this measures the splitter as much as it
-        # measures the stream. It still separates a stream that re-encodes
-        # every chunk, which ran to 16% against the same input. What this code
-        # adds on its own is measured on lossless chunks below.
+        # Loose deliberately: the `-c copy` split trims audio at every cut and
+        # the trimmed time reappears as padding, so this measures the splitter
+        # as much as the stream. It still separates a stream that re-encodes
+        # every chunk, which ran to 16% on the same input.
         supplied = silence_ratio(np.concatenate([decode_mono(c) for c in chunks]))
         assert silence_ratio(decode_mono(served)) < supplied + 0.05
 
-        # The flush segment carries only audio, so the muxer would give it the
-        # stream id the others use for H.264 and a player reading the segments
-        # in sequence would take it for video and drop it, losing the last
-        # third of a second every time.
+        # The flush segment carries only audio, so without a pinned stream id
+        # the muxer gives it the one the others use for H.264 and a player
+        # takes it for video and drops it.
         tail = len(decode_mono(served)) - len(decode_mono(body))
         assert tail > 0.9 * len(decode_mono(final_segment["data"]))
 
@@ -512,11 +497,9 @@ class TestVideo:
             assert stamps == sorted(stamps)
 
         # A chunk need not start at zero, and carrying its own start through
-        # would leave the video that far behind the audio and stretch the
-        # timeline by the same amount at every boundary. `.ts` chunks make it
-        # obvious, the mpegts muxer starting them 1.4 s in.
-        # The audio sits one AAC frame ahead of the video to cancel the
-        # encoder's own delay, which MPEG-TS cannot record the way mp4 can.
+        # would leave the video that far behind the audio at every boundary.
+        # The audio then sits one AAC frame ahead, cancelling the encoder's own
+        # delay, which MPEG-TS cannot record the way mp4 can.
         video_pts = packet_timestamps(served, "v", tmp_path, "pts_time")
         audio_pts = packet_timestamps(served, "a", tmp_path, "pts_time")
         assert video_pts[0] - audio_pts[0] == pytest.approx(
@@ -527,8 +510,7 @@ class TestVideo:
         )
 
         # The download button and cached examples concatenate the same
-        # segments, including the audio-only one the flush leaves at the end,
-        # which `-c copy` carries over sample for sample.
+        # segments, the audio-only flush one included.
         combined = await video.combine_stream(
             [segment["data"] for segment in segments] + [final_segment["data"]],
             only_file=True,
@@ -543,10 +525,9 @@ class TestVideo:
     async def test_streamed_video_adds_no_silence_of_its_own(self, tmp_path):
         """What the stream adds, measured against chunks that carry no damage.
 
-        Both realistic ways of making chunks lose audio before gradio sees it:
-        a `-c copy` split cuts mid-AAC, and encoding each chunk gives every one
-        its own encoder edges. ALAC chunks decode back to their source sample
-        for sample, so any gap in what comes out was added here.
+        Both realistic ways of making chunks lose audio before gradio sees it, so
+        ALAC chunks are used instead: they decode back to their source sample for
+        sample, and any gap in what comes out was added here.
         """
         chunks = lossless_chunks(tmp_path)
         video = gr.Video(streaming=True)
@@ -582,11 +563,10 @@ class TestVideo:
         """The segments have to follow each other, not just line up in time.
 
         Each is muxed by its own ffmpeg, which restarts the MPEG-TS continuity
-        counter every PID carries, and a player reading them in sequence takes
-        that for packet loss. The tracks also have to stay together: a chunk
-        asking for 0.25 s at 15 fps carries four frames, 16.7 ms more video
-        than audio, and banking that every chunk would walk them apart for as
-        long as the generator keeps yielding.
+        counter every PID carries, and a player takes that for packet loss. The
+        tracks also have to stay together: a chunk asking for 0.25 s at 15 fps
+        carries 16.7 ms more video than audio, and banking that every chunk walks
+        them apart.
         """
         chunks = rendered_chunks(tmp_path)
         video = gr.Video(streaming=True)
@@ -622,15 +602,12 @@ class TestVideo:
         steps = [b - a for a, b in zip(video_pts[:-1], video_pts[1:], strict=False)]
         assert max(steps) == pytest.approx(1 / VIDEO_FPS, abs=0.005)
 
-        # A segment's audio also has to sit with its own video. The encoder
-        # hands frames over a burst behind, so a chunk has to take what has
-        # arrived rather than one burst's worth, and a segment whose audio
-        # starts a third of a second before its video stops hls.js dead: 0.33 s
-        # is where it was measured stopping. Taking what has arrived holds the
-        # lead to 0.148 s at worst on an idle box, against 0.394 s worst and
-        # 0.309 s mean with no catching up at all. The bound is 0.3 rather than
-        # the idle figure because the encoder emits later under load and a full
-        # parallel suite on a CI runner has been seen at 0.286.
+        # A segment's audio also has to sit with its own video: one whose
+        # audio starts a third of a second before its video stops hls.js dead.
+        # Taking what has arrived rather than one burst's worth holds the lead
+        # to 0.148 s idle against 0.394 s worst with none. The bound is 0.3
+        # rather than the idle figure because the encoder emits later under
+        # load.
         for segment in segments:
             within = [
                 packet_timestamps(segment["data"], kind, tmp_path, "pts_time")
@@ -645,12 +622,10 @@ class TestVideo:
     async def test_audio_that_outlasts_its_video_does_not_walk_ahead(self, tmp_path):
         """The other way round from the chunk `catch_up` pads.
 
-        Padding covers a chunk whose video outlasts its audio. Audio outlasting
-        the video was left where it fell, and a generator whose every chunk
-        does that walks the sound ahead of the picture for as long as it
-        yields: 50 ms a chunk here, two seconds of it by the fortieth. Past a
-        tolerance the next chunk's video is placed where the audio has
-        reached, and the playlist reports how far the timeline moved.
+        Audio outlasting the video was left where it fell, and a generator whose
+        every chunk does that walks the sound ahead of the picture: 50 ms a chunk
+        here, two seconds by the fortieth. Past a tolerance the next chunk's video
+        is placed where the audio has reached, and the playlist reports the move.
         """
         chunks = overrun_chunks(tmp_path)
         video = gr.Video(streaming=True)
@@ -679,9 +654,8 @@ class TestVideo:
         for kind in ("v", "a"):
             stamps = packet_timestamps(served, kind, tmp_path)
             assert stamps == sorted(stamps)
-        # Moving the video up puts a segment's picture after the audio the
-        # encoder is still holding back, and a segment whose audio starts a
-        # third of a second before its video stops hls.js dead.
+        # Moving the video up puts a segment's picture after audio the encoder
+        # is still holding, and a third of a second of that stops hls.js dead.
         for segment in segments:
             within = [
                 packet_timestamps(segment["data"], kind, tmp_path, "pts_time")
@@ -696,13 +670,10 @@ class TestVideo:
     async def test_a_chunk_without_audio_keeps_the_stream_s_track(self, tmp_path):
         """A stream that has an audio track has to keep carrying one.
 
-        Chunks that bring no audio of their own used to skip the encoder
-        entirely, so their segments went out with a video track and nothing
-        else, and the audio clock stood still while the video clock ran on.
-        hls.js fixes its tracks on the first segment and will not take the
-        transition, and the flush segment was then placed at a position the
-        earlier segments had already covered while the playlist billed its
-        length on the end regardless.
+        Chunks bringing no audio of their own used to skip the encoder, so their
+        segments went out with no audio track and the audio clock stood still
+        while the video clock ran on. hls.js fixes its tracks on the first segment
+        and will not take the transition.
         """
         out = tmp_path / "mixed"
         out.mkdir()
@@ -745,10 +716,8 @@ class TestVideo:
         for segment in segments:
             assert "audio" in stream_kinds(segment["data"], tmp_path)
         # What the encoder is still holding back, and nothing else: 0.067 s
-        # measured. Closing only the distance behind leaves 0.346, and not
-        # feeding the silent chunks at all leaves 0.903, the whole silent half
-        # of the stream, which is what put the flush segment 0.836 s before
-        # the video it was billed to follow.
+        # measured, against 0.346 closing only the distance behind and 0.903
+        # not feeding the silent chunks at all.
         assert apart < 0.15
 
     @pytest.mark.requires_ffmpeg
@@ -758,13 +727,10 @@ class TestVideo:
     ):
         """Every advance of the video clock has to be billed to one `#EXTINF`.
 
-        `catch_up` moves the clock up to the audio once the audio has led for
-        longer than `MAX_AUDIO_LEAD`, and the segment's duration reports the
-        move. A chunk that brings no video and whose encoder hands nothing
-        back leaves without a segment, so there is no duration to report it
-        in, and the chunk after it starts from the moved clock: the jump is
-        billed to nobody and the playlist ends up shorter than the span its
-        segments cover.
+        `catch_up` moves the clock up to the audio once the audio has led for long
+        enough, and the segment's duration reports the move. A chunk that leaves
+        without a segment has no duration to report it in, so the jump is billed
+        to nobody and the playlist ends up shorter than its segments cover.
         """
         (first,) = tone_chunks(tmp_path, count=1)
         audio_only = tmp_path / "audio_only.mp4"
@@ -804,10 +770,9 @@ class TestVideo:
     ):
         """An encoder that declines the first frame declines it every time.
 
-        A failed attempt leaves `frames_emitted` at zero, so the condition
-        that guards the wait stays true, and every later chunk that also came
-        back empty paid `FIRST_FRAME_WAIT` again. Three chunks meant six
-        seconds of a worker thread waiting on a frame that was never coming.
+        A failed attempt leaves `frames_emitted` at zero, so the condition guarding
+        the wait stays true and every later empty chunk paid `FIRST_FRAME_WAIT`
+        again: three chunks, six seconds of a blocked worker thread.
         """
         monkeypatch.setattr(AacStreamEncoder, "take", lambda self, timeout=None: [])
         calls = []
@@ -917,10 +882,9 @@ class TestVideo:
     async def test_chunks_with_nothing_to_mux_are_passed_over(self, tmp_path):
         """ffmpeg refuses a command with no input, and it took the run with it.
 
-        A run of audio-only chunks too short to complete a frame leaves the
-        muxer a chunk with no video and an encoder still holding its audio.
-        One such chunk is survivable, the encoder having a chunk's worth in
-        hand, but a few in a row are not.
+        A run of audio-only chunks too short to complete a frame leaves the muxer
+        no video and the encoder still holding its audio. One such chunk is
+        survivable; a few in a row are not.
         """
         source = tmp_path / "chunks"
         source.mkdir()
@@ -965,13 +929,9 @@ class TestVideo:
         """Or the stream loses its audio, not just its opening.
 
         hls.js settles its SourceBuffers on the first segment and refuses the
-        transition when a later one arrives with audio, so a first segment that
-        goes out silent costs every segment after it too.
-
-        Two ways to get one. `hold_up` starves the first `take` the way a
-        loaded box does, the encoder being a process of its own; otherwise the
-        chunk is 10 ms, short of the 23 ms a frame needs at 44.1 kHz, and no
-        waiting would conjure the samples.
+        transition when a later one arrives with audio. Two ways to get a silent
+        one: `hold_up` starves the first `take` the way a loaded box does, or the
+        chunk is 10 ms, short of the 23 ms a frame needs at 44.1 kHz.
         """
         seconds = 0.25 if hold_up else 0.01
         chunks = rendered_chunks(tmp_path, chunk_seconds=seconds, count=2)
@@ -1013,18 +973,12 @@ class TestVideo:
     ):
         """What the first segment is topped up with must not snap the clock.
 
-        The top-up is counted in frames, but what a frame costs is seconds:
-        four of them is 93 ms at 44.1 kHz and 512 ms at 8. Feeding the largest
-        count at every rate put more silence in than `_audio_lead_tolerance`
-        allows at every rate below 32 kHz, so the chunk after the first found
-        the audio leading, moved the video clock up to it, and froze the
-        opening picture for as long as the padding: 0.26 s at 16 kHz on a
-        generator yielding one frame at a time.
-
-        Both halves are needed. Topping up a frame at a time stops at what the
-        encoder actually holds back - two frames below 32 kHz, not four - and
-        the tolerance is never less than two frames of the rate in hand, since
-        the encoder cannot hand audio over in anything smaller.
+        The top-up is counted in frames, but what a frame costs is seconds. Feeding
+        the largest count at every rate put in more silence than
+        `_audio_lead_tolerance` allows below 32 kHz, so the chunk after the first
+        found the audio leading and froze the opening picture for as long as the
+        padding. Both halves are needed: the top-up stops at what the encoder
+        actually holds back, and the tolerance never goes under two frames.
         """
         # 8 kHz is not here: one frame is 0.128 s, so a chunk this short
         # carries no encodable audio at all and ffmpeg drops the track.
@@ -1062,10 +1016,9 @@ class TestVideo:
     def test_the_lead_tolerance_is_never_under_two_frames(self, output_rate, expected):
         """A tenth of a second is under one AAC frame at the bottom of the range.
 
-        The encoder hands audio over a whole frame at a time, so a tolerance
-        below that snaps the video clock on the encoder's granularity rather
-        than on any drift the stream has. A frame is 0.128 s at 8 kHz against
-        0.023 s at 44.1, so the floor only binds at the low end.
+        The encoder hands audio over a whole frame at a time, so a tolerance below
+        that snaps the video clock on the encoder's granularity rather than on any
+        drift the stream has. A frame is 0.128 s at 8 kHz against 0.023 s at 44.1.
         """
         # Only `frame_duration` is read, and a real encoder is an ffmpeg process.
         encoder = cast(
@@ -1150,10 +1103,10 @@ class TestVideo:
     @pytest.mark.requires_ffmpeg
     @reads_mpegts
     def test_a_non_h264_chunk_is_re_encoded_to_a_playable_pixel_format(self, tmp_path):
-        """A codec hls.js cannot play is re-encoded with libx264, which left to
-        itself keeps the source's pixel format. A 4:4:4 or 10-bit source would
-        then come out in a High profile no browser decodes, so it is pinned to
-        yuv420p."""
+        """libx264 left to itself keeps the source's pixel format, so a 4:4:4 or
+        10-bit source would come out in a High profile no browser decodes. It is
+        pinned to yuv420p.
+        """
         source = tmp_path / "wide.mp4"
         subprocess.run([
             "ffmpeg", "-y", "-v", "error",
