@@ -1,5 +1,34 @@
 # @gradio/sidebar
 
+## 0.2.12
+
+### Dependency updates
+
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+
+## 0.2.12
+
+### Fixes
+
+- [#13704](https://github.com/gradio-app/gradio/pull/13704) [`b97d910`](https://github.com/gradio-app/gradio/commit/b97d91008b8378823f990c6661a15b428b5434c7) - Recalculate the sidebar overlap amount on resize.  Thanks @hysts!
+
+## 0.2.11
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+- @gradio/column@0.4.1
+
+## 0.2.10
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/atoms@0.26.0
+
 ## 0.2.9
 
 ### Dependency updates

@@ -300,20 +300,6 @@
       }
     },
     {
-      "kind": "model",
-      "id": "Salesforce/blip-image-captioning-large",
-      "task": "image-to-text",
-      "modality": "image",
-      "title": "Blip image captioning large",
-      "description": "",
-      "added_at": "2026-07-03T00:00:00Z",
-      "featured": true,
-      "validation": {
-        "status": "ok",
-        "last_checked": null
-      }
-    },
-    {
       "kind": "space",
       "id": "facebook/sam2",
       "task": "image-segmentation",

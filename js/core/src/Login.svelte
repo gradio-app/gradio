@@ -4,24 +4,31 @@
 	import { BaseButton } from "@gradio/button";
 	import { BaseColumn } from "@gradio/column";
 	import { Block } from "@gradio/atoms";
-	export let root: string;
-	export let auth_message: string | null;
-	export let app_mode: boolean;
-	export let space_id: string | null;
-	export let i18n: (s: string) => string;
+	import { resolve_current_origin_url } from "@gradio/utils";
+	let {
+		root,
+		auth_message,
+		app_mode,
+		space_id,
+		i18n
+	}: {
+		root: string;
+		auth_message: string | null;
+		app_mode: boolean;
+		space_id: string | null;
+		i18n: (s: string) => string;
+	} = $props();
 
-	let username = "";
-	let password = "";
-	let incorrect_credentials = false;
+	let username = $state("");
+	let password = $state("");
+	let incorrect_credentials = $state(false);
 
 	const submit = async (): Promise<void> => {
 		const formData = new FormData();
 		formData.append("username", username);
 		formData.append("password", password);
 
-		// Use URL constructor to properly join paths and avoid double slashes
-		const login_url = new URL("login", root.endsWith("/") ? root : root + "/")
-			.href;
+		const login_url = resolve_current_origin_url(root, "login").href;
 		let response = await fetch(login_url, {
 			method: "POST",
 			body: formData

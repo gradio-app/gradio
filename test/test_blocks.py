@@ -1,5 +1,6 @@
 import asyncio
 import copy
+import gc
 import io
 import json
 import os
@@ -26,6 +27,7 @@ from PIL import Image
 
 import gradio as gr
 from gradio import blocks, helpers
+from gradio.components.audio import _stream_encoders
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
@@ -95,6 +97,39 @@ class TestBlocksMethods:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
+
+    def test_load_from_config_proxies_initial_file_values(self):
+        proxy_url = "https://private-space.hf.space"
+        remote_path = "/tmp/gradio/private-cat.png"
+        upstream_url = f"{proxy_url}{API_PREFIX}/file={remote_path}"
+        file_data = {
+            "path": remote_path,
+            "url": upstream_url,
+            "meta": {"_type": "gradio.FileData"},
+        }
+
+        with gr.Blocks() as demo:
+            gallery = gr.Gallery()
+
+        config = demo.get_config_file()
+        gallery_config = next(
+            component
+            for component in config["components"]
+            if component["id"] == gallery._id
+        )
+        gallery_config["props"]["value"] = [
+            {"image": file_data, "caption": "Private image"}
+        ]
+
+        loaded = gr.Blocks.from_config(config, [], proxy_url)
+        loaded_gallery = next(
+            block for block in loaded.blocks.values() if isinstance(block, gr.Gallery)
+        )
+        image = loaded_gallery.value[0]["image"]  # type: ignore
+        assert image["path"] == remote_path
+        assert image["url"] == (
+            f"{API_PREFIX}/proxy={proxy_url}{API_PREFIX}/file={remote_path}"
+        )
 
     def test_from_config_rejects_non_hf_space_proxy_url(self):
         """`Blocks.from_config()` must only register `proxy_url`s whose host
@@ -742,6 +777,28 @@ class TestBlocksPostprocessing:
 
         output = await demo.postprocess_data(demo.fns[0], {num2: 23}, state=None)
         assert output[0] == 23
+
+    @pytest.mark.asyncio
+    async def test_blocks_matches_stale_returned_component_by_key(self):
+        # If the app is hot-reloaded while a prediction is in flight, the
+        # function may return components created by a previous version of
+        # the app. They should be matched to the current output components
+        # by key. See https://github.com/gradio-app/gradio/issues/8712
+        with gr.Blocks():
+            stale_num = gr.Number(key="num")
+            unkeyed_num = gr.Number()
+
+        with gr.Blocks() as demo:
+            num = gr.Number(key="num")
+            update = gr.Button(value="update")
+            update.click(lambda: {num: 42}, inputs=[], outputs=[num])
+
+        assert stale_num._id != num._id
+        output = await demo.postprocess_data(demo.fns[0], {stale_num: 42}, state=None)
+        assert output[0] == 42
+
+        with pytest.raises(ValueError, match="not specified as output"):
+            await demo.postprocess_data(demo.fns[0], {unkeyed_num: 42}, state=None)
 
     @pytest.mark.asyncio
     async def test_blocks_update_dict_without_postprocessing(self, media_data):
@@ -1638,6 +1695,189 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
+def streaming_audio_demo():
+    """A Blocks whose button streams two audio chunks into a streaming Audio."""
+    chunk = (
+        pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+    ).read_bytes()
+
+    def stream():
+        yield chunk
+        yield chunk
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, None, audio)
+
+    return demo, next(iter(demo.fns.values())), audio
+
+
+async def drive_streaming_run(demo, block_fn, session_hash, event_id):
+    """Run a generator to completion the way the queue does, one call per chunk.
+
+    Returns the playlist URL from the first chunk.
+    """
+    iterator, url = None, None
+    for _ in range(10):
+        output = await demo.process_api(
+            block_fn=block_fn,
+            inputs=[],
+            state=None,
+            iterator=iterator,
+            session_hash=session_hash,
+            event_id=event_id,
+        )
+        iterator = output["iterator"]
+        if url is None:
+            url = output["data"][0]["url"]
+        if not output["is_generating"]:
+            # The final chunk carries the whole value again, so its URL has to
+            # still be the first chunk's. A key that changed mid-run would have
+            # opened a second stream under a second URL. The chunks in between
+            # carry a diff, so there is nothing to compare there.
+            final = output["data"][0]
+            assert isinstance(final, dict) and final.get("url") == url, (
+                "the run key changed mid-run"
+            )
+            return url
+    raise AssertionError("the generator never stopped generating")
+
+
+class TestHandleStreamingOutputs:
+    @pytest.mark.asyncio
+    async def test_final_chunk_with_no_open_stream_leaves_nothing_behind(self):
+        # The session's streams may be gone by the time the final chunk lands —
+        # a disconnect drops them — and a generator that sends only prop updates
+        # never opens one at all. Neither should cost the caller their output.
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            audio = gr.Audio(streaming=True, autoplay=True)
+            box.submit(lambda x: x, box, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+        data = await demo.handle_streaming_outputs(
+            block_fn, [b"final"], session_hash="s", run="run-1", final=True
+        )
+
+        assert data == [b"final"]
+        # and the run leaves nothing behind, since nothing can fetch it
+        assert "s" not in demo.pending_streams
+
+    @pytest.mark.asyncio
+    async def test_sequential_runs_get_distinct_run_keys(self):
+        # A later run used to land on the address a finished run had just freed
+        # and inherit the stream that run had already ended.
+        # See https://github.com/gradio-app/gradio/issues/13809
+        def stream():
+            yield None
+            yield None
+
+        with gr.Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+        urls = [
+            await drive_streaming_run(demo, block_fn, "s", f"event-{i}")
+            for i in range(100)
+        ]
+
+        assert len(set(urls)) == 100
+
+    def test_run_keys_are_released_with_their_iterator(self):
+        # Holding the keys strongly would also give every run its own key, by
+        # keeping every iterator alive, which is a leak rather than a fix.
+        from gradio.utils import SyncToAsyncIterator
+
+        demo = gr.Blocks()
+        for _ in range(100):
+            iterator = SyncToAsyncIterator(iter([1]), None)
+            demo._stream_run_key(iterator)
+            del iterator
+
+        gc.collect()
+        assert len(demo._stream_run_ids) == 0
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_each_run_gets_its_own_stream(self):
+        demo, block_fn, audio = streaming_audio_demo()
+
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-2")
+
+        streams = demo.pending_streams["s"]
+        assert first != second
+        assert {first, second} == {
+            f"{API_PREFIX}/stream/s/{key}/{audio._id}/playlist.m3u8" for key in streams
+        }
+        # The same input encodes to the same bytes, so equal and non-empty
+        # totals mean neither run appended to the other's stream. Segment
+        # counts would not do: how many a run has depends on when the encoder
+        # emitted its frames.
+        totals = [
+            sum(len(segment["data"]) for segment in streams[key][audio._id].segments)
+            for key in streams
+        ]
+        assert totals[0] == totals[1] > 0
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_first_call_that_fails_ends_the_streams_it_opened(self):
+        # `call_process_api` and the queue find a run through
+        # `app.iterators[event_id]`, which is assigned only after `process_api`
+        # returns, so on a first call neither can end its streams.
+        from pydub.exceptions import CouldntDecodeError
+
+        chunk = (
+            pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+        ).read_bytes()
+
+        def stream():
+            yield chunk, b"not audio"
+
+        with gr.Blocks() as demo:
+            first, second = gr.Audio(streaming=True), gr.Audio(streaming=True)
+            gr.Button().click(stream, None, [first, second])
+        block_fn = next(iter(demo.fns.values()))
+        registered_before = set(_stream_encoders)
+
+        with pytest.raises(CouldntDecodeError):
+            await demo.process_api(
+                block_fn=block_fn,
+                inputs=[],
+                state=None,
+                iterator=None,
+                session_hash="s",
+                event_id="event-1",
+            )
+
+        (streams,) = demo.pending_streams["s"].values()
+        assert streams[first._id].ended
+        assert set(_stream_encoders) <= registered_before
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_runs_are_keyed_by_iterator_not_event_id(self):
+        # An event id is not a run id. Cancelling an event drops
+        # `app.iterators[event_id]`, so the next call for that event id starts
+        # the generator over, and keying the run on the event id would hand the
+        # restart the streams the first run had already ended. This drives
+        # `process_api` directly, so it pins the keying, not the cancel path.
+        demo, block_fn, audio = streaming_audio_demo()
+
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-1")
+
+        streams = demo.pending_streams["s"]
+        assert first != second
+        totals = [
+            sum(len(segment["data"]) for segment in streams[key][audio._id].segments)
+            for key in streams
+        ]
+        assert totals[0] == totals[1] > 0
+
+
 class TestGetAPIInfo:
     def test_many_endpoints(self):
         with gr.Blocks() as demo:
@@ -2305,3 +2545,82 @@ def test_render_apply_does_not_raise_keyerror_when_fns_are_popped():
             renderable.fn = original_fn
     finally:
         LocalContext.blocks_config.reset(token)
+
+
+def test_nested_render_uses_local_blocks_context():
+    def create_nested_app(user):
+        with gr.Blocks():
+            gr.Textbox(user, label="User Profile")
+            search_box = gr.Textbox(label="Search Bar")
+
+            @gr.render(inputs=search_box)
+            def render_words(search):
+                for word in search.split():
+                    gr.Button(word, key=word)
+
+    with gr.Blocks() as demo:
+        user = gr.State("User1")
+
+        @gr.render(inputs=user)
+        def render_user(user):
+            create_nested_app(user)
+
+    outer_render = next(
+        renderable for renderable in demo.renderables if renderable.fn is render_user
+    )
+    root_renderable_count = len(demo.renderables)
+    blocks_config = copy.copy(demo.default_config)
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        outer_render.apply("User1")
+
+        inner_render = next(
+            renderable
+            for renderable in blocks_config.renderables
+            if renderable is not outer_render
+        )
+        outer_config = blocks_config.get_config(outer_render)
+        assert any(
+            dependency["render_id"] == inner_render._id
+            for dependency in outer_config["dependencies"]
+        )
+
+        inner_render.apply("hello world")
+        inner_config = blocks_config.get_config(inner_render)
+        assert [
+            component["props"].get("value")
+            for component in inner_config["components"]
+            if component["type"] == "button"
+        ] == ["hello", "world"]
+
+        outer_render.apply("User2")
+        assert len(demo.renderables) == root_renderable_count
+    finally:
+        LocalContext.blocks_config.reset(token)
+
+
+def test_blocks_render_inside_reactive_render_registers_components():
+    with gr.Blocks() as prebuilt:
+        markdown = gr.Markdown("Prebuilt content")
+
+    with gr.Blocks() as demo:
+
+        @gr.render()
+        def render_prebuilt():
+            prebuilt.render()
+
+    renderable = next(
+        renderable
+        for renderable in demo.renderables
+        if renderable.fn is render_prebuilt
+    )
+    blocks_config = copy.copy(demo.default_config)
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        renderable.apply()
+        config = blocks_config.get_config(renderable)
+    finally:
+        LocalContext.blocks_config.reset(token)
+
+    component_ids = {component["id"] for component in config["components"]}
+    assert markdown._id in component_ids

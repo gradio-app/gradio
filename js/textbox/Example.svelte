@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 
-	export let value: string | null;
-	export let type: "gallery" | "table";
-	export let selected = false;
+	let {
+		value,
+		type,
+		selected = false
+	}: {
+		value: string | null;
+		type: "gallery" | "table";
+		selected?: boolean;
+	} = $props();
 
-	let size: number;
-	let el: HTMLDivElement;
+	let size = $state(0);
+	let el: HTMLDivElement | undefined = $state();
 
 	function set_styles(element: HTMLElement, el_width: number): void {
 		element.style.setProperty(
@@ -24,7 +30,7 @@
 	}
 
 	onMount(() => {
-		set_styles(el, size);
+		if (el) set_styles(el, size);
 	});
 </script>
 

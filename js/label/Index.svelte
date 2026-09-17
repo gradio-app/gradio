@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseLabel } from "./shared/Label.svelte";
 </script>
 

@@ -1,6 +1,5 @@
 <script>
-	export let fill = "currentColor";
-	export let stroke_width = 1.5;
+	let { fill = "currentColor", stroke_width = 1.5 } = $props();
 </script>
 
 <svg

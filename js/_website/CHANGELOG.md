@@ -1,5 +1,57 @@
 # website
 
+## 0.80.2
+
+### Features
+
+- [#13770](https://github.com/gradio-app/gradio/pull/13770) [`2cb02c0`](https://github.com/gradio-app/gradio/commit/2cb02c06228a4dfd509a0ac757ed0af466218478) - Upgrade vulnerable frontend dependencies.  Thanks @abidlabs!
+
+## 0.80.1
+
+### Fixes
+
+- [#13692](https://github.com/gradio-app/gradio/pull/13692) [`3676c45`](https://github.com/gradio-app/gradio/commit/3676c45acfc12456de097996fe5adab2132e2d30) - publish the `Prism` global before its grammar files load, so the docs pages stop failing to hydrate with `ReferenceError: Prism is not defined`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.12.0
+
+## 0.80.0
+
+### Features
+
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Fixes
+
+- [#13640](https://github.com/gradio-app/gradio/pull/13640) [`d833d9a`](https://github.com/gradio-app/gradio/commit/d833d9add10925d74dfcbd8fdc9686132c6fa458) - fall back to the custom component backup dataset when the gallery API is unavailable.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.2
+- @gradio/tabs@0.10.0
+- @gradio/html@0.13.2
+- @gradio/tabitem@0.8.3
+- @gradio/code@0.19.0
+- @gradio/paramviewer@0.11.0
+- @gradio/button@0.8.2
+
+## 0.79.0
+
+### Features
+
+- [#13547](https://github.com/gradio-app/gradio/pull/13547) [`370725b`](https://github.com/gradio-app/gradio/commit/370725bb433b15da0c303be8eb04638dc3100b26) - website build: add fallback to unversioned templates.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/tabs@0.9.0
+- @gradio/html@0.13.1
+- @gradio/code@0.18.1
+- @gradio/statustracker@0.15.1
+- @gradio/paramviewer@0.10.1
+- @gradio/button@0.8.1
+- @gradio/tabitem@0.8.2
+
 ## 0.78.1
 
 ### Dependency updates

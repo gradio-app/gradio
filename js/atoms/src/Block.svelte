@@ -1,36 +1,76 @@
 <script lang="ts">
-	export let height: number | string | undefined = undefined;
-	export let min_height: number | string | undefined = undefined;
-	export let max_height: number | string | undefined = undefined;
-	export let width: number | string | undefined = undefined;
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let variant: "solid" | "dashed" | "none" = "solid";
-	export let border_mode: "base" | "focus" | "contrast" = "base";
-	export let padding = true;
-	export let type: "normal" | "fieldset" = "normal";
-	export let test_id: string | undefined = undefined;
-	export let explicit_call = false;
-	export let container = true;
-	export let visible: boolean | "hidden" = true;
-	export let allow_overflow = true;
-	export let overflow_behavior: "visible" | "auto" = "auto";
-	export let scale: number | null = null;
-	export let min_width = 0;
-	export let flex = false;
-	export let resizable = false;
-	export let rtl = false;
-	export let fullscreen = false;
-	export let label: string | undefined = undefined;
+	import type { Snippet } from "svelte";
+
+	let {
+		height = undefined,
+		min_height = undefined,
+		max_height = undefined,
+		width = undefined,
+		elem_id = "",
+		elem_classes = [],
+		variant = "solid",
+		border_mode = "base",
+		padding = true,
+		type = "normal",
+		test_id = undefined,
+		explicit_call = false,
+		container = true,
+		visible = true,
+		allow_overflow = true,
+		overflow_behavior = "auto",
+		scale = null,
+		min_width = 0,
+		flex = false,
+		resizable = false,
+		rtl = false,
+		fullscreen = $bindable(false),
+		label = undefined,
+		children
+	}: {
+		height?: number | string | undefined;
+		min_height?: number | string | undefined;
+		max_height?: number | string | undefined;
+		width?: number | string | undefined;
+		elem_id?: string;
+		elem_classes?: string[];
+		variant?: "solid" | "dashed" | "none";
+		border_mode?: "base" | "focus" | "contrast";
+		padding?: boolean;
+		type?: "normal" | "fieldset";
+		test_id?: string | undefined;
+		explicit_call?: boolean;
+		container?: boolean;
+		visible?: boolean | "hidden";
+		allow_overflow?: boolean;
+		overflow_behavior?: "visible" | "auto";
+		scale?: number | null;
+		min_width?: number;
+		flex?: boolean;
+		resizable?: boolean;
+		rtl?: boolean;
+		fullscreen?: boolean;
+		label?: string | undefined;
+		children?: Snippet;
+	} = $props();
+
 	let old_fullscreen = fullscreen;
 
-	let element: HTMLElement;
+	let element: HTMLElement | undefined = $state();
 
-	let tag = type === "fieldset" ? "fieldset" : "div";
+	let tag = $derived(type === "fieldset" ? "fieldset" : "div");
 
-	let placeholder_height = 0;
-	let placeholder_width = 0;
-	let preexpansionBoundingRect: DOMRect | null = null;
+	// When visible is false the block is not rendered at all, so flex is
+	// irrelevant; keep the historical behaviour of forcing it off.
+	let is_flex = $derived(visible ? flex : false);
+
+	let placeholder_height = $state(0);
+	let placeholder_width = $state(0);
+	let preexpansionBoundingRect: DOMRect | null = $state(null);
+	let portal_parent: (Node & ParentNode) | null = null;
+	let portal_marker: Comment | null = null;
+	// Kept outside `$state` so teardown can still reach the element after
+	// Svelte has cleared the `bind:this` binding.
+	let portal_element: HTMLElement | null = null;
 
 	function handleKeydown(event: KeyboardEvent): void {
 		if (fullscreen && event.key === "Escape") {
@@ -38,18 +78,104 @@
 		}
 	}
 
-	$: if (fullscreen !== old_fullscreen) {
+	// The app container carries the theme variables, so keep the block inside it.
+	function portal_target(el: HTMLElement): Node & ParentNode {
+		const root = el.getRootNode();
+		return (
+			el.closest(".gradio-container") ??
+			(root instanceof ShadowRoot ? root : document.body)
+		);
+	}
+
+	// Measures where a `position: fixed` element pinned to the top left at a
+	// 100% size lands when it is a child of `parent`.
+	function fixed_probe_rect(parent: Node & ParentNode): DOMRect {
+		const probe = document.createElement("div");
+		probe.style.cssText =
+			"position: fixed; top: 0; left: 0; width: 100%; height: 100%; visibility: hidden; pointer-events: none;";
+		parent.appendChild(probe);
+		const rect = probe.getBoundingClientRect();
+		probe.remove();
+		return rect;
+	}
+
+	// A `position: fixed` element is only laid out against the viewport when no
+	// ancestor establishes a containing block for fixed descendants. Anything
+	// with a transform, filter, backdrop-filter, perspective, contain or
+	// container-type does establish one — `gr.Sidebar` always sets a transform,
+	// for instance — and then top/left/width/height resolve against that
+	// ancestor instead. Rather than enumerate those properties, compare a probe
+	// where the block currently is with one in the container it would move to.
+	function needs_portal(el: HTMLElement, target: Node & ParentNode): boolean {
+		const parent = el.parentNode;
+		if (!parent || parent === target) return false;
+		const here = fixed_probe_rect(parent);
+		const there = fixed_probe_rect(target);
+		return (
+			Math.abs(here.top - there.top) > 1 ||
+			Math.abs(here.left - there.left) > 1 ||
+			Math.abs(here.width - there.width) > 1 ||
+			Math.abs(here.height - there.height) > 1
+		);
+	}
+
+	// Moves the block to the app container so that its fixed positioning
+	// resolves against the viewport. The placeholder that reserves the block's
+	// space stays behind in the original parent, and `exit_portal` puts the
+	// block back where it came from.
+	function enter_portal(el: HTMLElement, target: Node & ParentNode): void {
+		if (!el.parentNode || el.parentNode === target) return;
+		portal_parent = el.parentNode;
+		portal_element = el;
+		portal_marker = document.createComment("fullscreen block");
+		portal_parent.insertBefore(portal_marker, el);
+		target.appendChild(el);
+	}
+
+	function exit_portal(): void {
+		if (!portal_parent || !portal_element) return;
+		const marker =
+			portal_marker && portal_marker.parentNode === portal_parent
+				? portal_marker
+				: null;
+		portal_parent.insertBefore(portal_element, marker);
+		marker?.remove();
+		portal_parent = null;
+		portal_marker = null;
+		portal_element = null;
+	}
+
+	$effect(() => {
+		const el = element;
+		if (fullscreen === old_fullscreen || !el) return;
 		old_fullscreen = fullscreen;
 		if (fullscreen) {
-			preexpansionBoundingRect = element.getBoundingClientRect();
-			placeholder_height = element.offsetHeight;
-			placeholder_width = element.offsetWidth;
+			preexpansionBoundingRect = el.getBoundingClientRect();
+			placeholder_height = el.offsetHeight;
+			placeholder_width = el.offsetWidth;
+			const target = portal_target(el);
+			if (needs_portal(el, target)) {
+				enter_portal(el, target);
+			}
 			window.addEventListener("keydown", handleKeydown);
 		} else {
+			exit_portal();
 			preexpansionBoundingRect = null;
 			window.removeEventListener("keydown", handleKeydown);
 		}
-	}
+	});
+
+	// Nothing reactive is read here, so this effect runs once and its cleanup
+	// only fires on destroy — tearing down a block while it is fullscreen would
+	// otherwise leak the keydown listener. It cannot be folded into the effect
+	// above, which re-runs on every `fullscreen` change and would therefore
+	// remove the listener immediately after adding it.
+	$effect(() => {
+		return () => {
+			window.removeEventListener("keydown", handleKeydown);
+			exit_portal();
+		};
+	});
 
 	const get_dimension = (
 		dimension_value: string | number | undefined
@@ -64,16 +190,14 @@
 		}
 	};
 
-	$: if (!visible) {
-		flex = false;
-	}
-
 	const resize = (e: MouseEvent): void => {
+		const el = element;
+		if (!el) return;
 		let prevY = e.clientY;
 		const onMouseMove = (e: MouseEvent): void => {
 			const dy: number = e.clientY - prevY;
 			prevY = e.clientY;
-			element.style.height = `${element.offsetHeight + dy}px`;
+			el.style.height = `${el.offsetHeight + dy}px`;
 		};
 		const onMouseUp = (): void => {
 			window.removeEventListener("mousemove", onMouseMove);
@@ -97,7 +221,7 @@
 		class:hidden={visible === "hidden"}
 		class="block {elem_classes?.join(' ') || ''}"
 		class:padded={padding}
-		class:flex
+		class:flex={is_flex}
 		class:border_focus={border_mode === "focus"}
 		class:border_contrast={border_mode === "contrast"}
 		class:hide-container={!explicit_call && !container}
@@ -131,14 +255,14 @@
 		dir={rtl ? "rtl" : "ltr"}
 		aria-label={label}
 	>
-		<slot />
+		{@render children?.()}
 		{#if resizable}
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<svg
 				class="resize-handle"
 				xmlns="http://www.w3.org/2000/svg"
 				viewBox="0 0 10 10"
-				on:mousedown={resize}
+				onmousedown={resize}
 			>
 				<line x1="1" y1="9" x2="9" y2="1" stroke="gray" stroke-width="0.5" />
 				<line x1="5" y1="9" x2="9" y2="5" stroke="gray" stroke-width="0.5" />
@@ -218,8 +342,11 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		width: 100vw;
-		height: 100vh;
+		/* Percentages resolve against the viewport minus any classic window
+		scrollbar; 100vw/100vh would extend beneath it and hide the top-right
+		controls (#11982) */
+		width: 100%;
+		height: 100%;
 		z-index: 1000;
 		overflow: auto;
 	}
@@ -239,10 +366,10 @@
 		}
 		100% {
 			position: fixed;
-			top: 0vh;
-			left: 0vw;
-			width: 100vw;
-			height: 100vh;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
 			z-index: 1000;
 		}
 	}

@@ -1,5 +1,3 @@
-<svelte:options accessors={true} immutable={true} />
-
 <script lang="ts">
 	import type { ImageBlobs } from "./InteractiveImageEditor.svelte";
 

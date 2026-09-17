@@ -77,7 +77,18 @@ demo = gr.Interface(
             value=lambda: [get_image() for _ in range(3)]
         ),
         gr.Chatbot(
-            value=lambda: random.choice([[("hello", "hi!")], [("bye", "goodbye!")]])
+            value=lambda: random.choice(
+                [
+                    [
+                        {"role": "user", "content": "hello"},
+                        {"role": "assistant", "content": "hi!"},
+                    ],
+                    [
+                        {"role": "user", "content": "bye"},
+                        {"role": "assistant", "content": "goodbye!"},
+                    ],
+                ]
+            )
         ),
         gr.Model3D(value=lambda: get_model3d()),
         gr.Plot(value=random_plot),

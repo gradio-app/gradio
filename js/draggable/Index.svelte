@@ -282,7 +282,7 @@
 				: null}
 		/>
 	{/if}
-	<slot />
+	{@render props.children?.()}
 </div>
 
 <style>

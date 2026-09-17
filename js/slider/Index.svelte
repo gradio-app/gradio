@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
 	let _id = 0;
 </script>
 
@@ -84,7 +84,7 @@
 	}
 </script>
 
-<svelte:window on:resize={handle_resize} />
+<svelte:window onresize={handle_resize} />
 
 <Block
 	visible={gradio.shared.visible}
@@ -119,16 +119,16 @@
 					bind:this={number_input}
 					min={gradio.props.minimum}
 					max={gradio.props.maximum}
-					on:input={handle_input}
-					on:blur={clamp}
+					oninput={handle_input}
+					onblur={clamp}
 					step={gradio.props.step}
 					{disabled}
-					on:pointerup={handle_release}
+					onpointerup={handle_release}
 				/>
 				{#if gradio.props.buttons?.includes("reset") ?? true}
 					<button
 						class="reset-button"
-						on:click={reset_value}
+						onclick={reset_value}
 						{disabled}
 						aria-label="Reset to default value"
 						data-testid="reset-button"
@@ -150,10 +150,10 @@
 				bind:this={range_input}
 				min={gradio.props.minimum}
 				max={gradio.props.maximum}
-				on:input={handle_input}
+				oninput={handle_input}
 				step={gradio.props.step}
 				{disabled}
-				on:pointerup={handle_release}
+				onpointerup={handle_release}
 				aria-label={`range slider for ${gradio.shared.label}`}
 			/>
 			<span class="max_value" data-testid="max-value"

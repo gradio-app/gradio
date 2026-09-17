@@ -15,6 +15,7 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
+from typing import Annotated
 
 import typer
 from rich import print
@@ -109,6 +110,13 @@ def main(
     watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
     watch_library: bool = False,
+    app_args: Annotated[
+        list[str] | None,
+        typer.Argument(
+            metavar="[-- APP_ARGS...]",
+            help="Arguments to pass to your app, placed after a `--` separator.",
+        ),
+    ] = None,
 ):
     signal.signal(signal.SIGINT, lambda _signum, _frame: _handle_interrupt())
     signal.signal(signal.SIGTERM, lambda _signum, _frame: _handle_interrupt())
@@ -132,8 +140,10 @@ def main(
     if "GRADIO_VIBE_MODE" in os.environ:
         env_vars["GRADIO_VIBE_MODE"] = os.environ["GRADIO_VIBE_MODE"]
 
+    # Everything after `--` belongs to the user's script, e.g.
+    # `gradio app.py -- --name Gretel` for a script that uses argparse.
     popen = subprocess.Popen(
-        [sys.executable, "-u", path],
+        [sys.executable, "-u", path, *(app_args or [])],
         env=env_vars,
     )
     if popen.poll() is None:
@@ -143,5 +153,16 @@ def main(
             pass
 
 
+def build_app() -> typer.Typer:
+    """Build the `gradio app.py [-- ...]` CLI."""
+    app = typer.Typer(add_completion=False)
+    app.command()(main)
+    return app
+
+
+def run() -> None:
+    build_app()()
+
+
 if __name__ == "__main__":
-    typer.run(main)
+    run()

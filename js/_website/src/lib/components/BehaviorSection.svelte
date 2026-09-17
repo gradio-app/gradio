@@ -3,15 +3,19 @@
 	import { browser } from "$app/environment";
 	import Prism from "prismjs";
 
-	export let name = null as any;
-	export let preprocess = null as any;
-	export let postprocess = null as any;
+	let {
+		name = null as any,
+		preprocess = null as any,
+		postprocess = null as any
+	} = $props();
 
-	$: if (browser && name && preprocess && postprocess) {
-		setTimeout(() => {
-			Prism.highlightAll();
-		}, 0);
-	}
+	$effect(() => {
+		if (browser && name && preprocess && postprocess) {
+			setTimeout(() => {
+				Prism.highlightAll();
+			}, 0);
+		}
+	});
 </script>
 
 <p><strong>Using {name} as an input component.</strong></p>

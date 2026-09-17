@@ -25,6 +25,7 @@ import { submit } from "./utils/submit";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
+	normalise_token_option,
 	resolve_cookies,
 	resolve_config,
 	get_jwt,
@@ -33,6 +34,8 @@ import {
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
+import { clear_run_history } from "./utils/run_history";
+import { sign_config_file_urls, sign_file_urls } from "./helpers/data";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
@@ -46,6 +49,7 @@ export class Client {
 	app_reference: string;
 	options: ClientOptions;
 	deep_link: string | null = null;
+	page: string | null = null;
 
 	config: Config | undefined;
 	api_prefix = "";
@@ -186,7 +190,10 @@ export class Client {
 		event_data?: unknown
 	) => Promise<PredictReturn<T>>;
 	open_stream: () => Promise<void>;
-	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
+	private resolve_config: (
+		endpoint: string,
+		strip_current_page?: boolean
+	) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
 	constructor(
 		app_reference: string,
@@ -194,9 +201,11 @@ export class Client {
 	) {
 		this.app_reference = app_reference;
 		this.deep_link = options.query_params?.deep_link || null;
+		this.page = options.query_params?.page ?? null;
 		if (!options.events) {
 			options.events = ["data"];
 		}
+		normalise_token_option(options);
 
 		this.options = options;
 		this.current_payload = {};
@@ -227,33 +236,35 @@ export class Client {
 			await this.resolve_cookies();
 		}
 
-		await this._resolve_config().then(({ config }) =>
-			this._resolve_heartbeat(config)
+		await this._resolve_config().then(
+			(res: { config: Config } | undefined) =>
+				res?.config && this._resolve_heartbeat(res.config)
 		);
 
-		this.api_info = await this.view_api();
+		try {
+			this.api_info = await this.view_api();
+		} catch (e) {
+			// A failure to fetch API info should not prevent the client from
+			// connecting: otherwise the SSR server renders a spurious login
+			// page whenever the /info endpoint is unreachable.
+			console.error((e as Error).message);
+		}
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
 	async _resolve_heartbeat(_config: Config): Promise<void> {
-		if (_config) {
-			this.config = _config;
-			this.api_prefix = _config.api_prefix || "";
-
-			if (this.config && this.config.connect_heartbeat) {
-				if (this.config.space_id && this.options.token) {
-					this.jwt = await get_jwt(
-						this.config.space_id,
-						this.options.token,
-						this.cookies
-					);
-				}
-			}
-		}
+		this.config = _config;
+		this.api_prefix = _config.api_prefix || "";
 
 		if (_config.space_id && this.options.token) {
-			this.jwt = await get_jwt(_config.space_id, this.options.token);
+			this.jwt = await get_jwt(
+				_config.space_id,
+				this.options.token,
+				this.cookies
+			);
 		}
+
+		sign_config_file_urls(this.config, this.jwt);
 
 		if (this.config && this.config.connect_heartbeat) {
 			// connect to the heartbeat endpoint via GET request
@@ -312,6 +323,33 @@ export class Client {
 		close_stream(this.stream_status, this.abort_controller);
 	}
 
+	/**
+	 * Re-fetch the app config without closing the SSE stream.
+	 * Used by hot-reload so in-flight generators keep delivering updates.
+	 */
+	async refresh(): Promise<Config> {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		// config.root is already the app root. resolve_config normally strips the
+		// current page from its endpoint, which would strip one path segment too
+		// many when refreshing from a subpage.
+		const config = await this.resolve_config(this.config.root, false);
+		if (!config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		this.config = config;
+		this.api_prefix = config.api_prefix || "";
+		this.api_map = map_names_to_ids(config.dependencies || []);
+		sign_config_file_urls(this.config, this.jwt);
+		try {
+			this.api_info = await this.view_api();
+		} catch (e) {
+			console.error(API_INFO_ERROR_MSG + (e as Error).message);
+		}
+		return this.get_url_config();
+	}
+
 	set_current_payload(payload: any): void {
 		this.current_payload = payload;
 	}
@@ -364,7 +402,7 @@ export class Client {
 						load_status: "error",
 						detail: "NOT_FOUND"
 					});
-				throw Error(e);
+				throw e instanceof Error ? e : new Error(String(e));
 			}
 		}
 	}
@@ -374,6 +412,15 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
+
+		// Opting out also purges, so an app that turns the feature off does not
+		// leave behind what it stored while it was on.
+		if (_config.run_history === false) {
+			clear_run_history({
+				app_id: _config.app_id,
+				username: _config.username
+			});
+		}
 
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
@@ -496,6 +543,12 @@ export class Client {
 			}
 
 			const output = await response.json();
+			sign_file_urls(
+				output,
+				this.config.root,
+				this.config.api_prefix || "",
+				this.jwt
+			);
 			return output;
 		} catch (e) {
 			console.warn(e);

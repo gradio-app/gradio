@@ -30,10 +30,14 @@ export async function upload(
 				} else {
 					if (response.files) {
 						return response.files.map((f, i) => {
+							const encoded_path = f
+								.split("/")
+								.map((segment) => encodeURIComponent(segment))
+								.join("/");
 							const file = new FileData({
 								...file_data[i],
 								path: f,
-								url: `${root_url}${this.api_prefix}/file=${f}`
+								url: `${root_url}${this.api_prefix}/file=${encoded_path}`
 							});
 							return file;
 						});

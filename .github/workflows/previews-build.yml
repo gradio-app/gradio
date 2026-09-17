@@ -48,6 +48,10 @@ jobs:
           skip_docs_gen: true
       - name: install deps
         run: python -m pip install build
+      - name: Generate component stubs
+        run: |
+          . venv/bin/activate
+          python -c "import gradio"
       - name: Build pr package
         run: |
           python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ needs.changes.outputs.gradio_version }}"; json.dump(j, open("gradio/package.json", "w"))'

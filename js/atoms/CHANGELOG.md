@@ -1,5 +1,35 @@
 # @gradio/atoms
 
+## 0.26.2
+
+### Fixes
+
+- [#13787](https://github.com/gradio-app/gradio/pull/13787) [`2ae6f97`](https://github.com/gradio-app/gradio/commit/2ae6f97d0f5284c8f351ffe6d45da61944284d5a) - Fix Image and ImageEditor UI/UX issues.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.14.1
+
+## 0.26.1
+
+### Fixes
+
+- [#13661](https://github.com/gradio-app/gradio/pull/13661) [`8647a06`](https://github.com/gradio-app/gradio/commit/8647a06d13a77aefb818565e8766474dae8eeb70) - Keep fullscreen component controls inside the visible viewport when the page has a scrollbar.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+
+## 0.26.0
+
+### Features
+
+- [#13543](https://github.com/gradio-app/gradio/pull/13543) [`0533483`](https://github.com/gradio-app/gradio/commit/0533483bccdee38f334a598f18297e8c02966343) - Migrate Image components to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/icons@0.16.0
+
 ## 0.25.0
 
 ### Features

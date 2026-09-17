@@ -60,7 +60,7 @@ jobs:
           repository: ${{ needs.get-pr.outputs.source_repo }}
           ref: ${{ needs.get-pr.outputs.source_branch }}
           fetch-depth: 0
-          token: ${{ secrets.COMMENT_TOKEN }}
+          token: ${{ secrets.CHANGESET_GITHUB_TOKEN }}
       - name: generate changeset
         id: version
         uses: "gradio-app/github/actions/generate-changeset@main"

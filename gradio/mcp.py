@@ -1270,6 +1270,13 @@ class GradioMCPServer:
                 for p in endpoint_info["parameters"]
             },
         }
+        required = [
+            p["parameter_name"]
+            for p in endpoint_info["parameters"]
+            if not p.get("parameter_has_default", False)
+        ]
+        if required:
+            schema["required"] = required
         return self.simplify_filedata_schema(schema)
 
     async def get_complete_schema(self, request) -> JSONResponse:
@@ -1536,7 +1543,8 @@ class GradioMCPServer:
                 svg_path = processing_utils.save_bytes_to_cache(
                     svg_bytes, f"{output['orig_name']}", DEFAULT_TEMP_DIR
                 )
-                svg_url = f"{root_url}/gradio_api/file={svg_path}"
+                encoded_path = client_utils.encode_file_path(svg_path)
+                svg_url = f"{root_url}/gradio_api/file={encoded_path}"
                 return_value = [
                     self.types.ImageContent(  # type: ignore
                         type="image", data=base64_data, mimeType=mimetype

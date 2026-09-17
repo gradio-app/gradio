@@ -6,6 +6,7 @@ import type {
 	Payload
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
+import { create_custom_js_handler } from "./custom_js";
 import { Client, type client_return } from "@gradio/client";
 import {
 	LoadingStatusState,
@@ -17,6 +18,7 @@ import type {
 	ValidationError,
 	LogMessage
 } from "@gradio/client";
+import { settled } from "svelte";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -27,6 +29,7 @@ const NOVALUE = Symbol("NOVALUE");
  */
 export class Dependency {
 	id: number;
+	api_name: string | null;
 	inputs: number[];
 	outputs: number[];
 	cancels: number[];
@@ -54,20 +57,22 @@ export class Dependency {
 
 	constructor(dep_config: IDependency) {
 		this.id = dep_config.id;
+		this.api_name = dep_config.api_name;
 		this.original_trigger_id = dep_config.id;
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
 		this.connection_type = dep_config.connection;
 		this.show_progress = dep_config.show_progress;
 		this.functions = {
-			frontend: dep_config.js
-				? process_frontend_fn(
-						dep_config.js,
-						dep_config.backend_fn,
-						dep_config.inputs.length,
-						dep_config.outputs.length
-					)
-				: undefined,
+			frontend:
+				typeof dep_config.js === "string"
+					? process_frontend_fn(
+							dep_config.js,
+							dep_config.backend_fn,
+							dep_config.inputs.length,
+							dep_config.outputs.length
+						)
+					: undefined,
 			backend: dep_config.backend_fn,
 			backend_js: dep_config.js_implementation
 				? new AsyncFunction(
@@ -200,6 +205,8 @@ export class DependencyManager {
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
+	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
+		new Map();
 	client: Client;
 	queue: Set<number> = new Set();
 	add_to_api_calls: (payload: Payload) => void;
@@ -258,6 +265,43 @@ export class DependencyManager {
 		client: Client
 	) {
 		const { by_id, by_event } = this.create(dependencies);
+		this.register_loading_stati(by_id);
+		const by_api_name = new Map(
+			Array.from(by_id.values())
+				.filter((dep) => dep.api_name !== null)
+				.map((dep) => [dep.api_name, dep])
+		);
+		// In-flight submit loops hold references to the old Dependency objects.
+		// Point their inputs/outputs at the new component ids so yields after a
+		// hot-reload update the remounted UI. Keep the captured objects in a
+		// separate registry so consecutive reloads continue to patch the same
+		// objects, and match them by api_name just like the backend does.
+		for (const old_dep of this.active_dependencies.values()) {
+			const new_dep =
+				old_dep.api_name === null
+					? by_id.get(old_dep.id)
+					: by_api_name.get(old_dep.api_name);
+			if (!new_dep) continue;
+			if (new_dep.connection_type !== old_dep.connection_type) continue;
+			this.loading_stati.remap_ids(
+				old_dep.id,
+				old_dep.show_progress_on || old_dep.outputs,
+				new_dep.show_progress_on || new_dep.outputs,
+				old_dep.inputs,
+				new_dep.inputs
+			);
+			old_dep.inputs = new_dep.inputs;
+			old_dep.outputs = new_dep.outputs;
+			old_dep.cancels = new_dep.cancels;
+			old_dep.targets = new_dep.targets;
+			old_dep.show_progress = new_dep.show_progress;
+			old_dep.show_progress_on = new_dep.show_progress_on;
+			old_dep.connection_type = new_dep.connection_type;
+			old_dep.functions = new_dep.functions;
+			old_dep.event_args = new_dep.event_args;
+			old_dep.component_prop_inputs = new_dep.component_prop_inputs;
+			old_dep.api_name = new_dep.api_name;
+		}
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
 		this.client = client;
@@ -269,7 +313,14 @@ export class DependencyManager {
 				this.set_event_args(output_id, dep.event_args);
 			}
 		}
-		this.register_loading_stati(by_id);
+		// Wait for remounted components to register before pushing status, so
+		// loading_status reaches them via set_data rather than being dropped
+		// (pending updates intentionally exclude loading_status).
+		void settled()
+			.then(() => this.update_loading_stati_state())
+			.catch(() => {
+				// fire-and-forget: components may unmount mid-update during teardown
+			});
 	}
 	register_loading_stati(deps: Map<number, Dependency>): void {
 		for (const [_, dep] of deps) {
@@ -287,17 +338,18 @@ export class DependencyManager {
 	}
 
 	async update_loading_stati_state() {
-		for (const [component_id, loading_status] of Object.entries(
-			this.loading_stati.current
-		)) {
-			this.update_state_cb(
-				Number(component_id),
-				{
-					loading_status: loading_status
-				},
-				false
-			);
-		}
+		await Promise.all(
+			Object.entries(this.loading_stati.current).map(
+				([component_id, loading_status]) =>
+					this.update_state_cb(
+						Number(component_id),
+						{
+							loading_status: loading_status
+						},
+						false
+					)
+			)
+		);
 	}
 
 	dispatch_state_change_events(result: StatusMessage): void {
@@ -373,6 +425,7 @@ export class DependencyManager {
 				);
 
 				const { success, failure, all } = dep.get_triggers();
+				let active_submission: ReturnType<Client["submit"]> | undefined;
 
 				try {
 					let target_id: number | null = null;
@@ -413,11 +466,19 @@ export class DependencyManager {
 						target_id
 					);
 
-					if (dep_submission.type === "void") {
+					if (dep_submission.type !== "submit") {
+						if (dep_submission.type === "data") {
+							await this.handle_data(dep.outputs, dep_submission.data);
+						}
 						unset_args.forEach((fn) => fn());
-					} else if (dep_submission.type === "data") {
-						await this.handle_data(dep.outputs, dep_submission.data);
-						unset_args.forEach((fn) => fn());
+						[...success, ...all].forEach((dep_id) => {
+							this.dispatch({
+								type: "fn",
+								fn_index: dep_id,
+								event_data: null,
+								target_id: target_id as number | undefined
+							});
+						});
 					} else {
 						let stream_state: "open" | "closed" | "waiting" | null = null;
 
@@ -429,6 +490,8 @@ export class DependencyManager {
 						}
 
 						this.submissions.set(dep.id, dep_submission.data);
+						this.active_dependencies.set(dep_submission.data, dep);
+						active_submission = dep_submission.data;
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
@@ -481,7 +544,10 @@ export class DependencyManager {
 									});
 									this.update_loading_stati_state();
 									break submit_loop;
-								} else if (result.stage === "generating") {
+								} else if (
+									result.stage === "generating" ||
+									result.stage === "streaming"
+								) {
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
 									this.loading_stati.update({
@@ -536,7 +602,7 @@ export class DependencyManager {
 											);
 										});
 										unset_args.forEach((fn) => fn());
-										this.submissions.delete(dep.id);
+										this.clear_submission(dep.id, dep_submission.data);
 										if (this.queue.has(dep.id)) {
 											this.queue.delete(dep.id);
 											this.dispatch(event_meta);
@@ -605,7 +671,7 @@ export class DependencyManager {
 									render_id,
 									new Set(Array.from(by_id.keys()))
 								);
-								this.register_loading_stati(by_id);
+								this.dispatch_load_events(by_id);
 								break submit_loop;
 							}
 
@@ -622,7 +688,7 @@ export class DependencyManager {
 							});
 						});
 						unset_args.forEach((fn) => fn());
-						this.submissions.delete(dep.id);
+						this.clear_submission(dep.id, dep_submission.data);
 
 						if (this.queue.has(dep.id)) {
 							this.queue.delete(dep.id);
@@ -638,7 +704,9 @@ export class DependencyManager {
 						stream_state: null
 					});
 					this.update_loading_stati_state();
-					this.submissions.delete(dep.id);
+					if (active_submission) {
+						this.clear_submission(dep.id, active_submission);
+					}
 					failure.forEach((dep_id) => {
 						this.dispatch({
 							type: "fn",
@@ -826,7 +894,7 @@ export class DependencyManager {
 					stream_state: null
 				});
 				this.update_loading_stati_state();
-				this.submissions.delete(id);
+				this.clear_submission(id);
 				// Need to trigger any dependencies that are waiting for this one to complete
 				const { failure, all } = this.dependencies_by_fn
 					.get(id)
@@ -851,8 +919,10 @@ export class DependencyManager {
 		}
 	}
 
-	dispatch_load_events() {
-		this.dependencies_by_fn.forEach((dep) => {
+	dispatch_load_events(
+		dependencies: Map<number, Dependency> = this.dependencies_by_fn
+	) {
+		dependencies.forEach((dep) => {
 			dep.targets.forEach(([target_id, event_name]) => {
 				if (event_name === "load") {
 					this.dispatch({
@@ -886,7 +956,7 @@ export class DependencyManager {
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
 				submission.close_stream();
-				this.submissions.delete(fn_id);
+				this.clear_submission(fn_id);
 			}
 
 			this.loading_stati.update({
@@ -899,6 +969,21 @@ export class DependencyManager {
 		}
 
 		this.update_loading_stati_state();
+	}
+
+	clear_submission(
+		id: number,
+		submission?: ReturnType<Client["submit"]>
+	): void {
+		const registered_submission = this.submissions.get(id);
+		if (submission === undefined || registered_submission === submission) {
+			this.submissions.delete(id);
+		}
+		if (submission) {
+			this.active_dependencies.delete(submission);
+		} else if (registered_submission) {
+			this.active_dependencies.delete(registered_submission);
+		}
 	}
 }
 
@@ -942,16 +1027,15 @@ export function process_frontend_fn(
 	output_length: number
 ): (...args: unknown[]) => Promise<unknown[]> {
 	const wrap = backend_fn ? input_length === 1 : output_length === 1;
-	try {
-		return new AsyncFunction(
-			"__fn_args",
-			`  let result = await (${source})(...__fn_args);
-  if (typeof result === "undefined") return [];
-  return (${wrap} && !Array.isArray(result)) ? [result] : result;`
-		);
-	} catch (e) {
-		throw e;
-	}
+	const frontend_fn = create_custom_js_handler(source);
+
+	return async (...args: unknown[]) => {
+		const fn_args = args[0] as unknown[];
+		const result = await frontend_fn(...fn_args);
+
+		if (typeof result === "undefined") return [];
+		return (wrap && !Array.isArray(result) ? [result] : result) as unknown[];
+	};
 }
 
 /**

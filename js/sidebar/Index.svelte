@@ -26,7 +26,7 @@
 		elem_id={gradio.shared.elem_id}
 	>
 		<BaseColumn>
-			<slot />
+			{@render props.children?.()}
 		</BaseColumn>
 	</Sidebar>
 {/if}

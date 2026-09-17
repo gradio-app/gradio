@@ -94,6 +94,6 @@ demo.launch()"""
         hf_login()
 
         sys.argv = ["gradio", str(demo_path)]
-        typer.run(reload)
+        reload()
     else:
-        typer.run(reload)
+        reload()

@@ -3,11 +3,9 @@
 	import AudioClassification from "./AudioClassification.svelte";
 	import AudioToAudio from "./AudioToAudio.svelte";
 	import AutomaticSpeechRecognition from "./AutomaticSpeechRecognition.svelte";
-	import DocumentQuestionAnswering from "./DocumentQuestionAnswering.svelte";
 	import ImageClassification from "./ImageClassification.svelte";
 	import ImageSegmentation from "./ImageSegmentation.svelte";
 	import ImageToImage from "./ImageToImage.svelte";
-	import ImageToText from "./ImageToText.svelte";
 	import ObjectDetection from "./ObjectDetection.svelte";
 	import QuestionAnswering from "./QuestionAnswering.svelte";
 	import Summarization from "./Summarization.svelte";
@@ -29,7 +27,6 @@
 		all: AllTasks,
 		"text-to-image": TextToImage,
 		"image-to-image": ImageToImage,
-		"image-to-text": ImageToText,
 		"object-detection": ObjectDetection,
 		"image-segmentation": ImageSegmentation,
 		"image-classification": ImageClassification,
@@ -53,9 +50,7 @@
 		"zero-shot-image-classification": ZeroShotClassification,
 		"zero-shot-object-detection": ObjectDetection,
 		"mask-generation": ImageSegmentation,
-		"keypoint-detection": ObjectDetection,
-		"visual-question-answering": QuestionAnswering,
-		"document-question-answering": DocumentQuestionAnswering
+		"keypoint-detection": ObjectDetection
 	};
 
 	const Component = $derived(ICONS[pipeline]);

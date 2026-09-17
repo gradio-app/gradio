@@ -1,8 +1,10 @@
 """Contains tests for networking.py and app.py"""
 
+import asyncio
 import functools
 import inspect
 import json
+import math
 import os
 import pickle
 import sys
@@ -10,17 +12,24 @@ import tempfile
 import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
-from threading import Thread
+from threading import Event, Thread
+from types import SimpleNamespace
+from unittest.mock import patch
+from urllib.parse import parse_qs, unquote, urlparse
 
 import gradio_client as grc
+import gradio_client.utils as client_utils
 import httpx
 import numpy as np
 import pandas as pd
 import pytest
 import requests
 import starlette.routing
+from authlib.integrations.base_client.errors import MismatchingStateError
 from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
 from fastapi.testclient import TestClient
+from starlette.middleware.sessions import SessionMiddleware
 
 import gradio as gr
 from gradio import (
@@ -30,18 +39,41 @@ from gradio import (
     Number,
     Textbox,
     close_all,
+    oauth,
+    route_utils,
     routes,
 )
+from gradio.audio_stream_encoder import parse_adts_frames
+from gradio.data_classes import PredictBodyInternal
+from gradio.oauth import _generate_redirect_uri, _redirect_to_target
 from gradio.route_utils import (
     API_PREFIX,
     FnIndexInferError,
+    MediaStream,
+    _delete_state_handler,
+    _lifespan_handler,
     compare_passwords_securely,
+    create_lifespan_handler,
     get_api_call_path,
     get_request_origin,
     get_root_url,
     slugify,
     starts_with_protocol,
 )
+
+
+async def drive_aborted_run(app, fn, chunks=2):
+    """Drive a generator that raises on its second chunk through the route."""
+    for _ in range(chunks):
+        await route_utils.call_process_api(
+            app=app,
+            body=PredictBodyInternal(
+                data=[], session_hash="s", event_id="e1", request=None
+            ),
+            gr_request=gr.Request(),
+            fn=fn,
+            root_path="",
+        )
 
 
 @pytest.fixture()
@@ -59,6 +91,23 @@ class TestRoutes:
         response = test_client.get("/")
         assert response.status_code == 200
 
+    def test_get_run_history_route(self, test_client):
+        response = test_client.get(f"{API_PREFIX}/runs")
+        assert response.status_code == 200
+        assert "<gradio-app" in response.text
+        assert '<base href="../"' in response.text
+        assert '"root":"http://testserver"' in response.text
+
+    def test_run_history_route_disabled(self):
+        io = Interface(lambda x: x + x, "text", "text", api_name="predict")
+        app, _, _ = io.launch(prevent_thread_lock=True, run_history=False)
+        try:
+            assert io.config["run_history"] is False
+            assert "runs" not in io.config["footer_links"]
+            assert TestClient(app).get(f"{API_PREFIX}/runs").status_code == 404
+        finally:
+            io.close()
+
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
         response = test_client.get(r"/static/..%2findex.html")
@@ -69,6 +118,265 @@ class TestRoutes:
     def test_get_config_route(self, test_client):
         response = test_client.get("/config/")
         assert response.status_code == 200
+
+    def test_multipage_config_and_info_can_be_scoped_to_page(self, gradio_temp_dir):
+        with Blocks() as demo:
+            home_input = Textbox()
+            home_output = Textbox()
+            home_input.change(
+                lambda value: value,
+                home_input,
+                home_output,
+                api_name="home_endpoint",
+            )
+        with demo.route("Details", path="details"):
+            details_input = Textbox()
+            details_output = Textbox()
+            details_input.change(
+                lambda value: value,
+                details_input,
+                details_output,
+                api_name="details_endpoint",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+            page_config = client.get("/config?page=details").json()
+
+            assert page_config["current_page"] == "details"
+            assert page_config["pages"] == full_config["pages"]
+            assert {component["id"] for component in page_config["components"]} == set(
+                page_config["page"]["details"]["components"]
+            )
+            assert {
+                dependency["id"] for dependency in page_config["dependencies"]
+            } == set(page_config["page"]["details"]["dependencies"])
+            assert len(page_config["components"]) < len(full_config["components"])
+            assert len(page_config["dependencies"]) < len(full_config["dependencies"])
+
+            page_info = client.get(f"{API_PREFIX}/info?page=details").json()
+            assert set(page_info["named_endpoints"]) == {"/details_endpoint"}
+
+            home_config = client.get("/config?page=").json()
+            assert home_config["current_page"] == ""
+            assert {component["id"] for component in home_config["components"]} == set(
+                home_config["page"][""]["components"]
+            )
+            home_info = client.get(f"{API_PREFIX}/info?page=").json()
+            assert set(home_info["named_endpoints"]) == {"/home_endpoint"}
+
+            # Page-scoped requests leave the full API-info cache empty. The cURL
+            # endpoint must initialize it lazily instead of returning a 500.
+            assert app.api_info is None
+            curl_response = client.post(
+                f"{API_PREFIX}/call/v2/home_endpoint", json={"value": "hello"}
+            )
+            assert curl_response.status_code == 200
+            assert app.api_info is not None
+            cached_info = client.get(f"{API_PREFIX}/info").json()
+            python_snippet = cached_info["named_endpoints"]["/home_endpoint"][
+                "code_snippets"
+            ]["python"]
+            assert 'Client("http://testserver")' in python_snippet
+
+            deep_link_dir = gradio_temp_dir / "deep_links" / "multipage"
+            deep_link_dir.mkdir(parents=True)
+            (deep_link_dir / "state.json").write_text(
+                json.dumps(full_config["components"])
+            )
+            legacy_deep_link_config = client.get("/config?deep_link=multipage").json()
+            assert {
+                component["id"] for component in legacy_deep_link_config["components"]
+            } == {component["id"] for component in full_config["components"]}
+            assert details_input._id in {
+                component["id"] for component in legacy_deep_link_config["components"]
+            }
+
+            home_deep_link_config = client.get(
+                "/config?deep_link=multipage&page="
+            ).json()
+            assert {
+                component["id"] for component in home_deep_link_config["components"]
+            } == set(home_deep_link_config["page"][""]["components"])
+        finally:
+            demo.close()
+
+    @pytest.mark.parametrize("first_request", ["call", "openapi"])
+    def test_api_info_cache_uses_app_root(self, first_request):
+        with Blocks() as demo:
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        if first_request == "call":
+            response = client.post(
+                f"{API_PREFIX}/call/v2/echo", json={"value": "hello"}
+            )
+        else:
+            response = client.get(f"{API_PREFIX}/openapi.json")
+        assert response.status_code == 200
+
+        info = client.get(f"{API_PREFIX}/info").json()
+        snippets = info["named_endpoints"]["/echo"]["code_snippets"]
+        assert 'Client("http://testserver")' in snippets["python"]
+        assert 'Client.connect("http://testserver")' in snippets["javascript"]
+        assert (
+            f"curl -X POST http://testserver{API_PREFIX}/call/v2/echo"
+            in snippets["bash"]
+        )
+
+    def test_page_api_info_is_cached(self):
+        with Blocks() as demo:
+            Textbox()
+        with demo.route("Details", path="details"):
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        with patch.object(demo, "get_api_info", wraps=demo.get_api_info) as get_info:
+            first = client.get(f"{API_PREFIX}/info?page=details")
+            second = client.get(f"{API_PREFIX}/info?page=details")
+
+        assert first.status_code == second.status_code == 200
+        assert get_info.call_count == 1
+
+    def test_page_api_info_supports_legacy_blocks_override(self):
+        class CustomBlocks(Blocks):
+            # This intentionally models an override written against the public
+            # signature from before the page argument was added.
+            def get_api_info(  # ty: ignore[invalid-method-override]
+                self, all_endpoints=False
+            ):
+                info = super().get_api_info(all_endpoints=all_endpoints)
+                for endpoint in info["named_endpoints"].values():
+                    endpoint["description"] = "custom description"
+                return info
+
+        with CustomBlocks() as demo:
+            home = Textbox()
+            home.change(lambda value: value, home, home, api_name="home")
+        with demo.route("Details", path="details"):
+            details = Textbox()
+            details.change(lambda value: value, details, details, api_name="details")
+
+        response = TestClient(routes.App.create_app(demo)).get(
+            f"{API_PREFIX}/info?page=details"
+        )
+
+        assert response.status_code == 200
+        assert set(response.json()["named_endpoints"]) == {"/details"}
+        assert (
+            response.json()["named_endpoints"]["/details"]["description"]
+            == "custom description"
+        )
+
+    def test_audio_stream_playlist_uses_stable_target_duration(self):
+        with Blocks() as demo:
+            audio = gr.Audio()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment(
+                {"data": b"first", "duration": 1.25, "extension": ".aac"}
+            )
+        )
+        asyncio.run(
+            stream.add_segment(
+                {"data": b"second", "duration": 0.5, "extension": ".aac"}
+            )
+        )
+        demo.pending_streams["session"]["0"] = {audio._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{audio._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-TARGETDURATION:2" in response.text
+        assert "#EXTINF:1.250000," in response.text
+        assert "#EXT-X-DISCONTINUITY" not in response.text
+        assert response.headers["cache-control"] == "no-store"
+
+    def test_video_stream_playlist_is_continuous(self):
+        """The segments share one timeline, so nothing tells the player to reset.
+
+        The tag used to be written after every `.ts` because each segment was
+        muxed on its own and started at the muxer's zero. It would now throw
+        away the continuity the stream's single audio encoder gives it.
+        """
+        with Blocks() as demo:
+            video = gr.Video()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        for index in range(2):
+            asyncio.run(
+                stream.add_segment(
+                    {"data": bytes([index]), "duration": 0.5, "extension": ".ts"}
+                )
+            )
+        demo.pending_streams["session"]["0"] = {video._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{video._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-DISCONTINUITY" not in response.text
+
+    def test_stream_playlist_starts_at_the_first_chunk(self):
+        """A viewer wants the stream from its start, not from wherever it got to.
+
+        The playlist carries no ENDLIST until the run finishes, which players
+        read as live and open near the newest segment, skipping however far the
+        generator had run ahead. The `=` is load bearing: `TIME-OFFSET:0` parses
+        to nothing, the attribute list wanting `KEY=VALUE`, and the tag is then
+        accepted and ignored.
+        """
+        with Blocks() as demo:
+            video = gr.Video()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment({"data": b"0", "duration": 1.0, "extension": ".ts"})
+        )
+        demo.pending_streams["session"]["0"] = {video._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{video._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-START:TIME-OFFSET=0" in response.text
+
+    def test_audio_stream_playlist_propagates_space_signature(self):
+        with Blocks() as demo:
+            audio = gr.Audio()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment(
+                {"data": b"first", "duration": 1.25, "extension": ".aac"}
+            )
+        )
+        demo.pending_streams["session"]["0"] = {audio._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{audio._id}/playlist.m3u8",
+            params={"__sign": "jwt&with=special characters"},
+        )
+
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "private, no-store"
+        segment_line = next(
+            line
+            for line in response.text.splitlines()
+            if line and not line.startswith("#")
+        )
+        assert segment_line.endswith("?__sign=jwt%26with%3Dspecial+characters")
 
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")
@@ -89,6 +397,17 @@ class TestRoutes:
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
 
+    def test_upload_path_with_empty_sanitized_filename(self, test_client):
+        response = test_client.post(
+            f"{API_PREFIX}/upload",
+            files={"files": ("!!!", b"content", "text/plain")},
+        )
+
+        assert response.status_code == 200
+        uploaded = Path(response.json()[0])
+        assert uploaded.name == "file"
+        assert uploaded.read_bytes() == b"content"
+
     def test_custom_upload_path(self, gradio_temp_dir):
         io = Interface(lambda x: x + x, "text", "text")
         app, _, _ = io.launch(prevent_thread_lock=True)
@@ -102,6 +421,38 @@ class TestRoutes:
         assert file.endswith(".txt")
         with open(file, "rb") as saved_file:
             assert saved_file.read() == b"abcdefghijklmnopqrstuvwxyz"
+
+    def test_upload_is_staged_in_custom_upload_path(self, gradio_temp_dir, monkeypatch):
+        blocks = Blocks()
+        blocks.max_file_size = None
+        blocks.upload_file_set = set()
+        blocks.share = False
+        app = routes.App.create_app(blocks)
+        test_client = TestClient(app)
+        original_rename = os.rename
+        staged_paths = []
+
+        def record_rename(source, destination):
+            source = Path(source).resolve()
+            staged_paths.append(source)
+            if not source.is_relative_to(gradio_temp_dir.resolve()):
+                raise OSError("simulated cross-filesystem rename")
+            return original_rename(source, destination)
+
+        def reject_background_move(*_args):
+            raise AssertionError("upload must be published before the response")
+
+        monkeypatch.setattr(os, "rename", record_rename)
+        monkeypatch.setattr(
+            routes, "move_uploaded_files_to_cache", reject_background_move
+        )
+        with open("test/test_files/alphabet.txt", "rb") as file:
+            response = test_client.post(f"{API_PREFIX}/upload", files={"files": file})
+
+        assert response.status_code == 200
+        assert len(staged_paths) == 1
+        assert staged_paths[0].is_relative_to(gradio_temp_dir.resolve())
+        assert Path(response.json()[0]).read_bytes() == b"abcdefghijklmnopqrstuvwxyz"
 
     @pytest.mark.skipif(
         sys.platform == "win32",
@@ -427,6 +778,24 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_monitoring_summary(self):
+        app = FastAPI()
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/default",
+        )
+        app = gr.mount_gradio_app(
+            app,
+            gr.Interface(lambda s: s, "textbox", "textbox"),
+            path="/disabled",
+            enable_monitoring=False,
+        )
+
+        with TestClient(app) as client:
+            assert client.get("/default/monitoring/summary").is_success
+            assert client.get("/disabled/monitoring/summary").status_code == 403
+
     def test_mount_gradio_app_picks_up_root_path_from_asgi_scope(self):
         """Test that media URLs include the proxy prefix when root_path is set
         via the ASGI scope (e.g. uvicorn --root-path), without needing to
@@ -451,6 +820,17 @@ class TestRoutes:
             assert resp.is_success
             assert "/myapp/gradio" in resp.text
 
+    def test_create_app_preserves_app_kwargs_root_path(self):
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app = routes.App.create_app(demo, app_kwargs={"root_path": "/proxy"})
+
+        assert app.root_path == "/proxy"
+
+        with TestClient(app) as client:
+            resp = client.get("/config")
+            assert resp.is_success
+            assert "/proxy" in resp.json()["root"]
+
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
@@ -458,7 +838,7 @@ class TestRoutes:
             app,
             demo,
             path="/echo",
-            app_kwargs={"docs_url": "/docs-custom"},
+            app_kwargs={"docs_url": "/docs-custom", "root_path": "/proxy"},
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
@@ -554,6 +934,42 @@ class TestRoutes:
         with TestClient(app) as client:
             assert not client.get("/", headers={}).is_success
             assert client.get("/", headers={"user": "abubakar"}).is_success
+
+    def test_gradio_app_with_async_auth_dependency(self):
+        async def block_anonymous(request: Request):
+            return request.headers.get("user")
+
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app, _, _ = demo.launch(
+            auth_dependency=block_anonymous, prevent_thread_lock=True
+        )
+
+        with TestClient(app) as client:
+            assert not client.get("/", headers={}).is_success
+            assert client.get("/", headers={"user": "abubakar"}).is_success
+        demo.close()
+
+    def test_server_mode_with_auth_dependency(self):
+        def block_anonymous(request: Request):
+            return request.headers.get("user")
+
+        server = gr.Server()
+
+        @server.api(name="echo")
+        def echo(x: str) -> str:
+            return x
+
+        app, _, _ = server.launch(
+            auth_dependency=block_anonymous, prevent_thread_lock=True
+        )
+
+        with TestClient(app) as client:
+            assert (
+                client.get(f"{API_PREFIX}/login_check", headers={}).status_code == 401
+            )
+            assert client.get(
+                f"{API_PREFIX}/login_check", headers={"user": "abubakar"}
+            ).is_success
 
     def test_mount_gradio_app_with_auth_dependency(self):
         app = FastAPI()
@@ -651,6 +1067,39 @@ class TestRoutes:
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
 
+    @pytest.mark.parametrize(
+        "cached_path",
+        [
+            "/tmp/gradio/abc/computer%20vision#Huggy.png",
+            "/tmp/gradio/abc/my report.png",
+            "/tmp/gradio/abc/100%.png",
+            "/tmp/gradio/abc/q?mark&a=b.png",
+            "/tmp/gradio/abc/plain.png",
+        ],
+    )
+    def test_proxy_request_preserves_encoded_paths(self, cached_path):
+        """The ASGI server percent-decodes the request path once before routing,
+        so the proxy has to re-encode it. Otherwise the upstream server decodes a
+        level too far, and a "#" is dropped as a URL fragment."""
+        space = "https://gradio-tests-test-loading-examples-private.hf.space"
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        interface.proxy_urls = {space}
+        app.configure_app(interface)
+
+        emitted = (
+            f"{API_PREFIX}/proxy={space}{API_PREFIX}/file="
+            f"{client_utils.encode_file_path(cached_path)}"
+        )
+        url_path = unquote(emitted).split(f"{API_PREFIX}/proxy=", 1)[1]
+
+        url, _ = app.build_proxy_request(url_path)
+
+        # `url.path` is decoded exactly once, so it is what the upstream server
+        # will see as its own request path.
+        assert url.path.split("file=", 1)[1] == cached_path
+        assert not url.query and not url.fragment
+
     def test_proxy_does_not_leak_hf_token_externally(self):
         gr.context.Context.token = "abcdef"  # type: ignore
         app = routes.App()
@@ -730,6 +1179,34 @@ class TestRoutes:
 
         io.close()
 
+    @pytest.mark.parametrize("add_middleware_first", [True, False])
+    def test_mounted_app_respects_user_cors_middleware(self, add_middleware_first):
+        from fastapi.middleware.cors import CORSMiddleware
+
+        with gr.Blocks() as demo:
+            gr.Textbox("hello")
+
+        app = FastAPI()
+        if add_middleware_first:
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+            app = gr.mount_gradio_app(app, demo, path="/")
+        else:
+            app = gr.mount_gradio_app(app, demo, path="/")
+            app.add_middleware(CORSMiddleware, allow_origins=["https://example.com"])  # type: ignore
+
+        client = TestClient(app)
+        disallowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://malicious.com"},
+        )
+        assert "access-control-allow-origin" not in disallowed.headers
+
+        allowed = client.get(
+            f"{API_PREFIX}/config",
+            headers={"host": "app.internal:7860", "origin": "https://example.com"},
+        )
+        assert allowed.headers["access-control-allow-origin"] == "https://example.com"
+
     def test_loose_cors_restrictions(self):
         io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
         app, _, _ = io.launch(prevent_thread_lock=True, strict_cors=False)
@@ -749,6 +1226,36 @@ class TestRoutes:
         assert file_response.headers["access-control-allow-origin"] == "null"
 
         io.close()
+
+    @pytest.mark.flaky
+    @pytest.mark.parametrize(
+        "url,allowed",
+        [
+            (
+                "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png",
+                True,
+            ),
+            (
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/media_assets/images/cheetah1.jpg",
+                True,
+            ),
+            ("http://169.254.169.254/latest/meta-data/", False),
+            ("http://127.0.0.1:22/", False),
+            ("http://10.0.0.1/admin", False),
+        ],
+    )
+    def test_file_endpoint_ssrf_protection(self, url, allowed):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        app = routes.App.create_app(io)
+        client = TestClient(app)
+
+        resp = client.get(f"{API_PREFIX}/file={url}", follow_redirects=False)
+        if allowed:
+            assert resp.status_code == 200
+            assert resp.content
+        else:
+            assert resp.status_code == 403
+            assert "location" not in resp.headers
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
@@ -814,6 +1321,198 @@ class TestRoutes:
         client = TestClient(app)
         response = client.get("/monitoring")
         assert response.status_code == 403
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 403
+
+    def test_stream_playlist_route_takes_a_string_run_key(self):
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        run = "2b0e1cb7f4a34d4b9f2b6d1c8a7e5f30"
+        demo.pending_streams["session"] = {run: {audio._id: MediaStream()}}
+
+        response = client.get(
+            f"{API_PREFIX}/stream/session/{run}/{audio._id}/playlist.m3u8"
+        )
+        assert response.status_code == 200
+        assert response.text.startswith("#EXTM3U")
+
+    @pytest.mark.parametrize("suffix", ["segment-1.aac", "playlist-file"])
+    def test_stream_routes_do_not_reject_a_string_run_key(self, suffix):
+        # A `run: int` here would 422 on every uuid key, which would break the
+        # segments the player fetches and the download button, not the playlist.
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        run = "2b0e1cb7f4a34d4b9f2b6d1c8a7e5f30"
+
+        response = client.get(f"{API_PREFIX}/stream/session/{run}/{audio._id}/{suffix}")
+        assert response.status_code == 404
+
+    def test_an_aborted_run_ends_its_streams_and_drops_its_diffs(self):
+        # A run that raises never reaches its final chunk, so the exception
+        # path has to end its streams and drop its diff state itself.
+        def stream():
+            yield None
+            raise RuntimeError("boom")
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        with pytest.raises(RuntimeError):
+            asyncio.run(drive_aborted_run(app, fn))
+
+        # `.get`, not a subscript: both dicts are defaultdicts, so reading a
+        # missing session would create it and pass the assertion below.
+        runs = demo.pending_streams.get("s")
+        assert runs is not None and len(runs) == 1
+        run = next(iter(runs))
+
+        assert runs[run][audio._id].ended is True
+        assert "s" not in demo.pending_diff_streams
+
+    def test_a_run_with_no_streaming_output_files_no_stream_entry(self):
+        # The entry is filed when an output opens a stream, not up front, so a
+        # generator with no streaming output leaves nothing behind however it
+        # ends.
+        def stream():
+            yield "chunk one"
+            raise RuntimeError("boom")
+
+        with Blocks() as demo:
+            box = gr.Textbox()
+            gr.Button().click(stream, None, box)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        with pytest.raises(RuntimeError):
+            asyncio.run(drive_aborted_run(app, fn))
+
+        assert "s" not in demo.pending_streams
+
+    def test_a_call_with_no_event_id_keeps_no_diff_state(self):
+        # Diff state serves the later chunks of a run, and without an event id
+        # there is no way to fetch them: /run/{api_name} makes one call and
+        # returns. Keeping it would leave an entry per call for the life of the
+        # process.
+        def stream():
+            yield "chunk one"
+            yield "chunk two"
+
+        with Blocks() as demo:
+            box = gr.Textbox()
+            gr.Button().click(stream, None, box)
+
+        app = routes.App.create_app(demo)
+        fn = next(iter(demo.fns.values()))
+
+        async def one_call():
+            return await route_utils.call_process_api(
+                app=app,
+                body=PredictBodyInternal(data=[], session_hash="s", request=None),
+                gr_request=gr.Request(),
+                fn=fn,
+                root_path="",
+            )
+
+        output = asyncio.run(one_call())
+
+        assert output["data"] == ["chunk one"]
+        assert "s" not in demo.pending_diff_streams
+        assert "s" not in demo.pending_streams
+
+    def test_a_run_whose_client_goes_away_drops_its_diff_state(self):
+        # A client that closes the tab mid-run does not raise, and no final
+        # chunk arrives, so neither of the other two cleanups runs. The queue
+        # closes the run out when the event ends, heartbeat or not: the stream
+        # is ended and kept, the diff state goes.
+        stop = Event()
+
+        def stream():
+            while not stop.is_set():
+                time.sleep(0.1)
+                yield None
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            with httpx.Client(base_url=local_url, timeout=30) as client:
+                join = client.post(
+                    f"{API_PREFIX}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": "s"},
+                )
+                assert join.status_code == 200
+                with client.stream(
+                    "GET", f"{API_PREFIX}/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if "process_generating" in line:
+                            break
+                    # Checked while the connection is still open, so the run
+                    # cannot have been torn down yet
+                    assert len(demo.pending_streams.get("s", {})) == 1
+                    assert len(demo.pending_diff_streams.get("s", {})) == 1
+
+            for _ in range(150):
+                if "s" not in demo.pending_diff_streams:
+                    break
+                time.sleep(0.1)
+            assert "s" not in demo.pending_diff_streams
+            runs = demo.pending_streams.get("s", {})
+            assert len(runs) == 1
+            assert next(iter(runs.values()))[audio._id].ended is True
+        finally:
+            stop.set()
+            demo.close()
+
+    def test_a_finished_run_keeps_its_stream_for_its_client(self):
+        # A client that saw the run finish fetches the playlist afterwards, so
+        # the stream has to stay, ended, once the run is closed out.
+        def stream():
+            for _ in range(3):
+                yield None
+
+        with Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            with httpx.Client(base_url=local_url, timeout=30) as client:
+                join = client.post(
+                    f"{API_PREFIX}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": "s"},
+                )
+                assert join.status_code == 200
+                with client.stream(
+                    "GET", f"{API_PREFIX}/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if "process_completed" in line:
+                            break
+
+                runs = demo.pending_streams.get("s", {})
+                assert len(runs) == 1
+                run = next(iter(runs))
+                assert runs[run][audio._id].ended is True
+                playlist = client.get(
+                    f"{API_PREFIX}/stream/s/{run}/{audio._id}/playlist.m3u8"
+                )
+                assert playlist.status_code == 200
+        finally:
+            demo.close()
 
 
 def test_api_listener(connect):
@@ -840,6 +1539,61 @@ class TestApp:
     def test_create_app_debug_flag_forwarded(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"), debug=True)
         assert app.debug is True
+
+
+class TestLifespanHandlers:
+    @staticmethod
+    def _fake_app():
+        blocks = SimpleNamespace(blocks={}, temp_file_sets=[])
+        return SimpleNamespace(
+            state_holder=SimpleNamespace(delete_all_expired_state=lambda: None),
+            get_blocks=lambda: blocks,
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "make_handler",
+        [
+            _delete_state_handler,
+            lambda app: _lifespan_handler(app, 1, 1),
+            create_lifespan_handler(None, 1, 1),
+        ],
+        ids=["delete_state", "lifespan", "combined"],
+    )
+    async def test_background_tasks_do_not_leak(self, make_handler):
+        """Each handler starts a `while True` task; leaving it running would leak
+        one task (and the `App` it closes over) per launch."""
+        pending_before = len(asyncio.all_tasks())
+        for _ in range(3):
+            async with make_handler(self._fake_app()):
+                await asyncio.sleep(0)  # let the background task start
+        await asyncio.sleep(0)  # let the cancellations be delivered
+        assert len(asyncio.all_tasks()) == pending_before
+
+    @pytest.mark.asyncio
+    async def test_failing_background_task_does_not_break_shutdown(self):
+        """The background tasks used to be fire-and-forget, so an error inside one
+        was only logged. Awaiting them on shutdown must not surface that error or
+        skip the final cleanup."""
+        app = self._fake_app()
+        deleted = []
+        app.get_blocks().temp_file_sets.append(set())
+
+        def boom():
+            raise RuntimeError("state cleanup blew up")
+
+        app.state_holder.delete_all_expired_state = boom
+
+        with patch(
+            "gradio.route_utils.delete_files_created_by_app",
+            side_effect=lambda *a, **kw: deleted.append(kw.get("age", "unset")),
+        ):
+            async with create_lifespan_handler(None, 1, 1)(app):
+                await asyncio.sleep(0)  # let _delete_state raise
+
+        # Shutdown completed without propagating the error, and the final
+        # "delete everything" cleanup still ran.
+        assert deleted == [None]
 
 
 class TestAuthenticatedRoutes:
@@ -916,6 +1670,8 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 200
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 200
 
         response = client.get("/logout")
 
@@ -923,6 +1679,41 @@ class TestAuthenticatedRoutes:
             "/monitoring",
         )
         assert response.status_code == 401
+        response = client.get("/monitoring/summary")
+        assert response.status_code == 401
+
+
+class TestConfigUsername:
+    """`/config` reports who is logged in. Resolving the user is async, so a
+    caller that does not await it gets a coroutine, which `ORJSONResponse`
+    stringifies rather than rejects. See
+    https://github.com/gradio-app/gradio/issues/13758."""
+
+    def test_username_is_none_without_auth(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            assert client.get("/config").json()["username"] is None
+
+    def test_username_is_the_logged_in_user(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth=("admin", "password"), prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            client.post("/login", data={"username": "admin", "password": "password"})
+            assert client.get("/config").json()["username"] == "admin"
+
+    def test_username_comes_from_an_async_auth_dependency(self):
+        async def whoever_asked(request: Request):
+            return request.headers.get("user")
+
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(auth_dependency=whoever_asked, prevent_thread_lock=True)
+
+        with TestClient(app) as client:
+            response = client.get("/config", headers={"user": "abubakar"})
+            assert response.json()["username"] == "abubakar"
 
 
 class TestQueueRoutes:
@@ -1533,6 +2324,31 @@ class TestSimpleAPIRoutes:
             btn3.click(fn_3, None, [output, output2], api_name="fn3")
         return demo
 
+    def test_simple_route_collects_a_result_under_the_callers_session_hash(self):
+        # `/call` accepts a session hash of the caller's choosing, and the GET
+        # that collects the result routinely arrives after the event has
+        # finished. The route has to recover that hash from somewhere the
+        # finished event no longer is.
+        demo = self.get_demo()
+        demo.launch(prevent_thread_lock=True)
+
+        response = requests.post(
+            f"{demo.local_api_url}call/fn1",
+            json={"data": ["world"], "session_hash": "a-session-of-my-own"},
+        )
+        assert response.status_code == 200, "Failed to call fn1"
+        event_id = response.json()["event_id"]
+
+        time.sleep(2)  # fn1 is fast, so it is done well before the GET
+
+        output = []
+        response = requests.get(f"{demo.local_api_url}call/fn1/{event_id}", stream=True)
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == ["event: complete", 'data: ["Hello, world!"]']
+
     def test_successful_simple_route(self):
         demo = self.get_demo()
         demo.launch(prevent_thread_lock=True)
@@ -1828,6 +2644,51 @@ class TestCurlEndpointWithFiles:
             }
             assert output[-2] == "event: error"
             assert output[-1] == f"data: {json.dumps(data)}"
+        finally:
+            demo.close()
+
+
+class TestCurlEndpointWithOAuthToken:
+    @pytest.mark.serial
+    def test_token_reaches_only_the_endpoint_that_takes_one(self):
+        def report(oauth_token: gr.OAuthToken | None) -> str:
+            return "none" if oauth_token is None else "token:" + oauth_token.token
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            gr.Button("Report").click(report, None, out, api_name="report")
+            gr.Button("Echo").click(lambda: "echo", None, out, api_name="echo")
+            named = gr.Textbox(value="orig", label="oauth_token")
+            gr.Button("Named").click(
+                lambda oauth_token: "param:" + oauth_token,
+                named,
+                out,
+                api_name="named",
+            )
+
+        demo.launch(prevent_thread_lock=True)
+
+        def call(api_name: str, payload: dict) -> str:
+            post_resp = requests.post(
+                f"{demo.local_api_url}call/v2/{api_name}", json=payload
+            )
+            assert post_resp.status_code == 200, post_resp.text
+            event_id = post_resp.json()["event_id"]
+            sse_resp = requests.get(
+                f"{demo.local_api_url}call/{api_name}/{event_id}", stream=True
+            )
+            output = [line.decode("utf-8") for line in sse_resp.iter_lines() if line]
+            return json.loads(output[-1].removeprefix("data: "))[0]
+
+        try:
+            assert call("report", {"oauth_token": "hf_abc"}) == "token:hf_abc"
+            assert call("report", {}) == "none"
+            # An endpoint that takes no token ignores one rather than erroring.
+            assert call("echo", {"oauth_token": "hf_abc"}) == "echo"
+            # The name is only reserved where the fn takes a token, so an
+            # endpoint with a parameter of that name still receives its value.
+            assert call("named", {"oauth_token": "MINE"}) == "param:MINE"
+            assert call("named", {}) == "param:orig"
         finally:
             demo.close()
 
@@ -2365,6 +3226,41 @@ def test_server_fn_passes_request():
     assert response.json()["_url"].endswith("/gradio_api/component_server")
 
 
+def test_server_fn_forwards_x_ip_token_via_local_context():
+    """/component_server must set LocalContext.request so gradio_client.Client
+    can forward the caller's x-ip-token to downstream ZeroGPU Spaces."""
+    import requests
+
+    from gradio.components.base import server
+    from gradio.context import LocalContext
+
+    def get_ip_token(self, _data):
+        req = LocalContext.request.get(None)
+        return req.headers.get("x-ip-token") if req else None
+
+    tb = gr.Textbox()
+    tb.get_ip_token = server(get_ip_token)  # type: ignore
+    iface = gr.Interface(lambda x: x, inputs=tb, outputs="text")
+    component_id = next(
+        c["id"]
+        for c in iface.config["components"]
+        if c["type"] == "textbox"  # type: ignore
+    )
+    _, local_url, _ = iface.launch(prevent_thread_lock=True)
+    response = requests.post(
+        f"{local_url}/gradio_api/component_server",
+        json={
+            "session_hash": "foo",
+            "component_id": component_id,
+            "fn_name": "get_ip_token",
+            "data": json.dumps({}),
+        },
+        headers={"x-ip-token": "test-token"},
+    )
+    assert response.status_code == 200
+    assert response.json() == "test-token"
+
+
 def test_slugify():
     items = (
         ("Hello, World!", "hello-world"),
@@ -2399,10 +3295,186 @@ def test_json_postprocessing_with_queue_false(connect):
 
 
 class TestOAuthSecurity:
+    def test_oauth_redirect_preserves_retry_count(self, monkeypatch):
+        monkeypatch.setenv("SPACE_HOST", "space.hf.space")
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "headers": [],
+            "query_string": b"_nb_redirects=2&_target_url=%2Fapp",
+        }
+
+        redirect_uri = _generate_redirect_uri(Request(scope))
+
+        assert parse_qs(urlparse(redirect_uri).query) == {
+            "_nb_redirects": ["2"],
+            "_target_url": ["/app"],
+        }
+
+    def test_mismatching_oauth_state_clears_stale_session_cookie(self, monkeypatch):
+        class FakeHuggingFaceOAuth:
+            async def authorize_redirect(self, request, redirect_uri):
+                return RedirectResponse(redirect_uri)
+
+            async def authorize_access_token(self, request):
+                assert request.cookies["session"] == "stale-invalid-cookie"
+                assert not request.session
+                raise MismatchingStateError()
+
+        class FakeOAuth:
+            def __init__(self):
+                self.huggingface = FakeHuggingFaceOAuth()
+
+            def register(self, **kwargs):
+                pass
+
+        monkeypatch.setattr("authlib.integrations.starlette_client.OAuth", FakeOAuth)
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_ID", "client")
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_SECRET", "secret")
+        monkeypatch.setattr(oauth, "OAUTH_SCOPES", "openid")
+        monkeypatch.setattr(oauth, "OPENID_PROVIDER_URL", "https://huggingface.co")
+
+        app = FastAPI()
+        oauth._add_oauth_routes(app)
+        app.add_middleware(
+            SessionMiddleware,  # type: ignore
+            secret_key="secret",
+            https_only=True,
+        )
+
+        with TestClient(app, base_url="https://space.hf.space") as client:
+            client.cookies.set(
+                "session", "stale-invalid-cookie", domain="space.hf.space"
+            )
+            response = client.get(
+                "/login/callback?_target_url=/app", follow_redirects=False
+            )
+
+            monkeypatch.setenv("SPACE_HOST", "space.hf.space, custom.example")
+            client.cookies.set(
+                "session", "stale-invalid-cookie", domain="space.hf.space"
+            )
+            external_response = client.get(
+                "/login/callback?_nb_redirects=3&_target_url=/app",
+                follow_redirects=False,
+            )
+
+        assert response.headers["location"] == (
+            "/login/huggingface?_nb_redirects=1&_target_url=%2Fapp"
+        )
+        assert 'session=""' in response.headers["set-cookie"]
+        assert "Max-Age=0" in response.headers["set-cookie"]
+        assert external_response.headers["location"] == (
+            "https://space.hf.space/login/huggingface?"
+            "_nb_redirects=4&_target_url=%2Fapp"
+        )
+
+    def test_mismatching_oauth_state_preserves_existing_login(self, monkeypatch):
+        oauth_info = {"access_token": "valid"}
+
+        class FakeHuggingFaceOAuth:
+            async def authorize_redirect(self, request, redirect_uri):
+                return RedirectResponse(redirect_uri)
+
+            async def authorize_access_token(self, request):
+                assert request.session["oauth_info"] == oauth_info
+                raise MismatchingStateError()
+
+        class FakeOAuth:
+            def __init__(self):
+                self.huggingface = FakeHuggingFaceOAuth()
+
+            def register(self, **kwargs):
+                pass
+
+        monkeypatch.setattr("authlib.integrations.starlette_client.OAuth", FakeOAuth)
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_ID", "client")
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_SECRET", "secret")
+        monkeypatch.setattr(oauth, "OAUTH_SCOPES", "openid")
+        monkeypatch.setattr(oauth, "OPENID_PROVIDER_URL", "https://huggingface.co")
+
+        app = FastAPI()
+
+        @app.get("/seed-session")
+        async def seed_session(request: Request):
+            request.session["oauth_info"] = oauth_info
+            request.session["_state_huggingface_stale"] = {"state": "stale"}
+            return {}
+
+        @app.get("/session")
+        async def get_session(request: Request):
+            return request.session
+
+        oauth._add_oauth_routes(app)
+        app.add_middleware(
+            SessionMiddleware,  # type: ignore
+            secret_key="secret",
+            https_only=True,
+        )
+
+        with TestClient(app, base_url="https://space.hf.space") as client:
+            client.get("/seed-session")
+            response = client.get("/login/callback", follow_redirects=False)
+            session = client.get("/session").json()
+
+        assert "Max-Age=0" not in response.headers["set-cookie"]
+        assert session == {"oauth_info": oauth_info}
+
+    def test_mismatching_oauth_state_preserves_unrelated_session_data(
+        self, monkeypatch
+    ):
+        preferences = {"theme": "dark"}
+
+        class FakeHuggingFaceOAuth:
+            async def authorize_redirect(self, request, redirect_uri):
+                return RedirectResponse(redirect_uri)
+
+            async def authorize_access_token(self, request):
+                assert request.session["preferences"] == preferences
+                raise MismatchingStateError()
+
+        class FakeOAuth:
+            def __init__(self):
+                self.huggingface = FakeHuggingFaceOAuth()
+
+            def register(self, **kwargs):
+                pass
+
+        monkeypatch.setattr("authlib.integrations.starlette_client.OAuth", FakeOAuth)
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_ID", "client")
+        monkeypatch.setattr(oauth, "OAUTH_CLIENT_SECRET", "secret")
+        monkeypatch.setattr(oauth, "OAUTH_SCOPES", "openid")
+        monkeypatch.setattr(oauth, "OPENID_PROVIDER_URL", "https://huggingface.co")
+
+        app = FastAPI()
+
+        @app.get("/seed-session")
+        async def seed_session(request: Request):
+            request.session["preferences"] = preferences
+            request.session["_state_huggingface_stale"] = {"state": "stale"}
+            return {}
+
+        @app.get("/session")
+        async def get_session(request: Request):
+            return request.session
+
+        oauth._add_oauth_routes(app)
+        app.add_middleware(
+            SessionMiddleware,  # type: ignore
+            secret_key="secret",
+            https_only=True,
+        )
+
+        with TestClient(app, base_url="https://space.hf.space") as client:
+            client.get("/seed-session")
+            response = client.get("/login/callback", follow_redirects=False)
+            session = client.get("/session").json()
+
+        assert "Max-Age=0" not in response.headers["set-cookie"]
+        assert session == {"preferences": preferences}
+
     def test_redirect_to_target_blocks_external_urls(self):
         """_redirect_to_target should strip scheme/host to prevent open redirects."""
-        from gradio.oauth import _redirect_to_target
-
         scope = {
             "type": "http",
             "method": "GET",
@@ -2440,8 +3512,6 @@ class TestOAuthSecurity:
         scheme-relative `//evil.com` (which browsers resolve to an external
         host), bypassing the CVE-2026-28415 fix. Backslashes are treated the
         same way by browsers and must also be collapsed."""
-        from gradio.oauth import _redirect_to_target
-
         scope = {"type": "http", "method": "GET", "headers": []}
 
         # Each hostile target must resolve to a same-origin path: a single
@@ -2479,3 +3549,73 @@ class TestOAuthSecurity:
             info = _get_mocked_oauth_info()
             assert info["access_token"] != "hf_real_secret_token"
             assert info["access_token"] == "mock-oauth-token-for-local-dev"
+
+
+@pytest.mark.requires_ffmpeg
+@pytest.mark.parametrize("event_id", [None, "not-a-queue-job"])
+def test_a_direct_run_call_returns_the_whole_first_chunk(event_id):
+    """The run route takes a generator's first yield and drops the rest, so
+    the stream it hands back has to carry that one chunk in full. An event id
+    is the queue's to mint, so one in the body cannot make the run look
+    continuable and leave its iterator and encoder held for good."""
+    sample_rate, chunk_samples = 16000, 4000
+
+    def stream():
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+        yield sample_rate, np.zeros(chunk_samples, dtype=np.int16)
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, outputs=audio, api_name="stream")
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        client = TestClient(app)
+        body = {"data": [], "session_hash": "direct", "event_id": event_id}
+        response = client.post("/gradio_api/run/stream", json=body)
+        assert response.status_code == 200
+        assert not app.iterators
+        url = response.json()["data"][0]["url"]
+        playlist = client.get(url).text
+        assert "#EXT-X-ENDLIST" in playlist
+        names = [
+            line for line in playlist.splitlines() if line and not line.startswith("#")
+        ]
+        base = url.rsplit("/", 1)[0]
+        data = b"".join(client.get(f"{base}/{name}").content for name in names)
+        frames, _ = parse_adts_frames(data)
+        # one per 1024 samples of the chunk, plus the stream's priming frame
+        assert len(frames) >= math.ceil(chunk_samples / 1024)
+    finally:
+        demo.close()
+
+
+@pytest.mark.requires_ffmpeg
+def test_a_failed_flush_still_ends_the_runs_other_streams(monkeypatch):
+    """Each stream has to be ended even when an earlier one's flush raises, or
+    its playlist never gets an #EXT-X-ENDLIST and its encoder is never freed."""
+
+    def stream():
+        chunk = (16000, np.zeros(4000, dtype=np.int16))
+        yield chunk, chunk
+
+    with gr.Blocks() as demo:
+        first = gr.Audio(streaming=True)
+        second = gr.Audio(streaming=True)
+        gr.Button().click(stream, outputs=[first, second], api_name="stream")
+
+    async def failing_flush(self, output_id):  # noqa: ARG001
+        raise RuntimeError("flush failed")
+
+    monkeypatch.setattr(gr.Audio, "flush_stream_output", failing_flush)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        response = TestClient(app).post(
+            "/gradio_api/run/stream", json={"data": [], "session_hash": "direct"}
+        )
+        assert response.status_code == 500
+        runs = demo.pending_streams.get("direct") or {}
+        streams = next(iter(runs.values()))
+        assert [stream.ended for stream in streams.values()] == [True, True]
+        assert "direct" not in demo.pending_diff_streams
+    finally:
+        demo.close()

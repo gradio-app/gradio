@@ -1,5 +1,65 @@
 # @gradio/chatbot
 
+## 0.32.1
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+- @gradio/image@0.28.3
+- @gradio/audio@0.24.3
+- @gradio/video@0.23.1
+
+## 0.32.1
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.32.1
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.32.1
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/theme@0.7.0
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+- @gradio/markdown-code@0.10.0
+- @gradio/image@0.28.1
+- @gradio/video@0.23.0
+- @gradio/plot@0.12.2
+- @gradio/gallery@0.19.1
+- @gradio/audio@0.24.2
+
+## 0.32.0
+
+### Features
+
+- [#13543](https://github.com/gradio-app/gradio/pull/13543) [`0533483`](https://github.com/gradio-app/gradio/commit/0533483bccdee38f334a598f18297e8c02966343) - Migrate Image components to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/image@0.28.0
+- @gradio/video@0.22.0
+- @gradio/client@2.3.1
+- @gradio/upload@0.18.1
+- @gradio/gallery@0.19.0
+- @gradio/plot@0.12.1
+- @gradio/audio@0.24.1
+
 ## 0.31.0
 
 ### Features

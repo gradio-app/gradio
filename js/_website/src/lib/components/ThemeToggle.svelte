@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { theme } from "$lib/stores/theme";
 
-	$: is_dark = $theme === "dark";
+	let is_dark = $derived($theme === "dark");
 
 	function handle_click() {
 		theme.toggle();
@@ -9,7 +9,7 @@
 </script>
 
 <button
-	on:click={handle_click}
+	onclick={handle_click}
 	class="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/20 dark:hover:bg-white/20 hover:bg-gray-200 transition-colors text-gray-900 dark:text-gray-300"
 	aria-label="Toggle dark mode"
 	title={is_dark ? "Switch to light mode" : "Switch to dark mode"}

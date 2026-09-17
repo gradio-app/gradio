@@ -40,12 +40,13 @@ class StateHolder:
             if session_id in self.session_data:
                 self.session_data.move_to_end(session_id)
             if len(self.session_data) > self.capacity:
-                self.session_data.popitem(last=False)
+                evicted, _ = self.session_data.popitem(last=False)
+                self.time_last_used.pop(evicted, None)
 
     def delete_all_expired_state(
         self,
     ):
-        for session_id in self.session_data:
+        for session_id in list(self.session_data):
             self.delete_state(session_id, expired_only=True)
 
     def delete_state(self, session_id: str, expired_only: bool = False):
@@ -84,10 +85,18 @@ class SessionState:
         block = self.blocks_config.blocks[key]
         if block.stateful:
             if key not in self.state_data:
-                self.state_data[key] = deepcopy(getattr(block, "value", None))
+                value = getattr(block, "value", None)
+                if callable(value):
+                    value = value()
+                self.state_data[key] = deepcopy(value)
             return self.state_data[key]
         else:
             return block
+
+    def get(self, key: int, default: Any = None) -> Any:
+        if key in self:
+            return self[key]
+        return default
 
     def __setitem__(self, key: int, value: Any):
         from gradio.components import State

@@ -27,19 +27,23 @@
 		{ label: "Github", href: "https://github.com/gradio-app/gradio" }
 	];
 
-	let click_nav = false;
-	let show_help_menu = false;
-	let is_scrolled = false;
-	let ready = false;
-	let show_logo_menu = false;
-	let logo_menu_x = 0;
-	let logo_menu_y = 0;
-	$: current_logo = $theme === "dark" ? gradio_logo_dark : gradio_logo;
+	let click_nav = $state(false);
+	let show_help_menu = $state(false);
+	let is_scrolled = $state(false);
+	let ready = $state(false);
+	let show_logo_menu = $state(false);
+	let logo_menu_x = $state(0);
+	let logo_menu_y = $state(0);
+	let current_logo = $derived(
+		$theme === "dark" ? gradio_logo_dark : gradio_logo
+	);
 
-	$: if (browser && !ready) {
-		is_scrolled = window.scrollY > 50;
-		ready = true;
-	}
+	$effect(() => {
+		if (browser && !ready) {
+			is_scrolled = window.scrollY > 50;
+			ready = true;
+		}
+	});
 
 	onMount(() => {
 		is_scrolled = window.scrollY > 50;
@@ -80,7 +84,7 @@
 	}
 </script>
 
-<svelte:window on:click={handle_click_outside} on:scroll={handle_scroll} />
+<svelte:window onclick={handle_click_outside} onscroll={handle_scroll} />
 
 {#if ready}
 	<div
@@ -91,14 +95,14 @@
 		<a
 			href="/"
 			class="lg:flex-shrink-0 logo-container"
-			on:contextmenu={handle_logo_context_menu}
+			oncontextmenu={handle_logo_context_menu}
 		>
 			<img src={current_logo} alt="Gradio logo" class="h-10" />
 		</a>
 
 		<button
 			class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors"
-			on:click={() => (click_nav = !click_nav)}
+			onclick={() => (click_nav = !click_nav)}
 			aria-label={click_nav ? "Close menu" : "Open menu"}
 		>
 			<svg
@@ -130,7 +134,7 @@
 				<button
 					type="button"
 					class="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 font-inherit text-inherit"
-					on:click={() => (show_help_menu = !show_help_menu)}
+					onclick={() => (show_help_menu = !show_help_menu)}
 				>
 					<span>Community</span>
 					<svg
@@ -160,7 +164,7 @@
 									: ''}"
 								{href}
 								target={href.startsWith("/") ? undefined : "_blank"}
-								on:click={() => (show_help_menu = false)}>{label}</a
+								onclick={() => (show_help_menu = false)}>{label}</a
 							>
 						{/each}
 					</div>
@@ -182,12 +186,12 @@
 				<div
 					class="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-neutral-800"
 				>
-					<a href="/" on:click={() => (click_nav = false)}>
+					<a href="/" onclick={() => (click_nav = false)}>
 						<img src={current_logo} alt="Gradio logo" class="h-10" />
 					</a>
 					<button
 						class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
-						on:click={() => (click_nav = false)}
+						onclick={() => (click_nav = false)}
 						aria-label="Close menu"
 					>
 						<svg
@@ -212,7 +216,7 @@
 					{#each nav_links as { label, href }}
 						<a
 							{href}
-							on:click={() => (click_nav = false)}
+							onclick={() => (click_nav = false)}
 							class="py-4 text-lg border-b border-gray-100 dark:border-neutral-800 hover:text-orange-500 transition-colors"
 							>{label}</a
 						>
@@ -228,7 +232,7 @@
 								<a
 									{href}
 									target={href.startsWith("/") ? undefined : "_blank"}
-									on:click={() => (click_nav = false)}
+									onclick={() => (click_nav = false)}
 									class="py-2.5 text-base text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
 									>{label}</a
 								>

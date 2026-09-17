@@ -6,6 +6,8 @@ import hashlib
 import hmac
 import importlib.resources
 import json
+import logging
+import math
 import mimetypes
 import os
 import pickle
@@ -14,6 +16,7 @@ import secrets
 import shutil
 import tempfile
 import threading
+import traceback
 import unicodedata
 import uuid
 from collections import defaultdict, deque
@@ -27,17 +30,21 @@ from typing import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
+    Optional,
     Union,
     cast,
 )
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import anyio
 import fastapi
 import gradio_client.utils as client_utils
 import httpx
+import safehttpx
 from gradio_client.documentation import document
+from python_multipart.exceptions import MultipartParseError
 from python_multipart.multipart import MultipartParser, parse_options_header
+from starlette.background import BackgroundTask
 from starlette.datastructures import (
     FormData,
     Headers,
@@ -48,10 +55,15 @@ from starlette.datastructures import (
 from starlette.exceptions import HTTPException
 from starlette.formparsers import MultiPartException, MultipartPart
 from starlette.requests import Request as StarletteRequest
-from starlette.responses import FileResponse, PlainTextResponse, Response
+from starlette.responses import (
+    FileResponse,
+    PlainTextResponse,
+    Response,
+    StreamingResponse,
+)
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from gradio import processing_utils, utils
+from gradio import history, processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
     DeveloperPath,
@@ -67,6 +79,7 @@ from gradio.utils import get_package_version
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks, BlocksConfig
     from gradio.helpers import EventData
+    from gradio.oauth import OAuthToken
     from gradio.routes import App
 
 
@@ -75,6 +88,8 @@ API_PREFIX = "/gradio_api"
 
 
 mimetypes.init()
+
+logger = logging.getLogger(__name__)
 
 
 class Obj:
@@ -359,6 +374,19 @@ def prepare_event_data(
     return event_data
 
 
+def oauth_token_from_body(body: PredictBodyInternal) -> Optional[OAuthToken]:
+    """Wrap a caller-supplied token so it can be injected as a gr.OAuthToken.
+
+    Scope and expiry are empty because the request carries neither.
+    """
+    from gradio.oauth import OAuthToken as _OAuthToken
+
+    token = getattr(body, "oauth_token", None)
+    if not token or not isinstance(token, str):
+        return None
+    return _OAuthToken(token=token, scope="", expires_at=0)
+
+
 async def call_process_api(
     app: App,
     body: PredictBodyInternal,
@@ -378,6 +406,9 @@ async def call_process_api(
     if batch_in_single_out:
         inputs = [inputs]
 
+    submitted_inputs = body.data
+    started_at = history.now_utc_iso()
+
     try:
         from gradio.profiling import trace_phase
 
@@ -395,26 +426,64 @@ async def call_process_api(
                     in_event_listener=True,
                     simple_format=body.simple_format,
                     root_path=root_path,
+                    oauth_token=oauth_token_from_body(body),
                 )
         iterator = output.pop("iterator", None)
         if event_id is not None:
             app.iterators[event_id] = iterator  # type: ignore
+        elif iterator is not None:
+            # Only the queue continues a generator, and it always carries an
+            # event id, so nobody will come back for this run: its streams are
+            # completed here, or they hold an encoder for the session's lifetime
+            # with the tail of the only chunk it will ever get still inside.
+            await app.get_blocks()._finish_run_streams(session_hash, iterator)
         if isinstance(output, Error):
             raise output
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
-        if iterator is not None:  # close off any streams that are still open
-            run_id = id(iterator)
-            pending_streams: dict[int, MediaStream] = (
-                app.get_blocks().pending_streams[session_hash].get(run_id, {})
-            )
-            for stream in pending_streams.values():
-                stream.end_stream()
+        app.get_blocks()._drop_run_streams(session_hash, iterator)
         raise
 
     if batch_in_single_out:
         output["data"] = output["data"][0]
+
+    _record_run_history(
+        app,
+        fn=fn,
+        gr_request=gr_request,
+        inputs=submitted_inputs,
+        outputs=output.get("data"),
+        started_at=started_at,
+        is_final=not output.get("is_generating"),
+    )
     return output
+
+
+def _record_run_history(
+    app: App,
+    *,
+    fn: BlockFunction,
+    gr_request: Union[Request, list[Request]],
+    inputs: Any,
+    outputs: Any,
+    started_at: str,
+    is_final: bool = True,
+) -> None:
+    """Hand a finished run to the recorder; records only public endpoints."""
+    if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
+        return
+    try:
+        history.schedule_record_run(
+            app,
+            request=gr_request,
+            inputs=inputs,
+            outputs=outputs,
+            api_name=fn.api_name,
+            fn_index=fn._id,
+            started_at=started_at,
+        )
+    except Exception:
+        logger.debug("history: scheduling failed", exc_info=True)
 
 
 def get_first_header_value(request: fastapi.Request, header_name: str):
@@ -618,7 +687,8 @@ class GradioMultiPartParser:
 
     Made the following modifications
         - Use GradioUploadFile instead of UploadFile
-        - Use NamedTemporaryFile instead of SpooledTemporaryFile
+        - Use NamedTemporaryFile instead of SpooledTemporaryFile, optionally
+          placing it in Gradio's upload directory
         - Compute hash of data as the request is streamed
 
     """
@@ -632,6 +702,7 @@ class GradioMultiPartParser:
         *,
         max_files: Union[int, float] = 1000,
         max_fields: Union[int, float] = 1000,
+        upload_dir: str | Path | None = None,
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
         max_file_size: int | float,
@@ -641,6 +712,7 @@ class GradioMultiPartParser:
         self.stream = stream
         self.max_files = max_files
         self.max_fields = max_fields
+        self.upload_dir = upload_dir
         self.items: list[tuple[str, Union[str, UploadFile]]] = []
         self.upload_id = upload_id
         self.upload_progress = upload_progress
@@ -736,7 +808,7 @@ class GradioMultiPartParser:
                     f"Too many files. Maximum number of files is {self.max_files}."
                 )
             filename = _user_safe_decode(options[b"filename"], str(self._charset))
-            tempfile = NamedTemporaryFile(delete=False)
+            tempfile = NamedTemporaryFile(delete=False, dir=self.upload_dir)
             self._files_to_close_on_error.append(tempfile)
             self._current_part.file = GradioUploadFile(
                 file=tempfile,  # type: ignore[arg-type]
@@ -805,11 +877,21 @@ class GradioMultiPartParser:
                     await part.file.seek(0)
                 self._file_parts_to_write.clear()
                 self._file_parts_to_finish.clear()
-        except MultiPartException as exc:
+        except (MultiPartException, MultipartParseError) as exc:
             # Close all the files if there was an error.
             for file in self._files_to_close_on_error:
                 file.close()
                 Path(file.name).unlink()
+            if isinstance(exc, MultipartParseError):
+                # python_multipart enforces its own per-part header limits and
+                # aborts the parse before our header callbacks run, so surface it
+                # as a MultiPartException like every other parse failure here.
+                message = str(exc)
+                raise MultiPartException(
+                    "Headers exceeded maximum allowed size."
+                    if "header" in message.lower()
+                    else f"Could not parse multipart request: {message}"
+                ) from exc
             raise exc
 
         parser.finalize()
@@ -899,8 +981,11 @@ class CustomCORSMiddleware:
         self,
         app: ASGIApp,
         strict_cors: bool = True,
+        parent_app: Any | None = None,
     ) -> None:
         self.app = app
+        self.parent_app = parent_app
+        self._parent_configures_cors: bool | None = None
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
         self.preflight_headers = {
             "Access-Control-Allow-Methods": ", ".join(self.all_methods),
@@ -916,8 +1001,21 @@ class CustomCORSMiddleware:
             # also be used maliciously for CSRF attacks, so it is not allowed by default.
             self.localhost_aliases.append("null")
 
+    def parent_configures_cors(self) -> bool:
+        if self._parent_configures_cors is None:
+            from starlette.middleware.cors import CORSMiddleware
+
+            self._parent_configures_cors = any(
+                middleware.cls is CORSMiddleware
+                for middleware in getattr(self.parent_app, "user_middleware", [])
+            )
+        return self._parent_configures_cors
+
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        if self.parent_configures_cors():
             await self.app(scope, receive, send)
             return
         headers = Headers(scope=scope)
@@ -1014,14 +1112,35 @@ async def delete_files_on_schedule(app: App, frequency: int, age: int) -> None:
         )
 
 
+async def _cancel_background_task(task: asyncio.Task) -> None:
+    """Cancel a lifespan background task and wait for it to unwind."""
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        # These tasks were previously fire-and-forget, so a failure inside one
+        # only ever got logged. Awaiting it must not turn that into an error
+        # that aborts the rest of the shutdown sequence.
+        traceback.print_exc()
+
+
 @asynccontextmanager
 async def _lifespan_handler(
     app: App, frequency: int = 1, age: int = 1
 ) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
-    asyncio.create_task(delete_files_on_schedule(app, frequency, age))
-    yield
-    delete_files_created_by_app(app.get_blocks(), age=None)
+    # Keep the handle so the task can be cancelled below. It never finishes on
+    # its own, and its pending `sleep` keeps it reachable from the event loop,
+    # so not cancelling it leaves one `while True` task (and the `App` it closes
+    # over) alive for the lifetime of the process on every launch.
+    task = asyncio.create_task(delete_files_on_schedule(app, frequency, age))
+    try:
+        yield
+    finally:
+        await _cancel_background_task(task)
+        delete_files_created_by_app(app.get_blocks(), age=None)
 
 
 async def _delete_state(app: App):
@@ -1034,8 +1153,11 @@ async def _delete_state(app: App):
 @asynccontextmanager
 async def _delete_state_handler(app: App):
     """When the server launches, regularly delete expired state."""
-    asyncio.create_task(_delete_state(app))
-    yield
+    task = asyncio.create_task(_delete_state(app))
+    try:
+        yield
+    finally:
+        await _cancel_background_task(task)
 
 
 def create_lifespan_handler(
@@ -1064,10 +1186,12 @@ class MediaStream:
         self.segments: list[MediaStreamChunk] = []
         self.combined_file: str | None = None
         self.ended = False
-        self.segment_index = 0
-        self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
-        self.max_duration = 5
+        self.max_duration = 1
         self.desired_output_format = desired_output_format
+        # Cleanup for resources tied to this stream, such as a component's
+        # encoder process. It hangs off the stream because `end_stream()` is
+        # reached from several places, not just normal completion.
+        self.on_end: list[Callable[[], None]] = []
 
     async def add_segment(self, data: MediaStreamChunk | None):
         if not data:
@@ -1075,10 +1199,18 @@ class MediaStream:
 
         segment_id = str(uuid.uuid4())
         self.segments.append({"id": segment_id, **data})  # type: ignore
-        self.max_duration = max(self.max_duration, data["duration"]) + 1
+        self.max_duration = max(self.max_duration, math.ceil(data["duration"]))
 
     def end_stream(self):
         self.ended = True
+        while self.on_end:
+            callback = self.on_end.pop()
+            try:
+                callback()
+            except Exception:
+                # This runs inside exception handling, so a teardown failure
+                # must not replace the error being propagated. It leaks, though.
+                logger.warning("stream cleanup callback failed", exc_info=True)
 
 
 def create_url_safe_hash(data: bytes, digest_size=8):
@@ -1118,6 +1250,24 @@ STATIC_ROUTE_PREFIXES = (
     "/upload",
     "/custom_component/",
 )
+
+
+def requote_proxied_url(url_path: str) -> str:
+    """Restore the encoding of a URL that reached the `/proxy=` route.
+
+    The ASGI server percent-decodes the request path once before routing, so a
+    filename that legitimately contains `%`, `#` or `?` arrives here with those
+    characters literal. Re-encoding everything after the authority hands the
+    upstream server the same path we were originally asked to proxy, instead of
+    one that decodes a level too far (or, for `#`, gets truncated as a fragment).
+    """
+    scheme, separator, rest = url_path.partition("://")
+    if not separator:
+        return url_path
+    authority, slash, path = rest.partition("/")
+    if not slash:
+        return url_path
+    return f"{scheme}://{authority}/{quote(path, safe='/=')}"
 
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
@@ -1161,15 +1311,57 @@ XSS_SAFE_MIMETYPES = {
     "image/png",
     "image/gif",
     "image/webp",
+    "audio/aac",
+    "audio/aiff",
+    "audio/flac",
+    "audio/mp4",
     "audio/mpeg",
-    "audio/wav",
     "audio/ogg",
+    "audio/wav",
+    "audio/webm",
+    "audio/x-aiff",
+    "audio/x-flac",
+    "audio/x-m4a",
+    "audio/x-matroska",
+    "audio/x-wav",
     "video/mp4",
-    "video/webm",
+    "video/mpeg",
     "video/ogg",
+    "video/quicktime",
+    "video/webm",
+    "video/x-matroska",
+    "video/x-msvideo",
     "text/plain",
     "application/json",
 }
+
+MEDIA_MIMETYPE_OVERRIDES = {
+    ".aac": "audio/aac",
+    ".aif": "audio/aiff",
+    ".aifc": "audio/aiff",
+    ".aiff": "audio/aiff",
+    ".flac": "audio/flac",
+    ".m4a": "audio/mp4",
+    ".m4b": "audio/mp4",
+    ".mka": "audio/x-matroska",
+    ".wav": "audio/wav",
+    ".weba": "audio/webm",
+    ".avi": "video/x-msvideo",
+    ".m4v": "video/mp4",
+    ".mkv": "video/x-matroska",
+    ".mov": "video/quicktime",
+}
+
+
+def register_media_mimetypes() -> None:
+    """Teach `mimetypes` the media types in `MEDIA_MIMETYPE_OVERRIDES`.
+
+    Must be called after `mimetypes.init()`, which rebuilds the database from
+    scratch and would otherwise discard these entries.
+    """
+    for extension, mime_type in MEDIA_MIMETYPE_OVERRIDES.items():
+        mimetypes.add_type(mime_type, extension)
+
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
@@ -1187,17 +1379,112 @@ def favicon(favicon_path: str | Path | None = None):
         return FileResponse(favicon_path)
 
 
+_FILE_STREAM_MAX_REDIRECTS = 20
+_FILE_STREAM_PASSTHROUGH_HEADERS = (
+    "content-length",
+    "content-range",
+    "accept-ranges",
+    "last-modified",
+    "etag",
+)
+
+
+async def secure_url_stream_response(url: str, request: StarletteRequest):
+    """
+    SSRF-safe way to serve an http(s) URL from the `/gradio_api/file=<url>`
+    endpoint. Instead of redirecting the caller to `url` (an open redirect, and
+    a client-side SSRF vector because `gradio_client` follows redirects), the
+    server fetches `url` itself through `safehttpx` — which resolves the host,
+    confirms it maps to a public IP, and pins that IP for the connection so a DNS
+    rebind cannot swap in an internal address — and streams the bytes back,
+    re-validating every redirect hop. Hosts that are unresolvable or resolve to a
+    private / loopback / link-local / reserved address are rejected. See #13593.
+    """
+    forward_headers = {}
+    range_header = request.headers.get("Range")
+    if range_header:
+        forward_headers["Range"] = range_header
+
+    current_url = url
+    redirects = 0
+    while True:
+        try:
+            parsed = httpx.URL(current_url)
+        except Exception as e:
+            raise HTTPException(403, f"File not allowed: {url}.") from e
+        if parsed.scheme not in ("http", "https") or not parsed.host:
+            raise HTTPException(403, f"File not allowed: {url}.")
+        try:
+            verified_ip = await safehttpx.async_validate_url(parsed.host)
+        except Exception as e:
+            raise HTTPException(403, f"File not allowed: {url}.") from e
+
+        transport = safehttpx.AsyncSecureTransport(verified_ip)
+        client = httpx.AsyncClient(
+            transport=transport, timeout=httpx.Timeout(None, connect=10.0)
+        )
+        try:
+            req = client.build_request(
+                request.method, current_url, headers=forward_headers
+            )
+            upstream = await client.send(req, stream=True)
+        except Exception as e:
+            await client.aclose()
+            raise HTTPException(502, f"Could not fetch file: {url}.") from e
+
+        if upstream.has_redirect_location:
+            location = upstream.headers.get("location", "")
+            await upstream.aclose()
+            await client.aclose()
+            redirects += 1
+            if redirects > _FILE_STREAM_MAX_REDIRECTS or not location:
+                raise HTTPException(502, f"Could not fetch file: {url}.")
+            current_url = str(httpx.URL(current_url).join(location))
+            continue
+
+        upstream_mime = upstream.headers.get("content-type", "").split(";")[0].strip()
+        guessed_mime, _ = mimetypes.guess_type(current_url)
+        if upstream_mime in XSS_SAFE_MIMETYPES or guessed_mime in XSS_SAFE_MIMETYPES:
+            content_type = upstream_mime or guessed_mime or "application/octet-stream"
+            content_disposition = "inline"
+        else:
+            content_type = "application/octet-stream"
+            content_disposition = "attachment"
+
+        response_headers = {
+            "Content-Type": content_type,
+            "Content-Disposition": content_disposition,
+            "X-Content-Type-Options": "nosniff",
+        }
+        for header in _FILE_STREAM_PASSTHROUGH_HEADERS:
+            if header in upstream.headers:
+                response_headers[header] = upstream.headers[header]
+
+        async def _close(upstream=upstream, client=client) -> None:
+            await upstream.aclose()
+            await client.aclose()
+
+        return StreamingResponse(
+            upstream.aiter_raw(),
+            status_code=upstream.status_code,
+            headers=response_headers,
+            background=BackgroundTask(_close),
+        )
+
+
 def file_fetch(
     path_or_url,
     request,
     blocks_or_config,
     upload_dir,
 ):
-    if client_utils.is_http_url_like(path_or_url):
-        from starlette.responses import RedirectResponse
-
-        return RedirectResponse(url=path_or_url, status_code=302)
-
+    # NOTE: http(s) URLs are intentionally NOT handled here. Previously this
+    # returned a 302 redirect to the URL, which was an open redirect and — since
+    # `gradio_client` follows redirects — a client-side SSRF vector (#13593).
+    # They are now served by `secure_url_stream_response()` from the async route,
+    # which fetches through `safehttpx` (public-IP validated, IP-pinned) and
+    # streams the bytes back. Any http(s) URL reaching this sync path falls
+    # through to the `starts_with_protocol` guard below and is rejected.
     if starts_with_protocol(path_or_url):
         raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
@@ -1269,6 +1556,7 @@ async def upload_fn(
     if content_type != b"multipart/form-data":
         raise HTTPException(status_code=400, detail="Invalid content type.")
 
+    Path(upload_dir).mkdir(exist_ok=True, parents=True)
     if upload_id and upload_progress:
         upload_progress.track(upload_id)
 
@@ -1277,6 +1565,7 @@ async def upload_fn(
         request.stream(),
         max_files=1000,
         max_fields=1000,
+        upload_dir=upload_dir,
         max_file_size=max_file_size,
         upload_id=upload_id,
         upload_progress=upload_progress,

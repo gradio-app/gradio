@@ -1,5 +1,50 @@
 # @self/app
 
+## 2.3.1
+
+### Fixes
+
+- [#13642](https://github.com/gradio-app/gradio/pull/13642) [`19cb8f7`](https://github.com/gradio-app/gradio/commit/19cb8f7bce14a7961cd4f81adb7f629c64df4988) - Align launch and event JavaScript execution.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/core@1.11.2
+- @gradio/client@2.6.0
+
+## 2.3.0
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 2.3.0
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 2.3.0
+
+### Features
+
+- [#13601](https://github.com/gradio-app/gradio/pull/13601) [`0ee5cc8`](https://github.com/gradio-app/gradio/commit/0ee5cc80e2915e5a1b074c892490a62f165cd80d) - Preserve browser-visible proxy origins for frontend assets and API requests, and retain app-level FastAPI root paths.  Thanks @abidlabs!
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+- [#13673](https://github.com/gradio-app/gradio/pull/13673) [`f412c6d`](https://github.com/gradio-app/gradio/commit/f412c6de20072524bf6cf45bce77a8000f9fd4b1) - Bundle postcss in standalone SSR builds.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/theme@0.7.0
+- @gradio/core@1.10.0
+- @self/build@0.6.2
+
+## 2.2.2
+
+### Dependency updates
+
+- @gradio/client@2.3.1
+- @gradio/core@1.9.0
+
 ## 2.2.2
 
 ### Dependency updates

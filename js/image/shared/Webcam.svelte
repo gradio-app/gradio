@@ -289,6 +289,8 @@
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video
 		bind:this={video_source}
+		data-testid="webcam-video"
+		playsinline
 		class:flip={mirror_webcam}
 		class:hide={!webcam_accessed || (webcam_accessed && !!value)}
 	/>
@@ -308,6 +310,8 @@
 	{:else}
 		<div class="button-wrap">
 			<button
+				class="capture-button"
+				class:photo-capture={mode === "image" && !streaming}
 				onclick={() => record_video_or_photo()}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
@@ -340,26 +344,24 @@
 					</div>
 				{/if}
 			</button>
-			{#if !recording}
+			{#if !recording && available_video_devices.length > 1}
 				<button
-					class="icon"
+					class="device-select-button"
 					onclick={() => (options_open = true)}
 					aria-label="select input source"
+					aria-haspopup="listbox"
+					aria-expanded={options_open}
 				>
-					<DropdownArrow />
+					<span class="device-select-icon"><DropdownArrow /></span>
 				</button>
 			{/if}
-		</div>
-		{#if options_open && selected_device}
-			<select
-				class="select-wrap"
-				aria-label="select source"
-				use:click_outside={handle_click_outside}
-				onchange={handle_device_change}
-			>
-				{#if available_video_devices.length === 0}
-					<option value="">{i18n("common.no_devices")}</option>
-				{:else}
+			{#if options_open && selected_device}
+				<select
+					class="select-wrap"
+					aria-label="select source"
+					use:click_outside={handle_click_outside}
+					onchange={handle_device_change}
+				>
 					{#each available_video_devices as device}
 						<option
 							value={device.deviceId}
@@ -368,9 +370,9 @@
 							{device.label}
 						</option>
 					{/each}
-				{/if}
-			</select>
-		{/if}
+				</select>
+			{/if}
+		</div>
 	{/if}
 </div>
 
@@ -396,15 +398,56 @@
 		background-color: var(--block-background-fill);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
-		padding: var(--size-1-5);
+		padding: var(--size-1);
 		display: flex;
+		align-items: center;
+		gap: var(--size-2);
 		bottom: var(--size-2);
 		left: 50%;
 		transform: translate(-50%, 0);
 		box-shadow: var(--shadow-drop-lg);
-		border-radius: var(--radius-xl);
 		line-height: var(--size-3);
 		color: var(--button-secondary-text-color);
+	}
+
+	.button-wrap button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.capture-button {
+		min-height: var(--size-10);
+		padding: 0 var(--size-2);
+	}
+
+	.capture-button.photo-capture {
+		width: var(--size-11);
+		height: var(--size-11);
+		padding: 0;
+		border-radius: var(--radius-full);
+	}
+
+	.photo-capture .icon {
+		width: var(--size-5);
+		height: var(--size-5);
+	}
+
+	.device-select-button {
+		min-width: var(--size-10);
+		width: var(--size-10);
+		height: var(--size-10);
+		padding: 0;
+		border-radius: var(--radius-full);
+	}
+
+	.device-select-icon {
+		display: flex;
+		width: var(--size-4);
+		height: var(--size-4);
+		align-items: center;
+		justify-content: center;
 	}
 
 	.icon-with-text {
@@ -451,10 +494,10 @@
 		appearance: none;
 		color: var(--button-secondary-text-color);
 		background-color: transparent;
-		width: 95%;
+		width: min(var(--size-52), 100%);
 		font-size: var(--text-md);
 		position: absolute;
-		bottom: var(--size-2);
+		bottom: calc(100% + var(--size-1-5));
 		background-color: var(--block-background-fill);
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
@@ -464,9 +507,7 @@
 		line-height: var(--size-4);
 		white-space: nowrap;
 		text-overflow: ellipsis;
-		left: 50%;
-		transform: translate(-50%, 0);
-		max-width: var(--size-52);
+		right: 0;
 	}
 
 	.select-wrap > option {

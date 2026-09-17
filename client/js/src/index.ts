@@ -5,6 +5,32 @@ export { submit } from "./utils/submit";
 export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
+export {
+	apply_run_history_replay,
+	clear_run_history,
+	consume_run_history_replay,
+	delete_run_history,
+	on_run_history_change,
+	read_run_history,
+	read_run_history_storage,
+	run_history_url,
+	set_run_history_storage,
+	stage_run_history_replay,
+	type ReplayTarget,
+	type RunHistoryStorage,
+	type RunHistoryScope,
+	type StoredRunComponent,
+	type StoredRun
+} from "./utils/run_history";
+export {
+	asset_url,
+	connect_bucket,
+	is_valid_bucket_id,
+	list_bucket_records,
+	list_user_buckets,
+	type HistoryRecord,
+	type HistoryResult
+} from "./utils/bucket_sync";
 
 export type {
 	SpaceStatus,

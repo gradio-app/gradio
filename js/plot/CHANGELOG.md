@@ -1,5 +1,38 @@
 # @gradio/plot
 
+## 0.12.2
+
+### Dependency updates
+
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+
+## 0.12.2
+
+### Fixes
+
+- [#13644](https://github.com/gradio-app/gradio/pull/13644) [`f0abb1e`](https://github.com/gradio-app/gradio/commit/f0abb1ea8e61f4b886296365639b9fe0492012a9) - restore shared props lost during frontend prop partitioning.  Thanks @dawoodkhan82!
+- [#13678](https://github.com/gradio-app/gradio/pull/13678) [`46e511b`](https://github.com/gradio-app/gradio/commit/46e511bd27669c22479e4323406d5288a241e68d) - Only remount a plot when its payload changes.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/theme@0.7.0
+- @gradio/statustracker@0.15.2
+
+## 0.12.1
+
+### Fixes
+
+- [#13540](https://github.com/gradio-app/gradio/pull/13540) [`98de45e`](https://github.com/gradio-app/gradio/commit/98de45e708305563f79614221aede2bf5d863922) - Fix gr.Plot collapsing to zero height for autosize Plotly figures.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+
 ## 0.12.0
 
 ### Features

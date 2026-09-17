@@ -8,6 +8,7 @@
 export type PortType =
 	| "image"
 	| "text"
+	| "markdown"
 	| "audio"
 	| "video"
 	| "number"
@@ -16,10 +17,17 @@ export type PortType =
 	| "json"
 	| "gallery"
 	| "model3d"
+	| "html"
 	| "any";
 
+/** Types that carry a plain string and are freely interchangeable. Markdown is
+ * text with a renderer attached, so a model's text output can feed a markdown
+ * tile and a markdown reference can prompt a text input. */
+const TEXTUAL = new Set<PortType>(["text", "markdown"]);
+
 export function ports_compatible(a: PortType, b: PortType): boolean {
-	return a === "any" || b === "any" || a === b;
+	if (a === "any" || b === "any" || a === b) return true;
+	return TEXTUAL.has(a) && TEXTUAL.has(b);
 }
 
 export interface Port {
@@ -31,12 +39,17 @@ export interface Port {
 	output_index?: number;
 	choices?: string[];
 	multiselect?: boolean;
+	custom?: boolean;
 }
 
 export interface FileValue {
 	name: string;
 	url: string;
 	mime: string;
+	/** Byte size, when the source knew it (a local upload, a capture, or a
+	 * Gradio payload that carried `size`). Absent for bare remote URLs — the
+	 * node header measures those lazily instead. */
+	size?: number;
 }
 
 export type NodeDataValue =
@@ -70,6 +83,7 @@ export interface WFNode {
 	y: number;
 	width: number;
 	height: number;
+	manual_height?: number;
 	data: NodeData;
 }
 
@@ -119,7 +133,18 @@ export interface BaseNode {
 	x: number;
 	y: number;
 	width: number;
+	/**
+	 * Last measured height of the rendered card. Written by the canvas, not the
+	 * user — layout math (zoom-to-fit, marquee selection, auto-arrange) reads it.
+	 */
 	height: number;
+	/**
+	 * Height the user pinned by dragging the resize handle. When set, the card is
+	 * locked to it and the widget zone stretches to fill; when absent, height is
+	 * content-driven. Kept separate from `height` so the measured value stays
+	 * meaningful either way.
+	 */
+	manual_height?: number;
 }
 
 export interface ReferenceNode extends BaseNode {
@@ -182,9 +207,30 @@ export interface Workflow {
 	};
 }
 
+/**
+ * Geometry that belongs to the viewer looking at the workflow rather than to the
+ * workflow itself: where each card sits and how tall it is. Kept out of
+ * `workflow.json` and mirrored per-user into localStorage instead — see
+ * `layout-persistence.ts`.
+ */
+export type ViewGeometryKey = "x" | "y" | "height" | "manual_height";
+
+export type SavedNode<T extends AnyNode = AnyNode> = Omit<T, ViewGeometryKey>;
+
+/** A workflow as it is written to `workflow.json`. */
+export interface SavedWorkflow extends Omit<
+	Workflow,
+	"references" | "operators" | "subjects"
+> {
+	references: SavedNode<ReferenceNode>[];
+	operators: SavedNode<OperatorNode>[];
+	subjects: SavedNode<SubjectNode>[];
+}
+
 export const PORT_COLOR: Record<PortType, string> = {
 	image: "#4fd1a5",
 	text: "#8b83e8",
+	markdown: "#8b83e8",
 	audio: "#f5a623",
 	video: "#4d9cf5",
 	number: "#e879a8",
@@ -193,12 +239,14 @@ export const PORT_COLOR: Record<PortType, string> = {
 	json: "#22d3ee",
 	gallery: "#34d399",
 	model3d: "#a78bfa",
+	html: "#f97316",
 	any: "#6b6e78"
 };
 
 export const PORT_COLOR_DIM: Record<PortType, string> = {
 	image: "rgba(79, 209, 165, 0.15)",
 	text: "rgba(139, 131, 232, 0.15)",
+	markdown: "rgba(139, 131, 232, 0.15)",
 	audio: "rgba(245, 166, 35, 0.15)",
 	video: "rgba(77, 156, 245, 0.15)",
 	number: "rgba(232, 121, 168, 0.15)",
@@ -207,5 +255,6 @@ export const PORT_COLOR_DIM: Record<PortType, string> = {
 	json: "rgba(34, 211, 238, 0.15)",
 	gallery: "rgba(52, 211, 153, 0.15)",
 	model3d: "rgba(167, 139, 250, 0.15)",
+	html: "rgba(249, 115, 22, 0.15)",
 	any: "rgba(107, 110, 120, 0.10)"
 };

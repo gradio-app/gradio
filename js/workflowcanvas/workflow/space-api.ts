@@ -26,6 +26,11 @@ export function normalize_space_id(raw: string): string | null {
 	);
 	if (pageMatch) return `${pageMatch[1]}/${pageMatch[2]}`;
 
+	const repoMatch = trimmed.match(
+		/^https?:\/\/(?:www\.)?huggingface\.co\/(?!spaces\/|datasets\/)([^/\s?#]+)\/([^/\s?#]+)/i
+	);
+	if (repoMatch) return `${repoMatch[1]}/${repoMatch[2]}`;
+
 	const sub = trimmed.match(/^https?:\/\/([^/]+)\.hf\.space/i);
 	if (sub) {
 		const parts = sub[1].split("-");
@@ -37,6 +42,18 @@ export function normalize_space_id(raw: string): string | null {
 	return null;
 }
 
+export function fork_repo_candidates(
+	user: string,
+	spaceId: string,
+	limit = 10
+): string[] {
+	const name = normalize_space_id(spaceId)?.split("/")[1];
+	if (!user || !name) return [];
+	return Array.from({ length: limit }, (_, i) =>
+		i === 0 ? `${user}/${name}` : `${user}/${name}-${i + 1}`
+	);
+}
+
 export function componentToPortType(
 	component: string,
 	type?: string,
@@ -44,12 +61,12 @@ export function componentToPortType(
 	labelHint?: string
 ): PortType | "__skip__" {
 	const c = component.toLowerCase();
-	if (pythonType) {
-		const cleaned = pythonType
-			.toLowerCase()
-			.replace(/^none\s*\|\s*/, "")
-			.replace(/\s*\|\s*none$/, "")
-			.trim();
+	const cleaned = pythonType
+		?.toLowerCase()
+		.replace(/^none\s*\|\s*/, "")
+		.replace(/\s*\|\s*none$/, "")
+		.trim();
+	if (cleaned) {
 		if (cleaned === "str" || cleaned === "string") return "text";
 		if (cleaned === "int" || cleaned === "integer" || cleaned === "float")
 			return "number";
@@ -66,11 +83,12 @@ export function componentToPortType(
 		return "file";
 	if (c === "model3d") return "model3d";
 	if (c === "json" || c === "dataframe") return "json";
+	if (c === "html") return "html";
+	if (c === "markdown") return "markdown";
 	if (c === "state") return "__skip__";
 	if (
 		c === "textbox" ||
 		c === "text" ||
-		c === "markdown" ||
 		c === "chatbot" ||
 		c === "label" ||
 		c === "code" ||
@@ -78,19 +96,13 @@ export function componentToPortType(
 		c === "dropdown" ||
 		c === "radio" ||
 		c === "checkboxgroup" ||
-		c === "colorpicker" ||
-		c === "html"
+		c === "colorpicker"
 	)
 		return "text";
 
 	// gr.api endpoints use component="Api" with python_type carrying the
 	// real hint — primitives already handled at the top of the function.
-	if (pythonType) {
-		const cleaned = pythonType
-			.toLowerCase()
-			.replace(/^none\s*\|\s*/, "")
-			.replace(/\s*\|\s*none$/, "")
-			.trim();
+	if (cleaned) {
 		if (
 			cleaned === "filepath" ||
 			cleaned === "file" ||
@@ -103,12 +115,8 @@ export function componentToPortType(
 			if (/model3d|mesh|glb|gltf|obj\b/.test(l)) return "model3d";
 			return "file";
 		}
-		if (
-			cleaned.includes("dict") ||
-			cleaned.includes("list") ||
-			cleaned.includes("any")
-		)
-			return "json";
+		if (cleaned === "any") return "any";
+		if (cleaned.includes("dict") || cleaned.includes("list")) return "json";
 	}
 
 	// Fallback: check the type field from the API

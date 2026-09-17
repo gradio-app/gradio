@@ -146,7 +146,7 @@
 >
 	<table class="file-preview">
 		<tbody>
-			{#each normalized_files as file, i (file.url)}
+			{#each normalized_files as file, i ((file.url ?? "") + "::" + i)}
 				<tr
 					class="file"
 					class:selectable
@@ -182,7 +182,7 @@
 						{#if file.url}
 							<DownloadLink
 								href={file.url}
-								on:click={() => handle_download(file)}
+								onclick={() => handle_download(file)}
 								download={is_browser && window.__is_colab__
 									? null
 									: file.orig_name}

@@ -1,24 +1,22 @@
 <script lang="ts">
 	import JSDocsNav from "$lib/components/JSDocsNav.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 
-	export let data;
+	let { data } = $props();
 
-	let name = data.name;
-	let readme_html = data.readme_html;
-	let js_pages = data.js_pages;
+	let js_pages = $derived(data.js_pages);
 
-	let js_components = js_pages.filter((c) => c !== "js-client");
+	let js_components = $derived(js_pages.filter((c) => c !== "js-client"));
 
-	$: name = data.name;
-	$: readme_html = data.readme_html;
+	let name = $derived(data.name);
+	let readme_html = $derived(data.readme_html);
 </script>
 
 <MetaTags
 	title={"Gradio Storybook"}
-	url={$page.url.pathname}
-	canonical={$page.url.pathname}
+	url={page.url.pathname}
+	canonical={page.url.pathname}
 	description={"All of Gradio's UI Components"}
 />
 

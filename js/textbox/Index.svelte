@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseTextbox } from "./shared/Textbox.svelte";
 	export { default as BaseExample } from "./Example.svelte";
 </script>
@@ -32,7 +30,7 @@
 
 	async function handle_input(value: string): Promise<void> {
 		if (!gradio.shared || !gradio.props) return;
-		gradio.props.validation_error = null;
+		clear_validation_error();
 		gradio.props.value = value;
 		await tick();
 		gradio.dispatch("input");
@@ -44,8 +42,15 @@
 
 	function handle_change(value: string): void {
 		if (!gradio.shared || !gradio.props) return;
-		gradio.props.validation_error = null;
+		clear_validation_error();
 		gradio.props.value = value;
+	}
+
+	function clear_validation_error(): void {
+		gradio.shared.validation_error = null;
+		if (gradio.shared.loading_status) {
+			gradio.shared.loading_status.validation_error = null;
+		}
 	}
 </script>
 
@@ -94,7 +99,7 @@
 		onchange={handle_change}
 		oninput={handle_input}
 		onsubmit={() => {
-			gradio.shared.validation_error = null;
+			clear_validation_error();
 			gradio.dispatch("submit");
 		}}
 		onblur={() => gradio.dispatch("blur")}

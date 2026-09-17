@@ -2,23 +2,30 @@
 	import type { ThemeData } from "./types";
 	import { clickOutside, is_color_dark } from "./utils";
 
-	export let theme: ThemeData;
-	export let on_close: () => void;
+	let {
+		theme,
+		on_close
+	}: {
+		theme: ThemeData;
+		on_close: () => void;
+	} = $props();
 
-	let link_copied = false;
-	let code_copied = false;
+	let link_copied = $state(false);
+	let code_copied = $state(false);
 
-	$: usage_code = theme.is_official
-		? `import gradio as gr
+	let usage_code = $derived(
+		theme.is_official
+			? `import gradio as gr
 
 with gr.Blocks(theme=gr.themes.${theme.name}()) as demo:
     ...`
-		: `import gradio as gr
+			: `import gradio as gr
 
 with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
-    ...`;
+    ...`
+	);
 
-	$: has_preview = !theme.is_official && theme.subdomain;
+	let has_preview = $derived(!theme.is_official && theme.subdomain);
 
 	function copy_link() {
 		const url = new URL(window.location.href);
@@ -41,13 +48,13 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 	}
 </script>
 
-<svelte:window on:keydown={(e) => e.key === "Escape" && on_close()} />
+<svelte:window onkeydown={(e) => e.key === "Escape" && on_close()} />
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[999]"
-	on:click={on_close}
+	onclick={on_close}
 ></div>
 
 <div
@@ -76,7 +83,7 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 		<div class="flex gap-2">
 			{#if !link_copied}
 				<button
-					on:click={copy_link}
+					onclick={copy_link}
 					class="rounded-md px-3 py-1.5 text-xs font-semibold text-white bg-orange-400 hover:bg-orange-500 transition-colors"
 				>
 					Share
@@ -89,7 +96,7 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 				</span>
 			{/if}
 			<button
-				on:click={on_close}
+				onclick={on_close}
 				class="rounded-md p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
 				aria-label="Close"
 			>
@@ -199,7 +206,7 @@ with gr.Blocks(theme=gr.Theme.from_hub("${theme.id}")) as demo:
 						Usage
 					</h3>
 					<button
-						on:click={copy_code}
+						onclick={copy_code}
 						class="text-[10px] px-2 py-0.5 rounded transition-colors {code_copied
 							? 'bg-green-500 text-white'
 							: 'bg-gray-200 dark:bg-neutral-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-neutral-600'}"

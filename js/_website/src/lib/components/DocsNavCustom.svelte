@@ -2,13 +2,19 @@
 	// @ts-nocheck
 	import { clickOutside } from "./clickOutside.js";
 
-	export let items: any;
-	export let title: string;
+	let {
+		items,
+		title,
+		current_nav_link = ""
+	}: {
+		items: any;
+		title: string;
+		current_nav_link?: any;
+	} = $props();
 
-	export let current_nav_link = "";
 	let docs_type = "python";
 
-	let show_nav = false;
+	let show_nav = $state(false);
 	let searchTerm = "";
 	let searchBar: HTMLInputElement;
 
@@ -41,14 +47,14 @@
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 </script>
 
-<svelte:window on:keydown={onKeyDown} />
+<svelte:window onkeydown={onKeyDown} />
 
 <section
 	class="top-0 fixed -ml-4 flex items-center p-4 rounded-br-lg backdrop-blur-lg z-50 bg-white dark:bg-neutral-900 lg:hidden"
 	id="menu-bar"
 >
 	<button
-		on:click={() => (show_nav = !show_nav)}
+		onclick={() => (show_nav = !show_nav)}
 		type="button"
 		class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
 	>
@@ -66,13 +72,13 @@
 
 <div
 	use:clickOutside
-	on:click_outside={() => (show_nav = false)}
+	onclick_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
 	class="w-64 flex-shrink-0 max-h-[calc(100vh-4rem)] overflow-y-auto fixed inset-0 z-50 bg-white lg:bg-transparent dark:bg-neutral-900 lg:dark:bg-transparent p-6 lg:sticky lg:top-8 lg:self-start lg:block"
 	id="mobile-nav"
 >
 	<button
-		on:click={() => (show_nav = !show_nav)}
+		onclick={() => (show_nav = !show_nav)}
 		type="button"
 		class="absolute z-10 top-4 right-4 flex items-center justify-center text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 lg:hidden"
 		tabindex="0"

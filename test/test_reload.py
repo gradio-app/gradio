@@ -1,10 +1,12 @@
 import dataclasses
+import subprocess
 from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
 
 import gradio as gr
-from gradio.cli.commands.reload import _setup_config
+from gradio.cli.commands.reload import _setup_config, build_app
 from gradio.http_server import Server
 
 
@@ -52,6 +54,124 @@ class TestReload:
     def test_config_watch_app(self, config):
         demo_dir = str(Path("demo/calculator/run.py").resolve().parent)
         assert demo_dir in config.watch_dirs
+
+
+class TestReloadCliArgs:
+    """`gradio app.py -- --name Gretel` forwards `--name Gretel` to the script."""
+
+    @pytest.fixture
+    def run_cli(self, monkeypatch):
+        """Run the reload CLI without launching anything.
+
+        Returns the CliRunner result plus the argv and env the app would have
+        been launched with.
+        """
+        launched: list[tuple[list[str], dict]] = []
+
+        class FakePopen:
+            def __init__(self, args, **kwargs):
+                launched.append((args, kwargs))
+
+            def poll(self):
+                return 0
+
+            def wait(self):
+                return 0
+
+        monkeypatch.setattr(subprocess, "Popen", FakePopen)
+
+        def invoke(*args: str):
+            result = CliRunner().invoke(build_app(), list(args))
+            argv, kwargs = launched[-1] if launched else ([], {})
+            return result, argv, kwargs
+
+        return invoke
+
+    def test_args_after_separator_are_forwarded_to_the_app(self, run_cli):
+        result, argv, _ = run_cli(
+            "demo/calculator/run.py", "--", "--verbose", "--name", "Gretel"
+        )
+        assert result.exit_code == 0, result.output
+        assert argv[-3:] == ["--verbose", "--name", "Gretel"]
+
+    def test_gradio_and_the_app_can_use_the_same_option_name(self, run_cli):
+        result, argv, kwargs = run_cli(
+            "demo/calculator/run.py",
+            "--demo-name",
+            "mine",
+            "--",
+            "--demo-name",
+            "theirs",
+        )
+        assert result.exit_code == 0, result.output
+        assert kwargs["env"]["GRADIO_WATCH_DEMO_NAME"] == "mine"
+        assert argv[-2:] == ["--demo-name", "theirs"]
+
+    def test_unknown_option_is_an_error_not_silently_forwarded(self, run_cli):
+        """Nothing is swept up implicitly, so adding an option to the reload CLI
+        later cannot change what an existing command means."""
+        result, _, _ = run_cli("demo/calculator/run.py", "--name", "Gretel")
+        assert result.exit_code != 0
+        # Rich wraps the message across panel lines.
+        assert "No such option" in " ".join(
+            result.output.replace("\u2502", " ").split()
+        )
+
+
+def test_reassign_pending_event_fns():
+    """Events that are pending or running when the app is hot-reloaded should
+    be pointed at the new app's BlockFunction objects (matched by api_name)
+    so that in-flight generators keep working after the reload.
+
+    Regression test for https://github.com/gradio-app/gradio/issues/8712
+    """
+    from fastapi import Request
+
+    from gradio.queueing import Event, EventQueue, Queue
+    from gradio.utils import reassign_pending_event_fns
+
+    def greet():
+        return "hi"
+
+    with gr.Blocks() as demo1:
+        t1 = gr.Textbox(key="t")
+        btn1 = gr.Button()
+        btn1.click(greet, None, t1)
+
+    with gr.Blocks() as demo2:
+        gr.Markdown("added by the reload")
+        t2 = gr.Textbox(key="t")
+        btn2 = gr.Button()
+        btn2.click(greet, None, t2)
+
+    old_fn = next(
+        fn for fn in demo1.default_config.fns.values() if fn.api_name == "greet"
+    )
+    new_fn = next(
+        fn for fn in demo2.default_config.fns.values() if fn.api_name == "greet"
+    )
+    assert old_fn is not new_fn
+
+    queue = Queue(
+        live_updates=True,
+        concurrency_count=1,
+        update_intervals=1,
+        max_size=None,
+        blocks=demo1,
+    )
+    request = Request({"type": "http", "headers": [], "path": "/"})
+    running_event = Event(session_hash="abc", fn=old_fn, request=request, username=None)
+    queue.active_jobs = [[running_event]]
+    pending_event = Event(session_hash="abc", fn=old_fn, request=request, username=None)
+    event_queue = EventQueue(old_fn.concurrency_id, None)
+    event_queue.queue.append(pending_event)
+    queue.event_queue_per_concurrency_id[old_fn.concurrency_id] = event_queue
+    demo2._queue = queue
+
+    reassign_pending_event_fns(demo2)
+
+    assert running_event.fn is new_fn
+    assert pending_event.fn is new_fn
 
 
 def test_watchfn_does_not_inherit_future_annotations():

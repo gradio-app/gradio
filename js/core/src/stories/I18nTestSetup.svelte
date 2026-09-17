@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import { init, _ } from "svelte-i18n";
 
-	export let active = true;
+	let { active = true }: { active?: boolean } = $props();
 
 	onMount(async () => {
 		if (!active) return;

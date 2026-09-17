@@ -3,22 +3,33 @@
 	import { onMount } from "svelte";
 	import { fade } from "svelte/transition";
 
-	export let id: string = "default";
-	export let show: boolean = true;
-	export let message: string = "";
-	export let link_text: string = "";
-	export let link_url: string = "";
-	export let type: "announcement" | "warning" | "info" = "announcement";
-	export let target: "_blank" | "_self" = "_self";
+	let {
+		id = "default",
+		show = true,
+		message = "",
+		link_text = "",
+		link_url = "",
+		type = "announcement",
+		target = "_self"
+	}: {
+		id?: string;
+		show?: boolean;
+		message?: string;
+		link_text?: string;
+		link_url?: string;
+		type?: "announcement" | "warning" | "info";
+		target?: "_blank" | "_self";
+	} = $props();
 
 	let dismissed = false;
 
-	$: badge_label =
-		type === "announcement" ? "New" : type === "warning" ? "Update" : "Info";
+	let badge_label = $derived(
+		type === "announcement" ? "New" : type === "warning" ? "Update" : "Info"
+	);
 
 	const STORAGE_KEY = `gradio-banner-dismissed-${id}`;
 
-	$: visible = show && !dismissed;
+	let visible = $derived(show && !dismissed);
 
 	onMount(() => {
 		if (browser) {

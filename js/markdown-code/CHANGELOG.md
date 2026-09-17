@@ -1,5 +1,25 @@
 # @gradio/markdown-code
 
+## 0.10.1
+
+### Features
+
+- [#13770](https://github.com/gradio-app/gradio/pull/13770) [`2cb02c0`](https://github.com/gradio-app/gradio/commit/2cb02c06228a4dfd509a0ac757ed0af466218478) - Upgrade vulnerable frontend dependencies.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/sanitize@0.4.2
+
+## 0.10.0
+
+### Features
+
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/sanitize@0.4.1
+
 ## 0.9.0
 
 ### Features

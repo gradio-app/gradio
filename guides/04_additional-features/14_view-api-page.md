@@ -88,6 +88,42 @@ Instead of reading through the view API page, you can also use Gradio's built-in
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api-recorder.gif)
 
+## Run History
+
+Next to the "Use via API" link, the footer has a **Runs** link, which opens a page at `<your-gradio-app-url>/gradio_api/runs` listing the runs made from this browser, grouped by endpoint. Each run shows its inputs, its outputs, how long the function took, and whether it succeeded. Clicking **Load run** puts a saved run's values back onto the page without calling the function again, which is a quick way to get back to an input you liked or to compare two results side by side.
+
+The run history covers the same endpoints as this API page. An event listener with `api_visibility="undocumented"` or `"private"` is not recorded, and neither is anything Gradio wires up on your behalf, such as loading an example.
+
+By default, runs are saved in the browser's local storage and are never sent to the server, so each visitor only sees their own. If your app uses `auth`, this browser history is also scoped to the logged-in user. The most recent 100 browser runs are kept per running app.
+
+The **History storage** control on this page can instead connect a private Hugging Face bucket. After connecting, future runs are stored in that bucket and can be opened from any browser that has access to it. Existing browser runs are not migrated, and switching back to **This browser** shows them again. On Spaces this requires Hugging Face OAuth; when running directly on localhost, Gradio uses the token from `hf auth login`. Bucket records are also scoped to the current app instance, because restarting an app may change its endpoints or input and output schemas.
+
+Values held in `gr.State` live on the server, so they are neither shown nor restored from either storage destination.
+
+The link appears once the browser has saved its first run. To hide the link but keep recording, list the footer links you do want:
+
+```py
+demo.launch(footer_links=["api", "gradio", "settings"])
+```
+
+To turn the feature off completely, set `run_history=False`. Nothing is recorded, the run history page returns a 404, and any runs this app had already saved are cleared from the browser the next time someone opens it:
+
+```py
+demo.launch(run_history=False)
+```
+
+This can also be set with the `GRADIO_RUN_HISTORY` environment variable, which is handy for a Space whose code you would rather not edit.
+
+### Runs made through the clients
+
+Calls made with the JavaScript client are recorded in the same way whenever that client runs in a browser, which is how a `gr.Server` app builds up a run history despite having no UI of its own. Pass `record_history: false` to opt a single client out:
+
+```js
+const app = await Client.connect("abidlabs/my-app", { record_history: false });
+```
+
+Nothing is recorded when the JavaScript client runs in Node, since there is no browser-selected history destination, and the Python client does not record runs at all. `run_history=False` on the app takes precedence over either client.
+
 ## MCP Server
 
 The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs. 

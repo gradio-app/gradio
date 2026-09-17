@@ -1,6 +1,18 @@
 import { spawn } from "node:child_process";
+import path from "node:path";
+import url from "node:url";
 
 import type { ChildProcess } from "child_process";
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const ROOT_DIR = path.resolve(__dirname, "../../..");
+const LOCAL_PYTHONPATH = [
+	ROOT_DIR,
+	path.join(ROOT_DIR, "client", "python"),
+	process.env.PYTHONPATH
+]
+	.filter(Boolean)
+	.join(path.delimiter);
 
 export function kill_process(process: ChildProcess) {
 	process.kill("SIGTERM");
@@ -21,7 +33,8 @@ export const launch_app_background = async (
 		cwd: cwd || process.cwd(),
 		env: {
 			...process.env,
-			PYTHONUNBUFFERED: "true"
+			PYTHONUNBUFFERED: "true",
+			PYTHONPATH: LOCAL_PYTHONPATH
 		}
 	});
 

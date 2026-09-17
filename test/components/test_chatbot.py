@@ -1,5 +1,6 @@
 import gradio as gr
 from gradio import utils
+from gradio.components.chatbot import MessageDict
 
 
 class TestChatbot:
@@ -120,6 +121,25 @@ class TestChatbot:
             chatbot.avatar_images[0]["path"], chatbot.GRADIO_CACHE
         )
         assert chatbot.avatar_images[1] is None
+
+    def test_component_content_created_inside_blocks_context(self):
+        """Such a component's `parent` is a Blocks graph, which holds a lock."""
+        with gr.Blocks():
+            # Built inside the block on purpose: that is what gives it a parent.
+            message: MessageDict = {"role": "assistant", "content": gr.Plot()}
+            chatbot = gr.Chatbot(value=[message])
+        assert chatbot.value[0]["content"][0]["component"] == "plot"
+
+    def test_component_content_is_not_mutated_by_postprocess(self):
+        """Postprocessing is repeated for every yield of a streaming handler."""
+        chatbot = gr.Chatbot()
+        message = gr.ChatMessage(
+            role="assistant", content=gr.Image("test/test_files/bus.png")
+        )
+        first = chatbot.postprocess([message]).model_dump()  # type: ignore
+        second = chatbot.postprocess([message]).model_dump()  # type: ignore
+        assert first == second
+        assert first[0]["content"][0]["value"] is not None
 
     def test_reasoning_tags_single_block(self):
         """Test reasoning_tags with a single thinking block"""

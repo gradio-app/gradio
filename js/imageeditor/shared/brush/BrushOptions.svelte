@@ -105,8 +105,12 @@
 	const debounced_close_preview = debounce(handle_close_preview, 1000);
 
 	$effect(() => {
+		if (!show_size) {
+			preview = false;
+			return;
+		}
+
 		selected_size;
-		selected_color;
 		handle_preview();
 	});
 

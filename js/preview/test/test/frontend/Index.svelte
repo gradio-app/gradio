@@ -8,22 +8,31 @@
 	import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 	import type { SelectData } from "@gradio/utils";
 
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible: boolean | "hidden" = true;
-	export let value = false;
-	// export let value_is_output = false;
-	// export let label = "Checkbox";
-	// export let info: string | undefined = undefined;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-		input: never;
-	}>;
+	let {
+		elem_id = "",
+		elem_classes = [],
+		visible = true,
+		value = false,
+		container = true,
+		scale = null,
+		min_width = undefined,
+		loading_status,
+		gradio
+	}: {
+		elem_id?: string;
+		elem_classes?: string[];
+		visible?: boolean | "hidden";
+		value?: boolean;
+		container?: boolean;
+		scale?: number | null;
+		min_width?: number | undefined;
+		loading_status: LoadingStatus;
+		gradio: Gradio<{
+			change: never;
+			select: SelectData;
+			input: never;
+		}>;
+	} = $props();
 </script>
 
 <div class="relative flex min-h-screen flex-col justify-center overflow-hidden">

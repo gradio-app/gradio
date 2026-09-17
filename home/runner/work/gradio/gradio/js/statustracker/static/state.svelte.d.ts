@@ -6,7 +6,13 @@ export declare class LoadingStatus {
     pending_outputs: Map<number, number>;
     fn_status: Record<number, ILoadingStatus["status"]>;
     show_progress: Record<number, "full" | "minimal" | "hidden">;
+    cache_event_id: number;
     register(dependency_id: number, outputs: number[], inputs: number[], show_progress: "full" | "minimal" | "hidden"): void;
+    /**
+     * Move in-flight loading status from old component ids to new ones after a
+     * hot-reload remounts the UI with fresh ids.
+     */
+    remap_ids(fn_index: number, old_outputs: number[], new_outputs: number[], old_inputs: number[], new_inputs: number[]): void;
     clear(id: number): void;
     update(args: LoadingStatusArgs): void;
     set_status(id: number, status: ILoadingStatus["status"]): void;
@@ -27,5 +33,8 @@ export declare class LoadingStatus {
         stream_state: "open" | "closed" | "waiting" | null;
         time_limit: number | null;
         type: "input" | "output" | "skip";
+        used_cache: "full" | "partial" | null;
+        cache_duration: number | null;
+        avg_time: number | null;
     }[];
 }

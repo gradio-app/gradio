@@ -48,6 +48,8 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "stream_audio_out",
         "stream_frames",
         "video_component",
+        "workflow_image_generator_comparison",
+        "workflow_vlm_chat",
         "zip_files",
     ]
     for demo in demos_to_copy:

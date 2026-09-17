@@ -27,6 +27,7 @@
 	class="selection-button selection-button-{position} {is_first_position
 		? `move-${direction}`
 		: ''}"
+	tabindex="-1"
 	onclick={(e: MouseEvent) => {
 		e.stopPropagation();
 		on_click && on_click();

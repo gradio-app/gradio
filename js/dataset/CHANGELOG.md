@@ -1,5 +1,53 @@
 # @gradio/dataset
 
+## 0.7.3
+
+### Fixes
+
+- [#13729](https://github.com/gradio-app/gradio/pull/13729) [`82ca180`](https://github.com/gradio-app/gradio/commit/82ca180c5c9a77d36b9097a62e63318317dc9d1f) - Fix Dataframe keyboard navigation accessibility.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.7.2
+
+### Fixes
+
+- [#13644](https://github.com/gradio-app/gradio/pull/13644) [`f0abb1e`](https://github.com/gradio-app/gradio/commit/f0abb1ea8e61f4b886296365639b9fe0492012a9) - restore shared props lost during frontend prop partitioning.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/upload@0.18.2
+- @gradio/textbox@0.14.2
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/atoms@0.26.0
+- @gradio/client@2.3.1
+- @gradio/upload@0.18.1
+- @gradio/textbox@0.14.1
+
 ## 0.7.0
 
 ### Features

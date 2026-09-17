@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let value: (string | number)[][];
+	let { value }: { value: (string | number)[][] } = $props();
 </script>
 
 <table class="input-dataframe-example">

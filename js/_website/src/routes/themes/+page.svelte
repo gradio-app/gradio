@@ -5,15 +5,16 @@
 	import ThemeCard from "./gallery/ThemeCard.svelte";
 
 	const themes = [...BUILTIN_THEMES];
-	let preview_dark: boolean = false;
+	let preview_dark: boolean = $state(false);
 
-	$: unique_fonts = [
+	let unique_fonts = $derived([
 		...new Set(themes.flatMap((t) => [t.fonts.main, t.fonts.mono]))
-	];
-	$: font_url =
+	]);
+	let font_url = $derived(
 		unique_fonts.length > 0
 			? `https://fonts.googleapis.com/css2?${unique_fonts.map((f) => `family=${f.replace(/ /g, "+")}:wght@400;500;600`).join("&")}&display=swap`
-			: "";
+			: ""
+	);
 
 	function handle_theme_click(theme_id: string) {
 		goto(`/themes/gallery?id=${theme_id}`);
@@ -79,7 +80,7 @@
 				Official Themes
 			</h2>
 			<button
-				on:click={() => (preview_dark = !preview_dark)}
+				onclick={() => (preview_dark = !preview_dark)}
 				class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {preview_dark
 					? 'bg-gray-800 text-white'
 					: 'bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300'}"

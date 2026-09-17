@@ -1,5 +1,10 @@
 <script lang="ts">
-	export let fn: any;
+	let {
+		fn
+	}: {
+		fn: any;
+	} = $props();
+
 	import anchor from "../assets/img/anchor.svg";
 	import ParamTable from "./ParamTable.svelte";
 </script>

@@ -46,6 +46,10 @@ export function represent_value(
 	return stringify_except_file_function(value);
 }
 
+// These helpers run inside template expressions, which are deriveds in runes
+// mode, so they must not mutate their input: `api_calls` payloads are `$state`
+// proxies and writing to one from a derived throws `state_unsafe_mutation`
+// (it also used to quietly corrupt the recorded payload).
 function simplify_file_data(obj: any): any {
 	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
 		if (
@@ -58,15 +62,18 @@ function simplify_file_data(obj: any): any {
 		}
 	}
 	if (Array.isArray(obj)) {
-		obj.forEach((item, index) => {
-			if (typeof item === "object" && item !== null) {
-				obj[index] = simplify_file_data(item); // Recurse and update array elements
-			}
-		});
-	} else if (typeof obj === "object" && obj !== null) {
-		Object.keys(obj).forEach((key) => {
-			obj[key] = simplify_file_data(obj[key]); // Recurse and update object properties
-		});
+		return obj.map((item) =>
+			typeof item === "object" && item !== null
+				? simplify_file_data(item)
+				: item
+		);
+	}
+	if (typeof obj === "object" && obj !== null) {
+		const copy: Record<string, any> = {};
+		for (const key of Object.keys(obj)) {
+			copy[key] = simplify_file_data(obj[key]);
+		}
+		return copy;
 	}
 	return obj;
 }
@@ -83,15 +90,18 @@ function replace_file_data_with_file_function(obj: any): any {
 		}
 	}
 	if (Array.isArray(obj)) {
-		obj.forEach((item, index) => {
-			if (typeof item === "object" && item !== null) {
-				obj[index] = replace_file_data_with_file_function(item); // Recurse and update array elements
-			}
-		});
-	} else if (typeof obj === "object" && obj !== null) {
-		Object.keys(obj).forEach((key) => {
-			obj[key] = replace_file_data_with_file_function(obj[key]); // Recurse and update object properties
-		});
+		return obj.map((item) =>
+			typeof item === "object" && item !== null
+				? replace_file_data_with_file_function(item)
+				: item
+		);
+	}
+	if (typeof obj === "object" && obj !== null) {
+		const copy: Record<string, any> = {};
+		for (const key of Object.keys(obj)) {
+			copy[key] = replace_file_data_with_file_function(obj[key]);
+		}
+		return copy;
 	}
 	return obj;
 }

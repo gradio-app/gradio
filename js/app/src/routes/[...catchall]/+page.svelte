@@ -76,20 +76,18 @@
 <script lang="ts">
 	import { run } from "svelte/legacy";
 
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
 	import type { ThemeMode } from "@gradio/core";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { init } from "@huggingface/space-header";
 	import { browser } from "$app/environment";
 
 	import Blocks from "@gradio/core/blocks";
 	import Login from "@gradio/core/login";
-
-	const dispatch = createEventDispatcher();
 
 	let stream: EventSource;
 
@@ -301,17 +299,7 @@
 
 		await add_custom_html_head(config.head);
 
-		if (config.js) {
-			try {
-				const script = document.createElement("script");
-				script.textContent = config.js;
-				document.head.appendChild(script);
-			} catch (e) {
-				console.error("Error executing custom JS:", e);
-			}
-		}
-
-		dispatch("loaded");
+		// nothing subscribes to a load event on the SvelteKit page
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(data.api_url);
@@ -333,20 +321,23 @@
 					}
 				});
 				stream.addEventListener("reload", async (event) => {
-					app.close();
-					app = await Client.connect(data.api_url, {
-						status_callback: handle_status,
-						with_null_state: true,
-						events: ["data", "log", "status", "render"],
-						session_hash: app.session_hash
-					});
-
-					if (!app.config) {
-						throw new Error("Could not resolve app config");
+					try {
+						// Soft-reload: refresh config in place so in-flight SSE
+						// streams (and generators) keep working across the reload.
+						config = await app.refresh();
+						reload_count += 1;
+						window.__gradio_space__ = config.space_id;
+					} catch (error) {
+						new_message_fn(
+							"Error",
+							"Error reloading app",
+							-1,
+							"error",
+							10,
+							true
+						);
+						console.error("Error reloading app:", error);
 					}
-					reload_count += 1;
-					config = app.config;
-					window.__gradio_space__ = config.space_id;
 				});
 			}, 200);
 		}
@@ -386,9 +377,11 @@
 	let root = $derived.by(() => {
 		if (!browser) return config.root;
 		const current_url = new URL(window.location.toString());
-		const root_url = new URL(config.root);
+		const root_url = new URL(config.root, current_url);
 
-		return new URL(root_url.pathname, current_url).toString();
+		return new URL(root_url.pathname, current_url)
+			.toString()
+			.replace(/\/$/, "");
 	});
 	run(() => {
 		if (config?.app_id) {
@@ -469,7 +462,7 @@
 			footer_links={is_embed ? [] : config.footer_links}
 			{app_mode}
 			{version}
-			search_params={$page.url.searchParams}
+			search_params={page.url.searchParams}
 			initial_layout={data.layout}
 		/>
 	{/if}

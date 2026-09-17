@@ -1,12 +1,17 @@
 <script lang="ts">
-	export let summary: string;
-	export let content: string;
+	let {
+		summary,
+		content
+	}: {
+		summary: string;
+		content: string;
+	} = $props();
 
-	let open = false;
+	let open = $state(false);
 </script>
 
 <div class="container">
-	<button class="summary" class:open on:click={() => (open = !open)}
+	<button class="summary" class:open onclick={() => (open = !open)}
 		>{summary}</button
 	>
 	{#if open}

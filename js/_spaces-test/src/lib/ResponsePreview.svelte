@@ -3,18 +3,13 @@
 	import Warning from "./Warning.svelte";
 	import Success from "./Success.svelte";
 	/**
-	 * @type {{data: any[]}}
+	 * @type {{
+	 *   response_data?: {data: any[]},
+	 *   app_info: {type: string; label: string; component:string}[],
+	 *   status?: "pending" | "error" | "complete" | "generating" | "idle"
+	 * }}
 	 */
-	export let response_data = { data: [] };
-	/**
-	 * @type {{type: string; label: string; component:string}[]}
-	 */
-	export let app_info;
-
-	/**
-	 * @type {"pending" | "error" | "complete" | "generating" | 'idle'}
-	 */
-	export let status = "idle";
+	let { response_data = { data: [] }, app_info, status = "idle" } = $props();
 </script>
 
 <div>

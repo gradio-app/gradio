@@ -4,9 +4,7 @@
 	import gradio_logo_with_title_svg from "$lib/assets/brand-assets/gradio-logo-with-title.svg";
 	import gradio_logo_with_title_png from "$lib/assets/brand-assets/gradio-logo-with-title.png";
 
-	export let show = false;
-	export let x = 0;
-	export let y = 0;
+	let { show = $bindable(false), x = 0, y = 0 } = $props();
 
 	const downloads = [
 		{
@@ -55,7 +53,7 @@
 		{#each downloads as download}
 			<button
 				class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors flex items-center gap-2"
-				on:click={() => handleDownload(download.url, download.filename)}
+				onclick={() => handleDownload(download.url, download.filename)}
 			>
 				<svg
 					class="w-4 h-4"

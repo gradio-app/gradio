@@ -5,6 +5,7 @@ import {
 	skip_queue,
 	post_message,
 	handle_file,
+	sign_file_urls,
 	handle_payload
 } from "../helpers/data";
 import { config_response, endpoint_info } from "./test_data";
@@ -95,6 +96,27 @@ describe("walk_and_store_blobs", () => {
 		expect(parts).toHaveLength(1);
 		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(parts[0].path).toEqual(["0"]);
+	});
+
+	it("should preserve File instances (and their filenames)", async () => {
+		const file = new File(["test data"], "report.txt", {
+			type: "text/plain"
+		});
+		const parts = await walk_and_store_blobs([file]);
+
+		expect(parts).toHaveLength(1);
+		expect(parts[0].blob).toBe(file);
+		expect((parts[0].blob as File).name).toBe("report.txt");
+		expect((parts[0].blob as File).type).toBe("text/plain");
+	});
+
+	it("should preserve the MIME type of Blob instances", async () => {
+		const blob = new Blob(["test data"], { type: "image/png" });
+		const parts = await walk_and_store_blobs([blob]);
+
+		expect(parts).toHaveLength(1);
+		expect(parts[0].blob).toBe(blob);
+		expect(parts[0].blob && parts[0].blob.type).toBe("image/png");
 	});
 
 	it("should handle deep structures", async () => {
@@ -338,6 +360,100 @@ describe("post_message", () => {
 	);
 });
 
+describe("sign_file_urls", () => {
+	it("signs nested file and stream URLs on the private Space origin", () => {
+		const data = {
+			image: {
+				path: "/tmp/cat.png",
+				url: "gradio_api/file=/tmp/cat.png?download=true",
+				meta: { _type: "gradio.FileData" }
+			},
+			gallery: [
+				{
+					image: {
+						path: "/tmp/tone.wav",
+						url: "/gradio_api/stream/tone.wav",
+						is_stream: true,
+						meta: { _type: "gradio.FileData" }
+					}
+				}
+			],
+			proxied: {
+				path: "https://nested-space.hf.space/gradio_api/file=/tmp/cat.png",
+				url: "/app/gradio_api/proxy=https://nested-space.hf.space/gradio_api/file=/tmp/cat.png",
+				meta: { _type: "gradio.FileData" }
+			}
+		};
+
+		sign_file_urls(
+			data,
+			"https://private-space.hf.space/app",
+			"/gradio_api",
+			"jwt_123"
+		);
+
+		expect(data.image.url).toBe(
+			"https://private-space.hf.space/app/gradio_api/file=/tmp/cat.png?download=true&__sign=jwt_123"
+		);
+		expect(data.gallery[0].image.url).toBe(
+			"https://private-space.hf.space/gradio_api/stream/tone.wav?__sign=jwt_123"
+		);
+		expect(data.proxied.url).toBe(
+			"https://private-space.hf.space/app/gradio_api/proxy=https://nested-space.hf.space/gradio_api/file=/tmp/cat.png?__sign=jwt_123"
+		);
+	});
+
+	it("does not sign external or unrelated same-origin URLs", () => {
+		const data = {
+			external: {
+				path: "https://cdn.example.com/cat.png",
+				url: "https://cdn.example.com/cat.png",
+				meta: { _type: "gradio.FileData" }
+			},
+			plain: {
+				url: "https://private-space.hf.space/gradio_api/file=/tmp/cat.png"
+			},
+			unrelated: {
+				path: "/tmp/cat.png",
+				url: "https://private-space.hf.space/api/custom-file",
+				meta: { _type: "gradio.FileData" }
+			}
+		};
+
+		sign_file_urls(
+			data,
+			"https://private-space.hf.space",
+			"/gradio_api",
+			"jwt_123"
+		);
+
+		expect(data.external.url).toBe("https://cdn.example.com/cat.png");
+		expect(data.plain.url).toBe(
+			"https://private-space.hf.space/gradio_api/file=/tmp/cat.png"
+		);
+		expect(data.unrelated.url).toBe(
+			"https://private-space.hf.space/api/custom-file"
+		);
+	});
+
+	it("does nothing without a Space JWT", () => {
+		const file = {
+			path: "/tmp/cat.png",
+			url: "https://private-space.hf.space/gradio_api/file=/tmp/cat.png",
+			meta: { _type: "gradio.FileData" }
+		};
+
+		sign_file_urls(
+			file,
+			"https://private-space.hf.space",
+			"/gradio_api",
+			false
+		);
+
+		expect(file.url).not.toContain("__sign");
+	});
+});
+
 describe("handle_file", () => {
 	it("should handle a Blob object and return the blob", () => {
 		const blob = new Blob(["test data"], { type: "image/png" });
@@ -371,11 +487,13 @@ describe("handle_file", () => {
 	);
 
 	it.skipIf(IS_NODE)(
-		"should handle a File object and return it as FileData",
+		"should handle a File object and return it unchanged, preserving its name and type",
 		() => {
 			const file = new File(["test image"], "test.png", { type: "image/png" });
-			const result = handle_file(file) as FileData;
-			expect(result).toBeInstanceOf(Blob);
+			const result = handle_file(file) as File;
+			expect(result).toBe(file);
+			expect(result.name).toBe("test.png");
+			expect(result.type).toBe("image/png");
 		}
 	);
 

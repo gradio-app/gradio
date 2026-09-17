@@ -153,7 +153,8 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		buttons: ["fullscreen", "download", "share"],
-		sources: ["upload"]
+		sources: ["upload"],
+		allow_preview: true
 	}}
 >
 	{#snippet template(args)}

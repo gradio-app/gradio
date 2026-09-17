@@ -252,9 +252,20 @@
 
 	let selected_cells: CellCoordinate[] = $state([]);
 	let selected: CellCoordinate | false = $state(false);
+	// where a shift+click range starts. `selected` cannot serve, because it
+	// follows every click, the shift+clicks that extend the range included.
+	// nothing renders from it, so it does not need to be reactive
+	let range_anchor: CellCoordinate | false = false;
 	let editing: CellCoordinate | false = $state(false);
 	let header_edit: number | false = $state(false);
 	let selected_header: number | false = $state(false);
+	let keyboard_header: number | false = $derived(
+		selected_header !== false &&
+			selected_header >= 0 &&
+			selected_header < resolved_headers.length
+			? selected_header
+			: false
+	);
 	let active_cell_menu: {
 		row: number;
 		col: number;
@@ -270,8 +281,146 @@
 
 	let parent: HTMLDivElement;
 
+	let keyboard_active = $derived.by((): CellCoordinate | false => {
+		if (selected) {
+			const selected_row = selected[0];
+			const is_visible = rows.some(
+				(row) => row.original._index === selected_row
+			);
+			if (is_visible) return selected;
+		}
+		if (rows.length > 0 && resolved_headers.length > 0) {
+			return [rows[0].original._index, 0];
+		}
+		return false;
+	});
+
+	function visible_row_position(row_index: number): number {
+		return rows.findIndex((row) => row.original._index === row_index);
+	}
+
+	// for the whole-selection sweeps, where one findIndex per cell would make
+	// Delete and copy quadratic on a column selection
+	function visible_row_set(): Set<number> {
+		return new Set(rows.map((row) => row.original._index));
+	}
+
+	function is_active_cell(row: number, col: number): boolean {
+		return !!(
+			keyboard_active &&
+			keyboard_active[0] === row &&
+			keyboard_active[1] === col &&
+			keyboard_header === false
+		);
+	}
+
+	async function focus_cell(coord: CellCoordinate): Promise<void> {
+		await tick();
+		parent
+			?.querySelector<HTMLElement>(
+				`[data-testid="cell-${coord[0]}-${coord[1]}"]`
+			)
+			?.focus();
+	}
+
+	async function focus_header(col: number): Promise<void> {
+		await tick();
+		parent
+			?.querySelector<HTMLElement>(`[data-testid="header-${col}"]`)
+			?.focus();
+	}
+
+	function set_active_cell(coord: CellCoordinate, move_focus = true): void {
+		selected = coord;
+		range_anchor = coord;
+		selected_cells = [coord];
+		selected_header = false;
+		header_edit = false;
+		const row_position = visible_row_position(coord[0]);
+		if (row_position >= 0) {
+			virtualizer.instance.scrollToIndex(row_position, { align: "auto" });
+		}
+		if (move_focus) focus_cell(coord);
+	}
+
+	function handle_cell_focus(row: number, col: number): void {
+		if (editing) return;
+		if (selected && selected[0] === row && selected[1] === col) return;
+		set_active_cell([row, col], false);
+	}
+
+	function handle_header_focus(col: number): void {
+		if (header_edit !== false) return;
+		selected = false;
+		range_anchor = false;
+		selected_cells = [];
+		selected_header = col;
+	}
+
+	function dispatch_select(row: number, col: number): void {
+		onselect?.({
+			index: [row, col],
+			value: values?.[row]?.[col],
+			row_value: values?.[row] ?? [],
+			col_value: values?.map((value_row) => value_row[col]) ?? []
+		} as any);
+	}
+
+	function adjacent_visible_cell(
+		coord: CellCoordinate,
+		backwards: boolean
+	): CellCoordinate | false {
+		const [row, col] = coord;
+		const row_position = visible_row_position(row);
+		if (row_position === -1) return false;
+
+		if (backwards) {
+			if (col > 0) return [row, col - 1];
+			if (row_position > 0) {
+				return [
+					rows[row_position - 1].original._index,
+					resolved_headers.length - 1
+				];
+			}
+			return false;
+		}
+
+		if (col < resolved_headers.length - 1) return [row, col + 1];
+		if (row_position < rows.length - 1) {
+			return [rows[row_position + 1].original._index, 0];
+		}
+		return false;
+	}
+
+	function focus_outside_grid(backwards: boolean): void {
+		tick().then(() => {
+			const candidates = Array.from(
+				document.querySelectorAll<HTMLElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+				)
+			).filter(
+				(element) =>
+					!parent.contains(element) && element.getClientRects().length > 0
+			);
+			const position = backwards
+				? Node.DOCUMENT_POSITION_PRECEDING
+				: Node.DOCUMENT_POSITION_FOLLOWING;
+			const ordered = backwards ? candidates.reverse() : candidates;
+			ordered
+				.find((element) => parent.compareDocumentPosition(element) & position)
+				?.focus();
+		});
+	}
+
 	function get_dtype(col: number): Datatype {
 		return Array.isArray(datatype) ? (datatype[col] ?? "str") : datatype;
+	}
+
+	function is_static_column(col: number): boolean {
+		return (
+			static_columns.includes(col) ||
+			static_columns.includes(resolved_headers[col])
+		);
 	}
 
 	type SizingEntry = { val: string; col_idx: number; dtype: Datatype };
@@ -376,7 +525,8 @@
 	function handle_cell_click(
 		event: MouseEvent,
 		row: number,
-		col: number
+		col: number,
+		view_index: number
 	): void {
 		const col_is_static =
 			!editable ||
@@ -388,25 +538,37 @@
 		event.stopPropagation();
 
 		const coord: CellCoordinate = [row, col];
-		if (event.shiftKey && selected) {
-			// range select
-			const [r1, c1] = selected;
-			const [r2, c2] = coord;
-			const new_cells: CellCoordinate[] = [];
-			for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) {
-				for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) {
-					new_cells.push([r, c]);
+		if (event.shiftKey && range_anchor) {
+			// the range runs from the anchor, and the search may have hidden its
+			// row since
+			const from_row = visible_row_position(range_anchor[0]);
+			if (from_row === -1) {
+				selected_cells = [coord];
+				range_anchor = coord;
+			} else {
+				const c1 = range_anchor[1];
+				const new_cells: CellCoordinate[] = [];
+				for (
+					let p = Math.min(from_row, view_index);
+					p <= Math.max(from_row, view_index);
+					p++
+				) {
+					for (let c = Math.min(c1, col); c <= Math.max(c1, col); c++) {
+						new_cells.push([rows[p].original._index, c]);
+					}
 				}
+				selected_cells = new_cells;
 			}
-			selected_cells = new_cells;
 		} else if (event.metaKey || event.ctrlKey) {
 			// toggle select
 			const exists = selected_cells.some(([r, c]) => r === row && c === col);
 			selected_cells = exists
 				? selected_cells.filter(([r, c]) => !(r === row && c === col))
 				: [...selected_cells, coord];
+			range_anchor = coord;
 		} else {
 			selected_cells = [coord];
+			range_anchor = coord;
 		}
 
 		selected = coord;
@@ -418,16 +580,8 @@
 		// click selects, does NOT enter edit mode (double-click or typing does)
 		editing = false;
 
-		onselect?.({
-			index: coord,
-			value: values?.[row]?.[col],
-			row_value: values?.[row] ?? [],
-			col_value: values?.map((r) => r[col]) ?? []
-		} as any);
-
-		if (!col_is_static) {
-			tick().then(() => parent?.focus());
-		}
+		dispatch_select(row, col);
+		focus_cell(coord);
 	}
 
 	function handle_cell_dblclick(
@@ -475,22 +629,27 @@
 		if (event.target instanceof HTMLAnchorElement) return;
 		event.preventDefault();
 		event.stopPropagation();
-		if (!editable) return;
 
 		editing = false;
 		selected = false;
+		range_anchor = false;
 		selected_cells = [];
 		active_cell_menu = null;
 		active_header_menu = null;
 		selected_header = col;
-		header_edit = editable ? col : false;
-		parent?.focus();
+		header_edit = editable && !is_static_column(col) ? col : false;
+		if (header_edit === false) focus_header(col);
 	}
 
-	function end_header_edit(key: string): void {
-		if (["Escape", "Enter", "Tab"].includes(key)) {
+	function end_header_edit(event: KeyboardEvent): void {
+		if (["Escape", "Enter", "Tab"].includes(event.key)) {
+			event.preventDefault();
 			header_edit = false;
-			parent?.focus();
+			if (event.key === "Tab") {
+				focus_outside_grid(event.shiftKey);
+			} else if (selected_header !== false) {
+				focus_header(selected_header);
+			}
 		}
 	}
 
@@ -565,8 +724,7 @@
 		}
 		values = new_values;
 		push_change(new_values);
-		selected = [index ?? new_values.length - 1, 0];
-		parent?.focus();
+		set_active_cell([index ?? new_values.length - 1, 0]);
 	}
 
 	function add_col(index?: number): void {
@@ -583,20 +741,33 @@
 		values = new_values;
 		headers = new_headers;
 		push_change(new_values, new_headers);
-		parent?.focus();
+		const new_col = index ?? new_headers.length - 1;
+		if (selected) {
+			set_active_cell([selected[0], new_col]);
+		} else {
+			selected_header = new_col;
+			header_edit = false;
+			focus_header(new_col);
+		}
 	}
 
 	function delete_row_at(index: number): void {
 		if (values.length <= 1) return;
+		const target_col = selected ? selected[1] : 0;
 		values = [...values.slice(0, index), ...values.slice(index + 1)];
 		push_change(values);
 		active_cell_menu = null;
 		active_header_menu = null;
+		set_active_cell([
+			Math.min(index, values.length - 1),
+			Math.min(target_col, resolved_headers.length - 1)
+		]);
 	}
 
 	function delete_col_at(index: number): void {
 		if (col_count[1] !== "dynamic") return;
 		if ((values[0]?.length ?? 0) <= 1) return;
+		const target_row = selected ? selected[0] : (rows[0]?.original._index ?? 0);
 		values = values.map((row) => [
 			...row.slice(0, index),
 			...row.slice(index + 1)
@@ -608,9 +779,8 @@
 		push_change(values, headers as string[]);
 		active_cell_menu = null;
 		active_header_menu = null;
-		selected = false;
-		selected_cells = [];
 		editing = false;
+		set_active_cell([target_row, Math.min(index, headers.length - 1)]);
 	}
 
 	function add_row_at(index: number, position: "above" | "below"): void {
@@ -659,20 +829,40 @@
 		push_change(filtered_values);
 	}
 
-	async function handle_copy(): Promise<void> {
+	// false when nothing reached the clipboard, so the toolbar can hold back its
+	// "Copied to clipboard" state
+	async function handle_copy(): Promise<boolean> {
+		const visible = visible_row_set();
+		const cells =
+			selected_cells.length > 0
+				? selected_cells.filter(([r]) => visible.has(r))
+				: rows.flatMap((row) => {
+						const r = row.original._index;
+						return (values[r] ?? []).map((_, c) => [r, c] as CellCoordinate);
+					});
+		if (cells.length === 0) return false;
+
 		const data_for_copy = values.map((row) =>
 			row.map((val, j) => ({ id: `${j}`, value: val }))
 		);
-		const cells_to_copy = selected_cells.length > 0 ? selected_cells : null;
-		await copy_table_data(data_for_copy, cells_to_copy);
+		try {
+			await copy_table_data(data_for_copy, cells);
+		} catch (err) {
+			// the write can be refused outright, on an insecure origin or without
+			// permission. logged because this catches anything else thrown too
+			console.error(err);
+			return false;
+		}
 		copy_flash = true;
 		setTimeout(() => (copy_flash = false), 800);
+		return true;
 	}
 
 	function handle_click_outside(event: Event): void {
 		if (handle_click_outside_util(event, parent)) {
 			selected_cells = [];
 			selected = false;
+			range_anchor = false;
 			editing = false;
 			header_edit = false;
 			selected_header = false;
@@ -682,137 +872,222 @@
 	}
 
 	function handle_keydown(e: KeyboardEvent): void {
-		if (!selected && selected_header === false) return;
+		if (e.target instanceof HTMLAnchorElement) return;
+		if (!selected && keyboard_header === false) return;
 
-		const num_rows = rows.length;
 		const num_cols = resolved_headers.length;
 
-		if (selected) {
-			const [row, col] = selected;
-
-			if (
-				editing &&
-				(e.key === "ArrowUp" ||
-					e.key === "ArrowDown" ||
-					e.key === "ArrowLeft" ||
-					e.key === "ArrowRight")
-			) {
-				return;
-			}
-
+		if (keyboard_header !== false) {
+			if (header_edit !== false) return;
+			const col = keyboard_header;
 			switch (e.key) {
-				case "ArrowUp":
+				case "ArrowDown": {
 					e.preventDefault();
-					if (row > 0) {
-						selected = [row - 1, col];
-						selected_cells = [selected];
-						virtualizer.instance.scrollToIndex(row - 1, { align: "auto" });
-					}
+					const first_row = rows[0]?.original._index;
+					if (first_row !== undefined) set_active_cell([first_row, col]);
 					break;
-				case "ArrowDown":
-					e.preventDefault();
-					if (row < num_rows - 1) {
-						selected = [row + 1, col];
-						selected_cells = [selected];
-						virtualizer.instance.scrollToIndex(row + 1, { align: "auto" });
-					}
-					break;
+				}
 				case "ArrowLeft":
 					e.preventDefault();
 					if (col > 0) {
-						selected = [row, col - 1];
-						selected_cells = [selected];
+						selected_header = col - 1;
+						focus_header(col - 1);
 					}
 					break;
 				case "ArrowRight":
 					e.preventDefault();
 					if (col < num_cols - 1) {
-						selected = [row, col + 1];
-						selected_cells = [selected];
+						selected_header = col + 1;
+						focus_header(col + 1);
 					}
 					break;
-				case "Tab": {
+				case "Enter":
+				case "F2":
 					e.preventDefault();
-					const was_editing = !!editing;
-					if (e.shiftKey) {
-						if (col > 0) selected = [row, col - 1];
-						else if (row > 0) selected = [row - 1, num_cols - 1];
-					} else {
-						if (col < num_cols - 1) selected = [row, col + 1];
-						else if (row < num_rows - 1) selected = [row + 1, 0];
+					if (editable && !is_static_column(col)) header_edit = col;
+					break;
+				case " ":
+				case "Spacebar":
+					e.preventDefault();
+					if (editable && !is_static_column(col) && get_dtype(col) === "bool") {
+						handle_select_all(col, get_select_all_state(col) !== "checked");
 					}
-					selected_cells = [selected];
-					if (was_editing) {
-						const tab_col = (selected as CellCoordinate)[1];
-						const tab_static =
-							static_columns.includes(tab_col) ||
-							static_columns.includes(resolved_headers[tab_col]);
-						editing = editable && !tab_static ? selected : false;
-					} else {
-						editing = false;
-					}
-					if (!editing) tick().then(() => parent?.focus());
+					break;
+			}
+			return;
+		}
+
+		if (!selected) return;
+		const [row, col] = selected;
+		const row_position = visible_row_position(row);
+		if (row_position === -1) return;
+
+		if (
+			editing &&
+			(e.key === "ArrowUp" ||
+				e.key === "ArrowDown" ||
+				e.key === "ArrowLeft" ||
+				e.key === "ArrowRight" ||
+				e.key === "Home" ||
+				e.key === "End")
+		) {
+			return;
+		}
+
+		switch (e.key) {
+			case "ArrowUp": {
+				e.preventDefault();
+				if (row_position > 0) {
+					set_active_cell([rows[row_position - 1].original._index, col]);
+				} else {
+					selected = false;
+					range_anchor = false;
+					selected_cells = [];
+					selected_header = col;
+					focus_header(col);
+				}
+				break;
+			}
+			case "ArrowDown":
+				e.preventDefault();
+				if (row_position < rows.length - 1) {
+					set_active_cell([rows[row_position + 1].original._index, col]);
+				}
+				break;
+			case "ArrowLeft":
+				e.preventDefault();
+				if (col > 0) set_active_cell([row, col - 1]);
+				break;
+			case "ArrowRight":
+				e.preventDefault();
+				if (col < num_cols - 1) set_active_cell([row, col + 1]);
+				break;
+			case "Home":
+				e.preventDefault();
+				set_active_cell(
+					e.ctrlKey || e.metaKey ? [rows[0].original._index, 0] : [row, 0]
+				);
+				break;
+			case "End":
+				e.preventDefault();
+				set_active_cell(
+					e.ctrlKey || e.metaKey
+						? [rows[rows.length - 1].original._index, num_cols - 1]
+						: [row, num_cols - 1]
+				);
+				break;
+			case "Tab": {
+				if (!editing) return;
+				e.preventDefault();
+				const next_cell = adjacent_visible_cell([row, col], e.shiftKey);
+				editing = false;
+				if (!next_cell) {
+					focus_outside_grid(e.shiftKey);
 					break;
 				}
-				case "Enter":
-					if (editing && e.shiftKey) {
-						// shift+enter inserts newline in textarea — don't intercept
-						return;
-					}
-					e.preventDefault();
-					if (editing) {
-						editing = false;
-						if (row < num_rows - 1) {
-							selected = [row + 1, col];
-							selected_cells = [selected];
-						}
-						tick().then(() => parent?.focus());
-					} else if (editable) {
-						const enter_static =
-							static_columns.includes(col) ||
-							static_columns.includes(resolved_headers[col]);
-						if (!enter_static) {
-							editing = [row, col];
-						}
-					}
-					break;
-				case "Escape":
+				set_active_cell(next_cell, false);
+				const next_col = next_cell[1];
+				const next_is_static = is_static_column(next_col);
+				if (editable && !next_is_static && get_dtype(next_col) !== "bool") {
+					editing = next_cell;
+				} else {
+					focus_cell(next_cell);
+				}
+				break;
+			}
+			case "Enter":
+				if (editing && e.shiftKey) return;
+				e.preventDefault();
+				if (editing) {
 					editing = false;
-					tick().then(() => parent?.focus());
-					break;
-				case "Delete":
-				case "Backspace":
-					if (!editing && editable) {
-						e.preventDefault();
-						const new_values = values.map((r) => [...r]);
-						selected_cells.forEach(([r, c]) => {
-							if (!static_columns.includes(c)) {
-								new_values[r][c] = "";
-							}
-						});
+					focus_cell([row, col]);
+				} else {
+					dispatch_select(row, col);
+					const enter_static = is_static_column(col);
+					if (editable && !enter_static && get_dtype(col) !== "bool") {
+						editing = [row, col];
+					}
+				}
+				break;
+			case "F2":
+				e.preventDefault();
+				if (editing) {
+					editing = false;
+					focus_cell([row, col]);
+				} else if (
+					editable &&
+					!is_static_column(col) &&
+					get_dtype(col) !== "bool"
+				) {
+					editing = [row, col];
+				}
+				break;
+			case " ":
+			case "Spacebar":
+				if (!editing) {
+					e.preventDefault();
+					const col_is_static = is_static_column(col);
+					if (editable && !col_is_static && get_dtype(col) === "bool") {
+						const new_values = values.map((value_row) => [...value_row]);
+						new_values[row][col] = !new_values[row][col];
 						values = new_values;
 						push_change(new_values);
 					}
-					break;
-				default:
-					// start editing on printable character
-					if (
-						editable &&
-						!editing &&
-						e.key.length === 1 &&
-						!e.ctrlKey &&
-						!e.metaKey &&
-						!static_columns.includes(col)
-					) {
-						editing = [row, col];
+					dispatch_select(row, col);
+				}
+				break;
+			case "Escape":
+				if (editing) {
+					e.preventDefault();
+					editing = false;
+					focus_cell([row, col]);
+				}
+				break;
+			case "Delete":
+			case "Backspace":
+				if (!editing && editable) {
+					e.preventDefault();
+					const new_values = values.map((value_row) => [...value_row]);
+					const visible = visible_row_set();
+					let cleared = false;
+					selected_cells.forEach(([selected_row, selected_col]) => {
+						// undefined is a cell past the end of a short row, or a row a
+						// shrunk table no longer has; a null is a value, so it is cleared
+						const current = new_values[selected_row]?.[selected_col];
+						if (
+							!is_static_column(selected_col) &&
+							visible.has(selected_row) &&
+							current !== "" &&
+							current !== undefined
+						) {
+							new_values[selected_row][selected_col] = "";
+							cleared = true;
+						}
+					});
+					// pushing with nothing written would fire change and input for an
+					// identical table
+					if (cleared) {
+						values = new_values;
+						push_change(new_values);
 					}
-					break;
-			}
-
-			if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-				handle_copy();
-			}
+				}
+				break;
+			default:
+				if (
+					editable &&
+					!editing &&
+					e.key.length === 1 &&
+					!e.ctrlKey &&
+					!e.metaKey &&
+					!is_static_column(col) &&
+					get_dtype(col) !== "bool"
+				) {
+					editing = [row, col];
+				}
+				break;
 		}
+
+		if ((e.ctrlKey || e.metaKey) && e.key === "c") handle_copy();
 	}
 
 	function handle_scroll(): void {
@@ -888,10 +1163,12 @@
 	let disable_scroll = $derived(
 		active_cell_menu !== null || active_header_menu !== null
 	);
-	let selected_index = $derived(selected !== false ? selected[0] : false);
+	let selected_index = $derived(
+		selected !== false ? visible_row_position(selected[0]) : false
+	);
 
 	$effect(() => {
-		if (typeof selected_index === "number") {
+		if (typeof selected_index === "number" && selected_index >= 0) {
 			virtualizer.instance.scrollToIndex(selected_index, { align: "auto" });
 		}
 	});
@@ -918,7 +1195,11 @@
 	}}
 />
 
-<div class="table-container" class:fullscreen>
+<div
+	class="table-container"
+	class:fullscreen
+	class:no-rows={values.length === 0}
+>
 	{#if (label && label.length !== 0 && show_label) || (buttons === null ? true : buttons.includes("fullscreen")) || (buttons === null ? true : buttons.includes("copy")) || show_search !== "none"}
 		<div class="header-row">
 			{#if label && label.length !== 0 && show_label}
@@ -947,7 +1228,11 @@
 		class:menu-open={active_cell_menu || active_header_menu}
 		onkeydown={handle_keydown}
 		role="grid"
-		tabindex="0"
+		aria-label={label || "Dataframe"}
+		aria-rowcount={rows.length + 1}
+		aria-colcount={resolved_headers.length + Number(show_row_numbers)}
+		aria-readonly={!editable}
+		tabindex={rows.length === 0 ? 0 : -1}
 		style="--df-max-col-width: {viewport_width}px;"
 	>
 		<Upload
@@ -961,6 +1246,8 @@
 			onload={on_file_upload}
 			bind:dragging
 			aria_label={i18n("dataframe.drop_to_upload")}
+			tab_index={-1}
+			container_element="div"
 		>
 			<div
 				class="virtual-table-viewport"
@@ -968,18 +1255,19 @@
 				bind:this={scroll_container}
 				bind:clientWidth={viewport_width}
 				onscroll={handle_scroll}
+				role="none"
 				style="max-height: {max_height}px;"
-				role="grid"
 			>
-				{#if label && label.length !== 0}
-					<span class="sr-only">{label}</span>
-				{/if}
 				<!-- header row: uses table layout to auto-size columns by content -->
-				<table class="header-table" bind:this={header_table_el}>
-					<thead>
-						<tr bind:this={header_row_el}>
+				<table class="header-table" bind:this={header_table_el} role="none">
+					<thead role="rowgroup">
+						<tr bind:this={header_row_el} role="row" aria-rowindex="1">
 							{#if show_row_numbers}
-								<th class="row-number-header">&nbsp;</th>
+								<th
+									class="row-number-header"
+									role="columnheader"
+									aria-colindex="1">&nbsp;</th
+								>
 							{/if}
 							{#each header_groups as headerGroup (headerGroup.id)}
 								{#each headerGroup.headers as header (header.id)}
@@ -988,8 +1276,9 @@
 									<HeaderCell
 										value={String(header.column.columnDef.header ?? "")}
 										{col_idx}
+										aria_col_index={col_idx + (show_row_numbers ? 2 : 1)}
 										is_editing={header_edit === col_idx}
-										is_selected={selected_header === col_idx}
+										is_selected={keyboard_header === col_idx}
 										is_static={!!(header.column.columnDef.meta as any)
 											?.isStatic}
 										is_bool={get_dtype(col_idx) === "bool"}
@@ -1007,6 +1296,7 @@
 										{i18n}
 										wrap_text={wrap}
 										onclick={handle_header_click}
+										onfocus={handle_header_focus}
 										on_menu_click={toggle_header_menu}
 										on_end_edit={end_header_edit}
 										on_select_all={handle_select_all}
@@ -1049,6 +1339,7 @@
 				<!-- table body: absolutely positioned rows (standard tanstack virtual pattern) -->
 				<div
 					class="virtual-body"
+					role="none"
 					style="height: {total_size}px; position: relative; flex-shrink: 0; width: {measurement.total_header_width
 						? `${measurement.total_header_width}px`
 						: '100%'};"
@@ -1056,11 +1347,17 @@
 					{#each virtual_items as virtual_row (virtual_row.key)}
 						{@const row = rows[virtual_row.index]}
 						{@const row_idx = row?.original._index ?? virtual_row.index}
+						{@const row_above =
+							rows[virtual_row.index - 1]?.original._index ?? null}
+						{@const row_below =
+							rows[virtual_row.index + 1]?.original._index ?? null}
 						{#if row}
 							<div
 								class="virtual-row"
 								class:row-odd={virtual_row.index % 2 !== 0}
 								data-index={virtual_row.index}
+								role="row"
+								aria-rowindex={virtual_row.index + 2}
 								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtual_row.start}px);{selected_cells.some(
 									([r]) => r === row_idx
 								)
@@ -1073,6 +1370,8 @@
 										class="row-number-cell"
 										data-row={row_idx}
 										data-col="row-number"
+										role="rowheader"
+										aria-colindex="1"
 										style="flex: 0 0 {measurement.row_num_width}px; width: {measurement.row_num_width}px;"
 									>
 										{row_idx + 1}
@@ -1091,12 +1390,17 @@
 										datatype={get_dtype(col_idx)}
 										{row_idx}
 										{col_idx}
+										aria_col_index={col_idx + (show_row_numbers ? 2 : 1)}
 										col_style={measurement.get_col_style(ci)}
 										cell_style={get_styling(row_idx, col_idx)}
 										selection_classes={is_cell_selected(
 											[row_idx, col_idx],
-											selected_cells
+											selected_cells,
+											row_above,
+											row_below
 										)}
+										is_active={is_active_cell(row_idx, col_idx)}
+										aria_row_index={virtual_row.index + 2}
 										is_editing={!!(
 											editing &&
 											editing[0] === row_idx &&
@@ -1125,7 +1429,8 @@
 										{components}
 										{is_dragging}
 										wrap_text={wrap}
-										onmousedown={(e) => handle_cell_click(e, row_idx, col_idx)}
+										onmousedown={(e) =>
+											handle_cell_click(e, row_idx, col_idx, virtual_row.index)}
 										ondblclick={(e) =>
 											handle_cell_dblclick(e, row_idx, col_idx)}
 										oncontextmenu={(e) => {
@@ -1136,11 +1441,12 @@
 											e.preventDefault();
 											toggle_cell_menu(e, row_idx, col_idx);
 										}}
+										onfocus={() => handle_cell_focus(row_idx, col_idx)}
 										onblur={handle_blur}
 										on_menu_click={(e) => toggle_cell_menu(e, row_idx, col_idx)}
 										on_select_column={(c) => {
 											selected_cells = rows.map(
-												(_, r) => [r, c] as CellCoordinate
+												(row) => [row.original._index, c] as CellCoordinate
 											);
 											selected = selected_cells[0];
 										}}
@@ -1163,6 +1469,10 @@
 			<button class="scroll-top-button" onclick={scroll_to_top}>&uarr;</button>
 		{/if}
 	</div>
+
+	{#if values.length === 0 && editable && row_count[1] === "dynamic"}
+		<EmptyRowButton on_click={() => add_row()} />
+	{/if}
 </div>
 
 {#if active_cell_menu || active_header_menu}
@@ -1229,10 +1539,6 @@
 	/>
 {/if}
 
-{#if values.length === 0 && editable && row_count[1] === "dynamic"}
-	<EmptyRowButton on_click={() => add_row()} />
-{/if}
-
 <style>
 	.table-container {
 		display: flex;
@@ -1269,6 +1575,14 @@
 		min-height: 0;
 	}
 
+	/* An empty body would otherwise fill the screen and carry the add-row button off it.
+	   Gated on the data alone, so empty tables that show no button stop stretching too. */
+	.table-container.fullscreen.no-rows .table-wrap,
+	.table-container.fullscreen.no-rows .table-wrap > :global(*),
+	.table-container.fullscreen.no-rows .virtual-table-viewport {
+		flex: 0 0 auto;
+	}
+
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
@@ -1298,7 +1612,7 @@
 		user-select: none;
 	}
 
-	.table-wrap > :global(button) {
+	.table-wrap > :global(.upload-container) {
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
 		overflow: hidden;
@@ -1338,6 +1652,7 @@
 	/* Header table: auto-sizes columns by content, sticky */
 	.header-table {
 		width: 100%;
+		padding: 0;
 		color: var(--body-text-color);
 		font-size: var(--input-text-size);
 		line-height: var(--line-md);

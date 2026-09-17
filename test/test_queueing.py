@@ -188,7 +188,7 @@ def test_heartbeat_task_cancelled_after_stream_completes():
 
         name.submit(greet, name, output)
 
-    app, local_url, _ = demo.launch(prevent_thread_lock=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
 
     heartbeat_tasks = []
     original_create_task = asyncio.create_task
@@ -198,36 +198,38 @@ def test_heartbeat_task_cancelled_after_stream_completes():
         heartbeat_tasks.append(task)
         return task
 
-    with patch("gradio.routes.asyncio.create_task", side_effect=tracking_create_task):
-        test_client = TestClient(app)
-        r = test_client.post(
-            f"{API_PREFIX}/queue/join",
-            json={
-                "data": ["hello"],
-                "fn_index": 0,
-                "event_data": None,
-                "session_hash": "test_heartbeat",
-                "trigger_id": None,
-            },
-        )
-        assert r.status_code == 200
+    with TestClient(app) as test_client:
+        with patch(
+            "gradio.routes.asyncio.create_task", side_effect=tracking_create_task
+        ):
+            r = test_client.post(
+                f"{API_PREFIX}/queue/join",
+                json={
+                    "data": ["hello"],
+                    "fn_index": 0,
+                    "event_data": None,
+                    "session_hash": "test_heartbeat",
+                    "trigger_id": None,
+                },
+            )
+            assert r.status_code == 200
 
-        r = test_client.get(f"{API_PREFIX}/queue/data?session_hash=test_heartbeat")
+            r = test_client.get(f"{API_PREFIX}/queue/data?session_hash=test_heartbeat")
 
-        # Verify we got a process_completed message
-        got_completed = False
-        for line in r.iter_lines():
-            if "data" in line:
-                data = json.loads(line[5:])
-                if data["msg"] == "process_completed":
-                    got_completed = True
-        assert got_completed
+            # Verify we got a process_completed message
+            got_completed = False
+            for line in r.iter_lines():
+                if "data" in line:
+                    data = json.loads(line[5:])
+                    if data["msg"] == "process_completed":
+                        got_completed = True
+            assert got_completed
 
-    assert len(heartbeat_tasks) > 0, "No heartbeat tasks were created"
-    for task in heartbeat_tasks:
-        assert task.cancelled() or task.done(), (
-            "Heartbeat task was not cancelled after stream completed"
-        )
+        assert len(heartbeat_tasks) > 0, "No heartbeat tasks were created"
+        for task in heartbeat_tasks:
+            assert task.cancelled() or task.done(), (
+                "Heartbeat task was not cancelled after stream completed"
+            )
     demo.close()
 
 
@@ -345,3 +347,61 @@ def test_analytics_summary(monkeypatch):
         event_analytics = tc.get("/monitoring/summary").json()
         assert "predict" in event_analytics["functions"]
         assert event_analytics["functions"]["predict"]["total_requests"] == 4
+
+
+class TestQueueDoesNotAccumulate:
+    def test_finished_events_are_not_retained(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        assert demo._queue.event_ids_to_events == {}
+
+    def test_finished_tasks_are_not_retained(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        assert demo._queue._asyncio_tasks == set()
+
+    def test_completing_an_event_does_not_mark_its_iterator_for_reset(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        with connect(demo) as client:
+            for _ in range(5):
+                client.predict("a", api_name="/lambda")
+
+        assert demo._queue.server_app.iterators_to_reset == set()
+
+    def test_event_analytics_is_bounded(self, connect):
+        with gr.Blocks() as demo:
+            box = gr.Textbox()
+            out = gr.Textbox()
+            box.submit(lambda x: x, box, out)
+
+        demo._queue.ANALYTICS_MAX_EVENTS = 3
+        with connect(demo) as client:
+            for _ in range(8):
+                client.predict("a", api_name="/lambda")
+
+        assert len(demo._queue.event_analytics) == 3
+        assert demo._queue.events_recorded == 8
+        assert (
+            demo._queue.cached_event_analytics_summary["functions"]["lambda"][
+                "total_requests"
+            ]
+            == 8
+        )

@@ -1,6 +1,4 @@
-<svelte:options accessors={true} />
-
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as FilePreview } from "./shared/FilePreview.svelte";
 	export { default as BaseFileUpload } from "./shared/FileUpload.svelte";
 	export { default as BaseFile } from "./shared/File.svelte";

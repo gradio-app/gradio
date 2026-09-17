@@ -1,19 +1,23 @@
 <script lang="ts">
 	import type { HTMLAnchorAttributes } from "svelte/elements";
-	import { createEventDispatcher } from "svelte";
+	import type { Snippet } from "svelte";
 
 	interface DownloadLinkAttributes extends Omit<
 		HTMLAnchorAttributes,
-		"target"
+		"target" | "children"
 	> {
-		download: NonNullable<HTMLAnchorAttributes["download"]>;
+		// `null` omits the attribute entirely, which is how callers opt out of a
+		// native download (e.g. Colab, where the anchor has to open in a new tab).
+		download?: HTMLAnchorAttributes["download"] | null;
+		children?: Snippet;
 	}
-	type $$Props = DownloadLinkAttributes;
 
-	export let href: DownloadLinkAttributes["href"] = undefined;
-	export let download: DownloadLinkAttributes["download"];
-
-	const dispatch = createEventDispatcher();
+	let {
+		href = undefined,
+		download = undefined,
+		children,
+		...rest
+	}: DownloadLinkAttributes = $props();
 </script>
 
 <a
@@ -26,10 +30,9 @@
 		: null}
 	rel="noopener noreferrer"
 	{download}
-	{...$$restProps}
-	on:click={dispatch.bind(null, "click")}
+	{...rest}
 >
-	<slot />
+	{@render children?.()}
 </a>
 
 <style>

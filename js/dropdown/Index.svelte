@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	export { default as BaseDropdown } from "./shared/Dropdown.svelte";
 	export { default as BaseDropdownOptions } from "./shared/DropdownOptions.svelte";
 	export { default as BaseMultiselect } from "./shared/Multiselect.svelte";
@@ -55,6 +55,7 @@
 			container={gradio.shared.container}
 			allow_custom_value={gradio.props.allow_custom_value}
 			filterable={gradio.props.filterable}
+			num_choices_shown={gradio.props.num_choices_shown}
 			buttons={gradio.props.buttons}
 			oncustom_button_click={(id) => {
 				gradio.dispatch("custom_button_click", { id });

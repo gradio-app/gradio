@@ -8,6 +8,7 @@ import { Client } from "../client";
 import { SPACE_METADATA_ERROR_MSG } from "../constants";
 import {
 	get_cookie_header,
+	normalise_token_option,
 	parse_and_set_cookies
 } from "../helpers/init_helpers";
 import { process_endpoint } from "../helpers/api_info";
@@ -16,6 +17,7 @@ export async function duplicate(
 	app_reference: string,
 	options: DuplicateOptions
 ): Promise<Client> {
+	normalise_token_option(options);
 	const { token, private: _private, hardware, timeout, auth } = options;
 
 	if (hardware && !hardware_types.includes(hardware)) {

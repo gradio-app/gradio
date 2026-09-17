@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import { tick, untrack } from "svelte";
 	import { pretty_si } from "./utils";
 
@@ -54,6 +54,7 @@
 	import Loader from "./Loader.svelte";
 	import type { ILoadingStatus as LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { Snippet } from "svelte";
 
 	import { IconButton } from "@gradio/atoms";
 	import { Clear } from "@gradio/icons";
@@ -77,6 +78,8 @@
 		show_progress?: "full" | "minimal" | "hidden";
 		message?: string | null;
 		progress?: LoadingStatus["progress"] | null | undefined;
+		time_start?: number | null;
+		eta_total?: number | null;
 		variant?: "default" | "center";
 		loading_text?: string;
 		absolute?: boolean;
@@ -91,6 +94,8 @@
 		cache_duration?: number | null;
 		avg_time?: number | null;
 		cache_event_id?: number | null;
+		additional_loading_text?: Snippet;
+		error_details?: Snippet;
 	}
 
 	interface ProgressLevel {
@@ -112,6 +117,8 @@
 		show_progress = "full",
 		message = null,
 		progress = null,
+		time_start = null,
+		eta_total = null,
 		variant = "default",
 		loading_text = "Loading...",
 		absolute = true,
@@ -125,7 +132,9 @@
 		used_cache = null,
 		cache_duration = null,
 		avg_time = null,
-		cache_event_id = null
+		cache_event_id = null,
+		additional_loading_text,
+		error_details
 	}: Props = $props();
 
 	let el: HTMLDivElement;
@@ -224,8 +233,10 @@
 	function start_timer(): void {
 		if (_timer) return;
 
-		old_eta = formatted_eta = null;
-		timer_start = performance.now();
+		if (time_start == null) {
+			old_eta = formatted_eta = null;
+		}
+		timer_start = time_start ?? performance.now();
 
 		_timer = true;
 		run();
@@ -248,6 +259,12 @@
 	});
 
 	$effect(() => {
+		if (status === "pending" && time_start != null && _timer) {
+			timer_start = time_start;
+		}
+	});
+
+	$effect(() => {
 		if (
 			el &&
 			scroll_to_output &&
@@ -258,6 +275,12 @@
 	});
 
 	$effect(() => {
+		if (eta_total != null) {
+			eta_from_start = eta_total;
+			formatted_eta = eta_total.toFixed(1);
+			if (eta != null) old_eta = eta;
+			return;
+		}
 		if (effective_eta != null && old_eta !== effective_eta) {
 			eta_from_start = (performance.now() - timer_start) / 1000 + effective_eta;
 			formatted_eta = eta_from_start.toFixed(1);
@@ -432,7 +455,7 @@
 
 		{#if !timer}
 			<p class="loading">{loading_text}</p>
-			<slot name="additional-loading-text" />
+			{@render additional_loading_text?.()}
 		{/if}
 	{:else if status === "error"}
 		<div class="clear-status">
@@ -446,7 +469,7 @@
 			/>
 		</div>
 		<span class="error">{i18n("common.error")}</span>
-		<slot name="error" />
+		{@render error_details?.()}
 	{/if}
 </div>
 
@@ -581,6 +604,7 @@
 		right: 0;
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);
+		color: var(--body-text-color);
 		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
@@ -595,6 +619,7 @@
 		transform: translateY(var(--size-6));
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);
+		color: var(--body-text-color);
 		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 		text-align: center;

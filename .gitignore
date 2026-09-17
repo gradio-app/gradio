@@ -88,7 +88,7 @@ client/js/dist/*
 client/js/test.js
 .config/test.py
 .svelte-kit
-
+.vitest-attachments
 
 # storybook
 storybook-static
@@ -108,3 +108,6 @@ CLAUDE.md
 scripts/docs.json
 tmp_input
 .claude/scheduled_tasks.lock
+
+# ffmpeg that install-all-deps downloads into the workspace
+ffmpeg-bin/

@@ -296,7 +296,7 @@ def _output_matches_port_type(item: Any, port_type: str) -> bool:
         if isinstance(item, str):
             return item.startswith(("http://", "https://", "blob:", "data:", "/"))
         return isinstance(item, dict) and ("path" in item or "url" in item)
-    if port_type == "text":
+    if port_type in ("text", "markdown"):
         return isinstance(item, str)
     if port_type == "number":
         return isinstance(item, (int, float)) and not isinstance(item, bool)
@@ -533,12 +533,26 @@ class WorkflowExecutor:
     def _run_model(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
         resolved = self._resolve_inputs(node, data_map)
         self._require(node, resolved)
-        args = [resolved[p["id"]] for p in node.get("inputs") or []]
-        tag = node.get("pipeline_tag") or "text-generation"
         provider = node.get("provider") or "auto"
-        output_data = self._call(
-            "model", [node.get("model_id"), tag, json.dumps(args), None, provider]
-        )
+        endpoint = node.get("endpoint")
+        if endpoint:
+            kwargs = {
+                p["id"]: resolved[p["id"]]
+                for p in node.get("inputs") or []
+                if p["id"] in resolved
+            }
+            call_data = [
+                node.get("model_id"),
+                endpoint,
+                json.dumps(kwargs),
+                None,
+                provider,
+            ]
+        else:
+            args = [resolved[p["id"]] for p in node.get("inputs") or []]
+            tag = node.get("pipeline_tag") or "text-generation"
+            call_data = [node.get("model_id"), tag, json.dumps(args), None, provider]
+        output_data = self._call("model", call_data)
         self._map_outputs(node, output_data, data_map)
 
     def _run_fn(self, node: dict, data_map: dict[str, dict[str, Any]]) -> None:
@@ -595,6 +609,7 @@ def _slugify(label: str) -> str:
 # for display in the "View API" panel and generated snippets.
 _PY_TYPE = {
     "text": "str",
+    "markdown": "str",
     "number": "float",
     "boolean": "bool",
     "image": "filepath",
@@ -622,17 +637,27 @@ def _group_slug_iter(groups: list[list[dict]]):
         yield group, api_name
 
 
+def _endpoint_oauth_token_requirement() -> str | None:
+    """Whether a subgraph endpoint takes a `gr.OAuthToken`, asked of the same
+    builder that registers them so the panel can't drift from `/info`."""
+    from gradio.utils import oauth_token_requirement
+
+    return oauth_token_requirement(_build_endpoint_fn(lambda: None, [], [], {}))
+
+
 def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
     """Describe each subject endpoint for the frontend "View API" panel:
     `api_name`, label, parameters (free inputs), and the return type. Mirrors
     the schema that `register_workflow_endpoints` exposes via `/info`."""
     endpoints = []
+    oauth_token = _endpoint_oauth_token_requirement()
     for group, api_name in _group_slug_iter(subject_groups(graph)):
         frees = group_free_inputs(graph, group)
         endpoints.append(
             {
                 "api_name": "/" + api_name,
                 "label": group[0].get("label", "output"),
+                **({"oauth_token": oauth_token} if oauth_token else {}),
                 "parameters": [
                     {
                         "label": f["label"],
@@ -855,6 +880,7 @@ class WorkflowEndpointManager:
         app = getattr(self.blocks, "server_app", None)
         if app is not None:
             app.api_info = None
+            app.page_api_info.clear()
             app.all_app_info = None
 
 

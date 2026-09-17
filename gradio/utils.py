@@ -1,7 +1,8 @@
-"""Handy utility functions."""
+"""Utility helpers shared across Gradio."""
 
 import asyncio
 import copy
+import dataclasses
 import functools
 import hashlib
 import importlib
@@ -173,6 +174,11 @@ class BaseReloader(ABC):
         demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
+        # Carry over streaming state so that generators that were running
+        # when the app was reloaded continue to send diffs, not full values
+        demo.pending_streams = self.running_app.blocks.pending_streams
+        demo.pending_diff_streams = self.running_app.blocks.pending_diff_streams
+        demo._stream_run_ids = self.running_app.blocks._stream_run_ids
         demo.allowed_paths = self.running_app.blocks.allowed_paths
         demo.blocked_paths = self.running_app.blocks.blocked_paths
 
@@ -188,6 +194,7 @@ class BaseReloader(ABC):
         for session in self.running_app.state_holder.session_data.values():
             session.blocks_config = copy.copy(demo.default_config)
         self.running_app.blocks = demo
+        reassign_pending_event_fns(demo)
 
 
 class ServerReloader(BaseReloader):
@@ -482,6 +489,38 @@ def deep_equal(a: Any, b: Any) -> bool:
             return False
 
 
+def reassign_pending_event_fns(new_blocks: "Blocks"):
+    """
+    Points pending and in-progress queue events at the corresponding BlockFunction
+    objects of the newly-loaded app (matched by api_name) so that events that were
+    running when the app was hot-reloaded continue to work against the new config.
+    See https://github.com/gradio-app/gradio/issues/8712.
+    """
+    queue = new_blocks._queue
+    if queue is None:
+        return
+    new_fns_by_api_name = {
+        fn.api_name: fn
+        for fn in new_blocks.default_config.fns.values()
+        if fn.api_name is not None
+    }
+
+    def all_events():
+        # Snapshot each collection: reload runs on a watcher thread while the
+        # server's event loop mutates these queue structures concurrently.
+        for job in list(queue.active_jobs):
+            if job:
+                yield from job
+        for event_queue in list(queue.event_queue_per_concurrency_id.values()):
+            yield from list(event_queue.queue)
+        yield from list(queue.event_ids_to_events.values())
+
+    for event in all_events():
+        new_fn = new_fns_by_api_name.get(event.fn.api_name)
+        if new_fn is not None and new_fn.connection == event.fn.connection:
+            event.fn = new_fn
+
+
 def reassign_keys(old_blocks: "Blocks", new_blocks: "Blocks"):
     from gradio.blocks import Block, BlockContext
 
@@ -774,6 +813,7 @@ def get_all_components() -> "list[type[Component] | type[BlockContext]]":
             "Interface",
             "Blocks",
             "TabbedInterface",
+            "Workflow",
             "NativePlot",
             "SketchBox",
         ]
@@ -956,6 +996,21 @@ def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
             sanitized_value = sanitize_value_for_csv(value)
             sanitized_values.append(sanitized_value)
     return sanitized_values
+
+
+def parse_escaped_json(payload: Any) -> Any:
+    """
+    Parses a JSON value read back from a flagging or example-cache CSV file,
+    tolerating the CSV-injection escape character ("'") that
+    sanitize_value_for_csv() prepends to values starting with "-", such as
+    negative numbers (see issue #13591).
+    """
+    try:
+        return json.loads(payload)
+    except json.JSONDecodeError:
+        if isinstance(payload, str) and payload.startswith("'"):
+            return json.loads(payload[1:])
+        raise
 
 
 def append_unique_suffix(name: str, list_of_names: list[str]):
@@ -1169,6 +1224,31 @@ def is_special_typed_parameter(name, parameter_types):
     )
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
     return is_request or is_event_data or is_oauth_arg
+
+
+def oauth_token_requirement(
+    fn: Callable | None,
+) -> Literal["required", "optional"] | None:
+    """Returns "required" for `gr.OAuthToken`, "optional" for `gr.OAuthToken | None`,
+    and None when `fn` never receives one."""
+    from gradio.oauth import OAuthToken
+
+    if fn is None:
+        return None
+    hints = get_type_hints(fn) or getattr(fn, "__annotations__", {}) or {}
+    try:
+        parameters = inspect.signature(fn).parameters
+    except (TypeError, ValueError):
+        return None
+    # Iterate over parameters, not hints, which also holds the return annotation.
+    for name in parameters:
+        hint = hints.get(name)
+        if hint is OAuthToken:
+            return "required"
+        # `Optional[X]` and PEP 604 `X | None` compare equal, so this covers both.
+        if hint == Optional[OAuthToken]:
+            return "optional"
+    return None
 
 
 def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
@@ -1816,10 +1896,11 @@ def get_node_path():
         return which_node_path
 
     try:
-        # On Windows, try using 'where' command
+        # On Windows, try using 'where' command. Suppress stderr so a missing
+        # node does not print "INFO: Could not find files for the given pattern(s)."
         if sys.platform == "win32":
             windows_path = (
-                subprocess.check_output(["where", "node"])
+                subprocess.check_output(["where", "node"], stderr=subprocess.DEVNULL)
                 .decode()
                 .strip()
                 .split("\r\n")[0]
@@ -1833,7 +1914,11 @@ def get_node_path():
     try:
         # On Unix-like systems, try using 'which' command
         if sys.platform != "win32":
-            return subprocess.check_output(["which", "node"]).decode().strip()
+            return (
+                subprocess.check_output(["which", "node"], stderr=subprocess.DEVNULL)
+                .decode()
+                .strip()
+            )
     except (subprocess.CalledProcessError, FileNotFoundError):
         # Command failed, fall back to checking common install locations
         pass
@@ -1906,6 +1991,16 @@ def dict_factory(items):
         else:
             d[key] = value
     return d
+
+
+def shallow_asdict(obj) -> dict:
+    """
+    Like dataclasses.asdict, but without deep-copying the field values, which
+    fails for values such as bokeh figures.
+    """
+    return dict_factory(
+        [(f.name, getattr(obj, f.name)) for f in dataclasses.fields(obj)]
+    )
 
 
 def get_function_description(fn: Callable) -> tuple[str, dict[str, str], list[str]]:

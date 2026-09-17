@@ -2,12 +2,17 @@
 	import { theme } from "$lib/stores/theme";
 	import "$lib/assets/theme.css";
 
-	export let name: string;
-	export let code: string;
-	export let highlighted_code: string;
-	export let url_version: string;
-
-	$: url_version;
+	let {
+		name,
+		code,
+		highlighted_code,
+		url_version
+	}: {
+		name: string;
+		code: string;
+		highlighted_code: string;
+		url_version: string;
+	} = $props();
 </script>
 
 <div class="">

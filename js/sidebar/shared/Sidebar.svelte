@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, type Snippet } from "svelte";
 
 	let {
 		open = $bindable(true),
@@ -8,7 +8,8 @@
 		elem_classes = [],
 		elem_id = "",
 		onexpand = () => {},
-		oncollapse = () => {}
+		oncollapse = () => {},
+		children
 	}: {
 		open?: boolean;
 		width: number | string;
@@ -17,6 +18,7 @@
 		elem_id?: string;
 		onexpand?: () => void;
 		oncollapse?: () => void;
+		children?: Snippet;
 	} = $props();
 
 	// Using a temporary variable to animate the sidebar opening at the start
@@ -45,13 +47,6 @@
 		sidebar_div.closest(".wrap")?.classList.add("sidebar-parent");
 		check_overlap();
 		window.addEventListener("resize", check_overlap);
-		const update_parent_overlap = (): void => {
-			document.documentElement.style.setProperty(
-				"--overlap-amount",
-				`${overlap_amount}px`
-			);
-		};
-		update_parent_overlap();
 		mounted = true;
 		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 		prefersReducedMotion = mediaQuery.matches;
@@ -63,6 +58,13 @@
 			window.removeEventListener("resize", check_overlap);
 			mediaQuery.removeEventListener("change", updateMotionPreference);
 		};
+	});
+
+	$effect(() => {
+		document.documentElement.style.setProperty(
+			"--overlap-amount",
+			`${overlap_amount}px`
+		);
 	});
 
 	// We need to wait for the component to be mounted before we can set the open state
@@ -101,7 +103,7 @@
 		</div>
 	</button>
 	<div class="sidebar-content">
-		<slot />
+		{@render children?.()}
 	</div>
 </div>
 

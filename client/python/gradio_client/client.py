@@ -90,6 +90,7 @@ class Client:
         ssl_verify: bool = True,
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
         analytics_enabled: bool = True,
+        oauth_token: str | None = None,
     ):
         """
         Parameters:
@@ -102,9 +103,11 @@ class Client:
             ssl_verify: if False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
             httpx_kwargs: additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            oauth_token: optional Hugging Face token for the app to act on your behalf, for endpoints whose function takes a `gr.OAuthToken`. Unlike `token`, which only authenticates you to the app, this is passed to the app's code, so it is sent only to endpoints that declare they need it — `view_api()` marks those. It is never sent anywhere else, and is not inferred from your locally saved token.
         """
         self.verbose = verbose
         self.token = token
+        self.oauth_token = oauth_token
         self.download_files = download_files
         self._skip_components = _skip_components
         self.headers = build_hf_headers(
@@ -119,6 +122,7 @@ class Client:
             self.headers.update(headers)
         self.ssl_verify = ssl_verify
         self.space_id = None
+        self._space_is_private = False
         self.httpx_kwargs = {} if httpx_kwargs is None else httpx_kwargs
         self.cookies: dict[str, str] = dict(
             (self.httpx_kwargs.pop("cookies", {})) or {}
@@ -199,6 +203,14 @@ class Client:
 
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+        # A prediction blocks its thread until two helpers run on its behalf, so
+        # sharing one pool deadlocks it once max_workers predictions are in flight.
+        self.helper_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2 * max_workers
+        )
+        # Helpers only finish once the reader has delivered their messages, so it
+        # gets a thread of its own instead of queueing behind them.
+        self.stream_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         self.analytics_enabled = (
             analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
@@ -215,6 +227,9 @@ class Client:
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
+        self.pending_lock = threading.Lock()
+        self.stream_epoch = 0
+        self.pending_event_epoch: dict[str, int] = {}
 
     def close(self):
         self._kill_heartbeat.set()
@@ -278,25 +293,36 @@ class Client:
                                     resp.get("message", "")
                                     == ServerMessage.server_stopped
                                 ):
-                                    for (
-                                        pending_messages
-                                    ) in self.pending_messages_per_event.values():
+                                    with self.pending_lock:
+                                        pending = list(
+                                            self.pending_messages_per_event.values()
+                                        )
+                                    for pending_messages in pending:
                                         pending_messages.append(resp)
                                     return
                                 elif resp["msg"] == ServerMessage.close_stream:
-                                    self.stream_open = False
+                                    with self.pending_lock:
+                                        self.stream_open = False
                                     return
                                 event_id = resp["event_id"]
-                                if event_id not in self.pending_messages_per_event:
-                                    self.pending_messages_per_event[event_id] = deque()
-                                self.pending_messages_per_event[event_id].append(resp)
-                                if resp["msg"] == ServerMessage.process_completed:
-                                    self.pending_event_ids.remove(event_id)
-                                if (
-                                    len(self.pending_event_ids) == 0
-                                    and protocol != "sse_v3"
-                                ):
-                                    self.stream_open = False
+                                with self.pending_lock:
+                                    if event_id not in self.pending_messages_per_event:
+                                        self.pending_messages_per_event[event_id] = (
+                                            deque()
+                                        )
+                                    self.pending_messages_per_event[event_id].append(
+                                        resp
+                                    )
+                                    if resp["msg"] == ServerMessage.process_completed:
+                                        # The submitting thread may not have got here yet.
+                                        self.pending_event_ids.discard(event_id)
+                                    close = (
+                                        len(self.pending_event_ids) == 0
+                                        and protocol != "sse_v3"
+                                    )
+                                    if close:
+                                        self.stream_open = False
+                                if close:
                                     return
                             else:
                                 raise ValueError(f"Unexpected SSE line: '{line}'")
@@ -331,8 +357,30 @@ class Client:
         resp = req.json()
         event_id = resp["event_id"]
 
-        if not self.stream_open:
-            self.stream_open = True
+        # Registering must precede opening the stream (the server emits messages
+        # as soon as the POST is handled) and share its lock with the decision to
+        # open a reader, so that this event is tagged with the epoch of the reader
+        # responsible for it.
+        with self.pending_lock:
+            open_reader = not self.stream_open
+            if open_reader:
+                self.stream_open = True
+                self.stream_epoch += 1
+            epoch = self.stream_epoch
+            self.pending_event_ids.add(event_id)
+            self.pending_messages_per_event.setdefault(event_id, deque())
+            self.pending_event_epoch[event_id] = epoch
+            # A completion the reader saw before its event was registered leaves
+            # both of these behind, since the id is re-added after the discard.
+            live = set(self.pending_messages_per_event)
+            self.pending_event_ids &= live
+            self.pending_event_epoch = {
+                eid: tagged
+                for eid, tagged in self.pending_event_epoch.items()
+                if eid in live
+            }
+
+        if open_reader:
 
             def open_stream():
                 return self.stream_messages(
@@ -340,13 +388,23 @@ class Client:
                 )
 
             def close_stream(_):
-                self.stream_open = False
-                for _, pending_messages in self.pending_messages_per_event.items():
+                with self.pending_lock:
+                    if self.stream_epoch == epoch:
+                        # A later submission may already have opened its own
+                        # reader, and that one is not ours to close.
+                        self.stream_open = False
+                    pending = [
+                        messages
+                        for eid, messages in self.pending_messages_per_event.items()
+                        if self.pending_event_epoch.get(eid, epoch + 1) <= epoch
+                    ]
+                for pending_messages in pending:
                     pending_messages.append(None)
 
-            if self.streaming_future is None or self.streaming_future.done():
-                self.streaming_future = self.executor.submit(open_stream)
-                self.streaming_future.add_done_callback(close_stream)
+            # Submitted outside the lock: add_done_callback runs close_stream
+            # inline when the future is already done, and it takes the lock.
+            self.streaming_future = self.stream_executor.submit(open_stream)
+            self.streaming_future.add_done_callback(close_stream)
 
         return event_id
 
@@ -798,6 +856,12 @@ class Client:
             raise ValueError("name_or_index must be a string or integer")
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
+        if endpoints_info.get("oauth_token"):
+            human_info += (
+                f"    Acts on your behalf: this endpoint takes your Hugging Face "
+                f"token ({endpoints_info['oauth_token']}). Pass it with "
+                f"Client(..., oauth_token=...) to grant it.\n"
+            )
         human_info += "    Parameters:\n"
         if parameter_info:
             for info in parameter_info:
@@ -906,9 +970,17 @@ class Client:
     def __del__(self):
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
+        # Not wait=True: garbage collecting a client should not block on a reader
+        # that is still waiting on the server.
+        if hasattr(self, "helper_executor"):
+            self.helper_executor.shutdown(wait=False)
+        if hasattr(self, "stream_executor"):
+            self.stream_executor.shutdown(wait=False)
 
     def _space_name_to_src(self, space) -> str | None:
-        return huggingface_hub.space_info(space, token=self.token).host  # type: ignore
+        space_info = huggingface_hub.space_info(space, token=self.token)
+        self._space_is_private = bool(space_info.private)
+        return space_info.host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
         """
@@ -1019,6 +1091,7 @@ class Endpoint:
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
         self.parameters_info = self._get_parameters_info()
+        self.oauth_token_requirement = self._get_oauth_token_requirement()
         self.root_url = self.client.src_prefixed
         self.backend_fn = dependency.get("backend_fn")
 
@@ -1050,6 +1123,19 @@ class Endpoint:
         if self.api_name in self._info["named_endpoints"]:
             return self._info["named_endpoints"][self.api_name]["parameters"]
         return None
+
+    def _get_oauth_token_requirement(self) -> str | None:
+        """Returns "required", "optional", or None for this endpoint's gr.OAuthToken."""
+        if self.api_name in self._info["named_endpoints"]:
+            return self._info["named_endpoints"][self.api_name].get("oauth_token")
+        return None
+
+    def oauth_token_payload(self) -> dict[str, str]:
+        """The oauth_token body field, if this endpoint takes one and the caller supplied one."""
+        token = self.client.oauth_token
+        if token and self.oauth_token_requirement is not None:
+            return {"oauth_token": token}
+        return {}
 
     @staticmethod
     def value_is_file(component: dict) -> bool:
@@ -1169,6 +1255,8 @@ class Endpoint:
                 "data": data or [],
                 "fn_index": self.fn_index,
                 **kwargs,
+                # Last, so an oauth_token= kwarg cannot bypass the per-endpoint gate.
+                **self.oauth_token_payload(),
             }
 
             hash_data = {
@@ -1182,8 +1270,6 @@ class Endpoint:
                 event_id = self.client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
-                self.client.pending_event_ids.add(event_id)
-                self.client.pending_messages_per_event[event_id] = deque()
                 helper.event_id = event_id
                 result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
@@ -1283,6 +1369,13 @@ class Endpoint:
 
     def _upload_file(self, f: dict, data_index: int) -> dict[str, Any]:
         file_path = f["path"]
+        if (
+            self.client._space_is_private
+            and not f.get("is_stream", False)
+            and self._is_upstream_file_url(file_path)
+        ):
+            return self._upload_upstream_file(file_path, f, data_index)
+
         orig_name = Path(file_path)
         if not utils.is_http_url_like(file_path):
             component_id = self.dependency["inputs"][data_index]
@@ -1322,6 +1415,60 @@ class Endpoint:
             "meta": {"_type": "gradio.FileData"},
         }
 
+    def _is_upstream_file_url(self, file_path: str) -> bool:
+        if not utils.is_http_url_like(file_path):
+            return False
+
+        try:
+            file_url = httpx.URL(file_path)
+            upstream_url = httpx.URL(self.client.src_prefixed)
+        except httpx.InvalidURL:
+            return False
+        if (
+            file_url.scheme,
+            file_url.host,
+            file_url.port,
+        ) != (
+            upstream_url.scheme,
+            upstream_url.host,
+            upstream_url.port,
+        ):
+            return False
+
+        api_path = upstream_url.path.rstrip("/")
+        return file_url.path.startswith(
+            (f"{api_path}/file=", f"{api_path}/file/", f"{api_path}/proxy=")
+        )
+
+    def _upload_upstream_file(
+        self, file_url: str, file_data: dict, data_index: int
+    ) -> dict[str, Any]:
+        """Copy a private upstream file into its cache before using it as input."""
+        original_name = (
+            file_data.get("orig_name") or urllib.parse.urlparse(file_url).path
+        )
+        file_name = Path(original_name).name or "file"
+        request_kwargs = {**self.client.httpx_kwargs, "follow_redirects": False}
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir) / file_name
+            with httpx.stream(
+                "GET",
+                file_url,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
+                verify=self.client.ssl_verify,
+                **request_kwargs,
+            ) as response:
+                response.raise_for_status()
+                with open(temp_path, "wb") as temp_file:
+                    for chunk in response.iter_bytes():
+                        temp_file.write(chunk)
+
+            upload_data = {**file_data, "path": str(temp_path)}
+            upload_data.pop("url", None)
+            return self._upload_file(upload_data, data_index)
+
     def _download_file(self, x: dict) -> str:
         # For streams, use the URL directly if available, as streams are located at different paths
         if x.get("is_stream", False) and "url" in x:
@@ -1329,8 +1476,13 @@ class Endpoint:
             # If the URL is relative, prepend the root URL
             if not url_path.startswith(("http://", "https://")):
                 url_path = self.root_url + url_path.lstrip("/")
+            file_name = Path(url_path).name
         else:
-            url_path = self.root_url + "file=" + x["path"]
+            url_path = self.root_url + "file=" + utils.encode_file_path(x["path"])
+            # Name the download after the server's path rather than the URL. The
+            # URL is percent-encoded, so a file called "my report.png" would
+            # otherwise land on disk as "my%20report.png".
+            file_name = Path(x["path"]).name or "file"
 
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)
@@ -1349,15 +1501,15 @@ class Endpoint:
             **self.client.httpx_kwargs,
         ) as response:
             response.raise_for_status()
-            with open(temp_dir / Path(url_path).name, "wb") as f:
+            with open(temp_dir / file_name, "wb") as f:
                 for chunk in response.iter_bytes(chunk_size=128 * sha.block_size):
                     sha.update(chunk)
                     f.write(chunk)
 
         directory = Path(self.client.output_dir) / sha.hexdigest()
         directory.mkdir(exist_ok=True, parents=True)
-        dest = directory / Path(url_path).name
-        shutil.move(temp_dir / Path(url_path).name, dest)
+        dest = directory / file_name
+        shutil.move(temp_dir / file_name, dest)
         return str(dest.resolve())
 
     def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
@@ -1376,7 +1528,7 @@ class Endpoint:
                 self.client.headers,
                 self.client.cookies,
                 self.client.ssl_verify,
-                self.client.executor,
+                self.client.helper_executor,
             )
 
     def _sse_fn_v1plus(
@@ -1390,10 +1542,11 @@ class Endpoint:
             self.client.headers,
             self.client.cookies,
             self.client.pending_messages_per_event,
+            self.client.pending_lock,
             event_id,
             protocol,
             self.client.ssl_verify,
-            self.client.executor,
+            self.client.helper_executor,
         )
 
 

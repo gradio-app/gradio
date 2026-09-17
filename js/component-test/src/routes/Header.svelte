@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import components from "$lib/component_json";
 
 	const nav_items = Array.from(new Set(components.map((c) => c.name))).sort();
@@ -10,7 +10,7 @@
 		<ul>
 			{#each nav_items as nav_item}
 				<li
-					aria-current={$page.url.pathname === `/${nav_item}`
+					aria-current={page.url.pathname === `/${nav_item}`
 						? "page"
 						: undefined}
 				>

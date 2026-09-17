@@ -10,11 +10,15 @@
 	import "../../../../theme/src/typography.css";
 	import type { PageData } from "./$types";
 	import { onMount } from "svelte";
-	import { page } from "$app/stores";
-	export let data: PageData;
+	import { page } from "$app/state";
+	let { data }: { data: PageData } = $props();
 
-	$: ({ component, interactive_component, non_interactive_component, name } =
-		data);
+	let component = $derived(data.component);
+	// capitalised alias so it can be used as a component tag
+	let TestComponent = $derived(component?.default);
+	let interactive_component = $derived(data.interactive_component);
+	let non_interactive_component = $derived(data.non_interactive_component);
+	let name = $derived(data.name);
 
 	function identity<T>(x: T): T {
 		return x;
@@ -41,28 +45,26 @@
 
 <div>
 	{#if interactive_component}
-		<svelte:component
-			this={component.default}
+		<TestComponent
 			{...interactive_component.props}
 			gradio={{
 				dispatch: console.warn,
 				i18n: identity,
 				client,
-				root: $page.url.origin
+				root: page.url.origin
 			}}
 			{target}
 		/>
 	{/if}
 
 	{#if non_interactive_component}
-		<svelte:component
-			this={component.default}
+		<TestComponent
 			{...non_interactive_component.props}
 			gradio={{
 				dispatch: console.warn,
 				i18n: identity,
 				client,
-				root: $page.url.origin
+				root: page.url.origin
 			}}
 			{target}
 		/>

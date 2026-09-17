@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -24,6 +22,8 @@
 		onclear,
 		ondrag,
 		onupload,
+		onposition,
+		position = 0.5,
 		children
 	}: {
 		value?: [FileData | null, FileData | null];
@@ -41,6 +41,8 @@
 		onclear?: () => void;
 		ondrag?: (dragging: boolean) => void;
 		onupload?: (value: [FileData | null, FileData | null]) => void;
+		onposition?: (position: number) => void;
+		position?: number;
 		children?: Snippet;
 	} = $props();
 </script>
@@ -48,7 +50,8 @@
 <Image
 	bind:upload_promise
 	slider_color="var(--border-color-primary)"
-	position={0.5}
+	{position}
+	{onposition}
 	bind:value
 	bind:dragging
 	{root}

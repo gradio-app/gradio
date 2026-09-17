@@ -1,8 +1,15 @@
 <script lang="ts">
-	export let title = "Gradio";
-	export let description = "Build & Share Delightful Machine Learning Apps";
-	export let url: string;
-	export let canonical: string;
+	let {
+		title = "Gradio",
+		description = "Build & Share Delightful Machine Learning Apps",
+		url,
+		canonical
+	}: {
+		title?: any;
+		description?: any;
+		url: string;
+		canonical: string;
+	} = $props();
 </script>
 
 <svelte:head>

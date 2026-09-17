@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, tick, untrack } from "svelte";
+	import { getContext, tick, untrack, type Snippet } from "svelte";
 	import { TABS } from "@gradio/tabs";
 	import { BaseColumn } from "@gradio/column";
 	import type { SelectData } from "@gradio/utils";
@@ -12,9 +12,11 @@
 		visible,
 		interactive,
 		order,
+		alignment = "left",
 		scale,
 		component_id,
-		onselect
+		onselect,
+		children
 	}: {
 		elem_id?: string;
 		elem_classes?: string[];
@@ -23,9 +25,11 @@
 		visible: boolean | "hidden";
 		interactive: boolean;
 		order: number;
+		alignment?: "left" | "right";
 		scale: number;
 		component_id: number;
 		onselect?: (data: SelectData) => void;
+		children?: Snippet;
 	} = $props();
 
 	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
@@ -47,6 +51,7 @@
 			elem_id,
 			visible,
 			interactive,
+			alignment,
 			scale,
 			component_id
 		})
@@ -80,7 +85,7 @@
 	role="tabpanel"
 >
 	<BaseColumn scale={scale >= 1 ? scale : null}>
-		<slot />
+		{@render children?.()}
 	</BaseColumn>
 </div>
 

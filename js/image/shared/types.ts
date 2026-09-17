@@ -26,6 +26,7 @@ export interface ImageProps {
 	input_ready: boolean;
 	placeholder: string;
 	watermark: FileData | null;
+	alt_text: string | null;
 }
 
 export interface ImageEvents {

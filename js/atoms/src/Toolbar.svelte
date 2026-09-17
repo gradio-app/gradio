@@ -1,9 +1,17 @@
 <script lang="ts">
-	export let show_border = false;
+	import type { Snippet } from "svelte";
+
+	let {
+		show_border = false,
+		children
+	}: {
+		show_border?: boolean;
+		children?: Snippet;
+	} = $props();
 </script>
 
 <div class:show_border>
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import base64
+import dataclasses
+import hashlib
 import inspect
 import json
 import logging
+import mimetypes
 import os
 import re
 import secrets
 import sys
 import tempfile
+import threading
 import types
 import urllib.parse
 import warnings
@@ -18,17 +23,27 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 
+import anyio
 import httpx
+from gradio_client import Client, handle_file
+from gradio_client import utils as client_utils
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
 import gradio as gr
 from gradio.blocks import Blocks
 from gradio.components.workflowcanvas import WorkflowCanvas
+from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.route_utils import Request
-from gradio.utils import get_space
+from gradio.utils import (
+    colab_check,
+    get_space,
+    get_upload_folder,
+    is_in_or_equal,
+)
+from gradio.workflow_provider_shims import call_with_recovery
 
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
@@ -67,7 +82,7 @@ class _CuratedCache(TypedDict):
 
 
 _CURATED_CACHE: _CuratedCache = {"fetched_at": 0.0, "items": None}
-_CURATED_LOCK = __import__("threading").Lock()
+_CURATED_LOCK = threading.Lock()
 
 
 def _bundled_snapshot_path() -> str:
@@ -135,6 +150,7 @@ logger = logging.getLogger(__name__)
 # Scalar-only — everything else (str, list, dict, custom classes) falls through
 # to the default "text" port type, which round-trips as JSON.
 _PY_TO_PORT = {int: "number", float: "number", bool: "boolean"}
+_SANITIZE_RE = re.compile(r"[^a-zA-Z0-9_-]")
 
 
 def _build_edges(
@@ -194,8 +210,11 @@ def _workflow_from_bind(
     edges: list[tuple[str, str]] | None = None,
     name: str = "My Workflow",
 ) -> str:
+    # No coordinates: where a node sits is per-viewer state the canvas keeps in
+    # each visitor's localStorage, so a generated workflow just declares the
+    # graph and lets the canvas auto-arrange it on first open.
     nodes = []
-    for i, (fn_name, fn) in enumerate(bound.items()):
+    for fn_name, fn in bound.items():
         try:
             sig = inspect.signature(fn)
         except (ValueError, TypeError):
@@ -232,10 +251,7 @@ def _workflow_from_bind(
                 "fn": fn_name,
                 "kind": "transform",
                 "label": fn_name,
-                "x": 80 + i * 280,
-                "y": 150,
                 "width": 220,
-                "height": 80 + max(len(inputs), len(outputs)) * 36,
                 "inputs": inputs,
                 "outputs": outputs,
                 "data": {},
@@ -303,6 +319,50 @@ def _request_has_write_token(request: Request | None) -> bool:
     return False
 
 
+def _should_auto_open_browser() -> bool:
+    """Whether `launch()` should open a browser tab on the write-access link
+    without being asked, the way `jupyter notebook` opens its token URL.
+
+    Only done when a browser on this machine is plausibly the right place to
+    open it, so headless servers, containers, CI and remote kernels keep the
+    old print-the-link-only behavior. Set `GRADIO_WORKFLOW_INBROWSER=false` to
+    opt out, or pass `inbrowser=` explicitly to bypass this entirely.
+    """
+    env = os.getenv("GRADIO_WORKFLOW_INBROWSER", "").strip().lower()
+    if env in ("0", "false", "no", "off"):
+        return False
+    if env in ("1", "true", "yes", "on"):
+        return True
+    if get_space() is not None:
+        # No write token to hand out, and no browser on the Space's container.
+        return False
+    if "PYTEST_CURRENT_TEST" in os.environ or os.getenv("CI", "").lower() in (
+        "1",
+        "true",
+    ):
+        return False
+    if colab_check():
+        # The kernel runs on Google's machine, so a tab would open there.
+        return False
+    if os.environ.get("BROWSER"):
+        # Explicitly configured (e.g. VS Code Remote forwards this back to the
+        # local machine), and `webbrowser` honors it first.
+        return True
+    if os.environ.get("SSH_CONNECTION") or os.environ.get("SSH_TTY"):
+        return False
+    if sys.platform.startswith("linux") and not (
+        os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+    ):
+        # Headless Linux: `webbrowser` may fall back to a terminal browser and
+        # take over the console the app is logging to.
+        return False
+    try:
+        webbrowser.get()
+    except webbrowser.Error:
+        return False
+    return True
+
+
 # Shared instance: whoami(cache=True) caches per token on the HfApi instance,
 # which matters because whoami-v2 is heavily rate-limited.
 _hf_api = HfApi()
@@ -359,27 +419,74 @@ def _hf_request(url: str, hf_token: str | None, timeout: int = 15) -> str:
 
 
 def _save_tmp(result, ext: str) -> dict:
-    path = os.path.join(
-        tempfile.gettempdir(), f"hf_workflow_{os.urandom(8).hex()}.{ext}"
-    )
+    directory = get_upload_folder()
+    os.makedirs(directory, exist_ok=True)
+    path = os.path.join(directory, f"workflow_{os.urandom(8).hex()}.{ext}")
     if hasattr(result, "save"):
         result.save(path)
     else:
         with open(path, "wb") as f:
             f.write(result)
-    return {"path": path, "url": f"/gradio_api/file={path}", "is_file": True}
+    url = f"/gradio_api/file={client_utils.encode_file_path(path)}"
+    return {"path": path, "url": url, "is_file": True}
 
 
-def _img_url(a) -> str:
-    url = a.get("url") or a.get("path", "") if isinstance(a, dict) else a
-    # A node's own output comes back as `/gradio_api/file=<path>` when chained
-    # into the next node; unwrap it, tempdir-only so no arbitrary file is named.
-    if isinstance(url, str) and url.startswith("/gradio_api/file="):
-        path = os.path.realpath(url.removeprefix("/gradio_api/file="))
-        tmpdir = os.path.realpath(tempfile.gettempdir())
-        if path.startswith(tmpdir + os.sep) and os.path.isfile(path):
-            return path
-    return url
+def _file_ref(a) -> str:
+    """Normalize a file-shaped argument down to one reference string.
+
+    `path` wins over `url` so a file that names both is chained by the local
+    copy rather than by a `/gradio_api/file=` URL only this app can serve. A
+    canvas file value carries no `path` at all (`FileValue` in
+    `js/workflowcanvas/workflow/workflow-types.ts`), so the prefix comes off
+    here and callers get the local path either way.
+
+    The URL branch is percent-encoded, so it is unquoted on the way out. That
+    unquoting stays inside the branch: a `path` that wins can itself hold a
+    literal `%20`, which must survive as part of the filename.
+    """
+    src = (a.get("path") or a.get("url") or "") if isinstance(a, dict) else a
+    if not isinstance(src, str) or not src:
+        return ""
+    if src.startswith(("data:", "http://", "https://")):
+        return src
+    if src.startswith("/gradio_api/file="):
+        return urllib.parse.unquote(src.removeprefix("/gradio_api/file="))
+    return src
+
+
+def _sendable_ref(a) -> str:
+    """Return the reference for `a` only if it is this app's to send, else "".
+
+    The arguments to an operator arrive as the caller's own JSON, so a
+    file-shaped one names whatever path they choose. Two references are safe to
+    forward: a `data:` or absolute http(s) URL, which this process never reads
+    off disk, and a path under the upload folder, which holds only what the app
+    itself wrote. Every other path is someone else's file, so it is refused
+    rather than read.
+    """
+    src = _file_ref(a)
+    if src.startswith(("data:", "http://", "https://")):
+        return src
+    return src if src and is_in_or_equal(src, get_upload_folder()) else ""
+
+
+def _chat_image_url(a) -> str:
+    """Return an image reference a provider can actually resolve.
+
+    Chat completions send images by reference, and the provider — not this
+    process — is what dereferences them. A local path or a relative
+    `/gradio_api/file=` URL is meaningless there, so those are inlined as a
+    data URI. Absolute http(s) URLs are passed through, though note the
+    provider still has to be able to fetch them.
+    """
+    src = _file_ref(a)
+    if not src or src.startswith(("data:", "http://", "https://")):
+        return src
+    if not os.path.isfile(src) or not is_in_or_equal(src, get_upload_folder()):
+        return src
+    mime = mimetypes.guess_type(src)[0] or "image/png"
+    with open(src, "rb") as f:
+        return f"data:{mime};base64,{base64.b64encode(f.read()).decode()}"
 
 
 def _classify_error(e: Exception) -> dict:
@@ -497,17 +604,92 @@ def get_write_access(
     return "true" if has_write_access(request, token) else "false"
 
 
+def get_space_id(_data=None) -> str:
+    """Return this Space's repo id (`owner/name`) for the "Save to Space" button.
+    Empty locally — the button is hidden there anyway."""
+    return os.getenv("SPACE_ID") or ""
+
+
+def _workflow_key(workflow_file: str) -> str:
+    """A stable identity for this workflow, used by the canvas to key the
+    per-viewer layout and viewport it keeps in localStorage.
+
+    The workflow's *name* can't do that job: it is editable from the canvas, and
+    two unrelated workflows served from the same origin (same host and port, one
+    after the other) can share it — so one workflow's arrangement would be
+    applied to the other's nodes. What is needed is something stable across
+    restarts and across edits to the graph: on a Space the repo id, and locally
+    the graph file's path. The path is hashed rather than sent as-is so a
+    viewer's browser storage doesn't carry the author's directory layout.
+    """
+    space = os.getenv("SPACE_ID")
+    if space:
+        return f"space:{space}"
+    digest = hashlib.sha256(os.path.abspath(workflow_file).encode("utf-8")).hexdigest()
+    return f"file:{digest[:16]}"
+
+
 def get_oauth_available(_data=None) -> str:
-    """Whether OAuth sign-in is actually wired up. On a Space this requires
-    `hf_oauth: true` in the README metadata, which provisions OAUTH_CLIENT_ID
-    and causes the `/login/huggingface` route to be mounted (mirrors the gate
-    that adds the LoginButton in `__init__`). Without it, sign-in would 404, so
-    the frontend hides the login button and explains the fix on the read-only
-    badge. OAuth is not used locally (the write-token model is used instead)."""
+    """True on a Space with `hf_oauth: true` (i.e. OAUTH_CLIENT_ID is set)."""
     return (
         "true"
         if get_space() is not None and bool(os.getenv("OAUTH_CLIENT_ID"))
         else "false"
+    )
+
+
+WORKFLOW_OAUTH_SCOPES: dict[str, str] = {
+    "inference-api": "run nodes on the signed-in user's own inference quota",
+    "write-repos": "save the workflow back to this Space",
+}
+
+
+def _missing_workflow_oauth_scopes() -> dict[str, str]:
+    granted = set((os.getenv("OAUTH_SCOPES") or "").split())
+    return {
+        scope: why
+        for scope, why in WORKFLOW_OAUTH_SCOPES.items()
+        if scope not in granted
+    }
+
+
+def _warn_workflow_oauth_configuration() -> None:
+    if get_space() is None:
+        return
+    if not os.getenv("OAUTH_CLIENT_ID"):
+        warnings.warn(
+            "Workflow OAuth is not enabled for this Space. Add `hf_oauth: true` "
+            "to the README metadata so users can run workflows on their own "
+            "inference quota.",
+            UserWarning,
+            stacklevel=3,
+        )
+        return
+
+    missing = _missing_workflow_oauth_scopes()
+    if not missing:
+        return
+    detail = ", ".join(f"`{scope}` (to {why})" for scope, why in missing.items())
+    scopes = " and ".join(f"`{scope}`" for scope in missing)
+    warnings.warn(
+        f"Workflow OAuth is missing {detail}. Add {scopes} under "
+        "`hf_oauth_scopes` in the README metadata and redeploy.",
+        UserWarning,
+        stacklevel=3,
+    )
+
+
+def get_oauth_scopes(_data=None) -> str:
+    """Which of `WORKFLOW_OAUTH_SCOPES` the Space's OAuth app was granted, and
+    which are missing. Empty off-Spaces and when OAuth is disabled."""
+    if get_space() is None or not os.getenv("OAUTH_CLIENT_ID"):
+        return json.dumps({"granted": [], "missing": {}})
+    granted = (os.getenv("OAUTH_SCOPES") or "").split()
+    return json.dumps(
+        {
+            "granted": granted,
+            "missing": _missing_workflow_oauth_scopes(),
+        }
     )
 
 
@@ -516,8 +698,6 @@ def call_space(
 ) -> str:
     space_id = data[0] if data else ""
     try:
-        from gradio_client import Client, handle_file
-
         endpoint = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
         hf_token = _resolve_token(data, 3, token, request)
@@ -546,10 +726,20 @@ def call_space(
         processed = []
         for arg in args:
             if isinstance(arg, dict) and ("url" in arg or "path" in arg):
-                url = _img_url(arg)
-                processed.append(handle_file(url) if url else None)
+                src = _sendable_ref(arg)
+                processed.append(handle_file(src) if src else None)
             else:
                 processed.append(arg)
+        # The loop only sees top-level arguments, but the client uploads every
+        # file-shaped dict it can reach, however deeply nested, and the caller
+        # writes the `meta` marker that decides what counts (`process_input_files`
+        # in `gradio_client/client.py`). So the same rule has to run over the
+        # whole payload, against the client's own predicate.
+        processed = client_utils.traverse(
+            processed,
+            lambda f: f if _sendable_ref(f) else None,
+            client_utils.is_file_obj_with_meta,
+        )
         while processed and processed[-1] is None:
             processed.pop()
         result = client.predict(*processed, api_name=endpoint)
@@ -567,7 +757,7 @@ def call_space(
                 ):
                     return {
                         "path": path,
-                        "url": f"/gradio_api/file={path}",
+                        "url": f"/gradio_api/file={client_utils.encode_file_path(path)}",
                         "is_file": True,
                     }
                 return item
@@ -578,7 +768,7 @@ def call_space(
             ):
                 return {
                     "path": item,
-                    "url": f"/gradio_api/file={item}",
+                    "url": f"/gradio_api/file={client_utils.encode_file_path(item)}",
                     "is_file": True,
                 }
             if isinstance(item, (list, tuple)):
@@ -589,6 +779,413 @@ def call_space(
     except Exception as e:
         logger.error("call_space failed for %s: %s", space_id, e, exc_info=True)
         return _format_error(e)
+
+
+_INFERENCE_ENDPOINT_SCHEMAS: dict[str, dict] = {
+    "text_to_image": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
+        ],
+    },
+    "text_to_speech": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Audio", "type": "audio", "output_index": 0}
+        ],
+    },
+    "text_to_video": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
+        ],
+    },
+    "image_to_image": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Image", "type": "image", "output_index": 0}
+        ],
+    },
+    "image_to_video": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Video", "type": "video", "output_index": 0}
+        ],
+    },
+    "text_generation": {
+        "inputs": [
+            {"id": "prompt", "label": "Prompt", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "markdown", "output_index": 0}
+        ],
+    },
+    "summarization": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Summary", "type": "text", "output_index": 0}
+        ],
+    },
+    "translation": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+            {"id": "src_lang", "label": "Source Language", "type": "text"},
+            {"id": "tgt_lang", "label": "Target Language", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Translation", "type": "text", "output_index": 0}
+        ],
+    },
+    "fill_mask": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Result", "type": "json", "output_index": 0}
+        ],
+    },
+    "text_classification": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
+    },
+    "token_classification": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Entities", "type": "json", "output_index": 0}
+        ],
+    },
+    "zero_shot_classification": {
+        "inputs": [
+            {"id": "text", "label": "Text", "type": "text"},
+            {"id": "candidate_labels", "label": "Candidate Labels", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
+        ],
+    },
+    "sentence_similarity": {
+        "inputs": [
+            {"id": "sentence", "label": "Sentence", "type": "text"},
+            {"id": "other_sentences", "label": "Other Sentences", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Scores", "type": "json", "output_index": 0}
+        ],
+    },
+    "question_answering": {
+        "inputs": [
+            {"id": "question", "label": "Question", "type": "text"},
+            {"id": "context", "label": "Context", "type": "text"},
+        ],
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "text", "output_index": 0}
+        ],
+    },
+    "feature_extraction": {
+        "inputs": [{"id": "text", "label": "Text", "type": "text"}],
+        "outputs": [
+            {"id": "out_0", "label": "Embeddings", "type": "json", "output_index": 0}
+        ],
+    },
+    "image_classification": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
+    },
+    "object_detection": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
+        "outputs": [
+            {"id": "out_0", "label": "Detections", "type": "json", "output_index": 0}
+        ],
+    },
+    "image_segmentation": {
+        "inputs": [{"id": "image", "label": "Image", "type": "image"}],
+        "outputs": [
+            {"id": "out_0", "label": "Segments", "type": "json", "output_index": 0}
+        ],
+    },
+    "automatic_speech_recognition": {
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
+        "outputs": [
+            {"id": "out_0", "label": "Text", "type": "text", "output_index": 0}
+        ],
+    },
+    "audio_classification": {
+        "inputs": [{"id": "audio", "label": "Audio", "type": "audio"}],
+        "outputs": [
+            {"id": "out_0", "label": "Labels", "type": "json", "output_index": 0}
+        ],
+    },
+    # Vision-language models are served as `conversational`, so they're called
+    # through chat completions rather than a task-specific endpoint. Port order
+    # matches the canvas's image-text-to-text template (image, then prompt).
+    "chat_completion": {
+        "inputs": [
+            {"id": "image", "label": "Image", "type": "image"},
+            {"id": "text", "label": "Prompt", "type": "text"},
+        ],
+        # Chat models answer in prose that is very often markdown (headings,
+        # lists, fenced code), so the tile renders it instead of showing the raw
+        # asterisks. `markdown` wires interchangeably with `text`.
+        "outputs": [
+            {"id": "out_0", "label": "Answer", "type": "markdown", "output_index": 0}
+        ],
+    },
+}
+
+
+# Generous by default: vision-language models are asked to emit whole files
+# (an HTML page, a long transcription), and reasoning models spend part of the
+# budget before their first visible token — reasoning counts against this cap,
+# and a dense screenshot can cost thousands of tokens before any output.
+# Bounded by the canvas executor's 300s per-node timeout: at the ~100 tok/s
+# these models stream, a larger cap would be cut off mid-answer anyway.
+_CHAT_MAX_TOKENS = 16384
+
+
+_ENDPOINT_OUTPUT_EXT: dict[str, str] = {
+    "text_to_image": "png",
+    "image_to_image": "png",
+    "text_to_speech": "wav",
+    "text_to_video": "mp4",
+    "image_to_video": "mp4",
+}
+
+
+# Legacy pipeline tags (as sent by older saved workflows and the browser
+# executor) → InferenceClient endpoint names. depth-estimation is absent on
+# purpose: InferenceClient has no such method, so it keeps its raw-POST branch
+# in call_model. Unmapped tags fall through to the chat/raw-POST fallback.
+_PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
+    "text-generation": "text_generation",
+    "text2text-generation": "text_generation",
+    "conversational": "text_generation",
+    "summarization": "summarization",
+    "translation": "translation",
+    "fill-mask": "fill_mask",
+    "text-classification": "text_classification",
+    "token-classification": "token_classification",
+    "zero-shot-classification": "zero_shot_classification",
+    "sentence-similarity": "sentence_similarity",
+    "question-answering": "question_answering",
+    "feature-extraction": "feature_extraction",
+    "text-to-image": "text_to_image",
+    "text-to-speech": "text_to_speech",
+    "text-to-audio": "text_to_speech",
+    "text-to-video": "text_to_video",
+    "image-to-image": "image_to_image",
+    "image-to-video": "image_to_video",
+    "image-text-to-video": "image_to_video",
+    "image-classification": "image_classification",
+    "object-detection": "object_detection",
+    "image-segmentation": "image_segmentation",
+    "automatic-speech-recognition": "automatic_speech_recognition",
+    "audio-classification": "audio_classification",
+    "image-text-to-text": "chat_completion",
+}
+
+
+# Client params that expect a list of strings; port values arrive as a single
+# string, split on the given pattern.
+_ENDPOINT_LIST_KWARGS: dict[str, dict[str, str]] = {
+    "zero_shot_classification": {"candidate_labels": r"[\n,]"},
+    "sentence_similarity": {"other_sentences": r"\n"},
+}
+
+
+def get_model_endpoints(
+    _data, _request: Optional[Request] = None, _token: Optional[OAuthToken] = None
+) -> str:
+    from huggingface_hub import InferenceClient
+
+    # Only advertise endpoints the installed huggingface_hub can actually run,
+    # so the UI never shapes a node around a method that would fail server-side.
+    endpoints = [
+        {"name": name, **schema}
+        for name, schema in _INFERENCE_ENDPOINT_SCHEMAS.items()
+        if getattr(InferenceClient, name, None) is not None
+    ]
+    return json.dumps(endpoints)
+
+
+def _partition_params(fn, params: dict) -> dict:
+    """Route *params* per fn's signature: extra_body / **kwargs / reject."""
+    try:
+        sig = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return dict(params)
+    param_names = set(sig.parameters)
+    accepts_kwargs = any(
+        p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+    )
+    known: dict = {}
+    unknown: dict = {}
+    for k, v in params.items():
+        (known if k in param_names else unknown)[k] = v
+    if not unknown:
+        return known
+    if "extra_body" in param_names:
+        known["extra_body"] = {**(known.get("extra_body") or {}), **unknown}
+        return known
+    if accepts_kwargs:
+        known.update(unknown)
+        return known
+    raise ValueError(
+        f"Model doesn't accept parameter(s): {', '.join(sorted(unknown))}. "
+        "Remove those from the node or switch to a model that supports them."
+    )
+
+
+def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
+    """Call client.<endpoint>(**kwargs) and serialize the result."""
+    fn = getattr(client, endpoint, None)
+    if fn is None:
+        import huggingface_hub
+
+        raise ValueError(
+            f"Task '{endpoint}' is not supported by the installed huggingface_hub "
+            f"version ({huggingface_hub.__version__}). Upgrade it with "
+            "`pip install -U huggingface_hub`."
+        )
+    schema_ids = [
+        p["id"] for p in _INFERENCE_ENDPOINT_SCHEMAS.get(endpoint, {}).get("inputs", [])
+    ]
+    clean: dict = {}
+    # Chat images are dereferenced by the provider, not locally, so they need a
+    # different reference than the task endpoints, which hand the reference to
+    # huggingface_hub and let it read the bytes off disk.
+    to_url = _chat_image_url if endpoint == "chat_completion" else _sendable_ref
+    for k, v in kwargs.items():
+        if v is None or v == "":
+            continue
+        legacy = re.fullmatch(r"in_(\d+)", k)
+        if legacy and k not in schema_ids and int(legacy.group(1)) < len(schema_ids):
+            # positional port IDs from workflows saved before endpoint schemas
+            k = schema_ids[int(legacy.group(1))]
+        clean[k] = (
+            to_url(v) if isinstance(v, dict) and ("url" in v or "path" in v) else v
+        )
+    for key, sep in _ENDPOINT_LIST_KWARGS.get(endpoint, {}).items():
+        if isinstance(clean.get(key), str):
+            clean[key] = [s.strip() for s in re.split(sep, clean[key]) if s.strip()]
+    if endpoint == "zero_shot_classification" and not clean.get("candidate_labels"):
+        # without labels, fall back to scoring with the model's own label set
+        return _dispatch_model_endpoint(
+            client, "text_classification", {"text": clean.get("text", "")}
+        )
+    if endpoint == "chat_completion":
+        content = []
+        if clean.get("text"):
+            content.append({"type": "text", "text": clean["text"]})
+        image_url = _chat_image_url(clean.get("image"))
+        if image_url:
+            content.append({"type": "image_url", "image_url": {"url": image_url}})
+        if not content:
+            raise ValueError("Connect a prompt or an image to this model.")
+        extras = {k: v for k, v in clean.items() if k not in ("text", "image")}
+        extras.setdefault("max_tokens", _CHAT_MAX_TOKENS)
+        chat_params = _partition_params(client.chat_completion, extras)
+        # Streamed, not buffered: the router's gateway times out a non-streaming
+        # request at ~120s, which a vision model writing a whole file routinely
+        # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
+        # so the request is bounded by the model, not by an idle proxy.
+        parts: list[str] = []
+        reasoned = 0
+        finish_reason = None
+        for chunk in client.chat_completion(
+            [{"role": "user", "content": content}],
+            stream=True,
+            **chat_params,
+        ):
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            delta = getattr(choice, "delta", None)
+            if delta is not None:
+                if delta.content:
+                    parts.append(delta.content)
+                reasoned += len(getattr(delta, "reasoning_content", None) or "")
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+        text = "".join(parts).strip()
+        if not text:
+            model_name = getattr(client, "model", None) or "The model"
+            if finish_reason == "length":
+                # Reasoning is billed against max_tokens, so a model can hit the
+                # cap while still thinking and return no visible answer at all.
+                raise ValueError(
+                    f"{model_name} hit the {_CHAT_MAX_TOKENS}-token limit "
+                    f"({reasoned} characters of reasoning) before producing an "
+                    "answer. Simplify the prompt or use a smaller image, or "
+                    "raise gradio.workflow._CHAT_MAX_TOKENS."
+                )
+            raise ValueError(
+                f"{model_name} returned no text (finish_reason={finish_reason})."
+            )
+        return json.dumps([text])
+    clean = _partition_params(fn, clean)
+    if endpoint == "text_generation":
+        clean.setdefault("max_new_tokens", 512)
+        try:
+            result = fn(**clean)
+        except Exception as inner:
+            msg = str(inner).lower()
+            if "not supported" in msg and "conversational" in msg:
+                r = client.chat_completion(
+                    [{"role": "user", "content": clean.get("prompt", "")}],
+                    max_tokens=512,
+                )
+                result = r.choices[0].message.content
+            else:
+                raise
+    else:
+        result = call_with_recovery(client, fn, clean)
+    ext = _ENDPOINT_OUTPUT_EXT.get(endpoint)
+    if ext:
+        return json.dumps([_save_tmp(result, ext)])
+    if isinstance(result, list) and result and hasattr(result[0], "answer"):
+        # question-answering-style outputs: surface the top answer
+        result = result[0]
+    for attr in (
+        "summary_text",
+        "translation_text",
+        "generated_text",
+        "text",
+        "answer",
+    ):
+        if hasattr(result, attr):
+            return json.dumps([getattr(result, attr)])
+    if isinstance(result, list):
+
+        def _item(r):
+            if hasattr(r, "__dict__"):
+                return {k: v for k, v in vars(r).items() if not k.startswith("_")}
+            return r
+
+        return json.dumps(
+            [[_item(r) for r in result]],
+            default=lambda o: vars(o) if hasattr(o, "__dict__") else str(o),
+        )
+    if hasattr(result, "tolist"):
+        return json.dumps([result.tolist()])
+    return json.dumps(
+        [result if isinstance(result, (str, int, float, bool)) else str(result)]
+    )
 
 
 def call_model(
@@ -615,146 +1212,22 @@ def call_model(
         provider = data[4] if len(data) > 4 and data[4] else "auto"
         client = InferenceClient(model=model_id, token=hf_token, provider=provider)
         args = json.loads(args_json)
+        if isinstance(args, dict):
+            endpoint = (
+                _PIPELINE_TAG_TO_ENDPOINT.get(pipeline_tag or "") or pipeline_tag or ""
+            )
+            return _dispatch_model_endpoint(client, endpoint, args)
+
         task = pipeline_tag or "text-generation"
         a0 = args[0] if args else ""
         a1 = args[1] if len(args) > 1 else ""
 
-        if task in (
-            "text-generation",
-            "text2text-generation",
-            "conversational",
-        ):
-            try:
-                result = client.text_generation(a0, max_new_tokens=512)
-            except Exception as inner:
-                msg = str(inner).lower()
-                if "not supported" in msg and "conversational" in msg:
-                    r = client.chat_completion(
-                        [{"role": "user", "content": a0}], max_tokens=512
-                    )
-                    result = r.choices[0].message.content
-                else:
-                    raise
-            return json.dumps([result])
-        if task == "summarization":
-            return json.dumps([client.summarization(a0).summary_text])
-        if task == "translation":
-            return json.dumps([client.translation(a0).translation_text])
-        if task in ("text-classification", "zero-shot-classification"):
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.text_classification(a0)
-                    ]
-                ]
-            )
-        if task == "token-classification":
-            return json.dumps(
-                [
-                    [
-                        {
-                            "entity_group": r.entity_group,
-                            "word": r.word,
-                            "score": r.score,
-                        }
-                        for r in client.token_classification(a0)
-                    ]
-                ]
-            )
-        if task == "fill-mask":
-            return json.dumps(
-                [
-                    [
-                        {
-                            "token_str": r.token_str,
-                            "score": r.score,
-                            "sequence": r.sequence,
-                        }
-                        for r in client.fill_mask(a0)
-                    ]
-                ]
-            )
-        if task == "question-answering":
-            qa_result = client.question_answering(question=a0, context=a1)
-            qa_answer = (
-                qa_result[0].answer if isinstance(qa_result, list) else qa_result.answer
-            )  # type: ignore[union-attr]
-            return json.dumps([qa_answer])
-        if task == "feature-extraction":
-            r = client.feature_extraction(a0)
-            return json.dumps([r.tolist() if hasattr(r, "tolist") else r])
-        if task == "sentence-similarity":
-            return json.dumps(
-                [client.sentence_similarity(a0, a1.split("\n") if a1 else [])]
-            )
-        if task == "text-to-image":
-            return json.dumps([_save_tmp(client.text_to_image(a0), "png")])
-        if task in ("text-to-speech", "text-to-audio"):
-            return json.dumps([_save_tmp(client.text_to_speech(a0), "wav")])
-        if task == "text-to-video":
-            return json.dumps([_save_tmp(client.text_to_video(a0), "mp4")])
-        if task == "image-classification":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.image_classification(_img_url(a0))
-                    ]
-                ]
-            )
-        if task == "object-detection":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score, "box": r.box}
-                        for r in client.object_detection(_img_url(a0))
-                    ]
-                ]
-            )
-        if task == "image-segmentation":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.image_segmentation(_img_url(a0))
-                    ]
-                ]
-            )
-        if task == "image-to-text":
-            r = client.image_to_text(_img_url(a0))
-            return json.dumps(
-                [r.generated_text if hasattr(r, "generated_text") else str(r)]
-            )
-        if task == "image-to-image":
-            return json.dumps(
-                [_save_tmp(client.image_to_image(_img_url(a0), prompt=a1), "png")]
-            )
-        if task == "automatic-speech-recognition":
-            r = client.automatic_speech_recognition(_img_url(a0))
-            return json.dumps([r.text if hasattr(r, "text") else str(r)])
-        if task == "audio-classification":
-            return json.dumps(
-                [
-                    [
-                        {"label": r.label, "score": r.score}
-                        for r in client.audio_classification(_img_url(a0))
-                    ]
-                ]
-            )
-        if task in (
-            "visual-question-answering",
-            "document-question-answering",
-            "image-text-to-text",
-        ):
-            r = client.visual_question_answering(_img_url(a0), a1)
-            return json.dumps([r[0].answer if r else ""])
         if task == "depth-estimation":
             headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
             resp = httpx.post(
                 f"https://api-inference.huggingface.co/models/{model_id}",
                 headers=headers,
-                json={"inputs": _img_url(a0)},
+                json={"inputs": _sendable_ref(a0)},
                 timeout=60,
             )
             resp.raise_for_status()
@@ -765,20 +1238,31 @@ def call_model(
             depth_img = _Image.open(_io.BytesIO(resp.content))
             return json.dumps([_save_tmp(depth_img, "png")])
 
-        # Fallback for tasks not handled above: chat_completion (works for most
-        # text models across providers), then a raw POST as last resort.
-        try:
-            r = client.chat_completion(
-                [{"role": "user", "content": a0}], max_tokens=512
+        endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
+        if endpoint:
+            # Positional args from legacy saved workflows and the browser
+            # executor map onto the endpoint schema's input order.
+            schema_inputs = _INFERENCE_ENDPOINT_SCHEMAS[endpoint]["inputs"]
+            kwargs = {
+                schema_inputs[i]["id"]: val
+                for i, val in enumerate(args[: len(schema_inputs)])
+            }
+            return _dispatch_model_endpoint(client, endpoint, kwargs)
+
+        def _resolve(v):
+            return (
+                _sendable_ref(v)
+                if isinstance(v, dict) and ("url" in v or "path" in v)
+                else v
             )
-            return json.dumps([r.choices[0].message.content])
-        except Exception:
-            pass
+
+        a1_missing = a1 is None or a1 == ""
+        payload = _resolve(a0) if a1_missing else [_resolve(a0), _resolve(a1)]
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
         fallback_resp = httpx.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
-            json={"inputs": a0 if not a1 else [a0, a1]},
+            json={"inputs": payload},
             timeout=60,
         )
         fallback_resp.raise_for_status()
@@ -1251,15 +1735,42 @@ class Workflow(Blocks):
         Workflow(graph="workflow.json", bind={"summarize": summarize}).launch()
         ```
 
-    The graph file defines nodes and edges:
+    The graph file uses schema version 2 and defines references, operators,
+    subjects, and edges:
         ```json
         {
-          "nodes": [
-            {"id": "sum", "kind": "transform", "source": "fn", "fn": "summarize", ...},
-            {"id": "img", "kind": "transform", "source": "space", "space_id": "black-forest-labs/FLUX.1-schnell", ...}
+          "schema_version": "2",
+          "references": [
+            {
+              "id": "prompt", "role": "reference", "label": "Prompt",
+              "asset_type": "text",
+              "inputs": [{"id": "in", "label": "Text", "type": "text"}],
+              "outputs": [{"id": "out", "label": "Text", "type": "text"}],
+              "data": {"out": "A sunset over the ocean"}
+            }
+          ],
+          "operators": [
+            {
+              "id": "image", "role": "operator", "kind": "model",
+              "model_id": "black-forest-labs/FLUX.1-schnell",
+              "pipeline_tag": "text-to-image", "endpoint": "text_to_image",
+              "inputs": [{"id": "prompt", "label": "Prompt", "type": "text", "required": true}],
+              "outputs": [{"id": "out_0", "label": "Image", "type": "image", "output_index": 0}],
+              "data": {}
+            }
+          ],
+          "subjects": [
+            {
+              "id": "result", "role": "subject", "label": "Image",
+              "asset_type": "image",
+              "inputs": [{"id": "in", "label": "Image", "type": "image"}],
+              "outputs": [{"id": "out", "label": "Image", "type": "image"}],
+              "data": {}
+            }
           ],
           "edges": [
-            {"id": "e1", "from_node_id": "sum", "from_port_id": "out_0", "to_node_id": "img", "to_port_id": "in_0", "type": "text"}
+            {"id": "e1", "from_node_id": "prompt", "from_port_id": "out", "to_node_id": "image", "to_port_id": "prompt", "type": "text"},
+            {"id": "e2", "from_node_id": "image", "from_port_id": "out_0", "to_node_id": "result", "to_port_id": "in", "type": "image"}
           ]
         }
         ```
@@ -1275,9 +1786,10 @@ class Workflow(Blocks):
         """
         Parameters:
             graph: Path to the workflow JSON file describing the canvas graph
-                (nodes + edges). Defaults to `workflow.json` in the same
-                directory as the calling script. The file is created on first
-                save if it doesn't exist.
+                (nodes + edges). Relative paths are resolved from the directory
+                containing the calling script. Defaults to `workflow.json` in
+                that directory. The file is created on first save if it doesn't
+                exist.
             bind: Functions callable from the canvas frontend via the `call_fn` server
                 function. Pass a list of callables (keys default to ``fn.__name__``) or
                 a dict mapping explicit names to callables.
@@ -1294,10 +1806,12 @@ class Workflow(Blocks):
                         ("clean.output", "tag.text"), # by port label
                     ]
         """
-        if graph is None:
+        if graph is None or not os.path.isabs(graph):
             caller_filename = sys._getframe(1).f_code.co_filename
             caller_dir = os.path.dirname(os.path.abspath(caller_filename))
-            graph = os.path.join(caller_dir, "workflow.json")
+            graph = os.path.join(
+                caller_dir, "workflow.json" if graph is None else graph
+            )
 
         if isinstance(bind, list):
             bind = {getattr(fn, "__name__", repr(fn)): fn for fn in bind}
@@ -1312,10 +1826,16 @@ class Workflow(Blocks):
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
 
+        if Context.root_block is not None:
+            raise ValueError(
+                "gr.Workflow cannot be created inside another gr.Blocks context."
+            )
+
         warnings.warn(
             "gr.Workflow is currently in beta. Its API and UX may change in future releases.",
             UserWarning,
         )
+        _warn_workflow_oauth_configuration()
 
         super().__init__(mode="workflow")
         self._build()
@@ -1346,11 +1866,10 @@ class Workflow(Blocks):
                 return None
 
         bound = self._bound
+        _save_lock = threading.Lock()
 
         def call_fn(
-            data,
-            _request: Optional[Request] = None,
-            _token: Optional[OAuthToken] = None,
+            data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
         ) -> str:
             fn_name = data[0] if data else ""
             try:
@@ -1367,10 +1886,15 @@ class Workflow(Blocks):
                 args = json.loads(args_json)
                 if not isinstance(args, list):
                     args = [args]
-                args, *_ = _special_args(fn, args, _request, None)
-                result = fn(*args)
-                result = list(result) if isinstance(result, (list, tuple)) else [result]
-                return json.dumps(result)
+                args, *_ = _special_args(fn, args, request, None, token=token)
+                if inspect.iscoroutinefunction(fn):
+                    import asyncio
+
+                    result = asyncio.run(fn(*args))
+                else:
+                    result = fn(*args)
+                out = list(result) if isinstance(result, (list, tuple)) else [result]
+                return json.dumps(out)
             except Exception as e:
                 logger.error("call_fn failed for %s: %s", fn_name, e, exc_info=True)
                 return json.dumps(
@@ -1467,26 +1991,75 @@ class Workflow(Blocks):
                     WorkflowGraph(parsed)
                 except ValueError as exc:
                     return json.dumps({"error": f"Invalid workflow schema: {exc}"})
-                with open(workflow_file, "w", encoding="utf-8") as f:
-                    f.write(payload)
-                # Re-derive API endpoints so /info + /call track the saved graph
-                # (outputs added / removed / renamed / retyped).
-                if self._api_endpoints is not None:
-                    try:
-                        self._api_endpoints.sync()
-                    except Exception:
-                        logger.error(
-                            "Workflow: endpoint sync after save failed", exc_info=True
-                        )
+                with _save_lock:
+                    with open(workflow_file, "w", encoding="utf-8") as f:
+                        f.write(payload)
+                    if self._api_endpoints is not None:
+                        try:
+                            self._api_endpoints.sync()
+                        except Exception:
+                            logger.error(
+                                "Workflow: endpoint sync after save failed",
+                                exc_info=True,
+                            )
                 return "ok"
             except Exception as e:
                 logger.error("save_workflow failed: %s", e, exc_info=True)
+                return json.dumps({"error": str(e)})
+
+        def get_workflow_key(_data=None) -> str:
+            return _workflow_key(workflow_file)
+
+        async def record_workflow_run(
+            data,
+            request: Optional[Request] = None,
+        ) -> str:
+            """Record a completed canvas run."""
+            from gradio import history
+
+            try:
+                bucket_id = data[0] if data else ""
+                endpoint_label = data[1] if len(data) > 1 else "workflow"
+                inputs = data[2] if len(data) > 2 else {}
+                outputs = data[3] if len(data) > 3 else {}
+                if not isinstance(inputs, dict) or not isinstance(outputs, dict):
+                    return json.dumps({"error": "Malformed run payload"})
+
+                app = history.app_from_request(request)
+                if app is None:
+                    return json.dumps({"error": "No server app for this request"})
+
+                endpoint = history.endpoint_key(str(endpoint_label), None)
+
+                record = await history.record_run(
+                    app,
+                    request=request,
+                    inputs=inputs,
+                    outputs=outputs,
+                    endpoint=endpoint,
+                    bucket_id=bucket_id or None,
+                )
+                if record is None:
+                    return json.dumps(
+                        {
+                            "error": "History is not available — sign in with "
+                            "Hugging Face and connect a bucket first.",
+                            "error_type": "auth",
+                        }
+                    )
+                return json.dumps({"record": dataclasses.asdict(record)})
+            except Exception as e:
+                logger.error("record_workflow_run failed: %s", e, exc_info=True)
                 return json.dumps({"error": str(e)})
 
         server_functions = [
             get_token,
             get_write_access,
             get_oauth_available,
+            get_oauth_scopes,
+            get_space_id,
+            get_workflow_key,
+            record_workflow_run,
             call_space,
             call_model,
             fetch_dataset,
@@ -1499,9 +2072,9 @@ class Workflow(Blocks):
             curated_modalities,
             curated_modality_tasks,
             get_dataset_schema,
-            call_fn,
             list_bound_fns,
             get_workflow_api,
+            get_model_endpoints,
             save_workflow,
         ]
 
@@ -1528,6 +2101,51 @@ class Workflow(Blocks):
                 server_functions=server_functions,
             )
 
+        def _wrap_bound_fn(fn: Callable) -> Callable:
+            async def wrapper(
+                args_json: str,
+                _request: Optional[Request] = None,
+                _token: Optional[OAuthToken] = None,
+            ) -> str:
+                args = json.loads(args_json)
+                if not isinstance(args, list):
+                    args = [args]
+                args, *_ = _special_args(fn, args, _request, None, token=_token)
+                try:
+                    result = (
+                        await fn(*args)
+                        if inspect.iscoroutinefunction(fn)
+                        else await anyio.to_thread.run_sync(
+                            lambda: fn(*args), limiter=self.limiter
+                        )
+                    )
+                except Exception as e:
+                    raise gr.Error(str(e)) from e
+                out = list(result) if isinstance(result, (list, tuple)) else [result]
+                return json.dumps(out)
+
+            return wrapper
+
+        if bound:
+            from gradio.workflow_api import _active_blocks
+
+            if len(bound) != len({_SANITIZE_RE.sub("_", n) for n in bound}):
+                sanitized = [_SANITIZE_RE.sub("_", n) for n in bound]
+                dupes = {s for s in sanitized if sanitized.count(s) > 1}
+                raise ValueError(
+                    f"gr.Workflow: bound function names produce duplicate endpoint "
+                    f"names after sanitizing: {dupes}. Rename one."
+                )
+
+            with _active_blocks(self):
+                for fn_name, fn in bound.items():
+                    sanitized_name = _SANITIZE_RE.sub("_", fn_name)
+                    gr.api(
+                        _wrap_bound_fn(fn),
+                        api_name=f"predict_fn_{sanitized_name}",
+                        concurrency_limit="default",
+                        api_visibility="undocumented",
+                    )
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
@@ -1540,8 +2158,10 @@ class Workflow(Blocks):
         to `allowed_paths` so those URLs resolve.
 
         Locally, editing requires the write token: the full edit link is printed
-        after the standard launch output (and used for `inbrowser`). Plain
-        local/share URLs open the app read-only."""
+        after the standard launch output, and — unless `inbrowser` is passed
+        explicitly — opened in a browser tab automatically (like `jupyter
+        notebook` does with its token URL). Plain local/share URLs open the app
+        read-only. See `_should_auto_open_browser` for when the tab is opened."""
         if args:
             names = list(inspect.signature(super().launch).parameters)
             kwargs.update(dict(zip(names, args)))
@@ -1558,7 +2178,15 @@ class Workflow(Blocks):
         # replicate Blocks.launch()'s blocking behavior ourselves below.
         prevent_thread_lock = bool(kwargs.get("prevent_thread_lock", False))
         debug = bool(kwargs.get("debug", False))
-        inbrowser = bool(kwargs.get("inbrowser", False))
+        # `inbrowser` defaults to opening the write-access link, but only when
+        # the caller didn't say either way — an explicit `inbrowser=False` still
+        # means "don't open anything".
+        explicit_inbrowser = kwargs.get("inbrowser")
+        inbrowser = (
+            bool(explicit_inbrowser)
+            if explicit_inbrowser is not None
+            else _should_auto_open_browser()
+        )
         kwargs["inbrowser"] = False
 
         real_block_thread = self.block_thread
@@ -1574,8 +2202,9 @@ class Workflow(Blocks):
             sep = "&" if "?" in local_url else "?"
             write_url = f"{local_url}{sep}write_token={WRITE_TOKEN}"
             if not kwargs.get("quiet", False):
+                opening = " — opening it in your browser" if inbrowser else ""
                 print(
-                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see): {write_url}"
+                    f"\n* Workflow write-access link (keep private as it lets you edit the workflow that all users see){opening}: {write_url}"
                 )
         if inbrowser:
             webbrowser.open(

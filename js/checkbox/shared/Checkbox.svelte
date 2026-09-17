@@ -7,6 +7,7 @@
 		indeterminate = false,
 		interactive = true,
 		show_label = true,
+		tab_index = undefined,
 		on_change,
 		on_input,
 		on_select
@@ -16,6 +17,7 @@
 		indeterminate?: boolean;
 		interactive?: boolean;
 		show_label?: boolean;
+		tab_index?: number;
 		on_change?: (value: boolean) => void;
 		on_input?: () => void;
 		on_select?: (data: SelectData) => void;
@@ -62,12 +64,13 @@
 	<input
 		bind:checked={value}
 		bind:indeterminate
-		on:keydown={handle_enter}
-		on:input={handle_input}
+		onkeydown={handle_enter}
+		oninput={handle_input}
 		{disabled}
 		type="checkbox"
 		name="test"
 		data-testid="checkbox"
+		tabindex={tab_index}
 	/>
 	{#if show_label}
 		<span class="label-text">

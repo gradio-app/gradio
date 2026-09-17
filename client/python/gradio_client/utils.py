@@ -14,6 +14,7 @@ import secrets
 import shutil
 import tempfile
 import time
+import urllib.parse
 import warnings
 from collections import deque
 from collections.abc import Callable, Coroutine
@@ -74,6 +75,21 @@ INVALID_RUNTIME = [
 # \x7f                – DEL character
 # ` $ ! { }           – shell-dangerous characters
 _FORBIDDEN_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\x7f`$!{}]')
+
+# Windows reserved device names (case-insensitive). Uploading e.g. CON.txt
+# fails on Windows hosts because these are not valid filesystem paths.
+_WINDOWS_RESERVED_NAMES = frozenset(
+    {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "CONIN$",
+        "CONOUT$",
+        *(f"COM{c}" for c in "123456789\xb9\xb2\xb3"),
+        *(f"LPT{c}" for c in "123456789\xb9\xb2\xb3"),
+    }
+)
 
 
 class Message(TypedDict, total=False):
@@ -369,6 +385,7 @@ def get_pred_from_sse_v1plus(
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, deque[Message | None]],
+    pending_lock: Lock,
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
@@ -379,7 +396,12 @@ def get_pred_from_sse_v1plus(
         check_for_cancel, helper, headers, cookies, ssl_verify
     )
     future_sse = executor.submit(
-        stream_sse_v1plus, helper, pending_messages_per_event, event_id, protocol
+        stream_sse_v1plus,
+        helper,
+        pending_messages_per_event,
+        pending_lock,
+        event_id,
+        protocol,
     )
     done, _ = concurrent.futures.wait(
         [future_cancel, future_sse],  # type: ignore
@@ -493,6 +515,7 @@ def stream_sse_v0(
 def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, deque[Message | None]],
+    pending_lock: Lock,
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
@@ -539,6 +562,12 @@ def stream_sse_v1plus(
                         pending_responses_for_diffs = list(output)
                     else:
                         for i, value in enumerate(output):
+                            # A new output can appear mid-stream if the app was
+                            # hot-reloaded while a generator was running; its diff
+                            # is computed against None on the server, so treat any
+                            # index beyond what we've seen as starting from None.
+                            if i >= len(pending_responses_for_diffs):
+                                pending_responses_for_diffs.append(None)
                             prev_output = pending_responses_for_diffs[i]
                             new_output = apply_diff(prev_output, value)
                             pending_responses_for_diffs[i] = new_output
@@ -556,7 +585,8 @@ def stream_sse_v1plus(
                 helper.job.latest_status = status_update
                 helper.updates.put_nowait(status_update)
             if msg["msg"] == ServerMessage.process_completed:
-                del pending_messages_per_event[event_id]
+                with pending_lock:
+                    del pending_messages_per_event[event_id]
                 if not msg.get("success", True):
                     # Create a new copy of the error dict so we
                     # can preserve the error message (it gets popped later)
@@ -681,13 +711,13 @@ def get_extension(encoding: str) -> str | None:
 
 def is_valid_file(file_path: str, file_types: list[str]) -> bool:
     mime_type = get_mimetype(file_path)
+    file_name = Path(file_path).name.lower()
     for file_type in file_types:
         if file_type == "file":
             return True
         if file_type.startswith("."):
-            file_type = file_type.lstrip(".").lower()
-            file_ext = Path(file_path).suffix.lstrip(".").lower()
-            if file_type == file_ext:
+            file_type = file_type.lower()
+            if len(file_name) > len(file_type) and file_name.endswith(file_type):
                 return True
         elif mime_type is not None and mime_type.startswith(f"{file_type}/"):
             return True
@@ -747,8 +777,8 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     Only removes characters that are truly dangerous for file systems: path separators,
     null bytes, control characters, and shell-dangerous characters. Preserves all other
     characters including parentheses, brackets, unicode characters, etc.
-    The filename may include an extension (in which case it is preserved exactly as is),
-    or could be just a name without an extension.
+    The filename may include an extension (which is preserved when it fits), or
+    could be just a name without an extension.
     """
     name, ext = os.path.splitext(filename)
     name = _FORBIDDEN_RE.sub("", name)
@@ -760,16 +790,42 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     # stem (e.g. "#.txt" → ".txt" → Path(".txt").suffix == "").
     if not name and ext:
         name = "file"
+    # Preserve the parent-directory marker so upload path validation rejects it.
+    if name + ext == "..":
+        return ".."
+    # Windows strips trailing spaces and dots from path segments. Remove them
+    # consistently on every platform so the returned upload path is portable.
+    filename = (name + ext).rstrip(" .")
+    if not filename:
+        filename = "file"
+    name, ext = os.path.splitext(filename)
+    # Prefix Windows reserved device names so uploads remain valid on NTFS
+    # (CON, PRN, AUX, NUL, COM1–COM9, LPT1–LPT9, with or without extension).
+    # Windows resolves device names from the segment before the *first* dot
+    # (e.g. "NUL.tar.gz" is the NUL device), so check the recombined filename
+    # the same way CPython's ntpath.isreserved does.
+    if (name + ext).partition(".")[0].rstrip(" ").upper() in _WINDOWS_RESERVED_NAMES:
+        name = "_" + name
     filename = name + ext
-    filename_len = len(filename.encode())
-    if filename_len > max_bytes:
-        while filename_len > max_bytes:
-            if len(name) == 0:
-                break
-            name = name[:-1]
-            filename = name + ext
-            filename_len = len(filename.encode())
-    return filename
+    while len(filename.encode()) > max_bytes and name:
+        name = name[:-1]
+        filename = name + ext
+    if len(filename.encode()) <= max_bytes:
+        return filename
+
+    # An extension can itself exceed the limit. Keep a usable fallback stem and
+    # truncate the extension by characters so multi-byte Unicode is never split.
+    name = "file"
+    while len(name.encode()) > max_bytes and name:
+        name = name[:-1]
+    while len((name + ext).encode()) > max_bytes and ext:
+        ext = ext[:-1]
+    return name + ext
+
+
+def encode_file_path(path: str | Path) -> str:
+    """Encode a filesystem path for use after a Gradio ``/file=`` route."""
+    return urllib.parse.quote(str(path), safe="/")
 
 
 def sanitize_parameter_names(original_name: str) -> str:

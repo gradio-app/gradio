@@ -10,6 +10,9 @@ const matplotlib_value = {
 	chart: "bar"
 };
 
+const other_matplotlib_plot =
+	"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC";
+
 // layout has no height on purpose: this is the autosize path.
 const plotly_autosize_value = {
 	type: "plotly",
@@ -299,6 +302,40 @@ describe("Plotly", () => {
 			expect(plot.querySelector(".main-svg")).toBeTruthy();
 			expect(plot.offsetHeight).toBeGreaterThan(0);
 		});
+	});
+});
+
+describe("Remounting", () => {
+	afterEach(() => cleanup());
+
+	// Regression for #10107: the chatbot delivers the same plot as a new object.
+	test("an unchanged payload in a new object does not remount the plot", async () => {
+		const { set_data, getByTestId } = await render(Plot, {
+			...default_props,
+			value: matplotlib_value
+		});
+		await waitFor(() => expect(getByTestId("matplotlib")).toBeInTheDocument());
+		const before = getByTestId("matplotlib");
+
+		await set_data({ value: { ...matplotlib_value } });
+
+		expect(getByTestId("matplotlib")).toBe(before);
+	});
+
+	// The remount itself is deliberate (#9781) and has to survive the fix above.
+	test("a changed payload does remount the plot", async () => {
+		const { set_data, getByTestId } = await render(Plot, {
+			...default_props,
+			value: matplotlib_value
+		});
+		await waitFor(() => expect(getByTestId("matplotlib")).toBeInTheDocument());
+		const before = getByTestId("matplotlib");
+
+		await set_data({
+			value: { ...matplotlib_value, plot: other_matplotlib_plot }
+		});
+
+		await waitFor(() => expect(getByTestId("matplotlib")).not.toBe(before));
 	});
 });
 

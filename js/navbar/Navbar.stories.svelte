@@ -1,5 +1,5 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script module>
+	import { defineMeta } from "@storybook/addon-svelte-csf";
 
 	const defaultPages = [
 		["", "Home"],
@@ -7,35 +7,35 @@
 		["page2", "Page 2"],
 		["settings", "Settings"]
 	];
+
+	const { Story } = defineMeta({
+		title: "Components/Navbar",
+		argTypes: {
+			visible: {
+				options: [true, false],
+				description: "Sets the visibility of the navbar",
+				control: { type: "boolean" },
+				defaultValue: true
+			},
+			main_page_name: {
+				control: "text",
+				description:
+					"The name to display for the main page in the navbar. Set to false to use default 'Home'",
+				name: "main_page_name",
+				value: "Home"
+			},
+			value: {
+				control: "object",
+				description:
+					"List of [route, name] tuples for additional navbar pages. These are added to the existing pages",
+				name: "value",
+				value: null
+			}
+		}
+	});
 </script>
 
-<Meta
-	title="Components/Navbar"
-	argTypes={{
-		visible: {
-			options: [true, false],
-			description: "Sets the visibility of the navbar",
-			control: { type: "boolean" },
-			defaultValue: true
-		},
-		main_page_name: {
-			control: "text",
-			description:
-				"The name to display for the main page in the navbar. Set to false to use default 'Home'",
-			name: "main_page_name",
-			value: "Home"
-		},
-		value: {
-			control: "object",
-			description:
-				"List of [route, name] tuples for additional navbar pages. These are added to the existing pages",
-			name: "value",
-			value: null
-		}
-	}}
-/>
-
-<Template let:args>
+{#snippet navbar_preview(args)}
 	{#key `${args.visible}-${args.main_page_name}-${JSON.stringify(args.value)}`}
 		<div
 			style="width: 100%; min-height: 400px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;"
@@ -109,7 +109,7 @@
 			</div>
 		</div>
 	{/key}
-</Template>
+{/snippet}
 
 <Story
 	name="Default"
@@ -118,7 +118,11 @@
 		main_page_name: "Home",
 		value: null
 	}}
-/>
+>
+	{#snippet template(args)}
+		{@render navbar_preview(args)}
+	{/snippet}
+</Story>
 
 <Story
 	name="Additional Pages"
@@ -130,4 +134,8 @@
 			["Twitter", "https://twitter.com/abidlabs"]
 		]
 	}}
-/>
+>
+	{#snippet template(args)}
+		{@render navbar_preview(args)}
+	{/snippet}
+</Story>

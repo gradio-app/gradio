@@ -2,8 +2,13 @@
 	import type { Payload, Dependency } from "../types";
 	import { BaseButton as Button } from "@gradio/button";
 
-	export let api_calls: Payload[] = [];
-	export let dependencies: Dependency[];
+	let {
+		api_calls = [],
+		dependencies
+	}: {
+		api_calls?: Payload[];
+		dependencies: Dependency[];
+	} = $props();
 </script>
 
 <div id="api-recorder">

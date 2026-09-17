@@ -1,4 +1,4 @@
-import type { Config } from "../types";
+import type { ClientOptions, Config } from "../types";
 import { Client } from "..";
 /**
  * This function is used to resolve the URL for making requests when the app has a root path.
@@ -12,10 +12,19 @@ import { Client } from "..";
  */
 export declare function resolve_root(base_url: string, root_path: string, prioritize_base: boolean): string;
 export declare function get_jwt(space: string, token: `hf_${string}`, cookies?: string | null): Promise<string | false>;
+/**
+ * The `hf_token` option was renamed to `token`, but a lot of existing code
+ * (and the Python client) still uses `hf_token`. Accept it as an alias so
+ * that authenticated requests are not silently sent without credentials,
+ * which previously surfaced as "Could not resolve app config" errors when
+ * connecting to private Spaces.
+ */
+export declare function normalise_token_option(options: ClientOptions): void;
 export declare function map_names_to_ids(fns: Config["dependencies"]): Record<string, number>;
-export declare function resolve_config(this: Client, endpoint: string): Promise<Config | undefined>;
+export declare function resolve_config_root(root: string, current_location: string): string;
+export declare function resolve_config(this: Client, endpoint: string, strip_current_page?: boolean): Promise<Config | undefined>;
 export declare function resolve_cookies(this: Client): Promise<void>;
-export declare function get_cookie_header(http_protocol: string, host: string, auth: [string, string], _fetch: typeof fetch, token?: `hf_${string}`): Promise<string | null>;
+export declare function get_cookie_header(http_protocol: string, host: string, auth: [string, string], _fetch: typeof fetch, token?: `hf_${string}`, credentials?: RequestCredentials): Promise<string | null>;
 export declare function determine_protocol(endpoint: string): {
     ws_protocol: "ws" | "wss";
     http_protocol: "http:" | "https:";

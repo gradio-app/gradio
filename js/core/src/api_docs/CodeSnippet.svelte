@@ -4,21 +4,33 @@
 	import { Block } from "@gradio/atoms";
 	import EndpointDetail from "./EndpointDetail.svelte";
 
-	export let dependency: Dependency;
-	export let current_language:
-		| "python"
-		| "javascript"
-		| "bash"
-		| "skill"
-		| "cli"
-		| "mcp";
-	export let api_description: string | null = null;
-	export let analytics: Record<string, any>;
-	export let code_snippets: Record<string, string>;
-	export let last_api_call: Payload | null = null;
-	export let cli_command = "";
+	let {
+		dependency,
+		current_language,
+		api_description = null,
+		analytics,
+		code_snippets,
+		last_api_call = null,
+		cli_command = ""
+	}: {
+		dependency: Dependency;
+		current_language:
+			| "python"
+			| "javascript"
+			| "bash"
+			| "skill"
+			| "cli"
+			| "mcp";
+		api_description?: string | null;
+		analytics: Record<string, any>;
+		code_snippets: Record<string, string>;
+		last_api_call?: Payload | null;
+		cli_command?: string;
+	} = $props();
 
-	$: cli_code = (code_snippets.cli || "").replace("{command}", cli_command);
+	let cli_code = $derived(
+		(code_snippets.cli || "").replace("{command}", cli_command)
+	);
 
 	function escape_html(text: string): string {
 		return text
@@ -34,11 +46,11 @@
 			'<span class="kw">$1</span>'
 		);
 		html = html.replace(
-			/(Client\()("[^"]*")(\))/g,
-			'$1<span class="str">$2</span>$3'
+			/(Client\()("[^"]*")/g,
+			'$1<span class="str">$2</span>'
 		);
 		html = html.replace(
-			/(api_name=)("[^"]*")/g,
+			/(api_name=|oauth_token=)("[^"]*")/g,
 			'$1<span class="api-name">$2</span>'
 		);
 		return html;
@@ -51,11 +63,11 @@
 			'<span class="kw">$1</span>'
 		);
 		html = html.replace(
-			/(Client\.connect\()("[^"]*")(\))/g,
-			'$1<span class="str">$2</span>$3'
+			/(Client\.connect\()("[^"]*")/g,
+			'$1<span class="str">$2</span>'
 		);
 		html = html.replace(
-			/(\.predict\()("[^"]*")/g,
+			/(\.predict\(|oauth_token: )("[^"]*")/g,
 			'$1<span class="api-name">$2</span>'
 		);
 		return html;
@@ -65,10 +77,10 @@
 		return escape_html(code);
 	}
 
-	$: python_html = highlight_python(code_snippets.python || "");
-	$: js_html = highlight_javascript(code_snippets.javascript || "");
-	$: bash_html = highlight_bash(code_snippets.bash || "");
-	$: cli_html = highlight_bash(cli_code);
+	let python_html = $derived(highlight_python(code_snippets.python || ""));
+	let js_html = $derived(highlight_javascript(code_snippets.javascript || ""));
+	let bash_html = $derived(highlight_bash(code_snippets.bash || ""));
+	let cli_html = $derived(highlight_bash(cli_code));
 </script>
 
 <div class="container">

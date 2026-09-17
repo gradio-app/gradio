@@ -1,6 +1,13 @@
 import { dev } from "$app/environment";
+import { get_current_page } from "$lib/page_utils.js";
 
-export async function load({ request }: { request: Request }): Promise<{
+export async function load({
+	request,
+	url
+}: {
+	request: Request;
+	url: URL;
+}): Promise<{
 	server: string;
 	port: string;
 	local_dev_mode: string | undefined;
@@ -21,12 +28,18 @@ export async function load({ request }: { request: Request }): Promise<{
 		request.headers.get("x-gradio-original-url") || server
 	).origin;
 	const cookie = request.headers.get("cookie");
+	const current_page = get_current_page(
+		url.pathname,
+		new URL(mount_path, real_url).href
+	);
 
 	// Check if auth is required by making a request to /config
 	// This runs only on the server, so it's safe to make this request
 	let auth_required = false;
 	try {
-		const configResponse = await fetch(`${server}/config`, {
+		const config_url = new URL(`${server}/config`);
+		config_url.searchParams.set("page", current_page);
+		const configResponse = await fetch(config_url, {
 			headers: {
 				...(cookie ? { Cookie: cookie } : {})
 			}

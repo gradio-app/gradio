@@ -1,4 +1,5 @@
 import { join } from "path";
+import { pathToFileURL } from "url";
 import * as fs from "fs";
 
 import { createServer, createLogger } from "vite";
@@ -170,7 +171,7 @@ async function generate_imports(
 				fs.existsSync(join(component.frontend_dir, "gradio.config.js"))
 			) {
 				const m = await import(
-					join("file://" + component.frontend_dir, "gradio.config.js")
+					pathToFileURL(join(component.frontend_dir, "gradio.config.js")).href
 				);
 
 				component_config.plugins = m.default.plugins || [];

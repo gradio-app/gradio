@@ -11,6 +11,7 @@
 >
 	<head>
 		<meta charset="utf-8" />
+		<base href="{{ base_url | default('./') }}" />
 		<meta
 			name="viewport"
 			content="width=device-width, initial-scale=1, shrink-to-fit=no"
@@ -75,20 +76,51 @@
 
 		%gradio_config%%gradio_api_info%
 
-		<script
-			src="{{ config.get('root', '') }}/static/js/iframeResizer.contentWindow.min.js"
-			async
-		></script>
 		<script data-gradio-mode>
 			window.__gradio_mode__ = "app";
 			window.iFrameResizer = {
 				autoResize: false,
-				sizeWidth: false
+				sizeWidth: false,
+				onReady: () =>
+					window.dispatchEvent(new Event("gradio:iframe-resizer-ready"))
 			};
 			window.parent?.postMessage(
 				{ type: "SET_SCROLLING", enabled: false },
 				"*"
 			);
+		</script>
+		<script>
+			(() => {
+				const root = {{ config.get('root', '') | toorjson }};
+				const rootUrl = new URL(root || "/", window.location.href);
+				const script = document.createElement("script");
+				const rootPath = rootUrl.pathname.replace(/\/$/, "");
+				const isColab =
+					window.gradio_config?.is_colab === true ||
+					rootUrl.hostname.endsWith(".colab-user-runtimes.internal") ||
+					rootUrl.hostname.endsWith(".codatalab-user-runtimes.internal");
+				if (isColab) {
+					window.gradio_config.root = new URL(rootPath || "/", window.location.origin)
+						.toString()
+						.replace(/\/$/, "");
+				}
+				// Same-hostname check as resolve_current_origin_url in
+				// @gradio/utils: this page is served by the gradio server, so
+				// when the hostnames match, the page's origin (which reflects
+				// the public proxy port/protocol) is the reachable one. Colab's
+				// public proxy has a different hostname, but config.is_colab tells
+				// us the page still came from this Gradio server.
+				const origin =
+					isColab || rootUrl.hostname === window.location.hostname
+						? window.location.origin
+						: rootUrl.origin;
+				script.src = new URL(
+					`${rootPath}/static/js/iframeResizer.contentWindow.min.js`,
+					origin
+				).toString();
+				script.async = true;
+				document.head.appendChild(script);
+			})();
 		</script>
 		<link rel="manifest" href="/manifest.json" />
 	</head>

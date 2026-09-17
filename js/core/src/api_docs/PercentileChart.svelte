@@ -1,11 +1,17 @@
 <script lang="ts">
 	import { format_latency } from "./utils";
 
-	export let p50: number;
-	export let p90: number;
-	export let p99: number;
+	let {
+		p50,
+		p90,
+		p99
+	}: {
+		p50: number;
+		p90: number;
+		p99: number;
+	} = $props();
 
-	$: max_latency = Math.max(p50, p90, p99);
+	let max_latency = $derived(Math.max(p50, p90, p99));
 </script>
 
 <div class="tooltip-chart">

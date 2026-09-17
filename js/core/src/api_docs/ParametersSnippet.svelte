@@ -2,16 +2,23 @@
 	import { Loader } from "@gradio/statustracker";
 	import { represent_value } from "./utils";
 
-	export let is_running: boolean;
-	export let endpoint_returns: any;
-	export let js_returns: any;
-	export let current_language:
-		| "python"
-		| "javascript"
-		| "cli"
-		| "bash"
-		| "skill"
-		| "mcp";
+	let {
+		is_running,
+		endpoint_returns,
+		js_returns,
+		current_language
+	}: {
+		is_running: boolean;
+		endpoint_returns: any;
+		js_returns: any;
+		current_language:
+			| "python"
+			| "javascript"
+			| "cli"
+			| "bash"
+			| "skill"
+			| "mcp";
+	} = $props();
 </script>
 
 <h4>

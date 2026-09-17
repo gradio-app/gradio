@@ -1,5 +1,143 @@
 # @gradio/core
 
+## 1.11.2
+
+### Fixes
+
+- [#13642](https://github.com/gradio-app/gradio/pull/13642) [`19cb8f7`](https://github.com/gradio-app/gradio/commit/19cb8f7bce14a7961cd4f81adb7f629c64df4988) - Align launch and event JavaScript execution.  Thanks @dawoodkhan82!
+- [#13787](https://github.com/gradio-app/gradio/pull/13787) [`2ae6f97`](https://github.com/gradio-app/gradio/commit/2ae6f97d0f5284c8f351ffe6d45da61944284d5a) - Fix Image and ImageEditor UI/UX issues.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+- @gradio/checkbox@0.8.3
+- @gradio/image@0.28.3
+- @gradio/audio@0.24.3
+- @gradio/video@0.23.1
+- @gradio/dropdown@0.15.0
+
+## 1.11.1
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 1.11.1
+
+### Fixes
+
+- [#13765](https://github.com/gradio-app/gradio/pull/13765) [`c6b9cc3`](https://github.com/gradio-app/gradio/commit/c6b9cc33c9f3932014f51467f7219bb1c4ac7a4b) - Fix nested reactive render contexts.  Thanks @abidlabs!
+
+## 1.11.0
+
+### Features
+
+- [#13718](https://github.com/gradio-app/gradio/pull/13718) [`a9e8382`](https://github.com/gradio-app/gradio/commit/a9e8382c4f68e938b5fceef299d7539434c6063f) - Add browser-local run history and loading.  Thanks @abidlabs!
+- [#13751](https://github.com/gradio-app/gradio/pull/13751) [`1c8aa23`](https://github.com/gradio-app/gradio/commit/1c8aa23263ef1d3a641690395b8f0d816b593cc3) - Fix initial Spaces iframe resize after app render.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 1.10.3
+
+### Fixes
+
+- [#13708](https://github.com/gradio-app/gradio/pull/13708) [`3458ea4`](https://github.com/gradio-app/gradio/commit/3458ea4db41e6d08d4363ad05df99ba3a4110082) - Fix processing timer and other inherited text unreadable in dark mode.  Thanks @hysts!
+
+## 1.10.2
+
+### Fixes
+
+- [#13695](https://github.com/gradio-app/gradio/pull/13695) [`03d7c53`](https://github.com/gradio-app/gradio/commit/03d7c53b5e45fe97fe24d10dd115e7d7bb9f0615) - Let embedded apps shrink back after stretched content stops needing the room.  Thanks @hysts!
+
+## 1.10.1
+
+### Fixes
+
+- [#13687](https://github.com/gradio-app/gradio/pull/13687) [`fd79d09`](https://github.com/gradio-app/gradio/commit/fd79d0999e66a3331a59d2ac80a7b61ec3e90f46) - Harden authentication and file redirect boundaries.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.12.0
+
+## 1.10.0
+
+### Features
+
+- [#13601](https://github.com/gradio-app/gradio/pull/13601) [`0ee5cc8`](https://github.com/gradio-app/gradio/commit/0ee5cc80e2915e5a1b074c892490a62f165cd80d) - Preserve browser-visible proxy origins for frontend assets and API requests, and retain app-level FastAPI root paths.  Thanks @abidlabs!
+- [#13620](https://github.com/gradio-app/gradio/pull/13620) [`5200235`](https://github.com/gradio-app/gradio/commit/520023532b66d6fa327da04701da3e02c554fa6e) - Fix chained events after cancellation and while the browser tab is hidden.  Thanks @abidlabs!
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Fixes
+
+- [#13627](https://github.com/gradio-app/gradio/pull/13627) [`3b12faa`](https://github.com/gradio-app/gradio/commit/3b12faa404660cd68ff4b3f20fbf6af3f3906670) - Keep in-flight events and generators working when an app is hot-reloaded (`gradio app.py`).  Thanks @abidlabs!
+- [#13644](https://github.com/gradio-app/gradio/pull/13644) [`f0abb1e`](https://github.com/gradio-app/gradio/commit/f0abb1ea8e61f4b886296365639b9fe0492012a9) - restore shared props lost during frontend prop partitioning.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/theme@0.7.0
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+- @gradio/textbox@0.14.2
+- @gradio/column@0.4.1
+- @gradio/tabs@0.10.0
+- @gradio/html@0.13.2
+- @gradio/tabitem@0.8.3
+- @gradio/code@0.19.0
+- @gradio/paramviewer@0.11.0
+- @gradio/button@0.8.2
+- @gradio/checkbox@0.8.2
+- @gradio/file@0.16.0
+- @gradio/image@0.28.1
+- @gradio/video@0.23.0
+- @gradio/plot@0.12.2
+- @gradio/gallery@0.19.1
+- @gradio/dropdown@0.14.2
+- @gradio/audio@0.24.2
+
+## 1.9.0
+
+### Features
+
+- [#13566](https://github.com/gradio-app/gradio/pull/13566) [`79b9171`](https://github.com/gradio-app/gradio/commit/79b91718b5c972c174ed042d8b04443bc2274076) - Gallery Download All.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#13563](https://github.com/gradio-app/gradio/pull/13563) [`46d391b`](https://github.com/gradio-app/gradio/commit/46d391bd4385b6cfa31f10b35955c95c86c4cb85) - Fix embedded Gradio apps growing infinitely tall on HF Spaces when using `vh`/`%` heights or `fill_height`.  Thanks @abidlabs!
+- [#13588](https://github.com/gradio-app/gradio/pull/13588) [`2e80558`](https://github.com/gradio-app/gradio/commit/2e805588c8dc84a4a584898fd43b267c72209f78) - Fire `state.change()` for streaming (`.stream()`) events.  Thanks @hysts!
+- [#13560](https://github.com/gradio-app/gradio/pull/13560) [`745f20c`](https://github.com/gradio-app/gradio/commit/745f20c9ec7d1e542c4b35f121b6f74e8e7c100c) - Fix `gr.Tabs.select()` event not firing when switching tabs.  Thanks @abidlabs!
+- [#13553](https://github.com/gradio-app/gradio/pull/13553) [`9a72d0c`](https://github.com/gradio-app/gradio/commit/9a72d0c76e62af365236a36c0137f7e0497d98cb) - Fix Column staying hidden after a multi-yield visibility update.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/tabs@0.9.0
+- @gradio/html@0.13.1
+- @gradio/code@0.18.1
+- @gradio/statustracker@0.15.1
+- @gradio/paramviewer@0.10.1
+- @gradio/button@0.8.1
+- @gradio/tabitem@0.8.2
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/image@0.28.0
+- @gradio/video@0.22.0
+- @gradio/client@2.3.1
+- @gradio/upload@0.18.1
+- @gradio/file@0.15.1
+- @gradio/gallery@0.19.0
+- @gradio/plot@0.12.1
+- @gradio/audio@0.24.1
+- @gradio/checkbox@0.8.1
+- @gradio/dropdown@0.14.1
+- @gradio/textbox@0.14.1
+
 ## 1.8.0
 
 ### Features

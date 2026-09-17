@@ -1,5 +1,53 @@
 # @gradio/upload
 
+## 0.18.3
+
+### Fixes
+
+- [#13729](https://github.com/gradio-app/gradio/pull/13729) [`82ca180`](https://github.com/gradio-app/gradio/commit/82ca180c5c9a77d36b9097a62e63318317dc9d1f) - Fix Dataframe keyboard navigation accessibility.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+
+## 0.18.2
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.18.2
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.18.2
+
+### Features
+
+- [#13601](https://github.com/gradio-app/gradio/pull/13601) [`0ee5cc8`](https://github.com/gradio-app/gradio/commit/0ee5cc80e2915e5a1b074c892490a62f165cd80d) - Preserve browser-visible proxy origins for frontend assets and API requests, and retain app-level FastAPI root paths.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+
+## 0.18.1
+
+### Fixes
+
+- [#13597](https://github.com/gradio-app/gradio/pull/13597) [`7a595cb`](https://github.com/gradio-app/gradio/commit/7a595cb72d8a82151ee2231e86d20c91d0bb9062) - Fix ImageEditor brush texture resets.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/client@2.3.1
+
 ## 0.18.0
 
 ### Features

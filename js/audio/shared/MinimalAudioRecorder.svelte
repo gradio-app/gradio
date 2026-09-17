@@ -96,9 +96,11 @@
 			upload_promise = (async () => {
 				try {
 					const array_buffer = await blob.arrayBuffer();
-					const context = new AudioContext({
-						sampleRate: waveform_settings.sampleRate || 44100
-					});
+					const context = new OfflineAudioContext(
+						1,
+						1,
+						waveform_settings.sampleRate || 44100
+					);
 					const audio_buffer = await context.decodeAudioData(array_buffer);
 
 					if (audio_buffer) {

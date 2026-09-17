@@ -1,5 +1,61 @@
 # @gradio/audio
 
+## 0.24.3
+
+### Features
+
+- [#13806](https://github.com/gradio-app/gradio/pull/13806) [`17f0e9e`](https://github.com/gradio-app/gradio/commit/17f0e9e54d38d66ad3e8a8271aec98688173068b) - Fix Audio stream reload timing and repeated recording previews.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13808](https://github.com/gradio-app/gradio/pull/13808) [`3cbdf8e`](https://github.com/gradio-app/gradio/commit/3cbdf8e57babfdd6bead5be387e3ec46b067d76a) - Fix streaming playback and HLS lifetime in `gr.Audio` and `gr.Video`.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.24.2
+
+### Fixes
+
+- [#13626](https://github.com/gradio-app/gradio/pull/13626) [`7d71469`](https://github.com/gradio-app/gradio/commit/7d714699ae9c47daabbd48a55f61e990c5bba1d7) - Reset audio playback position when the file is cleared or a new one is uploaded.  Thanks @hysts!
+- [#13660](https://github.com/gradio-app/gradio/pull/13660) [`80d67ad`](https://github.com/gradio-app/gradio/commit/80d67add7597c7b112fd005616f9f0baa6b06d4e) - Upload recorded audio only once to fix intermittent Content-Length errors when loading recordings.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+- @gradio/button@0.8.2
+
+## 0.24.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/button@0.8.1
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/client@2.3.1
+- @gradio/upload@0.18.1
+
 ## 0.24.0
 
 ### Features

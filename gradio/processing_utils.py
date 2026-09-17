@@ -9,6 +9,7 @@ import logging
 import mimetypes
 import os
 import shutil
+import signal
 import subprocess
 import tempfile
 import warnings
@@ -27,6 +28,7 @@ from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils
 from gradio._vendor import aiofiles
+from gradio._vendor.ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
@@ -69,6 +71,35 @@ def to_binary(x: str | dict) -> bytes:
 def extract_base64_data(x: str) -> str:
     """Just extracts the base64 data from a general base64 string."""
     return x.rsplit(",", 1)[-1]
+
+
+def _get_original_url_from_proxy(url: str, proxy_url: str) -> str | None:
+    """Return the upstream URL wrapped by a loaded app's file proxy."""
+    parsed_url = urlparse(url)
+    marker = f"{API_PREFIX}/proxy="
+    if marker not in parsed_url.path:
+        return None
+
+    original_url = parsed_url.path.split(marker, 1)[1]
+    if not client_utils.is_http_url_like(original_url):
+        return None
+
+    try:
+        parsed_original_url = httpx.URL(original_url)
+        parsed_proxy_url = httpx.URL(proxy_url)
+    except httpx.InvalidURL:
+        return None
+    if (
+        parsed_original_url.scheme,
+        parsed_original_url.host,
+        parsed_original_url.port,
+    ) != (
+        parsed_proxy_url.scheme,
+        parsed_proxy_url.host,
+        parsed_proxy_url.port,
+    ):
+        return None
+    return original_url
 
 
 #########################
@@ -458,11 +489,22 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        original_url = (
+            _get_original_url_from_proxy(payload.url, block.proxy_url)
+            if payload.url and block.proxy_url and not postprocess
+            else None
+        )
+        # Loaded app inputs use the upstream URL wrapped by the loader's proxy.
+        # Ordinary local uploads keep their local cache path and follow the
+        # client's normal upload flow.
+        if original_url:
+            payload.path = original_url
+        elif (
+            payload.url
+            and not block.proxy_url
+            and postprocess
+            and client_utils.is_http_url_like(payload.url)
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -481,15 +523,24 @@ def move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
+            encoded_path = client_utils.encode_file_path(payload.path)
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = f"{payload.path}"
         else:
-            url = f"{url_prefix}{payload.path}"
+            url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
         payload.url = url
         _mark_svg_as_safe(payload)
         return payload.model_dump()
@@ -578,11 +629,22 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        original_url = (
+            _get_original_url_from_proxy(payload.url, block.proxy_url)
+            if payload.url and block.proxy_url and not postprocess
+            else None
+        )
+        # Loaded app inputs use the upstream URL wrapped by the loader's proxy.
+        # Ordinary local uploads keep their local cache path and follow the
+        # client's normal upload flow.
+        if original_url:
+            payload.path = original_url
+        elif (
+            payload.url
+            and not block.proxy_url
+            and postprocess
+            and client_utils.is_http_url_like(payload.url)
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -603,15 +665,24 @@ async def async_move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
+            encoded_path = client_utils.encode_file_path(payload.path)
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = payload.path
         else:
-            url = f"{url_prefix}{payload.path}"
+            url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
         payload.url = url
         _mark_svg_as_safe(payload)
         return payload.model_dump()
@@ -1068,6 +1139,71 @@ def ffmpeg_installed() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
+def require_ffmpeg(operation: str, *executables: str) -> None:
+    """Fail before running a tool that is not there, saying which one and why.
+
+    Checking `ffmpeg` alone is not enough for anything that also probes: a box
+    can have one without the other, and the call that goes missing is then a
+    bare FileNotFoundError from somewhere deep in the stream.
+    """
+    missing = [name for name in executables if shutil.which(name) is None]
+    if not missing:
+        return
+    raise RuntimeError(
+        f"{operation} requires {' and '.join(executables)}, but could not find "
+        f"{' and '.join(missing)} on PATH. Install FFmpeg and make sure its "
+        "executables are on PATH."
+    )
+
+
+def ffmpeg_version_line(executable: str) -> str:
+    """The first line of `<executable> -version`, or "" if it will not say."""
+    try:
+        result = subprocess.run(
+            [executable, "-version"], capture_output=True, check=False, timeout=10
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return (
+        result.stdout.decode(errors="replace").splitlines()[0].strip()
+        if result.stdout
+        else ""
+    )
+
+
+def ffmpeg_failed(
+    executable: str, returncode: int, stderr: bytes | str, doing: str
+) -> RuntimeError:
+    """The error for a media tool that did not exit cleanly.
+
+    Returns rather than raises so the traceback ends at the call that ran the
+    tool. A tool killed by a signal says nothing on stderr, which used to leave
+    the message empty and the cause invisible, so the build is named instead:
+    a crash on a file the tool itself just wrote is the build's fault and not
+    the input's.
+    """
+    detail = stderr.decode(errors="replace") if isinstance(stderr, bytes) else stderr
+    detail = detail.strip()
+    if returncode < 0:
+        try:
+            died = f"was killed by {signal.Signals(-returncode).name}"
+        except ValueError:
+            died = f"was killed by signal {-returncode}"
+    else:
+        died = f"exited with {returncode}"
+    parts = [f"{doing} failed: {executable} {died}."]
+    if version := ffmpeg_version_line(executable):
+        parts.append(f"The build is {version}.")
+    if detail:
+        parts.append(detail)
+    if returncode < 0:
+        parts.append(
+            "Try a different FFmpeg build: one that dies on a file it has just "
+            "written is failing on its own account rather than on the input."
+        )
+    return RuntimeError(" ".join(parts))
+
+
 def video_is_playable(video_filepath: str) -> bool:
     """Determines if a video is playable in the browser.
 
@@ -1076,8 +1212,6 @@ def video_is_playable(video_filepath: str) -> bool:
         .webm -> vp9
         .ogg -> theora
     """
-    from gradio._vendor.ffmpy import FFprobe, FFRuntimeError
-
     try:
         container = Path(video_filepath).suffix.lower()
         probe = FFprobe(
@@ -1100,27 +1234,232 @@ def video_is_playable(video_filepath: str) -> bool:
         return True
 
 
-def convert_video_to_playable_mp4(video_path: str) -> str:
+# Container/codec pairs that browsers can decode. Anything outside this set has
+# to be converted before it will play back.
+PLAYABLE_AUDIO_CODECS = frozenset(
+    {
+        (".wav", "pcm_s16le"),
+        (".wav", "pcm_s24le"),
+        (".wav", "pcm_f32le"),
+        (".wav", "pcm_u8"),
+        (".mp3", "mp3"),
+        (".m4a", "aac"),
+        (".m4a", "alac"),
+        (".mp4", "aac"),
+        (".aac", "aac"),
+        (".flac", "flac"),
+        (".ogg", "vorbis"),
+        (".ogg", "opus"),
+        (".oga", "vorbis"),
+        (".oga", "opus"),
+        (".opus", "opus"),
+        (".weba", "opus"),
+        (".webm", "opus"),
+        (".webm", "vorbis"),
+    }
+)
+
+
+def audio_is_playable(audio_filepath: str) -> bool:
+    """Determines if an audio file is playable in the browser.
+
+    Audio is playable if it has a playable container and codec, e.g.
+        .wav -> pcm_s16le
+        .mp3 -> mp3
+        .m4a -> aac
+    Containers such as AIFF are not decodable by any major browser regardless of
+    the codec inside them.
+    """
+    try:
+        container = Path(audio_filepath).suffix.lower()
+        probe = FFprobe(
+            global_options="-show_format -show_streams -select_streams a -print_format json",
+            inputs={audio_filepath: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        output = json.loads(output[0])  # type: ignore
+        audio_codec = output["streams"][0]["codec_name"]
+        return (container, audio_codec) in PLAYABLE_AUDIO_CODECS
+    # If anything goes wrong, assume the audio can be played so that we do not
+    # convert downstream.
+    except (FFRuntimeError, IndexError, KeyError):
+        return True
+
+
+# Browser-playable codecs mapped to a container that can hold them, so a file
+# whose container is the only problem needs remuxing rather than re-encoding.
+# The pairs match the entries in `audio_is_playable`.
+REMUXABLE_AUDIO_CODECS = {
+    "aac": ".m4a",
+    "alac": ".m4a",
+    "mp3": ".mp3",
+    "flac": ".flac",
+    "opus": ".ogg",
+    "vorbis": ".ogg",
+}
+
+
+def _first_audio_codec(audio_path: str) -> str | None:
+    """Return the codec of a file's first audio stream, or None if unprobeable."""
+    try:
+        probe = FFprobe(
+            global_options="-show_streams -select_streams a -print_format json",
+            inputs={audio_path: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        return json.loads(output[0])["streams"][0]["codec_name"]  # type: ignore
+    except (FFRuntimeError, IndexError, KeyError, ValueError):
+        return None
+
+
+def convert_audio_to_playable(audio_path: str, cache_dir: str) -> str:
+    """Convert audio to a browser-playable file, returning the original on failure.
+
+    Unlike the video equivalent the output is written to the cache rather than
+    next to the source: `.aif` and `.wav` share a directory far more often than
+    the video containers do, so writing alongside would clobber the user's files.
+    """
+    temp_dir = Path(cache_dir) / hash_file(audio_path)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    stem = Path(audio_path).stem
+
+    def to_playable(output_path: Path, copy_streams: bool) -> None:
+        ff = FFmpeg(
+            inputs={str(audio_path): None},
+            # Only the first audio stream is carried over when copying: a
+            # Matroska file can hold cover art or subtitle streams that the
+            # target container would reject, failing the whole mux.
+            outputs={str(output_path): "-map 0:a:0 -c copy" if copy_streams else None},
+            global_options="-y -loglevel quiet",
+        )
+        ff.run()
+
+    # A container browsers cannot play often still holds a codec they can, in
+    # which case only the container has to change. Copying the stream is
+    # near-instant and lossless, where re-encoding to wav is slow and inflates
+    # a compressed file into raw PCM.
+    remux_suffix = REMUXABLE_AUDIO_CODECS.get(_first_audio_codec(audio_path) or "")
+    if remux_suffix:
+        remuxed_path = temp_dir / f"{stem}{remux_suffix}"
+        if remuxed_path.exists():
+            return str(remuxed_path)
+        try:
+            to_playable(remuxed_path, copy_streams=True)
+            return str(remuxed_path)
+        except FFRuntimeError:
+            # The stream turned out not to be muxable into that container after
+            # all; fall back to a full re-encode.
+            pass
+
+    output_path = temp_dir / f"{stem}.wav"
+    if output_path.exists():
+        return str(output_path)
+    try:
+        to_playable(output_path, copy_streams=False)
+    except FFRuntimeError as e:
+        print(f"Error converting audio to browser-playable format {str(e)}")
+        return str(audio_path)
+    return str(output_path)
+
+
+# Codecs that both fit in an mp4 container and are playable in browsers, so a
+# file holding them only needs remuxing rather than re-encoding. The video set
+# matches the mp4 entries in `video_is_playable`.
+MP4_COMPATIBLE_VIDEO_CODECS = frozenset({"h264", "av1"})
+MP4_COMPATIBLE_AUDIO_CODECS = frozenset({"aac", "mp3"})
+
+
+def _first_stream_codecs(video_path: str) -> tuple[str | None, str | None] | None:
+    """Return the first (video codec, audio codec) of a media file.
+
+    Either element is None when the file has no stream of that kind. Returns
+    None if the file could not be probed at all.
+    """
+    try:
+        probe = FFprobe(
+            global_options="-show_streams -print_format json",
+            inputs={video_path: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        streams = json.loads(output[0])["streams"]  # type: ignore
+    except (FFRuntimeError, IndexError, KeyError, ValueError):
+        return None
+    codecs: dict[str, str] = {}
+    for stream in streams:
+        codec_type = stream.get("codec_type")
+        if codec_type in ("video", "audio") and codec_type not in codecs:
+            codecs[codec_type] = stream.get("codec_name", "")
+    return codecs.get("video"), codecs.get("audio")
+
+
+def _can_remux_to_mp4(video_path: str) -> bool:
+    """Whether the file's streams can be copied into an mp4 as-is."""
+    codecs = _first_stream_codecs(video_path)
+    if codecs is None:
+        return False
+    video_codec, audio_codec = codecs
+    return video_codec in MP4_COMPATIBLE_VIDEO_CODECS and (
+        audio_codec is None or audio_codec in MP4_COMPATIBLE_AUDIO_CODECS
+    )
+
+
+def convert_video_to_playable_mp4(video_path: str, cache_dir: str | None = None) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
-    from gradio._vendor.ffmpy import FFmpeg, FFRuntimeError
+
+    def to_mp4(output_path: Path, copy_streams: bool) -> None:
+        ff = FFmpeg(
+            inputs={video_path: None},
+            # Only the first video and audio stream are carried over when
+            # copying. A Matroska file can hold subtitle or attachment streams
+            # that an mp4 cannot, and those would fail the mux; it can also hold
+            # further audio tracks that `_can_remux_to_mp4` never checked. The
+            # `?` keeps audio optional so silent videos still work.
+            outputs={
+                str(output_path): "-map 0:v:0 -map 0:a:0? -c copy"
+                if copy_streams
+                else None
+            },
+            global_options="-y -loglevel quiet",
+        )
+        ff.run()
+
+    # A container that browsers cannot play (.mkv, say) often still holds
+    # streams they can, in which case only the container has to change. Copying
+    # the streams is near-instant and lossless, where a re-encode of a large
+    # file takes minutes and degrades quality (#13527).
+    can_remux = _can_remux_to_mp4(video_path)
+
+    # The result goes to a fresh directory rather than next to the source.
+    # `Path(video_path).with_suffix(".mp4")` overwrites an unrelated `clip.mp4`
+    # sitting beside `clip.mkv`, and for a non-playable `.mp4` it resolves to the
+    # input itself, rewriting the user's own file in place. Writing elsewhere
+    # also means the input no longer has to be copied aside first, which for a
+    # multi-gigabyte upload cost more than the remux it was protecting.
+    # `get_upload_folder()` only names the cache, it does not create it, and
+    # `mkdtemp` will not create missing parents.
+    cache_root = Path(cache_dir or get_upload_folder())
+    cache_root.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(tempfile.mkdtemp(dir=cache_root))
+    output_path = output_dir / f"{Path(video_path).stem}.mp4"
 
     try:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            output_path = Path(video_path).with_suffix(".mp4")
-            shutil.copy2(video_path, tmp_file.name)
-            # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
-            ff = FFmpeg(
-                inputs={str(tmp_file.name): None},
-                outputs={str(output_path): None},
-                global_options="-y -loglevel quiet",
-            )
-            ff.run()
+        if can_remux:
+            try:
+                to_mp4(output_path, copy_streams=True)
+                return str(output_path)
+            except FFRuntimeError:
+                # The streams turned out not to be muxable into an mp4
+                # after all; fall back to a full re-encode.
+                pass
+        # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
+        to_mp4(output_path, copy_streams=False)
     except FFRuntimeError as e:
         print(f"Error converting video to browser-playable format {str(e)}")
-        output_path = video_path
-    finally:
-        # Remove temp file
-        os.remove(tmp_file.name)  # type: ignore
+        # The original is returned, so nothing will ever reference this
+        # directory or the partial file ffmpeg may have left in it, and the
+        # cache cleanup only tracks paths that were handed out.
+        shutil.rmtree(output_dir, ignore_errors=True)
+        return str(video_path)
     return str(output_path)
 
 

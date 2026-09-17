@@ -1,21 +1,9 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
 	import CopyButton from "./CopyButton.svelte";
-	import { Tool, Prompt, Resource } from "@gradio/icons";
+	import { Tool as ToolIcon, Prompt, Resource } from "@gradio/icons";
 	import { format_latency, get_color_from_success_rate } from "./utils";
 	import PercentileChart from "./PercentileChart.svelte";
-
-	export let mcp_server_active: boolean;
-	export let mcp_server_url_streamable: string;
-	export let root: string;
-	export let tools: Tool[];
-	export let all_tools: Tool[] = [];
-	export let selected_tools: Set<string> = new Set();
-	export let mcp_json_stdio: any;
-	export let file_data_present: boolean;
-	export let mcp_docs: string;
-	export let analytics: Record<string, any>;
-	export let config_snippets: Record<string, string>;
 
 	interface ToolParameter {
 		title?: string;
@@ -37,22 +25,48 @@
 		};
 	}
 
+	let {
+		mcp_server_active,
+		mcp_server_url_streamable,
+		root,
+		tools,
+		all_tools = [],
+		selected_tools = $bindable(new Set()),
+		mcp_json_stdio,
+		file_data_present,
+		mcp_docs,
+		analytics,
+		config_snippets = $bindable()
+	}: {
+		mcp_server_active: boolean;
+		mcp_server_url_streamable: string;
+		root: string;
+		tools: Tool[];
+		all_tools?: Tool[];
+		selected_tools?: Set<string>;
+		mcp_json_stdio: any;
+		file_data_present: boolean;
+		mcp_docs: string;
+		analytics: Record<string, any>;
+		config_snippets: Record<string, string>;
+	} = $props();
+
 	type Transport = "streamable_http" | "stdio";
-	let current_transport: Transport = "streamable_http";
-	let include_file_upload = true;
+	let current_transport: Transport = $state("streamable_http");
+	let include_file_upload = $state(true);
 
 	const transports = [
 		["streamable_http", "Streamable HTTP"],
 		["stdio", "STDIO"]
 	] as const;
 
-	const tool_type_icons: Record<Tool["meta"]["mcp_type"], typeof Tool> = {
-		tool: Tool,
+	const tool_type_icons: Record<Tool["meta"]["mcp_type"], typeof ToolIcon> = {
+		tool: ToolIcon,
 		resource: Resource,
 		prompt: Prompt
 	};
 
-	$: display_url = mcp_server_url_streamable;
+	let display_url = $derived(mcp_server_url_streamable);
 
 	// Helper function to add/remove file upload tool from config
 	function update_config_with_file_upload(
@@ -83,28 +97,31 @@
 		return config;
 	}
 
-	$: mcp_json_streamable_http = update_config_with_file_upload(
-		mcp_json_stdio
-			? {
-					mcpServers: {
-						gradio: {
-							url: mcp_server_url_streamable
+	let mcp_json_streamable_http = $derived(
+		update_config_with_file_upload(
+			mcp_json_stdio
+				? {
+						mcpServers: {
+							gradio: {
+								url: mcp_server_url_streamable
+							}
 						}
 					}
-				}
-			: null,
-		include_file_upload
+				: null,
+			include_file_upload
+		)
 	);
 
-	$: mcp_json_stdio_updated = update_config_with_file_upload(
-		mcp_json_stdio,
-		include_file_upload
+	let mcp_json_stdio_updated = $derived(
+		update_config_with_file_upload(mcp_json_stdio, include_file_upload)
 	);
 
-	$: config_snippets = {
-		streamable_http: JSON.stringify(mcp_json_streamable_http, null, 2),
-		stdio: JSON.stringify(mcp_json_stdio_updated, null, 2)
-	};
+	$effect(() => {
+		config_snippets = {
+			streamable_http: JSON.stringify(mcp_json_streamable_http, null, 2),
+			stdio: JSON.stringify(mcp_json_stdio_updated, null, 2)
+		};
+	});
 </script>
 
 {#if mcp_server_active}
@@ -117,7 +134,7 @@
 					class="snippet {current_transport === transport
 						? 'current-lang'
 						: 'inactive-lang'}"
-					on:click={() => (current_transport = transport)}
+					onclick={() => (current_transport = transport)}
 				>
 					{display_name}
 				</button>
@@ -144,7 +161,8 @@
 	<div class="tool-selection">
 		<strong>
 			{all_tools.length > 0 ? all_tools.length : tools.length} Available MCP Tools
-			(<span style="display: inline-block; vertical-align: sub;"><Tool /></span
+			(<span style="display: inline-block; vertical-align: sub;"
+				><ToolIcon /></span
 			>), Resources (<span style="display: inline-block; vertical-align: sub;"
 				><Resource /></span
 			>), and Prompts (<span style="display: inline-block; vertical-align: sub;"
@@ -155,7 +173,7 @@
 			<div class="tool-selection-controls">
 				<button
 					class="select-all-btn"
-					on:click={() => {
+					onclick={() => {
 						selected_tools = new Set(all_tools.map((t) => t.name));
 					}}
 				>
@@ -163,7 +181,7 @@
 				</button>
 				<button
 					class="select-none-btn"
-					on:click={() => {
+					onclick={() => {
 						selected_tools = new Set();
 					}}
 				>
@@ -189,19 +207,20 @@
 							style={current_transport !== "streamable_http"
 								? "opacity: 0.5; cursor: not-allowed;"
 								: ""}
-							on:change={(e) => {
+							onchange={(e) => {
+								const next = new Set(selected_tools);
 								if (e.currentTarget.checked) {
-									selected_tools.add(tool.name);
+									next.add(tool.name);
 								} else {
-									selected_tools.delete(tool.name);
+									next.delete(tool.name);
 								}
-								selected_tools = selected_tools;
+								selected_tools = next;
 							}}
 						/>
 					{/if}
 					<button
 						class="tool-header"
-						on:click={() => (tool.expanded = !tool.expanded)}
+						onclick={() => (tool.expanded = !tool.expanded)}
 					>
 						<span style="display: inline-block">
 							<span

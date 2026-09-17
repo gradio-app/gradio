@@ -481,6 +481,48 @@ describe("executeWorkflow — model operator routing", () => {
 		expect(prompt).toBe("hello");
 		expect(provider).toBe("together");
 	});
+
+	test("streams image-text-to-text with the client-side image, not an upload", async () => {
+		const streamFn = vi.fn().mockResolvedValue("a cat");
+		const url = "data:image/png;base64,iVBORw0KGgo=";
+		const { onStatus, errors } = statusBag();
+
+		await executeWorkflow(
+			emptyV2([
+				modelOp("m1", {
+					pipeline_tag: "image-text-to-text",
+					inputs: [
+						{ id: "image", label: "Image", type: "image", required: true },
+						{ id: "text", label: "Prompt", type: "text" },
+						{ id: "temperature", label: "Temp", type: "number", custom: true }
+					],
+					data: {
+						image: { name: "i.png", url, mime: "image/png" },
+						text: "what?",
+						temperature: 0.7
+					}
+				})
+			]),
+			onStatus,
+			() => {},
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			streamFn as unknown as Parameters<typeof executeWorkflow>[8]
+		);
+
+		// the image must reach the router as-is; uploading it first yields a
+		// server-local path the browser can't fetch
+		expect(errors).toEqual({});
+		const [, content, , , , params] = streamFn.mock.calls[0];
+		expect(content).toEqual([
+			{ type: "image_url", image_url: { url } },
+			{ type: "text", text: "what?" }
+		]);
+		expect(params).toEqual({ temperature: 0.7 });
+	});
 });
 
 describe("executeWorkflow — space multi-output mapping", () => {

@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { svgCopy, svgCheck } from "$lib/assets/copy.js";
 
-	export let content: string = "";
+	let {
+		content = ""
+	}: {
+		content?: string;
+	} = $props();
 
-	let copied = false;
+	let copied = $state(false);
 	async function copy() {
 		await navigator.clipboard.writeText(content);
 		copied = true;
@@ -11,7 +15,7 @@
 	}
 </script>
 
-<button on:click={copy} class="clipboard-button m-2" role="button" tabindex={0}>
+<button onclick={copy} class="clipboard-button m-2" role="button" tabindex={0}>
 	{#if !copied}
 		{@html svgCopy}
 	{:else}

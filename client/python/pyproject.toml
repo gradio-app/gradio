@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
+requires = ["hatchling>=1.27", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -50,7 +50,11 @@ fragments = [
   { path = "README.md" },
 ]
 
+[tool.hatch.build.targets.wheel]
+core-metadata-version = "2.4"
+
 [tool.hatch.build.targets.sdist]
+core-metadata-version = "2.4"
 include = [
   "/gradio_client",
   "/README.md",

@@ -13,11 +13,12 @@ import string
 import sys
 import threading
 import time
+import uuid
 import warnings
 import weakref
 import webbrowser
 from collections import defaultdict
-from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
+from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -35,6 +36,7 @@ from gradio import (
     analytics,
     components,
     networking,
+    oauth,
     processing_utils,
     queueing,
     utils,
@@ -71,6 +73,7 @@ from gradio.exceptions import (
     Error,
     InvalidApiNameError,
     InvalidComponentError,
+    ServerFailedToStartError,
     ShareCertificateWriteError,
 )
 from gradio.helpers import create_tracker, skip, special_args
@@ -586,23 +589,36 @@ def postprocess_update_dict(
 
 
 def convert_component_dict_to_list(
-    outputs_ids: list[int], predictions: dict
+    outputs: Sequence[Block], predictions: dict
 ) -> list | dict:
     """
     Converts a dictionary of component updates into a list of updates in the order of
-    the outputs_ids and including every output component. Leaves other types of dictionaries unchanged.
+    the output components and including every output component. Leaves other types of dictionaries unchanged.
     E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
     Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
     """
     keys_are_blocks = [isinstance(key, Block) for key in predictions]
     if all(keys_are_blocks):
+        outputs_ids = [block._id for block in outputs]
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
-            if component._id not in outputs_ids:
+            if component._id in outputs_ids:
+                output_index = outputs_ids.index(component._id)
+            else:
+                # The returned component object may be stale, e.g. created before
+                # the app was hot-reloaded, so fall back to matching by key.
+                output_index = next(
+                    (
+                        index
+                        for index, block in enumerate(outputs)
+                        if component.key is not None and block.key == component.key
+                    ),
+                    None,
+                )
+            if output_index is None:
                 raise ValueError(
                     f"Returned component {component} not specified as output of function."
                 )
-            output_index = outputs_ids.index(component._id)
             reordered_predictions[output_index] = value
         predictions = utils.resolve_singleton(reordered_predictions)
     elif any(keys_are_blocks):
@@ -628,6 +644,15 @@ def _find_free_port(host: str, start: int, try_count: int = 100) -> int:
     raise OSError(f"Cannot find empty port in range: {start}-{start + try_count - 1}.")
 
 
+def _port_is_free(host: str, port: int) -> bool:
+    """Whether *port* can be bound, checked the same way as `_find_free_port`."""
+    try:
+        _find_free_port(host, start=port, try_count=1)
+    except OSError:
+        return False
+    return True
+
+
 class BlocksConfig:
     def __init__(self, root_block: Blocks):
         self._id: int = 0
@@ -635,6 +660,7 @@ class BlocksConfig:
         self.blocks: dict[int, Component | Block] = {}
         self.fns: dict[int, BlockFunction] = {}
         self.fn_id: int = 0
+        self.renderables: list[Renderable] = root_block.renderables
 
     def set_event_trigger(
         self,
@@ -700,7 +726,7 @@ class BlocksConfig:
             show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
             api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values that will be passed as inputs to the Python function (`fn`)
+            js: Optional frontend JavaScript to run before 'fn', provided as either a function or a raw code string. A function receives the values of 'inputs' and 'outputs' as arguments; raw code can access them through `arguments`. Return a list of values to pass as inputs to the Python function (`fn`).
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
@@ -987,6 +1013,7 @@ class BlocksConfig:
         new.blocks = copy.copy(self.blocks)
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
+        new.renderables = copy.copy(self.renderables)
         return new
 
     def attach_load_events(self, rendered_in: Renderable | None = None):
@@ -1089,6 +1116,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
+        # Per-run keys for streaming outputs, held weakly against the iterator
+        # so that a finished run's key goes away with it. The iterators are
+        # what call_function hands back, a generator, an async generator or a
+        # SyncToAsyncIterator, all weak-referenceable and hashed by identity.
+        self._stream_run_ids: weakref.WeakKeyDictionary[Any, str] = (
+            weakref.WeakKeyDictionary()
+        )
         self.show_error = True
         self.fill_height = fill_height
         self.fill_width = fill_width
@@ -1099,6 +1133,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.custom_mount_path: str | None = None
         self.pwa = False
         self.mcp_server = False
+        self.run_history = True
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1250,11 +1285,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
-            if postprocessed_value is not None:
-                block.value = postprocessed_value  # type: ignore
-
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
+            if postprocessed_value is not None:
+                block.value = processing_utils.move_files_to_cache(  # type: ignore
+                    postprocessed_value, block, postprocess=True
+                )
             # Only add proxy URLs that point to known Hugging Face Space
             # hosts to prevent SSRF via malicious configs.
             if httpx.URL(block_proxy_url).host.endswith(".hf.space"):
@@ -1459,7 +1495,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def render(self):
         root_context = get_blocks_context()
-        if root_context is not None and Context.root_block is not None:
+        if root_context is not None:
+            root_block = root_context.root_block
             if self._id in root_context.blocks:
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
@@ -1473,7 +1510,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             for block in self.blocks.values():
-                block.page = Context.root_block.current_page
+                block.page = root_block.current_page
             root_context.blocks.update(self.blocks)
             dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
@@ -1482,13 +1519,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
-                dependency.page = Context.root_block.current_page
+                dependency.page = root_block.current_page
                 dependency._id += dependency_offset
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
-                for target in dependency.targets:
-                    if target[0] == self._id:
-                        target = (Context.root_block._id, target[1])
+                dependency.targets = [
+                    (root_block._id, event_name)
+                    if target_id == self._id
+                    else (target_id, event_name)
+                    for target_id, event_name in dependency.targets
+                ]
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -1510,9 +1550,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dependency.cancels = get_cancelled_fn_indices(updated_cancels)
                 root_context.fns[dependency._id] = dependency
             root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
-            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
-            Context.root_block.proxy_urls.update(self.proxy_urls)
-            Context.root_block.extra_startup_events.extend(self.extra_startup_events)
+            root_block.temp_file_sets.extend(self.temp_file_sets)
+            root_block.proxy_urls.update(self.proxy_urls)
+            root_block.extra_startup_events.extend(self.extra_startup_events)
 
         render_context = get_render_context()
         if render_context is not None:
@@ -1592,6 +1632,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         event_data: EventData | None = None,
         in_event_listener: bool = False,
         state: SessionState | None = None,
+        oauth_token: oauth.OAuthToken | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1642,6 +1683,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 request,  # type: ignore
                 event_data,  # type: ignore
                 component_props=component_props,
+                token=oauth_token,
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -1962,7 +2004,7 @@ Received inputs:
             predictions = [skip()] * len(block_fn.outputs)
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
-                [block._id for block in block_fn.outputs], predictions
+                list(block_fn.outputs), predictions
             )
 
         if len(block_fn.outputs) == 1 and not block_fn.batch:
@@ -2015,7 +2057,11 @@ Received inputs:
                     }
                     prediction_value["__type__"] = "update"
                 if utils.is_prop_update(prediction_value):
-                    kwargs = state[block._id].constructor_args.copy()
+                    # The output block may be absent from the session config if
+                    # the app was hot-reloaded mid-run and this component was
+                    # added by the reload; fall back to the block's own args.
+                    base_block = state.get(block._id, block)
+                    kwargs = base_block.constructor_args.copy()
                     kwargs.update(prediction_value)
                     kwargs.pop("value", None)
                     kwargs.pop("__type__")
@@ -2087,20 +2133,105 @@ Received inputs:
 
         return output
 
+    def _stream_run_key(self, iterator: Any) -> str:
+        """Return the key of the streaming run that `iterator` is driving.
+
+        The key goes into the playlist URL, so it has to hold for every chunk of
+        a run and never repeat. `id()` only holds while the object is alive, so
+        the key is held weakly against the iterator and dies with it instead.
+        """
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            run = uuid.uuid4().hex
+            self._stream_run_ids[iterator] = run
+        return run
+
+    def _drop_run_streams(self, session_hash: str | None, iterator: Any) -> None:
+        """Close out the streaming state of the run `iterator` was driving.
+
+        For a run that reaches no final chunk: it raised, was cancelled, or its
+        client went away. Its streams are ended but stay, since the playlist is
+        fetched after the run ends; its diff state goes, nothing reads it again.
+        """
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        self._drop_run(session_hash, run)
+
+    def _drop_run(self, session_hash: str, run: str) -> None:
+        for stream in self.pending_streams.get(session_hash, {}).get(run, {}).values():
+            stream.end_stream()
+        self._pop_run_diffs(session_hash, run)
+
+    async def _finish_run_streams(
+        self, session_hash: str | None, iterator: Any
+    ) -> None:
+        """Complete the streams of a run nobody will continue: a generator called
+        through the run route yields once and is dropped, so what it produced is
+        all there is, and it has to come out whole rather than be cut off."""
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        streams = self.pending_streams.get(session_hash, {}).get(run, {})
+        try:
+            for output_id, stream in streams.items():
+                block = self.blocks[output_id]
+                if isinstance(block, components.StreamingOutput):
+                    await self._finish_stream(
+                        block, stream, self._stream_id(session_hash, run, output_id)
+                    )
+                else:
+                    stream.end_stream()
+        finally:
+            # A flush that raises must not strand the streams after it: without
+            # an event id the caller's handler cannot resolve this run either.
+            self._drop_run(session_hash, run)
+
+    @staticmethod
+    def _stream_id(session_hash: str, run: str, output_id: int) -> str:
+        return f"{session_hash}/{run}/{output_id}/playlist.m3u8"
+
+    @staticmethod
+    async def _finish_stream(
+        block: components.StreamingOutput, stream: MediaStream, stream_id: str
+    ) -> None:
+        try:
+            await stream.add_segment(await block.flush_stream_output(stream_id))
+        finally:
+            # A flush that fails still has to end the stream, or the playlist
+            # never gets its #EXT-X-ENDLIST and the client polls something that
+            # will not grow again.
+            stream.end_stream()
+
+    def _pop_run_diffs(self, session_hash: str, run: str) -> None:
+        """Drop a run's diff state, and its session's dict if that leaves it empty."""
+        runs = self.pending_diff_streams.get(session_hash)
+        if runs is None:
+            return
+        runs.pop(run, None)
+        if not runs:
+            del self.pending_diff_streams[session_hash]
+
     async def handle_streaming_outputs(
         self,
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         root_path: str | None = None,
         final: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
-        if run not in self.pending_streams[session_hash]:
-            self.pending_streams[session_hash][run] = {}
-        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
+        # Filed only once an output opens a stream, so a run with no streaming
+        # output never touches this dict
+        stream_run: dict[int, MediaStream] = self.pending_streams.get(
+            session_hash, {}
+        ).get(run, {})
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
@@ -2109,24 +2240,38 @@ Received inputs:
                 and block.streaming
                 and not utils.is_prop_update(data[i])
             ):
-                if final:
-                    stream_run[output_id].end_stream()
+                # Nothing to finalize if this output never opened a stream:
+                # the session may have been dropped on disconnect, or every
+                # chunk before this one may have been a prop update. Falling
+                # through would leave `first_chunk` true and build a fresh
+                # stream that nothing ever ends.
+                if final and stream_run.get(output_id) is None:
+                    continue
+                stream_id = self._stream_id(session_hash, run, output_id)
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
-                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    stream_id,
                     first_chunk,
                 )
                 if first_chunk:
                     desired_output_format = None
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
-                    stream_run[output_id] = MediaStream(
-                        desired_output_format=desired_output_format
+                    stream_run = self.pending_streams[session_hash].setdefault(run, {})
+                    stream = MediaStream(desired_output_format=desired_output_format)
+                    stream_run[output_id] = stream
+                    # A finalize handle runs once and disarms, so ending the
+                    # stream releases the encoder and leaves nothing armed; the
+                    # unarmed case is interpreter exit, since a discarded
+                    # stream is ended by the session cleanup first.
+                    stream.on_end.append(
+                        weakref.finalize(stream, block.end_stream_output, stream_id)
                     )
-                    stream_run[output_id]
 
                 await stream_run[output_id].add_segment(binary_data)
+                if final:
+                    await self._finish_stream(block, stream_run[output_id], stream_id)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
@@ -2145,7 +2290,7 @@ Received inputs:
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         final: bool,
         simple_format: bool = False,
     ) -> list:
@@ -2155,6 +2300,10 @@ Received inputs:
         if first_run:
             self.pending_diff_streams[session_hash][run] = [None] * len(data)
         last_diffs = self.pending_diff_streams[session_hash][run]
+        if len(last_diffs) < len(block_fn.outputs):
+            # The number of outputs can grow mid-run if the app was
+            # hot-reloaded while this function was generating
+            last_diffs.extend([None] * (len(block_fn.outputs) - len(last_diffs)))
 
         for i in range(len(block_fn.outputs)):
             if final:
@@ -2170,7 +2319,7 @@ Received inputs:
                     data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
-            del self.pending_diff_streams[session_hash][run]
+            self._pop_run_diffs(session_hash, run)
 
         return data
 
@@ -2188,6 +2337,7 @@ Received inputs:
         simple_format: bool = False,
         explicit_call: bool = False,
         root_path: str | None = None,
+        oauth_token: oauth.OAuthToken | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2251,6 +2401,7 @@ Received inputs:
                     event_data,
                     in_event_listener,
                     state,
+                    oauth_token,
                 )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
@@ -2286,6 +2437,7 @@ Received inputs:
                         event_data,
                         in_event_listener,
                         state,
+                        oauth_token,
                     )
                 manual_cache_used = used_manual_cache()
 
@@ -2306,24 +2458,40 @@ Received inputs:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
-                run = id(old_iterator) if was_generating else id(iterator)
-                async with trace_phase("streaming_diff"):
-                    data = await self.handle_streaming_outputs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run,
-                        root_path=root_path,
-                        final=not is_generating,
-                    )
-                    data = self.handle_streaming_diffs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run,
-                        final=not is_generating,
-                        simple_format=simple_format,
-                    )
+                run = (
+                    self._stream_run_key(old_iterator if was_generating else iterator)
+                    if session_hash is not None
+                    else None
+                )
+                try:
+                    async with trace_phase("streaming_diff"):
+                        data = await self.handle_streaming_outputs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run,
+                            root_path=root_path,
+                            final=not is_generating,
+                        )
+                        # Diff state serves the later chunks of a run, which
+                        # can only be fetched under an event id. A call without
+                        # one gets full values, which is what its clients
+                        # expect.
+                        data = self.handle_streaming_diffs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run if event_id is not None else None,
+                            final=not is_generating,
+                            simple_format=simple_format,
+                        )
+                except BaseException:
+                    # The callers' handlers find a run through
+                    # `app.iterators`, which is assigned only once this has
+                    # returned, so on a first call they cannot.
+                    if session_hash is not None and run is not None:
+                        self._drop_run(session_hash, run)
+                    raise
 
         if not manual_cache_used:
             block_fn.total_runtime += result["duration"]
@@ -2400,6 +2568,7 @@ Received inputs:
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "footer_links": getattr(self, "footer_links", []),
+            "run_history": getattr(self, "run_history", True),
             "is_colab": utils.colab_check(),
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": getattr(self, "stylesheets", []),
@@ -2626,8 +2795,11 @@ Received inputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        footer_links: list[Literal["api", "gradio", "settings"] | dict[str, str]]
+        footer_links: list[
+            Literal["api", "gradio", "settings", "runs"] | dict[str, str]
+        ]
         | None = None,
+        run_history: bool | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2636,7 +2808,8 @@ Received inputs:
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         share_server_tls_certificate: str | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
@@ -2679,7 +2852,8 @@ Received inputs:
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
-            footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
+            footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+            run_history: If True, users can review and reload calls from the run history page at /gradio_api/runs. Runs are saved privately in the browser by default; from that page, a user can instead connect a Hugging Face bucket and save future runs there. Browser history is scoped to the logged-in user if the app uses `auth`. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
@@ -2700,7 +2874,7 @@ Received inputs:
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
-            js: Custom js as a code string. The js code will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
         Returns:
@@ -2783,9 +2957,18 @@ Received inputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-        self.footer_links = (
-            footer_links if footer_links is not None else ["api", "gradio", "settings"]
+        self.run_history = (
+            os.environ.get("GRADIO_RUN_HISTORY", "True").lower() == "true"
+            if run_history is None
+            else run_history
         )
+        self.footer_links = (
+            footer_links
+            if footer_links is not None
+            else ["api", "gradio", "settings", "runs"]
+        )
+        if not self.run_history:
+            self.footer_links = [link for link in self.footer_links if link != "runs"]
 
         if allowed_paths:
             self.allowed_paths = allowed_paths
@@ -2837,8 +3020,19 @@ Received inputs:
             env_val = os.environ.get("GRADIO_NUM_WORKERS")
             if env_val is not None:
                 resolved_num_workers = int(env_val)
+        static_worker_count = (
+            resolved_num_workers
+            if resolved_num_workers is not None
+            and resolved_num_workers >= 1
+            and self.auth is None
+            and auth_dependency is None
+            else 0
+        )
 
         self._node_is_proxy = False
+        # Set when SSR was requested but Node couldn't serve, and we fell back to
+        # serving the app from Python without SSR.
+        self._ssr_degraded = False
         static_worker_ports: list[int] = []
         # Stashed kwargs for the deferred production Node proxy start.
         # When set, the user-facing Node front proxy is started after
@@ -2872,23 +3066,32 @@ Received inputs:
                 # 502 from the proxy (observed on HF Spaces after #13366).
                 from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
 
-                user_port = server_port or int(
-                    os.getenv("GRADIO_SERVER_PORT", str(INITIAL_PORT_VALUE))
-                )
                 python_host = server_name or os.getenv(
                     "GRADIO_SERVER_NAME", "127.0.0.1"
+                )
+
+                user_port = node_port
+                if user_port is None:
+                    env_node_port = os.getenv("GRADIO_NODE_SERVER_PORT")
+                    if env_node_port is not None:
+                        user_port = int(env_node_port)
+                if user_port is None and server_port is not None:
+                    user_port = server_port
+
+                preferred_start = (
+                    user_port if user_port is not None else INITIAL_PORT_VALUE
                 )
 
                 # Reserve a free internal port for Python; Node will proxy
                 # non-static traffic here once it starts.
                 python_internal_port = _find_free_port(
-                    python_host, start=user_port + 1, try_count=TRY_NUM_PORTS
+                    python_host, start=preferred_start + 1, try_count=TRY_NUM_PORTS
                 )
 
-                if resolved_num_workers is not None and resolved_num_workers >= 1:
+                if static_worker_count:
                     worker_start = python_internal_port + 1
                     static_worker_ports = [
-                        worker_start + i for i in range(resolved_num_workers)
+                        worker_start + i for i in range(static_worker_count)
                     ]
 
                 # Commit Python to the internal port now (so it can bind
@@ -2900,7 +3103,7 @@ Received inputs:
                 server_port = python_internal_port
                 _pending_node_proxy_kwargs = {
                     "server_name": node_server_name or python_host,
-                    "server_port": node_port or user_port,
+                    "server_port": user_port,
                     "node_path": self.node_path,
                     "python_port": python_internal_port,
                     "python_host": python_host,
@@ -2983,7 +3186,7 @@ Received inputs:
             self._queue.set_server_app(self.server_app)
 
             # Static worker pool for offloading file serving / uploads
-            if resolved_num_workers is not None and resolved_num_workers >= 1:
+            if static_worker_count:
                 from gradio.routes import (
                     BUILD_PATH_LIB,
                     STATIC_PATH_LIB,
@@ -3008,10 +3211,10 @@ Received inputs:
                     if self.node_port is not None:
                         worker_start = max(worker_start, self.node_port + 1)
                     worker_ports = [
-                        worker_start + i for i in range(resolved_num_workers)
+                        worker_start + i for i in range(static_worker_count)
                     ]
                 self._static_worker_pool = StaticWorkerPool(
-                    num_workers=resolved_num_workers,
+                    num_workers=static_worker_count,
                     config=static_config,
                     ports=worker_ports,
                 )
@@ -3019,7 +3222,7 @@ Received inputs:
 
                 if not quiet:
                     print(
-                        f"* Static file workers: {resolved_num_workers} processes on ports {self._static_worker_pool.ports}"
+                        f"* Static file workers: {static_worker_count} processes on ports {self._static_worker_pool.ports}"
                     )
 
             # Now that Python (and any static workers) are listening,
@@ -3029,7 +3232,10 @@ Received inputs:
             # request resolved to a 502 from an unreachable upstream.
             if _pending_node_proxy_kwargs is not None:
                 self.node_server_name, self.node_process, self.node_port = (
-                    start_node_server(**_pending_node_proxy_kwargs)
+                    start_node_server(
+                        **_pending_node_proxy_kwargs,
+                        on_shutdown=self._end_streaming_responses,
+                    )
                 )
                 if self.node_process is not None and self.node_port is not None:
                     self._node_is_proxy = True
@@ -3042,20 +3248,40 @@ Received inputs:
                     self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
                     if self.mcp_server_obj:
                         self.mcp_server_obj._local_url = self.local_url
-                elif not quiet:
-                    warnings.warn(
-                        "Failed to start Node front proxy for SSR; Gradio is "
-                        f"reachable directly on the internal Python port "
-                        f":{self.server_port}. Check the Node installation "
-                        "or set GRADIO_NODE_PATH."
+                else:
+                    # Python is listening on an internal port that only Node was
+                    # ever going to route to, so with Node gone the app is
+                    # unreachable at the address the user (or the Space's health
+                    # check) is watching. Move Python onto the user-facing port and
+                    # serve without SSR: worse than SSR, far better than dead.
+                    self._ssr_degraded = self._serve_without_node_proxy(
+                        user_port=_pending_node_proxy_kwargs["server_port"],
+                        ssl_keyfile=ssl_keyfile,
+                        ssl_certfile=ssl_certfile,
+                        ssl_keyfile_password=ssl_keyfile_password,
                     )
+                    if not quiet:
+                        if self._ssr_degraded:
+                            warnings.warn(
+                                "Failed to start Node front proxy for SSR; serving "
+                                f"without SSR on {self.local_url} "
+                                "(see the Node server output above)."
+                            )
+                        else:
+                            warnings.warn(
+                                "Failed to start Node front proxy for SSR, and the "
+                                f"user-facing port could not be taken over; Gradio is "
+                                f"reachable only on the internal Python port "
+                                f":{self.server_port}. See the Node server output "
+                                "above, or set ssr_mode=False."
+                            )
 
             if not self.is_colab and not quiet:
                 if self._node_is_proxy and self.node_port is not None:
                     print(
                         f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.node_port}, with SSR ⚡ (Node proxy -> Python :{self.server_port})"
                     )
-                elif self.ssr_mode:
+                elif self.ssr_mode and not self._ssr_degraded:
                     print(
                         f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.server_port}, with SSR ⚡ (dev mode)"
                     )
@@ -3189,6 +3415,15 @@ Received inputs:
 
                 elif self.is_colab:
                     # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
+                    # In production SSR mode, Node owns the user-facing port and
+                    # proxies to Python on ``self.server_port``. Exposing the
+                    # Python port here bypasses SSR and gives the browser a config
+                    # rooted at Colab's internal runtime hostname.
+                    colab_port = (
+                        self.node_port
+                        if self._node_is_proxy and self.node_port is not None
+                        else self.server_port
+                    )
                     code = """(async (port, path, width, height, cache, element) => {
                         if (!google.colab.kernel.accessAllowed && !cache) {
                             return;
@@ -3214,7 +3449,7 @@ Received inputs:
                         iframe.style.border = 0;
                         element.appendChild(iframe);
                     })""" + "({port}, {path}, {width}, {height}, {cache}, window.element)".format(
-                        port=json.dumps(self.server_port),
+                        port=json.dumps(colab_port),
                         path=json.dumps("/"),
                         width=json.dumps(self.width),
                         height=json.dumps(self.height),
@@ -3330,6 +3565,94 @@ Received inputs:
             data = {"integration": analytics_integration}
             analytics.integration_analytics(data)
 
+    def _serve_without_node_proxy(
+        self,
+        user_port: int | None,
+        ssl_keyfile: str | None = None,
+        ssl_certfile: str | None = None,
+        ssl_keyfile_password: str | None = None,
+    ) -> bool:
+        """Moves the running Python server from its internal port onto the
+        user-facing port, for when the Node front proxy failed to start.
+
+        In proxy mode Python deliberately binds an internal port and lets Node own
+        the user-facing one. If Node never comes up, that leaves the app answering
+        on a port nobody is asking about — on Spaces the container is judged by the
+        user-facing port, so the app is reported as crashed even though Python is
+        healthy. Rebinding there serves the app client-side rendered instead.
+
+        Returns whether the move happened; the existing server keeps running if the
+        user-facing port could not be taken over.
+        """
+        from gradio import http_server
+        from gradio.http_server import INITIAL_PORT_VALUE, TRY_NUM_PORTS
+
+        internal_port = self.server_port
+        old_server = self.server
+        bind_host = "127.0.0.1" if self.server_name == "0.0.0.0" else self.server_name
+
+        def serve_on(port: int | None):
+            return http_server.start_server(
+                app=self.app,
+                server_name=self.server_name,
+                server_port=port,
+                ssl_keyfile=ssl_keyfile,
+                ssl_certfile=ssl_certfile,
+                ssl_keyfile_password=ssl_keyfile_password,
+            )
+
+        # Check the port before giving up the one we have. The two servers can't
+        # overlap: they share an app, so the second would run its lifespan a second
+        # time and the first's shutdown would delete the app's cache files from
+        # under it.
+        if user_port is not None:
+            if not _port_is_free(bind_host, user_port):
+                return False
+            target_port: int | None = user_port
+        else:
+            try:
+                target_port = _find_free_port(
+                    bind_host, start=INITIAL_PORT_VALUE, try_count=TRY_NUM_PORTS
+                )
+            except OSError:
+                return False
+
+        if old_server is not None:
+            old_server.close()
+
+        try:
+            server_name, server_port, local_url, server = serve_on(target_port)
+        except (OSError, ServerFailedToStartError):
+            # Lost the race for the user-facing port after releasing ours, so go
+            # back to the internal one rather than leave nothing listening.
+            server_name, server_port, local_url, server = serve_on(internal_port)
+            self.server = server
+            return False
+
+        self.server_name = server_name
+        self.server_port = server_port
+        self.local_url = local_url
+        self.local_api_url = f"{local_url.rstrip('/')}{API_PREFIX}/"
+        self.server = server
+        self.protocol = (
+            "https" if local_url.startswith("https") or self.is_colab else "http"
+        )
+        if self.mcp_server_obj:
+            self.mcp_server_obj._local_url = local_url
+        return True
+
+    def _end_streaming_responses(self) -> None:
+        """
+        Ends the session heartbeat streams. The Node front proxy waits for the
+        connections it is serving before exiting, and these are those connections.
+
+        This runs on the main thread while the event loop runs in uvicorn's, so
+        the set() only lands on the loop's next wake; uvicorn's main loop ticks
+        every 100ms, which is what keeps shutdown prompt. `server_app` rather
+        than `app`, because `queue()` rebinds `app` but not the served instance.
+        """
+        self.server_app.stop_event.set()
+
     def close(self, verbose: bool = True) -> None:
         """
         Closes the Interface that was launched and frees the port.
@@ -3384,16 +3707,21 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> APIInfo:
+    def get_api_info(
+        self, all_endpoints: bool = False, page: str | None = None
+    ) -> APIInfo:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
             all_endpoints: If True, returns information about all endpoints, including those with api_visibility="undocumented".
+            page: If provided, returns information only for endpoints on this page.
         """
         config = self.config
         api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
+            if page is not None and fn.page != page:
+                continue
             if not fn.fn or fn.api_visibility == "private":
                 continue
             if not all_endpoints and fn.api_visibility != "public":
@@ -3406,6 +3734,9 @@ Received inputs:
                     Literal["public", "private", "undocumented"], fn.api_visibility
                 ),
             }
+            oauth_token_kind = utils.oauth_token_requirement(fn.fn)
+            if oauth_token_kind is not None:
+                dependency_info["oauth_token"] = oauth_token_kind
             fn_info = utils.get_function_params(fn.fn)
             if fn.api_description is False:
                 dependency_info["description"] = ""

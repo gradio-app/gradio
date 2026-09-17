@@ -1,13 +1,18 @@
 <script lang="ts">
 	import type { CustomButton } from "@gradio/utils";
 
-	export let button: CustomButton;
-	export let on_click: (id: number) => void;
+	let {
+		button,
+		on_click
+	}: {
+		button: CustomButton;
+		on_click: (id: number) => void;
+	} = $props();
 </script>
 
 <button
 	class="custom-button"
-	on:click={() => on_click(button.id)}
+	onclick={() => on_click(button.id)}
 	title={button.value || ""}
 	aria-label={button.value || "Custom action"}
 >

@@ -1,10 +1,13 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import Clear from "./img/clear.svelte";
 
-	const dispatch = createEventDispatcher();
-
-	export let root: string;
+	let {
+		root,
+		onclose
+	}: {
+		root: string;
+		onclose?: () => void;
+	} = $props();
 </script>
 
 <div class="wrap prose">
@@ -33,7 +36,7 @@
 	</p>
 </div>
 
-<button on:click={() => dispatch("close")}>
+<button onclick={() => onclose?.()}>
 	<Clear />
 </button>
 

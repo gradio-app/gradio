@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/audio",
-	"version": "0.24.0",
+	"version": "0.24.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -16,7 +16,6 @@
 		"@gradio/utils": "workspace:^",
 		"extendable-media-recorder": "9.0.0",
 		"extendable-media-recorder-wav-encoder": "7.0.76",
-		"hls.js": "1.5.13",
 		"resize-observer-polyfill": "1.5.1",
 		"svelte-range-slider-pips": "4.1.0",
 		"wavesurfer.js": "7.11.0"

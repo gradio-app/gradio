@@ -28,6 +28,7 @@ from gradio.exceptions import (
     GradioVersionIncompatibleError,
     TooManyRequestsError,
 )
+from gradio.media import get_audio, get_image
 from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
@@ -226,25 +227,19 @@ def from_model(
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Label(label="Class")
         postprocess = external_utils.postprocess_label
-        examples = [
-            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-        ]
+        examples = [get_audio("audio_sample.wav")]
         fn = client.audio_classification
     # example model: facebook/xm_transformer_sm_all-en
     elif p == "audio-to-audio":
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Audio(label="Output")
-        examples = [
-            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-        ]
+        examples = [get_audio("audio_sample.wav")]
         fn = custom_post_binary
     # example model: facebook/wav2vec2-base-960h
     elif p == "automatic-speech-recognition":
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Textbox(label="Output")
-        examples = [
-            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-        ]
+        examples = [get_audio("audio_sample.wav")]
         fn = client.automatic_speech_recognition
         postprocess = lambda x: x.text  # noqa: E731
     # example model: julien-c/distilbert-feature-extraction
@@ -267,7 +262,7 @@ def from_model(
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Label(label="Classification")
         postprocess = external_utils.postprocess_label
-        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
+        examples = [get_image("cheetah1.jpg")]
         fn = client.image_classification
     # Example: deepset/xlm-roberta-base-squad2
     elif p == "question-answering":
@@ -410,7 +405,7 @@ def from_model(
         postprocess = external_utils.postprocess_visual_question_answering
         examples = [
             [
-                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                get_image("cheetah1.jpg"),
                 "What animal is in the image?",
             ]
         ]
@@ -419,7 +414,7 @@ def from_model(
     elif p == "image-to-text":
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Textbox(label="Generated Text")
-        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
+        examples = [get_image("cheetah1.jpg")]
         fn = client.image_to_text
     # example model: rajistics/autotrain-Adult-934630783
     elif p in ["tabular-classification", "tabular-regression"]:
@@ -452,7 +447,7 @@ def from_model(
         outputs = components.Image(label="Output")
         examples = [
             [
-                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                get_image("cheetah1.jpg"),
                 "Photo of a cheetah with green eyes",
             ]
         ]
@@ -468,7 +463,7 @@ def from_model(
         outputs = components.Textbox(label="Generated Text")
         examples = [
             [
-                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                get_image("cheetah1.jpg"),
                 "What animal is in the image?",
             ]
         ]
@@ -753,6 +748,25 @@ TEXT_FILE_EXTENSIONS = (
 IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 
 
+_TEXT_FILE_EXTENSIONS_LOWERCASE = tuple(ext.lower() for ext in TEXT_FILE_EXTENSIONS)
+
+
+def _is_text_encoded_file(path: str) -> bool:
+    # Matched case-insensitively on both sides, the way `MultimodalTextbox` matches
+    # `file_types`, so that the `.R` and `.Rmd` entries above cover `plot.r` too.
+    return path.lower().endswith(_TEXT_FILE_EXTENSIONS_LOWERCASE)
+
+
+def _text_encoded_file_as_prompt(path: str) -> str:
+    if is_http_url_like(path):
+        response = httpx.get(path)
+        response.raise_for_status()
+        name, contents = Path(httpx.URL(path).path).name, response.text
+    else:
+        name, contents = Path(path).name, Path(path).read_text()
+    return f"\n## {name}\n{contents}"
+
+
 def format_conversation(
     history: list[NormalizedMessageDict], new_message: str | MultimodalValue
 ) -> list[dict]:
@@ -765,18 +779,28 @@ def format_conversation(
                     f"Invalid message format: {message['content']}. Each element must have a type key."
                 )
             elif content["type"] == "file":
-                new_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": encode_url_or_file_to_base64(content["file"]["path"])  # type: ignore
-                        },
-                    }
-                )
+                path = content["file"]["path"]  # type: ignore
+                if _is_text_encoded_file(path):
+                    # Appended to the prompt as text, the same as when the message was
+                    # first sent. Base64-encoding a text file as `image_url` (which is
+                    # what used to happen once the turn was in the history) makes a
+                    # non-multimodal model reject every subsequent request. See #11331.
+                    new_content.append(
+                        {"type": "text", "text": _text_encoded_file_as_prompt(path)}
+                    )
+                else:
+                    new_content.append(
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_url_or_file_to_base64(path)},
+                        }
+                    )
             else:
                 new_content.append(content)
-        message["content"] = new_content
-        conversation.append(message)
+        # A new dict rather than `message["content"] = new_content`: these are the dicts
+        # in `chatbot_state`, and rewriting them there replaces the attachment shown in
+        # the transcript (and saved by `save_history`) with what was sent to the model.
+        conversation.append({**message, "content": new_content})
     if isinstance(new_message, str):
         text = new_message
         files = []
@@ -785,7 +809,7 @@ def format_conversation(
         files = new_message.get("files", [])
     image_files, text_encoded = [], []
     for file in files:
-        if file.lower().endswith(TEXT_FILE_EXTENSIONS):
+        if _is_text_encoded_file(file):
             text_encoded.append(file)
         else:
             image_files.append(file)
@@ -804,12 +828,7 @@ def format_conversation(
         )
     if text or text_encoded:
         text = text or ""
-        text += "\n".join(
-            [
-                f"\n## {Path(file).name}\n{Path(file).read_text()}"
-                for file in text_encoded
-            ]
-        )
+        text += "\n".join([_text_encoded_file_as_prompt(file) for file in text_encoded])
         conversation.append(
             {"role": "user", "content": [{"type": "text", "text": text}]}
         )

@@ -53,11 +53,13 @@ const PORT_LABELS: Partial<Record<PortType, string>> = {
 	audio: "Audio",
 	video: "Video",
 	text: "Text",
+	markdown: "Markdown",
 	model3d: "3D",
 	number: "Number",
 	boolean: "Toggle",
 	json: "Data",
-	gallery: "Gallery"
+	gallery: "Gallery",
+	html: "HTML"
 };
 
 export const DATASET_MODALITY: ModalityConfig = {
@@ -92,10 +94,13 @@ export const MODALITIES: ModalityConfig[] = [
 				label: "Image Editing",
 				spaceCategory: "image-editing"
 			}),
-			task("image-to-text", "image-to-text", ["image"], ["text"], {
-				label: "Image Captioning",
-				spaceCategory: "image-captioning"
-			}),
+			task(
+				"image-text-to-text",
+				"image-text-to-text",
+				["image", "text"],
+				["text"],
+				{ label: "Image + Text → Text", spaceCategory: "image-captioning" }
+			),
 			task("object-detection", "object-detection", ["image"], ["json"], {
 				label: "Object Detection",
 				spaceCategory: "object-detection"
@@ -132,20 +137,6 @@ export const MODALITIES: ModalityConfig[] = [
 			task("keypoint-detection", "keypoint-detection", ["image"], ["json"], {
 				label: "Keypoint Detection"
 			}),
-			task(
-				"visual-question-answering",
-				"visual-question-answering",
-				["image", "text"],
-				["text"],
-				{ label: "Visual Q&A" }
-			),
-			task(
-				"document-question-answering",
-				"document-question-answering",
-				["image", "text"],
-				["text"],
-				{ label: "Document Q&A" }
-			),
 			task("depth-estimation", "depth-estimation", ["image"], ["image"], {
 				label: "Depth Estimation"
 			})
@@ -281,10 +272,12 @@ export const PORT_REGISTRY: PortMeta[] = [
 	{ port_type: "video", label: "Video", modality_key: "video" },
 	{ port_type: "model3d", label: "3D", modality_key: "3d" },
 	{ port_type: "text", label: "Text", modality_key: "text" },
+	{ port_type: "markdown", label: "Markdown", modality_key: "text" },
 	{ port_type: "number", label: "Number" },
 	{ port_type: "boolean", label: "Toggle" },
 	{ port_type: "json", label: "JSON" },
-	{ port_type: "gallery", label: "Gallery", modality_key: "image" }
+	{ port_type: "gallery", label: "Gallery", modality_key: "image" },
+	{ port_type: "html", label: "HTML" }
 ];
 
 export function portMeta(type: PortType): PortMeta | null {

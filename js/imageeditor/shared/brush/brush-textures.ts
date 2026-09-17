@@ -88,14 +88,13 @@ export class BrushCommand implements Command {
 
 		if (draw_segments.length > 0) {
 			const graphics = new Graphics();
-			const container = new Container();
-			container.addChild(graphics);
-			let alpha = 1;
+			const replacement_container = new Container();
+			const render_root = new Container();
+			replacement_container.blendMode = "none";
+			replacement_container.addChild(graphics);
+			render_root.addChild(replacement_container);
 
 			for (const segment of draw_segments) {
-				if (segment.opacity < alpha) {
-					alpha = segment.opacity;
-				}
 				let colorValue = 0xffffff;
 				if (segment.color.startsWith("#")) {
 					colorValue = parseInt(segment.color.replace("#", "0x"), 16);
@@ -103,37 +102,19 @@ export class BrushCommand implements Command {
 
 				graphics.setFillStyle({
 					color: colorValue,
-					alpha: 1
+					alpha: segment.opacity
 				});
 
 				this.render_segment_to_graphics(graphics, segment);
 			}
 
-			// we need a sprite in order to set the alpha and for that we need a texture
-			// i'm not entirely sure why other approaches didn't work
-			const alpha_sprite_texture = RenderTexture.create({
-				width: target_texture.width,
-				height: target_texture.height,
-				resolution: window.devicePixelRatio || 1
-			});
-
-			const alpha_sprite = new Sprite(alpha_sprite_texture);
 			this.context.app.renderer.render({
-				container: container,
-				target: alpha_sprite_texture
-			});
-
-			alpha_sprite.alpha = alpha;
-
-			this.context.app.renderer.render({
-				container: alpha_sprite,
+				container: render_root,
 				target: target_texture,
 				clear: false
 			});
 
-			container.destroy({ children: true });
-			alpha_sprite.destroy();
-			alpha_sprite_texture.destroy();
+			render_root.destroy({ children: true });
 		}
 
 		if (erase_segments.length > 0) {

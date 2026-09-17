@@ -9,12 +9,13 @@
 	import "../../../theme/src/pollen.css";
 	// import "../theme/src/tokens.css";
 	import "../../../theme/src/typography.css";
+	let { children } = $props();
 </script>
 
 <div class="app">
 	<Header />
 
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

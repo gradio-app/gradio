@@ -12,12 +12,21 @@
 	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
 
-	export let value: null | FileData;
-	export let label: string | undefined = undefined;
-	export let show_label: boolean;
-	export let show_download_button = true;
-	export let selectable = false;
-	export let i18n: I18nFormatter;
+	let {
+		value,
+		label = undefined,
+		show_label,
+		show_download_button = true,
+		selectable = false,
+		i18n
+	}: {
+		value: null | FileData;
+		label?: string | undefined;
+		show_label: boolean;
+		show_download_button?: boolean;
+		selectable?: boolean;
+		i18n: I18nFormatter;
+	} = $props();
 </script>
 
 <BlockLabel

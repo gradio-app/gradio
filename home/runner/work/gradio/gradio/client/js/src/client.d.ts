@@ -44,6 +44,11 @@ export declare class Client {
     static connect(app_reference: string, options?: ClientOptions): Promise<Client>;
     reconnect(): Promise<"connected" | "broken" | "changed">;
     close(): void;
+    /**
+     * Re-fetch the app config without closing the SSE stream.
+     * Used by hot-reload so in-flight generators keep delivering updates.
+     */
+    refresh(): Promise<Config>;
     set_current_payload(payload: any): void;
     static duplicate(app_reference: string, options?: DuplicateOptions): Promise<Client>;
     private _resolve_config;

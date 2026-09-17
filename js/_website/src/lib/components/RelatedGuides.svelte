@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let related_guides: { name: string; url: string }[];
+	let {
+		related_guides
+	}: {
+		related_guides: { name: string; url: string }[];
+	} = $props();
 </script>
 
 <div class="mt-4">

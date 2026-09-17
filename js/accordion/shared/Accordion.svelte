@@ -1,14 +1,18 @@
 <script lang="ts">
+	import type { Snippet } from "svelte";
+
 	let {
 		open = $bindable(true),
 		label = "",
 		onexpand,
-		oncollapse
+		oncollapse,
+		children
 	}: {
 		open: boolean;
 		label: string;
 		onexpand?: () => void;
 		oncollapse?: () => void;
+		children?: Snippet;
 	} = $props();
 </script>
 
@@ -30,7 +34,7 @@
 	</span>
 </button>
 <div data-testid="accordion-content" style:display={open ? "block" : "none"}>
-	<slot />
+	{@render children?.()}
 </div>
 
 <style>

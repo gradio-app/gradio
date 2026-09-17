@@ -1,5 +1,10 @@
 <script lang="ts">
-	export let fns: any[];
+	let {
+		fns
+	}: {
+		fns: any[];
+	} = $props();
+
 	import { style_formatted_text } from "$lib/text";
 	import ParamTable from "$lib/components/ParamTable.svelte";
 </script>

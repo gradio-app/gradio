@@ -20,6 +20,7 @@
 
 	let {
 		value,
+		alt_text = null,
 		label = undefined,
 		show_label,
 		buttons = [],
@@ -36,6 +37,7 @@
 		onload
 	}: {
 		value: null | FileData;
+		alt_text?: string | null;
 		label?: string;
 		show_label: boolean;
 		buttons?: (string | CustomButtonType)[];
@@ -109,7 +111,7 @@
 			<div class:selectable class="image-frame">
 				<Image
 					src={value.url}
-					restProps={{ loading: "lazy", alt: "" }}
+					restProps={{ loading: "lazy", alt: alt_text ?? "" }}
 					{onload}
 				/>
 			</div>

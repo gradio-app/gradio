@@ -1,5 +1,61 @@
 # @gradio/video
 
+## 0.23.1
+
+### Fixes
+
+- [#13808](https://github.com/gradio-app/gradio/pull/13808) [`3cbdf8e`](https://github.com/gradio-app/gradio/commit/3cbdf8e57babfdd6bead5be387e3ec46b067d76a) - Fix streaming playback and HLS lifetime in `gr.Audio` and `gr.Video`.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+- @gradio/image@0.28.3
+
+## 0.23.0
+
+### Dependency updates
+
+- @gradio/client@2.5.1
+
+## 0.23.0
+
+### Dependency updates
+
+- @gradio/client@2.5.0
+
+## 0.23.0
+
+### Features
+
+- [#13329](https://github.com/gradio-app/gradio/pull/13329) [`7ac583a`](https://github.com/gradio-app/gradio/commit/7ac583a38a4c995d172033ff6e3700390201ff21) - Make builds go zoom zoom.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@2.4.0
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+- @gradio/upload@0.18.2
+- @gradio/image@0.28.1
+
+## 0.22.0
+
+### Features
+
+- [#13543](https://github.com/gradio-app/gradio/pull/13543) [`0533483`](https://github.com/gradio-app/gradio/commit/0533483bccdee38f334a598f18297e8c02966343) - Migrate Image components to Svelte 5.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/image@0.28.0
+- @gradio/client@2.3.1
+- @gradio/upload@0.18.1
+
 ## 0.21.0
 
 ### Features

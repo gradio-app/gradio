@@ -1,6 +1,9 @@
 import { describe, beforeAll, afterEach, afterAll, test, expect } from "vitest";
+import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
+import { set_run_history_storage } from "../utils/run_history";
+import { direct_space_url } from "./handlers";
 import { initialise_server } from "./server";
 
 let server: Awaited<ReturnType<typeof initialise_server>>;
@@ -9,7 +12,12 @@ beforeAll(async () => {
 	server = await initialise_server();
 	await server.start({ quiet: true });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+	server.resetHandlers();
+	if (typeof window !== "undefined") {
+		set_run_history_storage({ app_id: 123 }, { type: "browser" });
+	}
+});
 afterAll(() => server.stop());
 
 async function race_with_timeout<T>(
@@ -29,6 +37,72 @@ async function race_with_timeout<T>(
 }
 
 describe("submit iterator", () => {
+	test("signs private Space file URLs before publishing data events", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			token: "hf_123",
+			events: ["data", "status"]
+		});
+		app.stream_status.open = true;
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = await iterator.wait_for_id();
+		const callback = app.event_callbacks[event_id as string];
+
+		const events: any[] = [];
+		const consumer = (async () => {
+			for await (const event of iterator) events.push(event);
+		})();
+
+		await callback({
+			msg: "process_completed",
+			output: {
+				data: [
+					{
+						path: "/tmp/cat.png",
+						url: `${direct_space_url}/gradio_api/file=/tmp/cat.png`,
+						meta: { _type: "gradio.FileData" }
+					}
+				]
+			},
+			success: true
+		});
+		await consumer;
+
+		const data_event = events.find((event) => event.type === "data");
+		expect(data_event.data[0].url).toBe(
+			`${direct_space_url}/gradio_api/file=/tmp/cat.png?__sign=jwt_123`
+		);
+	});
+
+	test.skipIf(typeof window === "undefined")(
+		"sends the selected history bucket with queued submissions",
+		async () => {
+			const app = await Client.connect("hmb/hello_world");
+			const scope = {
+				app_id: app.config?.app_id,
+				username: app.config?.username
+			};
+			set_run_history_storage(scope, {
+				type: "bucket",
+				bucket_id: "alice/app-history"
+			});
+
+			let header: string | null = null;
+			server.resetHandlers(
+				http.post(`${direct_space_url}/queue/join`, ({ request }) => {
+					header = request.headers.get("x-gradio-history-bucket");
+					return HttpResponse.json({ event_id: "bucket-event" });
+				})
+			);
+
+			const iterator = app.submit("/predict", ["hi"]);
+			await expect(iterator.wait_for_id()).resolves.toBe("bucket-event");
+			expect(header).toBe("alice/app-history");
+			await iterator.return();
+			set_run_history_storage(scope, { type: "browser" });
+		}
+	);
+
 	test("next() after the iterator is closed resolves to {done: true}", async () => {
 		const app = await Client.connect("hmb/hello_world");
 		// Avoid opening a real SSE stream — the test does not need one.
@@ -162,8 +236,6 @@ describe("predict error handling", () => {
 				1000,
 				"predict() never settled for an unknown endpoint"
 			)
-		).rejects.toThrow(
-			"There is no endpoint matching that name of fn_index matching that number."
-		);
+		).rejects.toThrow('No endpoint matching "nonexistent_endpoint" was found');
 	});
 });

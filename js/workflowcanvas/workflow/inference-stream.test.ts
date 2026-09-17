@@ -36,6 +36,47 @@ afterEach(() => {
 	globalThis.fetch = origFetch;
 });
 
+describe("stream_text_generation — empty completions", () => {
+	function frame(delta: object, finish_reason: string | null = null): string {
+		return `data: ${JSON.stringify({ choices: [{ delta, finish_reason }] })}\n\n`;
+	}
+
+	test("throws when the model emits no content", async () => {
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				sseResponse([frame({ reasoning: "hmm" }, "stop"), "data: [DONE]\n\n"])
+			) as unknown as typeof fetch;
+
+		await expect(
+			stream_text_generation({ modelId: "m", content: "hi", onChunk: () => {} })
+		).rejects.toThrow(/empty response/);
+	});
+
+	test("reasoning before content still resolves to the content", async () => {
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				sseResponse([
+					frame({ reasoning: "hmm" }),
+					frame({ content: "a " }),
+					frame({ content: "cat" }, "stop"),
+					"data: [DONE]\n\n"
+				])
+			) as unknown as typeof fetch;
+
+		const chunks: string[] = [];
+		const out = await stream_text_generation({
+			modelId: "m",
+			content: "hi",
+			onChunk: (d) => chunks.push(d)
+		});
+
+		expect(out).toBe("a cat");
+		expect(chunks).toEqual(["a ", "cat"]);
+	});
+});
+
 describe("is_streamable_text_task", () => {
 	test("accepts known text-generation tags", () => {
 		expect(is_streamable_text_task("text-generation")).toBe(true);
@@ -59,13 +100,18 @@ describe("stream_text_generation — request", () => {
 	beforeEach(() => {
 		globalThis.fetch = vi
 			.fn()
-			.mockResolvedValue(sseResponse(["data: [DONE]\n"]));
+			.mockResolvedValue(
+				sseResponse([
+					'data: {"choices":[{"delta":{"content":"ok"}}]}\n',
+					"data: [DONE]\n"
+				])
+			);
 	});
 
 	test("hits the HF unified router endpoint", async () => {
 		await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			onChunk: () => {}
 		});
 		const call = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -76,7 +122,7 @@ describe("stream_text_generation — request", () => {
 	test("sends the Authorization header when hfToken is provided", async () => {
 		await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			hfToken: "hf_secret",
 			onChunk: () => {}
 		});
@@ -87,7 +133,7 @@ describe("stream_text_generation — request", () => {
 	test("omits Authorization header when no token", async () => {
 		await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			onChunk: () => {}
 		});
 		const call = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -97,7 +143,7 @@ describe("stream_text_generation — request", () => {
 	test("sends model unqualified when provider is undefined or 'auto'", async () => {
 		await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			provider: "auto",
 			onChunk: () => {}
 		});
@@ -108,7 +154,7 @@ describe("stream_text_generation — request", () => {
 	test("appends provider suffix when set to a specific provider", async () => {
 		await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			provider: "together",
 			onChunk: () => {}
 		});
@@ -119,7 +165,7 @@ describe("stream_text_generation — request", () => {
 	test("requests streaming with max_tokens", async () => {
 		await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			maxTokens: 100,
 			onChunk: () => {}
 		});
@@ -147,7 +193,7 @@ describe("stream_text_generation — SSE parsing", () => {
 		const seen: string[] = [];
 		const final = await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			onChunk: (_delta, accumulated) => seen.push(accumulated)
 		});
 		expect(seen).toEqual(["Hel", "Hello ", "Hello world"]);
@@ -167,7 +213,7 @@ describe("stream_text_generation — SSE parsing", () => {
 		const deltas: string[] = [];
 		await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			onChunk: (delta) => deltas.push(delta)
 		});
 		expect(deltas).toEqual(["A", "B"]);
@@ -186,7 +232,7 @@ describe("stream_text_generation — SSE parsing", () => {
 		const onChunk = vi.fn();
 		const final = await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			onChunk
 		});
 		expect(onChunk).toHaveBeenCalledTimes(1);
@@ -206,7 +252,7 @@ describe("stream_text_generation — SSE parsing", () => {
 			);
 		const final = await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			onChunk: () => {}
 		});
 		expect(final).toBe("good!");
@@ -226,24 +272,21 @@ describe("stream_text_generation — SSE parsing", () => {
 			);
 		const final = await stream_text_generation({
 			modelId: "user/m",
-			prompt: "hi",
+			content: "hi",
 			onChunk: () => {}
 		});
 		expect(final).toBe("split");
 	});
 
-	test("returns immediately on [DONE] without emitting", async () => {
+	test("throws on a [DONE]-only stream instead of returning empty", async () => {
 		globalThis.fetch = vi
 			.fn()
 			.mockResolvedValue(sseResponse(["data: [DONE]\n"]));
 		const onChunk = vi.fn();
-		const final = await stream_text_generation({
-			modelId: "user/m",
-			prompt: "hi",
-			onChunk
-		});
+		await expect(
+			stream_text_generation({ modelId: "user/m", content: "hi", onChunk })
+		).rejects.toThrow(/empty response/);
 		expect(onChunk).not.toHaveBeenCalled();
-		expect(final).toBe("");
 	});
 });
 
@@ -258,7 +301,7 @@ describe("stream_text_generation — errors", () => {
 		await expect(
 			stream_text_generation({
 				modelId: "user/m",
-				prompt: "hi",
+				content: "hi",
 				onChunk: () => {}
 			})
 		).rejects.toThrow(/404/);
@@ -274,7 +317,7 @@ describe("stream_text_generation — errors", () => {
 		await expect(
 			stream_text_generation({
 				modelId: "user/m",
-				prompt: "hi",
+				content: "hi",
 				onChunk: () => {}
 			})
 		).rejects.toThrow();

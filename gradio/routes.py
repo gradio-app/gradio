@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import dataclasses
 import hashlib
 import inspect
 import io
@@ -17,16 +18,19 @@ import sys
 import time
 import traceback
 import warnings
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
+    Annotated,
     Any,
     Literal,
     Union,
     cast,
 )
+from urllib.parse import urlencode
 
+import anyio
 import fastapi
 import httpx
 import markupsafe
@@ -55,6 +59,7 @@ from gradio_client.documentation import document
 from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from hf_gradio.cli import _condense_info, generate_cli_snippet
+from huggingface_hub import HfApi
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -65,6 +70,7 @@ from starlette.responses import RedirectResponse
 import gradio
 from gradio import (
     caching,
+    history,
     route_utils,
     themes,
     utils,
@@ -72,6 +78,8 @@ from gradio import (
 from gradio.brotli_middleware import BrotliMiddleware
 from gradio.context import Context
 from gradio.data_classes import (
+    APIInfo,
+    BlocksConfigDict,
     CancelBody,
     ComponentServerBlobBody,
     ComponentServerJSONBody,
@@ -114,7 +122,9 @@ from gradio.route_utils import (  # noqa: F401
     file_fetch,
     file_response,
     move_uploaded_files_to_cache,
+    register_media_mimetypes,
     routes_safe_join,
+    secure_url_stream_response,
     upload_fn,
 )
 from gradio.screen_recording_utils import process_video_with_ffmpeg
@@ -145,6 +155,7 @@ import shutil
 import tempfile
 
 mimetypes.init()
+register_media_mimetypes()
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t  # type: ignore
@@ -226,7 +237,8 @@ class App(FastAPI):
 
     def __init__(
         self,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         **kwargs,
     ):
         self.tokens = {}
@@ -249,6 +261,7 @@ class App(FastAPI):
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
+        self.page_api_info: dict[tuple[str, bool], APIInfo] = {}
         self.static_worker_pool = None  # Set by launch() when num_workers > 0
         self.all_app_info = None
         self._static_prefixes: tuple[
@@ -275,7 +288,9 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        self.root_path = blocks.root_path or ""
+        self.root_path = blocks.root_path or (
+            "" if blocks.custom_mount_path is not None else self.root_path
+        )
         self.state_holder.set_blocks(blocks)
 
     def get_blocks(self) -> gradio.Blocks:
@@ -284,7 +299,7 @@ class App(FastAPI):
         return self.blocks
 
     def build_proxy_request(self, url_path):
-        url = httpx.URL(url_path)
+        url = httpx.URL(route_utils.requote_proxied_url(url_path))
         assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
@@ -359,10 +374,12 @@ class App(FastAPI):
         blocks: gradio.Blocks,
         app: App | None = None,
         app_kwargs: dict[str, Any] | None = None,
-        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+        | None = None,
         strict_cors: bool = True,
         mcp_server: bool | None = None,
         debug: bool = False,
+        parent_app: fastapi.FastAPI | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -378,13 +395,19 @@ class App(FastAPI):
             app.router.lifespan_context = create_lifespan_handler(
                 app_kwargs.get("lifespan", None), *delete_cache
             )
+            if auth_dependency is not None:
+                app.auth_dependency = auth_dependency
         if blocks.mcp_server_obj:
             blocks.mcp_server_obj.launch_mcp_on_sse(app, mcp_subpath, blocks.root_path)
         router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
 
-        app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)  # type: ignore
+        app.add_middleware(
+            CustomCORSMiddleware,  # type: ignore
+            strict_cors=strict_cors,
+            parent_app=parent_app,
+        )
         app.add_middleware(
             BrotliMiddleware,  # type: ignore
             quality=4,
@@ -397,9 +420,12 @@ class App(FastAPI):
 
         @router.get("/user")
         @router.get("/user/")
-        def get_current_user(request: fastapi.Request) -> str | None:
+        async def get_current_user(request: fastapi.Request) -> str | None:
             if app.auth_dependency is not None:
-                return app.auth_dependency(request)
+                user = app.auth_dependency(request)
+                if inspect.isawaitable(user):
+                    user = await user
+                return user
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -573,8 +599,8 @@ class App(FastAPI):
                 attach_page(page)
 
         def load_deep_link(
-            deep_link: str, config: dict[str, Any], page: str | None = None
-        ):
+            deep_link: str, config: BlocksConfigDict, page: str | None = None
+        ) -> tuple[list[dict[str, Any]], Literal["valid", "invalid"]]:
             components = config["components"]
             try:
                 user_path = Path("deep_links") / deep_link / "state.json"
@@ -592,13 +618,53 @@ class App(FastAPI):
             except (FileNotFoundError, OSError, orjson.JSONDecodeError):
                 deep_link_state = "invalid"
                 components = []
-            if page:
+            if page is not None:
                 components = [
                     component
                     for component in components
                     if component["id"] in config["page"][page]["components"]
                 ]
             return components, deep_link_state
+
+        def get_page_config(
+            config: BlocksConfigDict,
+            page: str,
+            components: list[dict[str, Any]] | None = None,
+        ) -> BlocksConfigDict:
+            """Copy only the component and dependency data needed by one page."""
+            page_config = config["page"][page]
+            component_ids = set(page_config["components"])
+            dependency_ids = set(page_config["dependencies"])
+            page_components = (
+                components
+                if components is not None
+                else [
+                    component
+                    for component in config["components"]
+                    if component["id"] in component_ids
+                ]
+            )
+            filtered_config = cast(
+                BlocksConfigDict,
+                utils.safe_deepcopy(
+                    {
+                        key: value
+                        for key, value in config.items()
+                        if key not in {"components", "dependencies", "layout"}
+                    }
+                ),
+            )
+            filtered_config["components"] = utils.safe_deepcopy(page_components)
+            filtered_config["dependencies"] = utils.safe_deepcopy(
+                [
+                    dependency
+                    for dependency in config.get("dependencies", [])
+                    if dependency["id"] in dependency_ids
+                ]
+            )
+            filtered_config["layout"] = utils.safe_deepcopy(page_config["layout"])
+            filtered_config["current_page"] = page
+            return filtered_config
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
@@ -610,37 +676,27 @@ class App(FastAPI):
         ):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
+            is_run_history = request.url.path.rstrip("/").endswith(f"{API_PREFIX}/runs")
             root = route_utils.get_root_url(
                 request=request,
-                route_path=f"/{page}",
+                route_path=f"{API_PREFIX}/runs" if is_run_history else f"/{page}",
                 root_path=app.root_path
                 or request.scope.get("root_path")
                 or blocks.custom_mount_path,
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
-                config = utils.safe_deepcopy(blocks.config)
+                source_config = blocks.config
                 deep_link_state = "none"
-                components = [
-                    component
-                    for component in config["components"]
-                    if component["id"] in config["page"][page]["components"]
-                ]
+                components = None
                 if deep_link:
                     components, deep_link_state = load_deep_link(
                         deep_link,
-                        config,  # type: ignore
+                        source_config,  # type: ignore
                         page,
                     )
+                config = get_page_config(source_config, page, components)  # type: ignore
                 config["username"] = user
                 config["deep_link_state"] = deep_link_state
-                config["components"] = components  # type: ignore
-                config["dependencies"] = [
-                    dependency
-                    for dependency in config.get("dependencies", [])
-                    if dependency["id"] in config["page"][page]["dependencies"]
-                ]
-                config["layout"] = config["page"][page]["layout"]
-                config["current_page"] = page
                 # Update root after loading the deep link state (if applicable)
                 # so that static files are served from the correct root
                 config = route_utils.update_root_in_config(config, root)
@@ -669,11 +725,20 @@ class App(FastAPI):
                 template = (
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
-                gradio_api_info = api_info(request)
+                gradio_api_info = get_api_info(
+                    request,
+                    page=page,
+                    route_path=(f"{API_PREFIX}/runs" if is_run_history else f"/{page}"),
+                )
                 resp = templates.TemplateResponse(
                     request=request,
                     name=template,
                     context={
+                        "base_url": (
+                            "../../" if request.url.path.endswith("/") else "../"
+                        )
+                        if is_run_history
+                        else "./",
                         "config": config,
                         "gradio_api_info": gradio_api_info,
                     },
@@ -690,6 +755,83 @@ class App(FastAPI):
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
+
+        @router.get("/runs", response_class=HTMLResponse)
+        @router.get("/runs/", response_class=HTMLResponse)
+        def run_history(
+            request: fastapi.Request,
+            user: str = Depends(get_current_user),
+        ):
+            if not getattr(app.get_blocks(), "run_history", True):
+                raise HTTPException(status_code=404, detail="Not found")
+            return main(request, user)
+
+        if getattr(blocks, "run_history", True):
+            history.init_history_state(app)
+
+            @router.post("/run-history/connect")
+            async def connect_history(
+                request: fastapi.Request,
+                body: history.ConnectBody,
+                token: history.TokenDep,
+            ):
+                """Create the bucket if needed and confirm it is writable."""
+                blocks = request.app.get_blocks()
+                try:
+                    target = history.HistoryTarget.build(
+                        body.bucket_id, token, history.app_id_of(blocks)
+                    )
+                except ValueError as exc:
+                    raise HTTPException(422, "invalid bucket id") from exc
+                await history.offload(history.ensure_bucket, target)
+                return {"ok": True}
+
+            @router.get("/run-history/buckets")
+            async def list_history_buckets(token: history.TokenDep):
+                """The buckets the signed-in user can write to."""
+
+                def _list():
+                    return [b.id for b in HfApi(token=token).list_buckets(token=token)]
+
+                try:
+                    return {"buckets": await anyio.to_thread.run_sync(_list)}
+                except Exception as exc:
+                    raise HTTPException(502, "hub error") from exc
+
+            @router.get("/run-history/records")
+            async def list_history_records(
+                target: history.TargetDep,
+                limit: Annotated[
+                    int, fastapi.Query(ge=1, le=history.MAX_RECORDS_PER_PAGE)
+                ] = 50,
+            ):
+                """The newest runs for this app, newest first."""
+                records = await history.offload(history.list_records, target, limit)
+                return {"records": [dataclasses.asdict(r) for r in records]}
+
+            @router.get("/run-history/records/{endpoint}/{record_id}/assets/{asset_id}")
+            async def get_history_asset(
+                target: history.TargetDep,
+                endpoint: history.Segment,
+                record_id: history.RecordId,
+                asset_id: history.Segment,
+            ):
+                """Proxy one stored asset, which the browser cannot fetch itself."""
+                data, guessed = await history.offload(
+                    history.get_asset_bytes, target, endpoint, record_id, asset_id
+                )
+                if guessed in route_utils.XSS_SAFE_MIMETYPES:
+                    content_type, disposition = guessed, "inline"
+                else:
+                    content_type, disposition = "application/octet-stream", "attachment"
+                return Response(
+                    content=data,
+                    media_type=content_type,
+                    headers={
+                        "Content-Disposition": disposition,
+                        "Cache-Control": "private, max-age=31536000, immutable",
+                    },
+                )
 
         @app.get("/gradio_api/deep_link")
         def deep_link(session_hash: str):
@@ -714,42 +856,105 @@ class App(FastAPI):
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
-        def api_info(request: fastapi.Request):
+        def api_info(request: fastapi.Request, page: str | None = None):
+            return get_api_info(request, page=page, route_path=f"{API_PREFIX}/info")
+
+        def get_api_info(
+            request: fastapi.Request, page: str | None, route_path: str
+        ) -> dict[str, Any]:
             all_endpoints = request.query_params.get("all_endpoints", False)
+            if page is not None and page in app.get_blocks().config["page"]:
+                cache_key = (page, bool(all_endpoints))
+                if cache_key not in app.page_api_info:
+                    app.page_api_info[cache_key] = get_page_api_info(
+                        page, all_endpoints=bool(all_endpoints)
+                    )
+                return prepare_api_info(
+                    request, app.page_api_info[cache_key], route_path
+                )
             if all_endpoints:
                 if not app.all_app_info:
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
-                return app.all_app_info
+                return cast(dict[str, Any], app.all_app_info)
             if not app.api_info:
-                api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
-                api_info = cast(dict[str, Any], api_info)
-                api_info = route_utils.update_example_values_to_use_public_url(api_info)
-                root = route_utils.get_root_url(
-                    request=request,
-                    route_path=f"{API_PREFIX}/info",
-                    root_path=app.root_path,
+                app.api_info = prepare_api_info(
+                    request, app.get_blocks().get_api_info(), route_path
                 )
-                space_id = app.get_blocks().space_id
-                cli_snippets = generate_cli_snippet(api_info["named_endpoints"])
-                for k, v in cli_snippets.items():
-                    cli_snippets[k] = v.replace("{space_id}", space_id or str(root))
-                api_prefix = API_PREFIX + "/"
-                for ep_name, ep_info in api_info.get("named_endpoints", {}).items():
-                    ep_info["code_snippets"] = generate_code_snippets(
-                        ep_name,
-                        ep_info,
-                        str(root),
-                        space_id=space_id,
-                        api_prefix=api_prefix,
-                    )
-                    ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
-                app.api_info = api_info
             return app.api_info
+
+        def get_page_api_info(page: str, all_endpoints: bool) -> APIInfo:
+            blocks = app.get_blocks()
+            get_info = blocks.get_api_info
+            parameters = inspect.signature(get_info).parameters.values()
+            supports_page = any(
+                (
+                    parameter.name == "page"
+                    and parameter.kind != inspect.Parameter.POSITIONAL_ONLY
+                )
+                or parameter.kind == inspect.Parameter.VAR_KEYWORD
+                for parameter in parameters
+            )
+            if supports_page:
+                return get_info(all_endpoints=all_endpoints, page=page)
+
+            # A subclass may override the pre-page get_api_info signature. Keep
+            # those overrides working, then scope their result to dependencies
+            # that belong to this page.
+            info = get_info(all_endpoints=True) if all_endpoints else get_info()
+            dependency_ids = set(blocks.config["page"][page]["dependencies"])
+            dependency_id_strings = {str(fn_id) for fn_id in dependency_ids}
+            endpoint_names = {
+                f"/{fn.api_name}"
+                for fn_id, fn in blocks.fns.items()
+                if fn_id in dependency_ids
+            }
+            return {
+                "named_endpoints": {
+                    name: endpoint
+                    for name, endpoint in info["named_endpoints"].items()
+                    if name in endpoint_names
+                },
+                "unnamed_endpoints": {
+                    name: endpoint
+                    for name, endpoint in info["unnamed_endpoints"].items()
+                    if str(name) in dependency_id_strings
+                },
+            }
+
+        def prepare_api_info(
+            request: fastapi.Request, info: APIInfo, route_path: str
+        ) -> dict[str, Any]:
+            prepared_info = cast(dict[str, Any], utils.safe_deepcopy(info))
+            prepared_info = route_utils.update_example_values_to_use_public_url(
+                prepared_info
+            )
+            root = route_utils.get_root_url(
+                request=request,
+                route_path=route_path,
+                root_path=app.root_path,
+            )
+            space_id = app.get_blocks().space_id
+            cli_snippets = generate_cli_snippet(prepared_info["named_endpoints"])
+            for k, v in cli_snippets.items():
+                cli_snippets[k] = v.replace("{space_id}", space_id or str(root))
+            api_prefix = API_PREFIX + "/"
+            for ep_name, ep_info in prepared_info.get("named_endpoints", {}).items():
+                ep_info["code_snippets"] = generate_code_snippets(
+                    ep_name,
+                    ep_info,
+                    str(root),
+                    space_id=space_id,
+                    api_prefix=api_prefix,
+                )
+                ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
+            return prepared_info
 
         @router.get("/openapi.json", dependencies=[Depends(login_check)])
         def openapi_schema(request: fastapi.Request):
             """Generate an OpenAPI schema from the Gradio app's API info."""
-            info = api_info(request)
+            info = get_api_info(
+                request, page=None, route_path=f"{API_PREFIX}/openapi.json"
+            )
             info_simple = _condense_info(info, url_only=True)
             schema = {
                 "openapi": "3.0.2",
@@ -953,8 +1158,28 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config(request: fastapi.Request, deep_link: str = ""):
-            config = utils.safe_deepcopy(app.get_blocks().config)
+        def get_config(
+            request: fastapi.Request,
+            user: str = Depends(get_current_user),
+            deep_link: str = "",
+            page: str | None = None,
+        ):
+            source_config = cast(BlocksConfigDict, app.get_blocks().config)
+            selected_page = (
+                page if page is not None and page in source_config["page"] else None
+            )
+            components = None
+            deep_link_state: Literal["valid", "invalid"] = "invalid"
+            if deep_link:
+                components, deep_link_state = load_deep_link(
+                    deep_link,
+                    source_config,
+                    selected_page,
+                )
+            if selected_page is not None:
+                config = get_page_config(source_config, selected_page, components)
+            else:
+                config = utils.safe_deepcopy(source_config)
             root = route_utils.get_root_url(
                 request=request,
                 route_path="/config",
@@ -962,9 +1187,8 @@ class App(FastAPI):
                 or request.scope.get("root_path")
                 or blocks.custom_mount_path,
             )
-            config["username"] = get_current_user(request)
+            config["username"] = user
             if deep_link:
-                components, deep_link_state = load_deep_link(deep_link, config, page="")  # type: ignore
                 config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
@@ -1082,12 +1306,16 @@ class App(FastAPI):
         @router.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         @router.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
+            if client_utils.is_http_url_like(path_or_url):
+                return await secure_url_stream_response(path_or_url, request)
             blocks = app.get_blocks()
             return file_fetch(path_or_url, request, blocks, app.uploaded_file_dir)
 
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             event.data = body
             event.signal.set()
@@ -1095,17 +1323,24 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            if event is None:
+                return Response(status_code=404)
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
             return {"msg": "success"}
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
-        async def _(session_hash: str, run: int, component_id: int):
+        async def _(
+            session_hash: str,
+            run: str,
+            component_id: int,
+            request: fastapi.Request,
+        ):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1113,32 +1348,45 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404)
 
-            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+            # There is no broadcast to catch up with, and without EXT-X-START a
+            # player takes a playlist with no ENDLIST for a live one and opens
+            # it near the newest segment, skipping however far the generator
+            # had run ahead.
+            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-START:TIME-OFFSET=0\n"
 
+            signature = request.query_params.get("__sign")
+            signature_query = (
+                f"?{urlencode({'__sign': signature})}" if signature else ""
+            )
             for segment in stream.segments:
-                playlist += f"#EXTINF:{segment['duration']:.3f},\n"
-                playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
-                # HLS expects the start time of the video segments to be continuous
-                # Instead of re-encoding the user video chunks, we add a discontinuity tag
-                if segment["extension"] == ".ts":
-                    playlist += "#EXT-X-DISCONTINUITY\n"
+                # Packed audio has no timestamps of its own, so a player places
+                # each segment by accumulating these and the rounding adds up.
+                playlist += f"#EXTINF:{segment['duration']:.6f},\n"
+                playlist += (  # type: ignore
+                    f"{segment['id']}{segment['extension']}{signature_query}\n"
+                )
 
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
 
+            headers = {
+                "Cache-Control": "private, no-store" if signature else "no-store"
+            }
             return Response(
-                content=playlist, media_type="application/vnd.apple.mpegurl"
+                content=playlist,
+                media_type="application/vnd.apple.mpegurl",
+                headers=headers,
             )
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
         async def _(
-            session_hash: str, run: int, component_id: int, segment_id: str, ext: str
+            session_hash: str, run: str, component_id: int, segment_id: str, ext: str
         ):
             if ext not in ["aac", "ts"]:
                 return Response(status_code=400, content="Unsupported file extension")
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1157,10 +1405,10 @@ class App(FastAPI):
                 return Response(content=segment["data"], media_type="video/MP2T")
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
-        async def _(session_hash: str, run: int, component_id: int):
+        async def _(session_hash: str, run: str, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
-                .pending_streams[session_hash]
+                .pending_streams.get(session_hash, {})
                 .get(run, {})
                 .get(component_id, None)
             )
@@ -1251,14 +1499,25 @@ class App(FastAPI):
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
                         caching.clear_session_caches(session_hash)
+                        # Streams only; diff state is dropped by the queue when
+                        # the run ends
+                        for run in (
+                            app.get_blocks()
+                            .pending_streams.pop(session_hash, {})
+                            .values()
+                        ):
+                            for stream in run.values():
+                                stream.end_stream()
                         for (
                             event_id
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(
                             session_hash, []
                         ):
-                            event = app.get_blocks()._queue.event_ids_to_events[
+                            event = app.get_blocks()._queue.event_ids_to_events.get(
                                 event_id
-                            ]
+                            )
+                            if event is None:
+                                continue
                             event.run_time = math.inf
                             event.signal.set()
                         return
@@ -1277,6 +1536,9 @@ class App(FastAPI):
             username: str = Depends(get_current_user),
         ):
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
+            # The queue mints its own event id, so one arriving in the body of
+            # a direct call names no job and nothing would continue the run.
+            body.event_id = None
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
@@ -1332,15 +1594,34 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            parameters_info = app.api_info["named_endpoints"]["/" + api_name][  # type: ignore
-                "parameters"
-            ]
+            # A page-scoped HTML or /info request deliberately does not populate
+            # the full API-info cache. Build it lazily for this endpoint instead
+            # of relying on the app's home page having been requested first.
+            full_api_info = app.api_info or get_api_info(
+                request,
+                page=None,
+                route_path=f"{API_PREFIX}/call/v2/{api_name}",
+            )
+            endpoint_info = full_api_info["named_endpoints"]["/" + api_name]
+            parameters_info = endpoint_info["parameters"]
+            body = dict(body)
+            oauth_token = None
+            if endpoint_info.get("oauth_token"):
+                oauth_token = body.pop("oauth_token", None)
+            elif not any(
+                p.get("parameter_name") == "oauth_token" for p in parameters_info
+            ):
+                # Not this endpoint's to receive, and not one of its parameters
+                # either, so drop it rather than report an unknown argument.
+                body.pop("oauth_token", None)
             processed_args = client_utils.construct_args(
                 parameters_info,
                 (),
                 body,
             )
-            simple_body = SimplePredictBody(data=processed_args)
+            simple_body = SimplePredictBody(
+                data=processed_args, oauth_token=oauth_token
+            )
             full_body = PredictBody(**simple_body.model_dump(), simple_format=True)  # type: ignore
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
@@ -1469,8 +1750,25 @@ class App(FastAPI):
                     return None
                 return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
-            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            session_hash = event.session_hash if event else event_id
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(event_id)
+            if event is not None:
+                session_hash = event.session_hash
+            else:
+                # A finished event is no longer held, but this route is normally
+                # called after it finishes. `pending_event_ids_session` keeps the
+                # id until the completion message is delivered, which is exactly
+                # this window. Falling back to the event id only works for a
+                # caller who sent no session hash of their own, since `Event`
+                # defaults `session_hash` to its own id.
+                session_hash = next(
+                    (
+                        s
+                        for s, ids in queue.pending_event_ids_session.items()
+                        if event_id in ids
+                    ),
+                    event_id,
+                )
             return await queue_data_helper(request, session_hash, process_msg)
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])
@@ -1683,10 +1981,19 @@ class App(FastAPI):
                 request,  # type: ignore
                 None,
             )
+            fn = utils.get_function_with_locals(
+                fn,
+                app.get_blocks(),
+                event_id=None,
+                in_event_listener=False,
+                request=request,  # type: ignore
+                state=state,
+            )
             if inspect.iscoroutinefunction(fn):
                 return await fn(*processed_input)
-            else:
-                return fn(*processed_input)
+            return await anyio.to_thread.run_sync(
+                fn, *processed_input, limiter=app.get_blocks().limiter
+            )
 
         @router.get(
             "/queue/status",
@@ -1696,7 +2003,7 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_status()
 
-        @router.get("/upload_progress")
+        @router.get("/upload_progress", dependencies=[Depends(login_check)])
         async def get_upload_progress(upload_id: str, request: fastapi.Request):
             async def sse_stream(request: fastapi.Request):
                 last_heartbeat = time.perf_counter()
@@ -1904,8 +2211,12 @@ class App(FastAPI):
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
-        @app.get("/monitoring/summary")
+        @app.get("/monitoring/summary", dependencies=[Depends(login_check)])
         async def _():
+            if blocks.enable_monitoring is False:
+                raise HTTPException(
+                    status_code=403, detail="Monitoring is not enabled."
+                )
             return app.get_blocks()._queue.cached_event_analytics_summary
 
         @app.get("/monitoring/{key}")
@@ -2332,17 +2643,17 @@ Existing code:
         if PROFILING_ENABLED:
             from gradio.profiling import collector
 
-            @router.get("/profiling/traces")
+            @router.get("/profiling/traces", dependencies=[Depends(login_check)])
             async def profiling_traces(
                 last_n: int | None = None,
             ):
                 return ORJSONResponse(collector.get_all(last_n=last_n))
 
-            @router.get("/profiling/summary")
+            @router.get("/profiling/summary", dependencies=[Depends(login_check)])
             async def profiling_summary():
                 return ORJSONResponse(collector.get_summary())
 
-            @router.post("/profiling/clear")
+            @router.post("/profiling/clear", dependencies=[Depends(login_check)])
             async def profiling_clear():
                 collector.clear()
                 return ORJSONResponse({"status": "cleared"})
@@ -2456,13 +2767,15 @@ def mount_gradio_app(
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
     footer_links: (
-        list[Literal["api", "gradio", "settings"] | dict[str, str]] | None
+        list[Literal["api", "gradio", "settings", "runs"] | dict[str, str]] | None
     ) = None,
+    run_history: bool | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
     auth_message: str | None = None,
-    auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+    auth_dependency: Callable[[fastapi.Request], str | None | Awaitable[str | None]]
+    | None = None,
     root_path: str | None = None,
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
@@ -2486,7 +2799,7 @@ def mount_gradio_app(
     """Mount a gradio.Blocks to an existing FastAPI application.
 
     Parameters:
-        app: The parent FastAPI application.
+        app: The parent FastAPI application. If it configures its own `CORSMiddleware`, Gradio will not add its own CORS headers to the mounted app, so that your `allow_origins` policy is the one that applies.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted, e.g. "/gradio".
         server_name: The server name on which the Gradio app will be run.
@@ -2501,7 +2814,8 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", or "settings" corresponding to the API docs, "built with Gradio", and settings pages respectively. If None, all three links will be shown in the footer. An empty list means that no footer is shown.
+        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+        run_history: If True, users can review and reload calls from the run history page at /gradio_api/runs. Runs are saved privately in the browser by default; from that page, a user can instead connect a Hugging Face bucket and save future runs there. Browser history is scoped to the logged-in user if the app uses `auth`. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
@@ -2510,7 +2824,7 @@ def mount_gradio_app(
         theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
         css: Custom css as a code string. This css will be included in the demo webpage.
         css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
-        js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+        js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
         head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
         head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
     Example:
@@ -2531,8 +2845,15 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
+    blocks.run_history = (
+        os.environ.get("GRADIO_RUN_HISTORY", "True").lower() == "true"
+        if run_history is None
+        else run_history
+    )
     if footer_links is None:
-        footer_links = ["api", "gradio", "settings"]
+        footer_links = ["api", "gradio", "settings", "runs"]
+    if not blocks.run_history:
+        footer_links = [link for link in footer_links if link != "runs"]
     blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
@@ -2600,6 +2921,7 @@ def mount_gradio_app(
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
         mcp_server=mcp_server,
+        parent_app=app,
     )
     old_lifespan = app.router.lifespan_context
 

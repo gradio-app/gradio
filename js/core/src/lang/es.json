@@ -108,6 +108,32 @@
 		"use_brush": "Usar pincel",
 		"drop_to_upload": "Arrastra un archivo de imagen aquí para subirlo"
 	},
+	"image_editor": {
+		"add_layer": "Añadir capa",
+		"brush": "Pincel",
+		"brush_size": "Tamaño del pincel",
+		"clear_canvas": "Limpiar lienzo",
+		"color": "Color",
+		"confirm_crop": "Confirmar recorte",
+		"crop": "Recortar",
+		"erase": "Borrar",
+		"eraser_size": "Tamaño del borrador",
+		"fit_to_screen": "Ajustar a la pantalla",
+		"layer": "Capa",
+		"layers": "Capas",
+		"pan": "Desplazar",
+		"paste": "Pegar",
+		"redo": "Rehacer",
+		"resize": "Cambiar tamaño",
+		"save_changes": "Guardar cambios",
+		"select_draw_tool": "seleccione la herramienta de dibujo para comenzar",
+		"show_layers": "Mostrar capas",
+		"upload": "Cargar",
+		"upload_image": "Cargue una imagen",
+		"webcam": "Cámara web",
+		"zoom_in": "Acercar",
+		"zoom_out": "Alejar"
+	},
 	"label": {
 		"label": "Etiqueta"
 	},

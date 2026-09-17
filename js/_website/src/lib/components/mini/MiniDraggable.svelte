@@ -39,10 +39,10 @@
 					class="draggable-item"
 					class:drag-over={drag_over_index === idx}
 					draggable="true"
-					on:dragstart={(e) => handle_drag_start(e, idx)}
-					on:dragover={(e) => handle_drag_over(e, idx)}
-					on:dragleave={handle_drag_leave}
-					on:drop={(e) => handle_drop(e, idx)}
+					ondragstart={(e) => handle_drag_start(e, idx)}
+					ondragover={(e) => handle_drag_over(e, idx)}
+					ondragleave={handle_drag_leave}
+					ondrop={(e) => handle_drop(e, idx)}
 					role="button"
 					tabindex="0"
 				>

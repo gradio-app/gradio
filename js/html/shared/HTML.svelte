@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { onDestroy } from "svelte";
 	import Handlebars from "handlebars";
 	import type { Snippet } from "svelte";
 
@@ -23,24 +23,28 @@
 		component_class_name = "HTML",
 		upload = null,
 		server = {},
-		watch_fn = (_propOrProps: string | string[], _callback: () => void) => {},
-		fire_watchers = (_changedKeys: string[]) => {},
+		onevent,
+		onupdate_value,
 		children
 	}: {
-		elem_classes: string[];
-		props: Record<string, any>;
-		html_template: string;
-		css_template: string;
-		js_on_load: string | null;
+		// every one of these has a default in the destructure above
+		elem_classes?: string[];
+		props?: Record<string, any>;
+		html_template?: string;
+		css_template?: string;
+		js_on_load?: string | null;
 		head?: string | null;
-		visible: boolean;
-		autoscroll: boolean;
-		apply_default_css: boolean;
-		component_class_name: string;
-		upload: ((file: File) => Promise<{ path: string; url: string }>) | null;
-		server: Record<string, (...args: any[]) => Promise<any>>;
-		watch_fn?: (propOrProps: string | string[], callback: () => void) => void;
-		fire_watchers?: (changedKeys: string[]) => void;
+		visible?: boolean;
+		autoscroll?: boolean;
+		apply_default_css?: boolean;
+		component_class_name?: string;
+		upload?: ((file: File) => Promise<{ path: string; url: string }>) | null;
+		server?: Record<string, (...args: any[]) => Promise<any>>;
+		onevent?: (detail: { type: "click" | "submit"; data: any }) => void;
+		onupdate_value?: (detail: {
+			data: any;
+			property: "value" | "label" | "visible";
+		}) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -55,17 +59,35 @@
 	);
 
 	let old_props = $state($state.snapshot(props));
+	type WatchEntry = { props: string[]; callback: () => void };
+	let watch_entries: WatchEntry[] = [];
 
-	const dispatch = createEventDispatcher<{
-		event: { type: "click" | "submit"; data: any };
-		update_value: { data: any; property: "value" | "label" | "visible" };
-	}>();
+	function watch(propOrProps: string | string[], callback: () => void): void {
+		const prop_list = Array.isArray(propOrProps) ? propOrProps : [propOrProps];
+		watch_entries.push({ props: prop_list, callback });
+	}
+
+	function fire_watchers(changed_keys: string[]): void {
+		const seen = new Set<WatchEntry>();
+		for (const entry of watch_entries) {
+			if (entry.props.some((k) => changed_keys.includes(k))) {
+				seen.add(entry);
+			}
+		}
+		for (const entry of seen) {
+			try {
+				entry.callback();
+			} catch (e) {
+				console.error("Error in watch callback:", e);
+			}
+		}
+	}
 
 	const trigger = (
 		event_type: "click" | "submit",
 		event_data: any = {}
 	): void => {
-		dispatch("event", { type: event_type, data: event_data });
+		onevent?.({ type: event_type, data: event_data });
 	};
 
 	let element: HTMLDivElement;
@@ -180,6 +202,8 @@
 			style_element.textContent = "";
 		}
 	}
+
+	onDestroy(() => style_element?.remove());
 
 	function updateDOM(
 		_element: HTMLElement | undefined,
@@ -327,7 +351,8 @@
 		const promises: Promise<void>[] = [];
 		for (const el of Array.from(doc.head.children)) {
 			if (el.tagName === "SCRIPT") {
-				const src = (el as HTMLScriptElement).src;
+				const parsed_script = el as HTMLScriptElement;
+				const src = parsed_script.src;
 				if (src) {
 					const in_flight = head_script_loads.get(src);
 					if (in_flight) {
@@ -351,8 +376,15 @@
 					promises.push(load);
 					document.head.appendChild(script);
 				} else {
+					if (
+						Array.from(document.scripts).some(
+							(s) => !s.src && s.textContent === parsed_script.textContent
+						)
+					) {
+						continue;
+					}
 					const script = document.createElement("script");
-					script.textContent = el.textContent;
+					script.textContent = parsed_script.textContent;
 					document.head.appendChild(script);
 				}
 			} else {
@@ -391,7 +423,7 @@
 					) {
 						props[property] = value;
 						old_props[property] = value;
-						dispatch("update_value", { data: value, property });
+						onupdate_value?.({ data: value, property });
 					}
 				}
 				return true;
@@ -442,7 +474,7 @@
 						"watch",
 						js_on_load
 					);
-					func(element, trigger, reactiveProps, server, upload_func, watch_fn);
+					func(element, trigger, reactiveProps, server, upload_func, watch);
 				} catch (error) {
 					console.error("Error executing js_on_load:", error);
 				}

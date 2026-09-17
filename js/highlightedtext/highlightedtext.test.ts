@@ -1,5 +1,7 @@
-import { test, describe, assert, afterEach } from "vitest";
+import { test, describe, assert, afterEach, expect } from "vitest";
 import { cleanup, fireEvent, render } from "@self/tootils/render";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+import event from "@testing-library/user-event";
 import { setupi18n } from "../core/src/i18n";
 
 import HighlightedText from "./Index.svelte";
@@ -15,6 +17,16 @@ const loading_status: LoadingStatus = {
 	fn_index: 0,
 	show_progress: "full"
 };
+
+run_shared_prop_tests({
+	component: HighlightedText,
+	name: "HighlightedText",
+	has_label: false,
+	base_props: {
+		value: [{ token: "Hello", class_or_confidence: null }],
+		interactive: false
+	}
+});
 
 describe("HighlightedText", () => {
 	afterEach(() => cleanup());
@@ -162,44 +174,183 @@ describe("HighlightedText", () => {
 	});
 
 	describe("Select events", () => {
-		test.skip("dispatches select event when clicking highlighted token", async () => {
-			const { getByText, listen } = await render(HighlightedText, {
+		test("dispatches select when clicking an unlabeled selectable token", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: true,
+				value: [{ token: "clickable", class_or_confidence: null }]
+			});
+
+			const select = listen("select");
+			await fireEvent.click(getByRole("button", { name: "clickable" }));
+
+			expect(select).toHaveBeenCalledTimes(1);
+			expect(select).toHaveBeenCalledWith({
+				index: 0,
+				value: ["clickable", null]
+			});
+		});
+
+		test("does not select an unlabeled token without a select listener", async () => {
+			const { getByText, queryByRole, listen } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: false,
+				value: [{ token: "static", class_or_confidence: null }]
+			});
+
+			const select = listen("select");
+			expect(queryByRole("button", { name: "static" })).not.toBeInTheDocument();
+			await fireEvent.click(getByText("static"));
+
+			expect(select).not.toHaveBeenCalled();
+		});
+
+		test.each([
+			["Enter", "{Enter}"],
+			["Space", " "]
+		])(
+			"dispatches select from the %s key on an unlabeled selectable token",
+			async (_key_name, key) => {
+				const { getByRole, listen } = await render(HighlightedText, {
+					interactive: false,
+					loading_status,
+					_selectable: true,
+					value: [{ token: "keyboard", class_or_confidence: null }]
+				});
+
+				const select = listen("select");
+				getByRole("button", { name: "keyboard" }).focus();
+				await event.keyboard(key);
+
+				expect(select).toHaveBeenCalledTimes(1);
+				expect(select).toHaveBeenCalledWith({
+					index: 0,
+					value: ["keyboard", null]
+				});
+			}
+		);
+
+		test("ignores repeated activation keydowns", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: true,
+				value: [{ token: "keyboard", class_or_confidence: null }]
+			});
+
+			const select = listen("select");
+			const token = getByRole("button", { name: "keyboard" });
+			await fireEvent.keyDown(token, { key: "Enter", repeat: true });
+
+			expect(select).not.toHaveBeenCalled();
+
+			await fireEvent.keyDown(token, { key: "Enter" });
+
+			expect(select).toHaveBeenCalledTimes(1);
+		});
+
+		test("dispatches the rendered line when selecting a multiline token", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: true,
+				value: [
+					{
+						token: "first line\nsecond line",
+						class_or_confidence: null
+					}
+				]
+			});
+
+			const select = listen("select");
+			await fireEvent.click(getByRole("button", { name: "second line" }));
+
+			expect(select).toHaveBeenCalledWith({
+				index: 0,
+				value: ["second line", null]
+			});
+		});
+
+		test("keeps selectable category tokens in one roving tab stop", async () => {
+			const { getAllByRole } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: true,
+				value: Array.from({ length: 47 }, (_, index) => ({
+					token: `token ${index + 1}`,
+					class_or_confidence: null
+				}))
+			});
+
+			const tokens = getAllByRole("button");
+			expect(tokens.filter((token) => token.tabIndex === 0)).toHaveLength(1);
+			expect(tokens[0]).toHaveAttribute("tabindex", "0");
+			expect(tokens[1]).toHaveAttribute("tabindex", "-1");
+
+			tokens[0].focus();
+			await event.keyboard("{ArrowRight}");
+
+			expect(tokens[1]).toHaveFocus();
+			expect(tokens[1]).toHaveAttribute("tabindex", "0");
+			expect(tokens[0]).toHaveAttribute("tabindex", "-1");
+		});
+
+		test("does not expose labeled static output as buttons without a select listener", async () => {
+			const { queryByRole } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: false,
+				value: [{ token: "static label", class_or_confidence: "category" }]
+			});
+
+			expect(
+				queryByRole("button", { name: /static label/ })
+			).not.toBeInTheDocument();
+		});
+
+		test("dispatches select event when clicking highlighted token", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
 				interactive: true,
 				loading_status,
 				value: [{ token: "clickable", class_or_confidence: "label" }]
 			});
 
-			const mock = listen("select");
-			const token = getByText("clickable");
+			const select = listen("select");
+			const token = getByRole("button", { name: /clickable/ });
 
 			await fireEvent.click(token);
 
-			assert.equal(mock.callCount, 1);
-			assert.deepEqual(mock.calls[0][0].detail.data, {
+			expect(select).toHaveBeenCalledWith({
 				index: 0,
 				value: ["clickable", "label"]
 			});
 		});
 
-		test.skip("dispatches select event in non-interactive mode too", async () => {
-			const { getByText, listen } = await render(HighlightedText, {
+		test("dispatches select event in non-interactive mode too", async () => {
+			const { getByRole, listen } = await render(HighlightedText, {
 				interactive: false,
 				loading_status,
+				_selectable: true,
 				value: [{ token: "clickable", class_or_confidence: "label" }]
 			});
 
-			const mock = listen("select");
-			const token = getByText("clickable");
+			const select = listen("select");
+			const token = getByRole("button", { name: /clickable/ });
 
 			await fireEvent.click(token);
 
-			assert.equal(mock.callCount, 1);
+			expect(select).toHaveBeenCalledWith({
+				index: 0,
+				value: ["clickable", "label"]
+			});
 		});
 	});
 
 	describe("Interactive editing", () => {
 		test("shows label input when clicking on highlighted token in interactive mode", async () => {
-			const { getByText, container } = await render(HighlightedText, {
+			const { getByText, getByRole } = await render(HighlightedText, {
 				interactive: true,
 				loading_status,
 				value: [{ token: "editable", class_or_confidence: "original" }]
@@ -208,9 +359,86 @@ describe("HighlightedText", () => {
 			const token = getByText("editable");
 			await fireEvent.click(token);
 
-			// After clicking, an input should appear
-			const input = container.querySelector(".label-input");
-			assert.exists(input);
+			expect(getByRole("textbox")).toBeInTheDocument();
+		});
+
+		test("preserves spaces while editing a label without extra select events", async () => {
+			const { getByText, getByRole, queryByRole, listen } = await render(
+				HighlightedText,
+				{
+					interactive: true,
+					loading_status,
+					_selectable: true,
+					value: [{ token: "editable", class_or_confidence: "original" }]
+				}
+			);
+
+			const select = listen("select");
+			await fireEvent.click(getByText("editable"));
+			const select_calls_after_click = select.mock.calls.length;
+			const input = getByRole("textbox");
+
+			await fireEvent.input(input, { target: { value: "" } });
+			input.focus();
+			await event.keyboard("NAMED ENTITY");
+
+			expect(input).toHaveValue("NAMED ENTITY");
+			expect(select).toHaveBeenCalledTimes(select_calls_after_click);
+
+			await event.keyboard("{Enter}");
+
+			expect(queryByRole("textbox")).not.toBeInTheDocument();
+			expect(select).toHaveBeenCalledTimes(select_calls_after_click);
+		});
+
+		test("closes the score editor on Enter without reopening it", async () => {
+			const { getByRole, queryByRole, get_data } = await render(
+				HighlightedText,
+				{
+					interactive: true,
+					loading_status,
+					value: [
+						{ token: "alpha", class_or_confidence: 0.5 },
+						{ token: "beta", class_or_confidence: -0.5 }
+					]
+				}
+			);
+
+			await fireEvent.click(getByRole("button", { name: "alpha" }));
+			const input = getByRole("spinbutton");
+			await fireEvent.input(input, { target: { value: "0.7" } });
+			input.focus();
+			await event.keyboard("{Enter}");
+
+			expect(queryByRole("spinbutton")).not.toBeInTheDocument();
+			expect((await get_data()).value).toEqual([
+				{ token: "alpha", class_or_confidence: 0.7 },
+				{ token: "beta", class_or_confidence: -0.5 }
+			]);
+		});
+
+		test("keeps score tokens in one roving tab stop and ignores repeat keydowns", async () => {
+			const { getAllByRole, listen } = await render(HighlightedText, {
+				interactive: false,
+				loading_status,
+				_selectable: true,
+				value: [
+					{ token: "positive", class_or_confidence: 0.5 },
+					{ token: "negative", class_or_confidence: -0.5 }
+				]
+			});
+
+			const select = listen("select");
+			const tokens = getAllByRole("button");
+			expect(tokens[0]).toHaveAttribute("tabindex", "0");
+			expect(tokens[1]).toHaveAttribute("tabindex", "-1");
+
+			tokens[0].focus();
+			await fireEvent.keyDown(tokens[0], { key: "Enter", repeat: true });
+			expect(select).not.toHaveBeenCalled();
+
+			await event.keyboard("{ArrowRight}");
+			expect(tokens[1]).toHaveFocus();
 		});
 
 		test.skip("updates label value when editing", async () => {
@@ -235,7 +463,7 @@ describe("HighlightedText", () => {
 		});
 
 		test("does not show label input in non-interactive mode", async () => {
-			const { getByText, container } = await render(HighlightedText, {
+			const { getByText, queryByRole } = await render(HighlightedText, {
 				interactive: false,
 				loading_status,
 				value: [{ token: "not-editable", class_or_confidence: "label" }]
@@ -244,8 +472,7 @@ describe("HighlightedText", () => {
 			const token = getByText("not-editable");
 			await fireEvent.click(token);
 
-			const input = container.querySelector(".label-input");
-			assert.isNull(input);
+			expect(queryByRole("textbox")).not.toBeInTheDocument();
 		});
 	});
 });

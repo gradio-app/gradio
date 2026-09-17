@@ -1,5 +1,33 @@
 # @gradio/dialogue
 
+## 0.4.3
+
+### Dependency updates
+
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/dropdown@0.15.0
+
+## 0.4.2
+
+### Dependency updates
+
+- @gradio/utils@0.14.0
+- @gradio/atoms@0.26.1
+- @gradio/statustracker@0.15.2
+- @gradio/textbox@0.14.2
+- @gradio/dropdown@0.14.2
+
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.1
+- @gradio/icons@0.16.0
+- @gradio/atoms@0.26.0
+- @gradio/dropdown@0.14.1
+- @gradio/textbox@0.14.1
+
 ## 0.4.0
 
 ### Features

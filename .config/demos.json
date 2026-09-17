@@ -35,5 +35,6 @@
 	"stream_audio_out",
 	"stream_frames",
 	"video_component",
+	"workflow_api",
 	"zip_files"
 ]

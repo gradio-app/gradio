@@ -74,6 +74,7 @@
 		<HighlightedText
 			bind:value
 			interactive={gradio.shared.interactive}
+			selectable={gradio.props._selectable}
 			show_legend={gradio.props.show_legend}
 			show_inline_category={gradio.props.show_inline_category}
 			show_whitespaces={gradio.props.show_whitespaces}

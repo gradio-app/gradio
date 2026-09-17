@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { resizeNode, workflow } from "./workflow-store";
+	import {
+		add_custom_port,
+		remove_custom_port,
+		resizeNode,
+		setNodeSize,
+		workflow
+	} from "./workflow-store";
+	import { portRequirement } from "./workflow-graph";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
@@ -13,8 +20,10 @@
 		WFNode,
 		PortType,
 		NodeDataValue,
-		NodeStatus
+		NodeStatus,
+		FileValue
 	} from "./workflow-types";
+	import { isBlankValue, nodeMetaLabel, resolveFileSize } from "./node-meta";
 
 	interface Props {
 		id: string;
@@ -33,6 +42,7 @@
 		} | null;
 		nodeStatus: Record<string, NodeStatus>;
 		nodeErrors: Record<string, string>;
+		nodeDurations: Record<string, number>;
 		staleNodes: Set<string>;
 		connectedPorts: Set<string>;
 		readOnly: boolean;
@@ -41,6 +51,8 @@
 			portId: string,
 			value: NodeDataValue
 		) => void;
+		zoom: number;
+		onviewfullscreen: (src: string, alt: string) => void;
 		onremove: (id: string) => void;
 		onopenpicker: (id: string) => void;
 		onswitchendpoint: (id: string, endpointName: string) => void;
@@ -67,6 +79,91 @@
 
 	const pending = $derived(ctx.pending);
 	const readOnly = $derived(ctx.readOnly);
+
+	const MIN_NODE_WIDTH = 180;
+	const MAX_NODE_WIDTH = 900;
+	const MIN_NODE_HEIGHT = 120;
+	const MAX_NODE_HEIGHT = 1200;
+	let resizing = $state(false);
+
+	// A height the user dragged out. While set, the card is that tall and the
+	// widget zone stretches to fill it; otherwise height follows content.
+	const pinnedHeight = $derived(node.manual_height ?? null);
+
+	/**
+	 * Everything in the card except the stretchable widget zone, in canvas units.
+	 * Pinning a height below this would push the ports out through the card's
+	 * bottom edge, so it's the floor for a vertical drag.
+	 */
+	function chromeHeight(): number {
+		if (!nodeEl) return MIN_NODE_HEIGHT;
+		const zoom = ctx.zoom || 1;
+		let h = 0;
+		for (const child of nodeEl.children) {
+			if (child.classList.contains("widget-zone")) continue;
+			// Floats above the card; not part of its box.
+			if (child.classList.contains("node-outside-label-wrap")) continue;
+			h += child.getBoundingClientRect().height / zoom;
+		}
+		return Math.ceil(h);
+	}
+
+	// No `readOnly` guard: a card's size is view state kept in the viewer's own
+	// localStorage (`layout-persistence.ts`), so resizing needs no write access.
+	function startResize(e: PointerEvent): void {
+		e.preventDefault();
+		e.stopPropagation();
+		resizing = true;
+		const startX = e.clientX;
+		const startY = e.clientY;
+		const startWidth = node.width;
+		// First drag on an auto-height node starts from whatever it measures now,
+		// so the card doesn't jump when it becomes pinned.
+		const startHeight = pinnedHeight ?? node.height;
+		const minHeight = Math.max(MIN_NODE_HEIGHT, chromeHeight() + 40);
+		const target = e.currentTarget as HTMLElement;
+		target.setPointerCapture(e.pointerId);
+
+		const onMove = (ev: PointerEvent): void => {
+			// Screen pixels → canvas units, so the handle tracks the cursor at
+			// any zoom level.
+			const zoom = ctx.zoom || 1;
+			const width = Math.round(
+				Math.min(
+					MAX_NODE_WIDTH,
+					Math.max(MIN_NODE_WIDTH, startWidth + (ev.clientX - startX) / zoom)
+				)
+			);
+			// Only cards with a widget have something that can absorb extra height;
+			// a transform node is all header and ports, so it stays width-only.
+			const height = canPinHeight
+				? Math.round(
+						Math.min(
+							MAX_NODE_HEIGHT,
+							Math.max(minHeight, startHeight + (ev.clientY - startY) / zoom)
+						)
+					)
+				: null;
+			if (width !== node.width || height !== pinnedHeight) {
+				setNodeSize(node.id, width, height);
+			}
+		};
+		const onUp = (): void => {
+			resizing = false;
+			target.removeEventListener("pointermove", onMove);
+			target.removeEventListener("pointerup", onUp);
+			target.removeEventListener("pointercancel", onUp);
+		};
+		target.addEventListener("pointermove", onMove);
+		target.addEventListener("pointerup", onUp);
+		target.addEventListener("pointercancel", onUp);
+	}
+
+	/** Double-click the handle to release a pinned height back to fit-content. */
+	function resetHeight(): void {
+		if (pinnedHeight === null) return;
+		setNodeSize(node.id, node.width, null);
+	}
 	const status = $derived((ctx.nodeStatus[id] ?? "idle") as NodeStatus);
 	const error = $derived(ctx.nodeErrors[id] ?? "");
 	const isStale = $derived(ctx.staleNodes.has(id));
@@ -74,11 +171,65 @@
 	// Only operator nodes have meaningful per-node execution. References just
 	// hold values; subjects just display passthrough.
 	const canRunSolo = $derived(node.kind === "transform");
+	const duration = $derived(ctx.nodeDurations[id] as number | undefined);
+
+	function formatDuration(seconds: number): string {
+		if (seconds >= 10) return `${Math.round(seconds)}s`;
+		if (seconds >= 1) return `${seconds.toFixed(1)}s`;
+		return `${parseFloat(seconds.toFixed(2))}s`;
+	}
 
 	let nodeEl: HTMLDivElement;
 	let editingLabel = $state(false);
 	let labelInput: HTMLInputElement;
 	let showAllInputs = $state(false);
+	let errorExpanded = $state(false);
+	let errorCopied = $state(false);
+	let errorCopiedTimer: ReturnType<typeof setTimeout> | undefined;
+	$effect(() => {
+		if (!error) errorExpanded = false;
+	});
+	$effect(() => () => clearTimeout(errorCopiedTimer));
+
+	async function copyError(): Promise<void> {
+		if (!error) return;
+		try {
+			await navigator.clipboard?.writeText(error);
+			errorCopied = true;
+			clearTimeout(errorCopiedTimer);
+			errorCopiedTimer = setTimeout(() => (errorCopied = false), 1500);
+		} catch {
+			/* clipboard unavailable — leave the label unchanged */
+		}
+	}
+
+	let showCustomParamForm = $state(false);
+	let customParamName = $state("");
+	let customParamType = $state<PortType>("text");
+
+	function submitCustomParam(): void {
+		const raw = customParamName.trim();
+		if (!raw) return;
+		// to match the InferenceClient param naming convention (snake_case)
+		const id = raw
+			.toLowerCase()
+			.replace(/[^a-z0-9_]+/g, "_")
+			.replace(/^_+|_+$/g, "");
+		if (!id) return;
+		if (node.inputs.some((p) => p.id === id)) return;
+		const label = id
+			.replace(/_/g, " ")
+			.replace(/\b\w/g, (c) => c.toUpperCase());
+		add_custom_port(node.id, {
+			id,
+			label,
+			type: customParamType,
+			required: false
+		});
+		customParamName = "";
+		customParamType = "text";
+		showCustomParamForm = false;
+	}
 
 	function castChoiceValue(v: string, portType: PortType): NodeDataValue {
 		if (portType === "number") {
@@ -128,6 +279,8 @@
 	);
 
 	const hasWidget = $derived(mode === "input" || mode === "output");
+	// See the height clamp in `startResize`: only a widget can take up slack.
+	const canPinHeight = $derived(hasWidget);
 	const widgetPortId = $derived(
 		mode === "input"
 			? (node.outputs[0]?.id ?? null)
@@ -143,6 +296,53 @@
 				: null
 	);
 	const isReadonly = $derived(mode === "output");
+
+	// ── Header meta ──
+	// How much the card is holding, in the top-right of the header: a character
+	// count for text-ish widgets, a file size for media. Media that arrived as a
+	// bare URL carries no size, so measure it once per URL and keep the answer
+	// here rather than writing it back into the graph (that would dirty the
+	// workflow and mark downstream nodes stale for a cosmetic read).
+	let measuredSize = $state<number | null>(null);
+	let measuredUrl = $state<string | null>(null);
+
+	const widgetValue = $derived(
+		widgetPortId ? node.data?.[widgetPortId] : undefined
+	);
+
+	$effect(() => {
+		const val = widgetValue;
+		const file =
+			val && typeof val === "object" && !Array.isArray(val)
+				? (val as FileValue)
+				: null;
+		if (!file?.url || typeof file.size === "number") {
+			measuredUrl = null;
+			measuredSize = null;
+			return;
+		}
+		if (file.url === measuredUrl) return;
+		const url = file.url;
+		measuredUrl = url;
+		measuredSize = null;
+		resolveFileSize(url).then((size) => {
+			// The value may have moved on while the request was in flight.
+			if (measuredUrl === url) measuredSize = size;
+		});
+	});
+
+	const metaLabel = $derived(
+		hasWidget ? nodeMetaLabel(widgetType, widgetValue, measuredSize) : null
+	);
+
+	const requirement = $derived(
+		mode === "input" &&
+			widgetPortId &&
+			isBlankValue(widgetValue) &&
+			!node.inputs.some((p) => connectedPorts.has(`${node.id}:${p.id}:input`))
+			? portRequirement($workflow, node.id, widgetPortId)
+			: null
+	);
 
 	function sourceHFUrl(n: WFNode): string {
 		if (n.space_id) return `https://huggingface.co/spaces/${n.space_id}`;
@@ -164,6 +364,9 @@
 	$effect(() => {
 		if (!nodeEl) return;
 		const ro = new ResizeObserver(([entry]) => {
+			// A pinned card already knows its height — `setNodeSize` wrote it — and
+			// echoing the measurement back would only fight the drag.
+			if (pinnedHeight !== null) return;
 			const h = Math.ceil(entry.borderBoxSize[0].blockSize);
 			if (Math.abs(h - node.height) > 1) {
 				resizeNode(node.id, node.width, h);
@@ -181,20 +384,25 @@
 	class:node-done={status === "done"}
 	class:node-error={status === "error"}
 	class:node-stale={isStale}
+	class:node-required-input={requirement === "required"}
 	class:node-selected={selected}
 	class:node-droptarget={isDropTarget}
 	class:has-pending={pending !== null}
 	bind:this={nodeEl}
 	onclick={(e) => ctx.onselect(node.id, e.shiftKey)}
+	class:node-resizing={resizing}
+	class:node-fixed-height={pinnedHeight !== null}
 	style="
 		width: {node.width}px;
+		{pinnedHeight !== null ? `height: ${pinnedHeight}px;` : ''}
+		--preview-max-h: {Math.round(node.width * 1.15)}px;
 		--accent: {accentColor};
 		--accent-dim: {accentDim};
 	"
 >
 	<div class="node-header" role="button" tabindex="-1">
 		<div class="node-header-top">
-			{#if status === "running"}
+			{#if status === "running" && !canRunSolo}
 				<span class="node-status-spinner"></span>
 			{/if}
 			{#if editingLabel}
@@ -221,36 +429,66 @@
 					}}>{node.label}</span
 				>
 			{/if}
+			{#if requirement}
+				<span
+					class="node-requirement"
+					class:node-requirement-optional={requirement === "optional"}
+					title={requirement === "required"
+						? "The workflow needs a value here before it can run"
+						: "You can leave this empty"}
+					>{requirement === "required"
+						? "Required input"
+						: "Optional input"}</span
+				>
+			{/if}
+			{#if metaLabel}
+				<span class="node-meta" title={metaLabel}>{metaLabel}</span>
+			{/if}
 			{#if canRunSolo}
 				<button
 					class="node-run"
-					class:node-run-stale={isStale}
+					class:node-run-stale={isStale && status !== "running"}
+					class:has-duration={duration !== undefined}
 					onpointerdown={(e) => e.stopPropagation()}
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => {
 						e.stopPropagation();
 						ctx.onrunnode(node.id);
 					}}
-					title={isStale ? "Run this node (inputs changed)" : "Run this node"}
+					title={(status === "running"
+						? "Running…"
+						: isStale
+							? "Run this node (inputs changed)"
+							: "Run this node") +
+						(duration !== undefined
+							? ` — last run ${formatDuration(duration)}`
+							: "")}
 					aria-label="Run this node"
 				>
-					<PlayIcon />
+					{#if duration !== undefined}
+						<span class="node-run-time">{formatDuration(duration)}</span>
+					{/if}
+					{#if status === "running"}
+						<span class="node-status-spinner"></span>
+					{:else}
+						<PlayIcon />
+					{/if}
 				</button>
-			{/if}
-			{#if !readOnly}
-				<button
-					class="node-delete"
-					onpointerdown={(e) => e.stopPropagation()}
-					onmousedown={(e) => e.stopPropagation()}
-					onclick={(e) => {
-						e.stopPropagation();
-						ctx.onremove(node.id);
-					}}
-					title="Delete node">&times;</button
-				>
 			{/if}
 		</div>
 	</div>
+	{#if !readOnly}
+		<button
+			class="node-delete"
+			onpointerdown={(e) => e.stopPropagation()}
+			onmousedown={(e) => e.stopPropagation()}
+			onclick={(e) => {
+				e.stopPropagation();
+				ctx.onremove(node.id);
+			}}
+			title="Delete node">&times;</button
+		>
+	{/if}
 
 	<!-- Source label for transform nodes — floats above the card.
 	     Components are pure data containers and have no source label. -->
@@ -352,22 +590,41 @@
 		</div>
 	{/if}
 
-	<!-- Input ports -->
 	{#if node.inputs.length > 0}
-		{@const hiddenCount = node.inputs.filter(
+		{@const orderedInputs = [
+			...node.inputs.filter((p) => p.custom),
+			...node.inputs.filter((p) => !p.custom)
+		]}
+		{@const hiddenCount = orderedInputs.filter(
 			(p) =>
-				p.required === false && !connectedPorts.has(`${node.id}:${p.id}:input`)
+				!p.custom &&
+				p.required === false &&
+				!connectedPorts.has(`${node.id}:${p.id}:input`)
 		).length}
 		{@const collapsible = hiddenCount > 0}
 		<div class="ports" class:widget-ports={hasWidget}>
-			{#each node.inputs as port}
+			{#each orderedInputs as port}
 				{@const portConnected = connectedPorts.has(
 					`${node.id}:${port.id}:input`
 				)}
 				{@const visible =
-					showAllInputs || portConnected || port.required !== false}
+					showAllInputs ||
+					portConnected ||
+					port.required !== false ||
+					port.custom}
 				{#if visible}
-					<div class="port-row input-row" class:widget-port={hasWidget}>
+					{@const inlineWidget =
+						!portConnected &&
+						node.kind === "transform" &&
+						!port.choices?.length &&
+						(port.type === "number" || port.type === "boolean")}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div
+						class="port-row input-row"
+						class:widget-port={hasWidget}
+						class:port-row-inline={inlineWidget}
+						onmousedown={inlineWidget ? (e) => e.stopPropagation() : undefined}
+					>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="port-handle-sf input-handle-sf"
@@ -398,14 +655,64 @@
 							<span
 								class="port-label"
 								class:port-label-optional={port.required === false}
-								>{port.label}</span
+								class:port-label-custom={port.custom}>{port.label}</span
 							>
-							<span class="port-type-tag" style="color: {PORT_COLOR[port.type]}"
-								>{port.type}</span
-							>
+							{#if !inlineWidget}
+								<span
+									class="port-type-tag"
+									style="color: {PORT_COLOR[port.type]}">{port.type}</span
+								>
+							{/if}
+							{#if port.custom && !readOnly}
+								<button
+									class="port-remove-btn"
+									title="Remove custom param"
+									aria-label="Remove custom param {port.label}"
+									onpointerdown={(e) => e.stopPropagation()}
+									onmousedown={(e) => e.stopPropagation()}
+									onclick={(e) => {
+										e.stopPropagation();
+										remove_custom_port(node.id, port.id);
+									}}
+								>
+									✕
+								</button>
+							{/if}
+						{/if}
+						{#if inlineWidget}
+							{#if port.type === "number"}
+								<input
+									class="inline-number-inrow"
+									type="number"
+									step="any"
+									placeholder={port.default_value != null
+										? String(port.default_value)
+										: "0"}
+									value={node.data?.[port.id] ?? ""}
+									oninput={(e) =>
+										ctx.ondatachange(
+											node.id,
+											port.id,
+											parseFloat(e.currentTarget.value) || 0
+										)}
+								/>
+							{:else if port.type === "boolean"}
+								<label class="inline-checkbox-inrow">
+									<input
+										type="checkbox"
+										checked={!!node.data?.[port.id]}
+										onchange={(e) =>
+											ctx.ondatachange(
+												node.id,
+												port.id,
+												e.currentTarget.checked
+											)}
+									/>
+								</label>
+							{/if}
 						{/if}
 					</div>
-					{#if !portConnected && node.kind === "transform" && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
+					{#if !portConnected && node.kind === "transform" && !inlineWidget && (port.type === "text" || port.type === "number" || port.type === "boolean" || port.type === "any" || port.type === "json")}
 						<div
 							class="port-inline-config"
 							onmousedown={(e) => e.stopPropagation()}
@@ -519,6 +826,76 @@
 							: "s"}{/if}
 				</button>
 			{/if}
+			{#if !readOnly && node.kind === "transform" && node.model_id}
+				<div
+					class="custom-param-wrap"
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{#if showCustomParamForm}
+						<div class="custom-param-form">
+							<input
+								class="custom-param-input"
+								type="text"
+								bind:value={customParamName}
+								placeholder="param name (e.g. strength)"
+								onkeydown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										submitCustomParam();
+									}
+									if (e.key === "Escape") showCustomParamForm = false;
+								}}
+							/>
+							<div class="custom-param-form-row">
+								<select
+									class="custom-param-select"
+									bind:value={customParamType}
+								>
+									<option value="text">text</option>
+									<option value="number">number</option>
+									<option value="boolean">boolean</option>
+									<option value="image">image</option>
+									<option value="audio">audio</option>
+								</select>
+								<button
+									class="custom-param-add"
+									onclick={(e) => {
+										e.stopPropagation();
+										submitCustomParam();
+									}}
+									disabled={!customParamName.trim()}
+								>
+									Add
+								</button>
+								<button
+									class="custom-param-cancel"
+									title="Cancel"
+									aria-label="Cancel adding custom param"
+									onclick={(e) => {
+										e.stopPropagation();
+										showCustomParamForm = false;
+										customParamName = "";
+									}}
+								>
+									✕
+								</button>
+							</div>
+						</div>
+					{:else}
+						<button
+							class="ports-toggle"
+							onclick={(e) => {
+								e.stopPropagation();
+								showCustomParamForm = true;
+							}}
+							title="Add a param the default schema doesn't include (e.g. provider-specific overrides)"
+						>
+							+ Add param
+						</button>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	{/if}
 
@@ -529,6 +906,7 @@
 			{widgetPortId}
 			{widgetType}
 			{isReadonly}
+			fillHeight={pinnedHeight !== null}
 			ondatachange={ctx.ondatachange}
 		/>
 	{/if}
@@ -575,8 +953,49 @@
 	{/if}
 
 	{#if status === "error" && error}
-		<div class="node-error-banner">{error}</div>
+		<div class="node-error-banner" class:expanded={errorExpanded}>
+			<div class="node-error-text">{error}</div>
+			<div class="node-error-actions">
+				<button
+					type="button"
+					class="node-error-toggle nodrag nopan"
+					onclick={(e) => {
+						e.stopPropagation();
+						void copyError();
+					}}
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{errorCopied ? "copied" : "copy"}
+				</button>
+				<button
+					type="button"
+					class="node-error-toggle nodrag nopan"
+					onclick={(e) => {
+						e.stopPropagation();
+						errorExpanded = !errorExpanded;
+					}}
+					onpointerdown={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+				>
+					{errorExpanded ? "show less" : "show more"}
+				</button>
+			</div>
+		</div>
 	{/if}
+
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="node-resize-handle nodrag nopan"
+		class:width-only={!canPinHeight}
+		onpointerdown={startResize}
+		ondblclick={resetHeight}
+		title={!canPinHeight
+			? "Drag to set width"
+			: pinnedHeight !== null
+				? "Drag to resize — double-click to fit height to content"
+				: "Drag to resize"}
+	></div>
 </div>
 
 <style>
@@ -596,6 +1015,20 @@
 		box-sizing: border-box;
 	}
 
+	/* Pinned height: lay the card out as a column so the widget zone absorbs the
+	 * slack instead of the card overflowing its own border. `min-height: 0` on
+	 * the growing child is what lets a preview shrink below its natural size. */
+	.wf-node.node-fixed-height {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	.wf-node.node-fixed-height :global(.widget-zone) {
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
 	/* Space/transform nodes get a subtle top accent to distinguish from component nodes */
 	.wf-node.node-transform {
 		background: #13141c;
@@ -610,6 +1043,12 @@
 		box-shadow:
 			0 0 0 1px var(--accent-dim),
 			0 4px 20px rgba(0, 0, 0, 0.4);
+	}
+
+	.wf-node.node-required-input {
+		border-color: var(--accent);
+		border-style: dashed;
+		box-shadow: 0 0 12px var(--accent-dim);
 	}
 
 	.wf-node.node-selected {
@@ -711,6 +1150,20 @@
 		);
 	}
 
+	/* Sits between the title and the header buttons. `flex: 0 0 auto` keeps it
+	   whole while the title takes the squeeze. */
+	.node-meta {
+		flex: 0 0 auto;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 9.5px;
+		font-weight: 500;
+		line-height: 1;
+		color: #55576a;
+		white-space: nowrap;
+		letter-spacing: 0.01em;
+		user-select: none;
+	}
+
 	.node-label-input {
 		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
@@ -808,58 +1261,81 @@
 		cursor: default;
 	}
 
+	/* Floats just off the card's top-right corner so it stops competing with
+	 * the run button in the header row. Hover-only on the card, not the button
+	 * itself, so the whole corner region reveals it. */
 	.node-delete {
-		display: none;
-		width: 20px;
-		height: 20px;
-		border: none;
-		border-radius: 4px;
-		background: transparent;
-		color: #5c5e6a;
+		display: flex;
+		visibility: hidden;
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		width: 18px;
+		height: 18px;
+		border: 1px solid #2a2b38;
+		border-radius: 50%;
+		background: #16171f;
+		color: #8b8d98;
 		font-size: 12px;
+		line-height: 1;
 		cursor: pointer;
-		flex-shrink: 0;
-		margin-left: auto;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
 		text-align: center;
+		z-index: 2;
 	}
 
 	.wf-node:hover .node-delete {
-		display: flex;
+		visibility: visible;
 	}
 
 	.node-delete:hover {
-		background: rgba(239, 68, 68, 0.15);
+		background: rgba(239, 68, 68, 0.18);
+		border-color: rgba(239, 68, 68, 0.4);
 		color: #ef4444;
 	}
 
-	/* Per-node run button — hidden by default, revealed on hover, mirrors
-	 * the node-delete affordance pattern. Stale state pulses faintly to
+	/* Per-node run button — always visible; shows the spinner in place of the
+	 * play icon while the node runs. Once the node has run, the last duration
+	 * (which doubles as an ETA on re-runs) joins the icon inside the same
+	 * pill, so hover highlights both together. Stale state pulses faintly to
 	 * signal "this needs re-running". */
 	.node-run {
-		display: none;
-		width: 20px;
+		display: flex;
+		min-width: 20px;
 		height: 20px;
 		margin-left: auto;
 		border: none;
-		border-radius: 4px;
+		border-radius: 10px;
 		background: transparent;
 		color: #5c5e6a;
 		cursor: pointer;
 		flex-shrink: 0;
 		align-items: center;
 		justify-content: center;
+		gap: 5px;
 		padding: 0;
 	}
 
-	.wf-node:hover .node-run {
-		display: flex;
+	.node-run.has-duration {
+		padding: 0 3px 0 7px;
+		background: rgba(255, 255, 255, 0.06);
 	}
 
-	.node-run + .node-delete {
-		margin-left: 2px;
+	.node-run-time {
+		color: #8b8d98;
+		font-size: 10px;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.node-run:hover .node-run-time {
+		color: inherit;
+	}
+
+	.wf-node.node-stale .node-run-time {
+		opacity: 0.55;
 	}
 
 	.node-run:hover {
@@ -901,9 +1377,9 @@
 		display: flex;
 		align-items: center;
 		gap: 7px;
-		padding: 4px 12px;
+		padding: 3px 12px;
 		position: relative;
-		min-height: 22px;
+		min-height: 20px;
 	}
 
 	.input-row {
@@ -1007,19 +1483,94 @@
 		}
 	}
 
+	.node-resize-handle {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		width: 15px;
+		height: 15px;
+		cursor: nwse-resize;
+		opacity: 0;
+		box-sizing: border-box;
+		transition: opacity 0.15s;
+		/* Widgets reach the card's bottom-right corner too — a textarea's own
+		 * grip lands exactly here — so the handle has to win the hit test. */
+		z-index: 3;
+	}
+
+	/* Transform cards resize in width only, so say so with the cursor rather
+	   than letting a diagonal arrow promise a drag that won't happen. */
+	.node-resize-handle.width-only {
+		cursor: ew-resize;
+	}
+
+	/* The two ticks that read as a resize corner. */
+	.node-resize-handle::after {
+		content: "";
+		position: absolute;
+		right: 3px;
+		bottom: 3px;
+		width: 7px;
+		height: 7px;
+		border-right: 2px solid #6b6e78;
+		border-bottom: 2px solid #6b6e78;
+		border-bottom-right-radius: 2px;
+	}
+
+	.wf-node:hover .node-resize-handle,
+	.wf-node.node-selected .node-resize-handle,
+	.wf-node.node-resizing .node-resize-handle {
+		opacity: 1;
+	}
+
 	.node-error-banner {
+		position: relative;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 9px;
 		color: #fca5a5;
 		background: rgba(239, 68, 68, 0.1);
-		border-top: 1px solid rgba(239, 68, 68, 0.2);
 		border-radius: 0 0 10px 10px;
-		padding: 6px 12px;
+		padding: 6px 12px 24px;
 		line-height: 1.4;
 		word-break: break-word;
+	}
+
+	.node-error-text {
+		max-height: 3.6em;
 		overflow: hidden;
-		max-height: 4.5em;
-		overflow-y: auto;
+		transition: max-height 0.2s ease;
+		mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+		-webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+	}
+
+	.node-error-banner.expanded .node-error-text {
+		max-height: none;
+		mask-image: none;
+		-webkit-mask-image: none;
+	}
+
+	.node-error-actions {
+		position: absolute;
+		bottom: 4px;
+		right: 8px;
+		display: flex;
+		gap: 8px;
+	}
+
+	.node-error-toggle {
+		background: none;
+		border: none;
+		padding: 0;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 8px;
+		color: rgba(252, 165, 165, 0.55);
+		cursor: pointer;
+		line-height: 1;
+		transition: color 0.15s;
+	}
+
+	.node-error-toggle:hover {
+		color: #fca5a5;
 	}
 
 	.ports-toggle {
@@ -1042,21 +1593,124 @@
 		color: #8b8d98;
 	}
 
+	/* Padding mirrors .port-inline-config so the input's left edge lines up
+	   with the other inline text inputs (Prompt / Scheduler etc.). */
+	.custom-param-form {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 1px 12px 3px 20px;
+	}
+
+	.custom-param-form-row {
+		display: flex;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.custom-param-input {
+		width: 100%;
+	}
+
+	.custom-param-select {
+		flex: 1;
+	}
+
+	.custom-param-input,
+	.custom-param-select {
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 0 7px;
+		border: 1px solid #1e1f2a;
+		border-radius: 4px;
+		background: transparent;
+		color: inherit;
+		min-width: 0;
+		box-sizing: border-box;
+		height: 24px;
+		line-height: 22px;
+	}
+
+	.custom-param-input:focus,
+	.custom-param-select:focus {
+		outline: none;
+		border-color: #3e3f4d;
+	}
+
+	.custom-param-input::placeholder {
+		color: #4a4b58;
+	}
+
+	.custom-param-add,
+	.custom-param-cancel {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 24px;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 11px;
+		font-weight: 600;
+		padding: 0 10px;
+		border: none;
+		background: transparent;
+		color: #6b6e78;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.custom-param-cancel {
+		font-size: 14px;
+		padding: 0 8px;
+	}
+
+	.custom-param-add:not(:disabled):hover,
+	.custom-param-cancel:hover {
+		color: #b8b9c4;
+	}
+
+	.custom-param-add:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+
+	.port-label-custom {
+		font-style: italic;
+	}
+
+	/* order + margin-left: auto pin ✕ to the far right after any inline
+	   widget, without stealing the widget's width. */
+	.port-remove-btn {
+		order: 999;
+		margin-left: auto;
+		padding: 0 4px;
+		border: none;
+		background: transparent;
+		color: #6b6d78;
+		font-size: 10px;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.port-remove-btn:hover {
+		color: #ef4444;
+	}
+
 	.port-inline-config {
-		padding: 2px 12px 4px 20px;
+		padding: 1px 12px 3px 20px;
 	}
 
 	.inline-input {
 		width: 100%;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
-		padding: 4px 8px;
+		padding: 3px 7px;
 		border: 1px solid #1e1f2a;
 		border-radius: 4px;
 		background: #101118;
 		color: #c8c9d2;
 		outline: none;
 		box-sizing: border-box;
+		height: 24px;
 	}
 
 	.inline-input:focus {
@@ -1073,6 +1727,40 @@
 
 	.inline-number {
 		width: 80px;
+	}
+
+	.port-row-inline {
+		display: grid;
+		grid-template-columns: 1fr 60px 20px;
+		gap: 5px;
+		align-items: center;
+	}
+
+	.inline-number-inrow {
+		width: 100%;
+		font-family: "JetBrains Mono", monospace;
+		font-size: 10px;
+		padding: 2px 6px;
+		border: 1px solid #1e1f2a;
+		border-radius: 4px;
+		background: #101118;
+		color: #c8c9d2;
+		outline: none;
+		box-sizing: border-box;
+		flex-shrink: 0;
+		height: 22px;
+	}
+
+	.inline-number-inrow:focus {
+		border-color: #3e3f4d;
+	}
+
+	.inline-number-inrow::placeholder {
+		color: #4a4b58;
+	}
+
+	.inline-checkbox-inrow {
+		cursor: pointer;
 	}
 
 	.inline-checkbox {
@@ -1097,13 +1785,19 @@
 		overflow-y: auto;
 	}
 
-	.inline-choices input[type="checkbox"] {
+	.wf-node input[type="checkbox"] {
 		width: 14px;
 		height: 14px;
-		accent-color: var(--accent);
+		border-radius: 3px;
+		border-color: #3a3b48;
 		cursor: pointer;
-		appearance: auto;
-		-webkit-appearance: checkbox;
+	}
+	.wf-node input[type="checkbox"]:checked {
+		background-color: var(--accent);
+		border-color: var(--accent);
+	}
+	:global(body:not(.dark)) .wf-node input[type="checkbox"]:not(:checked) {
+		border-color: #d0d2dc;
 	}
 
 	/* Light mode */
@@ -1118,7 +1812,45 @@
 			0 4px 20px rgba(0, 0, 0, 0.08);
 	}
 
+	:global(body:not(.dark)) .wf-node.node-required-input {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 3px var(--accent-dim);
+	}
+
+	.node-requirement {
+		flex: 0 0 auto;
+		font-size: 8.5px;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--accent);
+		background: var(--accent-dim);
+		border-radius: 3px;
+		padding: 3px 5px;
+		white-space: nowrap;
+		user-select: none;
+	}
+
+	.node-requirement-optional {
+		color: #55576a;
+		background: rgba(85, 87, 106, 0.14);
+	}
+
+	:global(body:not(.dark)) .node-meta {
+		color: #a3a6b4;
+	}
+
+	:global(body:not(.dark)) .node-requirement-optional {
+		color: #a3a6b4;
+		background: rgba(163, 166, 180, 0.16);
+	}
+
 	:global(body:not(.dark)) .node-header {
+		border-bottom-color: #e2e4ea;
+	}
+
+	:global(body:not(.dark)) .node-transform .node-header {
 		border-bottom-color: #e2e4ea;
 	}
 
@@ -1152,6 +1884,8 @@
 	}
 
 	:global(body:not(.dark)) .node-delete {
+		background: #ffffff;
+		border-color: #e2e4ea;
 		color: #9a9caa;
 	}
 
@@ -1169,8 +1903,52 @@
 		color: #c0c2cc;
 	}
 
+	:global(body:not(.dark)) .inline-number-inrow {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .inline-number-inrow::placeholder {
+		color: #c0c2cc;
+	}
+
 	:global(body:not(.dark)) .inline-checkbox {
 		color: #6b6e78;
+	}
+
+	:global(body:not(.dark)) .custom-param-input,
+	:global(body:not(.dark)) .custom-param-select {
+		background: #f8f9fb;
+		border-color: #e2e4ea;
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .custom-param-input:focus,
+	:global(body:not(.dark)) .custom-param-select:focus {
+		border-color: #b8b9c4;
+	}
+
+	:global(body:not(.dark)) .custom-param-input::placeholder {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .custom-param-add,
+	:global(body:not(.dark)) .custom-param-cancel {
+		color: #8b8d98;
+	}
+
+	:global(body:not(.dark)) .custom-param-add:not(:disabled):hover,
+	:global(body:not(.dark)) .custom-param-cancel:hover {
+		color: #1a1b25;
+	}
+
+	:global(body:not(.dark)) .port-remove-btn {
+		color: #c0c2cc;
+	}
+
+	:global(body:not(.dark)) .port-remove-btn:hover {
+		color: #ef4444;
 	}
 
 	.node-endpoint-row {
@@ -1218,5 +1996,20 @@
 	:global(body:not(.dark)) .node-endpoint-select:hover,
 	:global(body:not(.dark)) .node-endpoint-load:hover {
 		color: #3e4050;
+	}
+
+	@media (pointer: coarse) {
+		.port-handle-sf::before {
+			content: "";
+			position: absolute;
+			inset: -10px;
+			border-radius: 50%;
+		}
+		.port-handle-sf {
+			opacity: 1;
+		}
+		.node-resize-handle {
+			display: none;
+		}
 	}
 </style>
