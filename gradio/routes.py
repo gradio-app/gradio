@@ -1348,7 +1348,11 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404)
 
-            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+            # There is no broadcast to catch up with, and without EXT-X-START a
+            # player takes a playlist with no ENDLIST for a live one and opens
+            # it near the newest segment, skipping however far the generator
+            # had run ahead.
+            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-START:TIME-OFFSET=0\n"
 
             signature = request.query_params.get("__sign")
             signature_query = (
@@ -1361,10 +1365,6 @@ class App(FastAPI):
                 playlist += (  # type: ignore
                     f"{segment['id']}{segment['extension']}{signature_query}\n"
                 )
-                # HLS expects the start time of the video segments to be continuous
-                # Instead of re-encoding the user video chunks, we add a discontinuity tag
-                if segment["extension"] == ".ts":
-                    playlist += "#EXT-X-DISCONTINUITY\n"
 
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
