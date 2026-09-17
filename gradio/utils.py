@@ -1251,12 +1251,62 @@ def oauth_token_requirement(
     return None
 
 
-def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
+def get_positional_parameters(fn: Callable) -> list[inspect.Parameter]:
+    """
+    Returns the leading positional parameters of `fn`, including the ones Gradio fills in
+    itself. This is exactly the list that `helpers.special_args()` walks, so the indices
+    it reports (`progress_index`, `event_data_index`, `component_prop_indices`) are
+    indices into this list.
+    """
+    try:
+        signature = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return []
+    parameters = []
+    for parameter in signature.parameters.values():
+        if parameter.kind not in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        ):
+            break
+        parameters.append(parameter)
+    return parameters
+
+
+def get_positional_input_parameters(fn: Callable) -> list[inspect.Parameter]:
+    """
+    Returns the parameters of `fn`, in order, that the components in an event's `inputs`
+    are passed to. This is `get_positional_parameters()` minus the ones Gradio fills in
+    itself: `gr.Request`, `gr.EventData`, `gr.OAuthProfile` and `gr.OAuthToken`
+    (recognized by annotation), and `gr.Progress` and `gr.Cache` (recognized by default
+    value).
+    """
+    from gradio.caching import Cache
+    from gradio.helpers import Progress
+
+    type_hints = get_type_hints(fn)
+    return [
+        parameter
+        for parameter in get_positional_parameters(fn)
+        if not is_special_typed_parameter(parameter.name, type_hints)
+        and not isinstance(parameter.default, (Progress, Cache))
+    ]
+
+
+def check_function_inputs_match(
+    fn: Callable,
+    inputs: Sequence,
+    inputs_as_dict: bool,
+    inputs_kwargs: dict[str, Any] | None = None,
+):
     """
     Checks if the input component set matches the function
     Returns: None if valid or if the function does not have a signature (e.g. is a built in),
     or a string error message if mismatch
     """
+    from gradio.caching import Cache
+    from gradio.helpers import Progress
+
     try:
         signature = inspect.signature(fn)
     except ValueError:
@@ -1265,18 +1315,66 @@ def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: 
     min_args = 0
     max_args = 0
     infinity = -1
+    input_keyword_names = set(inputs_kwargs or {})
+    arg_count = 1 if inputs_as_dict else len(inputs)
+    # The same accounting that `special_args()` and `Blocks.call_function()` use, so that
+    # the names rejected here are exactly the ones the positional inputs will fill.
+    positional_input_names = {
+        parameter.name for parameter in get_positional_input_parameters(fn)[:arg_count]
+    }
+    accepts_kwargs = False
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
             if not is_special_typed_parameter(name, parameter_types):
-                if not has_default:
+                if not has_default and name not in input_keyword_names:
                     min_args += 1
                 max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
             max_args = infinity
-        elif param.kind == param.KEYWORD_ONLY and not has_default:
+        elif param.kind == param.VAR_KEYWORD:
+            accepts_kwargs = True
+        elif (
+            param.kind == param.KEYWORD_ONLY
+            and not has_default
+            and name not in input_keyword_names
+        ):
             return f"Keyword-only args must have default values for function {fn}"
-    arg_count = 1 if inputs_as_dict else len(inputs)
+    positional_only_keyword_names = {
+        name
+        for name in input_keyword_names
+        if name in signature.parameters
+        and signature.parameters[name].kind == inspect.Parameter.POSITIONAL_ONLY
+    }
+    if positional_only_keyword_names:
+        raise ValueError(
+            "Positional-only arguments cannot be provided through `inputs_kwargs`: "
+            f"{sorted(positional_only_keyword_names)}."
+        )
+    duplicate_names = input_keyword_names & positional_input_names
+    if duplicate_names:
+        raise ValueError(
+            "Arguments cannot be provided through both `inputs` and "
+            f"`inputs_kwargs`: {sorted(duplicate_names)}."
+        )
+    unexpected_keyword_names = input_keyword_names - signature.parameters.keys()
+    if unexpected_keyword_names and not accepts_kwargs:
+        raise ValueError(
+            f"Unexpected keyword arguments for function {fn}: "
+            f"{sorted(unexpected_keyword_names)}."
+        )
+    gradio_owned_keyword_names = {
+        name
+        for name in input_keyword_names & signature.parameters.keys()
+        if is_special_typed_parameter(name, parameter_types)
+        or isinstance(signature.parameters[name].default, (Progress, Cache))
+    }
+    if gradio_owned_keyword_names:
+        raise ValueError(
+            "Parameters that Gradio fills in itself (such as gr.Request, gr.EventData, "
+            "gr.OAuthProfile, gr.OAuthToken, gr.Progress and gr.Cache) cannot be "
+            f"provided through `inputs_kwargs`: {sorted(gradio_owned_keyword_names)}."
+        )
     if min_args == max_args and max_args != arg_count:
         warnings.warn(
             f"Expected {max_args} arguments for function {fn}, received {arg_count}."
