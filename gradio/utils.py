@@ -1251,23 +1251,17 @@ def oauth_token_requirement(
     return None
 
 
-def get_positional_input_parameters(fn: Callable) -> list[inspect.Parameter]:
+def get_positional_parameters(fn: Callable) -> list[inspect.Parameter]:
     """
-    Returns the parameters of `fn`, in order, that the components in an event's `inputs`
-    are passed to. Gradio fills in the parameters that this skips itself: `gr.Request`,
-    `gr.EventData`, `gr.OAuthProfile` and `gr.OAuthToken` (recognized by annotation), and
-    `gr.Progress` and `gr.Cache` (recognized by default value). Parameters that cannot be
-    filled positionally at all (keyword-only, `*args`, `**kwargs`) are also excluded, so
-    scanning stops at the first one, mirroring `helpers.special_args()`.
+    Returns the leading positional parameters of `fn`, including the ones Gradio fills in
+    itself. This is exactly the list that `helpers.special_args()` walks, so the indices
+    it reports (`progress_index`, `event_data_index`, `component_prop_indices`) are
+    indices into this list.
     """
-    from gradio.caching import Cache
-    from gradio.helpers import Progress
-
     try:
         signature = inspect.signature(fn)
     except (TypeError, ValueError):
         return []
-    type_hints = get_type_hints(fn)
     parameters = []
     for parameter in signature.parameters.values():
         if parameter.kind not in (
@@ -1275,12 +1269,28 @@ def get_positional_input_parameters(fn: Callable) -> list[inspect.Parameter]:
             inspect.Parameter.POSITIONAL_OR_KEYWORD,
         ):
             break
-        if is_special_typed_parameter(parameter.name, type_hints):
-            continue
-        if isinstance(parameter.default, (Progress, Cache)):
-            continue
         parameters.append(parameter)
     return parameters
+
+
+def get_positional_input_parameters(fn: Callable) -> list[inspect.Parameter]:
+    """
+    Returns the parameters of `fn`, in order, that the components in an event's `inputs`
+    are passed to. This is `get_positional_parameters()` minus the ones Gradio fills in
+    itself: `gr.Request`, `gr.EventData`, `gr.OAuthProfile` and `gr.OAuthToken`
+    (recognized by annotation), and `gr.Progress` and `gr.Cache` (recognized by default
+    value).
+    """
+    from gradio.caching import Cache
+    from gradio.helpers import Progress
+
+    type_hints = get_type_hints(fn)
+    return [
+        parameter
+        for parameter in get_positional_parameters(fn)
+        if not is_special_typed_parameter(parameter.name, type_hints)
+        and not isinstance(parameter.default, (Progress, Cache))
+    ]
 
 
 def check_function_inputs_match(

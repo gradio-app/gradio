@@ -730,6 +730,99 @@ def _get_input_parameter_names(
     return [*positional_parameter_names, *keyword_input_names]
 
 
+def _get_input_parameter_positions(
+    fn: Callable | None,
+    positional_input_count: int,
+    keyword_input_names: Sequence[str],
+) -> list[int | None]:
+    """
+    For each component in an event's `inputs` (the positional ones first, then the
+    `inputs_kwargs` ones), the index of the parameter it ends up filling, as an index
+    into `utils.get_positional_input_parameters()`. `None` means the value stays a
+    keyword argument, which is the case for keyword-only parameters and `**kwargs`.
+
+    This is the placement that `_merge_positional_keyword_inputs()` performs: positional
+    inputs keep the leading slots, and a keyword value goes to the slot its name owns.
+    `check_function_inputs_match()` rejects any overlap between the two.
+    """
+    positional_parameters = (
+        utils.get_positional_input_parameters(fn) if fn is not None else []
+    )
+    parameter_indices = {
+        parameter.name: index
+        for index, parameter in enumerate(positional_parameters)
+        if parameter.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    }
+    positions: list[int | None] = list(range(positional_input_count))
+    positions.extend(parameter_indices.get(name) for name in keyword_input_names)
+    return positions
+
+
+def _get_component_prop_inputs(
+    fn: Callable | None,
+    component_prop_indices: list[int],
+    parameter_positions: list[int | None],
+) -> list[int]:
+    """
+    Translates the component-typed parameter indices that `special_args()` reports into
+    indices into the event's `inputs`, which is how the frontend and `preprocess_data()`
+    use them. With `inputs_kwargs` the two orders differ.
+    """
+    if fn is None or not component_prop_indices:
+        return []
+    all_parameters = utils.get_positional_parameters(fn)
+    prop_parameter_names = {
+        all_parameters[index].name
+        for index in component_prop_indices
+        if index < len(all_parameters)
+    }
+    input_parameters = utils.get_positional_input_parameters(fn)
+    return [
+        input_index
+        for input_index, position in enumerate(parameter_positions)
+        if position is not None
+        and position < len(input_parameters)
+        and input_parameters[position].name in prop_parameter_names
+    ]
+
+
+def _get_component_props(
+    block_fn: BlockFunction, fn: Callable, processed_input: list[Any]
+) -> dict[int, dict[str, Any]]:
+    """
+    Collects the full component props to hand to `special_args()`, keyed the way it
+    expects: by index into `utils.get_positional_parameters()`. `block_fn`'s indices are
+    into `fn.inputs`, and `processed_input` is in parameter order with the parameters
+    Gradio injects not yet spliced in, so both have to be translated.
+    """
+    if not block_fn.component_prop_inputs:
+        return {}
+    parameter_positions = _get_input_parameter_positions(
+        fn,
+        len(block_fn.inputs) - len(block_fn.input_keyword_names),
+        block_fn.input_keyword_names,
+    )
+    input_parameters = utils.get_positional_input_parameters(fn)
+    all_parameter_indices = {
+        parameter.name: index
+        for index, parameter in enumerate(utils.get_positional_parameters(fn))
+    }
+    component_props = {}
+    for input_index in block_fn.component_prop_inputs:
+        if input_index >= len(parameter_positions):
+            continue
+        position = parameter_positions[input_index]
+        if position is None or position >= min(
+            len(processed_input), len(input_parameters)
+        ):
+            continue
+        value = processed_input[position]
+        parameter_index = all_parameter_indices.get(input_parameters[position].name)
+        if parameter_index is not None and isinstance(value, dict):
+            component_props[parameter_index] = value
+    return component_props
+
+
 def _split_call_inputs(
     block_fn: BlockFunction, processed_input: list[Any]
 ) -> tuple[list[Any], dict[str, Any]]:
@@ -945,12 +1038,17 @@ class BlocksConfig:
         _, progress_index, event_data_index, component_prop_indices = (
             special_args(fn_to_analyze) if fn_to_analyze else (None, None, None, [])
         )
-        if component_prop_inputs is None:
-            component_prop_inputs = component_prop_indices or []
-
         input_parameter_names = _get_input_parameter_names(
             fn, len(positional_inputs), list(inputs_kwargs)
         )
+        if component_prop_inputs is None:
+            component_prop_inputs = _get_component_prop_inputs(
+                fn_to_analyze,
+                component_prop_indices or [],
+                _get_input_parameter_positions(
+                    fn_to_analyze, len(positional_inputs), list(inputs_kwargs)
+                ),
+            )
 
         # If api_name is None or empty string, use the function name
         if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
@@ -1836,12 +1934,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             processed_input, input_kwargs = _merge_positional_keyword_inputs(
                 fn_to_analyze, processed_input, input_kwargs
             )
-            component_props = {}
-            for idx in block_fn.component_prop_inputs:
-                if idx < len(processed_input) and isinstance(
-                    processed_input[idx], dict
-                ):
-                    component_props[idx] = processed_input[idx]
+            component_props = _get_component_props(
+                block_fn, fn_to_analyze, processed_input
+            )
 
             processed_input, progress_index, _, _ = special_args(
                 fn_to_analyze,

@@ -1493,6 +1493,77 @@ class TestCallFunction:
                         },
                     )
 
+    @pytest.mark.asyncio
+    async def test_component_props_follow_keyword_inputs_to_their_parameter(self):
+        def show(tb: gr.Textbox, b: str):
+            return f"{type(tb).__name__}:{getattr(tb, 'label', None)}|{type(b).__name__}:{b}"
+
+        # The keys are deliberately in the opposite order to the signature.
+        with gr.Blocks() as demo:
+            t1 = gr.Textbox(value="x", label="First")
+            t2 = gr.Textbox(value="y", label="Second")
+            gr.Button().click(
+                show, None, gr.Textbox(), inputs_kwargs={"b": t2, "tb": t1}
+            )
+
+        with gr.Blocks() as positional_demo:
+            u1 = gr.Textbox(value="x", label="First")
+            u2 = gr.Textbox(value="y", label="Second")
+            gr.Button().click(show, [u1, u2], gr.Textbox())
+
+        # `component_prop_inputs` indexes `fn.inputs`, which is how both the frontend
+        # and `preprocess_data()` read it, so it must point at `t1` (the `tb` argument)
+        # even though `tb` is the first parameter and `t1` is the second input.
+        assert demo.fns[0].inputs == [t2, t1]
+        assert demo.fns[0].component_prop_inputs == [1]
+        assert positional_demo.fns[0].component_prop_inputs == [0]
+
+        def payload(block_fn):
+            return [
+                {"label": component.label, "value": component.value}
+                if index in block_fn.component_prop_inputs
+                else component.value
+                for index, component in enumerate(block_fn.inputs)
+            ]
+
+        expected = "SimpleNamespace:First|str:y"
+        for demo_to_call in (demo, positional_demo):
+            block_fn = demo_to_call.fns[0]
+            result = await demo_to_call.process_api(
+                block_fn, payload(block_fn), state=None, explicit_call=True
+            )
+            assert result["data"][0] == expected
+
+    def test_component_props_account_for_gradio_injected_parameters(self):
+        def with_request(request: gr.Request, tb: gr.Textbox):
+            return tb
+
+        with gr.Blocks() as demo:
+            textbox = gr.Textbox()
+            gr.Button().click(with_request, [textbox], gr.Textbox())
+
+        # `request` is injected by Gradio, so the single input is `tb` at index 0 of
+        # `fn.inputs`, not index 1 of the signature.
+        assert demo.fns[0].component_prop_inputs == [0]
+
+    def test_keyword_only_component_parameters_receive_plain_values(self):
+        def keyword_only(a, *, tb: gr.Textbox):
+            return tb
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            second = gr.Textbox()
+            gr.Button().click(
+                keyword_only,
+                inputs=[first],
+                inputs_kwargs={"tb": second},
+                outputs=gr.Textbox(),
+            )
+
+        # Documented limitation: `special_args()` does not look past `*`, so a
+        # keyword-only parameter gets the value rather than the component.
+        assert demo.fns[0].component_prop_inputs == []
+
     def test_dict_passed_as_inputs_points_at_inputs_kwargs(self):
         with gr.Blocks():
             tb = gr.Textbox()
