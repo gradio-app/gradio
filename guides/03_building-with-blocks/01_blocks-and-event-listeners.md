@@ -79,7 +79,9 @@ $demo_keyword_inputs_simple
 
 In this example, `first_name` is passed positionally through `inputs`, while the `last_name` component is mapped to the keyword-only `last_name` parameter. Each key in `inputs_kwargs` must match a parameter accepted by the event function. Keyword inputs can be combined with a component or list of components in `inputs`, but not with the set syntax described above, since a set already passes all input values together as one component-keyed dictionary.
 
-If the event uses a `validator`, the validator receives values with the same positional and keyword mapping as the main function. Its signature must therefore accept every name used in `inputs_kwargs`.
+If the event uses a `validator`, the validator receives values with the same positional and keyword mapping as the main function. Its signature must therefore accept every name used in `inputs_kwargs`; if it does not, the event raises a `ValueError` when it is defined.
+
+One thing to keep in mind: a parameter annotated with a component type (such as `tb: gr.Textbox`) receives the full component instead of just its value, but only when Gradio can fill it positionally. A keyword-only parameter with a component annotation receives the plain value, so annotate such parameters with the value type they actually receive.
 
 Named inputs are particularly helpful for larger forms because the mapping remains clear even when controls are arranged differently in the interface. The following live inventory dashboard connects five filter controls to explicit keyword-only parameters. Because `gr.on()` has no explicit triggers, it listens to changes from both `inputs` and `inputs_kwargs`, as well as the app's load event.
 

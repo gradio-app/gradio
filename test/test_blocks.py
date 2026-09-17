@@ -32,6 +32,7 @@ from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import ComponentProcessingError, DuplicateBlockError
+from gradio.queueing import create_validator_fn, process_validation_response
 from gradio.route_utils import API_PREFIX
 from gradio.utils import assert_configs_are_equivalent_besides_ids, cancel_tasks
 
@@ -1344,6 +1345,169 @@ class TestCallFunction:
             "Second",
             "Third",
         ]
+
+    @pytest.mark.asyncio
+    async def test_validator_receives_the_same_keyword_inputs(self):
+        received = {}
+
+        def greet(first_name, *, last_name):
+            return f"{first_name} {last_name}"
+
+        def validate(first_name, *, last_name):
+            received["first_name"] = first_name
+            received["last_name"] = last_name
+            return [gr.validate(True, ""), gr.validate(False, "bad last name")]
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+                validator=validate,
+            )
+
+        validator_fn = create_validator_fn(demo.fns[0])
+        assert validator_fn.inputs == [first_name, last_name]
+        result = await demo.call_function(validator_fn, ["Ada", "Lovelace"])
+        assert received == {"first_name": "Ada", "last_name": "Lovelace"}
+
+        is_valid, validation_data = process_validation_response(
+            result["prediction"], demo.fns[0]
+        )
+        assert is_valid is False
+        assert [data.get("parameter_name") for data in validation_data] == [
+            "first_name",
+            "last_name",
+        ]
+
+    def test_validation_parameter_names_follow_input_order(self):
+        def fn(a, b, c):
+            return a
+
+        def validate(a, b, c):
+            return None
+
+        with gr.Blocks() as demo:
+            t_a, t_b, t_c = gr.Textbox(), gr.Textbox(), gr.Textbox()
+            gr.Button().click(
+                fn,
+                inputs=[t_a],
+                inputs_kwargs={"c": t_c, "b": t_b},
+                outputs=gr.Textbox(),
+                validator=validate,
+            )
+
+        # The frontend paints validation result `i` onto `dep.inputs[i]`, so the names
+        # must follow `fn.inputs` order rather than the signature order of `fn`.
+        assert demo.fns[0].inputs == [t_a, t_c, t_b]
+        _, validation_data = process_validation_response(
+            [
+                {"__type__": "validate", "is_valid": True, "message": ""},
+                {"__type__": "validate", "is_valid": False, "message": "bad"},
+                {"__type__": "validate", "is_valid": True, "message": ""},
+            ],
+            demo.fns[0],
+        )
+        assert [data.get("parameter_name") for data in validation_data] == [
+            "a",
+            "c",
+            "b",
+        ]
+
+    def test_validator_signature_mismatch_raises_at_definition_time(self):
+        def greet(first_name, *, last_name):
+            return f"{first_name} {last_name}"
+
+        with gr.Blocks():
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            button = gr.Button()
+
+            with pytest.raises(ValueError, match="Unexpected keyword arguments"):
+                button.click(
+                    greet,
+                    inputs=[first_name],
+                    inputs_kwargs={"last_name": last_name},
+                    validator=lambda first, second: None,
+                )
+
+            # A validator that takes the keyword name is accepted, whether the name
+            # lands in a positional-or-keyword slot or a keyword-only one.
+            button.click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                validator=lambda first_name, last_name: None,
+            )
+            button.click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                validator=lambda *args, **kwargs: None,
+            )
+
+    def test_positional_inputs_skip_gradio_owned_parameters_consistently(self):
+        progress_default = gr.Progress()
+
+        def with_progress(a, progress=progress_default, b=""):
+            return a, b
+
+        with gr.Blocks() as demo:
+            x, w, z = gr.Textbox(), gr.Textbox(), gr.Textbox()
+            button = gr.Button()
+            button.click(with_progress, inputs=[x, w], outputs=gr.Textbox())
+
+            # The definition-time check knows Gradio injects `progress` itself, so it
+            # sees `w` filling `b` and catches the clash with `inputs_kwargs={"b": z}`
+            # here rather than on the first click.
+            with pytest.raises(ValueError, match="both `inputs` and `inputs_kwargs`"):
+                button.click(with_progress, inputs=[x, w], inputs_kwargs={"b": z})
+
+        # The API metadata uses that same accounting: `w` is `b`, not `progress`.
+        parameters = demo.get_api_info()["named_endpoints"]["/with_progress"][
+            "parameters"
+        ]
+        assert [p["parameter_name"] for p in parameters] == ["a", "b"]
+
+    def test_gradio_owned_parameters_cannot_be_passed_as_keyword_inputs(self):
+        def needs_request(a, request: gr.Request):
+            return a
+
+        def needs_progress(a, progress=gr.Progress()):
+            return a
+
+        with gr.Blocks():
+            x, z = gr.Textbox(), gr.Textbox()
+            button = gr.Button()
+            for fn in (needs_request, needs_progress):
+                with pytest.raises(ValueError, match="Gradio fills in itself"):
+                    button.click(
+                        fn,
+                        inputs=[x],
+                        inputs_kwargs={
+                            "request" if fn is needs_request else "progress": z
+                        },
+                    )
+
+    def test_dict_passed_as_inputs_points_at_inputs_kwargs(self):
+        with gr.Blocks():
+            tb = gr.Textbox()
+            with pytest.raises(ValueError, match="use `inputs_kwargs` instead"):
+                gr.Button().click(
+                    lambda last_name: last_name,
+                    inputs={"last_name": tb},  # type: ignore[arg-type]
+                )
+            # gr.on() infers its triggers from `inputs` before set_event_trigger runs,
+            # so it needs the same guard.
+            with pytest.raises(ValueError, match="use `inputs_kwargs` instead"):
+                gr.on(
+                    fn=lambda last_name: last_name,
+                    inputs={"last_name": tb},  # type: ignore[arg-type]
+                )
 
     def test_invalid_keyword_input_configurations_raise_at_definition_time(self):
         def named(first, second):

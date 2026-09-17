@@ -1021,6 +1021,11 @@ def on(
     root_block = get_blocks_context()
     if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
+    # Checked here as well as in set_event_trigger, because trigger inference below
+    # would otherwise iterate a dict's keys first.
+    from gradio.blocks import reject_dict_inputs
+
+    reject_dict_inputs(inputs)
     if triggers is None:
         trigger_inputs = list(inputs or [])  # type: ignore[arg-type]
         trigger_inputs.extend((inputs_kwargs or {}).values())

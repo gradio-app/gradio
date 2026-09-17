@@ -44,7 +44,7 @@ from gradio import (
 )
 from gradio.block_function import BlockFunction
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
-from gradio.caching import Cache, TrackManualCacheUsage, used_manual_cache
+from gradio.caching import TrackManualCacheUsage, used_manual_cache
 from gradio.context import (
     Context,
     LocalContext,
@@ -77,7 +77,7 @@ from gradio.exceptions import (
     ServerFailedToStartError,
     ShareCertificateWriteError,
 )
-from gradio.helpers import Progress, create_tracker, skip, special_args
+from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
@@ -654,6 +654,17 @@ def _port_is_free(host: str, port: int) -> bool:
     return True
 
 
+def reject_dict_inputs(inputs: Any) -> None:
+    """A dict is neither a Set nor a Sequence, so it would otherwise be treated as a
+    single component and fail much later with an opaque error."""
+    if isinstance(inputs, dict):
+        raise ValueError(
+            "`inputs` cannot be a dictionary. To pass component values to the event "
+            "function by parameter name, use `inputs_kwargs` instead, e.g. "
+            "`inputs_kwargs={'last_name': textbox}`."
+        )
+
+
 def _normalize_event_inputs(
     inputs: (
         Component
@@ -669,6 +680,7 @@ def _normalize_event_inputs(
     dict[str, Component | BlockContext],
     bool,
 ]:
+    reject_dict_inputs(inputs)
     if isinstance(inputs, Set):
         inputs_as_dict = True
         normalized_inputs = sorted(inputs, key=lambda component: component._id)
@@ -707,8 +719,10 @@ def _get_input_parameter_names(
     positional_parameter_names: list[str | None] = []
     if fn is not None:
         positional_parameter_names = [
-            parameter[0]
-            for parameter in utils.get_function_params(fn)[:positional_input_count]
+            parameter.name
+            for parameter in utils.get_positional_input_parameters(fn)[
+                :positional_input_count
+            ]
         ]
     positional_parameter_names.extend(
         [None] * (positional_input_count - len(positional_parameter_names))
@@ -737,20 +751,8 @@ def _merge_positional_keyword_inputs(
     """Move named positional parameters into place before injecting special args."""
     if not keyword_values:
         return positional_values, keyword_values
-    try:
-        signature = inspect.signature(fn)
-    except (TypeError, ValueError):
-        return positional_values, keyword_values
 
-    type_hints = utils.get_type_hints(fn)
-    positional_parameters = [
-        parameter
-        for parameter in signature.parameters.values()
-        if parameter.kind
-        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
-        and not isinstance(parameter.default, (Progress, Cache))
-        and not utils.is_special_typed_parameter(parameter.name, type_hints)
-    ]
+    positional_parameters = utils.get_positional_input_parameters(fn)
     merged_values = list(positional_values)
     remaining_keyword_values = dict(keyword_values)
 
@@ -781,11 +783,15 @@ def _get_api_parameter_name(
     index: int,
 ) -> str:
     reserved_names = {"api_name", "fn_index", "result_callbacks"}
-    if index < len(block_fn.input_parameter_names):
-        configured_name = block_fn.input_parameter_names[index]
-        if configured_name is not None and configured_name not in reserved_names:
-            return configured_name
-    if index < len(function_parameters):
+    if block_fn.input_parameter_names:
+        # Built by `_get_input_parameter_names()`, which already accounts for the
+        # parameters Gradio fills in itself and for `inputs_kwargs`. A `None` entry means
+        # the parameter could not be named (e.g. a `*args` function), so don't guess.
+        if index < len(block_fn.input_parameter_names):
+            configured_name = block_fn.input_parameter_names[index]
+            if configured_name is not None and configured_name not in reserved_names:
+                return configured_name
+    elif block_fn.fn and index < len(function_parameters):
         inferred_name = function_parameters[index][0]
         if inferred_name not in reserved_names:
             return inferred_name
@@ -913,6 +919,15 @@ class BlocksConfig:
             check_function_inputs_match(
                 fn, positional_inputs, inputs_as_dict, inputs_kwargs
             )
+            if validator is not None and inputs_kwargs:
+                # The validator is called with the same positional and keyword mapping as
+                # `fn`, so a name it doesn't accept would only surface as a 400 on the
+                # first click. Only checked when `inputs_kwargs` is used, so that the
+                # looser signatures that Interface and ChatInterface validators are
+                # allowed today keep working.
+                check_function_inputs_match(
+                    validator, positional_inputs, inputs_as_dict, inputs_kwargs
+                )
 
         if _targets and trigger_mode is None:
             if _targets[0][1] in ["change", "key_up"]:
