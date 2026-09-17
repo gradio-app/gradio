@@ -1028,10 +1028,7 @@ class TestVideo:
         """
         # 8 kHz is not here: one frame is 0.128 s, so a chunk this short
         # carries no encodable audio at all and ffmpeg drops the track.
-        # `test_the_lead_tolerance_is_never_under_two_frames` covers it.
-        # Two chunks, so what this measures is the top-up alone. A generator
-        # whose every chunk overruns rebuilds a lead of its own and is paid
-        # off again later; that cadence is `catch_up`'s, not the top-up's.
+        # Two chunks, so what this measures is the top-up alone.
         chunks = per_frame_chunks(tmp_path, sample_rate, count=2)
         video = gr.Video(streaming=True)
         stream_id = f"session/0/1/lookahead-{sample_rate}.m3u8"
@@ -1051,9 +1048,7 @@ class TestVideo:
         assert first is not None
         assert "audio" in stream_kinds(first["data"], tmp_path)
         # The silence it took to get that left the audio inside the tolerance,
-        # so the chunk after it is not billed for a clock the top-up moved. At
-        # 16 kHz the old lookahead left a lead of 0.223 s against a 0.1 s
-        # tolerance, and at 8 kHz one of 0.479 s.
+        # so the chunk after it is not billed for a clock the top-up moved.
         assert padded_lead <= tolerance
         # Which shows as the second segment carrying its own frame and nothing
         # else, a snap being billed to the segment that follows it.
@@ -1072,8 +1067,7 @@ class TestVideo:
         than on any drift the stream has. A frame is 0.128 s at 8 kHz against
         0.023 s at 44.1, so the floor only binds at the low end.
         """
-        # Only `frame_duration` is read, and a real encoder is an ffmpeg
-        # process; this is arithmetic and should not need one.
+        # Only `frame_duration` is read, and a real encoder is an ffmpeg process.
         encoder = cast(
             AacStreamEncoder,
             SimpleNamespace(frame_duration=AAC_FRAME_SAMPLES / output_rate),

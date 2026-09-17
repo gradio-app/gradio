@@ -40,37 +40,23 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-# Where a stream's timeline starts. B-frames give H.264 a DTS ahead of its
-# first PTS, and MPEG-TS cannot hold a negative one, so a stream anchored at
-# zero has its first segment quietly shifted forward.
+# Where a stream's timeline starts. MPEG-TS cannot hold a negative DTS, and
+# B-frames give H.264 one ahead of its first PTS, so a stream anchored at zero
+# has its first segment quietly shifted forward.
 STREAM_PTS_BASE = 10.0
 
-# How long the first segment waits for the audio it knows the chunk carries.
-# Paid once per stream and only when the encoder has not delivered, so a
-# loaded box can take its time; the frame arrives in about 8 ms on an idle one.
+# Generous because it is paid once per stream, and only when the encoder has
+# not already delivered.
 FIRST_FRAME_WAIT = 2.0
 
-# The most frames' worth of samples the encoder can be holding back before it
-# parts with its first frame: four at 44.1 and 48 kHz, two at 8, 16 and 22.05.
-# A cap rather than an amount to feed, since `first_frame` tops up a frame at a
-# time and stops at the first one out; a build that wanted more would leave the
-# first segment as it is now.
+# What the encoder holds back before parting with its first frame, measured:
+# four frames' worth at 44.1 and 48 kHz, two at 8, 16 and 22.05.
 FIRST_FRAME_LOOKAHEAD = 4
 
-# How long each of those top-ups waits before adding another frame. The first
-# frame arrives in about 8 ms on an idle box, so this is generous enough not to
-# add a frame the encoder was about to hand over anyway, and short enough that
-# walking the whole cap costs less than a tenth of a second. Too short only
-# costs an extra frame of padding, which is what feeding the cap outright did.
 FIRST_FRAME_STEP_WAIT = 0.02
 
-# How far the audio may run ahead of the video before the video is moved up to
-# it. A `-c copy` split's cuts land mid-frame and put the two tracks up to
-# 46 ms apart, measured, in a way that evens out over the stream, so that much
-# is left to float. A generator whose every chunk carries more audio than
-# video does not even out, and a tenth of a second is about where the sound
-# starts to read as early. A floor rather than the whole answer: see
-# `_audio_lead_tolerance`.
+# A `-c copy` split's cuts land mid-frame and put the two tracks up to 46 ms
+# apart in a way that evens out over the stream, so that much is left to float.
 MAX_AUDIO_LEAD = 0.1
 
 
@@ -81,13 +67,9 @@ TS_NULL_PID = 0x1FFF
 def _audio_lead_tolerance(encoder: AacStreamEncoder) -> float:
     """How far the audio may lead the video before the video is moved up to it.
 
-    `MAX_AUDIO_LEAD` alone is a fixed tenth of a second, which is less than one
-    AAC frame at 8 kHz (0.128 s) and less than two at every rate below about
-    20 kHz. The encoder can only hand audio over a whole frame at a time, so a
-    tolerance under that snaps the video clock on the encoder's own
-    granularity rather than on any drift the stream actually has - which is
-    what put a 0.26 s freeze at the head of every 16 kHz stream whose first
-    chunk was too short to complete a frame.
+    Never less than two AAC frames. The encoder can only hand audio over a
+    whole frame at a time, so a tolerance under that snaps the video clock on
+    the encoder's granularity rather than on any drift the stream has.
     """
     return max(MAX_AUDIO_LEAD, 2 * encoder.frame_duration)
 
@@ -103,10 +85,9 @@ def _continue_counters(data: bytes, counters: dict[int, int] | None) -> bytes:
         return data
     buffer = bytearray(data)
     offsets = range(0, len(buffer), TS_PACKET_SIZE)
-    # Every packet before any of them, or a segment that turned out not to be
-    # packets after all would leave `counters` advanced for the part that was
-    # walked and the original bytes returned, which is the jump this exists to
-    # prevent, on every segment after it.
+    # Checked before any are renumbered: walking part of a segment and then
+    # returning the original bytes would leave `counters` advanced, which is
+    # the jump this exists to prevent, on every segment after it.
     stray = next((o for o in offsets if buffer[o] != 0x47), None)
     if stray is not None:
         logger.debug(
@@ -151,20 +132,11 @@ class _VideoStream:
 
         Audio running ahead is the other way round, and trimming it would put
         back the very gap this stream exists to remove. Up to the lead
-        tolerance it is left where it falls; past that the video clock is
-        moved up to where the audio has reached, so the next chunk's picture
-        starts with its own sound again and the picture holds still for the
-        difference instead of the sound walking further ahead with every
-        chunk.
-
-        That correction is a cadence, not a one-off. On a generator whose
-        every chunk overruns - what `-shortest` gives from ffmpeg 7 on, 0.2 s
-        of video against 0.25 s of audio at 15 fps - the lead rebuilds and is
-        paid off again: measured at 0.18 s of held picture every sixth frame,
-        11 times over 24 chunks, stretching 4.8 s of supplied video across a
-        5.95 s timeline. Held picture is the lesser of the two evils, the same
-        input left alone putting the sound 2.2 s ahead of it after ten seconds
-        of stream, but it is not something that happens once.
+        tolerance it is left where it falls; past that the video clock is moved
+        up to the audio, so the picture holds still for the difference instead
+        of the sound walking further ahead with every chunk. On a generator
+        whose every chunk overruns, that correction is a cadence rather than a
+        one-off.
         """
         audio_end = self.samples_written / encoder.sample_rate
         if audio_end - self.video_time > _audio_lead_tolerance(encoder):
@@ -183,27 +155,16 @@ class _VideoStream:
         (`buffer-controller.ts`, "Unsupported transition"). Nothing recovers
         from that, and nothing reports it either.
 
-        Two ways to arrive here. The encoder is a process of its own, and on a
-        loaded box it can take longer to produce its first frame than the
-        startup wait allows, which is a busy server rather than a broken one
-        and worth waiting out; a chunk that has already fed it more than it
-        can be holding back adds nothing here and simply waits. Or the chunk
-        is too short to answer for: the encoder keeps a few frames back before
-        parting with the first, so no wait would conjure samples that were
-        never fed, and silence makes up the difference behind the chunk's own
-        audio rather than in front of it.
+        Two ways to arrive here. The encoder is a process of its own and can
+        be slow with its first frame on a loaded box, which is worth waiting
+        out. Or the chunk is too short to complete a frame, which no wait can
+        fix, so silence makes up the difference behind the chunk's own audio.
 
-        A frame at a time, rather than the cap outright. How many frames the
-        encoder holds is a property of the build and the rate - four at 44.1
-        and 48 kHz, two at 8, 16 and 22.05 - but what a frame costs is
-        seconds, and one at 8 kHz is 128 ms against 23 ms at 44.1. Feeding the
-        largest count at every rate put 256 ms of silence onto a 16 kHz stream
-        that wanted 128 and 512 ms onto an 8 kHz one that wanted 256, which is
-        past `_audio_lead_tolerance` at every rate below 32 kHz: the next
-        chunk then moved the video clock up to the audio and the opening
-        picture froze for as long as the padding. Topping up until a frame
-        comes out finds the count instead, so no rate pays for another rate's
-        lookahead, and what is left is inside the tolerance at every rate.
+        Topped up a frame at a time rather than by the whole cap: how many
+        frames the encoder holds back is a property of the build and the rate,
+        and feeding the cap outright puts more silence in than
+        `_audio_lead_tolerance` allows at the lower rates, which freezes the
+        opening picture for as long as the padding.
         """
         frame = AAC_FRAME_SAMPLES * encoder.sample_rate // encoder.output_rate
         for step in range(1, FIRST_FRAME_LOOKAHEAD + 1):
@@ -226,8 +187,8 @@ class _VideoStream:
         return (self.frames_emitted - 1) * encoder.frame_duration
 
 
-# One entry per live stream, keyed by the stream's playlist path. The component
-# instance is shared by every session, so it cannot hold these.
+# Keyed by playlist path. The component instance is shared by every session,
+# so it cannot hold these.
 _stream_states: dict[str, _VideoStream] = {}
 
 
@@ -698,15 +659,10 @@ class Video(StreamingOutput, Component):
         streams = data.get("streams", [])
         audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
         video = next((s for s in streams if s.get("codec_type") == "video"), None)
-        # The video's own duration first, since the audio's runs short on a
-        # `-c copy` split and `format.duration` runs long by the muxer's head
-        # start on `.ts`. A duration of zero is as useless as none at all: it
-        # would go into the playlist as `#EXTINF:0.000000`, which no player is
-        # obliged to take, and leave the video clock where it was for the next
-        # chunk to land on. ffprobe can report zero for a stream while the
-        # format carries a real value, so a zero falls through to the next
-        # source rather than aborting the run, which is what the old duration
-        # helper did by reading `format.duration`.
+        # A duration of zero is as useless as none at all: it would go into
+        # the playlist as `#EXTINF:0.000000` and leave the video clock where it
+        # was. ffprobe reports one for a stream whose format carries a real
+        # value, so it falls through rather than aborting the run.
         durations = [
             float(stream["duration"])
             for stream in (video, audio, data.get("format"))
@@ -768,10 +724,9 @@ class Video(StreamingOutput, Component):
             maps += (
                 ["-c:v", "copy", "-bsf:v", "h264_mp4toannexb"]
                 if video_codec == "h264"
-                # hls.js plays nothing else, so it is encoded, as it used to be.
-                # Pinned to yuv420p: left to itself libx264 keeps the source's
-                # pixel format, so a 10-bit or 4:4:4 chunk would come out in a
-                # High profile no browser decodes.
+                # hls.js plays nothing else, so it is encoded, as it used to
+                # be. Pinned to yuv420p, or a 10-bit or 4:4:4 chunk comes out
+                # in a High profile no browser decodes.
                 else ["-c:v", "libx264", "-pix_fmt", "yuv420p"]
             )
             pids += ["-streamid", f"{len(pids) // 2}:256"]
@@ -861,8 +816,6 @@ class Video(StreamingOutput, Component):
     def _encode_chunk(self, output_id: str, path: str) -> MediaStreamChunk | None:
         state = _stream_states.get(output_id)
         if state is None:
-            # Ended while this chunk was in flight, by a disconnect or a
-            # cancel. The run is over and nothing will play this.
             logger.debug(
                 "A streamed video chunk arrived for %s, which has no stream: "
                 "either it ended while the chunk was encoding, or it was never "
@@ -874,21 +827,16 @@ class Video(StreamingOutput, Component):
         frames: list[bytes] = []
         encoder = state.slot.encoder
         # Where the last segment left the timeline, before `catch_up` may move
-        # the video clock up to the audio: the playlist has to account for that
-        # move as well as the chunk's own length.
-        # Every advance of it is billed to exactly one segment's `duration`, so
-        # a path that returns without a segment leaves the clock as it found it.
+        # the video clock up to the audio. Every advance of it is billed to
+        # exactly one segment's `duration`, so a path that returns without a
+        # segment leaves the clock as it found it.
         placed_from = state.video_time
         # A chunk with no audio of its own belongs in here too once the stream
         # has an encoder: hls.js fixed its tracks on the first segment and will
-        # not take one that loses the audio half-way, and the two clocks have
-        # to stay level for the flush segment to land where the video ended.
+        # not take one that loses the audio half-way.
         if info["sample_rate"] is not None or encoder is not None:
             if encoder is None:
                 if placed_from > 0.0:
-                    # A stream silent throughout is fine; `first_frame` covers
-                    # an encoder too slow with the first segment. This is the
-                    # case neither of them can: sound that turns up later.
                     logger.warning(
                         "A streamed video's audio starts %.3f s in, after "
                         "segments have already gone out without it. hls.js "
@@ -914,14 +862,11 @@ class Video(StreamingOutput, Component):
             encoder.feed(pcm)
             state.samples_written += len(pcm) // (encoder.channels * 2)
             frames = encoder.take()
-            # One `take` leaves the stragglers for the next chunk, which for
-            # audio alone is the right trade. Here they have to sit alongside
-            # the chunk's own video, and a segment whose audio starts a third
-            # of a second early stops hls.js dead. So keep taking while frames
-            # are still arriving, and stop at the first empty one rather than
-            # waiting for a frame per sample fed in: the encoder holds its last
-            # frames back until the next chunk's samples arrive, so that count
-            # is never reached and every chunk paid the whole deadline for it.
+            # Frames left for the next chunk would sit alongside its video
+            # instead, and a segment whose audio starts a third of a second
+            # early stops hls.js dead. Stopped at the first empty take rather
+            # than at a predicted frame count: the encoder holds its last
+            # frames back until more samples arrive, so the count never lands.
             while more := encoder.take():
                 frames += more
             # The flag, because a failed attempt leaves `frames_emitted` at
@@ -938,13 +883,11 @@ class Video(StreamingOutput, Component):
                         FIRST_FRAME_WAIT,
                     )
         if info["video_codec"] is None and not frames:
-            # Nothing to make a segment out of: the chunk brought no video and
-            # the encoder is still holding its audio back. ffmpeg refuses a
-            # command with no input at all, which took the run down with it.
-            # The audio is not lost; it goes out with the next segment.
-            # `catch_up` may have moved the clock on the way here, and no
-            # segment is leaving to bill it. Only the clock goes back: that
-            # branch of `catch_up` feeds nothing.
+            # No video and no frames yet, and ffmpeg refuses a command with no
+            # input at all. The audio is not lost; it goes out with the next
+            # segment. No segment is leaving to bill the clock `catch_up` may
+            # have moved, so that move is given back - only the clock, since
+            # that branch of `catch_up` feeds nothing.
             state.video_time = placed_from
             return None
         audio_time = state.audio_time(encoder) if encoder else 0.0
@@ -978,9 +921,8 @@ class Video(StreamingOutput, Component):
             "meta": {"_type": "gradio.FileData"},
         }
         if first_chunk:
-            # Made on the event loop, so a cancel landing while the thread runs
-            # has something to end, and made whether or not this chunk carries
-            # video, since a stream may open on a None.
+            # Made on the event loop so a cancel landing mid-thread has
+            # something to end, and made even when the chunk is a None.
             stale = _stream_states.pop(output_id, None)
             if stale is not None:
                 stale.slot.end()
@@ -998,8 +940,7 @@ class Video(StreamingOutput, Component):
             )
             chunk = await anyio.to_thread.run_sync(self._encode_chunk, output_id, value)
         except BaseException:
-            # Until this returns and the stream exists, nothing else holds the
-            # state.
+            # Nothing else holds the state until this returns.
             if first_chunk:
                 self.end_stream_output(output_id)
             raise
@@ -1028,9 +969,8 @@ class Video(StreamingOutput, Component):
         try:
             return await anyio.to_thread.run_sync(flush_and_release)
         except BaseException:
-            # The encoder is out of the registry and the slot, so nothing else
-            # can release it: not after a flush that raised, and not after a
-            # cancel that landed before the thread was dispatched.
+            # Out of the registry and the slot already, so nothing else can
+            # release it, whether the flush raised or the cancel landed first.
             encoder.close()
             raise
 
