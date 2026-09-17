@@ -521,6 +521,21 @@ describe("Events: clear", () => {
 		expect(clear).toHaveBeenCalledTimes(1);
 	});
 
+	test("clearing keeps the configured slider_position", async () => {
+		// One image keeps the component on the uploader branch, which is where the
+		// X lives while a slider is still waiting for its second image.
+		const { get_data, getByLabelText } = await render(ImageSlider, {
+			...default_props,
+			interactive: true,
+			slider_position: 30,
+			value: [img_a, null]
+		});
+
+		await fireEvent.click(getByLabelText("Remove Image"));
+
+		expect((await get_data()).slider_position).toBe(30);
+	});
+
 	test("value is [null, null] after clicking Remove Image", async () => {
 		const { get_data, getByLabelText } = await render(ImageSlider, {
 			...default_props,

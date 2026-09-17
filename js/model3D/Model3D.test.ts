@@ -318,6 +318,24 @@ describe("Interactive mode", () => {
 		expect(data.value).toEqual(TEST_GLTF);
 	});
 
+	test("a configured camera_position is re-applied when the model changes", async () => {
+		const { get_data, set_data } = await render(Model3D, {
+			...base_props,
+			value: TEST_GLTF,
+			camera_position: [45, 60, 3]
+		});
+
+		await waitFor(async () => {
+			expect((await get_data()).camera_position).toEqual([45, 60, 3]);
+		});
+
+		await set_data({ value: TEST_PLY_MESH });
+
+		await waitFor(async () => {
+			expect((await get_data()).camera_position).toEqual([45, 60, 3]);
+		});
+	});
+
 	test("set_data to null shows upload dropzone", async () => {
 		const { set_data, getByLabelText } = await render(Model3D, {
 			...interactive_props,
