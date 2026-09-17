@@ -58,6 +58,20 @@ type StreamTextFn = (
 	params?: Record<string, string | number>
 ) => Promise<string>;
 
+/**
+ * Per-run options for `executeWorkflow`.
+ *
+ * `reuse` — ids of nodes to skip. Each one's stored `data` (the outputs of
+ * its last successful run) is seeded into the run as-is, so downstream nodes
+ * read it exactly as if the node had just executed; no Space/model/fn call
+ * is made and no `onOutput` fires for it. The canvas passes the fresh,
+ * non-stale upstream set on "run this node" so iterating on a downstream
+ * node doesn't re-invoke an expensive upstream operator.
+ */
+export interface ExecuteOptions {
+	reuse?: Set<string>;
+}
+
 async function toDataUrl(url: string): Promise<string> {
 	if (/^data:/.test(url)) return url;
 	if (/^https?:\/\//.test(url)) {
@@ -335,9 +349,11 @@ export async function executeWorkflow(
 	serverCallModel?: ServerCallModelFn,
 	serverFetchDataset?: ServerFetchDatasetFn,
 	serverCallFn?: ServerCallPyFn,
-	stream_text_generation?: StreamTextFn
+	stream_text_generation?: StreamTextFn,
+	options: ExecuteOptions = {}
 ): Promise<void> {
 	const { nodes, edges } = toLegacyShape(workflow);
+	const reuse = options.reuse ?? new Set<string>();
 	const dataMap: Record<string, Record<string, NodeDataValue>> = {};
 	const failed_nodes = new Map<string, string>();
 
@@ -391,6 +407,30 @@ export async function executeWorkflow(
 
 	async function executeNode(node: WFNode): Promise<void> {
 		if (signal?.aborted) return;
+
+		// Reused node: its last outputs already live on the node. Seed them
+		// so downstream `resolveInputs` finds them, and report done without
+		// calling anything.
+		if (reuse.has(node.id)) {
+			const seeded = { ...(node.data ?? {}) };
+			// Relay nodes (subjects / driven components) only persist the value
+			// on their input port; the live path mirrors it onto the output
+			// port in `dataMap`, so do the same here or the next node reads null.
+			const inPort = node.inputs[0];
+			const outPort = node.outputs[0];
+			if (
+				inPort &&
+				outPort &&
+				!(outPort.id in seeded) &&
+				node.kind !== "transform" &&
+				edges.some((e) => e.to_node_id === node.id)
+			) {
+				seeded[outPort.id] = seeded[inPort.id] ?? null;
+			}
+			dataMap[node.id] = seeded;
+			onStatus(node.id, "done");
+			return;
+		}
 
 		// Component nodes with no incoming edges act as inputs
 		const isComponentInput =
