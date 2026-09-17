@@ -1180,7 +1180,7 @@ def ffmpeg_failed(
     tool. A tool killed by a signal says nothing on stderr, which used to leave
     the message empty and the cause invisible, so the build is named instead:
     a crash on a file the tool itself just wrote is the build's fault and not
-    the input's. The `-version` call only runs once something has failed.
+    the input's.
     """
     detail = stderr.decode(errors="replace") if isinstance(stderr, bytes) else stderr
     detail = detail.strip()

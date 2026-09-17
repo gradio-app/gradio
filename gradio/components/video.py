@@ -944,7 +944,6 @@ class Video(StreamingOutput, Component):
             frames = encoder.flush()
             if not frames:
                 return None
-            # No video is left, so the stream ends on an audio-only segment.
             return {
                 "data": self.mux_segment(
                     None, None, b"".join(frames), 0.0, audio_time, 0.0, state.counters
