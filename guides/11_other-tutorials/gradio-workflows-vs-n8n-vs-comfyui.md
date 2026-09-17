@@ -89,6 +89,8 @@ saving is gated. locally you need the write-access link gradio prints at launch;
 
 and when a remote space blows up three hops downstream, you might have to duplicate it and fix it yourself, or change to another space.
 
+**Note! It's in beta.** `gr.Workflow` is still in beta, may have bugs, and its API and UX may change in future releases. 
+
 ## quick answers to stuff people ask
 
 **can i use any hugging face model?**
