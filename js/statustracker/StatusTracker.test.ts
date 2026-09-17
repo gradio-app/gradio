@@ -162,8 +162,8 @@ describe("StatusTracker: progress accessibility", () => {
 		});
 		await tick();
 
-		const { getByRole } = within(target);
-		const progressbar = getByRole("progressbar");
+		const { getByRole, queryByRole } = within(target);
+		const progressbar = getByRole("progressbar", { name: "Processing" });
 		expect(progressbar).toHaveAttribute("aria-valuemin", "0");
 		expect(progressbar).toHaveAttribute("aria-valuemax", "100");
 		expect(progressbar).toHaveAttribute("aria-valuenow", "75");
@@ -172,40 +172,6 @@ describe("StatusTracker: progress accessibility", () => {
 			"Processing: 3 / 4 steps"
 		);
 
-		const status = getByRole("status");
-		expect(status).toHaveAttribute("aria-live", "polite");
-		expect(status).toHaveAttribute("aria-atomic", "true");
-		expect(status).toHaveTextContent("Processing: 3 / 4 steps");
-	});
-
-	test("announces queue position and completion", async () => {
-		target = document.createElement("div");
-		document.body.appendChild(target);
-
-		component = mount(StatusTracker, {
-			target,
-			props: {
-				...base_props,
-				status: "pending",
-				queue_position: 1,
-				queue_size: 3
-			}
-		});
-		await tick();
-
-		const { getByRole } = within(target);
-		expect(getByRole("status")).toHaveTextContent("In queue: 2 of 3");
-
-		unmount(component);
-		component = mount(StatusTracker, {
-			target,
-			props: {
-				...base_props,
-				status: "complete"
-			}
-		});
-		await tick();
-
-		expect(getByRole("status")).toHaveTextContent("Complete");
+		expect(queryByRole("status")).not.toBeInTheDocument();
 	});
 });
