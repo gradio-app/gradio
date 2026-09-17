@@ -14,6 +14,7 @@ from collections import deque
 from pydub import AudioSegment
 
 from gradio import processing_utils
+from gradio.data_classes import MediaStreamChunk
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +44,10 @@ def nearest_adts_rate(sample_rate: int) -> int:
     return min(ADTS_SAMPLE_RATES, key=lambda rate: abs(rate - sample_rate))
 
 
-# How long a chunk that completes no frame waits before giving up on one, once
-# the encoder is known to be up. See `AacStreamEncoder.take`.
+# How long the first chunk waits for the encoder process to come up, and how
+# long a later chunk that completes no frame waits before giving up on one.
+# See `AacStreamEncoder.take`.
+STARTUP_WAIT = 0.1
 STEADY_WAIT = 0.005
 
 
@@ -94,11 +97,13 @@ def _read_wav_pcm(data: bytes) -> tuple[int, int, bytes] | None:
         return None
 
 
-def _ffmpeg_decode(data: bytes, sample_rate: int, channels: int) -> bytes:
+def _ffmpeg_decode(source: bytes | str, sample_rate: int, channels: int) -> bytes:
+    data = source if isinstance(source, bytes) else None
     result = subprocess.run(
         [
             "ffmpeg", "-v", "error", "-nostdin",
-            "-i", "pipe:0",
+            "-i", "pipe:0" if data is not None else source,
+            "-vn",
             "-f", "s16le", "-acodec", "pcm_s16le",
             "-ar", str(sample_rate), "-ac", str(channels),
             "pipe:1",
@@ -108,8 +113,12 @@ def _ffmpeg_decode(data: bytes, sample_rate: int, channels: int) -> bytes:
         check=False,
     )  # fmt: skip
     if result.returncode != 0:
-        detail = result.stderr.decode(errors="replace").strip()
-        raise RuntimeError(f"Could not decode the streamed audio chunk: {detail}")
+        raise processing_utils.ffmpeg_failed(
+            "ffmpeg",
+            result.returncode,
+            result.stderr,
+            "Decoding the streamed audio chunk",
+        )
     # Empty is a chunk that carries no samples, which a generator yields for a
     # tick that produced no audio; the encoder takes an empty write in stride.
     return result.stdout
@@ -137,6 +146,11 @@ def decode_to_pcm(
     return sample_rate, channels, _ffmpeg_decode(data, sample_rate, channels)
 
 
+def decode_file_to_pcm(path: str, sample_rate: int, channels: int) -> bytes:
+    """Decode a file's audio track to PCM without reading it into memory first."""
+    return _ffmpeg_decode(path, sample_rate, channels)
+
+
 class AacStreamEncoder:
     """One ffmpeg process for the whole lifetime of a streamed output.
 
@@ -147,11 +161,14 @@ class AacStreamEncoder:
     arrive in multiples of 1024 samples.
     """
 
-    def __init__(self, sample_rate: int, channels: int):
-        if not processing_utils.ffmpeg_installed():
-            raise RuntimeError(
-                "Streaming audio output requires `ffmpeg` to be installed and on PATH."
-            )
+    def __init__(
+        self,
+        sample_rate: int,
+        channels: int,
+        operation: str = "Streaming audio output",
+    ):
+        # Encoding only, so ffprobe is not wanted here.
+        processing_utils.require_ffmpeg(operation, "ffmpeg")
         self.sample_rate = sample_rate
         self.channels = channels
         # Asking for the resample rather than letting the encoder pick one:
@@ -270,18 +287,24 @@ class AacStreamEncoder:
                 f"The audio encoder exited with code {self.process.poll()}."
             ) from e
 
-    def take(self, timeout: float = 0.1) -> list[bytes]:
+    def take(self, timeout: float | None = None) -> list[bytes]:
         """Pop every whole frame the encoder has emitted so far.
 
-        `timeout` covers the encoder's startup and is paid once. A later chunk
+        Waits `STARTUP_WAIT` for the encoder to come up, once. A later chunk
         that completes no frame waits `STEADY_WAIT` and leaves its audio for
-        the next chunk or `flush()`; paying the full timeout per short chunk
+        the next chunk or `flush()`; paying the startup wait per short chunk
         held 20 ms chunks at a quarter of real time. Do not wait for a
         predicted frame count instead: the prediction is sometimes one too
         high, and then every chunk it is wrong about pays the whole timeout.
+
+        An explicit `timeout` overrides both, for the caller that cannot take
+        no frames for an answer.
         """
         with self._condition:
-            wait_for = timeout if not self._waited_for_startup else STEADY_WAIT
+            if timeout is not None:
+                wait_for = timeout
+            else:
+                wait_for = STEADY_WAIT if self._waited_for_startup else STARTUP_WAIT
             self._waited_for_startup = True
             deadline = time.monotonic() + wait_for
             while not self._ready and not self._at_eof:
@@ -360,3 +383,52 @@ class AacStreamEncoder:
                     pipe.close()
                 except OSError:
                     pass
+
+
+class EncoderSlot:
+    """A stream registry's entry, made before its encoder exists.
+
+    The encoder is created on a worker thread, and the coroutine waiting for
+    it can be cancelled without the thread being stopped, so the thread can
+    go on to publish an encoder after the coroutine is gone. The two hand
+    over under a lock: the thread attaches unless the slot has been ended,
+    and ending the slot closes whatever is attached, whichever comes first.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._ended = False
+        self.encoder: AacStreamEncoder | None = None
+
+    def attach(self, encoder: AacStreamEncoder) -> bool:
+        with self._lock:
+            if self._ended:
+                return False
+            self.encoder = encoder
+            return True
+
+    def detach(self) -> AacStreamEncoder | None:
+        """Take the encoder out and refuse any that arrives later."""
+        with self._lock:
+            self._ended = True
+            encoder, self.encoder = self.encoder, None
+            return encoder
+
+    def end(self) -> None:
+        encoder = self.detach()
+        if encoder is not None:
+            encoder.close()
+
+
+def segment_from_frames(
+    encoder: AacStreamEncoder, frames: list[bytes]
+) -> MediaStreamChunk | None:
+    if not frames:
+        return None
+    return {
+        "data": b"".join(frames),
+        # Derived from the frame count rather than from the source chunk's
+        # length, so the playlist's #EXTINF matches what the segment decodes to.
+        "duration": len(frames) * encoder.frame_duration,
+        "extension": ".aac",
+    }
