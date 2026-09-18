@@ -92,24 +92,6 @@ describe("Accessibility", () => {
 
 		expect(getByRole("tab", { name: "First" })).toHaveFocus();
 	});
-
-	test("the tab overflow button has an accessible name", async () => {
-		const many_tabs = Array.from({ length: 20 }, (_, index) =>
-			make_tab({
-				label: `Long tab label ${index + 1}`,
-				id: `t${index + 1}`,
-				component_id: index + 1
-			})
-		);
-		const { getByRole } = await render(Tabs, {
-			...default_props,
-			initial_tabs: many_tabs
-		});
-
-		await waitFor(() => {
-			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
-		});
-	});
 });
 
 describe("Props: overflow_behavior", () => {

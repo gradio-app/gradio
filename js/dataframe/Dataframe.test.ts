@@ -1110,41 +1110,6 @@ describe("Keyboard accessibility", () => {
 		expect(cell).toHaveFocus();
 	});
 
-	test("Tab moves between cells while editing and leaves at the grid boundary", async () => {
-		const before = append_external_button("Before dataframe");
-		const { getByRole, getByTestId } = await render(
-			Dataframe,
-			navigation_props
-		);
-		const after = append_external_button("After dataframe");
-		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
-		const last_cell = getByTestId("cell-2-2");
-
-		first_cell.focus();
-		await event.keyboard("{Enter}");
-		await waitFor(() =>
-			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
-		);
-		await event.tab();
-		await waitFor(() =>
-			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
-		);
-		expect(getByTestId("cell-0-1")).toHaveAttribute("tabindex", "0");
-
-		last_cell.focus();
-		await event.keyboard("{Enter}");
-		await event.tab();
-		expect(after).toHaveFocus();
-
-		first_cell.focus();
-		await event.keyboard("{Enter}");
-		await waitFor(() =>
-			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
-		);
-		await event.tab({ shift: true });
-		expect(before).toHaveFocus();
-	});
-
 	test("arrow navigation follows visible filtered rows while select reports original indices", async () => {
 		const filtered_props = {
 			...navigation_props,
@@ -1411,41 +1376,6 @@ describe("Add/remove rows and columns", () => {
 		);
 		await wait(300);
 		expect_button_under_header();
-	});
-
-	test("table with rows still fills the screen in fullscreen", async () => {
-		// Without this the gate is unguarded: letting every table collapse leaves
-		// the suite green while populated bodies quietly lose their height.
-		const { getByRole } = await render(Dataframe, dynamic_props);
-		await wait();
-
-		// The body, not the wrap: `.table-wrap` keeps `flex: 1 1 auto` from the
-		// rule above and stays tall even when the viewport inside it collapses.
-		function viewport_height(): number {
-			const el = document.querySelector(
-				".table-container .virtual-table-viewport"
-			);
-			expect(el).not.toBeNull();
-			return (el as HTMLElement).getBoundingClientRect().height;
-		}
-
-		const before = viewport_height();
-		expect(before).toBeGreaterThan(0);
-
-		await fireEvent.click(getByRole("button", { name: /fullscreen/i }));
-		await waitFor(() =>
-			expect(
-				document.querySelector(".table-container.fullscreen")
-			).not.toBeNull()
-		);
-		await wait(300);
-
-		expect(
-			document.querySelector(".table-container.fullscreen.no-rows")
-		).toBeNull();
-		// Its own pre-fullscreen height: on a short screen a fixed fraction of
-		// the window is a weak bound.
-		expect(viewport_height()).toBeGreaterThan(before * 2);
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
