@@ -2290,7 +2290,7 @@ Received inputs:
                     f"of values returned from from function {block_fn.name}"
                 ) from err
 
-            if block_fn.is_validator:
+            if block_fn.is_validator_function:
                 # A validator's outputs are the validated event's own inputs, and
                 # its return values are verdicts about them, not new values. Pass
                 # them through so the inputs are left alone and the caller still

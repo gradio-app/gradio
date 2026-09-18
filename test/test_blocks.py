@@ -1425,11 +1425,16 @@ class TestCallFunction:
             return f"{state_val} {text_val}"
 
         def validate(state_val, text_val):
+            # The payload below sends None for the State slot, so this value can
+            # only have come from the session.
+            assert state_val == "original"
             return [gr.validate(False, "bad state"), gr.validate(True, "")]
 
         with gr.Blocks() as demo:
             state = gr.State("original")
-            textbox = gr.Textbox(value="hello")
+            # Deliberately not the payload's value, so the config assertion below
+            # tells a preprocessed write apart from an untouched initial value.
+            textbox = gr.Textbox(value="initial")
             gr.Button().click(
                 greet,
                 inputs=[state, textbox],
@@ -1449,12 +1454,20 @@ class TestCallFunction:
             response["data"], demo.fns[0]
         )
         assert is_valid is False
-        assert validation_data[0] == {
-            "__type__": "validate",
-            "is_valid": False,
-            "message": "bad state",
-            "parameter_name": "state_val",
-        }
+        assert validation_data == [
+            {
+                "__type__": "validate",
+                "is_valid": False,
+                "message": "bad state",
+                "parameter_name": "state_val",
+            },
+            {
+                "__type__": "validate",
+                "is_valid": True,
+                "message": "",
+                "parameter_name": "text_val",
+            },
+        ]
 
     def test_validator_signature_mismatch_raises_at_definition_time(self):
         def greet(first_name, *, last_name):
