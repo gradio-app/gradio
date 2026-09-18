@@ -2278,6 +2278,14 @@ Received inputs:
 
         self.validate_outputs(block_fn, predictions)  # type: ignore
 
+        if block_fn.is_validator_function:
+            # A validator's outputs are the validated event's own inputs, and its
+            # return values are verdicts about them, not new values, so there is
+            # nothing to postprocess and nothing to write back. The slice mirrors
+            # the loop below, which stops at the number of outputs after
+            # validate_outputs has only warned about extra values.
+            return list(predictions[: len(block_fn.outputs)])
+
         output = []
         for i, block in enumerate(block_fn.outputs):
             try:
@@ -2289,14 +2297,6 @@ Received inputs:
                     "Number of output components does not match number "
                     f"of values returned from from function {block_fn.name}"
                 ) from err
-
-            if block_fn.is_validator_function:
-                # A validator's outputs are the validated event's own inputs, and
-                # its return values are verdicts about them, not new values. Pass
-                # them through so the inputs are left alone and the caller still
-                # sees every verdict.
-                output.append(predictions[i])
-                continue
 
             if block.stateful:
                 prediction_value = predictions[i]
