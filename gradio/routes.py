@@ -618,26 +618,34 @@ class App(FastAPI):
             """
             if not DEEP_LINK_PATTERN.fullmatch(deep_link):
                 return None, "invalid"
+            # Anchored at `deep_links` rather than at the upload directory, so
+            # that a link can only ever name something inside its own storage:
+            # `safe_join` rejects a path that escapes its base, but
+            # `deep_links/../<upload hash>/state.json` normalises to
+            # `<upload hash>/state.json`, which escapes nothing if the base is
+            # the upload directory. That matters because anyone can upload a
+            # file called `state.json` and is handed its directory in return.
+            deep_link_dir = DeveloperPath(
+                str(Path(app.uploaded_file_dir) / "deep_links")
+            )
             try:
-                # A deep link is a single path segment by construction (see
-                # `DEEP_LINK_PATTERN`), so this cannot escape the directory.
-                # `safe_join` is kept as a second line of defense, and needs a
-                # POSIX-style relative path: it rejects the OS separator, so
-                # building this with `Path` would fail on Windows.
+                # A POSIX-style relative path: `safe_join` rejects the OS
+                # separator, so building this with `Path` would fail on Windows.
                 path = Path(
                     routes_safe_join(
-                        DeveloperPath(app.uploaded_file_dir),
-                        UserProvidedPath(f"deep_links/{deep_link}/state.json"),
+                        deep_link_dir,
+                        UserProvidedPath(f"{deep_link}/state.json"),
                     )
                 )
                 components = orjson.loads(path.read_bytes())
-            except (
-                # `routes_safe_join` raises 403/404 for a link that is not a
-                # readable file; either way the link is simply unusable.
-                fastapi.HTTPException,
-                OSError,
-                orjson.JSONDecodeError,
-            ):
+            except fastapi.HTTPException as err:
+                # 403/404 mean the link does not name a readable file, so it is
+                # simply unusable. Anything else is unexpected and should not be
+                # quietly turned into an invalid link.
+                if err.status_code not in (403, 404):
+                    raise
+                return None, "invalid"
+            except (OSError, orjson.JSONDecodeError):
                 return None, "invalid"
             if page is not None:
                 components = [

@@ -3,6 +3,7 @@
 import asyncio
 import functools
 import inspect
+import io
 import json
 import math
 import os
@@ -11,7 +12,7 @@ import sys
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from threading import Event, Thread
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -294,6 +295,60 @@ class TestRoutes:
             config = response.json()
             assert config["deep_link_state"] == "invalid"
             assert "not-a-deep-link" not in json.dumps(config["components"])
+            assert {component["id"] for component in config["components"]} == {
+                component["id"] for component in full_config["components"]
+            }
+        finally:
+            demo.close()
+
+    def test_an_uploaded_state_json_cannot_be_loaded_as_a_deep_link(self):
+        """The upload route stores a file at `<upload dir>/<hash>/<name>` and
+        hands the hash back, so anyone can place a `state.json` of their
+        choosing next to `deep_links/` and knows exactly where it landed. If
+        `?deep_link=../<hash>` reached it, uploaded json would become trusted
+        component config -- and an `html` component's `js_on_load` is executed
+        with `new Function`, so that is same-origin script execution."""
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+
+            payload = [
+                {
+                    "id": 1,
+                    "type": "html",
+                    "props": {
+                        "value": "<b>hi</b>",
+                        "js_on_load": "window.__pwned = true",
+                        "visible": True,
+                    },
+                    "skip_api": True,
+                    "component_class_id": "x",
+                    "key": None,
+                }
+            ]
+            upload = client.post(
+                "/gradio_api/upload",
+                files={
+                    "files": (
+                        "state.json",
+                        io.BytesIO(json.dumps(payload).encode()),
+                        "application/json",
+                    )
+                },
+            )
+            assert upload.status_code == 200
+            upload_dir = PurePosixPath(upload.json()[0]).parent.name
+
+            response = client.get("/config", params={"deep_link": f"../{upload_dir}"})
+            assert response.status_code == 200
+            config = response.json()
+            assert config["deep_link_state"] == "invalid"
+            assert "__pwned" not in json.dumps(config["components"])
             assert {component["id"] for component in config["components"]} == {
                 component["id"] for component in full_config["components"]
             }
