@@ -193,10 +193,11 @@ describe("DependencyManager.dispatch", () => {
 		expect(painted).toContain("complete");
 	});
 
-	test("clears the progress target named by show_progress_on", async () => {
+	test("clears the show_progress_on targets but keeps the validation errors", async () => {
 		const validated = dependency(0, "validated", [10]);
 		validated.inputs = [11];
-		validated.show_progress_on = [12];
+		// 11 is an input as well as a progress target, the chatinterface shape
+		validated.show_progress_on = [11, 12];
 		const client = {
 			submit: () =>
 				(async function* () {
@@ -220,6 +221,21 @@ describe("DependencyManager.dispatch", () => {
 		expect(update_state).toHaveBeenCalledWith(
 			12,
 			{ loading_status: { status: null } },
+			false
+		);
+		expect(update_state).not.toHaveBeenCalledWith(
+			11,
+			{ loading_status: { status: null } },
+			false
+		);
+		expect(update_state).toHaveBeenCalledWith(
+			11,
+			{
+				loading_status: {
+					validation_error: "value must not be 'bad'",
+					show_validation_error: true
+				}
+			},
 			false
 		);
 	});
