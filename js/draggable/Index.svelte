@@ -58,6 +58,7 @@
 		handle.setAttribute("draggable", "true");
 		handle.setAttribute("aria-grabbed", "false");
 		handle.setAttribute("data-index", index.toString());
+		handle.setAttribute("data-testid", "drag-handle");
 		handle.innerHTML = "⋮⋮";
 
 		element.appendChild(handle);

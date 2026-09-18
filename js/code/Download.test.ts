@@ -114,8 +114,4 @@ describe("Download: link structure", () => {
 		});
 		expect(getByLabelText("Download")).toBeTruthy();
 	});
-
-	test.todo(
-		"VISUAL: clicking the download link changes the icon from Download to Check for ~2 seconds — needs Playwright screenshot comparison"
-	);
 });
