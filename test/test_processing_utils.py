@@ -511,6 +511,12 @@ class TestAudioPlayability:
         unreadable.write_bytes(b"not audio")
         assert processing_utils.audio_is_playable(str(unreadable))
 
+        # .m4b is an mp4 container under an audiobook name, so it needs no
+        # conversion any more than the same stream named .m4a would
+        m4b = tmp_path / "audiobook.m4b"
+        self._transcode(test_file_dir / "audio_sample.wav", m4b, "-c:a aac")
+        assert processing_utils.audio_is_playable(str(m4b))
+
     def test_convert_audio_remuxes_already_playable_codec(
         self, test_file_dir, tmp_path
     ):
