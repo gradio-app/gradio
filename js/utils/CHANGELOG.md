@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.14.2
+
+### Fixes
+
+- [#13847](https://github.com/gradio-app/gradio/pull/13847) [`0293306`](https://github.com/gradio-app/gradio/commit/0293306f3f25bf4cda44b6e819060edd5fcbd09e) - Encode streamed video's audio once per stream.  Thanks @hysts!
+
 ## 0.14.1
 
 ### Fixes
