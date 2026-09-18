@@ -603,21 +603,28 @@ class App(FastAPI):
         ) -> tuple[list[dict[str, Any]], Literal["valid", "invalid"]]:
             components = config["components"]
             try:
-                user_path = Path("deep_links") / deep_link / "state.json"
+                # Always a POSIX-style relative path: `safe_join` rejects the
+                # OS separator, so `Path(...)` would fail on Windows.
+                user_path = f"deep_links/{deep_link}/state.json"
                 path = Path(
                     routes_safe_join(
                         DeveloperPath(app.uploaded_file_dir),
-                        UserProvidedPath(str(user_path)),
+                        UserProvidedPath(user_path),
                     )
                 )
-                if path.exists():
-                    components = orjson.loads(path.read_bytes())
-                    deep_link_state = "valid"
-                else:
-                    deep_link_state = "invalid"
-            except (FileNotFoundError, OSError, orjson.JSONDecodeError):
+                components = orjson.loads(path.read_bytes())
+                deep_link_state = "valid"
+            except (
+                fastapi.HTTPException,
+                FileNotFoundError,
+                OSError,
+                orjson.JSONDecodeError,
+            ):
+                # A missing or unreadable deep link is reported to the frontend
+                # as an invalid link, rather than failing the whole config, and
+                # the app falls back to the components it would normally load.
                 deep_link_state = "invalid"
-                components = []
+                components = config["components"]
             if page is not None:
                 components = [
                     component

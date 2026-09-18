@@ -203,6 +203,57 @@ class TestRoutes:
         finally:
             demo.close()
 
+    def test_deep_link_is_read_with_an_os_independent_path(self, gradio_temp_dir):
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+
+            deep_link_dir = gradio_temp_dir / "deep_links" / "saved"
+            deep_link_dir.mkdir(parents=True)
+            (deep_link_dir / "state.json").write_text(
+                json.dumps(full_config["components"])
+            )
+
+            # `safe_join` rejects the OS separator, so the deep link must be
+            # looked up with a POSIX-style path on every platform.
+            response = client.get("/config?deep_link=saved")
+            assert response.status_code == 200
+            config = response.json()
+            assert config["deep_link_state"] == "valid"
+            assert {component["id"] for component in config["components"]} == {
+                component["id"] for component in full_config["components"]
+            }
+        finally:
+            demo.close()
+
+    @pytest.mark.parametrize("deep_link", ["does-not-exist", "../escaping"])
+    def test_unusable_deep_link_falls_back_to_the_default_config(self, deep_link):
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+
+            response = client.get(f"/config?deep_link={deep_link}")
+            # The frontend reports an invalid link with a toast, so the config
+            # request itself must succeed and still describe the whole app.
+            assert response.status_code == 200
+            config = response.json()
+            assert config["deep_link_state"] == "invalid"
+            assert {component["id"] for component in config["components"]} == {
+                component["id"] for component in full_config["components"]
+            }
+        finally:
+            demo.close()
+
     @pytest.mark.parametrize("first_request", ["call", "openapi"])
     def test_api_info_cache_uses_app_root(self, first_request):
         with Blocks() as demo:
