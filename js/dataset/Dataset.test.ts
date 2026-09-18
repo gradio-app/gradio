@@ -772,16 +772,3 @@ describe("Edge cases", () => {
 		});
 	});
 });
-
-test.todo(
-	"VISUAL: hovering a table row highlights it and its cell borders — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: the current page button is bold in the pagination strip — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: hovering a gallery item changes its border colour and background — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: a focused grid cell shows an accent outline — needs Playwright visual regression screenshot comparison"
-);

@@ -713,25 +713,3 @@ describe("Layers", () => {
 		).not.toBeInTheDocument();
 	});
 });
-
-test.todo(
-	"VISUAL: the editor block is dashed while empty and solid once it has a value — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: brush colour and size selections are reflected in the stroke drawn on the canvas — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: canvas_size and fixed_canvas control the drawing surface's dimensions — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: theme_mode='dark' renders the canvas chrome against a dark background — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"BROWSER: drawing a stroke with the brush dispatches change/input and enables undo — needs real pointer events over the canvas, which fireEvent cannot simulate"
-);
-test.todo(
-	"BROWSER: dropping an image file onto the editor dispatches upload and sets the background — needs a real drag-and-drop over the canvas"
-);
-test.todo(
-	"BROWSER: the webcam source needs a real MediaStream, so capturing a frame cannot be exercised here"
-);

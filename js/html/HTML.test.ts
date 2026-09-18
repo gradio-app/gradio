@@ -838,22 +838,3 @@ describe("get_data / set_data", () => {
 		);
 	});
 });
-
-test.todo(
-	"VISUAL: apply_default_css=true applies Gradio's prose styling to the rendered markup — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: apply_default_css=false leaves the rendered markup unstyled — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: min_height sets a minimum height on the html container once loading finishes — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: max_height caps the html container's height and makes it scroll — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: a pending loading_status fades the html container to 20% opacity — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: show_label adds top padding to the html container so the floating label does not overlap it — needs Playwright visual regression screenshot comparison"
-);

@@ -275,16 +275,6 @@ describe("Props: _selectable", () => {
 		await fireEvent.click(getByTestId("cat-confidence-set"));
 		expect(select).toHaveBeenCalledTimes(1);
 	});
-
-	test.todo(
-		"VISUAL: _selectable=true adds 'selectable' CSS class to confidence bars, enabling hover cursor and colour changes — needs Playwright visual regression screenshot comparison"
-	);
-});
-
-describe("Props: color", () => {
-	test.todo(
-		"VISUAL: color='red' applies a red background colour to the label heading element — needs Playwright visual regression screenshot comparison"
-	);
 });
 
 describe("Props: buttons", () => {

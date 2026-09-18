@@ -432,16 +432,3 @@ describe("Edge cases", () => {
 		).toHaveLength(1);
 	});
 });
-
-test.todo(
-	"VISUAL: orientation='row' lays children out horizontally with flex-wrap — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: orientation='column' stacks children vertically at full width — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: the drag handle is transparent until its item is hovered — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: an item being dragged is scaled up and faded, and the drop target gets a dashed border — needs Playwright visual regression screenshot comparison"
-);

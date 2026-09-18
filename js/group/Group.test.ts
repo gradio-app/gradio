@@ -90,10 +90,3 @@ describe("Children / slot", () => {
 		expect(getByTestId("slot-content")).not.toBeVisible();
 	});
 });
-
-test.todo(
-	"VISUAL: Group removes borders, border-radius, and box-shadow from child blocks via CSS variable overrides (--block-border-width: 0px, --block-radius: 0px) — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: Group uses 1px gap between children (--form-gap-width: 1px, --layout-gap: 1px), tightly grouping them without spacing — needs Playwright visual regression screenshot comparison"
-);

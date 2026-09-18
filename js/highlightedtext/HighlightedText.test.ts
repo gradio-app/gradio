@@ -837,25 +837,3 @@ describe("get_data / set_data", () => {
 		]);
 	});
 });
-
-test.todo(
-	"VISUAL: color_map assigns the given background colour to each category's tokens and legend entries — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: tokens without a category colour are auto-assigned distinct colours in order — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: hovering a legend entry dims every token from the other categories — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: score mode shades tokens from red through to green across the -1..+1 range — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: rtl=true right-aligns the tokens and the block label — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: interactive mode renders the block with a dashed border instead of a solid one — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"BROWSER: selecting a range of text inside an unlabelled token splits it and opens the label editor — needs a real text selection, which fireEvent cannot produce"
-);

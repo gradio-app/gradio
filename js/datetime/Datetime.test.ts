@@ -119,10 +119,6 @@ describe("Props: interactive", () => {
 		});
 		expect(queryByRole("button")).toBeNull();
 	});
-
-	test.todo(
-		"VISUAL: interactive=false applies subdued/disabled styling to the component — needs Playwright visual regression"
-	);
 });
 
 describe("Props: info", () => {
@@ -171,10 +167,6 @@ describe("Edge cases", () => {
 		await set_data({ value: "2021-05-20 09:00:00" });
 		expect(change).toHaveBeenCalledTimes(1);
 	});
-
-	test.todo(
-		"VISUAL: invalid format input turns the text subdued — needs Playwright visual regression screenshot comparison"
-	);
 });
 
 describe("Events", () => {

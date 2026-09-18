@@ -653,25 +653,3 @@ describe("Edge cases", () => {
 		expect(container).toHaveTextContent("a.b");
 	});
 });
-
-test.todo(
-	"VISUAL: color_map assigns the given colour to each named series — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: x_label_angle and y_label_angle rotate the axis tick labels — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: x_lim and y_lim clip the plotted marks to the given domain — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: height sizes the chart container — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: hovering a line chart thickens the nearest series — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"BROWSER: _selectable=true lets a drag across the chart brush-select an x range and dispatch `select` — needs a real pointer drag over the vega view, which fireEvent cannot simulate"
-);
-test.todo(
-	"BROWSER: tooltip='all' / 'axis' / a column list control which fields appear in the vega tooltip — the tooltip is rendered in a document-level element on real pointer hover"
-);

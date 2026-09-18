@@ -410,27 +410,3 @@ describe("Edge cases", () => {
 		expect(upload).not.toHaveBeenCalled();
 	});
 });
-
-test.todo(
-	"VISUAL: variant='primary' renders the button with primary styling — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: variant='secondary' renders the button with secondary styling — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: variant='stop' renders the button with stop/red styling — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: size='sm' renders a small button — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: size='md' renders a medium button — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: size='lg' renders a large button — needs Playwright visual regression screenshot comparison"
-);

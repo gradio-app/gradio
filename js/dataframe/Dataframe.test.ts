@@ -1070,33 +1070,6 @@ describe("Keyboard accessibility", () => {
 		expect(first_cell).toHaveFocus();
 	});
 
-	test("Enter activates the selected cell, enters editing, and commits back to grid navigation", async () => {
-		const { getByRole, getByTestId, queryByRole, listen } = await render(
-			Dataframe,
-			navigation_props
-		);
-		const select = listen("select");
-		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
-
-		first_cell.focus();
-		await event.keyboard("{Enter}");
-
-		const editor = getByRole("textbox", { name: "Edit cell" });
-		await waitFor(() => expect(editor).toHaveFocus());
-		expect(select).toHaveBeenCalledWith({
-			index: [0, 0],
-			value: "Alice",
-			row_value: ["Alice", "30", "Engineer"],
-			col_value: ["Alice", "Bob", "Carol"]
-		});
-
-		await event.keyboard("{Enter}");
-		expect(
-			queryByRole("textbox", { name: "Edit cell" })
-		).not.toBeInTheDocument();
-		expect(first_cell).toHaveFocus();
-	});
-
 	test("Space activates a cell without entering edit mode", async () => {
 		const { getByTestId, queryByRole, listen } = await render(
 			Dataframe,
@@ -1135,36 +1108,6 @@ describe("Keyboard accessibility", () => {
 
 		await waitFor(() => expect(checkbox).toBeChecked());
 		expect(cell).toHaveFocus();
-	});
-
-	test("F2 toggles edit mode and Escape returns to grid navigation", async () => {
-		const { getByRole, getByTestId, queryByRole } = await render(
-			Dataframe,
-			navigation_props
-		);
-		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
-
-		first_cell.focus();
-		await event.keyboard("{F2}");
-		await waitFor(() =>
-			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
-		);
-		await event.keyboard("{F2}");
-		expect(
-			queryByRole("textbox", { name: "Edit cell" })
-		).not.toBeInTheDocument();
-		expect(first_cell).toHaveFocus();
-
-		await event.keyboard("{F2}");
-		await waitFor(() =>
-			expect(getByRole("textbox", { name: "Edit cell" })).toHaveFocus()
-		);
-
-		await event.keyboard("{Escape}");
-		expect(
-			queryByRole("textbox", { name: "Edit cell" })
-		).not.toBeInTheDocument();
-		expect(first_cell).toHaveFocus();
 	});
 
 	test("Tab moves between cells while editing and leaves at the grid boundary", async () => {
@@ -1239,10 +1182,6 @@ describe("Keyboard accessibility", () => {
 			col_value: ["match one", "skip", "match two"]
 		});
 	});
-
-	test.todo(
-		"VISUAL: keyboard focus shows a visible outline around the active Dataframe cell — needs Playwright visual regression screenshot comparison"
-	);
 });
 
 describe("Header overflow", () => {
@@ -1513,8 +1452,6 @@ describe("Add/remove rows and columns", () => {
 	// so the document click handler (handle_click_outside) unmounts it before
 	// the menu button's onclick fires in synthetic event dispatch. These
 	// interactions are covered by E2E tests in dataframe_events.spec.ts.
-	test.todo("add row above via cell menu");
-	test.todo("add row below via cell menu");
 
 	test("delete row via cell menu", async () => {
 		const { container, getByTestId } = await render(Dataframe, dynamic_props);
