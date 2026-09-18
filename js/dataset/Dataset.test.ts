@@ -743,7 +743,9 @@ describe("Edge cases", () => {
 			samples: [["Ada"], [null], ["Grace"]]
 		});
 
-		await waitFor(() => expect(getByRole("button", { name: "Ada" })).toBeVisible());
+		await waitFor(() =>
+			expect(getByRole("button", { name: "Ada" })).toBeVisible()
+		);
 		expect(getByRole("button", { name: "Grace" })).toBeVisible();
 		expect(queryByRole("button", { name: "null" })).not.toBeInTheDocument();
 	});

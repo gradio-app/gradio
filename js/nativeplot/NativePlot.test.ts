@@ -1,10 +1,5 @@
 import { test, describe, afterEach, expect } from "vitest";
-import {
-	cleanup,
-	render,
-	fireEvent,
-	waitFor
-} from "@self/tootils/render";
+import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import NativePlot from "./Index.svelte";
@@ -609,7 +604,9 @@ describe("get_data / set_data", () => {
 		await set_data({ value: null });
 
 		await waitFor(() => {
-			expect(container.querySelector(".vega-embed svg")).not.toBeInTheDocument();
+			expect(
+				container.querySelector(".vega-embed svg")
+			).not.toBeInTheDocument();
 		});
 	});
 });

@@ -713,7 +713,9 @@ describe("Events", () => {
 		});
 		const change = listen("change");
 
-		await set_data({ value: [{ token: "Goodbye", class_or_confidence: null }] });
+		await set_data({
+			value: [{ token: "Goodbye", class_or_confidence: null }]
+		});
 
 		expect(change).toHaveBeenCalledTimes(1);
 	});
@@ -772,10 +774,10 @@ describe("get_data / set_data", () => {
 	});
 
 	test("set_data updates the rendered tokens", async () => {
-		const { set_data, getByText, queryByText } = await render(
-			HighlightedText,
-			{ interactive: false, value }
-		);
+		const { set_data, getByText, queryByText } = await render(HighlightedText, {
+			interactive: false,
+			value
+		});
 
 		await set_data({
 			value: [{ token: "Replaced", class_or_confidence: "other" }]

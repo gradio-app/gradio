@@ -1078,7 +1078,15 @@ export class ResizeTool implements Tool {
 	 * Cleans up DOM event listeners
 	 */
 	private cleanup_dom_event_listeners(): void {
-		const canvas = this.image_editor_context?.app?.canvas;
+		// Pixi's `canvas` getter dereferences the renderer, which is null once the
+		// app has been destroyed — so optional chaining on `app` is not enough when
+		// the editor is torn down before this cleanup runs.
+		let canvas: HTMLCanvasElement | undefined;
+		try {
+			canvas = this.image_editor_context?.app?.canvas;
+		} catch {
+			canvas = undefined;
+		}
 
 		if (this.dom_mousedown_handler) {
 			canvas?.removeEventListener("mousedown", this.dom_mousedown_handler);

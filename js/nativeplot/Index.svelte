@@ -384,7 +384,10 @@
 		vegaEmbed(chart_element, spec, { actions: false, renderer: "svg" }).then(
 			function (result) {
 				view = result.view;
-				resizeObserver!.observe(chart_element!);
+				// The value can be cleared while vega-embed is still resolving, which
+				// unbinds chart_element and makes observe() throw on undefined.
+				if (!chart_element) return;
+				resizeObserver!.observe(chart_element);
 				var debounceTimeout: NodeJS.Timeout;
 				var lastSelectTime = 0;
 				view.addEventListener("dblclick", () => {

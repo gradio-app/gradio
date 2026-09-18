@@ -38,10 +38,7 @@ describe("Draggable", () => {
 	});
 
 	test("renders its children", async () => {
-		const { getByTestId } = await render(
-			DraggableWithChildren,
-			default_props
-		);
+		const { getByTestId } = await render(DraggableWithChildren, default_props);
 
 		expect(getByTestId("item-a")).toBeVisible();
 		expect(getByTestId("item-b")).toBeVisible();
