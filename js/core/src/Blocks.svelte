@@ -16,8 +16,8 @@
 		LayoutNode
 	} from "./types";
 	import type { ThemeMode, Payload } from "./types";
-	import { Toast } from "@gradio/statustracker";
-	import type { ToastMessage } from "@gradio/statustracker";
+	import { LiveStatus, Toast } from "@gradio/statustracker";
+	import type { LoadingStatusArgs, ToastMessage } from "@gradio/statustracker";
 	import { type ShareData, GRADIO_ROOT } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
@@ -206,6 +206,7 @@
 
 	let api_calls: Payload[] = $state([]);
 	let last_api_call: Payload | null = $state(null);
+	let live_loading_status = $state<LoadingStatusArgs | null>(null);
 	// We need a callback to add to api_calls from the DependencyManager
 	// We can't update a state variable from inside the DependencyManager because
 	// svelte won't see it and won't update the UI.
@@ -258,7 +259,10 @@
 		app_tree.rerender.bind(app_tree),
 		new_message,
 		add_to_api_calls,
-		handle_connection_lost
+		handle_connection_lost,
+		(status) => {
+			live_loading_status = status;
+		}
 	);
 
 	$effect(() => {
@@ -538,6 +542,7 @@
 	>
 		<MountComponents node={app_tree.root} />
 	</main>
+	<LiveStatus status={live_loading_status} i18n={$reactive_formatter} />
 
 	{#if footer_links.length > 0}
 		<footer

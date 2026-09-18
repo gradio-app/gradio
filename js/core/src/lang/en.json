@@ -37,6 +37,7 @@
 		"like": "Like",
 		"dislike": "Dislike",
 		"clear": "Clear",
+		"complete": "Complete",
 		"copy_message": "Copy message",
 		"copied_message": "Copied message"
 	},
@@ -83,6 +84,7 @@
 		"language": "Language",
 		"display_theme": "Display Theme",
 		"pwa": "Progressive Web App",
+		"progress": "Progress",
 		"record": "Record",
 		"stop_recording": "Stop Recording",
 		"screen_studio": "Screen Studio",
@@ -185,6 +187,9 @@
 	},
 	"slider": {
 		"slider": "Slider"
+	},
+	"status": {
+		"queue_position": "In queue: {position} of {size}"
 	},
 	"upload_text": {
 		"click_to_upload": "Click to Upload",

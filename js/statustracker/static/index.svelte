@@ -230,6 +230,27 @@
 		};
 	});
 
+	const progress_aria = $derived.by<{
+		valuenow: number;
+		valuetext: string;
+	} | null>(() => {
+		if (progress_level.last_progress_level == null) return null;
+
+		const valuenow = Math.round(
+			Math.min(Math.max(progress_level.last_progress_level, 0), 1) * 100
+		);
+		let valuetext = `${valuenow}%`;
+		const last = progress?.[progress.length - 1];
+
+		if (last?.index != null && last?.length != null) {
+			valuetext = `${pretty_si(last.index)} / ${pretty_si(last.length)}`;
+			if (last.unit) valuetext += ` ${last.unit}`;
+		}
+		if (last?.desc) valuetext = `${last.desc}: ${valuetext}`;
+
+		return { valuenow, valuetext };
+	});
+
 	function start_timer(): void {
 		if (_timer) return;
 
@@ -441,7 +462,16 @@
 					{/if}
 				</div>
 
-				<div class="progress-bar-wrap">
+				<div
+					class="progress-bar-wrap"
+					role="progressbar"
+					aria-label={progress?.[progress.length - 1]?.desc ||
+						i18n("common.progress")}
+					aria-valuemin="0"
+					aria-valuemax="100"
+					aria-valuenow={progress_aria?.valuenow}
+					aria-valuetext={progress_aria?.valuetext}
+				>
 					<div
 						class="progress-bar"
 						style:width="{progress_level.last_progress_level * 100}%"
