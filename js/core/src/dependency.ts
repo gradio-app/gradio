@@ -216,6 +216,7 @@ export class DependencyManager {
 	rerender_cb: RerenderCallback;
 	log_cb: LogCallback;
 	on_connection_lost_cb: () => void;
+	on_loading_status_change: (status: LoadingStatusArgs) => void;
 
 	loading_stati = new LoadingStatusState();
 	connection_lost = false;
@@ -239,7 +240,8 @@ export class DependencyManager {
 			visible?: boolean
 		) => void,
 		add_to_api_calls: (payload: Payload) => void,
-		on_connection_lost_cb: () => void
+		on_connection_lost_cb: () => void,
+		on_loading_status_change: (status: LoadingStatusArgs) => void = () => {}
 	) {
 		this.add_to_api_calls = add_to_api_calls;
 		this.log_cb = log_cb;
@@ -247,6 +249,7 @@ export class DependencyManager {
 		this.get_state_cb = get_state_cb;
 		this.rerender_cb = rerender_cb;
 		this.on_connection_lost_cb = on_connection_lost_cb;
+		this.on_loading_status_change = on_loading_status_change;
 		this.client = client;
 		this.reload(
 			dependencies,
@@ -337,6 +340,14 @@ export class DependencyManager {
 		this.loading_stati.clear(component_id);
 	}
 
+	update_loading_status(status: LoadingStatusArgs): void {
+		this.loading_stati.update(status);
+		this.on_loading_status_change({
+			...status,
+			show_progress: this.loading_stati.show_progress[status.fn_index]
+		});
+	}
+
 	async update_loading_stati_state() {
 		await Promise.all(
 			Object.entries(this.loading_stati.current).map(
@@ -406,7 +417,7 @@ export class DependencyManager {
 
 				// No loading status for js-only deps
 				if (dep.functions.backend) {
-					this.loading_stati.update({
+					this.update_loading_status({
 						status: "pending",
 						fn_index: dep.id,
 						stream_state: null
@@ -536,7 +547,7 @@ export class DependencyManager {
 									});
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
-									this.loading_stati.update({
+									this.update_loading_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -550,7 +561,7 @@ export class DependencyManager {
 								) {
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
-									this.loading_stati.update({
+									this.update_loading_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -563,7 +574,7 @@ export class DependencyManager {
 											this.connection_lost = true;
 											this.on_connection_lost_cb();
 										}
-										this.loading_stati.update({
+										this.update_loading_status({
 											status: "complete",
 											fn_index: dep.id,
 											stream_state: null
@@ -626,7 +637,7 @@ export class DependencyManager {
 									throw new Error("Dependency function failed");
 								} else {
 									// @ts-ignore
-									this.loading_stati.update({
+									this.update_loading_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -637,7 +648,7 @@ export class DependencyManager {
 							}
 
 							if (result.type === "render") {
-								this.loading_stati.update({
+								this.update_loading_status({
 									status: "complete",
 									fn_index: dep.id,
 									stream_state: null
@@ -696,7 +707,7 @@ export class DependencyManager {
 						}
 					}
 				} catch (error) {
-					this.loading_stati.update({
+					this.update_loading_status({
 						status: "error",
 						fn_index: dep.id,
 						eta: 0,
@@ -886,7 +897,7 @@ export class DependencyManager {
 			const submission = this.submissions.get(id);
 			if (submission) {
 				await submission.cancel();
-				this.loading_stati.update({
+				this.update_loading_status({
 					status: "complete",
 					fn_index: id,
 					eta: 0,
@@ -959,7 +970,7 @@ export class DependencyManager {
 				this.clear_submission(fn_id);
 			}
 
-			this.loading_stati.update({
+			this.update_loading_status({
 				status: "complete",
 				fn_index: fn_id,
 				eta: 0,
