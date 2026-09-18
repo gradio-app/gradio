@@ -157,11 +157,8 @@ import tempfile
 mimetypes.init()
 register_media_mimetypes()
 
-# A deep link is the URL-safe base64 digest returned by
-# `route_utils.create_url_safe_hash`, so a genuine one only ever contains these
-# characters. Anything else is rejected before it is used to build a path,
-# which keeps path separators and `..` out of the lookup entirely instead of
-# relying on them being normalised away afterwards.
+# The alphabet of `route_utils.create_url_safe_hash`, which generates every
+# deep link. Anything else is rejected before it is used to build a path.
 DEEP_LINK_PATTERN = re.compile(r"[A-Za-z0-9_-]{1,128}")
 
 BUILT_IN_THEMES: dict[str, Theme] = {
@@ -611,20 +608,15 @@ class App(FastAPI):
             """Load the components saved under `deep_link`.
 
             Returns `None` for the components when the link cannot be used, so
-            that the caller serves the config it would have served anyway. An
-            unusable link is reported to the frontend as `"invalid"`, which it
-            surfaces with a toast over a working app, rather than failing the
-            whole request.
+            that the caller serves the config it would have served anyway.
             """
             if not DEEP_LINK_PATTERN.fullmatch(deep_link):
                 return None, "invalid"
-            # Anchored at `deep_links` rather than at the upload directory, so
-            # that a link can only ever name something inside its own storage:
-            # `safe_join` rejects a path that escapes its base, but
+            # The base has to be `deep_links`, not the upload directory:
+            # `safe_join` only rejects what escapes its base, and
             # `deep_links/../<upload hash>/state.json` normalises to
-            # `<upload hash>/state.json`, which escapes nothing if the base is
-            # the upload directory. That matters because anyone can upload a
-            # file called `state.json` and is handed its directory in return.
+            # `<upload hash>/state.json`, which escapes the upload directory
+            # not at all. Anyone can upload a file named `state.json`.
             deep_link_dir = DeveloperPath(
                 str(Path(app.uploaded_file_dir) / "deep_links")
             )
@@ -639,9 +631,7 @@ class App(FastAPI):
                 )
                 components = orjson.loads(path.read_bytes())
             except fastapi.HTTPException as err:
-                # 403/404 mean the link does not name a readable file, so it is
-                # simply unusable. Anything else is unexpected and should not be
-                # quietly turned into an invalid link.
+                # 403/404 only mean the link names no readable file.
                 if err.status_code not in (403, 404):
                     raise
                 return None, "invalid"
@@ -1219,12 +1209,9 @@ class App(FastAPI):
             config["username"] = user
             if deep_link:
                 if components is not None:
-                    # Only replace the components when the deep link actually
-                    # resolved. `config` already holds a copy of the default
-                    # ones, and assigning `source_config["components"]` here
-                    # would alias the live app config, which the root-url
-                    # rewrite below then mutates in place for every later
-                    # request.
+                    # Never assign `source_config["components"]` here: that
+                    # aliases the live app config, which the root-url rewrite
+                    # below then mutates in place for every later request.
                     config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
