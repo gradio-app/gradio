@@ -2,6 +2,12 @@
 
 ## 0.15.0
 
+### Dependency updates
+
+- @gradio/utils@0.14.2
+
+## 0.15.0
+
 ### Features
 
 - [#13805](https://github.com/gradio-app/gradio/pull/13805) [`265680d`](https://github.com/gradio-app/gradio/commit/265680d889ce9e88b402bd3d644fb28ba8dfaefc) - Load large Dropdown choices progressively on scroll.  Thanks @abidlabs!
