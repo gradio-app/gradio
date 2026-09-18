@@ -35,7 +35,7 @@ export function make_checkerboard_texture(
 	const texture = renderer.textureGenerator.generateTexture({
 		target: tile,
 		frame: new Rectangle(0, 0, cell * 2, cell * 2),
-		resolution: 1,
+		resolution: renderer.resolution,
 		textureSourceOptions: { addressMode: "repeat" }
 	});
 
