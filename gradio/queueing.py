@@ -1147,6 +1147,7 @@ def create_validator_fn(fn: BlockFunction) -> BlockFunction:
         show_progress_on=fn.show_progress_on,
         cancels=fn.cancels,
         collects_event_data=fn.collects_event_data,
+        is_validator=True,
     )
 
 

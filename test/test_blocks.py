@@ -34,6 +34,7 @@ from gradio.events import SelectData
 from gradio.exceptions import ComponentProcessingError, DuplicateBlockError
 from gradio.queueing import create_validator_fn, process_validation_response
 from gradio.route_utils import API_PREFIX
+from gradio.state_holder import SessionState
 from gradio.utils import assert_configs_are_equivalent_besides_ids, cancel_tasks
 
 pytest_plugins = ("pytest_asyncio",)
@@ -1417,6 +1418,43 @@ class TestCallFunction:
             "c",
             "b",
         ]
+
+    @pytest.mark.asyncio
+    async def test_validator_does_not_write_its_verdicts_into_the_inputs(self):
+        def greet(state_val, text_val):
+            return f"{state_val} {text_val}"
+
+        def validate(state_val, text_val):
+            return [gr.validate(False, "bad state"), gr.validate(True, "")]
+
+        with gr.Blocks() as demo:
+            state = gr.State("original")
+            textbox = gr.Textbox(value="hello")
+            gr.Button().click(
+                greet,
+                inputs=[state, textbox],
+                outputs=gr.Textbox(),
+                validator=validate,
+            )
+
+        session = SessionState(demo)
+        response = await demo.process_api(
+            create_validator_fn(demo.fns[0]), inputs=[None, "hello"], state=session
+        )
+
+        assert session[state._id] == "original"
+        assert session.config_values[textbox._id]["props"]["value"] == "hello"
+
+        is_valid, validation_data = process_validation_response(
+            response["data"], demo.fns[0]
+        )
+        assert is_valid is False
+        assert validation_data[0] == {
+            "__type__": "validate",
+            "is_valid": False,
+            "message": "bad state",
+            "parameter_name": "state_val",
+        }
 
     def test_validator_signature_mismatch_raises_at_definition_time(self):
         def greet(first_name, *, last_name):

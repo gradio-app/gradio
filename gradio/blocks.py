@@ -2290,6 +2290,14 @@ Received inputs:
                     f"of values returned from from function {block_fn.name}"
                 ) from err
 
+            if block_fn.is_validator:
+                # A validator's outputs are the validated event's own inputs, and
+                # its return values are verdicts about them, not new values. Pass
+                # them through so the inputs are left alone and the caller still
+                # sees every verdict.
+                output.append(predictions[i])
+                continue
+
             if block.stateful:
                 prediction_value = predictions[i]
                 if utils.is_prop_update(prediction_value):
