@@ -35,6 +35,7 @@ import gradio as gr
 from gradio import (
     Blocks,
     Button,
+    Image,
     Interface,
     Number,
     Textbox,
@@ -242,7 +243,7 @@ class TestRoutes:
             client = TestClient(app)
             full_config = client.get("/config").json()
 
-            response = client.get(f"/config?deep_link={deep_link}")
+            response = client.get("/config", params={"deep_link": deep_link})
             # The frontend reports an invalid link with a toast, so the config
             # request itself must succeed and still describe the whole app.
             assert response.status_code == 200
@@ -251,6 +252,104 @@ class TestRoutes:
             assert {component["id"] for component in config["components"]} == {
                 component["id"] for component in full_config["components"]
             }
+        finally:
+            demo.close()
+
+    @pytest.mark.parametrize(
+        "deep_link",
+        [
+            "../planted",
+            "nested/../../planted",
+            "./../planted",
+            "../../../../../../etc",
+            "deep_links/../../planted",
+        ],
+    )
+    def test_deep_link_cannot_read_a_file_outside_its_own_directory(
+        self, gradio_temp_dir, deep_link
+    ):
+        """A deep link is a single path segment, so it must not be able to
+        address anything outside `deep_links/`. `posixpath.normpath` collapses
+        `deep_links/../planted/state.json` down to `planted/state.json`, which
+        `safe_join` happily accepts, so the link has to be rejected before the
+        path is built rather than afterwards."""
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+
+            # Sits next to `deep_links/`, where an uploaded file would land.
+            planted = gradio_temp_dir / "planted"
+            planted.mkdir(parents=True, exist_ok=True)
+            (planted / "state.json").write_text(
+                json.dumps([{"id": 999, "secret": "not-a-deep-link"}])
+            )
+
+            response = client.get("/config", params={"deep_link": deep_link})
+            assert response.status_code == 200
+            config = response.json()
+            assert config["deep_link_state"] == "invalid"
+            assert "not-a-deep-link" not in json.dumps(config["components"])
+            assert {component["id"] for component in config["components"]} == {
+                component["id"] for component in full_config["components"]
+            }
+        finally:
+            demo.close()
+
+    def test_unusable_deep_link_does_not_mutate_the_live_config(self):
+        """`/config` must never hand out the live `blocks.config` components:
+        `update_root_in_config` rewrites file urls in place, so aliasing them
+        would bake one request's root url into every later response."""
+        with Blocks() as demo:
+            Image(value=str(Path(__file__).parent / "test_files" / "bus.png"))
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+
+            def file_urls(config):
+                return [
+                    component["props"]["value"]["url"]
+                    for component in config["components"]
+                    if isinstance(component.get("props", {}).get("value"), dict)
+                    and "url" in component["props"]["value"]
+                ]
+
+            before = file_urls(demo.config)
+            assert before and all(not url.startswith("http") for url in before)
+
+            response = client.get(
+                "/config",
+                params={"deep_link": "does-not-exist"},
+                headers={"host": "attacker.example"},
+            )
+            assert response.json()["deep_link_state"] == "invalid"
+            assert file_urls(demo.config) == before
+
+            # A later, unrelated request must still get its own root url.
+            other = client.get("/config", headers={"host": "victim.example"}).json()
+            assert all(
+                url.startswith("http://victim.example") for url in file_urls(other)
+            )
+        finally:
+            demo.close()
+
+    def test_deep_link_creation_requires_authentication(self):
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(
+            prevent_thread_lock=True, auth=("user", "pass"), quiet=True
+        )
+        try:
+            client = TestClient(app)
+            response = client.get("/gradio_api/deep_link?session_hash=whatever")
+            assert response.status_code == 401
         finally:
             demo.close()
 

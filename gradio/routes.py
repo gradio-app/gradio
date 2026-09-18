@@ -157,6 +157,13 @@ import tempfile
 mimetypes.init()
 register_media_mimetypes()
 
+# A deep link is the URL-safe base64 digest returned by
+# `route_utils.create_url_safe_hash`, so a genuine one only ever contains these
+# characters. Anything else is rejected before it is used to build a path,
+# which keeps path separators and `..` out of the lookup entirely instead of
+# relying on them being normalised away afterwards.
+DEEP_LINK_PATTERN = re.compile(r"[A-Za-z0-9_-]{1,128}")
+
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t  # type: ignore
     for t in [
@@ -600,38 +607,45 @@ class App(FastAPI):
 
         def load_deep_link(
             deep_link: str, config: BlocksConfigDict, page: str | None = None
-        ) -> tuple[list[dict[str, Any]], Literal["valid", "invalid"]]:
-            components = config["components"]
+        ) -> tuple[list[dict[str, Any]] | None, Literal["valid", "invalid"]]:
+            """Load the components saved under `deep_link`.
+
+            Returns `None` for the components when the link cannot be used, so
+            that the caller serves the config it would have served anyway. An
+            unusable link is reported to the frontend as `"invalid"`, which it
+            surfaces with a toast over a working app, rather than failing the
+            whole request.
+            """
+            if not DEEP_LINK_PATTERN.fullmatch(deep_link):
+                return None, "invalid"
             try:
-                # Always a POSIX-style relative path: `safe_join` rejects the
-                # OS separator, so `Path(...)` would fail on Windows.
-                user_path = f"deep_links/{deep_link}/state.json"
+                # A deep link is a single path segment by construction (see
+                # `DEEP_LINK_PATTERN`), so this cannot escape the directory.
+                # `safe_join` is kept as a second line of defense, and needs a
+                # POSIX-style relative path: it rejects the OS separator, so
+                # building this with `Path` would fail on Windows.
                 path = Path(
                     routes_safe_join(
                         DeveloperPath(app.uploaded_file_dir),
-                        UserProvidedPath(user_path),
+                        UserProvidedPath(f"deep_links/{deep_link}/state.json"),
                     )
                 )
                 components = orjson.loads(path.read_bytes())
-                deep_link_state = "valid"
             except (
+                # `routes_safe_join` raises 403/404 for a link that is not a
+                # readable file; either way the link is simply unusable.
                 fastapi.HTTPException,
-                FileNotFoundError,
                 OSError,
                 orjson.JSONDecodeError,
             ):
-                # A missing or unreadable deep link is reported to the frontend
-                # as an invalid link, rather than failing the whole config, and
-                # the app falls back to the components it would normally load.
-                deep_link_state = "invalid"
-                components = config["components"]
+                return None, "invalid"
             if page is not None:
                 components = [
                     component
                     for component in components
                     if component["id"] in config["page"][page]["components"]
                 ]
-            return components, deep_link_state
+            return components, "valid"
 
         def get_page_config(
             config: BlocksConfigDict,
@@ -840,7 +854,7 @@ class App(FastAPI):
                     },
                 )
 
-        @app.get("/gradio_api/deep_link")
+        @app.get("/gradio_api/deep_link", dependencies=[Depends(login_check)])
         def deep_link(session_hash: str):
             if session_hash in app.state_holder:
                 components = [
@@ -1196,7 +1210,14 @@ class App(FastAPI):
             )
             config["username"] = user
             if deep_link:
-                config["components"] = components  # type: ignore
+                if components is not None:
+                    # Only replace the components when the deep link actually
+                    # resolved. `config` already holds a copy of the default
+                    # ones, and assigning `source_config["components"]` here
+                    # would alias the live app config, which the root-url
+                    # rewrite below then mutates in place for every later
+                    # request.
+                    config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
