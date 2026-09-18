@@ -190,5 +190,37 @@ describe("DependencyManager.dispatch", () => {
 			.filter(([id]) => id === 10)
 			.map(([, state]) => state.loading_status?.status);
 		expect(painted).not.toContain("pending");
+		expect(painted).toContain("complete");
+	});
+
+	test("clears the progress target named by show_progress_on", async () => {
+		const validated = dependency(0, "validated", [10]);
+		validated.inputs = [11];
+		validated.show_progress_on = [12];
+		const client = {
+			submit: () =>
+				(async function* () {
+					yield {
+						type: "status",
+						stage: "error",
+						queue: true,
+						message: [{ is_valid: false, message: "value must not be 'bad'" }]
+					};
+				})()
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager([validated], client, update_state);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+
+		expect(update_state).toHaveBeenCalledWith(
+			12,
+			{ loading_status: { status: null } },
+			false
+		);
 	});
 });
