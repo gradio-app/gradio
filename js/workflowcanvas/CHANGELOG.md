@@ -1,5 +1,18 @@
 # @gradio/workflowcanvas
 
+## 0.12.0
+
+### Features
+
+- [#13840](https://github.com/gradio-app/gradio/pull/13840) [`aab9fcf`](https://github.com/gradio-app/gradio/commit/aab9fcf79ed77a5e5aeca8dd866b4ec94be08a70) - workflow: add styling to input nodes.  Thanks @hannahblair!
+- [#13836](https://github.com/gradio-app/gradio/pull/13836) [`abf6825`](https://github.com/gradio-app/gradio/commit/abf6825e96f9f546fa8f9d8fb378c40ad967238e) - workflow: add pending node UI.  Thanks @hannahblair!
+- [#13573](https://github.com/gradio-app/gradio/pull/13573) [`5ab610f`](https://github.com/gradio-app/gradio/commit/5ab610f1d376fc56169493495767144944ae0273) - workflow: add getting started templates.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/client@2.7.0
+
 ## 0.11.0
 
 ### Features
