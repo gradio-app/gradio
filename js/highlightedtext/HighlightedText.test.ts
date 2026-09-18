@@ -62,12 +62,7 @@ describe("HighlightedText", () => {
 
 		await fireEvent.click(removeButtons[0]);
 
-		// Twice, not once: Index.svelte's onchange handler assigns
-		// gradio.props.value and dispatches "change" itself, and the $effect
-		// watching old_value then sees the same assignment and dispatches again.
-		// Pinned here so that collapsing it to a single dispatch is a deliberate
-		// change rather than a silent one.
-		expect(change).toHaveBeenCalledTimes(2);
+		expect(change).toHaveBeenCalledTimes(1);
 	});
 
 	describe("Score mode", () => {
@@ -718,6 +713,25 @@ describe("Events", () => {
 		});
 
 		expect(change).toHaveBeenCalledTimes(1);
+	});
+
+	test("an edit and a value pushed from the server each dispatch change once", async () => {
+		const { getAllByLabelText, listen, set_data } = await render(
+			HighlightedText,
+			{
+				interactive: true,
+				value: [{ token: "Hello", class_or_confidence: "greeting" }]
+			}
+		);
+		const change = listen("change");
+
+		await fireEvent.click(getAllByLabelText("Remove label")[0]);
+		expect(change).toHaveBeenCalledTimes(1);
+
+		await set_data({
+			value: [{ token: "Goodbye", class_or_confidence: "parting" }]
+		});
+		expect(change).toHaveBeenCalledTimes(2);
 	});
 
 	test("change is not dispatched when an unrelated prop changes", async () => {

@@ -81,8 +81,11 @@
 			color_map={gradio.props.color_map}
 			onselect={(detail) => gradio.dispatch("select", detail)}
 			onchange={() => {
+				// Assigning the value is enough: the $effect above watches it and
+				// dispatches "change". Dispatching here as well fired the event
+				// twice for every edit, while a value pushed from the server only
+				// ever fired it once.
 				gradio.props.value = value;
-				gradio.dispatch("change");
 			}}
 		/>
 	{:else}
