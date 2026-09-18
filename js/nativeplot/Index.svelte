@@ -66,7 +66,9 @@
 		} else if (_sort === null) {
 			return null;
 		} else if (Array.isArray(_sort)) {
-			return _sort;
+			// Copy out of the $state proxy: vega-embed structuredClones the spec,
+			// and a proxy throws DataCloneError, leaving the chart unrendered.
+			return [..._sort];
 		}
 	}
 	let _sort = $derived(reformat_sort(gradio.props.sort));
