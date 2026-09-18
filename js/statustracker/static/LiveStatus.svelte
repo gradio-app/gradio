@@ -91,17 +91,20 @@
 		});
 	}
 
+	// Every announcement, including terminal ones, goes through this throttle so
+	// that a frequently re-triggered dependency (a gr.Timer tick, say) collapses
+	// into a single trailing announcement instead of one per run.
 	function announce(
 		message: string,
 		fn_index: number,
-		{ force = false, milestone }: { force?: boolean; milestone?: number } = {}
+		milestone?: number
 	): void {
 		pending_announcement = { message, fn_index, milestone };
 
 		const wait =
 			MILLISECONDS_BETWEEN_ANNOUNCEMENTS -
 			(performance.now() - last_announcement_time);
-		if (force || wait <= 0) {
+		if (wait <= 0) {
 			if (flush_timeout) clearTimeout(flush_timeout);
 			flush_timeout = null;
 			flush();
@@ -115,6 +118,10 @@
 
 	$effect(() => {
 		if (status === null) return;
+		// `show_progress="hidden"` (which is what `show_progress=False` and the
+		// default for `gr.Timer.tick` resolve to) suppresses the visual progress
+		// indicator, so it must suppress the spoken one too.
+		if (status.show_progress === "hidden") return;
 
 		const previous_status = previous_statuses.get(status.fn_index);
 		const status_changed = previous_status !== status.status;
@@ -122,13 +129,13 @@
 
 		if (status.status === "complete") {
 			announced_milestones.delete(status.fn_index);
-			announce(i18n("common.complete"), status.fn_index, { force: true });
+			announce(i18n("common.complete"), status.fn_index);
 			return;
 		}
 
 		if (status.status === "error") {
 			announced_milestones.delete(status.fn_index);
-			announce(i18n("common.error"), status.fn_index, { force: true });
+			announce(i18n("common.error"), status.fn_index);
 			return;
 		}
 
@@ -143,10 +150,7 @@
 		const progress = get_progress_announcement(status);
 		const announced_milestone = announced_milestones.get(status.fn_index) ?? 0;
 		if (progress && progress.milestone > announced_milestone) {
-			announce(progress.message, status.fn_index, {
-				force: status_changed,
-				milestone: progress.milestone
-			});
+			announce(progress.message, status.fn_index, progress.milestone);
 			return;
 		}
 
@@ -156,15 +160,14 @@
 					position: status.position + 1,
 					size: status.size
 				}),
-				status.fn_index,
-				{ force: status_changed }
+				status.fn_index
 			);
 			return;
 		}
 
 		if (status_changed) {
 			announced_milestones.set(status.fn_index, 0);
-			announce(i18n("common.loading"), status.fn_index, { force: true });
+			announce(i18n("common.loading"), status.fn_index);
 		}
 	});
 

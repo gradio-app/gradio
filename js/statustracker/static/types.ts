@@ -41,6 +41,7 @@ export interface LoadingStatusArgs {
 	eta?: ILoadingStatus["eta"];
 	message?: ILoadingStatus["message"];
 	progress_data?: ILoadingStatus["progress"];
+	show_progress?: ILoadingStatus["show_progress"];
 	time_limit?: ILoadingStatus["time_limit"];
 	type?: "input" | "output" | "skip";
 	stream_state: "open" | "closed" | "waiting" | null;

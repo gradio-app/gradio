@@ -342,7 +342,10 @@ export class DependencyManager {
 
 	update_loading_status(status: LoadingStatusArgs): void {
 		this.loading_stati.update(status);
-		this.on_loading_status_change({ ...status });
+		this.on_loading_status_change({
+			...status,
+			show_progress: this.loading_stati.show_progress[status.fn_index]
+		});
 	}
 
 	async update_loading_stati_state() {
