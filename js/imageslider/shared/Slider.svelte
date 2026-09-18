@@ -14,6 +14,7 @@
 		image_size = { top: 0, left: 0, width: 0, height: 0 },
 		el = $bindable<HTMLDivElement | undefined>(undefined),
 		parent_el = $bindable<HTMLDivElement | undefined>(undefined),
+		onposition,
 		children
 	}: {
 		position?: number;
@@ -27,6 +28,7 @@
 		};
 		el?: HTMLDivElement;
 		parent_el?: HTMLDivElement;
+		onposition?: (position: number) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -55,7 +57,8 @@
 
 	function update_position(x: number): void {
 		px = clamp(x, 0, container_width);
-		position = round((x - image_size.left) / image_size.width, 5);
+		position = clamp(round((x - image_size.left) / image_size.width, 5), 0, 1);
+		onposition?.(position);
 	}
 
 	function drag_start(event: any): void {

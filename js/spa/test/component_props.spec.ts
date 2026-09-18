@@ -65,4 +65,67 @@ test("component props", async ({ page }) => {
 	await expect(imageOutputJson).toContainText('"width": 300');
 	await expect(imageOutputJson).toContainText('"height": 300');
 	await expect(imageOutputJson).toContainText("cheetah.jpg");
+
+	const modelCanvas = page.locator("#model3d-props canvas");
+	const modelOutputJson = page.locator("#model3d-output");
+	const showModelPropsBtn = page.getByRole("button", {
+		name: "Show Model3D Props"
+	});
+	const resetModelCameraBtn = page.getByRole("button", {
+		name: "Reset Model3D Camera"
+	});
+
+	await expect(modelCanvas).toBeVisible();
+	await showModelPropsBtn.click();
+	await expect(modelOutputJson).toContainText('"static_exact"');
+	const initialModelProps = await modelOutputJson.textContent();
+
+	await expect
+		.poll(
+			async () => {
+				await modelCanvas.hover();
+				await page.mouse.wheel(0, 200);
+				await showModelPropsBtn.click();
+				return modelOutputJson.textContent();
+			},
+			{ timeout: 15_000 }
+		)
+		.not.toBe(initialModelProps);
+
+	await resetModelCameraBtn.click();
+	await showModelPropsBtn.click();
+	await expect(modelOutputJson).toContainText('"static_exact": true');
+	await expect(modelOutputJson).toContainText('"editable_exact": true');
+
+	const sliderHandle = page.locator(
+		'#imageslider-props [data-testid="slider"]'
+	);
+	const sliderOutputJson = page.locator("#imageslider-output");
+	const showSliderPropsBtn = page.getByRole("button", {
+		name: "Show Slider Props"
+	});
+	const resetSliderBtn = page.getByRole("button", {
+		name: "Restore Slider Position"
+	});
+
+	await showSliderPropsBtn.click();
+	await expect(sliderOutputJson).toContainText('"exact": true');
+
+	const sliderBox = await sliderHandle.boundingBox();
+	if (!sliderBox) throw new Error("slider handle has no bounding box");
+	await page.mouse.move(
+		sliderBox.x + sliderBox.width / 2,
+		sliderBox.y + sliderBox.height / 2
+	);
+	await page.mouse.down();
+	await page.mouse.move(sliderBox.x + 120, sliderBox.y + sliderBox.height / 2, {
+		steps: 10
+	});
+	await page.mouse.up();
+	await showSliderPropsBtn.click();
+	await expect(sliderOutputJson).toContainText('"exact": false');
+
+	await resetSliderBtn.click();
+	await showSliderPropsBtn.click();
+	await expect(sliderOutputJson).toContainText('"exact": true');
 });
