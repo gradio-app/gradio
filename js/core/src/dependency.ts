@@ -583,6 +583,14 @@ export class DependencyManager {
 										break submit_loop;
 									}
 									if (Array.isArray(result?.message)) {
+										// Settle this run's status: a pending entry left behind
+										// here is repainted by the next event, which restarts
+										// the spinner.
+										this.update_loading_status({
+											status: "complete",
+											fn_index: dep.id,
+											stream_state: null
+										});
 										result.message.forEach((m: ValidationError, i) => {
 											this.update_state_cb(
 												dep.inputs[i],
@@ -600,7 +608,9 @@ export class DependencyManager {
 										// Doing this in update_loading_stati_state would
 										// validation errors set above
 										// For example, if the input component is an output component (chatinterface)
-										dep.outputs.forEach((output_id) => {
+										const progress_outputs =
+											dep.show_progress_on || dep.outputs;
+										progress_outputs.forEach((output_id) => {
 											if (dep.inputs.includes(output_id)) return;
 											this.update_state_cb(
 												output_id,
