@@ -591,11 +591,17 @@ export class DependencyManager {
 										// Settle this run's status: a pending entry left behind
 										// here is repainted by the next event, and since it
 										// keeps its time_start the spinner resumes from the
-										// original click and never stops.
+										// original click and never stops. Closing the stream
+										// first brings the input components into that settle,
+										// since resolve_args skips them while stream_state is
+										// null.
+										if (dep.connection_type === "stream") {
+											stream_state = "closed";
+										}
 										this.update_loading_status({
 											status: "complete",
 											fn_index: dep.id,
-											stream_state: null
+											stream_state
 										});
 										result.message.forEach((m: ValidationError, i) => {
 											this.update_state_cb(

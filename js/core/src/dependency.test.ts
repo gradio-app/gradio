@@ -239,4 +239,58 @@ describe("DependencyManager.dispatch", () => {
 			false
 		);
 	});
+
+	test("settles the input components of a rejected stream event", async () => {
+		const validated = dependency(0, "validated", [10]);
+		validated.inputs = [11];
+		validated.connection = "stream";
+		const messages: Record<number, unknown[]> = {
+			// The queued status opens the stream, which is what puts the input
+			// component into the loading status in the first place.
+			0: [
+				{ type: "status", stage: "pending", queue: true },
+				{
+					type: "status",
+					stage: "error",
+					queue: true,
+					message: [{ is_valid: false, message: "value must not be 'bad'" }]
+				}
+			],
+			1: [{ type: "status", stage: "complete", queue: true }]
+		};
+		const client = {
+			submit: (fn_index: number) =>
+				(async function* () {
+					yield* messages[fn_index];
+				})()
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[validated, dependency(1, "unrelated", [20])],
+			client,
+			update_state
+		);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		update_state.mockClear();
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 1,
+			event_data: null
+		});
+
+		const painted = update_state.mock.calls
+			.filter(([id]) => id === 11)
+			.map(([, state]) => state.loading_status);
+		expect(painted.map((status) => status?.status)).not.toContain("pending");
+		// Webcam and InteractiveAudio decide whether to drop incoming chunks from
+		// stream_state alone, so settling the status is not enough on its own.
+		expect(painted.map((status) => status?.stream_state)).not.toContain(
+			"waiting"
+		);
+	});
 });
