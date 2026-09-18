@@ -6,7 +6,8 @@ import {
 	type Container
 } from "pixi.js";
 
-// Matches the checkerboard on the colour picker's opacity slider (ColorPicker.svelte).
+// Same cell size as the colour picker's opacity slider (ColorPicker.svelte), though
+// the greys below are lighter, since this sits behind an image rather than a swatch.
 export const CHECKERBOARD_CELL_SIZE = 10;
 
 /**
