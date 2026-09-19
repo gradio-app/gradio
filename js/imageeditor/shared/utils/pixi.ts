@@ -1,4 +1,49 @@
-import { Graphics, Rectangle, type Renderer, type Container } from "pixi.js";
+import {
+	Graphics,
+	Rectangle,
+	Texture,
+	type Renderer,
+	type Container
+} from "pixi.js";
+
+// Same cell size as the colour picker's opacity slider (ColorPicker.svelte), though
+// the greys below are lighter, since this sits behind an image rather than a swatch.
+export const CHECKERBOARD_CELL_SIZE = 10;
+
+/**
+ * Builds the two-cell tile that the transparency checkerboard repeats.
+ * @param renderer The pixi renderer.
+ * @param dark Whether to use the dark variant of the pattern.
+ * @returns A texture that tiles into a checkerboard.
+ */
+export function make_checkerboard_texture(
+	renderer: Renderer,
+	dark: boolean
+): Texture {
+	const cell = CHECKERBOARD_CELL_SIZE;
+	const [light, shade] = dark ? [0x3f3f3f, 0x333333] : [0xffffff, 0xe5e5e5];
+
+	const tile = new Graphics()
+		.rect(0, 0, cell * 2, cell * 2)
+		.fill({ color: light })
+		.rect(0, 0, cell, cell)
+		.fill({ color: shade })
+		.rect(cell, cell, cell, cell)
+		.fill({ color: shade });
+
+	// `addressMode` has to be set through `textureSourceOptions` so the source is
+	// created repeatable; assigning it afterwards leaves the tile clamped.
+	const texture = renderer.textureGenerator.generateTexture({
+		target: tile,
+		frame: new Rectangle(0, 0, cell * 2, cell * 2),
+		resolution: renderer.resolution,
+		textureSourceOptions: { addressMode: "repeat" }
+	});
+
+	tile.destroy();
+
+	return texture;
+}
 
 /**
  * Creates a pixi graphics object.
