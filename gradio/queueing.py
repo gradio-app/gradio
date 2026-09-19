@@ -303,12 +303,6 @@ class Queue:
                 "queue_full",
             )
 
-        if body.session_hash:
-            session_state = self.blocks.state_holder[body.session_hash]
-            fn = session_state.blocks_config.fns[body.fn_index]
-        else:
-            fn = self.blocks.fns[body.fn_index]
-
         fn = route_utils.get_fn(self.blocks, None, body)
         self.create_event_queue_for_fn(fn)
         if fn.validator is not None:
@@ -326,13 +320,6 @@ class Queue:
                 root_path=self.blocks.app.root_path,
             )
             validator_fn = create_validator_fn(fn)
-
-            event = Event(
-                body.session_hash,
-                validator_fn,
-                request,
-                username,
-            )
             try:
                 response = await route_utils.call_process_api(
                     app=self.blocks.app,
@@ -1147,6 +1134,7 @@ def create_validator_fn(fn: BlockFunction) -> BlockFunction:
         show_progress_on=fn.show_progress_on,
         cancels=fn.cancels,
         collects_event_data=fn.collects_event_data,
+        is_validator_function=True,
     )
 
 

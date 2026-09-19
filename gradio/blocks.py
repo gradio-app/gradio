@@ -2278,6 +2278,9 @@ Received inputs:
 
         self.validate_outputs(block_fn, predictions)  # type: ignore
 
+        if block_fn.is_validator_function:
+            return list(predictions[: len(block_fn.outputs)])
+
         output = []
         for i, block in enumerate(block_fn.outputs):
             try:

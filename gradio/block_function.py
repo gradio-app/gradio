@@ -64,6 +64,7 @@ class BlockFunction:
         js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
+        is_validator_function: bool = False,
     ):
         self.fn = fn
         self._id = _id
@@ -103,6 +104,7 @@ class BlockFunction:
         self.render_iteration = render_iteration
         self.page = page
         self.validator = validator
+        self.is_validator_function = is_validator_function
         if js_implementation:
             self.fn.__js_implementation__ = js_implementation  # type: ignore
 
