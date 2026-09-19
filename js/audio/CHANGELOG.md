@@ -2,6 +2,13 @@
 
 ## 0.24.3
 
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/client@2.7.0
+
+## 0.24.3
+
 ### Features
 
 - [#13806](https://github.com/gradio-app/gradio/pull/13806) [`17f0e9e`](https://github.com/gradio-app/gradio/commit/17f0e9e54d38d66ad3e8a8271aec98688173068b) - Fix Audio stream reload timing and repeated recording previews.  Thanks @abidlabs!
