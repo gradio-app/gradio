@@ -1245,6 +1245,10 @@ PLAYABLE_AUDIO_CODECS = frozenset(
         (".mp3", "mp3"),
         (".m4a", "aac"),
         (".m4a", "alac"),
+        # .m4b is the same mp4 container under an audiobook name, and is
+        # already served as audio/mp4, so browsers decode it like any .m4a.
+        (".m4b", "aac"),
+        (".m4b", "alac"),
         (".mp4", "aac"),
         (".aac", "aac"),
         (".flac", "flac"),
