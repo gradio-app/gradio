@@ -93,6 +93,11 @@ export class Dependency {
 		}
 	}
 
+	/** The components this event's loading status is registered against. */
+	get progress_targets(): number[] {
+		return this.show_progress_on || this.outputs;
+	}
+
 	async run(
 		client: client_return,
 		data_payload: unknown[],
@@ -288,8 +293,8 @@ export class DependencyManager {
 			if (new_dep.connection_type !== old_dep.connection_type) continue;
 			this.loading_stati.remap_ids(
 				old_dep.id,
-				old_dep.show_progress_on || old_dep.outputs,
-				new_dep.show_progress_on || new_dep.outputs,
+				old_dep.progress_targets,
+				new_dep.progress_targets,
 				old_dep.inputs,
 				new_dep.inputs
 			);
@@ -329,7 +334,7 @@ export class DependencyManager {
 		for (const [_, dep] of deps) {
 			this.loading_stati.register(
 				dep.id,
-				dep.show_progress_on || dep.outputs,
+				dep.progress_targets,
 				dep.inputs,
 				dep.show_progress
 			);
@@ -583,6 +588,21 @@ export class DependencyManager {
 										break submit_loop;
 									}
 									if (Array.isArray(result?.message)) {
+										// Settle this run's status: a pending entry left behind
+										// here is repainted by the next event, and since it
+										// keeps its time_start the spinner resumes from the
+										// original click and never stops. Closing the stream
+										// first brings the input components into that settle,
+										// since resolve_args skips them while stream_state is
+										// null.
+										if (dep.connection_type === "stream") {
+											stream_state = "closed";
+										}
+										this.update_loading_status({
+											status: "complete",
+											fn_index: dep.id,
+											stream_state
+										});
 										result.message.forEach((m: ValidationError, i) => {
 											this.update_state_cb(
 												dep.inputs[i],
@@ -597,10 +617,10 @@ export class DependencyManager {
 										});
 
 										// Manually set the output statuses to null
-										// Doing this in update_loading_stati_state would
+										// Doing this in update_loading_stati_state would clobber the
 										// validation errors set above
 										// For example, if the input component is an output component (chatinterface)
-										dep.outputs.forEach((output_id) => {
+										dep.progress_targets.forEach((output_id) => {
 											if (dep.inputs.includes(output_id)) return;
 											this.update_state_cb(
 												output_id,
