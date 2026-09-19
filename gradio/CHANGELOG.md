@@ -1,5 +1,11 @@
 # gradio
 
+## 6.28.1
+
+### Fixes
+
+- [#13870](https://github.com/gradio-app/gradio/pull/13870) [`15ce437`](https://github.com/gradio-app/gradio/commit/15ce43720d1611f44e4661c74d604eabe0d04daf) - Stop validators from overwriting their own inputs.  Thanks @hysts!
+
 ## 6.28.0
 
 ### Features
