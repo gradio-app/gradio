@@ -1,5 +1,16 @@
 # website
 
+## 0.81.0
+
+### Features
+
+- [#13857](https://github.com/gradio-app/gradio/pull/13857) [`ab78649`](https://github.com/gradio-app/gradio/commit/ab786498b48927214d1692e84559933d7076b129) - Remove outdated Chinese documentation.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/tabitem@0.9.0
+- @gradio/tabs@0.11.0
+
 ## 0.80.2
 
 ### Features

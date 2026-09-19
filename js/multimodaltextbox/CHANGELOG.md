@@ -2,6 +2,13 @@
 
 ## 0.14.2
 
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/client@2.7.0
+
+## 0.14.2
+
 ### Fixes
 
 - [#13802](https://github.com/gradio-app/gradio/pull/13802) [`d857094`](https://github.com/gradio-app/gradio/commit/d857094868c85167dd332b6093a3914dee960840) - Handle a paste in `gr.MultimodalTextbox` as text or as an image, not both.  Thanks @hysts!
