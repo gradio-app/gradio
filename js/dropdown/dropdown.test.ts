@@ -98,6 +98,20 @@ describe("Single-select: Rendering", () => {
 		expect(input.value).toBe("Banana Display");
 	});
 
+	test("renders the display name when null is a choice value", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			...single_select_props,
+			choices: [
+				["Default", null],
+				["Option A", "a"]
+			],
+			value: null
+		});
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		expect(input).toHaveValue("Default");
+	});
+
 	test("renders empty input when value is null", async () => {
 		const { getByLabelText } = await render(Dropdown, {
 			...single_select_props,
@@ -564,6 +578,27 @@ describe("Single-select: Selection", () => {
 		expect(input.value).toBe("Banana Display");
 		const data = await get_data();
 		expect(data.value).toBe("banana_val");
+	});
+
+	test("clicking an option with a null value keeps its display name", async () => {
+		const { getByLabelText, getAllByTestId, get_data } = await render(
+			Dropdown,
+			{
+				...single_select_props,
+				choices: [
+					["Default", null],
+					["Option A", "a"]
+				],
+				value: "a"
+			}
+		);
+
+		const input = getByLabelText("Dropdown") as HTMLInputElement;
+		await input.focus();
+		await event.click(getAllByTestId("dropdown-option")[0]);
+
+		expect(input).toHaveValue("Default");
+		expect((await get_data()).value).toBeNull();
 	});
 
 	test("arrow down then Enter selects first option", async () => {
