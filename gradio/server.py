@@ -274,10 +274,19 @@ class Server(App):
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         num_workers: int | None = None,
+        oauth: bool = False,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 
-        Parameters match ``Blocks.launch()``; see that method for full descriptions.
+        Parameters match ``Blocks.launch()``; see that method for full descriptions,
+        with one addition:
+
+        Parameters:
+            oauth: If True, mount the "Sign in with Hugging Face" routes
+                (``/login/huggingface``, ``/login/callback``, ``/logout``). A Blocks
+                app gets these from a `gr.LoginButton`; Server mode has no
+                components, so it asks for them here. Outside a Space the routes are
+                mocked with your locally logged-in profile.
 
         Returns:
             Tuple of (fastapi_app, local_url, share_url).
@@ -288,6 +297,8 @@ class Server(App):
         with Blocks(mode="server") as blocks:
             for fn, api_kwargs in self._deferred_apis:
                 gr_api(fn=fn, **api_kwargs)
+
+        blocks._expects_oauth = oauth
 
         os.environ["GRADIO_SERVER_MODE_ENABLED"] = "1"
 
