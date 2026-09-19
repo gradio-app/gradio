@@ -1425,15 +1425,11 @@ class TestCallFunction:
             return f"{state_val} {text_val}"
 
         def validate(state_val, text_val):
-            # The payload below sends None for the State slot, so this value can
-            # only have come from the session.
             assert state_val == "original"
             return [gr.validate(False, "bad state"), gr.validate(True, "")]
 
         with gr.Blocks() as demo:
             state = gr.State("original")
-            # Deliberately not the payload's value, so the config assertion below
-            # tells a preprocessed write apart from an untouched initial value.
             textbox = gr.Textbox(value="initial")
             gr.Button().click(
                 greet,
