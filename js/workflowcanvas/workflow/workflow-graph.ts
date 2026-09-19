@@ -196,3 +196,48 @@ export function buildUpstreamSubgraph(
 		)
 	};
 }
+
+/**
+ * Upstream nodes whose stored outputs can stand in for a fresh run when
+ * "run this node" is invoked on `targetId`: every transitive dependency
+ * that last ran successfully and is not stale (its inputs — and, via
+ * `computeStaleNodes`' propagation, its upstreams' inputs — are unchanged
+ * since that run).
+ *
+ * Only operators are reused — they're the expensive calls. References and
+ * subjects are cheap relays that re-seed from stored data anyway, and a
+ * subject only persists its input-port value, so letting it run keeps the
+ * output-port mirroring on the normal path.
+ *
+ * The target itself is never included: clicking Run on a node always
+ * executes that node. Nothing downstream of the target is included either;
+ * the one-hop downstream nodes `buildUpstreamSubgraph` adds are there
+ * precisely to be refreshed with the new output.
+ */
+export function reusableUpstreamNodes(
+	workflow: Workflow,
+	targetId: string,
+	nodeStatus: Record<string, NodeStatus>,
+	staleNodes: Set<string>
+): Set<string> {
+	const upstream = new Set<string>();
+	const queue = [targetId];
+	while (queue.length) {
+		const cur = queue.shift()!;
+		for (const e of workflow.edges) {
+			if (e.to_node_id === cur && !upstream.has(e.from_node_id)) {
+				upstream.add(e.from_node_id);
+				queue.push(e.from_node_id);
+			}
+		}
+	}
+	upstream.delete(targetId);
+	const operators = new Set(workflow.operators.map((n) => n.id));
+	const reusable = new Set<string>();
+	for (const id of upstream) {
+		if (operators.has(id) && nodeStatus[id] === "done" && !staleNodes.has(id)) {
+			reusable.add(id);
+		}
+	}
+	return reusable;
+}
