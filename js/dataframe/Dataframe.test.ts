@@ -1070,6 +1070,73 @@ describe("Keyboard accessibility", () => {
 		expect(first_cell).toHaveFocus();
 	});
 
+	test("Enter, F2, Tab and Escape move between grid navigation and cell editing", async () => {
+		// The editor focuses itself in a requestAnimationFrame, which the browser
+		// defers under full-suite load. Running frames as plain timers keeps the
+		// focus hand-off deterministic without changing what the component does.
+		vi.stubGlobal(
+			"requestAnimationFrame",
+			(callback: FrameRequestCallback): number =>
+				window.setTimeout(() => callback(performance.now()), 0)
+		);
+		vi.stubGlobal("cancelAnimationFrame", (id: number): void =>
+			window.clearTimeout(id)
+		);
+		onTestFinished(() => vi.unstubAllGlobals());
+
+		const { findByRole, getByRole, getByTestId, queryByRole, listen } =
+			await render(Dataframe, navigation_props);
+		const select = listen("select");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+
+		const editor = await findByRole("textbox", { name: "Edit cell" });
+		await waitFor(() => expect(editor).toHaveFocus());
+		expect(select).toHaveBeenCalledWith({
+			index: [0, 0],
+			value: "Alice",
+			row_value: ["Alice", "30", "Engineer"],
+			col_value: ["Alice", "Bob", "Carol"]
+		});
+
+		await event.keyboard("{Enter}");
+		await waitFor(() =>
+			expect(
+				queryByRole("textbox", { name: "Edit cell" })
+			).not.toBeInTheDocument()
+		);
+		await waitFor(() => expect(first_cell).toHaveFocus());
+
+		await event.keyboard("{F2}");
+		await waitFor(() =>
+			expect(
+				within(first_cell).getByRole("textbox", { name: "Edit cell" })
+			).toHaveFocus()
+		);
+
+		await event.tab();
+		await waitFor(() =>
+			expect(
+				within(second_cell).getByRole("textbox", { name: "Edit cell" })
+			).toHaveFocus()
+		);
+		expect(second_cell).toHaveAttribute("tabindex", "0");
+
+		await event.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(
+				queryByRole("textbox", { name: "Edit cell" })
+			).not.toBeInTheDocument()
+		);
+		await waitFor(() => expect(second_cell).toHaveFocus());
+		expect(getByRole("grid").querySelectorAll('[tabindex="0"]')).toHaveLength(
+			1
+		);
+	});
+
 	test("Space activates a cell without entering edit mode", async () => {
 		const { getByTestId, queryByRole, listen } = await render(
 			Dataframe,

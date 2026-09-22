@@ -92,6 +92,23 @@ describe("Accessibility", () => {
 
 		expect(getByRole("tab", { name: "First" })).toHaveFocus();
 	});
+
+	test("the tab overflow button has an accessible name", async () => {
+		// Whether the button is shown depends on measuring the tab bar in a
+		// requestAnimationFrame, so its visibility is timing-sensitive. Its name
+		// is not: the icon-only button must be labelled whether or not it shows.
+		const { getByRole } = await render(Tabs, {
+			...default_props,
+			overflow_behavior: "menu"
+		});
+
+		const overflow_button = getByRole("button", {
+			name: "More tabs",
+			hidden: true
+		});
+		expect(overflow_button).toHaveAccessibleName("More tabs");
+		expect(overflow_button).not.toHaveTextContent(/\S/);
+	});
 });
 
 describe("Props: overflow_behavior", () => {
