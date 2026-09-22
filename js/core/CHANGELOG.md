@@ -1,5 +1,41 @@
 # @gradio/core
 
+## 1.12.0
+
+### Features
+
+- [#13851](https://github.com/gradio-app/gradio/pull/13851) [`afffecc`](https://github.com/gradio-app/gradio/commit/afffeccf69262a8070a091b50206c1e33b8c06c4) - Add configurable tab overflow and alignment.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13817](https://github.com/gradio-app/gradio/pull/13817) [`81b7b77`](https://github.com/gradio-app/gradio/commit/81b7b77787fad818d686f43fc2347b32d2ceea99) - Several fixes related to rendering of custom components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/client@2.7.0
+- @gradio/tabitem@0.9.0
+- @gradio/tabs@0.11.0
+
+## 1.11.2
+
+### Fixes
+
+- [#13642](https://github.com/gradio-app/gradio/pull/13642) [`19cb8f7`](https://github.com/gradio-app/gradio/commit/19cb8f7bce14a7961cd4f81adb7f629c64df4988) - Align launch and event JavaScript execution.  Thanks @dawoodkhan82!
+- [#13787](https://github.com/gradio-app/gradio/pull/13787) [`2ae6f97`](https://github.com/gradio-app/gradio/commit/2ae6f97d0f5284c8f351ffe6d45da61944284d5a) - Fix Image and ImageEditor UI/UX issues.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+- @gradio/checkbox@0.8.3
+- @gradio/image@0.28.3
+- @gradio/audio@0.24.3
+- @gradio/video@0.23.1
+- @gradio/dropdown@0.15.0
+
 ## 1.11.1
 
 ### Dependency updates

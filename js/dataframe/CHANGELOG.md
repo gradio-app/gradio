@@ -1,5 +1,32 @@
 # @gradio/dataframe
 
+## 0.24.5
+
+### Fixes
+
+- [#13829](https://github.com/gradio-app/gradio/pull/13829) [`908b427`](https://github.com/gradio-app/gradio/commit/908b427466c2ac1d2950ca3b9fb39371f167fba0) - Fix `gr.Dataframe` shift+click range selecting rows hidden by the search.  Thanks @hysts!
+- [#13831](https://github.com/gradio-app/gradio/pull/13831) [`d99a49a`](https://github.com/gradio-app/gradio/commit/d99a49a1456dd11efbec75b74c29657466b12b30) - Keep the empty Dataframe's add row button on screen in fullscreen.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/client@2.7.0
+
+## 0.24.4
+
+### Fixes
+
+- [#13830](https://github.com/gradio-app/gradio/pull/13830) [`c398576`](https://github.com/gradio-app/gradio/commit/c39857647609361ea6548972ced702861b775b1f) - Restore the Dataframe's outer border.  Thanks @hysts!
+- [#13729](https://github.com/gradio-app/gradio/pull/13729) [`82ca180`](https://github.com/gradio-app/gradio/commit/82ca180c5c9a77d36b9097a62e63318317dc9d1f) - Fix Dataframe keyboard navigation accessibility.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+- @gradio/checkbox@0.8.3
+
 ## 0.24.3
 
 ### Dependency updates

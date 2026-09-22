@@ -1,5 +1,25 @@
 # @gradio/imageslider
 
+## 0.8.0
+
+### Features
+
+- [#13862](https://github.com/gradio-app/gradio/pull/13862) [`3353446`](https://github.com/gradio-app/gradio/commit/3353446616a56838e7e3cb3477fcd02664a0db40) - Expose live camera and slider position to event handlers.  Thanks @abidlabs!/n  `camera_position` on `gr.Model3D` and `slider_position` on `gr.ImageSlider` now follow the user, so a function whose parameter is annotated with the component reads the view that is actually on screen. Both can still be set from the backend to move the camera or the divider./n  Also fixes, in the same area:/n  - `camera_position` is applied on load for `display_mode="point_cloud"` and `display_mode="wireframe"`, not only for `"solid"`./n  - `camera_position` is applied to interactive (uploadable) `gr.Model3D`, and `slider_position` to interactive `gr.ImageSlider`; both previously ignored it./n  - `pan_speed` is passed through to the `gr.Model3D` viewer; it was silently stuck at its default./n  - A Model3D camera observer was added on every camera update without ever being removed; exactly one is now registered, and it is cleaned up with the component.
+
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/client@2.7.0
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/client@2.6.0
+- @gradio/atoms@0.26.2
+- @gradio/utils@0.14.1
+- @gradio/upload@0.18.3
+
 ## 0.7.1
 
 ### Dependency updates

@@ -3,6 +3,7 @@
 import asyncio
 import functools
 import inspect
+import io
 import json
 import math
 import os
@@ -11,7 +12,7 @@ import sys
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from threading import Event, Thread
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -35,6 +36,7 @@ import gradio as gr
 from gradio import (
     Blocks,
     Button,
+    Image,
     Interface,
     Number,
     Textbox,
@@ -119,6 +121,325 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
+    def test_multipage_config_and_info_can_be_scoped_to_page(self, gradio_temp_dir):
+        with Blocks() as demo:
+            home_input = Textbox()
+            home_output = Textbox()
+            home_input.change(
+                lambda value: value,
+                home_input,
+                home_output,
+                api_name="home_endpoint",
+            )
+        with demo.route("Details", path="details"):
+            details_input = Textbox()
+            details_output = Textbox()
+            details_input.change(
+                lambda value: value,
+                details_input,
+                details_output,
+                api_name="details_endpoint",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+            page_config = client.get("/config?page=details").json()
+
+            assert page_config["current_page"] == "details"
+            assert page_config["pages"] == full_config["pages"]
+            assert {component["id"] for component in page_config["components"]} == set(
+                page_config["page"]["details"]["components"]
+            )
+            assert {
+                dependency["id"] for dependency in page_config["dependencies"]
+            } == set(page_config["page"]["details"]["dependencies"])
+            assert len(page_config["components"]) < len(full_config["components"])
+            assert len(page_config["dependencies"]) < len(full_config["dependencies"])
+
+            page_info = client.get(f"{API_PREFIX}/info?page=details").json()
+            assert set(page_info["named_endpoints"]) == {"/details_endpoint"}
+
+            home_config = client.get("/config?page=").json()
+            assert home_config["current_page"] == ""
+            assert {component["id"] for component in home_config["components"]} == set(
+                home_config["page"][""]["components"]
+            )
+            home_info = client.get(f"{API_PREFIX}/info?page=").json()
+            assert set(home_info["named_endpoints"]) == {"/home_endpoint"}
+
+            # Page-scoped requests leave the full API-info cache empty. The cURL
+            # endpoint must initialize it lazily instead of returning a 500.
+            assert app.api_info is None
+            curl_response = client.post(
+                f"{API_PREFIX}/call/v2/home_endpoint", json={"value": "hello"}
+            )
+            assert curl_response.status_code == 200
+            assert app.api_info is not None
+            cached_info = client.get(f"{API_PREFIX}/info").json()
+            python_snippet = cached_info["named_endpoints"]["/home_endpoint"][
+                "code_snippets"
+            ]["python"]
+            assert 'Client("http://testserver")' in python_snippet
+
+            deep_link_dir = gradio_temp_dir / "deep_links" / "multipage"
+            deep_link_dir.mkdir(parents=True)
+            (deep_link_dir / "state.json").write_text(
+                json.dumps(full_config["components"])
+            )
+            legacy_deep_link_config = client.get("/config?deep_link=multipage").json()
+            assert {
+                component["id"] for component in legacy_deep_link_config["components"]
+            } == {component["id"] for component in full_config["components"]}
+            assert details_input._id in {
+                component["id"] for component in legacy_deep_link_config["components"]
+            }
+
+            home_deep_link_config = client.get(
+                "/config?deep_link=multipage&page="
+            ).json()
+            assert {
+                component["id"] for component in home_deep_link_config["components"]
+            } == set(home_deep_link_config["page"][""]["components"])
+        finally:
+            demo.close()
+
+    def test_deep_link_is_read_with_an_os_independent_path(self, gradio_temp_dir):
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+
+            deep_link_dir = gradio_temp_dir / "deep_links" / "saved"
+            deep_link_dir.mkdir(parents=True)
+            (deep_link_dir / "state.json").write_text(
+                json.dumps(full_config["components"])
+            )
+
+            # `safe_join` rejects the OS separator, so the deep link must be
+            # looked up with a POSIX-style path on every platform.
+            response = client.get("/config?deep_link=saved")
+            assert response.status_code == 200
+            config = response.json()
+            assert config["deep_link_state"] == "valid"
+            assert {component["id"] for component in config["components"]} == {
+                component["id"] for component in full_config["components"]
+            }
+        finally:
+            demo.close()
+
+    @pytest.mark.parametrize(
+        "deep_link",
+        [
+            "does-not-exist",
+            "../escaping",
+            "nested/../../escaping",
+            "deep_links/../../escaping",
+        ],
+    )
+    def test_unusable_deep_link_falls_back_to_the_default_config(self, deep_link):
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+
+            response = client.get("/config", params={"deep_link": deep_link})
+            # The frontend shows a toast, so the request itself must succeed.
+            assert response.status_code == 200
+            config = response.json()
+            assert config["deep_link_state"] == "invalid"
+            assert {component["id"] for component in config["components"]} == {
+                component["id"] for component in full_config["components"]
+            }
+        finally:
+            demo.close()
+
+    def test_an_uploaded_state_json_cannot_be_loaded_as_a_deep_link(self):
+        """The upload route stores a file at `<upload dir>/<hash>/<name>` and
+        hands the hash back, so anyone can place a `state.json` next to
+        `deep_links/` and know where it landed. Reaching it would turn uploaded
+        json into component config, which is executable: an `html` component's
+        `js_on_load` is run through `new Function`."""
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            full_config = client.get("/config").json()
+
+            payload = [
+                {
+                    "id": 1,
+                    "type": "html",
+                    "props": {
+                        "value": "<b>hi</b>",
+                        "js_on_load": "window.__pwned = true",
+                        "visible": True,
+                    },
+                    "skip_api": True,
+                    "component_class_id": "x",
+                    "key": None,
+                }
+            ]
+            upload = client.post(
+                "/gradio_api/upload",
+                files={
+                    "files": (
+                        "state.json",
+                        io.BytesIO(json.dumps(payload).encode()),
+                        "application/json",
+                    )
+                },
+            )
+            assert upload.status_code == 200
+            upload_dir = PurePosixPath(upload.json()[0]).parent.name
+
+            response = client.get("/config", params={"deep_link": f"../{upload_dir}"})
+            assert response.status_code == 200
+            config = response.json()
+            assert config["deep_link_state"] == "invalid"
+            assert "__pwned" not in json.dumps(config["components"])
+            assert {component["id"] for component in config["components"]} == {
+                component["id"] for component in full_config["components"]
+            }
+        finally:
+            demo.close()
+
+    def test_unusable_deep_link_does_not_mutate_the_live_config(self):
+        """`/config` must never hand out the live `blocks.config` components:
+        `update_root_in_config` rewrites file urls in place, so aliasing them
+        would bake one request's root url into every later response."""
+        with Blocks() as demo:
+            Image(value=str(Path(__file__).parent / "test_files" / "bus.png"))
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+
+            def file_urls(config):
+                return [
+                    component["props"]["value"]["url"]
+                    for component in config["components"]
+                    if isinstance(component.get("props", {}).get("value"), dict)
+                    and "url" in component["props"]["value"]
+                ]
+
+            before = file_urls(demo.config)
+            assert before and all(not url.startswith("http") for url in before)
+
+            response = client.get(
+                "/config",
+                params={"deep_link": "does-not-exist"},
+                headers={"host": "attacker.example"},
+            )
+            assert response.json()["deep_link_state"] == "invalid"
+            assert file_urls(demo.config) == before
+
+            # A later, unrelated request must still get its own root url.
+            other = client.get("/config", headers={"host": "victim.example"}).json()
+            assert all(
+                url.startswith("http://victim.example") for url in file_urls(other)
+            )
+        finally:
+            demo.close()
+
+    def test_deep_link_creation_requires_authentication(self):
+        with Blocks() as demo:
+            textbox = Textbox()
+            textbox.change(lambda value: value, textbox, textbox)
+
+        app, _, _ = demo.launch(
+            prevent_thread_lock=True, auth=("user", "pass"), quiet=True
+        )
+        try:
+            client = TestClient(app)
+            response = client.get("/gradio_api/deep_link?session_hash=whatever")
+            assert response.status_code == 401
+        finally:
+            demo.close()
+
+    @pytest.mark.parametrize("first_request", ["call", "openapi"])
+    def test_api_info_cache_uses_app_root(self, first_request):
+        with Blocks() as demo:
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        if first_request == "call":
+            response = client.post(
+                f"{API_PREFIX}/call/v2/echo", json={"value": "hello"}
+            )
+        else:
+            response = client.get(f"{API_PREFIX}/openapi.json")
+        assert response.status_code == 200
+
+        info = client.get(f"{API_PREFIX}/info").json()
+        snippets = info["named_endpoints"]["/echo"]["code_snippets"]
+        assert 'Client("http://testserver")' in snippets["python"]
+        assert 'Client.connect("http://testserver")' in snippets["javascript"]
+        assert (
+            f"curl -X POST http://testserver{API_PREFIX}/call/v2/echo"
+            in snippets["bash"]
+        )
+
+    def test_page_api_info_is_cached(self):
+        with Blocks() as demo:
+            Textbox()
+        with demo.route("Details", path="details"):
+            text = Textbox()
+            text.change(lambda value: value, text, text, api_name="echo")
+
+        app = routes.App.create_app(demo)
+        client = TestClient(app)
+        with patch.object(demo, "get_api_info", wraps=demo.get_api_info) as get_info:
+            first = client.get(f"{API_PREFIX}/info?page=details")
+            second = client.get(f"{API_PREFIX}/info?page=details")
+
+        assert first.status_code == second.status_code == 200
+        assert get_info.call_count == 1
+
+    def test_page_api_info_supports_legacy_blocks_override(self):
+        class CustomBlocks(Blocks):
+            # This intentionally models an override written against the public
+            # signature from before the page argument was added.
+            def get_api_info(  # ty: ignore[invalid-method-override]
+                self, all_endpoints=False
+            ):
+                info = super().get_api_info(all_endpoints=all_endpoints)
+                for endpoint in info["named_endpoints"].values():
+                    endpoint["description"] = "custom description"
+                return info
+
+        with CustomBlocks() as demo:
+            home = Textbox()
+            home.change(lambda value: value, home, home, api_name="home")
+        with demo.route("Details", path="details"):
+            details = Textbox()
+            details.change(lambda value: value, details, details, api_name="details")
+
+        response = TestClient(routes.App.create_app(demo)).get(
+            f"{API_PREFIX}/info?page=details"
+        )
+
+        assert response.status_code == 200
+        assert set(response.json()["named_endpoints"]) == {"/details"}
+        assert (
+            response.json()["named_endpoints"]["/details"]["description"]
+            == "custom description"
+        )
+
     def test_audio_stream_playlist_uses_stable_target_duration(self):
         with Blocks() as demo:
             audio = gr.Audio()
@@ -145,6 +466,83 @@ class TestRoutes:
         assert "#EXTINF:1.250000," in response.text
         assert "#EXT-X-DISCONTINUITY" not in response.text
         assert response.headers["cache-control"] == "no-store"
+
+    def test_video_stream_playlist_is_continuous(self):
+        """The segments share one timeline, so nothing tells the player to reset.
+
+        The tag used to be written after every `.ts` because each segment was
+        muxed on its own and started at the muxer's zero. It would now throw
+        away the continuity the stream's single audio encoder gives it.
+        """
+        with Blocks() as demo:
+            video = gr.Video()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        for index in range(2):
+            asyncio.run(
+                stream.add_segment(
+                    {"data": bytes([index]), "duration": 0.5, "extension": ".ts"}
+                )
+            )
+        demo.pending_streams["session"]["0"] = {video._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{video._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-DISCONTINUITY" not in response.text
+
+    def test_stream_playlist_starts_at_the_first_chunk(self):
+        """A viewer wants the stream from its start, not from wherever it got to.
+
+        The playlist carries no ENDLIST until the run finishes, which players
+        read as live and open near the newest segment, skipping however far the
+        generator had run ahead. The `=` is load bearing: `TIME-OFFSET:0` parses
+        to nothing, the attribute list wanting `KEY=VALUE`, and the tag is then
+        accepted and ignored.
+        """
+        with Blocks() as demo:
+            video = gr.Video()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment({"data": b"0", "duration": 1.0, "extension": ".ts"})
+        )
+        demo.pending_streams["session"]["0"] = {video._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{video._id}/playlist.m3u8"
+        )
+
+        assert response.status_code == 200
+        assert "#EXT-X-START:TIME-OFFSET=0" in response.text
+
+    def test_audio_stream_playlist_propagates_space_signature(self):
+        with Blocks() as demo:
+            audio = gr.Audio()
+        app = routes.App.create_app(demo)
+        stream = MediaStream()
+        asyncio.run(
+            stream.add_segment(
+                {"data": b"first", "duration": 1.25, "extension": ".aac"}
+            )
+        )
+        demo.pending_streams["session"]["0"] = {audio._id: stream}
+
+        response = TestClient(app).get(
+            f"{API_PREFIX}/stream/session/0/{audio._id}/playlist.m3u8",
+            params={"__sign": "jwt&with=special characters"},
+        )
+
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "private, no-store"
+        segment_line = next(
+            line
+            for line in response.text.splitlines()
+            if line and not line.startswith("#")
+        )
+        assert segment_line.endswith("?__sign=jwt%26with%3Dspecial+characters")
 
     def test_favicon_route(self, test_client):
         response = test_client.get("/favicon.ico")

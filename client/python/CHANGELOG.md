@@ -1,5 +1,17 @@
 # gradio_client
 
+## 2.7.1
+
+### Fixes
+
+- [#13816](https://github.com/gradio-app/gradio/pull/13816) [`ca09427`](https://github.com/gradio-app/gradio/commit/ca0942761b2b276aa8fab26d076e8b1f1605fcf0) - Fix private Space file URLs in gr.load() and the JS client.  Thanks @abidlabs!
+
+## 2.7.0
+
+### Features
+
+- [#13779](https://github.com/gradio-app/gradio/pull/13779) [`4eafc18`](https://github.com/gradio-app/gradio/commit/4eafc18cc5b7d42926eacf20231d94952d4b37a8) - Fix file URLs and sanitize invalid uploaded filenames.  Thanks @abidlabs!
+
 ## 2.6.1
 
 ### Fixes

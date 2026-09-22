@@ -58,6 +58,7 @@
 		elem_id={gradio.shared.elem_id}
 		elem_classes={gradio.shared.elem_classes}
 		bind:selected={gradio.props.selected}
+		overflow_behavior={gradio.props.overflow_behavior}
 		onchange={() => gradio.dispatch("change")}
 		onselect={(data) => {
 			gradio.dispatch("select", data);

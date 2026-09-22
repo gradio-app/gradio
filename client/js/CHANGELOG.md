@@ -1,5 +1,26 @@
 # @gradio/client
 
+## 2.7.0
+
+### Features
+
+- [#13843](https://github.com/gradio-app/gradio/pull/13843) [`8193f16`](https://github.com/gradio-app/gradio/commit/8193f1644cf8e3746f1d10e5643240768169f5c0) - Speed up multipage app navigation.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13816](https://github.com/gradio-app/gradio/pull/13816) [`ca09427`](https://github.com/gradio-app/gradio/commit/ca0942761b2b276aa8fab26d076e8b1f1605fcf0) - Fix private Space file URLs in gr.load() and the JS client.  Thanks @abidlabs!
+
+## 2.6.0
+
+### Features
+
+- [#13763](https://github.com/gradio-app/gradio/pull/13763) [`7e83999`](https://github.com/gradio-app/gradio/commit/7e839990a092c11e049db171c98ceba76896e6b1) - add server-side run history in HF Hub buckets.  Thanks @hannahblair!
+- [#13779](https://github.com/gradio-app/gradio/pull/13779) [`4eafc18`](https://github.com/gradio-app/gradio/commit/4eafc18cc5b7d42926eacf20231d94952d4b37a8) - Fix file URLs and sanitize invalid uploaded filenames.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13800](https://github.com/gradio-app/gradio/pull/13800) [`7542edb`](https://github.com/gradio-app/gradio/commit/7542edb7ab6f3d987af6e2d7948eda6d35d8f26f) - Fix Colab connections when share=False.  Thanks @abidlabs!
+
 ## 2.5.1
 
 ### Fixes

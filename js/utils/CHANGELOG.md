@@ -1,5 +1,17 @@
 # @gradio/utils
 
+## 0.14.2
+
+### Fixes
+
+- [#13847](https://github.com/gradio-app/gradio/pull/13847) [`0293306`](https://github.com/gradio-app/gradio/commit/0293306f3f25bf4cda44b6e819060edd5fcbd09e) - Encode streamed video's audio once per stream.  Thanks @hysts!
+
+## 0.14.1
+
+### Fixes
+
+- [#13808](https://github.com/gradio-app/gradio/pull/13808) [`3cbdf8e`](https://github.com/gradio-app/gradio/commit/3cbdf8e57babfdd6bead5be387e3ec46b067d76a) - Fix streaming playback and HLS lifetime in `gr.Audio` and `gr.Video`.  Thanks @hysts!
+
 ## 0.14.0
 
 ### Features
