@@ -296,13 +296,6 @@ describe("Props: slider_position", () => {
 
 		expect(getByTestId("slider")).toBeInTheDocument();
 	});
-
-	test.todo(
-		"VISUAL: slider_position=0 positions the slider at the left edge — needs Playwright visual regression screenshot comparison"
-	);
-	test.todo(
-		"VISUAL: slider_position=100 positions the slider at the right edge — needs Playwright visual regression screenshot comparison"
-	);
 });
 
 describe("Props: buttons", () => {
@@ -740,22 +733,3 @@ describe("Edge cases", () => {
 		expect(change).not.toHaveBeenCalled();
 	});
 });
-
-test.todo(
-	"VISUAL: slider_color applies the given color to the slider line and handles — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: height prop constrains the component height — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: width prop constrains the component width — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: max_height limits image display height — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: scroll wheel zoom scales both images together — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: mouse drag pans both images when zoomed in — needs Playwright visual regression screenshot comparison"
-);

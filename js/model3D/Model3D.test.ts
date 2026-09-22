@@ -746,35 +746,3 @@ describe("Edge cases", () => {
 		});
 	});
 });
-
-test.todo(
-	"VISUAL: display_mode='solid' renders a solid-shaded mesh — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: display_mode='point_cloud' renders the mesh as points — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: display_mode='wireframe' renders the mesh as wireframe — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: clear_color sets the scene background colour — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: zoom_speed affects wheel zoom sensitivity — needs Playwright interaction + screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: camera_position sets initial alpha/beta/radius of the camera — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: height prop resizes the Block containing the viewer — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: pan_speed affects drag pan sensitivity — needs Playwright interaction + screenshot comparison"
-);

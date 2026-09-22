@@ -66,7 +66,9 @@
 		} else if (_sort === null) {
 			return null;
 		} else if (Array.isArray(_sort)) {
-			return _sort;
+			// Copy out of the $state proxy: vega-embed structuredClones the spec,
+			// and a proxy throws DataCloneError, leaving the chart unrendered.
+			return [..._sort];
 		}
 	}
 	let _sort = $derived(reformat_sort(gradio.props.sort));
@@ -382,7 +384,10 @@
 		vegaEmbed(chart_element, spec, { actions: false, renderer: "svg" }).then(
 			function (result) {
 				view = result.view;
-				resizeObserver!.observe(chart_element!);
+				// The value can be cleared while vega-embed is still resolving, which
+				// unbinds chart_element and makes observe() throw on undefined.
+				if (!chart_element) return;
+				resizeObserver!.observe(chart_element);
 				var debounceTimeout: NodeJS.Timeout;
 				var lastSelectTime = 0;
 				view.addEventListener("dblclick", () => {

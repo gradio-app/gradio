@@ -34,16 +34,4 @@ describe("Box", () => {
 		const block = container.querySelector("#my-box.my-class");
 		expect(block).not.toBeNull();
 	});
-
-	test.todo(
-		"VISUAL: Box renders with full block styling (padding, border, background, shadow) because explicit_call is always passed to Block — needs Playwright visual regression screenshot"
-	);
-
-	test.todo(
-		"VISUAL: Box container never enters hide-container mode (transparent, no border, no padding) — explicit_call prevents this regardless of container prop — needs Playwright visual regression screenshot"
-	);
-
-	test.todo(
-		"VISUAL: slot content renders inside the block container — needs integration test mounting Box with real child Gradio components as slot content"
-	);
 });

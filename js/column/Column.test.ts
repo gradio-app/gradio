@@ -77,16 +77,3 @@ describe("Children / slot", () => {
 		expect(getByTestId("slot-content")).not.toBeVisible();
 	});
 });
-
-test.todo(
-	"VISUAL: variant='panel' applies panel border, background fill, and padding to the column container — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: variant='compact' removes border-radius from direct child elements — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: scale prop controls flex-grow, making the column proportionally wider when scale > 1 — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: min_width prop enforces a minimum pixel width before the column wraps to a new row — needs Playwright visual regression screenshot comparison"
-);

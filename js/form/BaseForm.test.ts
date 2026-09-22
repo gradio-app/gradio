@@ -141,10 +141,3 @@ describe("Children / slot", () => {
 		expect(getByTestId("slot-content")).not.toBeVisible();
 	});
 });
-
-test.todo(
-	"VISUAL: Form children lose box-shadow, border-radius, and border via the .block CSS override — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: Form auto-hides when all direct children carry the .hidden class (CSS :has selector) — needs Playwright visual regression screenshot comparison"
-);

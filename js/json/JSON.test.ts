@@ -427,10 +427,6 @@ describe("Collapse / expand", () => {
 		expect(queryByRole("button", { name: "Collapse" })).not.toBeInTheDocument();
 		expect(queryByRole("button", { name: "Expand" })).not.toBeInTheDocument();
 	});
-
-	test.todo(
-		"VISUAL: interactive=false disables toggle buttons — test via BaseJSON with interactive=false prop directly; Index.svelte does not plumb interactive through to JSONNode"
-	);
 });
 
 describe("Events", () => {
@@ -510,10 +506,3 @@ describe("get_data / set_data", () => {
 		expect(data.value).toEqual(test_value);
 	});
 });
-
-test.todo(
-	"VISUAL: theme_mode='dark' applies dark-mode CSS variables (--bracket-color, --number-color) to JSONNode — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: theme_mode='light' applies light-mode CSS colors to JSONNode — needs Playwright visual regression screenshot comparison"
-);
