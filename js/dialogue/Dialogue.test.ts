@@ -549,11 +549,3 @@ describe("Plain text mode", () => {
 		expect(textbox.value).toBe("Initial plain text");
 	});
 });
-
-test.todo(
-	"VISUAL: color_map prop applies custom colors to speaker backgrounds — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: default speaker colors are applied when color_map is not provided — needs Playwright visual regression screenshot comparison"
-);

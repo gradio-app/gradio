@@ -375,11 +375,3 @@ describe("Edge cases", () => {
 		expect(label_span?.textContent?.trim()).toBe("");
 	});
 });
-
-test.todo(
-	"VISUAL: icon rotates (transform: rotate) when open state changes — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: open state adds margin-bottom below the label button — needs Playwright visual regression screenshot comparison"
-);
