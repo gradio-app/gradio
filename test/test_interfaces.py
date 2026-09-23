@@ -215,6 +215,18 @@ class TestInterface:
         assert io.examples_handler.dataset.headers == ["Message"]
         assert io.examples_handler.dataset.raw_samples == [["hello"]]
 
+    def test_additional_input_example_columns_shown_if_main_inputs_are_empty(self):
+        io = Interface(
+            fn=lambda message, tone: f"{tone}: {message}",
+            inputs=Textbox(label="Message"),
+            outputs=Textbox(),
+            additional_inputs=[Textbox(label="Tone")],
+            examples=[[None, "friendly"]],
+        )
+
+        assert io.examples_handler.dataset.headers == ["Tone"]
+        assert io.examples_handler.dataset.raw_samples == [["friendly"]]
+
 
 class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):

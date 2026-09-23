@@ -645,39 +645,69 @@ class TestProcessExamples:
     def test_hidden_columns_are_loaded(self, patched_cache_folder):
         with gr.Blocks() as demo:
             inputs = [gr.Textbox(), gr.Textbox(), gr.Number()]
-            examples = gr.Examples(
+            gr.Examples(
                 examples=[["hello", "friendly", 20]],
                 inputs=inputs,
                 visible_columns=[0],
                 api_name="load_example",
             )
-            examples.dataset.raw_samples = [["updated"]]
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
 
         assert [update["value"] for update in response.json()["data"]] == [
-            "updated",
+            "hello",
             "friendly",
             20,
         ]
 
-    def test_updated_examples_are_loaded(self, patched_cache_folder):
+    @pytest.mark.parametrize(
+        "visible_columns,new_samples,expected",
+        [
+            (None, [["new"], ["newer"]], [["new"], ["newer"]]),
+            ([0], [["new"], ["newer"]], [["new", None, None], ["newer", None, None]]),
+            (
+                [0],
+                [["new", "formal", 5], ["newer", "casual", 7]],
+                [["new", "formal", 5], ["newer", "casual", 7]],
+            ),
+        ],
+    )
+    def test_updated_samples_are_loaded(
+        self, patched_cache_folder, visible_columns, new_samples, expected
+    ):
         with gr.Blocks() as demo:
-            textbox = gr.Textbox()
+            inputs = [gr.Textbox()]
+            if visible_columns is not None:
+                inputs += [gr.Textbox(), gr.Number()]
             examples = gr.Examples(
-                examples=[["initial"]],
-                inputs=textbox,
+                examples=[["hello", "friendly", 20][: len(inputs)]],
+                inputs=inputs,
+                visible_columns=visible_columns,
                 api_name="load_example",
             )
-            examples.dataset.raw_samples = [["updated"]]
+            gr.Button().click(
+                lambda: gr.Dataset(samples=new_samples),
+                None,
+                examples.dataset,
+                api_name="update_samples",
+                queue=False,
+            )
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
-
-        assert response.json()["data"][0]["value"] == "updated"
+        client.post(
+            f"{API_PREFIX}/api/update_samples/",
+            json={"data": [], "session_hash": "session"},
+        )
+        for index, expected_values in enumerate(expected):
+            response = client.post(
+                f"{API_PREFIX}/api/load_example/",
+                json={"data": [index], "session_hash": "session"},
+            )
+            data = response.json()["data"]
+            assert [update.get("value") for update in data] == expected_values
 
     def test_end_to_end_cache_examples(self, patched_cache_folder):
         def concatenate(str1, str2):
