@@ -178,11 +178,16 @@ describe("Props: file_count", () => {
 		expect(data.value.length).toBe(1);
 	});
 
-	test("file_count='single' allows selecting a folder directly", async () => {
+	test("file_count='single' allows selecting a folder that matches the glob", async () => {
 		const { getAllByRole, getByText, get_data } = await render(FileExplorer, {
 			...default_props,
 			file_count: "single",
-			server: { ls: mock_ls(nested_tree) }
+			server: {
+				ls: mock_ls({
+					...nested_tree,
+					"": [{ type: "folder", name: "src", valid: true }, nested_tree[""][1]]
+				})
+			}
 		});
 
 		await waitFor(() => {
@@ -195,6 +200,27 @@ describe("Props: file_count", () => {
 		const data = await get_data();
 		expect(data.value).toEqual([["src"]]);
 		expect(getAllByRole("checkbox")[0]).toBeChecked();
+	});
+
+	test("file_count='single' does not allow selecting a folder that does not match the glob", async () => {
+		const { getAllByRole, getByText } = await render(FileExplorer, {
+			...default_props,
+			file_count: "single",
+			server: {
+				ls: mock_ls({
+					...nested_tree,
+					"": [
+						{ type: "folder", name: "src", valid: false },
+						nested_tree[""][1]
+					]
+				})
+			}
+		});
+
+		await waitFor(() => {
+			expect(getByText("src")).toBeVisible();
+			expect(getAllByRole("checkbox").length).toBe(1);
+		});
 	});
 
 	test("file_count='single' does not show a nested dot selector", async () => {

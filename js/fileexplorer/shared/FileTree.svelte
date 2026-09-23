@@ -125,7 +125,9 @@
 					}
 				}}
 			>
-				{#if interactive}
+				{#if interactive && type === "folder" && file_count === "single" && !valid}
+					<span class="no-checkbox" aria-hidden="true"></span>
+				{:else if interactive}
 					<Checkbox
 						disabled={false}
 						value={is_selected}
@@ -243,6 +245,11 @@
 		transform-origin: 40% 50%;
 		transition: 0.2s;
 		color: var(--color-accent);
+	}
+
+	.no-checkbox {
+		width: 18px;
+		height: 18px;
 	}
 
 	.hidden :global(> *) {
