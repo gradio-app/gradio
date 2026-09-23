@@ -454,6 +454,33 @@ class TestAudio:
         ).model_dump()  # type: ignore
         assert output["path"].endswith("mp3")
 
+    @pytest.mark.requires_ffmpeg
+    def test_postprocess_warning_names_the_converted_format(
+        self, gradio_temp_dir, test_file_dir, tmp_path
+    ):
+        # AAC in a Matroska container is remuxed to .m4a, not re-encoded to
+        # wav, and the warning has to say so
+        mka = tmp_path / "speech.mka"
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "quiet",
+                "-i",
+                str(test_file_dir / "audio_sample.wav"),
+                "-c:a",
+                "aac",
+                str(mka),
+            ],
+            check=True,
+        )
+        with pytest.warns(UserWarning, match=r"Converted to \.m4a\.") as record:
+            output = gr.Audio().postprocess(str(mka))
+        assert len(record) == 1
+        assert "wav" not in str(record[0].message)
+        assert isinstance(output, FileData) and output.path.endswith(".m4a")
+
     def test_postprocess_http_url_like(self):
         audio = gr.Audio()
         output = audio.postprocess("https://test.com/test.mp3?token=123")
