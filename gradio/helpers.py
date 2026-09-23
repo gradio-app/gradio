@@ -59,6 +59,7 @@ def create_examples(
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
+    visible_columns: list[int] | None = None,
     visible: bool | Literal["hidden"] = True,
     preload: int | Literal[False] = 0,
 ):
@@ -82,6 +83,7 @@ def create_examples(
         api_description=api_description,
         batch=batch,
         example_labels=example_labels,
+        visible_columns=visible_columns,
         visible=visible,
         _initiated_directly=False,
         preload=preload,
@@ -123,6 +125,7 @@ class Examples:
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
+        visible_columns: list[int] | None = None,
         visible: bool | Literal["hidden"] = True,
         preload: int | Literal[False] = 0,
         _initiated_directly: bool = True,
@@ -146,6 +149,7 @@ class Examples:
             api_description: Description of the event associated with clicking on the examples in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
+            visible_columns: A list of zero-based input column indices to display. The values from all input columns are still loaded when an example is selected. If None, all columns are visible.
             visible: If False, the examples component will be hidden in the UI.
             preload: If an integer is provided (and examples are being cached eagerly and none of the input components have a developer-provided `value`), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
         """
@@ -251,6 +255,37 @@ class Examples:
             ]
             for example in examples
         ]
+        if visible_columns is None:
+            visible_columns = list(range(len(inputs)))
+        elif not visible_columns:
+            raise ValueError(
+                "`visible_columns` must contain at least one column index."
+            )
+        elif any(
+            isinstance(index, bool)
+            or not isinstance(index, int)
+            or index < 0
+            or index >= len(inputs)
+            for index in visible_columns
+        ):
+            raise ValueError(
+                "Each index in `visible_columns` must correspond to an input component."
+            )
+
+        visible_column_set = set(visible_columns)
+        visible_input_indices = [
+            index
+            for index, keep in enumerate(input_has_examples)
+            if keep and index in visible_column_set
+        ]
+        visible_inputs = [inputs[index] for index in visible_input_indices]
+        visible_examples = [
+            [
+                example[index] if index < len(example) else None
+                for index in visible_input_indices
+            ]
+            for example in examples
+        ]
         if example_labels is not None and len(example_labels) != len(examples):
             raise ValueError(
                 "If `example_labels` are provided, the length of `example_labels` must be the same as the number of examples."
@@ -277,9 +312,13 @@ class Examples:
         from gradio import components
 
         with utils.set_directory(working_directory):
+            self.input_component_props = [
+                component.recover_kwargs(component.get_config(), ["value"])
+                for component in inputs_with_examples
+            ]
             self.dataset = components.Dataset(
-                components=inputs_with_examples,
-                samples=copy.deepcopy(non_none_examples),
+                components=visible_inputs,
+                samples=copy.deepcopy(visible_examples),
                 type="tuple",
                 label=label,
                 samples_per_page=examples_per_page,
@@ -305,9 +344,9 @@ class Examples:
         self._cache_locks = [Lock() for _ in self.examples]
 
         if self.dataset.samples:
-            for index, example in enumerate(self.non_none_examples):
-                self.non_none_processed_examples[self.dataset.samples[index]] = (
-                    self._get_processed_example(example)
+            for example in self.non_none_examples:
+                self.non_none_processed_examples[example] = self._get_processed_example(
+                    example
                 )
 
         if self.cache_examples == "lazy":
@@ -365,7 +404,8 @@ class Examples:
             if self.cache_examples:
 
                 def load_example_input(example_tuple):
-                    _, example_value = example_tuple
+                    example_id, _ = example_tuple
+                    example_value = self.non_none_examples[example_id]
                     processed_example = self._get_processed_example(example_value)
                     return utils.resolve_singleton(processed_example)
 
@@ -430,17 +470,18 @@ class Examples:
             else:
 
                 def load_example(example_tuple):
-                    _, example_value = example_tuple
+                    example_id, _ = example_tuple
+                    example_value = self.non_none_examples[example_id]
                     processed_example = self._get_processed_example(example_value)
                     if len(self.inputs_with_examples) == 1:
                         return update(
                             value=processed_example[0],
-                            **self.dataset.component_props[0],  # type: ignore
+                            **self.input_component_props[0],
                         )
                     return [
                         update(
                             value=processed_example[i],
-                            **self.dataset.component_props[i],  # type: ignore
+                            **self.input_component_props[i],
                         )
                         for i in range(len(self.inputs_with_examples))
                     ]

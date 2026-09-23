@@ -200,6 +200,21 @@ class TestInterface:
         io = Interface(fn=str, inputs=t, outputs=Textbox(), additional_inputs=s)
         assert io.input_components == [t, s]
 
+    def test_additional_input_example_columns_are_hidden(self):
+        io = Interface(
+            fn=lambda message, tone, words: f"{tone}: {message} ({words})",
+            inputs=Textbox(label="Message"),
+            outputs=Textbox(),
+            additional_inputs=[
+                Textbox(label="Tone"),
+                gradio.Number(label="Words"),
+            ],
+            examples=[["hello", "friendly", 20]],
+        )
+
+        assert io.examples_handler.dataset.headers == ["Message"]
+        assert io.examples_handler.dataset.raw_samples == [["hello"]]
+
 
 class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):
