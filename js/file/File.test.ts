@@ -12,6 +12,7 @@ import {
 	TEST_PDF
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+import type { FileData } from "@gradio/client";
 
 import File from "./Index.svelte";
 
@@ -126,5 +127,24 @@ describe("File", () => {
 		await upload_file(TEST_PDF);
 
 		await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+	});
+
+	test("directory upload errors name each rejected file", async () => {
+		const { listen } = await render(File, {
+			...default_props,
+			file_count: "directory",
+			file_types: [".txt"]
+		});
+
+		const error = listen("error");
+		await upload_file({ url: "/test/test_files/images" } as FileData);
+
+		await vi.waitFor(() => expect(error).toHaveBeenCalledTimes(2));
+		expect(error).toHaveBeenCalledWith(
+			"Invalid file type: bus.png. Only .txt allowed."
+		);
+		expect(error).toHaveBeenCalledWith(
+			"Invalid file type: bus_copy.png. Only .txt allowed."
+		);
 	});
 });

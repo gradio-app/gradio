@@ -177,6 +177,45 @@ describe("Props: file_count", () => {
 		const data = await get_data();
 		expect(data.value.length).toBe(1);
 	});
+
+	test("file_count='single' allows selecting a folder directly", async () => {
+		const { getAllByRole, getByText, get_data } = await render(FileExplorer, {
+			...default_props,
+			file_count: "single",
+			server: { ls: mock_ls(nested_tree) }
+		});
+
+		await waitFor(() => {
+			expect(getByText("src")).toBeVisible();
+			expect(getAllByRole("checkbox").length).toBe(2);
+		});
+
+		await fireEvent.click(getAllByRole("checkbox")[0]);
+
+		const data = await get_data();
+		expect(data.value).toEqual([["src"]]);
+		expect(getAllByRole("checkbox")[0]).toBeChecked();
+	});
+
+	test("file_count='single' does not show a nested dot selector", async () => {
+		const ls = mock_ls({
+			"": [{ type: "folder", name: "src", valid: true }],
+			src: []
+		});
+		const { getByRole, queryByText } = await render(FileExplorer, {
+			...default_props,
+			file_count: "single",
+			server: { ls }
+		});
+
+		await waitFor(() => {
+			expect(getByRole("button", { name: "expand directory" })).toBeVisible();
+		});
+		await fireEvent.click(getByRole("button", { name: "expand directory" }));
+
+		await waitFor(() => expect(ls).toHaveBeenCalledWith(["src"]));
+		expect(queryByText(".", { exact: true })).not.toBeInTheDocument();
+	});
 });
 
 describe("Folder navigation", () => {

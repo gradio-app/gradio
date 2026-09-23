@@ -238,7 +238,7 @@
 			) {
 				return true;
 			}
-			onerror?.(`Invalid file type only ${filetype} allowed.`);
+			onerror?.(`Invalid file type: ${file.name}. Only ${filetype} allowed.`);
 			return false;
 		});
 		if (format != "blob") {
