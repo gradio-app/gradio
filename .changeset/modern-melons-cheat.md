@@ -1,6 +1,7 @@
 ---
 "@gradio/fileexplorer": minor
 "@gradio/upload": minor
+"@gradio/uploadbutton": minor
 "gradio": minor
 ---
 
