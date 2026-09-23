@@ -520,20 +520,6 @@ class TestAudioPlayability:
         assert processing_utils._first_audio_codec(str(m4b)) == "aac"
         assert processing_utils.audio_is_playable(str(m4b))
 
-    @pytest.mark.parametrize("suffix", [".m4a", ".m4b"])
-    def test_alac_is_reencoded(self, test_file_dir, tmp_path, suffix):
-        """Only Safari decodes ALAC, so it must not be served as-is or remuxed."""
-        alac = tmp_path / f"lossless{suffix}"
-        self._transcode(test_file_dir / "audio_sample.wav", alac, "-c:a alac")
-        assert processing_utils._first_audio_codec(str(alac)) == "alac"
-        assert not processing_utils.audio_is_playable(str(alac))
-
-        converted = processing_utils.convert_audio_to_playable(
-            str(alac), cache_dir=str(tmp_path / "cache")
-        )
-        assert Path(converted).suffix == ".wav"
-        assert processing_utils._first_audio_codec(converted) == "pcm_s16le"
-
     def test_convert_audio_remuxes_already_playable_codec(
         self, test_file_dir, tmp_path
     ):

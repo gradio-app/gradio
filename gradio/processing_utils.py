@@ -1244,12 +1244,8 @@ PLAYABLE_AUDIO_CODECS = frozenset(
         (".wav", "pcm_u8"),
         (".mp3", "mp3"),
         (".m4a", "aac"),
-        # .m4b is the same mp4 container under an audiobook name, and is
-        # already served as audio/mp4, so browsers decode it like any .m4a.
         (".m4b", "aac"),
         (".mp4", "aac"),
-        # ALAC is deliberately absent: only Safari decodes it, so an ALAC
-        # .m4a/.m4b has to be re-encoded before Chrome or Firefox will play it.
         (".aac", "aac"),
         (".flac", "flac"),
         (".ogg", "vorbis"),
