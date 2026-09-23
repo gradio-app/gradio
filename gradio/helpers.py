@@ -278,6 +278,14 @@ class Examples:
             for index, keep in enumerate(input_has_examples)
             if keep and index in visible_column_set
         ]
+        input_indices_with_examples = [
+            index for index, keep in enumerate(input_has_examples) if keep
+        ]
+        visible_input_positions = [
+            position
+            for position, index in enumerate(input_indices_with_examples)
+            if index in visible_column_set
+        ]
         visible_inputs = [inputs[index] for index in visible_input_indices]
         visible_examples = [
             [
@@ -296,6 +304,7 @@ class Examples:
         self.inputs = inputs
         self.input_has_examples = input_has_examples
         self.inputs_with_examples = inputs_with_examples
+        self.visible_input_positions = visible_input_positions
         self.outputs = outputs or []
         self.fn = fn
         self._api_mode = _api_mode
@@ -391,6 +400,21 @@ class Examples:
                 sub.append(prediction_value)
         return sub
 
+    def _get_example_value(self, example_tuple):
+        example_id, visible_example = example_tuple
+        if len(self.visible_input_positions) == len(self.inputs_with_examples):
+            return visible_example
+
+        if example_id < len(self.non_none_examples):
+            example = copy.copy(self.non_none_examples[example_id])
+        else:
+            example = [None] * len(self.inputs_with_examples)
+        for position, value in zip(
+            self.visible_input_positions, visible_example, strict=False
+        ):
+            example[position] = value
+        return example
+
     def create(self) -> None:
         """Creates the Dataset component to hold the examples"""
         blocks_config = get_blocks_context()
@@ -404,8 +428,7 @@ class Examples:
             if self.cache_examples:
 
                 def load_example_input(example_tuple):
-                    example_id, _ = example_tuple
-                    example_value = self.non_none_examples[example_id]
+                    example_value = self._get_example_value(example_tuple)
                     processed_example = self._get_processed_example(example_value)
                     return utils.resolve_singleton(processed_example)
 
@@ -470,8 +493,7 @@ class Examples:
             else:
 
                 def load_example(example_tuple):
-                    example_id, _ = example_tuple
-                    example_value = self.non_none_examples[example_id]
+                    example_value = self._get_example_value(example_tuple)
                     processed_example = self._get_processed_example(example_value)
                     if len(self.inputs_with_examples) == 1:
                         return update(

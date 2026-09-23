@@ -645,22 +645,39 @@ class TestProcessExamples:
     def test_hidden_columns_are_loaded(self, patched_cache_folder):
         with gr.Blocks() as demo:
             inputs = [gr.Textbox(), gr.Textbox(), gr.Number()]
-            gr.Examples(
+            examples = gr.Examples(
                 examples=[["hello", "friendly", 20]],
                 inputs=inputs,
                 visible_columns=[0],
                 api_name="load_example",
             )
+            examples.dataset.raw_samples = [["updated"]]
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
 
         assert [update["value"] for update in response.json()["data"]] == [
-            "hello",
+            "updated",
             "friendly",
             20,
         ]
+
+    def test_updated_examples_are_loaded(self, patched_cache_folder):
+        with gr.Blocks() as demo:
+            textbox = gr.Textbox()
+            examples = gr.Examples(
+                examples=[["initial"]],
+                inputs=textbox,
+                api_name="load_example",
+            )
+            examples.dataset.raw_samples = [["updated"]]
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
+
+        assert response.json()["data"][0]["value"] == "updated"
 
     def test_end_to_end_cache_examples(self, patched_cache_folder):
         def concatenate(str1, str2):
