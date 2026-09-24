@@ -52,6 +52,28 @@ describe("Accordion", () => {
 		expect(button).toBeTruthy();
 	});
 
+	test("numeric max_height is applied to the content in px and makes it scrollable", async () => {
+		const { getByTestId } = await render(Accordion, {
+			...base_props,
+			max_height: 100
+		});
+
+		const content = getByTestId("accordion-content") as HTMLElement;
+		expect(content.style.maxHeight).toBe("100px");
+		expect(getComputedStyle(content).overflowY).toBe("auto");
+	});
+
+	test("string height is applied to the content as-is", async () => {
+		const { getByTestId } = await render(Accordion, {
+			...base_props,
+			height: "10em"
+		});
+
+		const content = getByTestId("accordion-content") as HTMLElement;
+		expect(content.style.height).toBe("10em");
+		expect(getComputedStyle(content).overflowY).toBe("auto");
+	});
+
 	test("renders with content visible when open=true", async () => {
 		const { getByTestId } = await render(Accordion, {
 			...base_props,

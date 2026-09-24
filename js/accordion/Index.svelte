@@ -4,7 +4,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 
 	import { BaseColumn } from "@gradio/column";
-	import { Gradio } from "@gradio/utils";
+	import { Gradio, css_units } from "@gradio/utils";
 	import type { SharedProps } from "@gradio/utils";
 
 	import type { AccordionProps, AccordionEvents } from "./types";
@@ -54,6 +54,12 @@
 	<Accordion
 		{label}
 		open={gradio.props.open}
+		height={gradio.props.height != null
+			? css_units(gradio.props.height)
+			: undefined}
+		max_height={gradio.props.max_height != null
+			? css_units(gradio.props.max_height)
+			: undefined}
 		onexpand={() => {
 			gradio.dispatch("expand");
 			gradio.dispatch("gradio_expand");
