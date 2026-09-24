@@ -7,6 +7,16 @@ export const default_i18n: Record<string, string> = {
 	"dataframe.delete_column": "Delete column",
 	"dataframe.drop_to_upload":
 		"Drop CSV or TSV files here to import data into dataframe",
+	"dataframe.import_empty_file": "The dropped file is empty.",
+	"dataframe.import_no_column_names": "The dropped file has no column names.",
+	"dataframe.import_ragged_row":
+		"Line {line} of the file has {fields} fields, the header has {columns}.",
+	"dataframe.import_static_columns":
+		"Cannot import into a table with read-only columns.",
+	"dataframe.import_fixed_columns":
+		"This table takes exactly {expected} columns, the file has {actual}.",
+	"dataframe.import_fixed_rows":
+		"This table takes exactly {expected} rows, the file has {actual}.",
 	"dataframe.sort_asc": "Sort ascending",
 	"dataframe.sort_desc": "Sort descending",
 	"dataframe.sort_ascending": "Sort ascending",

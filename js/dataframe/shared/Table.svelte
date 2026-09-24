@@ -1134,17 +1134,24 @@
 		}
 	}
 
+	function interpolate(
+		message: string,
+		values: Record<string, string | number>
+	): string {
+		return message.replace(/\{(\w+)\}/g, (_, key) => String(values[key]));
+	}
+
 	function apply_imported_table(
 		new_headers: (string | null)[],
 		new_values: CellValue[][]
 	): void {
 		if (!new_headers.length) {
-			throw new Error("The dropped file is empty.");
+			throw new Error(i18n("dataframe.import_empty_file"));
 		}
 		// a file of separators alone parses into a header of blank names, and
 		// importing it would replace the table with unnamed columns
 		if (new_headers.every((h) => !h?.trim())) {
-			throw new Error("The dropped file has no column names.");
+			throw new Error(i18n("dataframe.import_no_column_names"));
 		}
 		// a row the header cannot account for would reach the backend as a ragged
 		// value, and the column checks below only see the header
@@ -1153,22 +1160,32 @@
 		);
 		if (ragged !== -1) {
 			throw new Error(
-				`Line ${ragged + 2} of the file has ${new_values[ragged].length} fields, the header has ${new_headers.length}.`
+				interpolate(i18n("dataframe.import_ragged_row"), {
+					line: ragged + 2,
+					fields: new_values[ragged].length,
+					columns: new_headers.length
+				})
 			);
 		}
 		// the menu paths already refuse to change a fixed shape or write to a
 		// read-only column, so an import must not be the way around them
 		if (static_columns.length > 0) {
-			throw new Error("Cannot import into a table with read-only columns.");
+			throw new Error(i18n("dataframe.import_static_columns"));
 		}
 		if (col_count[1] === "fixed" && new_headers.length !== col_count[0]) {
 			throw new Error(
-				`This table takes exactly ${col_count[0]} columns, the file has ${new_headers.length}.`
+				interpolate(i18n("dataframe.import_fixed_columns"), {
+					expected: col_count[0],
+					actual: new_headers.length
+				})
 			);
 		}
 		if (row_count[1] === "fixed" && new_values.length !== row_count[0]) {
 			throw new Error(
-				`This table takes exactly ${row_count[0]} rows, the file has ${new_values.length}.`
+				interpolate(i18n("dataframe.import_fixed_rows"), {
+					expected: row_count[0],
+					actual: new_values.length
+				})
 			);
 		}
 

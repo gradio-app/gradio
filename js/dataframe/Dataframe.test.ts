@@ -2503,6 +2503,25 @@ describe("Dataframe CSV drop", () => {
 		expect(error).toHaveBeenCalled();
 	});
 
+	// the passthrough i18n stub returns the bare key, which has no placeholders
+	// to fill, so this one swaps in a translation of its own
+	test("reports an import error through i18n with its counts filled in", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...fixed_props,
+			i18n: (key: string) =>
+				key === "dataframe.import_fixed_columns"
+					? "want {expected} columns, got {actual}"
+					: key
+		});
+		await wait();
+		const error = listen("error");
+
+		drop_csv(container, "name,age,role\nAlice,30,Engineer\nBob,25,Designer\n");
+		await wait();
+
+		expect(error).toHaveBeenCalledWith("want 2 columns, got 3");
+	});
+
 	test("rejects a dropped file that does not fit a fixed row count", async () => {
 		const { container, listen } = await render(Dataframe, fixed_props);
 		await wait();
