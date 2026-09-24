@@ -96,7 +96,7 @@ httpx==0.28.1
     #   huggingface-hub
     #   openai
     #   respx
-huggingface-hub==1.33.0
+huggingface-hub==1.32.0
     # via
     #   -r test/requirements.in
     #   diffusers
