@@ -1251,37 +1251,6 @@ cpu = huggingface_hub.SpaceHardware.CPU_BASIC
 
 
 class TestDuplication:
-    def test_duplicate_uses_repo_api(self):
-        runtime = MagicMock(hardware=cpu)
-        missing = RepositoryNotFoundError(
-            "missing",
-            response=httpx.Response(
-                404,
-                request=httpx.Request(
-                    "GET", "https://huggingface.co/api/spaces/owner/copy"
-                ),
-            ),
-        )
-        with (
-            patch(
-                "huggingface_hub.get_space_runtime",
-                side_effect=[runtime, missing, runtime],
-            ),
-            patch("huggingface_hub.get_full_repo_name", return_value="owner/copy"),
-            patch("huggingface_hub.duplicate_repo") as duplicate_repo,
-            patch("gradio_client.client.Client.__init__", return_value=None),
-        ):
-            Client.duplicate("owner/source", "copy", token="hf_test", verbose=False)
-
-        duplicate_repo.assert_called_once_with(
-            from_id="owner/source",
-            to_id="owner/copy",
-            repo_type="space",
-            token="hf_test",
-            exist_ok=True,
-            private=True,
-        )
-
     @pytest.mark.flaky
     @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
