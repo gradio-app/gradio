@@ -470,7 +470,3 @@ describe("Edge cases", () => {
 		expect((await get_data()).value).toEqual(nested);
 	});
 });
-
-test.todo(
-	"VISUAL: BrowserState renders no visible UI — Playwright visual regression screenshot should confirm no DOM leakage in the rendered page"
-);

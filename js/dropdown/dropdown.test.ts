@@ -2167,19 +2167,3 @@ describe("runtime locale switching", () => {
 		expect(data.value).toEqual(["bold", "italic"]);
 	});
 });
-
-test.todo(
-	"VISUAL: subdued text color applied when input text doesn't match any choice and allow_custom_value is false — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: show_options border/shadow styling changes when dropdown is open — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: token styling in multiselect mode — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: regression #12993 — dropdown options list repositions on page scroll — needs Playwright visual/integration test with scrolling"
-);
