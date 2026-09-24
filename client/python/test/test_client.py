@@ -12,10 +12,9 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
-import httpx
 import huggingface_hub
 import pytest
-from huggingface_hub.utils import RepositoryNotFoundError
+from huggingface_hub.utils import RepositoryNotFoundError, httpx
 
 from gradio_client import Client, handle_file
 from gradio_client.client import DEFAULT_TEMP_DIR, Endpoint
@@ -115,7 +114,7 @@ class TestClientInitialization:
             Client, "_get_space_state", lambda _: huggingface_hub.SpaceStage.RUNNING
         )
 
-        with patch("httpx.get") as mocked:
+        with patch("huggingface_hub.utils.httpx.get") as mocked:
             mocked.return_value = httpx.Response(
                 200,
                 json={
@@ -135,7 +134,7 @@ class TestClientInitialization:
         # _login overrides cookies
         response = httpx.Response(200)
         response._cookies = httpx.Cookies(cookies)
-        with patch("httpx.post", return_value=response) as mocked:
+        with patch("huggingface_hub.utils.httpx.post", return_value=response) as mocked:
             client._login(("user", "pass"))
             mocked.assert_called_once()
             call = mocked.call_args
@@ -1052,7 +1051,9 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        with patch("httpx.post", MagicMock(return_value=response)):
+        with patch(
+            "huggingface_hub.utils.httpx.post", MagicMock(return_value=response)
+        ):
             with patch("builtins.open", MagicMock()):
                 with patch.object(pathlib.Path, "name") as mock_name:
                     mock_name.side_effect = lambda x: x
@@ -1084,8 +1085,12 @@ class TestEndpoints:
         upload_response.json.return_value = ["/tmp/gradio/uploaded/private-cat.png"]
 
         with (
-            patch("httpx.stream", return_value=download_response) as stream,
-            patch("httpx.post", return_value=upload_response) as post,
+            patch(
+                "huggingface_hub.utils.httpx.stream", return_value=download_response
+            ) as stream,
+            patch(
+                "huggingface_hub.utils.httpx.post", return_value=upload_response
+            ) as post,
         ):
             result = endpoint._upload_file(
                 {
@@ -1129,7 +1134,7 @@ class TestEndpoints:
             src_prefixed="https://source.hf.space/gradio_api/",
         )
 
-        with patch("httpx.stream") as stream:
+        with patch("huggingface_hub.utils.httpx.stream") as stream:
             result = endpoint._upload_file(file_data, data_index=0)
 
         stream.assert_not_called()
@@ -1246,6 +1251,37 @@ cpu = huggingface_hub.SpaceHardware.CPU_BASIC
 
 
 class TestDuplication:
+    def test_duplicate_uses_repo_api(self):
+        runtime = MagicMock(hardware=cpu)
+        missing = RepositoryNotFoundError(
+            "missing",
+            response=httpx.Response(
+                404,
+                request=httpx.Request(
+                    "GET", "https://huggingface.co/api/spaces/owner/copy"
+                ),
+            ),
+        )
+        with (
+            patch(
+                "huggingface_hub.get_space_runtime",
+                side_effect=[runtime, missing, runtime],
+            ),
+            patch("huggingface_hub.get_full_repo_name", return_value="owner/copy"),
+            patch("huggingface_hub.duplicate_repo") as duplicate_repo,
+            patch("gradio_client.client.Client.__init__", return_value=None),
+        ):
+            Client.duplicate("owner/source", "copy", token="hf_test", verbose=False)
+
+        duplicate_repo.assert_called_once_with(
+            from_id="owner/source",
+            to_id="owner/copy",
+            repo_type="space",
+            token="hf_test",
+            exist_ok=True,
+            private=True,
+        )
+
     @pytest.mark.flaky
     @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
@@ -1302,7 +1338,7 @@ class TestDuplication:
 
     @pytest.mark.flaky
     @patch("huggingface_hub.add_space_secret")
-    @patch("huggingface_hub.duplicate_space")
+    @patch("huggingface_hub.duplicate_repo")
     @patch("gradio_client.client.Client.__init__", return_value=None)
     @patch("gradio_client.utils.set_space_timeout")
     def test_add_secrets(self, mock_time, mock_init, mock_duplicate, mock_add_secret):
@@ -1332,7 +1368,7 @@ def test_httpx_kwargs(increment_demo):
     with connect(
         increment_demo, client_kwargs={"httpx_kwargs": {"timeout": 5}}
     ) as client:
-        with patch("httpx.post", MagicMock()) as mock_post:
+        with patch("huggingface_hub.utils.httpx.post", MagicMock()) as mock_post:
             with pytest.raises(Exception):
                 client.predict(1, api_name="/increment_with_queue")
             assert mock_post.call_args.kwargs["timeout"] == 5

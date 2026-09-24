@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urljoin, urlparse
 
+# safehttpx returns original httpx responses from SSRF-protected requests.
 import httpx
 import numpy as np
 import safehttpx as sh

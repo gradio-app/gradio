@@ -28,12 +28,12 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Literal
 
-import httpx
 import huggingface_hub
 from huggingface_hub import SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
+    httpx,
     send_telemetry,
 )
 from packaging import version
@@ -488,9 +488,10 @@ class Client:
         except RepositoryNotFoundError:
             if verbose:
                 print(f"Creating a duplicate of {from_id} for your own use... 🤗")
-            huggingface_hub.duplicate_space(
+            huggingface_hub.duplicate_repo(
                 from_id=from_id,
                 to_id=space_id,
+                repo_type="space",
                 token=token,
                 exist_ok=True,
                 private=private,

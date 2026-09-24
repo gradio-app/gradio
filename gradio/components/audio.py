@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import anyio
-import httpx
 import numpy as np
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from huggingface_hub.utils import httpx
 from pydub import AudioSegment
 
 from gradio import processing_utils

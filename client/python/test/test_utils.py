@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union
 from unittest.mock import MagicMock, patch
 
-import httpx
 import pytest
 from huggingface_hub import get_token
+from huggingface_hub.utils import httpx
 
 from gradio_client import utils
 
@@ -201,13 +201,13 @@ class AsyncMock(MagicMock):
         return super().__call__(*args, **kwargs)
 
 
-@patch("httpx.post")
+@patch("huggingface_hub.utils.httpx.post")
 def test_sleep_successful(mock_post):
     utils.set_space_timeout("gradio/calculator")
 
 
 @patch(
-    "httpx.post",
+    "huggingface_hub.utils.httpx.post",
     side_effect=httpx.HTTPStatusError("error", request=None, response=None),
 )
 def test_sleep_unsuccessful(mock_post):

@@ -5,8 +5,8 @@ import re
 from pathlib import Path
 from typing import Annotated, Any
 
-import httpx
 import tomlkit as toml
+from huggingface_hub.utils import httpx
 from typer import Argument, Option
 
 from gradio.analytics import custom_component_analytics

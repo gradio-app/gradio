@@ -1,7 +1,7 @@
 def main(url_or_space_id: str, source_directory: str):
-    import httpx
     from gradio_client.utils import encode_file_path, is_http_url_like
     from huggingface_hub import space_info
+    from huggingface_hub.utils import httpx
     from mcp.server.fastmcp import FastMCP  # type: ignore
 
     from gradio.utils import abspath, is_in_or_equal

@@ -36,9 +36,9 @@ from typing import (
 )
 
 import fsspec.asyn
-import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
+from huggingface_hub.utils import httpx
 
 if TYPE_CHECKING:
     from gradio_client.data_classes import ParameterInfo
