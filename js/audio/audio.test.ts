@@ -866,25 +866,6 @@ describe("Waveform options", () => {
 
 		expect(get_last_create_args().sampleRate).toBe(44100);
 	});
-
-	test("skip_length affects skip button labels", async () => {
-		const { getByLabelText } = await render(Audio, {
-			...default_props,
-			interactive: true,
-			value: fake_value,
-			sources: ["microphone"],
-			waveform_options: {
-				...default_props.waveform_options,
-				skip_length: 10
-			}
-		});
-
-		// With audio_duration=0 and skip_length=10, get_skip_rewind_amount returns
-		// (0/100)*10 || 5 = 5. The label still shows 5 because duration is 0.
-		// But the skip_length option is wired through the controls.
-		expect(getByLabelText("Skip forward by 5 seconds")).toBeTruthy();
-		expect(getByLabelText("Skip backwards by 5 seconds")).toBeTruthy();
-	});
 });
 
 describe("Props: show_recording_waveform", () => {

@@ -4,12 +4,16 @@
 	let {
 		open = $bindable(true),
 		label = "",
+		height,
+		max_height,
 		onexpand,
 		oncollapse,
 		children
 	}: {
 		open: boolean;
 		label: string;
+		height?: string;
+		max_height?: string;
 		onexpand?: () => void;
 		oncollapse?: () => void;
 		children?: Snippet;
@@ -33,7 +37,13 @@
 		▼
 	</span>
 </button>
-<div data-testid="accordion-content" style:display={open ? "block" : "none"}>
+<div
+	data-testid="accordion-content"
+	class:scrollable={height || max_height}
+	style:display={open ? "block" : "none"}
+	style:height
+	style:max-height={max_height}
+>
 	{@render children?.()}
 </div>
 
@@ -55,5 +65,9 @@
 
 	.icon {
 		transition: 150ms;
+	}
+
+	.scrollable {
+		overflow-y: auto;
 	}
 </style>

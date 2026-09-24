@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.17.1
+
+### Fixes
+
+- [#13817](https://github.com/gradio-app/gradio/pull/13817) [`81b7b77`](https://github.com/gradio-app/gradio/commit/81b7b77787fad818d686f43fc2347b32d2ceea99) - Several fixes related to rendering of custom components.  Thanks @abidlabs!
+
 ## 0.17.0
 
 ### Features

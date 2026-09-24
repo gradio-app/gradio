@@ -296,13 +296,6 @@ describe("Props: slider_position", () => {
 
 		expect(getByTestId("slider")).toBeInTheDocument();
 	});
-
-	test.todo(
-		"VISUAL: slider_position=0 positions the slider at the left edge — needs Playwright visual regression screenshot comparison"
-	);
-	test.todo(
-		"VISUAL: slider_position=100 positions the slider at the right edge — needs Playwright visual regression screenshot comparison"
-	);
 });
 
 describe("Props: buttons", () => {
@@ -521,6 +514,21 @@ describe("Events: clear", () => {
 		expect(clear).toHaveBeenCalledTimes(1);
 	});
 
+	test("clearing keeps the configured slider_position", async () => {
+		// One image keeps the component on the uploader branch, which is where the
+		// X lives while a slider is still waiting for its second image.
+		const { get_data, getByLabelText } = await render(ImageSlider, {
+			...default_props,
+			interactive: true,
+			slider_position: 30,
+			value: [img_a, null]
+		});
+
+		await fireEvent.click(getByLabelText("Remove Image"));
+
+		expect((await get_data()).slider_position).toBe(30);
+	});
+
 	test("value is [null, null] after clicking Remove Image", async () => {
 		const { get_data, getByLabelText } = await render(ImageSlider, {
 			...default_props,
@@ -725,22 +733,3 @@ describe("Edge cases", () => {
 		expect(change).not.toHaveBeenCalled();
 	});
 });
-
-test.todo(
-	"VISUAL: slider_color applies the given color to the slider line and handles — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: height prop constrains the component height — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: width prop constrains the component width — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: max_height limits image display height — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: scroll wheel zoom scales both images together — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: mouse drag pans both images when zoomed in — needs Playwright visual regression screenshot comparison"
-);

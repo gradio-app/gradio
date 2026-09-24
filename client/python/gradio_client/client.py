@@ -488,9 +488,10 @@ class Client:
         except RepositoryNotFoundError:
             if verbose:
                 print(f"Creating a duplicate of {from_id} for your own use... 🤗")
-            huggingface_hub.duplicate_space(
+            huggingface_hub.duplicate_repo(
                 from_id=from_id,
                 to_id=space_id,
+                repo_type="space",
                 token=token,
                 exist_ok=True,
                 private=private,

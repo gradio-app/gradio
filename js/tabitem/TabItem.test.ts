@@ -15,6 +15,27 @@ describe("TabItem", () => {
 		expect(getByTestId("tab-content")).toHaveTextContent("tab panel content");
 	});
 
+	test("max_height caps the panel height and makes it scrollable", async () => {
+		const { getByRole } = await render(TabItemHarness, {
+			tab_selected: "t1",
+			tab_max_height: "100px"
+		});
+
+		const panel = getByRole("tabpanel", { hidden: true });
+		expect(panel.style.maxHeight).toBe("100px");
+		expect(getComputedStyle(panel).overflowY).toBe("auto");
+	});
+
+	test("panel is not scrollable when no height is set", async () => {
+		const { getByRole } = await render(TabItemHarness, {
+			tab_selected: "t1"
+		});
+
+		const panel = getByRole("tabpanel", { hidden: true });
+		expect(panel.style.maxHeight).toBe("");
+		expect(getComputedStyle(panel).overflowY).toBe("visible");
+	});
+
 	test("content is visible when this tab is the selected tab", async () => {
 		const { getByTestId } = await render(TabItemHarness, {
 			tab_selected: "t1"

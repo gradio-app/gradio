@@ -599,15 +599,3 @@ describe("Edge cases", () => {
 		expect(masks[1].getAttribute("style")).toContain("hue-rotate");
 	});
 });
-
-test.todo(
-	"VISUAL: mask opacity transitions on hover — masks should fade to 0.3 opacity on container hover, active mask at 1.0, inactive at 0 — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: height/width props control component dimensions — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: default hue-rotate coloring distributes colors evenly across the color wheel — needs Playwright visual regression screenshot comparison"
-);

@@ -909,6 +909,10 @@ class Interface(Blocks):
 
     def render_examples(self):
         if self.examples:
+            main_input_count = sum(
+                not isinstance(component, State)
+                for component in self.main_input_components
+            )
             non_state_inputs = [
                 c
                 for c in self.input_components  # type: ignore
@@ -930,6 +934,11 @@ class Interface(Blocks):
                 _api_mode=self.api_mode or False,  # type: ignore
                 batch=self.batch,
                 example_labels=self.example_labels,
+                visible_columns=(
+                    list(range(main_input_count))
+                    if self.additional_input_components and main_input_count
+                    else None
+                ),
                 preload=self.preload_example,
             )
             if self.deep_link and self.examples_handler.cache_event:

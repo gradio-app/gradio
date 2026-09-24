@@ -157,6 +157,10 @@ import tempfile
 mimetypes.init()
 register_media_mimetypes()
 
+# The alphabet of `route_utils.create_url_safe_hash`, which generates every
+# deep link. Anything else is rejected before it is used to build a path.
+DEEP_LINK_PATTERN = re.compile(r"[A-Za-z0-9_-]{1,128}")
+
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t  # type: ignore
     for t in [
@@ -600,31 +604,46 @@ class App(FastAPI):
 
         def load_deep_link(
             deep_link: str, config: BlocksConfigDict, page: str | None = None
-        ) -> tuple[list[dict[str, Any]], Literal["valid", "invalid"]]:
-            components = config["components"]
+        ) -> tuple[list[dict[str, Any]] | None, Literal["valid", "invalid"]]:
+            """Load the components saved under `deep_link`.
+
+            Returns `None` for the components when the link cannot be used, so
+            that the caller serves the config it would have served anyway.
+            """
+            if not DEEP_LINK_PATTERN.fullmatch(deep_link):
+                return None, "invalid"
+            # The base has to be `deep_links`, not the upload directory:
+            # `safe_join` only rejects what escapes its base, and
+            # `deep_links/../<upload hash>/state.json` normalises to
+            # `<upload hash>/state.json`, which escapes the upload directory
+            # not at all. Anyone can upload a file named `state.json`.
+            deep_link_dir = DeveloperPath(
+                str(Path(app.uploaded_file_dir) / "deep_links")
+            )
             try:
-                user_path = Path("deep_links") / deep_link / "state.json"
+                # A POSIX-style relative path: `safe_join` rejects the OS
+                # separator, so building this with `Path` would fail on Windows.
                 path = Path(
                     routes_safe_join(
-                        DeveloperPath(app.uploaded_file_dir),
-                        UserProvidedPath(str(user_path)),
+                        deep_link_dir,
+                        UserProvidedPath(f"{deep_link}/state.json"),
                     )
                 )
-                if path.exists():
-                    components = orjson.loads(path.read_bytes())
-                    deep_link_state = "valid"
-                else:
-                    deep_link_state = "invalid"
-            except (FileNotFoundError, OSError, orjson.JSONDecodeError):
-                deep_link_state = "invalid"
-                components = []
+                components = orjson.loads(path.read_bytes())
+            except fastapi.HTTPException as err:
+                # 403/404 only mean the link names no readable file.
+                if err.status_code not in (403, 404):
+                    raise
+                return None, "invalid"
+            except (OSError, orjson.JSONDecodeError):
+                return None, "invalid"
             if page is not None:
                 components = [
                     component
                     for component in components
                     if component["id"] in config["page"][page]["components"]
                 ]
-            return components, deep_link_state
+            return components, "valid"
 
         def get_page_config(
             config: BlocksConfigDict,
@@ -833,7 +852,7 @@ class App(FastAPI):
                     },
                 )
 
-        @app.get("/gradio_api/deep_link")
+        @app.get("/gradio_api/deep_link", dependencies=[Depends(login_check)])
         def deep_link(session_hash: str):
             if session_hash in app.state_holder:
                 components = [
@@ -1189,7 +1208,11 @@ class App(FastAPI):
             )
             config["username"] = user
             if deep_link:
-                config["components"] = components  # type: ignore
+                if components is not None:
+                    # Never assign `source_config["components"]` here: that
+                    # aliases the live app config, which the root-url rewrite
+                    # below then mutates in place for every later request.
+                    config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict

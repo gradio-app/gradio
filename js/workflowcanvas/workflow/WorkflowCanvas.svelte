@@ -13,8 +13,10 @@
 	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
 	import HfAuthControl from "./HfAuthControl.svelte";
 	import { asset_url } from "@gradio/client";
+	import type { WorkflowTemplate } from "./workflow-templates";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
+	import CloseIcon from "./icons/CloseIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
 	import UploadIcon from "./icons/UploadIcon.svelte";
@@ -44,7 +46,8 @@
 		init_model_node_ports,
 		sanitize_for_save,
 		structural_signature,
-		reconcileComponentRoles
+		reconcileComponentRoles,
+		revoke_blob_urls
 	} from "./workflow-store";
 	import {
 		hasMissingNodeGeometry,
@@ -583,6 +586,7 @@
 	let showUserMenu = $state(false);
 	let showSaveMenu = $state(false);
 	let showApiPanel = $state(false);
+	let showTemplatesOverlay = $state(false);
 	let showHistoryPanel = $state(false);
 	let showHistoryConnect = $state(false);
 	let recordedRun = $state<any>(null);
@@ -1999,6 +2003,17 @@
 		await addTemplateToCanvas(template, x, y);
 	}
 
+	function load_template(t: WorkflowTemplate): void {
+		if (readOnly) return;
+		try {
+			const v2 = migrateToV2(t.workflow);
+			// Replacing the whole graph — release media the outgoing nodes held.
+			for (const node of legacyView.nodes) revoke_blob_urls(node.data);
+			workflow.set(v2);
+			showTemplatesOverlay = false;
+		} catch {}
+	}
+
 	// Layout only — safe for read-only viewers, same as dragging a card by hand.
 	function autoLayout(): void {
 		const sorted = topoSort(legacyView.nodes, $workflow.edges);
@@ -2939,6 +2954,13 @@
 			{/if}
 		</div>
 		<div class="toolbar-right">
+			{#if !readOnly && nodeCount > 0}
+				<button
+					class="tool-btn get-started-btn"
+					onclick={() => (showTemplatesOverlay = true)}
+					><LayoutIcon /> Templates</button
+				>
+			{/if}
 			{#if auth.status !== "checking"}
 				{#if auth.user}
 					<div class="toolbar-user-wrap">
@@ -3182,7 +3204,30 @@
 		</div>
 
 		{#if nodeCount === 0}
-			<WorkflowEmptyState />
+			<WorkflowEmptyState onselect={load_template} />
+		{/if}
+
+		{#if showTemplatesOverlay}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="templates-overlay-backdrop"
+				onpointerdown={() => (showTemplatesOverlay = false)}
+			>
+				<div
+					class="templates-overlay-panel"
+					onpointerdown={(e) => e.stopPropagation()}
+				>
+					<div class="templates-overlay-header">
+						<span class="templates-overlay-title">Start from a template</span>
+						<button
+							class="templates-overlay-close"
+							onclick={() => (showTemplatesOverlay = false)}
+							><CloseIcon /></button
+						>
+					</div>
+					<WorkflowEmptyState onselect={load_template} inline />
+				</div>
+			</div>
 		{/if}
 
 		{#if running}
@@ -3894,5 +3939,79 @@
 		color: #2a2b36;
 		border-color: #e2e4ea;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+	}
+
+	.get-started-btn {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		color: #a0a2ae;
+		border-color: #2a2b38;
+	}
+
+	.get-started-btn:hover {
+		color: #d5d6de;
+		background: #1a1b25;
+		border-color: #3a3b48;
+	}
+
+	.templates-overlay-backdrop {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 200;
+		backdrop-filter: blur(2px);
+	}
+
+	.templates-overlay-panel {
+		position: relative;
+		background: #13141f;
+		border: 1px solid #2a2b38;
+		border-radius: 16px;
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+		min-width: 680px;
+		max-width: calc(100% - 48px);
+		max-height: calc(100% - 48px);
+		overflow-y: auto;
+	}
+
+	.templates-overlay-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.templates-overlay-title {
+		font-family: "Manrope", sans-serif;
+		font-size: 14px;
+		font-weight: 700;
+		color: #d5d6de;
+		letter-spacing: -0.01em;
+	}
+
+	.templates-overlay-close {
+		background: none;
+		border: none;
+		padding: 4px;
+		cursor: pointer;
+		color: #a0a2ae;
+		display: flex;
+		align-items: center;
+		border-radius: 6px;
+		transition:
+			color 0.12s ease,
+			background 0.12s ease;
+	}
+
+	.templates-overlay-close:hover {
+		color: #d5d6de;
+		background: #1a1b25;
 	}
 </style>
