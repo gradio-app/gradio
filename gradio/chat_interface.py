@@ -80,6 +80,7 @@ class ChatInterface(Blocks):
         additional_outputs: Component | list[Component] | None = None,
         editable: bool = False,
         examples: list[str] | list[MultimodalValue] | list[list] | None = None,
+        examples_label: str | I18nData | None = "Examples",
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
         run_examples_on_click: bool = True,
@@ -117,6 +118,7 @@ class ChatInterface(Blocks):
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             additional_outputs: an instance or list of instances of gradio components to use as additional outputs from the chat function. These must be components that are already defined in the same Blocks scope. If provided, the chat function should return additional values for these components. See $demo/chatinterface_artifacts.
             examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples must be a list of lists, where the first element of each inner list is the string or dictionary example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
+            examples_label: the label to use for the examples component when examples are displayed below the chatbot because additional inputs are provided.
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.  Note that examples are cached separately from Gradio's queue() so certain features, such as gr.Progress(), gr.Info(), gr.Warning(), etc. will not be displayed in Gradio's UI for cached examples.
@@ -169,6 +171,7 @@ class ChatInterface(Blocks):
         self.validator = validator
         self.provided_chatbot = chatbot is not None
         self.examples = examples
+        self.examples_label = examples_label
         self.examples_messages = self._setup_example_messages(
             examples, example_labels, example_icons
         )
@@ -389,6 +392,7 @@ class ChatInterface(Blocks):
                 fn=self._examples_stream_fn if self.is_generator else self._examples_fn,
                 cache_examples=self.cache_examples,
                 cache_mode=cast(Literal["eager", "lazy"], self.cache_mode),
+                label=self.examples_label,
                 visible=self._additional_inputs_in_examples,
                 preprocess=self._additional_inputs_in_examples,
                 preload=False,
