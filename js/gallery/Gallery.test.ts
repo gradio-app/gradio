@@ -630,20 +630,6 @@ describe("Props: sources", () => {
 	});
 });
 
-describe("Props: visual-only", () => {
-	test.todo(
-		"VISUAL: object_fit='contain' vs 'cover' changes image display in thumbnails — needs Playwright visual regression screenshot comparison"
-	);
-
-	test.todo(
-		"VISUAL: height prop sets gallery container height — needs Playwright visual regression screenshot comparison"
-	);
-
-	test.todo(
-		"VISUAL: rows prop controls grid row count — needs Playwright visual regression screenshot comparison"
-	);
-});
-
 describe("Events: change", () => {
 	afterEach(() => cleanup());
 

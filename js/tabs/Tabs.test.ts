@@ -94,21 +94,20 @@ describe("Accessibility", () => {
 	});
 
 	test("the tab overflow button has an accessible name", async () => {
-		const many_tabs = Array.from({ length: 20 }, (_, index) =>
-			make_tab({
-				label: `Long tab label ${index + 1}`,
-				id: `t${index + 1}`,
-				component_id: index + 1
-			})
-		);
+		// Whether the button is shown depends on measuring the tab bar in a
+		// requestAnimationFrame, so its visibility is timing-sensitive. Its name
+		// is not: the icon-only button must be labelled whether or not it shows.
 		const { getByRole } = await render(Tabs, {
 			...default_props,
-			initial_tabs: many_tabs
+			overflow_behavior: "menu"
 		});
 
-		await waitFor(() => {
-			expect(getByRole("button", { name: "More tabs" })).toBeVisible();
+		const overflow_button = getByRole("button", {
+			name: "More tabs",
+			hidden: true
 		});
+		expect(overflow_button).toHaveAccessibleName("More tabs");
+		expect(overflow_button).not.toHaveTextContent(/\S/);
 	});
 });
 
