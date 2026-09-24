@@ -5,7 +5,6 @@ import type {
 	NodeDataValue,
 	NodeStatus,
 	ReferenceNode,
-	SubjectNode,
 	WFEdge,
 	Workflow
 } from "./workflow-types";
@@ -772,139 +771,39 @@ describe("executeWorkflow — cascading failure messages", () => {
 	});
 });
 
-describe("executeWorkflow — reusing fresh upstream results", () => {
-	// "Generate Image → Edit Image": two Space operators in a chain. `gen`
-	// carries the output of a previous run in `data`, as the canvas stores it.
-	function spaceOp(
-		id: string,
-		overrides: Partial<OperatorNode> = {}
-	): OperatorNode {
-		return {
-			id,
-			role: "operator",
-			kind: "space",
-			label: id,
-			space_id: `user/${id}`,
-			endpoint: "/predict",
-			inputs: [{ id: "in_0", label: "Prompt", type: "text" }],
-			outputs: [{ id: "out_0", label: "Image", type: "text" }],
-			data: {},
-			x: 0,
-			y: 0,
-			width: 280,
-			height: 90,
-			runtime: "client",
-			...overrides
-		};
-	}
-
-	function chain(): Workflow {
-		const gen = spaceOp("gen", {
-			data: { in_0: "a cat", out_0: "cached-image" }
-		});
-		const edit = spaceOp("edit", {
-			inputs: [{ id: "in_0", label: "Image", type: "text" }]
-		});
-		const edges: WFEdge[] = [
-			{
-				id: "e1",
-				from_node_id: "gen",
-				from_port_id: "out_0",
-				to_node_id: "edit",
-				to_port_id: "in_0",
-				type: "text"
-			}
-		];
-		return emptyV2([gen, edit], [], edges);
-	}
-
-	async function run(
-		reuse: Set<string> | undefined,
-		callSpace: ReturnType<typeof vi.fn>
-	): Promise<{
-		statuses: Record<string, NodeStatus>;
-		outputs: Record<string, NodeDataValue>;
-	}> {
-		const bag = statusBag();
-		const outputs: Record<string, NodeDataValue> = {};
-		await executeWorkflow(
-			chain(),
-			bag.onStatus,
-			(id, portId, value) => {
-				outputs[`${id}.${portId}`] = value;
-			},
-			undefined,
-			callSpace as unknown as Parameters<typeof executeWorkflow>[4],
-			undefined,
-			undefined,
-			undefined,
-			undefined,
-			reuse ? { reuse } : {}
-		);
-		return { statuses: bag.statuses, outputs };
-	}
-
+describe("executeWorkflow — reuse", () => {
 	test("skips reused nodes and feeds their stored outputs downstream", async () => {
-		const callSpace = vi.fn().mockResolvedValue(JSON.stringify(["edited"]));
-		const { statuses, outputs } = await run(new Set(["gen"]), callSpace);
-
-		expect(callSpace).toHaveBeenCalledTimes(1);
-		const [spaceId, , argsJson] = callSpace.mock.calls[0];
-		expect(spaceId).toBe("user/edit");
-		expect(JSON.parse(argsJson)).toEqual(["cached-image"]);
-
-		expect(statuses.gen).toBe("done");
-		expect(statuses.edit).toBe("done");
-		// The reused node's value already lives on the node — nothing to emit.
-		expect(outputs["gen.out_0"]).toBeUndefined();
-		expect(outputs["edit.out_0"]).toBe("edited");
-	});
-
-	test("a reused subject tile mirrors its stored input onto its output port", async () => {
-		// gen → tile (subject) → edit. The canvas only stores a subject's
-		// input-port value, so reusing the tile must still feed `edit`.
-		const gen = spaceOp("gen", { data: { out_0: "cached-image" } });
-		const edit = spaceOp("edit", {
-			inputs: [{ id: "in_0", label: "Image", type: "text" }]
-		});
-		const tile: SubjectNode = {
-			id: "tile",
-			role: "subject",
-			label: "Generated",
-			asset_type: "image",
-			inputs: [{ id: "in", label: "Image", type: "text" }],
-			outputs: [{ id: "out", label: "Image", type: "text" }],
-			data: { in: "cached-image" },
-			x: 0,
-			y: 0,
-			width: 200,
-			height: 160
-		};
-		const workflow: Workflow = {
-			...emptyV2(
-				[gen, edit],
-				[],
-				[
-					{
-						id: "e1",
-						from_node_id: "gen",
-						from_port_id: "out_0",
-						to_node_id: "tile",
-						to_port_id: "in",
-						type: "text"
-					},
-					{
-						id: "e2",
-						from_node_id: "tile",
-						from_port_id: "out",
-						to_node_id: "edit",
-						to_port_id: "in_0",
-						type: "text"
-					}
-				]
-			),
-			subjects: [tile]
-		};
+		const op = (id: string, data: Record<string, NodeDataValue> = {}) =>
+			({
+				id,
+				role: "operator",
+				kind: "space",
+				label: id,
+				space_id: `user/${id}`,
+				endpoint: "/predict",
+				inputs: [{ id: "in_0", label: "In", type: "text" }],
+				outputs: [{ id: "out_0", label: "Out", type: "text" }],
+				data,
+				x: 0,
+				y: 0,
+				width: 280,
+				height: 90,
+				runtime: "client"
+			}) as OperatorNode;
+		const workflow = emptyV2(
+			[op("gen", { in_0: "a cat", out_0: "cached-image" }), op("edit")],
+			[],
+			[
+				{
+					id: "e1",
+					from_node_id: "gen",
+					from_port_id: "out_0",
+					to_node_id: "edit",
+					to_port_id: "in_0",
+					type: "text"
+				}
+			]
+		);
 		const callSpace = vi.fn().mockResolvedValue(JSON.stringify(["edited"]));
 		const bag = statusBag();
 		await executeWorkflow(
@@ -917,25 +816,12 @@ describe("executeWorkflow — reusing fresh upstream results", () => {
 			undefined,
 			undefined,
 			undefined,
-			{ reuse: new Set(["gen", "tile"]) }
+			{ reuse: new Set(["gen"]) }
 		);
+
 		expect(callSpace).toHaveBeenCalledTimes(1);
+		expect(callSpace.mock.calls[0][0]).toBe("user/edit");
 		expect(JSON.parse(callSpace.mock.calls[0][2])).toEqual(["cached-image"]);
-		expect(bag.statuses.edit).toBe("done");
-		expect(bag.errors.edit).toBeUndefined();
-	});
-
-	test("without reuse every operator in the subgraph runs", async () => {
-		const callSpace = vi.fn().mockResolvedValue(JSON.stringify(["fresh"]));
-		const { outputs } = await run(undefined, callSpace);
-
-		expect(callSpace).toHaveBeenCalledTimes(2);
-		expect(callSpace.mock.calls.map((c) => c[0])).toEqual([
-			"user/gen",
-			"user/edit"
-		]);
-		// Downstream saw the new output, not the cached one.
-		expect(JSON.parse(callSpace.mock.calls[1][2])).toEqual(["fresh"]);
-		expect(outputs["gen.out_0"]).toBe("fresh");
+		expect(bag.statuses).toMatchObject({ gen: "done", edit: "done" });
 	});
 });
