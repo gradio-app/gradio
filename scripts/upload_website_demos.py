@@ -81,6 +81,8 @@ def upload_demo_to_space(
                             app_file: run.py
                             pinned: false
                             hf_oauth: true
+                            hf_oauth_scopes:
+                              - inference-api
                             ---
                             """
         readme.open("w").write(textwrap.dedent(readme_content))
