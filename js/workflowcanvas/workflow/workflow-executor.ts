@@ -58,16 +58,7 @@ type StreamTextFn = (
 	params?: Record<string, string | number>
 ) => Promise<string>;
 
-/**
- * Per-run options for `executeWorkflow`.
- *
- * `reuse` — ids of nodes to skip. Each one's stored `data` (the outputs of
- * its last successful run) is seeded into the run as-is, so downstream nodes
- * read it exactly as if the node had just executed; no Space/model/fn call
- * is made and no `onOutput` fires for it. The canvas passes the fresh,
- * non-stale upstream set on "run this node" so iterating on a downstream
- * node doesn't re-invoke an expensive upstream operator.
- */
+/** `reuse`: ids of nodes to skip, feeding their stored `data` downstream. */
 export interface ExecuteOptions {
 	reuse?: Set<string>;
 }
@@ -408,14 +399,9 @@ export async function executeWorkflow(
 	async function executeNode(node: WFNode): Promise<void> {
 		if (signal?.aborted) return;
 
-		// Reused node: its last outputs already live on the node. Seed them
-		// so downstream `resolveInputs` finds them, and report done without
-		// calling anything.
 		if (reuse.has(node.id)) {
 			const seeded = { ...(node.data ?? {}) };
-			// Relay nodes (subjects / driven components) only persist the value
-			// on their input port; the live path mirrors it onto the output
-			// port in `dataMap`, so do the same here or the next node reads null.
+			// Relay nodes only persist their input-port value; mirror it to the output.
 			const inPort = node.inputs[0];
 			const outPort = node.outputs[0];
 			if (

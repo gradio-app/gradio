@@ -366,10 +366,8 @@ describe("buildUpstreamSubgraph", () => {
 });
 
 describe("reusableUpstreamNodes", () => {
-	// src → prep → gen → mid (subject tile) → edit → out, mirroring
-	// "Generate Image → Generated image tile → Edit Image".
-	function chain(): Workflow {
-		return wf({
+	const chain = (): Workflow =>
+		wf({
 			references: [ref("src")],
 			operators: [op("prep"), op("gen"), op("edit")],
 			subjects: [sub("mid"), sub("out")],
@@ -381,59 +379,33 @@ describe("reusableUpstreamNodes", () => {
 				edge("edit", "out")
 			]
 		});
-	}
-	const all = ["src", "prep", "gen", "mid", "edit", "out"];
 	const done = (...ids: string[]): Record<string, NodeStatus> =>
 		Object.fromEntries(ids.map((id) => [id, "done" as NodeStatus]));
+	const all = done("src", "prep", "gen", "mid", "edit", "out");
 
-	test("reuses fresh, done upstream operators but never the target", () => {
-		const reuse = reusableUpstreamNodes(
-			chain(),
-			"edit",
-			done(...all),
-			new Set()
+	test("returns done upstream operators, excluding the target and downstream", () => {
+		expect(reusableUpstreamNodes(chain(), "edit", all, new Set())).toEqual(
+			new Set(["prep", "gen"])
 		);
-		expect(reuse).toEqual(new Set(["prep", "gen"]));
-	});
-
-	test("only operators are reused; references and subjects re-relay", () => {
-		const reuse = reusableUpstreamNodes(
-			chain(),
-			"edit",
-			done(...all),
-			new Set()
-		);
-		expect(reuse.has("src")).toBe(false);
-		expect(reuse.has("mid")).toBe(false);
-	});
-
-	test("excludes stale upstream nodes", () => {
-		const reuse = reusableUpstreamNodes(
-			chain(),
-			"edit",
-			done(...all),
-			new Set(["gen", "mid"])
-		);
-		expect(reuse).toEqual(new Set(["prep"]));
-	});
-
-	test("excludes upstream nodes that never ran or failed", () => {
-		const errored = { ...done("src", "prep"), gen: "error" as NodeStatus };
-		expect(reusableUpstreamNodes(chain(), "edit", errored, new Set())).toEqual(
+		expect(reusableUpstreamNodes(chain(), "gen", all, new Set())).toEqual(
 			new Set(["prep"])
 		);
+	});
+
+	test("excludes stale, failed, and never-run nodes", () => {
+		expect(
+			reusableUpstreamNodes(chain(), "edit", all, new Set(["gen"]))
+		).toEqual(new Set(["prep"]));
+		expect(
+			reusableUpstreamNodes(
+				chain(),
+				"edit",
+				{ ...all, gen: "error" },
+				new Set()
+			)
+		).toEqual(new Set(["prep"]));
 		expect(reusableUpstreamNodes(chain(), "edit", {}, new Set())).toEqual(
 			new Set()
 		);
-	});
-
-	test("never includes nodes downstream of the target", () => {
-		const reuse = reusableUpstreamNodes(
-			chain(),
-			"gen",
-			done(...all),
-			new Set()
-		);
-		expect(reuse).toEqual(new Set(["prep"]));
 	});
 });

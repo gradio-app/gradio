@@ -1073,11 +1073,7 @@
 		box-shadow: 0 0 12px rgba(245, 166, 35, 0.2);
 	}
 
-	/* Done: flash green, then settle back to the default border. The status
-	 * itself persists (it drives the stale outline and upstream-result reuse
-	 * on "run this node"), so the glow has to fade on its own rather than by
-	 * the canvas dropping the status. Stale nodes skip the flash so the
-	 * dashed outline isn't overridden by the animation's frames. */
+	/* "done" persists, so the green glow fades via animation. */
 	.wf-node.node-done:not(.node-stale) {
 		animation: node-done-flash 3s ease-out;
 	}

@@ -2064,14 +2064,7 @@
 		});
 	}
 
-	/**
-	 * "Run this node": execute `targetId` and whatever feeds it. Upstream
-	 * nodes that already ran successfully and whose inputs haven't changed
-	 * since are reused rather than re-invoked (see `reusableUpstreamNodes`),
-	 * so iterating on a downstream node doesn't re-run an expensive upstream
-	 * Space/model. `force` (Shift+click on the node's Run button) re-runs the
-	 * whole upstream chain, e.g. to draw a fresh sample from a seeded model.
-	 */
+	// Shift+click (`force`) re-runs up-to-date upstream nodes instead of reusing them.
 	async function runNode(targetId: string, force = false): Promise<void> {
 		if (running) return;
 		const reuse = force
@@ -2090,10 +2083,7 @@
 		running = true;
 		const wfToRun = target ?? $workflow;
 		// Clear status only for nodes we're about to run, so already-finished
-		// nodes outside the target subgraph — and reused upstream nodes, whose
-		// stored outputs stand in for a fresh run — keep their snapshots + state.
-		// Reused nodes are left out of `nodesInRun` too, so they never show as
-		// pending.
+		// nodes outside the target subgraph (and reused nodes) keep their snapshots + state.
 		const runningIds = new Set(
 			[
 				...wfToRun.references.map((n) => n.id),
@@ -2336,10 +2326,7 @@
 			hasErrors ? 5000 : 3000,
 			hasErrors ? "error" : "success"
 		);
-		// "done" is deliberately kept: it is what `computeStaleNodes` and
-		// `reusableUpstreamNodes` key off, so a node's result stays reusable
-		// until its inputs change or it is re-run. The green completion glow
-		// fades on its own via the `.node-done` animation in WorkflowNodeSF.
+		// "done" is kept: staleness and upstream reuse depend on it.
 	}
 
 	function stopWorkflow(): void {
