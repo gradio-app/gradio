@@ -282,6 +282,16 @@ class TestInit:
                 Message(role="assistant", content=[TextMessage(text="ro")]),
             ]
 
+    def test_examples_label_with_additional_inputs(self):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs="textbox",
+            examples=[["hello", "robot"]],
+            examples_label="示例",
+        )
+
+        assert chatbot.examples_handler.dataset.label == "示例"
+
     def test_example_caching_with_additional_inputs_already_rendered(
         self, monkeypatch, connect
     ):
