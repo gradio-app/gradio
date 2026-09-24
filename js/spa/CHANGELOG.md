@@ -2,6 +2,13 @@
 
 ## 1.7.1
 
+### Dependency updates
+
+- @gradio/client@2.7.0
+- @gradio/core@1.12.0
+
+## 1.7.1
+
 ### Fixes
 
 - [#13642](https://github.com/gradio-app/gradio/pull/13642) [`19cb8f7`](https://github.com/gradio-app/gradio/commit/19cb8f7bce14a7961cd4f81adb7f629c64df4988) - Align launch and event JavaScript execution.  Thanks @dawoodkhan82!

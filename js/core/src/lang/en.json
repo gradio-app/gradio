@@ -37,6 +37,7 @@
 		"like": "Like",
 		"dislike": "Dislike",
 		"clear": "Clear",
+		"complete": "Complete",
 		"copy_message": "Copy message",
 		"copied_message": "Copied message"
 	},
@@ -83,6 +84,7 @@
 		"language": "Language",
 		"display_theme": "Display Theme",
 		"pwa": "Progressive Web App",
+		"progress": "Progress",
 		"record": "Record",
 		"stop_recording": "Stop Recording",
 		"screen_studio": "Screen Studio",
@@ -103,6 +105,12 @@
 		"sort_ascending": "Sort ascending",
 		"sort_descending": "Sort descending",
 		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe",
+		"import_empty_file": "The dropped file is empty.",
+		"import_no_column_names": "The dropped file has no column names.",
+		"import_ragged_row": "Line {line} of the file has {fields} fields, the header has {columns}.",
+		"import_static_columns": "Cannot import into a table with read-only columns.",
+		"import_fixed_columns": "This table takes exactly {expected} columns, the file has {actual}.",
+		"import_fixed_rows": "This table takes exactly {expected} rows, the file has {actual}.",
 		"clear_sort": "Clear sort",
 		"filter": "Filter",
 		"clear_filter": "Clear filters"
@@ -185,6 +193,9 @@
 	},
 	"slider": {
 		"slider": "Slider"
+	},
+	"status": {
+		"queue_position": "In queue: {position} of {size}"
 	},
 	"upload_text": {
 		"click_to_upload": "Click to Upload",

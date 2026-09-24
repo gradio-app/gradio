@@ -119,3 +119,59 @@ describe("StatusTracker: validation errors", () => {
 		expect(getByTestId("status-tracker")).not.toBeVisible();
 	});
 });
+
+describe("StatusTracker: progress accessibility", () => {
+	let target: HTMLDivElement;
+	let component: ReturnType<typeof mount>;
+
+	const base_props = {
+		i18n: (s: string | null | undefined) => s ?? "",
+		autoscroll: false,
+		queue_position: null,
+		queue_size: null
+	};
+
+	afterEach(() => {
+		if (component) {
+			unmount(component);
+		}
+		if (target) {
+			target.remove();
+		}
+	});
+
+	test("exposes iteration progress to assistive technology", async () => {
+		target = document.createElement("div");
+		document.body.appendChild(target);
+
+		component = mount(StatusTracker, {
+			target,
+			props: {
+				...base_props,
+				status: "pending",
+				progress: [
+					{
+						progress: null,
+						index: 3,
+						length: 4,
+						unit: "steps",
+						desc: "Processing"
+					}
+				]
+			}
+		});
+		await tick();
+
+		const { getByRole, queryByRole } = within(target);
+		const progressbar = getByRole("progressbar", { name: "Processing" });
+		expect(progressbar).toHaveAttribute("aria-valuemin", "0");
+		expect(progressbar).toHaveAttribute("aria-valuemax", "100");
+		expect(progressbar).toHaveAttribute("aria-valuenow", "75");
+		expect(progressbar).toHaveAttribute(
+			"aria-valuetext",
+			"Processing: 3 / 4 steps"
+		);
+
+		expect(queryByRole("status")).not.toBeInTheDocument();
+	});
+});
