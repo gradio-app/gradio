@@ -301,14 +301,6 @@ describe("Toggle All", () => {
 	});
 });
 
-describe("Props: max_height", () => {
-	afterEach(() => cleanup());
-
-	test.todo(
-		"VISUAL: max_height causes vertical scrolling when content overflows — needs Playwright visual regression screenshot comparison"
-	);
-});
-
 describe("get_data / set_data", () => {
 	afterEach(() => cleanup());
 

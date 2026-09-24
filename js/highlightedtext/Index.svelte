@@ -46,7 +46,7 @@
 		autoscroll={gradio.shared.autoscroll}
 		i18n={gradio.i18n}
 		{...gradio.shared.loading_status}
-		onclearstatus={() =>
+		on_clear_status={() =>
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 
@@ -81,8 +81,11 @@
 			color_map={gradio.props.color_map}
 			onselect={(detail) => gradio.dispatch("select", detail)}
 			onchange={() => {
+				// Assigning the value is enough: the $effect above watches it and
+				// dispatches "change". Dispatching here as well fired the event
+				// twice for every edit, while a value pushed from the server only
+				// ever fired it once.
 				gradio.props.value = value;
-				gradio.dispatch("change");
 			}}
 		/>
 	{:else}
