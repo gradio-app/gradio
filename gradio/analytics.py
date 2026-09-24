@@ -10,7 +10,7 @@ import urllib.parse
 import warnings
 from typing import Any
 
-from huggingface_hub.utils import httpx
+import httpx
 from huggingface_hub.utils._telemetry import _send_telemetry_in_thread
 from packaging.version import Version
 

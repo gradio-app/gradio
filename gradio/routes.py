@@ -32,6 +32,7 @@ from urllib.parse import urlencode
 
 import anyio
 import fastapi
+import httpx
 import markupsafe
 import orjson
 from fastapi import (
@@ -59,7 +60,6 @@ from gradio_client.snippet import generate_code_snippets
 from gradio_client.utils import ServerMessage
 from hf_gradio.cli import _condense_info, generate_cli_snippet
 from huggingface_hub import HfApi
-from huggingface_hub.utils import httpx
 from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask

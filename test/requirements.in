@@ -10,7 +10,7 @@ fastapi>=0.115.7
 starlette>=1.0.1
 matplotlib
 httpx
-huggingface_hub>=1.31.0,<3.0
+huggingface_hub
 hypothesis
 nbformat
 openai==1.63.2

@@ -39,8 +39,6 @@ from urllib.parse import quote, urlparse
 import anyio
 import fastapi
 import gradio_client.utils as client_utils
-
-# safehttpx.AsyncSecureTransport uses the original httpx transport types.
 import httpx
 import safehttpx
 from gradio_client.documentation import document

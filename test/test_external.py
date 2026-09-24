@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+import httpx
 import huggingface_hub
 import pytest
-from huggingface_hub.utils import httpx
 
 import gradio as gr
 from gradio.context import Context

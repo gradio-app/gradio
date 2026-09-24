@@ -27,11 +27,11 @@ from urllib.parse import urlparse, urlunparse
 
 import anyio
 import fastapi
+import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from groovy import transpile
-from huggingface_hub.utils import httpx
 
 from gradio import (
     analytics,

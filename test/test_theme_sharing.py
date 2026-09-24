@@ -1,10 +1,10 @@
 import tempfile
 from unittest.mock import patch
 
+import httpx
 import huggingface_hub
 import pytest
 from huggingface_hub.hf_api import SpaceInfo
-from huggingface_hub.utils import httpx
 
 import gradio as gr
 from gradio.themes.utils import ThemeAsset, get_matching_version, get_theme_assets

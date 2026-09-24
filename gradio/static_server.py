@@ -219,7 +219,7 @@ class StaticWorkerPool:
             self.workers.append(process)
 
         # Wait for workers to be ready
-        from huggingface_hub.utils import httpx
+        import httpx
 
         for port in self.ports:
             for _ in range(50):

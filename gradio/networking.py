@@ -10,7 +10,7 @@ import time
 import warnings
 from pathlib import Path
 
-from huggingface_hub.utils import httpx
+import httpx
 
 from gradio.exceptions import ShareCertificateWriteError
 from gradio.routes import App  # HACK: to avoid circular import # noqa: F401

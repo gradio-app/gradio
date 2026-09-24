@@ -54,10 +54,10 @@ from typing import (
 
 import anyio
 import gradio_client.utils as client_utils
+import httpx
 import orjson
 from gradio_client.documentation import document
 from gradio_client.exceptions import AppError
-from huggingface_hub.utils import httpx
 from packaging import version
 from typing_extensions import ParamSpec
 

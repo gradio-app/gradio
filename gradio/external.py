@@ -12,12 +12,12 @@ from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+import httpx
 import huggingface_hub
 from gradio_client import Client
 from gradio_client.client import Endpoint
 from gradio_client.documentation import document
 from gradio_client.utils import encode_url_or_file_to_base64, is_http_url_like
-from huggingface_hub.utils import httpx
 from packaging import version
 
 import gradio as gr
