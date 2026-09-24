@@ -224,34 +224,6 @@ describe("Props: language", () => {
 	});
 });
 
-test.todo(
-	"VISUAL: lines=10 sets the minimum visible height of the editor to 10 line-heights — needs Playwright screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: max_lines=3 caps the editor height at 3 line-heights and enables scrolling for longer content — needs Playwright screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: show_line_numbers=true renders the line number gutter — needs Playwright screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: show_line_numbers=false hides the line number gutter — needs Playwright screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: wrap_lines=true wraps long lines within the container width instead of scrolling — needs Playwright screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: wrap_lines=false lets long lines overflow horizontally — needs Playwright screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: autocomplete=true shows an autocompletion dropdown when typing in supported languages — needs Playwright interaction test"
-);
-
 describe("Events", () => {
 	afterEach(() => cleanup());
 
@@ -373,10 +345,6 @@ describe("Copy button", () => {
 		await fireEvent.click(getByLabelText("Copy"));
 		expect(navigator.clipboard.writeText).toHaveBeenCalledWith("my code");
 	});
-
-	test.todo(
-		"VISUAL: copy button icon changes from Copy to Check for ~2 seconds after clicking — needs Playwright screenshot comparison"
-	);
 });
 
 describe("Download button", () => {
@@ -401,10 +369,6 @@ describe("Download button", () => {
 		const link = getByRole("link");
 		expect(link.getAttribute("href")).toMatch(/^blob:/);
 	});
-
-	test.todo(
-		"VISUAL: download button icon changes from Download to Check for ~2 seconds after clicking — needs Playwright screenshot comparison"
-	);
 });
 
 describe("Edge cases", () => {

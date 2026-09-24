@@ -1,5 +1,22 @@
 # @gradio/core
 
+## 1.12.0
+
+### Features
+
+- [#13851](https://github.com/gradio-app/gradio/pull/13851) [`afffecc`](https://github.com/gradio-app/gradio/commit/afffeccf69262a8070a091b50206c1e33b8c06c4) - Add configurable tab overflow and alignment.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13817](https://github.com/gradio-app/gradio/pull/13817) [`81b7b77`](https://github.com/gradio-app/gradio/commit/81b7b77787fad818d686f43fc2347b32d2ceea99) - Several fixes related to rendering of custom components.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/client@2.7.0
+- @gradio/tabitem@0.9.0
+- @gradio/tabs@0.11.0
+
 ## 1.11.2
 
 ### Fixes
