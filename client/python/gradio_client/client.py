@@ -488,24 +488,14 @@ class Client:
         except RepositoryNotFoundError:
             if verbose:
                 print(f"Creating a duplicate of {from_id} for your own use... 🤗")
-            # duplicate_space was removed in huggingface_hub 2.0 in favor of duplicate_repo
-            if hasattr(huggingface_hub, "duplicate_repo"):
-                huggingface_hub.duplicate_repo(
-                    from_id=from_id,
-                    to_id=space_id,
-                    repo_type="space",
-                    token=token,
-                    exist_ok=True,
-                    private=private,
-                )
-            else:
-                huggingface_hub.duplicate_space(
-                    from_id=from_id,
-                    to_id=space_id,
-                    token=token,
-                    exist_ok=True,
-                    private=private,
-                )
+            huggingface_hub.duplicate_repo(
+                from_id=from_id,
+                to_id=space_id,
+                repo_type="space",
+                token=token,
+                exist_ok=True,
+                private=private,
+            )
             if secrets is not None:
                 for key, value in secrets.items():
                     huggingface_hub.add_space_secret(space_id, key, value, token=token)
