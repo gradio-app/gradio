@@ -594,14 +594,22 @@ export class DependencyManager {
 										// original click and never stops. Closing the stream
 										// first brings the input components into that settle,
 										// since resolve_args skips them while stream_state is
-										// null.
+										// null. validation_error is not stored by
+										// LoadingStatusState, so it reaches only the
+										// screen-reader announcer.
 										if (dep.connection_type === "stream") {
 											stream_state = "closed";
 										}
 										this.update_loading_status({
 											status: "complete",
 											fn_index: dep.id,
-											stream_state
+											stream_state,
+											validation_error: result.message
+												.filter(
+													(m: ValidationError) => !m.is_valid && m.message
+												)
+												.map((m: ValidationError) => m.message)
+												.join(" ")
 										});
 										result.message.forEach((m: ValidationError, i) => {
 											this.update_state_cb(

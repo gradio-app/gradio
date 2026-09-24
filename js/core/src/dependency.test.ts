@@ -41,7 +41,8 @@ function dependency(
 function manager(
 	dependencies: DependencyConfig[],
 	client: Client = {} as Client,
-	update_state = vi.fn().mockResolvedValue(undefined)
+	update_state = vi.fn().mockResolvedValue(undefined),
+	on_loading_status_change = vi.fn()
 ): DependencyManager {
 	return new DependencyManager(
 		dependencies,
@@ -51,7 +52,8 @@ function manager(
 		vi.fn(),
 		vi.fn(),
 		vi.fn(),
-		vi.fn()
+		vi.fn(),
+		on_loading_status_change
 	);
 }
 
@@ -237,6 +239,47 @@ describe("DependencyManager.dispatch", () => {
 				}
 			},
 			false
+		);
+	});
+
+	test("hands the validation errors to the announcer when settling", async () => {
+		const validated = dependency(0, "validated", [10]);
+		validated.inputs = [11, 12, 13];
+		const client = {
+			submit: () =>
+				(async function* () {
+					yield {
+						type: "status",
+						stage: "error",
+						queue: true,
+						message: [
+							{ is_valid: false, message: "Name is required." },
+							{ is_valid: true, message: "" },
+							{ is_valid: false, message: "Age must be positive." }
+						]
+					};
+				})()
+		} as unknown as Client;
+		const on_loading_status_change = vi.fn();
+		const dependency_manager = manager(
+			[validated],
+			client,
+			vi.fn().mockResolvedValue(undefined),
+			on_loading_status_change
+		);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+
+		expect(on_loading_status_change).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				status: "complete",
+				fn_index: 0,
+				validation_error: "Name is required. Age must be positive."
+			})
 		);
 	});
 
