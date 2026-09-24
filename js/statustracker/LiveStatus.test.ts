@@ -198,3 +198,40 @@ test("still announces when show_progress is full or minimal", async () => {
 	await advance(THROTTLE_MS);
 	expect(live_region).toHaveTextContent("Complete");
 });
+
+test("announces the validation error instead of complete for a rejected run", async () => {
+	const { getByRole } = within(target);
+	const live_region = getByRole("status");
+
+	await update_status(status_update());
+	expect(live_region).toHaveTextContent("Loading");
+
+	await update_status(
+		status_update({
+			status: "complete",
+			validation_error: "Name is required."
+		})
+	);
+	await advance(THROTTLE_MS);
+	expect(live_region).toHaveTextContent("Name is required.");
+
+	// The rejected run must not leave "pending" behind, or the next run of the
+	// same dependency would skip its "Loading" announcement.
+	await update_status(status_update());
+	await advance(THROTTLE_MS);
+	expect(live_region).toHaveTextContent("Loading");
+});
+
+test("announces a validation error even when show_progress is hidden", async () => {
+	const { getByRole } = within(target);
+	const live_region = getByRole("status");
+
+	await update_status(
+		status_update({
+			status: "complete",
+			show_progress: "hidden",
+			validation_error: "Name is required."
+		})
+	);
+	expect(live_region).toHaveTextContent("Name is required.");
+});
