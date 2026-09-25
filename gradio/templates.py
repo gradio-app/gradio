@@ -33,6 +33,7 @@ class TextArea(components.Textbox):
         placeholder: str | None = None,
         label: str | I18nData | None = None,
         info: str | I18nData | None = None,
+        tooltip: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: (
             components.Component
@@ -69,6 +70,7 @@ class TextArea(components.Textbox):
             placeholder=placeholder,
             label=label,
             info=info,
+            tooltip=tooltip,
             every=every,
             inputs=inputs,
             show_label=show_label,
