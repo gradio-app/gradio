@@ -52,6 +52,7 @@ class WorkflowCanvas(BlockContext, Component):
         preserved_by_key: list[str] | str | None = "value",
         container: bool = False,
         server_functions: list[Callable] | None = None,
+        app_view: str | None = None,
     ):
         """
         Parameters:
@@ -68,7 +69,9 @@ class WorkflowCanvas(BlockContext, Component):
             preserved_by_key: Parameters preserved across re-renders with the same key.
             container: If True, displayed in a container.
             server_functions: Python functions callable from the canvas frontend via the `server` object.
+            app_view: `elem_id` of a layout block holding a regular Gradio app equivalent to this workflow (`gr.Workflow` sets this). When set, visitors without write access see that app instead of the canvas, and can toggle between the two.
         """
+        self.app_view = app_view
         BlockContext.__init__(
             self,
             visible=visible,
