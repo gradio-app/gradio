@@ -78,7 +78,8 @@
 		topoSort,
 		resolveCurrentInputs as resolveCurrentInputsImpl,
 		computeStaleNodes,
-		buildUpstreamSubgraph as buildUpstreamSubgraphImpl
+		buildUpstreamSubgraph as buildUpstreamSubgraphImpl,
+		reusableUpstreamNodes
 	} from "./workflow-graph";
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
@@ -1005,7 +1006,7 @@
 				);
 			}
 		},
-		onrunnode: (id: string) => void runNode(id),
+		onrunnode: (id: string, force = false) => void runNode(id, force),
 		onselect: (id: string, additive = false) => selectNode(id, additive),
 		onnodepointerdown: (e: PointerEvent, id: string) => startNodeDrag(e, id),
 		onportpointerdown: (
@@ -2063,24 +2064,33 @@
 		});
 	}
 
-	async function runNode(targetId: string): Promise<void> {
+	// Shift+click (`force`) re-runs up-to-date upstream nodes instead of reusing them.
+	async function runNode(targetId: string, force = false): Promise<void> {
 		if (running) return;
-		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId));
+		const reuse = force
+			? new Set<string>()
+			: reusableUpstreamNodes($workflow, targetId, nodeStatus, staleNodes);
+		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId), reuse);
 	}
 
 	let nodesInRun = $state(new Set<string>());
 
-	async function runWorkflow(target?: Workflow): Promise<void> {
+	async function runWorkflow(
+		target?: Workflow,
+		reuse: Set<string> = new Set()
+	): Promise<void> {
 		if (running) return;
 		running = true;
 		const wfToRun = target ?? $workflow;
 		// Clear status only for nodes we're about to run, so already-finished
-		// nodes outside the target subgraph keep their snapshots + state.
-		const runningIds = new Set([
-			...wfToRun.references.map((n) => n.id),
-			...wfToRun.operators.map((n) => n.id),
-			...wfToRun.subjects.map((n) => n.id)
-		]);
+		// nodes outside the target subgraph (and reused nodes) keep their snapshots + state.
+		const runningIds = new Set(
+			[
+				...wfToRun.references.map((n) => n.id),
+				...wfToRun.operators.map((n) => n.id),
+				...wfToRun.subjects.map((n) => n.id)
+			].filter((id) => !reuse.has(id))
+		);
 		nodesInRun = runningIds;
 		nodeStatus = Object.fromEntries(
 			Object.entries(nodeStatus).filter(([id]) => !runningIds.has(id))
@@ -2242,7 +2252,8 @@
 							signal: signal ?? undefined,
 							onChunk
 						})
-				: undefined
+				: undefined,
+			{ reuse }
 		);
 
 		running = false;
@@ -2315,12 +2326,7 @@
 			hasErrors ? 5000 : 3000,
 			hasErrors ? "error" : "success"
 		);
-
-		setTimeout(() => {
-			nodeStatus = Object.fromEntries(
-				Object.entries(nodeStatus).filter(([_, s]) => s === "error")
-			);
-		}, 3000);
+		// "done" is kept: staleness and upstream reuse depend on it.
 	}
 
 	function stopWorkflow(): void {

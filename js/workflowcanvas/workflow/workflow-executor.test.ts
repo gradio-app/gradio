@@ -770,3 +770,58 @@ describe("executeWorkflow — cascading failure messages", () => {
 		expect(errors.d).toContain("moondream2");
 	});
 });
+
+describe("executeWorkflow — reuse", () => {
+	test("skips reused nodes and feeds their stored outputs downstream", async () => {
+		const op = (id: string, data: Record<string, NodeDataValue> = {}) =>
+			({
+				id,
+				role: "operator",
+				kind: "space",
+				label: id,
+				space_id: `user/${id}`,
+				endpoint: "/predict",
+				inputs: [{ id: "in_0", label: "In", type: "text" }],
+				outputs: [{ id: "out_0", label: "Out", type: "text" }],
+				data,
+				x: 0,
+				y: 0,
+				width: 280,
+				height: 90,
+				runtime: "client"
+			}) as OperatorNode;
+		const workflow = emptyV2(
+			[op("gen", { in_0: "a cat", out_0: "cached-image" }), op("edit")],
+			[],
+			[
+				{
+					id: "e1",
+					from_node_id: "gen",
+					from_port_id: "out_0",
+					to_node_id: "edit",
+					to_port_id: "in_0",
+					type: "text"
+				}
+			]
+		);
+		const callSpace = vi.fn().mockResolvedValue(JSON.stringify(["edited"]));
+		const bag = statusBag();
+		await executeWorkflow(
+			workflow,
+			bag.onStatus,
+			() => {},
+			undefined,
+			callSpace as unknown as Parameters<typeof executeWorkflow>[4],
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			{ reuse: new Set(["gen"]) }
+		);
+
+		expect(callSpace).toHaveBeenCalledTimes(1);
+		expect(callSpace.mock.calls[0][0]).toBe("user/edit");
+		expect(JSON.parse(callSpace.mock.calls[0][2])).toEqual(["cached-image"]);
+		expect(bag.statuses).toMatchObject({ gen: "done", edit: "done" });
+	});
+});
