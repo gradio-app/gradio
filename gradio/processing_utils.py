@@ -1244,7 +1244,7 @@ PLAYABLE_AUDIO_CODECS = frozenset(
         (".wav", "pcm_u8"),
         (".mp3", "mp3"),
         (".m4a", "aac"),
-        (".m4a", "alac"),
+        (".m4b", "aac"),
         (".mp4", "aac"),
         (".aac", "aac"),
         (".flac", "flac"),
@@ -1291,7 +1291,6 @@ def audio_is_playable(audio_filepath: str) -> bool:
 # The pairs match the entries in `audio_is_playable`.
 REMUXABLE_AUDIO_CODECS = {
     "aac": ".m4a",
-    "alac": ".m4a",
     "mp3": ".mp3",
     "flac": ".flac",
     "opus": ".ogg",

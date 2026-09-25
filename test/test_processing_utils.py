@@ -511,6 +511,15 @@ class TestAudioPlayability:
         unreadable.write_bytes(b"not audio")
         assert processing_utils.audio_is_playable(str(unreadable))
 
+        # .m4b is an mp4 container under an audiobook name, so it needs no
+        # conversion any more than the same stream named .m4a would
+        m4b = tmp_path / "audiobook.m4b"
+        self._transcode(test_file_dir / "audio_sample.wav", m4b, "-c:a aac")
+        # Pin the codec so the assertion below cannot pass through the
+        # "unprobeable, assume playable" fallback
+        assert processing_utils._first_audio_codec(str(m4b)) == "aac"
+        assert processing_utils.audio_is_playable(str(m4b))
+
     def test_convert_audio_remuxes_already_playable_codec(
         self, test_file_dir, tmp_path
     ):
@@ -547,6 +556,28 @@ class TestAudioPlayability:
         # The audio itself survived the round trip
         sample_rate, data = processing_utils.audio_from_file(converted)
         original_rate, original_data = processing_utils.audio_from_file(str(aiff))
+        assert sample_rate == original_rate
+        assert np.array_equal(data, original_data)
+
+    def test_convert_audio_reencodes_alac(self, test_file_dir, tmp_path):
+        """Only Safari decodes ALAC, so it is re-encoded to wav, not remuxed."""
+        alac = tmp_path / "lossless.m4a"
+        self._transcode(test_file_dir / "audio_sample.wav", alac, "-c:a alac")
+        assert processing_utils._first_audio_codec(str(alac)) == "alac"
+        assert not processing_utils.audio_is_playable(str(alac))
+
+        converted = processing_utils.convert_audio_to_playable(
+            str(alac), cache_dir=str(tmp_path / "cache")
+        )
+
+        assert Path(converted).suffix == ".wav"
+        assert processing_utils.audio_is_playable(converted)
+        assert processing_utils._first_audio_codec(converted) == "pcm_s16le"
+        # ALAC is lossless, so the samples come through unchanged
+        sample_rate, data = processing_utils.audio_from_file(converted)
+        original_rate, original_data = processing_utils.audio_from_file(
+            str(test_file_dir / "audio_sample.wav")
+        )
         assert sample_rate == original_rate
         assert np.array_equal(data, original_data)
 
