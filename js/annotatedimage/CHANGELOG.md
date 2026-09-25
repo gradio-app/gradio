@@ -1,5 +1,12 @@
 # @gradio/annotatedimage
 
+## 0.12.3
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+
 ## 0.12.2
 
 ### Dependency updates

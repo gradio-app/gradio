@@ -1,5 +1,16 @@
 # @gradio/uploadbutton
 
+## 0.11.0
+
+### Features
+
+- [#13885](https://github.com/gradio-app/gradio/pull/13885) [`653efff`](https://github.com/gradio-app/gradio/commit/653efff8332c7ea50a91d447d671ef982ccfad37) - Name rejected files in upload errors and fix a Document leak in sanitize.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/button@0.8.3
+
 ## 0.10.2
 
 ### Dependency updates

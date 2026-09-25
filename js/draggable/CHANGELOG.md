@@ -1,5 +1,15 @@
 # @gradio/draggable
 
+## 0.5.0
+
+### Features
+
+- [#13873](https://github.com/gradio-app/gradio/pull/13873) [`e85ed2a`](https://github.com/gradio-app/gradio/commit/e85ed2a0add44b507cca0274c4dad8de4c5c4f6e) - Refactor the remaining component unit tests and remove components.test.ts.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.4
+
 ## 0.4.0
 
 ### Dependency updates

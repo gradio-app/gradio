@@ -1,5 +1,26 @@
 # @gradio/core
 
+## 1.12.1
+
+### Fixes
+
+- [#13845](https://github.com/gradio-app/gradio/pull/13845) [`bb30c0c`](https://github.com/gradio-app/gradio/commit/bb30c0c8b6c0d857449d62e758bafd43af68a83b) - Import CSV and TSV files dropped on `gr.Dataframe`.  Thanks @hysts!
+- [#13871](https://github.com/gradio-app/gradio/pull/13871) [`98a182b`](https://github.com/gradio-app/gradio/commit/98a182b60a1799604072aef7ba69d720ac35363c) - Clear the loading status when a validator rejects an event.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+- @gradio/button@0.8.3
+- @gradio/image@0.28.4
+- @gradio/gallery@0.19.2
+- @gradio/file@0.16.1
+- @gradio/video@0.23.2
+- @gradio/audio@0.24.4
+- @gradio/code@0.20.0
+- @gradio/tabitem@0.10.0
+- @gradio/html@0.14.0
+
 ## 1.12.0
 
 ### Features
