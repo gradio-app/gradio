@@ -6,7 +6,7 @@ describe("sanitize", () => {
 	test("opens non-fragment links in a new tab", () => {
 		const node = new DOMParser().parseFromString(
 			sanitize('<a href="/docs">docs</a>'),
-			"text/html",
+			"text/html"
 		);
 
 		const link = node.querySelector("a");
@@ -18,7 +18,7 @@ describe("sanitize", () => {
 	test("keeps hash-only links in the same page", () => {
 		const node = new DOMParser().parseFromString(
 			sanitize('<a href="#section">section</a>'),
-			"text/html",
+			"text/html"
 		);
 
 		const link = node.querySelector("a");
@@ -29,7 +29,7 @@ describe("sanitize", () => {
 
 	test("removes style elements and their content", () => {
 		const result = sanitize(
-			"<p>hello</p><style>body { background: red; }</style>",
+			"<p>hello</p><style>body { background: red; }</style>"
 		);
 
 		expect(result).toBe("<p>hello</p>");
@@ -37,7 +37,7 @@ describe("sanitize", () => {
 
 	test("removes style elements inside svg", () => {
 		const result = sanitize(
-			"<svg><style>body { background: red; }</style><circle r='1'></circle></svg>",
+			"<svg><style>body { background: red; }</style><circle r='1'></circle></svg>"
 		);
 
 		expect(result).not.toContain("<style>");
@@ -46,7 +46,7 @@ describe("sanitize", () => {
 
 	test("removes link elements", () => {
 		const result = sanitize(
-			'<p>hello</p><link rel="stylesheet" href="https://example.com/style.css">',
+			'<p>hello</p><link rel="stylesheet" href="https://example.com/style.css">'
 		);
 
 		expect(result).toBe("<p>hello</p>");
@@ -55,7 +55,7 @@ describe("sanitize", () => {
 	test("keeps style attributes", () => {
 		const node = new DOMParser().parseFromString(
 			sanitize('<p style="color: red;">hello</p>'),
-			"text/html",
+			"text/html"
 		);
 
 		const p = node.querySelector("p");
@@ -69,7 +69,7 @@ describe("sanitize", () => {
 		const spy = vi.spyOn(document, "createNodeIterator");
 		try {
 			expect(sanitize("<p><b>bold</b> text</p>")).toBe(
-				"<p><b>bold</b> text</p>",
+				"<p><b>bold</b> text</p>"
 			);
 			expect(spy).not.toHaveBeenCalled();
 		} finally {

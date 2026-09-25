@@ -140,9 +140,7 @@ describe("File", () => {
 
 		await vi.waitFor(() => expect(error).toHaveBeenCalledTimes(1));
 		expect(error).toHaveBeenCalledWith(
-			expect.stringMatching(
-				/^Invalid file types: .+, .+\. Only \.txt allowed\.$/
-			)
+			`Invalid file types: ${TEST_JPG.orig_name}, ${TEST_PDF.orig_name}. Only .txt allowed.`
 		);
 	});
 });

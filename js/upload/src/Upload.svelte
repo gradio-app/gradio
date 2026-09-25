@@ -186,11 +186,13 @@
 		);
 
 		if (ios && use_post_upload_validation) {
-			const invalid_files = _files.filter((file) => !is_valid_file(file));
-			if (invalid_files.length) {
-				onerror?.(invalid_file_type_message(invalid_files, filetype));
-			}
-			_files = _files.filter((file) => !invalid_files.includes(file));
+			_files = _files.filter((file) => {
+				if (is_valid_file(file)) {
+					return true;
+				}
+				onerror?.(`Invalid file type: ${file.name}. Only ${filetype} allowed.`);
+				return false;
+			});
 
 			if (_files.length === 0) {
 				return [];
