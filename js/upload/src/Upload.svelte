@@ -3,7 +3,11 @@
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, type Client } from "@gradio/client";
 	import UploadProgress from "./UploadProgress.svelte";
-	import { create_drag, is_valid_mimetype } from "./utils";
+	import {
+		create_drag,
+		invalid_file_type_message,
+		is_valid_mimetype
+	} from "./utils";
 
 	const { drag, open_file_upload: _open_file_upload } = create_drag();
 
@@ -182,13 +186,17 @@
 		);
 
 		if (ios && use_post_upload_validation) {
+			const invalid_files: File[] = [];
 			_files = _files.filter((file) => {
 				if (is_valid_file(file)) {
 					return true;
 				}
-				onerror?.(`Invalid file type: ${file.name}. Only ${filetype} allowed.`);
+				invalid_files.push(file);
 				return false;
 			});
+			if (invalid_files.length) {
+				onerror?.(invalid_file_type_message(invalid_files, filetype));
+			}
 
 			if (_files.length === 0) {
 				return [];
@@ -225,6 +233,7 @@
 	}
 
 	async function load_files_from_upload(files: File[]): Promise<void> {
+		const invalid_files: File[] = [];
 		const files_to_load = files.filter((file) => {
 			const file_name = file.name.toLowerCase();
 			const file_extension = "." + file_name.split(".").pop();
@@ -238,9 +247,12 @@
 			) {
 				return true;
 			}
-			onerror?.(`Invalid file type only ${filetype} allowed.`);
+			invalid_files.push(file);
 			return false;
 		});
+		if (invalid_files.length) {
+			onerror?.(invalid_file_type_message(invalid_files, filetype));
+		}
 		if (format != "blob") {
 			await load_files(files_to_load);
 		} else {

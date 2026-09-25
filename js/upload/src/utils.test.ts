@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { create_drag, is_valid_mimetype, to_accept_attribute } from "./utils";
+import {
+	create_drag,
+	invalid_file_type_message,
+	is_valid_mimetype,
+	to_accept_attribute
+} from "./utils";
 
 describe("is_valid_mimetype", () => {
 	test("matches compound extensions", () => {
@@ -114,5 +119,29 @@ describe("create_drag", () => {
 
 		expect(click).toHaveBeenCalledOnce();
 		action.destroy();
+	});
+});
+
+describe("invalid_file_type_message", () => {
+	const make_files = (names: string[]): File[] =>
+		names.map((name) => new File([""], name));
+
+	test("truncates long lists of rejected files", () => {
+		const files = make_files(
+			Array.from({ length: 100 }, (_, i) => `file_${i}.png`)
+		);
+		expect(invalid_file_type_message(files, ".txt")).toBe(
+			"Invalid file types: file_0.png, file_1.png, file_2.png, file_3.png, file_4.png and 95 more. Only .txt allowed."
+		);
+	});
+
+	test("uses the relative path of files from a directory upload", () => {
+		const file = new File([""], "a.png");
+		Object.defineProperty(file, "webkitRelativePath", {
+			value: "folder/sub/a.png"
+		});
+		expect(invalid_file_type_message([file], ".txt")).toBe(
+			"Invalid file type: folder/sub/a.png. Only .txt allowed."
+		);
 	});
 });

@@ -6,7 +6,8 @@ import {
 	upload_file,
 	mock_client,
 	TEST_TXT,
-	TEST_JPG
+	TEST_JPG,
+	TEST_PDF
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
@@ -174,6 +175,25 @@ describe("Props: file_types", () => {
 			expect.stringContaining("Invalid file type")
 		);
 		expect(upload).not.toHaveBeenCalled();
+	});
+
+	test("reports rejected filenames together while uploading valid files", async () => {
+		const { listen, get_data } = await render(UploadButton, {
+			...upload_props,
+			file_count: "multiple",
+			file_types: [".txt"]
+		});
+		const error = listen("error");
+		const upload = listen("upload");
+		await upload_file([TEST_JPG, TEST_TXT, TEST_PDF]);
+		await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+		expect(error).toHaveBeenCalledTimes(1);
+		expect(error).toHaveBeenCalledWith(
+			`Invalid file types: ${TEST_JPG.orig_name}, ${TEST_PDF.orig_name}. Only .txt allowed.`
+		);
+		expect((await get_data()).value).toEqual([
+			expect.objectContaining({ orig_name: TEST_TXT.orig_name })
+		]);
 	});
 
 	test("accepts files matching a wildcard MIME category", async () => {

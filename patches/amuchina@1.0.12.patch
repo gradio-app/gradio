@@ -1,0 +1,16 @@
+diff --git a/dist/utils.js b/dist/utils.js
+index dd82a5199f596d4c76335adf0038863271e0ed0e..b63e8050a74021d968bc60ceaa483f03a05ccb4e 100644
+--- a/dist/utils.js
++++ b/dist/utils.js
+@@ -63,7 +63,10 @@ const traverseElementsBasic = (parent, callback) => {
+     }
+ };
+ const traverseElementsIterator = (parent, callback) => {
+-    const iterator = document.createNodeIterator(parent, NodeFilter.SHOW_ELEMENT);
++    // Create the iterator on the root's own document: an iterator created on the
++    // main document keeps a reference to its root, so the parsed document leaks.
++    const ownerDocument = parent.ownerDocument || parent;
++    const iterator = ownerDocument.createNodeIterator(parent, NodeFilter.SHOW_ELEMENT);
+     let current;
+     while (current = iterator.nextNode()) {
+         const parent = current.parentNode;
