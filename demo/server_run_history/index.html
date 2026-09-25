@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Badge Studio</title>
+    <style>
+      :root {
+        --bg: #fbfaf8;
+        --panel: #fff;
+        --ink: #1d1b19;
+        --muted: #6f6a64;
+        --line: #e6e1da;
+        --accent: #b4451f;
+        --radius: 12px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16151a;
+          --panel: #201f26;
+          --ink: #f2efea;
+          --muted: #a09a93;
+          --line: #33313b;
+          --accent: #ff8b5e;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.5 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        flex: 1;
+      }
+      .wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 20px;
+        padding: 20px 16px 48px;
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+      @media (max-width: 820px) {
+        .wrap {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 0 0 6px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 9px 11px;
+        font: inherit;
+        color: var(--ink);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+      }
+      .row > div {
+        flex: 1;
+        min-width: 140px;
+      }
+      button {
+        font: inherit;
+        font-weight: 600;
+        padding: 9px 14px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+      }
+      button.ghost {
+        background: transparent;
+        color: var(--ink);
+        border-color: var(--line);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      #out {
+        margin-top: 14px;
+        min-height: 150px;
+        display: grid;
+        place-items: center;
+        border: 1px dashed var(--line);
+        border-radius: var(--radius);
+        padding: 12px;
+        color: var(--muted);
+      }
+      #out img {
+        max-width: 100%;
+        border-radius: 8px;
+      }
+      #out .shout {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .runs {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 60vh;
+        overflow: auto;
+      }
+      .runs button {
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        font-weight: 500;
+        padding: 8px 10px;
+        line-height: 1.35;
+      }
+      .runs button:hover {
+        border-color: var(--accent);
+      }
+      .runs .ep {
+        font-weight: 650;
+      }
+      .runs .when {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 8px 0 0;
+      }
+      .note.err {
+        color: var(--accent);
+      }
+      code {
+        font-size: 12px;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 1px 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Badge Studio</h1>
+      <span id="who" class="note"></span>
+      <a id="login" href="/login/huggingface?_target_url=/"
+        ><button class="ghost">Sign in with Hugging Face</button></a
+      >
+      <a id="logout" href="/logout?_target_url=/" hidden
+        ><button class="ghost">Sign out</button></a
+      >
+    </header>
+
+    <div class="wrap">
+      <main>
+        <div class="card">
+          <div class="row">
+            <div>
+              <label for="text">Text</label>
+              <input id="text" value="ship it" />
+            </div>
+            <div style="flex: 0 0 140px">
+              <label for="palette">Palette</label>
+              <select id="palette">
+                <option>sunset</option>
+                <option>ocean</option>
+                <option>forest</option>
+                <option>grape</option>
+              </select>
+            </div>
+            <button id="make">Make badge</button>
+            <button id="shout" class="ghost">Shout</button>
+          </div>
+          <div id="out">Nothing yet.</div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card">
+          <label for="bucket">History bucket</label>
+          <div class="row">
+            <div>
+              <input id="bucket" placeholder="username/badge-history" />
+            </div>
+            <button id="connect">Connect</button>
+          </div>
+          <p id="bucket-note" class="note">
+            Sign in, then name a bucket to save runs to.
+          </p>
+          <div class="row" style="margin-top: 10px">
+            <button id="refresh" class="ghost">Refresh history</button>
+          </div>
+          <ul id="runs" class="runs"></ul>
+        </div>
+      </aside>
+    </div>
+
+    <script type="module">
+      import { Client } from "/client.js";
+
+      const $ = (id) => document.getElementById(id);
+
+      // ---- login state -------------------------------------------------
+      const { user } = await (await fetch("/whoami")).json();
+      const saved = localStorage.getItem("badge-bucket");
+      const bucket = saved || (user ? `${user}/badge-history` : "");
+      if (user) {
+        $("who").textContent = `Signed in as ${user}`;
+        $("login").hidden = true;
+        $("logout").hidden = false;
+        $("bucket").value = bucket;
+      }
+
+      // Naming the bucket here is the whole setup: every call this client makes
+      // is recorded into it, server side, under the caller's own credentials.
+      const app = await Client.connect(
+        location.origin,
+        bucket ? { history_bucket: bucket } : {},
+      );
+
+      // ---- bucket ------------------------------------------------------
+      const note = (msg, err = false) => {
+        $("bucket-note").textContent = msg;
+        $("bucket-note").classList.toggle("err", err);
+      };
+
+      async function use_bucket() {
+        const id = $("bucket").value.trim();
+        if (!id) return;
+        // Nothing to set up: the bucket is named on each call and created by
+        // the first run recorded to it.
+        app.options.history_bucket = id;
+        localStorage.setItem("badge-bucket", id);
+        note(`Saving runs to ${id}.`);
+        await refresh();
+      }
+
+      // ---- history -----------------------------------------------------
+      async function refresh() {
+        const bucket = app.options.history_bucket;
+        if (!bucket) return;
+        const result = await app.read_history();
+        if (!result.ok) {
+          note(result.detail || "Could not read history.", true);
+          return;
+        }
+        $("runs").replaceChildren(
+          ...result.data.map((record) => {
+            const li = document.createElement("li");
+            const button = document.createElement("button");
+            button.innerHTML =
+              `<span class="ep">${record.endpoint}</span>` +
+              `<span class="when">${new Date(
+                record.started_at,
+              ).toLocaleString()}</span>`;
+            // Repopulating the page is the frontend's job: the record is
+            // just the inputs and outputs of that call.
+            button.onclick = () => restore(record);
+            li.append(button);
+            return li;
+          }),
+        );
+        note(
+          result.data.length
+            ? `Saving runs to ${bucket}.`
+            : `No runs in ${bucket} yet.`,
+        );
+      }
+
+      function restore(record) {
+        const [text, palette] = record.inputs ?? [];
+        if (typeof text === "string") $("text").value = text;
+        if (typeof palette === "string") $("palette").value = palette;
+        render(record.endpoint, record.outputs);
+      }
+
+      // ---- running -----------------------------------------------------
+      function render(endpoint, outputs) {
+        const value = Array.isArray(outputs) ? outputs[0] : outputs;
+        if (endpoint === "badge" && value?.url) {
+          // `history_records()` has already rewritten the stored asset into a
+          // URL this page can fetch; a fresh run returns a normal file URL.
+          $("out").innerHTML = `<img src="${value.url}" alt="badge" />`;
+        } else {
+          $("out").innerHTML = `<div class="shout">${value ?? "—"}</div>`;
+        }
+      }
+
+      async function run(endpoint) {
+        $("out").textContent = "Working…";
+        const args =
+          endpoint === "badge"
+            ? [$("text").value, $("palette").value]
+            : [$("text").value];
+        const result = await app.predict(`/${endpoint}`, args);
+        render(endpoint, result.data);
+        // The record is written server-side after the call returns, and
+        // uploading an asset takes a moment, so look again shortly after.
+        setTimeout(refresh, 800);
+        setTimeout(refresh, 3000);
+      }
+
+      $("connect").onclick = use_bucket;
+      $("refresh").onclick = refresh;
+      $("make").onclick = () => run("badge");
+      $("shout").onclick = () => run("shout");
+
+      if (bucket) await refresh();
+    </script>
+  </body>
+</html>

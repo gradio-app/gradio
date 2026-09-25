@@ -36,6 +36,7 @@ import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
 import {
 	read_run_history_storage,
+	type RunHistoryStorage,
 	start_run_history,
 	update_run_history,
 	update_run_inputs
@@ -121,7 +122,12 @@ export function submit(
 		const history_enabled =
 			config.run_history !== false && this.options.record_history !== false;
 		const history_scope = { app_id: config.app_id, username: config.username };
-		const history_storage = read_run_history_storage(history_scope);
+		// A bucket named on the client wins over the destination this browser
+		// selected: a frontend that manages history itself has no settings UI to
+		// go through, and in Node there is no browser destination to read at all.
+		const history_storage: RunHistoryStorage = this.options.history_bucket
+			? { type: "bucket", bucket_id: this.options.history_bucket }
+			: read_run_history_storage(history_scope);
 		const addt_headers = {
 			...base_headers,
 			...(history_enabled && history_storage.type === "bucket"

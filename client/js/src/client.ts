@@ -35,6 +35,12 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history } from "./utils/run_history";
+import {
+	list_bucket_records,
+	resolve_record_assets,
+	type HistoryRecord,
+	type HistoryResult
+} from "./utils/bucket_sync";
 import { sign_config_file_urls, sign_file_urls } from "./helpers/data";
 import {
 	API_INFO_ERROR_MSG,
@@ -553,6 +559,33 @@ export class Client {
 		} catch (e) {
 			console.warn(e);
 		}
+	}
+
+	/**
+	 * This app's runs, newest first, with stored files resolved to URLs the page
+	 * can fetch.
+	 *
+	 * Reads whichever history the app would record this caller's runs to: the
+	 * bucket this client names, or — when it names none — whatever the app's
+	 * platform keeps for whoever is calling. So a page can show a visitor their
+	 * own history without ever asking them to pick somewhere to put it.
+	 *
+	 * Reading needs the same standing as recording, so a caller the app cannot
+	 * place gets a 401 rather than an empty list.
+	 */
+	public async read_history(
+		options: { bucket?: string; limit?: number } = {}
+	): Promise<HistoryResult<HistoryRecord[]>> {
+		const bucket = options.bucket ?? this.options.history_bucket;
+		const root = this.config?.root || "";
+		const result = await list_bucket_records(root, bucket, options.limit);
+		if (!result.ok) return result;
+		return {
+			...result,
+			data: result.data.map((record) =>
+				resolve_record_assets(root, bucket, record)
+			)
+		};
 	}
 
 	public set_cookies(raw_cookies: string): void {
