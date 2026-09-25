@@ -118,6 +118,16 @@
 
 	$effect(() => {
 		if (status === null) return;
+		// A rejected run settles as "complete"; announce its validation error
+		// instead. The error is shown whatever show_progress says, so this
+		// runs before the hidden check below.
+		if (status.validation_error) {
+			previous_statuses.set(status.fn_index, status.status);
+			announced_milestones.delete(status.fn_index);
+			announce(status.validation_error, status.fn_index);
+			return;
+		}
+
 		// `show_progress="hidden"` (which is what `show_progress=False` and the
 		// default for `gr.Timer.tick` resolve to) suppresses the visual progress
 		// indicator, so it must suppress the spoken one too.

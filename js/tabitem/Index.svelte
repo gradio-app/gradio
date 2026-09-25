@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { Gradio } from "@gradio/utils";
+	import { Gradio, css_units } from "@gradio/utils";
 	import TabItem from "./shared/TabItem.svelte";
 	import type { TabItemProps, TabItemEvents } from "./types";
 
@@ -22,6 +22,12 @@
 	order={gradio.props.order}
 	alignment={gradio.props.alignment}
 	scale={gradio.shared.scale}
+	height={gradio.props.height != null
+		? css_units(gradio.props.height)
+		: undefined}
+	max_height={gradio.props.max_height != null
+		? css_units(gradio.props.max_height)
+		: undefined}
 	component_id={gradio.props.component_id}
 	onselect={(data) => gradio.dispatch("select", data)}
 >
