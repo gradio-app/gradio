@@ -559,6 +559,28 @@ class TestAudioPlayability:
         assert sample_rate == original_rate
         assert np.array_equal(data, original_data)
 
+    def test_convert_audio_reencodes_alac(self, test_file_dir, tmp_path):
+        """Only Safari decodes ALAC, so it is re-encoded to wav, not remuxed."""
+        alac = tmp_path / "lossless.m4a"
+        self._transcode(test_file_dir / "audio_sample.wav", alac, "-c:a alac")
+        assert processing_utils._first_audio_codec(str(alac)) == "alac"
+        assert not processing_utils.audio_is_playable(str(alac))
+
+        converted = processing_utils.convert_audio_to_playable(
+            str(alac), cache_dir=str(tmp_path / "cache")
+        )
+
+        assert Path(converted).suffix == ".wav"
+        assert processing_utils.audio_is_playable(converted)
+        assert processing_utils._first_audio_codec(converted) == "pcm_s16le"
+        # ALAC is lossless, so the samples come through unchanged
+        sample_rate, data = processing_utils.audio_from_file(converted)
+        original_rate, original_data = processing_utils.audio_from_file(
+            str(test_file_dir / "audio_sample.wav")
+        )
+        assert sample_rate == original_rate
+        assert np.array_equal(data, original_data)
+
 
 class TestOutputPreprocessing:
     float_dtype_list = [
