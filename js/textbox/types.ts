@@ -21,6 +21,7 @@ export interface TextboxEvents {
 export interface TextboxProps {
 	value: string;
 	info: string;
+	tooltip: string | null;
 	lines: number;
 	type: "text" | "password" | "email" | undefined;
 	rtl: boolean;

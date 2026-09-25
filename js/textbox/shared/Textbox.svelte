@@ -16,6 +16,7 @@
 		placeholder = "",
 		label,
 		info = undefined,
+		tooltip = undefined,
 		disabled = false,
 		show_label = true,
 		container = true,
@@ -47,6 +48,7 @@
 		placeholder?: string;
 		label: string;
 		info?: string | undefined;
+		tooltip?: string | null;
 		disabled?: boolean;
 		show_label?: boolean;
 		container?: boolean;
@@ -301,7 +303,7 @@
 			{/if}
 		</IconButtonWrapper>
 	{/if}
-	<BlockTitle show_label={validation_error ? true : show_label} {info}
+	<BlockTitle show_label={validation_error ? true : show_label} {info} {tooltip}
 		>{label}
 		{#if validation_error}
 			<div class="validation-error">{validation_error}</div>

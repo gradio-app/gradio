@@ -72,6 +72,7 @@ class Image(StreamingInput, Component):
         ) = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | I18nData | None = None,
+        tooltip: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
@@ -103,6 +104,7 @@ class Image(StreamingInput, Component):
             sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
             type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. To support animated GIFs in input, the `type` should be set to "filepath" or "pil". To support SVGs, the `type` should be set to "filepath".
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            tooltip: short help text shown in a tooltip next to the label, for guidance that would clutter the UI if it were always visible (use `info` for text that should always be visible). Supports inline markdown. Requires `show_label=True`.
             every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -169,6 +171,7 @@ class Image(StreamingInput, Component):
 
         super().__init__(
             label=label,
+            tooltip=tooltip,
             every=every,
             inputs=inputs,
             show_label=show_label,

@@ -83,6 +83,7 @@
 		Icon={File}
 		label={gradio.shared.label || "FileExplorer"}
 		float={false}
+		tooltip={gradio.props.tooltip}
 	/>
 	{#key rerender_key}
 		<DirectoryExplorer

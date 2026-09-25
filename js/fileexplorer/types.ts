@@ -16,6 +16,7 @@ export interface FileExplorerProps {
 		ls: (path: string[]) => Promise<FileNode[]>;
 	};
 	buttons: (string | CustomButton)[] | null;
+	tooltip: string | null;
 }
 
 export interface FileExplorerEvents {

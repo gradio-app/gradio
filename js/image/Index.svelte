@@ -105,6 +105,7 @@
 			alt_text={gradio.props.alt_text}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
+			tooltip={gradio.props.tooltip}
 			selectable={gradio.props._selectable}
 			i18n={gradio.i18n}
 			buttons={gradio.props.buttons}
@@ -180,6 +181,7 @@
 			}}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
+			tooltip={gradio.props.tooltip}
 			pending={gradio.shared.loading_status?.status === "pending" ||
 				gradio.shared.loading_status?.status === "streaming"}
 			streaming={gradio.props.streaming}
