@@ -1718,6 +1718,14 @@ def get_dataset_schema(
         return json.dumps({"error": str(e)})
 
 
+# elem_id of the column holding the app view; the canvas frontend looks it up to
+# mark it inert while the canvas covers it.
+_APP_ELEM_ID = "workflow-app"
+_APP_CSS = f"""
+#{_APP_ELEM_ID}-header {{ justify-content: flex-end; }}
+"""
+
+
 class Workflow(Blocks):
     """
     Build and launch a visual AI workflow as a Gradio app.
@@ -2010,6 +2018,11 @@ class Workflow(Blocks):
         def get_workflow_key(_data=None) -> str:
             return _workflow_key(workflow_file)
 
+        def get_app_version(_data=None) -> str:
+            """Bumped whenever a save rebuilds the app view / endpoints, so the
+            frontend can tell its copy of the app is stale."""
+            return str(self._api_endpoints.version if self._api_endpoints else 0)
+
         async def record_workflow_run(
             data,
             request: Optional[Request] = None,
@@ -2059,6 +2072,7 @@ class Workflow(Blocks):
             get_oauth_scopes,
             get_space_id,
             get_workflow_key,
+            get_app_version,
             record_workflow_run,
             call_space,
             call_model,
@@ -2094,12 +2108,22 @@ class Workflow(Blocks):
             return WorkflowGraph.from_json(_load_initial())
 
         with self:
-            if get_space() is not None and os.getenv("OAUTH_CLIENT_ID"):
-                gr.LoginButton(visible=False)
             WorkflowCanvas(
                 value=_load_initial,
                 server_functions=server_functions,
+                app_view=_APP_ELEM_ID,
             )
+            # The "app view": a regular Gradio app built from the same
+            # components that back the workflow's API endpoints (filled in by
+            # `register_workflow_endpoints` below). The canvas overlays it; the
+            # frontend decides which one a visitor sees.
+            with gr.Column(elem_id=_APP_ELEM_ID) as app_root:
+                if get_space() is not None and os.getenv("OAUTH_CLIENT_ID"):
+                    # Created here rather than by the endpoint manager: the
+                    # button attaches a load event, which only a regular
+                    # `with Blocks` context wires up.
+                    with gr.Row(elem_id=f"{_APP_ELEM_ID}-header"):
+                        gr.LoginButton(size="sm", scale=0, min_width=0)
 
         def _wrap_bound_fn(fn: Callable) -> Callable:
             async def wrapper(
@@ -2149,7 +2173,9 @@ class Workflow(Blocks):
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
-        self._api_endpoints = register_workflow_endpoints(self, _current_graph, callers)
+        self._api_endpoints = register_workflow_endpoints(
+            self, _current_graph, callers, app_root=app_root
+        )
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
@@ -2169,6 +2195,7 @@ class Workflow(Blocks):
             tempfile.gettempdir(),
             *(kwargs.get("allowed_paths") or []),
         ]
+        kwargs["css"] = _APP_CSS + (kwargs.get("css") or "")
         # We need the edit link to print (and the browser to open to it) before
         # the main thread is blocked, which means super().launch() must return
         # first. Rather than forcing `debug=False` — which would also strip

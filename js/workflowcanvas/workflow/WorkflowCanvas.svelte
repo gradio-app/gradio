@@ -110,16 +110,21 @@
 	let {
 		server = {},
 		initialValue = null,
-		gradio_shared = undefined
+		gradio_shared = undefined,
+		auth: shared_auth = undefined
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
 		gradio_shared?: Record<string, any> | undefined;
+		/** Auth owned by the parent (which already called `init()`), so the
+		 * parent and canvas agree on who the viewer is. */
+		auth?: ReturnType<typeof createHFAuth>;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
 
-	const auth = createHFAuth(() => server);
+	// svelte-ignore state_referenced_locally
+	const auth = shared_auth ?? createHFAuth(() => server);
 
 	let spaceId = $state("");
 	// Server independently rejects unauthorized saves — this is UX only.
@@ -153,7 +158,7 @@
 	}
 
 	$effect(() => {
-		void auth.init();
+		if (!shared_auth) void auth.init();
 	});
 
 	$effect(() => {
