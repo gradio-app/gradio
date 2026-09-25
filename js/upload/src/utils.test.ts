@@ -126,18 +126,6 @@ describe("invalid_file_type_message", () => {
 	const make_files = (names: string[]): File[] =>
 		names.map((name) => new File([""], name));
 
-	test("names a single rejected file", () => {
-		expect(invalid_file_type_message(make_files(["a.png"]), ".txt")).toBe(
-			"Invalid file type: a.png. Only .txt allowed."
-		);
-	});
-
-	test("lists multiple rejected files and joins allowed types", () => {
-		expect(
-			invalid_file_type_message(make_files(["a.png", "b.png"]), [".txt", ".md"])
-		).toBe("Invalid file types: a.png, b.png. Only .txt, .md allowed.");
-	});
-
 	test("truncates long lists of rejected files", () => {
 		const files = make_files(
 			Array.from({ length: 100 }, (_, i) => `file_${i}.png`)

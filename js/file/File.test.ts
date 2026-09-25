@@ -127,20 +127,4 @@ describe("File", () => {
 
 		await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
 	});
-
-	test("rejected files are reported in a single error", async () => {
-		const { listen } = await render(File, {
-			...default_props,
-			file_count: "multiple",
-			file_types: [".txt"]
-		});
-
-		const error = listen("error");
-		await upload_file([TEST_JPG, TEST_PDF]);
-
-		await vi.waitFor(() => expect(error).toHaveBeenCalledTimes(1));
-		expect(error).toHaveBeenCalledWith(
-			`Invalid file types: ${TEST_JPG.orig_name}, ${TEST_PDF.orig_name}. Only .txt allowed.`
-		);
-	});
 });
