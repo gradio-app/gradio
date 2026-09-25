@@ -61,7 +61,7 @@
 
 	(async () => {
 		content = await ls_fn(path);
-		if (valid_for_selection && file_count === "multiple") {
+		if (valid_for_selection) {
 			content = [{ name: ".", type: "file" }, ...content];
 		}
 		opened_folders = content
@@ -102,9 +102,7 @@
 <ul class:no-checkboxes={!interactive} class:root={path.length === 0}>
 	{#each content as { type, name, valid }, i}
 		{@const is_selected = (
-			type === "folder" && file_count === "multiple"
-				? selected_folders
-				: selected_files
+			type === "file" ? selected_files : selected_folders
 		).some((x) => x[0] === name && x.length === 1)}
 		<li>
 			<span
@@ -125,26 +123,28 @@
 					}
 				}}
 			>
-				{#if interactive && type === "folder" && file_count === "single" && !valid}
-					<span class="no-checkbox" aria-hidden="true"></span>
-				{:else if interactive}
-					<Checkbox
-						disabled={false}
-						value={is_selected}
-						onchange={(checked) => {
-							oncheck?.({
-								path: [...path, name],
-								checked,
-								type
-							});
-							if (selectable) {
-								handle_select([...index_path, i], [...path, name], type);
-							}
-							if (type === "folder" && checked) {
-								open_folder(i);
-							}
-						}}
-					/>
+				{#if interactive}
+					{#if type === "folder" && file_count === "single"}
+						<span class="no-checkbox" aria-hidden="true"></span>
+					{:else}
+						<Checkbox
+							disabled={false}
+							value={is_selected}
+							onchange={(checked) => {
+								oncheck?.({
+									path: [...path, name],
+									checked,
+									type
+								});
+								if (selectable) {
+									handle_select([...index_path, i], [...path, name], type);
+								}
+								if (type === "folder" && checked) {
+									open_folder(i);
+								}
+							}}
+						/>
+					{/if}
 				{/if}
 
 				{#if type === "folder"}
@@ -250,6 +250,10 @@
 	.no-checkbox {
 		width: 18px;
 		height: 18px;
+	}
+
+	ul.root .no-checkbox {
+		display: none;
 	}
 
 	.hidden :global(> *) {
