@@ -77,6 +77,39 @@
 		url.searchParams.set(VIEW_PARAM, next);
 		window.history.replaceState(window.history.state, "", url);
 		window.scrollTo({ top: 0 });
+		if (next === "app") {
+			void reload_if_app_stale();
+			// The canvas autosaves ~500ms after an edit, so an edit made just
+			// before switching may not have reached the server yet.
+			setTimeout(() => void reload_if_app_stale(), 1500);
+		}
+	}
+
+	// The app view on this page is the one in the config it loaded with. A save
+	// that changes the app's inputs or outputs rebuilds it server-side with new
+	// component and event ids, which this page's copy doesn't know about — so
+	// when that has happened, reload into the app view rather than show a stale
+	// copy whose Run buttons no longer exist.
+	let loaded_app_version: string | null = null;
+	$effect(() => {
+		if (!app_view_id || loaded_app_version !== null) return;
+		if (!serverObj?.get_app_version) return;
+		serverObj
+			.get_app_version()
+			.then((v: string) => {
+				loaded_app_version ??= String(v);
+			})
+			.catch(() => {});
+	});
+
+	async function reload_if_app_stale(): Promise<void> {
+		if (loaded_app_version === null || !serverObj?.get_app_version) return;
+		try {
+			const current = String(await serverObj.get_app_version());
+			if (current !== loaded_app_version && view === "app") {
+				window.location.reload();
+			}
+		} catch {}
 	}
 
 	// While the canvas covers the page, keep the app underneath out of the tab
