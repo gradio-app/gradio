@@ -25,6 +25,7 @@ class TestTextbox:
             "show_label": True,
             "type": "text",
             "label": None,
+            "tooltip": None,
             "container": True,
             "min_width": 160,
             "scale": None,

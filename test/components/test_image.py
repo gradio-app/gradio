@@ -37,6 +37,7 @@ class TestImage:
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
+            "tooltip": None,
             "container": True,
             "min_width": 160,
             "scale": None,

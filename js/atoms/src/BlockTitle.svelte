@@ -1,15 +1,18 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import Info from "./Info.svelte";
+	import Tooltip from "./Tooltip.svelte";
 
 	let {
 		show_label = true,
 		info = undefined,
+		tooltip = undefined,
 		rtl = false,
 		children
 	}: {
 		show_label?: boolean;
 		info?: string | undefined;
+		tooltip?: string | null;
 		rtl?: boolean;
 		children?: Snippet;
 	} = $props();
@@ -22,7 +25,11 @@
 	data-testid="block-info"
 	dir={rtl ? "rtl" : "ltr"}
 >
-	{@render children?.()}
+	{#if tooltip}
+		<Tooltip text={tooltip}>{@render children?.()}</Tooltip>
+	{:else}
+		{@render children?.()}
+	{/if}
 </span>
 {#if info}
 	<Info {info} />

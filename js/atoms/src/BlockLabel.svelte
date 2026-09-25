@@ -1,11 +1,14 @@
 <script lang="ts">
+	import Tooltip from "./Tooltip.svelte";
+
 	let {
 		label = null,
 		Icon,
 		show_label = true,
 		disable = false,
 		float = true,
-		rtl = false
+		rtl = false,
+		tooltip = undefined
 	}: {
 		label?: string | null;
 		Icon: any;
@@ -13,6 +16,7 @@
 		disable?: boolean;
 		float?: boolean;
 		rtl?: boolean;
+		tooltip?: string | null;
 	} = $props();
 </script>
 
@@ -28,7 +32,11 @@
 	<span>
 		<Icon />
 	</span>
-	{label}
+	{#if tooltip}
+		<Tooltip text={tooltip} label_text={label ?? ""}>{label}</Tooltip>
+	{:else}
+		{label}
+	{/if}
 </label>
 
 <style>
@@ -74,6 +82,13 @@
 		margin-right: var(--size-2);
 		width: calc(var(--block-label-text-size) - 1px);
 		height: calc(var(--block-label-text-size) - 1px);
+	}
+	/* Keep the icon on the first line when an inline tooltip panel is open. */
+	label:has(:global(.inline-panel)) {
+		align-items: flex-start;
+	}
+	label:has(:global(.inline-panel)) > span {
+		margin-top: calc(var(--block-label-text-size) * 0.2);
 	}
 	.hide-label {
 		box-shadow: none;

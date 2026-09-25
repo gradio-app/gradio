@@ -77,6 +77,7 @@ class Textbox(FormComponent):
         placeholder: str | I18nData | None = None,
         label: str | I18nData | None = None,
         info: str | I18nData | None = None,
+        tooltip: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
@@ -109,6 +110,7 @@ class Textbox(FormComponent):
             placeholder: placeholder hint to provide behind textarea.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
             info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
+            tooltip: short help text shown in a tooltip next to the label, for guidance that would clutter the UI if it were always visible (use `info` for text that should always be visible). Supports inline markdown. Requires `show_label=True`.
             every: continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display the label. If False, the copy button is hidden as well as well as the label.
@@ -157,6 +159,7 @@ class Textbox(FormComponent):
         super().__init__(
             label=label,
             info=info,
+            tooltip=tooltip,
             every=every,
             inputs=inputs,
             show_label=show_label,

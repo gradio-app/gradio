@@ -79,6 +79,7 @@
 		bind:value={gradio.props.value}
 		{label}
 		info={gradio.props.info}
+		tooltip={gradio.props.tooltip}
 		show_label={gradio.shared.show_label}
 		lines={gradio.props.lines}
 		type={gradio.props.type}

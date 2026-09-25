@@ -20,6 +20,7 @@ export interface ImageProps {
 	webcam_options: WebcamOptions;
 	value: FileData | null;
 	buttons: (string | CustomButton)[];
+	tooltip: string | null;
 	pending: boolean;
 	streaming: boolean;
 	stream_every: number;

@@ -24,6 +24,7 @@
 		alt_text = null,
 		label = undefined,
 		show_label,
+		tooltip = null,
 		sources = ["upload", "clipboard", "webcam"],
 		streaming = false,
 		pending = $bindable(false),
@@ -58,6 +59,7 @@
 		alt_text?: string | null;
 		label?: string;
 		show_label: boolean;
+		tooltip?: string | null;
 		sources?: source_type[];
 		streaming?: boolean;
 		pending?: boolean;
@@ -217,7 +219,7 @@
 	}
 </script>
 
-<BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
+<BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} {tooltip} />
 
 <div data-testid="image" class="image-container" bind:this={image_container}>
 	<IconButtonWrapper>

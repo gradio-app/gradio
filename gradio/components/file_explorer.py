@@ -46,6 +46,7 @@ class FileExplorer(Component):
         root_dir: str | Path = ".",
         ignore_glob: str | None = None,
         label: str | I18nData | None = None,
+        tooltip: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
@@ -72,6 +73,7 @@ class FileExplorer(Component):
             root_dir: Path to root directory to select files from. If not provided, defaults to current working directory. Raises ValueError if the directory does not exist.
             ignore_glob: The glob-style, case-sensitive pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            tooltip: short help text shown in a tooltip next to the label, for guidance that would clutter the UI if it were always visible (use `info` for text that should always be visible). Supports inline markdown. Requires `show_label=True`.
             every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -108,6 +110,7 @@ class FileExplorer(Component):
 
         super().__init__(
             label=label,
+            tooltip=tooltip,
             every=every,
             inputs=inputs,
             show_label=show_label,

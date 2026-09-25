@@ -23,6 +23,7 @@
 		alt_text = null,
 		label = undefined,
 		show_label,
+		tooltip = null,
 		buttons = [],
 		on_custom_button_click = null,
 		selectable = false,
@@ -40,6 +41,7 @@
 		alt_text?: string | null;
 		label?: string;
 		show_label: boolean;
+		tooltip?: string | null;
 		buttons?: (string | CustomButtonType)[];
 		on_custom_button_click?: ((id: number) => void) | null;
 		selectable?: boolean;
@@ -68,6 +70,7 @@
 	{show_label}
 	Icon={ImageIcon}
 	label={!show_label ? "" : label || i18n("image.image")}
+	{tooltip}
 />
 {#if value == null || !value?.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>

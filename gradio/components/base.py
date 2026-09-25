@@ -136,6 +136,7 @@ class Component(ComponentBase, Block):
         *,
         label: str | I18nData | None = None,
         info: str | I18nData | None = None,
+        tooltip: str | I18nData | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -178,6 +179,7 @@ class Component(ComponentBase, Block):
 
         self.label = label
         self.info = info
+        self.tooltip = tooltip
         if not container:
             if show_label:
                 warnings.warn("show_label has no effect when container is False.")
