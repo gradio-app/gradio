@@ -1,5 +1,22 @@
 # gradio
 
+## 6.29.0
+
+### Features
+
+- [#13885](https://github.com/gradio-app/gradio/pull/13885) [`653efff`](https://github.com/gradio-app/gradio/commit/653efff8332c7ea50a91d447d671ef982ccfad37) - Name rejected files in upload errors and fix a Document leak in sanitize.  Thanks @abidlabs!
+- [#13886](https://github.com/gradio-app/gradio/pull/13886) [`ee8ceb4`](https://github.com/gradio-app/gradio/commit/ee8ceb494ff251e60f2a659325ebc7dd865a370e) - Add display controls for examples. Note: `gr.Interface` now hides the `additional_inputs` columns in its examples table by default; their values are still loaded when an example is selected.  Thanks @abidlabs!
+- [#13880](https://github.com/gradio-app/gradio/pull/13880) [`50be22e`](https://github.com/gradio-app/gradio/commit/50be22e548366cacddebfea0bb5aedf02e89e5a0) - Add height/max_height to gr.Accordion and gr.Tab, fix gr.Code max_lines.  Thanks @dawoodkhan82!
+- [#13842](https://github.com/gradio-app/gradio/pull/13842) [`c3f675b`](https://github.com/gradio-app/gradio/commit/c3f675b4de60f5aa5bbd7048368fc0111b64c30d) - docs:Clarify that `None` is reserved to mean "no selection" in `Dropdown` and cannot be used as a choice's value.  Thanks @dawoodkhan82!
+- [#13873](https://github.com/gradio-app/gradio/pull/13873) [`e85ed2a`](https://github.com/gradio-app/gradio/commit/e85ed2a0add44b507cca0274c4dad8de4c5c4f6e) - Refactor the remaining component unit tests and remove components.test.ts.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13845](https://github.com/gradio-app/gradio/pull/13845) [`bb30c0c`](https://github.com/gradio-app/gradio/commit/bb30c0c8b6c0d857449d62e758bafd43af68a83b) - Import CSV and TSV files dropped on `gr.Dataframe`.  Thanks @hysts!
+- [#13871](https://github.com/gradio-app/gradio/pull/13871) [`98a182b`](https://github.com/gradio-app/gradio/commit/98a182b60a1799604072aef7ba69d720ac35363c) - Clear the loading status when a validator rejects an event.  Thanks @hysts!
+- [#13870](https://github.com/gradio-app/gradio/pull/13870) [`15ce437`](https://github.com/gradio-app/gradio/commit/15ce43720d1611f44e4661c74d604eabe0d04daf) - Stop validators from overwriting their own inputs.  Thanks @hysts!
+- [#13872](https://github.com/gradio-app/gradio/pull/13872) [`e239b0b`](https://github.com/gradio-app/gradio/commit/e239b0b142f457335c949e3d8df4e50e03ff91b8) - Stop converting .m4b audio that browsers can already play.  Thanks @abidlabs!
+
 ## 6.28.0
 
 ### Features

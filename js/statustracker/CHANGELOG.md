@@ -1,5 +1,11 @@
 # @gradio/statustracker
 
+## 0.15.4
+
+### Fixes
+
+- [#13871](https://github.com/gradio-app/gradio/pull/13871) [`98a182b`](https://github.com/gradio-app/gradio/commit/98a182b60a1799604072aef7ba69d720ac35363c) - Clear the loading status when a validator rejects an event.  Thanks @hysts!
+
 ## 0.15.3
 
 ### Dependency updates

@@ -1,5 +1,17 @@
 # @gradio/imageeditor
 
+## 0.21.0
+
+### Features
+
+- [#13873](https://github.com/gradio-app/gradio/pull/13873) [`e85ed2a`](https://github.com/gradio-app/gradio/commit/e85ed2a0add44b507cca0274c4dad8de4c5c4f6e) - Refactor the remaining component unit tests and remove components.test.ts.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+- @gradio/image@0.28.4
+
 ## 0.20.2
 
 ### Dependency updates

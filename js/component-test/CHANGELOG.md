@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/video@0.23.2
+
+## 0.6.0
+
+### Dependency updates
+
 - @gradio/video@0.23.1
 
 ## 0.6.0
