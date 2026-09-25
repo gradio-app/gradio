@@ -1,8 +1,7 @@
 ---
-"@gradio/fileexplorer": minor
 "@gradio/upload": minor
 "@gradio/uploadbutton": minor
 "gradio": minor
 ---
 
-feat:Improve directory upload errors and folder selection
+feat:Name rejected files in upload errors and fix a Document leak in sanitize
