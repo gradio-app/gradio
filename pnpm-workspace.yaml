@@ -7,3 +7,4 @@ packages:
 
 patchedDependencies:
   '@sveltejs/package': patches/@sveltejs__package.patch
+  amuchina@1.0.12: patches/amuchina@1.0.12.patch

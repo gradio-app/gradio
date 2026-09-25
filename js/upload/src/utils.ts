@@ -216,3 +216,22 @@ export function create_drag(): {
 		}
 	};
 }
+
+const MAX_LISTED_INVALID_FILES = 5;
+
+export function invalid_file_type_message(
+	files: File[],
+	allowed_types: string | string[] | null | undefined
+): string {
+	let listed = files
+		.slice(0, MAX_LISTED_INVALID_FILES)
+		.map((file) => file.webkitRelativePath || file.name)
+		.join(", ");
+	if (files.length > MAX_LISTED_INVALID_FILES) {
+		listed += ` and ${files.length - MAX_LISTED_INVALID_FILES} more`;
+	}
+	const allowed = Array.isArray(allowed_types)
+		? allowed_types.join(", ")
+		: allowed_types;
+	return `Invalid file type${files.length > 1 ? "s" : ""}: ${listed}. Only ${allowed} allowed.`;
+}
