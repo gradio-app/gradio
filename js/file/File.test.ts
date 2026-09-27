@@ -11,6 +11,8 @@ import {
 	TEST_MP4,
 	TEST_PDF
 } from "@self/tootils/render";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+
 import File from "./Index.svelte";
 
 const default_props = {
@@ -23,6 +25,39 @@ const default_props = {
 	root: "http://localhost:7860",
 	client: mock_client()
 };
+
+run_shared_prop_tests({
+	component: File,
+	name: "File",
+	base_props: default_props,
+	// File labels through BlockLabel, which keeps the label in the DOM behind
+	// .sr-only rather than the block-info element the shared tests look for.
+	has_label: false
+});
+
+describe("Props: label", () => {
+	afterEach(() => cleanup());
+
+	test("the label is rendered when show_label is true", async () => {
+		const { getByText } = await render(File, {
+			...default_props,
+			label: "My Files",
+			show_label: true
+		});
+
+		expect(getByText("My Files")).toBeVisible();
+	});
+
+	test("show_label: false keeps the label for screen readers only", async () => {
+		const { getByText } = await render(File, {
+			...default_props,
+			label: "My Files",
+			show_label: false
+		});
+
+		expect(getByText("My Files").closest("label")).toHaveClass("sr-only");
+	});
+});
 
 describe("File", () => {
 	afterEach(() => cleanup());

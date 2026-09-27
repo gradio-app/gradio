@@ -75,16 +75,3 @@ describe("Children / slot", () => {
 		expect(getByTestId("slot-content")).not.toBeVisible();
 	});
 });
-
-test.todo(
-	"VISUAL: variant='panel' applies secondary background fill and border-radius to the row container — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: variant='compact' removes border-radius from direct child elements — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: equal_height=true stretches child column containers to equal height via align-items: stretch — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: height/min_height/max_height props apply inline style constraints to the row container — needs Playwright visual regression screenshot comparison"
-);

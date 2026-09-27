@@ -118,21 +118,29 @@ export function create_drag(): {
 				e.stopPropagation();
 			}
 
+			// dragenter on the element being entered arrives before dragleave on
+			// the one being left, and both bubble here, so a drop zone with
+			// children needs the depth to know when the file has actually left
+			let drag_depth = 0;
+
 			function handle_drag_enter(e: DragEvent): void {
 				e.preventDefault();
 				e.stopPropagation();
-				_options.on_drag_change?.(true);
+				drag_depth++;
+				if (drag_depth === 1) _options.on_drag_change?.(true);
 			}
 
 			function handle_drag_leave(e: DragEvent): void {
 				e.preventDefault();
 				e.stopPropagation();
-				_options.on_drag_change?.(false);
+				drag_depth = Math.max(0, drag_depth - 1);
+				if (drag_depth === 0) _options.on_drag_change?.(false);
 			}
 
 			function handle_drop(e: DragEvent): void {
 				e.preventDefault();
 				e.stopPropagation();
+				drag_depth = 0;
 				_options.on_drag_change?.(false);
 
 				if (!e.dataTransfer?.files) return;
@@ -207,4 +215,23 @@ export function create_drag(): {
 			}
 		}
 	};
+}
+
+const MAX_LISTED_INVALID_FILES = 5;
+
+export function invalid_file_type_message(
+	files: File[],
+	allowed_types: string | string[] | null | undefined
+): string {
+	let listed = files
+		.slice(0, MAX_LISTED_INVALID_FILES)
+		.map((file) => file.webkitRelativePath || file.name)
+		.join(", ");
+	if (files.length > MAX_LISTED_INVALID_FILES) {
+		listed += ` and ${files.length - MAX_LISTED_INVALID_FILES} more`;
+	}
+	const allowed = Array.isArray(allowed_types)
+		? allowed_types.join(", ")
+		: allowed_types;
+	return `Invalid file type${files.length > 1 ? "s" : ""}: ${listed}. Only ${allowed} allowed.`;
 }

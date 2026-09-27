@@ -111,10 +111,6 @@ describe("Props: value", () => {
 
 		expect(getByTestId("markdown")).toBeVisible();
 	});
-
-	test.todo(
-		"VISUAL: renders code blocks with syntax highlighting, bold text, italic text"
-	);
 });
 
 describe("Props: rtl", () => {
@@ -212,26 +208,6 @@ describe("Props: buttons", () => {
 	});
 });
 
-describe("Props: padding", () => {
-	afterEach(() => cleanup());
-
-	test.todo("VISUAL: padding=true adds padding class to wrapper");
-});
-
-describe("Props: height", () => {
-	afterEach(() => cleanup());
-
-	test.todo(
-		"VISUAL: height causes scrolling when markdown content overflows — needs Playwright visual regression screenshot comparison"
-	);
-});
-
-describe("Props: min_height", () => {
-	afterEach(() => cleanup());
-
-	test.todo("VISUAL: min_height applies minimum height to the Block wrapper");
-});
-
 describe("Events: change", () => {
 	afterEach(() => cleanup());
 
@@ -323,20 +299,4 @@ describe("Edge cases", () => {
 		const change = listen("change", { retrospective: true });
 		expect(change).not.toHaveBeenCalled();
 	});
-
-	test.todo(
-		"VISUAL: sanitize_html=false allows raw HTML rendering — needs Playwright visual regression or content inspection test"
-	);
-
-	test.todo(
-		"VISUAL: header_links=true creates anchor links on headings — needs Playwright visual regression screenshot comparison"
-	);
-
-	test.todo(
-		"VISUAL: latex_delimiters renders LaTeX expressions — needs Playwright visual regression or MathJax verification"
-	);
-
-	test.todo(
-		"VISUAL: line_breaks=true enables GFM line breaks — needs Playwright visual regression screenshot comparison"
-	);
 });

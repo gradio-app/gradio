@@ -1307,25 +1307,3 @@ describe("Thoughts / metadata", () => {
 		expect(getByText(/50\.0ms/)).toBeTruthy();
 	});
 });
-
-// ── Visual-only (test.todo) ──────────────────────────────────────────
-
-test.todo(
-	"VISUAL: layout='bubble' renders messages in speech bubble style — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: layout='panel' renders messages in panel style — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: avatar_images displays user and bot avatars next to messages — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: rtl=true renders right-to-left layout — needs Playwright visual regression screenshot comparison"
-);
-
-test.todo(
-	"VISUAL: height/min_height/max_height control component sizing — needs Playwright visual regression screenshot comparison"
-);

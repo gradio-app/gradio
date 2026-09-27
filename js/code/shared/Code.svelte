@@ -81,7 +81,11 @@
 		set_doc(value ?? "");
 	});
 
-	update_lines();
+	$effect(() => {
+		lines;
+		max_lines;
+		update_lines();
+	});
 
 	function set_doc(new_doc: string): void {
 		if (view && new_doc !== view.state.doc.toString()) {
@@ -139,15 +143,14 @@
 		if (!scroller) {
 			return null;
 		}
-		const lineHeight = getGutterLineHeight(_view);
-		if (!lineHeight) {
-			return null;
-		}
+		const lineHeight =
+			getGutterLineHeight(_view) ?? `${_view.defaultLineHeight}px`;
 
 		const minLines = lines == 1 ? 1 : lines + 1;
 		scroller.style.minHeight = `calc(${lineHeight} * ${minLines})`;
-		if (max_lines)
-			scroller.style.maxHeight = `calc(${lineHeight} * ${max_lines + 1})`;
+		scroller.style.maxHeight = max_lines
+			? `calc(${lineHeight} * ${max_lines + 1})`
+			: "";
 	}
 
 	import { Transaction } from "@codemirror/state";
@@ -308,6 +311,7 @@
 
 	onMount(() => {
 		view = create_editor_view();
+		update_lines();
 		return () => view?.destroy();
 	});
 </script>

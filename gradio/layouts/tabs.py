@@ -126,6 +126,8 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         scale: int | None = None,
+        height: int | str | None = None,
+        max_height: int | str | None = None,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = None,
@@ -140,6 +142,8 @@ class Tab(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, this layout will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             scale: relative size compared to adjacent elements. 1 or greater indicates the Tab will expand in size.
+            height: The height of the Tab's content, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the content will scroll vertically. If not set, the Tab will expand to fit the content.
+            max_height: The maximum height of the Tab's content, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the content will scroll vertically. If content is shorter than the height, the Tab will shrink to fit the content.
             visible: If False, Tab will be hidden.
             interactive: If False, Tab will not be clickable.
             render_children: If True, the children of this Tab will be rendered on the page (but hidden) when the Tab is visible but inactive. This can be useful if you want to ensure that any components (e.g. videos or audio) within the Tab are pre-loaded before the user clicks on the Tab.
@@ -161,6 +165,8 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         self.alignment = alignment
         self.visible = visible
         self.scale = scale
+        self.height = height
+        self.max_height = max_height
         self.interactive = interactive
         self.render_children = render_children
 

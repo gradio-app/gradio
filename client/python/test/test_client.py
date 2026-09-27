@@ -1302,7 +1302,7 @@ class TestDuplication:
 
     @pytest.mark.flaky
     @patch("huggingface_hub.add_space_secret")
-    @patch("huggingface_hub.duplicate_space")
+    @patch("huggingface_hub.duplicate_repo")
     @patch("gradio_client.client.Client.__init__", return_value=None)
     @patch("gradio_client.utils.set_space_timeout")
     def test_add_secrets(self, mock_time, mock_init, mock_duplicate, mock_add_secret):
