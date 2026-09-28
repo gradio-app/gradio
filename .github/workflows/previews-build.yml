@@ -27,7 +27,7 @@ jobs:
       gradio_version: ${{ steps.changes.outputs.gradio_version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: "gradio-app/gradio/.github/actions/changes@main"
+      - uses: "gradio-app/gradio/.github/actions/changes@7.0-dev"
         id: changes
         with:
           filter: "functional"
