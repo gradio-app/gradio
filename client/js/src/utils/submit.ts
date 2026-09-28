@@ -773,6 +773,20 @@ export function submit(
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 
+		// The event id is only known once queue/join has responded.
+		const post_to_event = (suffix: string, body: unknown): void => {
+			job.then(
+				() => {
+					if (!event_id_final) return;
+					this.post_data(
+						`${config.root}${api_prefix}/stream/${event_id_final}${suffix}`,
+						body
+					);
+				},
+				() => {}
+			);
+		};
+
 		const iterator: SubmitIterable<GradioEvent> = {
 			[Symbol.asyncIterator]: () => iterator,
 			next,
@@ -786,18 +800,11 @@ export function submit(
 			},
 			cancel,
 			send_chunk: (payload: Record<string, unknown>) => {
-				this.post_data(`${config.root}${api_prefix}/stream/${event_id_final}`, {
-					...payload,
-					session_hash: this.session_hash
-				});
+				post_to_event("", { ...payload, session_hash: this.session_hash });
 			},
 			close_stream: () => {
-				this.post_data(
-					`${config.root}${api_prefix}/stream/${event_id_final}/close`,
-					{}
-				);
-
 				close();
+				post_to_event("/close", {});
 			},
 			event_id: () => event_id_final,
 			wait_for_id: async () => {
