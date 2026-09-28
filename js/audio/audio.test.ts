@@ -652,6 +652,27 @@ describe("Events: streaming microphone recording", () => {
 		}
 	);
 
+	test("a failed mic request on a later take leaves the recording state", async () => {
+		const { getByRole } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true
+		});
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+
+		get_user_media.mockRejectedValueOnce(
+			new DOMException("denied", "NotAllowedError")
+		);
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+
+		await waitFor(() =>
+			expect(getByRole("button", { name: "audio.record" })).toBeVisible()
+		);
+	});
+
 	test("stopping while waiting for the stream also releases the microphone", async () => {
 		const { getByRole } = await render(Audio, {
 			...default_props,

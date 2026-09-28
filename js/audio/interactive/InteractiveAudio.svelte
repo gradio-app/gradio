@@ -270,6 +270,11 @@
 			release_media_stream();
 			return;
 		}
+		// Mic access failed; prepare_audio() already reported the error.
+		if (!media_stream) {
+			recording = false;
+			return;
+		}
 
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
