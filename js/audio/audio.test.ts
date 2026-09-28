@@ -18,6 +18,7 @@ import {
 	TEST_WAV
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+import { tick } from "svelte";
 import Audio from "./";
 import AudioRecorderHarness from "./AudioRecorderHarness.svelte";
 import MinimalAudioRecorderHarness from "./MinimalAudioRecorderHarness.svelte";
@@ -624,7 +625,8 @@ describe("Events: streaming microphone recording", () => {
 
 		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
 		finish_upload();
-		await new Promise((resolve) => setTimeout(resolve, 50));
+		await upload.mock.results[0].value;
+		await tick();
 		expect(stream).not.toHaveBeenCalled();
 
 		await fireEvent.click(getByRole("button", { name: "audio.record" }));
