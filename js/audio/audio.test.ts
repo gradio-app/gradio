@@ -623,6 +623,26 @@ describe("Events: streaming microphone recording", () => {
 		expect(streams.some(is_live)).toBe(false);
 	});
 
+	test("unmounting while mic access is pending releases the late stream", async () => {
+		let grant: () => void = () => {};
+		const stream = audio_context.createMediaStreamDestination().stream;
+		get_user_media.mockImplementationOnce(
+			() => new Promise((resolve) => (grant = () => resolve(stream)))
+		);
+		const { getByRole, unmount } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true
+		});
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(get_user_media).toHaveBeenCalledTimes(1));
+		unmount();
+		grant();
+
+		await waitFor(() => expect(is_live(stream)).toBe(false));
+	});
+
 	test("stopping while waiting for the stream also releases the microphone", async () => {
 		const { getByRole } = await render(Audio, {
 			...default_props,

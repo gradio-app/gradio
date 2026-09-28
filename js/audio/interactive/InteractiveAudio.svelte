@@ -127,6 +127,7 @@
 	let recorder: IMediaRecorder;
 	let media_stream: MediaStream | null = null;
 	let preparing: Promise<void> | null = null;
+	let destroyed = false;
 	let mode = $state("");
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
@@ -180,6 +181,7 @@
 	}
 
 	onDestroy(() => {
+		destroyed = true;
 		if (streaming && recorder && recorder.state !== "inactive") {
 			recorder.stop();
 		}
@@ -203,6 +205,10 @@
 			throw err;
 		}
 		if (stream == null) return;
+		if (destroyed) {
+			stream.getTracks().forEach((track) => track.stop());
+			return;
+		}
 		media_stream = stream;
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
@@ -263,6 +269,7 @@
 			});
 			await preparing;
 		}
+		if (destroyed) return;
 
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
