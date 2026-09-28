@@ -205,10 +205,6 @@
 			throw err;
 		}
 		if (stream == null) return;
-		if (destroyed) {
-			stream.getTracks().forEach((track) => track.stop());
-			return;
-		}
 		media_stream = stream;
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
@@ -269,7 +265,11 @@
 			});
 			await preparing;
 		}
-		if (destroyed) return;
+		// Stopped or unmounted while waiting for mic access.
+		if (destroyed || !recording) {
+			release_media_stream();
+			return;
+		}
 
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
@@ -298,7 +298,7 @@
 		if (streaming) {
 			onclose_stream?.();
 			onstop_recording?.();
-			recorder.stop();
+			recorder?.stop();
 			release_media_stream();
 
 			if (pending) {
