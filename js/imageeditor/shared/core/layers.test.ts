@@ -86,6 +86,30 @@ describe("LayerManager background transparency", () => {
 		expect(layer_manager.is_background_transparent()).toBe(true);
 	});
 
+	test("resizing the canvas keeps the background transparent", async () => {
+		await new AddImageCommand(
+			context,
+			make_half_transparent_texture(app),
+			false
+		).execute(context);
+
+		layer_manager.resize_all_layers(SIZE * 2, SIZE, false, "left", SIZE, SIZE);
+		const { background, composite } = await layer_manager.get_blobs(
+			SIZE * 2,
+			SIZE
+		);
+
+		expect(await alpha_at(background, 4, 8)).toBe(255);
+		expect(await alpha_at(background, 12, 8)).toBe(0);
+		expect(await alpha_at(background, 24, 8)).toBe(0);
+		expect(await alpha_at(composite, 24, 8)).toBe(0);
+		expect(layer_manager.is_background_transparent()).toBe(true);
+
+		// resize_all_layers runs texture GC 100ms later; let it finish before
+		// afterEach destroys the renderer.
+		await new Promise((resolve) => setTimeout(resolve, 150));
+	});
+
 	test("a canvas with no image keeps an opaque background", async () => {
 		layer_manager.create_background_layer(SIZE, SIZE);
 
