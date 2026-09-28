@@ -1,6 +1,6 @@
 ---
-"@gradio/audio": minor
-"gradio": minor
+"@gradio/audio": patch
+"gradio": patch
 ---
 
-feat:Fetch channel data once per channel when encoding recorded audio to WAV
+fix:Fetch channel data once per channel when encoding recorded audio to WAV
