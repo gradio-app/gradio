@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 7.0-dev
+      - 5.0-dev
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
