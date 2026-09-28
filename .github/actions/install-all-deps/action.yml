@@ -76,8 +76,8 @@ runs:
           venv/**
           client/python/venv
         restore-keys: |
-          gradio-lib-main-${{inputs.python_version}}-${{ steps.setup-python.outputs.python-version }}-${{inputs.os}}-latest-pip-
-        key: "gradio-lib-main-${{inputs.python_version}}-${{ steps.setup-python.outputs.python-version }}-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
+          gradio-lib-7.0-dev-${{inputs.python_version}}-${{ steps.setup-python.outputs.python-version }}-${{inputs.os}}-latest-pip-
+        key: "gradio-lib-7.0-dev-${{inputs.python_version}}-${{ steps.setup-python.outputs.python-version }}-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
     - name: Create env
       shell: bash
       run: |
@@ -144,7 +144,7 @@ runs:
         uv pip install -e ".[oauth, mcp]"
     - name: install-frontend
       if: inputs.skip_gradio_install != 'true'
-      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@7.0-dev"
       with:
         skip_build: ${{ inputs.skip_build }}
     - name: generate css vars docs
