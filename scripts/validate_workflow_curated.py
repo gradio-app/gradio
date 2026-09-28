@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-import httpx
+import httpx2
 
 logging.basicConfig(
     level=logging.INFO,
@@ -90,8 +90,8 @@ def fetch_space_info(repo_id: str) -> tuple[Optional[dict], Optional[str]]:
     last_err = "unreachable"
     for path in INFO_PATHS:
         try:
-            r = httpx.get(base + path, timeout=INFO_TIMEOUT, follow_redirects=True)
-        except httpx.HTTPError as e:
+            r = httpx2.get(base + path, timeout=INFO_TIMEOUT, follow_redirects=True)
+        except httpx2.HTTPError as e:
             last_err = f"{type(e).__name__}: {e}"
             continue
         if r.status_code == 200:
@@ -108,13 +108,13 @@ def fetch_space_info(repo_id: str) -> tuple[Optional[dict], Optional[str]]:
 
 def fetch_space_runtime(repo_id: str) -> Optional[dict]:
     try:
-        r = httpx.get(
+        r = httpx2.get(
             f"https://huggingface.co/api/spaces/{repo_id}?expand[]=runtime",
             timeout=INFO_TIMEOUT,
         )
         if r.status_code == 200:
             return r.json()
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         pass
     return None
 
@@ -273,12 +273,12 @@ def validate_model(entry: dict, hf_token: Optional[str]) -> dict:
     task = entry.get("task", "")
     logger.info("validating model %s", repo_id)
     try:
-        r = httpx.get(
+        r = httpx2.get(
             f"https://huggingface.co/api/models/{repo_id}",
             timeout=INFO_TIMEOUT,
             headers={"Authorization": f"Bearer {hf_token}"} if hf_token else {},
         )
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
         return {"last_checked": now_iso(), "status": "unreachable", "error": str(e)}
     if r.status_code in (401, 403):
         return {"last_checked": now_iso(), "status": "gated", "error": "auth required"}

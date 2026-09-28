@@ -27,7 +27,7 @@ from urllib.parse import urlparse, urlunparse
 
 import anyio
 import fastapi
-import httpx
+import httpx2
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -1521,7 +1521,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         components_config = config["components"]
         original_mapping: dict[int, Block] = {}
         proxy_urls: set[str] = set()
-        if httpx.URL(proxy_url).host.endswith(".hf.space"):
+        if httpx2.URL(proxy_url).host.endswith(".hf.space"):
             proxy_urls.add(proxy_url)
 
         def get_block_instance(id: int) -> Block:
@@ -1549,7 +1549,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 )
             # Only add proxy URLs that point to known Hugging Face Space
             # hosts to prevent SSRF via malicious configs.
-            if httpx.URL(block_proxy_url).host.endswith(".hf.space"):
+            if httpx2.URL(block_proxy_url).host.endswith(".hf.space"):
                 proxy_urls.add(block_proxy_url)
             if (
                 _selectable := block_config["props"].pop("_selectable", None)
@@ -3556,7 +3556,7 @@ Received inputs:
                     s = "* Running on local URL:  {}://{}:{}"
                     print(s.format(self.protocol, self.server_name, self.server_port))
 
-            resp = httpx.get(
+            resp = httpx2.get(
                 f"{self.local_api_url}startup-events",
                 verify=ssl_verify,
                 timeout=None,

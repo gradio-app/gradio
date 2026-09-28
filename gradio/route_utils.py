@@ -39,7 +39,7 @@ from urllib.parse import quote, urlparse
 import anyio
 import fastapi
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 import safehttpx
 from gradio_client.documentation import document
 from python_multipart.exceptions import MultipartParseError
@@ -493,13 +493,13 @@ def get_first_header_value(request: fastapi.Request, header_name: str):
     return None
 
 
-def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
+def get_request_origin(request: fastapi.Request, route_path: str) -> httpx2.URL:
     """
     Examines the request headers to determine the origin of the request.
     If the request includes the x-forwarded-host header, it is used directly to determine the origin.
     Otherwise, the request url is used and the route path is stripped off.
 
-    The returned URL is a httpx.URL object without a trailing slash, e.g. "https://example.com"
+    The returned URL is a httpx2.URL object without a trailing slash, e.g. "https://example.com"
     """
 
     x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
@@ -509,7 +509,7 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
         if x_forwarded_host
         else str(x_gradio_server or request.url)
     )
-    root_url = httpx.URL(root_url)
+    root_url = httpx2.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
 
@@ -522,7 +522,7 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
         root_url = root_url[: -len(route_path)]
 
     root_url = root_url.rstrip("/")
-    root_url = httpx.URL(root_url)
+    root_url = httpx2.URL(root_url)
 
     return root_url
 
@@ -1409,7 +1409,7 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
     redirects = 0
     while True:
         try:
-            parsed = httpx.URL(current_url)
+            parsed = httpx2.URL(current_url)
         except Exception as e:
             raise HTTPException(403, f"File not allowed: {url}.") from e
         if parsed.scheme not in ("http", "https") or not parsed.host:
@@ -1420,8 +1420,8 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
             raise HTTPException(403, f"File not allowed: {url}.") from e
 
         transport = safehttpx.AsyncSecureTransport(verified_ip)
-        client = httpx.AsyncClient(
-            transport=transport, timeout=httpx.Timeout(None, connect=10.0)
+        client = httpx2.AsyncClient(
+            transport=transport, timeout=httpx2.Timeout(None, connect=10.0)
         )
         try:
             req = client.build_request(
@@ -1439,7 +1439,7 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
             redirects += 1
             if redirects > _FILE_STREAM_MAX_REDIRECTS or not location:
                 raise HTTPException(502, f"Could not fetch file: {url}.")
-            current_url = str(httpx.URL(current_url).join(location))
+            current_url = str(httpx2.URL(current_url).join(location))
             continue
 
         upstream_mime = upstream.headers.get("content-type", "").split(";")[0].strip()
