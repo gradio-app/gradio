@@ -27,6 +27,21 @@ import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
 
+// The real streaming recorder needs the WAV encoder worker, so use a stub.
+vi.mock("./streaming/media_recorder", () => ({
+	init_media_recorder: async () =>
+		class {
+			state = "inactive";
+			start(): void {
+				this.state = "recording";
+			}
+			stop(): void {
+				this.state = "inactive";
+			}
+			addEventListener(): void {}
+		}
+}));
+
 // WaveSurfer.destroy() throws AbortError when in-flight fetches are cancelled
 // during test cleanup. This is expected and not a test failure.
 function suppress_abort(e: PromiseRejectionEvent): void {
@@ -551,6 +566,76 @@ describe("Events: microphone recording", () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		expect(dispatch_blob).not.toHaveBeenCalled();
+	});
+});
+
+describe("Events: streaming microphone recording", () => {
+	setupi18n();
+	let audio_context: AudioContext;
+	let streams: MediaStream[];
+	let get_user_media: ReturnType<typeof vi.spyOn>;
+	let stop_mic: ReturnType<typeof vi.spyOn>;
+	const is_live = (stream: MediaStream): boolean =>
+		stream.getTracks().some((track) => track.readyState === "live");
+
+	beforeEach(() => {
+		audio_context = new AudioContext();
+		streams = [];
+		get_user_media = vi
+			.spyOn(navigator.mediaDevices, "getUserMedia")
+			.mockImplementation(async () => {
+				const stream = audio_context.createMediaStreamDestination().stream;
+				streams.push(stream);
+				return stream;
+			});
+		vi.spyOn(RecordPlugin.prototype, "startMic").mockResolvedValue(
+			new MediaStream()
+		);
+		stop_mic = vi
+			.spyOn(RecordPlugin.prototype, "stopMic")
+			.mockImplementation(() => {});
+	});
+	afterEach(async () => {
+		vi.restoreAllMocks();
+		cleanup();
+		await audio_context.close();
+	});
+
+	test("stopping or unmounting releases the microphone stream", async () => {
+		const { getByRole, unmount } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true
+		});
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+		expect(is_live(streams[0])).toBe(true);
+
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		await waitFor(() => expect(is_live(streams[0])).toBe(false));
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(get_user_media).toHaveBeenCalledTimes(2));
+		expect(is_live(streams[1])).toBe(true);
+
+		unmount();
+		expect(streams.some(is_live)).toBe(false);
+	});
+
+	test("stopping while waiting for the stream also releases the microphone", async () => {
+		const { getByRole } = await render(Audio, {
+			...default_props,
+			loading_status: { ...loading_status, stream_state: "waiting" },
+			sources: ["microphone"],
+			streaming: true
+		});
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+
+		await fireEvent.click(getByRole("button", { name: "audio.waiting" }));
+		expect(stop_mic).toHaveBeenCalledTimes(1);
 	});
 });
 

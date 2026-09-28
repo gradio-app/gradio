@@ -125,6 +125,8 @@
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
 	let recorder: IMediaRecorder;
+	let media_stream: MediaStream | null = null;
+	let preparing: Promise<void> | null = null;
 	let mode = $state("");
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
@@ -171,10 +173,17 @@
 		}
 	};
 
+	function release_media_stream(): void {
+		media_stream?.getTracks().forEach((track) => track.stop());
+		media_stream = null;
+		inited = false;
+	}
+
 	onDestroy(() => {
 		if (streaming && recorder && recorder.state !== "inactive") {
 			recorder.stop();
 		}
+		release_media_stream();
 	});
 
 	async function prepare_audio(): Promise<void> {
@@ -194,6 +203,7 @@
 			throw err;
 		}
 		if (stream == null) return;
+		media_stream = stream;
 		if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
 				mimeType: "audio/wav"
@@ -246,7 +256,13 @@
 	async function record(): Promise<void> {
 		recording = true;
 		onstart_recording?.();
-		if (!inited) await prepare_audio();
+		// Both the click and the recording effect call record(); share one prepare.
+		if (!inited) {
+			preparing ??= prepare_audio().finally(() => {
+				preparing = null;
+			});
+			await preparing;
+		}
 
 		header = undefined;
 		if (streaming && recorder.state != "recording") {
@@ -276,6 +292,7 @@
 			onclose_stream?.();
 			onstop_recording?.();
 			recorder.stop();
+			release_media_stream();
 
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;

@@ -77,6 +77,7 @@
 			<button
 				class="spinner-button"
 				onclick={() => {
+					waveformRecord?.stopMic();
 					stop();
 				}}
 			>
