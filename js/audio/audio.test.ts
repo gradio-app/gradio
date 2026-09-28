@@ -619,8 +619,10 @@ describe("Events: streaming microphone recording", () => {
 		await waitFor(() => expect(get_user_media).toHaveBeenCalledTimes(2));
 		expect(is_live(streams[1])).toBe(true);
 
+		stop_mic.mockClear();
 		unmount();
 		expect(streams.some(is_live)).toBe(false);
+		expect(stop_mic).toHaveBeenCalled();
 	});
 
 	test.each(["stop", "unmount"])(

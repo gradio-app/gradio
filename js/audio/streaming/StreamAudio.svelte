@@ -36,6 +36,7 @@
 
 	onMount(() => {
 		create_mic_waveform();
+		return () => micWaveform?.destroy();
 	});
 
 	const create_mic_waveform = (): void => {
