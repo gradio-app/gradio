@@ -54,7 +54,7 @@ from typing import (
 
 import anyio
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 import orjson
 from gradio_client.documentation import document
 from gradio_client.exceptions import AppError
@@ -636,10 +636,10 @@ def download_if_url(article: str) -> str:
         return article
 
     try:
-        response = httpx.get(article, timeout=3)
-        if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
+        response = httpx2.get(article, timeout=3)
+        if response.status_code == httpx2.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except (httpx.InvalidURL, httpx.RequestError, httpx.TimeoutException):
+    except (httpx2.InvalidURL, httpx2.RequestError, httpx2.TimeoutException):
         pass
 
     return article
@@ -1030,10 +1030,10 @@ def append_unique_suffix(name: str, list_of_names: list[str]):
 def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
-        head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
+        head_request = httpx2.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
         if head_request.status_code in (403, 405):
-            return httpx.get(
+            return httpx2.get(
                 possible_url, headers=headers, follow_redirects=True
             ).is_success
         return head_request.is_success

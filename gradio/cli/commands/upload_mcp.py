@@ -1,5 +1,5 @@
 def main(url_or_space_id: str, source_directory: str):
-    import httpx
+    import httpx2
     from gradio_client.utils import encode_file_path, is_http_url_like
     from huggingface_hub import space_info
     from mcp.server.fastmcp import FastMCP  # type: ignore
@@ -30,7 +30,7 @@ def main(url_or_space_id: str, source_directory: str):
             raise ValueError(f"File {file} is not in {source_path}")
 
         with open(target_path, "rb") as f:
-            response = httpx.post(f"{url}/gradio_api/upload", files={"files": f})
+            response = httpx2.post(f"{url}/gradio_api/upload", files={"files": f})
         response.raise_for_status()
         result = response.json()[0]
         return f"{url}/gradio_api/file={encode_file_path(result)}"

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 from urllib.parse import unquote, urlparse
 
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 from anyio.to_thread import run_sync
 from gradio_client import Client, handle_file
 from gradio_client.utils import Status, StatusUpdate
@@ -510,7 +510,7 @@ class GradioMCPServer:
         Gets the route path of the MCP server based on the incoming request.
         Can be different depending on whether the request is coming from the MCP SSE transport or the HTTP transport.
         """
-        url = httpx.URL(str(request.url))
+        url = httpx2.URL(str(request.url))
         url = url.copy_with(query=None)
         url = str(url).rstrip("/")
         if url.endswith("/gradio_api/mcp/messages"):

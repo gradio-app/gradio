@@ -9,7 +9,7 @@ import math
 import re
 import warnings
 
-import httpx
+import httpx2
 import yaml
 from gradio_client.utils import encode_url_or_file_to_base64
 from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceClient
@@ -41,7 +41,7 @@ def get_model_info(model_name, token=None):
 
 
 def get_tabular_examples(model_name: str) -> dict[str, list[float]]:
-    readme = httpx.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
+    readme = httpx2.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
     if readme.status_code != 200:
         warnings.warn(f"Cannot load examples from README for {model_name}", UserWarning)
         example_data = {}
@@ -155,7 +155,7 @@ def conversational_wrapper(client: InferenceClient):
     return chat_fn
 
 
-def encode_to_base64(r: httpx.Response) -> str:
+def encode_to_base64(r: httpx2.Response) -> str:
     # Handles the different ways HF API returns the prediction
     base64_repr = base64.b64encode(r.content).decode("utf-8")
     data_prefix = ";base64,"
@@ -387,9 +387,9 @@ def create_endpoint_fn(
                 body_data = json.loads(args[param_index])
         try:
             if endpoint_method.lower() == "get":
-                response = httpx.get(url, params=params, headers=headers)
+                response = httpx2.get(url, params=params, headers=headers)
             elif endpoint_method.lower() == "post":
-                response = httpx.post(
+                response = httpx2.post(
                     url,
                     params=params,
                     content=body_data if is_file_upload else None,
@@ -397,7 +397,7 @@ def create_endpoint_fn(
                     headers=headers,
                 )
             elif endpoint_method.lower() == "put":
-                response = httpx.put(
+                response = httpx2.put(
                     url,
                     params=params,
                     content=body_data if is_file_upload else None,
@@ -405,7 +405,7 @@ def create_endpoint_fn(
                     headers=headers,
                 )
             elif endpoint_method.lower() == "patch":
-                response = httpx.patch(
+                response = httpx2.patch(
                     url,
                     params=params,
                     content=body_data if is_file_upload else None,
@@ -413,7 +413,7 @@ def create_endpoint_fn(
                     headers=headers,
                 )
             elif endpoint_method.lower() == "delete":
-                response = httpx.delete(url, params=params, headers=headers)
+                response = httpx2.delete(url, params=params, headers=headers)
             else:
                 raise ValueError(f"Unsupported HTTP method: {endpoint_method}")
 
