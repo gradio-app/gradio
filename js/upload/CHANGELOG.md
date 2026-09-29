@@ -1,5 +1,19 @@
 # @gradio/upload
 
+## 0.19.0
+
+### Features
+
+- [`db9699e`](https://github.com/gradio-app/gradio/commit/db9699e0bfd364ef7ca104e348618cf235d1d0be) - Name rejected files in upload errors and fix a Document leak in sanitize.  Thanks @abidlabs!
+
+### Fixes
+
+- [`70db61b`](https://github.com/gradio-app/gradio/commit/70db61b90e427d47621f75301c5202738f4d4329) - Import CSV and TSV files dropped on `gr.Dataframe`.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.7.1
+
 ## 0.18.3
 
 ### Dependency updates
