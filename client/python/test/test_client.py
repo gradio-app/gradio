@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import gc
 import pathlib
 import tempfile
 import threading
 import time
 import uuid
+import weakref
 from concurrent.futures import CancelledError, TimeoutError, wait
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -1336,6 +1338,18 @@ def test_httpx_kwargs(increment_demo):
             with pytest.raises(Exception):
                 client.predict(1, api_name="/increment_with_queue")
             assert mock_post.call_args.kwargs["timeout"] == 5
+
+
+def test_client_dropped_without_close_stops_heartbeat(increment_demo, monkeypatch):
+    monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", "0.5")
+    with connect(increment_demo) as client:
+        heartbeat = client.heartbeat
+        client_ref = weakref.ref(client)
+        del client
+        gc.collect()
+        assert client_ref() is None
+        heartbeat.join(timeout=5)
+        assert not heartbeat.is_alive()
 
 
 def test_x_gradio_user_header():

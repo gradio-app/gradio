@@ -17,6 +17,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
+import weakref
 from collections import deque
 from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
@@ -220,7 +221,11 @@ class Client:
         self._refresh_heartbeat = threading.Event()
         self._kill_heartbeat = threading.Event()
 
-        self.heartbeat = threading.Thread(target=self._stream_heartbeat, daemon=True)
+        self.heartbeat = threading.Thread(
+            target=Client._stream_heartbeat,
+            args=(weakref.ref(self), self._refresh_heartbeat, self._kill_heartbeat),
+            daemon=True,
+        )
         self.heartbeat.start()
 
         self.stream_open = False
@@ -235,25 +240,41 @@ class Client:
         self._kill_heartbeat.set()
         self.heartbeat.join(timeout=1)
 
-    def _stream_heartbeat(self):
+    @staticmethod
+    def _stream_heartbeat(
+        client_ref: weakref.ref[Client],
+        refresh_heartbeat: threading.Event,
+        kill_heartbeat: threading.Event,
+    ):
+        # Holds the client weakly, so a client dropped without close() can be
+        # garbage collected; its __del__ then stops this thread.
         while True:
-            url = self.heartbeat_url.format(session_hash=self.session_hash)
+            client = client_ref()
+            if client is None:
+                return
+            url = client.heartbeat_url.format(session_hash=client.session_hash)
+            httpx_kwargs = client.httpx_kwargs.copy()
+            httpx_kwargs.setdefault("timeout", 20)
+            headers, cookies, ssl_verify = (
+                client.headers,
+                client.cookies,
+                client.ssl_verify,
+            )
+            del client
             try:
-                httpx_kwargs = self.httpx_kwargs.copy()
-                httpx_kwargs.setdefault("timeout", 20)
                 with httpx.stream(
                     "GET",
                     url,
-                    headers=self.headers,
-                    cookies=self.cookies,
-                    verify=self.ssl_verify,
+                    headers=headers,
+                    cookies=cookies,
+                    verify=ssl_verify,
                     **httpx_kwargs,
                 ) as response:
                     for _ in response.iter_lines():
-                        if self._refresh_heartbeat.is_set():
-                            self._refresh_heartbeat.clear()
+                        if refresh_heartbeat.is_set():
+                            refresh_heartbeat.clear()
                             break
-                        if self._kill_heartbeat.is_set():
+                        if kill_heartbeat.is_set():
                             return
             except httpx.TransportError:
                 return
@@ -969,6 +990,8 @@ class Client:
         return inferred_fn_index
 
     def __del__(self):
+        if hasattr(self, "_kill_heartbeat"):
+            self._kill_heartbeat.set()
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
         # Not wait=True: garbage collecting a client should not block on a reader
