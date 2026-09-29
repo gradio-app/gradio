@@ -465,6 +465,23 @@ class TestAudioPreprocessing:
             assert converted.dtype == "int16"
             assert np.all(converted == 0)
 
+    @pytest.mark.parametrize(
+        "dtype, values, expected",
+        [
+            ("uint8", [0, 128, 255], [-32768, 128, 32767]),
+            ("int8", [-128, 0, 127], [-32768, 0, 32512]),
+            ("float16", [-1, 0, 1], [-32767, 0, 32767]),
+        ],
+    )
+    def test_convert_to_16_bit_audio_narrow_dtypes(self, dtype, values, expected):
+        # Regression test for #13923: on NumPy 2 these dtypes overflowed
+        # during scaling instead of being upcast.
+        converted = processing_utils.convert_to_16_bit_audio(
+            np.array(values, dtype=dtype)
+        )
+        assert converted.dtype == "int16"
+        assert converted.tolist() == expected
+
     def test_convert_to_16_bit_wav_alias(self):
         # `convert_to_16_bit_wav` is kept as a backwards-compatible alias.
         assert (
