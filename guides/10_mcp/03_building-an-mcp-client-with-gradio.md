@@ -35,7 +35,7 @@ The server provides tools that Claude can use. In this example, we'll create a s
 Create a file named `gradio_mcp_server.py`:
 
 ```python
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 import json
 import sys
 import io
@@ -45,7 +45,7 @@ from gradio_client import Client
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-mcp = FastMCP("huggingface_spaces_image_display")
+mcp = MCPServer("huggingface_spaces_image_display")
 
 @mcp.tool()
 async def generate_image(prompt: str, width: int = 512, height: int = 512) -> str:
@@ -162,7 +162,7 @@ class MCPClientWrapper:
         self.tools = [{ 
             "name": tool.name,
             "description": tool.description,
-            "input_schema": tool.inputSchema
+            "input_schema": tool.input_schema
         } for tool in response.tools]
         
         tool_names = [tool["name"] for tool in self.tools]
