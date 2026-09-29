@@ -640,9 +640,18 @@ describe("Events: streaming microphone recording", () => {
 		"%s while mic access is pending releases the late stream",
 		async (action) => {
 			let grant: () => void = () => {};
+			let grant_waveform: () => void = () => {};
 			const stream = audio_context.createMediaStreamDestination().stream;
+			const waveform_stream =
+				audio_context.createMediaStreamDestination().stream;
 			get_user_media.mockImplementationOnce(
 				() => new Promise((resolve) => (grant = () => resolve(stream)))
+			);
+			vi.spyOn(RecordPlugin.prototype, "startMic").mockImplementationOnce(
+				() =>
+					new Promise(
+						(resolve) => (grant_waveform = () => resolve(waveform_stream))
+					)
 			);
 			const { getByRole, unmount } = await render(Audio, {
 				...default_props,
@@ -658,8 +667,10 @@ describe("Events: streaming microphone recording", () => {
 				unmount();
 			}
 			grant();
+			grant_waveform();
 
 			await waitFor(() => expect(is_live(stream)).toBe(false));
+			await waitFor(() => expect(is_live(waveform_stream)).toBe(false));
 		}
 	);
 
