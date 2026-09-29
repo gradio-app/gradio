@@ -1,5 +1,16 @@
 # @gradio/html
 
+## 0.14.0
+
+### Features
+
+- [`96a79b1`](https://github.com/gradio-app/gradio/commit/96a79b19c8b4a0634c9ab4a969460c0ad55ddf77) - Refactor the remaining component unit tests and remove components.test.ts.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.15.4
+- @gradio/client@2.7.1
+
 ## 0.13.2
 
 ### Dependency updates

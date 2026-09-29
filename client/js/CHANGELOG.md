@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 2.7.1
+
+### Fixes
+
+- [#13903](https://github.com/gradio-app/gradio/pull/13903) [`7ba5437`](https://github.com/gradio-app/gradio/commit/7ba5437d7df65949ae65536b3e982d715907244a) - Fix streaming gr.Audio getting stuck at "queue: 1/1" when stopped while waiting.  Thanks @hysts!
+
 ## 2.7.0
 
 ### Features
