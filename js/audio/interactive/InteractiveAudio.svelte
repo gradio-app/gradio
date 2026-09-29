@@ -127,6 +127,7 @@
 	let recorder: IMediaRecorder;
 	let media_stream: MediaStream | null = null;
 	let preparing: Promise<void> | null = null;
+	let take_announced = false;
 	let destroyed = false;
 	let mode = $state("");
 	let header: Uint8Array | undefined = undefined;
@@ -205,7 +206,9 @@
 				onerror?.(i18n("audio.allow_recording_access"));
 				return;
 			}
-			throw err;
+			console.error(err);
+			onerror?.(i18n("audio.recording_error"));
+			return;
 		}
 		if (stream == null) return;
 		media_stream = stream;
@@ -260,22 +263,24 @@
 
 	async function record(): Promise<void> {
 		recording = true;
-		onstart_recording?.();
-		// Both the click and the recording effect call record(); share one prepare.
+		// The click and the recording effect both call record() for one take.
+		if (!take_announced) {
+			take_announced = true;
+			onstart_recording?.();
+		}
 		if (!inited) {
 			preparing ??= prepare_audio().finally(() => {
 				preparing = null;
 			});
 			await preparing;
 		}
-		// Stopped or unmounted while waiting for mic access.
 		if (destroyed || !recording) {
 			release_media_stream();
 			return;
 		}
-		// Mic access failed; prepare_audio() already reported the error.
 		if (!media_stream) {
 			recording = false;
+			take_announced = false;
 			return;
 		}
 
@@ -300,8 +305,9 @@
 		onupload?.(detail);
 	}
 
-	async function stop(): Promise<void> {
+	async function stop(clear_value = true): Promise<void> {
 		recording = false;
+		take_announced = false;
 
 		if (streaming) {
 			onclose_stream?.();
@@ -312,7 +318,7 @@
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
-			onclear?.();
+			if (clear_value) onclear?.();
 			mode = "";
 		}
 	}
@@ -323,6 +329,11 @@
 
 	$effect(() => {
 		if (recording && recorder) record();
+	});
+
+	// SelectSource already cleared the value.
+	$effect(() => {
+		if (streaming && recording && active_source !== "microphone") stop(false);
 	});
 </script>
 

@@ -663,25 +663,63 @@ describe("Events: streaming microphone recording", () => {
 		}
 	);
 
-	test("a failed mic request on a later take leaves the recording state", async () => {
-		const { getByRole } = await render(Audio, {
+	test("a failed mic request on a later take is reported and leaves the recording state", async () => {
+		const { getByRole, listen } = await render(Audio, {
 			...default_props,
 			sources: ["microphone"],
 			streaming: true
 		});
+		const error = listen("error");
 
 		await fireEvent.click(getByRole("button", { name: "audio.record" }));
 		await waitFor(() => expect(streams).toHaveLength(1));
 		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
 
 		get_user_media.mockRejectedValueOnce(
-			new DOMException("denied", "NotAllowedError")
+			new DOMException("busy", "NotReadableError")
 		);
 		await fireEvent.click(getByRole("button", { name: "audio.record" }));
 
 		await waitFor(() =>
-			expect(getByRole("button", { name: "audio.record" })).toBeVisible()
+			expect(error).toHaveBeenCalledWith("audio.recording_error")
 		);
+		expect(getByRole("button", { name: "audio.record" })).toBeVisible();
+	});
+
+	test("switching the source away from the microphone stops recording", async () => {
+		const { getByRole, getByLabelText, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone", "upload"],
+			streaming: true
+		});
+		const stop_recording = listen("stop_recording");
+		const clear = listen("clear");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+
+		await fireEvent.click(getByLabelText("Upload file"));
+
+		await waitFor(() => expect(is_live(streams[0])).toBe(false));
+		expect(stop_recording).toHaveBeenCalledTimes(1);
+		expect(clear).toHaveBeenCalledTimes(1);
+	});
+
+	test("start_recording fires once per take", async () => {
+		const { getByRole, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true
+		});
+		const start_recording = listen("start_recording");
+
+		for (let take = 1; take <= 2; take++) {
+			await fireEvent.click(getByRole("button", { name: "audio.record" }));
+			await waitFor(() => expect(streams).toHaveLength(take));
+			await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		}
+
+		expect(start_recording).toHaveBeenCalledTimes(2);
 	});
 
 	test("stopping while waiting for the stream also releases the microphone", async () => {
