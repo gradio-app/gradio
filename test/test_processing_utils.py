@@ -474,8 +474,8 @@ class TestAudioPreprocessing:
         ],
     )
     def test_convert_to_16_bit_audio_narrow_dtypes(self, dtype, values, expected):
-        # Regression test for #13923: on NumPy 2 these dtypes overflowed
-        # during scaling instead of being upcast.
+        # Regression test for #13923: on NumPy 2 these dtypes were scaled without
+        # upcasting, which overflowed (8-bit) or lost precision (float16).
         converted = processing_utils.convert_to_16_bit_audio(
             np.array(values, dtype=dtype)
         )

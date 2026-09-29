@@ -792,7 +792,7 @@ def convert_to_16_bit_audio(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
     warning = "Trying to convert audio automatically from {} to 16-bit int format."
     # NumPy 2 (NEP 50) no longer upcasts arrays in arithmetic with Python
-    # scalars, so narrow dtypes are widened before scaling to avoid overflow.
+    # scalars, so narrow dtypes are widened before scaling to keep results exact.
     if data.dtype in [np.float64, np.float32, np.float16]:
         warnings.warn(warning.format(data.dtype))
         if data.dtype == np.float16:
