@@ -1,4 +1,12 @@
-import { describe, beforeAll, afterEach, afterAll, test, expect } from "vitest";
+import {
+	describe,
+	beforeAll,
+	afterEach,
+	afterAll,
+	test,
+	expect,
+	vi
+} from "vitest";
 import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
@@ -117,6 +125,37 @@ describe("submit iterator", () => {
 			"next() did not resolve after the iterator was closed"
 		);
 		expect(result).toEqual({ value: undefined, done: true });
+	});
+
+	test("send_chunk() and close_stream() called before queue/join responds reach the event in order", async () => {
+		const app = await Client.connect("hmb/hello_world");
+		app.stream_status.open = true;
+
+		let respond_to_join: () => void = () => {};
+		const join_released = new Promise<void>((r) => (respond_to_join = r));
+		const stream_paths: string[] = [];
+		server.use(
+			http.post(`${direct_space_url}/queue/join`, async () => {
+				await join_released;
+				return HttpResponse.json({ event_id: "slow-event" });
+			}),
+			http.post(/\/stream\//, ({ request }) => {
+				stream_paths.push(new URL(request.url).pathname);
+				return HttpResponse.json({ msg: "success" });
+			})
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		iterator.send_chunk({ data: ["chunk"] });
+		iterator.close_stream();
+		respond_to_join();
+
+		await vi.waitFor(() =>
+			expect(stream_paths).toEqual([
+				"/stream/slow-event",
+				"/stream/slow-event/close"
+			])
+		);
 	});
 
 	test("for-await loop terminates when data and complete arrive in the same SSE callback", async () => {

@@ -159,11 +159,14 @@
 		}
 		const val = await prepare_files([_audio_blob], event === "stream");
 		initial_value = value;
-		value = (
+		const uploaded = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
 				Boolean
 			) as FileData[]
 		)[0];
+		// Stopped mid-upload: dispatching now would open a stream nothing closes.
+		if (event === "stream" && !recording) return;
+		value = uploaded;
 		if (event === "stream") {
 			onstream?.(value);
 		} else {
