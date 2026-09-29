@@ -18,6 +18,7 @@ import {
 	TEST_WAV
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+import { tick } from "svelte";
 import Audio from "./";
 import AudioRecorderHarness from "./AudioRecorderHarness.svelte";
 import MinimalAudioRecorderHarness from "./MinimalAudioRecorderHarness.svelte";
@@ -27,7 +28,11 @@ import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
 
-// The real streaming recorder needs the WAV encoder worker, so use a stub.
+// The real streaming recorder needs the WAV encoder worker, so use a stub
+// that lets tests emit chunks.
+const recorder_chunk_listeners = vi.hoisted(
+	() => [] as ((event: { data: Blob }) => void)[]
+);
 vi.mock("./streaming/media_recorder", () => ({
 	init_media_recorder: async () =>
 		class {
@@ -38,7 +43,12 @@ vi.mock("./streaming/media_recorder", () => ({
 			stop(): void {
 				this.state = "inactive";
 			}
-			addEventListener(): void {}
+			addEventListener(
+				_type: string,
+				listener: (event: { data: Blob }) => void
+			): void {
+				recorder_chunk_listeners.push(listener);
+			}
 		}
 }));
 
@@ -579,6 +589,7 @@ describe("Events: streaming microphone recording", () => {
 		stream.getTracks().some((track) => track.readyState === "live");
 
 	beforeEach(() => {
+		recorder_chunk_listeners.length = 0;
 		audio_context = new AudioContext();
 		streams = [];
 		get_user_media = vi
@@ -686,6 +697,45 @@ describe("Events: streaming microphone recording", () => {
 
 		await fireEvent.click(getByRole("button", { name: "audio.waiting" }));
 		expect(stop_mic).toHaveBeenCalledTimes(1);
+	});
+
+	test("a chunk still uploading when recording stops is not streamed", async () => {
+		let finish_upload: () => void = () => {};
+		const upload = vi
+			.fn(async (file_data: any[]) => file_data)
+			.mockImplementationOnce(
+				(file_data: any[]) =>
+					new Promise<any[]>((resolve) => {
+						finish_upload = () => resolve(file_data);
+					})
+			);
+		const { getByRole, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true,
+			client: {
+				upload,
+				stream: async () => ({ onmessage: null, close: () => {} })
+			}
+		});
+		const stream = listen("stream");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(recorder_chunk_listeners).toHaveLength(1));
+		recorder_chunk_listeners[0]({ data: new Blob([new Uint8Array(100)]) });
+		await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		finish_upload();
+		await upload.mock.results[0].value;
+		await tick();
+		expect(stream).not.toHaveBeenCalled();
+
+		// Each take opens a new stream and recorder, so emit on the new one.
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(recorder_chunk_listeners).toHaveLength(2));
+		recorder_chunk_listeners[1]({ data: new Blob([new Uint8Array(100)]) });
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
 	});
 });
 
