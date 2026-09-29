@@ -1,5 +1,6 @@
 ---
 "@gradio/audio": patch
+"@gradio/core": patch
 "gradio": patch
 ---
 
