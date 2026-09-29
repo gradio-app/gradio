@@ -3,4 +3,4 @@
 "gradio_client": minor
 ---
 
-feat:Migrate the MCP integration to mcp v2
+feat:Migrate from httpx to httpx2
