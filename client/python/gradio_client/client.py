@@ -58,6 +58,10 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
 
+# Bounds, in seconds, of the backoff between heartbeat reconnection attempts.
+HEARTBEAT_RETRY_DELAY_MIN = 1
+HEARTBEAT_RETRY_DELAY_MAX = 60
+
 
 @document("predict", "submit", "view_api", "duplicate")
 class Client:
@@ -226,7 +230,11 @@ class Client:
             args=(weakref.ref(self), self._refresh_heartbeat, self._kill_heartbeat),
             daemon=True,
         )
-        self.heartbeat.start()
+        # Only apps with session state, unload events or streams use the
+        # heartbeat, and their config says so (the JS client checks this too).
+        # Apps too old to set it have no heartbeat route at all.
+        if self.config.get("connect_heartbeat", False):
+            self.heartbeat.start()
 
         self.stream_open = False
         self.streaming_future: Future | None = None
@@ -238,7 +246,8 @@ class Client:
 
     def close(self):
         self._kill_heartbeat.set()
-        self.heartbeat.join(timeout=1)
+        if self.heartbeat.is_alive():
+            self.heartbeat.join(timeout=1)
 
     @staticmethod
     def _stream_heartbeat(
@@ -248,10 +257,14 @@ class Client:
     ):
         # Holds the client weakly, so a client dropped without close() can be
         # garbage collected; its __del__ then stops this thread.
-        while True:
+        retry_delay = HEARTBEAT_RETRY_DELAY_MIN
+        while not kill_heartbeat.is_set():
             client = client_ref()
             if client is None:
                 return
+            # Cleared before the session hash is read, so a reset_session()
+            # racing with this reconnection is not lost.
+            refresh_heartbeat.clear()
             url = client.heartbeat_url.format(session_hash=client.session_hash)
             httpx_kwargs = client.httpx_kwargs.copy()
             httpx_kwargs.setdefault("timeout", 20)
@@ -261,6 +274,7 @@ class Client:
                 client.ssl_verify,
             )
             del client
+            refreshed = False
             try:
                 with httpx.stream(
                     "GET",
@@ -270,17 +284,31 @@ class Client:
                     verify=ssl_verify,
                     **httpx_kwargs,
                 ) as response:
-                    # Apps without the heartbeat route answer 404: retrying would loop.
-                    if not response.is_success:
+                    retryable = response.is_server_error or response.status_code == 429
+                    if not response.is_success and not retryable:
+                        # E.g. a 404 from an app without the heartbeat route,
+                        # which retrying would not fix.
                         return
-                    for _ in response.iter_lines():
-                        if refresh_heartbeat.is_set():
-                            refresh_heartbeat.clear()
-                            break
-                        if kill_heartbeat.is_set():
-                            return
+                    is_event_stream = response.headers.get(
+                        "content-type", ""
+                    ).startswith("text/event-stream")
+                    if response.is_success and is_event_stream:
+                        for _ in response.iter_lines():
+                            retry_delay = HEARTBEAT_RETRY_DELAY_MIN
+                            if kill_heartbeat.is_set():
+                                return
+                            if refresh_heartbeat.is_set():
+                                refreshed = True
+                                break
             except httpx.TransportError:
                 return
+            if refreshed:
+                continue
+            # A 5xx, a 429, a page that is not an event stream, or a stream that
+            # ended: reconnect, but back off rather than retry in a tight loop.
+            if kill_heartbeat.wait(retry_delay):
+                return
+            retry_delay = min(retry_delay * 2, HEARTBEAT_RETRY_DELAY_MAX)
 
     def stream_messages(
         self,

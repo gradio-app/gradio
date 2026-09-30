@@ -1344,6 +1344,7 @@ def test_client_dropped_without_close_stops_heartbeat(increment_demo, monkeypatc
     monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", "0.5")
     with connect(increment_demo) as client:
         heartbeat = client.heartbeat
+        assert heartbeat.is_alive()
         client_ref = weakref.ref(client)
         del client
         # The heartbeat thread holds the client while it prepares each request.
@@ -1361,6 +1362,69 @@ def test_heartbeat_stops_on_error_response(increment_demo, monkeypatch):
     with connect(increment_demo) as client:
         client.heartbeat.join(timeout=5)
         assert not client.heartbeat.is_alive()
+
+
+def test_heartbeat_not_connected_when_app_does_not_need_it():
+    demo = gr.Interface(lambda x: x, "textbox", "textbox")
+    with connect(demo) as client:
+        assert not client.config["connect_heartbeat"]
+        assert not client.heartbeat.is_alive()
+        client.close()
+
+
+def test_heartbeat_retries_server_errors_with_backoff(increment_demo, monkeypatch):
+    monkeypatch.setattr("gradio_client.client.HEARTBEAT_RETRY_DELAY_MIN", 0.1)
+    real_stream = httpx.stream
+    attempts = []
+
+    @contextmanager
+    def stream(method, url, **kwargs):
+        attempts.append(time.monotonic())
+        if len(attempts) <= 3:
+            status = 502 if len(attempts) < 3 else 429
+            yield httpx.Response(status, request=httpx.Request(method, url))
+        else:
+            with real_stream(method, url, **kwargs) as response:
+                yield response
+
+    monkeypatch.setattr(httpx, "stream", stream)
+    with connect(increment_demo) as client:
+        deadline = time.monotonic() + 5
+        while len(attempts) < 4 and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert len(attempts) == 4
+        gaps = [later - earlier for earlier, later in zip(attempts, attempts[1:])]
+        assert gaps[0] >= 0.1 and gaps[1] >= 0.2 and gaps[2] >= 0.4
+        # Connected to the real heartbeat, so no further attempts.
+        time.sleep(0.5)
+        assert len(attempts) == 4
+        assert client.heartbeat.is_alive()
+        client.close()
+
+
+def test_heartbeat_backs_off_on_a_response_that_is_not_an_event_stream(
+    increment_demo, monkeypatch
+):
+    monkeypatch.setattr("gradio_client.client.HEARTBEAT_RETRY_DELAY_MIN", 0.05)
+    attempts = []
+
+    @contextmanager
+    def stream(method, url, **kwargs):
+        attempts.append(time.monotonic())
+        yield httpx.Response(
+            200,
+            text="<html>Space is sleeping</html>",
+            headers={"content-type": "text/html"},
+            request=httpx.Request(method, url),
+        )
+
+    monkeypatch.setattr(httpx, "stream", stream)
+    with connect(increment_demo) as client:
+        time.sleep(1)
+        # Retried after 0.05s, 0.1s, 0.2s, 0.4s... rather than in a tight loop.
+        assert 2 <= len(attempts) <= 8
+        assert client.heartbeat.is_alive()
+        client.close()
 
 
 def test_x_gradio_user_header():
