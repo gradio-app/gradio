@@ -61,6 +61,9 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 # Bounds, in seconds, of the backoff between heartbeat reconnection attempts.
 HEARTBEAT_RETRY_DELAY_MIN = 1
 HEARTBEAT_RETRY_DELAY_MAX = 60
+# Brief streams can send an initial ALIVE event before failing again. Only a
+# connection that stays healthy for this long resets accumulated backoff.
+HEARTBEAT_RETRY_RESET_AFTER = 30
 
 
 @document("predict", "submit", "view_api", "duplicate")
@@ -232,8 +235,9 @@ class Client:
         )
         # Only apps with session state, unload events or streams use the
         # heartbeat, and their config says so (the JS client checks this too).
-        # Apps too old to set it have no heartbeat route at all.
-        if self.config.get("connect_heartbeat", False):
+        # Servers from Gradio 4.25 through 4.28 have a heartbeat route but do
+        # not set this flag. Keep their session cleanup and unload events working.
+        if self.config.get("connect_heartbeat", True):
             self.heartbeat.start()
 
         self.stream_open = False
@@ -293,8 +297,13 @@ class Client:
                         "content-type", ""
                     ).startswith("text/event-stream")
                     if response.is_success and is_event_stream:
+                        stream_started = time.monotonic()
                         for _ in response.iter_lines():
-                            retry_delay = HEARTBEAT_RETRY_DELAY_MIN
+                            if (
+                                time.monotonic() - stream_started
+                                >= HEARTBEAT_RETRY_RESET_AFTER
+                            ):
+                                retry_delay = HEARTBEAT_RETRY_DELAY_MIN
                             if kill_heartbeat.is_set():
                                 return
                             if refresh_heartbeat.is_set():
