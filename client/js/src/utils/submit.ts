@@ -32,6 +32,7 @@ import {
 	CANCEL_URL,
 	WS_PROTOCOL_MSG
 } from "../constants";
+import { events } from "fetch-event-stream";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
 import {
@@ -85,7 +86,12 @@ export function submit(
 		);
 
 		let resolved_data = map_data_to_params(data, endpoint_info);
-		let protocol = config.protocol ?? "ws";
+		// sse_v4 streams each event on the request that submits it. Servers that
+		// support it keep advertising sse_v3 as `protocol` for older clients.
+		let protocol: Config["protocol"] | "sse_v4" =
+			config.supported_protocols?.includes("sse_v4")
+				? "sse_v4"
+				: (config.protocol ?? "ws");
 		if (protocol === "ws") {
 			throw new Error(WS_PROTOCOL_MSG);
 		}
@@ -153,6 +159,14 @@ export function submit(
 		let stream: EventSource | null;
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
+		// sse_v4: the request that submitted this event and streams its messages.
+		// Aborting it is how the event gets cancelled on the server.
+		let own_stream_controller: AbortController | null = null;
+		let own_stream_cancelled = false;
+		let own_stream_finished = false;
+		const abort_own_stream = (): void => {
+			own_stream_controller?.abort();
+		};
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 		let payload: Payload;
@@ -185,6 +199,26 @@ export function submit(
 		}
 
 		async function cancel(): Promise<void> {
+			if (protocol === "sse_v4") {
+				if (own_stream_cancelled || own_stream_finished) return;
+				own_stream_cancelled = true;
+				// Closing the request cancels the event on whichever process runs
+				// it. Report the completion `/cancel` would have sent, so listeners
+				// see the same sequence as with sse_v3.
+				abort_own_stream();
+				await handle_queue_message({
+					msg: "process_completed",
+					output: {},
+					success: true,
+					event_id
+				});
+				// With sse_v3 that completion is handled before `cancel` resolves,
+				// since `cancel` waits on /cancel and /reset. Callers rely on that
+				// order: the frontend marks the event complete only afterwards.
+				await new Promise((resolve) => setTimeout(resolve, 0));
+				close();
+				return;
+			}
 			let reset_request = {};
 			let cancel_request = {};
 			reset_request = { event_id };
@@ -242,6 +276,317 @@ export function submit(
 				endpoint: _endpoint,
 				fn_index
 			});
+		}
+
+		const handle_queue_message = async function (_data: object): Promise<void> {
+			try {
+				const { type, status, data, original_msg } = handle_message(
+					_data,
+					last_status[fn_index]
+				);
+
+				if (type == "heartbeat") {
+					return;
+				}
+
+				if (type === "update" && status && !complete) {
+					// call 'status' listeners
+					fire_event({
+						type: "status",
+						endpoint: _endpoint,
+						fn_index,
+						time: new Date(),
+						original_msg: original_msg,
+						...status
+					});
+				} else if (type === "complete") {
+					complete = status;
+				} else if (type == "unexpected_error" || type == "broken_connection") {
+					console.error("Unexpected error", status?.message);
+					const broken = type === "broken_connection";
+					fire_event({
+						type: "status",
+						stage: "error",
+						message: status?.message || "An Unexpected Error Occurred!",
+						queue: true,
+						endpoint: _endpoint,
+						broken,
+						session_not_found: status?.session_not_found,
+						fn_index,
+						time: new Date()
+					});
+				} else if (type === "log") {
+					fire_event({
+						type: "log",
+						title: data.title,
+						log: data.log,
+						level: data.level,
+						endpoint: _endpoint,
+						duration: data.duration,
+						visible: data.visible,
+						fn_index
+					});
+					return;
+				} else if (type === "generating" || type === "streaming") {
+					fire_event({
+						type: "status",
+						time: new Date(),
+						...status,
+						stage: status?.stage!,
+						queue: true,
+						endpoint: _endpoint,
+						fn_index
+					});
+					if (
+						data &&
+						dependency.connection !== "stream" &&
+						["sse_v2", "sse_v2.1", "sse_v3", "sse_v4"].includes(protocol)
+					) {
+						apply_diff_stream(pending_diff_streams, event_id!, data);
+					}
+				}
+				if (data) {
+					fire_event({
+						type: "data",
+						time: new Date(),
+						data: handle_payload(
+							data.data,
+							dependency,
+							config.components,
+							"output",
+							options.with_null_state
+						),
+						endpoint: _endpoint,
+						fn_index
+					});
+					if (data.render_config) {
+						await handle_render_config(data.render_config);
+					}
+
+					if (complete) {
+						fire_event({
+							type: "status",
+							time: new Date(),
+							...complete,
+							stage: status?.stage!,
+							queue: true,
+							endpoint: _endpoint,
+							fn_index
+						});
+						close();
+					}
+				}
+
+				if (status?.stage === "complete" || status?.stage === "error") {
+					if (event_callbacks[event_id!]) {
+						delete event_callbacks[event_id!];
+					}
+					if (event_id! in pending_diff_streams) {
+						delete pending_diff_streams[event_id!];
+					}
+					close();
+				}
+			} catch (e) {
+				console.error("Unexpected client exception", e);
+				fire_event({
+					type: "status",
+					stage: "error",
+					message: "An Unexpected Error Occurred!",
+					queue: true,
+					endpoint: _endpoint,
+					fn_index,
+					time: new Date()
+				});
+				if (protocol === "sse_v4") {
+					abort_own_stream();
+					close();
+				} else if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
+					close_stream(stream_status, that.abort_controller);
+					stream_status.open = false;
+					close();
+				}
+			}
+		};
+
+		// A ZeroGPU Space embedded in an iframe gets the headers that identify the
+		// user's quota from the parent page.
+		async function get_join_headers(): Promise<Record<string, string>> {
+			let hostname = "";
+			if (typeof window !== "undefined" && typeof document !== "undefined") {
+				hostname = window?.location?.hostname;
+			}
+
+			const origin = get_zerogpu_origin(hostname);
+
+			const is_zerogpu_iframe =
+				typeof window !== "undefined" &&
+				typeof document !== "undefined" &&
+				window.parent != window &&
+				!!origin &&
+				window.supports_zerogpu_headers;
+			const headers = is_zerogpu_iframe
+				? await post_message<Map<string, string>>("zerogpu-headers", origin)
+				: null;
+			return { ...addt_headers, ...(headers || {}) } as Record<string, string>;
+		}
+
+		// Reports a queue/join that did not succeed, and says whether it did so.
+		function report_join_error(response: any, status: number): boolean {
+			if (status === 503) {
+				fire_event({
+					type: "status",
+					stage: "error",
+					message: QUEUE_FULL_MSG,
+					queue: true,
+					endpoint: _endpoint,
+					fn_index,
+					time: new Date(),
+					visible: true
+				});
+			} else if (status === 422) {
+				fire_event({
+					type: "status",
+					stage: "error",
+					message: response.detail,
+					queue: true,
+					endpoint: _endpoint,
+					fn_index,
+					code: "validation_error",
+					time: new Date(),
+					visible: true
+				});
+			} else if (status !== 200) {
+				const is_connection_error = response?.error === BROKEN_CONNECTION_MSG;
+				fire_event({
+					type: "status",
+					stage: "error",
+					broken: is_connection_error,
+					message: is_connection_error
+						? BROKEN_CONNECTION_MSG
+						: response.detail || response.error,
+					queue: true,
+					endpoint: _endpoint,
+					fn_index,
+					time: new Date(),
+					visible: true
+				});
+			} else {
+				return false;
+			}
+			close();
+			return true;
+		}
+
+		// sse_v4: submits the event and reads its messages from the response.
+		async function stream_own_event(
+			headers: Record<string, string>,
+			on_event_id: () => void
+		): Promise<void> {
+			if (!config) throw new Error("Could not resolve app config");
+			const controller = new AbortController();
+			own_stream_controller = controller;
+			that.own_stream_controllers.add(controller);
+			// Same scheduling as the session stream in `open_stream`: yield to the
+			// browser between messages, except in hidden tabs, which throttle timers.
+			const deliver = (message: object): void => {
+				if (
+					typeof window !== "undefined" &&
+					typeof document !== "undefined" &&
+					document.visibilityState !== "hidden"
+				) {
+					setTimeout(handle_queue_message, 0, message);
+				} else {
+					handle_queue_message(message);
+				}
+			};
+			try {
+				const url = new URL(
+					`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`
+				);
+				if (that.jwt) {
+					url.searchParams.set("__sign", that.jwt);
+				}
+				let response: Response;
+				try {
+					response = await that.fetch(url, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Accept: "text/event-stream",
+							...(options.token
+								? { Authorization: `Bearer ${options.token}` }
+								: {}),
+							...headers
+						},
+						body: JSON.stringify({ ...payload, session_hash }),
+						credentials: options.credentials ?? "same-origin",
+						signal: controller.signal
+					});
+				} catch (e) {
+					if (controller.signal.aborted) {
+						close();
+					} else {
+						report_join_error({ error: BROKEN_CONNECTION_MSG }, 500);
+					}
+					return;
+				}
+				if (!response.ok) {
+					let body: unknown;
+					try {
+						body = await response.json();
+					} catch (e) {
+						body = { error: `Could not parse server response: ${e}` };
+					}
+					report_join_error(body, response.status);
+					return;
+				}
+				// Not every fetch implementation fails a pending read when the request
+				// is aborted, so the abort is raced against each read.
+				const aborted = new Promise<never>((_, reject) => {
+					controller.signal.addEventListener(
+						"abort",
+						() => reject(new Error("aborted")),
+						{ once: true }
+					);
+				});
+				aborted.catch(() => {});
+				const messages = events(response, controller.signal);
+				try {
+					while (true) {
+						const { value: message, done } = await Promise.race([
+							messages.next(),
+							aborted
+						]);
+						if (done) break;
+						if (!message.data) continue;
+						const data = JSON.parse(message.data);
+						if (!event_id && data.event_id) {
+							event_id = data.event_id as string;
+							event_id_final = event_id;
+							on_event_id();
+						}
+						if (
+							data.msg === "process_completed" ||
+							data.msg === "unexpected_error"
+						) {
+							own_stream_finished = true;
+						}
+						deliver(data);
+					}
+				} catch (e) {
+					// Aborted, or the connection dropped. Handled below.
+				}
+				if (own_stream_finished) return;
+				if (controller.signal.aborted) {
+					// By `cancel`, which reports the completion itself, or by
+					// `Client.close`, which ends the submission quietly.
+					if (!own_stream_cancelled) close();
+				} else {
+					deliver({ msg: "broken_connection", message: BROKEN_CONNECTION_MSG });
+				}
+			} finally {
+				that.own_stream_controllers.delete(controller);
+			}
 		}
 
 		const job = this.handle_blob(
@@ -490,226 +835,61 @@ export function submit(
 					fn_index,
 					time: new Date()
 				});
-				let hostname = "";
-				if (typeof window !== "undefined" && typeof document !== "undefined") {
-					hostname = window?.location?.hostname;
-				}
-
-				const origin = get_zerogpu_origin(hostname);
-
-				const is_zerogpu_iframe =
-					typeof window !== "undefined" &&
-					typeof document !== "undefined" &&
-					window.parent != window &&
-					!!origin &&
-					window.supports_zerogpu_headers;
-				const zerogpu_auth_promise = is_zerogpu_iframe
-					? post_message<Map<string, string>>("zerogpu-headers", origin)
-					: Promise.resolve(null);
-				const post_data_promise = zerogpu_auth_promise.then((headers) => {
-					const combined_headers = { ...addt_headers, ...(headers || {}) };
-					return post_data(
+				const post_data_promise = get_join_headers().then((combined_headers) =>
+					post_data(
 						`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
 						{
 							...payload,
 							session_hash
 						},
 						combined_headers
-					);
-				});
+					)
+				);
 
 				return post_data_promise.then(async ([response, status]: any) => {
 					if (response.event_id) {
 						event_id_final = response.event_id as string;
 					}
 
-					if (status === 503) {
-						fire_event({
-							type: "status",
-							stage: "error",
-							message: QUEUE_FULL_MSG,
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date(),
-							visible: true
-						});
-						close();
-					} else if (status === 422) {
-						fire_event({
-							type: "status",
-							stage: "error",
-							message: response.detail,
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							code: "validation_error",
-							time: new Date(),
-							visible: true
-						});
-						close();
-					} else if (status !== 200) {
-						const is_connection_error =
-							response?.error === BROKEN_CONNECTION_MSG;
-						fire_event({
-							type: "status",
-							stage: "error",
-							broken: is_connection_error,
-							message: is_connection_error
-								? BROKEN_CONNECTION_MSG
-								: response.detail || response.error,
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date(),
-							visible: true
-						});
-						close();
-					} else {
+					if (!report_join_error(response, status)) {
 						event_id = response.event_id as string;
 						event_id_final = event_id;
-						let callback = async function (_data: object): Promise<void> {
-							try {
-								const { type, status, data, original_msg } = handle_message(
-									_data,
-									last_status[fn_index]
-								);
-
-								if (type == "heartbeat") {
-									return;
-								}
-
-								if (type === "update" && status && !complete) {
-									// call 'status' listeners
-									fire_event({
-										type: "status",
-										endpoint: _endpoint,
-										fn_index,
-										time: new Date(),
-										original_msg: original_msg,
-										...status
-									});
-								} else if (type === "complete") {
-									complete = status;
-								} else if (
-									type == "unexpected_error" ||
-									type == "broken_connection"
-								) {
-									console.error("Unexpected error", status?.message);
-									const broken = type === "broken_connection";
-									fire_event({
-										type: "status",
-										stage: "error",
-										message: status?.message || "An Unexpected Error Occurred!",
-										queue: true,
-										endpoint: _endpoint,
-										broken,
-										session_not_found: status?.session_not_found,
-										fn_index,
-										time: new Date()
-									});
-								} else if (type === "log") {
-									fire_event({
-										type: "log",
-										title: data.title,
-										log: data.log,
-										level: data.level,
-										endpoint: _endpoint,
-										duration: data.duration,
-										visible: data.visible,
-										fn_index
-									});
-									return;
-								} else if (type === "generating" || type === "streaming") {
-									fire_event({
-										type: "status",
-										time: new Date(),
-										...status,
-										stage: status?.stage!,
-										queue: true,
-										endpoint: _endpoint,
-										fn_index
-									});
-									if (
-										data &&
-										dependency.connection !== "stream" &&
-										["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
-									) {
-										apply_diff_stream(pending_diff_streams, event_id!, data);
-									}
-								}
-								if (data) {
-									fire_event({
-										type: "data",
-										time: new Date(),
-										data: handle_payload(
-											data.data,
-											dependency,
-											config.components,
-											"output",
-											options.with_null_state
-										),
-										endpoint: _endpoint,
-										fn_index
-									});
-									if (data.render_config) {
-										await handle_render_config(data.render_config);
-									}
-
-									if (complete) {
-										fire_event({
-											type: "status",
-											time: new Date(),
-											...complete,
-											stage: status?.stage!,
-											queue: true,
-											endpoint: _endpoint,
-											fn_index
-										});
-										close();
-									}
-								}
-
-								if (status?.stage === "complete" || status?.stage === "error") {
-									if (event_callbacks[event_id!]) {
-										delete event_callbacks[event_id!];
-									}
-									if (event_id! in pending_diff_streams) {
-										delete pending_diff_streams[event_id!];
-									}
-									close();
-								}
-							} catch (e) {
-								console.error("Unexpected client exception", e);
-								fire_event({
-									type: "status",
-									stage: "error",
-									message: "An Unexpected Error Occurred!",
-									queue: true,
-									endpoint: _endpoint,
-									fn_index,
-									time: new Date()
-								});
-								if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
-									close_stream(stream_status, that.abort_controller);
-									stream_status.open = false;
-									close();
-								}
-							}
-						};
-
 						if (event_id in pending_stream_messages) {
-							pending_stream_messages[event_id].forEach((msg) => callback(msg));
+							pending_stream_messages[event_id].forEach((msg) =>
+								handle_queue_message(msg)
+							);
 							delete pending_stream_messages[event_id];
 						}
 						// @ts-ignore
-						event_callbacks[event_id] = callback;
+						event_callbacks[event_id] = handle_queue_message;
 						unclosed_events.add(event_id);
 						if (!stream_status.open) {
 							await this.open_stream();
 						}
 					}
 				});
+			} else if (protocol == "sse_v4") {
+				// queue/join responds with this event's own messages, so nothing
+				// depends on a second request reaching the same server process.
+				fire_event({
+					type: "status",
+					stage: "pending",
+					queue: true,
+					endpoint: _endpoint,
+					fn_index,
+					time: new Date()
+				});
+				// `job` settles once the event id is known, so `send_chunk` and
+				// `wait_for_id` work while the event is still streaming.
+				return get_join_headers().then(
+					(combined_headers) =>
+						new Promise<void>((resolve_id, reject) => {
+							stream_own_event(combined_headers, resolve_id).then(
+								resolve_id,
+								reject
+							);
+						})
+				);
 			}
 		});
 

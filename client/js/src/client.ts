@@ -71,6 +71,8 @@ export class Client {
 	heartbeat_event: EventSource | null = null;
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
+	// sse_v4: one request per in-flight event, each streaming its own messages.
+	own_stream_controllers: Set<AbortController> = new Set();
 	current_payload: any;
 
 	get_url_config(url: string | null = null): Config {
@@ -321,6 +323,8 @@ export class Client {
 	close(): void {
 		this.closed = true;
 		close_stream(this.stream_status, this.abort_controller);
+		this.own_stream_controllers.forEach((controller) => controller.abort());
+		this.own_stream_controllers.clear();
 	}
 
 	/**

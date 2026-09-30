@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import contextlib
 import hashlib
 import json
 import math
@@ -165,8 +166,14 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
-            self.config.get("protocol", "ws")
+        # sse_v4 streams each event on the request that submits it. Servers that
+        # support it keep advertising sse_v3 as "protocol" for older clients.
+        self.protocol: Literal[
+            "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"
+        ] = (
+            "sse_v4"
+            if "sse_v4" in self.config.get("supported_protocols", [])
+            else self.config.get("protocol", "ws")
         )
         api_prefix: str = self.config.get("api_prefix", "")
         self.api_prefix = api_prefix.lstrip("/") + "/"
@@ -211,6 +218,11 @@ class Client:
         # Helpers only finish once the reader has delivered their messages, so it
         # gets a thread of its own instead of queueing behind them.
         self.stream_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        # sse_v4 reads each event's own stream, so it needs a reader per event in
+        # flight. The headroom covers readers still closing after their job.
+        self.event_stream_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2 * max_workers
+        )
 
         self.analytics_enabled = (
             analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
@@ -225,6 +237,8 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
+        # sse_v4: the open response of each event in flight, closed to cancel it.
+        self.event_streams: dict[str, httpx2.Response] = {}
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
         self.pending_lock = threading.Lock()
@@ -341,6 +355,8 @@ class Client:
         headers = self.add_zero_gpu_headers(self.headers)
         if request_headers is not None:
             headers = {**request_headers, **headers}
+        if protocol == "sse_v4":
+            return self._submit_event_stream(data, hash_data, headers)
         req = httpx2.post(
             self.sse_data_url,
             json={**data, **hash_data},
@@ -407,6 +423,86 @@ class Client:
             self.streaming_future.add_done_callback(close_stream)
 
         return event_id
+
+    def _submit_event_stream(self, data, hash_data, headers) -> str:
+        """sse_v4: joins the queue on a request whose response streams this event's
+        messages, read on a thread of its own into the same per-event queue the
+        shared sse_v3 reader fills. Returns once the server has announced the
+        event id, or raises what the join failed with."""
+        joined: Future[str] = Future()
+
+        def read_event_stream():
+            event_id = None
+            try:
+                httpx_kwargs = self.httpx_kwargs.copy()
+                httpx_kwargs.setdefault("timeout", httpx2.Timeout(timeout=None))
+                with httpx2.Client(verify=self.ssl_verify, **httpx_kwargs) as client:
+                    with client.stream(
+                        "POST",
+                        self.sse_data_url,
+                        json={**data, **hash_data},
+                        headers={**headers, "Accept": "text/event-stream"},
+                        cookies=self.cookies,
+                    ) as response:
+                        if response.status_code != 200:
+                            response.read()
+                            if response.status_code == 503:
+                                raise QueueError("Queue is full! Please try again.")
+                            validation_message = utils.extract_validation_message(
+                                response
+                            )
+                            if validation_message is not None:
+                                raise ValidationError(validation_message)
+                            response.raise_for_status()
+                        for message in utils.iter_sse_messages(response):
+                            if message["msg"] == ServerMessage.heartbeat:
+                                continue
+                            if event_id is None:
+                                event_id = message.get("event_id")
+                                if event_id is None:
+                                    raise ValueError(
+                                        message.get("message")
+                                        or "The server did not start the event."
+                                    )
+                                with self.pending_lock:
+                                    self.pending_messages_per_event[event_id] = deque()
+                                self.event_streams[event_id] = response
+                                joined.set_result(event_id)
+                            with self.pending_lock:
+                                pending_messages = self.pending_messages_per_event.get(
+                                    event_id
+                                )
+                            if pending_messages is not None:
+                                pending_messages.append(message)
+                            if message["msg"] == ServerMessage.process_completed:
+                                return
+            except BaseException as e:
+                if not joined.done():
+                    joined.set_exception(e)
+            finally:
+                if not joined.done():
+                    joined.set_exception(
+                        ValueError("The event's stream ended before it started.")
+                    )
+                if event_id is not None:
+                    self.event_streams.pop(event_id, None)
+                    # A job still waiting learns that its stream ended without a
+                    # result, as with the shared reader.
+                    with self.pending_lock:
+                        pending_messages = self.pending_messages_per_event.get(event_id)
+                    if pending_messages is not None:
+                        pending_messages.append(None)
+
+        self.event_stream_executor.submit(read_event_stream)
+        return joined.result()
+
+    def close_event_stream(self, event_id: str | None) -> None:
+        """Closes an sse_v4 event's request, which cancels the event on the server
+        process running it."""
+        response = self.event_streams.pop(event_id, None) if event_id else None
+        if response is not None:
+            with contextlib.suppress(Exception):
+                response.close()
 
     @classmethod
     def duplicate(
@@ -613,6 +709,7 @@ class Client:
             "sse_v2",
             "sse_v2.1",
             "sse_v3",
+            "sse_v4",
         ):
             headers = headers or {}
             headers["x-gradio-user"] = "api"
@@ -1247,6 +1344,10 @@ class Endpoint:
                     verify=self.client.ssl_verify,
                     **self.client.httpx_kwargs,
                 )
+            if self.protocol == "sse_v4":
+                # Closing the event's request cancels it on the process running
+                # it, even when the POST above reached a different one.
+                self.client.close_event_stream(helper.event_id)
 
         return _cancel
 
@@ -1267,7 +1368,7 @@ class Endpoint:
 
             if self.protocol == "sse":
                 result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
-            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
+            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"):
                 event_id = self.client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
@@ -1536,7 +1637,7 @@ class Endpoint:
         self,
         helper: Communicator,
         event_id: str,
-        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"],
     ):
         return utils.get_pred_from_sse_v1plus(
             helper,
