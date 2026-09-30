@@ -19,7 +19,7 @@ import huggingface_hub
 import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client, handle_file
+from gradio_client import Client, handle_file, utils
 from gradio_client.client import DEFAULT_TEMP_DIR, Endpoint
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
@@ -1346,10 +1346,21 @@ def test_client_dropped_without_close_stops_heartbeat(increment_demo, monkeypatc
         heartbeat = client.heartbeat
         client_ref = weakref.ref(client)
         del client
-        gc.collect()
+        # The heartbeat thread holds the client while it prepares each request.
+        deadline = time.monotonic() + 5
+        while client_ref() is not None and time.monotonic() < deadline:
+            gc.collect()
+            time.sleep(0.1)
         assert client_ref() is None
         heartbeat.join(timeout=5)
         assert not heartbeat.is_alive()
+
+
+def test_heartbeat_stops_on_error_response(increment_demo, monkeypatch):
+    monkeypatch.setattr(utils, "HEARTBEAT_URL", "missing/{session_hash}")
+    with connect(increment_demo) as client:
+        client.heartbeat.join(timeout=5)
+        assert not client.heartbeat.is_alive()
 
 
 def test_x_gradio_user_header():

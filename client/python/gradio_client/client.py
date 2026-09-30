@@ -270,6 +270,9 @@ class Client:
                     verify=ssl_verify,
                     **httpx_kwargs,
                 ) as response:
+                    # Apps without the heartbeat route answer 404: retrying would loop.
+                    if not response.is_success:
+                        return
                     for _ in response.iter_lines():
                         if refresh_heartbeat.is_set():
                             refresh_heartbeat.clear()
