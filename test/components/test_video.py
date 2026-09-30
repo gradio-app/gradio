@@ -1226,6 +1226,7 @@ class TestVideo:
         )
 
         gr.Video(sources=["webcam"], include_audio=True).preprocess(not_mirrored)
+        gr.Video(sources=["upload"], include_audio=True).preprocess(mirrored)
         mock_ffmpeg.assert_not_called()
 
         gr.Video(sources=["upload", "webcam"], include_audio=True).preprocess(mirrored)

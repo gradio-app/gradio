@@ -357,7 +357,7 @@ class Video(StreamingOutput, Component):
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         mirrored = payload.meta.get("mirrored")
-        if mirrored is not None:
+        if mirrored is not None and "webcam" in self.sources:
             flip = mirrored
         else:
             flip = (

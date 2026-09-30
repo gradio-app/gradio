@@ -696,7 +696,6 @@ describe("Webcam recording", () => {
 					getByRole("button", { name: "start recording" })
 				);
 				await fireEvent.click(record);
-				await new Promise((resolve) => setTimeout(resolve, 500));
 				await fireEvent.click(record);
 
 				await waitFor(() => expect(change).toHaveBeenCalled());
