@@ -228,6 +228,7 @@ class FileDataDict(TypedDict):
 
 class FileDataMeta(TypedDict):
     _type: Literal["gradio.FileData"]
+    mirrored: NotRequired[bool]
 
 
 @document()

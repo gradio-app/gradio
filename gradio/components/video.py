@@ -356,7 +356,13 @@ class Video(StreamingOutput, Component):
         file_name = Path(payload.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
-        flip = self.sources == ["webcam"] and self.webcam_options.mirror
+        mirrored = payload.meta.get("mirrored")
+        if mirrored is not None:
+            flip = mirrored
+        else:
+            flip = (
+                self.sources == ["webcam"] and self.webcam_options.mirror is not False
+            )
         # TODO: Check other image extensions to see if they work.
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
         if self.watermark.watermark is not None:

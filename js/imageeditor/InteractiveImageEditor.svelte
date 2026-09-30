@@ -58,7 +58,7 @@
 		placeholder = undefined,
 		border_region,
 		full_history = $bindable(null),
-		webcam_options = { mirror: true, constraints: {} },
+		webcam_options = { mirror: "auto", constraints: {} },
 		show_download_button = false,
 		image_id = $bindable(null),
 		onclear,
