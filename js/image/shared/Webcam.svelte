@@ -190,6 +190,7 @@
 	let stream: MediaStream;
 	let mimeType: string;
 	let media_recorder: MediaRecorder;
+	let recording_mirrored = false;
 
 	function take_recording(): void {
 		if (recording) {
@@ -206,7 +207,7 @@
 					let val_ = (
 						(await upload(val, root))?.filter(Boolean) as FileData[]
 					)[0];
-					if (val_) val_.meta.mirrored = mirrored;
+					if (val_) val_.meta.mirrored = recording_mirrored;
 					oncapture?.(val_);
 					onstop_recording?.();
 				}
@@ -215,6 +216,7 @@
 		} else if (typeof MediaRecorder !== "undefined") {
 			onstart_recording?.();
 			recorded_blobs = [];
+			recording_mirrored = mirrored;
 			let validMimeTypes = ["video/webm", "video/mp4"];
 			for (let validMimeType of validMimeTypes) {
 				if (MediaRecorder.isTypeSupported(validMimeType)) {
