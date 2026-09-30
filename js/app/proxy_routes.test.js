@@ -16,6 +16,29 @@ import {
 	PYTHON_ROUTE_PREFIXES,
 	STATIC_ROUTE_PREFIXES
 } from "./proxy_routes.js";
+import { get_current_page } from "./src/lib/page_utils.js";
+
+describe("get_current_page", () => {
+	it("returns a subpage for an app mounted at the origin root", () => {
+		assert.equal(
+			get_current_page("/audio_debugger", "https://example.com"),
+			"audio_debugger"
+		);
+	});
+
+	it("returns a subpage relative to a mounted root", () => {
+		assert.equal(
+			get_current_page("/gradio/audio_debugger", "https://example.com/gradio"),
+			"audio_debugger"
+		);
+	});
+
+	it("returns the home page for the app root or an unrelated path", () => {
+		assert.equal(get_current_page("/", "https://example.com"), "");
+		assert.equal(get_current_page("/gradio", "https://example.com/gradio"), "");
+		assert.equal(get_current_page("/other", "https://example.com/gradio"), "");
+	});
+});
 
 describe("classifyRoute", () => {
 	describe("python routes", () => {

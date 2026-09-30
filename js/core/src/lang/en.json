@@ -18,6 +18,7 @@
 		"resume": "Resume",
 		"record": "Record",
 		"no_microphone": "No microphone found",
+		"recording_error": "Could not start recording from the microphone.",
 		"pause": "Pause",
 		"play": "Play",
 		"waiting": "Waiting"
@@ -37,6 +38,7 @@
 		"like": "Like",
 		"dislike": "Dislike",
 		"clear": "Clear",
+		"complete": "Complete",
 		"copy_message": "Copy message",
 		"copied_message": "Copied message"
 	},
@@ -83,6 +85,7 @@
 		"language": "Language",
 		"display_theme": "Display Theme",
 		"pwa": "Progressive Web App",
+		"progress": "Progress",
 		"record": "Record",
 		"stop_recording": "Stop Recording",
 		"screen_studio": "Screen Studio",
@@ -103,6 +106,12 @@
 		"sort_ascending": "Sort ascending",
 		"sort_descending": "Sort descending",
 		"drop_to_upload": "Drop CSV or TSV files here to import data into dataframe",
+		"import_empty_file": "The dropped file is empty.",
+		"import_no_column_names": "The dropped file has no column names.",
+		"import_ragged_row": "Line {line} of the file has {fields} fields, the header has {columns}.",
+		"import_static_columns": "Cannot import into a table with read-only columns.",
+		"import_fixed_columns": "This table takes exactly {expected} columns, the file has {actual}.",
+		"import_fixed_rows": "This table takes exactly {expected} rows, the file has {actual}.",
 		"clear_sort": "Clear sort",
 		"filter": "Filter",
 		"clear_filter": "Clear filters"
@@ -138,6 +147,32 @@
 		"use_brush": "Use brush",
 		"drop_to_upload": "Drop an image file here to upload"
 	},
+	"image_editor": {
+		"add_layer": "Add Layer",
+		"brush": "Brush",
+		"brush_size": "Brush Size",
+		"clear_canvas": "Clear canvas",
+		"color": "Color",
+		"confirm_crop": "Confirm crop",
+		"crop": "Crop",
+		"erase": "Erase",
+		"eraser_size": "Eraser Size",
+		"fit_to_screen": "Fit to screen",
+		"layer": "Layer",
+		"layers": "Layers",
+		"pan": "Pan",
+		"paste": "Paste",
+		"redo": "Redo",
+		"resize": "Resize",
+		"save_changes": "Save changes",
+		"select_draw_tool": "select the draw tool to start",
+		"show_layers": "Show Layers",
+		"upload": "Upload",
+		"upload_image": "Upload an image",
+		"webcam": "Webcam",
+		"zoom_in": "Zoom in",
+		"zoom_out": "Zoom out"
+	},
 	"label": {
 		"label": "Label"
 	},
@@ -159,6 +194,9 @@
 	},
 	"slider": {
 		"slider": "Slider"
+	},
+	"status": {
+		"queue_position": "In queue: {position} of {size}"
 	},
 	"upload_text": {
 		"click_to_upload": "Click to Upload",

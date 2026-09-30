@@ -1,13 +1,13 @@
 """
-This is the equivalent of `run.py` but implemented with FastMCP v1.
+This is the equivalent of `run.py` but implemented with the MCP Python SDK's `MCPServer` (formerly `FastMCP`).
 It is taken directly from the quickstart example from the MCP Python SDK:
 https://github.com/modelcontextprotocol/python-sdk 
 """
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 # Create an MCP server
-mcp = FastMCP("Demo")
+mcp = MCPServer("Demo")
 
 
 # Add an addition tool

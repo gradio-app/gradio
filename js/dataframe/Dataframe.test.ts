@@ -1,4 +1,4 @@
-import { test, describe, afterEach, expect } from "vitest";
+import { test, describe, afterEach, expect, vi, onTestFinished } from "vitest";
 import {
 	cleanup,
 	render,
@@ -7,6 +7,8 @@ import {
 	within
 } from "@self/tootils/render";
 import { tick } from "svelte";
+import event from "@testing-library/user-event";
+import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import Dataframe from "./Index.svelte";
 
@@ -37,6 +39,14 @@ const default_props = {
 	max_height: 500
 };
 
+run_shared_prop_tests({
+	component: Dataframe,
+	name: "Dataframe",
+	base_props: default_props,
+	has_label: false,
+	has_validation_error: false
+});
+
 function get_cell(container: HTMLElement, row: number, col: number) {
 	return container.querySelector(
 		`[data-row='${row}'][data-col='${col}']`
@@ -59,6 +69,29 @@ async function wait(ms = 50) {
 	await new Promise((r) => setTimeout(r, ms));
 	await tick();
 	await tick();
+}
+
+async function sort_column(
+	container: HTMLElement,
+	header_text: string,
+	direction: "ascending" | "descending"
+) {
+	const header = Array.from(get_header_cells(container)).find((h) =>
+		h.textContent?.includes(header_text)
+	) as HTMLElement;
+	expect(header).toBeTruthy();
+
+	const menu_btn = header.querySelector(".cell-menu-button") as HTMLElement;
+	expect(menu_btn).toBeTruthy();
+	await fireEvent.click(menu_btn);
+	await wait();
+
+	const sort_btn = Array.from(
+		document.querySelectorAll('[role="menuitem"]')
+	).find((el) => el.textContent?.includes(`sort_${direction}`)) as HTMLElement;
+	expect(sort_btn).toBeTruthy();
+	await fireEvent.click(sort_btn);
+	await wait();
 }
 
 describe("Dataframe rendering", () => {
@@ -125,7 +158,7 @@ describe("Dataframe rendering", () => {
 	});
 
 	test("renders label when show_label is true", async () => {
-		const { container } = await render(Dataframe, {
+		const { container, getByRole } = await render(Dataframe, {
 			...default_props,
 			label: "Test Table",
 			show_label: true
@@ -133,6 +166,9 @@ describe("Dataframe rendering", () => {
 		await wait();
 
 		expect(container.textContent).toContain("Test Table");
+		const grid = getByRole("grid");
+		expect(grid).toHaveAttribute("aria-label", "Test Table");
+		expect(grid.querySelector(".sr-only")).not.toBeInTheDocument();
 	});
 
 	test("renders row numbers when show_row_numbers is true", async () => {
@@ -144,6 +180,47 @@ describe("Dataframe rendering", () => {
 
 		const row_number_cells = container.querySelectorAll(".row-number-cell");
 		expect(row_number_cells.length).toBeGreaterThan(0);
+		expect(get_table_wrap(container)).toHaveAttribute("aria-colcount", "4");
+		expect(container.querySelector(".row-number-header")).toHaveAttribute(
+			"aria-colindex",
+			"1"
+		);
+		expect(get_header_cells(container)[0]).toHaveAttribute(
+			"aria-colindex",
+			"2"
+		);
+		const row_header = container.querySelector('[role="rowheader"]');
+		expect(row_header).toHaveAttribute("aria-colindex", "1");
+		expect(get_cell(container, 0, 0)).toHaveAttribute("aria-colindex", "2");
+	});
+
+	test("exposes grid rows through presentational layout wrappers", async () => {
+		const { getByRole } = await render(Dataframe, default_props);
+		await wait();
+
+		const grid = getByRole("grid");
+		const upload_container = grid.querySelector<HTMLElement>(
+			":scope > .upload-container"
+		)!;
+		const viewport = upload_container.querySelector<HTMLElement>(
+			":scope > .virtual-table-viewport"
+		)!;
+		const header_table = viewport.querySelector<HTMLElement>(
+			":scope > .header-table"
+		)!;
+		const header_rowgroup = header_table.querySelector(":scope > thead");
+		const virtual_body = viewport.querySelector<HTMLElement>(
+			":scope > .virtual-body"
+		)!;
+
+		expect(upload_container).toHaveAttribute("role", "none");
+		expect(upload_container).not.toHaveAttribute("tabindex");
+		expect(upload_container).not.toHaveAttribute("aria-label");
+		expect(upload_container).not.toHaveAttribute("aria-dropeffect");
+		expect(viewport).toHaveAttribute("role", "none");
+		expect(header_table).toHaveAttribute("role", "none");
+		expect(header_rowgroup).toHaveAttribute("role", "rowgroup");
+		expect(virtual_body).toHaveAttribute("role", "none");
 	});
 
 	test("renders search input when show_search is 'search'", async () => {
@@ -254,7 +331,12 @@ describe("Cell editing", () => {
 });
 
 describe("Cell selection", () => {
-	afterEach(() => cleanup());
+	afterEach(() => {
+		cleanup();
+		// a test that stubs the clipboard and then fails would otherwise leave the
+		// stub in place for everything after it
+		vi.restoreAllMocks();
+	});
 
 	test("click selects a cell", async () => {
 		const { container } = await render(Dataframe, default_props);
@@ -284,22 +366,6 @@ describe("Cell selection", () => {
 		expect(next_cell.className).toContain("cell-selected");
 	});
 
-	test("Tab moves to next cell", async () => {
-		const { container } = await render(Dataframe, default_props);
-		await wait();
-
-		const cell = get_cell(container, 0, 0)!;
-		await fireEvent.mouseDown(cell);
-		await wait();
-
-		const table_wrap = get_table_wrap(container)!;
-		await fireEvent.keyDown(table_wrap, { key: "Tab" });
-		await wait();
-
-		const next_cell = get_cell(container, 0, 1)!;
-		expect(next_cell.className).toContain("cell-selected");
-	});
-
 	test("shift+click selects a range", async () => {
 		const { container } = await render(Dataframe, default_props);
 		await wait();
@@ -317,6 +383,457 @@ describe("Cell selection", () => {
 		expect(get_cell(container, 0, 1)!.className).toContain("cell-selected");
 		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
 		expect(get_cell(container, 1, 1)!.className).toContain("cell-selected");
+	});
+
+	test("a second shift+click extends from the first click, not the last", async () => {
+		const { container } = await render(Dataframe, default_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 2, 0)!, { shiftKey: true });
+		await wait();
+
+		expect(get_cell(container, 0, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 2, 0)!.className).toContain("cell-selected");
+	});
+
+	// only the even rows match "target", so every row between two visible
+	// endpoints is one the search hides
+	const search_props = {
+		...default_props,
+		value: {
+			data: Array.from({ length: 40 }, (_, i) => [
+				`row ${i}`,
+				i % 2 === 0 ? "target" : `keep-${i}`
+			]),
+			headers: ["Name", "Tag"],
+			metadata: null
+		},
+		col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+		row_count: [40, "fixed"] as [number, "fixed" | "dynamic"],
+		show_search: "search" as const
+	};
+
+	function get_search_input(container: HTMLElement) {
+		return container.querySelector("input.search-input") as HTMLInputElement;
+	}
+
+	// The hidden rows are never rendered, so what Delete touches is the only way
+	// to see whether they were in the range.
+	test("shift+click range skips rows the search is hiding", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		// rows 0, 2 and 4 sit next to each other on screen, so the selection ring
+		// around them has to merge into one block
+		const middle = get_cell(container, 2, 1)!.className;
+		expect(middle).toContain("no-top");
+		expect(middle).toContain("no-bottom");
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2, 4]) {
+			expect(get_cell(container, row, 1)?.textContent?.trim()).toBe("");
+		}
+		expect(get_cell(container, 1, 1)?.textContent).toContain("keep-1");
+		expect(get_cell(container, 3, 1)?.textContent).toContain("keep-3");
+	});
+
+	// the range itself, not just what Delete goes on to touch: clearing the
+	// query renders the skipped rows again, so the selection becomes visible
+	test("shift+click range holds only the rows the search was showing", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2, 4]) {
+			expect(get_cell(container, row, 1)!.className).toContain("cell-selected");
+		}
+		for (const row of [1, 3]) {
+			expect(get_cell(container, row, 1)!.className).not.toContain(
+				"cell-selected"
+			);
+		}
+	});
+
+	// the same data loss with the two steps swapped: the range is built while
+	// everything is on screen, and the search hides part of it afterwards
+	test("Delete leaves rows the search hid after they were selected", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		const search_input = get_search_input(container);
+		await fireEvent.input(search_input, { target: { value: "target" } });
+		await wait(100);
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait();
+
+		await fireEvent.input(search_input, { target: { value: "" } });
+		await wait(100);
+
+		for (const row of [0, 2]) {
+			expect(get_cell(container, row, 1)?.textContent?.trim()).toBe("");
+		}
+		expect(get_cell(container, 1, 1)?.textContent).toContain("keep-1");
+	});
+
+	test("copy leaves out rows the search hid after they were selected", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// rows 0 and 2 are on screen, row 1 holds "keep-1" and is not
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("target\ntarget");
+		});
+	});
+
+	test("Delete fires no events when every selected row is hidden", async () => {
+		const { container, listen } = await render(Dataframe, search_props);
+		await wait();
+
+		// build a selection holding only row 1, with the anchor left on row 0 so
+		// `handle_keydown` still runs
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { ctrlKey: true });
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		const change = listen("change");
+		const input = listen("input");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
+	// [0, 0] is already "" and [1, 1] is past the end of a short row, so neither
+	// is written and the table comes out identical
+	test("Delete fires no events when the selected cells are blank", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [["", "b"], ["c"]],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+
+		const change = listen("change");
+		const input = listen("input");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
+	// `null` renders blank like "" does, but it is a value the backend sent, so
+	// Delete clears it rather than treating it as nothing to do
+	test("Delete clears a null cell", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					[null, "b"],
+					["c", "d"]
+				] as any,
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!);
+		await wait();
+
+		const change = listen("change");
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		expect(change).toHaveBeenCalled();
+	});
+
+	// the selection is data-space and survives a value update, so it can name a
+	// row that no longer exists
+	test("Delete skips selected rows a shrunk table no longer has", async () => {
+		const { container, set_data } = await render(Dataframe, search_props);
+		await wait();
+
+		// anchor on row 0, which survives the shrink, so `handle_keydown` runs
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 0, 1)!, { shiftKey: true });
+		await wait();
+
+		await set_data({
+			value: {
+				data: [
+					["row 0", "target"],
+					["row 1", "keep-1"]
+				],
+				headers: ["Name", "Tag"],
+				metadata: null
+			}
+		});
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), { key: "Delete" });
+		await wait(100);
+
+		// rows 2-4 are gone; reading `new_values[2]` before the visibility check
+		// threw here and left rows 0 and 1 untouched
+		expect(get_cell(container, 0, 1)?.textContent?.trim()).toBe("");
+		expect(get_cell(container, 1, 1)?.textContent?.trim()).toBe("");
+	});
+
+	test("Ctrl+C copies a selection with a gap in its first row", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					["a", "b"],
+					["c", "d"]
+				],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 0, 0)!, { ctrlKey: true });
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { ctrlKey: true });
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// row 0 holds only column 0, so taking the columns from it alone dropped
+		// "d" from the clipboard
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("a,\n,d");
+		});
+	});
+
+	// every row renders a cell per header, so the phantom cells of a short row
+	// are clickable and a selection can name one
+	test("Ctrl+C copies a selection that runs past the end of a short row", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [["a", "b"], ["c"]],
+				headers: ["1", "2"],
+				metadata: null
+			},
+			col_count: [2, "fixed"] as [number, "fixed" | "dynamic"],
+			row_count: [2, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!, { shiftKey: true });
+		await wait();
+
+		await fireEvent.keyDown(get_table_wrap(container), {
+			key: "c",
+			metaKey: true
+		});
+
+		// cell [1, 1] has no value behind it, so it copies as empty rather than
+		// throwing inside `copy_table_data`
+		await waitFor(async () => {
+			expect(await navigator.clipboard.readText()).toBe("c,");
+		});
+	});
+
+	// the toolbar button is the reachable path here: `handle_keydown` bails out
+	// before Ctrl+C whenever the row `selected` points at is off screen
+	test("the copy button does not report success with nothing on screen to copy", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		// row 1 is the only selected row, and the search is about to hide it
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
+		await wait();
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		const copy_button = container.querySelector(
+			'[aria-label="Copy table data"]'
+		) as HTMLElement;
+		expect(copy_button).toBeTruthy();
+		await fireEvent.click(copy_button);
+		await wait(150);
+
+		expect(
+			container.querySelector('[aria-label="Copied to clipboard"]')
+		).toBeNull();
+	});
+
+	// a refused write already left the copied state alone, by rejecting through
+	// `Toolbar.handle_copy` before it could run; what the boolean adds is that
+	// the rejection stops there instead of floating away unhandled
+	test("a refused clipboard write is reported, not left unhandled", async () => {
+		const { container } = await render(Dataframe, default_props);
+		await wait();
+
+		const write_text = vi
+			.spyOn(navigator.clipboard, "writeText")
+			.mockRejectedValue(new Error("denied"));
+		const unhandled = vi.fn();
+		window.addEventListener("unhandledrejection", unhandled);
+		// not at the end of the body: an assertion below would skip it and leak
+		// the listener into every later test
+		onTestFinished(() =>
+			window.removeEventListener("unhandledrejection", unhandled)
+		);
+
+		const copy_button = container.querySelector(
+			'[aria-label="Copy table data"]'
+		) as HTMLElement;
+		await fireEvent.click(copy_button);
+		await wait(150);
+
+		expect(write_text).toHaveBeenCalled();
+		expect(
+			container.querySelector('[aria-label="Copied to clipboard"]')
+		).toBeNull();
+		expect(unhandled).not.toHaveBeenCalled();
+	});
+
+	test("shift+click falls back to one cell when the anchor is filtered out", async () => {
+		const { container } = await render(Dataframe, search_props);
+		await wait();
+
+		// row 1 does not match "target", so the search is about to hide it
+		await fireEvent.mouseDown(get_cell(container, 1, 1)!);
+		await wait();
+
+		await fireEvent.input(get_search_input(container), {
+			target: { value: "target" }
+		});
+		await wait(100);
+
+		await fireEvent.mouseDown(get_cell(container, 4, 1)!, { shiftKey: true });
+		await wait();
+
+		expect(container.querySelectorAll(".cell-selected")).toHaveLength(1);
+		expect(get_cell(container, 4, 1)!.className).toContain("cell-selected");
+	});
+
+	test("shift+click range follows the sorted order, not the data order", async () => {
+		const { container } = await render(Dataframe, {
+			...default_props,
+			value: {
+				data: [
+					["A", "1"],
+					["B", "3"],
+					["C", "2"],
+					["D", "4"]
+				],
+				headers: ["Name", "Age"],
+				metadata: null
+			},
+			// the header menu, and so the sort control, only renders for dynamic columns
+			col_count: [2, "dynamic"] as [number, "fixed" | "dynamic"],
+			row_count: [4, "fixed"] as [number, "fixed" | "dynamic"]
+		});
+		await wait();
+
+		await sort_column(container, "Age", "descending");
+
+		// screen order is now D(4) B(3) C(2) A(1), so the span from D to B holds
+		// only those two even though data rows 3 and 1 straddle row 2
+		await fireEvent.mouseDown(get_cell(container, 3, 0)!);
+		await wait();
+		await fireEvent.mouseDown(get_cell(container, 1, 0)!, { shiftKey: true });
+		await wait();
+
+		// D and B are the top and bottom of the block on screen, so the outer
+		// edges are drawn and the two facing each other are suppressed
+		expect(get_cell(container, 3, 0)!.className).not.toContain("no-top");
+		expect(get_cell(container, 3, 0)!.className).toContain("no-bottom");
+		expect(get_cell(container, 1, 0)!.className).toContain("no-top");
+		expect(get_cell(container, 1, 0)!.className).not.toContain("no-bottom");
+
+		expect(container.querySelectorAll(".cell-selected")).toHaveLength(2);
+		expect(get_cell(container, 3, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 1, 0)!.className).toContain("cell-selected");
+		expect(get_cell(container, 2, 0)!.className).not.toContain("cell-selected");
 	});
 
 	// Regression: pressing Ctrl between mousedown and mouseup must not call
@@ -342,6 +859,360 @@ describe("Cell selection", () => {
 		await wait();
 
 		expect(cell.className).toContain("cell-selected");
+	});
+});
+
+describe("Keyboard accessibility", () => {
+	const external_buttons: HTMLButtonElement[] = [];
+
+	function append_external_button(text: string): HTMLButtonElement {
+		const button = document.createElement("button");
+		button.textContent = text;
+		document.body.appendChild(button);
+		external_buttons.push(button);
+		return button;
+	}
+
+	afterEach(() => {
+		cleanup();
+		external_buttons.forEach((button) => button.remove());
+		external_buttons.length = 0;
+	});
+
+	const navigation_props = {
+		...default_props,
+		buttons: [] as string[]
+	};
+
+	test("Tab bypasses the grid container and enters on a single active cell", async () => {
+		const before = append_external_button("Before dataframe");
+
+		const { getByRole, getByTestId } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+
+		before.focus();
+		await event.tab();
+
+		expect(first_cell).toHaveFocus();
+		expect(first_cell).toHaveAttribute("tabindex", "0");
+		expect(second_cell).toHaveAttribute("tabindex", "-1");
+		const grid = getByRole("grid");
+		expect(grid).toHaveAttribute("tabindex", "-1");
+		expect(grid).not.toHaveFocus();
+		expect(grid).toHaveAttribute("aria-rowcount", "4");
+		expect(grid).toHaveAttribute("aria-colcount", "3");
+	});
+
+	test("Tab and Shift+Tab leave the grid in navigation mode", async () => {
+		const before = append_external_button("Before dataframe");
+
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const after = append_external_button("After dataframe");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.tab();
+		expect(after).toHaveFocus();
+
+		first_cell.focus();
+		await event.tab({ shift: true });
+		expect(before).toHaveFocus();
+	});
+
+	test("arrow keys move DOM focus between cells and headers", async () => {
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+		const second_header = getByTestId("header-1");
+
+		first_cell.focus();
+		await event.keyboard("{ArrowRight}");
+		expect(second_cell).toHaveFocus();
+
+		await event.keyboard("{ArrowUp}");
+		expect(second_header).toHaveFocus();
+
+		await event.keyboard("{ArrowDown}");
+		expect(second_cell).toHaveFocus();
+	});
+
+	test("Space does not change a static boolean column from its header", async () => {
+		const { getByTestId, listen } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [[true], [false], [true]],
+				headers: ["Flag"],
+				metadata: null
+			},
+			datatype: ["bool"] as const,
+			static_columns: [0],
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [3, "fixed"] as [number, "fixed"]
+		});
+		const change = listen("change");
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const header = getByTestId("header-0");
+
+		cell.focus();
+		await event.keyboard("{ArrowUp}");
+		expect(header).toHaveFocus();
+		await event.keyboard(" ");
+
+		expect(change).not.toHaveBeenCalled();
+		expect(header).toHaveFocus();
+	});
+
+	test("static headers named by label never enter edit mode", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			static_columns: ["Name"]
+		});
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const header = getByTestId("header-0");
+
+		cell.focus();
+		await event.keyboard("{ArrowUp}{Enter}");
+		expect(queryByRole("textbox", { name: "Cell is read-only" })).toBeNull();
+		expect(header).toHaveFocus();
+
+		await fireEvent.click(header);
+		await waitFor(() => expect(header).toHaveFocus());
+		expect(queryByRole("textbox", { name: "Cell is read-only" })).toBeNull();
+	});
+
+	test("clicking a read-only header selects and focuses it", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			interactive: false,
+			editable: false
+		});
+		const header = await waitFor(() => getByTestId("header-0"));
+
+		await fireEvent.click(header);
+
+		await waitFor(() => expect(header).toHaveFocus());
+		expect(header).toHaveAttribute("tabindex", "0");
+		expect(queryByRole("textbox")).toBeNull();
+	});
+
+	test("restores a cell tab stop when the selected header is removed", async () => {
+		const result = await render(Dataframe, navigation_props);
+		const last_cell = await waitFor(() => result.getByTestId("cell-0-2"));
+
+		last_cell.focus();
+		await event.keyboard("{ArrowUp}");
+		expect(result.getByTestId("header-2")).toHaveFocus();
+
+		await result.set_data({
+			value: {
+				data: [["Alice"], ["Bob"], ["Carol"]],
+				headers: ["Name"],
+				metadata: null
+			},
+			col_count: [1, "fixed"]
+		});
+
+		const first_cell = await waitFor(() => result.getByTestId("cell-0-0"));
+		expect(first_cell).toHaveAttribute("tabindex", "0");
+		expect(
+			result.getByRole("grid").querySelectorAll('[tabindex="0"]')
+		).toHaveLength(1);
+	});
+
+	test("link key events are handled by the link instead of grid navigation", async () => {
+		const { getByTestId, queryByRole } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [['<a href="#model">Model</a>', "Details"]],
+				headers: ["Model", "Details"],
+				metadata: null
+			},
+			datatype: ["markdown", "str"] as const,
+			col_count: [2, "fixed"] as [number, "fixed"],
+			row_count: [1, "fixed"] as [number, "fixed"]
+		});
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+		const link = await waitFor(() => within(first_cell).getByRole("link"));
+
+		first_cell.focus();
+		await event.tab();
+		expect(link).toHaveFocus();
+
+		await fireEvent.keyDown(link, { key: "Enter" });
+		expect(queryByRole("textbox", { name: "Edit cell" })).toBeNull();
+		expect(link).toHaveFocus();
+
+		await fireEvent.keyDown(link, { key: "ArrowRight" });
+		expect(link).toHaveFocus();
+		expect(second_cell).not.toHaveFocus();
+	});
+
+	test("Home and End move to row and grid boundaries", async () => {
+		const { getByTestId } = await render(Dataframe, navigation_props);
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard("{End}");
+		expect(getByTestId("cell-0-2")).toHaveFocus();
+
+		await event.keyboard("{Control>}{End}{/Control}");
+		expect(getByTestId("cell-2-2")).toHaveFocus();
+
+		await event.keyboard("{Home}");
+		expect(getByTestId("cell-2-0")).toHaveFocus();
+
+		await event.keyboard("{Control>}{Home}{/Control}");
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Enter, F2, Tab and Escape move between grid navigation and cell editing", async () => {
+		// The editor focuses itself in a requestAnimationFrame, which the browser
+		// defers under full-suite load. Running frames as plain timers keeps the
+		// focus hand-off deterministic without changing what the component does.
+		vi.stubGlobal(
+			"requestAnimationFrame",
+			(callback: FrameRequestCallback): number =>
+				window.setTimeout(() => callback(performance.now()), 0)
+		);
+		vi.stubGlobal("cancelAnimationFrame", (id: number): void =>
+			window.clearTimeout(id)
+		);
+		onTestFinished(() => vi.unstubAllGlobals());
+
+		const { findByRole, getByRole, getByTestId, queryByRole, listen } =
+			await render(Dataframe, navigation_props);
+		const select = listen("select");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+		const second_cell = getByTestId("cell-0-1");
+
+		first_cell.focus();
+		await event.keyboard("{Enter}");
+
+		const editor = await findByRole("textbox", { name: "Edit cell" });
+		await waitFor(() => expect(editor).toHaveFocus());
+		expect(select).toHaveBeenCalledWith({
+			index: [0, 0],
+			value: "Alice",
+			row_value: ["Alice", "30", "Engineer"],
+			col_value: ["Alice", "Bob", "Carol"]
+		});
+
+		await event.keyboard("{Enter}");
+		await waitFor(() =>
+			expect(
+				queryByRole("textbox", { name: "Edit cell" })
+			).not.toBeInTheDocument()
+		);
+		await waitFor(() => expect(first_cell).toHaveFocus());
+
+		await event.keyboard("{F2}");
+		await waitFor(() =>
+			expect(
+				within(first_cell).getByRole("textbox", { name: "Edit cell" })
+			).toHaveFocus()
+		);
+
+		await event.tab();
+		await waitFor(() =>
+			expect(
+				within(second_cell).getByRole("textbox", { name: "Edit cell" })
+			).toHaveFocus()
+		);
+		expect(second_cell).toHaveAttribute("tabindex", "0");
+
+		await event.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(
+				queryByRole("textbox", { name: "Edit cell" })
+			).not.toBeInTheDocument()
+		);
+		await waitFor(() => expect(second_cell).toHaveFocus());
+		expect(getByRole("grid").querySelectorAll('[tabindex="0"]')).toHaveLength(
+			1
+		);
+	});
+
+	test("Space activates a cell without entering edit mode", async () => {
+		const { getByTestId, queryByRole, listen } = await render(
+			Dataframe,
+			navigation_props
+		);
+		const select = listen("select");
+		const first_cell = await waitFor(() => getByTestId("cell-0-0"));
+
+		first_cell.focus();
+		await event.keyboard(" ");
+
+		expect(select).toHaveBeenCalledTimes(1);
+		expect(
+			queryByRole("textbox", { name: "Edit cell" })
+		).not.toBeInTheDocument();
+		expect(first_cell).toHaveFocus();
+	});
+
+	test("Space toggles an editable boolean cell", async () => {
+		const { getByTestId } = await render(Dataframe, {
+			...navigation_props,
+			value: {
+				data: [[false]],
+				headers: ["Enabled"],
+				metadata: null
+			},
+			datatype: ["bool"] as const,
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [1, "fixed"] as [number, "fixed"]
+		});
+		const cell = await waitFor(() => getByTestId("cell-0-0"));
+		const checkbox = within(cell).getByTestId("checkbox");
+
+		cell.focus();
+		await event.keyboard(" ");
+
+		await waitFor(() => expect(checkbox).toBeChecked());
+		expect(cell).toHaveFocus();
+	});
+
+	test("arrow navigation follows visible filtered rows while select reports original indices", async () => {
+		const filtered_props = {
+			...navigation_props,
+			value: {
+				data: [["match one"], ["skip"], ["match two"]],
+				headers: ["Value"],
+				metadata: null
+			},
+			col_count: [1, "fixed"] as [number, "fixed"],
+			row_count: [3, "fixed"] as [number, "fixed"],
+			show_search: "search" as const
+		};
+		const { getByPlaceholderText, getByTestId, queryByTestId, listen } =
+			await render(Dataframe, filtered_props);
+		const search = getByPlaceholderText("Search...");
+
+		await event.type(search, "match");
+		await waitFor(() => {
+			expect(queryByTestId("cell-1-0")).not.toBeInTheDocument();
+		});
+
+		const first_match = getByTestId("cell-0-0");
+		const second_match = getByTestId("cell-2-0");
+		first_match.focus();
+		await event.keyboard("{ArrowDown}");
+		expect(second_match).toHaveFocus();
+		expect(second_match).toHaveAttribute("aria-rowindex", "3");
+
+		const select = listen("select");
+		await event.keyboard(" ");
+		expect(select).toHaveBeenCalledWith({
+			index: [2, 0],
+			value: "match two",
+			row_value: ["match two"],
+			col_value: ["match one", "skip", "match two"]
+		});
 	});
 });
 
@@ -393,9 +1264,13 @@ describe("Header overflow", () => {
 		const viewport = wrapper.querySelector(
 			".virtual-table-viewport"
 		) as HTMLElement;
-		const viewport_rect = viewport.getBoundingClientRect();
-		const third_rect = headers[2].getBoundingClientRect();
-		expect(third_rect.left).toBeGreaterThanOrEqual(viewport_rect.right);
+		// Column widths are measured asynchronously; until that lands the columns
+		// share the container equally and the 3rd one is still in view.
+		await waitFor(() => {
+			const viewport_rect = viewport.getBoundingClientRect();
+			const third_rect = headers[2].getBoundingClientRect();
+			expect(third_rect.left).toBeGreaterThanOrEqual(viewport_rect.right);
+		});
 	});
 });
 
@@ -409,28 +1284,7 @@ describe("Sorting", () => {
 		});
 		await wait();
 
-		// Click on the "Age" header — find by content containing "Age"
-		const headers = get_header_cells(container);
-		const age_header = Array.from(headers).find((h) =>
-			h.textContent?.includes("Age")
-		) as HTMLElement;
-		expect(age_header).toBeTruthy();
-
-		// Click the menu button on the header
-		const menu_btn = age_header.querySelector(
-			".cell-menu-button"
-		) as HTMLElement;
-		expect(menu_btn).toBeTruthy();
-		await fireEvent.click(menu_btn);
-		await wait();
-
-		// Click "Sort ascending" in the menu
-		const sort_asc_btn = Array.from(
-			document.querySelectorAll('[role="menuitem"]')
-		).find((el) => el.textContent?.includes("sort_ascending")) as HTMLElement;
-		expect(sort_asc_btn).toBeTruthy();
-		await fireEvent.click(sort_asc_btn);
-		await wait();
+		await sort_column(container, "Age", "ascending");
 
 		// After sorting by Age ascending, Bob (25) should be first visible row
 		const first_row = container.querySelector(".virtual-row");
@@ -515,31 +1369,89 @@ describe("Add/remove rows and columns", () => {
 		row_count: [3, "dynamic"] as [number, "fixed" | "dynamic"]
 	};
 
-	test("add row button appends a new row", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+	const empty_dynamic_props = {
+		...dynamic_props,
+		value: {
+			data: [],
+			headers: default_props.value.headers,
+			metadata: null
+		},
+		row_count: [0, "dynamic"] as [number, "dynamic"]
+	};
+
+	test("add row button appends a row and focuses its first cell", async () => {
+		const { container, getByRole, getByTestId } = await render(
+			Dataframe,
+			empty_dynamic_props
+		);
 		await wait();
 
-		const initial_rows = get_rows(container).length;
+		await fireEvent.click(getByRole("button", { name: "Add row" }));
 
-		// The empty row button should be present for dynamic row_count
-		const add_btn = container.querySelector(".empty-row-button") as HTMLElement;
-		if (add_btn) {
-			await fireEvent.click(add_btn);
-			await wait();
+		const added_cell = await waitFor(() => getByTestId("cell-0-0"));
+		expect(get_rows(container)).toHaveLength(1);
+		expect(added_cell).toHaveFocus();
+	});
 
-			expect(get_rows(container).length).toBe(initial_rows + 1);
+	test("empty table keeps its add row button on screen in fullscreen", async () => {
+		const { getByRole } = await render(Dataframe, empty_dynamic_props);
+		await wait();
+
+		const toggle = (): HTMLElement =>
+			getByRole("button", { name: /fullscreen/i });
+
+		// A sibling that follows `.table-container` is laid out past the bottom of
+		// the fixed fullscreen viewport, so the button has to be inside it.
+		expect(
+			document.querySelector(".table-container .add-row-button")
+		).not.toBeNull();
+
+		function expect_button_under_header(): void {
+			const box = getByRole("button", {
+				name: "Add row"
+			}).getBoundingClientRect();
+			const header = (
+				document.querySelector("thead") as HTMLElement
+			).getBoundingClientRect();
+			// getByRole already rules out a button that has left the accessibility
+			// tree, but a zero-sized one would still satisfy the bounds below, and
+			// an upper bound on its own also admits a button above the header.
+			expect(box.height).toBeGreaterThan(0);
+			expect(box.top).toBeGreaterThanOrEqual(header.bottom);
+			expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);
+			expect(box.top - header.bottom).toBeLessThan(50);
 		}
+
+		expect_button_under_header();
+
+		// Block animates into fullscreen over 0.1s and the container reaches its
+		// final size a frame before the layout inside it does, so there is no DOM
+		// state to wait on that is not still mid-settle. Measuring early reads the
+		// pre-fullscreen geometry and passes against any layout.
+		await fireEvent.click(toggle());
+		await waitFor(() =>
+			expect(
+				document.querySelector(".table-container.fullscreen")
+			).not.toBeNull()
+		);
+		await wait(300);
+		expect_button_under_header();
+
+		await fireEvent.click(toggle());
+		await waitFor(() =>
+			expect(document.querySelector(".table-container.fullscreen")).toBeNull()
+		);
+		await wait(300);
+		expect_button_under_header();
 	});
 
 	// Cell menu add row tests: The CellMenu renders outside the table-wrap parent,
 	// so the document click handler (handle_click_outside) unmounts it before
 	// the menu button's onclick fires in synthetic event dispatch. These
 	// interactions are covered by E2E tests in dataframe_events.spec.ts.
-	test.todo("add row above via cell menu");
-	test.todo("add row below via cell menu");
 
 	test("delete row via cell menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const cell = get_cell(container, 1, 0)!;
@@ -559,10 +1471,11 @@ describe("Add/remove rows and columns", () => {
 		await wait();
 
 		expect(get_rows(container).length).toBe(2);
+		await waitFor(() => expect(getByTestId("cell-1-0")).toHaveFocus());
 	});
 
 	test("add column via header menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const initial_headers = get_header_cells(container).length;
@@ -571,24 +1484,24 @@ describe("Add/remove rows and columns", () => {
 		const headers = get_header_cells(container);
 		const header = headers[0] as HTMLElement;
 		const menu_btn = header.querySelector(".cell-menu-button") as HTMLElement;
-		if (menu_btn) {
-			await fireEvent.click(menu_btn);
-			await wait();
+		expect(menu_btn).toBeTruthy();
+		await fireEvent.click(menu_btn);
+		await wait();
 
-			const add_col_btn = document.querySelector(
-				'[aria-label="Add column to the right"]'
-			) as HTMLElement;
-			if (add_col_btn) {
-				await fireEvent.click(add_col_btn);
-				await wait();
+		const add_col_btn = document.querySelector(
+			'[aria-label="Add column to the right"]'
+		) as HTMLElement;
+		expect(add_col_btn).toBeTruthy();
+		await fireEvent.click(add_col_btn);
 
-				expect(get_header_cells(container).length).toBe(initial_headers + 1);
-			}
-		}
+		await waitFor(() =>
+			expect(get_header_cells(container)).toHaveLength(initial_headers + 1)
+		);
+		expect(getByTestId("header-1")).toHaveFocus();
 	});
 
 	test("delete column via header menu", async () => {
-		const { container } = await render(Dataframe, dynamic_props);
+		const { container, getByTestId } = await render(Dataframe, dynamic_props);
 		await wait();
 
 		const initial_headers = get_header_cells(container).length;
@@ -608,6 +1521,7 @@ describe("Add/remove rows and columns", () => {
 				await wait();
 
 				expect(get_header_cells(container).length).toBe(initial_headers - 1);
+				await waitFor(() => expect(getByTestId("cell-0-0")).toHaveFocus());
 			}
 		}
 	});
@@ -1045,5 +1959,597 @@ describe("Boolean column select-all header checkbox", () => {
 		const admin = get_header_checkbox(container, 2);
 		expect(admin.checked).toBe(true);
 		expect(admin.indeterminate).toBe(false);
+	});
+});
+
+describe("Dataframe CSV drop", () => {
+	afterEach(() => cleanup());
+
+	const drop_props = {
+		...default_props,
+		value: {
+			data: [["", ""]],
+			headers: ["a", "b"],
+			metadata: null
+		},
+		col_count: [2, "dynamic"] as [number, "dynamic"],
+		row_count: [1, "dynamic"] as [number, "dynamic"]
+	};
+
+	// dispatched natively rather than through fireEvent: testing-library builds
+	// its own DataTransfer and copies only own properties across, which leaves
+	// the file list empty
+	function drop_csv(
+		container: HTMLElement,
+		text: string,
+		name = "data.csv"
+	): void {
+		const data_transfer = new DataTransfer();
+		data_transfer.items.add(new File([text], name, { type: "text/csv" }));
+		const upload_container = container.querySelector(
+			".upload-container"
+		) as HTMLElement;
+		upload_container.dispatchEvent(
+			new DragEvent("drop", {
+				bubbles: true,
+				cancelable: true,
+				dataTransfer: data_transfer
+			})
+		);
+	}
+
+	function header_texts(container: HTMLElement): string[] {
+		return Array.from(
+			container.querySelectorAll("th.header-cell .header-content")
+		).map((h) => h.textContent?.trim() ?? "");
+	}
+
+	test("imports a dropped CSV as headers and values", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+
+		drop_csv(container, "name,age\nAlice,30\nBob,25\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 1, 1)?.textContent).toContain("25");
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([
+			["Alice", "30"],
+			["Bob", "25"]
+		]);
+	});
+
+	test("imports a dropped TSV as headers and values", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, "name\tage\nAlice\t30\nBob\t25\n", "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 1, 1)?.textContent).toContain("25");
+	});
+
+	// counting raw tabs misses this: the quoted one makes the counts disagree
+	// between the two lines, so nothing looks consistent
+	test("imports a dropped TSV whose field contains a quoted tab", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, 'name\tnote\nAlice\t"hello\tworld"\n', "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "note"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 0, 1)?.textContent).toContain("hello\tworld");
+	});
+
+	test("reports a dropped file that is neither CSV nor TSV", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n", "data.png");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	test("imports a dropped single-column CSV", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, "name\nAlice\nBob\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 1, 0)?.textContent).toContain("Bob");
+	});
+
+	function drag_over(target: Element, type: "dragenter" | "dragleave"): void {
+		target.dispatchEvent(
+			new DragEvent(type, { bubbles: true, cancelable: true })
+		);
+	}
+
+	function drop_target(container: HTMLElement): Element {
+		return container.querySelector(".upload-container")!;
+	}
+
+	test("highlights the table while a file is dragged over it", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+		const table_wrap = get_table_wrap(container);
+
+		drag_over(drop_target(container), "dragenter");
+		await wait();
+		expect(table_wrap).toHaveClass("file-dragging");
+
+		drag_over(drop_target(container), "dragleave");
+		await wait();
+		expect(table_wrap).not.toHaveClass("file-dragging");
+	});
+
+	test.todo(
+		"VISUAL: the file drag outline is drawn inside the table's border and follows its corner radius, needs Playwright visual regression screenshot comparison"
+	);
+
+	// #13729 moved this component off hidden sr-only text and onto ARIA attributes
+	// on the grid, so the drop hint goes there too rather than into <Upload>, which
+	// discards a label on its div branch
+	test("announces the drop target on an editable table", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		const described_by =
+			get_table_wrap(container).getAttribute("aria-describedby");
+		expect(described_by).toBeTruthy();
+		// tootils stubs i18n as a passthrough, so the key stands in for the string
+		// it resolves to (en.json: "Drop CSV or TSV files here to import data into
+		// dataframe")
+		expect(document.getElementById(described_by!)?.textContent).toBe(
+			"dataframe.drop_to_upload"
+		);
+	});
+
+	test("does not announce a drop target on a read-only table", async () => {
+		const { container } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+
+		expect(get_table_wrap(container)).not.toHaveAttribute("aria-describedby");
+		expect(container.querySelector(".drop-hint")).toBeNull();
+	});
+
+	test("does not highlight the table when it is not interactive", async () => {
+		const { container } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+
+		drag_over(drop_target(container), "dragenter");
+		await wait();
+
+		expect(get_table_wrap(container)).not.toHaveClass("file-dragging");
+	});
+
+	test("ignores a dropped CSV when the dataframe is not interactive", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+		const change = listen("change");
+		const input = listen("input");
+
+		drop_csv(container, "name,age\nAlice,30\nBob,25\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(input).not.toHaveBeenCalled();
+	});
+
+	const dynamic_3x3_props = {
+		...drop_props,
+		value: {
+			data: [
+				["a1", "b1", "c1"],
+				["a2", "b2", "c2"],
+				["a3", "b3", "c3"]
+			],
+			headers: ["A", "B", "C"],
+			metadata: null
+		},
+		col_count: [3, "dynamic"] as [number, "dynamic"],
+		row_count: [3, "dynamic"] as [number, "dynamic"]
+	};
+
+	const fixed_props = {
+		...drop_props,
+		value: {
+			data: [
+				["", ""],
+				["", ""]
+			],
+			headers: ["a", "b"],
+			metadata: null
+		},
+		col_count: [2, "fixed"] as [number, "fixed"],
+		row_count: [2, "fixed"] as [number, "fixed"]
+	};
+
+	// both delimiters split every line into the same number of fields, so the
+	// extension breaks the tie
+	test("imports a dropped TSV whose fields contain commas", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, "first,last\tage\nAlice,Smith\t30\n", "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["first,last", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice,Smith");
+		expect(get_cell(container, 0, 1)?.textContent).toContain("30");
+	});
+
+	// the name says tab, but every tab-split of this file is one field wide, so it
+	// has to be read as the comma-separated file it actually is
+	test("imports a mislabeled TSV whose field holds a quoted comma", async () => {
+		const { container } = await render(Dataframe, drop_props);
+		await wait();
+
+		drop_csv(container, 'name,note\nAlice,"x,y"\n', "data.tsv");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "note"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(get_cell(container, 0, 1)?.textContent).toContain("x,y");
+	});
+
+	test("rejects a dropped file whose rows do not match its header", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30,Engineer\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalledTimes(1);
+
+		drop_csv(container, "name,age\nAlice\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalledTimes(2);
+	});
+
+	test("reports an error and keeps the table when the file is blank", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "   \n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	// separators alone parse into a header of blank names, which would replace
+	// the table with unnamed columns instead of reporting anything
+	test("reports an error and keeps the table when the file has no column names", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, ",\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	test("imports a dropped CSV that ends with a blank line", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(error).not.toHaveBeenCalled();
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([["Alice", "30"]]);
+	});
+
+	// the name says comma and the header does split on one, but only the tab
+	// splits every line, so the name loses to the file's own shape
+	test("imports a mislabeled CSV whose header holds a tab", async () => {
+		const { container, listen } = await render(Dataframe, drop_props);
+		await wait();
+		const error = listen("error");
+
+		drop_csv(container, "first,last\tage\nAlice\t30\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["first,last", "age"]);
+		expect(get_cell(container, 0, 0)?.textContent).toContain("Alice");
+		expect(error).not.toHaveBeenCalled();
+	});
+
+	// a dropped file the upload rejects would otherwise report a type error on a
+	// table that ignores dropped files in the first place
+	test("reports nothing for a file dropped on a read-only table", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			interactive: false
+		});
+		await wait();
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n", "data.png");
+		await wait();
+
+		expect(error).not.toHaveBeenCalled();
+	});
+
+	// a value can reach the frontend ragged, and a cell past the end of its own
+	// row still renders and still takes an edit
+	test("keeps an edit to a cell in a row shorter than the header", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			value: {
+				data: [["a1"], ["a2", "b2"]],
+				headers: ["A", "B"],
+				metadata: null
+			}
+		});
+		await wait();
+		const edit = listen("edit");
+
+		const cell = get_cell(container, 0, 1)!;
+		await fireEvent.mouseDown(cell);
+		await fireEvent.dblClick(cell);
+		await wait();
+
+		const textarea = container.querySelector(
+			"textarea[aria-label='Edit cell']"
+		) as HTMLTextAreaElement;
+		textarea.value = "typed";
+		await fireEvent.input(textarea);
+		await fireEvent.blur(textarea);
+		await wait();
+
+		expect(edit).toHaveBeenCalled();
+		expect(get_cell(container, 0, 1)?.textContent).toContain("typed");
+	});
+
+	// the cell unmounts while still in edit mode, and EditableCell commits on
+	// teardown, so the stale coordinates land in the table that replaced it
+	test("drops an in-flight cell edit when the imported table is narrower", async () => {
+		const { container, listen } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const change = listen("change");
+		const edit = listen("edit");
+
+		await fireEvent.dblClick(get_cell(container, 0, 2)!);
+		await wait();
+
+		drop_csv(container, "name,age\nAlice,30\n");
+		await wait();
+
+		expect(edit).not.toHaveBeenCalled();
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([["Alice", "30"]]);
+	});
+
+	test("drops an in-flight cell edit when the imported table is shorter", async () => {
+		const { container, listen } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const change = listen("change");
+		const edit = listen("edit");
+
+		await fireEvent.dblClick(get_cell(container, 2, 0)!);
+		await wait();
+
+		drop_csv(container, "name,age,role\nAlice,30,Engineer\n");
+		await wait();
+
+		expect(edit).not.toHaveBeenCalled();
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([
+			["Alice", "30", "Engineer"]
+		]);
+	});
+
+	// the shorter case above is caught by the row guard in handle_blur. this one
+	// is not: the edited cell is still in range after the import, so the
+	// teardown commit lands on a row that exists
+	test("drops an in-flight cell edit when the imported table is the same shape", async () => {
+		const { container, listen } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const change = listen("change");
+		const edit = listen("edit");
+
+		const cell = get_cell(container, 0, 0)!;
+		await fireEvent.mouseDown(cell);
+		await fireEvent.dblClick(cell);
+		await wait();
+
+		const textarea = container.querySelector(
+			"textarea[aria-label='Edit cell']"
+		) as HTMLTextAreaElement;
+		textarea.value = "typed";
+		await fireEvent.input(textarea);
+		await wait();
+
+		drop_csv(container, "x,y,z\n1,2,3\n4,5,6\n7,8,9\n");
+		await wait();
+
+		expect(edit).not.toHaveBeenCalled();
+		expect(get_cell(container, 0, 0)?.textContent).toContain("1");
+		expect(change.mock.calls.at(-1)?.[0].data).toEqual([
+			["1", "2", "3"],
+			["4", "5", "6"],
+			["7", "8", "9"]
+		]);
+	});
+
+	// a coordinate kept from the old table reaches handle_copy, which reads it
+	// out of the new one. asserted against an import of the same shape, so the
+	// cell is still in the DOM and its class means something
+	test("clears the cell selection when a file is imported", async () => {
+		const { container } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+
+		await fireEvent.mouseDown(get_cell(container, 2, 2)!);
+		await wait();
+		expect(get_cell(container, 2, 2)?.className).toContain("cell-selected");
+
+		drop_csv(container, "x,y,z\n1,2,3\n4,5,6\n7,8,9\n");
+		await wait();
+
+		expect(get_cell(container, 2, 2)?.className).not.toContain("cell-selected");
+	});
+
+	// tanstack keys sorting and column filters by positional col_N, and a search
+	// left over from the old table hides imported rows, which commit_filter then
+	// drops from the value entirely
+	test("clears the search when a file is imported", async () => {
+		const { container } = await render(Dataframe, {
+			...dynamic_3x3_props,
+			show_search: "search"
+		});
+		await wait();
+
+		const search = container.querySelector(
+			"input.search-input"
+		) as HTMLInputElement;
+		search.value = "a1";
+		await fireEvent.input(search);
+		await wait();
+		expect(get_cell(container, 1, 0)).toBeNull();
+
+		drop_csv(container, "x,y,z\n1,2,3\n4,5,6\n7,8,9\n");
+		await wait();
+
+		expect(get_cell(container, 0, 0)?.textContent).toContain("1");
+		expect(get_cell(container, 2, 0)?.textContent).toContain("7");
+	});
+
+	// dragenter on the cell being entered arrives before dragleave on the one
+	// being left, and both bubble to the drop target
+	test("keeps the highlight while the file moves between cells", async () => {
+		const { container } = await render(Dataframe, dynamic_3x3_props);
+		await wait();
+		const table_wrap = get_table_wrap(container);
+		const first = get_cell(container, 0, 0)!;
+		const second = get_cell(container, 0, 1)!;
+
+		drag_over(first, "dragenter");
+		await wait();
+		expect(table_wrap).toHaveClass("file-dragging");
+
+		drag_over(second, "dragenter");
+		drag_over(first, "dragleave");
+		await wait();
+		expect(table_wrap).toHaveClass("file-dragging");
+
+		drag_over(second, "dragleave");
+		await wait();
+		expect(table_wrap).not.toHaveClass("file-dragging");
+	});
+
+	test("imports into a fixed-shape dataframe when the file matches", async () => {
+		const { container } = await render(Dataframe, fixed_props);
+		await wait();
+
+		drop_csv(container, "name,age\nAlice,30\nBob,25\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["name", "age"]);
+		expect(get_cell(container, 1, 0)?.textContent).toContain("Bob");
+	});
+
+	test("rejects a dropped file that does not fit a fixed column count", async () => {
+		const { container, listen } = await render(Dataframe, fixed_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age,role\nAlice,30,Engineer\nBob,25,Designer\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	// the passthrough i18n stub returns the bare key, which has no placeholders
+	// to fill, so this one swaps in a translation of its own
+	test("reports an import error through i18n with its counts filled in", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...fixed_props,
+			i18n: (key: string) =>
+				key === "dataframe.import_fixed_columns"
+					? "want {expected} columns, got {actual}"
+					: key
+		});
+		await wait();
+		const error = listen("error");
+
+		drop_csv(container, "name,age,role\nAlice,30,Engineer\nBob,25,Designer\n");
+		await wait();
+
+		expect(error).toHaveBeenCalledWith("want 2 columns, got 3");
+	});
+
+	test("rejects a dropped file that does not fit a fixed row count", async () => {
+		const { container, listen } = await render(Dataframe, fixed_props);
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
+	});
+
+	test("rejects a dropped file when a column is read-only", async () => {
+		const { container, listen } = await render(Dataframe, {
+			...drop_props,
+			static_columns: [0]
+		});
+		await wait();
+		const change = listen("change");
+		const error = listen("error");
+
+		drop_csv(container, "name,age\nAlice,30\n");
+		await wait();
+
+		expect(header_texts(container)).toEqual(["a", "b"]);
+		expect(change).not.toHaveBeenCalled();
+		expect(error).toHaveBeenCalled();
 	});
 });

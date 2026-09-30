@@ -1,3 +1,2 @@
-diffusers==0.32.2
-torch==2.5.1
-
+diffusers==0.39.0
+torch==2.13.0

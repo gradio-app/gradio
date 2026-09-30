@@ -13,11 +13,13 @@ import string
 import sys
 import threading
 import time
+import uuid
 import warnings
 import weakref
 import webbrowser
 from collections import defaultdict
 from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Sequence, Set
+from functools import partial
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
@@ -25,7 +27,7 @@ from urllib.parse import urlparse, urlunparse
 
 import anyio
 import fastapi
-import httpx
+import httpx2
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -652,6 +654,243 @@ def _port_is_free(host: str, port: int) -> bool:
     return True
 
 
+def reject_dict_inputs(inputs: Any) -> None:
+    """A dict is neither a Set nor a Sequence, so it would otherwise be treated as a
+    single component and fail much later with an opaque error."""
+    if isinstance(inputs, dict):
+        raise ValueError(
+            "`inputs` cannot be a dictionary. To pass component values to the event "
+            "function by parameter name, use `inputs_kwargs` instead, e.g. "
+            "`inputs_kwargs={'last_name': textbox}`."
+        )
+
+
+def _normalize_event_inputs(
+    inputs: (
+        Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | Set[Component | BlockContext]
+        | None
+    ),
+    inputs_kwargs: dict[str, Component | BlockContext] | None,
+) -> tuple[
+    list[Component | BlockContext],
+    list[Component | BlockContext],
+    dict[str, Component | BlockContext],
+    bool,
+]:
+    reject_dict_inputs(inputs)
+    if isinstance(inputs, Set):
+        inputs_as_dict = True
+        normalized_inputs = sorted(inputs, key=lambda component: component._id)
+    else:
+        inputs_as_dict = False
+        if inputs is None:
+            normalized_inputs = []
+        elif isinstance(inputs, Sequence):
+            normalized_inputs = list(inputs)
+        else:
+            normalized_inputs = [inputs]
+
+    if inputs_as_dict and inputs_kwargs:
+        raise ValueError("`inputs_kwargs` cannot be used when `inputs` is a set.")
+
+    keyword_inputs = inputs_kwargs or {}
+    invalid_keyword_inputs = [
+        name
+        for name, component in keyword_inputs.items()
+        if not isinstance(component, (components.Component, BlockContext))
+    ]
+    if invalid_keyword_inputs:
+        raise ValueError(
+            "All values in `inputs_kwargs` must be Gradio components or block "
+            f"contexts. Invalid keys: {invalid_keyword_inputs}."
+        )
+    all_inputs = normalized_inputs + list(keyword_inputs.values())
+    return all_inputs, normalized_inputs, keyword_inputs, inputs_as_dict
+
+
+def _get_input_parameter_names(
+    fn: Callable | None,
+    positional_input_count: int,
+    keyword_input_names: Sequence[str],
+) -> list[str | None]:
+    positional_parameter_names: list[str | None] = []
+    if fn is not None:
+        positional_parameter_names = [
+            parameter.name
+            for parameter in utils.get_positional_input_parameters(fn)[
+                :positional_input_count
+            ]
+        ]
+    positional_parameter_names.extend(
+        [None] * (positional_input_count - len(positional_parameter_names))
+    )
+    return [*positional_parameter_names, *keyword_input_names]
+
+
+def _get_input_parameter_positions(
+    fn: Callable | None,
+    positional_input_count: int,
+    keyword_input_names: Sequence[str],
+) -> list[int | None]:
+    """
+    For each component in an event's `inputs` (the positional ones first, then the
+    `inputs_kwargs` ones), the index of the parameter it ends up filling, as an index
+    into `utils.get_positional_input_parameters()`. `None` means the value stays a
+    keyword argument, which is the case for keyword-only parameters and `**kwargs`.
+
+    This is the placement that `_merge_positional_keyword_inputs()` performs: positional
+    inputs keep the leading slots, and a keyword value goes to the slot its name owns.
+    `check_function_inputs_match()` rejects any overlap between the two.
+    """
+    positional_parameters = (
+        utils.get_positional_input_parameters(fn) if fn is not None else []
+    )
+    parameter_indices = {
+        parameter.name: index
+        for index, parameter in enumerate(positional_parameters)
+        if parameter.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    }
+    positions: list[int | None] = list(range(positional_input_count))
+    positions.extend(parameter_indices.get(name) for name in keyword_input_names)
+    return positions
+
+
+def _get_component_prop_inputs(
+    fn: Callable | None,
+    component_prop_indices: list[int],
+    parameter_positions: list[int | None],
+) -> list[int]:
+    """
+    Translates the component-typed parameter indices that `special_args()` reports into
+    indices into the event's `inputs`, which is how the frontend and `preprocess_data()`
+    use them. With `inputs_kwargs` the two orders differ.
+    """
+    if fn is None or not component_prop_indices:
+        return []
+    all_parameters = utils.get_positional_parameters(fn)
+    prop_parameter_names = {
+        all_parameters[index].name
+        for index in component_prop_indices
+        if index < len(all_parameters)
+    }
+    input_parameters = utils.get_positional_input_parameters(fn)
+    return [
+        input_index
+        for input_index, position in enumerate(parameter_positions)
+        if position is not None
+        and position < len(input_parameters)
+        and input_parameters[position].name in prop_parameter_names
+    ]
+
+
+def _get_component_props(
+    block_fn: BlockFunction, fn: Callable, processed_input: list[Any]
+) -> dict[int, dict[str, Any]]:
+    """
+    Collects the full component props to hand to `special_args()`, keyed the way it
+    expects: by index into `utils.get_positional_parameters()`. `block_fn`'s indices are
+    into `fn.inputs`, and `processed_input` is in parameter order with the parameters
+    Gradio injects not yet spliced in, so both have to be translated.
+    """
+    if not block_fn.component_prop_inputs:
+        return {}
+    parameter_positions = _get_input_parameter_positions(
+        fn,
+        len(block_fn.inputs) - len(block_fn.input_keyword_names),
+        block_fn.input_keyword_names,
+    )
+    input_parameters = utils.get_positional_input_parameters(fn)
+    all_parameter_indices = {
+        parameter.name: index
+        for index, parameter in enumerate(utils.get_positional_parameters(fn))
+    }
+    component_props = {}
+    for input_index in block_fn.component_prop_inputs:
+        if input_index >= len(parameter_positions):
+            continue
+        position = parameter_positions[input_index]
+        if position is None or position >= min(
+            len(processed_input), len(input_parameters)
+        ):
+            continue
+        value = processed_input[position]
+        parameter_index = all_parameter_indices.get(input_parameters[position].name)
+        if parameter_index is not None and isinstance(value, dict):
+            component_props[parameter_index] = value
+    return component_props
+
+
+def _split_call_inputs(
+    block_fn: BlockFunction, processed_input: list[Any]
+) -> tuple[list[Any], dict[str, Any]]:
+    if not block_fn.input_keyword_names:
+        return processed_input, {}
+
+    keyword_count = len(block_fn.input_keyword_names)
+    positional_values = processed_input[:-keyword_count]
+    keyword_values = processed_input[-keyword_count:]
+    keyword_values_by_name = dict(
+        zip(block_fn.input_keyword_names, keyword_values, strict=True)
+    )
+    return positional_values, keyword_values_by_name
+
+
+def _merge_positional_keyword_inputs(
+    fn: Callable, positional_values: list[Any], keyword_values: dict[str, Any]
+) -> tuple[list[Any], dict[str, Any]]:
+    """Move named positional parameters into place before injecting special args."""
+    if not keyword_values:
+        return positional_values, keyword_values
+
+    positional_parameters = utils.get_positional_input_parameters(fn)
+    merged_values = list(positional_values)
+    remaining_keyword_values = dict(keyword_values)
+
+    for index, parameter in enumerate(positional_parameters):
+        if (
+            parameter.kind != inspect.Parameter.POSITIONAL_OR_KEYWORD
+            or parameter.name not in remaining_keyword_values
+        ):
+            continue
+        while len(merged_values) < index:
+            skipped_parameter = positional_parameters[len(merged_values)]
+            default = skipped_parameter.default
+            merged_values.append(
+                None if default is inspect.Parameter.empty else default
+            )
+        if len(merged_values) > index:
+            raise ValueError(
+                f"Argument {parameter.name!r} was provided as both a positional and keyword input."
+            )
+        merged_values.append(remaining_keyword_values.pop(parameter.name))
+
+    return merged_values, remaining_keyword_values
+
+
+def _get_api_parameter_name(
+    block_fn: BlockFunction,
+    function_parameters: list[tuple[str, bool, Any, Any]],
+    index: int,
+) -> str:
+    reserved_names = {"api_name", "fn_index", "result_callbacks"}
+    if block_fn.input_parameter_names:
+        # Built by `_get_input_parameter_names()`, which already accounts for the
+        # parameters Gradio fills in itself and for `inputs_kwargs`. A `None` entry means
+        # the parameter could not be named (e.g. a `*args` function), so don't guess.
+        if index < len(block_fn.input_parameter_names):
+            configured_name = block_fn.input_parameter_names[index]
+            if configured_name is not None and configured_name not in reserved_names:
+                return configured_name
+    elif block_fn.fn and index < len(function_parameters):
+        inferred_name = function_parameters[index][0]
+        if inferred_name not in reserved_names:
+            return inferred_name
+    return f"param_{index}"
+
+
 class BlocksConfig:
     def __init__(self, root_block: Blocks):
         self._id: int = 0
@@ -659,6 +898,7 @@ class BlocksConfig:
         self.blocks: dict[int, Component | Block] = {}
         self.fns: dict[int, BlockFunction] = {}
         self.fn_id: int = 0
+        self.renderables: list[Renderable] = root_block.renderables
 
     def set_event_trigger(
         self,
@@ -709,6 +949,7 @@ class BlocksConfig:
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
         component_prop_inputs: list[int] | None = None,
+        inputs_kwargs: dict[str, Component | BlockContext] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -716,6 +957,7 @@ class BlocksConfig:
             targets: a list of EventListenerMethod objects that define the event trigger
             fn: the function to run when the event is triggered
             inputs: the list of input components whose values will be passed to the function
+            inputs_kwargs: a dictionary mapping function parameter names to input components whose values will be passed as keyword arguments
             outputs: the list of output components whose values will be updated by the function
             preprocess: whether to run the preprocess methods of the input components before running the function
             postprocess: whether to run the postprocess methods of the output components after running the function
@@ -724,7 +966,7 @@ class BlocksConfig:
             show_progress_on: Component or list of components to show the progress animation on. If None, will show the progress animation on all of the output components.
             api_name: defines how the endpoint appears in the API docs. Can be a string or None. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
-            js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values that will be passed as inputs to the Python function (`fn`)
+            js: Optional frontend JavaScript to run before 'fn', provided as either a function or a raw code string. A function receives the values of 'inputs' and 'outputs' as arguments; raw code can access them through `arguments`. Return a list of values to pass as inputs to the Python function (`fn`).
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
@@ -742,7 +984,7 @@ class BlocksConfig:
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
-            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input.
+            validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input. The validator receives the same keyword arguments as the main function when `inputs_kwargs` is used, so its signature must accept those keyword names.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -753,15 +995,9 @@ class BlocksConfig:
             )
             for target in targets
         ]
-        if isinstance(inputs, Set):
-            inputs_as_dict = True
-            inputs = sorted(inputs, key=lambda x: x._id)
-        else:
-            inputs_as_dict = False
-            if inputs is None:
-                inputs = []
-            elif not isinstance(inputs, Sequence):
-                inputs = [inputs]
+        inputs, positional_inputs, inputs_kwargs, inputs_as_dict = (
+            _normalize_event_inputs(inputs, inputs_kwargs)
+        )
 
         if isinstance(outputs, Set):
             outputs = sorted(outputs, key=lambda x: x._id)
@@ -773,7 +1009,18 @@ class BlocksConfig:
             show_progress_on = [show_progress_on]
 
         if fn is not None and not cancels:
-            check_function_inputs_match(fn, inputs, inputs_as_dict)
+            check_function_inputs_match(
+                fn, positional_inputs, inputs_as_dict, inputs_kwargs
+            )
+            if validator is not None and inputs_kwargs:
+                # The validator is called with the same positional and keyword mapping as
+                # `fn`, so a name it doesn't accept would only surface as a 400 on the
+                # first click. Only checked when `inputs_kwargs` is used, so that the
+                # looser signatures that Interface and ChatInterface validators are
+                # allowed today keep working.
+                check_function_inputs_match(
+                    validator, positional_inputs, inputs_as_dict, inputs_kwargs
+                )
 
         if _targets and trigger_mode is None:
             if _targets[0][1] in ["change", "key_up"]:
@@ -791,8 +1038,17 @@ class BlocksConfig:
         _, progress_index, event_data_index, component_prop_indices = (
             special_args(fn_to_analyze) if fn_to_analyze else (None, None, None, [])
         )
+        input_parameter_names = _get_input_parameter_names(
+            fn, len(positional_inputs), list(inputs_kwargs)
+        )
         if component_prop_inputs is None:
-            component_prop_inputs = component_prop_indices or []
+            component_prop_inputs = _get_component_prop_inputs(
+                fn_to_analyze,
+                component_prop_indices or [],
+                _get_input_parameter_positions(
+                    fn_to_analyze, len(positional_inputs), list(inputs_kwargs)
+                ),
+            )
 
         # If api_name is None or empty string, use the function name
         if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
@@ -858,6 +1114,8 @@ class BlocksConfig:
             postprocess,
             _id=fn_id,
             inputs_as_dict=inputs_as_dict,
+            input_keyword_names=list(inputs_kwargs),
+            input_parameter_names=input_parameter_names,
             targets=_targets,
             batch=batch,
             max_batch_size=max_batch_size,
@@ -1011,6 +1269,7 @@ class BlocksConfig:
         new.blocks = copy.copy(self.blocks)
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
+        new.renderables = copy.copy(self.renderables)
         return new
 
     def attach_load_events(self, rendered_in: Renderable | None = None):
@@ -1113,6 +1372,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
+        # Per-run keys for streaming outputs, held weakly against the iterator
+        # so that a finished run's key goes away with it. The iterators are
+        # what call_function hands back, a generator, an async generator or a
+        # SyncToAsyncIterator, all weak-referenceable and hashed by identity.
+        self._stream_run_ids: weakref.WeakKeyDictionary[Any, str] = (
+            weakref.WeakKeyDictionary()
+        )
         self.show_error = True
         self.fill_height = fill_height
         self.fill_width = fill_width
@@ -1255,7 +1521,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         components_config = config["components"]
         original_mapping: dict[int, Block] = {}
         proxy_urls: set[str] = set()
-        if httpx.URL(proxy_url).host.endswith(".hf.space"):
+        if httpx2.URL(proxy_url).host.endswith(".hf.space"):
             proxy_urls.add(proxy_url)
 
         def get_block_instance(id: int) -> Block:
@@ -1275,14 +1541,15 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             constructor_args = cls.recover_kwargs(block_config["props"])
             block = cls(**constructor_args)
-            if postprocessed_value is not None:
-                block.value = postprocessed_value  # type: ignore
-
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
+            if postprocessed_value is not None:
+                block.value = processing_utils.move_files_to_cache(  # type: ignore
+                    postprocessed_value, block, postprocess=True
+                )
             # Only add proxy URLs that point to known Hugging Face Space
             # hosts to prevent SSRF via malicious configs.
-            if httpx.URL(block_proxy_url).host.endswith(".hf.space"):
+            if httpx2.URL(block_proxy_url).host.endswith(".hf.space"):
                 proxy_urls.add(block_proxy_url)
             if (
                 _selectable := block_config["props"].pop("_selectable", None)
@@ -1484,7 +1751,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def render(self):
         root_context = get_blocks_context()
-        if root_context is not None and Context.root_block is not None:
+        if root_context is not None:
+            root_block = root_context.root_block
             if self._id in root_context.blocks:
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
@@ -1498,7 +1766,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             for block in self.blocks.values():
-                block.page = Context.root_block.current_page
+                block.page = root_block.current_page
             root_context.blocks.update(self.blocks)
             dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
@@ -1507,13 +1775,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
-                dependency.page = Context.root_block.current_page
+                dependency.page = root_block.current_page
                 dependency._id += dependency_offset
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
-                for target in dependency.targets:
-                    if target[0] == self._id:
-                        target = (Context.root_block._id, target[1])
+                dependency.targets = [
+                    (root_block._id, event_name)
+                    if target_id == self._id
+                    else (target_id, event_name)
+                    for target_id, event_name in dependency.targets
+                ]
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -1535,9 +1806,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dependency.cancels = get_cancelled_fn_indices(updated_cancels)
                 root_context.fns[dependency._id] = dependency
             root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
-            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
-            Context.root_block.proxy_urls.update(self.proxy_urls)
-            Context.root_block.extra_startup_events.extend(self.extra_startup_events)
+            root_block.temp_file_sets.extend(self.temp_file_sets)
+            root_block.proxy_urls.update(self.proxy_urls)
+            root_block.extra_startup_events.extend(self.extra_startup_events)
 
         render_context = get_render_context()
         if render_context is not None:
@@ -1652,15 +1923,20 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dict(zip(block_fn.inputs, processed_input, strict=False))
                 ]
 
-            fn_to_analyze = (
-                block_fn.renderable.fn if block_fn.renderable else block_fn.fn
+            processed_input, input_kwargs = _split_call_inputs(
+                block_fn, processed_input
             )
-            component_props = {}
-            for idx in block_fn.component_prop_inputs:
-                if idx < len(processed_input) and isinstance(
-                    processed_input[idx], dict
-                ):
-                    component_props[idx] = processed_input[idx]
+
+            fn_to_analyze = cast(
+                Callable,
+                block_fn.renderable.fn if block_fn.renderable else block_fn.fn,
+            )
+            processed_input, input_kwargs = _merge_positional_keyword_inputs(
+                fn_to_analyze, processed_input, input_kwargs
+            )
+            component_props = _get_component_props(
+                block_fn, fn_to_analyze, processed_input
+            )
 
             processed_input, progress_index, _, _ = special_args(
                 fn_to_analyze,
@@ -1677,6 +1953,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(fn, progress_tracker.track_tqdm)
                 processed_input[progress_index] = progress_tracker
+
+            if input_kwargs:
+                fn = partial(fn, **input_kwargs)
 
             if inspect.iscoroutinefunction(fn):
                 prediction = await fn(*processed_input)
@@ -1999,6 +2278,9 @@ Received inputs:
 
         self.validate_outputs(block_fn, predictions)  # type: ignore
 
+        if block_fn.is_validator_function:
+            return list(predictions[: len(block_fn.outputs)])
+
         output = []
         for i, block in enumerate(block_fn.outputs):
             try:
@@ -2118,20 +2400,105 @@ Received inputs:
 
         return output
 
+    def _stream_run_key(self, iterator: Any) -> str:
+        """Return the key of the streaming run that `iterator` is driving.
+
+        The key goes into the playlist URL, so it has to hold for every chunk of
+        a run and never repeat. `id()` only holds while the object is alive, so
+        the key is held weakly against the iterator and dies with it instead.
+        """
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            run = uuid.uuid4().hex
+            self._stream_run_ids[iterator] = run
+        return run
+
+    def _drop_run_streams(self, session_hash: str | None, iterator: Any) -> None:
+        """Close out the streaming state of the run `iterator` was driving.
+
+        For a run that reaches no final chunk: it raised, was cancelled, or its
+        client went away. Its streams are ended but stay, since the playlist is
+        fetched after the run ends; its diff state goes, nothing reads it again.
+        """
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        self._drop_run(session_hash, run)
+
+    def _drop_run(self, session_hash: str, run: str) -> None:
+        for stream in self.pending_streams.get(session_hash, {}).get(run, {}).values():
+            stream.end_stream()
+        self._pop_run_diffs(session_hash, run)
+
+    async def _finish_run_streams(
+        self, session_hash: str | None, iterator: Any
+    ) -> None:
+        """Complete the streams of a run nobody will continue: a generator called
+        through the run route yields once and is dropped, so what it produced is
+        all there is, and it has to come out whole rather than be cut off."""
+        if session_hash is None or iterator is None:
+            return
+        run = self._stream_run_ids.get(iterator)
+        if run is None:
+            return
+        streams = self.pending_streams.get(session_hash, {}).get(run, {})
+        try:
+            for output_id, stream in streams.items():
+                block = self.blocks[output_id]
+                if isinstance(block, components.StreamingOutput):
+                    await self._finish_stream(
+                        block, stream, self._stream_id(session_hash, run, output_id)
+                    )
+                else:
+                    stream.end_stream()
+        finally:
+            # A flush that raises must not strand the streams after it: without
+            # an event id the caller's handler cannot resolve this run either.
+            self._drop_run(session_hash, run)
+
+    @staticmethod
+    def _stream_id(session_hash: str, run: str, output_id: int) -> str:
+        return f"{session_hash}/{run}/{output_id}/playlist.m3u8"
+
+    @staticmethod
+    async def _finish_stream(
+        block: components.StreamingOutput, stream: MediaStream, stream_id: str
+    ) -> None:
+        try:
+            await stream.add_segment(await block.flush_stream_output(stream_id))
+        finally:
+            # A flush that fails still has to end the stream, or the playlist
+            # never gets its #EXT-X-ENDLIST and the client polls something that
+            # will not grow again.
+            stream.end_stream()
+
+    def _pop_run_diffs(self, session_hash: str, run: str) -> None:
+        """Drop a run's diff state, and its session's dict if that leaves it empty."""
+        runs = self.pending_diff_streams.get(session_hash)
+        if runs is None:
+            return
+        runs.pop(run, None)
+        if not runs:
+            del self.pending_diff_streams[session_hash]
+
     async def handle_streaming_outputs(
         self,
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         root_path: str | None = None,
         final: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
-        if run not in self.pending_streams[session_hash]:
-            self.pending_streams[session_hash][run] = {}
-        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
+        # Filed only once an output opens a stream, so a run with no streaming
+        # output never touches this dict
+        stream_run: dict[int, MediaStream] = self.pending_streams.get(
+            session_hash, {}
+        ).get(run, {})
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
@@ -2140,31 +2507,38 @@ Received inputs:
                 and block.streaming
                 and not utils.is_prop_update(data[i])
             ):
-                if final:
-                    # Nothing to finalize if this output never opened a stream —
-                    # the session may have been dropped on disconnect, or every
-                    # chunk before this one may have been a prop update. Falling
-                    # through would leave `first_chunk` true and build a fresh
-                    # stream that nothing ever ends.
-                    if (existing := stream_run.get(output_id)) is None:
-                        continue
-                    existing.end_stream()
+                # Nothing to finalize if this output never opened a stream:
+                # the session may have been dropped on disconnect, or every
+                # chunk before this one may have been a prop update. Falling
+                # through would leave `first_chunk` true and build a fresh
+                # stream that nothing ever ends.
+                if final and stream_run.get(output_id) is None:
+                    continue
+                stream_id = self._stream_id(session_hash, run, output_id)
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = await block.stream_output(
                     data[i],
-                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    stream_id,
                     first_chunk,
                 )
                 if first_chunk:
                     desired_output_format = None
                     if orig_name := output_data.get("orig_name"):
                         desired_output_format = Path(orig_name).suffix[1:]
-                    stream_run[output_id] = MediaStream(
-                        desired_output_format=desired_output_format
+                    stream_run = self.pending_streams[session_hash].setdefault(run, {})
+                    stream = MediaStream(desired_output_format=desired_output_format)
+                    stream_run[output_id] = stream
+                    # A finalize handle runs once and disarms, so ending the
+                    # stream releases the encoder and leaves nothing armed; the
+                    # unarmed case is interpreter exit, since a discarded
+                    # stream is ended by the session cleanup first.
+                    stream.on_end.append(
+                        weakref.finalize(stream, block.end_stream_output, stream_id)
                     )
-                    stream_run[output_id]
 
                 await stream_run[output_id].add_segment(binary_data)
+                if final:
+                    await self._finish_stream(block, stream_run[output_id], stream_id)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
@@ -2183,7 +2557,7 @@ Received inputs:
         block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
-        run: int | None,
+        run: str | None,
         final: bool,
         simple_format: bool = False,
     ) -> list:
@@ -2212,7 +2586,7 @@ Received inputs:
                     data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
-            del self.pending_diff_streams[session_hash][run]
+            self._pop_run_diffs(session_hash, run)
 
         return data
 
@@ -2351,24 +2725,40 @@ Received inputs:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
-                run = id(old_iterator) if was_generating else id(iterator)
-                async with trace_phase("streaming_diff"):
-                    data = await self.handle_streaming_outputs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run,
-                        root_path=root_path,
-                        final=not is_generating,
-                    )
-                    data = self.handle_streaming_diffs(
-                        block_fn,
-                        data,
-                        session_hash=session_hash,
-                        run=run,
-                        final=not is_generating,
-                        simple_format=simple_format,
-                    )
+                run = (
+                    self._stream_run_key(old_iterator if was_generating else iterator)
+                    if session_hash is not None
+                    else None
+                )
+                try:
+                    async with trace_phase("streaming_diff"):
+                        data = await self.handle_streaming_outputs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run,
+                            root_path=root_path,
+                            final=not is_generating,
+                        )
+                        # Diff state serves the later chunks of a run, which
+                        # can only be fetched under an event id. A call without
+                        # one gets full values, which is what its clients
+                        # expect.
+                        data = self.handle_streaming_diffs(
+                            block_fn,
+                            data,
+                            session_hash=session_hash,
+                            run=run if event_id is not None else None,
+                            final=not is_generating,
+                            simple_format=simple_format,
+                        )
+                except BaseException:
+                    # The callers' handlers find a run through
+                    # `app.iterators`, which is assigned only once this has
+                    # returned, so on a first call they cannot.
+                    if session_hash is not None and run is not None:
+                        self._drop_run(session_hash, run)
+                    raise
 
         if not manual_cache_used:
             block_fn.total_runtime += result["duration"]
@@ -2730,7 +3120,7 @@ Received inputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
-            run_history: If True, each user's browser saves the inputs and outputs of their own calls to this app, which they can review and reload from the run history page at /gradio_api/runs. The runs are kept in that browser's local storage, are scoped to the logged-in user if the app uses `auth`, and are never sent to the server. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
+            run_history: If True, users can review and reload calls from the run history page at /gradio_api/runs. Runs are saved privately in the browser by default; from that page, a user can instead connect a Hugging Face bucket and save future runs there. Browser history is scoped to the logged-in user if the app uses `auth`. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
@@ -2751,7 +3141,7 @@ Received inputs:
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
-            js: Custom js as a code string. The js code will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
         Returns:
@@ -3166,7 +3556,7 @@ Received inputs:
                     s = "* Running on local URL:  {}://{}:{}"
                     print(s.format(self.protocol, self.server_name, self.server_port))
 
-            resp = httpx.get(
+            resp = httpx2.get(
                 f"{self.local_api_url}startup-events",
                 verify=ssl_verify,
                 timeout=None,
@@ -3292,6 +3682,15 @@ Received inputs:
 
                 elif self.is_colab:
                     # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
+                    # In production SSR mode, Node owns the user-facing port and
+                    # proxies to Python on ``self.server_port``. Exposing the
+                    # Python port here bypasses SSR and gives the browser a config
+                    # rooted at Colab's internal runtime hostname.
+                    colab_port = (
+                        self.node_port
+                        if self._node_is_proxy and self.node_port is not None
+                        else self.server_port
+                    )
                     code = """(async (port, path, width, height, cache, element) => {
                         if (!google.colab.kernel.accessAllowed && !cache) {
                             return;
@@ -3317,7 +3716,7 @@ Received inputs:
                         iframe.style.border = 0;
                         element.appendChild(iframe);
                     })""" + "({port}, {path}, {width}, {height}, {cache}, window.element)".format(
-                        port=json.dumps(self.server_port),
+                        port=json.dumps(colab_port),
                         path=json.dumps("/"),
                         width=json.dumps(self.width),
                         height=json.dumps(self.height),
@@ -3575,16 +3974,21 @@ Received inputs:
         for startup_event in self.extra_startup_events:
             await startup_event()
 
-    def get_api_info(self, all_endpoints: bool = False) -> APIInfo:
+    def get_api_info(
+        self, all_endpoints: bool = False, page: str | None = None
+    ) -> APIInfo:
         """
         Gets the information needed to generate the API docs from a Blocks.
         Parameters:
             all_endpoints: If True, returns information about all endpoints, including those with api_visibility="undocumented".
+            page: If provided, returns information only for endpoints on this page.
         """
         config = self.config
         api_info: APIInfo = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
+            if page is not None and fn.page != page:
+                continue
             if not fn.fn or fn.api_visibility == "private":
                 continue
             if not all_endpoints and fn.api_visibility != "public":
@@ -3634,15 +4038,7 @@ Received inputs:
                 # Since the clients use "api_name" and "fn_index" to designate the endpoint and
                 # "result_callbacks" to specify the callbacks, we need to make sure that no parameters
                 # have those names. Hence the final checks.
-                if (
-                    fn.fn
-                    and index < len(fn_info)
-                    and fn_info[index][0]
-                    not in ["api_name", "fn_index", "result_callbacks"]
-                ):
-                    parameter_name = fn_info[index][0]
-                else:
-                    parameter_name = f"param_{index}"
+                parameter_name = _get_api_parameter_name(fn, fn_info, index)
 
                 # How default values are set for the client: if a component has an initial value, then that parameter
                 # is optional in the client and the initial value from the config is used as default in the client.
@@ -3651,11 +4047,9 @@ Received inputs:
                 if component["props"].get("value") is not None:
                     parameter_has_default = True
                     parameter_default = component["props"]["value"]
-                elif (
-                    fn.fn
-                    and index < len(fn_info)
-                    and fn_info[index][1]
-                    and fn_info[index][2] is None
+                elif fn.fn and any(
+                    parameter_name == info[0] and info[1] and info[2] is None
+                    for info in fn_info
                 ):
                     parameter_has_default = True
                     parameter_default = None

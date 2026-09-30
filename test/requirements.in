@@ -9,7 +9,7 @@ docker==7.1.0
 fastapi>=0.115.7
 starlette>=1.0.1
 matplotlib
-httpx
+httpx2
 huggingface_hub
 hypothesis
 nbformat
@@ -20,7 +20,8 @@ pytest
 pytest-asyncio
 pytest-cov
 pytest-rerunfailures
-respx
+requests<2.34
+ruff==0.12.9
 scikit-image
 torch
 tqdm

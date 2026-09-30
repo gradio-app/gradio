@@ -116,6 +116,28 @@ class TestEvent:
             (0, "load"),
         ]
 
+    def test_on_listener_with_keyword_inputs(self):
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+
+            @gr.on(
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+            def greet(first_name: str, *, last_name: str):
+                return f"{first_name} {last_name}"
+
+        assert demo.config["dependencies"][0]["targets"] == [
+            (first_name._id, "change"),
+            (last_name._id, "change"),
+            (0, "load"),
+        ]
+        assert demo.fns[0].input_keyword_names == ["last_name"]
+        assert greet("Ada", last_name="Lovelace") == "Ada Lovelace"
+
     def test_js_only_event_without_explicit_fn_none(self):
         js = "() => { alert('hi'); }"
 

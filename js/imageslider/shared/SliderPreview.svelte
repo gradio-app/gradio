@@ -24,6 +24,7 @@
 		show_label,
 		i18n,
 		position = $bindable(0.5),
+		onposition,
 		layer_images = true,
 		show_single = false,
 		slider_color,
@@ -43,6 +44,7 @@
 		show_label: boolean;
 		i18n: I18nFormatter;
 		position?: number;
+		onposition?: (position: number) => void;
 		layer_images?: boolean;
 		show_single?: boolean;
 		slider_color: string;
@@ -213,6 +215,7 @@
 		>
 			<Slider
 				bind:position
+				{onposition}
 				{slider_color}
 				bind:el={slider_wrap}
 				bind:parent_el

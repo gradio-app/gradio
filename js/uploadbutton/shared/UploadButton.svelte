@@ -2,7 +2,11 @@
 	import { tick } from "svelte";
 	import { BaseButton } from "@gradio/button";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
-	import { is_valid_mimetype, to_accept_attribute } from "@gradio/upload";
+	import {
+		invalid_file_type_message,
+		is_valid_mimetype,
+		to_accept_attribute
+	} from "@gradio/upload";
 
 	let {
 		elem_id = "",
@@ -71,15 +75,19 @@
 	}
 
 	async function load_files(files: FileList): Promise<void> {
+		const invalid_files: File[] = [];
 		let _files: File[] = Array.from(files).filter((file) => {
 			if (
 				is_valid_mimetype(accept_file_types, file.name.toLowerCase(), file.type)
 			) {
 				return true;
 			}
-			onerror?.(`Invalid file type only ${file_types?.join(", ")} allowed.`);
+			invalid_files.push(file);
 			return false;
 		});
+		if (invalid_files.length) {
+			onerror?.(invalid_file_type_message(invalid_files, file_types));
+		}
 
 		if (!_files.length) {
 			return;

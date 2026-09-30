@@ -8,6 +8,7 @@ export interface HighlightedToken {
 
 export interface HighlightedTextProps {
 	value: HighlightedToken[];
+	_selectable: boolean;
 	show_legend: boolean;
 	show_inline_category: boolean;
 	color_map: Record<string, string>;

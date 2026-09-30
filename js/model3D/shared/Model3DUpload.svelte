@@ -5,6 +5,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { dequal } from "dequal";
 	import type Canvas3D from "./Canvas3D.svelte";
 	import { create_renderer } from "./renderer.svelte.js";
 
@@ -29,6 +30,7 @@
 		ondrag,
 		onload,
 		onerror,
+		oncamera_position,
 		children
 	}: {
 		value?: FileData | null;
@@ -51,11 +53,13 @@
 		ondrag?: (dragging: boolean) => void;
 		onload?: (value: FileData) => void;
 		onerror?: (error: string) => void;
+		oncamera_position?: (camera_position: [number, number, number]) => void;
 		children?: Snippet;
 	} = $props();
 
 	let canvas3d = $state<Canvas3D | undefined>();
 	let dragging = $state(false);
+	let current_settings = $state({ camera_position, zoom_speed, pan_speed });
 
 	const model = create_renderer(() => value);
 	const GaussianCanvas = $derived(model.gsplat_component);
@@ -63,6 +67,17 @@
 
 	$effect(() => {
 		ondrag?.(dragging);
+	});
+
+	$effect(() => {
+		if (
+			!dequal(current_settings.camera_position, camera_position) ||
+			current_settings.zoom_speed !== zoom_speed ||
+			current_settings.pan_speed !== pan_speed
+		) {
+			canvas3d?.update_camera();
+			current_settings = { camera_position, zoom_speed, pan_speed };
+		}
 	});
 
 	async function handle_upload(detail: FileData): Promise<void> {
@@ -127,6 +142,7 @@
 				{zoom_speed}
 				{pan_speed}
 				data={model.data}
+				{oncamera_position}
 			/>
 		{/if}
 	</div>

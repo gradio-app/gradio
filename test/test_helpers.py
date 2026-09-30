@@ -1,7 +1,9 @@
 import asyncio
 import os
 import tempfile
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import cast
 from unittest.mock import patch
@@ -192,6 +194,33 @@ class TestExamplesDataset:
             "multiply",
             "subtract",
         ]
+
+    def test_visible_columns(self, patched_cache_folder):
+        examples = gr.Examples(
+            examples=[["hello", "friendly", 20], ["goodbye", "formal", 10]],
+            inputs=[
+                gr.Textbox(label="Message"),
+                gr.Textbox(label="Tone"),
+                gr.Number(label="Words"),
+            ],
+            visible_columns=[0, 2],
+        )
+
+        assert examples.dataset.headers == ["Message", "Words"]
+        assert examples.dataset.raw_samples == [["hello", 20], ["goodbye", 10]]
+        assert examples.non_none_examples == [
+            ["hello", "friendly", 20],
+            ["goodbye", "formal", 10],
+        ]
+
+    @pytest.mark.parametrize("visible_columns", [[], [-1], [3], [True]])
+    def test_invalid_visible_columns(self, patched_cache_folder, visible_columns):
+        with pytest.raises(ValueError):
+            gr.Examples(
+                examples=[["hello", "friendly", 20]],
+                inputs=[gr.Textbox(), gr.Textbox(), gr.Number()],
+                visible_columns=visible_columns,
+            )
 
 
 def test_example_caching_relaunch(connect):
@@ -613,6 +642,73 @@ class TestProcessExamples:
             }
         ]
 
+    def test_hidden_columns_are_loaded(self, patched_cache_folder):
+        with gr.Blocks() as demo:
+            inputs = [gr.Textbox(), gr.Textbox(), gr.Number()]
+            gr.Examples(
+                examples=[["hello", "friendly", 20]],
+                inputs=inputs,
+                visible_columns=[0],
+                api_name="load_example",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
+
+        assert [update["value"] for update in response.json()["data"]] == [
+            "hello",
+            "friendly",
+            20,
+        ]
+
+    @pytest.mark.parametrize(
+        "visible_columns,new_samples,expected",
+        [
+            (None, [["new"], ["newer"]], [["new"], ["newer"]]),
+            ([0], [["new"], ["newer"]], [["new", None, None], ["newer", None, None]]),
+            (
+                [0],
+                [["new", "formal", 5], ["newer", "casual", 7]],
+                [["new", "formal", 5], ["newer", "casual", 7]],
+            ),
+        ],
+    )
+    def test_updated_samples_are_loaded(
+        self, patched_cache_folder, visible_columns, new_samples, expected
+    ):
+        with gr.Blocks() as demo:
+            inputs = [gr.Textbox()]
+            if visible_columns is not None:
+                inputs += [gr.Textbox(), gr.Number()]
+            examples = gr.Examples(
+                examples=[["hello", "friendly", 20][: len(inputs)]],
+                inputs=inputs,
+                visible_columns=visible_columns,
+                api_name="load_example",
+            )
+            gr.Button().click(
+                lambda: gr.Dataset(samples=new_samples),
+                None,
+                examples.dataset,
+                api_name="update_samples",
+                queue=False,
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        client.post(
+            f"{API_PREFIX}/api/update_samples/",
+            json={"data": [], "session_hash": "session"},
+        )
+        for index, expected_values in enumerate(expected):
+            response = client.post(
+                f"{API_PREFIX}/api/load_example/",
+                json={"data": [index], "session_hash": "session"},
+            )
+            data = response.json()["data"]
+            assert [update.get("value") for update in data] == expected_values
+
     def test_end_to_end_cache_examples(self, patched_cache_folder):
         def concatenate(str1, str2):
             return f"{str1} {str2}"
@@ -672,6 +768,111 @@ class TestProcessExamples:
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
         assert data[0]["path"].endswith("image.webp")
+
+    def test_lazy_cache_examples_preserves_request(self, patched_cache_folder):
+        def get_ip_token(value, request: gr.Request):
+            return request.headers.get("x-ip-token") if request else None
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            output = gr.Textbox()
+            gr.Examples(
+                examples=["hello"],
+                inputs=text,
+                outputs=output,
+                fn=get_ip_token,
+                cache_examples=True,
+                cache_mode="lazy",
+                api_name="load_example",
+            )
+
+        app = routes.App.create_app(demo)
+        with TestClient(app) as client:
+            response = client.post(
+                f"{API_PREFIX}/api/load_example/",
+                json={"data": [0]},
+                headers={"x-ip-token": "visitor-token"},
+            )
+
+        assert response.json()["data"] == ["visitor-token"]
+
+    def test_lazy_cache_coalesces_concurrent_requests(self, patched_cache_folder):
+        calls = 0
+
+        def slow_identity(value):
+            nonlocal calls
+            calls += 1
+            time.sleep(0.1)
+            return value
+
+        with gr.Blocks():
+            text = gr.Textbox()
+            examples = gr.Examples(
+                examples=["hello"],
+                inputs=text,
+                outputs=text,
+                fn=slow_identity,
+                cache_examples=True,
+                cache_mode="lazy",
+            )
+
+        ready = threading.Barrier(3)
+
+        def load_example():
+            ready.wait()
+            return examples.load_from_cache(0)
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [executor.submit(load_example) for _ in range(2)]
+            ready.wait()
+            results = [future.result() for future in futures]
+
+        assert results == [["hello"], ["hello"]]
+        assert calls == 1
+
+    def test_lazy_cache_uses_index_returned_by_cache(self, patched_cache_folder):
+        with gr.Blocks():
+            text = gr.Textbox()
+            examples = gr.Examples(
+                examples=["first", "second"],
+                inputs=text,
+                outputs=text,
+                fn=lambda value: value,
+                cache_examples=True,
+                cache_mode="lazy",
+            )
+
+        examples.cached_folder.mkdir(parents=True)
+        examples.cached_file.write_text(
+            "component 0,timestamp\nfirst,now\nsecond,now\n"
+        )
+        examples.cached_indices_file.write_text("0\n1\n")
+
+        with (
+            patch.object(examples, "_get_cached_index_if_cached", return_value=None),
+            patch.object(client_utils, "synchronize_async", return_value=0),
+        ):
+            assert examples.load_from_cache(0) == ["first"]
+
+    def test_lazy_cache_removes_temporary_event_after_error(self, patched_cache_folder):
+        def fail(value):
+            raise gr.Error(f"Could not process {value}")
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            examples = gr.Examples(
+                examples=["hello"],
+                inputs=text,
+                outputs=text,
+                fn=fail,
+                cache_examples=True,
+                cache_mode="lazy",
+            )
+
+        event_count = len(demo.default_config.fns)
+        with pytest.raises(gr.Error, match="Could not process hello"):
+            examples.load_from_cache(0)
+        assert len(demo.default_config.fns) == event_count
 
 
 def test_multiple_file_flagging(tmp_path, connect):
@@ -951,6 +1152,21 @@ def test_check_event_data_in_cache():
                 },
             ),
         )
+
+    proxy_component = gr.Image()
+    proxy_component.proxy_url = "https://private-space.hf.space"
+    inputs, *_ = helpers.special_args(
+        get_select_index,
+        inputs=[],
+        event_data=helpers.EventData(
+            proxy_component,
+            {
+                "index": {"path": "foo", "meta": {"_type": "gradio.FileData"}},
+                "value": "whatever",
+            },
+        ),
+    )
+    assert inputs[0].index["path"] == "foo"
 
 
 def test_request_session_none_without_sessionmiddleware():

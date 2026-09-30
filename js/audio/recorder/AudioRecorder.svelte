@@ -91,9 +91,11 @@
 		clearInterval(interval);
 		try {
 			const array_buffer = await blob.arrayBuffer();
-			const context = new AudioContext({
-				sampleRate: waveform_settings.sampleRate
-			});
+			const context = new OfflineAudioContext(
+				1,
+				1,
+				waveform_settings.sampleRate || 44100
+			);
 			const audio_buffer = await context.decodeAudioData(array_buffer);
 
 			if (audio_buffer)
@@ -167,6 +169,7 @@
 		});
 
 		record?.on("record-end", (blob) => {
+			clear_recording_preview();
 			recordedAudio = URL.createObjectURL(blob);
 
 			const microphone = microphoneContainer;
@@ -179,6 +182,13 @@
 			}
 		});
 		record_mounted = true;
+	};
+
+	const clear_recording_preview = (): void => {
+		recordingWaveform?.destroy();
+		recordingWaveform = undefined;
+		if (recordedAudio) URL.revokeObjectURL(recordedAudio);
+		recordedAudio = null;
 	};
 
 	const create_recording_waveform = (): void => {
@@ -212,7 +222,7 @@
 	onMount(() => {
 		create_mic_waveform();
 
-		window.addEventListener("keydown", (e) => {
+		const handle_keydown = (e: KeyboardEvent): void => {
 			const is_focused_in_waveform =
 				recordingContainer &&
 				recordingContainer.contains(document.activeElement);
@@ -224,7 +234,16 @@
 			} else if (e.key === "ArrowLeft") {
 				skip_audio(waveform, -0.1);
 			}
-		});
+		};
+		window.addEventListener("keydown", handle_keydown);
+
+		return () => {
+			clearInterval(interval);
+			window.removeEventListener("keydown", handle_keydown);
+			clear_recording_preview();
+			record?.unAll();
+			micWaveform?.destroy();
+		};
 	});
 </script>
 

@@ -83,10 +83,22 @@ export function map_names_to_ids(
 
 export function resolve_config_root(
 	root: string,
-	current_location: string
+	current_location: string,
+	prioritize_current_location = false
 ): string {
-	const root_url = new URL(root, current_location);
 	const current_url = new URL(current_location);
+	const root_url = new URL(root, current_url);
+	// Modern Colab configs can omit is_colab even though the backend root still
+	// uses one of Colab's internal-only hostname families.
+	const is_colab_runtime =
+		root_url.hostname.endsWith(".colab-user-runtimes.internal") ||
+		root_url.hostname.endsWith(".codatalab-user-runtimes.internal");
+	if (prioritize_current_location || is_colab_runtime) {
+		return new URL(new URL(root, current_url).pathname, current_url)
+			.toString()
+			.replace(/\/$/, "");
+	}
+
 	if (root_url.hostname !== current_url.hostname) {
 		return root;
 	}
@@ -117,12 +129,10 @@ export async function resolve_config(
 			window.gradio_config.dev_mode ||
 			(typeof window !== "undefined" && window?.BUILD_MODE === "dev")
 		) {
-			let config_url = join_urls(
-				endpoint,
-				this.deep_link
-					? CONFIG_URL + "?deep_link=" + this.deep_link
-					: CONFIG_URL
-			);
+			let config_url = new URL(join_urls(endpoint, CONFIG_URL));
+			if (this.deep_link)
+				config_url.searchParams.set("deep_link", this.deep_link);
+			if (this.page !== null) config_url.searchParams.set("page", this.page);
 			const response = await this.fetch(config_url, {
 				headers,
 				credentials: this.options.credentials ?? "same-origin"
@@ -138,15 +148,20 @@ export async function resolve_config(
 		// The page was rendered by this Gradio server, so a same-host root may
 		// contain an internal protocol or port supplied by a reverse proxy. Keep
 		// the configured path, but use the browser-visible origin for requests
-		// made by the client itself (queue, upload, reset, etc.).
+		// made by the client itself (queue, upload, reset, etc.). Colab's public
+		// proxy uses a different hostname, so always prefer the browser origin.
 		const config = { ...window.gradio_config } as unknown as Config;
-		config.root = resolve_config_root(config.root, location.href);
+		config.root = resolve_config_root(
+			config.root,
+			location.href,
+			config.is_colab
+		);
 		return config;
 	} else if (endpoint) {
-		let config_url = join_urls(
-			endpoint,
-			this.deep_link ? CONFIG_URL + "?deep_link=" + this.deep_link : CONFIG_URL
-		);
+		let config_url = new URL(join_urls(endpoint, CONFIG_URL));
+		if (this.deep_link)
+			config_url.searchParams.set("deep_link", this.deep_link);
+		if (this.page !== null) config_url.searchParams.set("page", this.page);
 
 		const response = await this.fetch(config_url, {
 			headers,

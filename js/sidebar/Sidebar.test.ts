@@ -366,16 +366,3 @@ describe("Parent overlap", () => {
 		await waitFor(() => expect(overlap()).toBeGreaterThan(0));
 	});
 });
-
-test.todo(
-	"VISUAL: open=true slides the sidebar into view via CSS transform translateX(100%) for left, translateX(-100%) for right — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: position='right' places the sidebar at the right edge and moves the toggle button to the left side — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: width prop controls the sidebar container width (default 320px) — needs Playwright visual regression screenshot comparison"
-);
-test.todo(
-	"VISUAL: open sidebar adjusts parent .wrap padding via --overlap-amount CSS variable to prevent content overlap — needs Playwright visual regression screenshot comparison"
-);

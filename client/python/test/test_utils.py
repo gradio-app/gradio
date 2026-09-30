@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import pytest
 from huggingface_hub import get_token
 
@@ -52,10 +52,10 @@ def test_encode_url_to_base64(media_data):
 
 
 def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
-    request = httpx.Request("GET", "https://example.com/foo")
-    error_response = httpx.Response(status_code=404, request=request)
-    monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
-    with pytest.raises(httpx.HTTPStatusError):
+    request = httpx2.Request("GET", "https://example.com/foo")
+    error_response = httpx2.Response(status_code=404, request=request)
+    monkeypatch.setattr(httpx2, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(httpx2.HTTPStatusError):
         utils.encode_url_to_base64("https://example.com/foo")
 
 
@@ -75,6 +75,17 @@ def test_decode_base64_to_binary(media_data):
 def test_decode_base64_to_file(media_data):
     temp_file = utils.decode_base64_to_file(deepcopy(media_data.BASE64_IMAGE))
     assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
+
+
+def test_encode_file_path():
+    assert (
+        utils.encode_file_path("/tmp/computer%20vision#Huggy.png")
+        == "/tmp/computer%2520vision%23Huggy.png"
+    )
+    assert (
+        utils.encode_file_path(r"C:\Users\me\report%20#final.txt")
+        == "C%3A%5CUsers%5Cme%5Creport%2520%23final.txt"
+    )
 
 
 @pytest.mark.parametrize(
@@ -165,6 +176,11 @@ def test_get_mimetype(filename, expected_mimetype):
         # "$" is stripped as shell-dangerous first, which already defuses CONIN$/CONOUT$
         ("CONOUT$.txt", "CONOUT.txt"),
         ("COM\xb9.log", "_COM\xb9.log"),
+        # Sanitization must always produce a usable cross-platform filename
+        ("!!!", "file"),
+        (".", "file"),
+        ("file.", "file"),
+        ("file ", "file"),
         ("config.txt", "config.txt"),
         ("console.log", "console.log"),
     ],
@@ -173,19 +189,26 @@ def test_strip_invalid_filename_characters(orig_filename, new_filename):
     assert utils.strip_invalid_filename_characters(orig_filename) == new_filename
 
 
+def test_strip_invalid_filename_characters_limits_long_extensions():
+    filename = utils.strip_invalid_filename_characters("a." + "x" * 300)
+
+    assert filename.startswith("file.")
+    assert len(filename.encode()) == 200
+
+
 class AsyncMock(MagicMock):
     async def __call__(self, *args, **kwargs):
         return super().__call__(*args, **kwargs)
 
 
-@patch("httpx.post")
+@patch("httpx2.post")
 def test_sleep_successful(mock_post):
     utils.set_space_timeout("gradio/calculator")
 
 
 @patch(
-    "httpx.post",
-    side_effect=httpx.HTTPStatusError("error", request=None, response=None),
+    "httpx2.post",
+    side_effect=httpx2.HTTPStatusError("error", request=None, response=None),
 )
 def test_sleep_unsuccessful(mock_post):
     with pytest.raises(utils.SpaceDuplicationError):

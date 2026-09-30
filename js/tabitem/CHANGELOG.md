@@ -1,5 +1,22 @@
 # @gradio/tabitem
 
+## 0.9.0
+
+### Features
+
+- [#13851](https://github.com/gradio-app/gradio/pull/13851) [`afffecc`](https://github.com/gradio-app/gradio/commit/afffeccf69262a8070a091b50206c1e33b8c06c4) - Add configurable tab overflow and alignment.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.14.2
+- @gradio/tabs@0.11.0
+
+## 0.8.3
+
+### Dependency updates
+
+- @gradio/utils@0.14.1
+
 ## 0.8.3
 
 ### Fixes

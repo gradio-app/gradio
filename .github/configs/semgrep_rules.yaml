@@ -52,10 +52,10 @@ rules:
       - python
     severity: ERROR
     message: >
-      Do not use bare `httpx` request functions to fetch URLs in components or
+      Do not use bare `httpx2` (or `httpx`) request functions to fetch URLs in components or
       media/processing utilities. These code paths handle user-influenced URLs
       (e.g. an `Image`/`Gallery` SVG source or an `Audio` path) and a plain
-      `httpx` request has no SSRF protection (no private-IP filter, domain
+      `httpx2` request has no SSRF protection (no private-IP filter, domain
       allow-list, or redirect re-validation), which can leak internal responses
       to the client (CWE-918). Route the request through `safehttpx` instead,
       e.g. `processing_utils.async_ssrf_protected_get` /
@@ -75,6 +75,14 @@ rules:
           - pattern: httpx.head(...)
           - pattern: httpx.request(...)
           - pattern: httpx.stream(...)
+          - pattern: httpx2.get(...)
+          - pattern: httpx2.post(...)
+          - pattern: httpx2.put(...)
+          - pattern: httpx2.patch(...)
+          - pattern: httpx2.delete(...)
+          - pattern: httpx2.head(...)
+          - pattern: httpx2.request(...)
+          - pattern: httpx2.stream(...)
     metadata:
       category: security
       owasp:

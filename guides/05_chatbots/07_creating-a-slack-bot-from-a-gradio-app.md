@@ -77,7 +77,7 @@ gradio_client = Client("abidlabs/gradio-playground-bot")
 
 def download_image(url, filename):
     headers = {"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
-    response = httpx.get(url, headers=headers)
+    response = httpx2.get(url, headers=headers)
     image_path = f"./images/{filename}"
     os.makedirs("./images", exist_ok=True)
     with open(image_path, "wb") as f:

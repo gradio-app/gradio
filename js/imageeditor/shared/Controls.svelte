@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
+	import type { I18nFormatter } from "@gradio/utils";
 	import {
 		Check,
 		Trash,
@@ -11,6 +12,7 @@
 		Redo
 	} from "@gradio/icons";
 	let {
+		i18n,
 		can_save = false,
 		changeable = false,
 		current_zoom = 1,
@@ -29,6 +31,7 @@
 		onpan,
 		ondownload
 	}: {
+		i18n: I18nFormatter;
 		can_save?: boolean;
 		changeable?: boolean;
 		current_zoom?: number;
@@ -73,7 +76,7 @@
 	{#if enable_download}
 		<IconButton
 			Icon={Download}
-			label="Download"
+			label={i18n("common.download")}
 			onclick={(event) => {
 				ondownload?.();
 				event.stopPropagation();
@@ -83,7 +86,7 @@
 
 	<IconButton
 		Icon={Pan}
-		label="Pan"
+		label={i18n("image_editor.pan")}
 		onclick={(e) => {
 			e.stopPropagation();
 			onpan?.();
@@ -97,7 +100,7 @@
 
 	<IconButton
 		Icon={ZoomOut}
-		label="Zoom out"
+		label={i18n("image_editor.zoom_out")}
 		onclick={(event) => {
 			onzoom_out?.();
 			event.stopPropagation();
@@ -105,7 +108,7 @@
 	/>
 	<IconButton
 		Icon={ZoomIn}
-		label="Zoom in"
+		label={i18n("image_editor.zoom_in")}
 		onclick={(event) => {
 			onzoom_in?.();
 			event.stopPropagation();
@@ -129,7 +132,7 @@
 								handle_zoom_change("fit");
 							}}
 						>
-							Fit to screen
+							{i18n("image_editor.fit_to_screen")}
 						</button>
 					</li>
 					{#each [0.25, 0.5, 1, 2, 4] as zoom}
@@ -152,7 +155,7 @@
 
 	<IconButton
 		Icon={Undo}
-		label="Undo"
+		label={i18n("common.undo")}
 		onclick={(event) => {
 			onundo?.();
 			event.stopPropagation();
@@ -162,7 +165,7 @@
 
 	<IconButton
 		Icon={Redo}
-		label="Redo"
+		label={i18n("image_editor.redo")}
 		onclick={(event) => {
 			onredo?.();
 			event.stopPropagation();
@@ -174,7 +177,7 @@
 		<IconButton
 			disabled={!can_save}
 			Icon={Check}
-			label="Save changes"
+			label={i18n("image_editor.save_changes")}
 			onclick={(event) => {
 				onsave?.();
 				event.stopPropagation();
@@ -185,7 +188,7 @@
 
 	<IconButton
 		Icon={Trash}
-		label="Clear canvas"
+		label={i18n("image_editor.clear_canvas")}
 		onclick={(event) => {
 			onremove_image?.();
 			event.stopPropagation();

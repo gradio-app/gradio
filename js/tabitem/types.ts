@@ -8,6 +8,9 @@ export interface TabItemProps {
 	visible: boolean | "hidden";
 	interactive: boolean;
 	order: number;
+	alignment?: "left" | "right";
+	height?: number | string | null;
+	max_height?: number | string | null;
 	component_id: number;
 }
 

@@ -12,7 +12,10 @@
 		visible,
 		interactive,
 		order,
+		alignment = "left",
 		scale,
+		height,
+		max_height,
 		component_id,
 		onselect,
 		children
@@ -24,7 +27,10 @@
 		visible: boolean | "hidden";
 		interactive: boolean;
 		order: number;
+		alignment?: "left" | "right";
 		scale: number;
+		height?: string;
+		max_height?: string;
 		component_id: number;
 		onselect?: (data: SelectData) => void;
 		children?: Snippet;
@@ -49,6 +55,7 @@
 			elem_id,
 			visible,
 			interactive,
+			alignment,
 			scale,
 			component_id
 		})
@@ -77,8 +84,11 @@
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
 	class:grow-children={scale >= 1}
+	class:scrollable={height || max_height}
 	style:display={$selected_tab === tab_id && is_visible ? "flex" : "none"}
 	style:flex-grow={scale}
+	style:height
+	style:max-height={max_height}
 	role="tabpanel"
 >
 	<BaseColumn scale={scale >= 1 ? scale : null}>
@@ -95,6 +105,9 @@
 		border-radius: var(--radius-sm);
 		width: 100%;
 		box-sizing: border-box;
+	}
+	.scrollable {
+		overflow-y: auto;
 	}
 	.grow-children > :global(.column > .column) {
 		flex-grow: 1;

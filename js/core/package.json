@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "1.11.0",
+	"version": "1.12.0",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -78,6 +78,11 @@
 			"gradio": "./src/Login.svelte",
 			"svelte": "./dist/src/Login.svelte",
 			"types": "./dist/src/Login.svelte.d.ts"
+		},
+		"./history_storage_control": {
+			"gradio": "./src/api_docs/HistoryStorageControl.svelte",
+			"svelte": "./dist/src/api_docs/HistoryStorageControl.svelte",
+			"types": "./dist/src/api_docs/HistoryStorageControl.svelte.d.ts"
 		},
 		"./page_footer": {
 			"gradio": "./src/PageFooter.svelte",

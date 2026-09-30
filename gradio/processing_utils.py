@@ -9,6 +9,7 @@ import logging
 import mimetypes
 import os
 import shutil
+import signal
 import subprocess
 import tempfile
 import warnings
@@ -19,7 +20,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urljoin, urlparse
 
-import httpx
+import httpx2
 import numpy as np
 import safehttpx as sh
 from gradio_client import utils as client_utils
@@ -42,7 +43,7 @@ with warnings.catch_warnings():
 sync_transport = None
 async_transport = None
 
-sync_client = httpx.Client(transport=sync_transport)
+sync_client = httpx2.Client(transport=sync_transport)
 
 log = logging.getLogger(__name__)
 
@@ -70,6 +71,35 @@ def to_binary(x: str | dict) -> bytes:
 def extract_base64_data(x: str) -> str:
     """Just extracts the base64 data from a general base64 string."""
     return x.rsplit(",", 1)[-1]
+
+
+def _get_original_url_from_proxy(url: str, proxy_url: str) -> str | None:
+    """Return the upstream URL wrapped by a loaded app's file proxy."""
+    parsed_url = urlparse(url)
+    marker = f"{API_PREFIX}/proxy="
+    if marker not in parsed_url.path:
+        return None
+
+    original_url = parsed_url.path.split(marker, 1)[1]
+    if not client_utils.is_http_url_like(original_url):
+        return None
+
+    try:
+        parsed_original_url = httpx2.URL(original_url)
+        parsed_proxy_url = httpx2.URL(proxy_url)
+    except httpx2.InvalidURL:
+        return None
+    if (
+        parsed_original_url.scheme,
+        parsed_original_url.host,
+        parsed_original_url.port,
+    ) != (
+        parsed_proxy_url.scheme,
+        parsed_proxy_url.host,
+        parsed_proxy_url.port,
+    ):
+        return None
+    return original_url
 
 
 #########################
@@ -298,9 +328,9 @@ def lru_cache_async(maxsize: int = 128):
 MAX_REDIRECTS = 20
 
 
-async def async_ssrf_protected_get(url: str) -> httpx.Response:
+async def async_ssrf_protected_get(url: str) -> httpx2.Response:
     """SSRF-protected GET: routes through `safehttpx` with the public hostname
-    allow-list and re-validates each redirect. Returns the `httpx.Response`
+    allow-list and re-validates each redirect. Returns the `httpx2.Response`
     without raising on non-2xx status (callers decide how to handle that)."""
     response = await sh.get(
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
@@ -459,11 +489,22 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        original_url = (
+            _get_original_url_from_proxy(payload.url, block.proxy_url)
+            if payload.url and block.proxy_url and not postprocess
+            else None
+        )
+        # Loaded app inputs use the upstream URL wrapped by the loader's proxy.
+        # Ordinary local uploads keep their local cache path and follow the
+        # client's normal upload flow.
+        if original_url:
+            payload.path = original_url
+        elif (
+            payload.url
+            and not block.proxy_url
+            and postprocess
+            and client_utils.is_http_url_like(payload.url)
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -482,15 +523,24 @@ def move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx2.URL(payload.path).host == httpx2.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
+            encoded_path = client_utils.encode_file_path(payload.path)
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = f"{payload.path}"
         else:
-            url = f"{url_prefix}{payload.path}"
+            url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
         payload.url = url
         _mark_svg_as_safe(payload)
         return payload.model_dump()
@@ -579,11 +629,22 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)  # type: ignore
-        # If the gradio app developer is returning a URL from
-        # postprocess, it means the component can display a URL
-        # without it being served from the gradio server
-        # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+        original_url = (
+            _get_original_url_from_proxy(payload.url, block.proxy_url)
+            if payload.url and block.proxy_url and not postprocess
+            else None
+        )
+        # Loaded app inputs use the upstream URL wrapped by the loader's proxy.
+        # Ordinary local uploads keep their local cache path and follow the
+        # client's normal upload flow.
+        if original_url:
+            payload.path = original_url
+        elif (
+            payload.url
+            and not block.proxy_url
+            and postprocess
+            and client_utils.is_http_url_like(payload.url)
+        ):
             payload.path = payload.url
         elif utils.is_static_file(payload):
             pass
@@ -604,15 +665,24 @@ async def async_move_files_to_cache(
         url_prefix = (
             f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         )
-        if block.proxy_url:
+        if (
+            block.proxy_url
+            and client_utils.is_http_url_like(payload.path)
+            and httpx2.URL(payload.path).host == httpx2.URL(block.proxy_url).host
+        ):
+            url = f"{API_PREFIX}/proxy={payload.path}"
+        elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
+            encoded_path = client_utils.encode_file_path(payload.path)
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{encoded_path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
+            # External URLs are intentionally fetched by the browser, matching
+            # the behavior of components created directly in a Gradio app.
             url = payload.path
         else:
-            url = f"{url_prefix}{payload.path}"
+            url = f"{url_prefix}{client_utils.encode_file_path(payload.path)}"
         payload.url = url
         _mark_svg_as_safe(payload)
         return payload.model_dump()
@@ -721,8 +791,12 @@ def audio_to_file(sample_rate, data, filename, format="wav"):
 def convert_to_16_bit_audio(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
     warning = "Trying to convert audio automatically from {} to 16-bit int format."
+    # NumPy 2 (NEP 50) no longer upcasts arrays in arithmetic with Python
+    # scalars, so narrow dtypes are widened before scaling to keep results exact.
     if data.dtype in [np.float64, np.float32, np.float16]:
         warnings.warn(warning.format(data.dtype))
+        if data.dtype == np.float16:
+            data = data.astype(np.float32)
         peak = np.abs(data).max()
         if peak == 0:
             # Silence: avoid dividing by zero (which would produce NaNs that
@@ -744,11 +818,11 @@ def convert_to_16_bit_audio(data):
         data = data.astype(np.int16)
     elif data.dtype == np.uint8:
         warnings.warn(warning.format(data.dtype))
-        data = data * 257 - 32768
+        data = data.astype(np.int32) * 257 - 32768
         data = data.astype(np.int16)
     elif data.dtype == np.int8:
         warnings.warn(warning.format(data.dtype))
-        data = data * 256
+        data = data.astype(np.int16) * 256
         data = data.astype(np.int16)
     else:
         raise ValueError(
@@ -1069,6 +1143,71 @@ def ffmpeg_installed() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
+def require_ffmpeg(operation: str, *executables: str) -> None:
+    """Fail before running a tool that is not there, saying which one and why.
+
+    Checking `ffmpeg` alone is not enough for anything that also probes: a box
+    can have one without the other, and the call that goes missing is then a
+    bare FileNotFoundError from somewhere deep in the stream.
+    """
+    missing = [name for name in executables if shutil.which(name) is None]
+    if not missing:
+        return
+    raise RuntimeError(
+        f"{operation} requires {' and '.join(executables)}, but could not find "
+        f"{' and '.join(missing)} on PATH. Install FFmpeg and make sure its "
+        "executables are on PATH."
+    )
+
+
+def ffmpeg_version_line(executable: str) -> str:
+    """The first line of `<executable> -version`, or "" if it will not say."""
+    try:
+        result = subprocess.run(
+            [executable, "-version"], capture_output=True, check=False, timeout=10
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return (
+        result.stdout.decode(errors="replace").splitlines()[0].strip()
+        if result.stdout
+        else ""
+    )
+
+
+def ffmpeg_failed(
+    executable: str, returncode: int, stderr: bytes | str, doing: str
+) -> RuntimeError:
+    """The error for a media tool that did not exit cleanly.
+
+    Returns rather than raises so the traceback ends at the call that ran the
+    tool. A tool killed by a signal says nothing on stderr, which used to leave
+    the message empty and the cause invisible, so the build is named instead:
+    a crash on a file the tool itself just wrote is the build's fault and not
+    the input's.
+    """
+    detail = stderr.decode(errors="replace") if isinstance(stderr, bytes) else stderr
+    detail = detail.strip()
+    if returncode < 0:
+        try:
+            died = f"was killed by {signal.Signals(-returncode).name}"
+        except ValueError:
+            died = f"was killed by signal {-returncode}"
+    else:
+        died = f"exited with {returncode}"
+    parts = [f"{doing} failed: {executable} {died}."]
+    if version := ffmpeg_version_line(executable):
+        parts.append(f"The build is {version}.")
+    if detail:
+        parts.append(detail)
+    if returncode < 0:
+        parts.append(
+            "Try a different FFmpeg build: one that dies on a file it has just "
+            "written is failing on its own account rather than on the input."
+        )
+    return RuntimeError(" ".join(parts))
+
+
 def video_is_playable(video_filepath: str) -> bool:
     """Determines if a video is playable in the browser.
 
@@ -1109,7 +1248,7 @@ PLAYABLE_AUDIO_CODECS = frozenset(
         (".wav", "pcm_u8"),
         (".mp3", "mp3"),
         (".m4a", "aac"),
-        (".m4a", "alac"),
+        (".m4b", "aac"),
         (".mp4", "aac"),
         (".aac", "aac"),
         (".flac", "flac"),
@@ -1156,7 +1295,6 @@ def audio_is_playable(audio_filepath: str) -> bool:
 # The pairs match the entries in `audio_is_playable`.
 REMUXABLE_AUDIO_CODECS = {
     "aac": ".m4a",
-    "alac": ".m4a",
     "mp3": ".mp3",
     "flac": ".flac",
     "opus": ".ogg",

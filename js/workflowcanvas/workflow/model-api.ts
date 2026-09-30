@@ -33,6 +33,7 @@ export const PIPELINE_TAG_TO_ENDPOINT: Record<string, string> = {
 	"text-to-video": "text_to_video",
 	"image-to-image": "image_to_image",
 	"image-to-video": "image_to_video",
+	"image-text-to-video": "image_to_video",
 	"text-generation": "text_generation",
 	"text2text-generation": "text_generation",
 	conversational: "text_generation",
@@ -48,12 +49,7 @@ export const PIPELINE_TAG_TO_ENDPOINT: Record<string, string> = {
 	"image-classification": "image_classification",
 	"object-detection": "object_detection",
 	"image-segmentation": "image_segmentation",
-	"image-to-text": "image_to_text",
 	"automatic-speech-recognition": "automatic_speech_recognition",
 	"audio-classification": "audio_classification",
-	"visual-question-answering": "visual_question_answering",
-	"document-question-answering": "document_question_answering",
-	// Vision-language models are served as `conversational`, so they go through
-	// chat completions rather than a task-specific endpoint.
 	"image-text-to-text": "chat_completion"
 };

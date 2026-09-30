@@ -124,5 +124,6 @@
 		oninput={handle_input}
 		onselect={handle_select}
 		onedit={handle_edit}
+		onerror={(message) => gradio.dispatch("error", message)}
 	/>
 </Block>

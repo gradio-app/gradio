@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { setContext } from "svelte";
+	import { get } from "svelte/store";
 	import { fade } from "svelte/transition";
 
 	import WorkflowNodeSF from "./WorkflowNodeSF.svelte";
@@ -8,10 +9,18 @@
 	import NodeModelPicker from "./NodeModelPicker.svelte";
 	import WorkflowEmptyState from "./WorkflowEmptyState.svelte";
 	import WorkflowApiPanel from "./WorkflowApiPanel.svelte";
+	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
+	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
+	import HfAuthControl from "./HfAuthControl.svelte";
+	import { asset_url } from "@gradio/client";
+	import type { WorkflowTemplate } from "./workflow-templates";
 	import CheckIcon from "./icons/CheckIcon.svelte";
+	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
+	import CloseIcon from "./icons/CloseIcon.svelte";
 	import LayoutIcon from "./icons/LayoutIcon.svelte";
-	import InfoIcon from "./icons/InfoIcon.svelte";
 	import CodeIcon from "./icons/CodeIcon.svelte";
+	import UploadIcon from "./icons/UploadIcon.svelte";
+	import { uploadFile } from "@huggingface/hub";
 
 	import {
 		MODALITIES,
@@ -21,7 +30,7 @@
 		modalityForPort
 	} from "./workflow-modalities";
 	import type { ModalityConfig } from "./workflow-modalities";
-	import { fetchSpaceApi } from "./space-api";
+	import { fetchSpaceApi, fork_repo_candidates } from "./space-api";
 	import { fetchModelEndpoints, PIPELINE_TAG_TO_ENDPOINT } from "./model-api";
 	import {
 		workflow,
@@ -36,8 +45,9 @@
 		hydrate_endpoints,
 		init_model_node_ports,
 		sanitize_for_save,
-		revoke_blob_urls,
-		reconcileComponentRoles
+		structural_signature,
+		reconcileComponentRoles,
+		revoke_blob_urls
 	} from "./workflow-store";
 	import {
 		hasMissingNodeGeometry,
@@ -55,7 +65,12 @@
 		NodeDataValue,
 		Workflow
 	} from "./workflow-types";
-	import { executeWorkflow } from "./workflow-executor";
+	import {
+		executeWorkflow,
+		is_client_only_media,
+		upload_local_media,
+		type LocalMediaValue
+	} from "./workflow-executor";
 	import { stream_text_generation } from "./inference-stream";
 	import {
 		findFreeSpot as findFreeSpotImpl,
@@ -68,6 +83,16 @@
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
+	import type { Viewport } from "./viewport-persistence";
+	import {
+		apply_layout,
+		extract_layout,
+		layout_is_unseen,
+		layout_signature,
+		load_layout,
+		save_layout
+	} from "./layout-persistence";
+	import { create_history } from "./workflow-history";
 
 	/**
 	 * A node template's role for the v2 store. v1-style templates from LIBRARY/
@@ -96,36 +121,29 @@
 
 	const auth = createHFAuth(() => server);
 
-	// Sessions without the write token (share-link visitors, tunnelled
-	// requests) get a view-only canvas: they can run the workflow and fill in
-	// input values, but not change its structure or persist anything. The
-	// server independently rejects unauthorized saves — this is UX, not the
-	// security boundary. Stays editable until the server answers so the owner
-	// doesn't see controls flash out and back in.
-	const readOnly = $derived(auth.writeAccessKnown && !auth.canWrite);
-
-	// Why this session can't edit — surfaced on the "Run only" badge (hover and
-	// click). Differs by deployment: locally the fix is opening the write-token
-	// edit link; on a Space it's signing in as an account that owns the Space —
-	// unless the Space has no OAuth enabled, in which case no one can sign in to
-	// edit and the developer must enable it.
-	const readOnlyReason = $derived(
-		auth.isHFSpace
-			? auth.oauthAvailable
-				? "Run-only: you can run this workflow but not edit it. Sign in with a Hugging Face account that owns this Space (or has write access to it) to make changes. Alternatively, duplicate this Space under your own account to edit your own copy."
-				: "Run-only: editing is disabled because this Space doesn't have OAuth enabled, so the owner can't sign in to authenticate. To allow editing, add `hf_oauth: true` to the Space's README metadata and redeploy. Alternatively, duplicate this Space under your own account to edit your own copy."
-			: "Run-only: you can run this workflow but not edit it. This session is missing the write token — open the edit link printed in the terminal to make changes. That link also signs this session in with your locally saved Hugging Face token; without it, paste an access token to run nodes."
+	let spaceId = $state("");
+	// Server independently rejects unauthorized saves — this is UX only.
+	// Optimistically editable until the server answers so the owner doesn't
+	// see controls flash out. `spaceId` covers preview hosts where the
+	// hostname check misses. Spaces bypass the gate entirely: saving is
+	// manual via "Save to Space" / "Save as copy" and edits are ephemeral.
+	const onSpace = $derived(auth.isHFSpace || !!spaceId);
+	const readOnly = $derived(
+		!onSpace && auth.writeAccessKnown && !auth.canWrite
 	);
 
-	// Flash a brief "Saved" confirmation after each successful autosave. The
-	// timer is cleared on each new save so rapid edits coalesce into a single
-	// lingering checkmark rather than flickering.
 	let saveIndicator = $state(false);
 	let saveIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
-	// Serialized form of what's currently persisted on the server. Autosave
-	// compares against this so loading the workflow into the store on page load
-	// (and any no-op change) doesn't trigger a redundant save + "Saved" flash.
-	let lastSavedSerialized: string | null = null;
+	// Signature of what's currently persisted on the server. Autosave compares
+	// against this so loading the workflow into the store on page load (and any
+	// no-op change) doesn't trigger a redundant save + "Saved" flash. It ignores
+	// node geometry, which is why rearranging the canvas — the one thing every
+	// visitor is free to do — never reads as an unsaved change.
+	let lastSavedSignature = $state<string | null>(null);
+	const isDirty = $derived(
+		lastSavedSignature !== null &&
+			structural_signature($workflow) !== lastSavedSignature
+	);
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -138,64 +156,257 @@
 		void auth.init();
 	});
 
+	$effect(() => {
+		if (server?.get_oauth_available && !auth.oauthAvailableKnown) {
+			void auth.refreshOAuthAvailable();
+		}
+	});
+
+	$effect(() => {
+		if (server?.get_oauth_scopes && !auth.scopesKnown) {
+			void auth.refreshOAuthScopes();
+		}
+	});
+
 	let oauthHintShown = false;
 	$effect(() => {
 		if (
 			!oauthHintShown &&
-			auth.isHFSpace &&
+			onSpace &&
 			auth.writeAccessKnown &&
 			!auth.canWrite &&
+			auth.oauthAvailableKnown &&
 			!auth.oauthAvailable
 		) {
 			oauthHintShown = true;
 			showToast(
-				"Sign-in has not been enabled on this Space. The author should add `hf_oauth: true` to the README so users can run workflows on their own inference quota, and authors can edit.",
+				"Sign-in has not been enabled on this Space. The author should add `hf_oauth: true` to the README so users can run workflows on their own inference quota.",
 				0,
 				"warning"
 			);
 		}
 	});
 
+	let scopeHintShown = false;
 	$effect(() => {
-		if (!initialValue) return;
+		const missing = Object.entries(auth.missingScopes);
+		if (scopeHintShown || auth.source !== "oauth" || missing.length === 0)
+			return;
+		scopeHintShown = true;
+		const detail = missing.map(([s, why]) => `\`${s}\` (to ${why})`).join(", ");
+		showToast(
+			`This Space's sign-in is missing ${detail}. The author should add ${missing
+				.map(([s]) => s)
+				.join(" and ")} under \`hf_oauth_scopes\` in the README and redeploy.`,
+			0,
+			"warning"
+		);
+	});
+
+	// A stable identity for this workflow, from the server: the repo id on a
+	// Space, a hash of the graph file's path locally. Everything per-viewer is
+	// keyed by it. The workflow's name is the fallback for backends that don't
+	// offer one, but it's a poor key — it's editable from the canvas, and two
+	// unrelated workflows served from the same origin (same host and port, one
+	// after the other) can share it, which would apply one's arrangement to the
+	// other's nodes. `null` means the answer hasn't arrived yet.
+	let layoutKey = $state<string | null>(null);
+	let keySettled = false;
+	function settleKey(key: string): void {
+		if (keySettled) return;
+		keySettled = true;
+		layoutKey = key;
+	}
+	$effect(() => {
+		if (!server?.get_workflow_key) {
+			settleKey("");
+			return;
+		}
+		// The graph isn't applied until the key settles, so a stalled call must not
+		// hold the canvas empty: time out into the name fallback, which is what
+		// backends without `get_workflow_key` use anyway.
+		const timer = setTimeout(() => settleKey(""), 1500);
+		void server
+			.get_workflow_key()
+			.then((key: string) => settleKey(key || ""))
+			.catch(() => settleKey(""))
+			.finally(() => clearTimeout(timer));
+		return () => clearTimeout(timer);
+	});
+	function layoutScope(fallback: string): string {
+		return layoutKey || fallback;
+	}
+
+	// Undo / redo. An entry is opened once the store stops changing, so a drag or
+	// a burst of typing collapses into one step rather than hundreds.
+	const history = create_history();
+	// Gates both the recorder and the layout mirror on the load below, so the
+	// store's placeholder default can't be filed as an edit or written over a
+	// real saved layout in the frame before `initialValue` is applied.
+	let layoutReady = $state(false);
+	// Set while an undo/redo is being applied, so the recorder doesn't file the
+	// restored state as a fresh edit.
+	let restoringHistory = false;
+	// No entry opens until the backend's endpoint catalog has landed (or failed
+	// to). Hydration rewrites each model node's ports and derives its `endpoint`
+	// with nobody having touched anything, and an entry taken before that would
+	// make the user's first Cmd+Z rewind the hydration instead of whatever they
+	// actually did.
+	let hydrationSettled = $state(false);
+	function settleHydration(): void {
+		if (hydrationSettled) return;
+		hydrationSettled = true;
+		history.reset(get(workflow));
+	}
+
+	$effect(() => {
+		const wf = $workflow;
+		if (!layoutReady || !hydrationSettled) return;
+		if (restoringHistory) {
+			restoringHistory = false;
+			return;
+		}
+		// Values first, entry after: `refresh` is synchronous so the state an
+		// entry will eventually be filed from is always the one on screen, which
+		// is what lets undoing a delete bring the card back with the text that was
+		// typed into it a moment earlier.
+		history.refresh(wf);
+		const timer = setTimeout(() => history.record(wf), 350);
+		return () => clearTimeout(timer);
+	});
+
+	// The recorder is debounced, so an undo fired within 350ms of an edit would
+	// otherwise step straight past that edit — and drop it from the timeline in
+	// both directions. Close the pending entry first; `record` is a no-op when
+	// nothing is pending. On redo it also correctly discards the redo branch if
+	// the user has since edited.
+	function undoEdit(): void {
+		history.record($workflow);
+		const restored = history.undo($workflow);
+		if (!restored) return;
+		restoringHistory = true;
+		workflow.set(restored);
+	}
+
+	function redoEdit(): void {
+		history.record($workflow);
+		const restored = history.redo($workflow);
+		if (!restored) return;
+		restoringHistory = true;
+		workflow.set(restored);
+	}
+
+	let loadedOnce = false;
+	$effect(() => {
+		// Wait for this workflow's identity before reading stored layout — keying
+		// it by the wrong thing would drop another workflow's arrangement onto
+		// these nodes.
+		if (layoutKey === null || loadedOnce) return;
+		loadedOnce = true;
+		// A viewer who has arranged this workflow before gets their own layout
+		// back. A first-time viewer gets the file's own arrangement when it has
+		// one — an author publishing a workflow still decides how it reads on
+		// first open, and since geometry is never written back, nothing a viewer
+		// does can overwrite that. Only a file with no coordinates is
+		// auto-arranged and fitted.
+		let autoArrange = false;
 		try {
-			const parsed = JSON.parse(initialValue);
-			const shouldAutoLayout = hasMissingNodeGeometry(parsed);
-			// Migration handles both v1 (legacy workflow.json files) and v2.
-			// Reconcile on load as well as on edit: files written before roles were
-			// derived can carry a wired-up component still filed under `references`,
-			// which renders as an output tile but generates no API endpoint. The
-			// baseline below means the heal isn't a save on its own, but the first
-			// store write after mount (port hydration, a drag, an edit) carries it
-			// to disk — so a stale file corrects itself in practice.
-			const v2 = reconcileComponentRoles(migrateToV2(parsed));
-			workflow.set(v2);
-			// Baseline the persisted state so the load itself isn't autosaved.
-			lastSavedSerialized = JSON.stringify(sanitize_for_save(v2));
-			if (shouldAutoLayout) requestAnimationFrame(autoLayout);
+			if (initialValue) {
+				const parsed = JSON.parse(initialValue);
+				// Migration handles both v1 (legacy workflow.json files) and v2.
+				// Reconcile on load as well as on edit: files written before roles were
+				// derived can carry a wired-up component still filed under `references`,
+				// which renders as an output tile but generates no API endpoint. The
+				// baseline below means the heal isn't a save on its own, but the
+				// first real edit carries it to disk — so a stale file corrects
+				// itself in practice.
+				const v2 = reconcileComponentRoles(migrateToV2(parsed));
+				const stored = load_layout(layoutScope(v2.name));
+				const unseen = layout_is_unseen(v2, stored);
+				const authored = unseen && !hasMissingNodeGeometry(parsed);
+				autoArrange = unseen && !authored;
+				workflow.set(apply_layout(v2, stored, { park_unplaced: !authored }));
+			}
 		} catch {}
+		const loaded = get(workflow);
+		// Baseline the persisted state so the load itself isn't autosaved.
+		lastSavedSignature = structural_signature(loaded);
+		history.reset(loaded);
+		layoutReady = true;
+		if (autoArrange) {
+			requestAnimationFrame(() => {
+				autoLayout();
+				markArrangedBaseline();
+				// Cards measure their real height on mount, so fit on a second frame
+				// or the viewport is computed from placeholder heights.
+				requestAnimationFrame(zoomToFit);
+			});
+		} else {
+			markArrangedBaseline();
+		}
+	});
+
+	// The arrangement this canvas started from — the file's own, or the one
+	// `autoLayout` produced. Nothing is written to storage until the viewer moves
+	// away from it, so a viewer who only ever runs the workflow keeps tracking the
+	// file and sees the author's later changes to how it's laid out.
+	let arrangedBaseline = $state<string | null>(null);
+	function markArrangedBaseline(): void {
+		arrangedBaseline = layout_signature(extract_layout(get(workflow)));
+	}
+
+	// Mirror node geometry into this viewer's localStorage — the only place it is
+	// ever persisted.
+	$effect(() => {
+		const wf = $workflow;
+		if (!layoutReady || arrangedBaseline === null) return;
+		const layout = extract_layout(wf);
+		if (layout_signature(layout) === arrangedBaseline) return;
+		const scope = layoutScope(wf.name);
+		const timer = setTimeout(() => save_layout(scope, layout), 250);
+		return () => clearTimeout(timer);
+	});
+
+	let pendingEditsRestored = false;
+	$effect(() => {
+		if (layoutKey === null || pendingEditsRestored) return;
+		pendingEditsRestored = true;
+		const stashed = readPendingEdits();
+		if (!stashed) return;
+		const restored = reconcileComponentRoles(migrateToV2(stashed));
+		// The stash carries no geometry (`sanitize_for_save` strips it), so take it
+		// from what's already on screen and fall back to storage — otherwise
+		// signing in to save would scatter the cards the viewer was looking at.
+		const geometry = {
+			...load_layout(layoutScope(restored.name)),
+			...extract_layout(get(workflow))
+		};
+		workflow.set(apply_layout(restored, geometry));
 	});
 
 	$effect(() => {
 		const wf = $workflow;
-		// Wait for the write-access answer before autosaving — the optimistic
-		// editable window would otherwise fire saves the backend rejects.
+		// Wait for write-access to avoid saves the backend rejects. Spaces
+		// use manual "Save to Space", so autosave is skipped.
 		if (!server?.save_workflow || !auth.writeAccessKnown || !auth.canWrite)
 			return;
-		const serialized = JSON.stringify(sanitize_for_save(wf));
-		if (lastSavedSerialized === null) {
+		if (onSpace) return;
+		const signature = structural_signature(wf);
+		if (lastSavedSignature === null) {
 			// No persisted baseline yet (e.g. a brand-new workflow with no saved
 			// file): adopt the current state instead of saving it on load.
-			lastSavedSerialized = serialized;
+			lastSavedSignature = signature;
 			return;
 		}
 		// Nothing changed since the last save/load — don't re-save or flash.
-		if (serialized === lastSavedSerialized) return;
+		// Rearranging the canvas doesn't move the signature, so a drag never
+		// reaches the server.
+		if (signature === lastSavedSignature) return;
 		const timer = setTimeout(() => {
 			server
-				.save_workflow([serialized])
+				.save_workflow([JSON.stringify(sanitize_for_save(wf))])
 				.then(() => {
-					lastSavedSerialized = serialized;
+					lastSavedSignature = signature;
 					flashSaved();
 				})
 				.catch(() => {});
@@ -223,11 +434,36 @@
 	});
 
 	$effect(() => {
-		if (!server?.get_model_endpoints) return;
-		void fetchModelEndpoints(server).then((schemas) => {
-			if (schemas.length)
+		// After the load, not alongside it: `init_model_node_ports` maps over
+		// whatever operators are in the store when it runs, so hydrating before
+		// `initialValue` is applied would leave the file's own model nodes
+		// un-hydrated for the rest of the session.
+		if (!layoutReady) return;
+		if (!server?.get_model_endpoints) {
+			settleHydration();
+			return;
+		}
+		// A stalled catalog fetch must not leave undo disabled forever.
+		const timer = setTimeout(settleHydration, 1500);
+		void fetchModelEndpoints(server)
+			.then((schemas) => {
+				if (!schemas.length) return;
+				// Hydration is part of the load, not an edit: fold it into the
+				// baseline instead of reporting it as unsaved — on a Space that would
+				// otherwise put "Unsaved · Save" on a canvas the visitor never
+				// touched. If something *has* changed since the load, the user's edit
+				// owns the baseline and we leave it alone.
+				const untouched =
+					structural_signature(get(workflow)) === lastSavedSignature;
 				init_model_node_ports(schemas, PIPELINE_TAG_TO_ENDPOINT);
-		});
+				if (untouched) lastSavedSignature = structural_signature(get(workflow));
+			})
+			.catch(() => {})
+			.finally(() => {
+				clearTimeout(timer);
+				settleHydration();
+			});
+		return () => clearTimeout(timer);
 	});
 
 	$effect(() => {
@@ -244,20 +480,21 @@
 	}
 
 	// ─── Canvas state ───────────────────────────────────────────────────────────
-	let viewport = $state(load_viewport($workflow.name));
-
-	let lastViewportName = $state($workflow.name);
+	// Keyed by the same stable identity as the layout, so renaming a workflow no
+	// longer throws away the viewer's pan/zoom.
+	let viewport = $state<Viewport>({ x: 0, y: 0, zoom: 1 });
+	let viewportLoaded = false;
 	$effect(() => {
-		if ($workflow.name !== lastViewportName) {
-			lastViewportName = $workflow.name;
-			viewport = load_viewport($workflow.name);
-		}
+		if (layoutKey === null || viewportLoaded) return;
+		viewportLoaded = true;
+		viewport = load_viewport(layoutScope($workflow.name));
 	});
 
 	$effect(() => {
-		const name = $workflow.name;
+		if (layoutKey === null) return;
+		const scope = layoutScope($workflow.name);
 		const v = viewport;
-		const timer = setTimeout(() => save_viewport(name, v), 250);
+		const timer = setTimeout(() => save_viewport(scope, v), 250);
 		return () => clearTimeout(timer);
 	});
 
@@ -299,6 +536,16 @@
 	let spaceHeld = $state(false);
 	let last_node_drag_moved = false;
 
+	const activeTouches = new Map<number, { clientX: number; clientY: number }>();
+	let pinchState: {
+		startDist: number;
+		startZoom: number;
+		startCenterX: number;
+		startCenterY: number;
+		startVX: number;
+		startVY: number;
+	} | null = null;
+
 	// ─── App state ──────────────────────────────────────────────────────────────
 	let canvasEl: HTMLDivElement;
 	let rootEl: HTMLDivElement;
@@ -336,10 +583,88 @@
 	);
 	let showShortcuts = $state(false);
 	let showUserMenu = $state(false);
+	let showSaveMenu = $state(false);
 	let showApiPanel = $state(false);
-	// Popover shown when the "Run only" badge is clicked, explaining why editing
-	// is disabled and how to enable it.
-	let showAccessInfo = $state(false);
+	let showTemplatesOverlay = $state(false);
+	let showHistoryPanel = $state(false);
+	let showHistoryConnect = $state(false);
+	let recordedRun = $state<any>(null);
+
+	// Root URL for the /gradio_api/run-history/* routes. Prefers the client's
+	// configured root (correct for tunnels / mount_gradio_app subpaths). When it
+	// is empty, `url()` in bucket_sync resolves against document.baseURI rather
+	// than emitting a root-absolute path, which would drop a mount subpath.
+	const historyRoot = $derived(gradio_client?.config?.root ?? "");
+
+	// Per-workflow bucket id, persisted in localStorage. Keyed by workflow
+	// `id` when available so renames don't drop the binding; falls back to
+	// `name` for un-ided workflows.
+	const bucketStorageKey = $derived(
+		`gradio:workflow-history:bucket:${encodeURIComponent($workflow.id || $workflow.name || "default")}`
+	);
+	let bucketId = $state<string>("");
+	$effect(() => {
+		try {
+			bucketId = window.localStorage.getItem(bucketStorageKey) ?? "";
+		} catch {
+			bucketId = "";
+		}
+	});
+	// A `blob:`/`data:` value only exists in this tab, so a record referencing
+	// one is dead the moment the page reloads. Upload it to this server first so
+	// the backend can externalize it into the bucket like any other asset.
+	async function persistValueForHistory(value: unknown): Promise<unknown> {
+		if (!is_client_only_media(value)) return value;
+		try {
+			const uploaded = await upload_local_media(value as LocalMediaValue);
+			return { ...(value as object), path: uploaded.path, url: uploaded.url };
+		} catch (e) {
+			console.warn("[run-history] could not persist input media:", e);
+			return value;
+		}
+	}
+
+	function recordIsLoadable(record: any): boolean {
+		const entries = [
+			...Object.entries(record?.inputs ?? {}),
+			...Object.entries(record?.outputs ?? {})
+		] as [string, any][];
+		if (entries.length === 0) return false;
+		return entries.every(([nodeId, entry]) => {
+			const node = legacyView.nodes.find((n) => n.id === nodeId);
+			if (!node) return false;
+			const ports = [...(node.inputs ?? []), ...(node.outputs ?? [])];
+			const port = entry?.port_id
+				? ports.find((p) => p.id === entry.port_id)
+				: ports[0];
+			if (!port) return false;
+			return !entry?.type || port.type === entry.type;
+		});
+	}
+
+	function setBucketId(id: string): void {
+		bucketId = id;
+		try {
+			if (id) window.localStorage.setItem(bucketStorageKey, id);
+			else window.localStorage.removeItem(bucketStorageKey);
+		} catch {}
+	}
+
+	let saveToSpaceConfirm = $state(false);
+	let savingToSpace = $state(false);
+	let saveAsCopyConfirm = $state(false);
+	let savingAsCopy = $state(false);
+	const copyCandidates = $derived(fork_repo_candidates(auth.user, spaceId));
+	const copyRepo = $derived(copyCandidates[0] ?? "");
+	$effect(() => {
+		if (!server?.get_space_id) return;
+		void server
+			.get_space_id()
+			.then((id: string) => {
+				spaceId = id || "";
+			})
+			.catch(() => {});
+	});
 	let nameInput: HTMLInputElement = $state()!;
 
 	// Human-readable explanation of how the current user is authenticated,
@@ -388,6 +713,143 @@
 		toasts = toasts.filter((t) => t.id !== id);
 	}
 
+	const PENDING_EDITS_KEY = "gradio_workflow_pending_edits";
+	function pendingEditsScope(): string {
+		return `${window.location.host}${window.location.pathname}`;
+	}
+	function signInPreservingEdits(): void {
+		try {
+			sessionStorage.setItem(
+				PENDING_EDITS_KEY,
+				JSON.stringify({
+					scope: pendingEditsScope(),
+					workflow: sanitize_for_save($workflow)
+				})
+			);
+		} catch {}
+		auth.signIn();
+	}
+	function readPendingEdits(): unknown | null {
+		try {
+			const raw = sessionStorage.getItem(PENDING_EDITS_KEY);
+			sessionStorage.removeItem(PENDING_EDITS_KEY);
+			const parsed = raw ? JSON.parse(raw) : null;
+			return parsed?.scope === pendingEditsScope() ? parsed.workflow : null;
+		} catch {
+			return null;
+		}
+	}
+
+	async function firstFreeForkRepo(): Promise<string | null> {
+		for (const candidate of copyCandidates) {
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${candidate}`,
+				{ headers: { Authorization: `Bearer ${auth.token}` } }
+			);
+			if (res.status === 404) return candidate;
+		}
+		return null;
+	}
+
+	async function sourceIsPrivate(): Promise<boolean> {
+		try {
+			const res = await fetch(`https://huggingface.co/api/spaces/${spaceId}`, {
+				headers: { Authorization: `Bearer ${auth.token}` }
+			});
+			return res.ok ? (await res.json())?.private === true : true;
+		} catch {
+			return true;
+		}
+	}
+
+	async function saveAsCopy(): Promise<void> {
+		saveAsCopyConfirm = false;
+		if (!spaceId || !auth.token || !copyRepo || savingAsCopy) return;
+		savingAsCopy = true;
+		try {
+			const target = await firstFreeForkRepo();
+			if (!target) {
+				throw new Error(
+					`you already have Spaces named ${copyRepo} and every fallback name — rename or delete one and try again`
+				);
+			}
+			const isPrivate = await sourceIsPrivate();
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${spaceId}/duplicate`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${auth.token}`,
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						repository: target,
+						private: isPrivate,
+						hardware: "cpu-basic"
+					})
+				}
+			);
+			if (!res.ok) {
+				throw new Error(`${res.status} ${await res.text()}`);
+			}
+			const saved = $workflow;
+			const state = sanitize_for_save(saved);
+			const serialized = JSON.stringify(state, null, 2);
+			await uploadFile({
+				repo: { type: "space", name: target },
+				accessToken: auth.token,
+				file: {
+					path: "workflow.json",
+					content: new Blob([serialized], { type: "application/json" })
+				},
+				commitTitle: "Fork workflow.json from canvas"
+			});
+			lastSavedSignature = structural_signature(saved);
+			showToast(`Saved a copy to ${target}.`, 0, "success", {
+				label: "Open Space",
+				href: `https://huggingface.co/spaces/${target}`
+			});
+		} catch (e: any) {
+			showToast(`Saving a copy failed: ${e?.message ?? e}`, 5000, "warning");
+		} finally {
+			savingAsCopy = false;
+		}
+	}
+
+	async function saveToSpace(): Promise<void> {
+		saveToSpaceConfirm = false;
+		if (!spaceId || !auth.token || savingToSpace) return;
+		savingToSpace = true;
+		const saved = $workflow;
+		const state = sanitize_for_save(saved);
+		const serialized = JSON.stringify(state, null, 2);
+		try {
+			await uploadFile({
+				repo: { type: "space", name: spaceId },
+				accessToken: auth.token,
+				file: {
+					path: "workflow.json",
+					content: new Blob([serialized], { type: "application/json" })
+				},
+				commitTitle: "Update workflow.json from canvas"
+			});
+			lastSavedSignature = structural_signature(saved);
+			showToast(
+				`Committed workflow.json to ${spaceId} — the Space will restart.`,
+				4000,
+				"success"
+			);
+		} catch (e: any) {
+			const msg =
+				e?.message?.includes("403") || e?.statusCode === 403
+					? "Your token doesn't have write access to this Space repo."
+					: `Save failed: ${e?.message ?? e}`;
+			showToast(msg, 5000, "warning");
+		} finally {
+			savingToSpace = false;
+		}
+	}
+
 	// v1 shape for read paths; writes go through v2 store actions.
 	const legacyView = $derived(toLegacyShape($workflow));
 
@@ -399,7 +861,6 @@
 
 	const nodeCount = $derived(legacyView.nodes.length);
 	const hasTransforms = $derived($workflow.operators.length > 0);
-	const edgeCount = $derived($workflow.edges.length);
 	const subgraphCount = $derived(
 		countSubgraphs(legacyView.nodes, $workflow.edges)
 	);
@@ -509,6 +970,7 @@
 		nodeErrors: {} as Record<string, string>,
 		nodeDurations: {} as Record<string, number>,
 		staleNodes: new Set<string>(),
+		nodesInRun: new Set<string>(),
 		connectedPorts: new Set<string>(),
 		readOnly: false,
 		// Resize drags happen in screen pixels but node width is canvas units.
@@ -621,6 +1083,9 @@
 		wfCtx.staleNodes = staleNodes;
 	});
 	$effect(() => {
+		wfCtx.nodesInRun = nodesInRun;
+	});
+	$effect(() => {
 		wfCtx.connectedPorts = connectedPortsSet();
 	});
 	$effect(() => {
@@ -673,7 +1138,30 @@
 		) {
 			return;
 		}
-		const pan_requested = e.button === 1 || spaceHeld;
+		const is_touch = e.pointerType === "touch";
+		if (is_touch) {
+			activeTouches.set(e.pointerId, {
+				clientX: e.clientX,
+				clientY: e.clientY
+			});
+			// Second finger down → start pinch-zoom, drop any single-touch pan.
+			if (activeTouches.size === 2) {
+				const [a, b] = Array.from(activeTouches.values());
+				const r = canvasEl.getBoundingClientRect();
+				pinchState = {
+					startDist:
+						Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
+					startZoom: viewport.zoom,
+					startCenterX: (a.clientX + b.clientX) / 2 - r.left,
+					startCenterY: (a.clientY + b.clientY) / 2 - r.top,
+					startVX: viewport.x,
+					startVY: viewport.y
+				};
+				dragMode = null;
+				return;
+			}
+		}
+		const pan_requested = e.button === 1 || spaceHeld || is_touch;
 		if (pan_requested) {
 			dragMode = {
 				kind: "pan",
@@ -723,8 +1211,11 @@
 		};
 	}
 
+	// No `readOnly` guard: where a card sits is this viewer's own business, kept
+	// in their localStorage rather than the workflow file, so dragging one needs
+	// no write access and marks nothing dirty.
 	function startNodeDrag(e: PointerEvent, nodeId: string): void {
-		if (e.button !== 0 || readOnly) return;
+		if (e.button !== 0) return;
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
@@ -784,6 +1275,34 @@
 	}
 
 	function onCanvasPointerMove(e: PointerEvent): void {
+		if (e.pointerType === "touch" && activeTouches.has(e.pointerId)) {
+			activeTouches.set(e.pointerId, {
+				clientX: e.clientX,
+				clientY: e.clientY
+			});
+			if (pinchState && activeTouches.size >= 2) {
+				const [a, b] = Array.from(activeTouches.values()).slice(0, 2);
+				const dist =
+					Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+				const newZoom = Math.max(
+					0.15,
+					Math.min(4, pinchState.startZoom * (dist / pinchState.startDist))
+				);
+				const r = canvasEl.getBoundingClientRect();
+				const cx = (a.clientX + b.clientX) / 2 - r.left;
+				const cy = (a.clientY + b.clientY) / 2 - r.top;
+				const worldCX =
+					(pinchState.startCenterX - pinchState.startVX) / pinchState.startZoom;
+				const worldCY =
+					(pinchState.startCenterY - pinchState.startVY) / pinchState.startZoom;
+				viewport = {
+					zoom: newZoom,
+					x: cx - worldCX * newZoom,
+					y: cy - worldCY * newZoom
+				};
+				return;
+			}
+		}
 		if (!dragMode) return;
 		if (dragMode.kind === "pan") {
 			viewport = {
@@ -820,6 +1339,10 @@
 	}
 
 	function onCanvasPointerUp(e: PointerEvent): void {
+		if (e.pointerType === "touch") {
+			activeTouches.delete(e.pointerId);
+			if (activeTouches.size < 2) pinchState = null;
+		}
 		if (!dragMode) return;
 		const mode = dragMode;
 		if (mode.kind === "marquee") {
@@ -1479,33 +2002,18 @@
 		await addTemplateToCanvas(template, x, y);
 	}
 
-	function revokeAllBlobUrls(nodes: WFNode[]): void {
-		for (const node of nodes) revoke_blob_urls(node.data);
-	}
-
-	let clearConfirm = $state(false);
-
-	function clearWorkflow(): void {
-		if (legacyView.nodes.length === 0 || readOnly) return;
-		clearConfirm = true;
-	}
-
-	function confirmClearWorkflow(): void {
-		clearConfirm = false;
+	function load_template(t: WorkflowTemplate): void {
 		if (readOnly) return;
-		revokeAllBlobUrls(legacyView.nodes);
-		workflow.set({
-			schema_version: "2",
-			name: $workflow.name,
-			runtime: { default: "client" },
-			references: [],
-			operators: [],
-			subjects: [],
-			edges: [],
-			view: { default: "canvas" }
-		});
+		try {
+			const v2 = migrateToV2(t.workflow);
+			// Replacing the whole graph — release media the outgoing nodes held.
+			for (const node of legacyView.nodes) revoke_blob_urls(node.data);
+			workflow.set(v2);
+			showTemplatesOverlay = false;
+		} catch {}
 	}
 
+	// Layout only — safe for read-only viewers, same as dragging a card by hand.
 	function autoLayout(): void {
 		const sorted = topoSort(legacyView.nodes, $workflow.edges);
 		const edges = $workflow.edges;
@@ -1560,6 +2068,8 @@
 		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId));
 	}
 
+	let nodesInRun = $state(new Set<string>());
+
 	async function runWorkflow(target?: Workflow): Promise<void> {
 		if (running) return;
 		running = true;
@@ -1571,6 +2081,7 @@
 			...wfToRun.operators.map((n) => n.id),
 			...wfToRun.subjects.map((n) => n.id)
 		]);
+		nodesInRun = runningIds;
 		nodeStatus = Object.fromEntries(
 			Object.entries(nodeStatus).filter(([id]) => !runningIds.has(id))
 		);
@@ -1721,11 +2232,12 @@
 			fetchDatasetWithToken,
 			callFnWithToken,
 			auth.token
-				? (modelId, prompt, provider, signal, onChunk) =>
+				? (modelId, content, provider, signal, onChunk, params) =>
 						stream_text_generation({
 							modelId,
-							prompt,
+							content,
 							provider,
+							params,
 							hfToken: auth.token,
 							signal: signal ?? undefined,
 							onChunk
@@ -1734,9 +2246,70 @@
 		);
 
 		running = false;
+		nodesInRun = new Set();
 		abortController = null;
 
 		const hasErrors = Object.values(nodeStatus).some((s) => s === "error");
+
+		if (!hasErrors && bucketId && server?.record_workflow_run) {
+			try {
+				const inputs: Record<string, unknown> = {};
+				for (const ref of wfToRun.references) {
+					const node = legacyView.nodes.find((n) => n.id === ref.id);
+					const outPort = node?.outputs?.[0];
+					if (!node || !outPort) continue;
+					// User-supplied media lives in a `blob:` object URL that dies
+					// with the tab, and the server can only store a file it can
+					// reach. Upload it first so the record stays loadable.
+					inputs[ref.id] = {
+						value: await persistValueForHistory(
+							node.data?.[outPort.id] ?? null
+						),
+						type: outPort.type,
+						label: node.label ?? ref.id,
+						port_id: outPort.id
+					};
+				}
+				const outputs: Record<string, unknown> = {};
+				for (const subj of wfToRun.subjects) {
+					const node = legacyView.nodes.find((n) => n.id === subj.id);
+					const inPort = node?.inputs?.[0];
+					if (!node || !inPort) continue;
+					outputs[subj.id] = {
+						value: await persistValueForHistory(node.data?.[inPort.id] ?? null),
+						type: inPort.type,
+						label: node.label ?? subj.id,
+						port_id: inPort.id
+					};
+				}
+				const endpoint =
+					wfToRun.subjects[0]?.label ?? wfToRun.subjects[0]?.id ?? "workflow";
+				const raw = await server.record_workflow_run([
+					bucketId,
+					endpoint,
+					inputs,
+					outputs
+				]);
+				const result = typeof raw === "string" ? JSON.parse(raw) : raw;
+				if (result?.error) {
+					showToast(
+						`Could not save to history: ${result.error}`,
+						5000,
+						"warning"
+					);
+				} else if (result?.record) {
+					recordedRun = result.record;
+				}
+			} catch (e: any) {
+				// Never let a history failure look like a successful save.
+				showToast(
+					`Could not save to history: ${e?.message ?? e}`,
+					5000,
+					"warning"
+				);
+			}
+		}
+
 		showToast(
 			hasErrors ? "Workflow finished with errors" : "Workflow complete",
 			hasErrors ? 5000 : 3000,
@@ -1753,6 +2326,7 @@
 	function stopWorkflow(): void {
 		abortController?.abort();
 		running = false;
+		nodesInRun = new Set();
 		abortController = null;
 		nodeStatus = Object.fromEntries(
 			Object.entries(nodeStatus).map(([id, s]) => [
@@ -1785,8 +2359,8 @@
 		if (showUserMenu && !target?.closest(".toolbar-user-wrap")) {
 			showUserMenu = false;
 		}
-		if (showAccessInfo && !target?.closest(".access-info-wrap")) {
-			showAccessInfo = false;
+		if (showSaveMenu && !target?.closest(".save-menu-wrap")) {
+			showSaveMenu = false;
 		}
 	}
 
@@ -1963,6 +2537,19 @@
 				for (const id of edge_ids) removeEdge(id);
 			});
 		}
+		// Placed after the INPUT/TEXTAREA bail-out above so typing in a widget
+		// still gets the browser's own undo stack.
+		if (e.key.toLowerCase() === "z" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			if (e.shiftKey) redoEdit();
+			else undoEdit();
+			return;
+		}
+		if (e.key.toLowerCase() === "y" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			redoEdit();
+			return;
+		}
 		if (e.key === "d" && (e.metaKey || e.ctrlKey) && selectedNodeId) {
 			e.preventDefault();
 			if (!readOnly) duplicateNode(selectedNodeId);
@@ -1991,11 +2578,7 @@
 			pendingDrop = null;
 			dropChoice = null;
 			doubleClickMenu = null;
-			clearConfirm = false;
-		}
-		if (e.key === "Enter" && clearConfirm && !readOnly) {
-			e.preventDefault();
-			confirmClearWorkflow();
+			showSaveMenu = false;
 		}
 	}
 
@@ -2080,6 +2663,7 @@
 		"audio",
 		"video",
 		"text",
+		"markdown",
 		"html",
 		"file",
 		"gallery",
@@ -2322,7 +2906,24 @@
 				<CodeIcon />
 				View API
 			</button>
-			{#if saveIndicator}
+			{#if bucketId}
+				<button
+					class="tool-btn history-btn"
+					onclick={() => (showHistoryPanel = true)}
+					title="Browse generation history"
+				>
+					History
+				</button>
+			{:else}
+				<button
+					class="tool-btn connect-bucket-btn"
+					onclick={() => (showHistoryConnect = true)}
+					title="Save generations to a private HF bucket so they persist"
+				>
+					Connect history
+				</button>
+			{/if}
+			{#if saveIndicator && !onSpace}
 				<span
 					class="save-indicator"
 					in:fade={{ duration: 120 }}
@@ -2334,6 +2935,13 @@
 			{/if}
 		</div>
 		<div class="toolbar-right">
+			{#if !readOnly && nodeCount > 0}
+				<button
+					class="tool-btn get-started-btn"
+					onclick={() => (showTemplatesOverlay = true)}
+					><LayoutIcon /> Templates</button
+				>
+			{/if}
 			{#if auth.status !== "checking"}
 				{#if auth.user}
 					<div class="toolbar-user-wrap">
@@ -2375,77 +2983,110 @@
 							</div>
 						{/if}
 					</div>
-				{:else if auth.isHFSpace}
-					<button
-						class="toolbar-login-btn"
-						onclick={auth.signIn}
-						disabled={!auth.oauthAvailable}
-						title={auth.oauthAvailable
-							? undefined
-							: "OAuth is not enabled for this Space. If you're the owner, add `hf_oauth: true` to the Space README and redeploy."}
-						>Sign in with 🤗</button
-					>
 				{:else}
-					<form class="toolbar-token-form" onsubmit={(e) => e.preventDefault()}>
-						<input
-							class="toolbar-token-input"
-							class:invalid={auth.status === "invalid"}
-							type="password"
-							placeholder="Paste HF token (hf_...)"
-							value={auth.token}
-							onchange={(e) => auth.setPAT(e.currentTarget.value)}
-							title="HuggingFace token for GPU access"
-						/>
-						{#if auth.status === "validating"}
-							<span class="toolbar-token-status validating">checking…</span>
-						{:else if auth.status === "invalid"}
-							<span class="toolbar-token-status invalid">invalid</span>
-						{/if}
-					</form>
+					<HfAuthControl {auth} {onSpace} onsignin={signInPreservingEdits} />
 				{/if}
 			{/if}
-			{#if !readOnly}
-				<button class="tool-btn" onclick={clearWorkflow}>Clear</button>
-				{#if auth.writeAccessKnown}
-					<span
-						class="access-badge access-write"
-						title="You have write access — changes you make are saved automatically."
-						>Write access</span
-					>
-				{/if}
-			{:else}
-				<div class="access-info-wrap">
+			{#if !readOnly && onSpace && spaceId && isDirty}
+				{#if !auth.token && auth.oauthAvailable}
 					<button
-						class="access-badge access-readonly"
-						class:open={showAccessInfo}
-						title={readOnlyReason}
-						aria-label="Why is this read-only?"
-						onclick={(e) => {
-							e.stopPropagation();
-							showAccessInfo = !showAccessInfo;
-						}}
-						>Run only<span class="access-info-icon"><InfoIcon /></span></button
+						class="tool-btn save-space-btn"
+						onclick={signInPreservingEdits}
+						title="Sign in with Hugging Face to save your changes"
 					>
-					{#if showAccessInfo}
-						<div class="access-info-popover">
-							{#if auth.isHFSpace}
-								{readOnlyReason}
-							{:else}
-								<!-- Mirrors the local-session readOnlyReason string (used for the
-								     hover title), with "access token" rendered as a link. -->
-								Run-only: you can run this workflow but not edit it. This session
-								is missing the write token — open the edit link printed in the terminal
-								to make changes. That link also signs this session in with your locally
-								saved Hugging Face token; without it, paste an
-								<a
-									href="https://huggingface.co/settings/tokens"
-									target="_blank"
-									rel="noopener noreferrer">access token</a
-								> to run nodes.
-							{/if}
-						</div>
-					{/if}
-				</div>
+						<UploadIcon />
+						Unsaved · Sign in to save
+					</button>
+				{:else if auth.canWrite && auth.user}
+					<div class="save-menu-wrap">
+						<button
+							class="tool-btn save-space-btn save-menu-trigger"
+							disabled={savingToSpace || savingAsCopy}
+							onclick={(e) => {
+								e.stopPropagation();
+								showSaveMenu = !showSaveMenu;
+							}}
+							aria-haspopup="menu"
+							aria-expanded={showSaveMenu}
+						>
+							<UploadIcon />
+							{savingToSpace
+								? "Saving…"
+								: savingAsCopy
+									? "Forking…"
+									: "Unsaved · Save"}
+							<span class="save-menu-chevron"><ChevronDownIcon /></span>
+						</button>
+						{#if showSaveMenu}
+							<div
+								class="save-menu"
+								role="menu"
+								aria-label="Save workflow options"
+							>
+								<button
+									class="save-menu-item"
+									role="menuitem"
+									disabled={!auth.hasScope("write-repos")}
+									onclick={() => {
+										showSaveMenu = false;
+										saveToSpaceConfirm = true;
+									}}
+									title={auth.hasScope("write-repos")
+										? "Commit workflow.json to this Space's repo (will restart the Space)"
+										: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								>
+									<span class="save-menu-item-label">Save changes</span>
+									<span class="save-menu-item-detail">Update this Space</span>
+								</button>
+								<button
+									class="save-menu-item"
+									role="menuitem"
+									disabled={!auth.hasScope("write-repos")}
+									onclick={() => {
+										showSaveMenu = false;
+										saveAsCopyConfirm = true;
+									}}
+									title={auth.hasScope("write-repos")
+										? "Duplicate this Space under your account and save your edits there"
+										: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+								>
+									<span class="save-menu-item-label">Save as copy</span>
+									<span class="save-menu-item-detail"
+										>Duplicate to your account</span
+									>
+								</button>
+							</div>
+						{/if}
+					</div>
+				{:else if auth.canWrite}
+					<button
+						class="tool-btn save-space-btn"
+						disabled={savingToSpace || !auth.hasScope("write-repos")}
+						onclick={() => (saveToSpaceConfirm = true)}
+						title={auth.hasScope("write-repos")
+							? "Commit workflow.json to this Space's repo (will restart the Space)"
+							: "This Space's sign-in lacks the `write-repos` scope, so saving would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+					>
+						<UploadIcon />
+						{savingToSpace ? "Saving…" : "Unsaved · Save"}
+					</button>
+				{:else if auth.user}
+					<button
+						class="tool-btn save-space-btn"
+						disabled={savingAsCopy || !auth.hasScope("write-repos")}
+						onclick={() => (saveAsCopyConfirm = true)}
+						title={auth.hasScope("write-repos")
+							? "Duplicate this Space under your account and save your edits there"
+							: "This Space's sign-in lacks the `write-repos` scope, so duplicating would be rejected. Add it under `hf_oauth_scopes` in the README and redeploy."}
+					>
+						<UploadIcon />
+						{savingAsCopy
+							? "Forking…"
+							: auth.canWrite
+								? "Save as copy"
+								: "Unsaved · Save as copy"}
+					</button>
+				{/if}
 			{/if}
 		</div>
 	</div>
@@ -2463,6 +3104,7 @@
 		onpointerdown={onCanvasPointerDown}
 		onpointermove={onCanvasPointerMove}
 		onpointerup={onCanvasPointerUp}
+		onpointercancel={onCanvasPointerUp}
 		onwheel={onWheel}
 	>
 		<!-- Dot grid background — fixed in screen space, parallax-free -->
@@ -2543,7 +3185,30 @@
 		</div>
 
 		{#if nodeCount === 0}
-			<WorkflowEmptyState />
+			<WorkflowEmptyState onselect={load_template} />
+		{/if}
+
+		{#if showTemplatesOverlay}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="templates-overlay-backdrop"
+				onpointerdown={() => (showTemplatesOverlay = false)}
+			>
+				<div
+					class="templates-overlay-panel"
+					onpointerdown={(e) => e.stopPropagation()}
+				>
+					<div class="templates-overlay-header">
+						<span class="templates-overlay-title">Start from a template</span>
+						<button
+							class="templates-overlay-close"
+							onclick={() => (showTemplatesOverlay = false)}
+							><CloseIcon /></button
+						>
+					</div>
+					<WorkflowEmptyState onselect={load_template} inline />
+				</div>
+			</div>
 		{/if}
 
 		{#if running}
@@ -2622,7 +3287,7 @@
 			</div>
 		{/if}
 
-		<div class="zoom-controls">
+		<div class="zoom-controls" class:history-open={showHistoryPanel}>
 			{#if !readOnly}
 				<button
 					class="zoom-ctrl-btn"
@@ -2635,7 +3300,7 @@
 				<div class="zoom-ctrl-divider"></div>
 			{/if}
 			<button
-				class="zoom-ctrl-btn"
+				class="zoom-ctrl-btn zoom-ctrl-shortcuts"
 				onclick={() => (showShortcuts = !showShortcuts)}
 				title="Keyboard shortcuts">?</button
 			>
@@ -2670,6 +3335,10 @@
 				</div>
 				<div class="shortcut-row">
 					<kbd>Cmd+D</kbd> <span>Duplicate node</span>
+				</div>
+				<div class="shortcut-row"><kbd>Cmd+Z</kbd> <span>Undo</span></div>
+				<div class="shortcut-row">
+					<kbd>Cmd+Y</kbd> <span>Redo</span>
 				</div>
 				<div class="shortcut-row"><kbd>F</kbd> <span>Zoom to fit</span></div>
 				<div class="shortcut-row"><kbd>Cmd+0</kbd> <span>Reset zoom</span></div>
@@ -2782,31 +3451,65 @@
 		</div>
 	{/if}
 
-	{#if clearConfirm}
+	{#if saveToSpaceConfirm}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="wf-modal-backdrop" onclick={() => (clearConfirm = false)}>
+		<div class="wf-modal-backdrop" onclick={() => (saveToSpaceConfirm = false)}>
 			<div
 				class="wf-modal"
 				role="dialog"
 				aria-modal="true"
-				aria-labelledby="wf-modal-title"
+				aria-labelledby="wf-save-space-title"
 				onclick={(e) => e.stopPropagation()}
 			>
-				<div class="wf-modal-title" id="wf-modal-title">Clear workflow?</div>
+				<div class="wf-modal-title" id="wf-save-space-title">
+					Save to Space?
+				</div>
 				<div class="wf-modal-body">
-					This will remove <strong>{nodeCount}</strong>
-					{nodeCount === 1 ? "node" : "nodes"} and
-					<strong>{edgeCount}</strong>
-					{edgeCount === 1 ? "edge" : "edges"}. This can't be undone.
+					This will commit <strong>workflow.json</strong> to
+					<strong>{spaceId}</strong>. The Space will
+					<strong>restart</strong> to pick up the change.
 				</div>
 				<div class="wf-modal-actions">
-					<button class="wf-modal-btn" onclick={() => (clearConfirm = false)}
-						>Cancel</button
-					>
 					<button
-						class="wf-modal-btn wf-modal-btn-danger"
-						onclick={confirmClearWorkflow}>Clear</button
+						class="wf-modal-btn"
+						onclick={() => (saveToSpaceConfirm = false)}>Cancel</button
+					>
+					<button class="wf-modal-btn wf-modal-btn-danger" onclick={saveToSpace}
+						>Save & restart</button
+					>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	{#if saveAsCopyConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="wf-modal-backdrop" onclick={() => (saveAsCopyConfirm = false)}>
+			<div
+				class="wf-modal"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="wf-save-copy-title"
+				onclick={(e) => e.stopPropagation()}
+			>
+				<div class="wf-modal-title" id="wf-save-copy-title">
+					Save as your own copy?
+				</div>
+				<div class="wf-modal-body">
+					Save your edits to a new Space under your account, copied from
+					<strong>{spaceId}</strong>. It'll be created as
+					<strong>{copyRepo}</strong> (or the next free name, if you already have
+					that one) and match the original's visibility.
+				</div>
+				<div class="wf-modal-actions">
+					<button
+						class="wf-modal-btn"
+						onclick={() => (saveAsCopyConfirm = false)}>Cancel</button
+					>
+					<button class="wf-modal-btn wf-modal-btn-danger" onclick={saveAsCopy}
+						>Duplicate & save</button
 					>
 				</div>
 			</div>
@@ -2818,6 +3521,108 @@
 			{server}
 			workflowName={$workflow.name}
 			onClose={() => (showApiPanel = false)}
+		/>
+	{/if}
+
+	{#if showHistoryConnect}
+		<WorkflowHistoryConnect
+			root={historyRoot}
+			workflowName={$workflow.name}
+			username={auth.user ?? ""}
+			signedIn={!!auth.token}
+			onsignin={auth.signIn}
+			onconnected={(id) => {
+				setBucketId(id);
+				showHistoryConnect = false;
+				showHistoryPanel = true;
+			}}
+			onclose={() => (showHistoryConnect = false)}
+		/>
+	{/if}
+
+	{#if showHistoryPanel && bucketId}
+		<WorkflowHistoryPanel
+			root={historyRoot}
+			{bucketId}
+			{auth}
+			{onSpace}
+			{recordedRun}
+			isLoadable={recordIsLoadable}
+			onsignin={signInPreservingEdits}
+			onclose={() => (showHistoryPanel = false)}
+			onchange={() => {
+				showHistoryPanel = false;
+				showHistoryConnect = true;
+			}}
+			onload={({
+				record_id,
+				endpoint,
+				inputs,
+				outputs
+			}: {
+				record_id: string;
+				endpoint: string;
+				inputs: Record<
+					string,
+					{ value: unknown; type: string; port_id?: string }
+				>;
+				outputs: Record<
+					string,
+					{ value: unknown; type: string; port_id?: string }
+				>;
+			}) => {
+				const MEDIA = new Set(["image", "audio", "video", "file"]);
+				const MIME: Record<string, string> = {
+					image: "image/*",
+					audio: "audio/*",
+					video: "video/*",
+					file: ""
+				};
+				const resolve = (v: unknown): unknown => {
+					if (
+						v &&
+						typeof v === "object" &&
+						typeof (v as any).__asset__ === "string"
+					) {
+						return asset_url(
+							historyRoot,
+							bucketId,
+							endpoint,
+							record_id,
+							(v as any).__asset__
+						);
+					}
+					return v;
+				};
+				const wrap = (v: unknown, type: string): unknown => {
+					const resolved = resolve(v);
+					return typeof resolved === "string" && MEDIA.has(type)
+						? {
+								url: resolved,
+								name: resolved.split("/").pop() ?? "",
+								mime: MIME[type] ?? ""
+							}
+						: resolved;
+				};
+				for (const [nodeId, input] of Object.entries(inputs)) {
+					const portId = input.port_id ?? "out_0";
+					updateNodeData(
+						nodeId,
+						portId,
+						wrap(input.value, input.type) as NodeDataValue
+					);
+				}
+				for (const [nodeId, output] of Object.entries(outputs)) {
+					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const inPortId = output.port_id ?? node?.inputs?.[0]?.id ?? "in_0";
+					updateNodeData(
+						nodeId,
+						inPortId,
+						wrap(output.value, output.type) as NodeDataValue
+					);
+				}
+				showHistoryPanel = false;
+			}}
 		/>
 	{/if}
 
@@ -3012,19 +3817,6 @@
 		color: #3e4050;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-login-btn) {
-		border-color: #e2e4ea;
-		color: #6b6e78;
-	}
-	:global(body:not(.dark) .toolbar-login-btn:hover:not(:disabled)) {
-		background: #f0f1f5;
-		color: #1a1b25;
-		border-color: #d0d2dc;
-	}
-	:global(.toolbar-login-btn:disabled) {
-		opacity: 0.45;
-		cursor: not-allowed;
-	}
 	:global(body:not(.dark) .toolbar-user-chip) {
 		border-color: #e2e4ea;
 		color: #3e4050;
@@ -3057,41 +3849,29 @@
 		background: #f0f1f5;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-token-input) {
-		background: #ffffff;
-		color: #6b6e78;
-		border-color: #e2e4ea;
+	:global(body:not(.dark) .tool-btn.save-space-btn) {
+		color: #d95f0b;
+		border-color: rgba(217, 95, 11, 0.55);
 	}
-	:global(body:not(.dark) .toolbar-token-input::placeholder) {
-		color: #c0c2cc;
+	:global(body:not(.dark) .tool-btn.save-space-btn:hover:not(:disabled)) {
+		color: #d95f0b;
+		background: rgba(217, 95, 11, 0.1);
+		border-color: rgba(217, 95, 11, 0.75);
 	}
-	:global(body:not(.dark) .toolbar-token-input:focus) {
-		background: #ffffff;
-		color: #3e4050;
-	}
-	:global(body:not(.dark) .toolbar-divider) {
-		background: #e2e4ea;
-	}
-	:global(body:not(.dark) .access-badge.access-readonly) {
-		color: #6b6e78;
-		background: #f0f1f5;
-		border-color: #e2e4ea;
-	}
-	:global(body:not(.dark) .access-badge.access-write) {
-		color: #0f9d76;
-		background: rgba(15, 157, 118, 0.08);
-		border-color: rgba(15, 157, 118, 0.25);
-	}
-	:global(body:not(.dark) button.access-badge.access-readonly:hover),
-	:global(body:not(.dark) button.access-badge.access-readonly.open) {
-		color: #3e4050;
-		border-color: #d0d2dc;
-	}
-	:global(body:not(.dark) .access-info-popover) {
+	:global(body:not(.dark) .save-menu) {
 		background: #ffffff;
 		border-color: #e2e4ea;
-		color: #6b6e78;
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	}
+	:global(body:not(.dark) .save-menu-item) {
+		color: #1a1b25;
+	}
+	:global(body:not(.dark) .save-menu-item:hover:not(:disabled)),
+	:global(body:not(.dark) .save-menu-item:focus-visible) {
+		background: #f0f1f5;
+	}
+	:global(body:not(.dark) .save-menu-item-detail) {
+		color: #6b6e78;
 	}
 	:global(body:not(.dark) .save-indicator) {
 		color: #0f9d76;
@@ -3140,5 +3920,79 @@
 		color: #2a2b36;
 		border-color: #e2e4ea;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+	}
+
+	.get-started-btn {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		color: #a0a2ae;
+		border-color: #2a2b38;
+	}
+
+	.get-started-btn:hover {
+		color: #d5d6de;
+		background: #1a1b25;
+		border-color: #3a3b48;
+	}
+
+	.templates-overlay-backdrop {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 200;
+		backdrop-filter: blur(2px);
+	}
+
+	.templates-overlay-panel {
+		position: relative;
+		background: #13141f;
+		border: 1px solid #2a2b38;
+		border-radius: 16px;
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+		min-width: 680px;
+		max-width: calc(100% - 48px);
+		max-height: calc(100% - 48px);
+		overflow-y: auto;
+	}
+
+	.templates-overlay-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.templates-overlay-title {
+		font-family: "Manrope", sans-serif;
+		font-size: 14px;
+		font-weight: 700;
+		color: #d5d6de;
+		letter-spacing: -0.01em;
+	}
+
+	.templates-overlay-close {
+		background: none;
+		border: none;
+		padding: 4px;
+		cursor: pointer;
+		color: #a0a2ae;
+		display: flex;
+		align-items: center;
+		border-radius: 6px;
+		transition:
+			color 0.12s ease,
+			background 0.12s ease;
+	}
+
+	.templates-overlay-close:hover {
+		color: #d5d6de;
+		background: #1a1b25;
 	}
 </style>

@@ -10,10 +10,12 @@ import csv
 import inspect
 import os
 import shutil
+import uuid
 import warnings
 from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from functools import partial
 from pathlib import Path
+from threading import Lock
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Optional, get_origin
 
@@ -35,6 +37,8 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
 LOG_FILE = "log.csv"
+# Marks an input whose value should not change when an example is loaded
+_UNCHANGED = object()
 
 
 def create_examples(
@@ -57,6 +61,7 @@ def create_examples(
     batch: bool = False,
     *,
     example_labels: list[str] | None = None,
+    visible_columns: list[int] | None = None,
     visible: bool | Literal["hidden"] = True,
     preload: int | Literal[False] = 0,
 ):
@@ -80,6 +85,7 @@ def create_examples(
         api_description=api_description,
         batch=batch,
         example_labels=example_labels,
+        visible_columns=visible_columns,
         visible=visible,
         _initiated_directly=False,
         preload=preload,
@@ -121,6 +127,7 @@ class Examples:
         batch: bool = False,
         *,
         example_labels: list[str] | None = None,
+        visible_columns: list[int] | None = None,
         visible: bool | Literal["hidden"] = True,
         preload: int | Literal[False] = 0,
         _initiated_directly: bool = True,
@@ -144,6 +151,7 @@ class Examples:
             api_description: Description of the event associated with clicking on the examples in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
+            visible_columns: A list of zero-based input column indices to display. Columns are always displayed in input order, and duplicate indices are collapsed. The values from all input columns are still loaded when an example is selected. If None, all columns are visible. If the samples in `.dataset` are later updated, hidden inputs are left unchanged unless each updated sample includes a value for every input column.
             visible: If False, the examples component will be hidden in the UI.
             preload: If an integer is provided (and examples are being cached eagerly and none of the input components have a developer-provided `value`), the example at that index in the examples list will be preloaded when the Gradio app is first loaded. If False, no example will be preloaded.
         """
@@ -249,6 +257,49 @@ class Examples:
             ]
             for example in examples
         ]
+        if visible_columns is None:
+            visible_columns = list(range(len(inputs)))
+        elif not visible_columns:
+            raise ValueError(
+                "`visible_columns` must contain at least one column index."
+            )
+        elif any(
+            isinstance(index, bool)
+            or not isinstance(index, int)
+            or index < 0
+            or index >= len(inputs)
+            for index in visible_columns
+        ):
+            raise ValueError(
+                "Each index in `visible_columns` must correspond to an input component."
+            )
+
+        visible_column_set = set(visible_columns)
+        input_indices_with_examples = [
+            index for index, keep in enumerate(input_has_examples) if keep
+        ]
+        if not visible_column_set.intersection(input_indices_with_examples):
+            # None of the visible columns have example values, so show every
+            # column rather than an empty table.
+            visible_column_set = set(input_indices_with_examples)
+        visible_input_indices = [
+            index
+            for index in input_indices_with_examples
+            if index in visible_column_set
+        ]
+        visible_input_positions = [
+            position
+            for position, index in enumerate(input_indices_with_examples)
+            if index in visible_column_set
+        ]
+        visible_inputs = [inputs[index] for index in visible_input_indices]
+        visible_examples = [
+            [
+                example[index] if index < len(example) else None
+                for index in visible_input_indices
+            ]
+            for example in examples
+        ]
         if example_labels is not None and len(example_labels) != len(examples):
             raise ValueError(
                 "If `example_labels` are provided, the length of `example_labels` must be the same as the number of examples."
@@ -259,6 +310,8 @@ class Examples:
         self.inputs = inputs
         self.input_has_examples = input_has_examples
         self.inputs_with_examples = inputs_with_examples
+        self.visible_input_positions = visible_input_positions
+        self.visible_examples = visible_examples
         self.outputs = outputs or []
         self.fn = fn
         self._api_mode = _api_mode
@@ -275,9 +328,13 @@ class Examples:
         from gradio import components
 
         with utils.set_directory(working_directory):
+            self.input_component_props = [
+                component.recover_kwargs(component.get_config(), ["value"])
+                for component in inputs_with_examples
+            ]
             self.dataset = components.Dataset(
-                components=inputs_with_examples,
-                samples=copy.deepcopy(non_none_examples),
+                components=visible_inputs,
+                samples=copy.deepcopy(visible_examples),
                 type="tuple",
                 label=label,
                 samples_per_page=examples_per_page,
@@ -300,11 +357,12 @@ class Examples:
         self.run_on_click = run_on_click
         self.cache_event: Dependency | None = None
         self.non_none_processed_examples = UnhashableKeyDict()
+        self._cache_locks = [Lock() for _ in self.examples]
 
         if self.dataset.samples:
-            for index, example in enumerate(self.non_none_examples):
-                self.non_none_processed_examples[self.dataset.samples[index]] = (
-                    self._get_processed_example(example)
+            for example in self.non_none_examples:
+                self.non_none_processed_examples[example] = self._get_processed_example(
+                    example
                 )
 
         if self.cache_examples == "lazy":
@@ -338,6 +396,9 @@ class Examples:
             for component, sample in zip(
                 self.inputs_with_examples, example, strict=False
             ):
+                if sample is _UNCHANGED:
+                    sub.append(sample)
+                    continue
                 prediction_value = component.postprocess(sample)
                 if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                     prediction_value = prediction_value.model_dump()
@@ -348,6 +409,29 @@ class Examples:
                 )
                 sub.append(prediction_value)
         return sub
+
+    def _get_example_value(self, example_tuple):
+        """
+        Returns the value of every input with examples for the selected sample. Hidden
+        columns are filled in from the original examples. If the dataset's samples
+        have been updated, a sample with a value for every input is used as-is;
+        otherwise, only the visible inputs are updated and the hidden inputs are
+        left unchanged.
+        """
+        example_id, sample = example_tuple
+        if len(self.visible_input_positions) == len(self.inputs_with_examples):
+            return sample
+        if (
+            example_id < len(self.non_none_examples)
+            and sample == self.visible_examples[example_id]
+        ):
+            return self.non_none_examples[example_id]
+        if len(sample) == len(self.inputs_with_examples):
+            return sample
+        example = [_UNCHANGED] * len(self.inputs_with_examples)
+        for position, value in zip(self.visible_input_positions, sample, strict=False):
+            example[position] = value
+        return example
 
     def create(self) -> None:
         """Creates the Dataset component to hold the examples"""
@@ -362,13 +446,16 @@ class Examples:
             if self.cache_examples:
 
                 def load_example_input(example_tuple):
-                    _, example_value = example_tuple
-                    processed_example = self._get_processed_example(example_value)
+                    example_value = self._get_example_value(example_tuple)
+                    processed_example = [
+                        update() if value is _UNCHANGED else value
+                        for value in self._get_processed_example(example_value)
+                    ]
                     return utils.resolve_singleton(processed_example)
 
-                def load_example_output(example_tuple):
+                def load_example_output(example_tuple, request: routes.Request):
                     example_id, _ = example_tuple
-                    cached_outputs = self.load_from_cache(example_id)
+                    cached_outputs = self.load_from_cache(example_id, request)
                     return utils.resolve_singleton(cached_outputs)
 
                 self.cache_event = self.load_input_event = self.dataset.click(
@@ -427,20 +514,17 @@ class Examples:
             else:
 
                 def load_example(example_tuple):
-                    _, example_value = example_tuple
+                    example_value = self._get_example_value(example_tuple)
                     processed_example = self._get_processed_example(example_value)
-                    if len(self.inputs_with_examples) == 1:
-                        return update(
-                            value=processed_example[0],
-                            **self.dataset.component_props[0],  # type: ignore
-                        )
-                    return [
-                        update(
-                            value=processed_example[i],
-                            **self.dataset.component_props[i],  # type: ignore
-                        )
-                        for i in range(len(self.inputs_with_examples))
+                    updates = [
+                        update(**self.input_component_props[i])
+                        if value is _UNCHANGED
+                        else update(value=value, **self.input_component_props[i])
+                        for i, value in enumerate(processed_example)
                     ]
+                    if len(self.inputs_with_examples) == 1:
+                        return updates[0]
+                    return updates
 
                 self.load_input_event = self.dataset.click(
                     load_example,
@@ -509,11 +593,16 @@ class Examples:
         if self.cache_examples is True:
             await self.cache()
 
-    async def cache(self, example_id: int | None = None) -> None:
+    async def cache(
+        self,
+        example_id: int | None = None,
+        request: routes.Request | None = None,
+    ) -> int | None:
         """
         Caches examples so that their predictions can be shown immediately.
         Parameters:
             example_id: The id of the example to process (zero-indexed). If None, all examples are cached.
+            request: The request that triggered lazy caching, if any.
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
@@ -542,53 +631,65 @@ class Examples:
                 batch=self.batch,
             )
 
-            if self.outputs is None:
-                raise ValueError("self.outputs is missing")
-            for i, example in enumerate(self.non_none_examples):
-                if example_id is not None and i != example_id:
-                    continue
-                processed_input = self._get_processed_example(example)
-                for index, keep in enumerate(self.input_has_examples):
-                    if not keep:
-                        processed_input.insert(index, None)
-                if self.batch:
-                    processed_input = [[value] for value in processed_input]
-                with utils.MatplotlibBackendMananger():
-                    # When caching examples lazily, set in_event_listener to False
-                    # so that all components are properly instantiated
-                    # See https://github.com/gradio-app/gradio/issues/12564
-                    prediction = await self.root_block.process_api(
-                        block_fn=self.root_block.default_config.fns[fn_index],
-                        inputs=processed_input,
-                        request=None,
-                        in_event_listener=self.cache_examples != "lazy",
-                    )
-                output = prediction["data"]
-                if generated_values:
-                    output = await merge_generated_values_into_output(
-                        self.outputs,  # type: ignore
-                        generated_values,
-                        output,  # type: ignore
-                    )
-                if self.batch:
-                    output = [value[0] for value in output]
-                self.cache_logger.flag(output)
-                with open(self.cached_indices_file, "a") as f:
-                    f.write(f"{example_id or i}\n")
+            try:
+                if self.outputs is None:
+                    raise ValueError("self.outputs is missing")
+                cached_index = None
+                for i, example in enumerate(self.non_none_examples):
+                    if example_id is not None and i != example_id:
+                        continue
+                    processed_input = self._get_processed_example(example)
+                    for index, keep in enumerate(self.input_has_examples):
+                        if not keep:
+                            processed_input.insert(index, None)
+                    if self.batch:
+                        processed_input = [[value] for value in processed_input]
+                    with utils.MatplotlibBackendMananger():
+                        # When caching examples lazily, set in_event_listener to False
+                        # so that all components are properly instantiated
+                        # See https://github.com/gradio-app/gradio/issues/12564
+                        prediction = await self.root_block.process_api(
+                            block_fn=self.root_block.default_config.fns[fn_index],
+                            inputs=processed_input,
+                            request=request,
+                            in_event_listener=self.cache_examples != "lazy",
+                        )
+                    output = prediction["data"]
+                    if generated_values:
+                        output = await merge_generated_values_into_output(
+                            self.outputs,  # type: ignore
+                            generated_values,
+                            output,  # type: ignore
+                        )
+                    if self.batch:
+                        output = [value[0] for value in output]
+                    cached_index = self.cache_logger.flag(output) - 1
+                    with open(self.cached_indices_file, "a") as f:
+                        f.write(f"{example_id if example_id is not None else i}\n")
+                return cached_index
+            finally:
+                # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
+                self.root_block.default_config.fns.pop(fn_index)
+        return None
 
-            # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
-            self.root_block.default_config.fns.pop(fn_index)
-
-    def load_from_cache(self, example_id: int) -> list[Any]:
+    def load_from_cache(
+        self,
+        example_id: int,
+        request: routes.Request | None = None,
+    ) -> list[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
+            request: The request that triggered lazy caching, if any.
         """
-        cached_index = self._get_cached_index_if_cached(example_id)
-        if cached_index is None:
-            client_utils.synchronize_async(self.cache, example_id)
-            with open(self.cached_indices_file) as f:
-                cached_index = len(f.readlines()) - 1
+        with self._cache_locks[example_id]:
+            cached_index = self._get_cached_index_if_cached(example_id)
+            if cached_index is None:
+                cached_index = client_utils.synchronize_async(
+                    self.cache, example_id, request
+                )
+                if cached_index is None:
+                    raise IndexError("Cached example not found in cache file")
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
@@ -628,19 +729,27 @@ async def merge_generated_values_into_output(
         if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
             desired_output_format = None
-            for i, chunk in enumerate(generated_values):
-                if len(components) > 1:
-                    chunk = chunk[output_index]
-                processed_chunk = output_component.postprocess(chunk)
-                if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
-                    processed_chunk = processed_chunk.model_dump()
-                stream_chunk = await output_component.stream_output(
-                    processed_chunk, "", i == 0
-                )
-                if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
-                    desired_output_format = Path(orig_name).suffix[1:]
-                if stream_chunk[0]:
-                    binary_chunks.append(stream_chunk[0]["data"])
+            # A component may key per-stream state on this id, so it has to be
+            # unique per cached example and released afterwards.
+            stream_id = f"cache/{uuid.uuid4()}"
+            try:
+                for i, chunk in enumerate(generated_values):
+                    if len(components) > 1:
+                        chunk = chunk[output_index]
+                    processed_chunk = output_component.postprocess(chunk)
+                    if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
+                        processed_chunk = processed_chunk.model_dump()
+                    stream_chunk = await output_component.stream_output(
+                        processed_chunk, stream_id, i == 0
+                    )
+                    if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
+                        desired_output_format = Path(orig_name).suffix[1:]
+                    if stream_chunk[0]:
+                        binary_chunks.append(stream_chunk[0]["data"])
+                if final_chunk := await output_component.flush_stream_output(stream_id):
+                    binary_chunks.append(final_chunk["data"])
+            finally:
+                output_component.end_stream_output(stream_id)
             combined_output = await output_component.combine_stream(
                 binary_chunks, desired_output_format=desired_output_format
             )
@@ -1056,7 +1165,10 @@ def special_args(
         ):
             event_data_index = i
             if inputs is not None and event_data is not None:
-                processing_utils.check_all_files_in_cache(event_data._data)
+                # File paths in events from a loaded app belong to the upstream
+                # container. The upstream app validates them before its handler.
+                if not getattr(event_data.target, "proxy_url", None):
+                    processing_utils.check_all_files_in_cache(event_data._data)
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
         elif (
             type_hint

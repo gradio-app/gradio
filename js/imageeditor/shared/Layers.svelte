@@ -11,8 +11,10 @@
 	} from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import type { Writable } from "svelte/store";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	let {
+		i18n,
 		layers,
 		enable_additional_layers = true,
 		enable_layers = true,
@@ -23,6 +25,7 @@
 		ondelete_layer,
 		ontoggle_layer_visibility
 	}: {
+		i18n: I18nFormatter;
 		layers: Writable<{
 			active_layer: string;
 			layers: {
@@ -58,6 +61,13 @@
 	function delete_layer(id: string): void {
 		ondelete_layer?.(id);
 	}
+
+	function localize_layer_name(name: string): string {
+		const generated_layer_name = /^Layer (\d+)$/.exec(name);
+		return generated_layer_name
+			? `${i18n("image_editor.layer")} ${generated_layer_name[1]}`
+			: name;
+	}
 </script>
 
 {#if enable_layers}
@@ -68,15 +78,18 @@
 	>
 		<button
 			class="layer-title-button"
-			aria-label="Show Layers"
+			aria-label={i18n("image_editor.show_layers")}
 			onclick={(event) => {
 				event.stopPropagation();
 				show_layers = !show_layers;
 			}}
 		>
 			{show_layers
-				? "Layers"
-				: $layers.layers.find((l) => l.id === $layers.active_layer)?.name}
+				? i18n("image_editor.layers")
+				: localize_layer_name(
+						$layers.layers.find((l) => l.id === $layers.active_layer)?.name ??
+							""
+					)}
 			<span class="icon"><Layers /></span>
 		</button>
 		{#if show_layers}
@@ -108,7 +121,7 @@
 							onclick={(event) => {
 								event.stopPropagation();
 								change_layer(id);
-							}}>{name}</button
+							}}>{localize_layer_name(name)}</button
 						>
 						{#if $layers.layers.length > 1}
 							<div>
@@ -150,7 +163,7 @@
 					<li class="add-layer">
 						<IconButton
 							Icon={Plus}
-							label="Add Layer"
+							label={i18n("image_editor.add_layer")}
 							onclick={(e) => {
 								e.stopPropagation();
 								new_layer();

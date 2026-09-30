@@ -11,6 +11,7 @@ import type { GradioEvent, StatusMessage } from "../types";
 const KEY_ROOT = "gradio:run-history:";
 const STORAGE_PREFIX = `${KEY_ROOT}v2:`;
 const REPLAY_PREFIX = `${KEY_ROOT}replay:v2:`;
+const DESTINATION_PREFIX = `${KEY_ROOT}destination:v1:`;
 const MAX_RUNS = 100;
 const MAX_APPS = 8;
 
@@ -25,6 +26,10 @@ export interface RunHistoryScope {
 	/** The authenticated user, when the app uses `auth`. */
 	username?: string | null;
 }
+
+export type RunHistoryStorage =
+	| { type: "browser"; bucket_id?: string }
+	| { type: "bucket"; bucket_id: string };
 
 /**
  * Run history is a side effect of submitting, never the point of it, so no
@@ -115,6 +120,45 @@ function replay_key(scope: RunHistoryScope | null | undefined): string | null {
 	return key ? key.replace(STORAGE_PREFIX, REPLAY_PREFIX) : null;
 }
 
+function destination_key(
+	scope: RunHistoryScope | null | undefined
+): string | null {
+	const key = storage_key(scope);
+	return key ? key.replace(STORAGE_PREFIX, DESTINATION_PREFIX) : null;
+}
+
+function read_run_history_storage_impl(
+	scope: RunHistoryScope | null | undefined
+): RunHistoryStorage {
+	const key = destination_key(scope);
+	if (!key) return { type: "browser" };
+	try {
+		const value = JSON.parse(window.localStorage.getItem(key) || "null");
+		if (typeof value?.bucket_id === "string") {
+			return value.type === "bucket"
+				? { type: "bucket", bucket_id: value.bucket_id }
+				: { type: "browser", bucket_id: value.bucket_id };
+		}
+		return { type: "browser" };
+	} catch {
+		return { type: "browser" };
+	}
+}
+
+function set_run_history_storage_impl(
+	scope: RunHistoryScope | null | undefined,
+	storage: RunHistoryStorage
+): void {
+	const key = destination_key(scope);
+	if (!key) return;
+	if (storage.type === "browser" && !storage.bucket_id) {
+		window.localStorage.removeItem(key);
+	} else {
+		window.localStorage.setItem(key, JSON.stringify(storage));
+	}
+	notify_run_history_change();
+}
+
 /** When a run was most recently saved under a key, for deciding what to drop. */
 function last_saved_at(key: string): number {
 	try {
@@ -140,7 +184,10 @@ function prune_apps(current_key: string): void {
 	const stale = [
 		// Keys written by an older layout can never be read again.
 		...keys.filter(
-			(key) => !key.startsWith(STORAGE_PREFIX) && !key.startsWith(REPLAY_PREFIX)
+			(key) =>
+				!key.startsWith(STORAGE_PREFIX) &&
+				!key.startsWith(REPLAY_PREFIX) &&
+				!key.startsWith(DESTINATION_PREFIX)
 		),
 		...keys
 			.filter((key) => key.startsWith(STORAGE_PREFIX) && key !== current_key)
@@ -308,7 +355,64 @@ function consume_run_history_replay_impl(
 	}
 }
 
+/**
+ * The parts of an app config a replayed run writes back into. Kept structural
+ * so every entry point — the SPA and the SSR app each carry their own `Config`
+ * declaration — can hand its config straight over.
+ */
+export interface ReplayTarget {
+	components: { id: number; type: string; props: Record<string, any> }[];
+	dependencies: {
+		id: number;
+		api_name?: string | null;
+		inputs: number[];
+		outputs: number[];
+	}[];
+}
+
+function restore_run_impl(config: ReplayTarget, run: StoredRun): boolean {
+	const dependency = config.dependencies.find(
+		(item) =>
+			item.id === run.fn_index ||
+			(typeof item.api_name === "string" &&
+				`/${item.api_name.replace(/^\//, "")}` === run.api_name)
+	);
+	if (!dependency) return false;
+
+	const inputs = Array.isArray(run.inputs)
+		? run.inputs
+		: Object.values((run.inputs ?? {}) as Record<string, unknown>);
+	const outputs = Array.isArray(run.outputs)
+		? run.outputs
+		: run.outputs === null || run.outputs === undefined
+			? []
+			: [run.outputs];
+
+	const restore = (ids: number[], saved: unknown[]): void => {
+		for (const [index, id] of ids.entries()) {
+			const component = config.components.find((item) => item.id === id);
+			if (!component || index >= saved.length) continue;
+			// `gr.State` is held on the server and always saved as null, so
+			// writing it back would wipe out the component's real default.
+			if (component.type === "state") continue;
+			component.props.value = saved[index];
+		}
+	};
+
+	restore(dependency.inputs, inputs);
+	restore(dependency.outputs, outputs);
+	return true;
+}
+
+function apply_run_history_replay_impl(
+	config: ReplayTarget & RunHistoryScope
+): boolean {
+	const run = consume_run_history_replay_impl(config);
+	return run ? restore_run_impl(config, run) : false;
+}
+
 function start_run_history_impl(options: StartRunOptions): string | null {
+	if (read_run_history_storage_impl(options).type === "bucket") return null;
 	const key = storage_key(options);
 	if (!key) return null;
 
@@ -466,6 +570,21 @@ export function read_run_history(
 	return safely(() => read_run_history_impl(scope), []);
 }
 
+export function read_run_history_storage(
+	scope: RunHistoryScope | null | undefined
+): RunHistoryStorage {
+	return safely(() => read_run_history_storage_impl(scope), {
+		type: "browser"
+	});
+}
+
+export function set_run_history_storage(
+	scope: RunHistoryScope | null | undefined,
+	storage: RunHistoryStorage
+): void {
+	safely(() => set_run_history_storage_impl(scope, storage), undefined);
+}
+
 export function clear_run_history(
 	scope: RunHistoryScope | null | undefined
 ): void {
@@ -490,6 +609,19 @@ export function consume_run_history_replay(
 	scope: RunHistoryScope | null | undefined
 ): StoredRun | null {
 	return safely(() => consume_run_history_replay_impl(scope), null);
+}
+
+/**
+ * Applies the run staged by the history page, if this page load is the one it
+ * was staged for. Every entry point that renders an app has to call this, or
+ * "Load run" silently does nothing on that entry point.
+ *
+ * @returns whether a staged run was found and applied.
+ */
+export function apply_run_history_replay(
+	config: ReplayTarget & RunHistoryScope
+): boolean {
+	return safely(() => apply_run_history_replay_impl(config), false);
 }
 
 export function start_run_history(options: StartRunOptions): string | null {

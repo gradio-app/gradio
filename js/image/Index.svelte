@@ -102,6 +102,7 @@
 			}}
 			{fullscreen}
 			{value}
+			alt_text={gradio.props.alt_text}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
 			selectable={gradio.props._selectable}
@@ -142,6 +143,7 @@
 			bind:active_source
 			bind:value
 			bind:dragging
+			alt_text={gradio.props.alt_text}
 			selectable={gradio.props._selectable}
 			root={gradio.shared.root}
 			sources={gradio.props.sources}

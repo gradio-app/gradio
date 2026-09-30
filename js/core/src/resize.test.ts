@@ -199,6 +199,16 @@ describe("next_frame_height", () => {
 		expect(frame.viewport).toBe(800);
 	});
 
+	// gradio-app/gradio#11154
+	test("does not add space after execution when mobile content still fits", () => {
+		const frame = new Frame(844);
+		frame.settle(stretchy(791));
+		const reports_before_execution = frame.reports.length;
+		frame.settle(stretchy(791));
+		expect(frame.viewport).toBe(844);
+		expect(frame.reports.slice(reports_before_execution)).toEqual([]);
+	});
+
 	test("gives up after a few grows when the content keeps outgrowing the frame", () => {
 		const frame = new Frame(800);
 		let needs = 900;

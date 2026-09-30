@@ -1,11 +1,11 @@
 """CLI command to install the Gradio skill for AI coding assistants.
 
 Usage:
-    gradio skills add --cursor
-    gradio skills add --cursor --opencode
-    gradio skills add --cursor --global
+    gradio skills add
+    gradio skills add --global
+    gradio skills add --claude
     gradio skills add --dest=~/my-skills
-    gradio skills add abidlabs/english-translator --cursor
+    gradio skills add abidlabs/english-translator
 """
 
 from __future__ import annotations
@@ -96,8 +96,19 @@ def _create_symlink(
         # visible there and linking would clobber it with a link to itself.
         return None
     _remove_existing(link_path, force)
-    link_path.symlink_to(os.path.relpath(central_skill_path, agent_skills_dir))
+    try:
+        link_path.symlink_to(os.path.relpath(central_skill_path, agent_skills_dir))
+    except OSError as error:
+        if getattr(error, "winerror", None) != 1314:
+            raise
+        # Windows requires Developer Mode or elevated privileges for symlinks.
+        shutil.copytree(central_skill_path, link_path)
     return link_path
+
+
+def _print_agent_install(path: Path) -> None:
+    action = "Created symlink" if path.is_symlink() else "Copied skill"
+    print(f"{action}: {path}")
 
 
 def _install_to(skills_dir: Path, force: bool) -> Path:
@@ -334,11 +345,6 @@ def skills_add(
         _get_skill_targets()
     )
 
-    if not (cursor or claude or codex or opencode or dest):
-        raise typer.BadParameter(
-            "Pick a destination via --cursor, --claude, --codex, --opencode, or --dest."
-        )
-
     global_targets = {**hf_global_targets, "cursor": Path("~/.cursor/skills")}
     local_targets = {**hf_local_targets, "cursor": Path(".cursor/skills")}
     targets_dict = global_targets if global_ else local_targets
@@ -376,7 +382,7 @@ def skills_add(
                 agent_target, central_skill_path, force, skill_id=skill_id
             )
             if link_path is not None:
-                print(f"Created symlink: {link_path}")
+                _print_agent_install(link_path)
         return
 
     if dest:
@@ -413,9 +419,9 @@ def skills_add(
         # Create symlinks for both skills
         link_path = _create_symlink(agent_target, central_skill_path, force)
         if link_path is not None:
-            print(f"Created symlink: {link_path}")
+            _print_agent_install(link_path)
         hf_link_path = _create_symlink(
             agent_target, central_hf_skill_path, force, skill_id=HF_SKILL_ID
         )
         if hf_link_path is not None:
-            print(f"Created symlink: {hf_link_path}")
+            _print_agent_install(hf_link_path)

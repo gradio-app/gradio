@@ -66,6 +66,9 @@ def upload_demo_to_space(
             sdk_version: {gradio_version}
             app_file: run.py
             pinned: false
+            hf_oauth: true
+            hf_oauth_scopes:
+              - inference-api
             ---
             """
             readme.write_text(textwrap.dedent(readme_content))

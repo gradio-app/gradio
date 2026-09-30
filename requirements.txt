@@ -3,10 +3,10 @@ audioop-lts<=0.2.2; python_version >= "3.13" # this is a replacement for the bui
 brotli>=1.1.0
 fastapi>=0.115.2,<1.0
 groovy~=0.1
-gradio_client==2.6.0
+gradio_client==2.7.1
 hf-gradio>=0.4.1,<1.0
-httpx>=0.24.1,<1.0
-huggingface_hub>=1.16.0,<2.0
+httpx2>=2.0.0,<3.0
+huggingface_hub>=1.16.0,<3.0
 Jinja2<4.0
 markupsafe>=2.0,<4.0
 numpy>=1.0,<3.0
@@ -18,7 +18,7 @@ pydantic>=2.0,<=3.0
 python-multipart>=0.0.18,<1.0 # required for fastapi forms.
 pydub<1.0
 pyyaml>=5.0,<7.0
-safehttpx>=0.1.7,<0.2.0
+safehttpx>=0.2.0,<0.3.0
 semantic_version~=2.0
 starlette>=1.0.1,<2.0
 tomlkit>=0.12.0,<0.15.0

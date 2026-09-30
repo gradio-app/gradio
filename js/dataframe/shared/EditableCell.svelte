@@ -175,8 +175,7 @@
 	<span
 		class:dragging={is_dragging}
 		onkeydown={handle_keydown}
-		tabindex="0"
-		role="button"
+		tabindex="-1"
 		class:edit
 		class:expanded={edit}
 		class:header

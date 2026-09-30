@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/markdown-code",
-	"version": "0.10.0",
+	"version": "0.10.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -25,7 +25,7 @@
 		"marked": "^12.0.0",
 		"marked-gfm-heading-id": "^3.1.2",
 		"marked-highlight": "^2.0.1",
-		"mermaid": "^11.12.0",
+		"mermaid": "^11.17.0",
 		"prismjs": "^1.30.0"
 	},
 	"devDependencies": {

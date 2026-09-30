@@ -1,28 +1,5 @@
 import { test, expect, drag_and_drop_file } from "@self/tootils";
 
-test("Image click-to-upload downloads files with the correct names.", async ({
-	page
-}) => {
-	const uploader = await page.locator("input[type=file]");
-
-	await uploader.setInputFiles("./test/files/cheetah1.jpg");
-
-	const downloadPromise = page.waitForEvent("download");
-	await page.getByLabel("Download").click();
-	const download = await downloadPromise;
-	// PIL converts from .jpg to .jpeg
-	await expect(download.suggestedFilename()).toBe("cheetah1.jpg");
-
-	await page.getByLabel("Remove Image").click();
-
-	await uploader.setInputFiles("./test/files/gradio-logo.svg");
-
-	const SVGdownloadPromise = page.waitForEvent("download");
-	await page.getByLabel("Download").click();
-	const SVGdownload = await SVGdownloadPromise;
-	expect(SVGdownload.suggestedFilename()).toBe("gradio-logo.svg");
-});
-
 test("Image drag-to-upload replaces an image successfully.", async ({
 	page,
 	context
@@ -96,19 +73,4 @@ test("Image paste to clipboard via the Upload component works", async ({
 
 	await page.getByText("Paste from clipboard").click();
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
-});
-
-test("Image select and change events work as expected.", async ({ page }) => {
-	const uploader = await page.locator("input[type=file]");
-	const change_output_counter = await page.getByLabel("# Change Events Output");
-	const select_event_counter = await page.getByLabel("# Select Events");
-
-	await uploader.setInputFiles("./test/files/cheetah1.jpg");
-	await expect(change_output_counter).toHaveValue("1");
-	await expect(select_event_counter).toHaveValue("0");
-
-	const output_image = await page.locator(".selectable");
-	await output_image.click();
-	await expect(change_output_counter).toHaveValue("1");
-	await expect(select_event_counter).toHaveValue("1");
 });

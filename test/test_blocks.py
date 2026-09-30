@@ -1,5 +1,6 @@
 import asyncio
 import copy
+import gc
 import io
 import json
 import os
@@ -26,11 +27,14 @@ from PIL import Image
 
 import gradio as gr
 from gradio import blocks, helpers
+from gradio.components.audio import _stream_encoders
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import ComponentProcessingError, DuplicateBlockError
+from gradio.queueing import create_validator_fn, process_validation_response
 from gradio.route_utils import API_PREFIX
+from gradio.state_holder import SessionState
 from gradio.utils import assert_configs_are_equivalent_besides_ids, cancel_tasks
 
 pytest_plugins = ("pytest_asyncio",)
@@ -95,6 +99,39 @@ class TestBlocksMethods:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
+
+    def test_load_from_config_proxies_initial_file_values(self):
+        proxy_url = "https://private-space.hf.space"
+        remote_path = "/tmp/gradio/private-cat.png"
+        upstream_url = f"{proxy_url}{API_PREFIX}/file={remote_path}"
+        file_data = {
+            "path": remote_path,
+            "url": upstream_url,
+            "meta": {"_type": "gradio.FileData"},
+        }
+
+        with gr.Blocks() as demo:
+            gallery = gr.Gallery()
+
+        config = demo.get_config_file()
+        gallery_config = next(
+            component
+            for component in config["components"]
+            if component["id"] == gallery._id
+        )
+        gallery_config["props"]["value"] = [
+            {"image": file_data, "caption": "Private image"}
+        ]
+
+        loaded = gr.Blocks.from_config(config, [], proxy_url)
+        loaded_gallery = next(
+            block for block in loaded.blocks.values() if isinstance(block, gr.Gallery)
+        )
+        image = loaded_gallery.value[0]["image"]  # type: ignore
+        assert image["path"] == remote_path
+        assert image["url"] == (
+            f"{API_PREFIX}/proxy={proxy_url}{API_PREFIX}/file={remote_path}"
+        )
 
     def test_from_config_rejects_non_hf_space_proxy_url(self):
         """`Blocks.from_config()` must only register `proxy_url`s whose host
@@ -1119,6 +1156,518 @@ class TestStateHolder:
 
 class TestCallFunction:
     @pytest.mark.asyncio
+    async def test_call_function_with_keyword_inputs(self):
+        def greet(first_name: str, *, last_name: str):
+            return f"Hello, {first_name} {last_name}!"
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        assert demo.fns[0].inputs == [first_name, last_name]
+        assert demo.fns[0].input_keyword_names == ["last_name"]
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Hello, Ada Lovelace!"
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_support_async_and_generator_functions(self):
+        async def async_greet(*, name: str):
+            return f"Hello, {name}!"
+
+        def count(*, maximum: int):
+            yield from range(maximum)
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            maximum = gr.Number()
+            output = gr.Textbox()
+            gr.Button().click(
+                async_greet,
+                inputs_kwargs={"name": name},
+                outputs=output,
+            )
+            gr.Button().click(
+                count,
+                inputs_kwargs={"maximum": maximum},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada"])
+        assert result["prediction"] == "Hello, Ada!"
+
+        result = await demo.call_function(1, [2])
+        assert result["prediction"] == 0
+        result = await demo.call_function(1, [2], iterator=result["iterator"])
+        assert result["prediction"] == 1
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_support_positional_or_keyword_parameters(self):
+        def greet(first_name: str, last_name: str):
+            return f"{first_name} {last_name}"
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Ada Lovelace"
+
+    @pytest.mark.asyncio
+    async def test_keyword_inputs_preserve_special_argument_injection(self):
+        default_progress = gr.Progress()
+
+        def request_after_keyword(first, last, request: gr.Request):
+            return f"{first} {last}: {request.headers['x-test']}"
+
+        def event_after_keyword(first, last, event: SelectData):
+            return f"{first} {last}: {event.value}"
+
+        def request_between_inputs(first, request: gr.Request, last):
+            return f"{first} {last}: {request.headers['x-test']}"
+
+        def progress_after_keyword(first, last, progress=default_progress):
+            return f"{first} {last}: {progress is not default_progress}"
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            output = gr.Textbox()
+            for fn in (
+                request_after_keyword,
+                event_after_keyword,
+                request_between_inputs,
+                progress_after_keyword,
+            ):
+                gr.Button().click(
+                    fn,
+                    inputs=[first],
+                    inputs_kwargs={"last": last},
+                    outputs=output,
+                )
+
+        request = gr.Request(headers={"x-test": "injected request"})
+        event_data = SelectData(
+            target=first, data={"index": 0, "value": "injected event"}
+        )
+        request_after = await demo.call_function(
+            0, ["Ada", "Lovelace"], requests=request
+        )
+        event_after = await demo.call_function(
+            1, ["Ada", "Lovelace"], event_data=event_data
+        )
+        request_between = await demo.call_function(
+            2, ["Ada", "Lovelace"], requests=request
+        )
+        progress_after = await demo.call_function(3, ["Ada", "Lovelace"])
+
+        assert request_after["prediction"] == "Ada Lovelace: injected request"
+        assert event_after["prediction"] == "Ada Lovelace: injected event"
+        assert request_between["prediction"] == "Ada Lovelace: injected request"
+        assert progress_after["prediction"] == "Ada Lovelace: True"
+
+    @pytest.mark.asyncio
+    async def test_keyword_positional_input_preserves_skipped_default(self):
+        def greet(first, title="Mx.", last=""):
+            return f"{title} {first} {last}"
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first],
+                inputs_kwargs={"last": last},
+                outputs=output,
+            )
+
+        result = await demo.call_function(0, ["Ada", "Lovelace"])
+        assert result["prediction"] == "Mx. Ada Lovelace"
+
+    def test_keyword_input_names_are_preserved_in_api_info(self):
+        def greet(first_name: str, title: str | None = None, *, last_name: str):
+            return f"{title or ''} {first_name} {last_name}".strip()
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+            )
+
+        parameter_names = [
+            parameter["parameter_name"]
+            for parameter in demo.get_api_info()["named_endpoints"]["/greet"][
+                "parameters"
+            ]
+        ]
+        assert parameter_names == ["first_name", "last_name"]
+
+    def test_keyword_input_names_follow_variadic_positional_inputs_in_api_info(self):
+        def variadic(*args, **kwargs):
+            return args, kwargs
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox(label="First")
+            second = gr.Textbox(label="Second")
+            third = gr.Textbox(label="Third")
+            gr.Button().click(
+                variadic,
+                inputs=[first, second],
+                inputs_kwargs={"third": third},
+            )
+
+        parameters = demo.get_api_info()["named_endpoints"]["/variadic"]["parameters"]
+        assert [parameter["parameter_name"] for parameter in parameters] == [
+            "param_0",
+            "param_1",
+            "third",
+        ]
+        assert [parameter["label"] for parameter in parameters] == [
+            "First",
+            "Second",
+            "Third",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_validator_receives_the_same_keyword_inputs(self):
+        received = {}
+
+        def greet(first_name, *, last_name):
+            return f"{first_name} {last_name}"
+
+        def validate(first_name, *, last_name):
+            received["first_name"] = first_name
+            received["last_name"] = last_name
+            return [gr.validate(True, ""), gr.validate(False, "bad last name")]
+
+        with gr.Blocks() as demo:
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            output = gr.Textbox()
+            gr.Button().click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                outputs=output,
+                validator=validate,
+            )
+
+        validator_fn = create_validator_fn(demo.fns[0])
+        assert validator_fn.inputs == [first_name, last_name]
+        result = await demo.call_function(validator_fn, ["Ada", "Lovelace"])
+        assert received == {"first_name": "Ada", "last_name": "Lovelace"}
+
+        is_valid, validation_data = process_validation_response(
+            result["prediction"], demo.fns[0]
+        )
+        assert is_valid is False
+        assert [data.get("parameter_name") for data in validation_data] == [
+            "first_name",
+            "last_name",
+        ]
+
+    def test_validation_parameter_names_follow_input_order(self):
+        def fn(a, b, c):
+            return a
+
+        def validate(a, b, c):
+            return None
+
+        with gr.Blocks() as demo:
+            t_a, t_b, t_c = gr.Textbox(), gr.Textbox(), gr.Textbox()
+            gr.Button().click(
+                fn,
+                inputs=[t_a],
+                inputs_kwargs={"c": t_c, "b": t_b},
+                outputs=gr.Textbox(),
+                validator=validate,
+            )
+
+        # The frontend paints validation result `i` onto `dep.inputs[i]`, so the names
+        # must follow `fn.inputs` order rather than the signature order of `fn`.
+        assert demo.fns[0].inputs == [t_a, t_c, t_b]
+        _, validation_data = process_validation_response(
+            [
+                {"__type__": "validate", "is_valid": True, "message": ""},
+                {"__type__": "validate", "is_valid": False, "message": "bad"},
+                {"__type__": "validate", "is_valid": True, "message": ""},
+            ],
+            demo.fns[0],
+        )
+        assert [data.get("parameter_name") for data in validation_data] == [
+            "a",
+            "c",
+            "b",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_validator_does_not_write_its_verdicts_into_the_inputs(self):
+        def greet(state_val, text_val):
+            return f"{state_val} {text_val}"
+
+        def validate(state_val, text_val):
+            assert state_val == "original"
+            return [gr.validate(False, "bad state"), gr.validate(True, "")]
+
+        with gr.Blocks() as demo:
+            state = gr.State("original")
+            textbox = gr.Textbox(value="initial")
+            gr.Button().click(
+                greet,
+                inputs=[state, textbox],
+                outputs=gr.Textbox(),
+                validator=validate,
+            )
+
+        session = SessionState(demo)
+        response = await demo.process_api(
+            create_validator_fn(demo.fns[0]), inputs=[None, "hello"], state=session
+        )
+
+        assert session[state._id] == "original"
+        assert session.config_values[textbox._id]["props"]["value"] == "hello"
+
+        is_valid, validation_data = process_validation_response(
+            response["data"], demo.fns[0]
+        )
+        assert is_valid is False
+        assert validation_data == [
+            {
+                "__type__": "validate",
+                "is_valid": False,
+                "message": "bad state",
+                "parameter_name": "state_val",
+            },
+            {
+                "__type__": "validate",
+                "is_valid": True,
+                "message": "",
+                "parameter_name": "text_val",
+            },
+        ]
+
+    def test_validator_signature_mismatch_raises_at_definition_time(self):
+        def greet(first_name, *, last_name):
+            return f"{first_name} {last_name}"
+
+        with gr.Blocks():
+            first_name = gr.Textbox()
+            last_name = gr.Textbox()
+            button = gr.Button()
+
+            with pytest.raises(ValueError, match="Unexpected keyword arguments"):
+                button.click(
+                    greet,
+                    inputs=[first_name],
+                    inputs_kwargs={"last_name": last_name},
+                    validator=lambda first, second: None,
+                )
+
+            # A validator that takes the keyword name is accepted, whether the name
+            # lands in a positional-or-keyword slot or a keyword-only one.
+            button.click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                validator=lambda first_name, last_name: None,
+            )
+            button.click(
+                greet,
+                inputs=[first_name],
+                inputs_kwargs={"last_name": last_name},
+                validator=lambda *args, **kwargs: None,
+            )
+
+    def test_positional_inputs_skip_gradio_owned_parameters_consistently(self):
+        progress_default = gr.Progress()
+
+        def with_progress(a, progress=progress_default, b=""):
+            return a, b
+
+        with gr.Blocks() as demo:
+            x, w, z = gr.Textbox(), gr.Textbox(), gr.Textbox()
+            button = gr.Button()
+            button.click(with_progress, inputs=[x, w], outputs=gr.Textbox())
+
+            # The definition-time check knows Gradio injects `progress` itself, so it
+            # sees `w` filling `b` and catches the clash with `inputs_kwargs={"b": z}`
+            # here rather than on the first click.
+            with pytest.raises(ValueError, match="both `inputs` and `inputs_kwargs`"):
+                button.click(with_progress, inputs=[x, w], inputs_kwargs={"b": z})
+
+        # The API metadata uses that same accounting: `w` is `b`, not `progress`.
+        parameters = demo.get_api_info()["named_endpoints"]["/with_progress"][
+            "parameters"
+        ]
+        assert [p["parameter_name"] for p in parameters] == ["a", "b"]
+
+    def test_gradio_owned_parameters_cannot_be_passed_as_keyword_inputs(self):
+        def needs_request(a, request: gr.Request):
+            return a
+
+        def needs_progress(a, progress=gr.Progress()):
+            return a
+
+        with gr.Blocks():
+            x, z = gr.Textbox(), gr.Textbox()
+            button = gr.Button()
+            for fn in (needs_request, needs_progress):
+                with pytest.raises(ValueError, match="Gradio fills in itself"):
+                    button.click(
+                        fn,
+                        inputs=[x],
+                        inputs_kwargs={
+                            "request" if fn is needs_request else "progress": z
+                        },
+                    )
+
+    @pytest.mark.asyncio
+    async def test_component_props_follow_keyword_inputs_to_their_parameter(self):
+        def show(tb: gr.Textbox, b: str):
+            return f"{type(tb).__name__}:{getattr(tb, 'label', None)}|{type(b).__name__}:{b}"
+
+        # The keys are deliberately in the opposite order to the signature.
+        with gr.Blocks() as demo:
+            t1 = gr.Textbox(value="x", label="First")
+            t2 = gr.Textbox(value="y", label="Second")
+            gr.Button().click(
+                show, None, gr.Textbox(), inputs_kwargs={"b": t2, "tb": t1}
+            )
+
+        with gr.Blocks() as positional_demo:
+            u1 = gr.Textbox(value="x", label="First")
+            u2 = gr.Textbox(value="y", label="Second")
+            gr.Button().click(show, [u1, u2], gr.Textbox())
+
+        # `component_prop_inputs` indexes `fn.inputs`, which is how both the frontend
+        # and `preprocess_data()` read it, so it must point at `t1` (the `tb` argument)
+        # even though `tb` is the first parameter and `t1` is the second input.
+        assert demo.fns[0].inputs == [t2, t1]
+        assert demo.fns[0].component_prop_inputs == [1]
+        assert positional_demo.fns[0].component_prop_inputs == [0]
+
+        def payload(block_fn):
+            return [
+                {"label": component.label, "value": component.value}
+                if index in block_fn.component_prop_inputs
+                else component.value
+                for index, component in enumerate(block_fn.inputs)
+            ]
+
+        expected = "SimpleNamespace:First|str:y"
+        for demo_to_call in (demo, positional_demo):
+            block_fn = demo_to_call.fns[0]
+            result = await demo_to_call.process_api(
+                block_fn, payload(block_fn), state=None, explicit_call=True
+            )
+            assert result["data"][0] == expected
+
+    def test_component_props_account_for_gradio_injected_parameters(self):
+        def with_request(request: gr.Request, tb: gr.Textbox):
+            return tb
+
+        with gr.Blocks() as demo:
+            textbox = gr.Textbox()
+            gr.Button().click(with_request, [textbox], gr.Textbox())
+
+        # `request` is injected by Gradio, so the single input is `tb` at index 0 of
+        # `fn.inputs`, not index 1 of the signature.
+        assert demo.fns[0].component_prop_inputs == [0]
+
+    def test_keyword_only_component_parameters_receive_plain_values(self):
+        def keyword_only(a, *, tb: gr.Textbox):
+            return tb
+
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            second = gr.Textbox()
+            gr.Button().click(
+                keyword_only,
+                inputs=[first],
+                inputs_kwargs={"tb": second},
+                outputs=gr.Textbox(),
+            )
+
+        # Documented limitation: `special_args()` does not look past `*`, so a
+        # keyword-only parameter gets the value rather than the component.
+        assert demo.fns[0].component_prop_inputs == []
+
+    def test_dict_passed_as_inputs_points_at_inputs_kwargs(self):
+        with gr.Blocks():
+            tb = gr.Textbox()
+            with pytest.raises(ValueError, match="use `inputs_kwargs` instead"):
+                gr.Button().click(
+                    lambda last_name: last_name,
+                    inputs={"last_name": tb},  # type: ignore[arg-type]
+                )
+            # gr.on() infers its triggers from `inputs` before set_event_trigger runs,
+            # so it needs the same guard.
+            with pytest.raises(ValueError, match="use `inputs_kwargs` instead"):
+                gr.on(
+                    fn=lambda last_name: last_name,
+                    inputs={"last_name": tb},  # type: ignore[arg-type]
+                )
+
+    def test_invalid_keyword_input_configurations_raise_at_definition_time(self):
+        def named(first, second):
+            return first, second
+
+        def positional_only(first, second, /):
+            return first, second
+
+        with gr.Blocks():
+            first = gr.Textbox()
+            second = gr.Textbox()
+            button = gr.Button()
+
+            with pytest.raises(ValueError, match="both `inputs` and `inputs_kwargs`"):
+                button.click(
+                    named,
+                    inputs=[first, second],
+                    inputs_kwargs={"second": second},
+                )
+
+            with pytest.raises(ValueError, match="Positional-only arguments"):
+                button.click(
+                    positional_only,
+                    inputs=[first],
+                    inputs_kwargs={"second": second},
+                )
+
+            with pytest.raises(ValueError, match="must be Gradio components"):
+                button.click(
+                    named,
+                    inputs=[first],
+                    inputs_kwargs={"second": "not a component"},  # type: ignore[dict-item]
+                )
+
+            with pytest.raises(ValueError, match="Unexpected keyword arguments"):
+                button.click(
+                    named,
+                    inputs=[first],
+                    inputs_kwargs={"unknown": second},
+                )
+
+    @pytest.mark.asyncio
     async def test_call_regular_function(self):
         with gr.Blocks() as demo:
             text = gr.Textbox()
@@ -1660,9 +2209,57 @@ class TestCancel:
         assert event_id in app.iterators_to_reset
 
 
+def streaming_audio_demo():
+    """A Blocks whose button streams two audio chunks into a streaming Audio."""
+    chunk = (
+        pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+    ).read_bytes()
+
+    def stream():
+        yield chunk
+        yield chunk
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(streaming=True)
+        gr.Button().click(stream, None, audio)
+
+    return demo, next(iter(demo.fns.values())), audio
+
+
+async def drive_streaming_run(demo, block_fn, session_hash, event_id):
+    """Run a generator to completion the way the queue does, one call per chunk.
+
+    Returns the playlist URL from the first chunk.
+    """
+    iterator, url = None, None
+    for _ in range(10):
+        output = await demo.process_api(
+            block_fn=block_fn,
+            inputs=[],
+            state=None,
+            iterator=iterator,
+            session_hash=session_hash,
+            event_id=event_id,
+        )
+        iterator = output["iterator"]
+        if url is None:
+            url = output["data"][0]["url"]
+        if not output["is_generating"]:
+            # The final chunk carries the whole value again, so its URL has to
+            # still be the first chunk's. A key that changed mid-run would have
+            # opened a second stream under a second URL. The chunks in between
+            # carry a diff, so there is nothing to compare there.
+            final = output["data"][0]
+            assert isinstance(final, dict) and final.get("url") == url, (
+                "the run key changed mid-run"
+            )
+            return url
+    raise AssertionError("the generator never stopped generating")
+
+
 class TestHandleStreamingOutputs:
     @pytest.mark.asyncio
-    async def test_final_chunk_with_no_open_stream_is_a_no_op(self):
+    async def test_final_chunk_with_no_open_stream_leaves_nothing_behind(self):
         # The session's streams may be gone by the time the final chunk lands —
         # a disconnect drops them — and a generator that sends only prop updates
         # never opens one at all. Neither should cost the caller their output.
@@ -1673,11 +2270,126 @@ class TestHandleStreamingOutputs:
 
         block_fn = next(iter(demo.fns.values()))
         data = await demo.handle_streaming_outputs(
-            block_fn, [b"final"], session_hash="s", run=0, final=True
+            block_fn, [b"final"], session_hash="s", run="run-1", final=True
         )
 
         assert data == [b"final"]
-        assert demo.pending_streams["s"][0] == {}
+        # and the run leaves nothing behind, since nothing can fetch it
+        assert "s" not in demo.pending_streams
+
+    @pytest.mark.asyncio
+    async def test_sequential_runs_get_distinct_run_keys(self):
+        # A later run used to land on the address a finished run had just freed
+        # and inherit the stream that run had already ended.
+        # See https://github.com/gradio-app/gradio/issues/13809
+        def stream():
+            yield None
+            yield None
+
+        with gr.Blocks() as demo:
+            audio = gr.Audio(streaming=True)
+            gr.Button().click(stream, None, audio)
+
+        block_fn = next(iter(demo.fns.values()))
+        urls = [
+            await drive_streaming_run(demo, block_fn, "s", f"event-{i}")
+            for i in range(100)
+        ]
+
+        assert len(set(urls)) == 100
+
+    def test_run_keys_are_released_with_their_iterator(self):
+        # Holding the keys strongly would also give every run its own key, by
+        # keeping every iterator alive, which is a leak rather than a fix.
+        from gradio.utils import SyncToAsyncIterator
+
+        demo = gr.Blocks()
+        for _ in range(100):
+            iterator = SyncToAsyncIterator(iter([1]), None)
+            demo._stream_run_key(iterator)
+            del iterator
+
+        gc.collect()
+        assert len(demo._stream_run_ids) == 0
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_each_run_gets_its_own_stream(self):
+        demo, block_fn, audio = streaming_audio_demo()
+
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-2")
+
+        streams = demo.pending_streams["s"]
+        assert first != second
+        assert {first, second} == {
+            f"{API_PREFIX}/stream/s/{key}/{audio._id}/playlist.m3u8" for key in streams
+        }
+        # The same input encodes to the same bytes, so equal and non-empty
+        # totals mean neither run appended to the other's stream. Segment
+        # counts would not do: how many a run has depends on when the encoder
+        # emitted its frames.
+        totals = [
+            sum(len(segment["data"]) for segment in streams[key][audio._id].segments)
+            for key in streams
+        ]
+        assert totals[0] == totals[1] > 0
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_a_first_call_that_fails_ends_the_streams_it_opened(self):
+        # `call_process_api` and the queue find a run through
+        # `app.iterators[event_id]`, which is assigned only after `process_api`
+        # returns, so on a first call neither can end its streams.
+        from pydub.exceptions import CouldntDecodeError
+
+        chunk = (
+            pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"
+        ).read_bytes()
+
+        def stream():
+            yield chunk, b"not audio"
+
+        with gr.Blocks() as demo:
+            first, second = gr.Audio(streaming=True), gr.Audio(streaming=True)
+            gr.Button().click(stream, None, [first, second])
+        block_fn = next(iter(demo.fns.values()))
+        registered_before = set(_stream_encoders)
+
+        with pytest.raises(CouldntDecodeError):
+            await demo.process_api(
+                block_fn=block_fn,
+                inputs=[],
+                state=None,
+                iterator=None,
+                session_hash="s",
+                event_id="event-1",
+            )
+
+        (streams,) = demo.pending_streams["s"].values()
+        assert streams[first._id].ended
+        assert set(_stream_encoders) <= registered_before
+
+    @pytest.mark.requires_ffmpeg
+    @pytest.mark.asyncio
+    async def test_runs_are_keyed_by_iterator_not_event_id(self):
+        # An event id is not a run id. Cancelling an event drops
+        # `app.iterators[event_id]`, so the next call for that event id starts
+        # the generator over, and keying the run on the event id would hand the
+        # restart the streams the first run had already ended. This drives
+        # `process_api` directly, so it pins the keying, not the cancel path.
+        demo, block_fn, audio = streaming_audio_demo()
+
+        first = await drive_streaming_run(demo, block_fn, "s", "event-1")
+        second = await drive_streaming_run(demo, block_fn, "s", "event-1")
+
+        streams = demo.pending_streams["s"]
+        assert first != second
+        totals = [
+            sum(len(segment["data"]) for segment in streams[key][audio._id].segments)
+            for key in streams
+        ]
+        assert totals[0] == totals[1] > 0
 
 
 class TestGetAPIInfo:
@@ -2347,3 +3059,82 @@ def test_render_apply_does_not_raise_keyerror_when_fns_are_popped():
             renderable.fn = original_fn
     finally:
         LocalContext.blocks_config.reset(token)
+
+
+def test_nested_render_uses_local_blocks_context():
+    def create_nested_app(user):
+        with gr.Blocks():
+            gr.Textbox(user, label="User Profile")
+            search_box = gr.Textbox(label="Search Bar")
+
+            @gr.render(inputs=search_box)
+            def render_words(search):
+                for word in search.split():
+                    gr.Button(word, key=word)
+
+    with gr.Blocks() as demo:
+        user = gr.State("User1")
+
+        @gr.render(inputs=user)
+        def render_user(user):
+            create_nested_app(user)
+
+    outer_render = next(
+        renderable for renderable in demo.renderables if renderable.fn is render_user
+    )
+    root_renderable_count = len(demo.renderables)
+    blocks_config = copy.copy(demo.default_config)
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        outer_render.apply("User1")
+
+        inner_render = next(
+            renderable
+            for renderable in blocks_config.renderables
+            if renderable is not outer_render
+        )
+        outer_config = blocks_config.get_config(outer_render)
+        assert any(
+            dependency["render_id"] == inner_render._id
+            for dependency in outer_config["dependencies"]
+        )
+
+        inner_render.apply("hello world")
+        inner_config = blocks_config.get_config(inner_render)
+        assert [
+            component["props"].get("value")
+            for component in inner_config["components"]
+            if component["type"] == "button"
+        ] == ["hello", "world"]
+
+        outer_render.apply("User2")
+        assert len(demo.renderables) == root_renderable_count
+    finally:
+        LocalContext.blocks_config.reset(token)
+
+
+def test_blocks_render_inside_reactive_render_registers_components():
+    with gr.Blocks() as prebuilt:
+        markdown = gr.Markdown("Prebuilt content")
+
+    with gr.Blocks() as demo:
+
+        @gr.render()
+        def render_prebuilt():
+            prebuilt.render()
+
+    renderable = next(
+        renderable
+        for renderable in demo.renderables
+        if renderable.fn is render_prebuilt
+    )
+    blocks_config = copy.copy(demo.default_config)
+    token = LocalContext.blocks_config.set(blocks_config)
+    try:
+        renderable.apply()
+        config = blocks_config.get_config(renderable)
+    finally:
+        LocalContext.blocks_config.reset(token)
+
+    component_ids = {component["id"] for component in config["components"]}
+    assert markdown._id in component_ids

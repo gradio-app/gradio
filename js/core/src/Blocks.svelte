@@ -16,12 +16,13 @@
 		LayoutNode
 	} from "./types";
 	import type { ThemeMode, Payload } from "./types";
-	import { Toast } from "@gradio/statustracker";
-	import type { ToastMessage } from "@gradio/statustracker";
+	import { LiveStatus, Toast } from "@gradio/statustracker";
+	import type { LoadingStatusArgs, ToastMessage } from "@gradio/statustracker";
 	import { type ShareData, GRADIO_ROOT } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
+	import { execute_custom_js } from "./custom_js";
 	import { reactive_formatter } from "./gradio_helper";
 
 	import logo from "./images/logo.svg";
@@ -205,6 +206,7 @@
 
 	let api_calls: Payload[] = $state([]);
 	let last_api_call: Payload | null = $state(null);
+	let live_loading_status = $state<LoadingStatusArgs | null>(null);
 	// We need a callback to add to api_calls from the DependencyManager
 	// We can't update a state variable from inside the DependencyManager because
 	// svelte won't see it and won't update the UI.
@@ -257,7 +259,10 @@
 		app_tree.rerender.bind(app_tree),
 		new_message,
 		add_to_api_calls,
-		handle_connection_lost
+		handle_connection_lost,
+		(status) => {
+			live_loading_status = status;
+		}
 	);
 
 	$effect(() => {
@@ -481,11 +486,18 @@
 		);
 
 		app_tree.ready.then(() => {
+			if (js) {
+				void execute_custom_js(js).catch((e) => {
+					console.error("Error executing custom JS:", e);
+				});
+			}
+
 			ready = true;
 			reset_resize_growth(resize_state);
 			void settled().then(handle_resize);
 			const resumable_events = dep_manager.get_resumable_events();
 			dep_manager.dispatch_load_events(
+				undefined,
 				new Set(resumable_events.map(({ fn_index }) => fn_index))
 			);
 			if (resumable_events.length > 0) {
@@ -530,6 +542,7 @@
 	>
 		<MountComponents node={app_tree.root} />
 	</main>
+	<LiveStatus status={live_loading_status} i18n={$reactive_formatter} />
 
 	{#if footer_links.length > 0}
 		<footer

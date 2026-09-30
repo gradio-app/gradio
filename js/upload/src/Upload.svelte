@@ -3,7 +3,11 @@
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, type Client } from "@gradio/client";
 	import UploadProgress from "./UploadProgress.svelte";
-	import { create_drag, is_valid_mimetype } from "./utils";
+	import {
+		create_drag,
+		invalid_file_type_message,
+		is_valid_mimetype
+	} from "./utils";
 
 	const { drag, open_file_upload: _open_file_upload } = create_drag();
 
@@ -26,6 +30,8 @@
 		icon_upload = false,
 		height = undefined,
 		aria_label = undefined,
+		tab_index = 0,
+		container_element = "button",
 		upload_promise = $bindable(),
 		onload,
 		onerror,
@@ -49,6 +55,8 @@
 		icon_upload?: boolean;
 		height?: number | string | undefined;
 		aria_label?: string | undefined;
+		tab_index?: number;
+		container_element?: "button" | "div";
 		upload_promise?: Promise<(FileData | null)[]> | null;
 		onload?: (data: any) => void;
 		onerror?: (error: string) => void;
@@ -178,13 +186,17 @@
 		);
 
 		if (ios && use_post_upload_validation) {
+			const invalid_files: File[] = [];
 			_files = _files.filter((file) => {
 				if (is_valid_file(file)) {
 					return true;
 				}
-				onerror?.(`Invalid file type: ${file.name}. Only ${filetype} allowed.`);
+				invalid_files.push(file);
 				return false;
 			});
+			if (invalid_files.length) {
+				onerror?.(invalid_file_type_message(invalid_files, filetype));
+			}
 
 			if (_files.length === 0) {
 				return [];
@@ -221,6 +233,7 @@
 	}
 
 	async function load_files_from_upload(files: File[]): Promise<void> {
+		const invalid_files: File[] = [];
 		const files_to_load = files.filter((file) => {
 			const file_name = file.name.toLowerCase();
 			const file_extension = "." + file_name.split(".").pop();
@@ -234,9 +247,12 @@
 			) {
 				return true;
 			}
-			onerror?.(`Invalid file type only ${filetype} allowed.`);
+			invalid_files.push(file);
 			return false;
 		});
+		if (invalid_files.length) {
+			onerror?.(invalid_file_type_message(invalid_files, filetype));
+		}
 		if (format != "blob") {
 			await load_files(files_to_load);
 		} else {
@@ -268,7 +284,9 @@
 </script>
 
 {#if filetype === "clipboard"}
-	<button
+	<svelte:element
+		this={container_element}
+		class="upload-container"
 		class:hidden
 		class:center
 		class:boundedheight
@@ -281,18 +299,27 @@
 					? height + "px"
 					: height
 				: "100%"}
-		tabindex={hidden ? -1 : 0}
+		role={container_element === "div" ? "none" : undefined}
+		tabindex={container_element === "button"
+			? hidden
+				? -1
+				: tab_index
+			: undefined}
 		onclick={paste_clipboard}
-		aria-label={aria_label || "Paste from clipboard"}
+		aria-label={container_element === "button"
+			? aria_label || "Paste from clipboard"
+			: undefined}
 	>
 		{#if children}{@render children()}{/if}
-	</button>
+	</svelte:element>
 {:else if uploading && show_progress}
 	{#if !hidden}
 		<UploadProgress {root} {upload_id} files={file_data} {stream_handler} />
 	{/if}
 {:else}
-	<button
+	<svelte:element
+		this={container_element}
+		class="upload-container"
 		class:hidden
 		class:center
 		class:boundedheight
@@ -306,7 +333,12 @@
 					? height + "px"
 					: height
 				: "100%"}
-		tabindex={hidden ? -1 : 0}
+		role={container_element === "div" ? "none" : undefined}
+		tabindex={container_element === "button"
+			? hidden
+				? -1
+				: tab_index
+			: undefined}
 		use:drag={{
 			on_drag_change: (d) => (dragging = d),
 			on_files: (files) => load_files_from_upload(files),
@@ -314,15 +346,17 @@
 			mode: file_count,
 			disable_click
 		}}
-		aria-label={aria_label || "Click to upload or drop files"}
-		aria-dropeffect="copy"
+		aria-label={container_element === "button"
+			? aria_label || "Click to upload or drop files"
+			: undefined}
+		aria-dropeffect={container_element === "button" ? "copy" : undefined}
 	>
 		{#if children}{@render children()}{/if}
-	</button>
+	</svelte:element>
 {/if}
 
 <style>
-	button {
+	.upload-container {
 		cursor: pointer;
 		width: var(--size-full);
 	}

@@ -10,7 +10,12 @@ import type {
 	SubmitIterable
 } from "../types";
 
-import { skip_queue, post_message, handle_payload } from "../helpers/data";
+import {
+	skip_queue,
+	post_message,
+	handle_payload,
+	sign_file_urls
+} from "../helpers/data";
 import { get_zerogpu_origin } from "../helpers/zerogpu";
 import {
 	handle_message,
@@ -31,6 +36,7 @@ import { apply_diff_stream, close_stream } from "./stream";
 import { clear_resumable_event, track_resumable_event } from "./session";
 import { Client } from "../client";
 import {
+	read_run_history_storage,
 	start_run_history,
 	update_run_history,
 	update_run_inputs
@@ -65,12 +71,13 @@ export function submit(
 			api_prefix
 		} = this;
 
-		const addt_headers = additional_headers || { "x-gradio-user": "api" };
+		const base_headers = additional_headers || { "x-gradio-user": "api" };
 
 		const that = this;
 
 		if (!api_info) throw new Error(NO_API_INFO_MSG);
 		if (!config) throw new Error("Could not resolve app config");
+		const root = config.root;
 
 		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
 			api_info,
@@ -119,6 +126,13 @@ export function submit(
 		const history_enabled =
 			config.run_history !== false && this.options.record_history !== false;
 		const history_scope = { app_id: config.app_id, username: config.username };
+		const history_storage = read_run_history_storage(history_scope);
+		const addt_headers = {
+			...base_headers,
+			...(history_enabled && history_storage.type === "bucket"
+				? { "x-gradio-history-bucket": history_storage.bucket_id }
+				: {})
+		};
 		const history_run_id =
 			resume_event_id || !history_enabled || !is_documented_endpoint
 				? null
@@ -167,6 +181,9 @@ export function submit(
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
 			update_run_history(history_scope, history_run_id, event);
+			if (event.type === "data" || event.type === "render") {
+				sign_file_urls(event.data, root, api_prefix, that.jwt);
+			}
 			if (all_events || events_to_publish[event.type]) {
 				push_event(event);
 			}
@@ -575,7 +592,8 @@ export function submit(
 								...payload,
 								session_hash,
 								event_id
-							}
+							},
+							addt_headers
 						);
 						if (status !== 200) {
 							fire_event({
@@ -812,6 +830,20 @@ export function submit(
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 
+		// The event id is only known once queue/join has responded.
+		const post_to_event = (suffix: string, body: unknown): void => {
+			job.then(
+				() => {
+					if (!event_id_final) return;
+					this.post_data(
+						`${config.root}${api_prefix}/stream/${event_id_final}${suffix}`,
+						body
+					);
+				},
+				() => {}
+			);
+		};
+
 		const iterator: SubmitIterable<GradioEvent> = {
 			[Symbol.asyncIterator]: () => iterator,
 			next,
@@ -825,18 +857,11 @@ export function submit(
 			},
 			cancel,
 			send_chunk: (payload: Record<string, unknown>) => {
-				this.post_data(`${config.root}${api_prefix}/stream/${event_id_final}`, {
-					...payload,
-					session_hash: this.session_hash
-				});
+				post_to_event("", { ...payload, session_hash: this.session_hash });
 			},
 			close_stream: () => {
-				this.post_data(
-					`${config.root}${api_prefix}/stream/${event_id_final}/close`,
-					{}
-				);
-
 				close();
+				post_to_event("/close", {});
 			},
 			event_id: () => event_id_final,
 			wait_for_id: async () => {

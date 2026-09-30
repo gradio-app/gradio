@@ -4,10 +4,14 @@ import {
 	workflow,
 	addOperator,
 	addEdge,
+	add_custom_port,
+	remove_custom_port,
+	init_model_node_ports,
 	replaceNodeSource,
 	removeNode,
 	removeEdge,
 	sanitize_for_save,
+	structural_signature,
 	switch_endpoint,
 	reconcileComponentRoles
 } from "./workflow-store";
@@ -753,5 +757,250 @@ describe("sanitize_for_save", () => {
 		const snapshot = JSON.stringify(original);
 		sanitize_for_save(original);
 		expect(JSON.stringify(original)).toBe(snapshot);
+	});
+
+	test("strips per-viewer geometry so one arrangement isn't saved for everyone", () => {
+		const node = refNode("a", {});
+		node.manual_height = 300;
+		const saved = sanitize_for_save(wf([node])).references[0];
+		expect(saved).not.toHaveProperty("x");
+		expect(saved).not.toHaveProperty("y");
+		expect(saved).not.toHaveProperty("height");
+		expect(saved).not.toHaveProperty("manual_height");
+	});
+
+	test("keeps width, which comes from the node's source rather than the viewer", () => {
+		expect(sanitize_for_save(wf([refNode("a", {})])).references[0].width).toBe(
+			220
+		);
+	});
+});
+
+describe("structural_signature", () => {
+	function wf(refs: ReferenceNode[]): Workflow {
+		return {
+			schema_version: "2",
+			name: "Test",
+			runtime: { default: "client" },
+			references: refs,
+			operators: [],
+			subjects: [],
+			edges: [],
+			view: { default: "canvas" }
+		};
+	}
+
+	function refNode(id: string, geometry: Partial<ReferenceNode> = {}) {
+		return {
+			id,
+			role: "reference" as const,
+			label: id,
+			asset_type: "image" as const,
+			inputs: [{ id: "in", label: "in", type: "image" as const }],
+			outputs: [{ id: "out", label: "out", type: "image" as const }],
+			data: {},
+			x: 0,
+			y: 0,
+			width: 220,
+			height: 160,
+			...geometry
+		};
+	}
+
+	test("a node moving is not a change", () => {
+		expect(structural_signature(wf([refNode("a", { x: 500, y: 700 })]))).toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("a node being resized is not a change", () => {
+		expect(
+			structural_signature(
+				wf([refNode("a", { width: 480, height: 400, manual_height: 400 })])
+			)
+		).toBe(structural_signature(wf([refNode("a")])));
+	});
+
+	test("a node being added is a change", () => {
+		expect(structural_signature(wf([refNode("a"), refNode("b")]))).not.toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("a node label being renamed is a change", () => {
+		expect(structural_signature(wf([refNode("a", { label: "New" })]))).not.toBe(
+			structural_signature(wf([refNode("a")]))
+		);
+	});
+
+	test("an edge being added is a change", () => {
+		const before = wf([refNode("a"), refNode("b")]);
+		const after = {
+			...before,
+			edges: [
+				{
+					id: "e",
+					from_node_id: "a",
+					from_port_id: "out",
+					to_node_id: "b",
+					to_port_id: "in",
+					type: "image" as const
+				}
+			]
+		};
+		expect(structural_signature(before)).not.toBe(structural_signature(after));
+	});
+});
+
+describe("add_custom_port / remove_custom_port", () => {
+	beforeEach(resetWorkflow);
+
+	function _modelOp(): string {
+		return addOperator(
+			{
+				kind: "model",
+				label: "Model",
+				model_id: "org/model",
+				endpoint: "text_to_image",
+				endpoints: [
+					{
+						name: "text_to_image",
+						inputs: [{ id: "prompt", label: "Prompt", type: "text" }],
+						outputs: [{ id: "out_0", label: "Image", type: "image" }]
+					}
+				],
+				inputs: [{ id: "prompt", label: "Prompt", type: "text" }],
+				outputs: [{ id: "out_0", label: "Image", type: "image" }],
+				width: 220,
+				height: 90
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+	}
+
+	test("adds a custom port marked with custom: true", () => {
+		const id = _modelOp();
+		add_custom_port(id, {
+			id: "strength",
+			label: "Strength",
+			type: "number",
+			required: false
+		});
+		const node = get(workflow).operators.find((n) => n.id === id)!;
+		expect(node.inputs).toHaveLength(2);
+		expect(node.inputs[1]).toMatchObject({
+			id: "strength",
+			custom: true,
+			required: false
+		});
+	});
+
+	test("removes a custom port and any edges connected to it", () => {
+		const id = _modelOp();
+		add_custom_port(id, {
+			id: "strength",
+			label: "Strength",
+			type: "number",
+			required: false
+		});
+		const refId = addOperator(
+			{
+				kind: "space",
+				label: "src",
+				inputs: [],
+				outputs: [{ id: "out", label: "n", type: "number" }],
+				width: 100,
+				height: 80
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+		addEdge({
+			from_node_id: refId,
+			from_port_id: "out",
+			to_node_id: id,
+			to_port_id: "strength",
+			type: "number"
+		});
+		expect(get(workflow).edges).toHaveLength(1);
+		remove_custom_port(id, "strength");
+		const node = get(workflow).operators.find((n) => n.id === id)!;
+		expect(node.inputs).toHaveLength(1);
+		expect(get(workflow).edges).toHaveLength(0);
+	});
+
+	test("remove_custom_port leaves non-custom ports alone", () => {
+		const id = _modelOp();
+		remove_custom_port(id, "prompt"); // "prompt" is a schema port, not custom
+		const node = get(workflow).operators.find((n) => n.id === id)!;
+		expect(node.inputs).toHaveLength(1);
+		expect(node.inputs[0].id).toBe("prompt");
+	});
+
+	test("init_model_node_ports preserves custom ports across schema refresh", () => {
+		const id = _modelOp();
+		add_custom_port(id, {
+			id: "strength",
+			label: "Strength",
+			type: "number",
+			required: false
+		});
+		// Simulate a schema refresh that would normally reset inputs.
+		init_model_node_ports([
+			{
+				name: "text_to_image",
+				inputs: [
+					{ id: "prompt", label: "Prompt", type: "text" },
+					{ id: "seed", label: "Seed", type: "number", required: false }
+				],
+				outputs: [{ id: "out_0", label: "Image", type: "image" }]
+			}
+		]);
+		const node = get(workflow).operators.find((n) => n.id === id)!;
+		const ids = node.inputs.map((p) => p.id);
+		expect(ids).toContain("prompt");
+		expect(ids).toContain("seed");
+		expect(ids).toContain("strength"); // custom port survived
+		expect(node.inputs.find((p) => p.id === "strength")?.custom).toBe(true);
+	});
+
+	test("switch_endpoint preserves custom ports across endpoint change", () => {
+		const id = addOperator(
+			{
+				kind: "space",
+				label: "Model",
+				endpoint: "a",
+				endpoints: [
+					{
+						name: "a",
+						inputs: [{ id: "in_a", label: "A", type: "text" }],
+						outputs: [{ id: "out_0", label: "Out", type: "text" }]
+					},
+					{
+						name: "b",
+						inputs: [{ id: "in_b", label: "B", type: "text" }],
+						outputs: [{ id: "out_0", label: "Out", type: "text" }]
+					}
+				],
+				inputs: [{ id: "in_a", label: "A", type: "text" }],
+				outputs: [{ id: "out_0", label: "Out", type: "text" }],
+				width: 220,
+				height: 90
+			} as unknown as Omit<OperatorNode, "id" | "role" | "x" | "y" | "data">,
+			0,
+			0
+		);
+		add_custom_port(id, {
+			id: "strength",
+			label: "Strength",
+			type: "number",
+			required: false
+		});
+		switch_endpoint(id, "b");
+		const node = get(workflow).operators.find((n) => n.id === id)!;
+		const ids = node.inputs.map((p) => p.id);
+		expect(ids).toContain("in_b");
+		expect(ids).toContain("strength"); // custom port survived endpoint switch
 	});
 });

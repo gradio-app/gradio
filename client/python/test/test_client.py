@@ -13,13 +13,13 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
-import httpx
+import httpx2
 import huggingface_hub
 import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, handle_file
-from gradio_client.client import DEFAULT_TEMP_DIR
+from gradio_client.client import DEFAULT_TEMP_DIR, Endpoint
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
@@ -51,6 +51,18 @@ def connect(
 
 
 class TestClientInitialization:
+    @pytest.mark.parametrize("private", [False, True])
+    def test_space_privacy_is_recorded(self, private):
+        client = Client.__new__(Client)
+        client.token = "hf_token"
+        client._space_is_private = False
+        space_info = MagicMock(host="https://source.hf.space", private=private)
+
+        with patch("huggingface_hub.space_info", return_value=space_info):
+            assert client._space_name_to_src("owner/source") == space_info.host
+
+        assert client._space_is_private is private
+
     def test_headers_constructed_correctly(self, increment_demo):
         if not HF_TOKEN:
             pytest.skip("HF_TOKEN is not set, skipping test")
@@ -104,8 +116,8 @@ class TestClientInitialization:
             Client, "_get_space_state", lambda _: huggingface_hub.SpaceStage.RUNNING
         )
 
-        with patch("httpx.get") as mocked:
-            mocked.return_value = httpx.Response(
+        with patch("httpx2.get") as mocked:
+            mocked.return_value = httpx2.Response(
                 200,
                 json={
                     "version": "3.36.2",  # Force recent version branch
@@ -113,7 +125,7 @@ class TestClientInitialization:
                     "named_endpoints": {},
                     "unnamed_endpoints": {},
                 },
-                request=httpx.Request("GET", "https://fake/space"),
+                request=httpx2.Request("GET", "https://fake/space"),
             )
             client = Client("fake/space", httpx_kwargs={"cookies": cookies})
             for call in mocked.call_args_list:
@@ -122,9 +134,9 @@ class TestClientInitialization:
                 )
 
         # _login overrides cookies
-        response = httpx.Response(200)
-        response._cookies = httpx.Cookies(cookies)
-        with patch("httpx.post", return_value=response) as mocked:
+        response = httpx2.Response(200)
+        response._cookies = httpx2.Cookies(cookies)
+        with patch("httpx2.post", return_value=response) as mocked:
             client._login(("user", "pass"))
             mocked.assert_called_once()
             call = mocked.call_args
@@ -248,7 +260,13 @@ class TestClientPredictions:
 
     def test_resume_jobs(self, calculator_demo):
         with connect(calculator_demo) as client:
-            with patch.object(client, "_start_stream") as start_stream:
+            # Stand in for the queue stream so the test controls the messages.
+            release_stream = threading.Event()
+            with patch.object(
+                client,
+                "stream_messages",
+                side_effect=lambda *args, **kwargs: release_stream.wait(5),
+            ) as stream_messages:
                 job = client.resume_jobs(
                     [{"event_id": "event-1", "fn_index": 0}],
                     session_hash="existing-session",
@@ -266,9 +284,16 @@ class TestClientPredictions:
                 assert job.wait_for_id() == "event-1"
                 assert job.fn_index == 0
                 assert client.session_hash == "existing-session"
-                start_stream.assert_called_once_with(
-                    client.protocol, "existing-session", ["event-1"]
+                # The reader starts on its own thread.
+                deadline = time.monotonic() + 5
+                while not stream_messages.called and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                stream_messages.assert_called_once_with(
+                    client.protocol,
+                    session_hash="existing-session",
+                    resume_event_ids=["event-1"],
                 )
+                release_stream.set()
 
     def test_queue_stream_reconnects_for_active_jobs(self):
         requests = []
@@ -276,8 +301,8 @@ class TestClientPredictions:
         def handle_request(request):
             requests.append(request)
             if len(requests) == 1:
-                raise httpx.ConnectError("offline", request=request)
-            return httpx.Response(
+                raise httpx2.ConnectError("offline", request=request)
+            return httpx2.Response(
                 200,
                 content=(
                     b'data: {"msg":"process_completed","event_id":"event-1",'
@@ -288,12 +313,13 @@ class TestClientPredictions:
         client = Client.__new__(Client)
         client._closed = False
         client.resume_sessions = True
-        client.httpx_kwargs = {"transport": httpx.MockTransport(handle_request)}
+        client.httpx_kwargs = {"transport": httpx2.MockTransport(handle_request)}
         client.ssl_verify = True
         client.sse_url = "https://example.test/queue/data"
         client.headers = {}
         client.cookies = {}
         client.stream_open = True
+        client.pending_lock = threading.Lock()
         client.pending_event_ids = {"event-1"}
         client.pending_messages_per_event = {"event-1": deque()}
         client._acknowledge_event = MagicMock()
@@ -642,6 +668,11 @@ class TestClientPredictions:
         with connect(demo) as client:
             result = client.predict(api_name="/predict")
             assert result == "before\x85after"
+
+    def test_more_jobs_than_workers_all_complete(self, calculator_demo):
+        with connect(calculator_demo, client_kwargs={"max_workers": 2}) as client:
+            jobs = [client.submit(i, "add", 1, api_name="/predict") for i in range(6)]
+            assert [job.result(timeout=20) for job in jobs] == list(range(1, 7))
 
 
 class TestClientPredictionsWithKwargs:
@@ -1106,7 +1137,7 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        with patch("httpx.post", MagicMock(return_value=response)):
+        with patch("httpx2.post", MagicMock(return_value=response)):
             with patch("builtins.open", MagicMock()):
                 with patch.object(pathlib.Path, "name") as mock_name:
                     mock_name.side_effect = lambda x: x
@@ -1114,6 +1145,80 @@ class TestEndpoints:
                         handle_file(__file__), data_index=0
                     )
         assert results["path"] == "file1"
+
+    def test_private_upstream_file_is_downloaded_and_uploaded(self):
+        endpoint = Endpoint.__new__(Endpoint)
+        endpoint.dependency = {"inputs": [1]}
+        endpoint.client = MagicMock(
+            _space_is_private=True,
+            src_prefixed="https://source.hf.space/gradio_api/",
+            upload_url="https://source.hf.space/gradio_api/upload",
+            headers={"x-hf-authorization": "Bearer hf_token"},
+            cookies={"session": "cookie"},
+            ssl_verify=True,
+            httpx_kwargs={},
+            config={"components": [{"id": 1}], "max_file_size": None},
+        )
+        source_url = (
+            "https://source.hf.space/gradio_api/file=/tmp/gradio/private-cat.png"
+        )
+        download_response = MagicMock()
+        download_response.__enter__.return_value = download_response
+        download_response.iter_bytes.return_value = [b"private ", b"cat"]
+        upload_response = MagicMock()
+        upload_response.json.return_value = ["/tmp/gradio/uploaded/private-cat.png"]
+
+        with (
+            patch("httpx2.stream", return_value=download_response) as stream,
+            patch("httpx2.post", return_value=upload_response) as post,
+        ):
+            result = endpoint._upload_file(
+                {
+                    "path": source_url,
+                    "orig_name": "private-cat.png",
+                    "meta": {"_type": "gradio.FileData"},
+                },
+                data_index=0,
+            )
+
+        stream.assert_called_once_with(
+            "GET",
+            source_url,
+            headers={"x-hf-authorization": "Bearer hf_token"},
+            cookies={"session": "cookie"},
+            verify=True,
+            follow_redirects=False,
+        )
+        assert post.call_args.args[0] == endpoint.client.upload_url
+        assert post.call_args.kwargs["headers"] == endpoint.client.headers
+        assert result["path"] == "/tmp/gradio/uploaded/private-cat.png"
+
+    @pytest.mark.parametrize(
+        "file_data",
+        [
+            {
+                "path": "https://other.hf.space/gradio_api/file=/tmp/cat.png",
+                "meta": {"_type": "gradio.FileData"},
+            },
+            {
+                "path": "https://source.hf.space/gradio_api/stream/run/playlist.m3u8",
+                "is_stream": True,
+                "meta": {"_type": "gradio.FileData"},
+            },
+        ],
+    )
+    def test_private_upstream_auth_is_not_used_for_other_urls(self, file_data):
+        endpoint = Endpoint.__new__(Endpoint)
+        endpoint.client = MagicMock(
+            _space_is_private=True,
+            src_prefixed="https://source.hf.space/gradio_api/",
+        )
+
+        with patch("httpx2.stream") as stream:
+            result = endpoint._upload_file(file_data, data_index=0)
+
+        stream.assert_not_called()
+        assert result["path"] == file_data["path"]
 
     @pytest.mark.flaky
     def test_download_private_file(self, gradio_temp_dir):
@@ -1133,9 +1238,9 @@ class TestEndpoints:
         client = Client(
             src="gradio/zip_files",
         )
-        error_response = httpx.Response(status_code=404)
-        monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
-        with pytest.raises(httpx.HTTPStatusError):
+        error_response = httpx2.Response(status_code=404)
+        monkeypatch.setattr(httpx2, "get", lambda *args, **kwargs: error_response)
+        with pytest.raises(httpx2.HTTPStatusError):
             client.endpoints[0]._download_file({"path": "https://example.com/foo"})  # type: ignore
 
     @pytest.mark.flaky
@@ -1158,7 +1263,7 @@ class TestEndpoints:
             )
             return mock_response
 
-        monkeypatch.setattr(httpx, "stream", mock_stream)
+        monkeypatch.setattr(httpx2, "stream", mock_stream)
 
         # Test stream file with URL
         stream_file_data = {
@@ -1171,19 +1276,55 @@ class TestEndpoints:
             client.endpoints[0]._download_file(stream_file_data)  # type: ignore
 
         # Test non-stream file still uses path-based URL construction
-        regular_file_data = {"path": "regular/file.txt", "is_stream": False}
+        regular_file_data = {"path": "regular/report%20#final.txt", "is_stream": False}
 
         def mock_stream_regular(*args, **kwargs):
             called_url = args[1]
-            assert called_url.endswith("file=regular/file.txt"), (
+            assert called_url.endswith("file=regular/report%2520%23final.txt"), (
                 f"Expected path-based URL, got: {called_url}"
             )
             return mock_response
 
-        monkeypatch.setattr(httpx, "stream", mock_stream_regular)
+        monkeypatch.setattr(httpx2, "stream", mock_stream_regular)
 
         with patch("pathlib.Path.resolve", return_value="/tmp/regular_file.txt"):
             client.endpoints[0]._download_file(regular_file_data)  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "server_path, expected_name",
+    [
+        ("/tmp/gradio/abc/my report.png", "my report.png"),
+        ("/tmp/gradio/abc/résumé (1).pdf", "résumé (1).pdf"),
+        ("/tmp/gradio/abc/computer%20vision#Huggy.png", "computer%20vision#Huggy.png"),
+    ],
+)
+def test_download_file_names_output_after_the_server_path(
+    monkeypatch, tmp_path, server_path, expected_name
+):
+    """The request URL is percent-encoded, so the saved file has to take its name
+    from the server's path. Naming it after the URL would write "my report.png"
+    to disk as "my%20report.png"."""
+    from gradio_client.client import Endpoint
+
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.raise_for_status.return_value = None
+    response.iter_bytes.return_value = [b"data"]
+    monkeypatch.setattr(httpx2, "stream", lambda *args, **kwargs: response)
+
+    endpoint = MagicMock()
+    endpoint.root_url = "http://localhost:7860/gradio_api/"
+    endpoint.client.output_dir = str(tmp_path)
+    endpoint.client.headers = {}
+    endpoint.client.cookies = None
+    endpoint.client.ssl_verify = True
+    endpoint.client.httpx_kwargs = {}
+
+    downloaded = Endpoint._download_file(endpoint, {"path": server_path})
+
+    assert Path(downloaded).name == expected_name
+    assert Path(downloaded).read_bytes() == b"data"
 
 
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC
@@ -1246,7 +1387,7 @@ class TestDuplication:
 
     @pytest.mark.flaky
     @patch("huggingface_hub.add_space_secret")
-    @patch("huggingface_hub.duplicate_space")
+    @patch("huggingface_hub.duplicate_repo")
     @patch("gradio_client.client.Client.__init__", return_value=None)
     @patch("gradio_client.utils.set_space_timeout")
     def test_add_secrets(self, mock_time, mock_init, mock_duplicate, mock_add_secret):
@@ -1276,7 +1417,7 @@ def test_httpx_kwargs(increment_demo):
     with connect(
         increment_demo, client_kwargs={"httpx_kwargs": {"timeout": 5}}
     ) as client:
-        with patch("httpx.post", MagicMock()) as mock_post:
+        with patch("httpx2.post", MagicMock()) as mock_post:
             with pytest.raises(Exception):
                 client.predict(1, api_name="/increment_with_queue")
             assert mock_post.call_args.kwargs["timeout"] == 5

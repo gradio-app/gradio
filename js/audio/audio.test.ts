@@ -18,11 +18,39 @@ import {
 	TEST_WAV
 } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
+import { tick } from "svelte";
 import Audio from "./";
+import AudioRecorderHarness from "./AudioRecorderHarness.svelte";
+import MinimalAudioRecorderHarness from "./MinimalAudioRecorderHarness.svelte";
 import WaveSurfer from "wavesurfer.js";
+import { Hls } from "@gradio/utils/hls";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import { setupi18n } from "../core/src/i18n";
+
+// The real streaming recorder needs the WAV encoder worker, so use a stub
+// that lets tests emit chunks.
+const recorder_chunk_listeners = vi.hoisted(
+	() => [] as ((event: { data: Blob }) => void)[]
+);
+vi.mock("./streaming/media_recorder", () => ({
+	init_media_recorder: async () =>
+		class {
+			state = "inactive";
+			start(): void {
+				this.state = "recording";
+			}
+			stop(): void {
+				this.state = "inactive";
+			}
+			addEventListener(
+				_type: string,
+				listener: (event: { data: Blob }) => void
+			): void {
+				recorder_chunk_listeners.push(listener);
+			}
+		}
+}));
 
 // WaveSurfer.destroy() throws AbortError when in-flight fetches are cancelled
 // during test cleanup. This is expected and not a test failure.
@@ -45,6 +73,8 @@ const loading_status: LoadingStatus = {
 	type: "input" as const,
 	stream_state: "closed" as const
 };
+
+const real_hls_destroy = Hls.prototype.destroy;
 
 const fake_value = {
 	...TEST_WAV,
@@ -442,12 +472,14 @@ function make_wav_blob(): Blob {
 describe("Events: microphone recording", () => {
 	setupi18n();
 	let record_create: ReturnType<typeof vi.spyOn>;
+	let waveform_create: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		record_create = vi.spyOn(RecordPlugin, "create");
+		waveform_create = vi.spyOn(WaveSurfer, "create");
 	});
 	afterEach(() => {
-		record_create.mockRestore();
+		vi.restoreAllMocks();
 		cleanup();
 	});
 
@@ -477,6 +509,320 @@ describe("Events: microphone recording", () => {
 		expect(upload).toHaveBeenCalledTimes(1);
 		expect(input).toHaveBeenCalledTimes(1);
 		expect((await get_data()).value).toBeTruthy();
+	});
+
+	test("repeated recordings replace preview resources and unmount cleans the latest preview", async () => {
+		const dispatch_blob = vi.fn(async () => {});
+		// These resources have no DOM-visible cleanup signal, so spies verify release.
+		const create_object_url = vi.spyOn(URL, "createObjectURL");
+		const revoke_object_url = vi.spyOn(URL, "revokeObjectURL");
+
+		const { unmount } = await render(AudioRecorderHarness, { dispatch_blob });
+
+		await waitFor(() => {
+			expect(record_create).toHaveBeenCalledTimes(1);
+			expect(waveform_create).toHaveBeenCalledTimes(1);
+		});
+		const record = record_create.mock.results[0].value as any;
+		const mic_waveform = waveform_create.mock.results[0].value;
+		const destroy_mic_waveform = vi.spyOn(mic_waveform, "destroy");
+
+		record.emit("record-end", make_wav_blob());
+		await waitFor(() => {
+			expect(dispatch_blob).toHaveBeenCalledTimes(1);
+			expect(waveform_create).toHaveBeenCalledTimes(2);
+		});
+		const first_preview = waveform_create.mock.results[1].value;
+		const destroy_first_preview = vi.spyOn(first_preview, "destroy");
+		const first_url = create_object_url.mock.results[0].value;
+
+		record.emit("record-end", make_wav_blob());
+		await waitFor(() => {
+			expect(dispatch_blob).toHaveBeenCalledTimes(2);
+			expect(waveform_create).toHaveBeenCalledTimes(3);
+		});
+		expect(destroy_first_preview).toHaveBeenCalledTimes(1);
+		expect(revoke_object_url).toHaveBeenCalledWith(first_url);
+
+		const latest_preview = waveform_create.mock.results[2].value;
+		const destroy_latest_preview = vi.spyOn(latest_preview, "destroy");
+		const latest_url = create_object_url.mock.results[1].value;
+
+		unmount();
+
+		expect(destroy_latest_preview).toHaveBeenCalledTimes(1);
+		expect(destroy_mic_waveform).toHaveBeenCalledTimes(1);
+		expect(revoke_object_url).toHaveBeenCalledWith(latest_url);
+	});
+
+	test("unmounting while recording discards the abandoned take", async () => {
+		const dispatch_blob = vi.fn(async () => {});
+		const { unmount } = await render(AudioRecorderHarness, { dispatch_blob });
+
+		await waitFor(() => {
+			expect(record_create).toHaveBeenCalledTimes(1);
+			expect(waveform_create).toHaveBeenCalledTimes(1);
+		});
+		const record = record_create.mock.results[0].value as any;
+		const mic_waveform = waveform_create.mock.results[0].value;
+
+		// WaveSurfer's RecordPlugin emits record-end from destroy() when the
+		// MediaRecorder is still active, which requires a teardown simulation here.
+		vi.spyOn(mic_waveform, "destroy").mockImplementation(() => {
+			record.emit("record-end", make_wav_blob());
+		});
+
+		unmount();
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
+		expect(dispatch_blob).not.toHaveBeenCalled();
+	});
+});
+
+describe("Events: streaming microphone recording", () => {
+	setupi18n();
+	let audio_context: AudioContext;
+	let streams: MediaStream[];
+	let get_user_media: ReturnType<typeof vi.spyOn>;
+	let stop_mic: ReturnType<typeof vi.spyOn>;
+	const is_live = (stream: MediaStream): boolean =>
+		stream.getTracks().some((track) => track.readyState === "live");
+
+	beforeEach(() => {
+		recorder_chunk_listeners.length = 0;
+		audio_context = new AudioContext();
+		streams = [];
+		get_user_media = vi
+			.spyOn(navigator.mediaDevices, "getUserMedia")
+			.mockImplementation(async () => {
+				const stream = audio_context.createMediaStreamDestination().stream;
+				streams.push(stream);
+				return stream;
+			});
+		vi.spyOn(RecordPlugin.prototype, "startMic").mockResolvedValue(
+			new MediaStream()
+		);
+		stop_mic = vi
+			.spyOn(RecordPlugin.prototype, "stopMic")
+			.mockImplementation(() => {});
+	});
+	afterEach(async () => {
+		vi.restoreAllMocks();
+		cleanup();
+		await audio_context.close();
+	});
+
+	test("stopping or unmounting releases the microphone stream", async () => {
+		const { getByRole, unmount } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true
+		});
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+		expect(is_live(streams[0])).toBe(true);
+
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		await waitFor(() => expect(is_live(streams[0])).toBe(false));
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(get_user_media).toHaveBeenCalledTimes(2));
+		expect(is_live(streams[1])).toBe(true);
+
+		stop_mic.mockClear();
+		unmount();
+		expect(streams.some(is_live)).toBe(false);
+		expect(stop_mic).toHaveBeenCalled();
+	});
+
+	test.each(["stop", "unmount"])(
+		"%s while mic access is pending releases the late stream",
+		async (action) => {
+			let grant: () => void = () => {};
+			let grant_waveform: () => void = () => {};
+			const stream = audio_context.createMediaStreamDestination().stream;
+			const waveform_stream =
+				audio_context.createMediaStreamDestination().stream;
+			get_user_media.mockImplementationOnce(
+				() => new Promise((resolve) => (grant = () => resolve(stream)))
+			);
+			vi.spyOn(RecordPlugin.prototype, "startMic").mockImplementationOnce(
+				() =>
+					new Promise(
+						(resolve) => (grant_waveform = () => resolve(waveform_stream))
+					)
+			);
+			const { getByRole, unmount } = await render(Audio, {
+				...default_props,
+				sources: ["microphone"],
+				streaming: true
+			});
+
+			await fireEvent.click(getByRole("button", { name: "audio.record" }));
+			await waitFor(() => expect(get_user_media).toHaveBeenCalledTimes(1));
+			if (action === "stop") {
+				await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+			} else {
+				unmount();
+			}
+			grant();
+			grant_waveform();
+
+			await waitFor(() => expect(is_live(stream)).toBe(false));
+			await waitFor(() => expect(is_live(waveform_stream)).toBe(false));
+		}
+	);
+
+	test("a failed mic request on a later take is reported and leaves the recording state", async () => {
+		const { getByRole, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true
+		});
+		const error = listen("error");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+
+		get_user_media.mockRejectedValueOnce(
+			new DOMException("busy", "NotReadableError")
+		);
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+
+		await waitFor(() =>
+			expect(error).toHaveBeenCalledWith("audio.recording_error")
+		);
+		expect(getByRole("button", { name: "audio.record" })).toBeVisible();
+	});
+
+	test("switching the source away from the microphone stops recording", async () => {
+		const { getByRole, getByLabelText, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone", "upload"],
+			streaming: true
+		});
+		const stop_recording = listen("stop_recording");
+		const clear = listen("clear");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+
+		await fireEvent.click(getByLabelText("Upload file"));
+
+		await waitFor(() => expect(is_live(streams[0])).toBe(false));
+		expect(stop_recording).toHaveBeenCalledTimes(1);
+		expect(clear).toHaveBeenCalledTimes(1);
+	});
+
+	test("start_recording fires once per take", async () => {
+		const { getByRole, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true
+		});
+		const start_recording = listen("start_recording");
+
+		for (let take = 1; take <= 2; take++) {
+			await fireEvent.click(getByRole("button", { name: "audio.record" }));
+			await waitFor(() => expect(streams).toHaveLength(take));
+			await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		}
+
+		expect(start_recording).toHaveBeenCalledTimes(2);
+	});
+
+	test("stopping while waiting for the stream also releases the microphone", async () => {
+		const { getByRole } = await render(Audio, {
+			...default_props,
+			loading_status: { ...loading_status, stream_state: "waiting" },
+			sources: ["microphone"],
+			streaming: true
+		});
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+
+		await fireEvent.click(getByRole("button", { name: "audio.waiting" }));
+		expect(stop_mic).toHaveBeenCalledTimes(1);
+	});
+
+	test("a chunk still uploading when recording stops is not streamed", async () => {
+		let finish_upload: () => void = () => {};
+		const upload = vi
+			.fn(async (file_data: any[]) => file_data)
+			.mockImplementationOnce(
+				(file_data: any[]) =>
+					new Promise<any[]>((resolve) => {
+						finish_upload = () => resolve(file_data);
+					})
+			);
+		const { getByRole, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true,
+			client: {
+				upload,
+				stream: async () => ({ onmessage: null, close: () => {} })
+			}
+		});
+		const stream = listen("stream");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(recorder_chunk_listeners).toHaveLength(1));
+		recorder_chunk_listeners[0]({ data: new Blob([new Uint8Array(100)]) });
+		await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		finish_upload();
+		await upload.mock.results[0].value;
+		await tick();
+		expect(stream).not.toHaveBeenCalled();
+
+		// Each take opens a new stream and recorder, so emit on the new one.
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(recorder_chunk_listeners).toHaveLength(2));
+		recorder_chunk_listeners[1]({ data: new Blob([new Uint8Array(100)]) });
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+	});
+});
+
+describe("MinimalAudioRecorder", () => {
+	setupi18n();
+	let record_create: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		record_create = vi.spyOn(RecordPlugin, "create");
+	});
+
+	afterEach(() => {
+		record_create.mockRestore();
+		cleanup();
+	});
+
+	test("repeated chat input recordings are processed and uploaded", async () => {
+		const upload = vi.fn(async (file_data: any[]) => file_data);
+		const onchange = vi.fn();
+		const onstoprecording = vi.fn();
+
+		await render(MinimalAudioRecorderHarness, {
+			upload_fn: upload,
+			onchange,
+			onstoprecording
+		});
+
+		await waitFor(() => expect(record_create).toHaveBeenCalledTimes(1));
+		const record = record_create.mock.results[0].value as any;
+
+		for (let recording = 1; recording <= 8; recording++) {
+			record.emit("record-end", make_wav_blob());
+			await waitFor(() => {
+				expect(upload).toHaveBeenCalledTimes(recording);
+				expect(onchange).toHaveBeenCalledTimes(recording);
+				expect(onstoprecording).toHaveBeenCalledTimes(recording);
+			});
+		}
 	});
 });
 
@@ -754,25 +1100,6 @@ describe("Waveform options", () => {
 
 		expect(get_last_create_args().sampleRate).toBe(44100);
 	});
-
-	test("skip_length affects skip button labels", async () => {
-		const { getByLabelText } = await render(Audio, {
-			...default_props,
-			interactive: true,
-			value: fake_value,
-			sources: ["microphone"],
-			waveform_options: {
-				...default_props.waveform_options,
-				skip_length: 10
-			}
-		});
-
-		// With audio_duration=0 and skip_length=10, get_skip_rewind_amount returns
-		// (0/100)*10 || 5 = 5. The label still shows 5 because duration is 0.
-		// But the skip_length option is wired through the controls.
-		expect(getByLabelText("Skip forward by 5 seconds")).toBeTruthy();
-		expect(getByLabelText("Skip backwards by 5 seconds")).toBeTruthy();
-	});
 });
 
 describe("Props: show_recording_waveform", () => {
@@ -819,6 +1146,229 @@ describe("Props: show_recording_waveform", () => {
 
 		await set_data({ playback_position: quarter });
 		expect(player.currentTime).toBeCloseTo(quarter, 1);
+	});
+
+	test("enabling the waveform releases the native player's source", async () => {
+		const { getByTestId, set_data } = await render(Audio, native_props);
+		const player = getByTestId("audio-player-music") as HTMLAudioElement;
+		expect(player.getAttribute("src")).toBe(fake_value.url);
+
+		await set_data({
+			waveform_options: {
+				...native_props.waveform_options,
+				show_recording_waveform: true
+			}
+		});
+
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+	});
+});
+
+describe("Streaming output", () => {
+	setupi18n();
+	let load_source: ReturnType<typeof vi.spyOn>;
+	let destroy: ReturnType<typeof vi.spyOn>;
+	let wavesurfer_load: ReturnType<typeof vi.spyOn>;
+	let media_pause: ReturnType<typeof vi.spyOn>;
+	let is_supported: ReturnType<typeof vi.spyOn> | undefined;
+
+	beforeEach(() => {
+		load_source = vi
+			.spyOn(Hls.prototype, "loadSource")
+			.mockImplementation(() => {});
+		destroy = vi.spyOn(Hls.prototype, "destroy");
+		wavesurfer_load = vi.spyOn(WaveSurfer.prototype, "load");
+		media_pause = vi.spyOn(HTMLMediaElement.prototype, "pause");
+	});
+	afterEach(() => {
+		cleanup();
+		load_source.mockRestore();
+		destroy.mockRestore();
+		wavesurfer_load.mockRestore();
+		media_pause.mockRestore();
+		is_supported?.mockRestore();
+		is_supported = undefined;
+	});
+
+	function emit_load_error(instance: WaveSurfer, message: string): Error {
+		const e = new Error(message);
+		(instance as any).emit("error", e);
+		return e;
+	}
+
+	const run_1 = {
+		...TEST_WAV,
+		is_stream: true,
+		url: "https://stream.invalid/abc/1/1/playlist.m3u8"
+	};
+	const run_2 = {
+		...run_1,
+		url: "https://stream.invalid/abc/2/1/playlist.m3u8"
+	};
+
+	test("a new streaming run attaches a new source", async () => {
+		const { set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: { ...run_1 } });
+		expect(load_source).toHaveBeenCalledTimes(1);
+
+		await set_data({ value: run_2 });
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(2));
+		expect(load_source).toHaveBeenLastCalledWith(run_2.url);
+		expect(destroy).toHaveBeenCalledTimes(1);
+	});
+
+	test("clearing the value tears down the attached stream", async () => {
+		const { set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: null });
+
+		expect(destroy).toHaveBeenCalledTimes(1);
+	});
+
+	test("without HLS support the native player reattaches too", async () => {
+		is_supported = vi.spyOn(Hls, "isSupported").mockReturnValue(false);
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: run_1
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		expect(player.src).toBe(run_1.url);
+
+		media_pause.mockClear();
+		await set_data({ value: run_2 });
+
+		expect(player.src).toBe(run_2.url);
+		expect(load_source).not.toHaveBeenCalled();
+		expect(media_pause).not.toHaveBeenCalled();
+
+		await set_data({ value: null });
+
+		expect(player.getAttribute("src")).toBeNull();
+		expect(player.paused).toBe(true);
+	});
+
+	test("a recovered waveform releases the native fallback", async () => {
+		wavesurfer_load
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				return Promise.reject(emit_load_error(this, "decode failed"));
+			})
+			.mockImplementationOnce(() => Promise.resolve());
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+
+		await set_data({ value: { ...fake_value, url: fake_value.url + "?v=2" } });
+
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+	});
+
+	function emit_media_error(instance: WaveSurfer): MediaError {
+		const e = Object.create(MediaError.prototype, {
+			code: { value: MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED },
+			message: { value: "unsupported container" }
+		}) as MediaError;
+		(instance as any).emit("error", e);
+		return e;
+	}
+
+	test("a media element error falls back to the native player", async () => {
+		wavesurfer_load.mockImplementation(function (this: WaveSurfer) {
+			emit_media_error(this);
+			return new Promise(() => {});
+		});
+
+		const { getByTestId } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+	});
+
+	test("a hung load does not disable the fallback for later files", async () => {
+		let report_second: (() => void) | undefined;
+		wavesurfer_load
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				emit_media_error(this);
+				return new Promise(() => {});
+			})
+			.mockImplementationOnce(function (this: WaveSurfer) {
+				report_second = () => emit_media_error(this);
+				return Promise.resolve();
+			});
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			value: fake_value
+		});
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		await waitFor(() =>
+			expect(player.getAttribute("src")).toBe(fake_value.url)
+		);
+
+		const second = { ...fake_value, url: fake_value.url + "?v=2" };
+		await set_data({ value: second });
+		await waitFor(() => expect(player.getAttribute("src")).toBeNull());
+
+		report_second?.();
+		await waitFor(() => expect(player.getAttribute("src")).toBe(second.url));
+	});
+
+	test("a stream giving way to a file leaves the file attached", async () => {
+		destroy.mockImplementation(function (this: Hls) {
+			const media = this.media;
+			real_hls_destroy.call(this);
+			media?.removeAttribute("src");
+			media?.load();
+		});
+
+		const { getByTestId, set_data } = await render(Audio, {
+			...default_props,
+			interactive: false,
+			waveform_options: {
+				...default_props.waveform_options,
+				show_recording_waveform: false
+			},
+			value: run_1
+		});
+
+		await waitFor(() => expect(load_source).toHaveBeenCalledTimes(1));
+
+		await set_data({ value: fake_value });
+
+		const player = getByTestId("audio-player-Audio") as HTMLAudioElement;
+		expect(destroy).toHaveBeenCalledTimes(1);
+		expect(player.getAttribute("src")).toBe(fake_value.url);
 	});
 });
 

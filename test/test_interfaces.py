@@ -5,7 +5,7 @@ from functools import partial
 from string import capwords
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import pytest
 
 import gradio
@@ -32,11 +32,11 @@ class TestInterface:
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
-        response = httpx.get(local_url)
+        response = httpx2.get(local_url)
         assert response.status_code == 200
         io.close()
         with pytest.raises(Exception):
-            response = httpx.get(local_url)
+            response = httpx2.get(local_url)
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
@@ -200,6 +200,33 @@ class TestInterface:
         io = Interface(fn=str, inputs=t, outputs=Textbox(), additional_inputs=s)
         assert io.input_components == [t, s]
 
+    def test_additional_input_example_columns_are_hidden(self):
+        io = Interface(
+            fn=lambda message, tone, words: f"{tone}: {message} ({words})",
+            inputs=Textbox(label="Message"),
+            outputs=Textbox(),
+            additional_inputs=[
+                Textbox(label="Tone"),
+                gradio.Number(label="Words"),
+            ],
+            examples=[["hello", "friendly", 20]],
+        )
+
+        assert io.examples_handler.dataset.headers == ["Message"]
+        assert io.examples_handler.dataset.raw_samples == [["hello"]]
+
+    def test_additional_input_example_columns_shown_if_main_inputs_are_empty(self):
+        io = Interface(
+            fn=lambda message, tone: f"{tone}: {message}",
+            inputs=Textbox(label="Message"),
+            outputs=Textbox(),
+            additional_inputs=[Textbox(label="Tone")],
+            examples=[[None, "friendly"]],
+        )
+
+        assert io.examples_handler.dataset.headers == ["Tone"]
+        assert io.examples_handler.dataset.raw_samples == [["friendly"]]
+
 
 class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):
@@ -221,6 +248,20 @@ class TestTabbedInterface:
             demo.get_config_file(),  # type: ignore
             tabbed_interface.get_config_file(),  # type: ignore
         )
+
+    def test_tabbed_interface_passes_tabs_kwargs_to_tabs(self):
+        interface = Interface(lambda x: x, "textbox", "textbox")
+
+        tabbed_interface = TabbedInterface(
+            [interface], tabs_kwargs={"overflow_behavior": "wrap"}
+        )
+        tabs_config = next(
+            component
+            for component in tabbed_interface.get_config_file()["components"]
+            if component["type"] == "tabs"
+        )
+
+        assert tabs_config["props"]["overflow_behavior"] == "wrap"
 
 
 @pytest.mark.parametrize(

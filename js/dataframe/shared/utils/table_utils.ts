@@ -1,4 +1,4 @@
-import type { CellValue, Headers, HeadersWithIDs, TableData } from "../types";
+import type { CellValue, Headers, TableData } from "../types";
 import { dsvFormat } from "d3-dsv";
 
 export function make_cell_id(row: number, col: number): string {
@@ -11,18 +11,17 @@ export function make_header_id(col: number): string {
 
 export async function copy_table_data(
 	data: TableData,
-	selected_cells: [number, number][] | null
+	selected_cells: [number, number][]
 ): Promise<void> {
 	if (!data || !data.length) return;
 
-	const cells_to_copy =
-		selected_cells ||
-		data.flatMap((row, r) => row.map((_, c) => [r, c] as [number, number]));
-
-	const csv = cells_to_copy.reduce(
+	const csv = selected_cells.reduce(
 		(acc: { [key: string]: { [key: string]: string } }, [row, col]) => {
 			acc[row] = acc[row] || {};
-			const value = String(data[row][col].value);
+			// only the headers are padded out to the column count on the way in, so
+			// a selection can name a cell a short row does not have
+			const cell = data[row]?.[col];
+			const value = cell ? String(cell.value) : "";
 			acc[row][col] =
 				value.includes(",") || value.includes('"') || value.includes("\n")
 					? `"${value.replace(/"/g, '""')}"`
@@ -35,7 +34,11 @@ export async function copy_table_data(
 	const rows = Object.keys(csv).sort((a, b) => +a - +b);
 	if (!rows.length) return;
 
-	const cols = Object.keys(csv[rows[0]]).sort((a, b) => +a - +b);
+	// every column any selected row contributes: taking them from the first row
+	// alone drops the rest of a selection that is not rectangular there
+	const cols = Array.from(
+		new Set(rows.flatMap((r) => Object.keys(csv[r])))
+	).sort((a, b) => +a - +b);
 	const text = rows
 		.map((r) => cols.map((c) => csv[r][c] || "").join(","))
 		.join("\n");
@@ -47,49 +50,43 @@ export async function copy_table_data(
 	}
 }
 
-export function guess_delimiter(
-	text: string,
-	possibleDelimiters: string[]
-): string[] {
-	return possibleDelimiters.filter(weedOut);
-
-	function weedOut(delimiter: string): boolean {
-		var cache = -1;
-		return text.split("\n").every(checkLength);
-
-		function checkLength(line: string): boolean {
-			if (!line) return true;
-			var length = line.split(delimiter).length;
-			if (cache < 0) cache = length;
-			return cache === length && length > 1;
+export async function parse_table_file(
+	file: File
+): Promise<{ headers: Headers; values: CellValue[][] }> {
+	const text = await file.text();
+	if (!text.trim()) return { headers: [], values: [] };
+	// the drop zone only accepts .csv and .tsv, so the extension goes first and
+	// wins any tie, but a mislabeled file is still read by its content: a
+	// separator only takes the file if it splits every line the same way, which
+	// is what tells a real separator from one that sits in a header name. the
+	// split is d3's rather than a raw count, so a separator inside a quoted
+	// field does not throw the detection off.
+	const by_extension = file.name.toLowerCase().endsWith(".tsv") ? "\t" : ",";
+	const candidates = by_extension === "\t" ? ["\t", ","] : [",", "\t"];
+	let consistent: string[][] | undefined;
+	let ragged: string[][] | undefined;
+	let unsplit: string[][] | undefined;
+	for (const delimiter of candidates) {
+		// a blank line parses to a single empty field, which both the width
+		// checks below and the caller's ragged check would read as a short row
+		const parsed = dsvFormat(delimiter)
+			.parseRows(text)
+			.filter((row) => row.length > 1 || row[0] !== "");
+		const width = parsed[0]?.length ?? 0;
+		// the extension is first in `candidates`, so this keeps its parse for the
+		// single-column case rather than running it again at the end
+		unsplit ??= parsed;
+		if (width < 2) continue;
+		if (parsed.every((row) => row.length === width)) {
+			consistent = parsed;
+			break;
 		}
+		// a separator that splits the header but leaves the rows uneven is
+		// usually the one that just happens to appear in a header name. keep it
+		// only in case the other does not split at all, where a ragged table is
+		// still better to report on than an unsplit one
+		ragged ??= parsed;
 	}
-}
-
-export function data_uri_to_blob(data_uri: string): Blob {
-	const byte_str = atob(data_uri.split(",")[1]);
-	const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
-	const ab = new ArrayBuffer(byte_str.length);
-	const ia = new Uint8Array(ab);
-	for (let i = 0; i < byte_str.length; i++) {
-		ia[i] = byte_str.charCodeAt(i);
-	}
-	return new Blob([ab], { type: mime_str });
-}
-
-export function handle_file_upload(
-	data_uri: string,
-	update_headers: (headers: Headers) => HeadersWithIDs[],
-	update_values: (values: CellValue[][]) => void
-): void {
-	const blob = data_uri_to_blob(data_uri);
-	const reader = new FileReader();
-	reader.addEventListener("loadend", (e) => {
-		if (!e?.target?.result || typeof e.target.result !== "string") return;
-		const [delimiter] = guess_delimiter(e.target.result, [",", "\t"]);
-		const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
-		update_headers(head);
-		update_values(rest);
-	});
-	reader.readAsText(blob);
+	const [head = [], ...rest] = consistent ?? ragged ?? unsplit ?? [];
+	return { headers: head.map((h) => h ?? ""), values: rest };
 }

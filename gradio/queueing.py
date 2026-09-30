@@ -481,12 +481,6 @@ class Queue:
                 "queue_full",
             )
 
-        if body.session_hash:
-            session_state = self.blocks.state_holder[body.session_hash]
-            fn = session_state.blocks_config.fns[body.fn_index]
-        else:
-            fn = self.blocks.fns[body.fn_index]
-
         fn = route_utils.get_fn(self.blocks, None, body)
         self.create_event_queue_for_fn(fn)
         if fn.validator is not None:
@@ -503,35 +497,7 @@ class Queue:
                 route_path=api_route_path,
                 root_path=self.blocks.app.root_path,
             )
-            validator_fn = BlockFunction(
-                fn=fn.validator,
-                api_name=None,
-                api_visibility="undocumented",
-                batch=fn.batch,
-                concurrency_id=None,
-                concurrency_limit=None,
-                inputs=fn.inputs,
-                outputs=fn.inputs,
-                preprocess=fn.preprocess,
-                postprocess=False,
-                inputs_as_dict=fn.inputs_as_dict,
-                targets=[],
-                _id=-1,
-                max_batch_size=fn.max_batch_size,
-                tracks_progress=fn.tracks_progress,
-                js=None,
-                show_progress="hidden",
-                show_progress_on=fn.show_progress_on,
-                cancels=fn.cancels,
-                collects_event_data=fn.collects_event_data,
-            )
-
-            event = Event(
-                body.session_hash,
-                validator_fn,
-                request,
-                username,
-            )
+            validator_fn = create_validator_fn(fn)
             try:
                 response = await route_utils.call_process_api(
                     app=self.blocks.app,
@@ -1272,6 +1238,18 @@ class Queue:
                 # without putting the `events` into `self.active_jobs`.
                 # https://github.com/gradio-app/gradio/blob/f09aea34d6bd18c1e2fef80c86ab2476a6d1dd83/gradio/routes.py#L594-L596
                 pass
+            app = self.server_app
+            if app is not None:
+                blocks = app.get_blocks()
+                for event in events:
+                    # A run that raised, was cancelled or lost its client reaches
+                    # no final chunk, so close out its streams here, while the
+                    # iterator that keys them is still stored (a finished run's
+                    # is already None). /cancel awaits this task before dropping
+                    # that iterator itself.
+                    blocks._drop_run_streams(
+                        event.session_hash, app.iterators.get(event._id)
+                    )
             for event in events:
                 # Always reset the state of the iterator
                 # If the job finished successfully, this has no effect
@@ -1309,23 +1287,63 @@ class Queue:
         return
 
 
+def create_validator_fn(fn: BlockFunction) -> BlockFunction:
+    """
+    Builds the BlockFunction that runs `fn.validator` before `fn` itself. It mirrors
+    `fn`'s inputs exactly, including the `inputs_kwargs` mapping, so the validator is
+    called with the same positional and keyword arguments as the main function.
+    """
+    if fn.validator is None:
+        raise ValueError("Cannot build a validator function without a validator.")
+    return BlockFunction(
+        fn=fn.validator,
+        api_name=None,
+        api_visibility="undocumented",
+        batch=fn.batch,
+        concurrency_id=None,
+        concurrency_limit=None,
+        inputs=fn.inputs,
+        outputs=fn.inputs,
+        preprocess=fn.preprocess,
+        postprocess=False,
+        inputs_as_dict=fn.inputs_as_dict,
+        input_keyword_names=fn.input_keyword_names,
+        input_parameter_names=fn.input_parameter_names,
+        targets=[],
+        _id=-1,
+        max_batch_size=fn.max_batch_size,
+        tracks_progress=fn.tracks_progress,
+        js=None,
+        show_progress="hidden",
+        show_progress_on=fn.show_progress_on,
+        cancels=fn.cancels,
+        collects_event_data=fn.collects_event_data,
+        is_validator_function=True,
+    )
+
+
 def process_validation_response(
     validation_response: list[dict[str, Any]] | dict[str, Any],
     fn: BlockFunction | None = None,
 ) -> tuple[bool, list[dict[str, Any]]]:
     validation_data: list[dict[str, Any]] = []
 
-    param_names = []
-    if fn and fn.fn:
-        sig = inspect.signature(fn.fn)
-        param_names = list(sig.parameters.keys())
+    # Names are attached in `fn.inputs` order, because that is the order the frontend
+    # walks when it paints each validation result onto `dep.inputs[i]`. With
+    # `inputs_kwargs` that differs from the signature order of `fn.fn`.
+    param_names: list[str | None] = []
+    if fn:
+        if fn.input_parameter_names:
+            param_names = list(fn.input_parameter_names)
+        elif fn.fn:
+            param_names = list(inspect.signature(fn.fn).parameters)
 
     if isinstance(validation_response, list):
         for i, data in enumerate(validation_response):
             if isinstance(data, dict) and data.get("__type__", None) == "validate":
-                param_name = (
-                    param_names[i] if i < len(param_names) else f"parameter_{i}"
-                )
+                param_name = param_names[i] if i < len(param_names) else None
+                if param_name is None:
+                    param_name = f"parameter_{i}"
                 data_with_name = {**data, "parameter_name": param_name}
                 validation_data.append(data_with_name)
             else:

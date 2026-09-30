@@ -8,6 +8,7 @@ export interface Model3DProps {
 	clear_color: [number, number, number, number];
 	height: number | undefined;
 	zoom_speed: number;
+	pan_speed: number;
 	has_change_history: boolean;
 	camera_position: [number | null, number | null, number | null];
 	buttons: (string | CustomButton)[] | null;

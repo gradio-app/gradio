@@ -30,6 +30,8 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
         label: str | I18nData | None = None,
         *,
         open: bool = True,
+        height: int | str | None = None,
+        max_height: int | str | None = None,
         visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -41,6 +43,8 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
         Parameters:
             label: name of accordion section.
             open: if True, accordion is open by default.
+            height: The height of the accordion's content, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the content will scroll vertically. If not set, the accordion will expand to fit the content.
+            max_height: The maximum height of the accordion's content, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the content will scroll vertically. If content is shorter than the height, the accordion will shrink to fit the content.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, this layout will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
@@ -49,6 +53,8 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
         """
         self.label = label
         self.open = open
+        self.height = height
+        self.max_height = max_height
         BlockContext.__init__(
             self,
             visible=visible,

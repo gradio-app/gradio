@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 5.0-dev
+      - 7.0-dev
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
@@ -53,7 +53,7 @@ jobs:
       # server bundle) — no Python/venv needed (the build only reads the
       # checked-in `gradio/package.json` for the version string).
       - name: build frontend
-        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@7.0-dev"
       - name: upload built frontend templates
         uses: actions/upload-artifact@v4
         with:
@@ -91,7 +91,7 @@ jobs:
       # @main action carries it (the current @main ignores the unknown input).
       - name: install dependencies
         id: install_deps
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@7.0-dev"
         with:
           python_version: "3.10"
           test: true
@@ -124,9 +124,8 @@ jobs:
         if: matrix.suite == 'browser'
         env:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
-          # 16-core runner + largely wait-bound tests → parallelize beyond the
-          # historical default of 4 workers (see .config/playwright.config.js).
-          PW_BROWSER_WORKERS: 8
+          # Each worker runs Chromium and a Gradio app; eight overloads the runner.
+          PW_BROWSER_WORKERS: 4
         run: |
           . venv/bin/activate
           pnpm test:browser
