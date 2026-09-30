@@ -296,7 +296,7 @@ for await (const message of job) {
 
 ## Resuming Jobs After a Disconnect
 
-Set `resume_sessions: true` when connecting from a browser. The client stores active queued event IDs in browser session storage, reconnects the stream after temporary network failures, and exposes unfinished jobs after a page reload:
+Set `resume_sessions: true` when connecting from a browser. The client keeps the tab's session and its active queued event IDs in browser session storage, reconnects the stream after temporary network failures, and picks the same session back up after a page reload: `app.session_restored` is then `true`, `app.config` holds the values the session's components last had, and unfinished jobs can be resumed:
 
 ```js
 import { Client } from "@gradio/client";

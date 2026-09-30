@@ -18,6 +18,7 @@ import sys
 import time
 import traceback
 import warnings
+from collections import Counter
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
@@ -254,6 +255,9 @@ class App(FastAPI):
         self.state_holder = StateHolder()
         self.iterators: dict[str, AsyncIterator] = {}
         self.iterators_to_reset: set[str] = set()
+        # Open heartbeat connections per session, so that a page that
+        # reconnects (e.g. after a refresh) keeps its session.
+        self.heartbeat_sessions: Counter[str] = Counter()
         self.lock = utils.safe_get_lock()
         self.stop_event = utils.safe_get_stop_event()
         self.cookie_id = secrets.token_urlsafe(32)
@@ -645,6 +649,25 @@ class App(FastAPI):
                     if component["id"] in config["page"][page]["components"]
                 ]
             return components, "valid"
+
+        def load_session(
+            session_hash: str, config: BlocksConfigDict, page: str | None = None
+        ) -> list[dict[str, Any]] | None:
+            """Load the components as `session_hash` last left them, so that a
+            reloaded page keeps its outputs. `None` if there is no such session.
+            """
+            if session_hash not in app.state_holder:
+                return None
+            component_ids = (
+                set(config["page"][page]["components"])
+                if page is not None
+                else {component["id"] for component in config["components"]}
+            )
+            return [
+                utils.safe_deepcopy(component)
+                for component in app.state_holder[session_hash].components
+                if component["id"] in component_ids
+            ]
 
         def get_page_config(
             config: BlocksConfigDict,
@@ -1183,6 +1206,7 @@ class App(FastAPI):
             user: str = Depends(get_current_user),
             deep_link: str = "",
             page: str | None = None,
+            session_hash: str = "",
         ):
             source_config = cast(BlocksConfigDict, app.get_blocks().config)
             selected_page = (
@@ -1196,6 +1220,8 @@ class App(FastAPI):
                     source_config,
                     selected_page,
                 )
+            elif session_hash:
+                components = load_session(session_hash, source_config, selected_page)
             if selected_page is not None:
                 config = get_page_config(source_config, selected_page, components)
             else:
@@ -1208,13 +1234,15 @@ class App(FastAPI):
                 or blocks.custom_mount_path,
             )
             config["username"] = user
+            if components is not None:
+                # Never assign `source_config["components"]` here: that
+                # aliases the live app config, which the root-url rewrite
+                # below then mutates in place for every later request.
+                config["components"] = components  # type: ignore
             if deep_link:
-                if components is not None:
-                    # Never assign `source_config["components"]` here: that
-                    # aliases the live app config, which the root-url rewrite
-                    # below then mutates in place for every later request.
-                    config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
+            elif session_hash:
+                config["session_restored"] = components is not None
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
             else:
@@ -1472,11 +1500,63 @@ class App(FastAPI):
             username: str = Depends(get_current_user),
         ):
             """Clients make a persistent connection to this endpoint to keep the session alive.
-            When the client disconnects, the session state is deleted.
+            When the client disconnects and does not reconnect within a short grace
+            period (as a refreshed page does), the session state is deleted.
             """
             heartbeat_rate = utils.get_heartbeat_rate()
 
+            async def close_session():
+                queue = app.get_blocks()._queue
+                # Give the page time to reconnect, unless the server is stopping.
+                with contextlib.suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(
+                        app.stop_event.wait(), queue.close_grace_period
+                    )
+                # Keep the session if its page reconnected (e.g. after a
+                # refresh), or if an earlier disconnect already closed it.
+                if app.heartbeat_sessions.get(session_hash) != 0:
+                    return
+                del app.heartbeat_sessions[session_hash]
+                # The queue closes sessions that still have jobs running.
+                if queue.pending_event_ids_session.get(session_hash):
+                    return
+
+                req = Request(request, username, session_hash=session_hash)
+                root_path = route_utils.get_root_url(
+                    request=request,
+                    route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
+                    root_path=app.root_path,
+                )
+                body = PredictBodyInternal(
+                    session_hash=session_hash, data=[], request=request
+                )
+                unload_fn_indices = [
+                    i
+                    for i, dep in app.get_blocks().fns.items()
+                    if any(t for t in dep.targets if t[1] == "unload")
+                ]
+                # This will mark the state to be deleted in an hour
+                if session_hash in app.state_holder.session_data:
+                    app.state_holder.session_data[session_hash].is_closed = True
+                caching.clear_session_caches(session_hash)
+                # Streams only; diff state is dropped by the queue when
+                # the run ends
+                for run in (
+                    app.get_blocks().pending_streams.pop(session_hash, {}).values()
+                ):
+                    for stream in run.values():
+                        stream.end_stream()
+                for fn_index in unload_fn_indices:
+                    await route_utils.call_process_api(
+                        app=app,
+                        body=body,
+                        gr_request=req,
+                        fn=app.get_blocks().fns[fn_index],
+                        root_path=root_path,
+                    )
+
             async def iterator():
+                app.heartbeat_sessions[session_hash] += 1
                 stop_stream_task = asyncio.create_task(app.stop_event.wait())
                 while True:
                     try:
@@ -1491,64 +1571,12 @@ class App(FastAPI):
                         if stop_stream_task in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
+                        app.heartbeat_sessions[session_hash] -= 1
                         if not stop_stream_task.done():
                             stop_stream_task.cancel()
-
-                        if app.get_blocks()._queue.pending_event_ids_session.get(
-                            session_hash
-                        ):
-                            return
-
-                        req = Request(request, username, session_hash=session_hash)
-                        root_path = route_utils.get_root_url(
-                            request=request,
-                            route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
-                            root_path=app.root_path,
-                        )
-                        body = PredictBodyInternal(
-                            session_hash=session_hash, data=[], request=request
-                        )
-                        unload_fn_indices = [
-                            i
-                            for i, dep in app.get_blocks().fns.items()
-                            if any(t for t in dep.targets if t[1] == "unload")
-                        ]
-                        for fn_index in unload_fn_indices:
-                            # The task running this loop has been cancelled
-                            # so we add tasks in the background
-                            background_tasks.add_task(
-                                route_utils.call_process_api,
-                                app=app,
-                                body=body,
-                                gr_request=req,
-                                fn=app.get_blocks().fns[fn_index],
-                                root_path=root_path,
-                            )
-                        # This will mark the state to be deleted in an hour
-                        if session_hash in app.state_holder.session_data:
-                            app.state_holder.session_data[session_hash].is_closed = True
-                        caching.clear_session_caches(session_hash)
-                        # Streams only; diff state is dropped by the queue when
-                        # the run ends
-                        for run in (
-                            app.get_blocks()
-                            .pending_streams.pop(session_hash, {})
-                            .values()
-                        ):
-                            for stream in run.values():
-                                stream.end_stream()
-                        for (
-                            event_id
-                        ) in app.get_blocks()._queue.pending_event_ids_session.get(
-                            session_hash, []
-                        ):
-                            event = app.get_blocks()._queue.event_ids_to_events.get(
-                                event_id
-                            )
-                            if event is None:
-                                continue
-                            event.run_time = math.inf
-                            event.signal.set()
+                        # The task running this loop has been cancelled
+                        # so we close the session in the background
+                        background_tasks.add_task(close_session)
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")

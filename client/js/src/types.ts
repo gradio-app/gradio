@@ -166,6 +166,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 // --------------------------------
 export interface Config {
 	deep_link_state?: "none" | "valid" | "invalid";
+	session_restored?: boolean;
 	auth_required?: true;
 	app_id?: string;
 	analytics_enabled: boolean;

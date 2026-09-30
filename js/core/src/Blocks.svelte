@@ -496,10 +496,24 @@
 			reset_resize_growth(resize_state);
 			void settled().then(handle_resize);
 			const resumable_events = dep_manager.get_resumable_events();
-			dep_manager.dispatch_load_events(
-				undefined,
-				new Set(resumable_events.map(({ fn_index }) => fn_index))
+			const skipped_loads = new Set(
+				resumable_events.map(({ fn_index }) => fn_index)
 			);
+			if (app.session_restored) {
+				// These already ran for this session, whose outputs and state have
+				// been restored. Render functions and client-side functions run
+				// again, as what they build only exists in the page.
+				for (const dep of dep_manager.dependencies_by_fn.values()) {
+					if (
+						dep.functions.backend &&
+						!dep.functions.backend_js &&
+						dep.render_id === null
+					) {
+						skipped_loads.add(dep.id);
+					}
+				}
+			}
+			dep_manager.dispatch_load_events(undefined, skipped_loads);
 			if (resumable_events.length > 0) {
 				void dep_manager.resume(resumable_events);
 			}

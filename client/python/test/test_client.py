@@ -633,8 +633,12 @@ class TestClientPredictions:
         with connect(state_demo) as client:
             client.predict("Hello", api_name="/predict")
             client.reset_session()
-            time.sleep(5)
-        out = capsys.readouterr().out
+            # The old session is closed once it has had time to reconnect.
+            out = ""
+            deadline = time.monotonic() + 15
+            while "STATE DELETED" not in out and time.monotonic() < deadline:
+                time.sleep(0.5)
+                out += capsys.readouterr().out
         assert "STATE DELETED" in out
 
     @pytest.mark.flaky

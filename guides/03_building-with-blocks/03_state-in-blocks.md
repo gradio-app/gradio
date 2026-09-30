@@ -3,7 +3,7 @@
 When building a Gradio application with `gr.Blocks()`, you may want to share certain values between users (e.g. a count of visitors to your page), or persist values for a single user across certain interactions (e.g. a chat history). This referred to as **state** and there are three general ways to manage state in a Gradio application:
 
 * **Global state**: persist and share values among all users of your Gradio application while your Gradio application is running
-* **Session state**: persist values for each user of your Gradio application while they are using your Gradio application in a single session. If they refresh the page, session state will be reset.
+* **Session state**: persist values for each user of your Gradio application while they are using your Gradio application in a single session. Session state is kept if they refresh the page, but a new tab starts a new session.
 * **Browser state**: persist values for each user of your Gradio application in the browser's localStorage, allowing data to persist even after the page is refreshed or closed.
 
 ## Global State
@@ -34,7 +34,7 @@ This means that any time you do _not_ want to share a value between users, you s
 
 ## Session State
 
-Gradio supports session state, where data persists across multiple submits within a page session. To reiterate, session data is _not_ shared between different users of your model, and does _not_ persist if a user refreshes the page to reload the Gradio app. To store data in a session state, you need to do three things:
+Gradio supports session state, where data persists across multiple submits within a page session. To reiterate, session data is _not_ shared between different users of your model, and a new tab starts with a fresh session (refreshing a page keeps its session). To store data in a session state, you need to do three things:
 
 1. Create a `gr.State()` object. If there is a default value to this stateful object, pass that into the constructor. Note that `gr.State` objects must be [deepcopy-able](https://docs.python.org/3/library/copy.html), otherwise you will need to use a different approach as described below.
 2. In the event listener, put the `State` object as an input and output as needed.
@@ -54,7 +54,7 @@ You can think of `gr.State` as an invisible Gradio component that can store any 
 
 The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a `list`, `set`, or `dict`), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the **hash** of the  value changes. So if you define a custom class and create a `gr.State` variable that is an instance of that class, make sure that the the class includes a sensible `__hash__` implementation.
 
-The value of a session State variable is cleared when the user refreshes the page. The value is stored on in the app backend for 60 minutes after the user closes the tab (this can be configured by the `delete_cache` parameter in `gr.Blocks`).
+The value of a session State variable, like the app's outputs, is kept when the user refreshes the page, and `demo.load` events do not run again. The value is stored in the app backend for 60 minutes after the user closes the tab (this can be configured by the `delete_cache` parameter in `gr.Blocks`).
 
 Learn more about `State` in the [docs](https://gradio.app/docs/gradio/state).
 
@@ -101,7 +101,7 @@ with gr.Blocks() as demo:
     
     # Initialize instance when page loads
     demo.load(initialize_instance, inputs=None, outputs=output)    
-    # Clean up instance when page is closed/refreshed
+    # Clean up instance when page is closed
     demo.unload(cleanup_instance)    
 
 demo.launch()

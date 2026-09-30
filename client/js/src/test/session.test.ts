@@ -4,7 +4,11 @@ import {
 	clear_resumable_event,
 	get_resumable_events,
 	get_resumable_session_hash,
-	track_resumable_event
+	has_session,
+	has_shown_page,
+	set_session_in_use,
+	track_resumable_event,
+	track_session
 } from "../utils/session";
 
 class MemoryStorage implements Storage {
@@ -47,9 +51,6 @@ describe("resumable sessions", () => {
 			vi.stubGlobal("sessionStorage", new MemoryStorage());
 		}
 		sessionStorage.clear();
-		if (typeof document !== "undefined") {
-			document.cookie = "gradio_active_session=; Path=/; Max-Age=0";
-		}
 	});
 
 	it("stores only active events for the current app session", () => {
@@ -97,9 +98,58 @@ describe("resumable sessions", () => {
 		}
 	});
 
-	it("reads the active session cookie during server rendering", () => {
-		expect(
-			get_resumable_session_hash("other=value; gradio_active_session=session-2")
-		).toBe("session-2");
+	it("keeps the session after its events finish", () => {
+		track_session(config, "session-1");
+		track_resumable_event(config, "session-1", {
+			event_id: "event-1",
+			fn_index: 3
+		});
+		clear_resumable_event("event-1");
+		set_session_in_use(false);
+
+		expect(get_resumable_session_hash()).toBe("session-1");
+		expect(has_session(config, "session-1")).toBe(true);
+		expect(get_resumable_events(config, "session-1")).toEqual([]);
+	});
+
+	it("hands the session over only once its page has released it", () => {
+		track_session(config, "session-1");
+		// e.g. a duplicated tab, which copies the storage of a page in use
+		expect(get_resumable_session_hash()).toBeNull();
+
+		// e.g. the page was hidden or unloaded before a reload
+		set_session_in_use(false);
+		expect(get_resumable_session_hash()).toBe("session-1");
+	});
+
+	it("remembers the pages shown in the session", () => {
+		const other_page = { ...config, current_page: "other" };
+		track_session(config, "session-1");
+		track_resumable_event(config, "session-1", {
+			event_id: "event-1",
+			fn_index: 3
+		});
+
+		expect(has_shown_page(config, "session-1")).toBe(true);
+		expect(has_shown_page(other_page, "session-1")).toBe(false);
+
+		track_session(other_page, "session-1");
+		expect(has_shown_page(config, "session-1")).toBe(true);
+		expect(has_shown_page(other_page, "session-1")).toBe(true);
+	});
+
+	it("keeps the events of the session it tracks", () => {
+		track_resumable_event(config, "session-1", {
+			event_id: "event-1",
+			fn_index: 3
+		});
+		track_session(config, "session-1");
+		expect(get_resumable_events(config, "session-1")).toEqual([
+			{ event_id: "event-1", fn_index: 3 }
+		]);
+
+		track_session(config, "session-2");
+		expect(get_resumable_events(config, "session-2")).toEqual([]);
+		expect(has_session(config, "session-1")).toBe(false);
 	});
 });

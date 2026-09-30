@@ -10,10 +10,16 @@ interface ResumableSession {
 	root: string;
 	session_hash: string;
 	events: ResumableJob[];
+	// The pages this tab has shown in the session, whose load events have run.
+	pages?: string[];
+	// Whether a visible page is using the session. A page gives it up while
+	// hidden, so that the page replacing it (after a refresh, or when the
+	// browser reloads a discarded tab) picks it up, whereas a duplicated tab
+	// copies it from a page that is still using it and starts its own.
+	in_use?: boolean;
 }
 
 const STORAGE_KEY = "gradio_active_session";
-const COOKIE_NAME = "gradio_active_session";
 
 function read_session(): ResumableSession | null {
 	if (typeof sessionStorage === "undefined") return null;
@@ -27,52 +33,42 @@ function read_session(): ResumableSession | null {
 	}
 }
 
-function cookie_value(cookies: string): string | null {
-	const cookie = cookies
-		.split(";")
-		.map((value) => value.trim())
-		.find((value) => value.startsWith(`${COOKIE_NAME}=`));
-	const value = cookie?.slice(COOKIE_NAME.length + 1).split(";")[0];
-	return value ? decodeURIComponent(value) : null;
-}
-
-function cookie_path(root: string): string {
-	try {
-		return new URL(root).pathname || "/";
-	} catch {
-		return "/";
-	}
-}
-
 function write_session(session: ResumableSession): void {
 	if (typeof sessionStorage === "undefined") return;
 
 	try {
 		sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-		if (typeof document !== "undefined") {
-			document.cookie = `${COOKIE_NAME}=${encodeURIComponent(session.session_hash)}; Path=${cookie_path(session.root)}; SameSite=Lax`;
-		}
 	} catch {
 		return;
 	}
 }
 
-function remove_session(session: ResumableSession): void {
+function remove_session(): void {
 	try {
 		if (typeof sessionStorage !== "undefined") {
 			sessionStorage.removeItem(STORAGE_KEY);
 		}
-		if (typeof document !== "undefined") {
-			document.cookie = `${COOKIE_NAME}=; Path=${cookie_path(session.root)}; Max-Age=0; SameSite=Lax`;
-		}
 	} catch {
 		return;
 	}
 }
 
-export function get_resumable_session_hash(cookies?: string): string | null {
+function is_session(
+	session: ResumableSession | null,
+	config: Config,
+	session_hash: string
+): session is ResumableSession {
+	return (
+		!!session &&
+		session.session_hash === session_hash &&
+		session.root === config.root &&
+		(!session.app_id || session.app_id === config.app_id)
+	);
+}
+
+export function get_resumable_session_hash(): string | null {
 	const session = read_session();
-	if (session) {
+	if (session && !session.in_use) {
 		if (typeof location === "undefined") return session.session_hash;
 		try {
 			const root = new URL(session.root);
@@ -86,10 +82,41 @@ export function get_resumable_session_hash(cookies?: string): string | null {
 			return null;
 		}
 	}
+	return null;
+}
 
-	const cookie_string =
-		cookies ?? (typeof document !== "undefined" ? document.cookie : "");
-	return cookie_value(cookie_string);
+/** Whether this tab was using `session_hash` for this app. */
+export function has_session(config: Config, session_hash: string): boolean {
+	return is_session(read_session(), config, session_hash);
+}
+
+/** Whether this tab has already shown the config's page in `session_hash`. */
+export function has_shown_page(config: Config, session_hash: string): boolean {
+	const session = read_session();
+	return (
+		is_session(session, config, session_hash) &&
+		!!session.pages?.includes(config.current_page ?? "")
+	);
+}
+
+/** Remember that this tab is using `session_hash`, for as long as it is open. */
+export function track_session(config: Config, session_hash: string): void {
+	const session = read_session();
+	const current = is_session(session, config, session_hash) ? session : null;
+	const pages = new Set(current?.pages).add(config.current_page ?? "");
+	write_session({
+		app_id: config.app_id,
+		root: config.root,
+		session_hash,
+		events: current?.events ?? [],
+		pages: [...pages],
+		in_use: true
+	});
+}
+
+export function set_session_in_use(in_use: boolean): void {
+	const session = read_session();
+	if (session) write_session({ ...session, in_use });
 }
 
 export function get_resumable_events(
@@ -97,13 +124,8 @@ export function get_resumable_events(
 	session_hash: string
 ): ResumableJob[] {
 	const session = read_session();
-	if (
-		!session ||
-		session.session_hash !== session_hash ||
-		session.root !== config.root ||
-		(session.app_id && session.app_id !== config.app_id)
-	) {
-		if (session) remove_session(session);
+	if (!is_session(session, config, session_hash)) {
+		if (session) remove_session();
 		return [];
 	}
 	return session.events;
@@ -114,13 +136,14 @@ export function track_resumable_event(
 	session_hash: string,
 	event: ResumableJob
 ): void {
-	const current = read_session();
-	const events =
-		current?.session_hash === session_hash && current.root === config.root
-			? current.events.filter(({ event_id }) => event_id !== event.event_id)
-			: [];
+	const session = read_session();
+	const current = is_session(session, config, session_hash) ? session : null;
+	const events = (current?.events ?? []).filter(
+		({ event_id }) => event_id !== event.event_id
+	);
 
 	write_session({
+		...current,
 		app_id: config.app_id,
 		root: config.root,
 		session_hash,
@@ -133,9 +156,5 @@ export function clear_resumable_event(event_id: string): void {
 	if (!session) return;
 
 	const events = session.events.filter((event) => event.event_id !== event_id);
-	if (events.length === 0) {
-		remove_session(session);
-	} else {
-		write_session({ ...session, events });
-	}
+	write_session({ ...session, events });
 }

@@ -25,9 +25,13 @@ import { submit } from "./utils/submit";
 import {
 	get_resumable_events,
 	get_resumable_session_hash,
+	has_session,
+	has_shown_page,
+	set_session_in_use,
+	track_session,
 	type ResumableJob
 } from "./utils/session";
-import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
+import { RE_SPACE_NAME, join_urls, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
 	normalise_token_option,
@@ -46,6 +50,7 @@ import {
 	APP_ID_URL,
 	CLOSE_URL,
 	CONFIG_ERROR_MSG,
+	CONFIG_URL,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
 } from "./constants";
@@ -67,6 +72,9 @@ export class Client {
 
 	private cookies: string | null = null;
 	private restored_session_hash = false;
+	// Whether the server still had the session this tab was using for this
+	// page, and so its outputs and state carry over rather than starting afresh.
+	session_restored = false;
 
 	// streaming
 	stream_status = { open: false };
@@ -267,11 +275,10 @@ export class Client {
 			| undefined;
 		if (resolved?.config) {
 			if (
-				this.restored_session_hash &&
-				typeof sessionStorage !== "undefined" &&
-				get_resumable_events(resolved.config, this.session_hash).length === 0
+				this.options.resume_sessions &&
+				typeof sessionStorage !== "undefined"
 			) {
-				this.session_hash = Math.random().toString(36).substring(2);
+				await this.restore_session(resolved.config);
 			}
 			await this._resolve_heartbeat(resolved.config);
 		}
@@ -285,6 +292,50 @@ export class Client {
 			console.error((e as Error).message);
 		}
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
+	}
+
+	/**
+	 * Carry on with the session this tab was using before it was reloaded:
+	 * the server keeps its state, and its outputs are put back in the config.
+	 */
+	private async restore_session(config: Config): Promise<void> {
+		if (this.restored_session_hash && !has_session(config, this.session_hash)) {
+			this.session_hash = Math.random().toString(36).substring(2);
+		} else if (this.restored_session_hash) {
+			const url = new URL(join_urls(config.root, CONFIG_URL));
+			url.searchParams.set("session_hash", this.session_hash);
+			if (this.page !== null) url.searchParams.set("page", this.page);
+			try {
+				const response = await this.fetch(url, {
+					headers: this.options.token
+						? { Authorization: `Bearer ${this.options.token}` }
+						: {},
+					credentials: this.options.credentials ?? "same-origin"
+				});
+				const session_config: Config = await response.json();
+				if (response.ok && session_config.session_restored) {
+					const components = new Map(
+						session_config.components.map((component) => [
+							component.id,
+							component
+						])
+					);
+					config.components = config.components.map(
+						(component) => components.get(component.id) ?? component
+					);
+					// A page shown for the first time in the session still loads.
+					this.session_restored = has_shown_page(config, this.session_hash);
+				}
+			} catch {
+				// The app then starts from its initial values, as on a first visit.
+			}
+		}
+		track_session(config, this.session_hash);
+		if (typeof document !== "undefined") {
+			document.addEventListener("visibilitychange", () =>
+				set_session_in_use(document.visibilityState === "visible")
+			);
+		}
 	}
 
 	async _resolve_heartbeat(_config: Config): Promise<void> {
@@ -328,9 +379,7 @@ export class Client {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		const session_hash =
 			options.session_hash ||
-			(options.resume_sessions
-				? get_resumable_session_hash(options.cookies)
-				: null);
+			(options.resume_sessions ? get_resumable_session_hash() : null);
 		if (session_hash) {
 			client.session_hash = session_hash;
 			client.restored_session_hash = !options.session_hash;
@@ -384,6 +433,7 @@ export class Client {
 				credentials: this.options.credentials ?? "same-origin",
 				keepalive: true
 			}).catch(() => {});
+			set_session_in_use(false);
 		}
 		this.closed = true;
 		if (this.stream_reconnect_timer) {

@@ -48,6 +48,8 @@ export class Dependency {
 	show_progress_on: number[] | null = null;
 	component_prop_inputs: number[] = [];
 	show_progress: "full" | "minimal" | "hidden";
+	// the id of the render block, if this dependency is a render function
+	render_id: number | null;
 
 	functions: {
 		frontend?: (...args: unknown[]) => Promise<unknown[]>;
@@ -86,6 +88,7 @@ export class Dependency {
 		this.trigger_modes = dep_config.trigger_mode;
 		this.show_progress_on = dep_config.show_progress_on || null;
 		this.component_prop_inputs = dep_config.component_prop_inputs || [];
+		this.render_id = dep_config.render_id ?? null;
 
 		for (let i = 0; i < dep_config.event_specific_args?.length || 0; i++) {
 			const key = dep_config.event_specific_args[i];

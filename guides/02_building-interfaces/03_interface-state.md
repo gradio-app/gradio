@@ -25,7 +25,7 @@ $code_interface_state
 $demo_interface_state
 
 
-Notice how the state persists across submits within each page, but if you load this demo in another tab (or refresh the page), the demos will not share chat history. Here, we could not store the submission history in a global variable, otherwise the submission history would then get jumbled between different users.
+Notice how the state persists across submits within each page, but if you load this demo in another tab, the demos will not share chat history (refreshing a page keeps its history). Here, we could not store the submission history in a global variable, otherwise the submission history would then get jumbled between different users.
 
 The initial value of the `State` is `None` by default. If you pass a parameter to the `value` argument of `gr.State()`, it is used as the default value of the state instead. 
 
