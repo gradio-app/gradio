@@ -1347,7 +1347,6 @@ def test_client_dropped_without_close_stops_heartbeat(increment_demo, monkeypatc
         assert heartbeat.is_alive()
         client_ref = weakref.ref(client)
         del client
-        # The heartbeat thread holds the client while it prepares each request.
         deadline = time.monotonic() + 5
         while client_ref() is not None and time.monotonic() < deadline:
             gc.collect()
@@ -1395,7 +1394,6 @@ def test_heartbeat_retries_server_errors_with_backoff(increment_demo, monkeypatc
         assert len(attempts) == 4
         gaps = [later - earlier for earlier, later in zip(attempts, attempts[1:])]
         assert gaps[0] >= 0.1 and gaps[1] >= 0.2 and gaps[2] >= 0.4
-        # Connected to the real heartbeat, so no further attempts.
         time.sleep(0.5)
         assert len(attempts) == 4
         assert client.heartbeat.is_alive()
@@ -1421,7 +1419,6 @@ def test_heartbeat_backs_off_on_a_response_that_is_not_an_event_stream(
     monkeypatch.setattr(httpx, "stream", stream)
     with connect(increment_demo) as client:
         time.sleep(1)
-        # Retried after 0.05s, 0.1s, 0.2s, 0.4s... rather than in a tight loop.
         assert 2 <= len(attempts) <= 8
         assert client.heartbeat.is_alive()
         client.close()

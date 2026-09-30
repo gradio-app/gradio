@@ -58,11 +58,8 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
 
-# Bounds, in seconds, of the backoff between heartbeat reconnection attempts.
 HEARTBEAT_RETRY_DELAY_MIN = 1
 HEARTBEAT_RETRY_DELAY_MAX = 60
-# Brief streams can send an initial ALIVE event before failing again. Only a
-# connection that stays healthy for this long resets accumulated backoff.
 HEARTBEAT_RETRY_RESET_AFTER = 30
 
 
@@ -233,10 +230,6 @@ class Client:
             args=(weakref.ref(self), self._refresh_heartbeat, self._kill_heartbeat),
             daemon=True,
         )
-        # Only apps with session state, unload events or streams use the
-        # heartbeat, and their config says so (the JS client checks this too).
-        # Servers from Gradio 4.25 through 4.28 have a heartbeat route but do
-        # not set this flag. Keep their session cleanup and unload events working.
         if self.config.get("connect_heartbeat", True):
             self.heartbeat.start()
 
@@ -259,15 +252,11 @@ class Client:
         refresh_heartbeat: threading.Event,
         kill_heartbeat: threading.Event,
     ):
-        # Holds the client weakly, so a client dropped without close() can be
-        # garbage collected; its __del__ then stops this thread.
         retry_delay = HEARTBEAT_RETRY_DELAY_MIN
         while not kill_heartbeat.is_set():
             client = client_ref()
             if client is None:
                 return
-            # Cleared before the session hash is read, so a reset_session()
-            # racing with this reconnection is not lost.
             refresh_heartbeat.clear()
             url = client.heartbeat_url.format(session_hash=client.session_hash)
             httpx_kwargs = client.httpx_kwargs.copy()
@@ -290,8 +279,6 @@ class Client:
                 ) as response:
                     retryable = response.is_server_error or response.status_code == 429
                     if not response.is_success and not retryable:
-                        # E.g. a 404 from an app without the heartbeat route,
-                        # which retrying would not fix.
                         return
                     is_event_stream = response.headers.get(
                         "content-type", ""
@@ -313,8 +300,6 @@ class Client:
                 return
             if refreshed:
                 continue
-            # A 5xx, a 429, a page that is not an event stream, or a stream that
-            # ended: reconnect, but back off rather than retry in a tight loop.
             if kill_heartbeat.wait(retry_delay):
                 return
             retry_delay = min(retry_delay * 2, HEARTBEAT_RETRY_DELAY_MAX)

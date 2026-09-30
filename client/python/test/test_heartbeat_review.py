@@ -77,8 +77,6 @@ def heartbeat_server(respond):
 
 @contextmanager
 def heartbeat_client(url):
-    # Use the real Client lifecycle and stream implementation without needing
-    # unrelated /config and /info endpoints on the fault-injection server.
     client = Client.__new__(Client)
     client.heartbeat_url = url + "/heartbeat/{session_hash}"
     client.session_hash = "initial"
@@ -166,8 +164,6 @@ def test_healthy_stream_resets_accumulated_backoff(short_backoff, monkeypatch):
     with heartbeat_server(respond) as (url, attempts):
         with heartbeat_client(url):
             wait_for(lambda: len(attempts) == 4)
-            # After two failures the delay has reached 0.4s. A healthy stream
-            # resets it to 0.1s, in addition to its own 0.2s duration.
             assert 0.3 <= attempts[3][0] - attempts[2][0] < 0.5
 
 
