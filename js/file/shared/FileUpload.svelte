@@ -28,6 +28,7 @@
 		buttons = null,
 		on_custom_button_click = null,
 		disable_click = false,
+		aria_label = undefined,
 		onchange,
 		onclear,
 		ondrag,
@@ -55,6 +56,7 @@
 		buttons?: (string | CustomButtonType)[] | null;
 		on_custom_button_click?: ((id: number) => void) | null;
 		disable_click?: boolean;
+		aria_label?: string;
 		onchange?: (event_data: FileData[] | FileData | null) => void;
 		onclear?: () => void;
 		ondrag?: (dragging: boolean) => void;
@@ -147,6 +149,7 @@
 		{upload}
 		{height}
 		{disable_click}
+		{aria_label}
 	>
 		{@render children?.()}
 	</Upload>

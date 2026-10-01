@@ -626,19 +626,39 @@ describe("Props: sources", () => {
 		expect(getByTestId("webcam-video")).toBeInTheDocument();
 	});
 
+	test("deleting the last added item returns to the first source", async () => {
+		const { getByRole, getByTestId, getByText, listen } = await render(
+			Gallery,
+			{
+				...sources_props,
+				value: [],
+				sources: ["webcam", "upload"],
+				root: "https://example.com",
+				client: mock_client()
+			}
+		);
+		const upload = listen("upload");
+
+		await upload_file(TEST_JPG);
+		await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+		await fireEvent.click(getByRole("button", { name: "Delete image" }));
+
+		expect(getByText("upload_text.drop_gallery")).not.toBeVisible();
+		expect(getByTestId("webcam-video")).toBeInTheDocument();
+	});
+
 	test("sources=['clipboard'] empty area pastes instead of opening the file picker", async () => {
 		const read = vi.spyOn(navigator.clipboard, "read").mockResolvedValue([]);
-		const { getByText, getByTestId, listen } = await render(Gallery, {
+		const { getByLabelText, listen } = await render(Gallery, {
 			...sources_props,
 			value: [],
 			sources: ["clipboard"]
 		});
 		const warning = listen("warning");
 
-		expect(getByTestId("file-upload").parentElement).toHaveClass(
-			"disable_click"
-		);
-		await fireEvent.click(getByText("upload_text.paste_clipboard"));
+		const area = getByLabelText("upload_text.paste_clipboard");
+		expect(area).toHaveClass("disable_click");
+		await fireEvent.click(area);
 
 		await waitFor(() => expect(warning).toHaveBeenCalled());
 		expect(read).toHaveBeenCalled();

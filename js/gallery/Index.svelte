@@ -187,6 +187,9 @@
 				bind:this={upload_input}
 				disable_click={!sources.includes("upload") ||
 					active_source === "clipboard"}
+				aria_label={active_source === "clipboard"
+					? gradio.i18n("upload_text.paste_clipboard")
+					: undefined}
 				value={null}
 				root={gradio.shared.root}
 				label={gradio.shared.label}
