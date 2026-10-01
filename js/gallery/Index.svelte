@@ -173,15 +173,20 @@
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	{#if gradio.shared.interactive && no_value}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class={!gradio.props.value ||
 			(active_source && active_source.includes("webcam"))
 				? "hidden-upload-input"
 				: "upload-wrapper"}
+			onclick={active_source === "clipboard" ? paste_clipboard : undefined}
 		>
 			<BaseFileUpload
 				bind:upload_promise
 				bind:this={upload_input}
+				disable_click={!sources.includes("upload") ||
+					active_source === "clipboard"}
 				value={null}
 				root={gradio.shared.root}
 				label={gradio.shared.label}
@@ -204,7 +209,11 @@
 					gradio.dispatch("error", detail);
 				}}
 			>
-				<UploadText i18n={gradio.i18n} type="gallery" />
+				{#if active_source === "clipboard"}
+					<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
+				{:else}
+					<UploadText i18n={gradio.i18n} type="gallery" />
+				{/if}
 			</BaseFileUpload>
 		</div>
 		{#if active_source === "webcam"}
@@ -262,7 +271,10 @@
 	{:else}
 		<Gallery
 			onchange={() => gradio.dispatch("change")}
-			onclear={() => gradio.dispatch("change")}
+			onclear={() => {
+				active_source = sources[0];
+				gradio.dispatch("change");
+			}}
 			onselect={(e) => gradio.dispatch("select", e)}
 			onshare={(e) => gradio.dispatch("share", e.detail)}
 			onerror={(e) => gradio.dispatch("error", e.detail)}

@@ -727,7 +727,6 @@
 					{i18n}
 					onclear={() => {
 						value = [];
-						onsource_change("upload");
 						onclear();
 					}}
 				>

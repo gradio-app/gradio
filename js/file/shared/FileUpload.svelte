@@ -27,6 +27,7 @@
 		upload_promise = $bindable<Promise<(FileData | null)[]> | null>(),
 		buttons = null,
 		on_custom_button_click = null,
+		disable_click = false,
 		onchange,
 		onclear,
 		ondrag,
@@ -53,6 +54,7 @@
 		upload_promise?: Promise<(FileData | null)[]> | null;
 		buttons?: (string | CustomButtonType)[] | null;
 		on_custom_button_click?: ((id: number) => void) | null;
+		disable_click?: boolean;
 		onchange?: (event_data: FileData[] | FileData | null) => void;
 		onclear?: () => void;
 		ondrag?: (dragging: boolean) => void;
@@ -144,6 +146,7 @@
 		{stream_handler}
 		{upload}
 		{height}
+		{disable_click}
 	>
 		{@render children?.()}
 	</Upload>

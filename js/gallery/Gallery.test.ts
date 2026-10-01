@@ -614,16 +614,35 @@ describe("Props: sources", () => {
 		).not.toBeInTheDocument();
 	});
 
-	test("sources=['webcam'] returns to the webcam after clear", async () => {
+	test("clear returns to the first source", async () => {
 		const { getByLabelText, getByTestId, getByText } = await render(Gallery, {
 			...sources_props,
-			sources: ["webcam"]
+			sources: ["webcam", "upload"]
 		});
 
 		await fireEvent.click(getByLabelText("common.clear"));
 
 		expect(getByText("upload_text.drop_gallery")).not.toBeVisible();
 		expect(getByTestId("webcam-video")).toBeInTheDocument();
+	});
+
+	test("sources=['clipboard'] empty area pastes instead of opening the file picker", async () => {
+		const read = vi.spyOn(navigator.clipboard, "read").mockResolvedValue([]);
+		const { getByText, getByTestId, listen } = await render(Gallery, {
+			...sources_props,
+			value: [],
+			sources: ["clipboard"]
+		});
+		const warning = listen("warning");
+
+		expect(getByTestId("file-upload").parentElement).toHaveClass(
+			"disable_click"
+		);
+		await fireEvent.click(getByText("upload_text.paste_clipboard"));
+
+		await waitFor(() => expect(warning).toHaveBeenCalled());
+		expect(read).toHaveBeenCalled();
+		read.mockRestore();
 	});
 
 	test("source buttons are hidden when selected_index is set (preview active)", async () => {
