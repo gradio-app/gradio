@@ -649,19 +649,19 @@ describe("Props: sources", () => {
 
 	test("sources=['clipboard'] empty area pastes instead of opening the file picker", async () => {
 		const read = vi.spyOn(navigator.clipboard, "read").mockResolvedValue([]);
-		const { getByLabelText, listen } = await render(Gallery, {
+		const { getByLabelText, getByTestId, listen } = await render(Gallery, {
 			...sources_props,
 			value: [],
 			sources: ["clipboard"]
 		});
 		const warning = listen("warning");
+		const file_picker = vi.spyOn(getByTestId("file-upload"), "click");
 
-		const area = getByLabelText("upload_text.paste_clipboard");
-		expect(area).toHaveClass("disable_click");
-		await fireEvent.click(area);
+		await fireEvent.click(getByLabelText("upload_text.paste_clipboard"));
 
 		await waitFor(() => expect(warning).toHaveBeenCalled());
 		expect(read).toHaveBeenCalled();
+		expect(file_picker).not.toHaveBeenCalled();
 		read.mockRestore();
 	});
 
