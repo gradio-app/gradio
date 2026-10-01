@@ -602,6 +602,30 @@ describe("Props: sources", () => {
 		expect(getByLabelText("upload_text.paste_clipboard")).toBeVisible();
 	});
 
+	test("sources=['webcam'] does not show upload button", async () => {
+		const { getByLabelText, queryByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["webcam"]
+		});
+
+		expect(getByLabelText("common.webcam")).toBeVisible();
+		expect(
+			queryByLabelText("upload_text.click_to_upload")
+		).not.toBeInTheDocument();
+	});
+
+	test("sources=['webcam'] returns to the webcam after clear", async () => {
+		const { getByLabelText, getByTestId, getByText } = await render(Gallery, {
+			...sources_props,
+			sources: ["webcam"]
+		});
+
+		await fireEvent.click(getByLabelText("common.clear"));
+
+		expect(getByText("upload_text.drop_gallery")).not.toBeVisible();
+		expect(getByTestId("webcam-video")).toBeInTheDocument();
+	});
+
 	test("source buttons are hidden when selected_index is set (preview active)", async () => {
 		const { queryByLabelText } = await render(Gallery, {
 			...sources_props,

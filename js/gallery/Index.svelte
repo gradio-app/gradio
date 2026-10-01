@@ -90,6 +90,12 @@
 		}
 	});
 
+	$effect(() => {
+		if (!active_source || !sources.includes(active_source)) {
+			active_source = sources[0];
+		}
+	});
+
 	async function paste_clipboard(): Promise<void> {
 		navigator.clipboard.read().then(async (items) => {
 			let file: File | null = null;
