@@ -1,5 +1,6 @@
 ---
 "@gradio/client": minor
+"@gradio/gallery": minor
 "@gradio/image": minor
 "@gradio/imageeditor": minor
 "@gradio/video": minor
