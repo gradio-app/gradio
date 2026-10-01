@@ -1,6 +1,7 @@
 ---
+"@gradio/file": patch
 "@gradio/gallery": patch
 "gradio": patch
 ---
 
-fix:Hide file upload in gr.Gallery when "upload" is not in sources
+fix:Make gr.Gallery's empty state respect `sources`
