@@ -12,6 +12,7 @@ from gradio_client.documentation import document
 from pydantic import Field
 from typing_extensions import NotRequired
 
+from gradio.components.audio import MicrophoneOptions
 from gradio.components.base import Component, FormComponent
 from gradio.components.textbox import InputHTMLAttributes
 from gradio.data_classes import FileData, GradioModel
@@ -66,6 +67,7 @@ class MultimodalTextbox(FormComponent):
         sources: list[Literal["upload", "microphone"]]
         | Literal["upload", "microphone"]
         | None = None,
+        microphone_options: MicrophoneOptions | dict | None = None,
         file_types: list[str] | None = None,
         file_count: Literal["single", "multiple", "directory"] = "single",
         lines: int = 1,
@@ -99,6 +101,7 @@ class MultimodalTextbox(FormComponent):
         Parameters:
             value: Default value to show in MultimodalTextbox. A string value, or a dictionary of the form {"text": "sample text", "files": [{path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}]}. If a function is provided, the function will be called each time the app loads to set the initial value of this component.
             sources: A list of sources permitted. "upload" creates a button where users can click to upload or drop files, "microphone" creates a microphone input. If None, defaults to ["upload"].
+            microphone_options: A dictionary of options for recording from the microphone when "microphone" is in `sources`. Options include: constraints (dict). Default is None, which uses the browser's default settings. [See `gr.MicrophoneOptions` docs](#microphone-options).
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             lines: minimum number of line rows to provide in textarea.
@@ -144,6 +147,12 @@ class MultimodalTextbox(FormComponent):
                 raise ValueError(
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
+        if microphone_options is None:
+            self.microphone_options = MicrophoneOptions()
+        elif isinstance(microphone_options, dict):
+            self.microphone_options = MicrophoneOptions(**microphone_options)
+        else:
+            self.microphone_options = microphone_options
         self.file_types = file_types
         self.file_count = file_count
         if file_types is not None and not isinstance(file_types, list):

@@ -11,7 +11,8 @@
 		recording = false,
 		record_time,
 		show_recording_waveform,
-		timing = false
+		timing = false,
+		constraints
 	}: {
 		record: RecordPlugin;
 		i18n: I18nFormatter;
@@ -19,6 +20,7 @@
 		record_time: string;
 		show_recording_waveform: boolean | undefined;
 		timing?: boolean;
+		constraints?: MediaTrackConstraints;
 	} = $props();
 
 	let micDevices: MediaDeviceInfo[] = $state([]);
@@ -79,7 +81,7 @@
 
 	$effect(() => {
 		if (recording && !recording_ongoing) {
-			record.startMic().then(() => {
+			record.startMic(constraints).then(() => {
 				record.startRecording();
 				recording_ongoing = true;
 			});
@@ -98,7 +100,8 @@
 		<button
 			bind:this={recordButton}
 			class="record record-button"
-			onclick={() => record.startRecording()}>{i18n("audio.record")}</button
+			onclick={() => record.startRecording(constraints)}
+			>{i18n("audio.record")}</button
 		>
 
 		<button

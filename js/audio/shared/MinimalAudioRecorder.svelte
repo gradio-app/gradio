@@ -17,7 +17,8 @@
 		upload_promise = $bindable(),
 		onchange,
 		onstoprecording,
-		onclear
+		onclear,
+		constraints
 	}: {
 		label: string;
 		waveform_settings?: Record<string, any>;
@@ -29,6 +30,7 @@
 		onchange?: (value: FileData) => void;
 		onstoprecording?: () => void;
 		onclear?: () => void;
+		constraints?: MediaTrackConstraints;
 	} = $props();
 
 	let container: HTMLDivElement;
@@ -41,6 +43,13 @@
 	let mic_devices: MediaDeviceInfo[] = $state([]);
 	let selected_device_id: string = $state("");
 	let show_device_selection = $state(false);
+
+	const mic_constraints = (): MediaTrackConstraints =>
+		// The selected device (the first one found, or the one picked from the
+		// list) overrides a deviceId in the constraints.
+		selected_device_id || !constraints?.deviceId
+			? { ...constraints, deviceId: selected_device_id }
+			: { ...constraints };
 
 	const start_interval = (): void => {
 		clearInterval(interval);
@@ -171,7 +180,7 @@
 			mic_devices.length <= 1
 		) {
 			record
-				.startMic({ deviceId: selected_device_id })
+				.startMic(mic_constraints())
 				.then(() => {
 					record?.startRecording();
 				})
@@ -195,7 +204,7 @@
 		if (!record) return;
 
 		try {
-			await record.startMic({ deviceId: selected_device_id });
+			await record.startMic(mic_constraints());
 			record.startRecording();
 		} catch (err) {
 			console.error("Error starting recording:", err);

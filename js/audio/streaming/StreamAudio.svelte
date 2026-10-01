@@ -4,7 +4,7 @@
 	import { Spinner } from "@gradio/icons";
 	import WaveSurfer from "wavesurfer.js";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
-	import type { WaveformOptions } from "../shared/types";
+	import type { WaveformOptions, MicrophoneOptions } from "../shared/types";
 	import DeviceSelect from "../shared/DeviceSelect.svelte";
 
 	let {
@@ -15,6 +15,7 @@
 		i18n,
 		waveform_settings,
 		waveform_options = { show_recording_waveform: true },
+		microphone_options = {},
 		waiting = false
 	}: {
 		recording?: boolean;
@@ -24,6 +25,7 @@
 		i18n: I18nFormatter;
 		waveform_settings: Record<string, any>;
 		waveform_options?: WaveformOptions;
+		microphone_options?: MicrophoneOptions;
 		waiting?: boolean;
 	} = $props();
 
@@ -47,7 +49,7 @@
 		const plugin = waveformRecord;
 		if (!plugin) return;
 		const request = ++mic_request;
-		plugin.startMic().then(
+		plugin.startMic(microphone_options.constraints ?? undefined).then(
 			(stream) => {
 				// stopMic() is a no-op until startMic() resolves, so a Stop or
 				// unmount while mic access was pending has to be applied here.
