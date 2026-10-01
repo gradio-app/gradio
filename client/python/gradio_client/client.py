@@ -433,8 +433,10 @@ class Client:
                     protocol, session_hash=hash_data["session_hash"]
                 )
 
-            def close_stream(_):
+            def close_stream(future):
                 with self.pending_lock:
+                    if self.streaming_future is future:
+                        self.streaming_future = None
                     if self.stream_epoch == epoch:
                         # A later submission may already have opened its own
                         # reader, and that one is not ours to close.
@@ -1017,10 +1019,11 @@ class Client:
     def __del__(self):
         if hasattr(self, "_kill_heartbeat"):
             self._kill_heartbeat.set()
-        if hasattr(self, "executor"):
-            self.executor.shutdown(wait=True)
         # Not wait=True: garbage collecting a client should not block on a reader
-        # that is still waiting on the server.
+        # that is still waiting on the server, and this can run on one of the
+        # executors' own threads, which cannot join themselves.
+        if hasattr(self, "executor"):
+            self.executor.shutdown(wait=False)
         if hasattr(self, "helper_executor"):
             self.helper_executor.shutdown(wait=False)
         if hasattr(self, "stream_executor"):
@@ -1124,7 +1127,7 @@ class Endpoint:
     def __init__(
         self, client: Client, fn_index: int, dependency: dict, protocol: str = "sse_v1"
     ):
-        self.client: Client = client
+        self._client = weakref.ref(client)
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
@@ -1196,6 +1199,20 @@ class Endpoint:
             return False
         return utils.value_is_file(component["api_info"])
 
+    @property
+    def client(self) -> Client:
+        client = self._client()
+        if client is None:
+            raise ValueError(
+                "The Client this endpoint belongs to has been garbage collected."
+            )
+        return client
+
+    @client.setter
+    def client(self, client: Client) -> None:
+        # Only the client's own endpoints hold it weakly, to avoid a cycle.
+        self._client = lambda: client
+
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
 
@@ -1204,12 +1221,13 @@ class Endpoint:
 
     def make_end_to_end_fn(self, helper: Communicator):
         _predict = self.make_predict(helper)
+        client = self.client
 
         def _inner(*data, **kwargs):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
 
-            if self.client._skip_components:
+            if client._skip_components:
                 data = self.insert_empty_state(*data)
             data = self.process_input_files(*data)
             predictions = _predict(*data, **kwargs)
@@ -1231,15 +1249,16 @@ class Endpoint:
     ):
         if helper is None:
             return
-        if self.client.app_version > version.Version("4.29.0"):
-            url = urllib.parse.urljoin(self.client.src_prefixed, utils.CANCEL_URL)
+        client = self.client
+        if client.app_version > version.Version("4.29.0"):
+            url = urllib.parse.urljoin(client.src_prefixed, utils.CANCEL_URL)
 
             # The event_id won't be set on the helper until later
             # so need to create the data in a function that's run at cancel time
             def post_data():
                 return {
                     "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
+                    "session_hash": client.session_hash,
                     "event_id": helper.event_id,
                 }
 
@@ -1247,7 +1266,7 @@ class Endpoint:
             cancellable = True
         else:
             candidates: list[tuple[int, list[int]]] = []
-            for i, dep in enumerate(self.client.config["dependencies"]):
+            for i, dep in enumerate(client.config["dependencies"]):
                 if self.fn_index in dep["cancels"]:
                     candidates.append(
                         (i, [d for d in dep["cancels"] if d != self.fn_index])
@@ -1260,7 +1279,7 @@ class Endpoint:
             cancel_msg = None
             if cancellable and other_cancelled:
                 other_api_names = [
-                    "/" + self.client.config["dependencies"][i].get("api_name")
+                    "/" + client.config["dependencies"][i].get("api_name")
                     for i in other_cancelled
                 ]
                 cancel_msg = (
@@ -1278,10 +1297,10 @@ class Endpoint:
                 return {
                     "data": [],
                     "fn_index": fn_index,
-                    "session_hash": self.client.session_hash,
+                    "session_hash": client.session_hash,
                 }
 
-            url = self.client.api_url
+            url = client.api_url
 
         def _cancel():
             if cancel_msg:
@@ -1290,15 +1309,17 @@ class Endpoint:
                 httpx.post(
                     url,
                     json=post_data(),
-                    headers=self.client.headers,
-                    cookies=self.client.cookies,
-                    verify=self.client.ssl_verify,
-                    **self.client.httpx_kwargs,
+                    headers=client.headers,
+                    cookies=client.cookies,
+                    verify=client.ssl_verify,
+                    **client.httpx_kwargs,
                 )
 
         return _cancel
 
     def make_predict(self, helper: Communicator):
+        client = self.client
+
         def _predict(*data, **kwargs) -> tuple:
             data = {
                 "data": data or [],
@@ -1310,13 +1331,13 @@ class Endpoint:
 
             hash_data = {
                 "fn_index": self.fn_index,
-                "session_hash": kwargs.get("session_hash", self.client.session_hash),
+                "session_hash": kwargs.get("session_hash", client.session_hash),
             }
 
             if self.protocol == "sse":
                 result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
-                event_id = self.client.send_data(
+                event_id = client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
                 helper.event_id = event_id
@@ -1338,13 +1359,13 @@ class Endpoint:
                 output = result["data"]
             except KeyError as ke:
                 is_public_space = (
-                    self.client.space_id
-                    and not huggingface_hub.space_info(self.client.space_id).private
+                    client.space_id
+                    and not huggingface_hub.space_info(client.space_id).private
                 )
                 if "error" in result and "429" in result["error"] and is_public_space:
                     raise utils.TooManyRequestsError(
                         f"Too many requests to the API, please try again later. To avoid being rate-limited, "
-                        f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
+                        f"please duplicate the Space using Client.duplicate({client.space_id}) "
                         f"and pass in your Hugging Face token."
                     ) from None
                 elif "error" in result:

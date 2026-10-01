@@ -7,7 +7,13 @@ import threading
 import time
 import uuid
 import weakref
-from concurrent.futures import CancelledError, TimeoutError, wait
+from collections import deque
+from concurrent.futures import (
+    CancelledError,
+    ThreadPoolExecutor,
+    TimeoutError,
+    wait,
+)
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -24,6 +30,7 @@ from gradio_client.client import DEFAULT_TEMP_DIR, Endpoint
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
+    JobStatus,
     ProgressUnit,
     QueueError,
     Status,
@@ -1354,6 +1361,74 @@ def test_client_dropped_without_close_stops_heartbeat(increment_demo, monkeypatc
         assert client_ref() is None
         heartbeat.join(timeout=5)
         assert not heartbeat.is_alive()
+
+
+def test_dropped_client_is_freed_without_the_cycle_collector(
+    increment_demo, monkeypatch
+):
+    monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", "0.5")
+    gc.collect()
+    gc.disable()
+    try:
+        with connect(increment_demo) as client:
+            assert client.predict(api_name="/increment_with_queue") == 1
+            heartbeat = client.heartbeat
+            client_ref = weakref.ref(client)
+            del client
+            deadline = time.monotonic() + 5
+            while client_ref() is not None and time.monotonic() < deadline:
+                time.sleep(0.05)
+            assert client_ref() is None
+            heartbeat.join(timeout=5)
+            assert not heartbeat.is_alive()
+    finally:
+        gc.enable()
+
+
+def test_cancelled_prediction_leaves_no_reference_cycle():
+    class Sentinel:
+        pass
+
+    helper = Communicator(
+        threading.Lock(),
+        JobStatus(),
+        lambda *outputs: outputs,
+        "http://localhost/reset",
+        should_cancel=True,
+    )
+    pending = {"event": deque()}
+    executor = ThreadPoolExecutor(max_workers=2)
+
+    def predict(sentinel):
+        utils.get_pred_from_sse_v1plus(
+            helper,
+            {},
+            None,
+            pending,
+            threading.Lock(),
+            "event",
+            "sse_v3",
+            True,
+            executor,
+        )
+
+    gc.collect()
+    gc.disable()
+    try:
+        sentinel = Sentinel()
+        sentinel_ref = weakref.ref(sentinel)
+        try:
+            predict(sentinel)
+        except CancelledError:
+            pass
+        else:
+            pytest.fail("Expected the prediction to be cancelled")
+        del sentinel
+        assert sentinel_ref() is None
+    finally:
+        gc.enable()
+        pending["event"].append(None)
+        executor.shutdown(wait=True)
 
 
 def test_heartbeat_stops_on_error_response(increment_demo, monkeypatch):
