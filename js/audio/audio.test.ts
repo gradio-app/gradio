@@ -942,6 +942,19 @@ describe("MinimalAudioRecorder", () => {
 			});
 		});
 
+		test("a deviceId constraint is kept when no device has been selected", async () => {
+			await render_recorder([], {
+				recording: true,
+				constraints: { ...constraints, deviceId: "mic-x" }
+			});
+
+			await waitFor(() => expect(start_mic).toHaveBeenCalled());
+			expect(start_mic).toHaveBeenCalledWith({
+				...constraints,
+				deviceId: "mic-x"
+			});
+		});
+
 		test("the mic is requested with only the device when no constraints are set", async () => {
 			await render_recorder([mic("mic-1")], { recording: true });
 
