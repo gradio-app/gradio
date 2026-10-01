@@ -214,7 +214,7 @@ class Audio(
         if microphone_options is None:
             self.microphone_options = MicrophoneOptions()
         elif isinstance(microphone_options, dict):
-            self.microphone_options = MicrophoneOptions(**microphone_options)
+            self.microphone_options = MicrophoneOptions(**microphone_options)  # type: ignore
         else:
             self.microphone_options = microphone_options
         self.recording = recording
