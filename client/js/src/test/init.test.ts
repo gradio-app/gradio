@@ -1,6 +1,7 @@
 import {
 	describe,
 	beforeAll,
+	beforeEach,
 	afterEach,
 	afterAll,
 	test,
@@ -15,6 +16,13 @@ import {
 } from "./test_data";
 import { initialise_server } from "./server";
 import { SPACE_NOT_FOUND_MSG } from "../constants";
+import {
+	get_resumable_events,
+	get_resumable_session_hash,
+	set_session_in_use,
+	track_resumable_event,
+	track_session
+} from "../utils/session";
 import { HttpResponse, http } from "msw";
 
 const app_reference = "hmb/hello_world";
@@ -64,6 +72,135 @@ describe("Client class", () => {
 			const app = await Client.connect(direct_app_reference);
 			expect(app.config).toEqual(config_response);
 		});
+
+		test.skipIf(typeof sessionStorage === "undefined")(
+			"does not restore a session from a different app",
+			async () => {
+				track_resumable_event(
+					{ ...config_response, app_id: "another-app" },
+					"restored-session",
+					{ event_id: "event-id", fn_index: 0 }
+				);
+
+				const app = await Client.connect(direct_app_reference, {
+					resume_sessions: true
+				});
+
+				expect(app.session_hash).not.toBe("restored-session");
+			}
+		);
+
+		describe.skipIf(typeof sessionStorage === "undefined")(
+			"after the page is reloaded",
+			() => {
+				// A tab only picks its session back up on the app it was using.
+				const root =
+					typeof location === "undefined"
+						? direct_app_reference
+						: location.origin;
+				const app_config = { ...config_response, root };
+				const restored_components = config_response.components.map(
+					(component) =>
+						component.id === 1
+							? { ...component, props: { ...component.props, value: "hi" } }
+							: component
+				);
+				let session_requests: (string | null)[];
+
+				beforeEach(() => {
+					sessionStorage.clear();
+					session_requests = [];
+					server.use(
+						http.get(`${direct_app_reference}/config`, () =>
+							HttpResponse.json(app_config)
+						),
+						http.get(`${root}/config`, ({ request }) => {
+							const session_hash = new URL(request.url).searchParams.get(
+								"session_hash"
+							);
+							session_requests.push(session_hash);
+							return HttpResponse.json(
+								session_hash === "known-session"
+									? {
+											...app_config,
+											components: restored_components,
+											session_restored: true
+										}
+									: { ...app_config, session_restored: false }
+							);
+						}),
+						http.get(`${root}/info`, () => HttpResponse.json(response_api_info))
+					);
+				});
+
+				test("picks up the session and its outputs", async () => {
+					track_session(app_config, "known-session");
+					set_session_in_use(false);
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(session_requests).toEqual(["known-session"]);
+					expect(app.session_hash).toBe("known-session");
+					expect(app.session_restored).toBe(true);
+					expect(
+						app.config?.components.find(({ id }) => id === 1)?.props.value
+					).toBe("hi");
+				});
+
+				test("still loads a page the session has not shown yet", async () => {
+					track_session(
+						{ ...app_config, current_page: "other" },
+						"known-session"
+					);
+					set_session_in_use(false);
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(app.session_hash).toBe("known-session");
+					expect(app.session_restored).toBe(false);
+				});
+
+				test("keeps the session but starts afresh if the server lost it", async () => {
+					track_session(app_config, "expired-session");
+					set_session_in_use(false);
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(app.session_hash).toBe("expired-session");
+					expect(app.session_restored).toBe(false);
+					expect(app.config?.components).toEqual(app_config.components);
+				});
+
+				test("does not share a session with a duplicated tab", async () => {
+					// The original tab is still using the session.
+					track_session(app_config, "known-session");
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(session_requests).toEqual([]);
+					expect(app.session_hash).not.toBe("known-session");
+					expect(app.session_restored).toBe(false);
+				});
+
+				test("remembers a new session for the next reload", async () => {
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+					expect(get_resumable_session_hash()).toBeNull();
+
+					app.close();
+					expect(get_resumable_session_hash()).toBe(app.session_hash);
+				});
+			}
+		);
 
 		test("forwards a page query when resolving config and API info", async () => {
 			const requested_urls: string[] = [];
@@ -166,6 +303,85 @@ describe("Client class", () => {
 			const app = Client.connect(broken_app_reference);
 			await expect(app).rejects.toThrowError();
 		});
+	});
+
+	describe("resume_jobs", () => {
+		test("reattaches each job to its existing queue event", async () => {
+			const app = await Client.connect(direct_app_reference);
+			app.stream_status.open = true;
+
+			const submissions = app.resume_jobs([
+				{ event_id: "event-1", fn_index: 0 },
+				{ event_id: "event-2", fn_index: 0 }
+			]);
+
+			await expect(submissions[0].wait_for_id()).resolves.toBe("event-1");
+			await expect(submissions[1].wait_for_id()).resolves.toBe("event-2");
+			expect(app.event_callbacks["event-1"]).toBeDefined();
+			expect(app.event_callbacks["event-2"]).toBeDefined();
+			expect(app.options.resume_sessions).toBe(true);
+
+			await Promise.all(submissions.map((submission) => submission.return()));
+		});
+
+		test.skipIf(typeof sessionStorage === "undefined")(
+			"clears a resumable event rejected by the server",
+			async () => {
+				const app = await Client.connect(direct_app_reference);
+				app.stream_status.open = true;
+				track_resumable_event(app.config!, app.session_hash, {
+					event_id: "expired-event",
+					fn_index: 0
+				});
+
+				const submission = app.resume_jobs([
+					{ event_id: "expired-event", fn_index: 0 }
+				])[0];
+				await submission.wait_for_id();
+				await app.event_callbacks["expired-event"]({
+					msg: "unexpected_error",
+					event_id: "expired-event",
+					message: "Session event not found.",
+					session_not_found: true
+				});
+
+				expect(get_resumable_events(app.config!, app.session_hash)).toEqual([]);
+				await submission.return();
+			}
+		);
+
+		test.skipIf(typeof window === "undefined")(
+			"notifies the server when a resumable client closes",
+			async () => {
+				const app = await Client.connect(secret_direct_app_reference, {
+					token: "hf_123",
+					resume_sessions: true
+				});
+				let received_session_hash: string | undefined;
+				let received_authorization: string | null = null;
+				let resolve_request: () => void = () => {};
+				const request_received = new Promise<void>((resolve) => {
+					resolve_request = resolve;
+				});
+				server.resetHandlers(
+					http.post(
+						`${secret_direct_app_reference}/queue/close`,
+						async ({ request }) => {
+							const body = (await request.json()) as { session_hash: string };
+							received_session_hash = body.session_hash;
+							received_authorization = request.headers.get("Authorization");
+							resolve_request();
+							return HttpResponse.json({ success: true });
+						}
+					)
+				);
+				app.close();
+				await request_received;
+
+				expect(received_session_hash).toBe(app.session_hash);
+				expect(received_authorization).toBe("Bearer hf_123");
+			}
+		);
 	});
 
 	describe("duplicate", () => {

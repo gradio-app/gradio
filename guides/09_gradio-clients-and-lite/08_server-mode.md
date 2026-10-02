@@ -121,6 +121,37 @@ Then open `http://localhost:7860` in your browser. The custom HTML page uses the
 
 Note: if your `Server` app uses ZeroGPU, you _must_ call Gradio API endpoints through `@gradio/client` from the browser. The JavaScript client forwards the Hugging Face iframe auth headers needed for ZeroGPU quota handling.
 
+## Resuming Queued Work
+
+Server-mode endpoints use the same resumable queue as `Blocks` apps. For a custom browser frontend, connect with `resume_sessions: true` and call `resume_jobs()` when the page loads. This restores any active submissions saved in the browser session instead of starting them again:
+
+```js
+const app = await Client.connect(location.origin, {
+	resume_sessions: true,
+	events: ["status", "data"]
+});
+
+for (const job of app.resume_jobs()) {
+	for await (const message of job) {
+		console.log(message);
+	}
+}
+```
+
+Python services can persist the event ID, function index, and session hash, then recreate the job with `Client.resume_jobs()`:
+
+```python
+client = Client("http://localhost:7860", resume_sessions=True)
+job = client.submit("hello", api_name="/generate")
+saved_job = {"event_id": job.wait_for_id(), "fn_index": job.fn_index}
+saved_session = client.session_hash
+
+client = Client("http://localhost:7860")
+job = client.resume_jobs([saved_job], session_hash=saved_session)[0]
+```
+
+When storing the values separately, preserve the original client's `session_hash` and pass that value to the new client. Resumed generator endpoints replay their buffered chunks in order before continuing with live output.
+
 ## Concurrency and Streaming
 
 `app.api()` supports all of the same concurrency and streaming options as `gr.api()`:

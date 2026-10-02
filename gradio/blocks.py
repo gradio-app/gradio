@@ -1714,7 +1714,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         )
 
     def unload(self, fn: Callable[..., Any]) -> None:
-        """This listener is triggered when the user closes or refreshes the tab, ending the user session.
+        """This listener is triggered when the user closes the tab, ending the user session. A refreshed tab keeps its session, so this only runs if the page does not reconnect within a few seconds.
         It is useful for cleaning up resources when the app is closed.
         Parameters:
             fn: Callable function to run to clear resources. The function should not take any arguments and the output is not used.
@@ -2142,8 +2142,11 @@ Received inputs:
             if block.stateful:
                 processed_input.append(state[block._id])
             else:
-                if block._id in state:
-                    block = state[block._id]
+                # An update replaces the session's block with one that has its
+                # own `_id`, so keep the id of the input itself.
+                input_id = block._id
+                if input_id in state:
+                    block = state[input_id]
 
                 is_prop_input = i in block_fn.component_prop_inputs
                 if is_prop_input:
@@ -2172,9 +2175,9 @@ Received inputs:
                 else:
                     inputs_serialized = inputs_cached
 
-                if block._id not in state:
-                    state[block._id] = block
-                state._update_value_in_config(block._id, inputs_serialized)
+                if input_id not in state:
+                    state[input_id] = block
+                state._update_value_in_config(input_id, inputs_serialized)
 
                 if block_fn.preprocess:
                     try:
@@ -2350,8 +2353,11 @@ Received inputs:
                         raise InvalidComponentError(
                             f"{block.__class__} Component not a valid output component."
                         )
-                    if block._id in state:
-                        block = state[block._id]
+                    # An update replaces the session's block with one that has
+                    # its own `_id`, so keep the id of the output itself.
+                    output_id = block._id
+                    if output_id in state:
+                        block = state[output_id]
                     try:
                         prediction_value = await anyio.to_thread.run_sync(
                             block.postprocess, prediction_value, limiter=self.limiter
@@ -2381,10 +2387,10 @@ Received inputs:
                                 postprocess=True,
                             )
                         )
-                        if block._id not in state:
-                            state[block._id] = block
+                        if output_id not in state:
+                            state[output_id] = block
                         state._update_value_in_config(
-                            block._id, prediction_value_serialized
+                            output_id, prediction_value_serialized
                         )
                 elif not block_fn.postprocess:
                     if block._id not in state:

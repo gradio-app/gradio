@@ -11,7 +11,7 @@ import pickle
 import sys
 import tempfile
 import time
-from contextlib import asynccontextmanager, closing
+from contextlib import asynccontextmanager, closing, contextmanager
 from pathlib import Path, PurePosixPath
 from threading import Event, Thread
 from types import SimpleNamespace
@@ -230,6 +230,55 @@ class TestRoutes:
             assert {component["id"] for component in config["components"]} == {
                 component["id"] for component in full_config["components"]
             }
+        finally:
+            demo.close()
+
+    def test_config_restores_the_outputs_of_a_session(self):
+        with Blocks() as demo:
+            name = Textbox()
+            greeting = Textbox(label="Greeting")
+            name.submit(lambda name: f"Hello {name}", name, greeting, api_name="greet")
+            gr.Button().click(
+                lambda: Textbox(label="Greeted"), None, greeting, api_name="relabel"
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            client.post(
+                f"{API_PREFIX}/api/greet/",
+                json={"data": ["Grace"], "session_hash": "reloaded"},
+            )
+            # An update that only changes props keeps the value, and values
+            # set after it are kept too.
+            client.post(
+                f"{API_PREFIX}/api/relabel/",
+                json={"data": [], "session_hash": "reloaded"},
+            )
+            client.post(
+                f"{API_PREFIX}/api/greet/",
+                json={"data": ["Ada"], "session_hash": "reloaded"},
+            )
+
+            def props(config):
+                return {
+                    component["id"]: component["props"]
+                    for component in config["components"]
+                }
+
+            restored = client.get("/config?session_hash=reloaded").json()
+            assert restored["session_restored"] is True
+            assert props(restored)[name._id]["value"] == "Ada"
+            assert props(restored)[greeting._id]["value"] == "Hello Ada"
+            assert props(restored)[greeting._id]["label"] == "Greeted"
+
+            restored_page = client.get("/config?session_hash=reloaded&page=").json()
+            assert props(restored_page)[greeting._id]["value"] == "Hello Ada"
+
+            unknown = client.get("/config?session_hash=unknown").json()
+            assert unknown["session_restored"] is False
+            assert "value" not in props(unknown)[greeting._id]
+            assert "session_restored" not in client.get("/config").json()
         finally:
             demo.close()
 
@@ -1848,6 +1897,28 @@ class TestAuthenticatedRoutes:
         response = client.get("/monitoring/summary")
         assert response.status_code == 401
 
+    def test_queue_reset_route(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+        body = {"event_id": "event"}
+
+        try:
+            response = client.post(f"{API_PREFIX}/reset", json=body)
+            assert response.status_code == 401
+
+            client.post(
+                "/login",
+                data={"username": "test", "password": "correct_password"},
+            )
+            response = client.post(f"{API_PREFIX}/reset", json=body)
+            assert response.status_code == 200
+        finally:
+            io.close()
+
 
 class TestConfigUsername:
     """`/config` reports who is logged in. Resolving the user is async, so a
@@ -1892,6 +1963,58 @@ class TestQueueRoutes:
         client.predict("test")
 
         assert io._queue.server_app == io.server_app
+
+
+def test_a_reloaded_page_keeps_its_session_but_a_closed_one_does_not():
+    unloads = []
+
+    with gr.Blocks() as demo:
+        demo.unload(lambda: unloads.append(True))
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    demo._queue.close_grace_period = 0.5
+
+    @contextmanager
+    def page(session_hash):
+        url = f"{local_url.rstrip('/')}{API_PREFIX}/heartbeat/{session_hash}"
+        with httpx2.stream("GET", url, timeout=10) as response:
+            # Keep a reference: the connection closes once this is collected.
+            lines = response.iter_lines()
+            next(lines)
+            yield
+
+    def closed(session_hash):
+        return demo.server_app.state_holder.session_data[session_hash].is_closed
+
+    def wait_for_unloads(count):
+        deadline = time.monotonic() + 10
+        while len(unloads) < count and time.monotonic() < deadline:
+            time.sleep(0.1)
+        time.sleep(1)
+        assert len(unloads) == count
+
+    try:
+        demo.server_app.state_holder["reloaded"]
+        with page("reloaded"):
+            pass
+        # The refreshed page reconnects before the grace period is over.
+        with page("reloaded"):
+            time.sleep(1.5)
+            assert unloads == []
+            assert not closed("reloaded")
+        wait_for_unloads(1)
+        assert closed("reloaded")
+
+        # A page closed right after a refresh is only closed once.
+        demo.server_app.state_holder["closed"]
+        with page("closed"):
+            pass
+        with page("closed"):
+            pass
+        wait_for_unloads(2)
+        assert closed("closed")
+    finally:
+        demo.close()
 
 
 class TestDevMode:

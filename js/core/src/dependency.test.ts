@@ -38,6 +38,15 @@ function dependency(
 	} as DependencyConfig;
 }
 
+// The client's submit() result is an async iterable with helper methods.
+function submission(
+	iterator: AsyncGenerator<unknown>
+): ReturnType<Client["submit"]> {
+	return Object.assign(iterator, {
+		acknowledge: vi.fn().mockResolvedValue(undefined)
+	}) as unknown as ReturnType<Client["submit"]>;
+}
+
 function manager(
 	dependencies: DependencyConfig[],
 	client: Client = {} as Client,
@@ -165,9 +174,11 @@ describe("DependencyManager.dispatch", () => {
 		};
 		const client = {
 			submit: (fn_index: number) =>
-				(async function* () {
-					yield messages[fn_index];
-				})()
+				submission(
+					(async function* () {
+						yield messages[fn_index];
+					})()
+				)
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager(
@@ -202,14 +213,16 @@ describe("DependencyManager.dispatch", () => {
 		validated.show_progress_on = [11, 12];
 		const client = {
 			submit: () =>
-				(async function* () {
-					yield {
-						type: "status",
-						stage: "error",
-						queue: true,
-						message: [{ is_valid: false, message: "value must not be 'bad'" }]
-					};
-				})()
+				submission(
+					(async function* () {
+						yield {
+							type: "status",
+							stage: "error",
+							queue: true,
+							message: [{ is_valid: false, message: "value must not be 'bad'" }]
+						};
+					})()
+				)
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager([validated], client, update_state);
@@ -247,18 +260,20 @@ describe("DependencyManager.dispatch", () => {
 		validated.inputs = [11, 12, 13];
 		const client = {
 			submit: () =>
-				(async function* () {
-					yield {
-						type: "status",
-						stage: "error",
-						queue: true,
-						message: [
-							{ is_valid: false, message: "Name is required." },
-							{ is_valid: true, message: "" },
-							{ is_valid: false, message: "Age must be positive." }
-						]
-					};
-				})()
+				submission(
+					(async function* () {
+						yield {
+							type: "status",
+							stage: "error",
+							queue: true,
+							message: [
+								{ is_valid: false, message: "Name is required." },
+								{ is_valid: true, message: "" },
+								{ is_valid: false, message: "Age must be positive." }
+							]
+						};
+					})()
+				)
 		} as unknown as Client;
 		const on_loading_status_change = vi.fn();
 		const dependency_manager = manager(
@@ -303,9 +318,11 @@ describe("DependencyManager.dispatch", () => {
 		};
 		const client = {
 			submit: (fn_index: number) =>
-				(async function* () {
-					yield* messages[fn_index];
-				})()
+				submission(
+					(async function* () {
+						yield* messages[fn_index];
+					})()
+				)
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager(
@@ -335,5 +352,28 @@ describe("DependencyManager.dispatch", () => {
 		expect(painted.map((status) => status?.stream_state)).not.toContain(
 			"waiting"
 		);
+	});
+});
+
+describe("DependencyManager.dispatch_load_events", () => {
+	test("dispatches load handlers that are not already being resumed", () => {
+		const resumed_load = dependency(0, "resumed_load", []);
+		resumed_load.targets = [[1, "load"]];
+		const normal_load = dependency(1, "normal_load", []);
+		normal_load.targets = [[2, "load"]];
+		const dependency_manager = manager([resumed_load, normal_load]);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		dependency_manager.dispatch_load_events(undefined, new Set([0]));
+
+		expect(dispatch).toHaveBeenCalledTimes(1);
+		expect(dispatch).toHaveBeenCalledWith({
+			type: "fn",
+			fn_index: 1,
+			event_data: null,
+			target_id: 2
+		});
 	});
 });

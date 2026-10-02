@@ -22,7 +22,16 @@ import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
 import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
-import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
+import {
+	get_resumable_events,
+	get_resumable_session_hash,
+	has_session,
+	has_shown_page,
+	set_session_in_use,
+	track_session,
+	type ResumableJob
+} from "./utils/session";
+import { RE_SPACE_NAME, join_urls, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
 	normalise_token_option,
@@ -39,7 +48,9 @@ import { sign_config_file_urls, sign_file_urls } from "./helpers/data";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
+	CLOSE_URL,
 	CONFIG_ERROR_MSG,
+	CONFIG_URL,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
 } from "./constants";
@@ -60,14 +71,21 @@ export class Client {
 	last_status: Record<string, Status["stage"]> = {};
 
 	private cookies: string | null = null;
+	private restored_session_hash = false;
+	// Whether the server still had the session this tab was using for this
+	// page, and so its outputs and state carry over rather than starting afresh.
+	session_restored = false;
 
 	// streaming
 	stream_status = { open: false };
 	closed = false;
-	pending_stream_messages: Record<string, any[][]> = {};
+	pending_stream_messages: Record<string, any[]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	events_to_resume: Set<string> = new Set();
+	stream_reconnect_attempts = 0;
+	stream_reconnect_timer: ReturnType<typeof setTimeout> | null = null;
 	heartbeat_event: EventSource | null = null;
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
@@ -184,6 +202,7 @@ export class Client {
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
+	resume_jobs: (jobs?: ResumableJob[]) => SubmitIterable<GradioEvent>[];
 	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
@@ -219,6 +238,21 @@ export class Client {
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
+		this.resume_jobs = (jobs = this.get_resumable_events()) => {
+			this.options.resume_sessions = true;
+			return jobs.map(({ fn_index, event_id }) =>
+				submit.call(
+					this,
+					fn_index,
+					{},
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					event_id
+				)
+			);
+		};
 		this.predict = predict.bind(this) as typeof this.predict;
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
@@ -236,10 +270,18 @@ export class Client {
 			await this.resolve_cookies();
 		}
 
-		await this._resolve_config().then(
-			(res: { config: Config } | undefined) =>
-				res?.config && this._resolve_heartbeat(res.config)
-		);
+		const resolved = (await this._resolve_config()) as
+			| { config: Config }
+			| undefined;
+		if (resolved?.config) {
+			if (
+				this.options.resume_sessions &&
+				typeof sessionStorage !== "undefined"
+			) {
+				await this.restore_session(resolved.config);
+			}
+			await this._resolve_heartbeat(resolved.config);
+		}
 
 		try {
 			this.api_info = await this.view_api();
@@ -250,6 +292,50 @@ export class Client {
 			console.error((e as Error).message);
 		}
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
+	}
+
+	/**
+	 * Carry on with the session this tab was using before it was reloaded:
+	 * the server keeps its state, and its outputs are put back in the config.
+	 */
+	private async restore_session(config: Config): Promise<void> {
+		if (this.restored_session_hash && !has_session(config, this.session_hash)) {
+			this.session_hash = Math.random().toString(36).substring(2);
+		} else if (this.restored_session_hash) {
+			const url = new URL(join_urls(config.root, CONFIG_URL));
+			url.searchParams.set("session_hash", this.session_hash);
+			if (this.page !== null) url.searchParams.set("page", this.page);
+			try {
+				const response = await this.fetch(url, {
+					headers: this.options.token
+						? { Authorization: `Bearer ${this.options.token}` }
+						: {},
+					credentials: this.options.credentials ?? "same-origin"
+				});
+				const session_config: Config = await response.json();
+				if (response.ok && session_config.session_restored) {
+					const components = new Map(
+						session_config.components.map((component) => [
+							component.id,
+							component
+						])
+					);
+					config.components = config.components.map(
+						(component) => components.get(component.id) ?? component
+					);
+					// A page shown for the first time in the session still loads.
+					this.session_restored = has_shown_page(config, this.session_hash);
+				}
+			} catch {
+				// The app then starts from its initial values, as on a first visit.
+			}
+		}
+		track_session(config, this.session_hash);
+		if (typeof document !== "undefined") {
+			document.addEventListener("visibilitychange", () =>
+				set_session_in_use(document.visibilityState === "visible")
+			);
+		}
 	}
 
 	async _resolve_heartbeat(_config: Config): Promise<void> {
@@ -291,11 +377,20 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
-		if (options.session_hash) {
-			client.session_hash = options.session_hash;
+		const session_hash =
+			options.session_hash ||
+			(options.resume_sessions ? get_resumable_session_hash() : null);
+		if (session_hash) {
+			client.session_hash = session_hash;
+			client.restored_session_hash = !options.session_hash;
 		}
 		await client.init();
 		return client;
+	}
+
+	get_resumable_events(): ResumableJob[] {
+		if (!this.options.resume_sessions || !this.config) return [];
+		return get_resumable_events(this.config, this.session_hash);
 	}
 
 	async reconnect(): Promise<"connected" | "broken" | "changed"> {
@@ -319,7 +414,32 @@ export class Client {
 	}
 
 	close(): void {
+		if (
+			!this.closed &&
+			this.options.resume_sessions &&
+			this.config &&
+			typeof window !== "undefined"
+		) {
+			const headers: Record<string, string> = {
+				"Content-Type": "application/json"
+			};
+			if (this.options.token) {
+				headers.Authorization = `Bearer ${this.options.token}`;
+			}
+			void this.fetch(`${this.config.root}${this.api_prefix}/${CLOSE_URL}`, {
+				method: "POST",
+				headers,
+				body: JSON.stringify({ session_hash: this.session_hash }),
+				credentials: this.options.credentials ?? "same-origin",
+				keepalive: true
+			}).catch(() => {});
+			set_session_in_use(false);
+		}
 		this.closed = true;
+		if (this.stream_reconnect_timer) {
+			clearTimeout(this.stream_reconnect_timer);
+			this.stream_reconnect_timer = null;
+		}
 		close_stream(this.stream_status, this.abort_controller);
 	}
 

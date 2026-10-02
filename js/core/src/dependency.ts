@@ -7,7 +7,7 @@ import type {
 } from "./types.js";
 import { AsyncFunction } from "./init_utils";
 import { create_custom_js_handler } from "./custom_js";
-import { Client, type client_return } from "@gradio/client";
+import { Client, type client_return, type ResumableJob } from "@gradio/client";
 import {
 	LoadingStatusState,
 	type LoadingStatusArgs
@@ -48,6 +48,8 @@ export class Dependency {
 	show_progress_on: number[] | null = null;
 	component_prop_inputs: number[] = [];
 	show_progress: "full" | "minimal" | "hidden";
+	// the id of the render block, if this dependency is a render function
+	render_id: number | null;
 
 	functions: {
 		frontend?: (...args: unknown[]) => Promise<unknown[]>;
@@ -86,6 +88,7 @@ export class Dependency {
 		this.trigger_modes = dep_config.trigger_mode;
 		this.show_progress_on = dep_config.show_progress_on || null;
 		this.component_prop_inputs = dep_config.component_prop_inputs || [];
+		this.render_id = dep_config.render_id ?? null;
 
 		for (let i = 0; i < dep_config.event_specific_args?.length || 0; i++) {
 			const key = dep_config.event_specific_args[i];
@@ -641,6 +644,7 @@ export class DependencyManager {
 											);
 										});
 										unset_args.forEach((fn) => fn());
+										await dep_submission.data.acknowledge();
 										this.clear_submission(dep.id, dep_submission.data);
 										if (this.queue.has(dep.id)) {
 											this.queue.delete(dep.id);
@@ -718,6 +722,7 @@ export class DependencyManager {
 								this.handle_log(result);
 							}
 						}
+						await dep_submission.data.acknowledge();
 						all.forEach((dep_id) => {
 							this.dispatch({
 								type: "fn",
@@ -735,6 +740,7 @@ export class DependencyManager {
 						}
 					}
 				} catch (error) {
+					await this.submissions.get(dep.id)?.acknowledge();
 					this.update_loading_status({
 						status: "error",
 						fn_index: dep.id,
@@ -757,6 +763,66 @@ export class DependencyManager {
 			}
 		}
 		return;
+	}
+
+	get_resumable_events(): ResumableJob[] {
+		return this.client
+			.get_resumable_events()
+			.filter(({ fn_index }) => this.dependencies_by_fn.has(fn_index));
+	}
+
+	async resume(
+		events: ResumableJob[] = this.get_resumable_events()
+	): Promise<void> {
+		const submissions = this.client.resume_jobs(events);
+		await Promise.all(
+			events.map(async ({ fn_index }, index) => {
+				const dep = this.dependencies_by_fn.get(fn_index);
+				if (!dep) return;
+
+				const submission = submissions[index];
+				this.submissions.set(fn_index, submission);
+				this.loading_stati.update({
+					status: "pending",
+					fn_index,
+					stream_state: null
+				});
+				await this.update_loading_stati_state();
+
+				try {
+					for await (const result of submission) {
+						if (result.type === "data") {
+							await this.handle_data(dep.outputs, result.data);
+						} else if (result.type === "log") {
+							this.handle_log(result);
+						} else if (result.type === "status") {
+							this.loading_stati.update({
+								status: result.stage,
+								fn_index,
+								stream_state: null,
+								queue: result.queue,
+								size: result.size,
+								position: result.position,
+								eta: result.eta,
+								progress_data: result.progress_data,
+								time_limit: result.time_limit,
+								used_cache: result.used_cache,
+								cache_duration: result.cache_duration,
+								avg_time: result.avg_time
+							});
+							await this.update_loading_stati_state();
+							if (result.stage === "complete" || result.stage === "error") {
+								this.dispatch_state_change_events(result);
+								break;
+							}
+						}
+					}
+				} finally {
+					await submission.acknowledge();
+					this.clear_submission(fn_index, submission);
+				}
+			})
+		);
 	}
 
 	/**
@@ -959,9 +1025,11 @@ export class DependencyManager {
 	}
 
 	dispatch_load_events(
-		dependencies: Map<number, Dependency> = this.dependencies_by_fn
+		dependencies: Map<number, Dependency> = this.dependencies_by_fn,
+		excluded_fn_indices: Set<number> = new Set()
 	) {
 		dependencies.forEach((dep) => {
+			if (excluded_fn_indices.has(dep.id)) return;
 			dep.targets.forEach(([target_id, event_name]) => {
 				if (event_name === "load") {
 					this.dispatch({
