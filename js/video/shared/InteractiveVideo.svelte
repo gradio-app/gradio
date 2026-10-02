@@ -182,7 +182,7 @@
 				onstop={() => onstop?.()}
 				onend={() => onend?.()}
 				onerror={(error) => onerror?.(error)}
-				mirror={webcam_options.mirror && active_source === "webcam"}
+				mirror={active_source === "webcam" && !!value?.meta?.mirrored}
 				{label}
 				{handle_change}
 				{handle_reset_value}
