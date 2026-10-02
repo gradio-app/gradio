@@ -384,6 +384,7 @@
 					onstartrecording={() => onstart_recording?.()}
 					onpauserecording={() => onpause_recording?.()}
 					onstoprecording={() => onstop_recording?.()}
+					{onerror}
 				/>
 			{/if}
 		{:else if active_source === "upload"}

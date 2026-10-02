@@ -26,7 +26,8 @@
 		onstop,
 		onplay,
 		onpause,
-		onedit
+		onedit,
+		onerror
 	}: {
 		mode?: string;
 		i18n: I18nFormatter;
@@ -47,6 +48,7 @@
 		onplay?: () => void;
 		onpause?: () => void;
 		onedit?: () => void;
+		onerror?: (error: string) => void;
 	} = $props();
 
 	let micWaveform: WaveSurfer;
@@ -282,6 +284,7 @@
 			show_recording_waveform={waveform_options.show_recording_waveform}
 			record_time={format_time(seconds)}
 			constraints={microphone_options.constraints ?? undefined}
+			{onerror}
 		/>
 	{/if}
 

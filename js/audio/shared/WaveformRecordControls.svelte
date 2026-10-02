@@ -12,7 +12,8 @@
 		record_time,
 		show_recording_waveform,
 		timing = false,
-		constraints
+		constraints,
+		onerror
 	}: {
 		record: RecordPlugin;
 		i18n: I18nFormatter;
@@ -21,6 +22,7 @@
 		show_recording_waveform: boolean | undefined;
 		timing?: boolean;
 		constraints?: MediaTrackConstraints;
+		onerror?: (error: string) => void;
 	} = $props();
 
 	let micDevices: MediaDeviceInfo[] = $state([]);
@@ -30,6 +32,13 @@
 	let stopButton: HTMLButtonElement;
 	let stopButtonPaused: HTMLButtonElement;
 	let recording_ongoing = $state(false);
+
+	// The mic request fails when access is denied or the constraints can't be
+	// satisfied (OverconstrainedError).
+	const report_mic_error = (err: unknown): void => {
+		console.error(err);
+		onerror?.(i18n("audio.recording_error"));
+	};
 
 	const handleRecordStart = (): void => {
 		recordButton.style.display = "none";
@@ -81,10 +90,13 @@
 
 	$effect(() => {
 		if (recording && !recording_ongoing) {
-			record.startMic(constraints).then(() => {
-				record.startRecording();
-				recording_ongoing = true;
-			});
+			record
+				.startMic(constraints)
+				.then(() => {
+					record.startRecording();
+					recording_ongoing = true;
+				})
+				.catch(report_mic_error);
 		} else if (!recording && recording_ongoing) {
 			if (record.isPaused()) {
 				record.resumeRecording();
@@ -100,7 +112,7 @@
 		<button
 			bind:this={recordButton}
 			class="record record-button"
-			onclick={() => record.startRecording(constraints)}
+			onclick={() => record.startRecording(constraints).catch(report_mic_error)}
 			>{i18n("audio.record")}</button
 		>
 

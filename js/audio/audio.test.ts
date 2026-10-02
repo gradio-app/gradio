@@ -615,6 +615,43 @@ describe("Events: microphone recording", () => {
 			await waitFor(() => expect(start_mic).toHaveBeenCalled());
 			expect(start_mic).toHaveBeenCalledWith(constraints);
 		});
+
+		test("a mic request rejected by the record button is reported as an error", async () => {
+			start_recording.mockRejectedValueOnce(
+				new Error("Error accessing the microphone: OverconstrainedError")
+			);
+			const { getByRole, listen } = await render(Audio, {
+				...default_props,
+				sources: ["microphone"],
+				microphone_options: { constraints }
+			});
+			const error = listen("error");
+
+			await fireEvent.click(getByRole("button", { name: "audio.record" }));
+
+			await waitFor(() =>
+				expect(error).toHaveBeenCalledWith("audio.recording_error")
+			);
+			expect(getByRole("button", { name: "audio.record" })).toBeVisible();
+		});
+
+		test("a mic request rejected when recording starts from the recording prop is reported as an error", async () => {
+			start_mic.mockRejectedValueOnce(
+				new Error("Error accessing the microphone: OverconstrainedError")
+			);
+			const { listen } = await render(Audio, {
+				...default_props,
+				sources: ["microphone"],
+				recording: true,
+				microphone_options: { constraints }
+			});
+			const error = listen("error", { retrospective: true });
+
+			await waitFor(() =>
+				expect(error).toHaveBeenCalledWith("audio.recording_error")
+			);
+			expect(start_recording).not.toHaveBeenCalled();
+		});
 	});
 });
 
