@@ -5,6 +5,7 @@ import time
 from unittest.mock import patch
 
 import gradio_client as grc
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
@@ -405,3 +406,192 @@ class TestQueueDoesNotAccumulate:
             ]
             == 8
         )
+
+
+class TestOwnEventStream:
+    """sse_v4: a `queue/join` that asks for `text/event-stream` gets that one
+    event's messages on its own response, instead of an event id to look up
+    on the session's `queue/data` stream."""
+
+    @staticmethod
+    def join(demo, dep_index, data, session_hash):
+        dep = demo.config["dependencies"][dep_index]
+        return httpx2.stream(
+            "POST",
+            f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/join",
+            json={
+                "data": data,
+                "fn_index": dep["id"],
+                "session_hash": session_hash,
+                "event_data": None,
+                "trigger_id": None,
+            },
+            headers={"Accept": "text/event-stream"},
+            timeout=10,
+        )
+
+    @staticmethod
+    def read(lines, until=None):
+        messages = []
+        for line in lines:
+            if line.startswith("data:"):
+                messages.append(json.loads(line[5:]))
+                if messages[-1]["msg"] == until:
+                    break
+        return messages
+
+    def test_config_keeps_sse_v3_for_older_clients(self):
+        with gr.Blocks() as demo:
+            gr.Textbox()
+        config = demo.get_config_file()
+        assert config["protocol"] == "sse_v3"
+        assert config["supported_protocols"] == ["sse_v3", "sse_v4"]
+
+    def test_streams_the_event_on_the_join_response(self):
+        def count(n):
+            for i in range(int(n)):
+                yield str(i)
+
+        with gr.Blocks() as demo:
+            n, out = gr.Number(), gr.Textbox()
+            gr.Button().click(count, n, out)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, 0, [3], "own-stream") as response:
+                assert response.status_code == 200
+                assert response.headers["content-type"].startswith("text/event-stream")
+                messages = self.read(response.iter_lines())
+            assert [m["msg"] for m in messages] == [
+                "estimation",
+                "process_starts",
+                "process_generating",
+                "process_generating",
+                "process_generating",
+                "process_completed",
+            ]
+            assert len({m["event_id"] for m in messages}) == 1
+            assert messages[-1]["output"]["data"] == ["2"]
+            queue = demo._queue
+            assert queue.pending_messages_per_event == {}
+            assert "own-stream" not in queue.pending_event_ids_session
+            # Nothing was set up for a `queue/data` stream to read.
+            assert "own-stream" not in queue.pending_messages_per_session
+        finally:
+            demo.close()
+
+    def test_rejected_join_keeps_its_http_status(self):
+        with gr.Blocks() as demo:
+            t, out = gr.Textbox(), gr.Textbox()
+            gr.Button().click(
+                lambda x: x,
+                t,
+                out,
+                validator=lambda x: gr.validate(len(x) < 5, "too long"),
+            )
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, 0, ["far too long"], "rejected") as response:
+                response.read()
+            assert response.status_code == 422
+            assert response.json()["detail"][0]["message"] == "too long"
+            assert demo._queue.pending_messages_per_event == {}
+        finally:
+            demo.close()
+
+    def test_leaving_cancels_only_that_event(self):
+        """A dropped stream used to delete the whole session's message queue
+        (https://github.com/gradio-app/gradio/issues/13895)."""
+        finished = []
+
+        async def slow(x):
+            await asyncio.sleep(1.5)
+            finished.append(x)
+            return x
+
+        with gr.Blocks() as demo:
+            t, out = gr.Textbox(), gr.Textbox()
+            gr.Button().click(slow, t, out, concurrency_limit=None)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, 0, ["kept"], "one-session") as kept:
+                with self.join(demo, 0, ["dropped"], "one-session") as dropped:
+                    self.read(dropped.iter_lines(), until="process_starts")
+                messages = self.read(kept.iter_lines())
+            assert messages[-1]["msg"] == "process_completed"
+            assert messages[-1]["output"]["data"] == ["kept"]
+            time.sleep(0.5)
+            assert finished == ["kept"]
+            assert demo._queue.pending_messages_per_event == {}
+            assert not any(demo._queue.active_jobs)
+        finally:
+            demo.close()
+
+    def test_cancel_route_ends_the_event_stream(self):
+        async def slow():
+            await asyncio.sleep(5)
+            return "done"
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            gr.Button().click(slow, None, out)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, 0, [], "cancelled") as response:
+                lines = response.iter_lines()
+                started = self.read(lines, until="process_starts")
+                event_id = started[-1]["event_id"]
+                httpx2.post(
+                    f"{demo.local_url}{API_PREFIX.lstrip('/')}/cancel",
+                    json={
+                        "session_hash": "cancelled",
+                        "fn_index": demo.config["dependencies"][0]["id"],
+                        "event_id": event_id,
+                    },
+                )
+                rest = self.read(lines)
+            assert rest[-1]["msg"] == "process_completed"
+            assert rest[-1]["event_id"] == event_id
+            assert not any(demo._queue.active_jobs)
+        finally:
+            demo.close()
+
+    def test_leaving_before_the_stream_starts_still_cancels(self):
+        """The response's generator never starts if the client has already left,
+        so cleanup cannot rely on it."""
+        ran = []
+
+        def slow_validator(x):
+            time.sleep(1)
+            return gr.validate(True, "")
+
+        def fn(x):
+            ran.append(x)
+            return x
+
+        with gr.Blocks() as demo:
+            t, out = gr.Textbox(), gr.Textbox()
+            gr.Button().click(fn, t, out, validator=slow_validator)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            # Gives up while the server is still validating the join.
+            with pytest.raises(httpx2.ReadTimeout):
+                with httpx2.stream(
+                    "POST",
+                    f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/join",
+                    json={
+                        "data": ["x"],
+                        "fn_index": demo.config["dependencies"][0]["id"],
+                        "session_hash": "left-early",
+                        "event_data": None,
+                        "trigger_id": None,
+                    },
+                    headers={"Accept": "text/event-stream"},
+                    timeout=httpx2.Timeout(5, read=0.3),
+                ) as response:
+                    response.read()
+            time.sleep(2)
+            assert ran == []
+            assert demo._queue.pending_messages_per_event == {}
+            assert "left-early" not in demo._queue.pending_event_ids_session
+        finally:
+            demo.close()

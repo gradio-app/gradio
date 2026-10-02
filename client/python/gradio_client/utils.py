@@ -17,7 +17,7 @@ import time
 import urllib.parse
 import warnings
 from collections import deque
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -512,12 +512,28 @@ def stream_sse_v0(
         raise
 
 
+def iter_sse_messages(response: httpx2.Response) -> Iterator[dict[str, Any]]:
+    """Yields the messages of a Gradio queue stream, whose events are single
+    `data: <json>` lines."""
+    buffer = b""
+    for chunk in response.iter_bytes():
+        buffer += chunk
+        while b"\n\n" in buffer:
+            event, buffer = buffer.split(b"\n\n", 1)
+            line = event.decode("utf-8").rstrip("\n")
+            if not line:
+                continue
+            if not line.startswith("data:"):
+                raise ValueError(f"Unexpected SSE line: '{line}'")
+            yield json.loads(line[5:])
+
+
 def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, deque[Message | None]],
     pending_lock: Lock,
     event_id: str,
-    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
@@ -557,6 +573,7 @@ def stream_sse_v1plus(
                     "sse_v2",
                     "sse_v2.1",
                     "sse_v3",
+                    "sse_v4",
                 ]:
                     if pending_responses_for_diffs is None:
                         pending_responses_for_diffs = list(output)

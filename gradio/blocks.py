@@ -2840,7 +2840,10 @@ Received inputs:
             "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": getattr(self, "stylesheets", []),
             "theme": self.theme.name if self.theme is not None else None,
+            # Clients that predate sse_v4 only read `protocol`, so it stays at
+            # the newest version they all understand.
             "protocol": "sse_v3",
+            "supported_protocols": ["sse_v3", "sse_v4"],
             "body_css": {  # type: ignore
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"

@@ -80,6 +80,10 @@ class Event:
         self.run_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
+        # True when the client receives this event's messages on the same
+        # request that submitted it (sse_v4), instead of on the session-wide
+        # `queue/data` stream.
+        self.own_stream = False
 
     @property
     def streaming(self):
@@ -132,6 +136,9 @@ class Queue:
         self.pending_messages_per_session: LRUCache[str, AsyncQueue[EventMessage]] = (
             LRUCache(2000)
         )
+        # Messages for events that stream on their own request (sse_v4). An
+        # entry lives exactly as long as that request is open.
+        self.pending_messages_per_event: dict[str, AsyncQueue[EventMessage]] = {}
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
@@ -256,6 +263,12 @@ class Queue:
         if not event.alive:
             return
         event_message.event_id = event._id
+        if event.own_stream:
+            # Once the event's request has closed there is no one to deliver to.
+            own_messages = self.pending_messages_per_event.get(event._id)
+            if own_messages is not None:
+                own_messages.put_nowait(event_message)
+            return
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
 
@@ -288,7 +301,11 @@ class Queue:
         return total_len
 
     async def push(
-        self, body: PredictBodyInternal, request: fastapi.Request, username: str | None
+        self,
+        body: PredictBodyInternal,
+        request: fastapi.Request,
+        username: str | None,
+        own_stream: bool = False,
     ) -> tuple[
         bool,
         str | list[dict[str, Any]],
@@ -356,8 +373,14 @@ class Queue:
         event.data = body
         if body.session_hash is None:
             body.session_hash = event.session_hash
+        if own_stream:
+            event.own_stream = True
+            self.pending_messages_per_event[event._id] = AsyncQueue()
         async with self.pending_message_lock:
-            if body.session_hash not in self.pending_messages_per_session:
+            if (
+                not own_stream
+                and body.session_hash not in self.pending_messages_per_session
+            ):
                 self.pending_messages_per_session[body.session_hash] = AsyncQueue()
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
@@ -424,11 +447,13 @@ class Queue:
             except CacheMissError:
                 pass  # Fall through to normal queue path
             except Exception:
+                self.pending_messages_per_event.pop(event._id, None)
                 raise
 
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:
+            self.pending_messages_per_event.pop(event._id, None)
             raise KeyError(
                 "Event not found in queue. If you are deploying this Gradio app with multiple replicas, please enable stickiness to ensure that all requests from the same user are routed to the same instance."
             ) from e
