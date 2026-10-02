@@ -123,11 +123,13 @@ export function get_canvas_blob(
 		src_canvas.width = width;
 		src_canvas.height = height;
 		const ctx = src_canvas.getContext("2d");
-		if (ctx) {
-			const image_data = ctx.createImageData(width, height);
-			image_data.data.set(pixels);
-			ctx.putImageData(image_data, 0, 0);
+		if (!ctx) {
+			resolve(null);
+			return;
 		}
+		const image_data = ctx.createImageData(width, height);
+		image_data.data.set(pixels);
+		ctx.putImageData(image_data, 0, 0);
 
 		src_canvas.toBlob((blob) => {
 			if (!blob) {

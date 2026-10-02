@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { Application, Graphics, TilingSprite } from "pixi.js";
 
 import {
@@ -78,7 +78,10 @@ describe("make_checkerboard_texture", () => {
 describe("get_canvas_blob", () => {
 	let app: Application;
 
-	afterEach(() => app.destroy(true));
+	afterEach(() => {
+		vi.restoreAllMocks();
+		app.destroy(true);
+	});
 
 	test("keeps the colour of semi-transparent pixels", async () => {
 		app = new Application();
@@ -108,6 +111,25 @@ describe("get_canvas_blob", () => {
 		for (const channel of [r, g, b]) {
 			expect(channel).toBeGreaterThanOrEqual(254);
 		}
+	});
+
+	test("resolves null when a 2d context is unavailable", async () => {
+		app = new Application();
+		await app.init({
+			width: SIZE,
+			height: SIZE,
+			backgroundAlpha: 0,
+			preference: "webgl"
+		});
+		const square = new Graphics().rect(0, 0, SIZE, SIZE).fill(0xffffff);
+		app.stage.addChild(square);
+
+		// The renderer already holds its own context, so only the export canvas
+		// sees this.
+		vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+
+		// An empty image here would silently replace the user's edits.
+		expect(await get_canvas_blob(app.renderer, square)).toBeNull();
 	});
 });
 
