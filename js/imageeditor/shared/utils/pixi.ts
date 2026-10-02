@@ -70,6 +70,24 @@ export function clamp(n: number, min: number, max: number): number {
 }
 
 /**
+ * Converts premultiplied RGBA pixels to straight alpha in place.
+ * The renderer reads pixels back premultiplied, and pixi does not undo that
+ * when extracting, so semi-transparent pixels would otherwise come out darker.
+ * @param pixels The RGBA pixel data.
+ */
+export function unpremultiply_alpha(pixels: Uint8ClampedArray): void {
+	for (let i = 0; i < pixels.length; i += 4) {
+		const alpha = pixels[i + 3];
+		if (alpha === 0 || alpha === 255) continue;
+		// A clamped array pins channels that round above alpha to 255.
+		const scale = 255 / alpha;
+		pixels[i] = pixels[i] * scale;
+		pixels[i + 1] = pixels[i + 1] * scale;
+		pixels[i + 2] = pixels[i + 2] * scale;
+	}
+}
+
+/**
  * Generates a blob from a pixi object.s
  * @param renderer The pixi renderer.
  * @param obj The pixi object to generate a blob from.
@@ -94,13 +112,24 @@ export function get_canvas_blob(
 			? new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
 			: new Rectangle(0, 0, image_bounds.width, image_bounds.height);
 
-		const src_canvas = renderer.extract.canvas({
+		const { pixels, width, height } = renderer.extract.pixels({
 			target: obj,
 			resolution: 1,
 			frame
 		});
+		unpremultiply_alpha(pixels);
 
-		src_canvas.toBlob?.((blob) => {
+		const src_canvas = document.createElement("canvas");
+		src_canvas.width = width;
+		src_canvas.height = height;
+		const ctx = src_canvas.getContext("2d");
+		if (ctx) {
+			const image_data = ctx.createImageData(width, height);
+			image_data.data.set(pixels);
+			ctx.putImageData(image_data, 0, 0);
+		}
+
+		src_canvas.toBlob((blob) => {
 			if (!blob) {
 				resolve(null);
 			}

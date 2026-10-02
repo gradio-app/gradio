@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, test } from "vitest";
-import { Application, TilingSprite } from "pixi.js";
+import { Application, Graphics, TilingSprite } from "pixi.js";
 
-import { CHECKERBOARD_CELL_SIZE, make_checkerboard_texture } from "./pixi";
+import {
+	CHECKERBOARD_CELL_SIZE,
+	get_canvas_blob,
+	make_checkerboard_texture,
+	unpremultiply_alpha
+} from "./pixi";
 
 const CELL = CHECKERBOARD_CELL_SIZE;
 const SIZE = CELL * 4;
@@ -67,5 +72,71 @@ describe("make_checkerboard_texture", () => {
 		// Upscaling a 1x tile blends the cell edges, which shows up as extra shades
 		// and as washed out cells, so the tile has to follow the renderer.
 		expect(shades.size).toBe(2);
+	});
+});
+
+describe("get_canvas_blob", () => {
+	let app: Application;
+
+	afterEach(() => app.destroy(true));
+
+	test("keeps the colour of semi-transparent pixels", async () => {
+		app = new Application();
+		await app.init({
+			width: SIZE,
+			height: SIZE,
+			backgroundAlpha: 0,
+			preference: "webgl"
+		});
+		const square = new Graphics()
+			.rect(0, 0, SIZE, SIZE)
+			.fill({ color: 0xffffff, alpha: 0.5 });
+		app.stage.addChild(square);
+
+		const blob = await get_canvas_blob(app.renderer, square);
+		const bitmap = await createImageBitmap(blob!);
+		const ctx = new OffscreenCanvas(bitmap.width, bitmap.height).getContext(
+			"2d"
+		)!;
+		ctx.drawImage(bitmap, 0, 0);
+		const [r, g, b, a] = ctx.getImageData(SIZE / 2, SIZE / 2, 1, 1).data;
+
+		// The renderer works with premultiplied alpha, so without un-premultiplying
+		// on export this comes back as (128, 128, 128, 128).
+		expect(a).toBeGreaterThanOrEqual(127);
+		expect(a).toBeLessThanOrEqual(128);
+		for (const channel of [r, g, b]) {
+			expect(channel).toBeGreaterThanOrEqual(254);
+		}
+	});
+});
+
+describe("unpremultiply_alpha", () => {
+	test("divides colour by alpha and leaves opaque and empty pixels alone", () => {
+		// [premultiplied input, expected straight alpha output]
+		const cases = [
+			[
+				[128, 64, 0, 128],
+				[255, 128, 0, 128]
+			],
+			// rounding on the GPU can leave a channel above alpha
+			[
+				[129, 129, 129, 128],
+				[255, 255, 255, 128]
+			],
+			[
+				[10, 20, 30, 255],
+				[10, 20, 30, 255]
+			],
+			[
+				[0, 0, 0, 0],
+				[0, 0, 0, 0]
+			]
+		];
+		const pixels = new Uint8ClampedArray(cases.flatMap(([input]) => input));
+
+		unpremultiply_alpha(pixels);
+
+		expect(Array.from(pixels)).toEqual(cases.flatMap(([, output]) => output));
 	});
 });
