@@ -32,7 +32,7 @@ from urllib.parse import urlencode
 
 import anyio
 import fastapi
-import httpx
+import httpx2
 import markupsafe
 import orjson
 from fastapi import (
@@ -217,12 +217,12 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 # Shared transport keeps the connection pool warm without sharing an
-# `httpx.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
+# `httpx2.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
 # A single shared `AsyncClient` would persist `Set-Cookie` headers from one
 # proxied response and replay them on subsequent requests to any sibling
 # `*.hf.space` URL — see GHSA-2mr9-9r47-px2g.
-_proxy_transport = httpx.AsyncHTTPTransport(
-    limits=httpx.Limits(
+_proxy_transport = httpx2.AsyncHTTPTransport(
+    limits=httpx2.Limits(
         max_connections=100,
         max_keepalive_connections=20,
     ),
@@ -303,12 +303,12 @@ class App(FastAPI):
         return self.blocks
 
     def build_proxy_request(self, url_path):
-        url = httpx.URL(route_utils.requote_proxied_url(url_path))
+        url = httpx2.URL(route_utils.requote_proxied_url(url_path))
         assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
-            url.host == httpx.URL(root).host for root in self.blocks.proxy_urls
+            url.host == httpx2.URL(root).host for root in self.blocks.proxy_urls
         )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
@@ -320,7 +320,7 @@ class App(FastAPI):
         if Context.token is not None:
             headers["Authorization"] = f"Bearer {Context.token}"
         # Build a plain request rather than `client.build_request` so that
-        # the proxy does not share an `httpx.AsyncClient` (or cookie jar)
+        # the proxy does not share an `httpx2.AsyncClient` (or cookie jar)
         # across calls (see GHSA-2mr9-9r47-px2g).
         return url, headers
 
@@ -1304,9 +1304,9 @@ class App(FastAPI):
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
-                proxy_client = httpx.AsyncClient(
+                proxy_client = httpx2.AsyncClient(
                     transport=_proxy_transport,
-                    timeout=httpx.Timeout(10.0),
+                    timeout=httpx2.Timeout(10.0),
                 )
                 url, headers = app.build_proxy_request(url_path)
                 rp_req = proxy_client.build_request("GET", url, headers=headers)
@@ -2760,7 +2760,7 @@ demo.launch()
 
         """
     try:
-        with httpx.Client() as client:
+        with httpx2.Client() as client:
             response = client.get("https://www.gradio.app/llms.txt")
             system_prompt = response.text
     except Exception:

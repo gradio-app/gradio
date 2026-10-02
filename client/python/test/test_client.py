@@ -20,7 +20,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
-import httpx
+import httpx2
 import huggingface_hub
 import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
@@ -124,8 +124,8 @@ class TestClientInitialization:
             Client, "_get_space_state", lambda _: huggingface_hub.SpaceStage.RUNNING
         )
 
-        with patch("httpx.get") as mocked:
-            mocked.return_value = httpx.Response(
+        with patch("httpx2.get") as mocked:
+            mocked.return_value = httpx2.Response(
                 200,
                 json={
                     "version": "3.36.2",  # Force recent version branch
@@ -133,7 +133,7 @@ class TestClientInitialization:
                     "named_endpoints": {},
                     "unnamed_endpoints": {},
                 },
-                request=httpx.Request("GET", "https://fake/space"),
+                request=httpx2.Request("GET", "https://fake/space"),
             )
             client = Client("fake/space", httpx_kwargs={"cookies": cookies})
             for call in mocked.call_args_list:
@@ -142,9 +142,9 @@ class TestClientInitialization:
                 )
 
         # _login overrides cookies
-        response = httpx.Response(200)
-        response._cookies = httpx.Cookies(cookies)
-        with patch("httpx.post", return_value=response) as mocked:
+        response = httpx2.Response(200)
+        response._cookies = httpx2.Cookies(cookies)
+        with patch("httpx2.post", return_value=response) as mocked:
             client._login(("user", "pass"))
             mocked.assert_called_once()
             call = mocked.call_args
@@ -1061,7 +1061,7 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        with patch("httpx.post", MagicMock(return_value=response)):
+        with patch("httpx2.post", MagicMock(return_value=response)):
             with patch("builtins.open", MagicMock()):
                 with patch.object(pathlib.Path, "name") as mock_name:
                     mock_name.side_effect = lambda x: x
@@ -1093,8 +1093,8 @@ class TestEndpoints:
         upload_response.json.return_value = ["/tmp/gradio/uploaded/private-cat.png"]
 
         with (
-            patch("httpx.stream", return_value=download_response) as stream,
-            patch("httpx.post", return_value=upload_response) as post,
+            patch("httpx2.stream", return_value=download_response) as stream,
+            patch("httpx2.post", return_value=upload_response) as post,
         ):
             result = endpoint._upload_file(
                 {
@@ -1138,7 +1138,7 @@ class TestEndpoints:
             src_prefixed="https://source.hf.space/gradio_api/",
         )
 
-        with patch("httpx.stream") as stream:
+        with patch("httpx2.stream") as stream:
             result = endpoint._upload_file(file_data, data_index=0)
 
         stream.assert_not_called()
@@ -1162,9 +1162,9 @@ class TestEndpoints:
         client = Client(
             src="gradio/zip_files",
         )
-        error_response = httpx.Response(status_code=404)
-        monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
-        with pytest.raises(httpx.HTTPStatusError):
+        error_response = httpx2.Response(status_code=404)
+        monkeypatch.setattr(httpx2, "get", lambda *args, **kwargs: error_response)
+        with pytest.raises(httpx2.HTTPStatusError):
             client.endpoints[0]._download_file({"path": "https://example.com/foo"})  # type: ignore
 
     @pytest.mark.flaky
@@ -1187,7 +1187,7 @@ class TestEndpoints:
             )
             return mock_response
 
-        monkeypatch.setattr(httpx, "stream", mock_stream)
+        monkeypatch.setattr(httpx2, "stream", mock_stream)
 
         # Test stream file with URL
         stream_file_data = {
@@ -1209,7 +1209,7 @@ class TestEndpoints:
             )
             return mock_response
 
-        monkeypatch.setattr(httpx, "stream", mock_stream_regular)
+        monkeypatch.setattr(httpx2, "stream", mock_stream_regular)
 
         with patch("pathlib.Path.resolve", return_value="/tmp/regular_file.txt"):
             client.endpoints[0]._download_file(regular_file_data)  # type: ignore
@@ -1235,7 +1235,7 @@ def test_download_file_names_output_after_the_server_path(
     response.__enter__.return_value = response
     response.raise_for_status.return_value = None
     response.iter_bytes.return_value = [b"data"]
-    monkeypatch.setattr(httpx, "stream", lambda *args, **kwargs: response)
+    monkeypatch.setattr(httpx2, "stream", lambda *args, **kwargs: response)
 
     endpoint = MagicMock()
     endpoint.root_url = "http://localhost:7860/gradio_api/"
@@ -1341,7 +1341,7 @@ def test_httpx_kwargs(increment_demo):
     with connect(
         increment_demo, client_kwargs={"httpx_kwargs": {"timeout": 5}}
     ) as client:
-        with patch("httpx.post", MagicMock()) as mock_post:
+        with patch("httpx2.post", MagicMock()) as mock_post:
             with pytest.raises(Exception):
                 client.predict(1, api_name="/increment_with_queue")
             assert mock_post.call_args.kwargs["timeout"] == 5
@@ -1448,7 +1448,7 @@ def test_heartbeat_not_connected_when_app_does_not_need_it():
 
 def test_heartbeat_retries_server_errors_with_backoff(increment_demo, monkeypatch):
     monkeypatch.setattr("gradio_client.client.HEARTBEAT_RETRY_DELAY_MIN", 0.1)
-    real_stream = httpx.stream
+    real_stream = httpx2.stream
     attempts = []
 
     @contextmanager
@@ -1456,12 +1456,12 @@ def test_heartbeat_retries_server_errors_with_backoff(increment_demo, monkeypatc
         attempts.append(time.monotonic())
         if len(attempts) <= 3:
             status = 502 if len(attempts) < 3 else 429
-            yield httpx.Response(status, request=httpx.Request(method, url))
+            yield httpx2.Response(status, request=httpx2.Request(method, url))
         else:
             with real_stream(method, url, **kwargs) as response:
                 yield response
 
-    monkeypatch.setattr(httpx, "stream", stream)
+    monkeypatch.setattr(httpx2, "stream", stream)
     with connect(increment_demo) as client:
         deadline = time.monotonic() + 5
         while len(attempts) < 4 and time.monotonic() < deadline:
@@ -1488,14 +1488,14 @@ def test_heartbeat_backs_off_on_a_response_that_is_not_an_event_stream(
     @contextmanager
     def stream(method, url, **kwargs):
         attempts.append(time.monotonic())
-        yield httpx.Response(
+        yield httpx2.Response(
             200,
             text="<html>Space is sleeping</html>",
             headers={"content-type": "text/html"},
-            request=httpx.Request(method, url),
+            request=httpx2.Request(method, url),
         )
 
-    monkeypatch.setattr(httpx, "stream", stream)
+    monkeypatch.setattr(httpx2, "stream", stream)
     with connect(increment_demo) as client:
         time.sleep(1)
         assert 2 <= len(attempts) <= 8

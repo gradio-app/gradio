@@ -29,7 +29,7 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Literal
 
-import httpx
+import httpx2
 import huggingface_hub
 from huggingface_hub import SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
@@ -106,7 +106,7 @@ class Client:
             headers: additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
             download_files: directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: if False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
-            httpx_kwargs: additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
+            httpx_kwargs: additional keyword arguments to pass to `httpx2.Client`, `httpx2.stream`, `httpx2.get` and `httpx2.post`. This can be used to set timeouts, proxies, http auth, etc.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             oauth_token: optional Hugging Face token for the app to act on your behalf, for endpoints whose function takes a `gr.OAuthToken`. Unlike `token`, which only authenticates you to the app, this is passed to the app's code, so it is sent only to endpoints that declare they need it — `view_api()` marks those. It is never sent anywhere else, and is not inferred from your locally saved token.
         """
@@ -269,7 +269,7 @@ class Client:
             del client
             refreshed = False
             try:
-                with httpx.stream(
+                with httpx2.stream(
                     "GET",
                     url,
                     headers=headers,
@@ -296,7 +296,7 @@ class Client:
                             if refresh_heartbeat.is_set():
                                 refreshed = True
                                 break
-            except httpx.TransportError:
+            except httpx2.TransportError:
                 return
             if refreshed:
                 continue
@@ -311,8 +311,8 @@ class Client:
     ) -> None:
         try:
             httpx_kwargs = self.httpx_kwargs.copy()
-            httpx_kwargs.setdefault("timeout", httpx.Timeout(timeout=None))
-            with httpx.Client(
+            httpx_kwargs.setdefault("timeout", httpx2.Timeout(timeout=None))
+            with httpx2.Client(
                 verify=self.ssl_verify,
                 **httpx_kwargs,
             ) as client:
@@ -374,9 +374,9 @@ class Client:
                                 raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
             # If the job is cancelled the stream will close so we
-            # should not raise this httpx exception that comes from the
+            # should not raise this httpx2 exception that comes from the
             # stream abruply closing
-            if isinstance(e, httpx.RemoteProtocolError):
+            if isinstance(e, httpx2.RemoteProtocolError):
                 return
             import traceback
 
@@ -387,7 +387,7 @@ class Client:
         headers = self.add_zero_gpu_headers(self.headers)
         if request_headers is not None:
             headers = {**request_headers, **headers}
-        req = httpx.post(
+        req = httpx2.post(
             self.sse_data_url,
             json={**data, **hash_data},
             headers=headers,
@@ -701,7 +701,7 @@ class Client:
     def _get_api_info(self):
         api_info_url = urllib.parse.urljoin(self.src_prefixed, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
-            r = httpx.get(
+            r = httpx2.get(
                 api_info_url,
                 headers=self.headers,
                 cookies=self.cookies,
@@ -713,7 +713,7 @@ class Client:
             else:
                 raise ValueError(f"Could not fetch api info for {self.src}: {r.text}")
         else:
-            fetch = httpx.post(
+            fetch = httpx2.post(
                 utils.SPACE_FETCHER_URL,
                 json={
                     "config": json.dumps(self.config),
@@ -1039,7 +1039,7 @@ class Client:
         Logs in to `utils.LOGIN_URL` using provided `auth` credentials.
         Warning: This method overwrites `self.cookies`.
         """
-        resp = httpx.post(
+        resp = httpx2.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
             verify=self.ssl_verify,
@@ -1057,7 +1057,7 @@ class Client:
         }
 
     def _get_config(self) -> dict:
-        r = httpx.get(
+        r = httpx2.get(
             urllib.parse.urljoin(self.src, utils.CONFIG_URL),
             headers=self.headers,
             cookies=self.cookies,
@@ -1085,7 +1085,7 @@ class Client:
                 "Too many requests to the API, please try again later."
             ) from None
         else:  # to support older versions of Gradio
-            r = httpx.get(
+            r = httpx2.get(
                 self.src,
                 headers=self.headers,
                 cookies=self.cookies,
@@ -1306,7 +1306,7 @@ class Endpoint:
             if cancel_msg:
                 warnings.warn(cancel_msg)
             if cancellable:
-                httpx.post(
+                httpx2.post(
                     url,
                     json=post_data(),
                     headers=client.headers,
@@ -1466,7 +1466,7 @@ class Endpoint:
                 )
             with open(file_path, "rb") as f_:
                 files = [("files", (orig_name.name, f_))]
-                r = httpx.post(
+                r = httpx2.post(
                     self.client.upload_url,
                     headers=self.client.headers,
                     cookies=self.client.cookies,
@@ -1490,9 +1490,9 @@ class Endpoint:
             return False
 
         try:
-            file_url = httpx.URL(file_path)
-            upstream_url = httpx.URL(self.client.src_prefixed)
-        except httpx.InvalidURL:
+            file_url = httpx2.URL(file_path)
+            upstream_url = httpx2.URL(self.client.src_prefixed)
+        except httpx2.InvalidURL:
             return False
         if (
             file_url.scheme,
@@ -1522,7 +1522,7 @@ class Endpoint:
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir) / file_name
-            with httpx.stream(
+            with httpx2.stream(
                 "GET",
                 file_url,
                 headers=self.client.headers,
@@ -1561,7 +1561,7 @@ class Endpoint:
         temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
         temp_dir.mkdir(exist_ok=True, parents=True)
 
-        with httpx.stream(
+        with httpx2.stream(
             "GET",
             url_path,
             headers=self.client.headers,
@@ -1583,8 +1583,8 @@ class Endpoint:
         return str(dest.resolve())
 
     def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
-        with httpx.Client(
-            timeout=httpx.Timeout(timeout=None),
+        with httpx2.Client(
+            timeout=httpx2.Timeout(timeout=None),
             verify=self.client.ssl_verify,
             **self.client.httpx_kwargs,
         ) as client:

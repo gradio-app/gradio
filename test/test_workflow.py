@@ -736,7 +736,7 @@ class TestCallModel:
 
         with (
             patch("huggingface_hub.InferenceClient"),
-            patch("gradio.workflow.httpx.post", return_value=response) as post,
+            patch("gradio.workflow.httpx2.post", return_value=response) as post,
         ):
             call_model(
                 [

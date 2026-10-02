@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import anyio
-import httpx
+import httpx2
 import numpy as np
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
@@ -314,7 +314,7 @@ class Audio(
             orig_name = Path(file_path).name
         elif isinstance(value, (str, Path)):
             if client_utils.is_http_url_like(value):
-                original_suffix = Path(httpx.URL(str(value)).path).suffix.lower()
+                original_suffix = Path(httpx2.URL(str(value)).path).suffix.lower()
             else:
                 original_suffix = Path(value).suffix.lower()
             if self.format is not None and original_suffix != f".{self.format}":

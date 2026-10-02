@@ -20,7 +20,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import gradio_client as grc
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 import numpy as np
 import pandas as pd
 import pytest
@@ -1614,7 +1614,7 @@ class TestRoutes:
 
         _, local_url, _ = demo.launch(prevent_thread_lock=True)
         try:
-            with httpx.Client(base_url=local_url, timeout=30) as client:
+            with httpx2.Client(base_url=local_url, timeout=30) as client:
                 join = client.post(
                     f"{API_PREFIX}/queue/join",
                     json={"data": [], "fn_index": 0, "session_hash": "s"},
@@ -1656,7 +1656,7 @@ class TestRoutes:
 
         _, local_url, _ = demo.launch(prevent_thread_lock=True)
         try:
-            with httpx.Client(base_url=local_url, timeout=30) as client:
+            with httpx2.Client(base_url=local_url, timeout=30) as client:
                 join = client.post(
                     f"{API_PREFIX}/queue/join",
                     json={"data": [], "fn_index": 0, "session_hash": "s"},
@@ -3078,12 +3078,12 @@ def test_attacker_cannot_change_root_in_config(
     def attacker(url):
         """Simulates the attacker sending a request with a malicious header."""
         for _ in range(max_attempts):
-            httpx.get(url + "config", headers={"X-Forwarded-Host": "evil"})
+            httpx2.get(url + "config", headers={"X-Forwarded-Host": "evil"})
 
     def victim(url, results):
         """Simulates the victim making a normal request and checking the response."""
         for _ in range(max_attempts):
-            res = httpx.get(url)
+            res = httpx2.get(url)
             config = json.loads(
                 res.text.split("window.gradio_config =", 1)[1].split(";</script>", 1)[0]
             )
@@ -3280,19 +3280,19 @@ def test_get_api_call_path_generic_call(server, path, expected):
             {},
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("http://localhost:7860"),
+            httpx2.URL("http://localhost:7860"),
         ),
         (
             {"x-forwarded-host": "example.com"},
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("http://example.com"),
+            httpx2.URL("http://example.com"),
         ),
         (
             {"x-forwarded-host": "example.com", "x-forwarded-proto": "https"},
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("https://example.com"),
+            httpx2.URL("https://example.com"),
         ),
         (
             {
@@ -3301,7 +3301,7 @@ def test_get_api_call_path_generic_call(server, path, expected):
             },
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("https://example.com"),
+            httpx2.URL("https://example.com"),
         ),
     ],
 )
