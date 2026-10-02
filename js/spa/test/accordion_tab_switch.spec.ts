@@ -20,3 +20,15 @@ test("clicking the switch tabs button shows Tab 2 content", async ({
 	await page.getByRole("button", { name: "Switch to Tab 2" }).click();
 	await expect(page.getByText("This is Tab 2 content.")).toBeVisible();
 });
+
+test("revealing a hidden accordion with open=True shows its content", async ({
+	page
+}) => {
+	await expect(page.getByLabel("Details")).not.toBeVisible();
+
+	await page.getByRole("button", { name: "Reveal Accordion" }).click();
+	await expect(page.getByLabel("Details")).toBeVisible();
+
+	await page.getByRole("button", { name: "Hidden Accordion" }).click();
+	await expect(page.getByLabel("Details")).not.toBeVisible();
+});

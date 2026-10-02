@@ -13,6 +13,18 @@ with gr.Blocks() as demo:
                 inputs=accordion_open,
                 outputs=acc,
             )
+
+            with gr.Accordion(
+                "Hidden Accordion", open=False, visible=False
+            ) as hidden_acc:
+                details = gr.Textbox(label="Details")
+
+            reveal_btn = gr.Button("Reveal Accordion")
+            reveal_btn.click(
+                fn=lambda: gr.Accordion(visible=True, open=True),
+                inputs=None,
+                outputs=hidden_acc,
+            )
         with gr.Tab("Tab 2", id="t2"):
             gr.Markdown("This is Tab 2 content.")
 
