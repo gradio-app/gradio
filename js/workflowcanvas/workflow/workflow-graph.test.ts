@@ -5,7 +5,8 @@ import {
 	topoSort,
 	resolveCurrentInputs,
 	computeStaleNodes,
-	buildUpstreamSubgraph
+	buildUpstreamSubgraph,
+	reusableUpstreamNodes
 } from "./workflow-graph";
 import type {
 	NodeStatus,
@@ -361,5 +362,50 @@ describe("buildUpstreamSubgraph", () => {
 		const result = buildUpstreamSubgraph(source, "a");
 		expect(result.schema_version).toBe("2");
 		expect(result.name).toBe("Original");
+	});
+});
+
+describe("reusableUpstreamNodes", () => {
+	const chain = (): Workflow =>
+		wf({
+			references: [ref("src")],
+			operators: [op("prep"), op("gen"), op("edit")],
+			subjects: [sub("mid"), sub("out")],
+			edges: [
+				edge("src", "prep"),
+				edge("prep", "gen"),
+				edge("gen", "mid"),
+				edge("mid", "edit"),
+				edge("edit", "out")
+			]
+		});
+	const done = (...ids: string[]): Record<string, NodeStatus> =>
+		Object.fromEntries(ids.map((id) => [id, "done" as NodeStatus]));
+	const all = done("src", "prep", "gen", "mid", "edit", "out");
+
+	test("returns done upstream operators, excluding the target and downstream", () => {
+		expect(reusableUpstreamNodes(chain(), "edit", all, new Set())).toEqual(
+			new Set(["prep", "gen"])
+		);
+		expect(reusableUpstreamNodes(chain(), "gen", all, new Set())).toEqual(
+			new Set(["prep"])
+		);
+	});
+
+	test("excludes stale, failed, and never-run nodes", () => {
+		expect(
+			reusableUpstreamNodes(chain(), "edit", all, new Set(["gen"]))
+		).toEqual(new Set(["prep"]));
+		expect(
+			reusableUpstreamNodes(
+				chain(),
+				"edit",
+				{ ...all, gen: "error" },
+				new Set()
+			)
+		).toEqual(new Set(["prep"]));
+		expect(reusableUpstreamNodes(chain(), "edit", {}, new Set())).toEqual(
+			new Set()
+		);
 	});
 });

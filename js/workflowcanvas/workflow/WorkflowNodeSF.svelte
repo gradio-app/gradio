@@ -57,7 +57,7 @@
 		onopenpicker: (id: string) => void;
 		onswitchendpoint: (id: string, endpointName: string) => void;
 		onhydratendpoints: (id: string, spaceId: string) => void;
-		onrunnode: (id: string) => void;
+		onrunnode: (id: string, force?: boolean) => void;
 		onselect: (id: string, additive?: boolean) => void;
 		onnodepointerdown: (e: PointerEvent, id: string) => void;
 		onportpointerdown: (
@@ -453,7 +453,7 @@
 					onmousedown={(e) => e.stopPropagation()}
 					onclick={(e) => {
 						e.stopPropagation();
-						ctx.onrunnode(node.id);
+						ctx.onrunnode(node.id, e.shiftKey);
 					}}
 					title={(status === "running"
 						? "Running…"
@@ -462,7 +462,10 @@
 							: "Run this node") +
 						(duration !== undefined
 							? ` — last run ${formatDuration(duration)}`
-							: "")}
+							: "") +
+						(status === "running"
+							? ""
+							: " · Shift+click to also re-run up-to-date upstream nodes")}
 					aria-label="Run this node"
 				>
 					{#if duration !== undefined}
@@ -1070,9 +1073,17 @@
 		box-shadow: 0 0 12px rgba(245, 166, 35, 0.2);
 	}
 
-	.wf-node.node-done {
-		border-color: #4fd1a5;
-		box-shadow: 0 0 12px rgba(79, 209, 165, 0.15);
+	/* "done" persists, so the green glow fades via animation. */
+	.wf-node.node-done:not(.node-stale) {
+		animation: node-done-flash 3s ease-out;
+	}
+
+	@keyframes node-done-flash {
+		0%,
+		50% {
+			border-color: #4fd1a5;
+			box-shadow: 0 0 12px rgba(79, 209, 165, 0.15);
+		}
 	}
 
 	.wf-node.node-error {

@@ -196,3 +196,35 @@ export function buildUpstreamSubgraph(
 		)
 	};
 }
+
+/**
+ * Done, non-stale operators upstream of `targetId` whose stored outputs can
+ * be reused instead of re-running them.
+ */
+export function reusableUpstreamNodes(
+	workflow: Workflow,
+	targetId: string,
+	nodeStatus: Record<string, NodeStatus>,
+	staleNodes: Set<string>
+): Set<string> {
+	const upstream = new Set<string>();
+	const queue = [targetId];
+	while (queue.length) {
+		const cur = queue.shift()!;
+		for (const e of workflow.edges) {
+			if (e.to_node_id === cur && !upstream.has(e.from_node_id)) {
+				upstream.add(e.from_node_id);
+				queue.push(e.from_node_id);
+			}
+		}
+	}
+	upstream.delete(targetId);
+	const operators = new Set(workflow.operators.map((n) => n.id));
+	const reusable = new Set<string>();
+	for (const id of upstream) {
+		if (operators.has(id) && nodeStatus[id] === "done" && !staleNodes.has(id)) {
+			reusable.add(id);
+		}
+	}
+	return reusable;
+}
