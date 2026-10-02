@@ -233,7 +233,9 @@ export function readable_stream(
 			}
 		})
 		.catch((e) => {
-			console.error(e);
+			if ((e as Error)?.name !== "AbortError") {
+				console.error(e);
+			}
 			instance.onerror && instance.onerror(e as Event);
 			instance.readyState = instance.CLOSED;
 		});
