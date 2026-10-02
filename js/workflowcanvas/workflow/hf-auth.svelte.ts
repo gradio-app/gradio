@@ -89,6 +89,20 @@ function clearStaleWriteTokenCookie(): void {
 	document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax${secure}`;
 }
 
+/**
+ * Whether this browser looks like it holds the local write token (the edit link
+ * was just opened, or its cookie is set) — a synchronous guess at the server's
+ * `get_write_access` answer, used to pick a first view without waiting on it.
+ */
+export function has_write_token_hint(): boolean {
+	if (typeof window === "undefined") return false;
+	if (new URLSearchParams(window.location.search).has("write_token"))
+		return true;
+	return document.cookie
+		.split(";")
+		.some((c) => c.trim().startsWith(WRITE_TOKEN_COOKIE_PREFIX));
+}
+
 export function createHFAuth(getServer: () => Record<string, any>) {
 	let user = $state("");
 	let isPro = $state(false);
