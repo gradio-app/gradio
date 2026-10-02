@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.21.1
+
+### Features
+
+- [#13937](https://github.com/gradio-app/gradio/pull/13937) [`dea2bf3`](https://github.com/gradio-app/gradio/commit/dea2bf33d79338b2e607689d4b77b9b37d31293b) - Preserve the alpha channel of images loaded into gr.ImageEditor (backport to 6.x).  Thanks @abidlabs!
+
 ## 0.21.0
 
 ### Features
