@@ -1,5 +1,18 @@
 # @gradio/dataframe
 
+## 0.24.6
+
+### Fixes
+
+- [`70db61b`](https://github.com/gradio-app/gradio/commit/70db61b90e427d47621f75301c5202738f4d4329) - Import CSV and TSV files dropped on `gr.Dataframe`.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+- @gradio/client@2.7.1
+- @gradio/button@0.8.3
+
 ## 0.24.5
 
 ### Fixes

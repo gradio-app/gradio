@@ -1,5 +1,11 @@
 # gradio_client
 
+## 2.7.2
+
+### Fixes
+
+- [#13928](https://github.com/gradio-app/gradio/pull/13928) [`131b5b7`](https://github.com/gradio-app/gradio/commit/131b5b78984987035248b3c2b1e35516dfc4e8bc) - Stop the heartbeat of a `Client` garbage collected without `close()`, and on an error response instead of retrying in a loop.  Thanks @abidlabs!
+
 ## 2.7.1
 
 ### Fixes

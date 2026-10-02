@@ -17,6 +17,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
+import weakref
 from collections import deque
 from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
@@ -56,6 +57,10 @@ from gradio_client.utils import (
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
+
+HEARTBEAT_RETRY_DELAY_MIN = 1
+HEARTBEAT_RETRY_DELAY_MAX = 60
+HEARTBEAT_RETRY_RESET_AFTER = 30
 
 
 @document("predict", "submit", "view_api", "duplicate")
@@ -220,8 +225,13 @@ class Client:
         self._refresh_heartbeat = threading.Event()
         self._kill_heartbeat = threading.Event()
 
-        self.heartbeat = threading.Thread(target=self._stream_heartbeat, daemon=True)
-        self.heartbeat.start()
+        self.heartbeat = threading.Thread(
+            target=Client._stream_heartbeat,
+            args=(weakref.ref(self), self._refresh_heartbeat, self._kill_heartbeat),
+            daemon=True,
+        )
+        if self.config.get("connect_heartbeat", True):
+            self.heartbeat.start()
 
         self.stream_open = False
         self.streaming_future: Future | None = None
@@ -233,30 +243,66 @@ class Client:
 
     def close(self):
         self._kill_heartbeat.set()
-        self.heartbeat.join(timeout=1)
+        if self.heartbeat.is_alive():
+            self.heartbeat.join(timeout=1)
 
-    def _stream_heartbeat(self):
-        while True:
-            url = self.heartbeat_url.format(session_hash=self.session_hash)
+    @staticmethod
+    def _stream_heartbeat(
+        client_ref: weakref.ref[Client],
+        refresh_heartbeat: threading.Event,
+        kill_heartbeat: threading.Event,
+    ):
+        retry_delay = HEARTBEAT_RETRY_DELAY_MIN
+        while not kill_heartbeat.is_set():
+            client = client_ref()
+            if client is None:
+                return
+            refresh_heartbeat.clear()
+            url = client.heartbeat_url.format(session_hash=client.session_hash)
+            httpx_kwargs = client.httpx_kwargs.copy()
+            httpx_kwargs.setdefault("timeout", 20)
+            headers, cookies, ssl_verify = (
+                client.headers,
+                client.cookies,
+                client.ssl_verify,
+            )
+            del client
+            refreshed = False
             try:
-                httpx_kwargs = self.httpx_kwargs.copy()
-                httpx_kwargs.setdefault("timeout", 20)
                 with httpx2.stream(
                     "GET",
                     url,
-                    headers=self.headers,
-                    cookies=self.cookies,
-                    verify=self.ssl_verify,
+                    headers=headers,
+                    cookies=cookies,
+                    verify=ssl_verify,
                     **httpx_kwargs,
                 ) as response:
-                    for _ in response.iter_lines():
-                        if self._refresh_heartbeat.is_set():
-                            self._refresh_heartbeat.clear()
-                            break
-                        if self._kill_heartbeat.is_set():
-                            return
+                    retryable = response.is_server_error or response.status_code == 429
+                    if not response.is_success and not retryable:
+                        return
+                    is_event_stream = response.headers.get(
+                        "content-type", ""
+                    ).startswith("text/event-stream")
+                    if response.is_success and is_event_stream:
+                        stream_started = time.monotonic()
+                        for _ in response.iter_lines():
+                            if (
+                                time.monotonic() - stream_started
+                                >= HEARTBEAT_RETRY_RESET_AFTER
+                            ):
+                                retry_delay = HEARTBEAT_RETRY_DELAY_MIN
+                            if kill_heartbeat.is_set():
+                                return
+                            if refresh_heartbeat.is_set():
+                                refreshed = True
+                                break
             except httpx2.TransportError:
                 return
+            if refreshed:
+                continue
+            if kill_heartbeat.wait(retry_delay):
+                return
+            retry_delay = min(retry_delay * 2, HEARTBEAT_RETRY_DELAY_MAX)
 
     def stream_messages(
         self,
@@ -387,8 +433,10 @@ class Client:
                     protocol, session_hash=hash_data["session_hash"]
                 )
 
-            def close_stream(_):
+            def close_stream(future):
                 with self.pending_lock:
+                    if self.streaming_future is future:
+                        self.streaming_future = None
                     if self.stream_epoch == epoch:
                         # A later submission may already have opened its own
                         # reader, and that one is not ours to close.
@@ -969,10 +1017,13 @@ class Client:
         return inferred_fn_index
 
     def __del__(self):
-        if hasattr(self, "executor"):
-            self.executor.shutdown(wait=True)
+        if hasattr(self, "_kill_heartbeat"):
+            self._kill_heartbeat.set()
         # Not wait=True: garbage collecting a client should not block on a reader
-        # that is still waiting on the server.
+        # that is still waiting on the server, and this can run on one of the
+        # executors' own threads, which cannot join themselves.
+        if hasattr(self, "executor"):
+            self.executor.shutdown(wait=False)
         if hasattr(self, "helper_executor"):
             self.helper_executor.shutdown(wait=False)
         if hasattr(self, "stream_executor"):
@@ -1076,7 +1127,7 @@ class Endpoint:
     def __init__(
         self, client: Client, fn_index: int, dependency: dict, protocol: str = "sse_v1"
     ):
-        self.client: Client = client
+        self._client = weakref.ref(client)
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
@@ -1148,6 +1199,20 @@ class Endpoint:
             return False
         return utils.value_is_file(component["api_info"])
 
+    @property
+    def client(self) -> Client:
+        client = self._client()
+        if client is None:
+            raise ValueError(
+                "The Client this endpoint belongs to has been garbage collected."
+            )
+        return client
+
+    @client.setter
+    def client(self, client: Client) -> None:
+        # Only the client's own endpoints hold it weakly, to avoid a cycle.
+        self._client = lambda: client
+
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
 
@@ -1156,12 +1221,13 @@ class Endpoint:
 
     def make_end_to_end_fn(self, helper: Communicator):
         _predict = self.make_predict(helper)
+        client = self.client
 
         def _inner(*data, **kwargs):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
 
-            if self.client._skip_components:
+            if client._skip_components:
                 data = self.insert_empty_state(*data)
             data = self.process_input_files(*data)
             predictions = _predict(*data, **kwargs)
@@ -1183,15 +1249,16 @@ class Endpoint:
     ):
         if helper is None:
             return
-        if self.client.app_version > version.Version("4.29.0"):
-            url = urllib.parse.urljoin(self.client.src_prefixed, utils.CANCEL_URL)
+        client = self.client
+        if client.app_version > version.Version("4.29.0"):
+            url = urllib.parse.urljoin(client.src_prefixed, utils.CANCEL_URL)
 
             # The event_id won't be set on the helper until later
             # so need to create the data in a function that's run at cancel time
             def post_data():
                 return {
                     "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
+                    "session_hash": client.session_hash,
                     "event_id": helper.event_id,
                 }
 
@@ -1199,7 +1266,7 @@ class Endpoint:
             cancellable = True
         else:
             candidates: list[tuple[int, list[int]]] = []
-            for i, dep in enumerate(self.client.config["dependencies"]):
+            for i, dep in enumerate(client.config["dependencies"]):
                 if self.fn_index in dep["cancels"]:
                     candidates.append(
                         (i, [d for d in dep["cancels"] if d != self.fn_index])
@@ -1212,7 +1279,7 @@ class Endpoint:
             cancel_msg = None
             if cancellable and other_cancelled:
                 other_api_names = [
-                    "/" + self.client.config["dependencies"][i].get("api_name")
+                    "/" + client.config["dependencies"][i].get("api_name")
                     for i in other_cancelled
                 ]
                 cancel_msg = (
@@ -1230,10 +1297,10 @@ class Endpoint:
                 return {
                     "data": [],
                     "fn_index": fn_index,
-                    "session_hash": self.client.session_hash,
+                    "session_hash": client.session_hash,
                 }
 
-            url = self.client.api_url
+            url = client.api_url
 
         def _cancel():
             if cancel_msg:
@@ -1242,15 +1309,17 @@ class Endpoint:
                 httpx2.post(
                     url,
                     json=post_data(),
-                    headers=self.client.headers,
-                    cookies=self.client.cookies,
-                    verify=self.client.ssl_verify,
-                    **self.client.httpx_kwargs,
+                    headers=client.headers,
+                    cookies=client.cookies,
+                    verify=client.ssl_verify,
+                    **client.httpx_kwargs,
                 )
 
         return _cancel
 
     def make_predict(self, helper: Communicator):
+        client = self.client
+
         def _predict(*data, **kwargs) -> tuple:
             data = {
                 "data": data or [],
@@ -1262,13 +1331,13 @@ class Endpoint:
 
             hash_data = {
                 "fn_index": self.fn_index,
-                "session_hash": kwargs.get("session_hash", self.client.session_hash),
+                "session_hash": kwargs.get("session_hash", client.session_hash),
             }
 
             if self.protocol == "sse":
                 result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
-                event_id = self.client.send_data(
+                event_id = client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
                 helper.event_id = event_id
@@ -1290,13 +1359,13 @@ class Endpoint:
                 output = result["data"]
             except KeyError as ke:
                 is_public_space = (
-                    self.client.space_id
-                    and not huggingface_hub.space_info(self.client.space_id).private
+                    client.space_id
+                    and not huggingface_hub.space_info(client.space_id).private
                 )
                 if "error" in result and "429" in result["error"] and is_public_space:
                     raise utils.TooManyRequestsError(
                         f"Too many requests to the API, please try again later. To avoid being rate-limited, "
-                        f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
+                        f"please duplicate the Space using Client.duplicate({client.space_id}) "
                         f"and pass in your Hugging Face token."
                     ) from None
                 elif "error" in result:
