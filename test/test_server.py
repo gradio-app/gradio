@@ -113,9 +113,16 @@ def test_server_launch_args_match_blocks_launch():
         f"Parameters in Blocks.launch() but missing in Server.launch(): {missing_params}"
     )
 
+    # Server mode has no components, so it cannot pick OAuth up from a
+    # `gr.LoginButton` the way a Blocks app does and has to be told directly.
+    server_only = {"oauth"}
     extra_params = []
     for param_name in server_params:
-        if param_name not in launch_params and param_name != "self":
+        if (
+            param_name not in launch_params
+            and param_name != "self"
+            and param_name not in server_only
+        ):
             extra_params.append(param_name)
 
     assert not extra_params, (

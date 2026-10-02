@@ -825,7 +825,7 @@ class App(FastAPI):
                 ] = 50,
             ):
                 """The newest runs for this app, newest first."""
-                records = await history.offload(history.list_records, target, limit)
+                records = await history.offload(target.records, limit)
                 return {"records": [dataclasses.asdict(r) for r in records]}
 
             @router.get("/run-history/records/{endpoint}/{record_id}/assets/{asset_id}")
@@ -837,7 +837,7 @@ class App(FastAPI):
             ):
                 """Proxy one stored asset, which the browser cannot fetch itself."""
                 data, guessed = await history.offload(
-                    history.get_asset_bytes, target, endpoint, record_id, asset_id
+                    target.asset, endpoint, record_id, asset_id
                 )
                 if guessed in route_utils.XSS_SAFE_MIMETYPES:
                     content_type, disposition = guessed, "inline"
