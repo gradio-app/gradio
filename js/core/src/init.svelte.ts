@@ -560,6 +560,13 @@ export class AppTree {
 				this.#event_dispatcher(id, "change", null);
 			}
 
+			// An accordion that is not mounted (e.g. hidden) mounts already open,
+			// so it never sees the open change in set_data and never asks for the
+			// children that were left unrendered while it was closed.
+			if (node?.type === "accordion" && new_state.open === true) {
+				await this.render_previously_invisible_children(id);
+			}
+
 			// If this is a non-mounted tabitem, update the parent Tabs'
 			// initial_tabs so the tab button reflects the new state.
 			if (node?.type === "tabitem") {
