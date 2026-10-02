@@ -217,7 +217,7 @@
 					active_source = null;
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				mirror_webcam={true}
+				mirror_webcam="auto"
 				streaming={false}
 				mode="image"
 				include_audio={false}
@@ -237,7 +237,7 @@
 					active_source = null;
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				mirror_webcam={true}
+				mirror_webcam="auto"
 				streaming={false}
 				mode="video"
 				include_audio={false}

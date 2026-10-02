@@ -628,6 +628,111 @@ describe("Props: sources", () => {
 			queryByLabelText("upload_text.paste_clipboard")
 		).not.toBeInTheDocument();
 	});
+
+	test("webcam mirrors front cameras but not rear cameras", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const play_descriptor = Object.getOwnPropertyDescriptor(
+			HTMLMediaElement.prototype,
+			"play"
+		);
+
+		const make_stream = (deviceId: string, facingMode: string): MediaStream => {
+			const track = {
+				getSettings: () => ({ deviceId, facingMode }),
+				stop: () => {}
+			};
+			const stream = new MediaStream();
+			Object.defineProperty(stream, "getTracks", { value: () => [track] });
+			Object.defineProperty(stream, "getVideoTracks", {
+				value: () => [track]
+			});
+			return stream;
+		};
+
+		try {
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async (constraints: MediaStreamConstraints) =>
+						(constraints.video as any)?.deviceId?.exact === "rear-camera"
+							? make_stream("rear-camera", "environment")
+							: make_stream("front-camera", "user"),
+					enumerateDevices: async () => [
+						{
+							deviceId: "front-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Front camera"
+						},
+						{
+							deviceId: "rear-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Rear camera"
+						}
+					]
+				}
+			});
+			Object.defineProperty(HTMLMediaElement.prototype, "play", {
+				configurable: true,
+				value: async () => {}
+			});
+
+			const { getByRole, getByTestId } = await render(Gallery, {
+				...sources_props,
+				value: null,
+				sources: ["webcam"]
+			});
+			const video = getByTestId("webcam-video");
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			await waitFor(() => expect(video).toHaveClass("flip"));
+
+			const select_device = async (device_id: string): Promise<void> => {
+				await fireEvent.click(
+					await waitFor(() =>
+						getByRole("button", { name: "select input source" })
+					)
+				);
+				const selector = getByRole("combobox", {
+					name: "select source"
+				}) as HTMLSelectElement;
+				selector.value = device_id;
+				await fireEvent.change(selector);
+			};
+
+			await select_device("rear-camera");
+			await waitFor(() => expect(video).not.toHaveClass("flip"));
+
+			await select_device("front-camera");
+			await waitFor(() => expect(video).toHaveClass("flip"));
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+
+			if (play_descriptor) {
+				Object.defineProperty(
+					HTMLMediaElement.prototype,
+					"play",
+					play_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(HTMLMediaElement.prototype, "play");
+			}
+		}
+	});
 });
 
 describe("Events: change", () => {
