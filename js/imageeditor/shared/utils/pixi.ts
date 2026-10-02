@@ -1,6 +1,7 @@
 import {
 	Graphics,
 	Rectangle,
+	RendererType,
 	Texture,
 	type Renderer,
 	type Container
@@ -71,8 +72,9 @@ export function clamp(n: number, min: number, max: number): number {
 
 /**
  * Converts premultiplied RGBA pixels to straight alpha in place.
- * The renderer reads pixels back premultiplied, and pixi does not undo that
- * when extracting, so semi-transparent pixels would otherwise come out darker.
+ * The WebGL renderer reads pixels back premultiplied, and pixi does not undo
+ * that when extracting, so semi-transparent pixels would otherwise come out
+ * darker.
  * @param pixels The RGBA pixel data.
  */
 export function unpremultiply_alpha(pixels: Uint8ClampedArray): void {
@@ -117,7 +119,11 @@ export function get_canvas_blob(
 			resolution: 1,
 			frame
 		});
-		unpremultiply_alpha(pixels);
+		// WebGPU reads back through a 2d canvas, which already un-premultiplies, so
+		// doing it again there would brighten semi-transparent pixels.
+		if (renderer.type === RendererType.WEBGL) {
+			unpremultiply_alpha(pixels);
+		}
 
 		const src_canvas = document.createElement("canvas");
 		src_canvas.width = width;

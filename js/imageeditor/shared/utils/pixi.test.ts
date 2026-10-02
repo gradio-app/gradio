@@ -83,35 +83,40 @@ describe("get_canvas_blob", () => {
 		app.destroy(true);
 	});
 
-	test("keeps the colour of semi-transparent pixels", async () => {
-		app = new Application();
-		await app.init({
-			width: SIZE,
-			height: SIZE,
-			backgroundAlpha: 0,
-			preference: "webgl"
-		});
-		const square = new Graphics()
-			.rect(0, 0, SIZE, SIZE)
-			.fill({ color: 0xffffff, alpha: 0.5 });
-		app.stage.addChild(square);
+	// Falls back to webgl where webgpu is unavailable.
+	test.each(["webgl", "webgpu"] as const)(
+		"keeps the colour of semi-transparent pixels (%s)",
+		async (preference) => {
+			app = new Application();
+			await app.init({
+				width: SIZE,
+				height: SIZE,
+				backgroundAlpha: 0,
+				preference
+			});
+			const square = new Graphics()
+				.rect(0, 0, SIZE, SIZE)
+				.fill({ color: 0x804000, alpha: 0.5 });
+			app.stage.addChild(square);
 
-		const blob = await get_canvas_blob(app.renderer, square);
-		const bitmap = await createImageBitmap(blob!);
-		const ctx = new OffscreenCanvas(bitmap.width, bitmap.height).getContext(
-			"2d"
-		)!;
-		ctx.drawImage(bitmap, 0, 0);
-		const [r, g, b, a] = ctx.getImageData(SIZE / 2, SIZE / 2, 1, 1).data;
+			const blob = await get_canvas_blob(app.renderer, square);
+			const bitmap = await createImageBitmap(blob!);
+			const ctx = new OffscreenCanvas(bitmap.width, bitmap.height).getContext(
+				"2d"
+			)!;
+			ctx.drawImage(bitmap, 0, 0);
+			const [r, g, b, a] = ctx.getImageData(SIZE / 2, SIZE / 2, 1, 1).data;
 
-		// The renderer works with premultiplied alpha, so without un-premultiplying
-		// on export this comes back as (128, 128, 128, 128).
-		expect(a).toBeGreaterThanOrEqual(127);
-		expect(a).toBeLessThanOrEqual(128);
-		for (const channel of [r, g, b]) {
-			expect(channel).toBeGreaterThanOrEqual(254);
+			// Not white, so that dividing by alpha twice can't hide behind clamping:
+			// skipping the un-premultiply gives (64, 32, 0), doing it twice gives
+			// (255, 128, 0).
+			expect(a).toBeGreaterThanOrEqual(127);
+			expect(a).toBeLessThanOrEqual(128);
+			expect(Math.abs(r - 128)).toBeLessThanOrEqual(2);
+			expect(Math.abs(g - 64)).toBeLessThanOrEqual(2);
+			expect(b).toBeLessThanOrEqual(2);
 		}
-	});
+	);
 
 	test("resolves null when a 2d context is unavailable", async () => {
 		app = new Application();
