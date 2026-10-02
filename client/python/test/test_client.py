@@ -1468,7 +1468,11 @@ def test_heartbeat_retries_server_errors_with_backoff(increment_demo, monkeypatc
             time.sleep(0.05)
         assert len(attempts) == 4
         gaps = [later - earlier for earlier, later in zip(attempts, attempts[1:])]
-        assert gaps[0] >= 0.1 and gaps[1] >= 0.2 and gaps[2] >= 0.4
+        # Windows' clock ticks every ~16ms, so a wait can measure a little short.
+        slack = 0.02
+        assert gaps[0] >= 0.1 - slack
+        assert gaps[1] >= 0.2 - slack
+        assert gaps[2] >= 0.4 - slack
         time.sleep(0.5)
         assert len(attempts) == 4
         assert client.heartbeat.is_alive()
