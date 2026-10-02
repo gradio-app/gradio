@@ -1,4 +1,50 @@
-import { Graphics, Rectangle, type Renderer, type Container } from "pixi.js";
+import {
+	Graphics,
+	Rectangle,
+	RendererType,
+	Texture,
+	type Renderer,
+	type Container
+} from "pixi.js";
+
+// Same cell size as the colour picker's opacity slider (ColorPicker.svelte), though
+// the greys below are lighter, since this sits behind an image rather than a swatch.
+export const CHECKERBOARD_CELL_SIZE = 10;
+
+/**
+ * Builds the two-cell tile that the transparency checkerboard repeats.
+ * @param renderer The pixi renderer.
+ * @param dark Whether to use the dark variant of the pattern.
+ * @returns A texture that tiles into a checkerboard.
+ */
+export function make_checkerboard_texture(
+	renderer: Renderer,
+	dark: boolean
+): Texture {
+	const cell = CHECKERBOARD_CELL_SIZE;
+	const [light, shade] = dark ? [0x3f3f3f, 0x333333] : [0xffffff, 0xe5e5e5];
+
+	const tile = new Graphics()
+		.rect(0, 0, cell * 2, cell * 2)
+		.fill({ color: light })
+		.rect(0, 0, cell, cell)
+		.fill({ color: shade })
+		.rect(cell, cell, cell, cell)
+		.fill({ color: shade });
+
+	// `addressMode` has to be set through `textureSourceOptions` so the source is
+	// created repeatable; assigning it afterwards leaves the tile clamped.
+	const texture = renderer.textureGenerator.generateTexture({
+		target: tile,
+		frame: new Rectangle(0, 0, cell * 2, cell * 2),
+		resolution: renderer.resolution,
+		textureSourceOptions: { addressMode: "repeat" }
+	});
+
+	tile.destroy();
+
+	return texture;
+}
 
 /**
  * Creates a pixi graphics object.
@@ -22,6 +68,25 @@ export function make_graphics(z_index: number): Graphics {
  */
 export function clamp(n: number, min: number, max: number): number {
 	return n < min ? min : n > max ? max : n;
+}
+
+/**
+ * Converts premultiplied RGBA pixels to straight alpha in place.
+ * The WebGL renderer reads pixels back premultiplied, and pixi does not undo
+ * that when extracting, so semi-transparent pixels would otherwise come out
+ * darker.
+ * @param pixels The RGBA pixel data.
+ */
+export function unpremultiply_alpha(pixels: Uint8ClampedArray): void {
+	for (let i = 0; i < pixels.length; i += 4) {
+		const alpha = pixels[i + 3];
+		if (alpha === 0 || alpha === 255) continue;
+		// A clamped array pins channels that round above alpha to 255.
+		const scale = 255 / alpha;
+		pixels[i] = pixels[i] * scale;
+		pixels[i + 1] = pixels[i + 1] * scale;
+		pixels[i + 2] = pixels[i + 2] * scale;
+	}
 }
 
 /**
@@ -49,13 +114,30 @@ export function get_canvas_blob(
 			? new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height)
 			: new Rectangle(0, 0, image_bounds.width, image_bounds.height);
 
-		const src_canvas = renderer.extract.canvas({
+		const { pixels, width, height } = renderer.extract.pixels({
 			target: obj,
 			resolution: 1,
 			frame
 		});
+		// WebGPU reads back through a 2d canvas, which already un-premultiplies, so
+		// doing it again there would brighten semi-transparent pixels.
+		if (renderer.type === RendererType.WEBGL) {
+			unpremultiply_alpha(pixels);
+		}
 
-		src_canvas.toBlob?.((blob) => {
+		const src_canvas = document.createElement("canvas");
+		src_canvas.width = width;
+		src_canvas.height = height;
+		const ctx = src_canvas.getContext("2d");
+		if (!ctx) {
+			resolve(null);
+			return;
+		}
+		const image_data = ctx.createImageData(width, height);
+		image_data.data.set(pixels);
+		ctx.putImageData(image_data, 0, 0);
+
+		src_canvas.toBlob((blob) => {
 			if (!blob) {
 				resolve(null);
 			}
