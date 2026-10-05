@@ -19,6 +19,13 @@ with gr.Blocks() as demo:
             ) as hidden_acc:
                 details = gr.Textbox(label="Details")
 
+            expand_count = gr.Number(label="Expand Count", value=0)
+            hidden_acc.expand(
+                fn=lambda n: n + 1,
+                inputs=expand_count,
+                outputs=expand_count,
+            )
+
             reveal_btn = gr.Button("Reveal Accordion")
             reveal_btn.click(
                 fn=lambda: gr.Accordion(visible=True, open=True),
@@ -33,6 +40,29 @@ with gr.Blocks() as demo:
         fn=lambda: gr.Tabs(selected="t2"),
         inputs=None,
         outputs=tabs,
+    )
+
+    with gr.Tabs(visible=False, selected="a") as hidden_tabs:
+        with gr.Tab("Tab A", id="a"):
+            gr.Markdown("This is Tab A content.")
+        with gr.Tab("Tab B", id="b"):
+            gr.Markdown("This is Tab B content.")
+
+    reveal_tabs_btn = gr.Button("Reveal Tabs")
+    reveal_tabs_btn.click(
+        fn=lambda: gr.Tabs(visible=True, selected="b"),
+        inputs=None,
+        outputs=hidden_tabs,
+    )
+
+    with gr.Accordion("Advanced", open=False):
+        extra = gr.Textbox(label="Extra")
+
+    hide_extra_btn = gr.Button("Hide Extra")
+    hide_extra_btn.click(
+        fn=lambda: gr.Textbox(visible=False),
+        inputs=None,
+        outputs=extra,
     )
 
 if __name__ == "__main__":

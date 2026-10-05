@@ -514,6 +514,13 @@ export class AppTree {
 				updated_node.props.shared_props.visible =
 					new_state.visible as SharedProps["visible"];
 			}
+			if (updated_node && new_state.visible === true) {
+				make_visible_if_not_rendered(
+					updated_node,
+					this.#hidden_on_startup,
+					false
+				);
+			}
 			load_components(this.root!, this.#config.api_url);
 			await tick();
 			node = find_node_by_id(this.root!, id);
@@ -525,6 +532,12 @@ export class AppTree {
 			await this.#sync_current_values_to_descendants(node);
 		}
 		const old_value = node?.props.props.value;
+		const old_open = node?.props.props.open;
+		if ("visible" in new_state) {
+			// The backend now owns this component's visibility, so lazy rendering
+			// must not flip it back to visible when an ancestor is next opened.
+			this.#hidden_on_startup.delete(id);
+		}
 		if (node) {
 			apply_state_to_node(node, new_state);
 		}
@@ -560,11 +573,22 @@ export class AppTree {
 				this.#event_dispatcher(id, "change", null);
 			}
 
-			// An accordion that is not mounted (e.g. hidden) mounts already open,
-			// so it never sees the open change in set_data and never asks for the
-			// children that were left unrendered while it was closed.
-			if (node?.type === "accordion" && new_state.open === true) {
-				await this.render_previously_invisible_children(id);
+			// A component that is not mounted mounts with open/selected already
+			// applied, so it never sees the change in set_data and never asks for
+			// the children left unrendered behind a closed accordion or an
+			// unselected tab. Make those visible now, before it mounts. (A node
+			// that has never loaded is handled above, before load_components.)
+			if (node && new_state.visible === true) {
+				make_visible_if_not_rendered(node, this.#hidden_on_startup, false);
+				load_components(node, this.#config.api_url);
+			}
+
+			if (
+				node?.type === "accordion" &&
+				new_state.open === true &&
+				old_open === false
+			) {
+				this.#event_dispatcher(id, "expand", null);
 			}
 
 			// If this is a non-mounted tabitem, update the parent Tabs'

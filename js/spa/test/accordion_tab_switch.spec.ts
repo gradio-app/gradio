@@ -32,3 +32,30 @@ test("revealing a hidden accordion with open=True shows its content", async ({
 	await page.getByRole("button", { name: "Hidden Accordion" }).click();
 	await expect(page.getByLabel("Details")).not.toBeVisible();
 });
+
+test("revealing a hidden accordion with open=True fires expand", async ({
+	page
+}) => {
+	await expect(page.getByLabel("Expand Count")).toHaveValue("0");
+
+	await page.getByRole("button", { name: "Reveal Accordion" }).click();
+	await expect(page.getByLabel("Expand Count")).toHaveValue("1");
+});
+
+test("revealing hidden tabs with a selected tab shows that tab's content", async ({
+	page
+}) => {
+	await expect(page.getByText("This is Tab B content.")).not.toBeVisible();
+
+	await page.getByRole("button", { name: "Reveal Tabs" }).click();
+	await expect(page.getByText("This is Tab B content.")).toBeVisible();
+	await expect(page.getByText("This is Tab A content.")).not.toBeVisible();
+});
+
+test("a component hidden inside a closed accordion stays hidden when it opens", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "Hide Extra" }).click();
+	await page.getByRole("button", { name: "Advanced" }).click();
+	await expect(page.getByLabel("Extra")).not.toBeVisible();
+});
