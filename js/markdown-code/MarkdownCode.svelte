@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
 	import { create_marked } from "./utils";
-	import { sanitize } from "@gradio/sanitize";
+	import { sanitize_fragment } from "@gradio/sanitize";
 	import "./prism.css";
 	import { standardHtmlAndSvgTags } from "./html-tags";
 	import type { ThemeMode } from "@gradio/core";
@@ -42,21 +42,42 @@
 		latex_delimiters: latex_delimiters || []
 	});
 
-	let html = $state("");
-	let render_token = 0;
+	let latest_message = "";
+	let rendering = false;
 
 	$effect(() => {
-		const token = ++render_token;
-		if (message && message.trim()) {
-			process_message(message).then((result) => {
-				// drop results from superseded renders so streaming chunks
-				// don't clobber each other out of order
-				if (token === render_token) html = result;
-			});
-		} else {
-			html = "";
+		latest_message = message;
+		if (!rendering) {
+			render_latest();
 		}
 	});
+
+	// Only one render runs at a time. Updates that arrive meanwhile collapse
+	// into the latest message, so a slow render does not queue up a backlog.
+	async function render_latest(): Promise<void> {
+		rendering = true;
+		try {
+			let value: string;
+			do {
+				value = latest_message;
+				await render(value);
+			} while (value !== latest_message);
+		} finally {
+			rendering = false;
+		}
+		onload?.();
+	}
+
+	async function render(value: string): Promise<void> {
+		const fragment =
+			value && value.trim()
+				? await process_message(value)
+				: document.createDocumentFragment();
+		if (!el) return;
+		el.replaceChildren(fragment);
+		await render_html(value);
+	}
+
 	let katex_loaded = false;
 
 	function has_math_syntax(text: string): boolean {
@@ -110,7 +131,7 @@
 		return content;
 	}
 
-	async function process_message(value: string): Promise<string> {
+	async function process_message(value: string): Promise<DocumentFragment> {
 		let parsedValue = value;
 		if (render_markdown) {
 			const latexBlocks: string[] = [];
@@ -139,10 +160,12 @@
 			parsedValue = escapeTags(parsedValue, allow_tags);
 		}
 
-		if (sanitize_html && sanitize) {
-			parsedValue = sanitize(parsedValue);
+		if (sanitize_html && sanitize_fragment) {
+			return sanitize_fragment(parsedValue);
 		}
-		return parsedValue;
+		const template = document.createElement("template");
+		template.innerHTML = parsedValue;
+		return template.content;
 	}
 
 	async function render_html(value: string): Promise<void> {
@@ -185,19 +208,10 @@
 			}
 		}
 	}
-
-	$effect(() => {
-		if (el && document.body.contains(el)) {
-			render_html(message).then(() => onload?.());
-		} else {
-			console.error("Element is not in the DOM");
-		}
-	});
 </script>
 
-<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
-	{@html html}
-</span>
+<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}
+></span>
 
 <style>
 	span {

@@ -300,3 +300,23 @@ describe("Edge cases", () => {
 		expect(change).not.toHaveBeenCalled();
 	});
 });
+
+describe("Streaming updates", () => {
+	afterEach(() => cleanup());
+
+	test("does not parse a new document for every update", async () => {
+		const spy = vi.spyOn(DOMParser.prototype, "parseFromString");
+		try {
+			const { set_data, getByText } = await render(Markdown, {
+				...default_props,
+				value: "Hello"
+			});
+			await set_data({ value: "Hello **world**" });
+			await waitFor(() => expect(getByText("world").tagName).toBe("STRONG"));
+
+			expect(spy).not.toHaveBeenCalled();
+		} finally {
+			spy.mockRestore();
+		}
+	});
+});
