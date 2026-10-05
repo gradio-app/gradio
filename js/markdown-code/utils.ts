@@ -246,6 +246,44 @@ export function assign_heading_ids(
 	});
 }
 
+const VOID_ELEMENTS = new Set([
+	"area",
+	"base",
+	"br",
+	"col",
+	"embed",
+	"hr",
+	"img",
+	"input",
+	"link",
+	"meta",
+	"param",
+	"source",
+	"track",
+	"wbr"
+]);
+
+// Returns how many elements are still open after the raw HTML in `token`,
+// given `open` elements before it. Overcounting only makes the caller group
+// more blocks together, which is safe.
+export function count_open_elements(
+	marked: Marked,
+	token: Token,
+	open: number
+): number {
+	marked.walkTokens([token], (child) => {
+		if (child.type !== "html") return;
+		const html = child.raw.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
+		for (const [, close, name, self_closing] of html.matchAll(
+			/<(\/?)([a-zA-Z][\w:-]*)\b[^>]*?(\/?)>/g
+		)) {
+			if (self_closing || VOID_ELEMENTS.has(name.toLowerCase())) continue;
+			open = close ? Math.max(0, open - 1) : open + 1;
+		}
+	});
+	return open;
+}
+
 export function create_marked({
 	header_links,
 	line_breaks,

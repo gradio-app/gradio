@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { assign_heading_ids, create_marked } from "./utils";
+	import {
+		assign_heading_ids,
+		count_open_elements,
+		create_marked
+	} from "./utils";
 	import { sanitize_fragment } from "@gradio/sanitize";
 	import "./prism.css";
 	import { standardHtmlAndSvgTags } from "./html-tags";
@@ -52,7 +56,8 @@
 			render_markdown,
 			sanitize_html,
 			allow_tags,
-			latex_delimiters
+			latex_delimiters,
+			theme_mode
 		]);
 		if (!rendering) {
 			render_latest();
@@ -168,19 +173,37 @@
 			? assign_heading_ids(marked, top_level)
 			: [];
 
-		return top_level.map((token, i) => {
-			const source = restore_latex(token.raw);
+		// Raw HTML can leave an element open across blocks (e.g. <details>
+		// around markdown), so blocks are grouped until it is closed again and
+		// each group is parsed as one piece of HTML.
+		const groups: number[][] = [];
+		let open_elements = 0;
+		top_level.forEach((token, i) => {
+			if (open_elements > 0) {
+				groups[groups.length - 1].push(i);
+			} else {
+				groups.push([i]);
+			}
+			open_elements = count_open_elements(marked, token, open_elements);
+		});
+
+		return groups.map((group) => {
+			const group_tokens = group.map((i) => top_level[i]);
+			const source = restore_latex(
+				group_tokens.map((token) => token.raw).join("")
+			);
+			const ids = group.map((i) => heading_ids[i]?.join(" ")).join(" ");
 			return {
-				key: [settings, links, heading_ids[i]?.join(" "), source].join("\0"),
+				key: [settings, links, ids, source].join("\0"),
 				render: async () => {
 					// marked.parse() would run walkTokens itself; it does the
 					// async syntax highlighting of code blocks.
 					if (marked.defaults.walkTokens) {
 						await Promise.all(
-							marked.walkTokens([token], marked.defaults.walkTokens)
+							marked.walkTokens(group_tokens, marked.defaults.walkTokens)
 						);
 					}
-					const html = restore_latex(marked.parser([token]));
+					const html = restore_latex(marked.parser(group_tokens));
 					return to_fragment(html, source);
 				}
 			};

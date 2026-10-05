@@ -402,6 +402,21 @@ describe("Streaming updates", () => {
 		});
 	});
 
+	test("keeps markdown inside a raw html element that spans several blocks", async () => {
+		const { container } = await render(Markdown, {
+			...default_props,
+			value:
+				"<details>\n<summary>More</summary>\n\nInside **bold**.\n\n</details>\n\nAfter."
+		});
+
+		await waitFor(() =>
+			expect(container.querySelector(".md details p")?.textContent).toBe(
+				"Inside bold."
+			)
+		);
+		expect(container.querySelector(".md > p")?.textContent).toBe("After.");
+	});
+
 	test("re-renders unchanged text when the latex delimiters change", async () => {
 		const { set_data, container } = await render(Markdown, {
 			...default_props,
