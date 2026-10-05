@@ -406,7 +406,7 @@ describe("Streaming updates", () => {
 		const { container } = await render(Markdown, {
 			...default_props,
 			value:
-				"<details>\n<summary>More</summary>\n\nInside **bold**.\n\n</details>\n\nAfter."
+				"<details>\n<summary>More</summary>\n\n</span>\n\nInside **bold**.\n\n</details>\n\nAfter."
 		});
 
 		await waitFor(() =>

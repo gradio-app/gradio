@@ -263,25 +263,30 @@ const VOID_ELEMENTS = new Set([
 	"wbr"
 ]);
 
-// Returns how many elements are still open after the raw HTML in `token`,
-// given `open` elements before it. Overcounting only makes the caller group
-// more blocks together, which is safe.
-export function count_open_elements(
+// Updates `open`, the stack of element names left open by raw HTML, with the
+// raw HTML in `token`. A closing tag only closes a matching open element, as
+// in the HTML parser. Overcounting only makes the caller group more blocks
+// together, which is safe.
+export function track_open_elements(
 	marked: Marked,
 	token: Token,
-	open: number
-): number {
+	open: string[]
+): void {
 	marked.walkTokens([token], (child) => {
 		if (child.type !== "html") return;
 		const html = child.raw.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
 		for (const [, close, name, self_closing] of html.matchAll(
 			/<(\/?)([a-zA-Z][\w:-]*)\b[^>]*?(\/?)>/g
 		)) {
-			if (self_closing || VOID_ELEMENTS.has(name.toLowerCase())) continue;
-			open = close ? Math.max(0, open - 1) : open + 1;
+			const tag = name.toLowerCase();
+			if (self_closing || VOID_ELEMENTS.has(tag)) continue;
+			if (!close) {
+				open.push(tag);
+			} else if (open.includes(tag)) {
+				open.length = open.lastIndexOf(tag);
+			}
 		}
 	});
-	return open;
 }
 
 export function create_marked({

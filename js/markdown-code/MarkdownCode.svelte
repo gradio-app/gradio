@@ -2,8 +2,8 @@
 	import { onMount, tick } from "svelte";
 	import {
 		assign_heading_ids,
-		count_open_elements,
-		create_marked
+		create_marked,
+		track_open_elements
 	} from "./utils";
 	import { sanitize_fragment } from "@gradio/sanitize";
 	import "./prism.css";
@@ -177,14 +177,14 @@
 		// around markdown), so blocks are grouped until it is closed again and
 		// each group is parsed as one piece of HTML.
 		const groups: number[][] = [];
-		let open_elements = 0;
+		const open_elements: string[] = [];
 		top_level.forEach((token, i) => {
-			if (open_elements > 0) {
+			if (open_elements.length > 0) {
 				groups[groups.length - 1].push(i);
 			} else {
 				groups.push([i]);
 			}
-			open_elements = count_open_elements(marked, token, open_elements);
+			track_open_elements(marked, token, open_elements);
 		});
 
 		return groups.map((group) => {
