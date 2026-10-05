@@ -244,6 +244,24 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_HEARTBEAT_INTERVAL=5
   ```
 
+### 26. `GRADIO_SECRET_KEY`
+
+- **Description**: The secret used to encrypt and authenticate the `gr.State` values that Gradio stores in users' browsers. Set it to the same long random string for every replica of an app, so that any replica can read the state a browser sends, and so that state survives a restart. If it is not set, each process generates its own random key. Keep it secret: anyone who has it can read and forge state values.
+- **Default**: A random key per process
+- **Example**:
+  ```sh
+  export GRADIO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+  ```
+
+### 27. `GRADIO_STATE_CACHE_SIZE_MB`
+
+- **Description**: The amount of memory, in megabytes, each server process uses to cache recent `gr.State` values, so that browsers can send a short reference instead of the full value. When a value is not in the cache, the browser sends it in full, so a smaller cache only costs extra requests.
+- **Default**: `256`
+- **Example**:
+  ```sh
+  export GRADIO_STATE_CACHE_SIZE_MB=1024
+  ```
+
 ## How to Set Environment Variables
 
 To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:

@@ -76,6 +76,7 @@ from gradio import (
     utils,
 )
 from gradio.brotli_middleware import BrotliMiddleware
+from gradio.client_state import ClientState, MissingStateError, StateCache
 from gradio.context import Context
 from gradio.data_classes import (
     APIInfo,
@@ -147,7 +148,7 @@ from gradio.utils import (
 )
 
 if TYPE_CHECKING:
-    from gradio.blocks import Block
+    from gradio.blocks import Block, BlockFunction
 
 import difflib
 import re
@@ -251,6 +252,7 @@ class App(FastAPI):
         self.monitoring_enabled = False
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
+        self.state_cache = StateCache()
         self.iterators: dict[str, AsyncIterator] = {}
         self.iterators_to_reset: set[str] = set()
         self.lock = utils.safe_get_lock()
@@ -1571,6 +1573,8 @@ class App(FastAPI):
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
+            if body.state is not None:
+                resolve_client_state(body, fn)
             gr_request = route_utils.compile_gr_request(
                 body,
                 fn=fn,
@@ -1599,6 +1603,22 @@ class App(FastAPI):
                     status_code=500,
                 )
             return ORJSONResponse(output)
+
+        def resolve_client_state(body: PredictBodyInternal, fn: BlockFunction) -> None:
+            """Verifies the browser-held gr.State values sent with an event. If the
+            client sent references to values this server has not cached, answers
+            409 with their ids so that the client sends the values themselves."""
+            try:
+                body.client_state = ClientState.resolve(
+                    app.get_blocks(), fn, body.state or {}, app.state_cache
+                )
+            except MissingStateError as err:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail={"missing_state": err.ids},
+                ) from None
+            # The tokens are no longer needed once verified
+            body.state = {}
 
         def prepare_simple_api_data(body: PredictBody, fn: Any) -> None:
             if len(body.data) == len(fn.inputs):
@@ -1698,6 +1718,13 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
+            if body.state is not None and body.fn_index is not None:
+                try:
+                    fn = route_utils.get_fn(blocks=blocks, api_name=None, body=body)
+                except KeyError:
+                    fn = None
+                if fn is not None:
+                    resolve_client_state(body, fn)
             success, event_id, state = await blocks._queue.push(
                 body=body, request=request, username=username
             )

@@ -36,7 +36,7 @@ This means that any time you do _not_ want to share a value between users, you s
 
 Gradio supports session state, where data persists across multiple submits within a page session. To reiterate, session data is _not_ shared between different users of your model, and does _not_ persist if a user refreshes the page to reload the Gradio app. To store data in a session state, you need to do three things:
 
-1. Create a `gr.State()` object. If there is a default value to this stateful object, pass that into the constructor. Note that `gr.State` objects must be [deepcopy-able](https://docs.python.org/3/library/copy.html), otherwise you will need to use a different approach as described below.
+1. Create a `gr.State()` object. If there is a default value to this stateful object, pass that into the constructor. Note that the value of a `gr.State` is serialized so that it can be stored in the user's browser (see [where state is stored](#where-state-is-stored) below).
 2. In the event listener, put the `State` object as an input and output as needed.
 3. In the event listener function, add the variable to the input parameters and the return value.
 
@@ -54,13 +54,31 @@ You can think of `gr.State` as an invisible Gradio component that can store any 
 
 The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a `list`, `set`, or `dict`), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the **hash** of the  value changes. So if you define a custom class and create a `gr.State` variable that is an instance of that class, make sure that the the class includes a sensible `__hash__` implementation.
 
-The value of a session State variable is cleared when the user refreshes the page. The value is stored on in the app backend for 60 minutes after the user closes the tab (this can be configured by the `delete_cache` parameter in `gr.Blocks`).
-
 Learn more about `State` in the [docs](https://gradio.app/docs/gradio/state).
 
-**What about objects that cannot be deepcopied?**
+### Where state is stored
 
-As mentioned earlier, the value stored in `gr.State` must be [deepcopy-able](https://docs.python.org/3/library/copy.html). If you are working with a complex object that cannot be deepcopied, you can take a different approach to manually read the user's `session_hash` and store a global `dictionary` with instances of your object for each user. Here's how you would do that:
+By default, the value of a `gr.State` is kept in the user's browser. After an event changes it, the server sends the browser an encrypted copy of the new value, and the browser sends it back with the next event that needs it. The server also caches recent values in memory, so in the usual case the browser only sends a short reference rather than the whole value. This means that:
+
+* State keeps working if your app runs on several servers (replicas) behind a load balancer, or if the server restarts, as long as every server process shares the same secret key. Set the `GRADIO_SECRET_KEY` environment variable to the same random string for every replica. Without it, each process generates its own key, which works for a single server but not across replicas or restarts.
+* The value is encrypted and authenticated, so users can neither read nor modify it. They can, however, send back a value they were given earlier (for example by replaying an old request). Don't rely on `gr.State` for values that must never go backwards, such as a remaining credit balance; store those in a database.
+* The value must be serializable. JSON types, tuples, sets, `bytes`, dates, `Decimal`, `UUID`, paths, NumPy arrays, pandas DataFrames and Series, PIL images, dataclasses, pydantic models, enums, named tuples, and classes defined in your own app's code are all supported. If a value cannot be serialized (for example, a database connection or an object holding a lock), Gradio keeps it in the server's memory instead and prints a warning, since that value will be lost if the user's next request reaches a different server.
+* If several events run at the same time and change the same `gr.State`, the change from the event that finishes last wins.
+* Changing a value in place (e.g. `history.append(message)`) is saved even if the `gr.State` is only an input to the event.
+
+If you want a value to be kept in the server's memory, for example a model loaded for each user, pass `storage="server"`:
+
+```py
+model = gr.State(storage="server")
+```
+
+Server-side state is cleared an hour after the user closes the tab, and is not shared between replicas. It is the only storage that supports a `delete_callback`, which is called when the value is deleted. With either storage, `time_to_live` resets the state to its initial value once that many seconds have passed since it was last changed.
+
+Clients that don't hold state themselves, like the Python client, the `/call` HTTP API, and MCP, always use server-side storage.
+
+**What about objects that cannot be serialized?**
+
+The simplest option is `gr.State(storage="server")`, described above. If you need more control over the object's lifetime, you can instead read the user's `session_hash` and store a global `dictionary` with instances of your object for each user. Here's how you would do that:
 
 ```py
 import gradio as gr
