@@ -1,5 +1,34 @@
 # @gradio/core
 
+## 1.12.1
+
+### Dependency updates
+
+- @gradio/file@0.16.2
+
+## 1.12.1
+
+### Fixes
+
+- [`70db61b`](https://github.com/gradio-app/gradio/commit/70db61b90e427d47621f75301c5202738f4d4329) - Import CSV and TSV files dropped on `gr.Dataframe`.  Thanks @hysts!
+- [`0f889f0`](https://github.com/gradio-app/gradio/commit/0f889f075fe42409dbdeac510362e8307565e099) - Clear the loading status when a validator rejects an event.  Thanks @hysts!
+- [#13901](https://github.com/gradio-app/gradio/pull/13901) [`e918914`](https://github.com/gradio-app/gradio/commit/e918914c7d2f6015b2eac268bf53a5cd75fe871b) - Release the microphone when a streaming gr.Audio recording is stopped.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+- @gradio/client@2.7.1
+- @gradio/button@0.8.3
+- @gradio/image@0.28.4
+- @gradio/gallery@0.19.2
+- @gradio/file@0.16.1
+- @gradio/video@0.23.2
+- @gradio/audio@0.24.4
+- @gradio/code@0.20.0
+- @gradio/tabitem@0.10.0
+- @gradio/html@0.14.0
+
 ## 1.12.0
 
 ### Features

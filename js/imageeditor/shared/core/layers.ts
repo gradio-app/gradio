@@ -41,6 +41,7 @@ export class LayerManager {
 		layers: []
 	});
 	private background_layer: Container | null = null;
+	private background_transparent = false;
 	private image_container: Container;
 	private app: Application;
 	private fixed_canvas: boolean;
@@ -75,10 +76,24 @@ export class LayerManager {
 		}
 	}
 
-	create_background_layer(width: number, height: number): Container {
+	/**
+	 * Creates the background layer.
+	 * @param width The width of the layer
+	 * @param height The height of the layer
+	 * @param transparent Skips the opaque fill. The fill gives an empty canvas
+	 * something to draw on but ends up in the exported image, so a layer that will
+	 * hold a background image has to stay transparent to keep that image's alpha.
+	 */
+	create_background_layer(
+		width: number,
+		height: number,
+		transparent = false
+	): Container {
 		if (this.background_layer) {
 			this.background_layer.destroy();
 		}
+
+		this.background_transparent = transparent;
 
 		const layer = new Container();
 
@@ -98,9 +113,10 @@ export class LayerManager {
 		const clear_graphics = new Graphics();
 		clear_graphics.clear();
 
-		clear_graphics
-			.rect(0, 0, width, height)
-			.fill({ color: this.dark ? 0x333333 : 0xffffff, alpha: 1 });
+		clear_graphics.rect(0, 0, width, height).fill({
+			color: this.dark ? 0x333333 : 0xffffff,
+			alpha: transparent ? 0 : 1
+		});
 
 		this.app.renderer.render({
 			container: clear_graphics,
@@ -114,6 +130,10 @@ export class LayerManager {
 
 		this.update_layer_order();
 		return layer;
+	}
+
+	is_background_transparent(): boolean {
+		return this.background_transparent;
 	}
 
 	set_layer_options(
@@ -140,7 +160,8 @@ export class LayerManager {
 	): Promise<Container> {
 		const layer = this.create_background_layer(
 			width || this.image_container.width,
-			height || this.image_container.height
+			height || this.image_container.height,
+			true
 		);
 
 		try {
@@ -201,7 +222,11 @@ export class LayerManager {
 
 				const totalWidth = imageWidth + this.border_region * 2;
 				const totalHeight = imageHeight + this.border_region * 2;
-				const newLayer = this.create_background_layer(totalWidth, totalHeight);
+				const newLayer = this.create_background_layer(
+					totalWidth,
+					totalHeight,
+					true
+				);
 
 				sprite.width = imageWidth;
 				sprite.height = imageHeight;
@@ -585,8 +610,10 @@ export class LayerManager {
 		scale: boolean,
 		calculateOffset: () => { offsetX: number; offsetY: number }
 	): Container | null {
+		const transparent = this.background_transparent;
+
 		if (!oldBackgroundLayer) {
-			return this.create_background_layer(newWidth, newHeight);
+			return this.create_background_layer(newWidth, newHeight, transparent);
 		}
 
 		let backgroundImage: Sprite | null = oldBackgroundLayer.children.find(
@@ -597,7 +624,8 @@ export class LayerManager {
 
 		const newBackgroundLayer = this.create_background_layer(
 			newWidth,
-			newHeight
+			newHeight,
+			transparent
 		);
 
 		if (backgroundImage) {

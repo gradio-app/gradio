@@ -362,7 +362,7 @@ class TestVideo:
             "value": None,
             "interactive": None,
             "proxy_url": None,
-            "webcam_options": {"constraints": None, "mirror": True},
+            "webcam_options": {"constraints": None, "mirror": "auto"},
             "include_audio": True,
             "format": None,
             "_selectable": False,
@@ -874,6 +874,12 @@ class TestVideo:
                 break
             await asyncio.sleep(0.01)
         assert encoders, "the thread never got as far as an encoder"
+        # `encoders` is filled as soon as the encoder exists, before the slot
+        # gets to refuse and close it, so give the close a moment to land.
+        for _ in range(500):
+            if all(encoder.process.poll() is not None for encoder in encoders):
+                break
+            await asyncio.sleep(0.01)
         for encoder in encoders:
             assert encoder.process.poll() is not None
 
@@ -1213,6 +1219,25 @@ class TestVideo:
         assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
+
+    @patch("pathlib.Path.exists", MagicMock(return_value=False))
+    @patch("gradio.components.video.FFmpeg")
+    def test_video_preprocessing_follows_mirrored_flag(self, mock_ffmpeg, media_data):
+        path = media_data.BASE64_VIDEO["path"]
+        not_mirrored = FileData(
+            path=path, meta={"_type": "gradio.FileData", "mirrored": False}
+        )
+        mirrored = FileData(
+            path=path, meta={"_type": "gradio.FileData", "mirrored": True}
+        )
+
+        gr.Video(sources=["webcam"], include_audio=True).preprocess(not_mirrored)
+        gr.Video(sources=["upload"], include_audio=True).preprocess(mirrored)
+        mock_ffmpeg.assert_not_called()
+
+        gr.Video(sources=["upload", "webcam"], include_audio=True).preprocess(mirrored)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
 
 
 def test_is_video_correct_length():
