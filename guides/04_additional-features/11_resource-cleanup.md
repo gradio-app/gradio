@@ -14,12 +14,12 @@ Let's take a look at each of them individually.
 
 ## Automatic deletion of `gr.State`
 
-When a user closes their browser tab, Gradio will automatically delete any `gr.State` variables associated with that user session after 60 minutes. If the user connects again within those 60 minutes, no state will be deleted.
+By default, the value of a `gr.State` is kept in the user's browser (see [where state is stored](/guides/state-in-blocks#where-state-is-stored)), so there is nothing for the server to delete. A `gr.State` created with `storage="server"` is kept in the server's memory instead, and Gradio automatically deletes it 60 minutes after the user closes their browser tab. If the user connects again within those 60 minutes, no state will be deleted.
 
 You can control the deletion behavior further with the following two parameters of `gr.State`:
 
-1. `delete_callback` - An arbitrary function that will be called when the variable is deleted. This function must take the state value as input. This function is useful for deleting variables from GPU memory.
-2. `time_to_live` - The number of seconds the state should be stored for after it is created or updated. This will delete variables before the session is closed, so it's useful for clearing state for potentially long running sessions.
+1. `delete_callback` - An arbitrary function that will be called when the variable is deleted. This function must take the state value as input. This function is useful for deleting variables from GPU memory. It requires `storage="server"`.
+2. `time_to_live` - The number of seconds the state should be stored for after it is created or updated. Once it has passed, the state is reset to its initial value, so it's useful for clearing state for potentially long running sessions.
 
 ## Automatic cache cleanup via `delete_cache`
 

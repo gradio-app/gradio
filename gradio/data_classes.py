@@ -105,6 +105,10 @@ class PredictBody(BaseModel):
     batched: bool | None = (
         False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     )
+    # Browser-held gr.State values, by component id: {"ref": ...} for a value
+    # the server may have cached, or {"token": ...} for the value itself.
+    # None means the client does not hold state, so it is kept on the server.
+    state: dict[str, dict[str, str]] | None = None
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema, handler):
@@ -121,6 +125,7 @@ class PredictBody(BaseModel):
                 "trigger_id": {"type": "integer"},
                 "simple_format": {"type": "boolean"},
                 "batched": {"type": "boolean"},
+                "state": {"type": "object"},
             },
             "required": ["data"],
         }
@@ -132,6 +137,8 @@ class PredictBodyInternal(PredictBody):
     request: PydanticStarletteRequest | None = (
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
+    # The verified browser-held gr.State values for this event (a ClientState)
+    client_state: Any = Field(default=None, exclude=True)
 
 
 class ResetBody(BaseModel):

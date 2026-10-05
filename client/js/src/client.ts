@@ -44,6 +44,7 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history } from "./utils/run_history";
+import { StateStore } from "./utils/state_store";
 import { sign_config_file_urls, sign_file_urls } from "./helpers/data";
 import {
 	API_INFO_ERROR_MSG,
@@ -69,6 +70,8 @@ export class Client {
 	session_hash: string = Math.random().toString(36).substring(2);
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
+	/** The `gr.State` values the server keeps in this client. */
+	state_store: StateStore = new StateStore();
 
 	private cookies: string | null = null;
 	private restored_session_hash = false;
@@ -289,6 +292,10 @@ export class Client {
 				await this.restore_session(resolved.config);
 			}
 			await this._resolve_heartbeat(resolved.config);
+		}
+
+		if (this.config) {
+			await this.state_store.attach(`${this.config.root}|${this.session_hash}`);
 		}
 
 		try {

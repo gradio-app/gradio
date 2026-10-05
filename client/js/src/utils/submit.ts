@@ -34,6 +34,7 @@ import {
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { clear_resumable_event, track_resumable_event } from "./session";
+import type { StatePayload } from "./state_store";
 import { Client } from "../client";
 import {
 	read_run_history_storage,
@@ -87,6 +88,33 @@ export function submit(
 			api_map,
 			config
 		);
+
+		// The gr.State values the server keeps in this client, for this event
+		const state_ids = new Set([...dependency.inputs, ...dependency.outputs]);
+		const state_payload = (force: number[] = []): StatePayload =>
+			that.state_store.payload(state_ids, force);
+		// Posts an event with its state. A server that has not cached a value
+		// the client referred to answers 409 with the ids it needs in full.
+		const post_with_state = async (
+			url: string,
+			body: Record<string, unknown>,
+			headers: any
+		): Promise<[any, number]> => {
+			const result = (await post_data(
+				url,
+				{ ...body, state: state_payload() },
+				headers
+			)) as [any, number];
+			const missing = result[0]?.detail?.missing_state;
+			if (result[1] === 409 && Array.isArray(missing)) {
+				return (await post_data(
+					url,
+					{ ...body, state: state_payload(missing) },
+					headers
+				)) as [any, number];
+			}
+			return result;
+		};
 
 		let resolved_data = resume_event_id
 			? []
@@ -344,6 +372,9 @@ export function submit(
 						}
 					}
 					if (data) {
+						// Before the data event, so that events that follow this one
+						// (and resumed jobs) send the new state
+						that.state_store.apply(data.state);
 						fire_event({
 							type: "data",
 							time: new Date(),
@@ -468,7 +499,7 @@ export function submit(
 					time: new Date()
 				});
 
-				post_data(
+				post_with_state(
 					`${config.root}${api_prefix}/run${
 						_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 					}${url_params ? "?" + url_params : ""}`,
@@ -482,6 +513,7 @@ export function submit(
 						const data = output.data;
 
 						if (status_code == 200) {
+							that.state_store.apply(output.state);
 							fire_event({
 								type: "data",
 								endpoint: _endpoint,
@@ -700,7 +732,7 @@ export function submit(
 					: Promise.resolve(null);
 				const post_data_promise = zerogpu_auth_promise.then((headers) => {
 					const combined_headers = { ...addt_headers, ...(headers || {}) };
-					return post_data(
+					return post_with_state(
 						`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
 						{
 							...payload,
