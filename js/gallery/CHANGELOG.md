@@ -1,5 +1,26 @@
 # @gradio/gallery
 
+## 0.19.3
+
+### Fixes
+
+- [#13930](https://github.com/gradio-app/gradio/pull/13930) [`86b44f2`](https://github.com/gradio-app/gradio/commit/86b44f261c43e55aadc635ddb7c08eb1741a1607) - Make gr.Gallery's empty state respect `sources`.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/file@0.16.2
+
+## 0.19.2
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+- @gradio/client@2.7.1
+- @gradio/image@0.28.4
+- @gradio/file@0.16.1
+- @gradio/video@0.23.2
+
 ## 0.19.1
 
 ### Dependency updates

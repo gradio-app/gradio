@@ -874,6 +874,12 @@ class TestVideo:
                 break
             await asyncio.sleep(0.01)
         assert encoders, "the thread never got as far as an encoder"
+        # `encoders` is filled as soon as the encoder exists, before the slot
+        # gets to refuse and close it, so give the close a moment to land.
+        for _ in range(500):
+            if all(encoder.process.poll() is not None for encoder in encoders):
+                break
+            await asyncio.sleep(0.01)
         for encoder in encoders:
             assert encoder.process.poll() is not None
 

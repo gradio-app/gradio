@@ -1,5 +1,20 @@
 # @gradio/audio
 
+## 0.24.4
+
+### Fixes
+
+- [#13901](https://github.com/gradio-app/gradio/pull/13901) [`e918914`](https://github.com/gradio-app/gradio/commit/e918914c7d2f6015b2eac268bf53a5cd75fe871b) - Release the microphone when a streaming gr.Audio recording is stopped.  Thanks @hysts!
+- [#13902](https://github.com/gradio-app/gradio/pull/13902) [`526543d`](https://github.com/gradio-app/gradio/commit/526543d9a46593a8b388e568c0285eb05211668c) - Fetch channel data once per channel when encoding recorded audio to WAV.  Thanks @hysts!
+- [#13903](https://github.com/gradio-app/gradio/pull/13903) [`7ba5437`](https://github.com/gradio-app/gradio/commit/7ba5437d7df65949ae65536b3e982d715907244a) - Fix streaming gr.Audio getting stuck at "queue: 1/1" when stopped while waiting.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+- @gradio/client@2.7.1
+- @gradio/button@0.8.3
+
 ## 0.24.3
 
 ### Dependency updates

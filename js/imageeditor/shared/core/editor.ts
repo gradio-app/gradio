@@ -1,4 +1,13 @@
-import { Application, Container, Graphics, Sprite, Assets } from "pixi.js";
+import {
+	Application,
+	Container,
+	Graphics,
+	Sprite,
+	TilingSprite,
+	Assets
+} from "pixi.js";
+
+import { make_checkerboard_texture } from "../utils/pixi";
 
 import { DropShadowFilter as BlurFilter } from "pixi-filters/drop-shadow";
 
@@ -196,6 +205,7 @@ export class ImageEditor {
 	});
 	private outline_container!: Container;
 	private outline_graphics!: Graphics;
+	private checkerboard!: TilingSprite;
 	private background_image?: Sprite;
 	private ready_resolve!: (value: void | PromiseLike<void>) => void;
 	private event_callbacks: Map<string, (() => void)[]> = new Map();
@@ -393,6 +403,14 @@ export class ImageEditor {
 					alpha: 1
 				});
 
+			this.checkerboard.visible =
+				this.layer_manager.is_background_transparent();
+			if (this.checkerboard.visible) {
+				this.checkerboard.position.set(local_x, local_y);
+				this.checkerboard.width = effective_width;
+				this.checkerboard.height = effective_height;
+			}
+
 			if (this.border_region > 0) {
 				const scaled_border = this.border_region * this.scale_value;
 				const border_x = local_x + scaled_border - 1;
@@ -526,6 +544,17 @@ export class ImageEditor {
 		}
 
 		this.outline_container.addChild(this.outline_graphics);
+
+		// A sibling of the sheet, not part of it: the drop shadow above is generated
+		// from `outline_graphics`' alpha and would smear the pattern.
+		this.checkerboard = new TilingSprite({
+			texture: make_checkerboard_texture(this.app.renderer, this.dark),
+			width: this.width,
+			height: this.height,
+			visible: false
+		});
+
+		this.outline_container.addChild(this.checkerboard);
 		this.app.stage.addChild(this.outline_container);
 
 		this.overlay_container = new Container();

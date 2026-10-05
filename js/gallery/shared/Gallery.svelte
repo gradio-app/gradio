@@ -727,7 +727,6 @@
 					{i18n}
 					onclear={() => {
 						value = [];
-						onsource_change("upload");
 						onclear();
 					}}
 				>
@@ -738,7 +737,7 @@
 							onclick={handle_download_all}
 						/>
 					{/if}
-					{#if upload && stream_handler}
+					{#if upload && stream_handler && sources.includes("upload")}
 						<IconButton
 							Icon={UploadIcon}
 							label={i18n("upload_text.click_to_upload")}

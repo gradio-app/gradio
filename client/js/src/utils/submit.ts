@@ -77,6 +77,8 @@ export function submit(
 		if (!config) throw new Error("Could not resolve app config");
 		const root = config.root;
 
+		this.open_heartbeat();
+
 		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
 			api_info,
 			endpoint,
