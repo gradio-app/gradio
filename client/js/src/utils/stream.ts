@@ -108,7 +108,8 @@ export async function open_stream(this: Client): Promise<void> {
 		if (that.stream_instance !== stream) {
 			return;
 		}
-		console.error(e);
+		// Closing the client (e.g. when the page is unloaded) aborts the stream
+		if (!that.closed) console.error(e);
 		if (!that.options.resume_sessions) {
 			// Without resuming, the server drops the session's events when the
 			// stream breaks, so tell them the connection is gone.
