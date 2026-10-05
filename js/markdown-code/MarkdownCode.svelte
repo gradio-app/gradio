@@ -80,7 +80,7 @@
 	): string {
 		if (tagsToEscape === true) {
 			// https://www.w3schools.com/tags/
-			const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9-]*)([\s>])/g;
+			const tagRegex = /<\/?([a-zA-Z][\w-]*)([\s>])/g;
 			return content.replace(tagRegex, (match, tagName, endChar) => {
 				if (!standardHtmlAndSvgTags.includes(tagName.toLowerCase())) {
 					return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
