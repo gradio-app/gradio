@@ -51,6 +51,8 @@ export async function open_stream(this: Client): Promise<void> {
 
 	if (!stream) {
 		console.warn("Cannot connect to SSE endpoint: " + url.toString());
+		// Otherwise no later call could open one
+		stream_status.open = false;
 		return;
 	}
 
