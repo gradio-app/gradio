@@ -5,6 +5,7 @@ import threading
 import time
 from unittest.mock import patch
 
+import fastapi
 import gradio_client as grc
 import pytest
 from fastapi.testclient import TestClient
@@ -383,6 +384,45 @@ def test_expired_detached_session_is_fully_cleaned_up():
         messages = [json.loads(line[5:]) for line in response.iter_lines() if line]
         assert messages[0]["session_not_found"] is True
         assert messages[-1]["msg"] == "close_stream"
+    finally:
+        demo.close()
+
+
+def test_expired_session_runs_unload_after_its_events_are_gone():
+    # A job that finished while nobody was watching leaves no event to take a
+    # request from, so the queue keeps the heartbeat's one for `unload`.
+    unloaded = threading.Event()
+    with gr.Blocks() as demo:
+        demo.unload(unloaded.set)
+
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        queue = demo._queue
+        request = fastapi.Request(
+            {
+                "type": "http",
+                "method": "GET",
+                "path": f"{API_PREFIX}/heartbeat/finished_session",
+                "headers": [],
+                "query_string": b"",
+                "server": ("testserver", 80),
+                "scheme": "http",
+                "root_path": "",
+                "client": ("127.0.0.1", 1234),
+            }
+        )
+        queue.pending_event_ids_session["finished_session"] = {"done-event"}
+        queue.remember_unload_request(
+            "finished_session",
+            request,
+            None,
+            f"{API_PREFIX}/heartbeat/finished_session",
+        )
+        queue.resumable_sessions["finished_session"].expires_at = 0
+        asyncio.run(queue.clean_expired_detached_sessions())
+
+        assert unloaded.is_set()
+        assert "finished_session" not in queue.resumable_sessions
     finally:
         demo.close()
 

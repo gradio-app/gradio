@@ -6,7 +6,8 @@ export interface ResumableJob {
 }
 
 interface ResumableSession {
-	app_id?: string;
+	// Identifies the app's structure, the same across restarts and replicas
+	app_key?: string;
 	root: string;
 	session_hash: string;
 	events: ResumableJob[];
@@ -19,6 +20,8 @@ interface ResumableSession {
 	in_use?: boolean;
 }
 
+// The data a session saves (its gr.State tokens and component values) is in
+// IndexedDB (see `session_store.ts`); this is only the tab's pointer to it.
 const STORAGE_KEY = "gradio_active_session";
 
 function read_session(): ResumableSession | null {
@@ -62,7 +65,7 @@ function is_session(
 		!!session &&
 		session.session_hash === session_hash &&
 		session.root === config.root &&
-		(!session.app_id || session.app_id === config.app_id)
+		session.app_key === config.app_key
 	);
 }
 
@@ -105,7 +108,7 @@ export function track_session(config: Config, session_hash: string): void {
 	const current = is_session(session, config, session_hash) ? session : null;
 	const pages = new Set(current?.pages).add(config.current_page ?? "");
 	write_session({
-		app_id: config.app_id,
+		app_key: config.app_key,
 		root: config.root,
 		session_hash,
 		events: current?.events ?? [],
@@ -144,7 +147,7 @@ export function track_resumable_event(
 
 	write_session({
 		...current,
-		app_id: config.app_id,
+		app_key: config.app_key,
 		root: config.root,
 		session_hash,
 		events: [...events, event]

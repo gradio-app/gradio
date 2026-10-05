@@ -55,16 +55,16 @@ Be sure to add this to the `<head>` of your HTML. This will install the latest v
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <script type="module">
-        import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
-        const client = await Client.connect("abidlabs/en2fr");
-        const result = await client.predict("/predict", {
-            text: "My name is Hannah"
-        });
-        console.log(result);
-    </script>
-</head>
+	<head>
+		<script type="module">
+			import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+			const client = await Client.connect("abidlabs/en2fr");
+			const result = await client.predict("/predict", {
+				text: "My name is Hannah"
+			});
+			console.log(result);
+		</script>
+	</head>
 </html>
 ```
 
@@ -85,7 +85,9 @@ You can also connect to private Spaces by passing in your HF token with the `tok
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.connect("abidlabs/my-private-space", { token: "hf_..." })
+const app = await Client.connect("abidlabs/my-private-space", {
+	token: "hf_..."
+});
 ```
 
 ## Duplicating a Space for private use
@@ -137,12 +139,8 @@ If the Gradio application you are connecting to [requires a username and passwor
 ```js
 import { Client } from "@gradio/client";
 
-Client.connect(
-  space_name,
-  { auth: [username, password] }
-)
+Client.connect(space_name, { auth: [username, password] });
 ```
-
 
 ## Inspecting the API endpoints
 
@@ -192,12 +190,11 @@ We should also provide the `api_name='/predict'` argument to the `predict()` met
 
 ## The "View API" Page
 
-As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage. 
+As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
 
 The View API page also includes an "API Recorder" that lets you interact with the Gradio UI normally and converts your interactions into the corresponding code to run with the JS Client.
-
 
 ## Making a prediction
 
@@ -260,7 +257,6 @@ for await (const message of job) {
 
 The event interface also allows you to get the status of the running job by instantiating the client with the `events` options passing `status` and `data` as an array:
 
-
 ```ts
 import { Client } from "@gradio/client";
 
@@ -296,7 +292,7 @@ for await (const message of job) {
 
 ## Resuming Jobs After a Disconnect
 
-Set `resume_sessions: true` when connecting from a browser. The client keeps the tab's session and its active queued event IDs in browser session storage, reconnects the stream after temporary network failures, and picks the same session back up after a page reload: `app.session_restored` is then `true`, `app.config` holds the values the session's components last had, and unfinished jobs can be resumed:
+Set `resume_sessions: true` when connecting from a browser. The client keeps the tab's session and its active queued event IDs in browser session storage, reconnects the stream after temporary network failures, and picks the same session back up after a page reload: `app.session_restored` is then `true`, `app.config` holds the values the session's components last had, and unfinished jobs can be resumed. The values (and the session's `gr.State`, which the server keeps in the browser as encrypted tokens) are saved in the browser's IndexedDB, so they come back even if the server restarted or the page reached a different replica. A job, however, can only be resumed by the server running it:
 
 ```js
 import { Client } from "@gradio/client";

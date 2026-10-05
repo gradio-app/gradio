@@ -11,6 +11,7 @@ export {
 	clear_run_history,
 	consume_run_history_replay,
 	delete_run_history,
+	load_run_history,
 	on_run_history_change,
 	read_run_history,
 	read_run_history_storage,

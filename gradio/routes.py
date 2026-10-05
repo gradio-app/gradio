@@ -652,25 +652,6 @@ class App(FastAPI):
                 ]
             return components, "valid"
 
-        def load_session(
-            session_hash: str, config: BlocksConfigDict, page: str | None = None
-        ) -> list[dict[str, Any]] | None:
-            """Load the components as `session_hash` last left them, so that a
-            reloaded page keeps its outputs. `None` if there is no such session.
-            """
-            if session_hash not in app.state_holder:
-                return None
-            component_ids = (
-                set(config["page"][page]["components"])
-                if page is not None
-                else {component["id"] for component in config["components"]}
-            )
-            return [
-                utils.safe_deepcopy(component)
-                for component in app.state_holder[session_hash].components
-                if component["id"] in component_ids
-            ]
-
         def get_page_config(
             config: BlocksConfigDict,
             page: str,
@@ -1208,7 +1189,6 @@ class App(FastAPI):
             user: str = Depends(get_current_user),
             deep_link: str = "",
             page: str | None = None,
-            session_hash: str = "",
         ):
             source_config = cast(BlocksConfigDict, app.get_blocks().config)
             selected_page = (
@@ -1222,8 +1202,6 @@ class App(FastAPI):
                     source_config,
                     selected_page,
                 )
-            elif session_hash:
-                components = load_session(session_hash, source_config, selected_page)
             if selected_page is not None:
                 config = get_page_config(source_config, selected_page, components)
             else:
@@ -1243,8 +1221,6 @@ class App(FastAPI):
                 config["components"] = components  # type: ignore
             if deep_link:
                 config["deep_link_state"] = deep_link_state
-            elif session_hash:
-                config["session_restored"] = components is not None
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
             else:
@@ -1519,8 +1495,15 @@ class App(FastAPI):
                 if app.heartbeat_sessions.get(session_hash) != 0:
                     return
                 del app.heartbeat_sessions[session_hash]
-                # The queue closes sessions that still have jobs running.
+                # The queue closes sessions that still have jobs running, and
+                # runs their `unload` events then.
                 if queue.pending_event_ids_session.get(session_hash):
+                    queue.remember_unload_request(
+                        session_hash,
+                        request,
+                        username,
+                        f"{API_PREFIX}/heartbeat/{session_hash}",
+                    )
                     return
 
                 req = Request(request, username, session_hash=session_hash)

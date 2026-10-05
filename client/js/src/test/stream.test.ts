@@ -112,9 +112,27 @@ describe("open_stream", () => {
 		expect(app.stream).toHaveBeenCalledTimes(2);
 	});
 
+	it("tells a client that does not resume that its connection broke", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const callback = vi.fn().mockResolvedValue(undefined);
+		app.event_callbacks["event-1"] = callback;
+		app.unclosed_events.add("event-1");
+
+		await app.open_stream();
+		await app.stream_instance!.onerror!({
+			data: JSON.stringify("network error")
+		} as MessageEvent);
+
+		expect(callback).toHaveBeenCalledWith(
+			expect.objectContaining({ msg: "broken_connection" })
+		);
+		expect(app.stream).toHaveBeenCalledTimes(1);
+	});
+
 	it("should reconnect the SSE stream after an error when jobs are active", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(console, "error").mockImplementation(() => {});
+		app.options.resume_sessions = true;
 		const callback = vi.fn().mockResolvedValue(undefined);
 		app.event_callbacks["event-1"] = callback;
 		app.unclosed_events.add("event-1");

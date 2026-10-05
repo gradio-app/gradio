@@ -31,7 +31,7 @@ import {
 	track_session,
 	type ResumableJob
 } from "./utils/session";
-import { RE_SPACE_NAME, join_urls, process_endpoint } from "./helpers/api_info";
+import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
 	normalise_token_option,
@@ -43,15 +43,14 @@ import {
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
-import { clear_run_history } from "./utils/run_history";
-import { StateStore } from "./utils/state_store";
+import { clear_run_history, load_run_history } from "./utils/run_history";
+import { SessionStore } from "./utils/session_store";
 import { sign_config_file_urls, sign_file_urls } from "./helpers/data";
 import {
 	API_INFO_ERROR_MSG,
 	APP_ID_URL,
 	CLOSE_URL,
 	CONFIG_ERROR_MSG,
-	CONFIG_URL,
 	HEARTBEAT_URL,
 	COMPONENT_SERVER_URL
 } from "./constants";
@@ -71,12 +70,12 @@ export class Client {
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
 	/** The `gr.State` values the server keeps in this client. */
-	state_store: StateStore = new StateStore();
+	session_store: SessionStore = new SessionStore();
 
 	private cookies: string | null = null;
 	private restored_session_hash = false;
-	// Whether the server still had the session this tab was using for this
-	// page, and so its outputs and state carry over rather than starting afresh.
+	// Whether this tab resumed a session it had shown this page in, and so the
+	// outputs and state it saved carry over rather than starting afresh.
 	session_restored = false;
 
 	// streaming
@@ -285,17 +284,27 @@ export class Client {
 			| { config: Config }
 			| undefined;
 		if (resolved?.config) {
-			if (
-				this.options.resume_sessions &&
-				typeof sessionStorage !== "undefined"
-			) {
-				await this.restore_session(resolved.config);
+			const config = resolved.config;
+			const resumable =
+				this.options.resume_sessions && typeof sessionStorage !== "undefined"
+					? this.resume_session(config)
+					: false;
+			await Promise.all([
+				this.session_store.attach(
+					config.root,
+					config.app_key,
+					this.session_hash
+				),
+				// So that the first submission knows where its run is recorded
+				load_run_history(config)
+			]);
+			// Put back what the session's components were showing, so the page
+			// comes back as it was rather than from the app's initial values.
+			if (resumable && this.session_store.found) {
+				this.session_store.restore_into(config.components);
+				this.session_restored = true;
 			}
-			await this._resolve_heartbeat(resolved.config);
-		}
-
-		if (this.config) {
-			await this.state_store.attach(`${this.config.root}|${this.session_hash}`);
+			await this._resolve_heartbeat(config);
 		}
 
 		try {
@@ -310,40 +319,17 @@ export class Client {
 	}
 
 	/**
-	 * Carry on with the session this tab was using before it was reloaded:
-	 * the server keeps its state, and its outputs are put back in the config.
+	 * Carry on with the session this tab was using before it was reloaded.
+	 * Returns whether this tab has shown this page in that session before, so
+	 * that what the session saved for it can be restored.
 	 */
-	private async restore_session(config: Config): Promise<void> {
+	private resume_session(config: Config): boolean {
+		let resumable = false;
 		if (this.restored_session_hash && !has_session(config, this.session_hash)) {
 			this.session_hash = Math.random().toString(36).substring(2);
 		} else if (this.restored_session_hash) {
-			const url = new URL(join_urls(config.root, CONFIG_URL));
-			url.searchParams.set("session_hash", this.session_hash);
-			if (this.page !== null) url.searchParams.set("page", this.page);
-			try {
-				const response = await this.fetch(url, {
-					headers: this.options.token
-						? { Authorization: `Bearer ${this.options.token}` }
-						: {},
-					credentials: this.options.credentials ?? "same-origin"
-				});
-				const session_config: Config = await response.json();
-				if (response.ok && session_config.session_restored) {
-					const components = new Map(
-						session_config.components.map((component) => [
-							component.id,
-							component
-						])
-					);
-					config.components = config.components.map(
-						(component) => components.get(component.id) ?? component
-					);
-					// A page shown for the first time in the session still loads.
-					this.session_restored = has_shown_page(config, this.session_hash);
-				}
-			} catch {
-				// The app then starts from its initial values, as on a first visit.
-			}
+			// A page shown for the first time in the session still loads.
+			resumable = has_shown_page(config, this.session_hash);
 		}
 		track_session(config, this.session_hash);
 		if (typeof document !== "undefined") {
@@ -351,6 +337,7 @@ export class Client {
 				set_session_in_use(document.visibilityState === "visible")
 			);
 		}
+		return resumable;
 	}
 
 	async _resolve_heartbeat(_config: Config): Promise<void> {
@@ -458,6 +445,7 @@ export class Client {
 				keepalive: true
 			}).catch(() => {});
 			set_session_in_use(false);
+			void this.session_store.flush();
 		}
 		this.closed = true;
 		if (this.stream_reconnect_timer) {
@@ -563,10 +551,7 @@ export class Client {
 		// Opting out also purges, so an app that turns the feature off does not
 		// leave behind what it stored while it was on.
 		if (_config.run_history === false) {
-			clear_run_history({
-				app_id: _config.app_id,
-				username: _config.username
-			});
+			clear_run_history(_config);
 		}
 
 		if (this.config.auth_required) {

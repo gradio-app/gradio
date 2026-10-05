@@ -1,4 +1,4 @@
-import { SSE_URL } from "../constants";
+import { BROKEN_CONNECTION_MSG, SSE_URL } from "../constants";
 import type { Client } from "../client";
 import { stream } from "fetch-event-stream";
 
@@ -107,6 +107,19 @@ export async function open_stream(this: Client): Promise<void> {
 			return;
 		}
 		console.error(e);
+		if (!that.options.resume_sessions) {
+			// Without resuming, the server drops the session's events when the
+			// stream breaks, so tell them the connection is gone.
+			await Promise.all(
+				Object.keys(event_callbacks).map((event_id) =>
+					event_callbacks[event_id]({
+						msg: "broken_connection",
+						message: BROKEN_CONNECTION_MSG
+					})
+				)
+			);
+			return;
+		}
 		close_stream(stream_status, abort_controller);
 		unclosed_events.forEach((event_id) => {
 			that.events_to_resume.add(event_id);

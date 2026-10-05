@@ -8,6 +8,7 @@ import json
 import math
 import os
 import pickle
+import subprocess
 import sys
 import tempfile
 import time
@@ -233,7 +234,8 @@ class TestRoutes:
         finally:
             demo.close()
 
-    def test_config_restores_the_outputs_of_a_session(self):
+    def test_session_keeps_values_after_a_props_only_update(self):
+        # Deep links are built from the session's component values
         with Blocks() as demo:
             name = Textbox()
             greeting = Textbox(label="Greeting")
@@ -247,40 +249,49 @@ class TestRoutes:
             client = TestClient(app)
             client.post(
                 f"{API_PREFIX}/api/greet/",
-                json={"data": ["Grace"], "session_hash": "reloaded"},
+                json={"data": ["Grace"], "session_hash": "s"},
             )
             # An update that only changes props keeps the value, and values
             # set after it are kept too.
             client.post(
                 f"{API_PREFIX}/api/relabel/",
-                json={"data": [], "session_hash": "reloaded"},
+                json={"data": [], "session_hash": "s"},
             )
             client.post(
                 f"{API_PREFIX}/api/greet/",
-                json={"data": ["Ada"], "session_hash": "reloaded"},
+                json={"data": ["Ada"], "session_hash": "s"},
             )
-
-            def props(config):
-                return {
-                    component["id"]: component["props"]
-                    for component in config["components"]
-                }
-
-            restored = client.get("/config?session_hash=reloaded").json()
-            assert restored["session_restored"] is True
-            assert props(restored)[name._id]["value"] == "Ada"
-            assert props(restored)[greeting._id]["value"] == "Hello Ada"
-            assert props(restored)[greeting._id]["label"] == "Greeted"
-
-            restored_page = client.get("/config?session_hash=reloaded&page=").json()
-            assert props(restored_page)[greeting._id]["value"] == "Hello Ada"
-
-            unknown = client.get("/config?session_hash=unknown").json()
-            assert unknown["session_restored"] is False
-            assert "value" not in props(unknown)[greeting._id]
-            assert "session_restored" not in client.get("/config").json()
+            props = {
+                component["id"]: component["props"]
+                for component in app.state_holder["s"].components
+            }
+            assert props[name._id]["value"] == "Ada"
+            assert props[greeting._id]["value"] == "Hello Ada"
+            assert props[greeting._id]["label"] == "Greeted"
         finally:
             demo.close()
+
+    def test_app_key_is_the_same_in_every_process(self, tmp_path):
+        # Browsers key a session's saved outputs and an app's run history on
+        # it, so a restart or another replica must not change it.
+        app_file = tmp_path / "app.py"
+        app_file.write_text(
+            "import gradio as gr\n"
+            "with gr.Blocks() as demo:\n"
+            "    t = gr.Textbox()\n"
+            "    t.submit(lambda x: x, t, t)\n"
+            "print(demo.get_config_file()['app_key'])\n"
+        )
+        keys = {
+            subprocess.run(
+                [sys.executable, str(app_file)],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+            for _ in range(2)
+        }
+        assert len(keys) == 1 and keys != {""}
 
     @pytest.mark.parametrize(
         "deep_link",

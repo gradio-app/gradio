@@ -41,6 +41,7 @@ class MemoryStorage implements Storage {
 
 const config = {
 	app_id: "app-1",
+	app_key: "app-1",
 	root:
 		typeof location === "undefined" ? "https://example.com/" : location.origin
 } as Config;
@@ -75,7 +76,7 @@ describe("resumable sessions", () => {
 		});
 
 		expect(
-			get_resumable_events({ ...config, app_id: "app-2" }, "session-1")
+			get_resumable_events({ ...config, app_key: "app-2" }, "session-1")
 		).toEqual([]);
 		expect(get_resumable_session_hash()).toBeNull();
 	});

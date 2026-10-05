@@ -115,6 +115,9 @@ class ResumableSession:
     expires_at: float | None = None
     active_streams: int = 0
     closing: bool = False
+    # The request (and its route) that `unload` events run with, kept for when
+    # none of the session's events is left to take it from
+    unload_request: tuple[fastapi.Request, str | None, str] | None = None
 
     def expire_after(self, seconds: float) -> None:
         deadline = time.monotonic() + seconds
@@ -376,6 +379,19 @@ class Queue:
         self.pending_messages_per_session.pop(session_hash, None)
         await self.clean_events(session_hash=session_hash)
 
+    def remember_unload_request(
+        self,
+        session_hash: str,
+        request: fastapi.Request,
+        username: str | None,
+        route_path: str,
+    ) -> None:
+        """Keeps a request to run the session's `unload` events with, since the
+        session may outlive all of its events (e.g. a finished job that no page
+        came back to acknowledge)."""
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        resumable.unload_request = (request, username, route_path)
+
     async def _run_unload(self, session_hash: str) -> None:
         app = self.server_app
         if app is None:
@@ -388,16 +404,27 @@ class Queue:
             ),
             None,
         )
+        resumable = self.resumable_sessions.get(session_hash)
+        unload_request = None
         if event is not None:
+            unload_request = (
+                event.request,
+                event.username,
+                route_utils.get_api_call_path(request=event.request),
+            )
+        elif resumable is not None:
+            unload_request = resumable.unload_request
+        if unload_request is not None:
+            request, username, route_path = unload_request
             body = PredictBodyInternal(
-                session_hash=session_hash, data=[], request=event.request
+                session_hash=session_hash, data=[], request=request
             )
             gr_request = route_utils.Request(
-                event.request, event.username, session_hash=session_hash
+                request, username, session_hash=session_hash
             )
             root_path = route_utils.get_root_url(
-                request=event.request,
-                route_path=route_utils.get_api_call_path(request=event.request),
+                request=request,
+                route_path=route_path,
                 root_path=app.root_path,
             )
             unload_fns = [

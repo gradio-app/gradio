@@ -24,6 +24,7 @@ import {
 	track_session
 } from "../utils/session";
 import { HttpResponse, http } from "msw";
+import { SessionStore } from "../utils/session_store";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -98,14 +99,20 @@ describe("Client class", () => {
 					typeof location === "undefined"
 						? direct_app_reference
 						: location.origin;
-				const app_config = { ...config_response, root };
-				const restored_components = config_response.components.map(
-					(component) =>
-						component.id === 1
-							? { ...component, props: { ...component.props, value: "hi" } }
-							: component
-				);
+				const app_config = { ...config_response, root, app_key: "app-v1" };
 				let session_requests: (string | null)[];
+
+				// What a page that used `session_hash` saved before it was reloaded
+				async function save_session(
+					session_hash: string,
+					app_key = app_config.app_key
+				): Promise<void> {
+					const store = new SessionStore();
+					await store.attach(root, app_key, session_hash);
+					store.record([1], ["hi"], app_config.components);
+					store.apply({ "5": { ref: "r", token: "v1.token" } });
+					await store.flush();
+				}
 
 				beforeEach(() => {
 					sessionStorage.clear();
@@ -115,25 +122,17 @@ describe("Client class", () => {
 							HttpResponse.json(app_config)
 						),
 						http.get(`${root}/config`, ({ request }) => {
-							const session_hash = new URL(request.url).searchParams.get(
-								"session_hash"
+							session_requests.push(
+								new URL(request.url).searchParams.get("session_hash")
 							);
-							session_requests.push(session_hash);
-							return HttpResponse.json(
-								session_hash === "known-session"
-									? {
-											...app_config,
-											components: restored_components,
-											session_restored: true
-										}
-									: { ...app_config, session_restored: false }
-							);
+							return HttpResponse.json(app_config);
 						}),
 						http.get(`${root}/info`, () => HttpResponse.json(response_api_info))
 					);
 				});
 
-				test("picks up the session and its outputs", async () => {
+				test("picks up the session and its outputs from the browser", async () => {
+					await save_session("known-session");
 					track_session(app_config, "known-session");
 					set_session_in_use(false);
 
@@ -141,15 +140,18 @@ describe("Client class", () => {
 						resume_sessions: true
 					});
 
-					expect(session_requests).toEqual(["known-session"]);
+					// Nothing is asked of the server, so this works on any replica
+					expect(session_requests.filter(Boolean)).toEqual([]);
 					expect(app.session_hash).toBe("known-session");
 					expect(app.session_restored).toBe(true);
 					expect(
 						app.config?.components.find(({ id }) => id === 1)?.props.value
 					).toBe("hi");
+					expect(app.session_store.get(5)?.token).toBe("v1.token");
 				});
 
 				test("still loads a page the session has not shown yet", async () => {
+					await save_session("known-session");
 					track_session(
 						{ ...app_config, current_page: "other" },
 						"known-session"
@@ -162,19 +164,35 @@ describe("Client class", () => {
 
 					expect(app.session_hash).toBe("known-session");
 					expect(app.session_restored).toBe(false);
+					// Its state still carries over
+					expect(app.session_store.get(5)?.token).toBe("v1.token");
 				});
 
-				test("keeps the session but starts afresh if the server lost it", async () => {
-					track_session(app_config, "expired-session");
+				test("keeps the session but starts afresh if nothing was saved", async () => {
+					track_session(app_config, "unsaved-session");
 					set_session_in_use(false);
 
 					const app = await Client.connect(direct_app_reference, {
 						resume_sessions: true
 					});
 
-					expect(app.session_hash).toBe("expired-session");
+					expect(app.session_hash).toBe("unsaved-session");
 					expect(app.session_restored).toBe(false);
 					expect(app.config?.components).toEqual(app_config.components);
+				});
+
+				test("ignores what a different version of the app saved", async () => {
+					await save_session("old-session", "app-v0");
+					track_session({ ...app_config, app_key: "app-v0" }, "old-session");
+					set_session_in_use(false);
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(app.session_hash).not.toBe("old-session");
+					expect(app.session_restored).toBe(false);
+					expect(app.session_store.size).toBe(0);
 				});
 
 				test("does not share a session with a duplicated tab", async () => {
@@ -185,7 +203,6 @@ describe("Client class", () => {
 						resume_sessions: true
 					});
 
-					expect(session_requests).toEqual([]);
 					expect(app.session_hash).not.toBe("known-session");
 					expect(app.session_restored).toBe(false);
 				});

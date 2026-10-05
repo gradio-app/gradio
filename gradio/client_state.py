@@ -180,12 +180,14 @@ class StateCache:
         return len(self._entries)
 
 
-def app_fingerprint(blocks: Blocks) -> str:
+def app_fingerprint(blocks: Blocks, refresh: bool = False) -> str:
     """Identifies the structure of an app (its components and events), so that a
     token issued for one version of an app is not read by a different one where
-    the same component id may mean something else."""
+    the same component id may mean something else. It is the same for every
+    process that runs the same app, so browsers also use it (as the config's
+    `app_key`) to tell whether saved outputs and run history belong to an app."""
     cached = getattr(blocks, "_state_fingerprint", None)
-    if cached is not None:
+    if cached is not None and not refresh:
         return cached
     digest = hashlib.sha256()
     for _id in sorted(blocks.blocks):

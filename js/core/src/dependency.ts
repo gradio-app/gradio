@@ -788,6 +788,11 @@ export class DependencyManager {
 					stream_state: null
 				});
 				await this.update_loading_stati_state();
+				// The events chained to this one with `.then()`, `.success()` and
+				// `.failure()`, which a refresh in the middle of the run must not
+				// cut off (e.g. `gr.ChatInterface` saves the history in one).
+				const { success, failure, all } = dep.get_triggers();
+				let outcome: "complete" | "error" | null = null;
 
 				try {
 					for await (const result of submission) {
@@ -812,6 +817,7 @@ export class DependencyManager {
 							});
 							await this.update_loading_stati_state();
 							if (result.stage === "complete" || result.stage === "error") {
+								outcome = result.stage;
 								this.dispatch_state_change_events(result);
 								break;
 							}
@@ -820,6 +826,19 @@ export class DependencyManager {
 				} finally {
 					await submission.acknowledge();
 					this.clear_submission(fn_index, submission);
+				}
+				if (outcome !== null) {
+					// As for a run that was not interrupted: `.then()` and
+					// `.success()` follow a completed run, `.failure()` a failed one.
+					const chained =
+						outcome === "complete" ? [...success, ...all] : failure;
+					for (const dep_id of chained) {
+						this.dispatch({
+							type: "fn",
+							fn_index: dep_id,
+							event_data: null
+						});
+					}
 				}
 			})
 		);

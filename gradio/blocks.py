@@ -45,6 +45,7 @@ from gradio import (
 from gradio.block_function import BlockFunction
 from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
 from gradio.caching import TrackManualCacheUsage, used_manual_cache
+from gradio.client_state import app_fingerprint
 from gradio.context import (
     Context,
     LocalContext,
@@ -2828,6 +2829,7 @@ Received inputs:
             "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
+            "app_key": app_fingerprint(self, refresh=True),
             "dev_mode": self.dev_mode,
             "vibe_mode": self.vibe_mode,
             "analytics_enabled": self.analytics_enabled,

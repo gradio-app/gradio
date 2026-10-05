@@ -30,6 +30,11 @@ test("refreshing the page while an event runs keeps it running", async ({
 
 	await expect(total).toHaveValue("Count: 1");
 	await expect(progress).toHaveValue("Step 5 of 5 (count 1)");
+	// The event chained to it with `.then()` runs too, and reads and writes
+	// the state the browser restored.
+	await expect(total).toHaveValue("Finished: 101");
+	await page.getByRole("button", { name: "Add" }).click();
+	await expect(total).toHaveValue("Count: 102");
 });
 
 test("a new tab starts a new session", async ({ page, context }) => {

@@ -2,7 +2,7 @@ import { describe, beforeAll, afterEach, afterAll, test, expect } from "vitest";
 import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
-import { INLINE_STATE_LIMIT, StateStore } from "../utils/state_store";
+import { INLINE_STATE_LIMIT, SessionStore } from "../utils/session_store";
 import { direct_space_url } from "./handlers";
 import { initialise_server } from "./server";
 
@@ -17,9 +17,9 @@ afterAll(() => server.stop());
 
 const big_token = "v1." + "x".repeat(INLINE_STATE_LIMIT + 1);
 
-describe("StateStore", () => {
+describe("SessionStore: gr.State", () => {
 	test("sends small tokens in full and large ones by reference", () => {
-		const store = new StateStore();
+		const store = new SessionStore();
 		store.apply({
 			"1": { ref: "r1", token: "v1.small" },
 			"2": { ref: "r2", token: big_token }
@@ -33,7 +33,7 @@ describe("StateStore", () => {
 	});
 
 	test("drops an entry when the server sends null", () => {
-		const store = new StateStore();
+		const store = new SessionStore();
 		store.apply({ "1": { ref: "r1", token: "v1.a" } });
 		store.apply({ "1": null });
 		expect(store.get(1)).toBeUndefined();
@@ -41,7 +41,7 @@ describe("StateStore", () => {
 	});
 
 	test("ignores missing or malformed updates", () => {
-		const store = new StateStore();
+		const store = new SessionStore();
 		store.apply(undefined);
 		store.apply({ "1": { ref: "r1" } as any });
 		expect(store.size).toBe(0);
@@ -52,7 +52,7 @@ describe("submit with client-held state", () => {
 	test("sends the state, retries with tokens on 409 and keeps new tokens", async () => {
 		const app = await Client.connect("hmb/hello_world");
 		app.stream_status.open = true;
-		app.state_store.apply({ "1": { ref: "r1", token: big_token } });
+		app.session_store.apply({ "1": { ref: "r1", token: big_token } });
 
 		const bodies: any[] = [];
 		server.use(
@@ -91,7 +91,7 @@ describe("submit with client-held state", () => {
 		});
 		await consumer;
 
-		expect(app.state_store.get(1)).toEqual({ ref: "r2", token: "v1.new" });
+		expect(app.session_store.get(1)).toEqual({ ref: "r2", token: "v1.new" });
 	});
 
 	test("always sends a state object, so the server keeps state in the client", async () => {
@@ -109,4 +109,65 @@ describe("submit with client-held state", () => {
 		iterator.cancel?.();
 		expect(bodies[0].state).toEqual({});
 	});
+});
+
+describe("SessionStore: component values", () => {
+	const components = [
+		{ id: 1, type: "textbox", props: { value: "", label: "In" } },
+		{ id: 2, type: "dropdown", props: { value: null, choices: [] } },
+		{ id: 3, type: "state", props: {} }
+	];
+
+	test("keeps the last value and props each component was given", () => {
+		const store = new SessionStore();
+		store.record(
+			[1, 2, 3],
+			["first", { __type__: "update", choices: ["a"] }, 7],
+			components
+		);
+		store.record(
+			[1, 2],
+			["second", { __type__: "update", value: "a" }],
+			components
+		);
+		// An update that changes nothing is not saved
+		store.record([1], [{ __type__: "update" }], components);
+
+		const restored = structuredClone(components);
+		expect(store.restore_into(restored)).toBe(true);
+		expect(restored[0].props).toEqual({ value: "second", label: "In" });
+		expect(restored[1].props).toEqual({ value: "a", choices: ["a"] });
+		// gr.State travels as tokens instead
+		expect(restored[2].props).toEqual({});
+	});
+
+	test.skipIf(typeof indexedDB === "undefined")(
+		"saves values and state for the session, scoped to the app",
+		async () => {
+			const store = new SessionStore();
+			await store.attach("http://app", "key-1", "session-1");
+			store.record([1], ["saved"], components);
+			store.apply({ "3": { ref: "r", token: "v1.t" } });
+			await store.flush();
+
+			const same = new SessionStore();
+			await same.attach("http://app/", "key-1", "session-1");
+			expect(same.found).toBe(true);
+			expect(same.get(3)?.token).toBe("v1.t");
+			const restored = structuredClone(components);
+			same.restore_into(restored);
+			expect(restored[0].props.value).toBe("saved");
+
+			for (const [root, app_key, session] of [
+				["http://app", "key-2", "session-1"],
+				["http://other", "key-1", "session-1"],
+				["http://app", "key-1", "session-2"]
+			]) {
+				const other = new SessionStore();
+				await other.attach(root, app_key, session);
+				expect(other.found).toBe(false);
+				expect(other.size).toBe(0);
+			}
+		}
+	);
 });

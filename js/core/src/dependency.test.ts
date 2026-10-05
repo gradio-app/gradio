@@ -377,3 +377,42 @@ describe("DependencyManager.dispatch_load_events", () => {
 		});
 	});
 });
+
+describe("DependencyManager.resume", () => {
+	function chain(): DependencyConfig[] {
+		const run = dependency(0, "run", []);
+		const then = dependency(1, "then", []);
+		then.trigger_after = 0;
+		const on_success = dependency(2, "on_success", []);
+		on_success.trigger_after = 0;
+		on_success.trigger_only_on_success = true;
+		const on_failure = dependency(3, "on_failure", []);
+		on_failure.trigger_after = 0;
+		on_failure.trigger_only_on_failure = true;
+		return [run, then, on_success, on_failure];
+	}
+
+	async function resume_with(stage: "complete" | "error"): Promise<number[]> {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage, fn_index: 0, queue: true };
+		}
+		const client = {
+			resume_jobs: vi.fn(() => [submission(events())])
+		} as unknown as Client;
+		const dependency_manager = manager(chain(), client);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		return dispatch.mock.calls.map(([meta]) => (meta as any).fn_index);
+	}
+
+	test("runs the events chained to a resumed run once it completes", async () => {
+		expect((await resume_with("complete")).sort()).toEqual([1, 2]);
+	});
+
+	test("runs only the failure handlers when a resumed run fails", async () => {
+		expect(await resume_with("error")).toEqual([3]);
+	});
+});

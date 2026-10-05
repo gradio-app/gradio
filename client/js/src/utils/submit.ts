@@ -34,7 +34,7 @@ import {
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { clear_resumable_event, track_resumable_event } from "./session";
-import type { StatePayload } from "./state_store";
+import type { StatePayload } from "./session_store";
 import { Client } from "../client";
 import {
 	read_run_history_storage,
@@ -92,7 +92,7 @@ export function submit(
 		// The gr.State values the server keeps in this client, for this event
 		const state_ids = new Set([...dependency.inputs, ...dependency.outputs]);
 		const state_payload = (force: number[] = []): StatePayload =>
-			that.state_store.payload(state_ids, force);
+			that.session_store.payload(state_ids, force);
 		// Posts an event with its state. A server that has not cached a value
 		// the client referred to answers 409 with the ids it needs in full.
 		const post_with_state = async (
@@ -155,7 +155,12 @@ export function submit(
 		// caller for itself.
 		const history_enabled =
 			config.run_history !== false && this.options.record_history !== false;
-		const history_scope = { app_id: config.app_id, username: config.username };
+		const history_scope = {
+			root: config.root,
+			app_key: config.app_key,
+			app_id: config.app_id,
+			username: config.username
+		};
 		const history_storage = read_run_history_storage(history_scope);
 		const addt_headers = {
 			...base_headers,
@@ -374,7 +379,12 @@ export function submit(
 					if (data) {
 						// Before the data event, so that events that follow this one
 						// (and resumed jobs) send the new state
-						that.state_store.apply(data.state);
+						that.session_store.apply(data.state);
+						that.session_store.record(
+							dependency.outputs,
+							data.data || [],
+							config!.components
+						);
 						fire_event({
 							type: "data",
 							time: new Date(),
@@ -480,6 +490,11 @@ export function submit(
 				true
 			);
 			update_run_inputs(history_scope, history_run_id, input_data || []);
+			that.session_store.record(
+				dependency.inputs,
+				input_data || [],
+				config.components
+			);
 			payload = {
 				data: input_data || [],
 				event_data,
@@ -513,7 +528,12 @@ export function submit(
 						const data = output.data;
 
 						if (status_code == 200) {
-							that.state_store.apply(output.state);
+							that.session_store.apply(output.state);
+							that.session_store.record(
+								dependency.outputs,
+								data || [],
+								config.components
+							);
 							fire_event({
 								type: "data",
 								endpoint: _endpoint,
