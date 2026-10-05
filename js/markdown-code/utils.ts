@@ -1,4 +1,4 @@
-import { Marked, Renderer } from "marked";
+import { Marked, Renderer, type Token } from "marked";
 import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import * as Prism from "prismjs";
@@ -222,7 +222,29 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	}
 };
 
-const slugger = new GithubSlugger();
+// Sets the id of every heading in `tokens`, numbering duplicates in document
+// order, and returns the ids found in each top-level token.
+export function assign_heading_ids(
+	marked: Marked,
+	tokens: Token[]
+): string[][] {
+	const slugger = new GithubSlugger();
+	return tokens.map((token) => {
+		const ids: string[] = [];
+		marked.walkTokens([token], (child) => {
+			if (child.type === "heading") {
+				const raw = child.raw
+					.toLowerCase()
+					.trim()
+					.replace(/<[!\/a-z].*?>/gi, "");
+				const id = "h" + slugger.slug(raw);
+				Object.assign(child, { id });
+				ids.push(id);
+			}
+		});
+		return ids;
+	});
+}
 
 export function create_marked({
 	header_links,
@@ -261,11 +283,7 @@ export function create_marked({
 					name: "heading",
 					level: "block",
 					renderer(token) {
-						const raw = token.raw
-							.toLowerCase()
-							.trim()
-							.replace(/<[!\/a-z].*?>/gi, "");
-						const id = "h" + slugger.slug(raw);
+						const id = token.id;
 						const level = token.depth;
 						const text = this.parser.parseInline(token.tokens!);
 

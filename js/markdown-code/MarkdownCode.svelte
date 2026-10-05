@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { create_marked } from "./utils";
+	import { assign_heading_ids, create_marked } from "./utils";
 	import { sanitize_fragment } from "@gradio/sanitize";
 	import "./prism.css";
 	import { standardHtmlAndSvgTags } from "./html-tags";
@@ -43,10 +43,17 @@
 	});
 
 	let latest_message = "";
+	let latest_settings = "";
 	let rendering = false;
 
 	$effect(() => {
 		latest_message = message;
+		latest_settings = JSON.stringify([
+			render_markdown,
+			sanitize_html,
+			allow_tags,
+			latex_delimiters
+		]);
 		if (!rendering) {
 			render_latest();
 		}
@@ -58,27 +65,158 @@
 		rendering = true;
 		try {
 			let value: string;
+			let settings: string;
 			do {
 				value = latest_message;
-				await render(value);
-			} while (value !== latest_message);
+				settings = latest_settings;
+				await render(value, settings);
+			} while (value !== latest_message || settings !== latest_settings);
 		} finally {
 			rendering = false;
 		}
 		onload?.();
 	}
 
-	async function render(value: string): Promise<void> {
-		const fragment =
-			value && value.trim()
-				? await process_message(value)
-				: document.createDocumentFragment();
-		if (!el) return;
-		el.replaceChildren(fragment);
-		await render_html(value);
+	interface Block {
+		key: string;
+		nodes: ChildNode[];
 	}
 
-	let katex_loaded = false;
+	// The rendered top-level blocks, in order. Only the blocks that differ from
+	// the previous render are rebuilt, so the work per streamed update stays
+	// proportional to the change rather than to the whole message.
+	let blocks: Block[] = [];
+
+	async function render(value: string, settings: string): Promise<void> {
+		const next = value && value.trim() ? split_blocks(value, settings) : [];
+
+		let start = 0;
+		while (
+			start < blocks.length &&
+			start < next.length &&
+			blocks[start].key === next[start].key
+		) {
+			start++;
+		}
+		let end = 0;
+		while (
+			end < blocks.length - start &&
+			end < next.length - start &&
+			blocks[blocks.length - 1 - end].key === next[next.length - 1 - end].key
+		) {
+			end++;
+		}
+
+		const added: Block[] = [];
+		const fragment = document.createDocumentFragment();
+		for (const block of next.slice(start, next.length - end)) {
+			const rendered = await block.render();
+			added.push({ key: block.key, nodes: Array.from(rendered.childNodes) });
+			fragment.append(rendered);
+		}
+		if (!el) return;
+
+		const kept_after = blocks.slice(blocks.length - end);
+		for (const block of blocks.slice(start, blocks.length - end)) {
+			for (const node of block.nodes) node.remove();
+		}
+		const anchor = kept_after.find((block) => block.nodes.length)?.nodes[0];
+		el.insertBefore(fragment, anchor ?? null);
+		blocks = [...blocks.slice(0, start), ...added, ...kept_after];
+
+		await render_mermaid(added.flatMap((block) => block.nodes));
+	}
+
+	function split_blocks(
+		value: string,
+		settings: string
+	): { key: string; render: () => Promise<DocumentFragment> }[] {
+		if (!render_markdown) {
+			return [
+				{
+					key: [settings, value].join("\0"),
+					render: async () => to_fragment(value, value)
+				}
+			];
+		}
+
+		const latexBlocks: string[] = [];
+		let parsedValue = value;
+		latex_delimiters.forEach((delimiter) => {
+			const leftDelimiter = escapeRegExp(delimiter.left);
+			const rightDelimiter = escapeRegExp(delimiter.right);
+			const regex = new RegExp(
+				`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
+				"g"
+			);
+			parsedValue = parsedValue.replace(regex, (match) => {
+				latexBlocks.push(match);
+				return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
+			});
+		});
+		const restore_latex = (text: string): string =>
+			text.replace(
+				/%%%LATEX_BLOCK_(\d+)%%%/g,
+				(match, p1) => latexBlocks[parseInt(p1, 10)]
+			);
+
+		const tokens = marked.lexer(parsedValue);
+		const top_level = tokens.filter((token) => token.type !== "space");
+		// A reference definition can change how an earlier block renders.
+		const links = JSON.stringify(tokens.links);
+		const heading_ids = header_links
+			? assign_heading_ids(marked, top_level)
+			: [];
+
+		return top_level.map((token, i) => {
+			const source = restore_latex(token.raw);
+			return {
+				key: [settings, links, heading_ids[i]?.join(" "), source].join("\0"),
+				render: async () => {
+					// marked.parse() would run walkTokens itself; it does the
+					// async syntax highlighting of code blocks.
+					if (marked.defaults.walkTokens) {
+						await Promise.all(
+							marked.walkTokens([token], marked.defaults.walkTokens)
+						);
+					}
+					const html = restore_latex(marked.parser([token]));
+					return to_fragment(html, source);
+				}
+			};
+		});
+	}
+
+	async function to_fragment(
+		html: string,
+		source: string
+	): Promise<DocumentFragment> {
+		if (allow_tags) {
+			html = escapeTags(html, allow_tags);
+		}
+
+		let fragment: DocumentFragment;
+		if (sanitize_html && sanitize_fragment) {
+			fragment = sanitize_fragment(html);
+		} else {
+			const template = document.createElement("template");
+			template.innerHTML = html;
+			fragment = template.content;
+		}
+
+		if (has_math_syntax(source)) {
+			const [, { default: render_math_in_element }] = await Promise.all([
+				import("katex/dist/katex.min.css"),
+				import("katex/contrib/auto-render")
+			]);
+			// auto-render only walks child nodes, so a fragment works here.
+			render_math_in_element(fragment as unknown as HTMLElement, {
+				delimiters: latex_delimiters,
+				throwOnError: false
+			});
+		}
+		return fragment;
+	}
 
 	function has_math_syntax(text: string): boolean {
 		if (!latex_delimiters || latex_delimiters.length === 0) {
@@ -131,81 +269,27 @@
 		return content;
 	}
 
-	async function process_message(value: string): Promise<DocumentFragment> {
-		let parsedValue = value;
-		if (render_markdown) {
-			const latexBlocks: string[] = [];
-			latex_delimiters.forEach((delimiter, index) => {
-				const leftDelimiter = escapeRegExp(delimiter.left);
-				const rightDelimiter = escapeRegExp(delimiter.right);
-				const regex = new RegExp(
-					`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
-					"g"
-				);
-				parsedValue = parsedValue.replace(regex, (match, p1) => {
-					latexBlocks.push(match);
-					return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
-				});
+	async function render_mermaid(nodes: Node[]): Promise<void> {
+		const mermaidDivs = nodes.flatMap((node) =>
+			node instanceof Element
+				? [
+						...(node.matches(".mermaid") ? [node] : []),
+						...node.querySelectorAll(".mermaid")
+					]
+				: []
+		);
+		if (mermaidDivs.length > 0) {
+			await tick();
+			const { default: mermaid } = await import("mermaid");
+
+			mermaid.initialize({
+				startOnLoad: false,
+				theme: theme_mode === "dark" ? "dark" : "default",
+				securityLevel: "antiscript"
 			});
-
-			parsedValue = (await marked.parse(parsedValue)) as string;
-
-			parsedValue = parsedValue.replace(
-				/%%%LATEX_BLOCK_(\d+)%%%/g,
-				(match, p1) => latexBlocks[parseInt(p1, 10)]
-			);
-		}
-
-		if (allow_tags) {
-			parsedValue = escapeTags(parsedValue, allow_tags);
-		}
-
-		if (sanitize_html && sanitize_fragment) {
-			return sanitize_fragment(parsedValue);
-		}
-		const template = document.createElement("template");
-		template.innerHTML = parsedValue;
-		return template.content;
-	}
-
-	async function render_html(value: string): Promise<void> {
-		if (latex_delimiters.length > 0 && value && has_math_syntax(value)) {
-			if (!katex_loaded) {
-				await Promise.all([
-					import("katex/dist/katex.min.css"),
-					import("katex/contrib/auto-render")
-				]).then(([, { default: render_math_in_element }]) => {
-					katex_loaded = true;
-					render_math_in_element(el, {
-						delimiters: latex_delimiters,
-						throwOnError: false
-					});
-				});
-			} else {
-				const { default: render_math_in_element } =
-					await import("katex/contrib/auto-render");
-				render_math_in_element(el, {
-					delimiters: latex_delimiters,
-					throwOnError: false
-				});
-			}
-		}
-
-		if (el) {
-			const mermaidDivs = el.querySelectorAll(".mermaid");
-			if (mermaidDivs.length > 0) {
-				await tick();
-				const { default: mermaid } = await import("mermaid");
-
-				mermaid.initialize({
-					startOnLoad: false,
-					theme: theme_mode === "dark" ? "dark" : "default",
-					securityLevel: "antiscript"
-				});
-				await mermaid.run({
-					nodes: Array.from(mermaidDivs).map((node) => node as HTMLElement)
-				});
-			}
+			await mermaid.run({
+				nodes: mermaidDivs.map((node) => node as HTMLElement)
+			});
 		}
 	}
 </script>
