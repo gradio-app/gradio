@@ -415,7 +415,9 @@ describe("Props: allow_tags", () => {
 		});
 
 		const bot = getAllByTestId("bot")[0];
-		expect(bot.textContent).toContain("<tool_call>get_weather</tool_call>");
+		await waitFor(() =>
+			expect(bot.textContent).toContain("<tool_call>get_weather</tool_call>")
+		);
 	});
 });
 
