@@ -65,5 +65,43 @@ with gr.Blocks() as demo:
         outputs=extra,
     )
 
+    with gr.Accordion("Synced Accordion", open=False) as synced_acc:
+        gr.Textbox(label="Synced Child")
+
+    backend_open_btn = gr.Button("Open (backend)")
+    backend_open_btn.click(
+        fn=lambda: gr.Accordion(open=True), inputs=None, outputs=synced_acc
+    )
+    backend_close_btn = gr.Button("Close (backend)")
+    backend_close_btn.click(
+        fn=lambda: gr.Accordion(open=False), inputs=None, outputs=synced_acc
+    )
+
+    with gr.Accordion("Staged Accordion", open=False, visible=False) as staged_acc:
+        gr.Textbox(label="Staged Child")
+
+    stage_btn = gr.Button("Stage (visible=hidden)")
+    stage_btn.click(
+        fn=lambda: gr.Accordion(visible="hidden", open=True),
+        inputs=None,
+        outputs=staged_acc,
+    )
+    show_staged_btn = gr.Button("Show Staged")
+    show_staged_btn.click(
+        fn=lambda: gr.Accordion(visible=True), inputs=None, outputs=staged_acc
+    )
+
+    with gr.Accordion("Hidden Open Accordion", open=True, visible=False) as open_acc:
+        gr.Textbox(label="Hidden Open Child")
+
+    collapse_log = gr.Textbox(label="Collapse Log")
+    open_acc.collapse(fn=lambda: "collapsed", inputs=None, outputs=collapse_log)
+    reveal_closed_btn = gr.Button("Reveal Closed")
+    reveal_closed_btn.click(
+        fn=lambda: gr.Accordion(visible=True, open=False),
+        inputs=None,
+        outputs=open_acc,
+    )
+
 if __name__ == "__main__":
     demo.launch()

@@ -59,3 +59,38 @@ test("a component hidden inside a closed accordion stays hidden when it opens", 
 	await page.getByRole("button", { name: "Advanced" }).click();
 	await expect(page.getByLabel("Extra")).not.toBeVisible();
 });
+
+test("a backend open/close update applies after a header click", async ({
+	page
+}) => {
+	const header = page.getByRole("button", { name: "Synced Accordion" });
+	const child = page.getByLabel("Synced Child");
+
+	await header.click();
+	await expect(child).toBeVisible();
+	await page.getByRole("button", { name: "Close (backend)" }).click();
+	await expect(child).not.toBeVisible();
+
+	await page.getByRole("button", { name: "Open (backend)" }).click();
+	await expect(child).toBeVisible();
+	await header.click();
+	await expect(child).not.toBeVisible();
+	await page.getByRole("button", { name: "Open (backend)" }).click();
+	await expect(child).toBeVisible();
+});
+
+test("an accordion opened while visible='hidden' shows its content once revealed", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "Stage (visible=hidden)" }).click();
+	await page.getByRole("button", { name: "Show Staged" }).click();
+	await expect(page.getByLabel("Staged Child")).toBeVisible();
+});
+
+test("revealing a hidden open accordion with open=False fires collapse", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "Reveal Closed" }).click();
+	await expect(page.getByLabel("Collapse Log")).toHaveValue("collapsed");
+	await expect(page.getByLabel("Hidden Open Child")).not.toBeVisible();
+});

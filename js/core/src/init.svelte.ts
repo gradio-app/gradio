@@ -62,6 +62,10 @@ export function get_api_url(
 		current_location
 	).toString();
 }
+// Props a user can change in the UI without a backend update: an input's
+// value, an accordion's open state and the selected tab.
+const USER_EDITABLE_PROPS = ["value", "open", "selected"] as const;
+
 export class AppTree {
 	/** the raw component structure received from the backend */
 	#component_payload: ComponentMeta[];
@@ -514,13 +518,6 @@ export class AppTree {
 				updated_node.props.shared_props.visible =
 					new_state.visible as SharedProps["visible"];
 			}
-			if (updated_node && new_state.visible === true) {
-				make_visible_if_not_rendered(
-					updated_node,
-					this.#hidden_on_startup,
-					false
-				);
-			}
 			load_components(this.root!, this.#config.api_url);
 			await tick();
 			node = find_node_by_id(this.root!, id);
@@ -528,7 +525,7 @@ export class AppTree {
 		}
 		const _set_data = this.#set_callbacks.get(id);
 		if (node && !("value" in new_state)) {
-			await this.#sync_current_value_to_node(id, node);
+			await this.#sync_current_state_to_node(id, node);
 			await this.#sync_current_values_to_descendants(node);
 		}
 		const old_value = node?.props.props.value;
@@ -573,22 +570,17 @@ export class AppTree {
 				this.#event_dispatcher(id, "change", null);
 			}
 
-			// A component that is not mounted mounts with open/selected already
-			// applied, so it never sees the change in set_data and never asks for
-			// the children left unrendered behind a closed accordion or an
-			// unselected tab. Make those visible now, before it mounts. (A node
-			// that has never loaded is handled above, before load_components.)
-			if (node && new_state.visible === true) {
-				make_visible_if_not_rendered(node, this.#hidden_on_startup, false);
-				load_components(node, this.#config.api_url);
-			}
-
+			// A mounted accordion dispatches these from set_data.
 			if (
 				node?.type === "accordion" &&
-				new_state.open === true &&
-				old_open === false
+				"open" in new_state &&
+				new_state.open !== old_open
 			) {
-				this.#event_dispatcher(id, "expand", null);
+				this.#event_dispatcher(
+					id,
+					new_state.open ? "expand" : "collapse",
+					null
+				);
 			}
 
 			// If this is a non-mounted tabitem, update the parent Tabs'
@@ -620,7 +612,7 @@ export class AppTree {
 		for (const child of node.children) {
 			const _set_data = this.#set_callbacks.get(child.id);
 			if (!("value" in new_state)) {
-				await this.#sync_current_value_to_node(child.id, child);
+				await this.#sync_current_state_to_node(child.id, child);
 			}
 			if (_set_data) {
 				_set_data(new_state);
@@ -629,7 +621,12 @@ export class AppTree {
 		}
 	}
 
-	async #sync_current_value_to_node(
+	/**
+	 * Copies the props a user can change directly in the UI from the mounted
+	 * component into the app tree, so the tree matches what the user sees
+	 * when the component unmounts or an update is compared against it.
+	 */
+	async #sync_current_state_to_node(
 		id: number,
 		node: ProcessedComponentMeta
 	): Promise<void> {
@@ -637,16 +634,19 @@ export class AppTree {
 		if (!_get_data) return;
 
 		const current_data = await _get_data();
-		if (current_data && "value" in current_data) {
-			apply_state_to_node(node, { value: current_data.value });
+		if (!current_data) return;
+		const user_state: Record<string, unknown> = {};
+		for (const key of USER_EDITABLE_PROPS) {
+			if (key in current_data) user_state[key] = current_data[key];
 		}
+		apply_state_to_node(node, user_state);
 	}
 
 	async #sync_current_values_to_descendants(
 		node: ProcessedComponentMeta
 	): Promise<void> {
 		for (const child of node.children) {
-			await this.#sync_current_value_to_node(child.id, child);
+			await this.#sync_current_state_to_node(child.id, child);
 			await this.#sync_current_values_to_descendants(child);
 		}
 	}
@@ -743,6 +743,10 @@ export class AppTree {
 		await tick();
 		await settled();
 		await new Promise((resolve) => requestAnimationFrame(resolve));
+		// Pull what the user changed (the open state that triggered this, typed
+		// values) into the tree first, so the push below doesn't undo it.
+		await this.#sync_current_state_to_node(node.id, node);
+		await this.#sync_current_values_to_descendants(node);
 		this.#sync_reused_components_after_rerender(node);
 	}
 }
