@@ -339,6 +339,7 @@ class TestAudio:
                 "waveform_progress_color": None,
                 "trim_region_color": None,
             },
+            "microphone_options": {"constraints": None},
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
@@ -396,6 +397,7 @@ class TestAudio:
                 "waveform_progress_color": None,
                 "trim_region_color": None,
             },
+            "microphone_options": {"constraints": None},
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
@@ -406,6 +408,29 @@ class TestAudio:
         output1 = audio_output.postprocess(y_audio.name).model_dump()  # type: ignore
         output2 = audio_output.postprocess(Path(y_audio.name)).model_dump()  # type: ignore
         assert output1 == output2
+
+    @pytest.mark.parametrize(
+        "microphone_options",
+        [
+            {"constraints": {"echoCancellation": False}},
+            gr.MicrophoneOptions(constraints={"echoCancellation": False}),
+        ],
+    )
+    def test_microphone_options_in_config(self, microphone_options):
+        audio = gr.Audio(microphone_options=microphone_options)
+        assert audio.get_config()["microphone_options"] == {
+            "constraints": {"echoCancellation": False}
+        }
+        mic = gr.Microphone(microphone_options=microphone_options)
+        assert mic.get_config()["microphone_options"] == {
+            "constraints": {"echoCancellation": False}
+        }
+        textbox = gr.MultimodalTextbox(
+            sources=["microphone"], microphone_options=microphone_options
+        )
+        assert textbox.get_config()["microphone_options"] == {
+            "constraints": {"echoCancellation": False}
+        }
 
     def test_default_value_postprocess(self, media_data):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
