@@ -220,6 +220,18 @@ def _encode_dict(obj: dict, seen: set[int]) -> Any:
 
 def _encode_object(obj: Any, seen: set[int]) -> Any:
     t = type(obj)
+    component = _gradio_component_class()
+    if component is not None and isinstance(obj, component):
+        # e.g. a gr.File in a chat message: rebuilt from the arguments it
+        # was created with, the way an update to a component is
+        return {
+            TAG: "component",
+            "cls": _check_importable(t),
+            "v": _encode_dict(
+                {k: v for k, v in obj.constructor_args.items() if k != "render"},
+                seen,
+            ),
+        }
     if isinstance(obj, tuple) and hasattr(t, "_fields"):
         return {
             TAG: "namedtuple",
@@ -505,6 +517,19 @@ def _decode_pydantic(obj: dict) -> Any:
     return cls.model_validate(_decode(obj["v"]))
 
 
+def _gradio_component_class() -> type | None:
+    module = sys.modules.get("gradio.components.base")
+    return getattr(module, "Component", None) if module else None
+
+
+def _decode_component(obj: dict) -> Any:
+    cls = _import_class(obj["cls"])
+    component = _gradio_component_class()
+    if component is None or not issubclass(cls, component):
+        raise StateSerializationError(f"{obj['cls']} is not a Gradio component")
+    return cls(**_decode(obj["v"]), render=False)
+
+
 def _decode_object(obj: dict) -> Any:
     cls = _import_class(obj["cls"])
     if not (dataclasses.is_dataclass(cls) or _is_app_class(cls)):
@@ -575,6 +600,7 @@ _DECODERS: dict[str, Any] = {
     "namedtuple": _decode_namedtuple,
     "pydantic": _decode_pydantic,
     "object": _decode_object,
+    "component": _decode_component,
     "ndarray": _decode_ndarray,
     "npscalar": _decode_npscalar,
     "dataframe": _decode_dataframe,

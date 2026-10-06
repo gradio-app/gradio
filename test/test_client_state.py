@@ -149,6 +149,28 @@ class TestSerialization:
         assert result.lookup == {1: "a"}
         assert loads(dumps(Slotted())).a == 5
 
+    def test_gradio_components(self, tmp_path):
+        # e.g. a gr.ChatInterface reply that includes a file
+        path = tmp_path / "a.txt"
+        path.write_text("hi")
+        history = [
+            {"role": "assistant", "content": ["see:", gr.File(value=str(path))]},
+            {"role": "assistant", "content": gr.Image(label="pic")},
+        ]
+        result = loads(dumps(history))
+        rebuilt = result[0]["content"][1]
+        assert isinstance(rebuilt, gr.File)
+        assert rebuilt.value["path"].endswith("a.txt")
+        assert not rebuilt.is_rendered
+        assert result[1]["content"].label == "pic"
+        with pytest.raises(StateSerializationError):
+            dumps(gr.Textbox(value=lambda: "computed"))
+        forged = json.dumps(
+            {"__gr__": "component", "cls": "threading:Thread", "v": {}}
+        ).encode()
+        with pytest.raises(StateSerializationError):
+            loads(forged)
+
     def test_shared_references_are_copied(self):
         shared = [1]
         result = loads(dumps([shared, shared]))
