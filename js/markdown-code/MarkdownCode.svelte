@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { create_marked } from "./utils";
+	import { create_marked, escapeTags } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
-	import { standardHtmlAndSvgTags } from "./html-tags";
 	import type { ThemeMode } from "@gradio/core";
 
 	let {
@@ -72,42 +71,6 @@
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	}
-
-	function escapeTags(
-		content: string,
-		tagsToEscape: string[] | boolean
-	): string {
-		if (tagsToEscape === true) {
-			// https://www.w3schools.com/tags/
-			const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9-]*)([\s>])/g;
-			return content.replace(tagRegex, (match, tagName, endChar) => {
-				if (!standardHtmlAndSvgTags.includes(tagName.toLowerCase())) {
-					return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-				}
-				return match;
-			});
-		}
-
-		if (Array.isArray(tagsToEscape)) {
-			const tagPattern = tagsToEscape.map((tag) => ({
-				open: new RegExp(`<(${tag})(\\s+[^>]*)?>`, "gi"),
-				close: new RegExp(`</(${tag})>`, "gi")
-			}));
-
-			let result = content;
-
-			tagPattern.forEach((pattern) => {
-				result = result.replace(pattern.open, (match) =>
-					match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-				);
-				result = result.replace(pattern.close, (match) =>
-					match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-				);
-			});
-			return result;
-		}
-		return content;
 	}
 
 	async function process_message(value: string): Promise<string> {
