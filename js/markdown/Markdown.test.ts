@@ -89,6 +89,19 @@ describe("Markdown", () => {
 		const heading = getByRole("heading", { level: 1 });
 		expect(heading).toBeVisible();
 	});
+
+	test("renders LaTeX containing < along with the text after it", async () => {
+		const { getByTestId } = await render(Markdown, {
+			...default_props,
+			value: "Bounds: $$a<b$$ and $$c>d$$ hold."
+		});
+
+		const md = getByTestId("markdown");
+		await waitFor(() => expect(md.querySelectorAll(".katex")).toHaveLength(2), {
+			timeout: 5000
+		});
+		expect(md.textContent).toContain("hold.");
+	});
 });
 
 describe("Props: value", () => {
