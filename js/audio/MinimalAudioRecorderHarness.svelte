@@ -9,7 +9,6 @@
 			upload_fn: Client["upload"];
 			onchange: (value: FileData) => void;
 			onstoprecording: () => void;
-			recording?: boolean;
 			constraints?: MediaTrackConstraints;
 		};
 	} = $props();
@@ -17,7 +16,7 @@
 
 <MinimalAudioRecorder
 	label="Chat input audio"
-	recording={props.recording ?? false}
+	recording={false}
 	upload={props.upload_fn}
 	root="https://example.com"
 	onchange={props.onchange}

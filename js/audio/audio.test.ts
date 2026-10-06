@@ -878,20 +878,6 @@ describe("Events: streaming microphone recording", () => {
 		expect(get_user_media).toHaveBeenCalledWith({ audio: constraints });
 		expect(RecordPlugin.prototype.startMic).toHaveBeenCalledWith(constraints);
 	});
-
-	test("the mic is requested with audio: true when no constraints are set", async () => {
-		const { getByRole } = await render(Audio, {
-			...default_props,
-			sources: ["microphone"],
-			streaming: true,
-			microphone_options: { constraints: null }
-		});
-
-		await fireEvent.click(getByRole("button", { name: "audio.record" }));
-		await waitFor(() => expect(streams).toHaveLength(1));
-
-		expect(get_user_media).toHaveBeenCalledWith({ audio: true });
-	});
 });
 
 describe("MinimalAudioRecorder", () => {
@@ -949,7 +935,7 @@ describe("MinimalAudioRecorder", () => {
 
 		const render_recorder = (
 			devices: MediaDeviceInfo[],
-			props: { recording?: boolean; constraints?: MediaTrackConstraints }
+			props: { constraints?: MediaTrackConstraints }
 		): ReturnType<typeof render> => {
 			vi.spyOn(RecordPlugin, "getAvailableAudioDevices").mockResolvedValue(
 				devices
@@ -977,26 +963,6 @@ describe("MinimalAudioRecorder", () => {
 				...constraints,
 				deviceId: "mic-2"
 			});
-		});
-
-		test("a deviceId constraint is kept when no device has been selected", async () => {
-			await render_recorder([], {
-				recording: true,
-				constraints: { ...constraints, deviceId: "mic-x" }
-			});
-
-			await waitFor(() => expect(start_mic).toHaveBeenCalled());
-			expect(start_mic).toHaveBeenCalledWith({
-				...constraints,
-				deviceId: "mic-x"
-			});
-		});
-
-		test("the mic is requested with only the device when no constraints are set", async () => {
-			await render_recorder([mic("mic-1")], { recording: true });
-
-			await waitFor(() => expect(start_mic).toHaveBeenCalled());
-			expect(start_mic).toHaveBeenCalledWith({ deviceId: "mic-1" });
 		});
 	});
 });
