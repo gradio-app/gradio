@@ -3,6 +3,7 @@ import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import * as Prism from "prismjs";
 import GithubSlugger from "github-slugger";
+import { standardHtmlAndSvgTags } from "./html-tags";
 
 const prism_loaders: Record<string, () => Promise<unknown>> = {
 	python: () => import("prismjs/components/prism-python"),
@@ -351,4 +352,25 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	}
 
 	return copied;
+}
+
+const standard_tags = new Set(
+	standardHtmlAndSvgTags.map((tag) => tag.toLowerCase())
+);
+
+export function escapeTags(
+	content: string,
+	tagsToEscape: string[] | boolean
+): string {
+	if (!tagsToEscape) return content;
+	const custom = Array.isArray(tagsToEscape)
+		? new Set(tagsToEscape.map((tag) => tag.toLowerCase()))
+		: null;
+	// marked passes raw HTML through untouched, so any "<" followed by a tag
+	// name here is a tag. Escaping just the "<" turns it into visible text.
+	return content.replace(/<(?=\/?([a-zA-Z][^\s\/>]*))/g, (match, name) => {
+		const tag = name.toLowerCase();
+		const should_escape = custom ? custom.has(tag) : !standard_tags.has(tag);
+		return should_escape ? "&lt;" : match;
+	});
 }

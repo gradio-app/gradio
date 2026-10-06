@@ -419,6 +419,19 @@ describe("Props: allow_tags", () => {
 			expect(bot.textContent).toContain("<tool_call>get_weather</tool_call>")
 		);
 	});
+
+	test("self-closing custom tags preserved when allow_tags is true", async () => {
+		const { getAllByTestId } = await render(Chatbot, {
+			...default_props,
+			allow_tags: true,
+			value: [text_msg("assistant", "before <tool_call/> after", 0)]
+		});
+
+		const bot = getAllByTestId("bot")[0];
+		await waitFor(() =>
+			expect(bot.textContent).toContain("before <tool_call/> after")
+		);
+	});
 });
 
 describe("Props: autoscroll", () => {
