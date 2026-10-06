@@ -69,6 +69,11 @@ export class Client {
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
 	heartbeat_event: EventSource | null = null;
+	heartbeat_controller: AbortController | null = null;
+	// Outside a browser (e.g. Node, or SSR) a client is often connected only to
+	// read its config, so the heartbeat waits for the first submit.
+	heartbeat_wanted =
+		typeof window !== "undefined" && typeof document !== "undefined";
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
 	current_payload: any;
@@ -128,7 +133,7 @@ export class Client {
 		return fetch(input, { ...init, headers });
 	}
 
-	stream(url: URL): EventSource {
+	stream(url: URL, abort_controller?: AbortController): EventSource {
 		const headers = new Headers();
 		if (this && this.cookies) {
 			headers.append("Cookie", this.cookies);
@@ -144,12 +149,15 @@ export class Client {
 			headers.append("Authorization", `Bearer ${this.options.token}`);
 		}
 
-		this.abort_controller = new AbortController();
+		if (!abort_controller) {
+			abort_controller = new AbortController();
+			this.abort_controller = abort_controller;
+		}
 
 		this.stream_instance = readable_stream(url.toString(), {
 			credentials: this.options.credentials ?? "same-origin",
 			headers: headers,
-			signal: this.abort_controller.signal
+			signal: abort_controller.signal
 		});
 
 		return this.stream_instance;
@@ -266,22 +274,31 @@ export class Client {
 
 		sign_config_file_urls(this.config, this.jwt);
 
-		if (this.config && this.config.connect_heartbeat) {
-			// connect to the heartbeat endpoint via GET request
-			const heartbeat_url = new URL(
-				`${this.config.root}${this.api_prefix}/${HEARTBEAT_URL}/${this.session_hash}`
-			);
-
-			// if the jwt is available, add it to the query params
-			if (this.jwt) {
-				heartbeat_url.searchParams.set("__sign", this.jwt);
-			}
-
-			// Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
-			if (!this.heartbeat_event) {
-				this.heartbeat_event = this.stream(heartbeat_url);
-			}
+		if (this.heartbeat_wanted) {
+			this.open_heartbeat();
 		}
+	}
+
+	open_heartbeat(): void {
+		this.heartbeat_wanted = true;
+		if (!this.config?.connect_heartbeat || this.heartbeat_event) {
+			return;
+		}
+		const heartbeat_url = new URL(
+			`${this.config.root}${this.api_prefix}/${HEARTBEAT_URL}/${this.session_hash}`
+		);
+
+		if (this.jwt) {
+			heartbeat_url.searchParams.set("__sign", this.jwt);
+		}
+
+		// Its own controller, so that close() still reaches it after other
+		// streams have been opened. The response is not parsed. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+		this.heartbeat_controller = new AbortController();
+		this.heartbeat_event = this.stream(
+			heartbeat_url,
+			this.heartbeat_controller
+		);
 	}
 
 	static async connect(
@@ -321,6 +338,9 @@ export class Client {
 	close(): void {
 		this.closed = true;
 		close_stream(this.stream_status, this.abort_controller);
+		this.heartbeat_controller?.abort();
+		this.heartbeat_controller = null;
+		this.heartbeat_event = null;
 	}
 
 	/**

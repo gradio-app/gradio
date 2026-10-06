@@ -18,6 +18,7 @@
 		"resume": "Resume",
 		"record": "Record",
 		"no_microphone": "No microphone found",
+		"recording_error": "Could not start recording from the microphone.",
 		"pause": "Pause",
 		"play": "Play",
 		"waiting": "Waiting"

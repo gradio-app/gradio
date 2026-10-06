@@ -1,0 +1,33 @@
+name: "history-check"
+
+on:
+  pull_request:
+
+concurrency:
+  group: "${{ github.event.pull_request.number }}-${{ github.workflow }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  check:
+    permissions:
+      contents: read
+    name: "block-pre-rewrite-history"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if the branch contains history from before the rewrite
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # These commits exist only in the pre-rewrite history (#9372), and every branch cut before the rewrite contains them.
+          git clone --quiet --bare --filter=tree:0 --single-branch --branch main "https://github.com/${GITHUB_REPOSITORY}.git" repo.git
+          cd repo.git
+          git fetch --quiet origin "refs/pull/${PR_NUMBER}/head"
+          for old in c22fdbb36ae20caea6b90584972b56704521562a 278dfb4372df0fe6a9907ae383cd2bfde24b7c78; do
+            if GIT_NO_LAZY_FETCH=1 git merge-base --is-ancestor "$old" FETCH_HEAD 2>/dev/null; then
+              echo "::error::This branch is based on gradio's history from before September 2026, which was rewritten to shrink the repository (see #9372). Please re-clone the repository and cherry-pick your commits onto the current main."
+              exit 1
+            fi
+          done
+          echo "No pre-rewrite history found."

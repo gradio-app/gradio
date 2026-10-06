@@ -229,7 +229,8 @@ export class AddImageCommand implements BgImageCommand {
 
 		const background_layer = this.context.layer_manager.create_background_layer(
 			this.fixed_canvas ? this.current_canvas_size.width : width,
-			this.fixed_canvas ? this.current_canvas_size.height : height
+			this.fixed_canvas ? this.current_canvas_size.height : height,
+			true
 		);
 		this.sprite.zIndex = 0;
 		background_layer.addChild(this.sprite);
@@ -280,7 +281,8 @@ export class AddImageCommand implements BgImageCommand {
 				const background_layer =
 					this.context.layer_manager.create_background_layer(
 						this.previous_image.width,
-						this.previous_image.height
+						this.previous_image.height,
+						true
 					);
 
 				previous_sprite.zIndex = 0;

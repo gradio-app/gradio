@@ -414,7 +414,13 @@ def get_pred_from_sse_v1plus(
     for future in done:
         exception = future.exception()
         if exception:
-            raise exception
+            # Otherwise the traceback, through this frame, keeps a cycle holding
+            # the client alive until the cycle collector runs.
+            del future, future_cancel, future_sse, done
+            try:
+                raise exception
+            finally:
+                del exception
         return future.result()
 
 
