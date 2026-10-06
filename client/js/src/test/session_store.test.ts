@@ -158,6 +158,13 @@ describe("SessionStore: component values", () => {
 			same.restore_into(restored);
 			expect(restored[0].props.value).toBe("saved");
 
+			// Clearing the session deletes what it saved
+			await same.forget();
+			const cleared = new SessionStore();
+			await cleared.attach("http://app", "key-1", "session-1");
+			expect(cleared.found).toBe(false);
+			expect(same.size).toBe(0);
+
 			for (const [root, app_key, session] of [
 				["http://app", "key-2", "session-1"],
 				["http://other", "key-1", "session-1"],

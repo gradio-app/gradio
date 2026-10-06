@@ -69,6 +69,11 @@ function is_session(
 	);
 }
 
+/** Forgets the session this tab is using, so that its next load starts a new one. */
+export function forget_session(): void {
+	remove_session();
+}
+
 export function get_resumable_session_hash(): string | null {
 	const session = read_session();
 	if (session && !session.in_use) {

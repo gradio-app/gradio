@@ -23,6 +23,7 @@ import { predict } from "./utils/predict";
 import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
 import {
+	forget_session,
 	get_resumable_events,
 	get_resumable_session_hash,
 	has_session,
@@ -422,6 +423,18 @@ export class Client {
 			return "changed";
 		}
 		return "connected";
+	}
+
+	/**
+	 * Clears this tab's session: the outputs and `gr.State` it saved in the
+	 * browser, and the pointer that a reload would resume. The page should be
+	 * reloaded afterwards, which then starts a new session from the app's
+	 * initial values. The server lets the old session go as it does for a
+	 * closed tab.
+	 */
+	async clear_session(): Promise<void> {
+		await this.session_store.forget();
+		forget_session();
 	}
 
 	close(): void {

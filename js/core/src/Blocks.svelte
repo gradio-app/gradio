@@ -720,6 +720,15 @@
 					{root}
 					run_history_scope={app.config}
 					run_history_enabled={run_history}
+					clear_session={app.options.resume_sessions
+						? async () => {
+								await app.clear_session();
+								// Back to the app itself, rather than to these settings
+								const url = new URL(window.location.href);
+								url.searchParams.delete("view");
+								window.location.replace(url.toString());
+							}
+						: null}
 					{space_id}
 					i18n={$reactive_formatter}
 				/>

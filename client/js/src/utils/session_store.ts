@@ -117,6 +117,24 @@ export class SessionStore {
 	}
 
 	/**
+	 * Deletes everything saved for this session, in memory and in the browser,
+	 * and stops saving it.
+	 */
+	async forget(): Promise<void> {
+		const key = this.key;
+		this.key = null;
+		if (this.save_timer) {
+			clearTimeout(this.save_timer);
+			this.save_timer = null;
+		}
+		while (this.saving) await this.saving;
+		this.state.clear();
+		this.values.clear();
+		this.found = false;
+		if (key !== null) await delete_record("sessions", key);
+	}
+
+	/**
 	 * Remembers the values `ids` were given (an event's inputs, or the outputs
 	 * it returned), index-aligned with `values`.
 	 */

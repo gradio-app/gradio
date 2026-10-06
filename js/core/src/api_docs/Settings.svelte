@@ -27,8 +27,21 @@
 		allow_video_trim = $bindable(),
 		onclose,
 		start_recording,
+		clear_session = null,
 		i18n
 	} = $props();
+
+	let clearing_session = $state(false);
+
+	async function handleClearSession(): Promise<void> {
+		if (!clear_session || clearing_session) return;
+		clearing_session = true;
+		try {
+			await clear_session();
+		} finally {
+			clearing_session = false;
+		}
+	}
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -199,6 +212,26 @@
 		Start Recording
 	</button>
 </div>
+{#if clear_session}
+	<div class="banner-wrap session-section">
+		<div class="session-heading">
+			<div>
+				<h2>Session</h2>
+				<p>
+					This page keeps its outputs and state when you refresh it. Start over
+					to clear them and begin a new session from the app's initial values.
+				</p>
+			</div>
+			<button
+				class="clear-session-button"
+				disabled={clearing_session}
+				onclick={handleClearSession}
+			>
+				{clearing_session ? "Clearing…" : "Clear session"}
+			</button>
+		</div>
+	</div>
+{/if}
 {#if run_history_enabled}
 	<div class="banner-wrap history-section">
 		<div class="history-heading">
@@ -285,6 +318,41 @@
 		padding-block: var(--size-6);
 	}
 
+	.session-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--size-4);
+	}
+
+	.session-heading h2 {
+		margin: 0;
+	}
+
+	.session-heading p {
+		margin: var(--size-2) 0 0;
+	}
+
+	.clear-session-button {
+		flex: none;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		padding: var(--size-2) var(--size-2-5);
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.clear-session-button:hover:not(:disabled),
+	.clear-session-button:focus-visible {
+		border-color: var(--error-border-color, red);
+		color: var(--error-text-color, red);
+	}
+
+	.clear-session-button:disabled {
+		cursor: progress;
+		opacity: 0.6;
+	}
+
 	.history-heading {
 		display: flex;
 		align-items: center;
@@ -298,9 +366,7 @@
 	}
 
 	.history-heading p {
-		margin: var(--size-1) 0 0;
-		color: var(--body-text-color-subdued);
-		font-size: var(--text-sm);
+		margin: var(--size-2) 0 0;
 	}
 
 	.record-button img {
