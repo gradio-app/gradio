@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Keep custom tags with underscores in gr.Chatbot when allow_tags=True
+fix:Keep custom tags visible in gr.Chatbot when allow_tags is set
