@@ -1389,6 +1389,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
         self.pwa = False
+        self.resume_sessions = True
         self.mcp_server = False
         self.run_history = True
 
@@ -2867,6 +2868,7 @@ Received inputs:
             "fill_width": self.fill_width,
             "theme_hash": getattr(self, "theme_hash", None),  # type: ignore
             "pwa": self.pwa,
+            "resume_sessions": self.resume_sessions,
             "pages": self.pages,  # type: ignore
             "page": {},
             "mcp_server": self.mcp_server,
@@ -3094,6 +3096,7 @@ Received inputs:
         pwa: bool | None = None,
         mcp_server: bool | None = None,
         num_workers: int | None = None,
+        resume_sessions: bool | None = None,
         _app: App | None = None,
         _frontend: bool = True,
         i18n: I18n | None = None,
@@ -3145,6 +3148,7 @@ Received inputs:
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
             mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled.
+            resume_sessions: If True (the default), a page that is refreshed, or that the browser reloads, picks up where it left off: it keeps its outputs and `gr.State` values (saved in the browser), and reattaches to jobs that were still running. If False, a refresh starts a new session from the app's initial values, as it did before Gradio 7. If None, the GRADIO_RESUME_SESSIONS environment variable is used, and defaults to True if it is not set.
             num_workers: Number of background workers to launch in the background to serve file I/O and static assets. This offloads traffic from the main server and reduces latency. Only has an effect if ssr mode is set.
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a code string. This css will be included in the demo webpage.
@@ -3281,6 +3285,7 @@ Received inputs:
                     block.key = f"__{block._id}__"
 
         self.pwa = utils.get_space() is not None if pwa is None else pwa
+        self.resume_sessions = utils.resolve_resume_sessions(resume_sessions)
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)

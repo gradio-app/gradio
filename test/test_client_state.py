@@ -556,3 +556,46 @@ class TestClientHeldState:
         with pytest.raises(ValueError, match="storage='server'"):
             gr.State(delete_callback=print)
         gr.State(delete_callback=print, storage="server")
+
+    def test_a_token_is_only_valid_for_the_user_it_was_issued_to(self):
+        with gr.Blocks() as demo:
+            state = gr.State(0)
+            gr.Button().click(lambda n: n + 1, state, state)
+        fn = demo.fns[0]
+        cache = StateCache()
+        fingerprint = client_state.app_fingerprint(demo)
+        sealer = client_state.get_sealer()
+        scope = client_state.token_scope(fingerprint, "alice", state._id)
+        token = sealer.seal(scope, dumps(41), time.time())
+        entries = {str(state._id): {"token": token}}
+
+        alice = client_state.ClientState.resolve(
+            demo, fn, entries, cache, username="alice"
+        )
+        assert alice.serialized[state._id] == dumps(41)
+        for other in ["bob", None]:
+            resolved = client_state.ClientState.resolve(
+                demo, fn, entries, StateCache(), username=other
+            )
+            assert state._id not in resolved.serialized
+
+
+def test_resume_sessions_can_be_turned_off(monkeypatch):
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    try:
+        demo.launch(prevent_thread_lock=True)
+        assert demo.config["resume_sessions"] is True
+    finally:
+        demo.close()
+    try:
+        demo.launch(prevent_thread_lock=True, resume_sessions=False)
+        assert demo.config["resume_sessions"] is False
+    finally:
+        demo.close()
+    monkeypatch.setenv("GRADIO_RESUME_SESSIONS", "false")
+    try:
+        demo.launch(prevent_thread_lock=True)
+        assert demo.config["resume_sessions"] is False
+    finally:
+        demo.close()

@@ -276,6 +276,14 @@ export function submit(
 		async function handle_render_config(render_config: any): Promise<void> {
 			if (!config) return;
 			let render_id: number = render_config.render_id;
+			// After a reload, the first time a `gr.render` block is built again
+			// (when its render function reruns on load), put back the values its
+			// components had, as for the rest of the page. Later renders are the
+			// app's own doing and are left alone.
+			if (that.session_restored && !that.restored_renders.has(render_id)) {
+				that.restored_renders.add(render_id);
+				that.session_store.restore_into(render_config.components);
+			}
 			config.components = [
 				...config.components.filter((c) => c.props.rendered_in !== render_id),
 				...render_config.components

@@ -245,6 +245,13 @@ def _warn_invalid_token() -> None:
     )
 
 
+def token_scope(fingerprint: str, username: str | None, _id: int) -> bytes:
+    """What a token is bound to: the app's structure, the logged-in user (so a
+    token issued to one user is not accepted from another) and the component."""
+    user = (username or "").encode("utf-8").hex()
+    return f"{fingerprint}:{user}:{_id}".encode()
+
+
 class ClientState:
     """The browser-held `gr.State` values for one event."""
 
@@ -254,9 +261,11 @@ class ClientState:
         fingerprint: str,
         serialized: dict[int, bytes],
         client_refs: dict[int, str | None],
+        username: str | None = None,
     ):
         self.components = components
         self.fingerprint = fingerprint
+        self.username = username
         # Values the client sent, not yet deserialized
         self.serialized = serialized
         # The reference the client holds for each id (None: it holds nothing usable)
@@ -265,7 +274,7 @@ class ClientState:
         self.values: dict[int, Any] = {}
 
     def scope(self, _id: int) -> bytes:
-        return f"{self.fingerprint}:{_id}".encode()
+        return token_scope(self.fingerprint, self.username, _id)
 
     @classmethod
     def resolve(
@@ -274,6 +283,7 @@ class ClientState:
         fn: BlockFunction,
         entries: dict[str, dict[str, str]],
         cache: StateCache,
+        username: str | None = None,
     ) -> ClientState:
         """Verifies the state a client sent for an event. Raises MissingStateError
         if the client sent only references that are not in the cache."""
@@ -288,7 +298,7 @@ class ClientState:
             entry = entries.get(str(_id))
             if not isinstance(entry, dict):
                 continue
-            scope = f"{fingerprint}:{_id}".encode()
+            scope = token_scope(fingerprint, username, _id)
             token = entry.get("token")
             ref = entry.get("ref")
             if isinstance(token, str):
@@ -315,7 +325,7 @@ class ClientState:
             client_refs[_id] = ref
         if missing:
             raise MissingStateError(missing)
-        return cls(components, fingerprint, serialized, client_refs)
+        return cls(components, fingerprint, serialized, client_refs, username)
 
     def materialize(self, _id: int, session_state: SessionState) -> bool:
         """Deserializes the value for `_id` if there is one. Falls back to a value

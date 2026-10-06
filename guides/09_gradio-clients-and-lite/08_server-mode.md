@@ -135,6 +135,8 @@ for (const job of app.resume_jobs()) {
 	for await (const message of job) {
 		console.log(message);
 	}
+	// Otherwise the finished job is resumed again on the next page load
+	await job.acknowledge();
 }
 ```
 

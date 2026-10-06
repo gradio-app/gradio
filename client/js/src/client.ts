@@ -78,6 +78,8 @@ export class Client {
 	// Whether this tab resumed a session it had shown this page in, and so the
 	// outputs and state it saved carry over rather than starting afresh.
 	session_restored = false;
+	// The `gr.render` blocks whose saved values have been put back after a reload
+	restored_renders: Set<number> = new Set();
 
 	// streaming
 	stream_status = { open: false };
@@ -286,16 +288,31 @@ export class Client {
 			| undefined;
 		if (resolved?.config) {
 			const config = resolved.config;
+			if (config.resume_sessions === false && this.options.resume_sessions) {
+				// The app turned resuming off (`launch(resume_sessions=False)`), so
+				// every page load starts a new session, as before Gradio 7
+				this.options.resume_sessions = false;
+				if (this.restored_session_hash) {
+					this.session_hash = Math.random().toString(36).substring(2);
+					this.restored_session_hash = false;
+				}
+				forget_session();
+			}
 			const resumable =
 				this.options.resume_sessions && typeof sessionStorage !== "undefined"
 					? this.resume_session(config)
 					: false;
 			await Promise.all([
-				this.session_store.attach(
-					config.root,
-					config.app_key,
-					this.session_hash
-				),
+				// Without resuming nothing needs to outlive the page, so the
+				// session's state is only held in memory
+				this.options.resume_sessions
+					? this.session_store.attach(
+							config.root,
+							config.app_key,
+							this.session_hash,
+							config.username ?? null
+						)
+					: Promise.resolve(),
 				// So that the first submission knows where its run is recorded
 				load_run_history(config)
 			]);

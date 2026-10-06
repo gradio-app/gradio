@@ -81,6 +81,19 @@ describe("resumable sessions", () => {
 		expect(get_resumable_session_hash()).toBeNull();
 	});
 
+	it("is never picked up by a different logged-in user", () => {
+		track_session({ ...config, username: "alice" } as any, "session-1");
+		set_session_in_use(false);
+
+		expect(
+			has_session({ ...config, username: "alice" } as any, "session-1")
+		).toBe(true);
+		expect(
+			has_session({ ...config, username: "bob" } as any, "session-1")
+		).toBe(false);
+		expect(has_session(config, "session-1")).toBe(false);
+	});
+
 	it("keeps active events until the server resolves them", () => {
 		vi.useFakeTimers();
 		try {

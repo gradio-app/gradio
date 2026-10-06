@@ -1591,7 +1591,7 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
             if body.state is not None:
-                resolve_client_state(body, fn)
+                resolve_client_state(body, fn, username)
             gr_request = route_utils.compile_gr_request(
                 body,
                 fn=fn,
@@ -1621,13 +1621,20 @@ class App(FastAPI):
                 )
             return ORJSONResponse(output)
 
-        def resolve_client_state(body: PredictBodyInternal, fn: BlockFunction) -> None:
+        def resolve_client_state(
+            body: PredictBodyInternal, fn: BlockFunction, username: str | None
+        ) -> None:
             """Verifies the browser-held gr.State values sent with an event. If the
             client sent references to values this server has not cached, answers
-            409 with their ids so that the client sends the values themselves."""
+            409 with their ids so that the client sends the values themselves.
+            Values are only accepted from the user they were issued to."""
             try:
                 body.client_state = ClientState.resolve(
-                    app.get_blocks(), fn, body.state or {}, app.state_cache
+                    app.get_blocks(),
+                    fn,
+                    body.state or {},
+                    app.state_cache,
+                    username=username,
                 )
             except MissingStateError as err:
                 raise HTTPException(
@@ -1741,7 +1748,7 @@ class App(FastAPI):
                 except KeyError:
                     fn = None
                 if fn is not None:
-                    resolve_client_state(body, fn)
+                    resolve_client_state(body, fn, username)
             success, event_id, state = await blocks._queue.push(
                 body=body, request=request, username=username
             )
@@ -2905,6 +2912,7 @@ def mount_gradio_app(
     pwa: bool | None = None,
     i18n: I18n | None = None,
     mcp_server: bool | None = None,
+    resume_sessions: bool | None = None,
     theme: Theme | str | None = None,
     css: str | None = None,
     css_paths: str | Path | Sequence[str | Path] | None = None,
@@ -2937,6 +2945,7 @@ def mount_gradio_app(
         i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
         mcp_server: If True, the MCP server will be launched on the gradio app. If None, will use GRADIO_MCP_SERVER environment variable or default to False.
+        resume_sessions: If True (the default), a refreshed page keeps its outputs and `gr.State` values and reattaches to jobs that were still running. If False, a refresh starts a new session, as before Gradio 7. If None, the GRADIO_RESUME_SESSIONS environment variable is used, and defaults to True if it is not set.
         theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
         css: Custom css as a code string. This css will be included in the demo webpage.
         css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
@@ -2972,6 +2981,7 @@ def mount_gradio_app(
         footer_links = [link for link in footer_links if link != "runs"]
     blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
+    blocks.resume_sessions = utils.resolve_resume_sessions(resume_sessions)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     blocks.custom_mount_path = path

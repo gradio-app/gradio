@@ -8,6 +8,9 @@ export interface ResumableJob {
 interface ResumableSession {
 	// Identifies the app's structure, the same across restarts and replicas
 	app_key?: string;
+	// The logged-in user, if the app uses `auth`: a session is never picked up
+	// by a different user in the same tab
+	username?: string | null;
 	root: string;
 	session_hash: string;
 	events: ResumableJob[];
@@ -65,7 +68,8 @@ function is_session(
 		!!session &&
 		session.session_hash === session_hash &&
 		session.root === config.root &&
-		session.app_key === config.app_key
+		session.app_key === config.app_key &&
+		(session.username ?? null) === (config.username ?? null)
 	);
 }
 
@@ -114,6 +118,7 @@ export function track_session(config: Config, session_hash: string): void {
 	const pages = new Set(current?.pages).add(config.current_page ?? "");
 	write_session({
 		app_key: config.app_key,
+		username: config.username ?? null,
 		root: config.root,
 		session_hash,
 		events: current?.events ?? [],
@@ -153,6 +158,7 @@ export function track_resumable_event(
 	write_session({
 		...current,
 		app_key: config.app_key,
+		username: config.username ?? null,
 		root: config.root,
 		session_hash,
 		events: [...events, event]

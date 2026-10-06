@@ -136,8 +136,15 @@ export async function prune_records(
 	{
 		max_age_ms = Infinity,
 		keep = Infinity,
-		except
-	}: { max_age_ms?: number; keep?: number; except?: string }
+		except,
+		prefix
+	}: {
+		max_age_ms?: number;
+		keep?: number;
+		except?: string;
+		/** Only consider records whose key starts with this. */
+		prefix?: string;
+	}
 ): Promise<void> {
 	const db = await open_db();
 	if (!db) return;
@@ -162,7 +169,9 @@ export async function prune_records(
 			req.onerror = () => reject(req.error);
 		});
 		const cutoff = Date.now() - max_age_ms;
-		const candidates = entries.filter(({ key }) => key !== except);
+		const candidates = entries.filter(
+			({ key }) => key !== except && (!prefix || key.startsWith(prefix))
+		);
 		const stale = candidates.filter(
 			({ updated }, i) => updated < cutoff || candidates.length - i > keep
 		);

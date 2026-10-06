@@ -307,10 +307,12 @@ for (const job of resumed_jobs) {
 	for await (const message of job) {
 		console.log(message);
 	}
+	// Tell the server the result was received, so the job is not resumed again
+	await job.acknowledge();
 }
 ```
 
-New calls made with `app.submit()` are tracked automatically. Call `app.resume_jobs()` after reconnecting the page to reattach to those same event IDs rather than submitting duplicate work. The browser keeps active event IDs for the current tab until the server acknowledges or rejects them, while the server keeps disconnected jobs for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (1 hour by default).
+New calls made with `app.submit()` are tracked automatically. Call `app.resume_jobs()` after reconnecting the page to reattach to those same event IDs rather than submitting duplicate work. Once you have consumed a job, call `job.acknowledge()`: until then the browser keeps its event ID for the current tab (so a reload would resume it again) and the server keeps its buffered messages, while the server keeps disconnected jobs for up to `GRADIO_QUEUE_SESSION_RESUME_TTL` seconds (1 hour by default).
 
 ## Cancelling Jobs
 

@@ -45,9 +45,17 @@ interface SavedSession extends StoredRecord {
 	app_key: string;
 	/** `gr.State` tokens, by component id */
 	state: Record<string, StateEntry>;
-	/** The props to restore, by component id */
-	values: Record<string, Record<string, unknown>>;
+	/** The props to restore, and the type of component they were for, by id */
+	values: Record<string, SavedValue>;
 }
+
+interface SavedValue {
+	type: string;
+	props: Record<string, unknown>;
+}
+
+/** A saved session is deleted once this many newer ones of the same app exist. */
+const MAX_SESSIONS_PER_APP = 10;
 
 interface ComponentLike {
 	id: number;
@@ -61,7 +69,9 @@ const NOT_SAVED = new Set(["state", "browserstate"]);
 
 export class SessionStore {
 	private state = new Map<string, StateEntry>();
-	private values = new Map<string, Record<string, unknown>>();
+	private values = new Map<string, SavedValue>();
+	/** The prefix of the keys of this app's saved sessions */
+	private app_prefix = "";
 	private key: string | null = null;
 	private app_key = "";
 	private save_timer: ReturnType<typeof setTimeout> | null = null;
@@ -152,9 +162,12 @@ export class SessionStore {
 			if (!type || NOT_SAVED.has(type)) continue;
 			if (is_update(value) && Object.keys(value).length === 1) continue;
 			const key = String(id);
-			const props = this.values.get(key) ?? {};
+			const saved = this.values.get(key);
+			// A component id can be reused for another component (e.g. by
+			// `gr.render`), so start afresh if the type changed
+			const props = saved?.type === type ? saved.props : {};
 			apply_component_value(props, value);
-			this.values.set(key, props);
+			this.values.set(key, { type, props });
 			changed = true;
 		}
 		if (changed) this.schedule_save();
@@ -167,9 +180,11 @@ export class SessionStore {
 	restore_into(components: ComponentLike[]): boolean {
 		let restored = false;
 		for (const component of components) {
-			const props = this.values.get(String(component.id));
-			if (!props || NOT_SAVED.has(component.type)) continue;
-			Object.assign(component.props, props);
+			const saved = this.values.get(String(component.id));
+			if (!saved || NOT_SAVED.has(component.type)) continue;
+			// The id may belong to a different component now
+			if (saved.type !== component.type) continue;
+			Object.assign(component.props, saved.props);
 			restored = true;
 		}
 		return restored;
@@ -182,9 +197,14 @@ export class SessionStore {
 	async attach(
 		root: string,
 		app_key: string | undefined,
-		session_hash: string
+		session_hash: string,
+		username: string | null = null
 	): Promise<void> {
-		const key = `${app_scope_key(root, app_key)}|${session_hash}`;
+		// Scoped to the logged-in user, so that a user who logs in after another
+		// in the same tab never gets their session back
+		const user = username ? `user:${encodeURIComponent(username)}` : "";
+		this.app_prefix = `${app_scope_key(root, app_key)}|`;
+		const key = `${this.app_prefix}${user}|${session_hash}`;
 		this.key = key;
 		this.app_key = app_key ?? "";
 		const saved = await read_record<SavedSession>("sessions", key);
@@ -197,10 +217,19 @@ export class SessionStore {
 				if (!this.values.has(id)) this.values.set(id, props);
 			}
 		}
+		// Saved sessions are deleted after a day without use, and beyond the
+		// most recent few of each app, so they cannot pile up
 		void prune_records("sessions", {
 			max_age_ms: SESSION_MAX_AGE_MS,
 			except: key
-		});
+		}).then(() =>
+			prune_records("sessions", {
+				prefix: this.app_prefix,
+				// This session, which is spared, counts towards the limit too
+				keep: MAX_SESSIONS_PER_APP - 1,
+				except: key
+			})
+		);
 		// Changes made before the saved session was loaded have not been saved.
 		if (this.state.size || this.values.size) this.schedule_save();
 	}
@@ -252,12 +281,21 @@ export class SessionStore {
 			await delete_record("sessions", key);
 			return;
 		}
-		await write_record<SavedSession>("sessions", {
+		const record: SavedSession = {
 			key,
 			updated: Date.now(),
 			app_key: this.app_key,
 			state: Object.fromEntries(this.state),
 			values: Object.fromEntries(this.values)
+		};
+		if (await write_record("sessions", record)) return;
+		// Most likely out of space: drop this app's other saved sessions, then
+		// try once more. Otherwise the session is still held in memory.
+		await prune_records("sessions", {
+			prefix: this.app_prefix,
+			keep: 0,
+			except: key
 		});
+		await write_record("sessions", record);
 	}
 }

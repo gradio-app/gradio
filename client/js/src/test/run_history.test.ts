@@ -463,6 +463,21 @@ describe.skipIf(!in_browser)("replaying a run", () => {
 		expect(apply_run_history_replay(make_config())).toBe(false);
 	});
 
+	test("tells the caller which values it wrote, so the session can keep them", () => {
+		stage_run_history_replay(scope, stored);
+		const written: [number[], unknown[]][] = [];
+		apply_run_history_replay(make_config(), (ids, values) =>
+			written.push([ids, values])
+		);
+		expect(written).toEqual([
+			[
+				[1, 2],
+				["prompt", null]
+			],
+			[[3, 4], stored.outputs]
+		]);
+	});
+
 	test("matches the endpoint by api name when the fn index has moved", () => {
 		stage_run_history_replay(scope, { ...stored, fn_index: 99 });
 		const config = make_config();

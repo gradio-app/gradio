@@ -402,6 +402,7 @@ class BlocksConfigDict(TypedDict):
     app_id: int
     # Identifies the app's structure, the same across restarts and replicas
     app_key: str
+    resume_sessions: NotRequired[bool]
     dev_mode: bool
     vibe_mode: bool
     analytics_enabled: bool

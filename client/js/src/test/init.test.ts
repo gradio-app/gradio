@@ -195,6 +195,30 @@ describe("Client class", () => {
 					expect(app.session_store.size).toBe(0);
 				});
 
+				test("starts afresh on every load if the app turned resuming off", async () => {
+					await save_session("known-session");
+					track_session(app_config, "known-session");
+					set_session_in_use(false);
+					server.use(
+						http.get(`${direct_app_reference}/config`, () =>
+							HttpResponse.json({ ...app_config, resume_sessions: false })
+						),
+						http.get(`${root}/config`, () =>
+							HttpResponse.json({ ...app_config, resume_sessions: false })
+						)
+					);
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(app.session_hash).not.toBe("known-session");
+					expect(app.session_restored).toBe(false);
+					expect(app.session_store.size).toBe(0);
+					expect(app.options.resume_sessions).toBe(false);
+					expect(get_resumable_session_hash()).toBeNull();
+				});
+
 				test("does not share a session with a duplicated tab", async () => {
 					// The original tab is still using the session.
 					track_session(app_config, "known-session");

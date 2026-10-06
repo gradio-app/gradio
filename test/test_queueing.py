@@ -11,7 +11,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio import queueing
 from gradio.route_utils import API_PREFIX
+from gradio.server_messages import ProcessCompletedMessage
 
 
 class TestQueueing:
@@ -423,6 +425,28 @@ def test_expired_session_runs_unload_after_its_events_are_gone():
 
         assert unloaded.is_set()
         assert "finished_session" not in queue.resumable_sessions
+    finally:
+        demo.close()
+
+
+def test_closing_a_session_with_an_unacknowledged_result_uses_the_grace_period():
+    # The job finished (no pending ids), but the page never acknowledged its
+    # result, so only its buffered messages are left for a reload to replay.
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue = demo._queue
+        resumable = queue.resumable_sessions.setdefault(
+            "finished", queueing.ResumableSession()
+        )
+        resumable.history.append(
+            ProcessCompletedMessage(output={}, success=True, event_id="done")
+        )
+        queue.mark_session_closing("finished")
+        assert resumable.closing is True
+        assert resumable.expires_at is not None
+        assert resumable.expires_at <= time.monotonic() + queue.close_grace_period
     finally:
         demo.close()
 

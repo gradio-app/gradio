@@ -170,6 +170,8 @@ export interface Config {
 	app_id?: string;
 	/** Identifies the app's structure, the same across restarts and replicas. */
 	app_key?: string;
+	/** False if the app turned off resuming sessions on reload. */
+	resume_sessions?: boolean;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	dev_mode: boolean;

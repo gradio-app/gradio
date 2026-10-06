@@ -267,6 +267,15 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_STATE_CACHE_SIZE_MB=1024
   ```
 
+### 29. `GRADIO_RESUME_SESSIONS`
+
+- **Description**: Whether a page that is refreshed, or reloaded by the browser, picks up where it left off: its outputs and `gr.State` values (saved in the browser) come back and jobs that were still running are reattached. Set it to `False` for the behavior from before Gradio 7, where a refresh starts a new session from the app's initial values. The `resume_sessions` parameter of `launch()` takes precedence over it.
+- **Default**: `True`
+- **Example**:
+  ```sh
+  export GRADIO_RESUME_SESSIONS=False
+  ```
+
 ## How to Set Environment Variables
 
 To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:

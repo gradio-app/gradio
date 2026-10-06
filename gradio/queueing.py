@@ -351,7 +351,15 @@ class Queue:
         resumable.closing = False
 
     def mark_session_closing(self, session_hash: str) -> None:
-        if not self.pending_event_ids_session.get(session_hash):
+        resumable = self.resumable_sessions.get(session_hash)
+        # A job that finished but whose result the page has not acknowledged
+        # leaves only its buffered messages behind, which a reload would replay.
+        has_unacknowledged = resumable is not None and any(
+            message.event_id for message in resumable.history
+        )
+        if not self.pending_event_ids_session.get(session_hash) and not (
+            has_unacknowledged
+        ):
             return
         resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
         resumable.closing = True

@@ -56,6 +56,8 @@ The `.change` listener for a state variable triggers after any event listener ch
 
 Like the app's outputs, the value of a `gr.State` is kept when the user refreshes the page, and `demo.load` events do not run again. The browser saves both, along with the session's encrypted state, so a refreshed page comes back as it was without asking the server, even if the server has restarted or the page reaches a different replica. A job that was still running when the page was refreshed picks up where it left off, as long as the page reaches the same server that is running it. Files shown in outputs are served by the server that created them, so with several replicas they need storage that every replica can read.
 
+To start over, users can open **Settings** in the app's footer and click **Clear session**, which clears the page's outputs and state and starts a new session. To go back to the behavior from before Gradio 7, where refreshing the page starts a new session, launch the app with `demo.launch(resume_sessions=False)` or set the `GRADIO_RESUME_SESSIONS` environment variable to `False`.
+
 Learn more about `State` in the [docs](https://gradio.app/docs/gradio/state).
 
 ### Where state is stored

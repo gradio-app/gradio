@@ -3,6 +3,7 @@ import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
 import { INLINE_STATE_LIMIT, SessionStore } from "../utils/session_store";
+import { read_record } from "../utils/browser_storage";
 import { direct_space_url } from "./handlers";
 import { initialise_server } from "./server";
 
@@ -175,6 +176,74 @@ describe("SessionStore: component values", () => {
 				expect(other.found).toBe(false);
 				expect(other.size).toBe(0);
 			}
+		}
+	);
+});
+
+describe("SessionStore: safety and limits", () => {
+	test("only restores a value into the same type of component", () => {
+		const store = new SessionStore();
+		store.record([7], ["typed text"], [{ id: 7, type: "textbox" }]);
+		// e.g. a `gr.render` block now uses id 7 for a button
+		const button = [{ id: 7, type: "button", props: { value: "Run" } }];
+		expect(store.restore_into(button)).toBe(false);
+		expect(button[0].props.value).toBe("Run");
+		const textbox = [{ id: 7, type: "textbox", props: { value: "" } }];
+		expect(store.restore_into(textbox)).toBe(true);
+		expect(textbox[0].props.value).toBe("typed text");
+	});
+
+	test.skipIf(typeof indexedDB === "undefined")(
+		"keeps each user's session apart",
+		async () => {
+			const alice = new SessionStore();
+			await alice.attach("http://users", "k", "same-tab", "alice");
+			alice.record([1], ["private"], [{ id: 1, type: "textbox" }]);
+			await alice.flush();
+
+			const bob = new SessionStore();
+			await bob.attach("http://users", "k", "same-tab", "bob");
+			expect(bob.found).toBe(false);
+			const again = new SessionStore();
+			await again.attach("http://users", "k", "same-tab", "alice");
+			expect(again.found).toBe(true);
+			await again.forget();
+		}
+	);
+
+	test.skipIf(typeof indexedDB === "undefined")(
+		"keeps only the most recent sessions of each app",
+		async () => {
+			for (let i = 0; i < 12; i++) {
+				const store = new SessionStore();
+				await store.attach("http://capped", "k", `s${i}`);
+				store.record([1], [String(i)], [{ id: 1, type: "textbox" }]);
+				await store.flush();
+				await new Promise((r) => setTimeout(r, 5));
+			}
+			// Pruning runs when a session is attached
+			const latest = new SessionStore();
+			await latest.attach("http://capped", "k", "s11");
+			await new Promise((r) => setTimeout(r, 200));
+			const kept: string[] = [];
+			for (let i = 0; i < 12; i++) {
+				if (await read_record("sessions", `http://capped|k||s${i}`)) {
+					kept.push(`s${i}`);
+				}
+			}
+			// The most recent ten, including the one in use
+			expect(kept).toEqual([
+				"s2",
+				"s3",
+				"s4",
+				"s5",
+				"s6",
+				"s7",
+				"s8",
+				"s9",
+				"s10",
+				"s11"
+			]);
 		}
 	);
 });

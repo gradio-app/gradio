@@ -542,7 +542,14 @@ export interface ReplayTarget {
 	}[];
 }
 
-function restore_run_impl(config: ReplayTarget, run: StoredRun): boolean {
+/** Told which values a replayed run wrote, index-aligned with the component ids. */
+export type ReplayListener = (ids: number[], values: unknown[]) => void;
+
+function restore_run_impl(
+	config: ReplayTarget,
+	run: StoredRun,
+	on_restore?: ReplayListener
+): boolean {
 	const dependency = config.dependencies.find(
 		(item) =>
 			item.id === run.fn_index ||
@@ -574,14 +581,17 @@ function restore_run_impl(config: ReplayTarget, run: StoredRun): boolean {
 
 	restore(dependency.inputs, inputs);
 	restore(dependency.outputs, outputs);
+	on_restore?.(dependency.inputs, inputs);
+	on_restore?.(dependency.outputs, outputs);
 	return true;
 }
 
 function apply_run_history_replay_impl(
-	config: ReplayTarget & RunHistoryScope
+	config: ReplayTarget & RunHistoryScope,
+	on_restore?: ReplayListener
 ): boolean {
 	const run = consume_run_history_replay_impl(config);
-	return run ? restore_run_impl(config, run) : false;
+	return run ? restore_run_impl(config, run, on_restore) : false;
 }
 
 function start_run_history_impl(options: StartRunOptions): string | null {
@@ -778,12 +788,17 @@ export function consume_run_history_replay(
  * was staged for. Every entry point that renders an app has to call this, or
  * "Load run" silently does nothing on that entry point.
  *
+ * Pass `on_restore` to be told which values were written, e.g. to save them
+ * in the session (`Client.session_store`) so that a refresh keeps the run
+ * that was loaded rather than what the page showed before.
+ *
  * @returns whether a staged run was found and applied.
  */
 export function apply_run_history_replay(
-	config: ReplayTarget & RunHistoryScope
+	config: ReplayTarget & RunHistoryScope,
+	on_restore?: ReplayListener
 ): boolean {
-	return safely(() => apply_run_history_replay_impl(config), false);
+	return safely(() => apply_run_history_replay_impl(config, on_restore), false);
 }
 
 export function start_run_history(options: StartRunOptions): string | null {
