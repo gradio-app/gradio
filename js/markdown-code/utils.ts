@@ -369,10 +369,15 @@ export function escapeTags(
 	// marked passes raw HTML through untouched, so any "<" followed by a tag
 	// name here is a tag. Escaping its "<" turns it into visible text. The
 	// name is consumed rather than looked ahead at, so a run like
-	// "<a<a<a..." is scanned once instead of once per "<".
-	return content.replace(/<\/?([a-zA-Z][^\s\/>]*)/g, (match, name) => {
+	// "<a<a<a..." is scanned once instead of once per "<". The name stops at
+	// "<" so that a stray "<" (e.g. in restored LaTeX) does not swallow the
+	// next tag, but the browser reads "<b<c" as a tag named "b<c", not "b".
+	return content.replace(/<\/?([a-zA-Z][^\s\/<>]*)/g, (match, name, offset) => {
+		const name_continues = content[offset + match.length] === "<";
 		const tag = name.toLowerCase();
-		const should_escape = custom ? custom.has(tag) : !standard_tags.has(tag);
+		const should_escape = custom
+			? !name_continues && custom.has(tag)
+			: name_continues || !standard_tags.has(tag);
 		return should_escape ? match.replace(/</g, "&lt;") : match;
 	});
 }

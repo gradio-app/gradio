@@ -38,7 +38,22 @@ describe("escapeTags", () => {
 			'<svg><clipPath id="c"></clipPath><linearGradient/></svg>',
 			'<svg><clipPath id="c"></clipPath><linearGradient/></svg>'
 		],
-		["restored LaTeX", "<p>$a<b$ text</p>", "<p>$a&lt;b$ text</p>"]
+		["restored LaTeX", "<p>$a<b$ text</p>", "<p>$a&lt;b$ text</p>"],
+		[
+			"restored LaTeX before a closing tag",
+			"<p>The bound is $$x<y$$</p>",
+			"<p>The bound is $$x&lt;y$$</p>"
+		],
+		[
+			"restored LaTeX before a line break",
+			"<p>$$P(X<a)$$<br>we get</p>",
+			"<p>$$P(X&lt;a)$$<br>we get</p>"
+		],
+		[
+			"standard tag name followed by <",
+			"<p>$$a<b<c$$</p>",
+			"<p>$$a&lt;b&lt;c$$</p>"
+		]
 	])("allow_tags=true: %s", (_, input, expected) => {
 		expect(escapeTags(input, true)).toBe(expected);
 	});
