@@ -72,6 +72,12 @@ describe("escapeTags", () => {
 		expect(escapeTags(input, tags)).toBe(expected);
 	});
 
+	test("repeated tag prefixes are handled in linear time", () => {
+		// With a quadratic scan, this input takes well over the test timeout.
+		const input = "<tool_call".repeat(50000);
+		expect(escapeTags(input, true)).toBe("&lt;tool_call".repeat(50000));
+	});
+
 	test("allow_tags=false leaves content unchanged", () => {
 		const input = "<p><tool_call>x</tool_call></p>";
 		expect(escapeTags(input, false)).toBe(input);
