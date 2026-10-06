@@ -6,7 +6,7 @@
 	import { Image } from "@gradio/image/shared";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { FileData, Client } from "@gradio/client";
-	import type { WaveformOptions } from "@gradio/audio";
+	import type { WaveformOptions, MicrophoneOptions } from "@gradio/audio";
 	import {
 		Clear,
 		File,
@@ -55,6 +55,7 @@
 		waveform_settings,
 		waveform_options: _waveform_options = { show_recording_waveform: true },
 		sources_string = "upload",
+		microphone_options = {},
 		active_source = $bindable<"microphone" | null>(),
 		html_attributes = null,
 		upload_promise = $bindable<Promise<any> | null>(),
@@ -98,6 +99,7 @@
 		max_plain_text_length?: number;
 		waveform_settings: Record<string, any>;
 		waveform_options?: WaveformOptions;
+		microphone_options?: MicrophoneOptions;
 		sources_string?:
 			| "upload"
 			| "upload,microphone"
@@ -417,6 +419,7 @@
 							{upload}
 							{root}
 							{max_file_size}
+							constraints={microphone_options.constraints ?? undefined}
 							bind:upload_promise
 							onchange={(audio_value) => {
 								mic_audio = audio_value;
