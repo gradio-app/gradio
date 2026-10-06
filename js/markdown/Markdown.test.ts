@@ -90,18 +90,27 @@ describe("Markdown", () => {
 		expect(heading).toBeVisible();
 	});
 
-	test("renders LaTeX containing < along with the text after it", async () => {
-		const { getByTestId } = await render(Markdown, {
-			...default_props,
-			value: "Bounds: $$a<b$$ and $$c>d$$ hold."
-		});
+	test.each([
+		["<", "Bounds: $$a<b$$ and $$c>d$$ hold."],
+		["&lt;", "Bounds: $$a&lt;b$$ and $$c>d$$ hold."]
+	])(
+		"renders LaTeX containing %s along with the text after it",
+		async (_, value) => {
+			const { getByTestId } = await render(Markdown, {
+				...default_props,
+				value
+			});
 
-		const md = getByTestId("markdown");
-		await waitFor(() => expect(md.querySelectorAll(".katex")).toHaveLength(2), {
-			timeout: 5000
-		});
-		expect(md.textContent).toContain("hold.");
-	});
+			const md = getByTestId("markdown");
+			await waitFor(
+				() => expect(md.querySelectorAll(".katex")).toHaveLength(2),
+				{
+					timeout: 5000
+				}
+			);
+			expect(md.textContent).toContain("hold.");
+		}
+	);
 });
 
 describe("Props: value", () => {
