@@ -45,8 +45,6 @@
 	let show_device_selection = $state(false);
 
 	const mic_constraints = (): MediaTrackConstraints =>
-		// The selected device (the first one found, or the one picked from the
-		// list) overrides a deviceId in the constraints.
 		selected_device_id || !constraints?.deviceId
 			? { ...constraints, deviceId: selected_device_id }
 			: { ...constraints };
