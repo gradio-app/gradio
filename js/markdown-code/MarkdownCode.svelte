@@ -3,11 +3,12 @@
 	import {
 		assign_heading_ids,
 		create_marked,
+		escape,
+		escapeTags,
 		track_open_elements
 	} from "./utils";
 	import { sanitize_fragment } from "@gradio/sanitize";
 	import "./prism.css";
-	import { standardHtmlAndSvgTags } from "./html-tags";
 	import type { ThemeMode } from "@gradio/core";
 
 	let {
@@ -159,10 +160,12 @@
 				return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
 			});
 		});
-		const restore_latex = (text: string): string =>
-			text.replace(
-				/%%%LATEX_BLOCK_(\d+)%%%/g,
-				(match, p1) => latexBlocks[parseInt(p1, 10)]
+		const restore_latex = (
+			text: string,
+			encode: (latex: string) => string = (latex) => latex
+		): string =>
+			text.replace(/%%%LATEX_BLOCK_(\d+)%%%/g, (match, p1) =>
+				encode(latexBlocks[parseInt(p1, 10)])
 			);
 
 		const tokens = marked.lexer(parsedValue);
@@ -203,7 +206,7 @@
 							marked.walkTokens(group_tokens, marked.defaults.walkTokens)
 						);
 					}
-					const html = restore_latex(marked.parser(group_tokens));
+					const html = restore_latex(marked.parser(group_tokens), escape);
 					return to_fragment(html, source);
 				}
 			};
@@ -254,42 +257,6 @@
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	}
-
-	function escapeTags(
-		content: string,
-		tagsToEscape: string[] | boolean
-	): string {
-		if (tagsToEscape === true) {
-			// https://www.w3schools.com/tags/
-			const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9-]*)([\s>])/g;
-			return content.replace(tagRegex, (match, tagName, endChar) => {
-				if (!standardHtmlAndSvgTags.includes(tagName.toLowerCase())) {
-					return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-				}
-				return match;
-			});
-		}
-
-		if (Array.isArray(tagsToEscape)) {
-			const tagPattern = tagsToEscape.map((tag) => ({
-				open: new RegExp(`<(${tag})(\\s+[^>]*)?>`, "gi"),
-				close: new RegExp(`</(${tag})>`, "gi")
-			}));
-
-			let result = content;
-
-			tagPattern.forEach((pattern) => {
-				result = result.replace(pattern.open, (match) =>
-					match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-				);
-				result = result.replace(pattern.close, (match) =>
-					match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-				);
-			});
-			return result;
-		}
-		return content;
 	}
 
 	async function render_mermaid(nodes: Node[]): Promise<void> {
