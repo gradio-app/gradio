@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { create_marked, escapeTags } from "./utils";
+	import { create_marked, escape, escapeTags } from "./utils";
 	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
 	import type { ThemeMode } from "@gradio/core";
@@ -94,7 +94,7 @@
 
 			parsedValue = parsedValue.replace(
 				/%%%LATEX_BLOCK_(\d+)%%%/g,
-				(match, p1) => latexBlocks[parseInt(p1, 10)]
+				(match, p1) => escape(latexBlocks[parseInt(p1, 10)])
 			);
 		}
 
