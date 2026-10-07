@@ -674,9 +674,7 @@ class TestQueuedEventsAndStreams:
             demo._queue.event_ids_to_events.pop("streaming-event", None)
 
 
-def test_session_status_says_whether_the_server_has_the_session(
-    launch, monkeypatch
-):
+def test_session_status_says_whether_the_server_has_the_session(launch, monkeypatch):
     with gr.Blocks() as demo:
         t = gr.Textbox()
         t.submit(lambda x: x, t, t)
