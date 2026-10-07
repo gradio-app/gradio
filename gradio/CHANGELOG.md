@@ -1,5 +1,32 @@
 # gradio
 
+## 6.29.1
+
+### Fixes
+
+- [#13930](https://github.com/gradio-app/gradio/pull/13930) [`86b44f2`](https://github.com/gradio-app/gradio/commit/86b44f261c43e55aadc635ddb7c08eb1741a1607) - Make gr.Gallery's empty state respect `sources`.  Thanks @hysts!
+
+## 6.29.0
+
+### Features
+
+- [`db9699e`](https://github.com/gradio-app/gradio/commit/db9699e0bfd364ef7ca104e348618cf235d1d0be) - Name rejected files in upload errors and fix a Document leak in sanitize.  Thanks @abidlabs!
+- [`4814057`](https://github.com/gradio-app/gradio/commit/4814057e04a42853ac955cfc600c50ea5a79b3c8) - Add display controls for examples. Note: `gr.Interface` now hides the `additional_inputs` columns in its examples table by default; their values are still loaded when an example is selected.  Thanks @abidlabs!
+- [`3111c06`](https://github.com/gradio-app/gradio/commit/3111c069d59ccd4ed5b4d2118baa8ada62569bfd) - Add height/max_height to gr.Accordion and gr.Tab, fix gr.Code max_lines.  Thanks @dawoodkhan82!
+- [`27731f4`](https://github.com/gradio-app/gradio/commit/27731f4cbcb0c98fea34b4cbdca32326e310ec62) - docs:Clarify that `None` is reserved to mean "no selection" in `Dropdown` and cannot be used as a choice's value.  Thanks @dawoodkhan82!
+- [`96a79b1`](https://github.com/gradio-app/gradio/commit/96a79b19c8b4a0634c9ab4a969460c0ad55ddf77) - Refactor the remaining component unit tests and remove components.test.ts.  Thanks @abidlabs!
+
+### Fixes
+
+- [`70db61b`](https://github.com/gradio-app/gradio/commit/70db61b90e427d47621f75301c5202738f4d4329) - Import CSV and TSV files dropped on `gr.Dataframe`.  Thanks @hysts!
+- [`0f889f0`](https://github.com/gradio-app/gradio/commit/0f889f075fe42409dbdeac510362e8307565e099) - Clear the loading status when a validator rejects an event.  Thanks @hysts!
+- [#13901](https://github.com/gradio-app/gradio/pull/13901) [`e918914`](https://github.com/gradio-app/gradio/commit/e918914c7d2f6015b2eac268bf53a5cd75fe871b) - Release the microphone when a streaming gr.Audio recording is stopped.  Thanks @hysts!
+- [#13902](https://github.com/gradio-app/gradio/pull/13902) [`526543d`](https://github.com/gradio-app/gradio/commit/526543d9a46593a8b388e568c0285eb05211668c) - Fetch channel data once per channel when encoding recorded audio to WAV.  Thanks @hysts!
+- [#13903](https://github.com/gradio-app/gradio/pull/13903) [`7ba5437`](https://github.com/gradio-app/gradio/commit/7ba5437d7df65949ae65536b3e982d715907244a) - Fix streaming gr.Audio getting stuck at "queue: 1/1" when stopped while waiting.  Thanks @hysts!
+- [`64359c6`](https://github.com/gradio-app/gradio/commit/64359c699abdfc6998906a6a5ae49c9a5b2b0f0c) - Stop validators from overwriting their own inputs.  Thanks @hysts!
+- [`239db17`](https://github.com/gradio-app/gradio/commit/239db1773e61a8900929b58b6164f5371f981ebf) - Stop converting .m4b audio that browsers can already play.  Thanks @abidlabs!
+- [#13924](https://github.com/gradio-app/gradio/pull/13924) [`ee3ca5f`](https://github.com/gradio-app/gradio/commit/ee3ca5f3ee5d831f132d40dfc8c1eec62cbcc51c) - Fix 16-bit audio conversion of uint8, int8 and float16 arrays on NumPy 2.  Thanks @hysts!
+
 ## 6.28.0
 
 ### Features

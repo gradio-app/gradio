@@ -33,10 +33,37 @@
 	let microphoneContainer: HTMLDivElement;
 
 	let micDevices: MediaDeviceInfo[] = $state([]);
+	let mic_request = 0;
 
 	onMount(() => {
 		create_mic_waveform();
+		return () => {
+			mic_request++;
+			micWaveform?.destroy();
+		};
 	});
+
+	const start_mic = (): void => {
+		const plugin = waveformRecord;
+		if (!plugin) return;
+		const request = ++mic_request;
+		plugin.startMic().then(
+			(stream) => {
+				// stopMic() is a no-op until startMic() resolves, so a Stop or
+				// unmount while mic access was pending has to be applied here.
+				if (request === mic_request) return;
+				plugin.stopMic();
+				stream.getTracks().forEach((track) => track.stop());
+			},
+			// InteractiveAudio requests the mic too and reports the error.
+			() => {}
+		);
+	};
+
+	const stop_mic = (): void => {
+		mic_request++;
+		waveformRecord?.stopMic();
+	};
 
 	const create_mic_waveform = (): void => {
 		if (micWaveform !== undefined) micWaveform.destroy();
@@ -63,7 +90,7 @@
 			<button
 				class={paused_recording ? "stop-button-paused" : "stop-button"}
 				onclick={() => {
-					waveformRecord?.stopMic();
+					stop_mic();
 					stop();
 				}}
 			>
@@ -77,6 +104,7 @@
 			<button
 				class="spinner-button"
 				onclick={() => {
+					stop_mic();
 					stop();
 				}}
 			>
@@ -89,7 +117,7 @@
 			<button
 				class="record-button"
 				onclick={() => {
-					waveformRecord?.startMic();
+					start_mic();
 					record();
 				}}
 			>

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { sanitize } from "./browser";
 
@@ -61,5 +61,19 @@ describe("sanitize", () => {
 		const p = node.querySelector("p");
 		expect(p?.getAttribute("style")).toBe("color: red;");
 		expect(p?.textContent).toBe("hello");
+	});
+
+	test("does not create node iterators on the main document", () => {
+		// A node iterator created on the main document keeps its root alive,
+		// leaking the parsed document on every call (#13884).
+		const spy = vi.spyOn(document, "createNodeIterator");
+		try {
+			expect(sanitize("<p><b>bold</b> text</p>")).toBe(
+				"<p><b>bold</b> text</p>"
+			);
+			expect(spy).not.toHaveBeenCalled();
+		} finally {
+			spy.mockRestore();
+		}
 	});
 });

@@ -602,6 +602,69 @@ describe("Props: sources", () => {
 		expect(getByLabelText("upload_text.paste_clipboard")).toBeVisible();
 	});
 
+	test("sources=['webcam'] does not show upload button", async () => {
+		const { getByLabelText, queryByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["webcam"]
+		});
+
+		expect(getByLabelText("common.webcam")).toBeVisible();
+		expect(
+			queryByLabelText("upload_text.click_to_upload")
+		).not.toBeInTheDocument();
+	});
+
+	test("clear returns to the first source", async () => {
+		const { getByLabelText, getByTestId, getByText } = await render(Gallery, {
+			...sources_props,
+			sources: ["webcam", "upload"]
+		});
+
+		await fireEvent.click(getByLabelText("common.clear"));
+
+		expect(getByText("upload_text.drop_gallery")).not.toBeVisible();
+		expect(getByTestId("webcam-video")).toBeInTheDocument();
+	});
+
+	test("deleting the last added item returns to the first source", async () => {
+		const { getByRole, getByTestId, getByText, listen } = await render(
+			Gallery,
+			{
+				...sources_props,
+				value: [],
+				sources: ["webcam", "upload"],
+				root: "https://example.com",
+				client: mock_client()
+			}
+		);
+		const upload = listen("upload");
+
+		await upload_file(TEST_JPG);
+		await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+		await fireEvent.click(getByRole("button", { name: "Delete image" }));
+
+		expect(getByText("upload_text.drop_gallery")).not.toBeVisible();
+		expect(getByTestId("webcam-video")).toBeInTheDocument();
+	});
+
+	test("sources=['clipboard'] empty area pastes instead of opening the file picker", async () => {
+		const read = vi.spyOn(navigator.clipboard, "read").mockResolvedValue([]);
+		const { getByLabelText, getByTestId, listen } = await render(Gallery, {
+			...sources_props,
+			value: [],
+			sources: ["clipboard"]
+		});
+		const warning = listen("warning");
+		const file_picker = vi.spyOn(getByTestId("file-upload"), "click");
+
+		await fireEvent.click(getByLabelText("upload_text.paste_clipboard"));
+
+		await waitFor(() => expect(warning).toHaveBeenCalled());
+		expect(read).toHaveBeenCalled();
+		expect(file_picker).not.toHaveBeenCalled();
+		read.mockRestore();
+	});
+
 	test("source buttons are hidden when selected_index is set (preview active)", async () => {
 		const { queryByLabelText } = await render(Gallery, {
 			...sources_props,

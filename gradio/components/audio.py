@@ -327,12 +327,19 @@ class Audio(
                 and processing_utils.ffmpeg_installed()
                 and not processing_utils.audio_is_playable(str(value))
             ):
-                warnings.warn(
-                    "Audio does not have browser-compatible container or codec. Converting to wav."
-                )
                 file_path = processing_utils.convert_audio_to_playable(
                     str(value), cache_dir=self.GRADIO_CACHE
                 )
+                if file_path == str(value):
+                    warnings.warn(
+                        "Audio does not have a browser-compatible container or codec, "
+                        "and converting it failed. Serving the original file."
+                    )
+                else:
+                    warnings.warn(
+                        "Audio does not have a browser-compatible container or codec. "
+                        f"Converted to {Path(file_path).suffix}."
+                    )
             else:
                 file_path = str(value)
             orig_name = Path(file_path).name if Path(file_path).exists() else None

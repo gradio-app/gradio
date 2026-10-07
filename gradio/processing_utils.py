@@ -791,8 +791,12 @@ def audio_to_file(sample_rate, data, filename, format="wav"):
 def convert_to_16_bit_audio(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
     warning = "Trying to convert audio automatically from {} to 16-bit int format."
+    # NumPy 2 (NEP 50) no longer upcasts arrays in arithmetic with Python
+    # scalars, so narrow dtypes are widened before scaling to keep results exact.
     if data.dtype in [np.float64, np.float32, np.float16]:
         warnings.warn(warning.format(data.dtype))
+        if data.dtype == np.float16:
+            data = data.astype(np.float32)
         peak = np.abs(data).max()
         if peak == 0:
             # Silence: avoid dividing by zero (which would produce NaNs that
@@ -814,11 +818,11 @@ def convert_to_16_bit_audio(data):
         data = data.astype(np.int16)
     elif data.dtype == np.uint8:
         warnings.warn(warning.format(data.dtype))
-        data = data * 257 - 32768
+        data = data.astype(np.int32) * 257 - 32768
         data = data.astype(np.int16)
     elif data.dtype == np.int8:
         warnings.warn(warning.format(data.dtype))
-        data = data * 256
+        data = data.astype(np.int16) * 256
         data = data.astype(np.int16)
     else:
         raise ValueError(
@@ -1244,7 +1248,7 @@ PLAYABLE_AUDIO_CODECS = frozenset(
         (".wav", "pcm_u8"),
         (".mp3", "mp3"),
         (".m4a", "aac"),
-        (".m4a", "alac"),
+        (".m4b", "aac"),
         (".mp4", "aac"),
         (".aac", "aac"),
         (".flac", "flac"),
@@ -1291,7 +1295,6 @@ def audio_is_playable(audio_filepath: str) -> bool:
 # The pairs match the entries in `audio_is_playable`.
 REMUXABLE_AUDIO_CODECS = {
     "aac": ".m4a",
-    "alac": ".m4a",
     "mp3": ".mp3",
     "flac": ".flac",
     "opus": ".ogg",

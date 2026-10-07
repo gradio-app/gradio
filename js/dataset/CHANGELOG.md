@@ -1,5 +1,16 @@
 # @gradio/dataset
 
+## 0.8.0
+
+### Features
+
+- [`96a79b1`](https://github.com/gradio-app/gradio/commit/96a79b19c8b4a0634c9ab4a969460c0ad55ddf77) - Refactor the remaining component unit tests and remove components.test.ts.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/client@2.7.1
+
 ## 0.7.3
 
 ### Dependency updates
