@@ -721,7 +721,7 @@ def port_to_component(
     elif port_type == "json":
         cls, kwargs = gr.JSON, {}
     elif port_type == "markdown" and output:
-        cls, kwargs = gr.Markdown, {"show_label": True, "container": True}
+        cls, kwargs = gr.Markdown, {"container": True}
     elif port_type == "markdown":
         cls, kwargs = gr.Textbox, {"lines": 3}
     else:
@@ -880,13 +880,12 @@ class WorkflowEndpointManager:
         blocks,
         get_graph: Callable[[], Optional[WorkflowGraph]],
         callers: dict[str, Callable],
-        app_root=None,
+        app_root,
     ):
         self.blocks = blocks
         self.get_graph = get_graph
         self.callers = callers
-        # Layout block the "app view" is rendered into. Without one, the
-        # endpoint components go into a hidden column (API only).
+        # Layout block the "app view" is rendered into.
         self.app_root = app_root
         self._block_ids: list[int] = []
         self._fn_ids: list[int] = []
@@ -925,7 +924,7 @@ class WorkflowEndpointManager:
         self._teardown()
         if graph is not None and graph.subjects:
             self._register(graph)
-        elif self.app_root is not None:
+        else:
             self._register_empty(graph)
         if graph is not None:
             self.blocks.title = graph.name
@@ -1006,29 +1005,23 @@ class WorkflowEndpointManager:
         import gradio as gr
 
         groups = list(_group_slug_iter(subject_groups(graph)))
-        if self.app_root is None:
-            with self._tracked(), gr.Column(visible=False):
-                for group, api_name in groups:
-                    self._register_group(graph, group, api_name, app=False)
-            return
-
         with self._tracked(), gr.Column(elem_classes="workflow-app-body"):
             gr.Markdown(f"# {graph.name}")
             if len(groups) == 1:
-                self._register_group(graph, *groups[0], app=True)
+                self._register_group(graph, *groups[0])
             else:
                 # One tab per independent pipeline, like gr.TabbedInterface.
                 with gr.Tabs():
                     for group, api_name in groups:
                         with gr.Tab(group[0].get("label") or api_name):
-                            self._register_group(graph, group, api_name, app=True)
+                            self._register_group(graph, group, api_name)
 
     def _register_group(
-        self, graph: WorkflowGraph, group: list[dict], api_name: str, *, app: bool
+        self, graph: WorkflowGraph, group: list[dict], api_name: str
     ) -> None:
-        """Render one subgraph's inputs/outputs and wire its endpoint. In the
-        app view they're laid out like a `gr.Interface` (inputs + Run on the
-        left, outputs on the right); the same components back the API."""
+        """Render one subgraph's inputs/outputs and wire its endpoint, laid out
+        like a `gr.Interface` (inputs + Run on the left, outputs on the right).
+        The same components back the API."""
         import gradio as gr
 
         frees = group_free_inputs(graph, group)
@@ -1036,8 +1029,9 @@ class WorkflowEndpointManager:
         def render_inputs() -> list:
             comps = []
             for f in frees:
-                value = _reference_default(f) if app else None
-                c = port_to_component(f["type"], f["label"], value=value)
+                c = port_to_component(
+                    f["type"], f["label"], value=_reference_default(f)
+                )
                 c.render()
                 comps.append(c)
             return comps
@@ -1048,23 +1042,18 @@ class WorkflowEndpointManager:
                 c = port_to_component(
                     subject_output_type(subject),
                     subject.get("label", "output"),
-                    output=app,
+                    output=True,
                 )
                 c.render()
                 comps.append(c)
             return comps
 
-        if app:
-            with gr.Row(equal_height=False):
-                with gr.Column():
-                    input_components = render_inputs()
-                    trigger = gr.Button("Run", variant="primary")
-                with gr.Column():
-                    output_components = render_outputs()
-        else:
-            input_components = render_inputs()
-            output_components = render_outputs()
-            trigger = gr.Button(visible=False)
+        with gr.Row(equal_height=False):
+            with gr.Column():
+                input_components = render_inputs()
+                trigger = gr.Button("Run", variant="primary")
+            with gr.Column():
+                output_components = render_outputs()
 
         self._inputs.append(input_components)
         fn = _build_endpoint_fn(
@@ -1106,12 +1095,12 @@ def register_workflow_endpoints(
     blocks,
     get_graph: Callable[[], Optional[WorkflowGraph]],
     callers: dict[str, Callable],
-    app_root=None,
+    app_root,
 ) -> WorkflowEndpointManager:
     """Create a `WorkflowEndpointManager` and register the initial endpoint set
     from the current graph. Returns the manager so the caller can `.sync()` it
-    again whenever the graph is saved. With `app_root`, the endpoints are also
-    laid out there as a regular Gradio app (the workflow's "app view")."""
+    again whenever the graph is saved. The endpoints are laid out in
+    `app_root` as a regular Gradio app (the workflow's "app view")."""
     manager = WorkflowEndpointManager(blocks, get_graph, callers, app_root)
     manager.sync()
     return manager
