@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import anyio
-import httpx
+import httpx2
 import numpy as np
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
@@ -60,6 +60,18 @@ class WaveformOptions:
     show_recording_waveform: bool = True
     skip_length: int | float = 5
     sample_rate: int = 44100
+
+
+@document()
+@dataclasses.dataclass
+class MicrophoneOptions:
+    """
+    A dataclass for specifying options for recording from the microphone. An instance of this class can be passed into the `microphone_options` parameter of `gr.Audio`, `gr.Microphone`, or `gr.MultimodalTextbox`.
+    Parameters:
+        constraints: A dictionary of audio track constraints passed to the browser's `getUserMedia()` when the microphone is opened, e.g. `{"echoCancellation": False, "noiseSuppression": False, "autoGainControl": True}`. Supported constraints depend on the browser. In `gr.MultimodalTextbox`, the input device selected by the component (the first one found, or the one picked from its device list) overrides a `deviceId` constraint. If None, the browser's default settings are used.
+    """
+
+    constraints: dict[str, Any] | None = None
 
 
 @document()
@@ -119,6 +131,7 @@ class Audio(
         editable: bool = True,
         buttons: list[Literal["download", "share"] | Button] | None = None,
         waveform_options: WaveformOptions | dict | None = None,
+        microphone_options: MicrophoneOptions | dict | None = None,
         loop: bool = False,
         recording: bool = False,
         subtitles: str | Path | list[dict[str, Any]] | None = None,
@@ -149,6 +162,7 @@ class Audio(
             buttons: A list of buttons to show in the top right corner of the component. Valid options are "download", "share", or a gr.Button() instance. The "download" button allows the user to save the audio to their device. The "share" button allows the user to share the audio via Hugging Face Spaces Discussions. Custom gr.Button() instances will appear in the toolbar with their configured icon and/or label, and clicking them will trigger any .click() events registered on the button. By default, only the "download" and "share" buttons are shown.
             editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
+            microphone_options: A dictionary of options for recording from the microphone. Options include: constraints (dict). Default is None, which uses the browser's default settings. [See `gr.MicrophoneOptions` docs](#microphone-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
             recording: If True, the audio component will be set to record audio from the microphone if the source is set to "microphone". Defaults to False.
             subtitles: A subtitle file (srt, vtt, or json) for the audio, or a list of subtitle dictionaries in the format [{"text": str, "timestamp": [start, end]}] where timestamps are in seconds. JSON files should contain an array of subtitle objects.
@@ -197,6 +211,12 @@ class Audio(
             self.waveform_options = WaveformOptions(**waveform_options)  # type: ignore
         else:
             self.waveform_options = waveform_options
+        if microphone_options is None:
+            self.microphone_options = MicrophoneOptions()
+        elif isinstance(microphone_options, dict):
+            self.microphone_options = MicrophoneOptions(**microphone_options)  # type: ignore
+        else:
+            self.microphone_options = microphone_options
         self.recording = recording
         self.playback_position = playback_position
         super().__init__(
@@ -314,7 +334,7 @@ class Audio(
             orig_name = Path(file_path).name
         elif isinstance(value, (str, Path)):
             if client_utils.is_http_url_like(value):
-                original_suffix = Path(httpx.URL(str(value)).path).suffix.lower()
+                original_suffix = Path(httpx2.URL(str(value)).path).suffix.lower()
             else:
                 original_suffix = Path(value).suffix.lower()
             if self.format is not None and original_suffix != f".{self.format}":

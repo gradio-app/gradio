@@ -86,10 +86,7 @@ describe("submit iterator", () => {
 		"sends the selected history bucket with queued submissions",
 		async () => {
 			const app = await Client.connect("hmb/hello_world");
-			const scope = {
-				app_id: app.config?.app_id,
-				username: app.config?.username
-			};
+			const scope = app.config!;
 			set_run_history_storage(scope, {
 				type: "bucket",
 				bucket_id: "alice/app-history"

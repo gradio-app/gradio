@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - main
-      - 5.0-dev
+      - 7.0-dev
 
 permissions: {}
 

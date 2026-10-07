@@ -5,6 +5,9 @@ import {
 	clear_run_history,
 	consume_run_history_replay,
 	delete_run_history,
+	flush_run_history,
+	forget_run_histories,
+	load_run_history,
 	on_run_history_change,
 	read_run_history,
 	read_run_history_storage,
@@ -333,31 +336,91 @@ describe.skipIf(!in_browser)("run history", () => {
 		clear_run_history(ada);
 	});
 
-	test("removes staged replays when pruning an old app", () => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date("2025-01-01T00:00:00Z"));
+	test("saves runs in the browser and loads them back after a reload", async () => {
 		start_run_history({
-			app_id: other_app,
+			...scope,
 			endpoint: "/predict",
 			api_name: "/predict",
 			fn_index: 0,
-			inputs: ["old"]
+			inputs: ["kept"]
 		});
-		stage_run_history_replay(other_scope, read_run_history(other_scope)[0]);
+		await flush_run_history();
+		forget_run_histories();
 
-		for (const [index, replacement_app] of replacement_apps.entries()) {
-			vi.setSystemTime(new Date(Date.UTC(2025, 0, index + 2)));
+		// Read before it has loaded: nothing yet, then a change notification
+		const changed = new Promise<void>((resolve) => {
+			const unsubscribe = on_run_history_change(() => {
+				unsubscribe();
+				resolve();
+			});
+		});
+		expect(read_run_history(scope)).toEqual([]);
+		await changed;
+		expect(read_run_history(scope).map((run) => run.inputs)).toEqual([
+			["kept"]
+		]);
+	});
+
+	test("keeps runs another tab saved meanwhile", async () => {
+		const run = (inputs: string[]): void => {
 			start_run_history({
-				app_id: replacement_app,
+				...scope,
 				endpoint: "/predict",
 				api_name: "/predict",
 				fn_index: 0,
-				inputs: [index]
+				inputs
 			});
-		}
+		};
+		run(["first tab"]);
+		await flush_run_history();
+		// A second tab, which has not read the history yet, adds a run
+		forget_run_histories();
+		run(["second tab"]);
+		await load_run_history(scope);
+		await flush_run_history();
+		forget_run_histories();
 
-		expect(read_run_history(other_scope)).toEqual([]);
-		expect(consume_run_history_replay(other_scope)).toBeNull();
+		await load_run_history(scope);
+		expect(
+			read_run_history(scope)
+				.map((item) => item.inputs)
+				.sort()
+		).toEqual([["first tab"], ["second tab"]]);
+	});
+
+	test("keeps a change made to a run while it is being saved", async () => {
+		const id = start_run_history({
+			...scope,
+			endpoint: "/predict",
+			api_name: "/predict",
+			fn_index: 0,
+			inputs: []
+		});
+		// Start saving the running run, and complete it before that is done
+		const saving = flush_run_history();
+		update_run_history(scope, id, {
+			type: "status",
+			stage: "complete",
+			queue: true,
+			endpoint: "/predict",
+			fn_index: 0,
+			time: new Date()
+		});
+		await saving;
+		await flush_run_history();
+		forget_run_histories();
+
+		await load_run_history(scope);
+		expect(read_run_history(scope)[0].status).toBe("completed");
+	});
+
+	test("removes histories that earlier versions kept in local storage", () => {
+		forget_run_histories();
+		window.localStorage.setItem("gradio:run-history:v2:old-app", "[]");
+		read_run_history({ app_id: "a-fresh-app" });
+		expect(window.localStorage.getItem("gradio:run-history:v2:old-app")).toBe(
+			null
+		);
 	});
 });
 
@@ -398,6 +461,21 @@ describe.skipIf(!in_browser)("replaying a run", () => {
 			["prompt", "server side", stored.outputs[0], "described"]
 		);
 		expect(apply_run_history_replay(make_config())).toBe(false);
+	});
+
+	test("tells the caller which values it wrote, so the session can keep them", () => {
+		stage_run_history_replay(scope, stored);
+		const written: [number[], unknown[]][] = [];
+		apply_run_history_replay(make_config(), (ids, values) =>
+			written.push([ids, values])
+		);
+		expect(written).toEqual([
+			[
+				[1, 2],
+				["prompt", null]
+			],
+			[[3, 4], stored.outputs]
+		]);
 	});
 
 	test("matches the endpoint by api name when the fn index has moved", () => {

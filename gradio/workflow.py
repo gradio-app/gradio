@@ -24,7 +24,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Optional, TypedDict, Union, get_type_hints
 
 import anyio
-import httpx
+import httpx2
 from gradio_client import Client, handle_file
 from gradio_client import utils as client_utils
 from huggingface_hub import HfApi
@@ -48,11 +48,11 @@ from gradio.workflow_provider_shims import call_with_recovery
 if TYPE_CHECKING:
     from gradio.workflow_api import WorkflowEndpointManager
 
-_HF_CLIENT = httpx.Client(
+_HF_CLIENT = httpx2.Client(
     base_url="https://huggingface.co",
     timeout=15,
     headers={"User-Agent": "gradio-workflow"},
-    limits=httpx.Limits(max_keepalive_connections=8, max_connections=16),
+    limits=httpx2.Limits(max_keepalive_connections=8, max_connections=16),
 )
 _SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="hf-search")
 
@@ -1224,7 +1224,7 @@ def call_model(
 
         if task == "depth-estimation":
             headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-            resp = httpx.post(
+            resp = httpx2.post(
                 f"https://api-inference.huggingface.co/models/{model_id}",
                 headers=headers,
                 json={"inputs": _sendable_ref(a0)},
@@ -1259,7 +1259,7 @@ def call_model(
         a1_missing = a1 is None or a1 == ""
         payload = _resolve(a0) if a1_missing else [_resolve(a0), _resolve(a1)]
         headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-        fallback_resp = httpx.post(
+        fallback_resp = httpx2.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
             json={"inputs": payload},

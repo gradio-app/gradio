@@ -2794,7 +2794,10 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
     with gr.Blocks() as demo:
         n1 = gr.Number(value=0)
         state = gr.State(
-            value=0, time_to_live=1, delete_callback=lambda v: delete_fn(v)
+            value=0,
+            storage="server",
+            time_to_live=1,
+            delete_callback=lambda v: delete_fn(v),
         )
         button = gr.Button("Increment")
         button.click(test_fn, [state], [n1, state], api_name="increment")

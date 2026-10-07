@@ -215,6 +215,8 @@ def test_missing_flag_preserves_heartbeat(increment_demo, monkeypatch):
 
 def test_gc_runs_unload_and_closes_session(monkeypatch):
     monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", "0.05")
+    # Without the grace period a page gets to come back in after a refresh
+    monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0")
     unloaded = threading.Event()
     with gr.Blocks() as demo:
         state = gr.State(0)

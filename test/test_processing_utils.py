@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import numpy as np
 import pytest
 from gradio_client.client import Endpoint
@@ -159,8 +159,8 @@ class TestTempFileManagement:
             upload_response = MagicMock()
             upload_response.json.return_value = ["/tmp/gradio/uploaded/cat.png"]
             with (
-                patch("httpx.stream", return_value=download_response) as stream,
-                patch("httpx.post", return_value=upload_response),
+                patch("httpx2.stream", return_value=download_response) as stream,
+                patch("httpx2.post", return_value=upload_response),
             ):
                 processed_input = endpoint.process_input_files(round_trip)[0]
 
@@ -1120,8 +1120,8 @@ async def test_async_get_private_request_fail():
 
 @pytest.mark.asyncio
 async def test_async_get_redirect_without_location_returns_response(monkeypatch):
-    expected = httpx.Response(
-        302, request=httpx.Request("GET", "https://example.com/image.png")
+    expected = httpx2.Response(
+        302, request=httpx2.Request("GET", "https://example.com/image.png")
     )
 
     async def mock_get(*args, **kwargs):

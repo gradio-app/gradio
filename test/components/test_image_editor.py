@@ -47,7 +47,7 @@ class TestImageEditor:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
-            "webcam_options": {"constraints": None, "mirror": True},
+            "webcam_options": {"constraints": None, "mirror": "auto"},
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],

@@ -39,7 +39,7 @@ from urllib.parse import quote, urlparse
 import anyio
 import fastapi
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 import safehttpx
 from gradio_client.documentation import document
 from python_multipart.exceptions import MultipartParseError
@@ -374,6 +374,21 @@ def prepare_event_data(
     return event_data
 
 
+def session_identity(request: Any, username: str | None) -> str | None:
+    """Who a session belongs to, for scoping what is kept for it (saved
+    sessions in the browser, gr.State tokens): the user logged in with `auth=`,
+    or else the Hugging Face account logged in with gr.LoginButton."""
+    if username:
+        return username
+    from gradio import oauth
+    from gradio.helpers import _session_from_request
+
+    info = oauth._get_valid_oauth_info_from_session(_session_from_request(request))
+    userinfo = (info or {}).get("userinfo") or {}
+    account = userinfo.get("sub") or userinfo.get("preferred_username")
+    return f"hf:{account}" if account else None
+
+
 def oauth_token_from_body(body: PredictBodyInternal) -> Optional[OAuthToken]:
     """Wrap a caller-supplied token so it can be injected as a gr.OAuthToken.
 
@@ -395,6 +410,15 @@ async def call_process_api(
     root_path: str,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
+    # A batch mixes events from different sessions, so its state stays on the server
+    client_state = body.client_state if not body.batched else None
+    if client_state is not None and not fn.is_validator_function:
+        client_state.refresh(app.state_cache, app.latest_state)
+    state = (
+        client_state.overlay(session_state)
+        if client_state is not None
+        else session_state
+    )
 
     event_data = prepare_event_data(session_state.blocks_config, body)
     event_id = body.event_id
@@ -418,7 +442,7 @@ async def call_process_api(
                     block_fn=fn,
                     inputs=inputs,
                     request=gr_request,
-                    state=session_state,
+                    state=state,
                     iterator=iterator,
                     session_hash=session_hash,
                     event_id=event_id,
@@ -439,6 +463,10 @@ async def call_process_api(
             await app.get_blocks()._finish_run_streams(session_hash, iterator)
         if isinstance(output, Error):
             raise output
+        if client_state is not None and not fn.is_validator_function:
+            output["state"] = client_state.collect(
+                session_state, app.state_cache, app.latest_state
+            )
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
         app.get_blocks()._drop_run_streams(session_hash, iterator)
@@ -493,13 +521,13 @@ def get_first_header_value(request: fastapi.Request, header_name: str):
     return None
 
 
-def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
+def get_request_origin(request: fastapi.Request, route_path: str) -> httpx2.URL:
     """
     Examines the request headers to determine the origin of the request.
     If the request includes the x-forwarded-host header, it is used directly to determine the origin.
     Otherwise, the request url is used and the route path is stripped off.
 
-    The returned URL is a httpx.URL object without a trailing slash, e.g. "https://example.com"
+    The returned URL is a httpx2.URL object without a trailing slash, e.g. "https://example.com"
     """
 
     x_forwarded_host = get_first_header_value(request, "x-forwarded-host")
@@ -509,7 +537,7 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
         if x_forwarded_host
         else str(x_gradio_server or request.url)
     )
-    root_url = httpx.URL(root_url)
+    root_url = httpx2.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
 
@@ -522,7 +550,7 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx.URL:
         root_url = root_url[: -len(route_path)]
 
     root_url = root_url.rstrip("/")
-    root_url = httpx.URL(root_url)
+    root_url = httpx2.URL(root_url)
 
     return root_url
 
@@ -1409,7 +1437,7 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
     redirects = 0
     while True:
         try:
-            parsed = httpx.URL(current_url)
+            parsed = httpx2.URL(current_url)
         except Exception as e:
             raise HTTPException(403, f"File not allowed: {url}.") from e
         if parsed.scheme not in ("http", "https") or not parsed.host:
@@ -1420,8 +1448,8 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
             raise HTTPException(403, f"File not allowed: {url}.") from e
 
         transport = safehttpx.AsyncSecureTransport(verified_ip)
-        client = httpx.AsyncClient(
-            transport=transport, timeout=httpx.Timeout(None, connect=10.0)
+        client = httpx2.AsyncClient(
+            transport=transport, timeout=httpx2.Timeout(None, connect=10.0)
         )
         try:
             req = client.build_request(
@@ -1439,7 +1467,7 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
             redirects += 1
             if redirects > _FILE_STREAM_MAX_REDIRECTS or not location:
                 raise HTTPException(502, f"Could not fetch file: {url}.")
-            current_url = str(httpx.URL(current_url).join(location))
+            current_url = str(httpx2.URL(current_url).join(location))
             continue
 
         upstream_mime = upstream.headers.get("content-type", "").split(";")[0].strip()

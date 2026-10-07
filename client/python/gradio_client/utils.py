@@ -36,7 +36,7 @@ from typing import (
 )
 
 import fsspec.asyn
-import httpx
+import httpx2
 import huggingface_hub
 from huggingface_hub import SpaceStage
 
@@ -321,8 +321,8 @@ def probe_url(possible_url: str) -> bool:
     """
     headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
-        with httpx.Client() as client:
-            head_request = httpx.head(possible_url, headers=headers)
+        with httpx2.Client() as client:
+            head_request = httpx2.head(possible_url, headers=headers)
             if head_request.status_code == 405:
                 return client.get(possible_url, headers=headers).is_success
             return head_request.is_success
@@ -342,7 +342,7 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 def get_pred_from_sse_v0(
-    client: httpx.Client,
+    client: httpx2.Client,
     data: dict,
     hash_data: dict,
     helper: Communicator,
@@ -438,7 +438,7 @@ def check_for_cancel(
             if helper.thread_complete:
                 raise concurrent.futures.CancelledError()
     if helper.event_id:
-        httpx.post(
+        httpx2.post(
             helper.reset_url,
             json={"event_id": helper.event_id},
             headers=headers,
@@ -449,7 +449,7 @@ def check_for_cancel(
 
 
 def stream_sse_v0(
-    client: httpx.Client,
+    client: httpx2.Client,
     data: dict,
     hash_data: dict,
     helper: Communicator,
@@ -538,6 +538,10 @@ def stream_sse_v1plus(
 
             if msg is None or helper.thread_complete:
                 raise concurrent.futures.CancelledError()
+
+            if msg["msg"] == ServerMessage.unexpected_error:
+                # e.g. a resumed job that the server no longer has
+                raise ValueError(msg.get("message") or "The server lost this job.")
 
             with helper.lock:
                 log_message = None
@@ -680,7 +684,7 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with httpx.stream(
+    with httpx2.stream(
         "GET", url_path, headers=headers, follow_redirects=True
     ) as response:
         response.raise_for_status()
@@ -744,7 +748,7 @@ def encode_file_to_base64(f: str | Path):
 
 
 def encode_url_to_base64(url: str):
-    resp = httpx.get(url)
+    resp = httpx2.get(url)
     resp.raise_for_status()
     encoded_string = base64.b64encode(resp.content)
     base64_str = str(encoded_string, "utf-8")
@@ -764,7 +768,7 @@ def encode_url_or_file_to_base64(path: str | Path):
 def download_byte_stream(url: str, token=None):
     arr = bytearray()
     headers = {"Authorization": "Bearer " + token} if token else {}
-    with httpx.stream("GET", url, headers=headers) as r:
+    with httpx2.stream("GET", url, headers=headers) as r:
         for data in r.iter_bytes():
             arr += data
             yield data
@@ -911,12 +915,12 @@ def set_space_timeout(
         library_version=__version__,
     )
     try:
-        httpx.post(
+        httpx2.post(
             f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
             json={"seconds": timeout_in_seconds},
             headers=headers,
         )
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
             "to set a timeout manually to reduce billing charges."
@@ -1418,7 +1422,7 @@ def construct_args(
     return _args
 
 
-def extract_validation_message(req: httpx.Response) -> str | None:
+def extract_validation_message(req: httpx2.Response) -> str | None:
     """
     If the request is a 422 error and the detail contains a validation error message, return the message. Otherwise, return None.
     """

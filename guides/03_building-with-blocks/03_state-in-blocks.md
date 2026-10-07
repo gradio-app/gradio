@@ -2,9 +2,9 @@
 
 When building a Gradio application with `gr.Blocks()`, you may want to share certain values between users (e.g. a count of visitors to your page), or persist values for a single user across certain interactions (e.g. a chat history). This referred to as **state** and there are three general ways to manage state in a Gradio application:
 
-* **Global state**: persist and share values among all users of your Gradio application while your Gradio application is running
-* **Session state**: persist values for each user of your Gradio application while they are using your Gradio application in a single session. If they refresh the page, session state will be reset.
-* **Browser state**: persist values for each user of your Gradio application in the browser's localStorage, allowing data to persist even after the page is refreshed or closed.
+- **Global state**: persist and share values among all users of your Gradio application while your Gradio application is running
+- **Session state**: persist values for each user of your Gradio application while they are using your Gradio application in a single session. Session state is kept if they refresh the page, but a new tab starts a new session.
+- **Browser state**: persist values for each user of your Gradio application in the browser's localStorage, allowing data to persist even after the page is refreshed or closed.
 
 ## Global State
 
@@ -23,7 +23,7 @@ def increment_counter():
     visitor_count += 1
     return visitor_count
 
-with gr.Blocks() as demo:    
+with gr.Blocks() as demo:
     number = gr.Textbox(label="Total Visitors", value="Counting...")
     demo.load(increment_counter, inputs=None, outputs=number)
 
@@ -34,9 +34,9 @@ This means that any time you do _not_ want to share a value between users, you s
 
 ## Session State
 
-Gradio supports session state, where data persists across multiple submits within a page session. To reiterate, session data is _not_ shared between different users of your model, and does _not_ persist if a user refreshes the page to reload the Gradio app. To store data in a session state, you need to do three things:
+Gradio supports session state, where data persists across multiple submits within a page session. To reiterate, session data is _not_ shared between different users of your model, and a new tab starts with a fresh session (refreshing a page keeps its session). To store data in a session state, you need to do three things:
 
-1. Create a `gr.State()` object. If there is a default value to this stateful object, pass that into the constructor. Note that `gr.State` objects must be [deepcopy-able](https://docs.python.org/3/library/copy.html), otherwise you will need to use a different approach as described below.
+1. Create a `gr.State()` object. If there is a default value to this stateful object, pass that into the constructor. Note that the value of a `gr.State` is serialized so that it can be stored in the user's browser (see [where state is stored](#where-state-is-stored) below).
 2. In the event listener, put the `State` object as an input and output as needed.
 3. In the event listener function, add the variable to the input parameters and the return value.
 
@@ -47,20 +47,42 @@ $code_simple_state
 Notice how we do this with state:
 
 1. We store the cart items in a `gr.State()` object, initialized here to be an empty list.
-2. When adding items to the cart, the event listener uses the cart as both input and output - it returns the updated cart with all the items inside. 
+2. When adding items to the cart, the event listener uses the cart as both input and output - it returns the updated cart with all the items inside.
 3. We can attach a `.change` listener to cart, that uses the state variable as input as well.
 
 You can think of `gr.State` as an invisible Gradio component that can store any kind of value. Here, `cart` is not visible in the frontend but is used for calculations.
 
-The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a `list`, `set`, or `dict`), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the **hash** of the  value changes. So if you define a custom class and create a `gr.State` variable that is an instance of that class, make sure that the the class includes a sensible `__hash__` implementation.
+The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a `list`, `set`, or `dict`), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the **hash** of the value changes. So if you define a custom class and create a `gr.State` variable that is an instance of that class, make sure that the the class includes a sensible `__hash__` implementation.
 
-The value of a session State variable is cleared when the user refreshes the page. The value is stored on in the app backend for 60 minutes after the user closes the tab (this can be configured by the `delete_cache` parameter in `gr.Blocks`).
+Like the app's outputs, the value of a `gr.State` is kept when the user refreshes the page, and `demo.load` events do not run again. The browser saves both, along with the session's encrypted state, so a refreshed page comes back as it was, even if the server has restarted or the page reaches a different replica (as long as every server process shares the same `GRADIO_SECRET_KEY`, see below; without it, a server that doesn't know the session can't read its state either, so the refreshed page starts a new session instead). If the server doesn't know the session, the page's `demo.load` events run again to set up what the server lost. A job that was still running when the page was refreshed picks up where it left off, as long as the page reaches the same server that is running it. Files shown in outputs are served by the server that created them, so with several replicas they need storage that every replica can read.
+
+To start over, users can open **Settings** in the app's footer and click **Clear session**, which clears the page's outputs and state and starts a new session. To go back to the behavior from before Gradio 7, where refreshing the page starts a new session, launch the app with `demo.launch(resume_sessions=False)` or set the `GRADIO_RESUME_SESSIONS` environment variable to `False`.
 
 Learn more about `State` in the [docs](https://gradio.app/docs/gradio/state).
 
-**What about objects that cannot be deepcopied?**
+### Where state is stored
 
-As mentioned earlier, the value stored in `gr.State` must be [deepcopy-able](https://docs.python.org/3/library/copy.html). If you are working with a complex object that cannot be deepcopied, you can take a different approach to manually read the user's `session_hash` and store a global `dictionary` with instances of your object for each user. Here's how you would do that:
+By default, the value of a `gr.State` is kept in the user's browser. After an event changes it, the server sends the browser an encrypted copy of the new value, and the browser sends it back with the next event that needs it. The server also caches recent values in memory, so in the usual case the browser only sends a short reference rather than the whole value. This means that:
+
+- State keeps working if your app runs on several servers (replicas) behind a load balancer, or if the server restarts, as long as every server process shares the same secret key. Set the `GRADIO_SECRET_KEY` environment variable to the same random string for every replica. Without it, each process generates its own key, which works for a single server but not across replicas or restarts.
+- The value is encrypted and authenticated, so users can neither read nor modify it, and it is tied to the session (and the logged-in user, if any), so it is not accepted in another one. Within its session, though, it is like a bearer token: a user can send back a value they were given earlier (for example by replaying an old request). Don't rely on `gr.State` for values that must never go backwards, such as a remaining credit balance; store those in a database.
+- The value must be serializable. JSON types, tuples, sets, `bytes`, dates, `Decimal`, `UUID`, paths, NumPy arrays, pandas DataFrames and Series, PIL images, dataclasses, pydantic models, enums, named tuples, and classes defined in your own app's code are all supported. If a value cannot be serialized (for example, a database connection or an object holding a lock), Gradio keeps it in the server's memory instead and prints a warning, since that value will be lost if the user's next request reaches a different server.
+- If several events run at the same time and change the same `gr.State`, the change from the event that finishes last wins.
+- Changing a value in place (e.g. `history.append(message)`) is saved even if the `gr.State` is only an input to the event.
+
+If you want a value to be kept in the server's memory, for example a model loaded for each user, pass `storage="server"`:
+
+```py
+model = gr.State(storage="server")
+```
+
+Server-side state is cleared an hour after the user closes the tab, and is not shared between replicas. It is the only storage that supports a `delete_callback`, which is called when the value is deleted; passing a `delete_callback` keeps the value on the server unless you set `storage` yourself. With either storage, `time_to_live` resets the state to its initial value once that many seconds have passed since it was last changed.
+
+Clients that don't hold state themselves, like the Python client, the `/call` HTTP API, and MCP, always use server-side storage.
+
+**What about objects that cannot be serialized?**
+
+The simplest option is `gr.State(storage="server")`, described above. If you need more control over the object's lifetime, you can instead read the user's `session_hash` and store a global `dictionary` with instances of your object for each user. Here's how you would do that:
 
 ```py
 import gradio as gr
@@ -70,7 +92,7 @@ class NonDeepCopyable:
         from threading import Lock
         self.counter = 0
         self.lock = Lock()  # Lock objects cannot be deepcopied
-    
+
     def increment(self):
         with self.lock:
             self.counter += 1
@@ -98,11 +120,11 @@ with gr.Blocks() as demo:
     counter = gr.Number(label="Counter Value")
     increment_btn = gr.Button("Increment Counter")
     increment_btn.click(increment_counter, inputs=None, outputs=counter)
-    
+
     # Initialize instance when page loads
-    demo.load(initialize_instance, inputs=None, outputs=output)    
-    # Clean up instance when page is closed/refreshed
-    demo.unload(cleanup_instance)    
+    demo.load(initialize_instance, inputs=None, outputs=output)
+    # Clean up instance when page is closed
+    demo.unload(cleanup_instance)
 
 demo.launch()
 ```
