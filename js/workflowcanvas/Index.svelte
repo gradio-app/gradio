@@ -175,6 +175,7 @@
 			{initialValue}
 			gradio_shared={gradio.shared}
 			{auth}
+			active={view === "canvas"}
 		/>
 	</div>
 {/if}

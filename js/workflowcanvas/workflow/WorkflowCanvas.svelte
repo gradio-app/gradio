@@ -111,7 +111,8 @@
 		server = {},
 		initialValue = null,
 		gradio_shared = undefined,
-		auth: shared_auth = undefined
+		auth: shared_auth = undefined,
+		active = true
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
@@ -119,6 +120,7 @@
 		/** Auth owned by the parent (which already called `init()`), so the
 		 * parent and canvas agree on who the viewer is. */
 		auth?: ReturnType<typeof createHFAuth>;
+		active?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
@@ -472,6 +474,7 @@
 	});
 
 	$effect(() => {
+		if (!active) return;
 		window.addEventListener("keydown", handleKeydown);
 		window.addEventListener("keyup", handle_keyup);
 		return () => {
