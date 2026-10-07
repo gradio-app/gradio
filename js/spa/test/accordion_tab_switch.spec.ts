@@ -94,3 +94,25 @@ test("revealing a hidden open accordion with open=False fires collapse", async (
 	await expect(page.getByLabel("Collapse Log")).toHaveValue("collapsed");
 	await expect(page.getByLabel("Hidden Open Child")).not.toBeVisible();
 });
+
+test("opening an accordion does not fire change on the components inside it", async ({
+	page
+}) => {
+	const header = page.getByRole("button", { name: "JSON Accordion" });
+	await header.click();
+	await header.click();
+	await header.click();
+	await page.waitForTimeout(1000);
+	await expect(page.getByLabel("JSON Change Log")).toHaveValue("");
+});
+
+test("a collapse fired by a gr.render re-run reaches the new render's listener", async ({
+	page
+}) => {
+	await page.getByRole("button", { name: "Rendered Accordion" }).click();
+	await expect(page.getByLabel("Rendered Child")).toBeVisible();
+
+	await page.getByRole("button", { name: "Re-render" }).click();
+	await expect(page.getByLabel("Rerender Log")).toHaveValue(/collapse/);
+	await expect(page.getByLabel("Rendered Child")).not.toBeVisible();
+});

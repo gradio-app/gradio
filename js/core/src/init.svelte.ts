@@ -466,6 +466,16 @@ export class AppTree {
 	}
 
 	#sync_reused_components_after_rerender(node: ProcessedComponentMeta): void {
+		this.#push_node_props_to_component(node);
+		if (node.children) {
+			for (const child of node.children) {
+				this.#sync_reused_components_after_rerender(child);
+			}
+		}
+	}
+
+	/** Pushes a node's defined props into its component (or queues them). */
+	#push_node_props_to_component(node: ProcessedComponentMeta): void {
 		const data: Record<string, unknown> = {};
 		for (const key in node.props.shared_props) {
 			// loading_status is owned by DependencyManager / LoadingStatusState and
@@ -477,6 +487,11 @@ export class AppTree {
 			if (v !== undefined) data[key] = v;
 		}
 		for (const key in node.props.props) {
+			// set_data takes shared and component props as one object, where
+			// `id` is the component id. A component's own `id` prop (a tab's id)
+			// would overwrite it and send the component's events to a missing
+			// target, so it is never pushed.
+			if (key === "id") continue;
 			const v = node.props.props[key];
 			if (v !== undefined) data[key] = v;
 		}
@@ -488,11 +503,6 @@ export class AppTree {
 				// component hasn't re-registered yet. queue the update for later.
 				const existing = this.#pending_updates.get(node.id) || {};
 				this.#pending_updates.set(node.id, { ...existing, ...data });
-			}
-		}
-		if (node.children) {
-			for (const child of node.children) {
-				this.#sync_reused_components_after_rerender(child);
 			}
 		}
 	}
@@ -728,39 +738,41 @@ export class AppTree {
 		const node = find_node_by_id(this.root!, id);
 		if (!node) return;
 
-		// Check if this node or any of its descendants need to be made visible.
-		// If not, skip entirely to avoid unnecessary reactive updates
-		// from mutating the tree through the $state proxy.
-		if (
-			!this.#hidden_on_startup.has(node.id) &&
-			!has_hidden_descendants(node, this.#hidden_on_startup)
-		) {
-			return;
-		}
+		const revealed: ProcessedComponentMeta[] = [];
+		make_visible_if_not_rendered(node, this.#hidden_on_startup, revealed, true);
+		// Nothing was waiting to be rendered (e.g. reopening an accordion whose
+		// children are already mounted): skip, so mounted components are left
+		// exactly as the user has them.
+		if (revealed.length === 0) return;
 
-		make_visible_if_not_rendered(node, this.#hidden_on_startup, true);
 		load_components(node, this.#config.api_url);
 		await tick();
 		await settled();
 		await new Promise((resolve) => requestAnimationFrame(resolve));
-		// Pull what the user changed (the open state that triggered this, typed
-		// values) into the tree first, so the push below doesn't undo it.
-		await this.#sync_current_state_to_node(node.id, node);
-		await this.#sync_current_values_to_descendants(node);
-		this.#sync_reused_components_after_rerender(node);
+		// Only the components mounted just now need the tree's props pushed in.
+		for (const revealed_node of revealed) {
+			this.#push_node_props_to_component(revealed_node);
+		}
 	}
 }
 
+/**
+ * Makes visible the components hidden at startup behind a closed accordion
+ * or unselected tab that the user can now see, collecting the ones it
+ * reveals. Components revealed earlier are already visible and left alone.
+ */
 function make_visible_if_not_rendered(
 	node: ProcessedComponentMeta,
 	hidden_on_startup: Set<number>,
+	revealed: ProcessedComponentMeta[],
 	is_target_node = false
 ): void {
-	if (hidden_on_startup.has(node.id)) {
+	if (hidden_on_startup.has(node.id) && !node.props.shared_props.visible) {
 		node.props.shared_props = {
 			...node.props.shared_props,
 			visible: true
 		};
+		revealed.push(node);
 	}
 
 	if (node.type === "tabs") {
@@ -771,7 +783,7 @@ function make_visible_if_not_rendered(
 				child.type === "tabitem" &&
 				(child.props.props.id === selectedId || child.id === selectedId)
 			) {
-				make_visible_if_not_rendered(child, hidden_on_startup, false);
+				make_visible_if_not_rendered(child, hidden_on_startup, revealed, false);
 			}
 		});
 	} else if (
@@ -782,20 +794,9 @@ function make_visible_if_not_rendered(
 		// Don't recurse into closed accordion content
 	} else {
 		node.children.forEach((child) => {
-			make_visible_if_not_rendered(child, hidden_on_startup, false);
+			make_visible_if_not_rendered(child, hidden_on_startup, revealed, false);
 		});
 	}
-}
-
-function has_hidden_descendants(
-	node: ProcessedComponentMeta,
-	hidden_on_startup: Set<number>
-): boolean {
-	for (const child of node.children) {
-		if (hidden_on_startup.has(child.id)) return true;
-		if (has_hidden_descendants(child, hidden_on_startup)) return true;
-	}
-	return false;
 }
 
 function load_components(node: ProcessedComponentMeta, api_url: string): void {

@@ -103,5 +103,24 @@ with gr.Blocks() as demo:
         outputs=open_acc,
     )
 
+    json_log = gr.Textbox(label="JSON Change Log")
+    with gr.Accordion("JSON Accordion", open=False):
+        json_data = gr.JSON(value={"a": 1})
+    json_data.change(fn=lambda log: log + "change\n", inputs=json_log, outputs=json_log)
+
+    render_count = gr.State(0)
+    render_log = gr.Textbox(label="Rerender Log")
+    rerender_btn = gr.Button("Re-render")
+    rerender_btn.click(fn=lambda n: n + 1, inputs=render_count, outputs=render_count)
+
+    @gr.render(inputs=render_count)
+    def render_accordion(n):
+        with gr.Accordion("Rendered Accordion", open=False, key="rendered-acc") as acc:
+            gr.Textbox(label="Rendered Child", key="rendered-child")
+        acc.collapse(
+            fn=lambda log: log + "collapse\n", inputs=render_log, outputs=render_log
+        )
+
+
 if __name__ == "__main__":
     demo.launch()
