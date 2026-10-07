@@ -290,6 +290,9 @@ class Queue:
 
     def resume_session(self, session_hash: str, event_ids: list[str]) -> None:
         requested_ids = set(event_ids)
+        # Messages sent before any resuming client attached are still waiting
+        # rather than in the history; take them in before replaying it
+        self.start_history(session_hash)
         # The replay goes in front of what is already waiting for the session's
         # other events. Messages still waiting for the replayed events are in
         # their history too, so they are not kept twice.
@@ -362,17 +365,22 @@ class Queue:
         else:
             await self.clean_events(event_id=event_id)
 
-    def mark_session_attached(self, session_hash: str) -> None:
+    def start_history(self, session_hash: str) -> ResumableSession:
+        """Starts keeping the session's history, for a client that acknowledges
+        results (and so may resume). The messages still waiting to be delivered
+        are taken in, so that the history holds everything the client gets."""
         resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
         if not resumable.acknowledges:
-            # History starts now, so take in the messages still waiting to be
-            # delivered: the history then holds everything this client gets.
             waiting = self.pending_messages_per_session.get(session_hash)
             if waiting is not None:
                 resumable.history.extend(
                     m for m in list(waiting._queue) if m.event_id is not None
                 )
-        resumable.acknowledges = True
+            resumable.acknowledges = True
+        return resumable
+
+    def mark_session_attached(self, session_hash: str) -> None:
+        resumable = self.start_history(session_hash)
         resumable.active_streams += 1
         resumable.expires_at = None
         resumable.closing = False
