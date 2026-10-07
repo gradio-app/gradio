@@ -3,6 +3,7 @@ import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import * as Prism from "prismjs";
 import GithubSlugger from "github-slugger";
+import { standardHtmlAndSvgTags } from "./html-tags";
 
 const prism_loaders: Record<string, () => Promise<unknown>> = {
 	python: () => import("prismjs/components/prism-python"),
@@ -84,7 +85,7 @@ const escape_replacements: Record<string, any> = {
 const get_escape_replacement = (ch: string): string =>
 	escape_replacements[ch] || "";
 
-function escape(html: string, encode?: boolean): string {
+export function escape(html: string, encode?: boolean): string {
 	if (encode) {
 		if (escape_test.test(html)) {
 			return html.replace(escape_replace, get_escape_replacement);
@@ -351,4 +352,32 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	}
 
 	return copied;
+}
+
+const standard_tags = new Set(
+	standardHtmlAndSvgTags.map((tag) => tag.toLowerCase())
+);
+
+export function escapeTags(
+	content: string,
+	tagsToEscape: string[] | boolean
+): string {
+	if (!tagsToEscape) return content;
+	const custom = Array.isArray(tagsToEscape)
+		? new Set(tagsToEscape.map((tag) => tag.toLowerCase()))
+		: null;
+	// marked passes raw HTML through untouched, so any "<" followed by a tag
+	// name here is a tag. Escaping its "<" turns it into visible text. The
+	// name is consumed rather than looked ahead at, so a run like
+	// "<a<a<a..." is scanned once instead of once per "<". The name stops at
+	// "<" so that a stray "<" (e.g. in restored LaTeX) does not swallow the
+	// next tag, but the browser reads "<b<c" as a tag named "b<c", not "b".
+	return content.replace(/<\/?([a-zA-Z][^\s\/<>]*)/g, (match, name, offset) => {
+		const name_continues = content[offset + match.length] === "<";
+		const tag = name.toLowerCase();
+		const should_escape = custom
+			? !name_continues && custom.has(tag)
+			: name_continues || !standard_tags.has(tag);
+		return should_escape ? match.replace(/</g, "&lt;") : match;
+	});
 }
