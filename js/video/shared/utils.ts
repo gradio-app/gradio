@@ -151,6 +151,6 @@ const getVideoExtensionFromMimeType = (mimeType: string): string | null => {
 };
 
 export interface WebcamOptions {
-	mirror: boolean;
+	mirror: boolean | "auto";
 	constraints: Record<string, any>;
 }

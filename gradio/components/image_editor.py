@@ -138,11 +138,11 @@ class WebcamOptions:
     """
     A dataclass for specifying options for the webcam tool in the ImageEditor component. An instance of this class can be passed to the `webcam_options` parameter of `gr.ImageEditor`.
     Parameters:
-        mirror: If True, the webcam will be mirrored.
+        mirror: If True, the webcam will be mirrored. If "auto", the webcam is mirrored unless the browser reports it as a rear-facing camera (e.g. the back camera of a phone). If False, the webcam will not be mirrored.
         constraints: A dictionary of constraints for the webcam.
     """
 
-    mirror: bool = True
+    mirror: bool | Literal["auto"] = "auto"
     constraints: dict[str, Any] | None = None
 
 
@@ -263,9 +263,9 @@ class ImageEditor(Component):
             value: Optional initial image(s) to populate the image editor. Should be a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be a callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images. Beware of conflicting values with the canvas_size parameter. If the canvas_size is larger than the height, the editing canvas will not fit in the component.
             width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images. Beware of conflicting values with the canvas_size parameter. If the canvas_size is larger than the height, the editing canvas will not fit in the component.
-            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
+            image_mode: The pixel format and color depth that the images are converted to. The default "RGBA" keeps the alpha channel of a transparent image, "RGB" drops it, and "L" converts to black-and-white. With a mode that has no alpha channel, transparent areas of the background and composite are filled with white, while layers only have their alpha dropped. In "RGBA" mode, the color values under fully transparent pixels are arbitrary (zero after an edit), so composite the image onto a background yourself, or use "RGB", instead of slicing off the alpha channel. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for the other supported image modes and their meaning.
             sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
-            type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
+            type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with values from 0 to 255, shaped (height, width, channels) for multi-channel image modes such as the default "RGBA", or (height, width) for single-channel ones such as "L", "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
             label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -357,6 +357,7 @@ class ImageEditor(Component):
     def convert_and_format_image(
         self,
         file: FileData | None | bytes,
+        flatten_on_white: bool = False,
     ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
@@ -379,6 +380,17 @@ class ImageEditor(Component):
             suffix = self.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            # The canvas exports RGB 0 under alpha 0, so dropping the alpha without
+            # compositing would turn transparent areas black instead of white.
+            if (
+                flatten_on_white
+                and self.image_mode not in ("RGBA", "LA", "PA")
+                and ("A" in im.getbands() or "transparency" in im.info)
+            ):
+                im = im.convert("RGBA")
+                im = PIL.Image.alpha_composite(
+                    PIL.Image.new("RGBA", im.size, "white"), im
+                )
             im = im.convert(self.image_mode)
         return image_utils.format_image(
             im,
@@ -423,13 +435,17 @@ class ImageEditor(Component):
         composite = None
 
         if _payload is not None:
-            bg = self.convert_and_format_image(_payload.background)
+            bg = self.convert_and_format_image(
+                _payload.background, flatten_on_white=True
+            )
             layers = (
                 [self.convert_and_format_image(layer) for layer in _payload.layers]
                 if _payload.layers
                 else None
             )
-            composite = self.convert_and_format_image(_payload.composite)
+            composite = self.convert_and_format_image(
+                _payload.composite, flatten_on_white=True
+            )
 
         if payload.id is not None and payload.id in self.blob_storage:
             self.blob_storage.pop(payload.id)

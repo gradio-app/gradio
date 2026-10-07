@@ -602,6 +602,69 @@ describe("Props: sources", () => {
 		expect(getByLabelText("upload_text.paste_clipboard")).toBeVisible();
 	});
 
+	test("sources=['webcam'] does not show upload button", async () => {
+		const { getByLabelText, queryByLabelText } = await render(Gallery, {
+			...sources_props,
+			sources: ["webcam"]
+		});
+
+		expect(getByLabelText("common.webcam")).toBeVisible();
+		expect(
+			queryByLabelText("upload_text.click_to_upload")
+		).not.toBeInTheDocument();
+	});
+
+	test("clear returns to the first source", async () => {
+		const { getByLabelText, getByTestId, getByText } = await render(Gallery, {
+			...sources_props,
+			sources: ["webcam", "upload"]
+		});
+
+		await fireEvent.click(getByLabelText("common.clear"));
+
+		expect(getByText("upload_text.drop_gallery")).not.toBeVisible();
+		expect(getByTestId("webcam-video")).toBeInTheDocument();
+	});
+
+	test("deleting the last added item returns to the first source", async () => {
+		const { getByRole, getByTestId, getByText, listen } = await render(
+			Gallery,
+			{
+				...sources_props,
+				value: [],
+				sources: ["webcam", "upload"],
+				root: "https://example.com",
+				client: mock_client()
+			}
+		);
+		const upload = listen("upload");
+
+		await upload_file(TEST_JPG);
+		await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+		await fireEvent.click(getByRole("button", { name: "Delete image" }));
+
+		expect(getByText("upload_text.drop_gallery")).not.toBeVisible();
+		expect(getByTestId("webcam-video")).toBeInTheDocument();
+	});
+
+	test("sources=['clipboard'] empty area pastes instead of opening the file picker", async () => {
+		const read = vi.spyOn(navigator.clipboard, "read").mockResolvedValue([]);
+		const { getByLabelText, getByTestId, listen } = await render(Gallery, {
+			...sources_props,
+			value: [],
+			sources: ["clipboard"]
+		});
+		const warning = listen("warning");
+		const file_picker = vi.spyOn(getByTestId("file-upload"), "click");
+
+		await fireEvent.click(getByLabelText("upload_text.paste_clipboard"));
+
+		await waitFor(() => expect(warning).toHaveBeenCalled());
+		expect(read).toHaveBeenCalled();
+		expect(file_picker).not.toHaveBeenCalled();
+		read.mockRestore();
+	});
+
 	test("source buttons are hidden when selected_index is set (preview active)", async () => {
 		const { queryByLabelText } = await render(Gallery, {
 			...sources_props,
@@ -627,6 +690,111 @@ describe("Props: sources", () => {
 		expect(
 			queryByLabelText("upload_text.paste_clipboard")
 		).not.toBeInTheDocument();
+	});
+
+	test("webcam mirrors front cameras but not rear cameras", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const play_descriptor = Object.getOwnPropertyDescriptor(
+			HTMLMediaElement.prototype,
+			"play"
+		);
+
+		const make_stream = (deviceId: string, facingMode: string): MediaStream => {
+			const track = {
+				getSettings: () => ({ deviceId, facingMode }),
+				stop: () => {}
+			};
+			const stream = new MediaStream();
+			Object.defineProperty(stream, "getTracks", { value: () => [track] });
+			Object.defineProperty(stream, "getVideoTracks", {
+				value: () => [track]
+			});
+			return stream;
+		};
+
+		try {
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async (constraints: MediaStreamConstraints) =>
+						(constraints.video as any)?.deviceId?.exact === "rear-camera"
+							? make_stream("rear-camera", "environment")
+							: make_stream("front-camera", "user"),
+					enumerateDevices: async () => [
+						{
+							deviceId: "front-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Front camera"
+						},
+						{
+							deviceId: "rear-camera",
+							groupId: "mobile-cameras",
+							kind: "videoinput",
+							label: "Rear camera"
+						}
+					]
+				}
+			});
+			Object.defineProperty(HTMLMediaElement.prototype, "play", {
+				configurable: true,
+				value: async () => {}
+			});
+
+			const { getByRole, getByTestId } = await render(Gallery, {
+				...sources_props,
+				value: null,
+				sources: ["webcam"]
+			});
+			const video = getByTestId("webcam-video");
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			await waitFor(() => expect(video).toHaveClass("flip"));
+
+			const select_device = async (device_id: string): Promise<void> => {
+				await fireEvent.click(
+					await waitFor(() =>
+						getByRole("button", { name: "select input source" })
+					)
+				);
+				const selector = getByRole("combobox", {
+					name: "select source"
+				}) as HTMLSelectElement;
+				selector.value = device_id;
+				await fireEvent.change(selector);
+			};
+
+			await select_device("rear-camera");
+			await waitFor(() => expect(video).not.toHaveClass("flip"));
+
+			await select_device("front-camera");
+			await waitFor(() => expect(video).toHaveClass("flip"));
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+
+			if (play_descriptor) {
+				Object.defineProperty(
+					HTMLMediaElement.prototype,
+					"play",
+					play_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(HTMLMediaElement.prototype, "play");
+			}
+		}
 	});
 });
 

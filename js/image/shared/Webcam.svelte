@@ -51,7 +51,7 @@
 		root?: string;
 		stream_every?: number;
 		mode?: "image" | "video";
-		mirror_webcam: boolean;
+		mirror_webcam: boolean | "auto";
 		include_audio: boolean;
 		webcam_constraints?: { [key: string]: any } | null;
 		i18n: I18nFormatter;
@@ -65,6 +65,16 @@
 		onstop_recording?: () => void;
 		onclose_stream?: () => void;
 	} = $props();
+
+	let facing_mode = $state<string | undefined>(undefined);
+	const mirrored = $derived(
+		mirror_webcam === "auto" ? facing_mode !== "environment" : mirror_webcam
+	);
+
+	function set_stream(local_stream: MediaStream): void {
+		stream = local_stream;
+		facing_mode = local_stream.getVideoTracks()[0]?.getSettings().facingMode;
+	}
 
 	onMount(() => {
 		canvas = document.createElement("canvas");
@@ -87,7 +97,7 @@
 			webcam_constraints,
 			device_id
 		).then(async (local_stream) => {
-			stream = local_stream;
+			set_stream(local_stream);
 			selected_device =
 				available_video_devices.find(
 					(device) => device.deviceId === device_id
@@ -102,7 +112,7 @@
 				.then(async (local_stream) => {
 					webcam_accessed = true;
 					available_video_devices = await get_devices();
-					stream = local_stream;
+					set_stream(local_stream);
 				})
 				.then(() => set_available_devices(available_video_devices))
 				.then((devices) => {
@@ -147,7 +157,7 @@
 				video_source.videoHeight
 			);
 
-			if (mirror_webcam) {
+			if (mirrored) {
 				context.scale(-1, 1);
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
@@ -180,6 +190,7 @@
 	let stream: MediaStream;
 	let mimeType: string;
 	let media_recorder: MediaRecorder;
+	let recording_mirrored = false;
 
 	function take_recording(): void {
 		if (recording) {
@@ -196,6 +207,7 @@
 					let val_ = (
 						(await upload(val, root))?.filter(Boolean) as FileData[]
 					)[0];
+					if (val_) val_.meta.mirrored = recording_mirrored;
 					oncapture?.(val_);
 					onstop_recording?.();
 				}
@@ -204,6 +216,7 @@
 		} else if (typeof MediaRecorder !== "undefined") {
 			onstart_recording?.();
 			recorded_blobs = [];
+			recording_mirrored = mirrored;
 			let validMimeTypes = ["video/webm", "video/mp4"];
 			for (let validMimeType of validMimeTypes) {
 				if (MediaRecorder.isTypeSupported(validMimeType)) {
@@ -291,7 +304,7 @@
 		bind:this={video_source}
 		data-testid="webcam-video"
 		playsinline
-		class:flip={mirror_webcam}
+		class:flip={mirrored}
 		class:hide={!webcam_accessed || (webcam_accessed && !!value)}
 	/>
 	<!-- svelte-ignore a11y-missing-attribute -->

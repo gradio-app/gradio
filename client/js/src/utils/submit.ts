@@ -34,6 +34,8 @@ import {
 } from "../constants";
 import { events } from "fetch-event-stream";
 import { apply_diff_stream, close_stream } from "./stream";
+import { clear_resumable_event, track_resumable_event } from "./session";
+import type { StatePayload } from "./session_store";
 import { Client } from "../client";
 import {
 	read_run_history_storage,
@@ -49,7 +51,8 @@ export function submit(
 	event_data?: unknown,
 	trigger_id?: number | null,
 	all_events?: boolean,
-	additional_headers?: Record<string, string>
+	additional_headers?: Record<string, string>,
+	resume_event_id?: string
 ): SubmitIterable<GradioEvent> {
 	try {
 		const { token } = this.options;
@@ -78,6 +81,8 @@ export function submit(
 		if (!config) throw new Error("Could not resolve app config");
 		const root = config.root;
 
+		this.open_heartbeat();
+
 		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
 			api_info,
 			endpoint,
@@ -85,7 +90,37 @@ export function submit(
 			config
 		);
 
-		let resolved_data = map_data_to_params(data, endpoint_info);
+		// The gr.State values the server keeps in this client, for this event
+		const state_ids = new Set([...dependency.inputs, ...dependency.outputs]);
+		const state_payload = (force: number[] = []): StatePayload =>
+			that.session_store.payload(state_ids, force);
+		// Posts an event with its state. A server that has not cached a value
+		// the client referred to answers 409 with the ids it needs in full.
+		const post_with_state = async (
+			url: string,
+			body: Record<string, unknown>,
+			headers: any
+		): Promise<[any, number]> => {
+			const result = (await post_data(
+				url,
+				{ ...body, state: state_payload() },
+				headers
+			)) as [any, number];
+			const missing = result[0]?.detail?.missing_state;
+			if (result[1] === 409 && Array.isArray(missing)) {
+				return (await post_data(
+					url,
+					{ ...body, state: state_payload(missing) },
+					headers
+				)) as [any, number];
+			}
+			return result;
+		};
+
+		let resolved_data = resume_event_id
+			? []
+			: map_data_to_params(data, endpoint_info);
+
 		// sse_v4 streams each event on the request that submits it. Servers that
 		// support it keep advertising sse_v3 as `protocol` for older clients.
 		let protocol: Config["protocol"] | "sse_v4" =
@@ -126,7 +161,12 @@ export function submit(
 		// caller for itself.
 		const history_enabled =
 			config.run_history !== false && this.options.record_history !== false;
-		const history_scope = { app_id: config.app_id, username: config.username };
+		const history_scope = {
+			root: config.root,
+			app_key: config.app_key,
+			app_id: config.app_id,
+			username: config.username
+		};
 		const history_storage = read_run_history_storage(history_scope);
 		const addt_headers = {
 			...base_headers,
@@ -135,7 +175,7 @@ export function submit(
 				: {})
 		};
 		const history_run_id =
-			!history_enabled || !is_documented_endpoint
+			resume_event_id || !history_enabled || !is_documented_endpoint
 				? null
 				: start_run_history({
 						...history_scope,
@@ -159,9 +199,11 @@ export function submit(
 		let stream: EventSource | null;
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
-		// sse_v4: the request that submitted this event and streams its messages.
-		// Aborting it is how the event gets cancelled on the server.
+		// sse_v4: the request that submitted this event and streams its messages,
+		// while it does. If it drops, the event continues on the session stream.
 		let own_stream_controller: AbortController | null = null;
+		let own_stream_callback: ((data: unknown) => Promise<void>) | null = null;
+		let own_stream_active = false;
 		let own_stream_cancelled = false;
 		let own_stream_finished = false;
 		const abort_own_stream = (): void => {
@@ -199,25 +241,23 @@ export function submit(
 		}
 
 		async function cancel(): Promise<void> {
-			if (protocol === "sse_v4") {
-				if (own_stream_cancelled || own_stream_finished) return;
+			if (own_stream_active && !own_stream_cancelled) {
 				own_stream_cancelled = true;
-				// Closing the request cancels the event on whichever process runs
-				// it. Report the completion `/cancel` would have sent, so listeners
-				// see the same sequence as with sse_v3.
 				abort_own_stream();
-				await handle_queue_message({
-					msg: "process_completed",
-					output: {},
-					success: true,
-					event_id
-				});
-				// With sse_v3 that completion is handled before `cancel` resolves,
-				// since `cancel` waits on /cancel and /reset. Callers rely on that
-				// order: the frontend marks the event complete only afterwards.
-				await new Promise((resolve) => setTimeout(resolve, 0));
-				close();
-				return;
+				// Report the completion `/cancel` would have sent on this stream, and
+				// let listeners handle it before `cancel` resolves, as with sse_v3:
+				// the frontend marks the event complete only afterwards.
+				if (own_stream_callback && !own_stream_finished) {
+					await own_stream_callback({
+						msg: "process_completed",
+						output: {},
+						success: true,
+						event_id
+					});
+					await new Promise((resolve) => setTimeout(resolve, 0));
+				}
+				// Closing the request does not stop the event on a server that keeps
+				// it for a page that resumes, so ask for that as below.
 			}
 			let reset_request = {};
 			let cancel_request = {};
@@ -247,6 +287,20 @@ export function submit(
 					"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
 				);
 			}
+			await acknowledge();
+		}
+
+		async function acknowledge(): Promise<void> {
+			if (!event_id_final) return;
+			if (!options.resume_sessions) return;
+			const response = await that
+				.fetch(`${config!.root}${api_prefix}/${RESET_URL}`, {
+					headers: { "Content-Type": "application/json" },
+					method: "POST",
+					body: JSON.stringify({ event_id: event_id_final })
+				})
+				.catch(() => null);
+			if (response?.ok) clear_resumable_event(event_id_final);
 		}
 
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
@@ -256,6 +310,14 @@ export function submit(
 		async function handle_render_config(render_config: any): Promise<void> {
 			if (!config) return;
 			let render_id: number = render_config.render_id;
+			// After a reload, the first time a `gr.render` block is built again
+			// (when its render function reruns on load), put back the values its
+			// components had, as for the rest of the page. Later renders are the
+			// app's own doing and are left alone.
+			if (that.session_restored && !that.restored_renders.has(render_id)) {
+				that.restored_renders.add(render_id);
+				that.session_store.restore_into(render_config.components);
+			}
 			config.components = [
 				...config.components.filter((c) => c.props.rendered_in !== render_id),
 				...render_config.components
@@ -278,135 +340,191 @@ export function submit(
 			});
 		}
 
-		const handle_queue_message = async function (_data: object): Promise<void> {
-			try {
-				const { type, status, data, original_msg } = handle_message(
-					_data,
-					last_status[fn_index]
-				);
+		// Handles a queued event's messages, from its own stream (sse_v4) or the
+		// session stream.
+		function create_queue_callback(
+			queue_event_id: string
+		): (data: unknown) => Promise<void> {
+			return async function (_data: unknown): Promise<void> {
+				try {
+					const { type, status, data, original_msg } = handle_message(
+						_data,
+						last_status[fn_index]
+					);
 
-				if (type == "heartbeat") {
-					return;
-				}
+					if (type == "heartbeat") {
+						return;
+					}
 
-				if (type === "update" && status && !complete) {
-					// call 'status' listeners
-					fire_event({
-						type: "status",
-						endpoint: _endpoint,
-						fn_index,
-						time: new Date(),
-						original_msg: original_msg,
-						...status
-					});
-				} else if (type === "complete") {
-					complete = status;
-				} else if (type == "unexpected_error" || type == "broken_connection") {
-					console.error("Unexpected error", status?.message);
-					const broken = type === "broken_connection";
-					fire_event({
-						type: "status",
-						stage: "error",
-						message: status?.message || "An Unexpected Error Occurred!",
-						queue: true,
-						endpoint: _endpoint,
-						broken,
-						session_not_found: status?.session_not_found,
-						fn_index,
-						time: new Date()
-					});
-				} else if (type === "log") {
-					fire_event({
-						type: "log",
-						title: data.title,
-						log: data.log,
-						level: data.level,
-						endpoint: _endpoint,
-						duration: data.duration,
-						visible: data.visible,
-						fn_index
-					});
-					return;
-				} else if (type === "generating" || type === "streaming") {
-					fire_event({
-						type: "status",
-						time: new Date(),
-						...status,
-						stage: status?.stage!,
-						queue: true,
-						endpoint: _endpoint,
-						fn_index
-					});
-					if (
-						data &&
-						dependency.connection !== "stream" &&
-						["sse_v2", "sse_v2.1", "sse_v3", "sse_v4"].includes(protocol)
+					if (type === "update" && status && !complete) {
+						fire_event({
+							type: "status",
+							endpoint: _endpoint,
+							fn_index,
+							time: new Date(),
+							original_msg,
+							...status
+						});
+					} else if (type === "complete") {
+						complete = status;
+					} else if (
+						type == "unexpected_error" ||
+						type == "broken_connection"
 					) {
-						apply_diff_stream(pending_diff_streams, event_id!, data);
-					}
-				}
-				if (data) {
-					fire_event({
-						type: "data",
-						time: new Date(),
-						data: handle_payload(
-							data.data,
-							dependency,
-							config.components,
-							"output",
-							options.with_null_state
-						),
-						endpoint: _endpoint,
-						fn_index
-					});
-					if (data.render_config) {
-						await handle_render_config(data.render_config);
-					}
-
-					if (complete) {
+						if (type === "unexpected_error") {
+							unclosed_events.delete(queue_event_id);
+							if (status?.session_not_found) {
+								clear_resumable_event(queue_event_id);
+							}
+						}
+						console.error("Unexpected error", status?.message);
+						const broken = type === "broken_connection";
+						fire_event({
+							type: "status",
+							stage: "error",
+							message: status?.message || "An Unexpected Error Occurred!",
+							queue: true,
+							endpoint: _endpoint,
+							broken,
+							session_not_found: status?.session_not_found,
+							fn_index,
+							time: new Date()
+						});
+					} else if (type === "log") {
+						fire_event({
+							type: "log",
+							title: data.title,
+							log: data.log,
+							level: data.level,
+							endpoint: _endpoint,
+							duration: data.duration,
+							visible: data.visible,
+							fn_index
+						});
+						return;
+					} else if (type === "generating" || type === "streaming") {
 						fire_event({
 							type: "status",
 							time: new Date(),
-							...complete,
+							...status,
 							stage: status?.stage!,
 							queue: true,
 							endpoint: _endpoint,
 							fn_index
 						});
+						if (
+							data &&
+							dependency.connection !== "stream" &&
+							["sse_v2", "sse_v2.1", "sse_v3", "sse_v4"].includes(protocol)
+						) {
+							apply_diff_stream(pending_diff_streams, event_id!, data);
+						}
+					}
+					if (data) {
+						// Before the data event, so that events that follow this one
+						// (and resumed jobs) send the new state
+						that.session_store.apply(data.state);
+						that.session_store.record(
+							dependency.outputs,
+							data.data || [],
+							config!.components
+						);
+						fire_event({
+							type: "data",
+							time: new Date(),
+							data: handle_payload(
+								data.data,
+								dependency,
+								config!.components,
+								"output",
+								options.with_null_state
+							),
+							endpoint: _endpoint,
+							fn_index
+						});
+						if (data.render_config) {
+							await handle_render_config(data.render_config);
+						}
+
+						if (complete) {
+							fire_event({
+								type: "status",
+								time: new Date(),
+								...complete,
+								stage: status?.stage!,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index
+							});
+							close();
+						}
+					}
+
+					if (status?.stage === "complete" || status?.stage === "error") {
+						delete event_callbacks[queue_event_id];
+						delete pending_diff_streams[queue_event_id];
+						close();
+					}
+				} catch (e) {
+					console.error("Unexpected client exception", e);
+					fire_event({
+						type: "status",
+						stage: "error",
+						message: "An Unexpected Error Occurred!",
+						queue: true,
+						endpoint: _endpoint,
+						fn_index,
+						time: new Date()
+					});
+					if (own_stream_active) {
+						abort_own_stream();
+						close();
+					} else if (
+						["sse_v2", "sse_v2.1", "sse_v3", "sse_v4"].includes(protocol)
+					) {
+						close_stream(stream_status, that.abort_controller);
+						stream_status.open = false;
 						close();
 					}
 				}
+			};
+		}
 
-				if (status?.stage === "complete" || status?.stage === "error") {
-					if (event_callbacks[event_id!]) {
-						delete event_callbacks[event_id!];
+		async function register_queue_event(queue_event_id: string): Promise<void> {
+			event_id = queue_event_id;
+			event_id_final = queue_event_id;
+			const callback = create_queue_callback(queue_event_id);
+			event_callbacks[queue_event_id] = callback;
+			unclosed_events.add(queue_event_id);
+			if (queue_event_id in pending_stream_messages) {
+				for (const msg of pending_stream_messages[queue_event_id]) {
+					if (
+						msg.msg === "process_completed" &&
+						[
+							"sse",
+							"sse_v1",
+							"sse_v2",
+							"sse_v2.1",
+							"sse_v3",
+							"sse_v4"
+						].includes(protocol)
+					) {
+						unclosed_events.delete(queue_event_id);
 					}
-					if (event_id! in pending_diff_streams) {
-						delete pending_diff_streams[event_id!];
-					}
-					close();
+					await callback(msg);
 				}
-			} catch (e) {
-				console.error("Unexpected client exception", e);
-				fire_event({
-					type: "status",
-					stage: "error",
-					message: "An Unexpected Error Occurred!",
-					queue: true,
-					endpoint: _endpoint,
-					fn_index,
-					time: new Date()
-				});
-				if (protocol === "sse_v4") {
-					abort_own_stream();
-					close();
-				} else if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
-					close_stream(stream_status, that.abort_controller);
-					stream_status.open = false;
-					close();
-				}
+				delete pending_stream_messages[queue_event_id];
 			}
-		};
+			if (!stream_status.open && unclosed_events.has(queue_event_id)) {
+				await that.open_stream();
+			}
+		}
+
+		if (resume_event_id) {
+			event_id = resume_event_id;
+			event_id_final = resume_event_id;
+			this.events_to_resume.add(resume_event_id);
+		}
 
 		// A ZeroGPU Space embedded in an iframe gets the headers that identify the
 		// user's quota from the parent page.
@@ -485,30 +603,37 @@ export function submit(
 			if (!config) throw new Error("Could not resolve app config");
 			const controller = new AbortController();
 			own_stream_controller = controller;
+			own_stream_active = true;
 			that.own_stream_controllers.add(controller);
 			// Same scheduling as the session stream in `open_stream`: yield to the
 			// browser between messages, except in hidden tabs, which throttle timers.
-			const deliver = (message: object): void => {
+			const deliver = (message: unknown): void => {
+				const callback = own_stream_callback;
+				if (own_stream_cancelled || !callback) return;
 				if (
 					typeof window !== "undefined" &&
 					typeof document !== "undefined" &&
 					document.visibilityState !== "hidden"
 				) {
-					setTimeout(handle_queue_message, 0, message);
+					setTimeout(callback, 0, message);
 				} else {
-					handle_queue_message(message);
+					callback(message);
 				}
 			};
 			try {
 				const url = new URL(
 					`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`
 				);
+				// Like the session stream: lets the server keep the event, and its
+				// messages, for this page to resume if the request drops.
+				if (options.resume_sessions) {
+					url.searchParams.set("acknowledgements", "true");
+				}
 				if (that.jwt) {
 					url.searchParams.set("__sign", that.jwt);
 				}
-				let response: Response;
-				try {
-					response = await that.fetch(url, {
+				const post = (state: StatePayload): Promise<Response> =>
+					that.fetch(url, {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -518,13 +643,25 @@ export function submit(
 								: {}),
 							...headers
 						},
-						body: JSON.stringify({ ...payload, session_hash }),
+						body: JSON.stringify({ ...payload, session_hash, state }),
 						credentials: options.credentials ?? "same-origin",
 						signal: controller.signal
 					});
+				let response: Response;
+				try {
+					response = await post(state_payload());
+					// As in `post_with_state`: a server that has not cached a value
+					// the client referred to asks for it in full, once.
+					if (response.status === 409) {
+						const missing = (await response.json().catch(() => null))?.detail
+							?.missing_state;
+						if (Array.isArray(missing)) {
+							response = await post(state_payload(missing));
+						}
+					}
 				} catch (e) {
 					if (controller.signal.aborted) {
-						close();
+						if (!own_stream_cancelled && !options.resume_sessions) close();
 					} else {
 						report_join_error({ error: BROKEN_CONNECTION_MSG }, 500);
 					}
@@ -560,9 +697,16 @@ export function submit(
 						if (done) break;
 						if (!message.data) continue;
 						const data = JSON.parse(message.data);
-						if (!event_id && data.event_id) {
+						if (!own_stream_callback && data.event_id) {
 							event_id = data.event_id as string;
 							event_id_final = event_id;
+							if (options.resume_sessions) {
+								track_resumable_event(config, session_hash, {
+									event_id,
+									fn_index
+								});
+							}
+							own_stream_callback = create_queue_callback(event_id);
 							on_event_id();
 						}
 						if (
@@ -579,12 +723,33 @@ export function submit(
 				if (own_stream_finished) return;
 				if (controller.signal.aborted) {
 					// By `cancel`, which reports the completion itself, or by
-					// `Client.close`, which ends the submission quietly.
-					if (!own_stream_cancelled) close();
+					// `Client.close`. When sessions resume, that is the page
+					// unloading: the submission stays open, as on the session
+					// stream, since ending it would acknowledge the event and so
+					// stop the next page from resuming it. Otherwise it ends quietly.
+					if (!own_stream_cancelled && !options.resume_sessions) close();
+				} else if (!own_stream_callback || !event_id) {
+					report_join_error({ error: BROKEN_CONNECTION_MSG }, 500);
+				} else if (options.resume_sessions) {
+					// The server keeps the event for this page: follow it on the
+					// session stream, which replays what it sent, as after a refresh.
+					own_stream_active = false;
+					delete pending_diff_streams[event_id];
+					that.events_to_resume.add(event_id);
+					if (stream_status.open) {
+						// Reopened with the ids of the events to resume
+						close_stream(stream_status, that.abort_controller);
+						unclosed_events.forEach((id) => {
+							that.events_to_resume.add(id);
+							delete pending_diff_streams[id];
+						});
+					}
+					await register_queue_event(event_id);
 				} else {
 					deliver({ msg: "broken_connection", message: BROKEN_CONNECTION_MSG });
 				}
 			} finally {
+				own_stream_active = false;
 				that.own_stream_controllers.delete(controller);
 			}
 		}
@@ -594,6 +759,18 @@ export function submit(
 			resolved_data,
 			endpoint_info
 		).then(async (_payload) => {
+			if (resume_event_id) {
+				fire_event({
+					type: "status",
+					stage: "pending",
+					queue: true,
+					endpoint: _endpoint,
+					fn_index,
+					time: new Date()
+				});
+				await register_queue_event(resume_event_id);
+				return;
+			}
 			let input_data = handle_payload(
 				_payload,
 				dependency,
@@ -602,6 +779,11 @@ export function submit(
 				true
 			);
 			update_run_inputs(history_scope, history_run_id, input_data || []);
+			that.session_store.record(
+				dependency.inputs,
+				input_data || [],
+				config.components
+			);
 			payload = {
 				data: input_data || [],
 				event_data,
@@ -621,7 +803,7 @@ export function submit(
 					time: new Date()
 				});
 
-				post_data(
+				post_with_state(
 					`${config.root}${api_prefix}/run${
 						_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 					}${url_params ? "?" + url_params : ""}`,
@@ -635,6 +817,12 @@ export function submit(
 						const data = output.data;
 
 						if (status_code == 200) {
+							that.session_store.apply(output.state);
+							that.session_store.record(
+								dependency.outputs,
+								data || [],
+								config.components
+							);
 							fire_event({
 								type: "data",
 								endpoint: _endpoint,
@@ -836,7 +1024,7 @@ export function submit(
 					time: new Date()
 				});
 				const post_data_promise = get_join_headers().then((combined_headers) =>
-					post_data(
+					post_with_state(
 						`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
 						{
 							...payload,
@@ -854,18 +1042,13 @@ export function submit(
 					if (!report_join_error(response, status)) {
 						event_id = response.event_id as string;
 						event_id_final = event_id;
-						if (event_id in pending_stream_messages) {
-							pending_stream_messages[event_id].forEach((msg) =>
-								handle_queue_message(msg)
-							);
-							delete pending_stream_messages[event_id];
+						if (options.resume_sessions) {
+							track_resumable_event(config, session_hash, {
+								event_id,
+								fn_index
+							});
 						}
-						// @ts-ignore
-						event_callbacks[event_id] = handle_queue_message;
-						unclosed_events.add(event_id);
-						if (!stream_status.open) {
-							await this.open_stream();
-						}
+						await register_queue_event(event_id);
 					}
 				});
 			} else if (protocol == "sse_v4") {
@@ -990,7 +1173,8 @@ export function submit(
 			wait_for_id: async () => {
 				await job;
 				return event_id;
-			}
+			},
+			acknowledge
 		};
 
 		return iterator;

@@ -18,6 +18,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
+import weakref
 from collections import deque
 from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import Future
@@ -27,7 +28,7 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 import httpx2
 import huggingface_hub
@@ -57,9 +58,19 @@ from gradio_client.utils import (
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
 )
+SESSION_RESUME_TTL_SECONDS = 3600
+
+HEARTBEAT_RETRY_DELAY_MIN = 1
+HEARTBEAT_RETRY_DELAY_MAX = 60
+HEARTBEAT_RETRY_RESET_AFTER = 30
 
 
-@document("predict", "submit", "view_api", "duplicate")
+class ResumableJob(TypedDict):
+    event_id: str
+    fn_index: int
+
+
+@document("predict", "submit", "resume_jobs", "view_api", "duplicate")
 class Client:
     """
     The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
@@ -89,6 +100,8 @@ class Client:
         headers: dict[str, str] | None = None,
         download_files: str | Path | Literal[False] = DEFAULT_TEMP_DIR,
         ssl_verify: bool = True,
+        session_hash: str | None = None,
+        resume_sessions: bool = False,
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
         analytics_enabled: bool = True,
         oauth_token: str | None = None,
@@ -102,6 +115,8 @@ class Client:
             headers: additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
             download_files: directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: if False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
+            session_hash: Session hash from a previous Client whose queued jobs should be resumed.
+            resume_sessions: If True, active queued jobs are retained and automatically reattached after temporary network interruptions.
             httpx_kwargs: additional keyword arguments to pass to `httpx2.Client`, `httpx2.stream`, `httpx2.get` and `httpx2.post`. This can be used to set timeouts, proxies, http auth, etc.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             oauth_token: optional Hugging Face token for the app to act on your behalf, for endpoints whose function takes a `gr.OAuthToken`. Unlike `token`, which only authenticates you to the app, this is passed to the app's code, so it is sent only to endpoints that declare they need it — `view_api()` marks those. It is never sent anywhere else, and is not inferred from your locally saved token.
@@ -168,11 +183,14 @@ class Client:
         self.config = self._get_config()
         # sse_v4 streams each event on the request that submits it. Servers that
         # support it keep advertising sse_v3 as "protocol" for older clients.
+        # This client resumes jobs only through the session stream, so it stays
+        # on that when resuming sessions.
         self.protocol: Literal[
             "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"
         ] = (
             "sse_v4"
             if "sse_v4" in self.config.get("supported_protocols", [])
+            and not resume_sessions
             else self.config.get("protocol", "ws")
         )
         api_prefix: str = self.config.get("api_prefix", "")
@@ -199,7 +217,8 @@ class Client:
         self.reset_url = urllib.parse.urljoin(self.src_prefixed, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
-        self.session_hash = str(uuid.uuid4())
+        self.session_hash = session_hash or str(uuid.uuid4())
+        self.resume_sessions = resume_sessions
 
         self.endpoints = {
             dependency.get("id", fn_index): Endpoint(
@@ -232,8 +251,13 @@ class Client:
         self._refresh_heartbeat = threading.Event()
         self._kill_heartbeat = threading.Event()
 
-        self.heartbeat = threading.Thread(target=self._stream_heartbeat, daemon=True)
-        self.heartbeat.start()
+        self.heartbeat = threading.Thread(
+            target=Client._stream_heartbeat,
+            args=(weakref.ref(self), self._refresh_heartbeat, self._kill_heartbeat),
+            daemon=True,
+        )
+        if self.config.get("connect_heartbeat", True):
+            self.heartbeat.start()
 
         self.stream_open = False
         self.streaming_future: Future | None = None
@@ -244,66 +268,120 @@ class Client:
         self.pending_lock = threading.Lock()
         self.stream_epoch = 0
         self.pending_event_epoch: dict[str, int] = {}
+        self._closed = False
 
     def close(self):
+        self._closed = True
         self._kill_heartbeat.set()
-        self.heartbeat.join(timeout=1)
+        if self.heartbeat.is_alive():
+            self.heartbeat.join(timeout=1)
 
-    def _stream_heartbeat(self):
-        while True:
-            url = self.heartbeat_url.format(session_hash=self.session_hash)
+    @staticmethod
+    def _stream_heartbeat(
+        client_ref: weakref.ref[Client],
+        refresh_heartbeat: threading.Event,
+        kill_heartbeat: threading.Event,
+    ):
+        retry_delay = HEARTBEAT_RETRY_DELAY_MIN
+        while not kill_heartbeat.is_set():
+            client = client_ref()
+            if client is None:
+                return
+            refresh_heartbeat.clear()
+            url = client.heartbeat_url.format(session_hash=client.session_hash)
+            httpx_kwargs = client.httpx_kwargs.copy()
+            httpx_kwargs.setdefault("timeout", 20)
+            headers, cookies, ssl_verify = (
+                client.headers,
+                client.cookies,
+                client.ssl_verify,
+            )
+            del client
+            refreshed = False
             try:
-                httpx_kwargs = self.httpx_kwargs.copy()
-                httpx_kwargs.setdefault("timeout", 20)
                 with httpx2.stream(
                     "GET",
                     url,
-                    headers=self.headers,
-                    cookies=self.cookies,
-                    verify=self.ssl_verify,
+                    headers=headers,
+                    cookies=cookies,
+                    verify=ssl_verify,
                     **httpx_kwargs,
                 ) as response:
-                    for _ in response.iter_lines():
-                        if self._refresh_heartbeat.is_set():
-                            self._refresh_heartbeat.clear()
-                            break
-                        if self._kill_heartbeat.is_set():
-                            return
+                    retryable = response.is_server_error or response.status_code == 429
+                    if not response.is_success and not retryable:
+                        return
+                    is_event_stream = response.headers.get(
+                        "content-type", ""
+                    ).startswith("text/event-stream")
+                    if response.is_success and is_event_stream:
+                        stream_started = time.monotonic()
+                        for _ in response.iter_lines():
+                            if (
+                                time.monotonic() - stream_started
+                                >= HEARTBEAT_RETRY_RESET_AFTER
+                            ):
+                                retry_delay = HEARTBEAT_RETRY_DELAY_MIN
+                            if kill_heartbeat.is_set():
+                                return
+                            if refresh_heartbeat.is_set():
+                                refreshed = True
+                                break
             except httpx2.TransportError:
                 return
+            if refreshed:
+                continue
+            if kill_heartbeat.wait(retry_delay):
+                return
+            retry_delay = min(retry_delay * 2, HEARTBEAT_RETRY_DELAY_MAX)
 
     def stream_messages(
         self,
         protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
         session_hash: str,
+        resume_event_ids: list[str] | None = None,
     ) -> None:
-        try:
-            httpx_kwargs = self.httpx_kwargs.copy()
-            httpx_kwargs.setdefault("timeout", httpx2.Timeout(timeout=None))
-            with httpx2.Client(
-                verify=self.ssl_verify,
-                **httpx_kwargs,
-            ) as client:
-                with client.stream(
-                    "GET",
-                    self.sse_url,
-                    params={"session_hash": session_hash},
-                    headers=self.headers,
-                    cookies=self.cookies,
-                ) as response:
-                    buffer = b""
-                    for chunk in response.iter_bytes():
-                        buffer += chunk
-                        while b"\n\n" in buffer:
-                            line, buffer = buffer.split(b"\n\n", 1)
-                            line = line.decode("utf-8").rstrip("\n")
-                            if not len(line):
-                                continue
-                            if line.startswith("data:"):
+        reconnect_deadline = None
+        # Messages received per event, so that when a reconnect replays an
+        # event's messages from the start, the ones already received are skipped
+        received: dict[str, int] = {}
+        skip: dict[str, int] = {}
+        while not self._closed:
+            connected = False
+            try:
+                httpx_kwargs = self.httpx_kwargs.copy()
+                httpx_kwargs.setdefault("timeout", httpx2.Timeout(timeout=None))
+                with httpx2.Client(
+                    verify=self.ssl_verify,
+                    **httpx_kwargs,
+                ) as client:
+                    with client.stream(
+                        "GET",
+                        self.sse_url,
+                        params={
+                            "session_hash": session_hash,
+                            "resume_event_id": resume_event_ids or [],
+                            "acknowledgements": self.resume_sessions,
+                        },
+                        headers=self.headers,
+                        cookies=self.cookies,
+                    ) as response:
+                        response.raise_for_status()
+                        connected = True
+                        resume_event_ids = None
+                        buffer = b""
+                        for chunk in response.iter_bytes():
+                            buffer += chunk
+                            while b"\n\n" in buffer:
+                                line, buffer = buffer.split(b"\n\n", 1)
+                                line = line.decode("utf-8").rstrip("\n")
+                                if not len(line):
+                                    continue
+                                if not line.startswith("data:"):
+                                    raise ValueError(f"Unexpected SSE line: '{line}'")
                                 resp = json.loads(line[5:])
                                 if resp["msg"] == ServerMessage.heartbeat:
                                     continue
-                                elif (
+                                if (
                                     resp.get("message", "")
                                     == ServerMessage.server_stopped
                                 ):
@@ -314,11 +392,18 @@ class Client:
                                     for pending_messages in pending:
                                         pending_messages.append(resp)
                                     return
-                                elif resp["msg"] == ServerMessage.close_stream:
+                                if resp["msg"] == ServerMessage.close_stream:
                                     with self.pending_lock:
                                         self.stream_open = False
                                     return
                                 event_id = resp["event_id"]
+                                if skip.get(event_id) and not resp.get(
+                                    "session_not_found"
+                                ):
+                                    skip[event_id] -= 1
+                                    continue
+                                received[event_id] = received.get(event_id, 0) + 1
+                                acknowledge = False
                                 with self.pending_lock:
                                     if event_id not in self.pending_messages_per_event:
                                         self.pending_messages_per_event[event_id] = (
@@ -330,26 +415,50 @@ class Client:
                                     if resp["msg"] == ServerMessage.process_completed:
                                         # The submitting thread may not have got here yet.
                                         self.pending_event_ids.discard(event_id)
+                                        acknowledge = self.resume_sessions
                                     close = (
                                         len(self.pending_event_ids) == 0
                                         and protocol != "sse_v3"
                                     )
                                     if close:
                                         self.stream_open = False
+                                if acknowledge:
+                                    self._acknowledge_event(event_id)
                                 if close:
                                     return
-                            else:
-                                raise ValueError(f"Unexpected SSE line: '{line}'")
-        except BaseException as e:
-            # If the job is cancelled the stream will close so we
-            # should not raise this httpx2 exception that comes from the
-            # stream abruply closing
-            if isinstance(e, httpx2.RemoteProtocolError):
-                return
-            import traceback
+            except BaseException as e:
+                if self.resume_sessions and isinstance(e, httpx2.TransportError):
+                    # Reconnect below and replay the messages missed meanwhile.
+                    pass
+                elif isinstance(e, httpx2.RemoteProtocolError):
+                    # If the job is cancelled the stream will close so we
+                    # should not raise this httpx2 exception that comes from the
+                    # stream abruply closing
+                    return
+                else:
+                    import traceback
 
-            traceback.print_exc()
-            raise e
+                    traceback.print_exc()
+                    raise e
+
+            with self.pending_lock:
+                has_pending = bool(self.pending_event_ids)
+            if not has_pending:
+                return
+            if not self.resume_sessions:
+                return
+            if connected or reconnect_deadline is None:
+                reconnect_deadline = time.monotonic() + SESSION_RESUME_TTL_SECONDS
+            if time.monotonic() >= reconnect_deadline:
+                return
+            # Ask for the events still pending to be replayed: messages sent
+            # while disconnected would otherwise be lost, and an event the
+            # server no longer knows gets an error instead of waiting forever.
+            with self.pending_lock:
+                pending_ids = list(self.pending_event_ids)
+            resume_event_ids = pending_ids
+            skip = {event_id: received.get(event_id, 0) for event_id in pending_ids}
+            time.sleep(1)
 
     def send_data(self, data, hash_data, protocol, request_headers):
         headers = self.add_zero_gpu_headers(self.headers)
@@ -372,20 +481,30 @@ class Client:
         req.raise_for_status()
         resp = req.json()
         event_id = resp["event_id"]
+        self._register_events([event_id], protocol, hash_data["session_hash"])
+        return event_id
 
+    def _register_events(
+        self,
+        event_ids: list[str],
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
+        session_hash: str,
+        resume_event_ids: list[str] | None = None,
+    ) -> None:
         # Registering must precede opening the stream (the server emits messages
         # as soon as the POST is handled) and share its lock with the decision to
-        # open a reader, so that this event is tagged with the epoch of the reader
-        # responsible for it.
+        # open a reader, so that these events are tagged with the epoch of the
+        # reader responsible for them.
         with self.pending_lock:
             open_reader = not self.stream_open
             if open_reader:
                 self.stream_open = True
                 self.stream_epoch += 1
             epoch = self.stream_epoch
-            self.pending_event_ids.add(event_id)
-            self.pending_messages_per_event.setdefault(event_id, deque())
-            self.pending_event_epoch[event_id] = epoch
+            for event_id in event_ids:
+                self.pending_event_ids.add(event_id)
+                self.pending_messages_per_event.setdefault(event_id, deque())
+                self.pending_event_epoch[event_id] = epoch
             # A completion the reader saw before its event was registered leaves
             # both of these behind, since the id is re-added after the discard.
             live = set(self.pending_messages_per_event)
@@ -400,11 +519,15 @@ class Client:
 
             def open_stream():
                 return self.stream_messages(
-                    protocol, session_hash=hash_data["session_hash"]
+                    protocol,
+                    session_hash=session_hash,
+                    resume_event_ids=resume_event_ids,
                 )
 
-            def close_stream(_):
+            def close_stream(future):
                 with self.pending_lock:
+                    if self.streaming_future is future:
+                        self.streaming_future = None
                     if self.stream_epoch == epoch:
                         # A later submission may already have opened its own
                         # reader, and that one is not ours to close.
@@ -422,7 +545,19 @@ class Client:
             self.streaming_future = self.stream_executor.submit(open_stream)
             self.streaming_future.add_done_callback(close_stream)
 
-        return event_id
+    def _acknowledge_event(self, event_id: str) -> None:
+        try:
+            response = httpx2.post(
+                self.reset_url,
+                json={"event_id": event_id},
+                headers=self.headers,
+                cookies=self.cookies,
+                verify=self.ssl_verify,
+                **self.httpx_kwargs,
+            )
+            response.raise_for_status()
+        except httpx2.HTTPError:
+            pass
 
     def _submit_event_stream(self, data, hash_data, headers) -> str:
         """sse_v4: joins the queue on a request whose response streams this event's
@@ -645,7 +780,7 @@ class Client:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
             from gradio_client import Client
-            client = Client(src="gradio/calculator")
+            client = Client(src="gradio/calculator", resume_sessions=True)
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
         """
@@ -688,7 +823,7 @@ class Client:
             A Job object that can be used to retrieve the status and result of the remote API call.
         Example:
             from gradio_client import Client
-            client = Client(src="gradio/calculator")
+            client = Client(src="gradio/calculator", resume_sessions=True)
             job = client.submit(5, "add", 4, api_name="/predict")
             job.status()
             >> <Status.STARTING: 'STARTING'>
@@ -727,6 +862,7 @@ class Client:
             verbose=self.verbose,
             space_id=self.space_id,
             _cancel_fn=cancel_fn,
+            fn_index=inferred_fn_index,
         )
 
         if result_callbacks:
@@ -746,6 +882,98 @@ class Client:
                 job.add_done_callback(create_fn(callback))
 
         return job
+
+    def resume_jobs(
+        self,
+        jobs: list[ResumableJob],
+        *,
+        session_hash: str | None = None,
+    ) -> list[Job]:
+        """
+        Resumes queued jobs created by the same Gradio app and session.
+
+        Parameters:
+            jobs: The event ID and function index for each queued job to resume.
+            session_hash: The session hash that originally submitted the jobs. Uses this client's current session hash when omitted.
+        Returns:
+            A list of Job objects in the same order as the provided jobs.
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            job = client.submit(5, "add", 4, api_name="/predict")
+            resumable_job = {"event_id": job.wait_for_id(), "fn_index": job.fn_index}
+            session_hash = client.session_hash
+            resumed_job = Client(src="gradio/calculator").resume_jobs(
+                [resumable_job], session_hash=session_hash
+            )[0]
+            resumed_job.result()
+            >> 9.0
+        """
+        if self.protocol not in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"):
+            raise ValueError(f"Cannot resume jobs using protocol: {self.protocol}")
+        if self.protocol == "sse_v4":
+            # Jobs resume on the session stream, and from now on this client
+            # resumes sessions, which it only does on that stream.
+            self.protocol = self.config.get("protocol", "sse_v3")
+            for endpoint in self.endpoints.values():
+                if isinstance(endpoint, Endpoint):
+                    endpoint.protocol = self.protocol
+        if self.stream_open:
+            raise ValueError("Cannot resume jobs while the queue stream is active.")
+        if session_hash is not None and session_hash != self.session_hash:
+            self.session_hash = session_hash
+            self._refresh_heartbeat.set()
+        self.resume_sessions = True
+        resumed_session_hash = self.session_hash
+
+        resumable_jobs: list[tuple[Endpoint, Communicator, str, int]] = []
+        for job_info in jobs:
+            event_id = job_info["event_id"]
+            fn_index = job_info["fn_index"]
+            endpoint = self.endpoints.get(fn_index)
+            if not isinstance(endpoint, Endpoint):
+                raise ValueError(f"No endpoint found for fn_index {fn_index}.")
+            helper = self.new_helper(fn_index, headers={"x-gradio-user": "api"})
+            helper.event_id = event_id
+            resumable_jobs.append((endpoint, helper, event_id, fn_index))
+
+        if resumable_jobs:
+            event_ids = [event_id for _, _, event_id, _ in resumable_jobs]
+            self._register_events(
+                event_ids,
+                self.protocol,
+                resumed_session_hash,
+                resume_event_ids=event_ids,
+            )
+
+        result_jobs = []
+        for endpoint, helper, event_id, fn_index in resumable_jobs:
+
+            def resume_job(
+                endpoint: Endpoint = endpoint,
+                helper: Communicator = helper,
+                event_id: str = event_id,
+            ):
+                result = endpoint._sse_fn_v1plus(helper, event_id, self.protocol)
+                output = endpoint.process_result(result)
+                predictions = endpoint.process_predictions(*output)
+                with helper.lock:
+                    if not helper.job.outputs:
+                        helper.job.outputs.append(predictions)
+                return predictions
+
+            future = self.executor.submit(copy_context().run, resume_job)
+            result_jobs.append(
+                Job(
+                    future,
+                    communicator=helper,
+                    verbose=self.verbose,
+                    space_id=self.space_id,
+                    _cancel_fn=endpoint.make_cancel(helper),
+                    fn_index=fn_index,
+                )
+            )
+        return result_jobs
 
     def _get_api_info(self):
         api_info_url = urllib.parse.urljoin(self.src_prefixed, utils.RAW_API_INFO_URL)
@@ -1066,10 +1294,13 @@ class Client:
         return inferred_fn_index
 
     def __del__(self):
-        if hasattr(self, "executor"):
-            self.executor.shutdown(wait=True)
+        if hasattr(self, "_kill_heartbeat"):
+            self._kill_heartbeat.set()
         # Not wait=True: garbage collecting a client should not block on a reader
-        # that is still waiting on the server.
+        # that is still waiting on the server, and this can run on one of the
+        # executors' own threads, which cannot join themselves.
+        if hasattr(self, "executor"):
+            self.executor.shutdown(wait=False)
         if hasattr(self, "helper_executor"):
             self.helper_executor.shutdown(wait=False)
         if hasattr(self, "stream_executor"):
@@ -1173,7 +1404,7 @@ class Endpoint:
     def __init__(
         self, client: Client, fn_index: int, dependency: dict, protocol: str = "sse_v1"
     ):
-        self.client: Client = client
+        self._client = weakref.ref(client)
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
@@ -1245,6 +1476,20 @@ class Endpoint:
             return False
         return utils.value_is_file(component["api_info"])
 
+    @property
+    def client(self) -> Client:
+        client = self._client()
+        if client is None:
+            raise ValueError(
+                "The Client this endpoint belongs to has been garbage collected."
+            )
+        return client
+
+    @client.setter
+    def client(self, client: Client) -> None:
+        # Only the client's own endpoints hold it weakly, to avoid a cycle.
+        self._client = lambda: client
+
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
 
@@ -1253,12 +1498,13 @@ class Endpoint:
 
     def make_end_to_end_fn(self, helper: Communicator):
         _predict = self.make_predict(helper)
+        client = self.client
 
         def _inner(*data, **kwargs):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
 
-            if self.client._skip_components:
+            if client._skip_components:
                 data = self.insert_empty_state(*data)
             data = self.process_input_files(*data)
             predictions = _predict(*data, **kwargs)
@@ -1280,15 +1526,16 @@ class Endpoint:
     ):
         if helper is None:
             return
-        if self.client.app_version > version.Version("4.29.0"):
-            url = urllib.parse.urljoin(self.client.src_prefixed, utils.CANCEL_URL)
+        client = self.client
+        if client.app_version > version.Version("4.29.0"):
+            url = urllib.parse.urljoin(client.src_prefixed, utils.CANCEL_URL)
 
             # The event_id won't be set on the helper until later
             # so need to create the data in a function that's run at cancel time
             def post_data():
                 return {
                     "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
+                    "session_hash": client.session_hash,
                     "event_id": helper.event_id,
                 }
 
@@ -1296,7 +1543,7 @@ class Endpoint:
             cancellable = True
         else:
             candidates: list[tuple[int, list[int]]] = []
-            for i, dep in enumerate(self.client.config["dependencies"]):
+            for i, dep in enumerate(client.config["dependencies"]):
                 if self.fn_index in dep["cancels"]:
                     candidates.append(
                         (i, [d for d in dep["cancels"] if d != self.fn_index])
@@ -1309,7 +1556,7 @@ class Endpoint:
             cancel_msg = None
             if cancellable and other_cancelled:
                 other_api_names = [
-                    "/" + self.client.config["dependencies"][i].get("api_name")
+                    "/" + client.config["dependencies"][i].get("api_name")
                     for i in other_cancelled
                 ]
                 cancel_msg = (
@@ -1327,10 +1574,10 @@ class Endpoint:
                 return {
                     "data": [],
                     "fn_index": fn_index,
-                    "session_hash": self.client.session_hash,
+                    "session_hash": client.session_hash,
                 }
 
-            url = self.client.api_url
+            url = client.api_url
 
         def _cancel():
             if cancel_msg:
@@ -1339,19 +1586,22 @@ class Endpoint:
                 httpx2.post(
                     url,
                     json=post_data(),
-                    headers=self.client.headers,
-                    cookies=self.client.cookies,
-                    verify=self.client.ssl_verify,
-                    **self.client.httpx_kwargs,
+                    headers=client.headers,
+                    cookies=client.cookies,
+                    verify=client.ssl_verify,
+                    **client.httpx_kwargs,
                 )
             if self.protocol == "sse_v4":
-                # Closing the event's request cancels it on the process running
-                # it, even when the POST above reached a different one.
-                self.client.close_event_stream(helper.event_id)
+                # This client does not resume events, so closing the event's
+                # request cancels it on the process running it, even when the
+                # POST above reached a different one.
+                client.close_event_stream(helper.event_id)
 
         return _cancel
 
     def make_predict(self, helper: Communicator):
+        client = self.client
+
         def _predict(*data, **kwargs) -> tuple:
             data = {
                 "data": data or [],
@@ -1363,13 +1613,13 @@ class Endpoint:
 
             hash_data = {
                 "fn_index": self.fn_index,
-                "session_hash": kwargs.get("session_hash", self.client.session_hash),
+                "session_hash": kwargs.get("session_hash", client.session_hash),
             }
 
             if self.protocol == "sse":
                 result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"):
-                event_id = self.client.send_data(
+                event_id = client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
                 helper.event_id = event_id
@@ -1377,37 +1627,40 @@ class Endpoint:
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
-            if "error" in result:
-                if result["error"] is None:
-                    raise AppError(
-                        "The upstream Gradio app has raised an exception but has not enabled "
-                        "verbose error reporting. To enable, set show_error=True in launch()."
-                    )
-                else:
-                    message = result.pop("error")
-                    raise AppError(message=message, **result)
-
-            try:
-                output = result["data"]
-            except KeyError as ke:
-                is_public_space = (
-                    self.client.space_id
-                    and not huggingface_hub.space_info(self.client.space_id).private
-                )
-                if "error" in result and "429" in result["error"] and is_public_space:
-                    raise utils.TooManyRequestsError(
-                        f"Too many requests to the API, please try again later. To avoid being rate-limited, "
-                        f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
-                        f"and pass in your Hugging Face token."
-                    ) from None
-                elif "error" in result:
-                    raise ValueError(result["error"]) from None
-                raise KeyError(
-                    f"Could not find 'data' key in response. Response received: {result}"
-                ) from ke
-            return tuple(output)
+            return self.process_result(result)
 
         return _predict
+
+    def process_result(self, result: dict[str, Any]) -> tuple:
+        if "error" in result:
+            if result["error"] is None:
+                raise AppError(
+                    "The upstream Gradio app has raised an exception but has not enabled "
+                    "verbose error reporting. To enable, set show_error=True in launch()."
+                )
+            else:
+                message = result.pop("error")
+                raise AppError(message=message, **result)
+
+        try:
+            output = result["data"]
+        except KeyError as ke:
+            is_public_space = (
+                self.client.space_id
+                and not huggingface_hub.space_info(self.client.space_id).private
+            )
+            if "error" in result and "429" in result["error"] and is_public_space:
+                raise utils.TooManyRequestsError(
+                    f"Too many requests to the API, please try again later. To avoid being rate-limited, "
+                    f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
+                    f"and pass in your Hugging Face token."
+                ) from None
+            elif "error" in result:
+                raise ValueError(result["error"]) from None
+            raise KeyError(
+                f"Could not find 'data' key in response. Response received: {result}"
+            ) from ke
+        return tuple(output)
 
     def insert_empty_state(self, *data) -> tuple:
         data = list(data)
@@ -1652,7 +1905,7 @@ class Endpoint:
         )
 
 
-@document("result", "outputs", "status")
+@document("result", "outputs", "status", "wait_for_id")
 class Job(Future):
     """
     A Job is a wrapper over the Future class that represents a prediction call that has been
@@ -1671,6 +1924,7 @@ class Job(Future):
         verbose: bool = True,
         space_id: str | None = None,
         _cancel_fn: Callable[[], None] | None = None,
+        fn_index: int | None = None,
     ):
         """
         Parameters:
@@ -1678,6 +1932,7 @@ class Job(Future):
             communicator: The communicator object that is used to communicate between the client and the background thread running the job
             verbose: Whether to print any status-related messages to the console
             space_id: The space ID corresponding to the Client object that created this Job object
+            fn_index: The function index of the API endpoint for this job
         """
         self.future = future
         self.communicator = communicator
@@ -1685,6 +1940,7 @@ class Job(Future):
         self.verbose = verbose
         self.space_id = space_id
         self.cancel_fn = _cancel_fn
+        self.fn_index = fn_index
 
     def __iter__(self) -> Job:
         return self
@@ -1737,6 +1993,27 @@ class Job(Future):
             >> 9
         """
         return super().result(timeout=timeout)
+
+    def wait_for_id(self, timeout: float | None = None) -> str:
+        """
+        Wait until the server assigns an event ID to this job.
+
+        Parameters:
+            timeout: The number of seconds to wait. If None, there is no limit.
+        Returns:
+            The server-assigned event ID.
+        """
+        if not self.communicator:
+            raise ValueError("This job does not have an event ID.")
+        deadline = None if timeout is None else time.monotonic() + timeout
+        while self.communicator.event_id is None:
+            if self.done():
+                self.result()
+                raise ValueError("This job did not receive an event ID.")
+            if deadline is not None and time.monotonic() >= deadline:
+                raise TimeoutError()
+            time.sleep(0.01)
+        return self.communicator.event_id
 
     def outputs(self) -> list[tuple | Any]:
         """

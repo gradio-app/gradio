@@ -176,7 +176,7 @@ describe("sse_v4: one request per event", () => {
 		});
 	});
 
-	test("cancel() aborts the event's request rather than calling /cancel", async () => {
+	test("cancel() aborts the event's request and still asks the server to cancel it", async () => {
 		// As the Gradio frontend connects.
 		const app = await connect_v4({ with_null_state: true });
 		let cancel_calls = 0;
@@ -208,8 +208,87 @@ describe("sse_v4: one request per event", () => {
 			{ type: "status", stage: "complete" }
 		]);
 		expect(events.some((event) => event.stage === "error")).toBe(false);
-		expect(cancel_calls).toBe(0);
+		// A server that keeps events for pages that resume does not stop one
+		// just because its request closed.
+		expect(cancel_calls).toBe(1);
 		await vi.waitFor(() => expect(app.own_stream_controllers.size).toBe(0));
+	});
+
+	test("retries a join the server answers with 409 missing_state", async () => {
+		const app = await connect_v4();
+		let joins = 0;
+		server.use(
+			http.post(`${direct_space_url}/queue/join`, () => {
+				joins += 1;
+				if (joins === 1) {
+					return HttpResponse.json(
+						{ detail: { missing_state: [2] } },
+						{ status: 409 }
+					);
+				}
+				return event_stream([
+					{
+						msg: "process_completed",
+						event_id: "ev7",
+						success: true,
+						output: { data: ["done"], is_generating: false }
+					}
+				]);
+			})
+		);
+
+		const events = await within(
+			collect(app.submit("/predict", ["hi"])),
+			"the retried event never finished"
+		);
+
+		expect(joins).toBe(2);
+		expect(events.at(-1)).toMatchObject({ type: "status", stage: "complete" });
+	});
+
+	test("with resume_sessions, a dropped stream resumes on the session stream", async () => {
+		const app = await connect_v4({ resume_sessions: true });
+		let join_url = "";
+		let resume_url = "";
+		server.use(
+			http.post(`${direct_space_url}/queue/join`, ({ request }) => {
+				join_url = request.url;
+				// The request drops before the event completes
+				return event_stream([
+					{ msg: "estimation", event_id: "ev6", rank: 0, queue_size: 1 },
+					{ msg: "process_starts", event_id: "ev6" }
+				]);
+			}),
+			http.get(`${direct_space_url}/queue/data`, ({ request }) => {
+				resume_url = request.url;
+				return event_stream([
+					{ msg: "process_starts", event_id: "ev6" },
+					{
+						msg: "process_completed",
+						event_id: "ev6",
+						success: true,
+						output: { data: ["resumed"], is_generating: false }
+					},
+					{ msg: "close_stream" }
+				]);
+			})
+		);
+
+		const events = await within(
+			collect(app.submit("/predict", ["hi"])),
+			"the dropped event was not resumed"
+		);
+
+		expect(new URL(join_url).searchParams.get("acknowledgements")).toBe("true");
+		const resume = new URL(resume_url).searchParams;
+		expect(resume.getAll("resume_event_id")).toEqual(["ev6"]);
+		expect(resume.get("acknowledgements")).toBe("true");
+		expect(events.some((event) => event.broken)).toBe(false);
+		expect(
+			events.filter((event) => event.type === "data").at(-1)?.data
+		).toEqual(["resumed"]);
+		expect(events.at(-1)).toMatchObject({ type: "status", stage: "complete" });
+		app.close();
 	});
 
 	test("reports a stream that ends before the event completes as a broken connection", async () => {

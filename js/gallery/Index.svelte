@@ -90,6 +90,12 @@
 		}
 	});
 
+	$effect(() => {
+		if (!active_source || !sources.includes(active_source)) {
+			active_source = sources[0];
+		}
+	});
+
 	async function paste_clipboard(): Promise<void> {
 		navigator.clipboard.read().then(async (items) => {
 			let file: File | null = null;
@@ -167,15 +173,23 @@
 			gradio.dispatch("clear_status", gradio.shared.loading_status)}
 	/>
 	{#if gradio.shared.interactive && no_value}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class={!gradio.props.value ||
 			(active_source && active_source.includes("webcam"))
 				? "hidden-upload-input"
 				: "upload-wrapper"}
+			onclick={active_source === "clipboard" ? paste_clipboard : undefined}
 		>
 			<BaseFileUpload
 				bind:upload_promise
 				bind:this={upload_input}
+				disable_click={!sources.includes("upload") ||
+					active_source === "clipboard"}
+				aria_label={active_source === "clipboard"
+					? gradio.i18n("upload_text.paste_clipboard")
+					: undefined}
 				value={null}
 				root={gradio.shared.root}
 				label={gradio.shared.label}
@@ -198,7 +212,11 @@
 					gradio.dispatch("error", detail);
 				}}
 			>
-				<UploadText i18n={gradio.i18n} type="gallery" />
+				{#if active_source === "clipboard"}
+					<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
+				{:else}
+					<UploadText i18n={gradio.i18n} type="gallery" />
+				{/if}
 			</BaseFileUpload>
 		</div>
 		{#if active_source === "webcam"}
@@ -217,7 +235,7 @@
 					active_source = null;
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				mirror_webcam={true}
+				mirror_webcam="auto"
 				streaming={false}
 				mode="image"
 				include_audio={false}
@@ -237,7 +255,7 @@
 					active_source = null;
 					gradio.dispatch("change", gradio.props.value);
 				}}
-				mirror_webcam={true}
+				mirror_webcam="auto"
 				streaming={false}
 				mode="video"
 				include_audio={false}
@@ -256,7 +274,10 @@
 	{:else}
 		<Gallery
 			onchange={() => gradio.dispatch("change")}
-			onclear={() => gradio.dispatch("change")}
+			onclear={() => {
+				active_source = sources[0];
+				gradio.dispatch("change");
+			}}
 			onselect={(e) => gradio.dispatch("select", e)}
 			onshare={(e) => gradio.dispatch("share", e.detail)}
 			onerror={(e) => gradio.dispatch("error", e.detail)}

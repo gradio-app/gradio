@@ -1,3 +1,6 @@
+import numpy as np
+import PIL.Image
+
 import gradio as gr
 from gradio.components.image_editor import EditorData, EditorValue
 from gradio.data_classes import FileData
@@ -44,7 +47,7 @@ class TestImageEditor:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
-            "webcam_options": {"constraints": None, "mirror": True},
+            "webcam_options": {"constraints": None, "mirror": "auto"},
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
@@ -89,6 +92,40 @@ class TestImageEditor:
         assert config["brush"] is False
         assert config["eraser"] is False
         assert config["transforms"] == ["crop"]
+
+    def test_transparency_flattened_on_white_for_modes_without_alpha(self, tmp_path):
+        # A canvas export stores (0, 0, 0, 0) under transparency, an untouched
+        # upload keeps whatever RGB the file had there.
+        image = PIL.Image.new("RGBA", (4, 1), (0, 255, 0, 0))
+        image.putpixel((1, 0), (0, 0, 0, 0))
+        image.putpixel((2, 0), (200, 0, 0, 255))
+        image.putpixel((3, 0), (0, 0, 0, 255))
+        path = str(tmp_path / "image.png")
+        image.save(path)
+        data = EditorData(
+            background=FileData(path=path),
+            layers=[FileData(path=path)],
+            composite=FileData(path=path),
+        )
+
+        def preprocess(image_mode, key):
+            value = gr.ImageEditor(image_mode=image_mode).preprocess(data)
+            assert value is not None
+            array = value["layers"][0] if key == "layers" else value[key]
+            assert isinstance(array, np.ndarray)
+            return array[0].tolist()
+
+        expected = [[255, 255, 255], [255, 255, 255], [200, 0, 0], [0, 0, 0]]
+        assert preprocess("RGB", "background") == expected
+        assert preprocess("RGB", "composite") == expected
+        assert preprocess("RGB", "layers") == [
+            [0, 255, 0],
+            [0, 0, 0],
+            [200, 0, 0],
+            [0, 0, 0],
+        ]
+        assert preprocess("L", "background")[:2] == [255, 255]
+        assert [p[3] for p in preprocess("RGBA", "background")] == [0, 0, 255, 255]
 
     def test_process_example(self):
         test_image_path = "test/test_files/bus.png"

@@ -13,35 +13,61 @@ export async function open_stream(this: Client): Promise<void> {
 	} = this;
 
 	const that = this;
-
 	if (!config) {
 		throw new Error("Could not resolve app config");
+	}
+
+	if (stream_status.open) {
+		return;
+	}
+
+	if (this.stream_reconnect_timer) {
+		clearTimeout(this.stream_reconnect_timer);
+		this.stream_reconnect_timer = null;
 	}
 
 	stream_status.open = true;
 
 	let stream: EventSource | null = null;
 	let params = new URLSearchParams({
-		session_hash: this.session_hash
-	}).toString();
+		session_hash: this.session_hash,
+		acknowledgements: this.options.resume_sessions ? "true" : "false"
+	});
+	this.events_to_resume.forEach((event_id) => {
+		params.append("resume_event_id", event_id);
+	});
+	this.events_to_resume.clear();
 
-	let url = new URL(`${config.root}${this.api_prefix}/${SSE_URL}?${params}`);
+	let url = new URL(
+		`${config.root}${this.api_prefix}/${SSE_URL}?${params.toString()}`
+	);
 
 	if (jwt) {
 		url.searchParams.set("__sign", jwt);
 	}
 
 	stream = this.stream(url);
+	const abort_controller = this.abort_controller;
 
 	if (!stream) {
 		console.warn("Cannot connect to SSE endpoint: " + url.toString());
+		// Otherwise no later call could open one
+		stream_status.open = false;
 		return;
 	}
 
 	stream.onmessage = async function (event: MessageEvent) {
+		if (that.stream_instance !== stream) {
+			return;
+		}
+		that.stream_reconnect_attempts = 0;
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_status, that.abort_controller);
+			that.stream_instance = null;
+			close_stream(stream_status, abort_controller);
+			if (!that.closed && unclosed_events.size > 0) {
+				await that.open_stream();
+			}
 			return;
 		}
 		const event_id = _data.event_id;
@@ -67,10 +93,7 @@ export async function open_stream(this: Client): Promise<void> {
 				typeof document !== "undefined" &&
 				document.visibilityState !== "hidden"
 			) {
-				// Put the event at the end of the event loop so the browser can refresh
-				// between callbacks and not freeze during quick generations. Hidden tabs
-				// throttle timers, so process those messages immediately instead.
-				setTimeout(fn, 0, _data); // See https://github.com/gradio-app/gradio/pull/7055
+				setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 			} else {
 				fn(_data);
 			}
@@ -82,15 +105,56 @@ export async function open_stream(this: Client): Promise<void> {
 		}
 	};
 	stream.onerror = async function (e) {
-		console.error(e);
-		await Promise.all(
-			Object.keys(event_callbacks).map((event_id) =>
-				event_callbacks[event_id]({
-					msg: "broken_connection",
-					message: BROKEN_CONNECTION_MSG
-				})
-			)
-		);
+		if (that.stream_instance !== stream) {
+			return;
+		}
+		// Closing the client (e.g. when the page is unloaded) aborts the stream
+		if (!that.closed) console.error(e);
+		if (!that.options.resume_sessions) {
+			// Without resuming, the server drops the session's events when the
+			// stream breaks, so tell them the connection is gone.
+			await Promise.all(
+				Object.keys(event_callbacks).map((event_id) =>
+					event_callbacks[event_id]({
+						msg: "broken_connection",
+						message: BROKEN_CONNECTION_MSG
+					})
+				)
+			);
+			return;
+		}
+		close_stream(stream_status, abort_controller);
+		unclosed_events.forEach((event_id) => {
+			that.events_to_resume.add(event_id);
+			delete that.pending_diff_streams[event_id];
+		});
+
+		if (
+			that.closed ||
+			that.stream_reconnect_timer ||
+			(unclosed_events.size === 0 && Object.keys(event_callbacks).length === 0)
+		) {
+			return;
+		}
+
+		const delay = Math.min(500 * 2 ** that.stream_reconnect_attempts, 5000);
+		that.stream_reconnect_attempts += 1;
+
+		that.stream_reconnect_timer = setTimeout(async () => {
+			that.stream_reconnect_timer = null;
+			if (
+				that.closed ||
+				(unclosed_events.size === 0 &&
+					Object.keys(event_callbacks).length === 0)
+			) {
+				return;
+			}
+			try {
+				await that.open_stream();
+			} catch (error) {
+				stream?.onerror?.(error as Event);
+			}
+		}, delay);
 	};
 }
 
@@ -233,7 +297,9 @@ export function readable_stream(
 			}
 		})
 		.catch((e) => {
-			console.error(e);
+			if ((e as Error)?.name !== "AbortError") {
+				console.error(e);
+			}
 			instance.onerror && instance.onerror(e as Event);
 			instance.readyState = instance.CLOSED;
 		});

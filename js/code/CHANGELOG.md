@@ -1,5 +1,16 @@
 # @gradio/code
 
+## 0.20.0
+
+### Features
+
+- [`3111c06`](https://github.com/gradio-app/gradio/commit/3111c069d59ccd4ed5b4d2118baa8ada62569bfd) - Add height/max_height to gr.Accordion and gr.Tab, fix gr.Code max_lines.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/upload@0.19.0
+- @gradio/statustracker@0.15.4
+
 ## 0.19.0
 
 ### Dependency updates

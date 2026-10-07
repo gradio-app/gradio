@@ -414,7 +414,13 @@ def get_pred_from_sse_v1plus(
     for future in done:
         exception = future.exception()
         if exception:
-            raise exception
+            # Otherwise the traceback, through this frame, keeps a cycle holding
+            # the client alive until the cycle collector runs.
+            del future, future_cancel, future_sse, done
+            try:
+                raise exception
+            finally:
+                del exception
         return future.result()
 
 
@@ -548,6 +554,10 @@ def stream_sse_v1plus(
 
             if msg is None or helper.thread_complete:
                 raise concurrent.futures.CancelledError()
+
+            if msg["msg"] == ServerMessage.unexpected_error:
+                # e.g. a resumed job that the server no longer has
+                raise ValueError(msg.get("message") or "The server lost this job.")
 
             with helper.lock:
                 log_message = None

@@ -2228,3 +2228,12 @@ def set_default_buttons(
     else:
         [btn.unrender() for btn in buttons if isinstance(btn, Button)]
         return buttons
+
+
+def resolve_resume_sessions(resume_sessions: bool | None) -> bool:
+    """The `resume_sessions` setting of `launch()`, falling back to the
+    GRADIO_RESUME_SESSIONS environment variable, and to True."""
+    if resume_sessions is not None:
+        return resume_sessions
+    value = os.environ.get("GRADIO_RESUME_SESSIONS", "True").strip().lower()
+    return value not in ("false", "0", "no", "off")
