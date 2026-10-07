@@ -674,7 +674,9 @@ class TestQueuedEventsAndStreams:
             demo._queue.event_ids_to_events.pop("streaming-event", None)
 
 
-def test_session_status_says_whether_the_server_has_the_session(launch):
+def test_session_status_says_whether_the_server_has_the_session(
+    launch, monkeypatch
+):
     with gr.Blocks() as demo:
         t = gr.Textbox()
         t.submit(lambda x: x, t, t)
@@ -689,6 +691,16 @@ def test_session_status_says_whether_the_server_has_the_session(launch):
             json={"data": ["hi"], "fn_index": 0, "session_hash": "fresh"},
         )
         assert status("fresh") is True
+
+        def persists() -> bool:
+            return client.get(
+                f"{API_PREFIX}/session_status", params={"session_hash": "x"}
+            ).json()["state_persists"]
+
+        monkeypatch.delenv("GRADIO_SECRET_KEY", raising=False)
+        assert persists() is False
+        monkeypatch.setenv("GRADIO_SECRET_KEY", "shared")
+        assert persists() is True
 
 
 def test_unload_runs_once_until_the_session_comes_back(launch):

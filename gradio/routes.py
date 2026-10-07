@@ -77,7 +77,12 @@ from gradio import (
     utils,
 )
 from gradio.brotli_middleware import BrotliMiddleware
-from gradio.client_state import ClientState, MissingStateError, StateCache
+from gradio.client_state import (
+    ClientState,
+    MissingStateError,
+    StateCache,
+    has_shared_secret,
+)
 from gradio.context import Context
 from gradio.data_classes import (
     APIInfo,
@@ -888,8 +893,13 @@ class App(FastAPI):
             """Whether this server still has a session, e.g. for a reloaded page
             that resumed it: if not (the server restarted, or the page reached
             another replica), what the page's load events set up on the server
-            is gone, so they have to run again."""
-            return {"known": session_hash in app.state_holder}
+            is gone, so they have to run again. `state_persists` says whether
+            this server can read gr.State tokens sealed by another process: if
+            it cannot, a session it does not know cannot carry on at all."""
+            return {
+                "known": session_hash in app.state_holder,
+                "state_persists": has_shared_secret(),
+            }
 
         @app.get("/gradio_api/deep_link", dependencies=[Depends(login_check)])
         def deep_link(session_hash: str):

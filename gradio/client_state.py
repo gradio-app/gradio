@@ -123,6 +123,13 @@ _sealers: dict[str | None, StateSealer] = {}
 _sealer_lock = threading.Lock()
 
 
+def has_shared_secret() -> bool:
+    """Whether tokens are sealed with GRADIO_SECRET_KEY, and so can be read by
+    other processes (replicas, or this app after a restart) that share it,
+    rather than with a random key that only this process has."""
+    return bool(os.environ.get("GRADIO_SECRET_KEY"))
+
+
 def get_sealer() -> StateSealer:
     configured = os.environ.get("GRADIO_SECRET_KEY") or None
     with _sealer_lock:

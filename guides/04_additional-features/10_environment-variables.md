@@ -251,7 +251,7 @@ Environment variables in Gradio provide a way to customize your applications and
 
 ### 27. `GRADIO_SECRET_KEY`
 
-- **Description**: The secret used to encrypt and authenticate the `gr.State` values that Gradio stores in users' browsers. Set it to the same long random string for every replica of an app, so that any replica can read the state a browser sends, and so that state survives a restart. If it is not set, each process generates its own random key. Keep it secret: anyone who has it can read and forge state values.
+- **Description**: The secret used to encrypt and authenticate the `gr.State` values that Gradio stores in users' browsers. Set it to the same long random string for every replica of an app, so that any replica can read the state a browser sends, and so that state survives a restart. If it is not set, each process generates its own random key, and a page refreshed after a restart (or that reaches another replica) starts a new session, since its state can't be read. Keep it secret: anyone who has it can read and forge state values.
 - **Default**: A random key per process
 - **Example**:
   ```sh

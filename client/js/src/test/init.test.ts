@@ -21,7 +21,8 @@ import {
 	get_resumable_session_hash,
 	set_session_in_use,
 	track_resumable_event,
-	track_session
+	track_session,
+	has_session
 } from "../utils/session";
 import { HttpResponse, http } from "msw";
 import { SessionStore } from "../utils/session_store";
@@ -130,15 +131,37 @@ describe("Client class", () => {
 						http.get(`${root}/info`, () =>
 							HttpResponse.json(response_api_info)
 						),
-						// The server still has every session but "server-lost-session"
-						http.get(`${root}/session_status`, ({ request }) =>
-							HttpResponse.json({
+						// The server still has every session but these two, and can
+						// read the gr.State of the first (it shares GRADIO_SECRET_KEY)
+						http.get(`${root}/session_status`, ({ request }) => {
+							const hash = new URL(request.url).searchParams.get(
+								"session_hash"
+							);
+							return HttpResponse.json({
 								known:
-									new URL(request.url).searchParams.get("session_hash") !==
-									"server-lost-session"
-							})
-						)
+									hash !== "server-lost-session" &&
+									hash !== "restarted-without-key",
+								state_persists: hash !== "restarted-without-key"
+							});
+						})
 					);
+				});
+
+				test("starts a new session if the server can read neither the session nor its state", async () => {
+					await save_session("restarted-without-key");
+					track_session(app_config, "restarted-without-key");
+					set_session_in_use(false);
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(app.session_hash).not.toBe("restarted-without-key");
+					expect(app.session_restored).toBe(false);
+					expect(app.session_store.size).toBe(0);
+					expect(app.config?.components).toEqual(app_config.components);
+					// The new session is the one a later reload picks up
+					expect(has_session(app_config, app.session_hash)).toBe(true);
 				});
 
 				test("restores the session but reruns load events if the server lost it", async () => {

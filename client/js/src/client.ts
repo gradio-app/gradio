@@ -323,8 +323,25 @@ export class Client {
 			// longer has the session (it restarted, or this is another replica):
 			// then what they set up on the server is gone, so they run again.
 			if (resumable && this.session_store.found) {
-				this.session_store.restore_into(config.components);
-				this.session_restored = await this.server_has_session(config);
+				const status = await this.session_status(config);
+				if (!status.known && !status.state_persists) {
+					// The server restarted (or this is another replica) without a
+					// shared GRADIO_SECRET_KEY, so it can read neither the session
+					// nor its gr.State: start a new session rather than show values
+					// that the next event would silently reset.
+					await this.session_store.forget();
+					this.session_hash = Math.random().toString(36).substring(2);
+					track_session(config, this.session_hash);
+					await this.session_store.attach(
+						config.root,
+						config.app_key,
+						this.session_hash,
+						session_user(config)
+					);
+				} else {
+					this.session_store.restore_into(config.components);
+					this.session_restored = status.known;
+				}
 			}
 			await this._resolve_heartbeat(config);
 		}
@@ -340,7 +357,13 @@ export class Client {
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
-	private async server_has_session(config: Config): Promise<boolean> {
+	/**
+	 * Whether the server still has this session, and whether it can read
+	 * gr.State that another process sealed (it shares GRADIO_SECRET_KEY).
+	 */
+	private async session_status(
+		config: Config
+	): Promise<{ known: boolean; state_persists: boolean }> {
 		try {
 			const url = new URL(
 				`${config.root}${config.api_prefix ?? ""}/session_status`
@@ -352,10 +375,18 @@ export class Client {
 					: {},
 				credentials: this.options.credentials ?? "same-origin"
 			});
-			if (!response.ok) return false;
-			return Boolean(((await response.json()) as { known?: boolean }).known);
+			if (!response.ok) return { known: false, state_persists: true };
+			const status = (await response.json()) as {
+				known?: boolean;
+				state_persists?: boolean;
+			};
+			return {
+				known: Boolean(status.known),
+				// Servers that do not say keep what the browser saved
+				state_persists: status.state_persists !== false
+			};
 		} catch {
-			return false;
+			return { known: false, state_persists: true };
 		}
 	}
 
