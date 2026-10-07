@@ -85,7 +85,7 @@ const escape_replacements: Record<string, any> = {
 const get_escape_replacement = (ch: string): string =>
 	escape_replacements[ch] || "";
 
-function escape(html: string, encode?: boolean): string {
+export function escape(html: string, encode?: boolean): string {
 	if (encode) {
 		if (escape_test.test(html)) {
 			return html.replace(escape_replace, get_escape_replacement);
