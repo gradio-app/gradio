@@ -22,7 +22,7 @@ def unload_fn():
 
 with gr.Blocks() as demo:
     n1 = gr.Number(value=0, label="Number")
-    state = gr.State(value=0, delete_callback=delete_fn)
+    state = gr.State(value=0, storage="server", delete_callback=delete_fn)
     button = gr.Button("Increment")
     button.click(test_fn, [state], [n1, state], api_name="increment")
     demo.unload(unload_fn)

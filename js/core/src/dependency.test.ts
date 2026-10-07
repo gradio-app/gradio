@@ -38,6 +38,15 @@ function dependency(
 	} as DependencyConfig;
 }
 
+// The client's submit() result is an async iterable with helper methods.
+function submission(
+	iterator: AsyncGenerator<unknown>
+): ReturnType<Client["submit"]> {
+	return Object.assign(iterator, {
+		acknowledge: vi.fn().mockResolvedValue(undefined)
+	}) as unknown as ReturnType<Client["submit"]>;
+}
+
 function manager(
 	dependencies: DependencyConfig[],
 	client: Client = {} as Client,
@@ -165,9 +174,11 @@ describe("DependencyManager.dispatch", () => {
 		};
 		const client = {
 			submit: (fn_index: number) =>
-				(async function* () {
-					yield messages[fn_index];
-				})()
+				submission(
+					(async function* () {
+						yield messages[fn_index];
+					})()
+				)
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager(
@@ -202,14 +213,16 @@ describe("DependencyManager.dispatch", () => {
 		validated.show_progress_on = [11, 12];
 		const client = {
 			submit: () =>
-				(async function* () {
-					yield {
-						type: "status",
-						stage: "error",
-						queue: true,
-						message: [{ is_valid: false, message: "value must not be 'bad'" }]
-					};
-				})()
+				submission(
+					(async function* () {
+						yield {
+							type: "status",
+							stage: "error",
+							queue: true,
+							message: [{ is_valid: false, message: "value must not be 'bad'" }]
+						};
+					})()
+				)
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager([validated], client, update_state);
@@ -247,18 +260,20 @@ describe("DependencyManager.dispatch", () => {
 		validated.inputs = [11, 12, 13];
 		const client = {
 			submit: () =>
-				(async function* () {
-					yield {
-						type: "status",
-						stage: "error",
-						queue: true,
-						message: [
-							{ is_valid: false, message: "Name is required." },
-							{ is_valid: true, message: "" },
-							{ is_valid: false, message: "Age must be positive." }
-						]
-					};
-				})()
+				submission(
+					(async function* () {
+						yield {
+							type: "status",
+							stage: "error",
+							queue: true,
+							message: [
+								{ is_valid: false, message: "Name is required." },
+								{ is_valid: true, message: "" },
+								{ is_valid: false, message: "Age must be positive." }
+							]
+						};
+					})()
+				)
 		} as unknown as Client;
 		const on_loading_status_change = vi.fn();
 		const dependency_manager = manager(
@@ -303,9 +318,11 @@ describe("DependencyManager.dispatch", () => {
 		};
 		const client = {
 			submit: (fn_index: number) =>
-				(async function* () {
-					yield* messages[fn_index];
-				})()
+				submission(
+					(async function* () {
+						yield* messages[fn_index];
+					})()
+				)
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager(
@@ -335,5 +352,111 @@ describe("DependencyManager.dispatch", () => {
 		expect(painted.map((status) => status?.stream_state)).not.toContain(
 			"waiting"
 		);
+	});
+});
+
+describe("DependencyManager.dispatch_load_events", () => {
+	test("dispatches load handlers that are not already being resumed", () => {
+		const resumed_load = dependency(0, "resumed_load", []);
+		resumed_load.targets = [[1, "load"]];
+		const normal_load = dependency(1, "normal_load", []);
+		normal_load.targets = [[2, "load"]];
+		const dependency_manager = manager([resumed_load, normal_load]);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		dependency_manager.dispatch_load_events(undefined, new Set([0]));
+
+		expect(dispatch).toHaveBeenCalledTimes(1);
+		expect(dispatch).toHaveBeenCalledWith({
+			type: "fn",
+			fn_index: 1,
+			event_data: null,
+			target_id: 2
+		});
+	});
+});
+
+describe("DependencyManager.resume", () => {
+	function chain(): DependencyConfig[] {
+		const run = dependency(0, "run", []);
+		const then = dependency(1, "then", []);
+		then.trigger_after = 0;
+		const on_success = dependency(2, "on_success", []);
+		on_success.trigger_after = 0;
+		on_success.trigger_only_on_success = true;
+		const on_failure = dependency(3, "on_failure", []);
+		on_failure.trigger_after = 0;
+		on_failure.trigger_only_on_failure = true;
+		return [run, then, on_success, on_failure];
+	}
+
+	async function resume_with(stage: "complete" | "error"): Promise<number[]> {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage, fn_index: 0, queue: true };
+		}
+		const client = {
+			resume_jobs: vi.fn(() => [submission(events())])
+		} as unknown as Client;
+		const dependency_manager = manager(chain(), client);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		return dispatch.mock.calls.map(([meta]) => (meta as any).fn_index);
+	}
+
+	test("runs the events chained to a resumed run once it completes", async () => {
+		expect((await resume_with("complete")).sort()).toEqual([1, 2]);
+	});
+
+	test("runs only the failure handlers when a resumed run fails", async () => {
+		expect(await resume_with("error")).toEqual([3]);
+	});
+
+	test("settles a resumed run the server no longer has, without failure handlers", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield {
+				type: "status",
+				stage: "error",
+				session_not_found: true,
+				fn_index: 0,
+				queue: true
+			};
+		}
+		const client = {
+			resume_jobs: vi.fn(() => [submission(events())])
+		} as unknown as Client;
+		const dependency_manager = manager(chain(), client);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(dispatch).not.toHaveBeenCalled();
+	});
+
+	test("builds the block of a resumed render function", async () => {
+		const render_data = {
+			layout: {},
+			components: [],
+			render_id: 0,
+			dependencies: []
+		};
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "render", data: render_data };
+		}
+		const client = {
+			resume_jobs: vi.fn(() => [submission(events())])
+		} as unknown as Client;
+		const dependency_manager = manager(chain(), client);
+		const apply_render = vi
+			.spyOn(dependency_manager, "apply_render")
+			.mockImplementation(() => {});
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(apply_render).toHaveBeenCalledWith(render_data);
 	});
 });

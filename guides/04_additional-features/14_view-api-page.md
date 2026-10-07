@@ -75,12 +75,11 @@ print(result)
 
 ## The Clients
 
-This API page not only lists all of the endpoints that can be used to query the Gradio app, but also shows the usage of both [the Gradio Python client](https://gradio.app/guides/getting-started-with-the-python-client/), and [the Gradio JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). 
+This API page not only lists all of the endpoints that can be used to query the Gradio app, but also shows the usage of both [the Gradio Python client](https://gradio.app/guides/getting-started-with-the-python-client/), and [the Gradio JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/).
 
 For each endpoint, Gradio automatically generates a complete code snippet with the parameters and their types, as well as example inputs, allowing you to immediately test an endpoint. Here's an example showing an image file input and `str` output:
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-snippet.png)
-
 
 ## The API Recorder 🪄
 
@@ -94,7 +93,7 @@ Next to the "Use via API" link, the footer has a **Runs** link, which opens a pa
 
 The run history covers the same endpoints as this API page. An event listener with `api_visibility="undocumented"` or `"private"` is not recorded, and neither is anything Gradio wires up on your behalf, such as loading an example.
 
-By default, runs are saved in the browser's local storage and are never sent to the server, so each visitor only sees their own. If your app uses `auth`, this browser history is also scoped to the logged-in user. The most recent 100 browser runs are kept per running app.
+By default, runs are saved in the browser (in IndexedDB, where Gradio also saves each session's outputs and state) and are never sent to the server, so each visitor only sees their own. If your app uses `auth`, this browser history is also scoped to the logged-in user. The most recent 100 browser runs are kept per app. The history survives restarts of the app and is shared by its replicas, but starts afresh when the app's components or events change, since saved runs refer to components by id.
 
 The **History storage** control on this page can instead connect a private Hugging Face bucket. After connecting, future runs are stored in that bucket and can be opened from any browser that has access to it. Existing browser runs are not migrated, and switching back to **This browser** shows them again. On Spaces this requires Hugging Face OAuth; when running directly on localhost, Gradio uses the token from `hf auth login`. Bucket records are also scoped to the current app instance, because restarting an app may change its endpoints or input and output schemas.
 
@@ -126,7 +125,7 @@ Nothing is recorded when the JavaScript client runs in Node, since there is no b
 
 ## MCP Server
 
-The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs. 
+The API page also includes instructions on how to use the Gradio app as an Model Context Protocol (MCP) server, which is a standardized way to expose functions as tools so that they can be used by LLMs.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api-mcp.png)
 

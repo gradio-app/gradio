@@ -374,6 +374,21 @@ def prepare_event_data(
     return event_data
 
 
+def session_identity(request: Any, username: str | None) -> str | None:
+    """Who a session belongs to, for scoping what is kept for it (saved
+    sessions in the browser, gr.State tokens): the user logged in with `auth=`,
+    or else the Hugging Face account logged in with gr.LoginButton."""
+    if username:
+        return username
+    from gradio import oauth
+    from gradio.helpers import _session_from_request
+
+    info = oauth._get_valid_oauth_info_from_session(_session_from_request(request))
+    userinfo = (info or {}).get("userinfo") or {}
+    account = userinfo.get("sub") or userinfo.get("preferred_username")
+    return f"hf:{account}" if account else None
+
+
 def oauth_token_from_body(body: PredictBodyInternal) -> Optional[OAuthToken]:
     """Wrap a caller-supplied token so it can be injected as a gr.OAuthToken.
 
@@ -395,6 +410,15 @@ async def call_process_api(
     root_path: str,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
+    # A batch mixes events from different sessions, so its state stays on the server
+    client_state = body.client_state if not body.batched else None
+    if client_state is not None and not fn.is_validator_function:
+        client_state.refresh(app.state_cache, app.latest_state)
+    state = (
+        client_state.overlay(session_state)
+        if client_state is not None
+        else session_state
+    )
 
     event_data = prepare_event_data(session_state.blocks_config, body)
     event_id = body.event_id
@@ -418,7 +442,7 @@ async def call_process_api(
                     block_fn=fn,
                     inputs=inputs,
                     request=gr_request,
-                    state=session_state,
+                    state=state,
                     iterator=iterator,
                     session_hash=session_hash,
                     event_id=event_id,
@@ -439,6 +463,10 @@ async def call_process_api(
             await app.get_blocks()._finish_run_streams(session_hash, iterator)
         if isinstance(output, Error):
             raise output
+        if client_state is not None and not fn.is_validator_function:
+            output["state"] = client_state.collect(
+                session_state, app.state_cache, app.latest_state
+            )
     except BaseException:
         iterator = app.iterators.get(event_id) if event_id is not None else None
         app.get_blocks()._drop_run_streams(session_hash, iterator)

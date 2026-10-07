@@ -1,15 +1,19 @@
 import asyncio
 import json
 import sys
+import threading
 import time
 from unittest.mock import patch
 
+import fastapi
 import gradio_client as grc
 import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio import queueing
 from gradio.route_utils import API_PREFIX
+from gradio.server_messages import ProcessCompletedMessage
 
 
 class TestQueueing:
@@ -233,14 +237,16 @@ def test_heartbeat_task_cancelled_after_stream_completes():
     demo.close()
 
 
-def test_cancel_removes_pending_event_from_queue():
-    """Cancelling a queued (not yet running) event should remove it from the queue."""
+def test_detached_queue_session_can_resume():
+    finished = threading.Event()
+
     with gr.Blocks() as demo:
         start = gr.Button()
         output = gr.Textbox()
 
         def slow():
-            time.sleep(2)
+            time.sleep(0.05)
+            finished.set()
             return "done"
 
         start.click(slow, None, output)
@@ -249,62 +255,217 @@ def test_cancel_removes_pending_event_from_queue():
     app, _, _ = demo.launch(prevent_thread_lock=True)
     test_client = TestClient(app)
 
-    join_payload = {
-        "data": [],
-        "fn_index": 0,
-        "event_data": None,
-        "session_hash": "sess1",
-        "trigger_id": None,
-    }
-
     try:
-        first = test_client.post(f"{API_PREFIX}/queue/join", json=join_payload)
-        second = test_client.post(f"{API_PREFIX}/queue/join", json=join_payload)
-        third = test_client.post(f"{API_PREFIX}/queue/join", json=join_payload)
-        assert first.status_code == 200
-        assert second.status_code == 200
-        assert third.status_code == 200
-
-        second_event_id = second.json()["event_id"]
-        third_event_id = third.json()["event_id"]
-
-        # First event gets picked up by the worker; second and third are queued.
-        # The worker dequeues asynchronously, so wait for it to settle before
-        # asserting (avoids a race on slower CI runners where all three are
-        # momentarily still in the queue).
-        for _ in range(50):
-            if len(demo._queue) == 2:
-                break
-            time.sleep(0.1)
-        assert len(demo._queue) == 2
-        assert second_event_id in demo._queue.event_ids_to_events
-        assert second_event_id in demo._queue.pending_event_ids_session["sess1"]
-
-        # Cancel the second (pending/queued) event
-        resp = test_client.post(
-            f"{API_PREFIX}/cancel",
+        # A client that acknowledges results (and so may resume) has attached
+        demo._queue.mark_session_attached("resume_session")
+        response = test_client.post(
+            f"{API_PREFIX}/queue/join",
             json={
-                "session_hash": "sess1",
+                "data": [],
                 "fn_index": 0,
-                "event_id": second_event_id,
+                "event_data": None,
+                "session_hash": "resume_session",
+                "trigger_id": None,
             },
         )
-        assert resp.status_code == 200
-        assert third_event_id in demo._queue.event_ids_to_events
+        assert response.status_code == 200
+        event_id = response.json()["event_id"]
 
-        assert len(demo._queue) == 1
-        r = test_client.get(f"{API_PREFIX}/queue/data?session_hash=sess1")
+        asyncio.run(demo._queue.mark_session_detached("resume_session"))
 
-        # Verify we got a process_completed message
-        got_completed = False
-        for line in r.iter_lines():
-            if "data" in line:
-                data = json.loads(line[5:])
-                if data["msg"] == "process_completed":
-                    got_completed = True
-        assert got_completed
-        assert second_event_id not in demo._queue.pending_event_ids_session["sess1"]
-        assert second_event_id not in demo._queue.event_ids_to_events
+        assert event_id in demo._queue.event_ids_to_events
+        assert event_id in demo._queue.pending_event_ids_session["resume_session"]
+        assert "resume_session" in demo._queue.pending_messages_per_session
+        assert finished.wait(timeout=1)
+
+        deadline = time.monotonic() + 1
+        while any(demo._queue.active_jobs) and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert not any(demo._queue.active_jobs)
+
+        response = test_client.get(
+            f"{API_PREFIX}/queue/data?session_hash=resume_session"
+            f"&resume_event_id={event_id}&acknowledgements=true"
+        )
+        completed_data = None
+        for line in response.iter_lines():
+            if "data" not in line:
+                continue
+            data = json.loads(line[5:])
+            if data["msg"] == "process_completed":
+                completed_data = data["output"]["data"]
+
+        assert completed_data == ["done"]
+        assert event_id not in demo._queue.pending_event_ids_session["resume_session"]
+        assert demo._queue.resumable_sessions["resume_session"].history
+
+        response = test_client.post(
+            f"{API_PREFIX}/reset",
+            json={"event_id": event_id},
+        )
+        assert response.status_code == 200
+        assert "resume_session" not in demo._queue.pending_event_ids_session
+        assert "resume_session" not in demo._queue.resumable_sessions
+    finally:
+        demo.close()
+
+
+def test_missing_resumed_event_closes_stream():
+    with gr.Blocks() as demo:
+        gr.Button().click(lambda: None)
+
+    demo.queue()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        response = test_client.get(
+            f"{API_PREFIX}/queue/data?session_hash=missing_session"
+            "&resume_event_id=missing_event&acknowledgements=true"
+        )
+        messages = [json.loads(line[5:]) for line in response.iter_lines() if line]
+
+        assert messages[0]["session_not_found"] is True
+        assert messages[-1]["msg"] == "close_stream"
+    finally:
+        demo.close()
+
+
+def test_expired_detached_session_is_fully_cleaned_up():
+    started = threading.Event()
+    unloaded = threading.Event()
+
+    with gr.Blocks() as demo:
+        start = gr.Button()
+
+        def slow():
+            started.set()
+            time.sleep(0.5)
+
+        start.click(slow)
+        demo.unload(unloaded.set)
+
+    demo.queue(default_concurrency_limit=1)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    try:
+        response = test_client.post(
+            f"{API_PREFIX}/queue/join",
+            json={
+                "data": [],
+                "fn_index": 0,
+                "event_data": None,
+                "session_hash": "expired_session",
+                "trigger_id": None,
+            },
+        )
+        event_id = response.json()["event_id"]
+        assert started.wait(timeout=1)
+
+        response = test_client.post(
+            f"{API_PREFIX}/queue/close",
+            json={"session_hash": "expired_session"},
+        )
+        assert response.status_code == 200
+        assert (
+            demo._queue.resumable_sessions["expired_session"].expires_at
+            <= time.monotonic() + 5
+        )
+
+        demo._queue.resumable_sessions["expired_session"].expires_at = 0
+        asyncio.run(demo._queue.clean_expired_detached_sessions())
+
+        # The server's own queue loop may have picked the session up first, in
+        # the background, so wait for it to be done
+        assert unloaded.wait(timeout=5)
+        deadline = time.monotonic() + 5
+        while (
+            "expired_session" in demo._queue.resumable_sessions
+            or "expired_session" in demo._queue.pending_event_ids_session
+        ) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert unloaded.is_set()
+        assert app.state_holder.session_data["expired_session"].is_closed is True
+        assert event_id not in demo._queue.event_ids_to_events
+        assert "expired_session" not in demo._queue.pending_event_ids_session
+
+        response = test_client.get(
+            f"{API_PREFIX}/queue/data?session_hash=expired_session"
+            f"&resume_event_id={event_id}&acknowledgements=true"
+        )
+        messages = [json.loads(line[5:]) for line in response.iter_lines() if line]
+        assert messages[0]["session_not_found"] is True
+        assert messages[-1]["msg"] == "close_stream"
+    finally:
+        demo.close()
+
+
+def test_expired_session_runs_unload_after_its_events_are_gone():
+    # A job that finished while nobody was watching leaves no event to take a
+    # request from, so the queue keeps the heartbeat's one for `unload`.
+    unloaded = threading.Event()
+    with gr.Blocks() as demo:
+        demo.unload(unloaded.set)
+
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        queue = demo._queue
+        request = fastapi.Request(
+            {
+                "type": "http",
+                "method": "GET",
+                "path": f"{API_PREFIX}/heartbeat/finished_session",
+                "headers": [],
+                "query_string": b"",
+                "server": ("testserver", 80),
+                "scheme": "http",
+                "root_path": "",
+                "client": ("127.0.0.1", 1234),
+            }
+        )
+        queue.pending_event_ids_session["finished_session"] = {"done-event"}
+        queue.remember_unload_request(
+            "finished_session",
+            request,
+            None,
+            f"{API_PREFIX}/heartbeat/finished_session",
+        )
+        queue.resumable_sessions["finished_session"].expires_at = 0
+        asyncio.run(queue.clean_expired_detached_sessions())
+
+        # The server's own queue loop may have picked the session up first, in
+        # the background, so wait for it to be done
+        deadline = time.monotonic() + 5
+        while (
+            "finished_session" in queue.resumable_sessions
+            and time.monotonic() < deadline
+        ):
+            time.sleep(0.05)
+        assert unloaded.is_set()
+        assert "finished_session" not in queue.resumable_sessions
+    finally:
+        demo.close()
+
+
+def test_closing_a_session_with_an_unacknowledged_result_uses_the_grace_period():
+    # The job finished (no pending ids), but the page never acknowledged its
+    # result, so only its buffered messages are left for a reload to replay.
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue = demo._queue
+        resumable = queue.resumable_sessions.setdefault(
+            "finished", queueing.ResumableSession()
+        )
+        resumable.history.append(
+            ProcessCompletedMessage(output={}, success=True, event_id="done")
+        )
+        queue.mark_session_closing("finished")
+        assert resumable.closing is True
+        assert resumable.expires_at is not None
+        assert resumable.expires_at <= time.monotonic() + queue.close_grace_period
     finally:
         demo.close()
 
@@ -405,3 +566,50 @@ class TestQueueDoesNotAccumulate:
             ]
             == 8
         )
+
+
+def test_resuming_one_event_keeps_messages_waiting_for_another():
+    from gradio.server_messages import ProcessStartsMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue = demo._queue
+        waiting = ProcessCompletedMessage(output={}, success=True, event_id="fast")
+        replayed = ProcessStartsMessage(event_id="slow")
+        queue.pending_messages_per_session["s"] = asyncio.Queue()
+        queue.pending_messages_per_session["s"].put_nowait(waiting)
+        resumable = queue.resumable_sessions.setdefault(
+            "s", queueing.ResumableSession(acknowledges=True)
+        )
+        resumable.history.append(replayed)
+        queue.event_ids_to_events["slow"] = type("E", (), {"session_hash": "s"})()
+        try:
+            queue.resume_session("s", ["slow"])
+        finally:
+            queue.event_ids_to_events.pop("slow", None)
+        messages = queue.pending_messages_per_session["s"]
+        order = [messages.get_nowait().event_id for _ in range(messages.qsize())]
+        assert order == ["slow", "fast"]
+    finally:
+        demo.close()
+
+
+def test_history_is_only_kept_for_clients_that_may_resume():
+    with gr.Blocks() as demo:
+        name = gr.Textbox()
+        name.submit(lambda x: x, name, name, api_name="echo")
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        with TestClient(app) as client:
+            for _ in range(3):
+                event_id = client.post(
+                    f"{API_PREFIX}/call/echo", json={"data": ["hi"]}
+                ).json()["event_id"]
+                client.get(f"{API_PREFIX}/call/echo/{event_id}")
+        assert not any(
+            resumable.history for resumable in demo._queue.resumable_sessions.values()
+        )
+    finally:
+        demo.close()

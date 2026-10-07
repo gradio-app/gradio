@@ -1,6 +1,7 @@
 anyio>=3.0,<5.0
 audioop-lts<=0.2.2; python_version >= "3.13" # this is a replacement for the built-in 'audioop' module removed in Python 3.13 (and needed for pydub)
 brotli>=1.1.0
+cryptography>=41.0
 fastapi>=0.115.2,<1.0
 groovy~=0.1
 gradio_client==2.7.2

@@ -372,11 +372,12 @@
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
+			resume_sessions: true,
 			events: ["data", "log", "status", "render"],
 			query_params
 		});
-		window.addEventListener("beforeunload", () => {
-			app.close();
+		window.addEventListener("pagehide", (event) => {
+			if (!event.persisted) app.close();
 		});
 
 		if (!app.config && !config?.auth_required) {
@@ -384,7 +385,10 @@
 		}
 
 		config = app.get_url_config() as unknown as Config;
-		apply_run_history_replay(config);
+		// A run loaded from the history becomes what a refresh keeps
+		apply_run_history_replay(config, (ids, values) =>
+			app.session_store.record(ids, values, config.components)
+		);
 		window.__gradio_space__ = config.space_id;
 
 		if (app.config?.i18n_translations) {
