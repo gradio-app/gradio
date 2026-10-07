@@ -324,6 +324,10 @@ class Client:
         resume_event_ids: list[str] | None = None,
     ) -> None:
         reconnect_deadline = None
+        # Messages received per event, so that when a reconnect replays an
+        # event's messages from the start, the ones already received are skipped
+        received: dict[str, int] = {}
+        skip: dict[str, int] = {}
         while not self._closed:
             connected = False
             try:
@@ -376,6 +380,12 @@ class Client:
                                         self.stream_open = False
                                     return
                                 event_id = resp["event_id"]
+                                if skip.get(event_id) and not resp.get(
+                                    "session_not_found"
+                                ):
+                                    skip[event_id] -= 1
+                                    continue
+                                received[event_id] = received.get(event_id, 0) + 1
                                 acknowledge = False
                                 with self.pending_lock:
                                     if event_id not in self.pending_messages_per_event:
@@ -424,6 +434,13 @@ class Client:
                 reconnect_deadline = time.monotonic() + SESSION_RESUME_TTL_SECONDS
             if time.monotonic() >= reconnect_deadline:
                 return
+            # Ask for the events still pending to be replayed: messages sent
+            # while disconnected would otherwise be lost, and an event the
+            # server no longer knows gets an error instead of waiting forever.
+            with self.pending_lock:
+                pending_ids = list(self.pending_event_ids)
+            resume_event_ids = pending_ids
+            skip = {event_id: received.get(event_id, 0) for event_id in pending_ids}
             time.sleep(1)
 
     def send_data(self, data, hash_data, protocol, request_headers):

@@ -81,6 +81,25 @@ describe("resumable sessions", () => {
 		expect(get_resumable_session_hash()).toBeNull();
 	});
 
+	it.skipIf(typeof window === "undefined")(
+		"treats the same page with a different query as not shown yet",
+		() => {
+			const original = window.location.href;
+			try {
+				window.history.replaceState(null, "", "?prompt=apple&__theme=dark");
+				track_session(config, "session-1");
+				expect(has_shown_page(config, "session-1")).toBe(true);
+				// Display parameters do not count
+				window.history.replaceState(null, "", "?prompt=apple");
+				expect(has_shown_page(config, "session-1")).toBe(true);
+				window.history.replaceState(null, "", "?prompt=banana");
+				expect(has_shown_page(config, "session-1")).toBe(false);
+			} finally {
+				window.history.replaceState(null, "", original);
+			}
+		}
+	);
+
 	it("is never picked up by a different logged-in user", () => {
 		track_session({ ...config, username: "alice" } as any, "session-1");
 		set_session_in_use(false);

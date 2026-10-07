@@ -415,4 +415,48 @@ describe("DependencyManager.resume", () => {
 	test("runs only the failure handlers when a resumed run fails", async () => {
 		expect(await resume_with("error")).toEqual([3]);
 	});
+
+	test("settles a resumed run the server no longer has, without failure handlers", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield {
+				type: "status",
+				stage: "error",
+				session_not_found: true,
+				fn_index: 0,
+				queue: true
+			};
+		}
+		const client = {
+			resume_jobs: vi.fn(() => [submission(events())])
+		} as unknown as Client;
+		const dependency_manager = manager(chain(), client);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(dispatch).not.toHaveBeenCalled();
+	});
+
+	test("builds the block of a resumed render function", async () => {
+		const render_data = {
+			layout: {},
+			components: [],
+			render_id: 0,
+			dependencies: []
+		};
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "render", data: render_data };
+		}
+		const client = {
+			resume_jobs: vi.fn(() => [submission(events())])
+		} as unknown as Client;
+		const dependency_manager = manager(chain(), client);
+		const apply_render = vi
+			.spyOn(dependency_manager, "apply_render")
+			.mockImplementation(() => {});
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(apply_render).toHaveBeenCalledWith(render_data);
+	});
 });

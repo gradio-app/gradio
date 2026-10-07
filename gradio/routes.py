@@ -255,11 +255,19 @@ class App(FastAPI):
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
         self.state_cache = StateCache()
+        # The newest gr.State value this server issued, by session and
+        # component, so that an event that waited in the queue starts from it
+        self.latest_state: utils.LRUCache[str, tuple[str, float]] = utils.LRUCache(
+            10000
+        )
         self.iterators: dict[str, AsyncIterator] = {}
         self.iterators_to_reset: set[str] = set()
         # Open heartbeat connections per session, so that a page that
         # reconnects (e.g. after a refresh) keeps its session.
         self.heartbeat_sessions: Counter[str] = Counter()
+        # Sessions whose `unload` events have run, so that the heartbeat and the
+        # queue, which can both end a session, run them only once
+        self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
         self.lock = utils.safe_get_lock()
         self.stop_event = utils.safe_get_stop_event()
         self.cookie_id = secrets.token_urlsafe(32)
@@ -303,6 +311,21 @@ class App(FastAPI):
             "" if blocks.custom_mount_path is not None else self.root_path
         )
         self.state_holder.set_blocks(blocks)
+
+    def claim_unload(self, session_hash: str) -> bool:
+        """Whether this caller should run the session's `unload` events: true
+        only the first time it is asked since the session was last active."""
+        if session_hash in self.unloaded_sessions:
+            return False
+        self.unloaded_sessions[session_hash] = True
+        return True
+
+    def reopen_session(self, session_hash: str) -> None:
+        """A session's page came back (e.g. a tab that was away), so it is
+        active again: its `unload` events may run again when it next ends."""
+        self.unloaded_sessions.pop(session_hash, None)
+        if session_hash in self.state_holder.session_data:
+            self.state_holder.session_data[session_hash].is_closed = False
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -722,6 +745,7 @@ class App(FastAPI):
                     )
                 config = get_page_config(source_config, page, components)  # type: ignore
                 config["username"] = user
+                config["session_user"] = route_utils.session_identity(request, user)
                 config["deep_link_state"] = deep_link_state
                 # Update root after loading the deep link state (if applicable)
                 # so that static files are served from the correct root
@@ -858,6 +882,14 @@ class App(FastAPI):
                         "Cache-Control": "private, max-age=31536000, immutable",
                     },
                 )
+
+        @app.get("/gradio_api/session_status", dependencies=[Depends(login_check)])
+        def session_status(session_hash: str):
+            """Whether this server still has a session, e.g. for a reloaded page
+            that resumed it: if not (the server restarted, or the page reached
+            another replica), what the page's load events set up on the server
+            is gone, so they have to run again."""
+            return {"known": session_hash in app.state_holder}
 
         @app.get("/gradio_api/deep_link", dependencies=[Depends(login_check)])
         def deep_link(session_hash: str):
@@ -1214,6 +1246,7 @@ class App(FastAPI):
                 or blocks.custom_mount_path,
             )
             config["username"] = user
+            config["session_user"] = route_utils.session_identity(request, user)
             if components is not None:
                 # Never assign `source_config["components"]` here: that
                 # aliases the live app config, which the root-url rewrite
@@ -1346,8 +1379,13 @@ class App(FastAPI):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
             if event is None:
                 return Response(status_code=404)
-            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
-            event.data = body
+            new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
+            # A streaming event's later chunks carry only their data: the
+            # browser-held gr.State values verified when the event joined (and
+            # updated by each chunk since) carry on from one chunk to the next.
+            if event.data is not None:
+                new_body.client_state = event.data.client_state
+            event.data = new_body
             event.signal.set()
             return {"msg": "success"}
 
@@ -1505,6 +1543,9 @@ class App(FastAPI):
                         f"{API_PREFIX}/heartbeat/{session_hash}",
                     )
                     return
+                # The queue may have ended the session (and run unload) already
+                if not app.claim_unload(session_hash):
+                    return
 
                 req = Request(request, username, session_hash=session_hash)
                 root_path = route_utils.get_root_url(
@@ -1542,6 +1583,7 @@ class App(FastAPI):
 
             async def iterator():
                 app.heartbeat_sessions[session_hash] += 1
+                app.reopen_session(session_hash)
                 stop_stream_task = asyncio.create_task(app.stop_event.wait())
                 while True:
                     try:
@@ -1591,7 +1633,7 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
             if body.state is not None:
-                resolve_client_state(body, fn, username)
+                resolve_client_state(body, fn, username, request)
             gr_request = route_utils.compile_gr_request(
                 body,
                 fn=fn,
@@ -1622,7 +1664,10 @@ class App(FastAPI):
             return ORJSONResponse(output)
 
         def resolve_client_state(
-            body: PredictBodyInternal, fn: BlockFunction, username: str | None
+            body: PredictBodyInternal,
+            fn: BlockFunction,
+            username: str | None,
+            request: fastapi.Request,
         ) -> None:
             """Verifies the browser-held gr.State values sent with an event. If the
             client sent references to values this server has not cached, answers
@@ -1634,7 +1679,8 @@ class App(FastAPI):
                     fn,
                     body.state or {},
                     app.state_cache,
-                    username=username,
+                    username=route_utils.session_identity(request, username),
+                    session_hash=body.session_hash,
                 )
             except MissingStateError as err:
                 raise HTTPException(
@@ -1748,7 +1794,7 @@ class App(FastAPI):
                 except KeyError:
                     fn = None
                 if fn is not None:
-                    resolve_client_state(body, fn, username)
+                    resolve_client_state(body, fn, username, request)
             success, event_id, state = await blocks._queue.push(
                 body=body, request=request, username=username
             )

@@ -115,6 +115,9 @@ class ResumableSession:
     expires_at: float | None = None
     active_streams: int = 0
     closing: bool = False
+    # Whether a client that acknowledges results (and so may resume) has
+    # attached. Only then is the history worth keeping.
+    acknowledges: bool = False
     # The request (and its route) that `unload` events run with, kept for when
     # none of the session's events is left to take it from
     unload_request: tuple[fastapi.Request, str | None, str] | None = None
@@ -183,6 +186,7 @@ class Queue:
         self.events_recorded = 0
         self.event_count_at_last_cache = 0
         self.resume_ttl = float(os.getenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "3600"))
+        self._session_cleanups: set[asyncio.Task] = set()
         self.close_grace_period = max(0.0, min(5.0, self.resume_ttl))
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
@@ -276,15 +280,28 @@ class Queue:
         if not event.alive:
             return
         event_message.event_id = event._id
-        self.resumable_sessions.setdefault(
-            event.session_hash, ResumableSession()
-        ).history.append(event_message)
+        # Kept for replaying to a client that resumes, so only for sessions
+        # with such a client: the history would otherwise grow without bound
+        resumable = self.resumable_sessions.get(event.session_hash)
+        if resumable is not None and resumable.acknowledges:
+            resumable.history.append(event_message)
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
 
     def resume_session(self, session_hash: str, event_ids: list[str]) -> None:
         requested_ids = set(event_ids)
-        messages: AsyncQueue[EventMessage] = AsyncQueue()
+        # The replay goes in front of what is already waiting for the session's
+        # other events. Messages still waiting for the replayed events are in
+        # their history too, so they are not kept twice.
+        messages = self.pending_messages_per_session.get(session_hash)
+        if messages is None:
+            messages = AsyncQueue()
+            self.pending_messages_per_session[session_hash] = messages
+        waiting: list[EventMessage] = []
+        while not messages.empty():
+            message = messages.get_nowait()
+            if message.event_id not in requested_ids:
+                waiting.append(message)
         resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
         history = resumable.history
         known_ids = {
@@ -306,7 +323,8 @@ class Queue:
                     session_not_found=True,
                 )
             )
-        self.pending_messages_per_session[session_hash] = messages
+        for message in waiting:
+            messages.put_nowait(message)
 
     async def acknowledge_event(self, event_id: str) -> None:
         event = self.event_ids_to_events.get(event_id)
@@ -346,6 +364,15 @@ class Queue:
 
     def mark_session_attached(self, session_hash: str) -> None:
         resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        if not resumable.acknowledges:
+            # History starts now, so take in the messages still waiting to be
+            # delivered: the history then holds everything this client gets.
+            waiting = self.pending_messages_per_session.get(session_hash)
+            if waiting is not None:
+                resumable.history.extend(
+                    m for m in list(waiting._queue) if m.event_id is not None
+                )
+        resumable.acknowledges = True
         resumable.active_streams += 1
         resumable.expires_at = None
         resumable.closing = False
@@ -404,6 +431,8 @@ class Queue:
         app = self.server_app
         if app is None:
             return
+        # The heartbeat may have ended the session (and run unload) already
+        run_unload_fns = app.claim_unload(session_hash)
         event = next(
             (
                 event
@@ -422,7 +451,7 @@ class Queue:
             )
         elif resumable is not None:
             unload_request = resumable.unload_request
-        if unload_request is not None:
+        if unload_request is not None and run_unload_fns:
             request, username, route_path = unload_request
             body = PredictBodyInternal(
                 session_hash=session_hash, data=[], request=request
@@ -440,7 +469,7 @@ class Queue:
                 for fn in app.get_blocks().fns.values()
                 if any(target[1] == "unload" for target in fn.targets)
             ]
-            await asyncio.gather(
+            results = await asyncio.gather(
                 *(
                     route_utils.call_process_api(
                         app=app,
@@ -453,6 +482,10 @@ class Queue:
                 ),
                 return_exceptions=True,
             )
+            for result in results:
+                if isinstance(result, BaseException):
+                    print(f"An unload event of session {session_hash} failed:")
+                    traceback.print_exception(result)
         if session_hash in app.state_holder.session_data:
             app.state_holder.session_data[session_hash].is_closed = True
         caching.clear_session_caches(session_hash)
@@ -462,15 +495,25 @@ class Queue:
                 pending_event.run_time = float("inf")
                 pending_event.signal.set()
 
-    async def clean_expired_detached_sessions(self) -> None:
+    def expire_detached_sessions(self) -> list[asyncio.Task]:
+        """Starts ending the detached sessions whose time is up. They end in the
+        background, so that their `unload` events never hold up the queue."""
         now = time.monotonic()
-        expired_sessions = [
-            session_hash
-            for session_hash, resumable in self.resumable_sessions.items()
-            if resumable.expires_at is not None and resumable.expires_at <= now
-        ]
-        for session_hash in expired_sessions:
-            await self.delete_session(session_hash, run_unload=True)
+        tasks = []
+        for session_hash, resumable in list(self.resumable_sessions.items()):
+            if resumable.expires_at is None or resumable.expires_at > now:
+                continue
+            resumable.expires_at = None  # so that it is not picked again
+            task = asyncio.create_task(
+                self.delete_session(session_hash, run_unload=True)
+            )
+            self._session_cleanups.add(task)
+            task.add_done_callback(self._session_cleanups.discard)
+            tasks.append(task)
+        return tasks
+
+    async def clean_expired_detached_sessions(self) -> None:
+        await asyncio.gather(*self.expire_detached_sessions())
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -715,7 +758,7 @@ class Queue:
     async def start_processing(self) -> None:
         try:
             while not self.stopped:
-                await self.clean_expired_detached_sessions()
+                self.expire_detached_sessions()
                 if len(self) == 0:
                     await asyncio.sleep(self.sleep_when_free)
                     continue

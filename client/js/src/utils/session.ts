@@ -69,8 +69,16 @@ function is_session(
 		session.session_hash === session_hash &&
 		session.root === config.root &&
 		session.app_key === config.app_key &&
-		(session.username ?? null) === (config.username ?? null)
+		(session.username ?? null) === session_user(config)
 	);
+}
+
+/**
+ * Who the session belongs to: the user logged in with `auth=`, or the Hugging
+ * Face account logged in with `gr.LoginButton` (`config.session_user`).
+ */
+export function session_user(config: Config): string | null {
+	return config.session_user ?? config.username ?? null;
 }
 
 /** Forgets the session this tab is using, so that its next load starts a new one. */
@@ -102,12 +110,30 @@ export function has_session(config: Config, session_hash: string): boolean {
 	return is_session(read_session(), config, session_hash);
 }
 
+/**
+ * Identifies a page as shown: its path within the app and its query string,
+ * since an app can read the query (`gr.Request.query_params`, deep links) and
+ * the same page with a different query is not the one the session saved.
+ * Gradio's own display parameters (e.g. `__theme`) do not count.
+ */
+function page_key(config: Config): string {
+	const page = config.current_page ?? "";
+	if (typeof location === "undefined") return page;
+	const params = new URLSearchParams(location.search);
+	for (const key of [...params.keys()]) {
+		if (key.startsWith("__") || key === "view") params.delete(key);
+	}
+	params.sort();
+	const query = params.toString();
+	return query ? `${page}?${query}` : page;
+}
+
 /** Whether this tab has already shown the config's page in `session_hash`. */
 export function has_shown_page(config: Config, session_hash: string): boolean {
 	const session = read_session();
 	return (
 		is_session(session, config, session_hash) &&
-		!!session.pages?.includes(config.current_page ?? "")
+		!!session.pages?.includes(page_key(config))
 	);
 }
 
@@ -115,10 +141,10 @@ export function has_shown_page(config: Config, session_hash: string): boolean {
 export function track_session(config: Config, session_hash: string): void {
 	const session = read_session();
 	const current = is_session(session, config, session_hash) ? session : null;
-	const pages = new Set(current?.pages).add(config.current_page ?? "");
+	const pages = new Set(current?.pages).add(page_key(config));
 	write_session({
 		app_key: config.app_key,
-		username: config.username ?? null,
+		username: session_user(config),
 		root: config.root,
 		session_hash,
 		events: current?.events ?? [],
@@ -158,7 +184,7 @@ export function track_resumable_event(
 	write_session({
 		...current,
 		app_key: config.app_key,
-		username: config.username ?? null,
+		username: session_user(config),
 		root: config.root,
 		session_hash,
 		events: [...events, event]

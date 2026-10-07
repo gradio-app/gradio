@@ -686,35 +686,7 @@ export class DependencyManager {
 									stream_state: null
 								});
 								this.update_loading_stati_state();
-								const { layout, components, render_id, dependencies } =
-									result.data;
-
-								this.rerender_cb(components, layout);
-								// update dependencies
-								const { by_id, by_event } = this.create(
-									dependencies as unknown as IDependency[]
-								);
-								this.register_loading_stati(by_id);
-
-								by_id.forEach((dep) =>
-									this.dependencies_by_fn.set(dep.id, dep)
-								);
-								by_event.forEach((dep, key) =>
-									this.dependencies_by_event.set(key, dep)
-								);
-								const current_deps = this.render_id_deps.get(render_id);
-								if (current_deps) {
-									current_deps.forEach((old_dep_id) => {
-										if (!by_id.has(old_dep_id)) {
-											this.dependencies_by_fn.delete(old_dep_id);
-										}
-									});
-								}
-								this.render_id_deps.set(
-									render_id,
-									new Set(Array.from(by_id.keys()))
-								);
-								this.dispatch_load_events(by_id);
+								this.apply_render(result.data);
 								break submit_loop;
 							}
 
@@ -765,6 +737,31 @@ export class DependencyManager {
 		return;
 	}
 
+	/** Builds the block a `gr.render` function returned, with its events. */
+	apply_render(render_data: any): void {
+		const { layout, components, render_id, dependencies } = render_data;
+
+		this.rerender_cb(components, layout);
+		// update dependencies
+		const { by_id, by_event } = this.create(
+			dependencies as unknown as IDependency[]
+		);
+		this.register_loading_stati(by_id);
+
+		by_id.forEach((dep) => this.dependencies_by_fn.set(dep.id, dep));
+		by_event.forEach((dep, key) => this.dependencies_by_event.set(key, dep));
+		const current_deps = this.render_id_deps.get(render_id);
+		if (current_deps) {
+			current_deps.forEach((old_dep_id) => {
+				if (!by_id.has(old_dep_id)) {
+					this.dependencies_by_fn.delete(old_dep_id);
+				}
+			});
+		}
+		this.render_id_deps.set(render_id, new Set(Array.from(by_id.keys())));
+		this.dispatch_load_events(by_id);
+	}
+
 	get_resumable_events(): ResumableJob[] {
 		return this.client
 			.get_resumable_events()
@@ -800,6 +797,33 @@ export class DependencyManager {
 							await this.handle_data(dep.outputs, result.data);
 						} else if (result.type === "log") {
 							this.handle_log(result);
+						} else if (result.type === "render") {
+							// A render function that was running when the page was
+							// reloaded: build its block, as a run that was not
+							// interrupted would
+							this.loading_stati.update({
+								status: "complete",
+								fn_index,
+								stream_state: null
+							});
+							await this.update_loading_stati_state();
+							this.apply_render(result.data);
+							break;
+						} else if (
+							result.type === "status" &&
+							result.stage === "error" &&
+							result.session_not_found
+						) {
+							// The server answered but no longer has the job (e.g. it
+							// restarted), so there is nothing to resume: this is not
+							// the job failing, and the page keeps what it restored.
+							this.loading_stati.update({
+								status: "complete",
+								fn_index,
+								stream_state: null
+							});
+							await this.update_loading_stati_state();
+							break;
 						} else if (result.type === "status") {
 							this.loading_stati.update({
 								status: result.stage,

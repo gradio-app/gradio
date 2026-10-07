@@ -43,7 +43,7 @@ class State(Component):
         value: Any = None,
         render: bool = True,
         *,
-        storage: Literal["browser", "server"] = "browser",
+        storage: Literal["browser", "server"] | None = None,
         time_to_live: int | float | None = None,
         delete_callback: Callable[[Any], None] | None = None,
     ):
@@ -51,18 +51,22 @@ class State(Component):
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
             render: should always be True, is included for consistency with other components.
-            storage: where the value is kept between events. "browser" (the default) keeps an encrypted copy in the user's browser, with the server's memory used only as a cache, so the state works across server restarts and replicas. The value must be serializable; if it is not, it is kept in the server's memory with a warning. "server" keeps the value in the server's memory for the session, which works for any value but is lost if the user's next request reaches a different server.
+            storage: where the value is kept between events. "browser" (the default, unless `delete_callback` is passed) keeps an encrypted copy in the user's browser, with the server's memory used only as a cache, so the state works across server restarts and replicas. The value must be serializable; if it is not, it is kept in the server's memory with a warning. "server" keeps the value in the server's memory for the session, which works for any value but is lost if the user's next request reaches a different server.
             time_to_live: the number of seconds the state should be stored for after it is created or updated. If None, the state will be stored indefinitely. Once it expires, the state is reset to its initial value.
-            delete_callback: a function that is called when the state is deleted. The function should take the state value as an argument. Requires `storage="server"`, since the server cannot tell when a value kept in a browser is no longer needed.
+            delete_callback: a function that is called when the state is deleted. The function should take the state value as an argument. Passing it makes `storage` default to "server", since the server cannot tell when a value kept in a browser is no longer needed.
         """
+        if storage is None:
+            # A delete_callback only makes sense for a value the server holds
+            storage = "server" if delete_callback is not None else "browser"
         if storage not in ("browser", "server"):
             raise ValueError(
                 f"`storage` must be 'browser' or 'server', not {storage!r}."
             )
         if delete_callback is not None and storage != "server":
             raise ValueError(
-                "`delete_callback` requires `storage='server'`, since the server "
-                "cannot tell when a value kept in the browser is no longer needed."
+                "`delete_callback` cannot be used with `storage='browser'`, since "
+                "the server cannot tell when a value kept in the browser is no "
+                "longer needed."
             )
         self.storage = storage
         self.time_to_live = self.time_to_live = (

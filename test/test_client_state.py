@@ -404,13 +404,14 @@ class TestClientHeldState:
             assert browser.run(0, [None])["data"][1] == 2
 
     def test_time_to_live(self, launch):
-        demo, _ = counter_app(time_to_live=0.5)
+        # Each event (with its event stream) takes up to about a second here
+        demo, _ = counter_app(time_to_live=3)
         app = launch(demo)
         with TestClient(app) as client:
             browser = FakeBrowser(client)
             browser.run(0, [None])
             assert browser.run(0, [None])["data"][1] == 2
-            time.sleep(0.6)
+            time.sleep(3.2)
             assert browser.run(0, [None])["data"][1] == 1
 
     def test_in_place_changes_are_kept(self, launch):
@@ -552,10 +553,11 @@ class TestClientHeldState:
             browser.tokens[str(public._id)] = browser.tokens[str(secret._id)]
             assert browser.run(1, [None])["data"][0] == ""
 
-    def test_delete_callback_requires_server_storage(self):
-        with pytest.raises(ValueError, match="storage='server'"):
-            gr.State(delete_callback=print)
-        gr.State(delete_callback=print, storage="server")
+    def test_delete_callback_keeps_the_value_on_the_server(self):
+        assert gr.State(delete_callback=print).storage == "server"
+        assert gr.State().storage == "browser"
+        with pytest.raises(ValueError, match="storage='browser'"):
+            gr.State(delete_callback=print, storage="browser")
 
     def test_a_token_is_only_valid_for_the_user_it_was_issued_to(self):
         with gr.Blocks() as demo:
@@ -565,17 +567,18 @@ class TestClientHeldState:
         cache = StateCache()
         fingerprint = client_state.app_fingerprint(demo)
         sealer = client_state.get_sealer()
-        scope = client_state.token_scope(fingerprint, "alice", state._id)
+        scope = client_state.token_scope(fingerprint, "alice", "s1", state._id)
         token = sealer.seal(scope, dumps(41), time.time())
         entries = {str(state._id): {"token": token}}
 
         alice = client_state.ClientState.resolve(
-            demo, fn, entries, cache, username="alice"
+            demo, fn, entries, cache, username="alice", session_hash="s1"
         )
         assert alice.serialized[state._id] == dumps(41)
-        for other in ["bob", None]:
+        # Not accepted from another user, or in another session
+        for other, session in [("bob", "s1"), (None, "s1"), ("alice", "s2")]:
             resolved = client_state.ClientState.resolve(
-                demo, fn, entries, StateCache(), username=other
+                demo, fn, entries, StateCache(), username=other, session_hash=session
             )
             assert state._id not in resolved.serialized
 
@@ -599,3 +602,102 @@ def test_resume_sessions_can_be_turned_off(monkeypatch):
         assert demo.config["resume_sessions"] is False
     finally:
         demo.close()
+
+
+def test_subclasses_of_builtin_containers_are_not_stored_empty():
+    class Cart(list):
+        pass
+
+    with pytest.raises(StateSerializationError):
+        dumps(Cart([1, 2]))
+
+
+class TestQueuedEventsAndStreams:
+    def test_a_queued_event_starts_from_the_newest_value(self, launch):
+        import asyncio as _asyncio
+
+        def add_one(n):
+            time.sleep(0.3)
+            return n + 1, n + 1
+
+        with gr.Blocks() as demo:
+            n = gr.State(0)
+            out = gr.Number()
+            gr.Button().click(add_one, n, [n, out], trigger_mode="multiple")
+        demo.queue(default_concurrency_limit=1)
+        app = launch(demo)
+        del _asyncio
+        with TestClient(app) as client:
+            body = {"data": [None], "fn_index": 0, "session_hash": "q", "state": {}}
+            for _ in range(3):
+                assert (
+                    client.post(f"{API_PREFIX}/queue/join", json=body).status_code
+                    == 200
+                )
+            stream = client.get(
+                f"{API_PREFIX}/queue/data", params={"session_hash": "q"}
+            )
+            results = []
+            for line in stream.iter_lines():
+                if line.startswith("data:"):
+                    message = json.loads(line[5:])
+                    if message.get("msg") == "process_completed":
+                        results.append(message["output"]["data"][1])
+                        if len(results) == 3:
+                            break
+            # Each event was submitted with the initial value, but starts from
+            # the value the one before it left
+            assert results == [1, 2, 3]
+
+    def test_stream_chunks_keep_the_events_state(self, launch):
+        import asyncio as _asyncio
+        from types import SimpleNamespace
+
+        with gr.Blocks() as demo:
+            gr.Textbox()
+        app = launch(demo)
+        carried = object()
+        event = SimpleNamespace(
+            data=SimpleNamespace(client_state=carried), signal=_asyncio.Event()
+        )
+        demo._queue.event_ids_to_events["streaming-event"] = event
+        try:
+            with TestClient(app) as client:
+                response = client.post(
+                    f"{API_PREFIX}/stream/streaming-event",
+                    json={"data": ["chunk"], "fn_index": 0, "session_hash": "s"},
+                )
+                assert response.status_code == 200
+            assert event.data.data == ["chunk"]
+            assert event.data.client_state is carried
+        finally:
+            demo._queue.event_ids_to_events.pop("streaming-event", None)
+
+
+def test_session_status_says_whether_the_server_has_the_session(launch):
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(lambda x: x, t, t)
+    app = launch(demo)
+    with TestClient(app) as client:
+        status = lambda h: client.get(  # noqa: E731
+            f"{API_PREFIX}/session_status", params={"session_hash": h}
+        ).json()["known"]
+        assert status("fresh") is False
+        client.post(
+            f"{API_PREFIX}/queue/join",
+            json={"data": ["hi"], "fn_index": 0, "session_hash": "fresh"},
+        )
+        assert status("fresh") is True
+
+
+def test_unload_runs_once_until_the_session_comes_back(launch):
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = launch(demo)
+    app.state_holder["s"].is_closed = True
+    assert app.claim_unload("s") is True
+    assert app.claim_unload("s") is False
+    app.reopen_session("s")
+    assert app.state_holder["s"].is_closed is False
+    assert app.claim_unload("s") is True

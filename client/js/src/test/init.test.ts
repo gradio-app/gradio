@@ -127,8 +127,36 @@ describe("Client class", () => {
 							);
 							return HttpResponse.json(app_config);
 						}),
-						http.get(`${root}/info`, () => HttpResponse.json(response_api_info))
+						http.get(`${root}/info`, () =>
+							HttpResponse.json(response_api_info)
+						),
+						// The server still has every session but "server-lost-session"
+						http.get(`${root}/session_status`, ({ request }) =>
+							HttpResponse.json({
+								known:
+									new URL(request.url).searchParams.get("session_hash") !==
+									"server-lost-session"
+							})
+						)
 					);
+				});
+
+				test("restores the session but reruns load events if the server lost it", async () => {
+					await save_session("server-lost-session");
+					track_session(app_config, "server-lost-session");
+					set_session_in_use(false);
+
+					const app = await Client.connect(direct_app_reference, {
+						resume_sessions: true
+					});
+
+					expect(app.session_hash).toBe("server-lost-session");
+					// Load events run again, to set up on the server what it lost
+					expect(app.session_restored).toBe(false);
+					expect(
+						app.config?.components.find(({ id }) => id === 1)?.props.value
+					).toBe("hi");
+					expect(app.session_store.get(5)?.token).toBe("v1.token");
 				});
 
 				test("picks up the session and its outputs from the browser", async () => {

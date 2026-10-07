@@ -65,7 +65,7 @@ Learn more about `State` in the [docs](https://gradio.app/docs/gradio/state).
 By default, the value of a `gr.State` is kept in the user's browser. After an event changes it, the server sends the browser an encrypted copy of the new value, and the browser sends it back with the next event that needs it. The server also caches recent values in memory, so in the usual case the browser only sends a short reference rather than the whole value. This means that:
 
 - State keeps working if your app runs on several servers (replicas) behind a load balancer, or if the server restarts, as long as every server process shares the same secret key. Set the `GRADIO_SECRET_KEY` environment variable to the same random string for every replica. Without it, each process generates its own key, which works for a single server but not across replicas or restarts.
-- The value is encrypted and authenticated, so users can neither read nor modify it. They can, however, send back a value they were given earlier (for example by replaying an old request). Don't rely on `gr.State` for values that must never go backwards, such as a remaining credit balance; store those in a database.
+- The value is encrypted and authenticated, so users can neither read nor modify it, and it is tied to the session (and the logged-in user, if any), so it is not accepted in another one. Within its session, though, it is like a bearer token: a user can send back a value they were given earlier (for example by replaying an old request). Don't rely on `gr.State` for values that must never go backwards, such as a remaining credit balance; store those in a database.
 - The value must be serializable. JSON types, tuples, sets, `bytes`, dates, `Decimal`, `UUID`, paths, NumPy arrays, pandas DataFrames and Series, PIL images, dataclasses, pydantic models, enums, named tuples, and classes defined in your own app's code are all supported. If a value cannot be serialized (for example, a database connection or an object holding a lock), Gradio keeps it in the server's memory instead and prints a warning, since that value will be lost if the user's next request reaches a different server.
 - If several events run at the same time and change the same `gr.State`, the change from the event that finishes last wins.
 - Changing a value in place (e.g. `history.append(message)`) is saved even if the `gr.State` is only an input to the event.
@@ -76,7 +76,7 @@ If you want a value to be kept in the server's memory, for example a model loade
 model = gr.State(storage="server")
 ```
 
-Server-side state is cleared an hour after the user closes the tab, and is not shared between replicas. It is the only storage that supports a `delete_callback`, which is called when the value is deleted. With either storage, `time_to_live` resets the state to its initial value once that many seconds have passed since it was last changed.
+Server-side state is cleared an hour after the user closes the tab, and is not shared between replicas. It is the only storage that supports a `delete_callback`, which is called when the value is deleted; passing a `delete_callback` keeps the value on the server unless you set `storage` yourself. With either storage, `time_to_live` resets the state to its initial value once that many seconds have passed since it was last changed.
 
 Clients that don't hold state themselves, like the Python client, the `/call` HTTP API, and MCP, always use server-side storage.
 

@@ -403,6 +403,7 @@ class BlocksConfigDict(TypedDict):
     # Identifies the app's structure, the same across restarts and replicas
     app_key: str
     resume_sessions: NotRequired[bool]
+    session_user: NotRequired[str | None]
     dev_mode: bool
     vibe_mode: bool
     analytics_enabled: bool

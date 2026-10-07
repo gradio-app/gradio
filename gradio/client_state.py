@@ -245,11 +245,15 @@ def _warn_invalid_token() -> None:
     )
 
 
-def token_scope(fingerprint: str, username: str | None, _id: int) -> bytes:
-    """What a token is bound to: the app's structure, the logged-in user (so a
-    token issued to one user is not accepted from another) and the component."""
+def token_scope(
+    fingerprint: str, username: str | None, session_hash: str | None, _id: int
+) -> bytes:
+    """What a token is bound to: the app's structure, the logged-in user and the
+    session (so a token issued in one session, to one user, is not accepted in
+    another), and the component."""
     user = (username or "").encode("utf-8").hex()
-    return f"{fingerprint}:{user}:{_id}".encode()
+    session = (session_hash or "").encode("utf-8").hex()
+    return f"{fingerprint}:{user}:{session}:{_id}".encode()
 
 
 class ClientState:
@@ -262,19 +266,24 @@ class ClientState:
         serialized: dict[int, bytes],
         client_refs: dict[int, str | None],
         username: str | None = None,
+        session_hash: str | None = None,
     ):
         self.components = components
         self.fingerprint = fingerprint
         self.username = username
+        self.session_hash = session_hash
         # Values the client sent, not yet deserialized
         self.serialized = serialized
         # The reference the client holds for each id (None: it holds nothing usable)
         self.client_refs = client_refs
         # Deserialized values, which the event's functions read and write
         self.values: dict[int, Any] = {}
+        # When each value the client sent was issued
+        self.issued_at: dict[int, float] = {}
+        self.refreshed = False
 
     def scope(self, _id: int) -> bytes:
-        return token_scope(self.fingerprint, self.username, _id)
+        return token_scope(self.fingerprint, self.username, self.session_hash, _id)
 
     @classmethod
     def resolve(
@@ -284,6 +293,7 @@ class ClientState:
         entries: dict[str, dict[str, str]],
         cache: StateCache,
         username: str | None = None,
+        session_hash: str | None = None,
     ) -> ClientState:
         """Verifies the state a client sent for an event. Raises MissingStateError
         if the client sent only references that are not in the cache."""
@@ -293,12 +303,13 @@ class ClientState:
         serialized: dict[int, bytes] = {}
         client_refs: dict[int, str | None] = {}
         missing: list[int] = []
+        issued: dict[int, float] = {}
         now = time.time()
         for _id, block in components.items():
             entry = entries.get(str(_id))
             if not isinstance(entry, dict):
                 continue
-            scope = token_scope(fingerprint, username, _id)
+            scope = token_scope(fingerprint, username, session_hash, _id)
             token = entry.get("token")
             ref = entry.get("ref")
             if isinstance(token, str):
@@ -323,9 +334,44 @@ class ClientState:
                 continue
             serialized[_id] = value
             client_refs[_id] = ref
+            issued[_id] = issued_at
         if missing:
             raise MissingStateError(missing)
-        return cls(components, fingerprint, serialized, client_refs, username)
+        resolved = cls(
+            components, fingerprint, serialized, client_refs, username, session_hash
+        )
+        resolved.issued_at = issued
+        return resolved
+
+    def refresh(self, cache: StateCache, latest: MutableMapping) -> None:
+        """Called when the event starts running. If another event of the same
+        session changed a value after this event was submitted (e.g. while this
+        one waited in the queue), uses that newer value, as this server issued
+        it, rather than the one the event was sent with."""
+        if self.refreshed:
+            return
+        self.refreshed = True
+        if self.session_hash is None:
+            return
+        now = time.time()
+        for _id, block in self.components.items():
+            newest = latest.get(f"{self.session_hash}:{_id}")
+            if newest is None or _id in self.values:
+                continue
+            # A value the client sent that was rejected (tampered with, or
+            # expired) resets the state; the server's copy does not replace it
+            if _id in self.client_refs and _id not in self.issued_at:
+                continue
+            ref, issued_at = newest
+            if issued_at <= self.issued_at.get(_id, float("-inf")):
+                continue
+            if now - issued_at > block.time_to_live:
+                continue
+            cached = cache.get(ref)
+            if cached is None:
+                continue
+            self.serialized[_id] = cached[0]
+            self.issued_at[_id] = issued_at
 
     def materialize(self, _id: int, session_state: SessionState) -> bool:
         """Deserializes the value for `_id` if there is one. Falls back to a value
@@ -357,7 +403,10 @@ class ClientState:
         return view
 
     def collect(
-        self, session_state: SessionState, cache: StateCache
+        self,
+        session_state: SessionState,
+        cache: StateCache,
+        latest: MutableMapping | None = None,
     ) -> dict[str, dict[str, str] | None]:
         """Serializes the values this event touched and returns, for each one
         that changed, the new token to send to the client (or None to tell it
@@ -384,6 +433,9 @@ class ClientState:
             token = sealer.seal(scope, serialized, issued_at)
             cache.put(ref, serialized, issued_at)
             self.client_refs[_id] = ref
+            self.issued_at[_id] = issued_at
+            if latest is not None and self.session_hash is not None:
+                latest[f"{self.session_hash}:{_id}"] = (ref, issued_at)
             updates[str(_id)] = {"ref": ref, "token": token}
         return updates
 

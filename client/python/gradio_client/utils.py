@@ -539,6 +539,10 @@ def stream_sse_v1plus(
             if msg is None or helper.thread_complete:
                 raise concurrent.futures.CancelledError()
 
+            if msg["msg"] == ServerMessage.unexpected_error:
+                # e.g. a resumed job that the server no longer has
+                raise ValueError(msg.get("message") or "The server lost this job.")
+
             with helper.lock:
                 log_message = None
                 if msg["msg"] == ServerMessage.log:

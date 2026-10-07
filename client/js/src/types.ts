@@ -172,6 +172,8 @@ export interface Config {
 	app_key?: string;
 	/** False if the app turned off resuming sessions on reload. */
 	resume_sessions?: boolean;
+	/** Who the session belongs to (the `auth` user or the Hugging Face account). */
+	session_user?: string | null;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	dev_mode: boolean;

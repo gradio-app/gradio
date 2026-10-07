@@ -24,6 +24,7 @@ import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
 import {
 	forget_session,
+	session_user,
 	get_resumable_events,
 	get_resumable_session_hash,
 	has_session,
@@ -310,7 +311,7 @@ export class Client {
 							config.root,
 							config.app_key,
 							this.session_hash,
-							config.username ?? null
+							session_user(config)
 						)
 					: Promise.resolve(),
 				// So that the first submission knows where its run is recorded
@@ -318,9 +319,12 @@ export class Client {
 			]);
 			// Put back what the session's components were showing, so the page
 			// comes back as it was rather than from the app's initial values.
+			// The page's load events are skipped as well, unless the server no
+			// longer has the session (it restarted, or this is another replica):
+			// then what they set up on the server is gone, so they run again.
 			if (resumable && this.session_store.found) {
 				this.session_store.restore_into(config.components);
-				this.session_restored = true;
+				this.session_restored = await this.server_has_session(config);
 			}
 			await this._resolve_heartbeat(config);
 		}
@@ -334,6 +338,25 @@ export class Client {
 			console.error((e as Error).message);
 		}
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
+	}
+
+	private async server_has_session(config: Config): Promise<boolean> {
+		try {
+			const url = new URL(
+				`${config.root}${config.api_prefix ?? ""}/session_status`
+			);
+			url.searchParams.set("session_hash", this.session_hash);
+			const response = await this.fetch(url, {
+				headers: this.options.token
+					? { Authorization: `Bearer ${this.options.token}` }
+					: {},
+				credentials: this.options.credentials ?? "same-origin"
+			});
+			if (!response.ok) return false;
+			return Boolean(((await response.json()) as { known?: boolean }).known);
+		} catch {
+			return false;
+		}
 	}
 
 	/**

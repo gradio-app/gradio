@@ -247,6 +247,14 @@ def _encode_object(obj: Any, seen: set[int]) -> Any:
             "v": _encode(obj.model_dump(mode="python"), seen),
         }
 
+    # e.g. `class Cart(list)`: its items are not in its `__dict__`, so storing
+    # it as an object would silently drop them
+    builtin_bases = (list, dict, set, frozenset, tuple, str, bytes, int, float)
+    if isinstance(obj, builtin_bases):
+        raise StateSerializationError(
+            f"{t.__qualname__} subclasses a built-in type, so it cannot be "
+            "stored in the browser"
+        )
     if dataclasses.is_dataclass(obj) or _is_app_class(t):
         state = _object_state(obj)
         return {
