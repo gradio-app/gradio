@@ -209,6 +209,9 @@ export interface Config {
 	>;
 	pages: [string, string, boolean][];
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
+	// Protocols the server accepts besides `protocol`, which stays at the
+	// newest one older clients understand. Absent on servers before sse_v4.
+	supported_protocols?: ("sse_v3" | "sse_v4")[];
 	max_file_size?: number;
 	theme_hash?: number;
 	username: string | null;
