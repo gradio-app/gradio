@@ -831,9 +831,9 @@ def _build_endpoint_fn(
 
 
 def _app_signature(graph: WorkflowGraph | None) -> str:
-    """Everything the registered endpoints and app layout are built from: the
-    graph name, and per subgraph its api_name, free inputs (with their current
-    values, which pre-fill the app) and outputs."""
+    """The shape of the endpoints and app layout: graph name, and per subgraph
+    its api_name, free inputs and outputs. Not their values — see
+    `_default_signature`."""
     if graph is None:
         return "null"
     groups = []
@@ -842,14 +842,25 @@ def _app_signature(graph: WorkflowGraph | None) -> str:
         groups.append(
             [
                 api_name,
-                [
-                    [f["node"]["id"], f["type"], f["label"], _reference_default(f)]
-                    for f in frees
-                ],
+                [[f["node"]["id"], f["type"], f["label"]] for f in frees],
                 [[s["id"], subject_output_type(s), s.get("label")] for s in group],
             ]
         )
     return json.dumps([graph.name, groups], default=str)
+
+
+def _default_signature(graph: WorkflowGraph | None) -> str:
+    """The free inputs' values. These pre-fill the app and become the API
+    defaults, so a change needs a new config, not new components."""
+    if graph is None:
+        return "null"
+    return json.dumps(
+        [
+            [_reference_default(f) for f in group_free_inputs(graph, group)]
+            for group, _ in _group_slug_iter(subject_groups(graph))
+        ],
+        default=str,
+    )
 
 
 class WorkflowEndpointManager:
@@ -880,6 +891,9 @@ class WorkflowEndpointManager:
         self._block_ids: list[int] = []
         self._fn_ids: list[int] = []
         self._signature: str | None = None
+        self._default_signature: str | None = None
+        # Input components per subgraph, in `group_free_inputs` order.
+        self._inputs: list[list] = []
         # Bumped each time the endpoints/app are rebuilt, so an open page can
         # tell its config (component + event ids) has gone stale.
         self.version = 0
@@ -896,9 +910,17 @@ class WorkflowEndpointManager:
         connected clients working."""
         graph = self.get_graph()
         signature = _app_signature(graph)
+        defaults = _default_signature(graph)
         if signature == self._signature:
+            # Only the pre-filled values moved. Rebuilding here would churn
+            # every id on nearly every autosave.
+            if defaults != self._default_signature:
+                self._default_signature = defaults
+                self._apply_defaults(graph)
+                self._refresh_app()
             return list(self.api_names)
         self._signature = signature
+        self._default_signature = defaults
         self.version += 1
         self._teardown()
         if graph is not None and graph.subjects:
@@ -916,16 +938,43 @@ class WorkflowEndpointManager:
         if self._block_ids:
             # unrender() needs the Blocks as the active context to remove blocks
             # from its layout + id map.
+            dropped: set[int] = set()
             with _active_blocks(self.blocks, self.app_root):
                 for block_id in self._block_ids:
                     block = self.blocks.blocks.get(block_id)
-                    if block is not None:
-                        block.unrender()
+                    if block is None:
+                        continue
+                    block.unrender()
+                    # `render()` appends `temp_files` to the root block and
+                    # `unrender()` leaves it there.
+                    temp_files = getattr(block, "temp_files", None)
+                    if temp_files is not None:
+                        dropped.add(id(temp_files))
+            if dropped:
+                self.blocks.temp_file_sets = [
+                    fs for fs in self.blocks.temp_file_sets if id(fs) not in dropped
+                ]
         for fn_id in self._fn_ids:
             self.blocks.fns.pop(fn_id, None)
         self._block_ids = []
         self._fn_ids = []
+        self._inputs = []
         self.api_names = []
+
+    def _apply_defaults(self, graph: WorkflowGraph | None) -> None:
+        """Re-prefill the existing input components. Values are shaped by
+        building a throwaway component, so each gets its own postprocessing and
+        its fallback when a value no longer loads."""
+        if graph is None:
+            return
+        groups = list(_group_slug_iter(subject_groups(graph)))
+        for components, (group, _api_name) in zip(self._inputs, groups):
+            frees = group_free_inputs(graph, group)
+            for component, free in zip(components, frees):
+                shaped = port_to_component(
+                    free["type"], free["label"], value=_reference_default(free)
+                )
+                component.value = shaped.value
 
     @contextlib.contextmanager
     def _tracked(self):
@@ -1017,6 +1066,7 @@ class WorkflowEndpointManager:
             output_components = render_outputs()
             trigger = gr.Button(visible=False)
 
+        self._inputs.append(input_components)
         fn = _build_endpoint_fn(
             self.get_graph,
             [s["id"] for s in group],
