@@ -1721,8 +1721,11 @@ def get_dataset_schema(
 # elem_id of the column holding the app view; the canvas frontend looks it up to
 # mark it inert while the canvas covers it.
 _APP_ELEM_ID = "workflow-app"
+# The row gives each child a 0% flex-basis, which overrides the scale=0
+# button's `width: fit-content` and squeezes it down to its padding.
 _APP_CSS = f"""
 #{_APP_ELEM_ID}-header {{ justify-content: flex-end; }}
+#{_APP_ELEM_ID}-header > button {{ flex: none; }}
 """
 
 
