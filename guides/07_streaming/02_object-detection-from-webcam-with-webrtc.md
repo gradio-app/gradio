@@ -1,8 +1,8 @@
-# Real Time Object Detection from a Webcam Stream with FastRTC
+# Real Time Object Detection from a Webcam Stream with WebRTC
 
 Tags: VISION, STREAMING, WEBCAM
 
-In this guide, we'll use YOLOv10 to perform real-time object detection in Gradio from a user's webcam feed. We'll utilize [FastRTC](https://fastrtc.org/) a companion library from the gradio team for building low latency streaming web applications. You can see the finished product in action below:
+In this guide, we'll use YOLOv10 to perform real-time object detection in Gradio from a user's webcam feed. We'll stream the webcam over [WebRTC](https://webrtc.org/) with the built-in `gr.WebRTC` component, which sends each frame to the server and plays the processed frame back with the latency of a direct connection, instead of one HTTP request per frame. You can see the finished product in action below:
 
 <video src="https://github.com/user-attachments/assets/4584cec6-8c1a-401b-9b61-a4fe0718b558" controls
 height="600" width="600" style="display: block; margin: auto;" autoplay="true" loop="true">
@@ -13,16 +13,18 @@ height="600" width="600" style="display: block; margin: auto;" autoplay="true" l
 Start by installing all the dependencies. Add the following lines to a `requirements.txt` file and run `pip install -r requirements.txt`:
 
 ```bash
+gradio[webrtc]
 opencv-python
-fastrtc
 onnxruntime-gpu
 ```
 
+The `webrtc` extra installs [aiortc](https://github.com/aiortc/aiortc), which `gr.WebRTC` uses for the server side of the connection.
+
 We'll use the ONNX runtime to speed up YOLOv10 inference. This guide assumes you have access to a GPU. If you don't, change `onnxruntime-gpu` to `onnxruntime`. Without a GPU, the model will run slower, resulting in a laggy demo.
 
-We'll use OpenCV for image manipulation and the [WebRTC](https://webrtc.org/) protocol to achieve near-zero latency.
+We'll use OpenCV for image manipulation.
 
-**Note**: If you want to deploy this app on any cloud provider, you'll need to use your Hugging Face token to connect to a TURN server. Learn more in this [guide](https://fastrtc.org/deployment/). If you're not familiar with TURN servers, consult this [guide](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-nat).
+**Note**: If you want to deploy this app on any cloud provider, including Hugging Face Spaces, you'll need a TURN server to relay the media, because the browser cannot reach the server directly. Pass its ICE servers with the `rtc_configuration` parameter of `gr.WebRTC`, either as a dict or as a function that returns one, which is called for every connection so that short-lived credentials work. Hugging Face accounts get a free monthly TURN quota through Cloudflare; the `fastrtc` package's `get_cloudflare_turn_credentials` function returns a configuration in the right shape. If you're not familiar with TURN servers, consult this [guide](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-a-turn-server).
 
 ## The Inference Function
 
@@ -50,21 +52,20 @@ def detection(image, conf_threshold=0.3):
 
 Our inference function, `detection`, accepts a numpy array from the webcam and a desired confidence threshold. Object detection models like YOLO identify many objects and assign a confidence score to each. The lower the confidence, the higher the chance of a false positive. We'll let users adjust the confidence threshold.
 
-The function returns a numpy array corresponding to the same input image with all detected objects in bounding boxes.
+The function returns a numpy array corresponding to the same input image with all detected objects in bounding boxes. `gr.WebRTC` passes frames as BGR arrays (the layout OpenCV uses) and expects a BGR array back.
 
 ## The Gradio Demo
 
 The Gradio demo is straightforward, but we'll implement a few specific features:
 
-1. Use the `WebRTC` custom component to ensure input and output are sent to/from the server with WebRTC. 
-2. The [WebRTC](https://github.com/freddyaboulton/gradio-webrtc) component will serve as both an input and output component.
-3. Utilize the `time_limit` parameter of the `stream` event. This parameter sets a processing time for each user's stream. In a multi-user setting, such as on Spaces, we'll stop processing the current user's stream after this period and move on to the next. 
+1. Use the `gr.WebRTC` component with `mode="send-receive"` so that the webcam is sent to the server and the processed frames are played back in the same component.
+2. Attach the inference function with the `stream` method. The first input is the component itself; the values of the other inputs (here, the slider) are passed to the function after the frame, and are pushed to the running stream whenever they change.
+3. Utilize the `time_limit` parameter of `stream`. This parameter sets a processing time for each user's stream. In a multi-user setting, such as on Spaces, we'll stop processing the current user's stream after this period so that the next user can connect.
 
 We'll also apply custom CSS to center the webcam and slider on the page.
 
 ```python
 import gradio as gr
-from fastrtc import WebRTC
 
 css = """.my-group {max-width: 600px !important; max-height: 600px !important;}
          .my-column {display: flex !important; justify-content: center !important; align-items: center !important;}"""
@@ -79,7 +80,7 @@ with gr.Blocks(css=css) as demo:
     )
     with gr.Column(elem_classes=["my-column"]):
         with gr.Group(elem_classes=["my-group"]):
-            image = WebRTC(label="Stream", rtc_configuration=rtc_configuration)
+            webcam = gr.WebRTC(label="Stream", rtc_configuration=rtc_configuration)
             conf_threshold = gr.Slider(
                 label="Confidence Threshold",
                 minimum=0.0,
@@ -88,16 +89,20 @@ with gr.Blocks(css=css) as demo:
                 value=0.30,
             )
 
-        image.stream(
-            fn=detection, inputs=[image, conf_threshold], outputs=[image], time_limit=10
+        webcam.stream(
+            fn=detection, inputs=[webcam, conf_threshold], outputs=[webcam], time_limit=10
         )
 
 if __name__ == "__main__":
     demo.launch()
 ```
 
+## Going further
+
+- To update other components from the stream, for example a counter of detected objects, return `(frame, gr.webrtc.AdditionalOutputs(count))` from the function and list the components after the `gr.WebRTC` component in `outputs`. The values are matched positionally, like the return values of any other event.
+- To end a stream from the handler, return `gr.webrtc.CloseStream("message")`.
+- For audio streams, pass a subclass of `gradio.webrtc.StreamHandler` or `gradio.webrtc.AsyncStreamHandler` to `stream` instead of a function. Its `receive` method is called with every incoming audio frame and its `emit` method is polled for the next frame to play back.
+
 ## Conclusion
 
-Our app is hosted on Hugging Face Spaces [here](https://huggingface.co/spaces/freddyaboulton/webrtc-yolov10n). 
-
-You can use this app as a starting point to build real-time image applications with Gradio. Don't hesitate to open issues in the space or in the [FastRTC GitHub repo](https://github.com/gradio-app/fastrtc) if you have any questions or encounter problems.
+You can use this app as a starting point to build real-time image applications with Gradio. Voice activity detection, turn taking and other building blocks for voice applications are available in the companion [FastRTC](https://fastrtc.org/) library.

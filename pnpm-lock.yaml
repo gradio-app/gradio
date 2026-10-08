@@ -371,6 +371,9 @@ importers:
       '@gradio/video':
         specifier: workspace:^
         version: link:js/video
+      '@gradio/webrtc':
+        specifier: workspace:^
+        version: link:js/webrtc
       '@gradio/workflowcanvas':
         specifier: workspace:^
         version: link:js/workflowcanvas
@@ -2501,6 +2504,28 @@ importers:
       mrmime:
         specifier: ^2.0.1
         version: 2.0.1
+      svelte:
+        specifier: ^5.48.0
+        version: 5.56.9(@typescript-eslint/types@8.67.0)
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/webrtc:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
       svelte:
         specifier: ^5.48.0
         version: 5.56.9(@typescript-eslint/types@8.67.0)

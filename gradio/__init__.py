@@ -67,6 +67,7 @@ from gradio.components import (
     Timer,
     UploadButton,
     Video,
+    WebRTC,
     WorkflowCanvas,
     component,
 )
@@ -260,6 +261,7 @@ __all__ = [
     "Step",
     "Warning",
     "WaveformOptions",
+    "WebRTC",
     "WebcamOptions",
     "WatermarkOptions",
     "__version__",
