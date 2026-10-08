@@ -1,5 +1,11 @@
 # @gradio/accordion
 
+## 0.7.1
+
+### Fixes
+
+- [#13936](https://github.com/gradio-app/gradio/pull/13936) [`0a7c8da`](https://github.com/gradio-app/gradio/commit/0a7c8da46e0d3918e24a3da6cd9b749e08eb8f6d) - Fix hidden Accordion revealed with open=True rendering empty.  Thanks @abidlabs!
+
 ## 0.7.0
 
 ### Features
