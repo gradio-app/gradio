@@ -685,8 +685,10 @@ export class DependencyManager {
 								const { layout, components, render_id, dependencies } =
 									result.data;
 
-								this.rerender_cb(components, layout);
-								// update dependencies
+								// update dependencies before the layout: re-rendering pushes
+								// props into reused components, and any event that fires
+								// (e.g. an accordion collapsing back to its declared state)
+								// must reach this render's listeners, not the previous one's.
 								const { by_id, by_event } = this.create(
 									dependencies as unknown as IDependency[]
 								);
@@ -710,6 +712,7 @@ export class DependencyManager {
 									render_id,
 									new Set(Array.from(by_id.keys()))
 								);
+								this.rerender_cb(components, layout);
 								this.dispatch_load_events(by_id);
 								break submit_loop;
 							}
