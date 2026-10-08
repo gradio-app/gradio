@@ -113,7 +113,8 @@
 		initialValue = null,
 		gradio_shared = undefined,
 		auth: shared_auth = undefined,
-		active = true
+		active = true,
+		ready = $bindable(false)
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
@@ -122,6 +123,9 @@
 		 * parent and canvas agree on who the viewer is. */
 		auth?: ReturnType<typeof createHFAuth>;
 		active?: boolean;
+		/** Set once `initialValue` has been applied to the store; until then the
+		 * store holds a placeholder that must never be saved over the file. */
+		ready?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
@@ -341,6 +345,7 @@
 		lastSavedSignature = structural_signature(loaded);
 		history.reset(loaded);
 		layoutReady = true;
+		ready = true;
 		if (autoArrange) {
 			requestAnimationFrame(() => {
 				autoLayout();

@@ -44,6 +44,21 @@ type AuthStatus = "checking" | "ready" | "validating" | "invalid";
 
 const WRITE_TOKEN_COOKIE_PREFIX = "gradio_workflow_write_token";
 
+// Cookies aren't port-scoped, so each local app's cookie name carries its port.
+function writeTokenCookieName(): string {
+	const port =
+		window.location.port ||
+		(window.location.protocol === "https:" ? "443" : "80");
+	return `${WRITE_TOKEN_COOKIE_PREFIX}_${port}`;
+}
+
+function hasWriteTokenCookie(): boolean {
+	const name = writeTokenCookieName();
+	return document.cookie
+		.split(";")
+		.some((c) => c.trim().startsWith(`${name}=`));
+}
+
 /**
  * Move a `?write_token=…` query param (from the edit link printed at launch)
  * into a cookie so subsequent /component_server calls carry it, then strip it
@@ -56,12 +71,9 @@ function applyWriteTokenFromUrl(): void {
 	const params = new URLSearchParams(window.location.search);
 	const wt = params.get("write_token");
 	if (!wt) return;
-	const port =
-		window.location.port ||
-		(window.location.protocol === "https:" ? "443" : "80");
 	const maxAge = 60 * 60 * 24 * 7;
 	const secure = window.location.protocol === "https:" ? "; Secure" : "";
-	document.cookie = `${WRITE_TOKEN_COOKIE_PREFIX}_${port}=${encodeURIComponent(wt)}; path=/; max-age=${maxAge}; SameSite=Lax${secure}`;
+	document.cookie = `${writeTokenCookieName()}=${encodeURIComponent(wt)}; path=/; max-age=${maxAge}; SameSite=Lax${secure}`;
 	params.delete("write_token");
 	const q = params.toString();
 	window.history.replaceState(
@@ -79,14 +91,9 @@ function applyWriteTokenFromUrl(): void {
  */
 function clearStaleWriteTokenCookie(): void {
 	if (typeof window === "undefined") return;
-	const port =
-		window.location.port ||
-		(window.location.protocol === "https:" ? "443" : "80");
-	const name = `${WRITE_TOKEN_COOKIE_PREFIX}_${port}`;
-	if (!document.cookie.split(";").some((c) => c.trim().startsWith(`${name}=`)))
-		return;
+	if (!hasWriteTokenCookie()) return;
 	const secure = window.location.protocol === "https:" ? "; Secure" : "";
-	document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax${secure}`;
+	document.cookie = `${writeTokenCookieName()}=; path=/; max-age=0; SameSite=Lax${secure}`;
 }
 
 /**
@@ -98,9 +105,7 @@ export function has_write_token_hint(): boolean {
 	if (typeof window === "undefined") return false;
 	if (new URLSearchParams(window.location.search).has("write_token"))
 		return true;
-	return document.cookie
-		.split(";")
-		.some((c) => c.trim().startsWith(WRITE_TOKEN_COOKIE_PREFIX));
+	return hasWriteTokenCookie();
 }
 
 export function createHFAuth(getServer: () => Record<string, any>) {

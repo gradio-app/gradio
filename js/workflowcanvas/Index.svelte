@@ -37,6 +37,7 @@
 	const app_view_id = $derived(gradio.props.app_view || null);
 
 	function read_view_param(): View | null {
+		if (typeof window === "undefined") return null;
 		const v = new URLSearchParams(window.location.search).get(VIEW_PARAM);
 		return v === "canvas" || v === "app" ? v : null;
 	}
@@ -48,7 +49,9 @@
 	// write token is in the URL or a cookie; on a Space most visitors aren't
 	// the owner, so an owner sees the app for a moment before the canvas.
 	const predicted: View =
-		!window.location.hostname.endsWith(".hf.space") && has_write_token_hint()
+		typeof window !== "undefined" &&
+		!window.location.hostname.endsWith(".hf.space") &&
+		has_write_token_hint()
 			? "canvas"
 			: "app";
 
@@ -67,6 +70,7 @@
 	// toggling back and forth keeps its state. App-view visitors who never open
 	// it don't pay for it at all.
 	let canvas_mounted = $state(false);
+	let canvas_loaded = $state(false);
 	$effect.pre(() => {
 		if (view === "canvas") canvas_mounted = true;
 	});
@@ -132,9 +136,9 @@
 	});
 
 	$effect(() => {
-		// Only flush the canvas's state if it was ever mounted: before that the
-		// store holds a placeholder, which must never be saved over the file.
-		if (!serverObj?.save_workflow || !canvas_mounted) return;
+		// Only flush the canvas's state once it has loaded the file: before that
+		// the store holds a placeholder, which must never be saved over it.
+		if (!serverObj?.save_workflow || !canvas_loaded) return;
 
 		function handlePageHide() {
 			const gradioConfig = (window as any).gradio_config;
@@ -176,6 +180,7 @@
 			gradio_shared={gradio.shared}
 			{auth}
 			active={view === "canvas"}
+			bind:ready={canvas_loaded}
 		/>
 	</div>
 {/if}
