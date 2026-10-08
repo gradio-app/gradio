@@ -178,6 +178,149 @@ gradio deploy
 
 Set `hf_oauth: true` [in your Space](https://huggingface.co/docs/hub/en/spaces-oauth) so the owner can authenticate for editing. The owning user, or an organization member with `write` or `admin` access, can edit and save the workflow. Other visitors get a read-only canvas and can run the pipeline using their OAuth identity or a Hugging Face access token. Without OAuth enabled, the Space cannot identify its owner, so the deployed workflow remains run-only.
 
+<<<<<<< Updated upstream
+=======
+## gr.Workflow on ZeroGPU
+
+Two different things in a Workflow app can spend GPU time, and each is set up its own way:
+
+- **Space, model, and dataset nodes** call out to someone else's hardware. The workflow app itself stays on CPU; what matters is *whose* quota each call is billed to.
+- **`kind: "fn"` nodes** run inside the workflow app. If one of them does GPU work, the workflow app is itself a ZeroGPU Space, and `@spaces.GPU` applies exactly as in any other Gradio app, plus a few canvas-specific details covered below.
+
+### Error reference
+
+Where each ZeroGPU failure comes from, by the text it reports:
+
+| Message | Cause | Fix |
+|---|---|---|
+| `ZeroGPU illegal duration` — "The requested GPU duration (270s) is larger than the maximum allowed" | The *multiplied* duration exceeds the caller's maximum. The number quoted is yours × the hardware factor, so it won't match your source. | [Sizing `duration`](#sizing-duration-on-bound-functions) |
+| `ZeroGPU quota exceeded` — "Space app has reached its GPU limit." | The request carried no visitor token, so it was billed to the Space's shared anonymous allowance. | [Whose quota pays](#whose-quota-pays) — enable `hf_oauth` |
+| `ZeroGPU quota exceeded` — "You have exceeded your ZeroGPU runs limit." / "…quota (Ns requested vs. Ms left)" | The signed-in caller is out of quota. | [Whose quota pays](#whose-quota-pays) |
+| `ZeroGPU pending credits exceeded` — "You have too many ZeroGPU credits allocated to running tasks." | Too much duration booked at once. Chained nodes each hold their own slot, so an over-sized `duration` multiplies across the chain. | [Sizing `duration`](#sizing-duration-on-bound-functions) |
+| `ZeroGPU duration` — "GPU task is exceeding its requested duration and might be aborted" | `duration` is too small for the work the node actually does. | [Sizing `duration`](#sizing-duration-on-bound-functions) |
+| `ZeroGPU client warning` — "GPU device not used" | The decorated function never touched the GPU — usually the model was moved to `cuda` somewhere the decorator can't see. | [Load models at module scope](#load-models-at-module-scope) |
+| `RuntimeError: CUDA has been initialized before importing the` `spaces` `package.` | An import that initializes CUDA ran before `import spaces`. | [Load models at module scope](#load-models-at-module-scope) |
+| A node renders a path or `{...}` as text where an image was expected | The function returned a `PIL.Image` or a bare path instead of a file dict, or the output port isn't typed `image`. | [Media in and out](#media-in-and-out-of-a-bound-function) |
+
+`ZeroGPU queue timeout` — "No GPU was available after 60s" is contention, not a configuration problem; retry.
+
+### Whose quota pays
+
+Most Space and model nodes run on [ZeroGPU](https://huggingface.co/docs/hub/spaces-zerogpu) or a Hugging Face inference provider, so every run of a workflow spends somebody's GPU quota. Which account pays depends on the token each node resolves, in this order: a token entered on the node itself, otherwise the visitor's OAuth token. When you run the workflow locally, it uses your own saved Hugging Face token. Visitors who aren't signed in fall back to the anonymous tier, which is a couple of minutes of GPU time a day, so they'll hit quota errors quickly.
+
+This makes `hf_oauth: true` load-bearing for two separate reasons. Without it the Space cannot identify its owner, so nobody can edit the workflow — *and* every visitor runs anonymously on a shared IP-based allowance, so the pipeline starts failing with quota errors almost immediately. Enable it even for a workflow you never intend to let anyone edit:
+
+```yaml
+# README.md of your Space
+hf_oauth: true
+```
+
+The workflow app itself does not need GPU hardware. It orchestrates calls to other Spaces, so CPU basic is the right choice unless a function you passed to `bind=` does its own GPU work.
+
+### Sizing `duration` on bound functions
+
+The number you write in `@spaces.GPU(duration=N)` is **not** the number checked against the caller's quota. ZeroGPU multiplies it by a factor that depends on the GPU the Space landed on:
+
+| Hardware | Duration factor |
+|---|---|
+| NVIDIA H200 | 1.0 |
+| NVIDIA RTX PRO 6000 Blackwell | 1.5 |
+
+So `@spaces.GPU(duration=180)` on Blackwell hardware books **270s**, and that 270s is what the quota gate compares against the caller's allowance — which is why a function can be rejected as exceeding the maximum allowed duration while the number in your source is comfortably under it. The error message quotes the multiplied figure, not yours.
+
+Two things change the arithmetic:
+
+- Passing `size="xlarge"` skips the multiplier entirely, so `duration=180` books exactly 180s. Don't read that as cheaper: when an xlarge call is rejected for quota, ZeroGPU reports the figure doubled, so an xlarge slot appears to count twice over against the allowance.
+- Omitting `duration` requests 60s before multiplication, not an unlimited slot.
+
+**Size `duration` per node, never per pipeline.** Each `fn` node is a separate call that books and releases its own GPU slot, so a chain of three 60s nodes is three 60s bookings rather than one 180s one. There is no arithmetic in the workflow executor that sums durations across chained nodes — each node is accounted for on its own.
+
+### Load models at module scope
+
+Load weights once at import and move them to `cuda` there, not inside the decorated function:
+
+```python
+import spaces  # must be imported before anything initializes CUDA
+import torch
+from diffusers import AutoPipelineForText2Image
+
+pipe = AutoPipelineForText2Image.from_pretrained(
+    "stabilityai/sdxl-turbo", torch_dtype=torch.float16, variant="fp16"
+).to("cuda")
+
+@spaces.GPU(duration=60)
+def illustrate(prompt: str) -> dict:
+    return save(pipe(prompt=prompt, num_inference_steps=2).images[0])
+```
+
+On ZeroGPU the `spaces` package intercepts that module-scope `.to("cuda")`, packs the weights, and transfers them when a GPU is actually allocated — so it costs no GPU time at import. Moving the model inside the function instead repeats the transfer on every call, which is charged against the `duration` you booked.
+
+`import spaces` must come before any import that initializes CUDA, or it raises at startup. On ZeroGPU, `spaces` forces `torch.cuda.is_available()` to return `True`, so the usual `cuda` / `mps` / `cpu` ternary resolves to `cuda` there and still lets the same file run locally.
+
+### Media in and out of a bound function
+
+A bound function's arguments and return value are passed through **as-is** — none of the file coercion that Space and model nodes get runs for `fn` nodes. Three consequences:
+
+**Media ports must be declared explicitly in `workflow.json`.** Signature inference gives every bound function `text`/`number`/`boolean` ports and a single output, so an image-producing node has to be typed by hand:
+
+```json
+{
+  "id": "op_illustrate", "label": "Illustrate", "role": "operator",
+  "kind": "fn", "fn": "illustrate",
+  "inputs":  [{"id": "prompt", "label": "Prompt", "type": "text", "required": true}],
+  "outputs": [{"id": "out_0", "label": "Illustration", "type": "image"}]
+}
+```
+
+**Media arguments arrive as dicts, not paths.** An image uploaded in the current tab arrives as `{"path": ..., "url": ...}`, but one chained from an upstream node arrives as `{"url": "/gradio_api/file=<percent-encoded path>"}` with no `path` key at all. Normalize both before opening the file:
+
+```python
+from urllib.parse import unquote
+
+def local_path(value):
+    if isinstance(value, str):
+        return value
+    if path := value.get("path"):
+        return path
+    url = value.get("url") or ""
+    return unquote(url.split("/gradio_api/file=", 1)[-1])
+```
+
+**Media returns must be a file dict.** Returning a `PIL.Image` fails to serialize, and returning a bare path renders as a string. The canvas renders media only from a dict carrying a `url`:
+
+```python
+from gradio_client import utils as client_utils
+
+return {
+    "path": path,
+    "url": f"/gradio_api/file={client_utils.encode_file_path(path)}",
+    "is_file": True,
+}
+```
+
+`launch()` already adds the system temp directory to `allowed_paths`, so writing to `tempfile.gettempdir()` works with no extra configuration. A file written anywhere else — a `./outputs` folder, say — needs its directory passed explicitly, or the URL 403s:
+
+```python
+gr.Workflow(graph="workflow.json", bind=[illustrate]).launch(allowed_paths=["outputs"])
+```
+
+### Reference app
+
+A complete chained-GPU workflow: an uploaded photo is captioned by one GPU function node, and the caption it produces is the prompt for a second. It shows module-scope loading, per-node `duration` sizing, explicitly typed media ports, and both media conversions above in one file.
+
+$demo_workflow_zerogpu_chain
+
+The source is [`demo/workflow_zerogpu_chain`](https://github.com/gradio-app/gradio/tree/main/demo/workflow_zerogpu_chain).
+
+## App view
+
+Every Workflow app also renders as an ordinary Gradio app. Each independent pipeline is laid out like a `gr.Interface` — its unconnected inputs and a **Run** button on the left, its outputs on the right — and workflows with more than one pipeline get one tab each. Reference nodes that already hold a value show up as the starting value of their input component.
+
+An **App / Workflow** toggle in the corner switches between the two views. Visitors with write access land on the canvas; everyone else lands on the app and can open the canvas read-only from the toggle. Append `?ui=app` or `?ui=canvas` to the URL to force a view, which is useful when sharing a link to a deployed workflow.
+
+The app view is built from the same components that back the workflow's API endpoints, so it stays in sync: saving an edit on the canvas rebuilds both.
+
+>>>>>>> Stashed changes
 ## API access
 
 Every Workflow app is a Gradio app, meaning that it exposes its connected pipelines through the standard Gradio REST API. Each disconnected pipeline containing one or more output (subject) nodes gets one endpoint. Its name is derived from the first subject's label — for example, a pipeline whose first subject is labelled "Output Image" becomes `/output_image`.
