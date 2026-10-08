@@ -2801,7 +2801,15 @@
 	}
 
 	function handlePickerUpdate(nodeId: string, template: any): void {
-		if (!readOnly) replaceNodeSource(nodeId, template);
+		if (!readOnly) {
+			replaceNodeSource(nodeId, template);
+			// Staleness compares input values only, so without this a swapped
+			// node stays "done" and gets reused.
+			const { [nodeId]: _status, ...status } = nodeStatus;
+			nodeStatus = status;
+			const { [nodeId]: _snapshot, ...snapshots } = nodeInputSnapshots;
+			nodeInputSnapshots = snapshots;
+		}
 		activePicker = null;
 	}
 

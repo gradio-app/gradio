@@ -400,20 +400,8 @@ export async function executeWorkflow(
 		if (signal?.aborted) return;
 
 		if (reuse.has(node.id)) {
-			const seeded = { ...(node.data ?? {}) };
-			// Relay nodes only persist their input-port value; mirror it to the output.
-			const inPort = node.inputs[0];
-			const outPort = node.outputs[0];
-			if (
-				inPort &&
-				outPort &&
-				!(outPort.id in seeded) &&
-				node.kind !== "transform" &&
-				edges.some((e) => e.to_node_id === node.id)
-			) {
-				seeded[outPort.id] = seeded[inPort.id] ?? null;
-			}
-			dataMap[node.id] = seeded;
+			// Only nodes that stored every output are offered for reuse.
+			dataMap[node.id] = { ...(node.data ?? {}) };
 			onStatus(node.id, "done");
 			return;
 		}

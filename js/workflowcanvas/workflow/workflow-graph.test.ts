@@ -366,10 +366,12 @@ describe("buildUpstreamSubgraph", () => {
 });
 
 describe("reusableUpstreamNodes", () => {
+	// A node that ran but saved nothing is deliberately not reusable.
+	const ran = (id: string) => op(id, { data: { out: `${id}-result` } });
 	const chain = (): Workflow =>
 		wf({
 			references: [ref("src")],
-			operators: [op("prep"), op("gen"), op("edit")],
+			operators: [ran("prep"), ran("gen"), ran("edit")],
 			subjects: [sub("mid"), sub("out")],
 			edges: [
 				edge("src", "prep"),
@@ -388,6 +390,25 @@ describe("reusableUpstreamNodes", () => {
 			new Set(["prep", "gen"])
 		);
 		expect(reusableUpstreamNodes(chain(), "gen", all, new Set())).toEqual(
+			new Set(["prep"])
+		);
+	});
+
+	test("excludes a node that stored no output", () => {
+		// Swapping a model wipes `data` but leaves the node "done".
+		const swapped = wf({
+			references: [ref("src")],
+			operators: [ran("prep"), op("gen"), ran("edit")],
+			subjects: [sub("mid"), sub("out")],
+			edges: [
+				edge("src", "prep"),
+				edge("prep", "gen"),
+				edge("gen", "mid"),
+				edge("mid", "edit"),
+				edge("edit", "out")
+			]
+		});
+		expect(reusableUpstreamNodes(swapped, "edit", all, new Set())).toEqual(
 			new Set(["prep"])
 		);
 	});

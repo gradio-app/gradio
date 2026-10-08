@@ -219,12 +219,14 @@ export function reusableUpstreamNodes(
 		}
 	}
 	upstream.delete(targetId);
-	const operators = new Set(workflow.operators.map((n) => n.id));
+	const operators = new Map(workflow.operators.map((n) => [n.id, n]));
 	const reusable = new Set<string>();
 	for (const id of upstream) {
-		if (operators.has(id) && nodeStatus[id] === "done" && !staleNodes.has(id)) {
-			reusable.add(id);
-		}
+		const node = operators.get(id);
+		if (!node || nodeStatus[id] !== "done" || staleNodes.has(id)) continue;
+		// No stored output means there is nothing to hand downstream.
+		const data = node.data ?? {};
+		if (node.outputs.every((p) => p.id in data)) reusable.add(id);
 	}
 	return reusable;
 }
