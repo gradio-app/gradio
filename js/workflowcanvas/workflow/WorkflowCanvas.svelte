@@ -78,7 +78,8 @@
 		topoSort,
 		resolveCurrentInputs as resolveCurrentInputsImpl,
 		computeStaleNodes,
-		buildUpstreamSubgraph as buildUpstreamSubgraphImpl
+		buildUpstreamSubgraph as buildUpstreamSubgraphImpl,
+		reusableUpstreamNodes
 	} from "./workflow-graph";
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
@@ -110,16 +111,27 @@
 	let {
 		server = {},
 		initialValue = null,
-		gradio_shared = undefined
+		gradio_shared = undefined,
+		auth: shared_auth = undefined,
+		active = true,
+		dirty = $bindable(false)
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
 		gradio_shared?: Record<string, any> | undefined;
+		/** Auth owned by the parent (which already called `init()`), so the
+		 * parent and canvas agree on who the viewer is. */
+		auth?: ReturnType<typeof createHFAuth>;
+		active?: boolean;
+		/** Whether the canvas holds edits the server doesn't have yet. False
+		 * until `initialValue` is loaded, so the store's placeholder never counts. */
+		dirty?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
 
-	const auth = createHFAuth(() => server);
+	// svelte-ignore state_referenced_locally
+	const auth = shared_auth ?? createHFAuth(() => server);
 
 	let spaceId = $state("");
 	// Server independently rejects unauthorized saves — this is UX only.
@@ -144,6 +156,9 @@
 		lastSavedSignature !== null &&
 			structural_signature($workflow) !== lastSavedSignature
 	);
+	$effect(() => {
+		dirty = isDirty;
+	});
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -153,7 +168,7 @@
 	}
 
 	$effect(() => {
-		void auth.init();
+		if (!shared_auth) void auth.init();
 	});
 
 	$effect(() => {
@@ -467,6 +482,7 @@
 	});
 
 	$effect(() => {
+		if (!active) return;
 		window.addEventListener("keydown", handleKeydown);
 		window.addEventListener("keyup", handle_keyup);
 		return () => {
@@ -1005,7 +1021,7 @@
 				);
 			}
 		},
-		onrunnode: (id: string) => void runNode(id),
+		onrunnode: (id: string, force = false) => void runNode(id, force),
 		onselect: (id: string, additive = false) => selectNode(id, additive),
 		onnodepointerdown: (e: PointerEvent, id: string) => startNodeDrag(e, id),
 		onportpointerdown: (
@@ -2063,24 +2079,33 @@
 		});
 	}
 
-	async function runNode(targetId: string): Promise<void> {
+	// Shift+click (`force`) re-runs up-to-date upstream nodes instead of reusing them.
+	async function runNode(targetId: string, force = false): Promise<void> {
 		if (running) return;
-		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId));
+		const reuse = force
+			? new Set<string>()
+			: reusableUpstreamNodes($workflow, targetId, nodeStatus, staleNodes);
+		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId), reuse);
 	}
 
 	let nodesInRun = $state(new Set<string>());
 
-	async function runWorkflow(target?: Workflow): Promise<void> {
+	async function runWorkflow(
+		target?: Workflow,
+		reuse: Set<string> = new Set()
+	): Promise<void> {
 		if (running) return;
 		running = true;
 		const wfToRun = target ?? $workflow;
 		// Clear status only for nodes we're about to run, so already-finished
-		// nodes outside the target subgraph keep their snapshots + state.
-		const runningIds = new Set([
-			...wfToRun.references.map((n) => n.id),
-			...wfToRun.operators.map((n) => n.id),
-			...wfToRun.subjects.map((n) => n.id)
-		]);
+		// nodes outside the target subgraph (and reused nodes) keep their snapshots + state.
+		const runningIds = new Set(
+			[
+				...wfToRun.references.map((n) => n.id),
+				...wfToRun.operators.map((n) => n.id),
+				...wfToRun.subjects.map((n) => n.id)
+			].filter((id) => !reuse.has(id))
+		);
 		nodesInRun = runningIds;
 		nodeStatus = Object.fromEntries(
 			Object.entries(nodeStatus).filter(([id]) => !runningIds.has(id))
@@ -2242,7 +2267,8 @@
 							signal: signal ?? undefined,
 							onChunk
 						})
-				: undefined
+				: undefined,
+			{ reuse }
 		);
 
 		running = false;
@@ -2315,12 +2341,7 @@
 			hasErrors ? 5000 : 3000,
 			hasErrors ? "error" : "success"
 		);
-
-		setTimeout(() => {
-			nodeStatus = Object.fromEntries(
-				Object.entries(nodeStatus).filter(([_, s]) => s === "error")
-			);
-		}, 3000);
+		// "done" is kept: staleness and upstream reuse depend on it.
 	}
 
 	function stopWorkflow(): void {
@@ -2795,7 +2816,15 @@
 	}
 
 	function handlePickerUpdate(nodeId: string, template: any): void {
-		if (!readOnly) replaceNodeSource(nodeId, template);
+		if (!readOnly) {
+			replaceNodeSource(nodeId, template);
+			// Staleness compares input values only, so without this a swapped
+			// node stays "done" and gets reused.
+			const { [nodeId]: _status, ...status } = nodeStatus;
+			nodeStatus = status;
+			const { [nodeId]: _snapshot, ...snapshots } = nodeInputSnapshots;
+			nodeInputSnapshots = snapshots;
+		}
 		activePicker = null;
 	}
 

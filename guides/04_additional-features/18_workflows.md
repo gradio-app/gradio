@@ -178,8 +178,6 @@ gradio deploy
 
 Set `hf_oauth: true` [in your Space](https://huggingface.co/docs/hub/en/spaces-oauth) so the owner can authenticate for editing. The owning user, or an organization member with `write` or `admin` access, can edit and save the workflow. Other visitors get a read-only canvas and can run the pipeline using their OAuth identity or a Hugging Face access token. Without OAuth enabled, the Space cannot identify its owner, so the deployed workflow remains run-only.
 
-<<<<<<< Updated upstream
-=======
 ## gr.Workflow on ZeroGPU
 
 Two different things in a Workflow app can spend GPU time, and each is set up its own way:
@@ -310,7 +308,7 @@ A complete chained-GPU workflow: an uploaded photo is captioned by one GPU funct
 
 $demo_workflow_zerogpu_chain
 
-The source is [`demo/workflow_zerogpu_chain`](https://github.com/gradio-app/gradio/tree/main/demo/workflow_zerogpu_chain).
+The source is [on the Space](https://huggingface.co/spaces/gradio/workflow_zerogpu_chain/tree/main).
 
 ## App view
 
@@ -320,7 +318,6 @@ An **App / Workflow** toggle in the corner switches between the two views. Visit
 
 The app view is built from the same components that back the workflow's API endpoints, so it stays in sync: saving an edit on the canvas rebuilds both.
 
->>>>>>> Stashed changes
 ## API access
 
 Every Workflow app is a Gradio app, meaning that it exposes its connected pipelines through the standard Gradio REST API. Each disconnected pipeline containing one or more output (subject) nodes gets one endpoint. Its name is derived from the first subject's label — for example, a pipeline whose first subject is labelled "Output Image" becomes `/output_image`.
