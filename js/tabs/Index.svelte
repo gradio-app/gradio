@@ -12,13 +12,16 @@
 	let props = $props();
 	const gradio = new Gradio<TabsEvents, TabsProps>(props);
 
-	let old_selected = gradio.props.selected;
+	// Starts unset so the first run also dispatches: Tabs can mount with a
+	// selection applied while it was hidden, and that tab's children are not
+	// rendered until gradio_tab_select (internal, not a user select event)
+	// asks for them.
+	let old_selected: unknown = {};
 
 	$effect(() => {
 		const selected = gradio.props.selected;
 		// Only dispatch on an actual change; otherwise a single set_data can
-		// re-run this effect and fire gradio_tab_select more than once (and we
-		// don't want a select event on initial mount).
+		// re-run this effect and fire gradio_tab_select more than once.
 		if (old_selected === selected) return;
 		old_selected = selected;
 
