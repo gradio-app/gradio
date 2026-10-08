@@ -111,16 +111,27 @@
 	let {
 		server = {},
 		initialValue = null,
-		gradio_shared = undefined
+		gradio_shared = undefined,
+		auth: shared_auth = undefined,
+		active = true,
+		dirty = $bindable(false)
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
 		gradio_shared?: Record<string, any> | undefined;
+		/** Auth owned by the parent (which already called `init()`), so the
+		 * parent and canvas agree on who the viewer is. */
+		auth?: ReturnType<typeof createHFAuth>;
+		active?: boolean;
+		/** Whether the canvas holds edits the server doesn't have yet. False
+		 * until `initialValue` is loaded, so the store's placeholder never counts. */
+		dirty?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
 
-	const auth = createHFAuth(() => server);
+	// svelte-ignore state_referenced_locally
+	const auth = shared_auth ?? createHFAuth(() => server);
 
 	let spaceId = $state("");
 	// Server independently rejects unauthorized saves — this is UX only.
@@ -145,6 +156,9 @@
 		lastSavedSignature !== null &&
 			structural_signature($workflow) !== lastSavedSignature
 	);
+	$effect(() => {
+		dirty = isDirty;
+	});
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -154,7 +168,7 @@
 	}
 
 	$effect(() => {
-		void auth.init();
+		if (!shared_auth) void auth.init();
 	});
 
 	$effect(() => {
@@ -468,6 +482,7 @@
 	});
 
 	$effect(() => {
+		if (!active) return;
 		window.addEventListener("keydown", handleKeydown);
 		window.addEventListener("keyup", handle_keyup);
 		return () => {
