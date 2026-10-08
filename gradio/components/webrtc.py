@@ -11,6 +11,7 @@ import anyio
 from gradio_client.documentation import document
 
 from gradio import utils
+from gradio.components.audio import MicrophoneOptions
 from gradio.components.base import Component, server
 from gradio.components.image_editor import WebcamOptions
 from gradio.context import LocalContext, get_blocks_context
@@ -92,7 +93,7 @@ class WebRTC(Component):
         rtc_configuration: dict[str, Any] | Callable | None = None,
         server_rtc_configuration: dict[str, Any] | None = None,
         webcam_options: WebcamOptions | None = None,
-        microphone_options: Any | None = None,
+        microphone_options: MicrophoneOptions | dict | None = None,
         rtp_params: dict[str, Any] | None = None,
         allow_extra_tracks: bool = False,
         icon: str | None = None,
@@ -124,8 +125,8 @@ class WebRTC(Component):
             modality: the kind of media: "video", "audio", or "audio-video" for both at once.
             rtc_configuration: the configuration for the browser's RTCPeerConnection, in particular the ICE servers (STUN and TURN) it may use. A dict, or a function (sync or async) that returns one, which is called for every new connection so that short-lived TURN credentials can be issued. Required when the app runs on Hugging Face Spaces or Colab, where the browser cannot reach the server directly.
             server_rtc_configuration: the equivalent configuration for the server side of the peer connection. Not sent to the browser.
-            webcam_options: a `gr.WebcamOptions` instance that sets whether the webcam preview is mirrored and the media constraints of the video track, for "video" and "audio-video" streams.
-            microphone_options: the media constraints of the audio track, for "audio" and "audio-video" streams, as a dict (or an object with a `constraints` attribute). By default the microphone is opened with echo cancellation, noise suppression and automatic gain control enabled and a single channel at 24 kHz.
+            webcam_options: a `gr.WebcamOptions` instance that sets whether the webcam preview is mirrored and the media constraints of the video track, for "video" and "audio-video" streams. As in `gr.Image`, the video track constraints go under the "video" key of `constraints`, e.g. `gr.WebcamOptions(constraints={"video": {"facingMode": "environment"}})`. They are merged over the defaults (front camera, 1280x720 and 30 fps, all as ideal values), so only the keys that differ need to be given. The audio track of "audio-video" streams is set with `microphone_options`.
+            microphone_options: a `gr.MicrophoneOptions` instance, or a dict of its arguments, that sets the media constraints of the audio track for "audio" and "audio-video" streams, e.g. `gr.MicrophoneOptions(constraints={"echoCancellation": False})`. The constraints are merged over the defaults, which turn on echo cancellation, noise suppression and automatic gain control and ask for a single channel at 24 kHz, so only the keys that differ need to be given.
             rtp_params: parameters passed to `RTCRtpSender.setParameters` for the tracks the browser sends. For example, `{"degradationPreference": "maintain-framerate"}` keeps the frame rate steady when the resolution has to drop.
             allow_extra_tracks: if True, connections that carry tracks beyond the modality (for example an audio track on a "video" stream) are accepted and the extra tracks are ignored. If False, such connections are rejected.
             icon: a path or URL to an image shown in place of the default pulsing icon while an audio stream is active.
@@ -171,7 +172,12 @@ class WebRTC(Component):
         self.webcam_options = (
             webcam_options if webcam_options is not None else WebcamOptions()
         )
-        self.microphone_options = microphone_options
+        if microphone_options is None:
+            self.microphone_options = MicrophoneOptions()
+        elif isinstance(microphone_options, dict):
+            self.microphone_options = MicrophoneOptions(**microphone_options)
+        else:
+            self.microphone_options = microphone_options
         self.rtp_params = rtp_params or {}
         self.allow_extra_tracks = allow_extra_tracks
         self.icon_button_color = icon_button_color
@@ -211,10 +217,18 @@ class WebRTC(Component):
         self.icon = served_icon["url"] if served_icon else None
 
     def _track_constraints(self) -> dict[str, Any]:
+        # User constraints are merged over the defaults rather than replacing
+        # them, so that e.g. turning off echo cancellation keeps the mono
+        # 24 kHz input that voice handlers expect.
         video = (self.webcam_options.constraints or {}).get("video")
-        video = video or DEFAULT_VIDEO_CONSTRAINTS
-        audio = getattr(self.microphone_options, "constraints", self.microphone_options)
-        audio = audio or DEFAULT_AUDIO_CONSTRAINTS
+        video = {
+            **DEFAULT_VIDEO_CONSTRAINTS,
+            **(video if isinstance(video, dict) else {}),
+        }
+        audio = {
+            **DEFAULT_AUDIO_CONSTRAINTS,
+            **(self.microphone_options.constraints or {}),
+        }
         if self.modality == "video":
             return video
         if self.modality == "audio":

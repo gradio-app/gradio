@@ -72,10 +72,28 @@ class TestWebRTC:
         assert pickle.loads(pickle.dumps(plain)).get_config() == plain.get_config()
 
     def test_media_constraints(self):
-        audio = gr.WebRTC(
-            modality="audio", microphone_options={"echoCancellation": False}
+        from gradio.components.webrtc import (
+            DEFAULT_AUDIO_CONSTRAINTS,
+            DEFAULT_VIDEO_CONSTRAINTS,
         )
-        assert audio.get_config()["track_constraints"] == {"echoCancellation": False}
+
+        assert gr.WebRTC(modality="audio").get_config()["track_constraints"] == (
+            DEFAULT_AUDIO_CONSTRAINTS
+        )
+        assert gr.WebRTC(modality="video").get_config()["track_constraints"] == (
+            DEFAULT_VIDEO_CONSTRAINTS
+        )
+
+        # User constraints are merged over the defaults
+        expected_audio = {**DEFAULT_AUDIO_CONSTRAINTS, "echoCancellation": False}
+        for options in (
+            gr.MicrophoneOptions(constraints={"echoCancellation": False}),
+            {"constraints": {"echoCancellation": False}},
+        ):
+            audio = gr.WebRTC(modality="audio", microphone_options=options)
+            assert isinstance(audio.microphone_options, gr.MicrophoneOptions)
+            assert audio.get_config()["track_constraints"] == expected_audio
+
         both = gr.WebRTC(
             modality="audio-video",
             webcam_options=gr.WebcamOptions(
@@ -83,8 +101,11 @@ class TestWebRTC:
             ),
         )
         config = both.get_config()
-        assert config["track_constraints"]["video"] == {"width": 640}
-        assert config["track_constraints"]["audio"]["echoCancellation"] is True
+        assert config["track_constraints"]["video"] == {
+            **DEFAULT_VIDEO_CONSTRAINTS,
+            "width": 640,
+        }
+        assert config["track_constraints"]["audio"] == DEFAULT_AUDIO_CONSTRAINTS
         assert config["mirror_webcam"] is False
 
     def test_invalid_mode_and_modality(self):
