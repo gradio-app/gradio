@@ -287,4 +287,80 @@ describe("WebRTC audio", () => {
 		await fireEvent.click(getByRole("button", { name: "stop stream" }));
 		await waitFor(() => expect(server.stop_outputs).toHaveBeenCalled());
 	});
+
+	test("the microphone is only held while recording", async () => {
+		const opened: MediaStream[] = [];
+		vi.mocked(navigator.mediaDevices.getUserMedia).mockImplementation(
+			async () => {
+				const stream = fake_stream("audio");
+				opened.push(stream);
+				return stream;
+			}
+		);
+		const live = (): MediaStreamTrack[] =>
+			opened
+				.flatMap((stream) => stream.getTracks())
+				.filter((track) => track.readyState === "live");
+
+		const { getByRole, getByText } = await render(WebRTC, {
+			...base_props,
+			mode: "send-receive",
+			modality: "audio",
+			server: make_server()
+		});
+		await fireEvent.click(getByText("Click to Access Microphone"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		// Access only asks for permission and lists the devices
+		expect(opened).toHaveLength(1);
+		expect(live()).toHaveLength(0);
+
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await waitFor(() => expect(FakePeerConnection.instances).toHaveLength(1));
+		const pc = FakePeerConnection.instances[0];
+		pc.set_state("connected");
+		await waitFor(() => {
+			expect(getByRole("button", { name: "stop stream" })).toBeVisible();
+		});
+		expect(opened).toHaveLength(2);
+		expect(live()).toHaveLength(1);
+
+		await fireEvent.click(getByRole("button", { name: "stop stream" }));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		expect(live()).toHaveLength(0);
+		expect(opened).toHaveLength(2);
+	});
+
+	test("stopping while the microphone is opening releases it", async () => {
+		const { getByRole, getByText } = await render(WebRTC, {
+			...base_props,
+			mode: "send-receive",
+			modality: "audio",
+			server: make_server()
+		});
+		await fireEvent.click(getByText("Click to Access Microphone"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+
+		let resolve_mic: (stream: MediaStream) => void = () => {};
+		vi.mocked(navigator.mediaDevices.getUserMedia).mockImplementationOnce(
+			() => new Promise((resolve) => (resolve_mic = resolve))
+		);
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		// Still waiting for the microphone: this click stops the attempt
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		const late_stream = fake_stream("audio");
+		resolve_mic(late_stream);
+
+		await waitFor(() => {
+			expect(
+				late_stream.getTracks().every((track) => track.readyState === "ended")
+			).toBe(true);
+		});
+		expect(FakePeerConnection.instances).toHaveLength(0);
+	});
 });

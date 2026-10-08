@@ -79,6 +79,10 @@
 	let active_time_limit = $state<number | null>(null);
 	// The time limit the server reported in its answer, if any
 	let negotiated_time_limit: number | null = null;
+	// Bumped whenever a recording is started or stopped, so an attempt that
+	// is still awaiting can tell it has been superseded
+	let attempt = 0;
+	let destroyed = false;
 
 	// What the visualizer listens to: the reply in send-receive, the mic in send
 	const output_audio_source = (): MediaStream | null =>
@@ -93,33 +97,59 @@
 		return stream_state === "open";
 	}
 
-	async function access_mic(device_id?: string | null): Promise<void> {
+	function stop_tracks(media: MediaStream | null): void {
+		media?.getTracks().forEach((track) => track.stop());
+	}
+
+	function release_mic(): void {
+		stop_tracks(stream);
+		stream = null;
+	}
+
+	// The microphone is only held while a recording is running. Opening it
+	// takes far less time than negotiating the connection that follows.
+	async function open_mic(
+		device_id?: string | null
+	): Promise<MediaStream | null> {
 		if (!navigator.mediaDevices?.getUserMedia) {
 			onerror?.(i18n("audio.no_device_support"));
-			return;
+			return null;
 		}
 		try {
-			const local_stream = await navigator.mediaDevices.getUserMedia({
+			return await navigator.mediaDevices.getUserMedia({
 				audio: with_device(track_constraints, device_id)
 			});
-			stream = local_stream;
-			mic_accessed = true;
-			is_mic_muted = false;
-			devices = await get_devices("audioinput");
-			selected_device = current_device(local_stream, devices);
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				onerror?.(i18n("audio.allow_recording_access"));
-				return;
+			} else {
+				console.debug("getUserMedia failed", err);
+				onerror?.(i18n("audio.recording_error"));
 			}
-			throw err;
+			return null;
 		}
 	}
 
-	async function handle_device_change(event: Event): Promise<void> {
+	// Asks for permission and lists the devices, then lets go of the
+	// microphone again until a recording starts.
+	async function access_mic(): Promise<void> {
+		const local_stream = await open_mic(selected_device?.deviceId);
+		if (!local_stream) return;
+		if (destroyed) {
+			stop_tracks(local_stream);
+			return;
+		}
+		devices = await get_devices("audioinput");
+		selected_device = current_device(local_stream, devices);
+		stop_tracks(local_stream);
+		mic_accessed = true;
+	}
+
+	function handle_device_change(event: Event): void {
 		const device_id = (event.target as HTMLSelectElement).value;
-		stream?.getTracks().forEach((track) => track.stop());
-		await access_mic(device_id);
+		selected_device =
+			devices.find((device) => device.deviceId === device_id) ??
+			selected_device;
 		options_open = false;
 	}
 
@@ -137,16 +167,16 @@
 	async function close_stream(): Promise<void> {
 		const connection = pc;
 		const webrtc_id = value;
+		attempt++;
 		pc = null;
 		stop(connection);
+		release_mic();
 		if (stream_state !== "closed") {
 			onstop_recording?.();
 		}
 		stream_state = "closed";
 		active_time_limit = null;
 		pending = false;
-		// stop() ends the local tracks too, so reopen the microphone
-		await access_mic(selected_device?.deviceId);
 		if (webrtc_id) {
 			server.stop_outputs({ webrtc_id }).catch(() => {});
 		}
@@ -157,23 +187,33 @@
 			await close_stream();
 			return;
 		}
-		if (!stream) return;
+		if (!mic_accessed) return;
+		const this_attempt = ++attempt;
 		onstart_recording?.();
 		stream_state = "waiting";
 		const webrtc_id = new_webrtc_id();
 		onvalue?.(webrtc_id);
 
-		let rtc_configuration: Record<string, any> = {};
-		try {
-			rtc_configuration = (await server.get_rtc_configuration()) ?? {};
-		} catch (e) {
-			rtc_configuration = { error: String(e) };
+		const [local_stream, rtc_configuration] = await Promise.all([
+			open_mic(selected_device?.deviceId),
+			server
+				.get_rtc_configuration()
+				.then((config) => config ?? {})
+				.catch((e): Record<string, any> => ({ error: String(e) }))
+		]);
+		// Stopped (or unmounted) while the microphone was being opened
+		if (this_attempt !== attempt || destroyed) {
+			stop_tracks(local_stream);
+			return;
 		}
-		if (rtc_configuration.error) {
-			onerror?.(rtc_configuration.error);
+		if (!local_stream || rtc_configuration.error) {
+			stop_tracks(local_stream);
+			if (rtc_configuration.error) onerror?.(rtc_configuration.error);
 			stream_state = "closed";
 			return;
 		}
+		stream = local_stream;
+		is_mic_muted = false;
 
 		const connection = new RTCPeerConnection(rtc_configuration);
 		pc = connection;
@@ -220,6 +260,7 @@
 			console.debug("WebRTC offer failed", e);
 			if (pc === connection) {
 				pc = null;
+				release_mic();
 				stream_state = "closed";
 			}
 		} finally {
@@ -243,8 +284,10 @@
 	}
 
 	onDestroy(() => {
+		destroyed = true;
+		attempt++;
 		stop(pc);
-		stream?.getTracks().forEach((track) => track.stop());
+		release_mic();
 	});
 </script>
 
