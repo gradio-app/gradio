@@ -62,12 +62,12 @@ class VideoStreamHandler:
     Parameters:
         callable: the function that processes (send modes) or generates (receive mode) video frames.
         fps: the frame rate at which frames are sent to the client.
-        skip_frames: if True, frames that arrive while the handler is still processing the previous one are dropped, so the output keeps up with the input when the handler is slower than the camera.
+        skip_frames: if True (the default), frames that arrive while the handler is still processing the previous one are dropped, so the output stays close to real time when the handler is slower than the camera. Set it to False to process every frame; the output then falls further behind the input for as long as the handler cannot keep up.
     """
 
     callable: VideoEventHandler
     fps: int = 30
-    skip_frames: bool = False
+    skip_frames: bool = True
 
 
 class StreamHandlerBase:

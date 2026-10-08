@@ -68,7 +68,7 @@ class VideoCallback(VideoStreamTrack):
         set_additional_outputs: Callable | None = None,
         mode: Literal["send-receive", "send"] = "send-receive",
         fps: int = 30,
-        skip_frames: bool = False,
+        skip_frames: bool = True,
     ) -> None:
         super().__init__()
         self.track = track

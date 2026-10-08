@@ -466,6 +466,22 @@ class TestVideoTracks:
         cb.channel_set.set()
         return cb
 
+    def test_skip_frames_is_the_default(self):
+        assert VideoStreamHandler(flip).skip_frames
+        assert self.callback(flip).skip_frames
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("skip_frames, expected_pts", [(True, 4), (False, 0)])
+    async def test_skip_frames_processes_the_latest_frame(
+        self, skip_frames, expected_pts
+    ):
+        cb = self.callback(flip, skip_frames=skip_frames)
+        for pts in range(5):
+            cb.frame_queue.put_nowait(video_frame(pts))
+        out = await cb.recv()
+        assert out.pts == expected_pts
+        assert cb.frame_queue.qsize() == (0 if skip_frames else 4)
+
     @pytest.mark.asyncio
     async def test_sync_handler_does_not_block_the_event_loop(self):
         import time
