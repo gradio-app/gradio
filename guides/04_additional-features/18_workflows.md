@@ -178,6 +178,20 @@ gradio deploy
 
 Set `hf_oauth: true` [in your Space](https://huggingface.co/docs/hub/en/spaces-oauth) so the owner can authenticate for editing. The owning user, or an organization member with `write` or `admin` access, can edit and save the workflow. Other visitors get a read-only canvas and can run the pipeline using their OAuth identity or a Hugging Face access token. Without OAuth enabled, the Space cannot identify its owner, so the deployed workflow remains run-only.
 
+### GPU quota
+
+Most Space and model nodes run on [ZeroGPU](https://huggingface.co/docs/hub/spaces-zerogpu) or a Hugging Face inference provider, so every run of a workflow spends somebody's GPU quota. Which account pays depends on the token each node resolves, in this order: a token entered on the node itself, otherwise the visitor's OAuth token. When you run the workflow locally, it uses your own saved Hugging Face token. Visitors who aren't signed in fall back to the anonymous tier, which is a couple of minutes of GPU time a day, so they'll hit quota errors quickly. Ensure you enable `hf_oauth: true` so signed-in visitors run the pipeline on their own quota.
+
+The workflow app itself does not need GPU hardware. It orchestrates calls to other Spaces, so CPU basic is the right choice unless a function you passed to `bind=` does its own GPU work — in that case decorate it with `@spaces.GPU` exactly as you would in any other Gradio app.
+
+## App view
+
+Every Workflow app also renders as an ordinary Gradio app. Each independent pipeline is laid out like a `gr.Interface` — its unconnected inputs and a **Run** button on the left, its outputs on the right — and workflows with more than one pipeline get one tab each. Reference nodes that already hold a value show up as the starting value of their input component.
+
+An **App / Workflow** toggle in the corner switches between the two views. Visitors with write access land on the canvas; everyone else lands on the app and can open the canvas read-only from the toggle. Append `?ui=app` or `?ui=canvas` to the URL to force a view, which is useful when sharing a link to a deployed workflow.
+
+The app view is built from the same components that back the workflow's API endpoints, so it stays in sync: saving an edit on the canvas rebuilds both.
+
 ## API access
 
 Every Workflow app is a Gradio app, meaning that it exposes its connected pipelines through the standard Gradio REST API. Each disconnected pipeline containing one or more output (subject) nodes gets one endpoint. Its name is derived from the first subject's label — for example, a pipeline whose first subject is labelled "Output Image" becomes `/output_image`.
