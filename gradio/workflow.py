@@ -2019,9 +2019,14 @@ class Workflow(Blocks):
             return _workflow_key(workflow_file)
 
         def get_app_version(_data=None) -> str:
-            """Bumped whenever a save rebuilds the app view / endpoints, so the
-            frontend can tell its copy of the app is stale."""
-            return str(self._api_endpoints.version if self._api_endpoints else 0)
+            """`<structure>.<defaults>`: the first part is bumped whenever a save
+            rebuilds the app view / endpoints (an open page's event ids no
+            longer exist), the second when a save only changes the pre-filled
+            values. Either way the frontend's copy of the app is stale."""
+            manager = self._api_endpoints
+            if manager is None:
+                return "0.0"
+            return f"{manager.version}.{manager.defaults_version}"
 
         async def record_workflow_run(
             data,

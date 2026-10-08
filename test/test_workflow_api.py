@@ -374,6 +374,34 @@ class TestLiveSchemaUpdate:
         assert result == "ok"
         assert _endpoint_names(wf) == {"/out0", "/out1"}
 
+    def test_default_change_bumps_app_version_but_keeps_ids(self, tmp_path):
+        import gradio as gr
+
+        graph = json.loads(_graph_with_subjects(1))
+        graph["references"][0]["data"] = {"out": "old"}
+        path = tmp_path / "wf.json"
+        path.write_text(json.dumps(graph))
+        wf = gr.Workflow(graph=str(path))
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+        manager = wf._api_endpoints
+        assert manager is not None
+        before = canvas.get_app_version()
+        fn_ids = list(manager._fn_ids)
+
+        graph["references"][0]["data"] = {"out": "new"}
+        path.write_text(json.dumps(graph))
+        manager.sync()
+
+        after = canvas.get_app_version()
+        # An open app view is stale (it shows "old"), but its Run event still
+        # exists, so only the defaults part moves.
+        assert after != before
+        assert after.split(".")[0] == before.split(".")[0]
+        assert manager._fn_ids == fn_ids
+        assert manager._inputs[0][0].value == "new"
+
     def test_save_workflow_rejects_malformed_schema(self, tmp_path):
         import gradio as gr
         from gradio.route_utils import Request
@@ -714,6 +742,21 @@ class TestPortComponents:
         c = port_to_component("file", "Document")
         assert isinstance(c, gr.File)
         assert c.type == "filepath"
+
+    def test_json_input_is_editable_output_is_display(self):
+        import gradio as gr
+        from gradio.workflow_api import port_to_component
+
+        # `gr.JSON` can't be typed into, so a JSON input is a JSON code editor
+        # holding text, as on the canvas; outputs keep the JSON viewer.
+        c = port_to_component("json", "Config", value={"a": 1})
+        assert isinstance(c, gr.Code)
+        assert c.language == "json"
+        assert json.loads(c.value) == {"a": 1}
+        assert port_to_component("json", "Config", value='{"a": 1}').value == (
+            '{"a": 1}'
+        )
+        assert isinstance(port_to_component("json", "Result", output=True), gr.JSON)
 
 
 class TestModelNodeDispatch:

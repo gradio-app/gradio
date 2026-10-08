@@ -625,6 +625,8 @@ _PY_TYPE = {
     "dataframe": "list[list]",
     "json": "dict",
 }
+# JSON inputs are entered as text (see `port_to_component`).
+_PY_INPUT_TYPE = {**_PY_TYPE, "json": "str"}
 
 
 def _group_slug_iter(groups: list[list[dict]]):
@@ -666,7 +668,7 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
                         "label": f["label"],
                         "parameter_name": f"in_{i}",
                         "type": f["type"],
-                        "python_type": _PY_TYPE.get(f["type"], "str"),
+                        "python_type": _PY_INPUT_TYPE.get(f["type"], "str"),
                     }
                     for i, f in enumerate(frees)
                 ],
@@ -718,8 +720,14 @@ def port_to_component(
         cls, kwargs = gr.Dataframe, {}
     elif port_type == "gallery":
         cls, kwargs = gr.Gallery, {}
-    elif port_type == "json":
+    elif port_type == "json" and output:
         cls, kwargs = gr.JSON, {}
+    elif port_type == "json":
+        # `gr.JSON` is display-only. The canvas edits JSON as text and passes
+        # that text on as-is, so do the same here.
+        cls, kwargs = gr.Code, {"language": "json", "lines": 4}
+        if value is not None and not isinstance(value, str):
+            value = json.dumps(value)
     elif port_type == "markdown" and output:
         cls, kwargs = gr.Markdown, {"container": True}
     elif port_type == "markdown":
@@ -896,6 +904,9 @@ class WorkflowEndpointManager:
         # Bumped each time the endpoints/app are rebuilt, so an open page can
         # tell its config (component + event ids) has gone stale.
         self.version = 0
+        # Bumped when only the pre-filled values change: the ids stay valid,
+        # but an open page still shows the old values.
+        self.defaults_version = 0
         self.api_names: list[str] = []
 
     def sync(self) -> list[str]:
@@ -915,6 +926,7 @@ class WorkflowEndpointManager:
             # every id on nearly every autosave.
             if defaults != self._default_signature:
                 self._default_signature = defaults
+                self.defaults_version += 1
                 self._apply_defaults(graph)
                 self._refresh_app()
             return list(self.api_names)

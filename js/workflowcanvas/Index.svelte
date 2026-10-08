@@ -91,9 +91,9 @@
 
 	// The app view on this page is the one in the config it loaded with. A save
 	// that changes the app's inputs or outputs rebuilds it server-side with new
-	// component and event ids, which this page's copy doesn't know about — so
-	// when that has happened, reload into the app view rather than show a stale
-	// copy whose Run buttons no longer exist.
+	// component and event ids, which this page's copy doesn't know about; one
+	// that only changes a pre-filled value leaves this page showing the old
+	// one. The server's app version (`<structure>.<defaults>`) tracks both.
 	let loaded_app_version: string | null = null;
 	$effect(() => {
 		if (!app_view_id || loaded_app_version !== null) return;
@@ -106,15 +106,50 @@
 			.catch(() => {});
 	});
 
-	async function reload_if_app_stale(): Promise<void> {
-		if (loaded_app_version === null || !serverObj?.get_app_version) return;
+	async function fetch_app_version(): Promise<string | null> {
+		if (loaded_app_version === null || !serverObj?.get_app_version) return null;
 		try {
-			const current = String(await serverObj.get_app_version());
-			if (current !== loaded_app_version && view === "app") {
-				window.location.reload();
-			}
-		} catch {}
+			return String(await serverObj.get_app_version());
+		} catch {
+			return null;
+		}
 	}
+
+	// Coming back from the canvas, where the edits were just made: reload into
+	// the app view rather than show a stale copy.
+	async function reload_if_app_stale(): Promise<void> {
+		const current = await fetch_app_version();
+		if (current !== null && current !== loaded_app_version && view === "app") {
+			window.location.reload();
+		}
+	}
+
+	// Someone staying on the app view can't be reloaded out from under their
+	// inputs, but once the workflow has been rebuilt elsewhere (the owner
+	// editing in another tab) its Run buttons point at events that no longer
+	// exist, so offer a reload. Changed defaults alone don't break anything.
+	const structure = (v: string): string => v.split(".")[0];
+	let app_outdated = $state(false);
+	$effect(() => {
+		if (!app_view_id || view !== "app" || app_outdated) return;
+		const check = async (): Promise<void> => {
+			if (document.visibilityState !== "visible") return;
+			const current = await fetch_app_version();
+			if (
+				current !== null &&
+				loaded_app_version !== null &&
+				structure(current) !== structure(loaded_app_version)
+			) {
+				app_outdated = true;
+			}
+		};
+		const timer = setInterval(() => void check(), 20_000);
+		document.addEventListener("visibilitychange", check);
+		return () => {
+			clearInterval(timer);
+			document.removeEventListener("visibilitychange", check);
+		};
+	});
 
 	// While the canvas covers the page, keep the app underneath out of the tab
 	// order / accessibility tree and stop the page behind it from scrolling.
@@ -182,6 +217,13 @@
 			active={view === "canvas"}
 			bind:ready={canvas_loaded}
 		/>
+	</div>
+{/if}
+
+{#if app_outdated && view === "app"}
+	<div class="app-outdated" role="status">
+		This app has been updated.
+		<button onclick={() => window.location.reload()}>Reload</button>
 	</div>
 {/if}
 
@@ -272,6 +314,36 @@
 		background: var(--background-fill-secondary);
 		color: var(--body-text-color);
 		box-shadow: inset 0 0 0 1px var(--border-color-primary);
+	}
+
+	/* Just above the toggle, so it's seen without covering the app. */
+	.app-outdated {
+		position: fixed;
+		left: 16px;
+		bottom: calc(64px + env(safe-area-inset-bottom));
+		z-index: 101;
+		width: auto;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 8px 8px 8px 14px;
+		border: 1px solid var(--border-color-primary);
+		border-radius: 999px;
+		background: var(--background-fill-primary);
+		box-shadow: var(--shadow-drop-lg);
+		color: var(--body-text-color);
+		font-size: 13px;
+	}
+
+	.app-outdated button {
+		padding: 4px 12px;
+		border: none;
+		border-radius: 999px;
+		background: var(--button-primary-background-fill);
+		color: var(--button-primary-text-color);
+		font-size: 13px;
+		font-weight: 500;
+		cursor: pointer;
 	}
 
 	/* The canvas's centered bottom bar (~700px wide with the editing controls)
