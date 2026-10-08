@@ -70,7 +70,7 @@
 	// toggling back and forth keeps its state. App-view visitors who never open
 	// it don't pay for it at all.
 	let canvas_mounted = $state(false);
-	let canvas_loaded = $state(false);
+	let canvas_dirty = $state(false);
 	$effect.pre(() => {
 		if (view === "canvas") canvas_mounted = true;
 	});
@@ -171,11 +171,13 @@
 	});
 
 	$effect(() => {
-		// Only flush the canvas's state once it has loaded the file: before that
-		// the store holds a placeholder, which must never be saved over it.
-		if (!serverObj?.save_workflow || !canvas_loaded) return;
+		if (!serverObj?.save_workflow || !canvas_mounted) return;
 
 		function handlePageHide() {
+			// Only flush edits the autosave hasn't sent yet. A canvas with none
+			// may be showing an older copy than the file (someone saved from
+			// another tab since), so writing it back would undo their changes.
+			if (!canvas_dirty) return;
 			const gradioConfig = (window as any).gradio_config;
 			const componentId = gradioConfig?.components?.find(
 				(c: any) => c.type === "workflowcanvas"
@@ -215,7 +217,7 @@
 			gradio_shared={gradio.shared}
 			{auth}
 			active={view === "canvas"}
-			bind:ready={canvas_loaded}
+			bind:dirty={canvas_dirty}
 		/>
 	</div>
 {/if}

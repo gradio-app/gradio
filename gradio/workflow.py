@@ -1852,6 +1852,7 @@ class Workflow(Blocks):
         # Set once the API endpoints are registered (post UI build); save_workflow
         # re-syncs it so /info + /call track edits to the graph.
         self._api_endpoints: WorkflowEndpointManager | None = None
+        self._canvas: WorkflowCanvas | None = None
 
         if self._edges and os.path.exists(self._workflow_file):
             logger.warning(
@@ -1967,6 +1968,22 @@ class Workflow(Blocks):
             endpoints = describe_workflow_api(graph) if graph is not None else []
             return json.dumps({"endpoints": endpoints})
 
+        def _publish_saved_value(payload: str) -> None:
+            """Make pages opened from now on load `payload`. The canvas's value
+            was computed once, at launch, and that copy is what `/config` (and
+            the HTML page) hands to the canvas — which loads the first value it
+            gets, so without this it would open on the launch-time graph and
+            could later save it back over newer edits."""
+            canvas = self._canvas
+            if canvas is None:
+                return
+            canvas.value = payload
+            config = getattr(self, "config", None) or {}
+            for component in config.get("components", []):
+                if component.get("id") == canvas._id:
+                    component.setdefault("props", {})["value"] = payload
+                    break
+
         def save_workflow(
             data,
             request: Optional[Request] = None,
@@ -2002,6 +2019,7 @@ class Workflow(Blocks):
                 with _save_lock:
                     with open(workflow_file, "w", encoding="utf-8") as f:
                         f.write(payload)
+                    _publish_saved_value(payload)
                     if self._api_endpoints is not None:
                         try:
                             self._api_endpoints.sync()
@@ -2113,7 +2131,7 @@ class Workflow(Blocks):
             return WorkflowGraph.from_json(_load_initial())
 
         with self:
-            WorkflowCanvas(
+            self._canvas = WorkflowCanvas(
                 value=_load_initial,
                 server_functions=server_functions,
                 app_view=_APP_ELEM_ID,

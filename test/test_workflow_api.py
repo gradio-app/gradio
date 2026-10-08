@@ -374,6 +374,32 @@ class TestLiveSchemaUpdate:
         assert result == "ok"
         assert _endpoint_names(wf) == {"/out0", "/out1"}
 
+    def test_save_updates_the_canvas_value_new_pages_load(self, tmp_path):
+        import gradio as gr
+        from gradio.route_utils import Request
+        from gradio.workflow import WRITE_TOKEN
+
+        path = tmp_path / "wf.json"
+        path.write_text(_graph_with_subjects(1))
+        wf = gr.Workflow(graph=str(path))
+        canvas = next(
+            b for b in wf.blocks.values() if b.get_block_name() == "workflowcanvas"
+        )
+        write_req = Request(
+            headers={"cookie": f"gradio_workflow_write_token_7860={WRITE_TOKEN}"},
+            query_params={},
+        )
+        # Neither the app's shape nor its defaults change, so the endpoint
+        # manager leaves the config alone: the canvas value must still move.
+        edited = json.loads(_graph_with_subjects(1))
+        edited["subjects"][0]["data"] = {"out": "last run"}
+        payload = json.dumps(edited)
+        assert canvas.save_workflow([payload], write_req, None) == "ok"
+
+        served = next(c for c in wf.config["components"] if c["id"] == canvas._id)
+        assert served["props"]["value"] == payload
+        assert canvas.value == payload
+
     def test_default_change_bumps_app_version_but_keeps_ids(self, tmp_path):
         import gradio as gr
 

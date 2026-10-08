@@ -114,7 +114,7 @@
 		gradio_shared = undefined,
 		auth: shared_auth = undefined,
 		active = true,
-		ready = $bindable(false)
+		dirty = $bindable(false)
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
@@ -123,9 +123,9 @@
 		 * parent and canvas agree on who the viewer is. */
 		auth?: ReturnType<typeof createHFAuth>;
 		active?: boolean;
-		/** Set once `initialValue` has been applied to the store; until then the
-		 * store holds a placeholder that must never be saved over the file. */
-		ready?: boolean;
+		/** Whether the canvas holds edits the server doesn't have yet. False
+		 * until `initialValue` is loaded, so the store's placeholder never counts. */
+		dirty?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
@@ -156,6 +156,9 @@
 		lastSavedSignature !== null &&
 			structural_signature($workflow) !== lastSavedSignature
 	);
+	$effect(() => {
+		dirty = isDirty;
+	});
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -345,7 +348,6 @@
 		lastSavedSignature = structural_signature(loaded);
 		history.reset(loaded);
 		layoutReady = true;
-		ready = true;
 		if (autoArrange) {
 			requestAnimationFrame(() => {
 				autoLayout();
