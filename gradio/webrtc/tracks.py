@@ -47,6 +47,8 @@ from gradio.webrtc.utils import (
 
 logger = logging.getLogger(__name__)
 
+_GENERATOR_DONE = object()
+
 
 class VideoCallback(VideoStreamTrack):
     """
@@ -147,8 +149,13 @@ class VideoCallback(VideoStreamTrack):
                 # The values of the extra inputs have not arrived yet.
                 return frame
 
+            # Run the handler in a worker thread: it is usually a model call,
+            # and on the event loop it would stall every other connection and
+            # the app's HTTP routes for as long as it runs.
             array, outputs = split_output(
-                self.event_handler(frame_array, *self.latest_args)
+                await anyio.to_thread.run_sync(
+                    self.event_handler, frame_array, *self.latest_args
+                )
             )
             if isinstance(outputs, CloseStream):
                 cast(DataChannel, self.channel).send(
@@ -218,7 +225,7 @@ class HandlerVideoTrack(VideoCallback):
                 if inspect.iscoroutinefunction(handler.video_receive):
                     await handler.video_receive(frame_array)
                 else:
-                    handler.video_receive(frame_array)
+                    await anyio.to_thread.run_sync(handler.video_receive, frame_array)
             except MediaStreamError:
                 self.stop()
 
@@ -234,7 +241,7 @@ class HandlerVideoTrack(VideoCallback):
             if inspect.iscoroutinefunction(handler.video_emit):
                 outputs = await handler.video_emit()
             else:
-                outputs = handler.video_emit()
+                outputs = await anyio.to_thread.run_sync(handler.video_emit)
 
             array, outputs = split_output(outputs)
             if (
@@ -470,34 +477,44 @@ class ServerToClientVideo(VideoStreamTrack):
                 await asyncio.sleep(wait)
         return self._clock_timestamp, VIDEO_TIME_BASE
 
+    def _next_item(self) -> Any:
+        # StopIteration cannot cross into the awaiting task, so the end of the
+        # generator is reported with a sentinel instead.
+        if self.generator is None:
+            self.generator = cast(
+                Generator[Any, None, Any], self.event_handler(*self.latest_args)
+            )
+        try:
+            return next(self.generator)
+        except StopIteration:
+            return _GENERATOR_DONE
+
     async def recv(self):
         try:
             pts, time_base = await self.next_timestamp()
             await self.args_set.wait()
             current_channel.set(self.channel)
             current_context.set(self.context)
-            if self.generator is None:
-                self.generator = cast(
-                    Generator[Any, None, Any], self.event_handler(*self.latest_args)
-                )
-            try:
-                next_array, outputs = split_output(next(self.generator))
-                if isinstance(outputs, CloseStream):
-                    cast(DataChannel, self.channel).send(
-                        create_message("end_stream", outputs.msg)
-                    )
-                    self.stop()
-                    return
-                if (
-                    isinstance(outputs, AdditionalOutputs)
-                    and self.set_additional_outputs
-                    and self.channel
-                ):
-                    self.set_additional_outputs(outputs)
-                    self.channel.send(create_message("fetch_output", []))
-            except StopIteration:
+            # The generator does the handler's work, so advance it in a worker
+            # thread to keep the event loop free.
+            item = await anyio.to_thread.run_sync(self._next_item)
+            if item is _GENERATOR_DONE:
                 self.stop()
                 return
+            next_array, outputs = split_output(item)
+            if isinstance(outputs, CloseStream):
+                cast(DataChannel, self.channel).send(
+                    create_message("end_stream", outputs.msg)
+                )
+                self.stop()
+                return
+            if (
+                isinstance(outputs, AdditionalOutputs)
+                and self.set_additional_outputs
+                and self.channel
+            ):
+                self.set_additional_outputs(outputs)
+                self.channel.send(create_message("fetch_output", []))
 
             next_frame = self.array_to_frame(next_array)
             next_frame.pts = pts

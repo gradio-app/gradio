@@ -420,3 +420,85 @@ class TestSignaling:
             "error": "no credentials"
         }
         await asyncio.sleep(0)
+
+
+def video_frame(pts: int):
+    import fractions
+
+    import numpy as np
+    from av import VideoFrame
+
+    frame = VideoFrame.from_ndarray(np.zeros((16, 16, 3), dtype=np.uint8), "bgr24")
+    frame.pts = pts
+    frame.time_base = fractions.Fraction(1, 90000)
+    return frame
+
+
+async def count_ticks_while(coro):
+    """Awaits `coro` and returns its result plus how often the loop ticked."""
+    ticks = 0
+
+    async def ticker():
+        nonlocal ticks
+        while True:
+            await asyncio.sleep(0.01)
+            ticks += 1
+
+    task = asyncio.create_task(ticker())
+    try:
+        return await coro, ticks
+    finally:
+        task.cancel()
+
+
+class TestVideoTracks:
+    @staticmethod
+    def callback(handler, **kwargs):
+        from gradio.webrtc.tracks import VideoCallback
+        from gradio.webrtc.utils import Context
+
+        cb = VideoCallback(
+            VideoStreamTrack(), event_handler=handler, context=Context("id"), **kwargs
+        )
+        # Frames are fed through frame_queue directly instead of a peer track.
+        cb.has_started = True
+        cb.latest_args = []
+        cb.channel_set.set()
+        return cb
+
+    @pytest.mark.asyncio
+    async def test_sync_handler_does_not_block_the_event_loop(self):
+        import time
+
+        def slow(frame):
+            time.sleep(0.3)
+            return frame
+
+        cb = self.callback(slow)
+        cb.frame_queue.put_nowait(video_frame(0))
+        out, ticks = await count_ticks_while(cb.recv())
+        assert out is not None
+        assert ticks >= 10
+
+    @pytest.mark.asyncio
+    async def test_receive_generator_does_not_block_the_event_loop(self):
+        import time
+
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientVideo
+        from gradio.webrtc.utils import Context
+
+        def generate():
+            for _ in range(2):
+                time.sleep(0.3)
+                yield np.zeros((16, 16, 3), dtype=np.uint8)
+
+        track = ServerToClientVideo(generate, context=Context("id"))
+        track.set_args([])
+        frame, ticks = await count_ticks_while(track.recv())
+        assert frame is not None
+        assert ticks >= 10
+        assert await track.recv() is not None
+        assert await track.recv() is None
+        assert track.readyState == "ended"
