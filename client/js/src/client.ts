@@ -46,6 +46,7 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import {
 	get_zerogpu_headers,
 	initialize_zerogpu_handshake,
+	shared_request,
 	with_timeout,
 	ZEROGPU_HEADERS_TIMEOUT_MS
 } from "./helpers/zerogpu";
@@ -62,6 +63,14 @@ import {
 	COMPONENT_SERVER_URL
 } from "./constants";
 declare const BROWSER_BUILD: boolean;
+
+// Server function calls made at once (e.g. the ICE candidates of a gr.WebRTC
+// connection) share one round trip to the embedding page. Queue submissions
+// keep asking for their own headers.
+const get_server_call_zerogpu_headers = shared_request(
+	() => get_zerogpu_headers(),
+	ZEROGPU_HEADERS_TIMEOUT_MS
+);
 
 export class Client {
 	app_reference: string;
@@ -704,7 +713,7 @@ export class Client {
 		// without the headers.
 		const headers: Record<string, string> = {
 			...((await with_timeout(
-				get_zerogpu_headers(),
+				get_server_call_zerogpu_headers(),
 				ZEROGPU_HEADERS_TIMEOUT_MS,
 				null
 			)) ?? {})

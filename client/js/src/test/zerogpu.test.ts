@@ -5,7 +5,7 @@ describe("shared_request", () => {
 	it("gives calls made while a request is pending the same result", async () => {
 		let resolve!: (value: string) => void;
 		const request = vi.fn(() => new Promise<string>((res) => (resolve = res)));
-		const get = shared_request(request);
+		const get = shared_request(request, 1000);
 
 		const calls = [get(), get(), get()];
 		resolve("headers");
@@ -16,7 +16,7 @@ describe("shared_request", () => {
 
 	it("makes a new request once the pending one is done", async () => {
 		const request = vi.fn(() => Promise.resolve("headers"));
-		const get = shared_request(request);
+		const get = shared_request(request, 1000);
 
 		await get();
 		await get();
@@ -29,10 +29,27 @@ describe("shared_request", () => {
 			.fn<() => Promise<string>>()
 			.mockRejectedValueOnce(new Error("no reply"))
 			.mockResolvedValueOnce("headers");
-		const get = shared_request(request);
+		const get = shared_request(request, 1000);
 
 		await expect(get()).rejects.toThrow("no reply");
 		expect(await get()).toBe("headers");
+	});
+
+	it("stops sharing a request that has not settled after max_age", async () => {
+		vi.useFakeTimers();
+		// e.g. the embedding page missed the message and will never answer
+		const request = vi
+			.fn<() => Promise<string>>()
+			.mockReturnValueOnce(new Promise(() => {}))
+			.mockResolvedValueOnce("headers");
+		const get = shared_request(request, 1000);
+
+		void get();
+		await vi.advanceTimersByTimeAsync(1000);
+
+		expect(await get()).toBe("headers");
+		expect(request).toHaveBeenCalledTimes(2);
+		vi.useRealTimers();
 	});
 });
 
