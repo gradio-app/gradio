@@ -155,6 +155,31 @@ describe("submit iterator", () => {
 		);
 	});
 
+	test("an acknowledged event no longer counts as open", async () => {
+		// A stream stopped on the page is acknowledged before the server
+		// completes it, and the server then drops its remaining messages. If
+		// the event stayed open, every later close of the message stream would
+		// reopen it, racing the deletion of the finished session.
+		const app = await Client.connect("hmb/hello_world", {
+			resume_sessions: true
+		});
+		app.stream_status.open = true;
+		server.use(
+			http.post(/\/stream\//, () => HttpResponse.json({ msg: "success" })),
+			http.post(/\/reset$/, () => HttpResponse.json({ success: true }))
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = (await iterator.wait_for_id()) as string;
+		expect(app.unclosed_events.has(event_id)).toBe(true);
+
+		iterator.close_stream();
+		await iterator.acknowledge();
+
+		expect(app.unclosed_events.has(event_id)).toBe(false);
+		expect(app.event_callbacks[event_id]).toBeUndefined();
+	});
+
 	test("for-await loop terminates when data and complete arrive in the same SSE callback", async () => {
 		const app = await Client.connect("hmb/hello_world", {
 			events: ["data", "status"]

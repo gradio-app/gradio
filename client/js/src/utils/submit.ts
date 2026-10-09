@@ -259,6 +259,12 @@ export function submit(
 		async function acknowledge(): Promise<void> {
 			if (!event_id_final) return;
 			if (!options.resume_sessions) return;
+			// The server drops what is left of an acknowledged event (e.g. the
+			// completion of a stream stopped on the page), so stop waiting for
+			// it: an event left open makes every close of the message stream
+			// reopen it.
+			unclosed_events.delete(event_id_final);
+			delete event_callbacks[event_id_final];
 			const response = await that
 				.fetch(`${config!.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
