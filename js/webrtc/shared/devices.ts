@@ -10,9 +10,11 @@ export function current_device(
 	stream: MediaStream,
 	devices: MediaDeviceInfo[]
 ): MediaDeviceInfo | null {
-	const used = stream.getTracks().map((t) => t.getSettings()?.deviceId)[0];
+	// Match against every track: a stream from the camera and the microphone
+	// lists the microphone's track first
+	const used = stream.getTracks().map((t) => t.getSettings()?.deviceId);
 	return (
-		(used && devices.find((device) => device.deviceId === used)) ||
+		devices.find((device) => used.includes(device.deviceId)) ||
 		devices[0] ||
 		null
 	);

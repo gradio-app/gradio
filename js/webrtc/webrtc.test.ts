@@ -377,6 +377,80 @@ describe("WebRTC send-receive video", () => {
 	});
 });
 
+describe("WebRTC camera choice", () => {
+	// A stream from the requested camera and a microphone. Like the one
+	// browsers return, it lists the audio track first.
+	function camera_and_mic(constraints: MediaStreamConstraints): MediaStream {
+		const video = fake_stream("video").getVideoTracks()[0];
+		const audio = fake_stream("audio").getAudioTracks()[0];
+		const camera = (constraints.video as any)?.deviceId?.exact ?? "cam-front";
+		video.getSettings = () => ({ deviceId: camera });
+		audio.getSettings = () => ({ deviceId: "mic-1" });
+		return new MediaStream([audio, video]);
+	}
+
+	function requested_camera(constraints: MediaStreamConstraints): string {
+		return (constraints.video as any)?.deviceId?.exact;
+	}
+
+	test("an audio-video stream keeps the chosen camera after it ends", async () => {
+		vi.mocked(navigator.mediaDevices.enumerateDevices).mockResolvedValue([
+			{ kind: "videoinput", deviceId: "cam-front", label: "Front" },
+			{ kind: "videoinput", deviceId: "cam-back", label: "Back" },
+			{ kind: "audioinput", deviceId: "mic-1", label: "Mic 1" }
+		] as MediaDeviceInfo[]);
+		const get_user_media = vi.mocked(navigator.mediaDevices.getUserMedia);
+		get_user_media.mockImplementation(async (constraints) =>
+			camera_and_mic(constraints!)
+		);
+		const server = make_server();
+		const { getByRole, getByText, getByLabelText, set_data } = await render(
+			WebRTC,
+			{ ...base_props, modality: "audio-video", server }
+		);
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(
+				getByRole("button", { name: "select input source" })
+			).toBeVisible();
+		});
+
+		await fireEvent.click(getByRole("button", { name: "select input source" }));
+		const select = getByLabelText("select source") as HTMLSelectElement;
+		select.value = "cam-back";
+		await fireEvent.change(select);
+		await waitFor(() => {
+			expect(requested_camera(get_user_media.mock.lastCall![0]!)).toBe(
+				"cam-back"
+			);
+		});
+		// The list shows the camera in use
+		await fireEvent.click(getByRole("button", { name: "select input source" }));
+		expect((getByLabelText("select source") as HTMLSelectElement).value).toBe(
+			"cam-back"
+		);
+
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalled());
+		const pc = FakePeerConnection.instances[0];
+		pc.set_state("connected");
+		await waitFor(() => {
+			expect(getByRole("button", { name: "stop stream" })).toBeVisible();
+		});
+		const calls = get_user_media.mock.calls.length;
+
+		// The stream ends, and the camera reopens for the preview
+		await queue_reports(set_data, "closed");
+		await waitFor(() => {
+			expect(get_user_media.mock.calls.length).toBe(calls + 1);
+		});
+		expect(requested_camera(get_user_media.mock.lastCall![0]!)).toBe(
+			"cam-back"
+		);
+	});
+});
+
 describe("WebRTC queue turn", () => {
 	async function ready_webcam(props: Record<string, any> = {}) {
 		const server = make_server();
