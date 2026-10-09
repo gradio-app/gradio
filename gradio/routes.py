@@ -944,13 +944,13 @@ class App(FastAPI):
             request: fastapi.Request, info: APIInfo, route_path: str
         ) -> dict[str, Any]:
             prepared_info = cast(dict[str, Any], utils.safe_deepcopy(info))
-            prepared_info = route_utils.update_example_values_to_use_public_url(
-                prepared_info
-            )
             root = route_utils.get_root_url(
                 request=request,
                 route_path=route_path,
                 root_path=app.root_path,
+            )
+            prepared_info = route_utils.update_example_values_to_use_public_url(
+                prepared_info, str(root)
             )
             space_id = app.get_blocks().space_id
             cli_snippets = generate_cli_snippet(prepared_info["named_endpoints"])
