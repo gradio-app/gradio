@@ -23,6 +23,43 @@ export function get_zerogpu_origin(hostname: string): string | null {
 }
 
 /**
+ * Wraps `request` so that calls made while a request is pending share its
+ * result instead of making their own.
+ */
+export function shared_request<T>(request: () => Promise<T>): () => Promise<T> {
+	let pending: Promise<T> | null = null;
+	return () => {
+		pending ??= request().finally(() => {
+			pending = null;
+		});
+		return pending;
+	};
+}
+
+/** Resolves with `fallback` if `promise` has not settled within `ms`. */
+export function with_timeout<T, F>(
+	promise: Promise<T>,
+	ms: number,
+	fallback: F
+): Promise<T | F> {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const timeout = new Promise<F>((res) => {
+		timer = setTimeout(() => res(fallback), ms);
+	});
+	return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+/** How long a server function call waits for the ZeroGPU headers. */
+export const ZEROGPU_HEADERS_TIMEOUT_MS = 5000;
+
+// A burst of calls (e.g. the ICE candidates of a gr.WebRTC connection) makes
+// one round trip to the embedding page
+const request_zerogpu_headers = shared_request(() => {
+	const origin = get_zerogpu_origin(window.location.hostname) as string;
+	return post_message<Record<string, string>>("zerogpu-headers", origin);
+});
+
+/**
  * Asks the Hugging Face page that embeds this Space for the visitor's ZeroGPU
  * headers, so that the Spaces proxy can attribute GPU usage to the visitor.
  * Resolves with null outside a ZeroGPU-capable iframe.
@@ -35,7 +72,7 @@ export function get_zerogpu_headers(): Promise<Record<string, string> | null> {
 	if (window.parent == window || !origin || !window.supports_zerogpu_headers) {
 		return Promise.resolve(null);
 	}
-	return post_message<Record<string, string>>("zerogpu-headers", origin);
+	return request_zerogpu_headers();
 }
 
 export function initialize_zerogpu_handshake(): void {

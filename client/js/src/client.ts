@@ -45,7 +45,9 @@ import {
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import {
 	get_zerogpu_headers,
-	initialize_zerogpu_handshake
+	initialize_zerogpu_handshake,
+	with_timeout,
+	ZEROGPU_HEADERS_TIMEOUT_MS
 } from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history, load_run_history } from "./utils/run_history";
@@ -697,9 +699,15 @@ export class Client {
 
 		// A server function can lead to ZeroGPU work (gr.WebRTC's offer starts
 		// the stream's handler), which is attributed to the visitor like the
-		// work of a queued event
+		// work of a queued event. Server functions do not wait on the
+		// embedding page for long: without an answer the call goes out
+		// without the headers.
 		const headers: Record<string, string> = {
-			...((await get_zerogpu_headers()) ?? {})
+			...((await with_timeout(
+				get_zerogpu_headers(),
+				ZEROGPU_HEADERS_TIMEOUT_MS,
+				null
+			)) ?? {})
 		};
 
 		const { token } = this.options;
