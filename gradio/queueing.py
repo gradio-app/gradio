@@ -161,6 +161,8 @@ class Queue:
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
+        # Streams that got their next chunk and wait for a worker slot again
+        self.streams_waiting_for_worker = 0
         self.delete_lock = safe_get_lock()
         self.server_app = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
@@ -771,13 +773,20 @@ class Queue:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
 
-                if None not in self.active_jobs:
+                # A running stream that has its next chunk goes before new
+                # events, so that a busy queue delays new work instead of
+                # stalling streams that already started
+                if None not in self.active_jobs or self.streams_waiting_for_worker:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
 
                 # Using mutex to avoid editing a list in use
                 async with self.delete_lock:
-                    event_batch = self.get_events()
+                    # A stream may have taken the free slot while this waited
+                    # for the lock
+                    event_batch = (
+                        self.get_events() if None in self.active_jobs else None
+                    )
 
                 if event_batch:
                     events, batch, concurrency_id = event_batch
@@ -1038,6 +1047,15 @@ class Queue:
                 closed_events.append(event)
         return awake_events, closed_events
 
+    async def take_worker_back(self, job: list[Event]) -> None:
+        self.streams_waiting_for_worker += 1
+        try:
+            while None not in self.active_jobs:
+                await asyncio.sleep(self.sleep_when_free)
+            self.active_jobs[self.active_jobs.index(None)] = job
+        finally:
+            self.streams_waiting_for_worker -= 1
+
     async def process_events(
         self,
         events: list[Event],
@@ -1047,6 +1065,7 @@ class Queue:
     ) -> None:
         awake_events: list[Event] = []
         success = False
+        job = events
         try:
             for event in events:
                 if event.alive:
@@ -1178,6 +1197,11 @@ class Queue:
                     try:
                         start = time.monotonic()
                         if awake_events[0].streaming:
+                            # A stream computes nothing while it waits for its
+                            # next chunk, so it gives its worker slot back
+                            # meanwhile. It keeps its place in the concurrency
+                            # limit of its function.
+                            self.active_jobs[self.active_jobs.index(job)] = None
                             awake_events, closed_events = await Queue.wait_for_batch(
                                 awake_events,
                                 # We need to wait for all of the events to have the latest input data
@@ -1196,6 +1220,8 @@ class Queue:
                                 )
                         if not awake_events:
                             break
+                        if awake_events[0].streaming:
+                            await self.take_worker_back(job)
                         # Re-read the event's fn, which may have been swapped out
                         # if the app was hot-reloaded while this event was generating
                         fn = awake_events[0].fn

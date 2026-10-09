@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import fastapi
 import gradio_client as grc
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
@@ -612,4 +613,60 @@ def test_history_is_only_kept_for_clients_that_may_resume():
             resumable.history for resumable in demo._queue.resumable_sessions.values()
         )
     finally:
+        demo.close()
+
+
+def test_streams_waiting_for_chunks_do_not_block_other_events():
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(lambda x: "chunk", audio, heard, concurrency_limit=None)
+        button = gr.Button()
+        clicked = gr.Textbox()
+        button.click(lambda: "clicked", None, clicked)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=2)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    client = grc.Client(local_url)
+    stream_queue = demo._queue.event_queue_per_concurrency_id
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_ids = {}
+            for session_hash in ("a", "b"):
+                response = http.post(
+                    f"{api}/queue/join",
+                    json={"data": [None], "fn_index": 0, "session_hash": session_hash},
+                )
+                event_ids[session_hash] = response.json()["event_id"]
+            deadline = time.monotonic() + 5
+            while stream_queue[demo.fns[0].concurrency_id].current_concurrency < 2:
+                if time.monotonic() > deadline:
+                    pytest.fail("The streams did not start")
+                time.sleep(0.05)
+
+            # Both streams now wait for their next chunk. Before a waiting
+            # stream gave its worker slot back, they held both slots and the
+            # click never ran.
+            assert client.submit(fn_index=1).result(timeout=5) == "clicked"
+
+            # A stream that gets a chunk takes a slot again and keeps going
+            http.post(
+                f"{api}/stream/{event_ids['a']}",
+                json={"data": [None], "fn_index": 0, "session_hash": "a"},
+            )
+            streamed = 0
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "a"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    message = json.loads(line[5:])
+                    if message.get("msg") == "process_streaming":
+                        assert message["output"]["data"] == ["chunk"]
+                        streamed += 1
+                        if streamed == 2:
+                            break
+            assert demo._queue.get_active_worker_count() == 0
+    finally:
+        client.close()
         demo.close()
