@@ -901,6 +901,9 @@ class Queue:
 
         for event in events.values():
             event.alive = False
+            # A stream waiting for its next chunk ends now instead of holding
+            # its slot until the wait times out
+            event.signal.set()
 
         async with self.delete_lock:
             for event in events.values():
@@ -1025,10 +1028,14 @@ class Queue:
     ) -> Literal["signal", "timeout"]:
         t1 = asyncio.create_task(Queue.wait_for_event(event))
         t2 = asyncio.create_task(Queue.timeout(timeout))
-        done, _ = await asyncio.wait(
+        done, pending = await asyncio.wait(
             [t1, t2],
             return_when=asyncio.FIRST_COMPLETED,
         )
+        # A stream can be woken many times a second; each wake would otherwise
+        # leave a task sleeping for the whole timeout
+        for task in pending:
+            task.cancel()
         done = [d.result() for d in done]
         event.signal.clear()
         return cast(Literal["signal", "timeout"], done[0])
@@ -1227,6 +1234,10 @@ class Queue:
                                         output=response, success=True
                                     ),
                                 )
+                            # Woken because its session dropped it
+                            awake_events = [
+                                event for event in awake_events if event.alive
+                            ]
                         if not awake_events:
                             break
                         if awake_events[0].streaming:

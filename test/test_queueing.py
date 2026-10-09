@@ -677,8 +677,9 @@ def test_eta_of_a_stream_waiting_for_a_slot(time_limit):
         else:
             # The first stream frees its slot within its time limit, and each
             # stream ahead in line can then hold it for a full time limit
-            assert 8 < etas["second"] <= 10
-            assert 18 < etas["third"] <= 20
+            # (plus the few milliseconds the first call of a stream takes)
+            assert 8 < etas["second"] <= 10.5
+            assert 18 < etas["third"] <= 20.5
     finally:
         demo.close()
 
@@ -736,4 +737,115 @@ def test_streams_waiting_for_chunks_do_not_block_other_events():
             assert demo._queue.get_active_worker_count() == 0
     finally:
         client.close()
+        demo.close()
+
+
+def _launch_audio_stream(fn, concurrency_limit=1):
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(fn, audio, heard, concurrency_limit=concurrency_limit)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+
+    def group():
+        return demo._queue.event_queue_per_concurrency_id[demo.fns[0].concurrency_id]
+
+    return demo, f"{local_url.rstrip('/')}{API_PREFIX}", group
+
+
+def _wait_for(condition, timeout=5.0, message="Timed out"):
+    deadline = time.monotonic() + timeout
+    while not condition():
+        if time.monotonic() > deadline:
+            pytest.fail(message)
+        time.sleep(0.05)
+
+
+def _join(http, api, session_hash):
+    return http.post(
+        f"{api}/queue/join",
+        json={"data": [None], "fn_index": 0, "session_hash": session_hash},
+    ).json()["event_id"]
+
+
+@pytest.mark.asyncio
+async def test_waking_a_stream_leaves_no_timer_behind():
+    event = type("E", (), {})()
+    event.signal = asyncio.Event()
+    event.signal.set()
+    assert await queueing.Queue.wait_for_event_or_timeout(event, 60) == "signal"
+    await asyncio.sleep(0)
+    # A stream woken many times a second must not leave a sleeping task each time
+    timers = [t for t in asyncio.all_tasks() if "Queue.timeout" in repr(t)]
+    assert timers == []
+
+
+def test_a_stream_event_dropped_by_its_session_frees_its_slot():
+    demo, api, group = _launch_audio_stream(lambda x: "chunk")
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: group().current_concurrency == 1)
+            # The page acknowledges the event away, as a reload does for a
+            # stream it cannot continue
+            http.post(f"{api}/reset", json={"event_id": event_id})
+            _wait_for(
+                lambda: group().current_concurrency == 0,
+                timeout=3,
+                message="The dropped stream kept its slot",
+            )
+    finally:
+        demo.close()
+
+
+def test_stream_chunks_keep_the_event_id():
+    from gradio.context import LocalContext
+
+    seen = []
+
+    async def record(x):
+        seen.append(LocalContext.event_id.get(None))
+        return "chunk"
+
+    demo, api, group = _launch_audio_stream(record)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: len(seen) == 1)
+            # A chunk as the browser sends it, without the event id
+            http.post(
+                f"{api}/stream/{event_id}",
+                json={"data": [None], "fn_index": 0, "session_hash": "s"},
+            )
+            _wait_for(lambda: len(seen) == 2)
+            # gr.Info, progress and the like rely on it in every call
+            assert seen == [event_id, event_id]
+    finally:
+        demo.close()
+
+
+def test_leaving_the_line_completes_the_event_for_the_client():
+    demo, api, group = _launch_audio_stream(lambda x: "chunk")
+    try:
+        with httpx2.Client(timeout=10) as http:
+            _join(http, api, "a")
+            _wait_for(lambda: group().current_concurrency == 1)
+            waiting = _join(http, api, "b")
+            _wait_for(lambda: len(group().queue) == 1)
+            http.post(f"{api}/stream/{waiting}/close")
+            assert not group().queue
+            # The client hears that the event is over, so it stops treating it
+            # as running
+            completed = False
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "b"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if line.startswith("data:"):
+                        message = json.loads(line[5:])
+                        if message.get("msg") == "process_completed":
+                            completed = message.get("event_id") == waiting
+                            break
+            assert completed
+    finally:
         demo.close()

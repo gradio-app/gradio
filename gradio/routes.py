@@ -1395,6 +1395,9 @@ class App(FastAPI):
             # updated by each chunk since) carry on from one chunk to the next.
             if event.data is not None:
                 new_body.client_state = event.data.client_state
+            # The browser does not send the event id with a chunk; the calls
+            # it triggers still belong to this event (gr.Info, progress)
+            new_body.event_id = event_id
             event.data = new_body
             event.signal.set()
             return {"msg": "success"}
@@ -1412,7 +1415,11 @@ class App(FastAPI):
             # started later only to end, and the ones behind it move up
             line = queue.event_queue_per_concurrency_id.get(event.concurrency_id)
             if line is not None and event in line.queue:
-                await queue.clean_events(event_id=event_id)
+                await queue.remove_from_queue(event_id)
+                # As for /cancel: the client hears that the event is over
+                queue.send_message(
+                    event, ProcessCompletedMessage(output={}, success=True)
+                )
                 queue.broadcast_estimations(event.concurrency_id)
             return {"msg": "success"}
 
