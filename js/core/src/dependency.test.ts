@@ -523,6 +523,33 @@ describe("DependencyManager.resume", () => {
 		expect((dependency_manager as any).submissions.has(0)).toBe(false);
 	});
 
+	test("a stream that had failed before the reload runs its failure handlers", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
+			yield { type: "status", stage: "error", fn_index: 0, queue: true };
+		}
+		const [run, then, on_success, on_failure] = chain();
+		run.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager(
+			[run, then, on_success, on_failure],
+			client
+		);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)).toEqual(
+			[3]
+		);
+	});
+
 	test("runs the events chained to a stream it ends after a reload", async () => {
 		async function* events(): AsyncGenerator<unknown> {
 			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
