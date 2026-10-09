@@ -45,6 +45,7 @@
 		server,
 		turn,
 		queue_state = null,
+		queue_detail = null,
 		onmessage,
 		onreject,
 		onerror,
@@ -69,6 +70,7 @@
 		server: WebRTCServer;
 		turn: QueueTurn;
 		queue_state?: StreamState | null;
+		queue_detail?: string | null;
 		onmessage?: (msg: ControlMessage) => void;
 		onreject?: (response: Record<string, any>) => void;
 		onerror?: (error: string) => void;
@@ -315,7 +317,9 @@
 						<div class="icon color-primary" title="spinner">
 							<Spinner />
 						</div>
-						{button_labels.waiting || i18n("audio.waiting")}
+						{button_labels.waiting || i18n("audio.waiting")}{queue_detail
+							? ` · ${queue_detail}`
+							: ""}
 					</div>
 				{:else if stream_state === "open"}
 					<div class="icon-with-text">

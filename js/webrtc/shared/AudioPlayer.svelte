@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, untrack } from "svelte";
+	import type { I18nFormatter } from "@gradio/utils";
 	import { Empty } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import AudioWave from "./AudioWave.svelte";
@@ -14,11 +15,13 @@
 	} from "../types";
 
 	let {
+		i18n,
 		value = null,
 		onvalue,
 		server,
 		turn,
 		queue_state = null,
+		queue_detail = null,
 		icon = null,
 		icon_button_color = "var(--color-accent)",
 		pulse_color = "var(--color-accent)",
@@ -28,11 +31,13 @@
 		onerror,
 		ontick
 	}: {
+		i18n: I18nFormatter;
 		value?: string | null;
 		onvalue?: (value: string | null) => void;
 		server: WebRTCServer;
 		turn: QueueTurn;
 		queue_state?: StreamState | null;
+		queue_detail?: string | null;
 		icon?: string | null;
 		icon_button_color?: string;
 		pulse_color?: string;
@@ -154,6 +159,10 @@
 <audio class="hidden" bind:this={audio_player}></audio>
 {#if stream_state === "closed"}
 	<Empty size="small"><Music /></Empty>
+{:else if stream_state === "waiting"}
+	<div class="waiting">
+		{i18n("audio.waiting")}{queue_detail ? ` · ${queue_detail}` : ""}
+	</div>
 {:else}
 	<div class="audio-container">
 		<AudioWave
@@ -179,5 +188,14 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.waiting {
+		display: flex;
+		height: 100%;
+		justify-content: center;
+		align-items: center;
+		color: var(--body-text-color);
+		font-size: var(--text-md);
 	}
 </style>

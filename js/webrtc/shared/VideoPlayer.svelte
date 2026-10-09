@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, untrack } from "svelte";
+	import type { I18nFormatter } from "@gradio/utils";
 	import { Empty } from "@gradio/atoms";
 	import { Video } from "@gradio/icons";
 	import { start, stop, new_webrtc_id } from "./webrtc";
@@ -13,21 +14,25 @@
 	} from "../types";
 
 	let {
+		i18n,
 		value = null,
 		onvalue,
 		server,
 		turn,
 		queue_state = null,
+		queue_detail = null,
 		onmessage,
 		onreject,
 		onerror,
 		ontick
 	}: {
+		i18n: I18nFormatter;
 		value?: string | null;
 		onvalue?: (value: string | null) => void;
 		server: WebRTCServer;
 		turn: QueueTurn;
 		queue_state?: StreamState | null;
+		queue_detail?: string | null;
 		onmessage?: (msg: ControlMessage) => void;
 		onreject?: (response: Record<string, any>) => void;
 		onerror?: (error: string) => void;
@@ -145,6 +150,10 @@
 <div class="wrap">
 	{#if stream_state === "closed"}
 		<Empty unpadded_box={true} size="large"><Video /></Empty>
+	{:else if stream_state === "waiting"}
+		<div class="waiting">
+			{i18n("audio.waiting")}{queue_detail ? ` · ${queue_detail}` : ""}
+		</div>
 	{/if}
 	<!-- svelte-ignore a11y_media_has_caption -->
 	<video
@@ -167,6 +176,18 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.waiting {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		padding: var(--size-2) var(--size-4);
+		border-radius: var(--radius-md);
+		background: var(--background-fill-primary);
+		color: var(--body-text-color);
+		font-size: var(--text-md);
 	}
 
 	video {

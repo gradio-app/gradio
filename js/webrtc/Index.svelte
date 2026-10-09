@@ -49,6 +49,9 @@
 	// The state of the stream's queue event: "waiting" in line, "open" once its
 	// turn has come, "closed" when it has ended
 	let queue_state = $state<StreamState | null>(null);
+	// The place in the queue and the expected wait, e.g. "2/3 · ~25s", shown
+	// next to "Waiting"
+	let queue_detail = $state<string | null>(null);
 	// The loading status also reports the events that only take this
 	// component as an input, such as the one that pushes the input values, and
 	// those report a "closed" stream_state when they complete. Only the status
@@ -98,6 +101,7 @@
 		if (state === "waiting") stream_fn_index = status.fn_index;
 		if (status?.fn_index !== stream_fn_index) return;
 		queue_state = state;
+		queue_detail = state === "waiting" ? describe_place(status) : null;
 		if (!wants_stream && (state === "waiting" || state === "open")) {
 			// A stream event the page no longer wants, e.g. one whose join was
 			// still on its way when the user pressed stop: end it before it
@@ -114,6 +118,21 @@
 			settle_turn(state === "open");
 		}
 	});
+
+	function describe_place(status: {
+		queue_position?: number | null;
+		queue_size?: number;
+		eta?: number | null;
+	}): string | null {
+		const parts: string[] = [];
+		if (status.queue_position != null && status.queue_size != null) {
+			parts.push(`${status.queue_position + 1}/${status.queue_size}`);
+		}
+		if (status.eta != null && status.eta > 0) {
+			parts.push(`~${Math.round(status.eta)}s`);
+		}
+		return parts.length ? parts.join(" · ") : null;
+	}
 
 	function handle_message(msg: ControlMessage): void {
 		const text = typeof msg.data === "string" ? msg.data : (msg.message ?? "");
@@ -172,11 +191,13 @@
 
 	{#if gradio.props.mode === "receive" && is_video}
 		<VideoPlayer
+			i18n={gradio.i18n}
 			value={gradio.props.value}
 			onvalue={(v) => (gradio.props.value = v)}
 			{server}
 			{turn}
 			{queue_state}
+			{queue_detail}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}
@@ -184,11 +205,13 @@
 		/>
 	{:else if gradio.props.mode === "receive"}
 		<AudioPlayer
+			i18n={gradio.i18n}
 			value={gradio.props.value}
 			onvalue={(v) => (gradio.props.value = v)}
 			{server}
 			{turn}
 			{queue_state}
+			{queue_detail}
 			icon={gradio.props.icon}
 			icon_button_color={gradio.props.icon_button_color ??
 				"var(--color-accent)"}
@@ -219,6 +242,7 @@
 			{server}
 			{turn}
 			{queue_state}
+			{queue_detail}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}
@@ -244,6 +268,7 @@
 			{server}
 			{turn}
 			{queue_state}
+			{queue_detail}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}

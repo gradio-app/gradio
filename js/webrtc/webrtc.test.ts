@@ -390,6 +390,46 @@ describe("WebRTC queue turn", () => {
 		return { server, ...result };
 	}
 
+	test("the waiting button shows the place in the queue and the wait", async () => {
+		const { getByRole, set_data } = await ready_webcam();
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await set_data({
+			loading_status: {
+				...loading_status,
+				stream_state: "waiting",
+				queue_position: 1,
+				queue_size: 3,
+				eta: 24.6
+			}
+		});
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
+				"audio.waiting · 2/3 · ~25s"
+			);
+		});
+	});
+
+	test("a receive player shows the place in the queue while waiting", async () => {
+		const { getByText, set_data } = await render(WebRTC, {
+			...base_props,
+			mode: "receive",
+			server: make_server()
+		});
+		await set_data({ value: START_STREAM });
+		await set_data({
+			loading_status: {
+				...loading_status,
+				stream_state: "waiting",
+				queue_position: 0,
+				queue_size: 2,
+				eta: 10
+			}
+		});
+		await waitFor(() =>
+			expect(getByText("audio.waiting · 1/2 · ~10s")).toBeVisible()
+		);
+	});
+
 	test("without a stream handler, starting reports an error at once", async () => {
 		const { getByRole, listen, server } = await ready_webcam({
 			has_stream: false
