@@ -89,6 +89,25 @@ class FailingShutdown(SyncHandler):
         raise RuntimeError("shutdown failed")
 
 
+class InfoOnEmit(SyncHandler):
+    def __init__(self):
+        super().__init__()
+        self.sent = False
+
+    def emit(self):
+        if not self.sent:
+            self.sent = True
+            gr.Info("From emit")
+
+
+def info_then_audio(*args):
+    import numpy as np
+
+    gr.Info("From the generator")
+    for _ in range(3):
+        yield (24000, np.zeros(2400, dtype=np.int16))
+
+
 class CloseOnEmit(AsyncStreamHandler):
     async def receive(self, frame):
         pass
@@ -614,6 +633,27 @@ class TestStreams:
         message = await self.stream_until_message(h, pc, "warning")
         assert message["message"] == "Careful"
         assert "one" in h.manager.pcs
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched, offer",
+        [
+            # Sync emit() and receive-mode audio generators run in executor
+            # threads
+            ({"modality": "audio", "handler": InfoOnEmit}, {"audio": True}),
+            (
+                {"mode": "receive", "modality": "audio", "handler": info_then_audio},
+                {"receive": "audio"},
+            ),
+        ],
+        indirect=["launched"],
+    )
+    async def test_gr_info_in_audio_handler_threads_is_shown(self, launched, offer):
+        h = launched
+        pc = await make_offer(**offer)
+        message = await self.stream_until_message(h, pc, "info")
+        assert message["message"].startswith("From ")
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1500,6 +1540,37 @@ class TestAudioArrays:
         # 0.2 s at 24 kHz: enough for the resampler to give out whole frames
         frames = await self.decode((24000, np.zeros(shape, dtype=np.int16)))
         assert sum(f.samples for f in frames) > 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("dtype", ["float64", "float16"])
+    async def test_emit_takes_other_float_arrays(self, dtype):
+        import numpy as np
+
+        # np.zeros() and np.linspace() give float64 by default
+        frames = await self.decode((24000, np.zeros(4800, dtype=dtype)))
+        assert sum(f.samples for f in frames) > 0
+
+    @pytest.mark.asyncio
+    async def test_an_empty_chunk_is_skipped(self):
+        import numpy as np
+
+        # e.g. what a TTS model gives for an empty sentence
+        frames = await self.decode(
+            (24000, np.zeros(0, dtype=np.float32)),
+            (24000, np.zeros(4800, dtype=np.float32)),
+        )
+        assert sum(f.samples for f in frames) > 0
+
+    @pytest.mark.parametrize("dtype", ["float64", "float16"])
+    def test_audio_helpers_take_other_float_arrays(self, dtype):
+        import numpy as np
+
+        from gradio.webrtc import audio_to_float32, audio_to_int16
+
+        audio = np.array([0.5, -0.5], dtype=dtype)
+        assert audio_to_float32(audio).dtype == np.float32
+        np.testing.assert_allclose(audio_to_float32(audio), [0.5, -0.5])
+        np.testing.assert_array_equal(audio_to_int16(audio), [16383, -16383])
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

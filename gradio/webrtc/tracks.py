@@ -24,6 +24,7 @@ from aiortc import AudioStreamTrack, MediaStreamTrack, VideoStreamTrack
 from aiortc.contrib.media import AudioFrame, VideoFrame
 from aiortc.mediastreams import VIDEO_CLOCK_RATE, VIDEO_TIME_BASE, MediaStreamError
 
+from gradio.context import LocalContext
 from gradio.webrtc.handlers import (
     AsyncHandler,
     AudioEmitType,
@@ -317,6 +318,8 @@ class AudioCallback(AudioStreamTrack):
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
         self.context = context
+        # Sync emit() runs in executor threads, which do not inherit contextvars
+        self.notifier = LocalContext.stream_notifier.get(None)
 
     def clear_queue(self):
         while not self.queue.empty():
@@ -344,6 +347,7 @@ class AudioCallback(AudioStreamTrack):
     def event_handler_emit(self) -> AudioEmitType:
         current_channel.set(self.event_handler.channel)
         current_context.set(self.context)
+        LocalContext.stream_notifier.set(self.notifier)
         return cast(Callable, self.event_handler.emit)()
 
     async def process_input_frames(self) -> None:
@@ -568,6 +572,8 @@ class ServerToClientAudio(AudioStreamTrack):
         self.has_started = False
         self._clock_start: float | None = None
         self.context = context
+        # next() runs in executor threads, which do not inherit contextvars
+        self.notifier = LocalContext.stream_notifier.get(None)
         super().__init__()
 
     def clear_queue(self):
@@ -584,6 +590,7 @@ class ServerToClientAudio(AudioStreamTrack):
 
     def next(self) -> tuple[int, np.ndarray] | None:
         current_context.set(self.context)
+        LocalContext.stream_notifier.set(self.notifier)
         self.args_set.wait()
         current_channel.set(self.channel)
         if self.generator is None:

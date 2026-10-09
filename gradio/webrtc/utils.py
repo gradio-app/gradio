@@ -13,6 +13,7 @@ import functools
 import inspect
 import json
 import logging
+import threading
 from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -122,6 +123,8 @@ class StreamNotifier:
         self.channel: Any = None
         self.pending: list[str] = []
         self.failed = False
+        # fail() can be called from several handler threads at once
+        self._fail_lock = threading.Lock()
 
     def set_channel(self, channel: Any) -> None:
         """Called on the event loop once the data channel is there."""
@@ -173,9 +176,10 @@ class StreamNotifier:
         (the message of a `gr.Error`; others only with `show_error=True`), once,
         and ends the stream.
         """
-        if self.failed:
-            return
-        self.failed = True
+        with self._fail_lock:
+            if self.failed:
+                return
+            self.failed = True
         from gradio.context import LocalContext
         from gradio.utils import error_payload
 
@@ -218,7 +222,7 @@ def check_audio(frame: Any) -> tuple[int, NDArray[np.int16 | np.float32]]:
     """
     Checks audio returned by a handler: `(sample_rate, array)` with the array
     in gr.Audio's numpy layout, (samples,) for mono or (samples, 2) for
-    stereo, int16 or float32 in [-1, 1].
+    stereo, int16 or float (e.g. float32, float64) in [-1, 1].
     """
     layout_hint = (
         "Audio must be returned as a (sample_rate, numpy array) tuple, with the "
@@ -264,30 +268,30 @@ def split_output(
 
 
 def audio_to_float32(
-    audio: NDArray[np.int16 | np.float32],
+    audio: NDArray[np.int16 | np.floating],
 ) -> NDArray[np.float32]:
     """
-    Converts an int16 audio array to float32 in the range [-1.0, 1.0). A float32
-    array is returned unchanged.
+    Converts an int16 audio array to float32 in the range [-1.0, 1.0). A float
+    array (in [-1.0, 1.0]) is returned as float32.
     """
     if audio.dtype == np.int16:
         return audio.astype(np.float32) / 32768.0
-    if audio.dtype == np.float32:
-        return cast(NDArray[np.float32], audio)
+    if np.issubdtype(audio.dtype, np.floating):
+        return audio.astype(np.float32, copy=False)
     raise TypeError(f"Unsupported audio data type: {audio.dtype}")
 
 
 def audio_to_int16(
-    audio: NDArray[np.int16 | np.float32],
+    audio: NDArray[np.int16 | np.floating],
 ) -> NDArray[np.int16]:
     """
-    Converts a float32 audio array in the range [-1.0, 1.0] to int16. An int16
+    Converts a float audio array in the range [-1.0, 1.0] to int16. An int16
     array is returned unchanged.
     """
     if audio.dtype == np.int16:
         return cast(NDArray[np.int16], audio)
-    if audio.dtype == np.float32:
-        return (audio * 32767.0).astype(np.int16)
+    if np.issubdtype(audio.dtype, np.floating):
+        return (audio.astype(np.float32, copy=False) * 32767.0).astype(np.int16)
     raise TypeError(f"Unsupported audio data type: {audio.dtype}")
 
 
@@ -422,6 +426,11 @@ async def player_worker_decode(
                 continue
 
             in_sample_rate, audio_array = check_audio(frame)
+            if audio_array.size == 0:
+                # Nothing to play (e.g. TTS output for an empty sentence)
+                if isinstance(outputs, CloseStream):
+                    await queue.put(outputs)
+                continue
             layout = "mono" if audio_array.ndim == 1 else "stereo"
             # Planar float frames take (channels, samples)
             planar = np.ascontiguousarray(

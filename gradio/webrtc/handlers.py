@@ -45,9 +45,9 @@ VideoEventGenerator = Generator[VideoEmitType, None, None]
 VideoEventHandler = Callable[..., VideoEmitType | VideoEventGenerator]
 
 AudioEmitType: TypeAlias = (
-    tuple[int, npt.NDArray[np.int16 | np.float32]]
+    tuple[int, npt.NDArray[np.int16 | np.floating]]
     | AdditionalOutputs
-    | tuple[tuple[int, npt.NDArray[np.int16 | np.float32]], AdditionalOutputs]
+    | tuple[tuple[int, npt.NDArray[np.int16 | np.floating]], AdditionalOutputs]
     | CloseStream
     | None
 )
@@ -206,7 +206,7 @@ class StreamHandler(StreamHandlerBase, ABC):
         """
         Returns the next audio frame to send, as a `(sample_rate, array)` tuple
         like the numpy value of `gr.Audio` (shape (samples,) for mono or
-        (samples, 2) for stereo, int16 or float32 in [-1, 1]), an
+        (samples, 2) for stereo, int16 or float in [-1, 1]), an
         `AdditionalOutputs`, a `CloseStream`, or None when nothing is ready.
         Must not block; use `wait_for_item()` on a queue instead.
         """
