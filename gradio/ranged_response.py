@@ -37,7 +37,7 @@ class OpenRange(NamedTuple):
 
     def clamp(self, start: int, end: int) -> ClosedRange:
         begin = max(self.start, start)
-        end = min(x for x in (self.end, end) if x)
+        end = min(x for x in (self.end, end) if x is not None)
 
         begin = min(begin, end)
         end = max(begin, end)
