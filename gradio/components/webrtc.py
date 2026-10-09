@@ -17,8 +17,10 @@ from gradio.components.image_editor import WebcamOptions
 from gradio.context import LocalContext, get_blocks_context
 from gradio.data_classes import GradioRootModel
 from gradio.events import EventListenerMethod, Events
-from gradio.helpers import skip
+from gradio.exceptions import Error
+from gradio.helpers import skip, special_args
 from gradio.i18n import I18nData
+from gradio.route_utils import Request
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
@@ -124,7 +126,7 @@ class WebRTC(Component):
             value: the id of the current connection. It is set by the browser when a stream starts and is not meant to be set by the developer.
             mode: the direction of the stream. "send-receive" sends the user's media to the handler and plays what the handler returns, "send" only sends the user's media, and "receive" only plays media that the handler generates.
             modality: the kind of media: "video", "audio", or "audio-video" for both at once.
-            rtc_configuration: the configuration for the browser's RTCPeerConnection, in particular the ICE servers (STUN and TURN) it may use. A dict, or a function (sync or async) that returns one, which is called for every new connection so that short-lived TURN credentials can be issued. Required when the app runs on Hugging Face Spaces or Colab, where the browser cannot reach the server directly.
+            rtc_configuration: the configuration for the browser's RTCPeerConnection, in particular the ICE servers (STUN and TURN) it may use. A dict, or a function (sync or async) that returns one, which is called for every new connection so that short-lived TURN credentials can be issued. Like an event listener, the function can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, e.g. to issue the credentials with the visitor's own Hugging Face account. Required when the app runs on Hugging Face Spaces or Colab, where the browser cannot reach the server directly.
             server_rtc_configuration: the equivalent configuration for the server side of the peer connection. Not sent to the browser.
             webcam_options: a `gr.WebcamOptions` instance that sets whether the webcam preview is mirrored and the media constraints of the video track, for "video" and "audio-video" streams. As in `gr.Image`, the video track constraints go under the "video" key of `constraints`, e.g. `gr.WebcamOptions(constraints={"video": {"facingMode": "environment"}})`. They are merged over the defaults (front camera, 1280x720 and 30 fps, all as ideal values), so only the keys that differ need to be given. The audio track of "audio-video" streams is set with `microphone_options`.
             microphone_options: a `gr.MicrophoneOptions` instance, or a dict of its arguments, that sets the media constraints of the audio track for "audio" and "audio-video" streams, e.g. `gr.MicrophoneOptions(constraints={"echoCancellation": False})`. The constraints are merged over the defaults, which turn on echo cancellation, noise suppression and automatic gain control and ask for a single channel at 24 kHz, so only the keys that differ need to be given.
@@ -502,20 +504,33 @@ class WebRTC(Component):
                     nothing = [skip(), *outputs.args]
         return nothing[0] if len(nothing) == 1 else tuple(nothing)
 
-    async def _resolve_rtc_configuration(self) -> dict[str, Any]:
+    async def _resolve_rtc_configuration(
+        self, request: Request | None = None
+    ) -> dict[str, Any]:
         config = self._rtc_configuration
         if config is None:
             return {}
+        if not callable(config):
+            return cast(dict[str, Any], config)
+        # Same injection as event listeners, so that the function can e.g.
+        # issue TURN credentials with the visitor's gr.OAuthToken
+        args, *_ = special_args(config, [], request)
         if inspect.iscoroutinefunction(config):
-            return await config()
-        if callable(config):
-            return await anyio.to_thread.run_sync(config)
-        return cast(dict[str, Any], config)
+            return await config(*args)
+        return await anyio.to_thread.run_sync(config, *args)
 
     @server
-    async def get_rtc_configuration(self, _: Any = None) -> dict[str, Any]:
+    async def get_rtc_configuration(
+        self, _: Any = None, request: Request | None = None
+    ) -> dict[str, Any]:
+        # The component_server route passes the raw fastapi request
+        if request is not None and not isinstance(request, Request):
+            request = Request(request=request)
         try:
-            return await self._resolve_rtc_configuration()
+            return await self._resolve_rtc_configuration(request)
+        except Error as e:
+            # A message for the visitor (e.g. "sign in first"), not a failure
+            return {"error": e.message}
         except Exception as e:
             logger.exception("Could not resolve rtc_configuration")
             return {"error": str(e)}

@@ -894,6 +894,77 @@ class TestStreams:
         }
         await asyncio.sleep(0)
 
+    @pytest.mark.asyncio
+    async def test_rtc_configuration_gets_the_request_of_the_page(self):
+        def issue_credentials(request: gr.Request):
+            return {"iceServers": [], "agent": request.headers["user-agent"]}
+
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC(rtc_configuration=issue_credentials)
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            async with httpx2.AsyncClient(timeout=10) as http:
+                response = await http.post(
+                    f"{local_url.rstrip('/')}{API_PREFIX}/component_server/",
+                    headers={"User-Agent": "visitor-browser"},
+                    json={
+                        "session_hash": "session",
+                        "component_id": webrtc._id,
+                        "fn_name": "get_rtc_configuration",
+                        "data": None,
+                    },
+                )
+        assert response.json() == {"iceServers": [], "agent": "visitor-browser"}
+
+    @pytest.mark.asyncio
+    async def test_rtc_configuration_gets_the_visitor_oauth_token(self):
+        from starlette.requests import Request
+
+        def issue_credentials(token: gr.OAuthToken | None):
+            return {"iceServers": [], "token": token.token if token else None}
+
+        def logged_in_only(token: gr.OAuthToken):
+            return {"iceServers": [], "token": token.token}
+
+        def page(session=None):
+            scope = {"type": "http", "headers": []}
+            if session is not None:
+                scope["session"] = session
+            return Request(scope)
+
+        session = {
+            "oauth_info": {
+                "access_token": "visitor-token",
+                "scope": "openid profile",
+                "expires_at": time.time() + 60,
+                "userinfo": {"preferred_username": "visitor"},
+            }
+        }
+        optional = gr.WebRTC(rtc_configuration=issue_credentials)
+        assert await optional.get_rtc_configuration(None, page(session)) == {
+            "iceServers": [],
+            "token": "visitor-token",
+        }
+        assert await optional.get_rtc_configuration(None, page()) == {
+            "iceServers": [],
+            "token": None,
+        }
+        required = gr.WebRTC(rtc_configuration=logged_in_only)
+        assert await required.get_rtc_configuration(None, page(session)) == {
+            "iceServers": [],
+            "token": "visitor-token",
+        }
+        assert await required.get_rtc_configuration(None, page()) == {
+            "error": "This action requires a logged in user. Please sign in and retry."
+        }
+
+        def refuse():
+            raise gr.Error("Sign in first.")
+
+        assert await gr.WebRTC(rtc_configuration=refuse).get_rtc_configuration() == {
+            "error": "Sign in first."
+        }
+
 
 @pytest.mark.asyncio
 async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
