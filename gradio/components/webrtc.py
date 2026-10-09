@@ -126,7 +126,7 @@ class WebRTC(Component):
             value: the id of the current connection. It is set by the browser when a stream starts and is not meant to be set by the developer.
             mode: the direction of the stream. "send-receive" sends the user's media to the handler and plays what the handler returns, "send" only sends the user's media, and "receive" only plays media that the handler generates.
             modality: the kind of media: "video", "audio", or "audio-video" for both at once.
-            rtc_configuration: the configuration for the browser's RTCPeerConnection, in particular the ICE servers (STUN and TURN) it may use. A dict, or a function (sync or async) that returns one, which is called for every new connection so that short-lived TURN credentials can be issued. Like an event listener, the function can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, e.g. to issue the credentials with the visitor's own Hugging Face account. Required when the app runs on Hugging Face Spaces or Colab, where the browser cannot reach the server directly.
+            rtc_configuration: the configuration for the browser's RTCPeerConnection, in particular the ICE servers (STUN and TURN) it may use. A dict, or a function (sync or async) that returns one, which is called for every new connection so that short-lived TURN credentials can be issued. Like an event listener, the function can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, e.g. to issue the credentials with the visitor's own Hugging Face account. Required when the app runs on Hugging Face Spaces or Colab, where the browser often cannot reach the server directly.
             server_rtc_configuration: the equivalent configuration for the server side of the peer connection. Not sent to the browser.
             webcam_options: a `gr.WebcamOptions` instance that sets whether the webcam preview is mirrored and the media constraints of the video track, for "video" and "audio-video" streams. As in `gr.Image`, the video track constraints go under the "video" key of `constraints`, e.g. `gr.WebcamOptions(constraints={"video": {"facingMode": "environment"}})`. They are merged over the defaults (front camera, 1280x720 and 30 fps, all as ideal values), so only the keys that differ need to be given. The audio track of "audio-video" streams is set with `microphone_options`.
             microphone_options: a `gr.MicrophoneOptions` instance, or a dict of its arguments, that sets the media constraints of the audio track for "audio" and "audio-video" streams, e.g. `gr.MicrophoneOptions(constraints={"echoCancellation": False})`. The constraints are merged over the defaults, which turn on echo cancellation, noise suppression and automatic gain control and ask for a single channel at 24 kHz, so only the keys that differ need to be given.
@@ -305,11 +305,16 @@ class WebRTC(Component):
             utils.get_space() or utils.colab_check()
         ) and self._rtc_configuration is None:
             raise ValueError(
-                "gr.WebRTC cannot connect from Hugging Face Spaces or Google Colab "
-                "without a TURN server, because the browser cannot reach the app "
-                "directly. Pass `rtc_configuration=` with your ICE servers, or a "
-                "function that returns them. Hugging Face accounts get a free monthly "
-                "TURN quota through Cloudflare; see the gr.WebRTC docs for details."
+                "gr.WebRTC needs a TURN server on Hugging Face Spaces or Google "
+                "Colab: the browser often cannot reach the app directly, and then "
+                "the media has to be relayed. Pass `rtc_configuration=` with your "
+                "ICE servers, or a function that returns them. Hugging Face "
+                "accounts get a free monthly "
+                "TURN quota through Cloudflare; on a public Space, issue the "
+                "credentials with each visitor's own account (gr.OAuthToken) so "
+                "that visitors do not use up yours. See the 'Deploying to Hugging "
+                "Face Spaces' section of the WebRTC guide: "
+                "https://www.gradio.app/guides/object-detection-from-webcam-with-webrtc"
             )
 
         inputs = _to_list(inputs)

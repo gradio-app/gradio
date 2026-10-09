@@ -24,7 +24,7 @@ We'll use the ONNX runtime to speed up YOLOv10 inference. This guide assumes you
 
 We'll use OpenCV for image manipulation.
 
-**Note**: If you want to deploy this app on any cloud provider, including Hugging Face Spaces, you'll need a TURN server to relay the media, because the browser cannot reach the server directly. Pass its ICE servers with the `rtc_configuration` parameter of `gr.WebRTC`, either as a dict or as a function that returns one, which is called for every connection so that short-lived credentials work. Hugging Face accounts get a free monthly TURN quota through Cloudflare; the `fastrtc` package's `get_cloudflare_turn_credentials` function returns a configuration in the right shape. If you're not familiar with TURN servers, consult this [guide](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-a-turn-server).
+**Note**: The app below works as is on your own machine. To deploy it on Hugging Face Spaces or another cloud provider, you'll also need a TURN server; see [Deploying to Hugging Face Spaces](#deploying-to-hugging-face-spaces).
 
 ## The Inference Function
 
@@ -80,7 +80,7 @@ with gr.Blocks(css=css) as demo:
     )
     with gr.Column(elem_classes=["my-column"]):
         with gr.Group(elem_classes=["my-group"]):
-            webcam = gr.WebRTC(label="Stream", rtc_configuration=rtc_configuration)
+            webcam = gr.WebRTC(label="Stream")
             conf_threshold = gr.Slider(
                 label="Confidence Threshold",
                 minimum=0.0,
@@ -96,6 +96,66 @@ with gr.Blocks(css=css) as demo:
 if __name__ == "__main__":
     demo.launch()
 ```
+
+## Deploying to Hugging Face Spaces
+
+On your own machine, the browser connects to the server directly. On Hugging Face Spaces (and most cloud providers), a direct connection works on some visitors' networks but fails on many others, so the media has to be relayed through a [TURN server](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-a-turn-server) when it fails. The browser still tries the direct route first, and streams that connect directly don't use any TURN traffic. You give the browser its TURN server with the `rtc_configuration` parameter of `gr.WebRTC`. It takes a dict, or a function that returns one, which is called for every new stream so that short-lived credentials can be issued. On Spaces, only the browser needs a TURN server: the server reaches the relay by itself, so `server_rtc_configuration` can be left unset. Set it as well if your host blocks outgoing UDP traffic.
+
+Every Hugging Face account gets a free monthly TURN quota through Cloudflare. The question is whose account pays for each stream.
+
+### Recommended: use each visitor's own account
+
+Ask visitors to sign in with Hugging Face, and issue their TURN credentials with their own token. Each visitor then uses their own quota, so one heavy user can't use up the quota for everyone else. Add `hf_oauth: true` to the metadata of your Space's `README.md` and install `gradio[webrtc,oauth]`. Then give `rtc_configuration` a function that takes a `gr.OAuthToken`, and add a `gr.LoginButton`:
+
+```python
+import httpx2
+
+async def turn_credentials(token: gr.OAuthToken | None) -> dict:
+    if token is None:
+        raise gr.Error("Sign in with Hugging Face to start the stream.")
+    async with httpx2.AsyncClient() as client:
+        response = await client.get(
+            "https://fastrtc-turn-service.hf.space/credentials",
+            headers={"Authorization": f"Bearer {token.token}"},
+            params={"ttl": 600},
+        )
+    response.raise_for_status()
+    return response.json()
+
+with gr.Blocks(css=css) as demo:
+    gr.LoginButton()
+    ...
+    webcam = gr.WebRTC(label="Stream", rtc_configuration=turn_credentials)
+```
+
+The function can take the same special parameters as an event listener (`gr.Request`, `gr.OAuthProfile`, `gr.OAuthToken`). The default OAuth scopes are enough. If a visitor presses Record without signing in, the `gr.Error` message is shown to them.
+
+### Without sign-in: bring your own TURN server
+
+If you don't want to require sign-in, every stream goes through a TURN account of yours. You can create a TURN app in your own [Cloudflare account](https://developers.cloudflare.com/realtime/turn/) and issue credentials with its key, or run your own TURN server such as [coturn](https://github.com/coturn/coturn):
+
+```python
+import os
+
+import httpx2
+
+async def turn_credentials() -> dict:
+    key_id = os.environ["CLOUDFLARE_TURN_KEY_ID"]
+    async with httpx2.AsyncClient() as client:
+        response = await client.post(
+            f"https://rtc.live.cloudflare.com/v1/turn/keys/{key_id}/credentials/generate-ice-servers",
+            headers={"Authorization": f"Bearer {os.environ['CLOUDFLARE_TURN_KEY_API_TOKEN']}"},
+            json={"ttl": 600},
+        )
+    response.raise_for_status()
+    return response.json()
+```
+
+Store the key as secrets of your Space. Since every visitor's traffic is billed to you, set `concurrency_limit` and `time_limit` in `stream()`: together they cap how much TURN traffic the app can use at a time.
+
+### For testing only: your own Hugging Face token
+
+While you develop, you can call the same Hugging Face endpoint with your own token, stored as an `HF_TOKEN` secret, instead of the visitor's. Don't do this in a public Space: every visitor's stream then counts against your quota, and once it runs out the app stops working for everyone, including you.
 
 ## Going further
 
