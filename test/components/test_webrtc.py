@@ -100,6 +100,16 @@ class InfoOnEmit(SyncHandler):
             gr.Info("From emit")
 
 
+class FailOnEmit(SyncHandler):
+    def emit(self):
+        raise gr.Error("Bad audio")
+
+
+def fail_then_audio(*args):
+    raise gr.Error("Bad audio")
+    yield
+
+
 def info_then_audio(*args):
     import numpy as np
 
@@ -687,6 +697,28 @@ class TestStreams:
         pc = await make_offer(**offer)
         message = await self.stream_until_message(h, pc, "info")
         assert message["message"].startswith("From ")
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched, offer",
+        [
+            ({"modality": "audio", "handler": FailOnEmit}, {"audio": True}),
+            (
+                {"mode": "receive", "modality": "audio", "handler": fail_then_audio},
+                {"receive": "audio"},
+            ),
+        ],
+        indirect=["launched"],
+    )
+    async def test_errors_in_audio_handler_threads_end_the_stream(
+        self, launched, offer
+    ):
+        h = launched
+        pc = await make_offer(**offer)
+        message = await self.stream_until_message(h, pc, "error")
+        assert message["message"] == "Bad audio"
+        await h.wait_until(lambda: "one" not in h.manager.pcs)
         await pc.close()
 
     @pytest.mark.asyncio
