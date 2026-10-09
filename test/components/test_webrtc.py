@@ -32,6 +32,19 @@ def flip(frame, *args):
     return frame
 
 
+def fail_with_gr_error(frame, *args):
+    raise gr.Error("Bad frame", title="Oops")
+
+
+def fail_with_value_error(frame, *args):
+    raise ValueError("internal detail")
+
+
+def warn(frame, *args):
+    gr.Warning("Careful")
+    return frame
+
+
 def three_frames(*args):
     import numpy as np
 
@@ -366,7 +379,10 @@ class TestWebRTC:
 
 async def make_offer(audio=False, video=False, receive=None):
     pc = RTCPeerConnection()
-    pc.createDataChannel("text")
+    channel = pc.createDataChannel("text")
+    # What the server says over the data channel, decoded
+    pc.messages = []  # type: ignore[attr-defined]
+    channel.on("message", lambda m: pc.messages.append(json.loads(m)))  # type: ignore[attr-defined]
     if audio:
         pc.addTrack(AudioStreamTrack())
     if video:
@@ -516,6 +532,55 @@ class TestStreams:
         assert "m=video" in answer["sdp"]
         assert "webrtc-datachannel" in answer["sdp"]
         assert answer["time_limit"] is None
+        assert "one" in h.manager.pcs
+        await pc.close()
+
+    async def stream_until_message(self, h, pc, type_):
+        await h.start("one")
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        # The handler runs once the page has sent the input values
+        await h.webrtc._push_inputs("one", 0.2)
+        await h.wait_until(lambda: any(m["type"] == type_ for m in pc.messages))
+        return next(m for m in pc.messages if m["type"] == type_)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"handler": fail_with_gr_error}], indirect=True
+    )
+    async def test_gr_error_in_the_handler_is_shown_and_ends_the_stream(self, launched):
+        h = launched
+        pc = await make_offer(video=True)
+        message = await self.stream_until_message(h, pc, "error")
+        assert message["message"] == "Bad frame"
+        assert message["title"] == "Oops"
+        await h.wait_until(lambda: "one" not in h.manager.pcs)
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("show_error", [False, True])
+    @pytest.mark.parametrize(
+        "launched", [{"handler": fail_with_value_error}], indirect=True
+    )
+    async def test_other_errors_are_shown_only_with_show_error(
+        self, launched, show_error
+    ):
+        h = launched
+        h.demo.show_error = show_error
+        pc = await make_offer(video=True)
+        message = await self.stream_until_message(h, pc, "error")
+        assert message["message"] == ("internal detail" if show_error else "")
+        assert message["title"] == "Error"
+        await h.wait_until(lambda: "one" not in h.manager.pcs)
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("launched", [{"handler": warn}], indirect=True)
+    async def test_gr_warning_in_the_handler_is_shown(self, launched):
+        h = launched
+        pc = await make_offer(video=True)
+        message = await self.stream_until_message(h, pc, "warning")
+        assert message["message"] == "Careful"
         assert "one" in h.manager.pcs
         await pc.close()
 

@@ -138,9 +138,17 @@
 		const text = typeof msg.data === "string" ? msg.data : (msg.message ?? "");
 		switch (msg.type) {
 			case "error":
-				gradio.dispatch("error", text);
-				break;
 			case "warning":
+			case "info":
+			case "success":
+				// Shown like the toasts of a queued event
+				gradio.dispatch(msg.type, {
+					message: text,
+					title: msg.title ?? undefined,
+					duration: msg.duration,
+					visible: msg.visible
+				});
+				break;
 			case "end_stream":
 				gradio.dispatch("warning", text);
 				break;

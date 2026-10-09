@@ -26,6 +26,10 @@ export interface ControlMessage {
 	type: string;
 	data?: unknown;
 	message?: string;
+	// Toasts (errors of the handler, gr.Warning / gr.Info / gr.Success)
+	title?: string | null;
+	duration?: number | null;
+	visible?: boolean;
 }
 
 export interface WebRTCProps {

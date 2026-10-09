@@ -446,6 +446,30 @@ describe("WebRTC send-receive video", () => {
 		pc.receive({ type: "send_input", data: [] });
 		expect(tick).toHaveBeenCalledTimes(1);
 
+		// Errors of the handler and gr.Info keep their title and duration
+		const error = listen("error");
+		const info = listen("info");
+		pc.receive({
+			type: "error",
+			message: "Bad frame",
+			title: "Oops",
+			duration: 5,
+			visible: true
+		});
+		expect(error).toHaveBeenCalledWith({
+			message: "Bad frame",
+			title: "Oops",
+			duration: 5,
+			visible: true
+		});
+		pc.receive({ type: "info", message: "Hi", title: null, duration: 10 });
+		expect(info).toHaveBeenCalledWith({
+			message: "Hi",
+			title: undefined,
+			duration: 10,
+			visible: undefined
+		});
+
 		pc.receive({ type: "end_stream", data: "Time is up" });
 		expect(warning).toHaveBeenCalledWith("Time is up");
 		await waitFor(() => expect(stop_recording).toHaveBeenCalled());

@@ -124,6 +124,13 @@
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
 	let reconnect_interval: ReturnType<typeof setInterval> | null = null;
 
+	const DEFAULT_TOAST_TITLES = {
+		error: "Error",
+		warning: "Warning",
+		info: "Info",
+		success: "Success"
+	} as const;
+
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
@@ -133,12 +140,27 @@
 			const { title, description } = data as ShareData;
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
-		} else if (event === "error") {
-			new_message("Error", data as string, -1, event, 10, true);
-		} else if (event === "warning") {
-			new_message("Warning", data as string, -1, event, 10, true);
-		} else if (event === "info") {
-			new_message("Info", data as string, -1, event, 10, true);
+		} else if (event in DEFAULT_TOAST_TITLES) {
+			// A message, or a toast with its own title, duration and visibility
+			// (e.g. a gr.Error raised by a gr.WebRTC stream handler)
+			const toast =
+				typeof data === "string"
+					? { message: data }
+					: (data as {
+							message?: string;
+							title?: string;
+							duration?: number | null;
+							visible?: boolean;
+						});
+			const type = event as keyof typeof DEFAULT_TOAST_TITLES;
+			new_message(
+				toast.title ?? DEFAULT_TOAST_TITLES[type],
+				toast.message ?? "",
+				-1,
+				type,
+				toast.duration === undefined ? 10 : toast.duration,
+				toast.visible ?? true
+			);
 		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
 			reset_resize_growth(resize_state);
 			const id_ =

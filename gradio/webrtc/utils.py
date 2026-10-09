@@ -13,7 +13,6 @@ import functools
 import inspect
 import json
 import logging
-import traceback
 from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -103,27 +102,116 @@ def get_current_context() -> Context:
     return ctx
 
 
-def _send_log(message: str, type: str) -> None:
-    async def _send(channel: DataChannel) -> None:
-        channel.send(json.dumps({"type": type, "message": message}))
+class HandlerFailedError(Exception):
+    """A stream handler raised: the user has been told, and the stream ends."""
 
-    if channel := current_channel.get():
+
+class StreamNotifier:
+    """
+    Shows toasts on the page of one stream: the errors of its handler, and
+    `gr.Warning` / `gr.Info` / `gr.Success` called from it, which have no queued
+    event to go through. Usable from any thread. Messages sent before the data
+    channel exists wait for it.
+    """
+
+    def __init__(
+        self, loop: asyncio.AbstractEventLoop, end_stream: Callable[[], None]
+    ) -> None:
+        self.loop = loop
+        self.end_stream = end_stream
+        self.channel: Any = None
+        self.pending: list[str] = []
+        self.failed = False
+
+    def set_channel(self, channel: Any) -> None:
+        """Called on the event loop once the data channel is there."""
+        self.channel = channel
+        if self._is_open():
+            self._flush()
+        else:
+            channel.on("open", self._flush)
+
+    def _is_open(self) -> bool:
+        return getattr(self.channel, "readyState", None) == "open"
+
+    def _flush(self) -> None:
+        pending, self.pending = self.pending, []
+        for message in pending:
+            self._send_now(message)
+
+    def _send_now(self, message: str) -> None:
+        if not self._is_open():
+            self.pending.append(message)
+            return
         try:
-            loop = asyncio.get_running_loop()
-            asyncio.run_coroutine_threadsafe(_send(channel), loop)
-        except RuntimeError:
-            asyncio.run(_send(channel))
+            self.channel.send(message)
+        except Exception:
+            logger.debug("Could not send %s", message, exc_info=True)
+
+    def send(
+        self,
+        type: Literal["error", "warning", "info", "success"],
+        message: str,
+        title: str | None = None,
+        duration: float | None = 10,
+        visible: bool = True,
+    ) -> None:
+        payload = json.dumps(
+            {
+                "type": type,
+                "message": message,
+                "title": title,
+                "duration": duration,
+                "visible": visible,
+            }
+        )
+        self.loop.call_soon_threadsafe(self._send_now, payload)
+
+    def fail(self, error: BaseException) -> None:
+        """
+        Reports the handler's error the way a queued event's error is shown
+        (the message of a `gr.Error`; others only with `show_error=True`), once,
+        and ends the stream.
+        """
+        if self.failed:
+            return
+        self.failed = True
+        from gradio.context import LocalContext
+        from gradio.utils import error_payload
+
+        blocks = LocalContext.blocks.get(None)
+        payload = error_payload(error, bool(blocks and blocks.show_error))
+        self.send(
+            "error",
+            cast(str | None, payload["error"]) or "",
+            cast(str | None, payload.get("title")) or "Error",
+            cast(float | None, payload.get("duration", 10)),
+            bool(payload.get("visible", True)),
+        )
+        # Leaves the message time to go out before the connection closes
+        self.loop.call_soon_threadsafe(self.loop.call_later, 0.2, self.end_stream)
 
 
-class WebRTCError(Exception):
+def handler_failed(error: BaseException) -> HandlerFailedError:
     """
-    Raise from a stream handler to show an error message in the UI of the user
-    whose connection is being handled.
+    Reports an error of the handler of the current stream and returns the
+    exception to raise in its place. The errors of a connection's handler end
+    its stream, whichever task notices them.
     """
+    from gradio.context import LocalContext
+    from gradio.exceptions import Error as AppError
 
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
-        _send_log(message, "error")
+    if isinstance(error, HandlerFailedError):
+        return error
+    if not isinstance(error, AppError) or error.print_exception:
+        logger.error(
+            "Error in the stream handler",
+            exc_info=(type(error), error, error.__traceback__),
+        )
+    notifier = LocalContext.stream_notifier.get(None)
+    if notifier is not None:
+        notifier.fail(error)
+    return HandlerFailedError(str(error))
 
 
 def split_output(
@@ -189,27 +277,25 @@ async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
 
 
 def webrtc_error_handler(func: Callable) -> Callable:
-    """Wraps handler methods so that any exception surfaces as a WebRTCError."""
+    """Wraps handler methods so that their errors are reported (see handler_failed)."""
 
     @functools.wraps(func)
     async def async_wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
+        except HandlerFailedError:
+            raise
         except Exception as e:
-            traceback.print_exc()
-            if isinstance(e, WebRTCError):
-                raise e
-            raise WebRTCError(str(e)) from e
+            raise handler_failed(e) from e
 
     @functools.wraps(func)
     def sync_wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
+        except HandlerFailedError:
+            raise
         except Exception as e:
-            traceback.print_exc()
-            if isinstance(e, WebRTCError):
-                raise e
-            raise WebRTCError(str(e)) from e
+            raise handler_failed(e) from e
 
     return async_wrapper if inspect.iscoroutinefunction(func) else sync_wrapper
 
@@ -272,7 +358,7 @@ async def player_worker_decode(
                 or len(frame) not in (2, 3)
                 or not isinstance(frame[1], np.ndarray)
             ):
-                raise WebRTCError(
+                raise TypeError(
                     "Audio must be returned as a (sample_rate, numpy array) tuple, "
                     "optionally with 'mono' or 'stereo' as a third element."
                 )
@@ -310,8 +396,8 @@ async def player_worker_decode(
                 "Timeout in frame processing cycle after %s seconds - resetting", 60
             )
             continue
+        except HandlerFailedError:
+            raise
         except Exception as e:
-            logger.error("Error processing frame: %s\n%s", e, traceback.format_exc())
-            if isinstance(e, WebRTCError):
-                raise e
-            continue
+            # What the handler returned cannot be played
+            raise handler_failed(e) from e

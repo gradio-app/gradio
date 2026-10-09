@@ -37,10 +37,11 @@ from gradio.webrtc.utils import (
     CloseStream,
     Context,
     DataChannel,
-    WebRTCError,
+    HandlerFailedError,
     create_message,
     current_channel,
     current_context,
+    handler_failed,
     player_worker_decode,
     split_output,
 )
@@ -192,11 +193,11 @@ class VideoCallback(VideoStreamTrack):
                 new_frame.pts = pts
                 new_frame.time_base = time_base
             return new_frame
+        except HandlerFailedError:
+            raise
         except Exception as e:
-            logger.debug("exception %s\n%s", e, traceback.format_exc())
-            if isinstance(e, WebRTCError):
-                raise e
-            raise WebRTCError(str(e)) from e
+            # e.g. what the handler returned is not a video frame
+            raise handler_failed(e) from e
 
     async def next_timestamp(self) -> tuple[int, fractions.Fraction]:
         if self.readyState != "live":
@@ -234,7 +235,7 @@ class HandlerVideoTrack(VideoCallback):
                     await handler.video_receive(frame_array)
                 else:
                     await anyio.to_thread.run_sync(handler.video_receive, frame_array)
-            except MediaStreamError:
+            except (MediaStreamError, HandlerFailedError):
                 self.stop()
 
     async def start(self):
@@ -268,8 +269,10 @@ class HandlerVideoTrack(VideoCallback):
             new_frame.pts = pts
             new_frame.time_base = time_base
             return new_frame
+        except HandlerFailedError:
+            raise
         except Exception as e:
-            logger.debug("exception %s\n%s", e, traceback.format_exc())
+            raise handler_failed(e) from e
 
 
 class AudioCallback(AudioStreamTrack):
@@ -349,6 +352,9 @@ class AudioCallback(AudioStreamTrack):
             except MediaStreamError:
                 logger.debug("MediaStreamError in process_input_frames")
                 break
+            except HandlerFailedError:
+                self.stop()
+                break
 
     async def start(self):
         if not self.has_started:
@@ -358,8 +364,11 @@ class AudioCallback(AudioStreamTrack):
                 callable = self.event_handler.emit
                 start_up = self.event_handler.start_up()
                 if not inspect.isawaitable(start_up):
-                    raise WebRTCError(
-                        "In AsyncStreamHandler, start_up must be a coroutine (async def)"
+                    raise handler_failed(
+                        TypeError(
+                            "In AsyncStreamHandler, start_up must be a coroutine "
+                            "(async def)"
+                        )
                     )
             else:
                 callable = functools.partial(
@@ -517,11 +526,10 @@ class ServerToClientVideo(VideoStreamTrack):
             next_frame.pts = pts
             next_frame.time_base = time_base
             return next_frame
+        except HandlerFailedError:
+            raise
         except Exception as e:
-            logger.debug("exception %s\n%s", e, traceback.format_exc())
-            if isinstance(e, WebRTCError):
-                raise e
-            raise WebRTCError(str(e)) from e
+            raise handler_failed(e) from e
 
 
 class ServerToClientAudio(AudioStreamTrack):
@@ -618,11 +626,10 @@ class ServerToClientAudio(AudioStreamTrack):
                     await asyncio.sleep(wait)
 
             return data
+        except HandlerFailedError:
+            raise
         except Exception as e:
-            logger.debug("exception %s\n%s", e, traceback.format_exc())
-            if isinstance(e, WebRTCError):
-                raise e
-            raise WebRTCError(str(e)) from e
+            raise handler_failed(e) from e
 
     def stop(self):
         logger.debug("audio-to-client stop callback")

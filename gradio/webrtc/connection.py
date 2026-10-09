@@ -37,6 +37,7 @@ from aiortc import (
 from aiortc.contrib.media import MediaRelay
 from aiortc.mediastreams import MediaStreamError
 
+from gradio.context import LocalContext
 from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
 from gradio.webrtc.handlers import (
     AudioVideoStreamHandlerImpl,
@@ -53,7 +54,12 @@ from gradio.webrtc.tracks import (
     Track,
     VideoCallback,
 )
-from gradio.webrtc.utils import AdditionalOutputs, Context, webrtc_error_handler
+from gradio.webrtc.utils import (
+    AdditionalOutputs,
+    Context,
+    StreamNotifier,
+    webrtc_error_handler,
+)
 
 if TYPE_CHECKING:
     from gradio.queueing import Event, Queue
@@ -403,6 +409,12 @@ class ConnectionManager:
         if webrtc_id in self.pcs:
             return _failed("connection_already_exists")
 
+        # The handler's tasks and threads are all started from here, so they
+        # inherit it: errors, gr.Warning and gr.Info reach this stream's page
+        notifier = StreamNotifier(
+            asyncio.get_running_loop(), end_stream=lambda: self.end(webrtc_id)
+        )
+        LocalContext.stream_notifier.set(notifier)
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
         self.pcs[webrtc_id] = pc
@@ -525,6 +537,7 @@ class ConnectionManager:
         def on_datachannel(channel):
             logger.debug("Data channel established: %s", channel.label)
             self.data_channels[webrtc_id] = channel
+            notifier.set_channel(channel)
 
             async def set_channel():
                 while not self.connections.get(webrtc_id):

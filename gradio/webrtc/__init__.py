@@ -16,7 +16,6 @@ from gradio.webrtc.handlers import (
 from gradio.webrtc.utils import (
     AdditionalOutputs,
     CloseStream,
-    WebRTCError,
     audio_to_float32,
     audio_to_int16,
     get_current_context,
@@ -33,7 +32,6 @@ __all__ = [
     "StreamHandler",
     "VideoEmitType",
     "VideoStreamHandler",
-    "WebRTCError",
     "audio_to_float32",
     "audio_to_int16",
     "get_current_context",
