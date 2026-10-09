@@ -165,7 +165,7 @@ While you develop, you can call the same Hugging Face endpoint with your own tok
 - To end a stream from the handler, return `gr.webrtc.CloseStream("message")`.
 - Like an event listener, the function can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, for example to call an API with the signed-in visitor's own token. For a handler class, give them to its `start_up` method.
 - Errors and messages work as in any other event: raise `gr.Error("...")` to show a message and end the stream (other exceptions show their message only with `launch(show_error=True)`), and call `gr.Warning`, `gr.Info` or `gr.Success` to show a message while the stream goes on.
-- For audio streams, pass a subclass of `gradio.webrtc.StreamHandler` or `gradio.webrtc.AsyncStreamHandler` to `stream` instead of a function. Its `receive` method is called with every incoming audio frame and its `emit` method is polled for the next frame to play back.
+- For audio streams, pass a subclass of `gradio.webrtc.StreamHandler` or `gradio.webrtc.AsyncStreamHandler` to `stream` instead of a function. Its `receive` method is called with every incoming audio frame and its `emit` method is polled for the next frame to play back. Audio frames are `(sample_rate, array)` tuples like the numpy value of `gr.Audio`, with arrays shaped `(samples,)` for mono or `(samples, 2)` for stereo.
 
 ## Conclusion
 

@@ -214,13 +214,39 @@ def handler_failed(error: BaseException) -> HandlerFailedError:
     return HandlerFailedError(str(error))
 
 
+def check_audio(frame: Any) -> tuple[int, NDArray[np.int16 | np.float32]]:
+    """
+    Checks audio returned by a handler: `(sample_rate, array)` with the array
+    in gr.Audio's numpy layout, (samples,) for mono or (samples, 2) for
+    stereo, int16 or float32 in [-1, 1].
+    """
+    layout_hint = (
+        "Audio must be returned as a (sample_rate, numpy array) tuple, with the "
+        "array shaped (samples,) for mono or (samples, 2) for stereo, as in "
+        "gr.Audio"
+    )
+    if (
+        not isinstance(frame, tuple)
+        or len(frame) != 2
+        or not isinstance(frame[1], np.ndarray)
+    ):
+        raise TypeError(f"{layout_hint}.")
+    array = frame[1]
+    if array.ndim == 2 and array.shape[1] == 1:
+        array = array[:, 0]
+    if array.ndim not in (1, 2) or (array.ndim == 2 and array.shape[1] != 2):
+        raise ValueError(f"{layout_hint}; got an array of shape {array.shape}.")
+    return int(frame[0]), array
+
+
 def split_output(
     data: tuple | Any,
 ) -> tuple[Any, AdditionalOutputs | CloseStream | None]:
     if isinstance(data, AdditionalOutputs | CloseStream):
         return None, data
     if isinstance(data, tuple):
-        # A bare (sample_rate, array) or (sample_rate, array, layout) audio frame
+        # A bare (sample_rate, array) audio frame. Three elements are FastRTC's
+        # explicit layout, let through so that check_audio() explains the change
         if 2 <= len(data) <= 3 and isinstance(data[1], np.ndarray):
             return data, None
         if len(data) != 2:
@@ -395,29 +421,13 @@ async def player_worker_decode(
                     break
                 continue
 
-            if (
-                not isinstance(frame, tuple)
-                or len(frame) not in (2, 3)
-                or not isinstance(frame[1], np.ndarray)
-            ):
-                raise TypeError(
-                    "Audio must be returned as a (sample_rate, numpy array) tuple, "
-                    "optionally with 'mono' or 'stereo' as a third element."
-                )
-
-            if len(frame) == 2:
-                in_sample_rate, audio_array = frame
-                layout = "mono"
-            else:
-                in_sample_rate, audio_array, layout = frame
-
-            audio_array = audio_to_float32(audio_array)
-            if audio_array.ndim == 1:
-                audio_array = audio_array.reshape(1, -1)
-
-            in_frame = av.AudioFrame.from_ndarray(
-                audio_array, format="fltp", layout=layout
+            in_sample_rate, audio_array = check_audio(frame)
+            layout = "mono" if audio_array.ndim == 1 else "stereo"
+            # Planar float frames take (channels, samples)
+            planar = np.ascontiguousarray(
+                audio_to_float32(audio_array).reshape(len(audio_array), -1).T
             )
+            in_frame = av.AudioFrame.from_ndarray(planar, format="fltp", layout=layout)
             in_frame.sample_rate = in_sample_rate
 
             # av.AudioResampler requires every input frame to share one format,

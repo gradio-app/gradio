@@ -51,6 +51,17 @@ logger = logging.getLogger(__name__)
 _GENERATOR_DONE = object()
 
 
+def audio_frame_to_array(frame: AudioFrame) -> npt.NDArray[np.int16]:
+    """
+    The samples of a packed s16 frame in gr.Audio's numpy layout: (samples,)
+    for mono, (samples, channels) otherwise.
+    """
+    channels = len(frame.layout.channels)
+    # Packed frames hold the channels interleaved in one row
+    array = cast(npt.NDArray[np.int16], frame.to_ndarray()).reshape(-1, channels)
+    return array[:, 0] if channels == 1 else array
+
+
 class VideoCallback(VideoStreamTrack):
     """
     Video track for the "send" and "send-receive" modes: feeds each frame from
@@ -340,7 +351,7 @@ class AudioCallback(AudioStreamTrack):
             try:
                 frame = cast(AudioFrame, await self.track.recv())
                 for resampled in self.event_handler.resample(frame):
-                    numpy_array = cast(npt.NDArray[np.int16], resampled.to_ndarray())
+                    numpy_array = audio_frame_to_array(resampled)
                     if isinstance(self.event_handler, AsyncHandler):
                         await self.event_handler.receive(
                             (resampled.sample_rate, numpy_array)

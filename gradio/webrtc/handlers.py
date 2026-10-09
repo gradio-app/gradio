@@ -46,7 +46,6 @@ VideoEventHandler = Callable[..., VideoEmitType | VideoEventGenerator]
 
 AudioEmitType: TypeAlias = (
     tuple[int, npt.NDArray[np.int16 | np.float32]]
-    | tuple[int, npt.NDArray[np.int16 | np.float32], Literal["mono", "stereo"]]
     | AdditionalOutputs
     | tuple[tuple[int, npt.NDArray[np.int16 | np.float32]], AdditionalOutputs]
     | CloseStream
@@ -196,18 +195,20 @@ class StreamHandler(StreamHandlerBase, ABC):
     @abstractmethod
     def receive(self, frame: tuple[int, npt.NDArray[np.int16]]) -> None:
         """
-        Called with each incoming audio frame as a `(sample_rate, array)` tuple,
-        where the array has shape (channels, samples) and dtype int16.
+        Called with each incoming audio frame as a `(sample_rate, array)` tuple
+        like the numpy value of `gr.Audio`: an int16 array of shape (samples,)
+        for `expected_layout="mono"` or (samples, 2) for "stereo".
         """
         pass
 
     @abstractmethod
     def emit(self) -> AudioEmitType:
         """
-        Returns the next audio frame to send, as `(sample_rate, array)` or
-        `(sample_rate, array, layout)`, an `AdditionalOutputs`, a `CloseStream`,
-        or None when nothing is ready. Must not block; use `wait_for_item()`
-        on a queue instead.
+        Returns the next audio frame to send, as a `(sample_rate, array)` tuple
+        like the numpy value of `gr.Audio` (shape (samples,) for mono or
+        (samples, 2) for stereo, int16 or float32 in [-1, 1]), an
+        `AdditionalOutputs`, a `CloseStream`, or None when nothing is ready.
+        Must not block; use `wait_for_item()` on a queue instead.
         """
         pass
 

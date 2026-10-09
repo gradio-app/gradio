@@ -1401,3 +1401,105 @@ class TestVideoTracks:
         assert await track.recv() is not None
         assert await track.recv() is None
         assert track.readyState == "ended"
+
+
+class TestAudioArrays:
+    """Audio goes in and out as (sample_rate, array), like gr.Audio's numpy values."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("layout, shape", [("mono", (960,)), ("stereo", (960, 2))])
+    async def test_receive_gets_gr_audio_arrays(self, layout, shape):
+        import fractions
+
+        import av
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc.tracks import AudioCallback
+        from gradio.webrtc.utils import Context
+
+        incoming = av.AudioFrame.from_ndarray(
+            np.zeros((1, 960), dtype=np.int16), format="s16", layout="mono"
+        )
+        incoming.sample_rate = 48000
+        incoming.pts, incoming.time_base = 0, fractions.Fraction(1, 48000)
+
+        class OneFrame:
+            frames = [incoming]
+
+            async def recv(self):
+                if self.frames:
+                    return self.frames.pop()
+                raise MediaStreamError
+
+        received = []
+
+        class Handler(AsyncStreamHandler):
+            def __init__(self):
+                super().__init__(expected_layout=layout, input_sample_rate=48000)
+
+            async def receive(self, frame):
+                received.append(frame)
+
+            async def emit(self):
+                return None
+
+        track = AudioCallback(
+            OneFrame(), event_handler=Handler(), context=Context("id")
+        )
+        await track.process_input_frames()
+        sample_rate, array = received[0]
+        assert sample_rate == 48000
+        assert array.shape == shape
+        assert array.dtype == np.int16
+
+    @staticmethod
+    async def decode(*returned):
+        import av
+
+        from gradio.webrtc.utils import player_worker_decode
+
+        queue: asyncio.Queue = asyncio.Queue()
+        items = [*returned, None]
+
+        async def next_frame():
+            return items.pop(0)
+
+        await player_worker_decode(
+            next_frame, queue, asyncio.Event(), None, quit_on_none=True
+        )
+        frames = []
+        while not queue.empty():
+            frames.append(queue.get_nowait())
+        return [f for f in frames if isinstance(f, av.AudioFrame)]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("shape", [(4800,), (4800, 2)])
+    async def test_emit_takes_gr_audio_arrays(self, shape):
+        import numpy as np
+
+        # 0.2 s at 24 kHz: enough for the resampler to give out whole frames
+        frames = await self.decode((24000, np.zeros(shape, dtype=np.int16)))
+        assert sum(f.samples for f in frames) > 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "returned",
+        [
+            # FastRTC's channels-first arrays and explicit layout
+            (24000, "channels-first"),
+            (24000, "with-layout"),
+        ],
+    )
+    async def test_old_audio_layouts_are_rejected(self, returned):
+        import numpy as np
+
+        from gradio.webrtc.utils import HandlerFailedError
+
+        sample_rate, kind = returned
+        if kind == "channels-first":
+            item = (sample_rate, np.zeros((2, 480), dtype=np.float32))
+        else:
+            item = (sample_rate, np.zeros((2, 480), dtype=np.float32), "stereo")
+        with pytest.raises(HandlerFailedError):
+            await self.decode(item)
