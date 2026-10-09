@@ -926,6 +926,24 @@ class TestRoutes:
         assert file_response_with_partial_range.is_success
         assert len(file_response_with_partial_range.text) == 11
 
+    @pytest.mark.asyncio
+    async def test_file_range_past_eof(self, tmp_path):
+        path = tmp_path / "file.txt"
+        path.write_bytes(b"abc")
+        gr.set_static_paths(paths=[path])
+        with gr.Blocks() as demo:
+            pass
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=demo.app), base_url="http://test"
+        ) as client:
+            response = await asyncio.wait_for(
+                client.get(f"{API_PREFIX}/file={path}", headers={"Range": "bytes=0-3"}),
+                timeout=2,
+            )
+        assert response.status_code == 206
+        assert response.headers["content-range"] == "bytes 0-2/3"
+        assert response.content == b"abc"
+
     def test_mount_gradio_app(self):
         app = FastAPI()
 
