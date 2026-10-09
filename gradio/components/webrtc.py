@@ -17,6 +17,7 @@ from gradio.components.image_editor import WebcamOptions
 from gradio.context import LocalContext, get_blocks_context
 from gradio.data_classes import GradioRootModel
 from gradio.events import EventListenerMethod, Events
+from gradio.helpers import skip
 from gradio.i18n import I18nData
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
@@ -193,7 +194,6 @@ class WebRTC(Component):
         self.width = width
         # Set by stream()
         self.time_limit: float | None = None
-        self.concurrency_limit: int | None = 1
         self._num_extra_outputs = 0
         super().__init__(
             label=label,
@@ -284,8 +284,8 @@ class WebRTC(Component):
             fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`.
             inputs: the components whose values are passed to the handler. In mode="send" and mode="send-receive", the first element must be this component. The values of the other inputs are passed to video functions after the frame, to receive-mode generators as arguments, and to stream handlers through `latest_args` after `wait_for_args()`.
             outputs: this component, plus the components that receive the values of `AdditionalOutputs`, in order.
-            time_limit: the maximum duration of a connection in seconds. The connection is closed when it is reached.
-            concurrency_limit: the maximum number of simultaneous connections to this component. "default" means 1, None means no limit. Connections beyond the limit are rejected with an error message.
+            time_limit: the maximum duration of a stream in seconds, counted from when its turn in the queue comes. The stream is closed when it is reached, and the next user in line gets the slot.
+            concurrency_limit: the maximum number of simultaneous streams of this component. Further streams wait in the queue, showing their position, until a stream ends. "default" uses the queue's default concurrency limit (1 unless set with `Blocks.queue(default_concurrency_limit=...)`), None means no limit.
             trigger: in mode="receive", the event that starts the stream, for example `button.click`.
         """
         try:
@@ -334,21 +334,33 @@ class WebRTC(Component):
         self._check_handler(fn)
 
         self.time_limit = time_limit
-        self.concurrency_limit = (
-            1 if concurrency_limit == "default" else concurrency_limit
-        )
         self._num_extra_outputs = len(extra_outputs)
         webrtc_connection.register_manager(
             self._id,
             handler=fn,
             mode=self.mode,
             modality=self.modality,
-            concurrency_limit=self.concurrency_limit,
             time_limit=time_limit,
             allow_extra_tracks=self.allow_extra_tracks,
             server_rtc_configuration=self.server_rtc_configuration,
         )
 
+        # Each stream is one queue event: the frontend fires "stream" when the
+        # user starts it, waits for its turn, and only then connects. The event
+        # then delivers AdditionalOutputs until the stream ends.
+        root_block.set_event_trigger(
+            [EventListenerMethod(self, "stream")],
+            self._run_stream,
+            inputs=cast(list, [self, *extra_inputs]),
+            outputs=cast(list, [self, *extra_outputs]),
+            show_progress="minimal",
+            show_progress_on=self,
+            api_visibility="private",
+            concurrency_limit=concurrency_limit,
+            trigger_mode="multiple",
+            connection="stream",
+            time_limit=time_limit,
+        )
         # The frontend fires "tick" when the handler asks for the inputs, and
         # every extra input pushes its new value as soon as it changes.
         push_inputs = cast(list, [self, *extra_inputs])
@@ -374,19 +386,6 @@ class WebRTC(Component):
                     concurrency_limit=None,
                     trigger_mode="always_last",
                 )
-        # The frontend fires "state_change" when the handler has produced
-        # AdditionalOutputs; the drainer then runs until the connection closes.
-        if extra_outputs:
-            root_block.set_event_trigger(
-                [EventListenerMethod(self, "state_change")],
-                self._drain_outputs,
-                inputs=[self],
-                outputs=cast(list, extra_outputs),
-                show_progress="hidden",
-                api_visibility="private",
-                concurrency_limit=None,
-                trigger_mode="once",
-            )
         if self.mode == "receive":
             cast(Callable, trigger)(
                 lambda: START_STREAM,
@@ -461,15 +460,39 @@ class WebRTC(Component):
         if manager is not None and webrtc_id:
             manager.set_input(webrtc_id, *args)
 
-    async def _drain_outputs(self, webrtc_id: str | None):
+    async def _run_stream(self, webrtc_id: str | None, *args: Any) -> Any:
+        """
+        The queue event of one stream. Its first call admits the stream, and
+        each later call delivers the newest AdditionalOutputs. The value of
+        this component itself is never changed.
+        """
+        nothing = [skip()] * (1 + self._num_extra_outputs)
         manager = self._manager()
-        if manager is None or not webrtc_id:
-            return
-        async for outputs in manager.output_stream(webrtc_id):
-            if self._num_extra_outputs == 1 and len(outputs.args) == 1:
-                yield outputs.args[0]
-            else:
-                yield tuple(outputs.args)
+        if manager is not None and webrtc_id:
+            session = manager.sessions.get(webrtc_id)
+            if session is not None and list(args) != session.event_args:
+                # New input values sent as a chunk of the stream's event
+                session.event_args = list(args)
+                manager.set_input(webrtc_id, *args)
+            if session is None:
+                blocks = LocalContext.blocks.get(None)
+                queue = blocks._queue if blocks is not None else None
+                event = (
+                    queue.event_ids_to_events.get(LocalContext.event_id.get(None) or "")
+                    if queue is not None
+                    else None
+                )
+                if queue is not None and event is not None:
+                    manager.admit(webrtc_id, event, queue, list(args))
+            elif (outputs := manager.take_outputs(webrtc_id)) is not None:
+                if len(outputs.args) != self._num_extra_outputs:
+                    raise ValueError(
+                        f"AdditionalOutputs has {len(outputs.args)} values, but "
+                        f"stream() has {self._num_extra_outputs} outputs besides "
+                        "the WebRTC component."
+                    )
+                nothing = [skip(), *outputs.args]
+        return nothing[0] if len(nothing) == 1 else tuple(nothing)
 
     async def _resolve_rtc_configuration(self) -> dict[str, Any]:
         config = self._rtc_configuration
@@ -498,10 +521,3 @@ class WebRTC(Component):
                 "meta": {"error": "no_stream_handler"},
             }
         return await manager.handle_offer(body)
-
-    @server
-    async def stop_outputs(self, body: dict[str, Any]) -> dict[str, Any]:
-        manager = self._manager()
-        if manager is not None and body.get("webrtc_id"):
-            manager.stop_outputs(body["webrtc_id"])
-        return {"success": True}

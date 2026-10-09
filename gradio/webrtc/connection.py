@@ -1,10 +1,18 @@
 """Server side of gr.WebRTC connections: signalling, peer connections and the
-per-connection handler, track and output queue bookkeeping.
+per-connection handler, track and output bookkeeping.
 
 One `ConnectionManager` exists per `gr.WebRTC` component that has a stream
 handler. It is looked up by component id, not kept on the component, because
 Gradio deep-copies components into each session and every copy has to see the
 same connections.
+
+Each stream is one event in Gradio's queue, from the moment the user starts it
+until it ends. The event waits in line like any other, which is what limits the
+number of simultaneous streams. Once the event runs, its first call admits the
+stream's id here, and only then is an offer with that id accepted. The media
+never goes through the queue: the event is only woken up to deliver
+`AdditionalOutputs` to the other output components, and ends when the peer
+connection does.
 """
 
 from __future__ import annotations
@@ -12,10 +20,11 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
+import time
 from collections import defaultdict
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from aiortc import (
     RTCConfiguration,
@@ -43,18 +52,52 @@ from gradio.webrtc.tracks import (
 )
 from gradio.webrtc.utils import AdditionalOutputs, Context, webrtc_error_handler
 
+if TYPE_CHECKING:
+    from gradio.queueing import Event, Queue
+
 logger = logging.getLogger(__name__)
 
 Mode = Literal["send-receive", "receive", "send"]
 Modality = Literal["video", "audio", "audio-video"]
 
+# Seconds an admitted stream has to connect before its turn is given up
 CONNECT_TIMEOUT = 30
+# Seconds an offer waits for its stream to be admitted. The browser learns that
+# its turn has come just before the event's first call admits the stream.
+ADMISSION_WAIT = 5
+# The queue ends a stream event that is not woken up within 30 seconds
+KEEPALIVE_INTERVAL = 10
+WATCH_INTERVAL = 0.25
 
 
 @dataclass
-class OutputQueue:
-    queue: asyncio.Queue[AdditionalOutputs] = field(default_factory=asyncio.Queue)
-    quit: asyncio.Event = field(default_factory=asyncio.Event)
+class Session:
+    """A stream that the queue has let in."""
+
+    event: Event
+    queue: Queue
+    args: list[Any]
+    # The input values the queue event last carried. Later values usually
+    # come through `set_input` instead, so the event's own values are only
+    # applied when they change.
+    event_args: list[Any] = field(default_factory=list)
+    admitted_at: float = field(default_factory=time.monotonic)
+    last_signal: float = field(default_factory=time.monotonic)
+    # The newest AdditionalOutputs not delivered yet. Older ones are replaced:
+    # each would overwrite the components the next one updates anyway.
+    outputs: AdditionalOutputs | None = None
+    connected: bool = False
+    ended: bool = False
+    watcher: asyncio.Task | None = None
+
+    def wake(self) -> None:
+        self.last_signal = time.monotonic()
+        self.event.signal.set()
+
+    def remaining_time(self, time_limit: float | None) -> float | None:
+        if time_limit is None:
+            return None
+        return max(0.0, time_limit - (time.monotonic() - self.admitted_at))
 
 
 def to_rtc_configuration(
@@ -136,7 +179,6 @@ class ConnectionManager:
         handler: HandlerType,
         mode: Mode,
         modality: Modality,
-        concurrency_limit: int | None,
         time_limit: float | None,
         allow_extra_tracks: bool,
         server_rtc_configuration: dict[str, Any] | None,
@@ -144,37 +186,87 @@ class ConnectionManager:
         self.handler = handler
         self.mode = mode
         self.modality = modality
-        self.concurrency_limit = concurrency_limit
         self.time_limit = time_limit
         self.allow_extra_tracks = allow_extra_tracks
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
+        self.sessions: dict[str, Session] = {}
+        self.admissions: dict[str, asyncio.Event] = defaultdict(asyncio.Event)
         self.pcs: dict[str, RTCPeerConnection] = {}
         self.connections: dict[str, list[Track]] = defaultdict(list)
         self.data_channels: dict[str, Any] = {}
-        self.additional_outputs: dict[str, OutputQueue] = {}
         self.handlers: dict[str, HandlerType] = {}
-        self.connection_timeouts: dict[str, asyncio.Event] = defaultdict(asyncio.Event)
 
-    @staticmethod
-    async def wait_for_time_limit(pc: RTCPeerConnection, time_limit: float):
-        await asyncio.sleep(time_limit)
-        await pc.close()
+    def admit(self, webrtc_id: str, event: Event, queue: Queue, args: list[Any]):
+        """
+        Lets a stream in. Called by the first call of the stream's queue event,
+        that is, once the stream's turn has come.
+        """
+        session = Session(event=event, queue=queue, args=args, event_args=args)
+        self.sessions[webrtc_id] = session
+        session.watcher = asyncio.create_task(self._watch(webrtc_id, session))
+        self.admissions[webrtc_id].set()
 
-    async def connection_timeout(
-        self, pc: RTCPeerConnection, webrtc_id: str, time_limit: float
-    ):
+    async def _watch(self, webrtc_id: str, session: Session) -> None:
+        """
+        Keeps the stream's queue event and its peer connection in step for the
+        life of the stream: ends the stream at the time limit or when it does
+        not connect in time, keeps the event awake while the stream runs, and
+        closes the connection once the event is over, however it ended.
+        """
         try:
-            await asyncio.wait_for(
-                self.connection_timeouts[webrtc_id].wait(), time_limit
-            )
-        except (asyncio.TimeoutError, TimeoutError):
-            await pc.close()
-            self.connection_timeouts[webrtc_id].clear()
-            self.clean_up(webrtc_id)
+            while True:
+                await asyncio.sleep(WATCH_INTERVAL)
+                event = session.event
+                if (
+                    event._id not in session.queue.event_ids_to_events
+                    or not event.alive
+                ):
+                    return
+                if session.ended:
+                    # The event still has to make its last call
+                    continue
+                now = time.monotonic()
+                timed_out = session.remaining_time(self.time_limit) == 0
+                never_connected = (
+                    not session.connected
+                    and now - session.admitted_at > CONNECT_TIMEOUT
+                )
+                if timed_out or never_connected:
+                    self.end(webrtc_id)
+                elif now - session.last_signal >= KEEPALIVE_INTERVAL:
+                    session.wake()
+        finally:
+            pc = self.pcs.get(webrtc_id)
+            if pc is not None:
+                await pc.close()
+            for conn in self.clean_up(webrtc_id):
+                conn.stop()
+            if self.sessions.get(webrtc_id) is session:
+                del self.sessions[webrtc_id]
+            self.admissions.pop(webrtc_id, None)
+
+    def end(self, webrtc_id: str) -> None:
+        """
+        Ends a stream: its queue event makes one last call, which delivers the
+        outputs still pending, and then finishes; the watcher then closes the
+        peer connection.
+        """
+        session = self.sessions.get(webrtc_id)
+        if session is None or session.ended:
+            return
+        session.ended = True
+        session.event.closed = True
+        session.wake()
+
+    def take_outputs(self, webrtc_id: str) -> AdditionalOutputs | None:
+        session = self.sessions.get(webrtc_id)
+        if session is None:
+            return None
+        outputs, session.outputs = session.outputs, None
+        return outputs
 
     def clean_up(self, webrtc_id: str) -> list[Track]:
         self.handlers.pop(webrtc_id, None)
-        self.connection_timeouts.pop(webrtc_id, None)
         self.pcs.pop(webrtc_id, None)
         connection = self.connections.pop(webrtc_id, [])
         for conn in connection:
@@ -184,52 +276,37 @@ class ConnectionManager:
                 else:
                     conn.event_handler.shutdown()
                 conn.event_handler.reset()
-        output = self.additional_outputs.pop(webrtc_id, None)
-        if output:
-            output.quit.set()
         self.data_channels.pop(webrtc_id, None)
+        self.end(webrtc_id)
         return connection
 
     def set_input(self, webrtc_id: str, *args: Any) -> None:
         """Pushes the current values of the extra inputs into a live connection."""
+        session = self.sessions.get(webrtc_id)
+        if session is not None:
+            session.args = list(args)
         for conn in self.connections.get(webrtc_id, []):
             conn.set_args(list(args))
 
     def _output_setter(self, webrtc_id: str) -> Callable[[AdditionalOutputs], None]:
         def set_outputs(outputs: AdditionalOutputs) -> None:
-            self.additional_outputs.setdefault(
-                webrtc_id, OutputQueue()
-            ).queue.put_nowait(outputs)
+            session = self.sessions.get(webrtc_id)
+            if session is not None:
+                session.outputs = outputs
+                session.wake()
 
         return set_outputs
 
-    async def output_stream(
-        self, webrtc_id: str
-    ) -> AsyncGenerator[AdditionalOutputs, None]:
-        """
-        Yields the additional outputs of a connection until it closes. Outputs
-        queued before the connection closed are still delivered.
-        """
-        outputs = self.additional_outputs.get(webrtc_id)
-        if outputs is None:
-            return
-        while True:
+    async def _wait_for_admission(self, webrtc_id: str) -> Session | None:
+        if webrtc_id not in self.sessions:
             try:
-                yield outputs.queue.get_nowait()
-                continue
-            except asyncio.QueueEmpty:
-                pass
-            if outputs.quit.is_set():
-                return
-            try:
-                yield await asyncio.wait_for(outputs.queue.get(), 0.1)
+                await asyncio.wait_for(
+                    self.admissions[webrtc_id].wait(), ADMISSION_WAIT
+                )
             except (asyncio.TimeoutError, TimeoutError):
-                continue
-
-    def stop_outputs(self, webrtc_id: str) -> None:
-        output = self.additional_outputs.get(webrtc_id)
-        if output:
-            output.quit.set()
+                self.admissions.pop(webrtc_id, None)
+                return None
+        return self.sessions.get(webrtc_id)
 
     async def handle_offer(self, body: dict[str, Any]) -> dict[str, Any]:
         """
@@ -245,11 +322,9 @@ class ConnectionManager:
             return _failed("invalid_offer")
         if webrtc_id in self.pcs:
             return _failed("connection_already_exists")
-        if (
-            self.concurrency_limit is not None
-            and len(self.pcs) >= self.concurrency_limit
-        ):
-            return _failed("concurrency_limit_reached", limit=self.concurrency_limit)
+        session = await self._wait_for_admission(webrtc_id)
+        if session is None or session.ended:
+            return _failed("not_admitted")
 
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
@@ -276,10 +351,10 @@ class ConnectionManager:
                 for conn in self.clean_up(webrtc_id):
                     conn.stop()
                 self.pcs.pop(webrtc_id, None)
-            if pc.connectionState == "connected":
-                self.connection_timeouts[webrtc_id].set()
-                if self.time_limit is not None:
-                    asyncio.create_task(self.wait_for_time_limit(pc, self.time_limit))
+            if pc.connectionState == "connected" and self.sessions.get(webrtc_id) is (
+                session
+            ):
+                session.connected = True
 
         @pc.on("track")
         def on_track(track):
@@ -325,6 +400,7 @@ class ConnectionManager:
                 )
                 return
 
+            cb.set_args(session.args)
             self.connections[webrtc_id].append(cb)
             if webrtc_id in self.data_channels:
                 for conn in self.connections[webrtc_id]:
@@ -356,6 +432,7 @@ class ConnectionManager:
                     set_additional_outputs=set_outputs,
                     context=context,
                 )
+            cb.set_args(session.args)
             pc.addTrack(cb)
             self.connections[webrtc_id].append(cb)
             cb.on("ended", lambda: self.clean_up(webrtc_id))
@@ -381,13 +458,14 @@ class ConnectionManager:
             self.clean_up(webrtc_id)
             return _failed("unsupported_track", message=rejected[0])
 
-        asyncio.create_task(self.connection_timeout(pc, webrtc_id, CONNECT_TIMEOUT))
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
         return {
             "sdp": pc.localDescription.sdp,
             "type": pc.localDescription.type,
-            "time_limit": self.time_limit,
+            # Counted from the stream's admission, so the browser can show
+            # what is left of it
+            "time_limit": session.remaining_time(self.time_limit),
         }
 
     async def _add_ice_candidate(self, body: dict[str, Any]) -> dict[str, Any]:

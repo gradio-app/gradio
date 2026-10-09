@@ -8,7 +8,17 @@ export type StreamState = "open" | "waiting" | "closed";
 export interface WebRTCServer {
 	offer: (body: Record<string, unknown>) => Promise<any>;
 	get_rtc_configuration: () => Promise<Record<string, any>>;
-	stop_outputs: (body: { webrtc_id: string }) => Promise<any>;
+}
+
+/**
+ * The stream's place in the queue. Each stream is one queue event: it waits
+ * in line, and only connects once its turn has come.
+ */
+export interface QueueTurn {
+	/** Joins the queue with the stream; resolves with whether its turn came. */
+	request: () => Promise<boolean>;
+	/** Leaves the queue, or ends the stream's queue event. */
+	end: () => void;
 }
 
 /** A control message sent by the server over the data channel. */
@@ -38,7 +48,8 @@ export interface WebRTCProps {
 export interface WebRTCEvents {
 	change: never;
 	tick: never;
-	state_change: never;
+	stream: never;
+	close_stream: never;
 	start_recording: never;
 	stop_recording: never;
 	error: string;

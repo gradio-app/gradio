@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
+	import { onDestroy, untrack } from "svelte";
 	import {
 		Circle,
 		Spinner,
@@ -21,7 +21,12 @@
 		with_device,
 		click_outside
 	} from "./devices";
-	import type { ControlMessage, StreamState, WebRTCServer } from "../types";
+	import type {
+		ControlMessage,
+		QueueTurn,
+		StreamState,
+		WebRTCServer
+	} from "../types";
 
 	let {
 		value = null,
@@ -37,6 +42,8 @@
 		icon_radius = 50,
 		i18n,
 		server,
+		turn,
+		queue_state = null,
 		onmessage,
 		onreject,
 		onerror,
@@ -57,6 +64,8 @@
 		icon_radius?: number;
 		i18n: I18nFormatter;
 		server: WebRTCServer;
+		turn: QueueTurn;
+		queue_state?: StreamState | null;
 		onmessage?: (msg: ControlMessage) => void;
 		onreject?: (response: Record<string, any>) => void;
 		onerror?: (error: string) => void;
@@ -83,6 +92,13 @@
 	// is still awaiting can tell it has been superseded
 	let attempt = 0;
 	let destroyed = false;
+	// Whether the stream's turn in the queue has come
+	let admitted = $state(false);
+
+	// The server ended the stream's queue event, for example at the time limit
+	$effect(() => {
+		if (admitted && queue_state !== "open") untrack(() => close_stream());
+	});
 
 	// What the visualizer listens to: the reply in send-receive, the mic in send
 	const output_audio_source = (): MediaStream | null =>
@@ -166,20 +182,18 @@
 
 	async function close_stream(): Promise<void> {
 		const connection = pc;
-		const webrtc_id = value;
 		attempt++;
 		pc = null;
 		stop(connection);
 		release_mic();
+		admitted = false;
 		if (stream_state !== "closed") {
+			turn.end();
 			onstop_recording?.();
 		}
 		stream_state = "closed";
 		active_time_limit = null;
 		pending = false;
-		if (webrtc_id) {
-			server.stop_outputs({ webrtc_id }).catch(() => {});
-		}
 	}
 
 	async function toggle_stream(): Promise<void> {
@@ -193,6 +207,16 @@
 		stream_state = "waiting";
 		const webrtc_id = new_webrtc_id();
 		onvalue?.(webrtc_id);
+
+		// Wait in line before opening the microphone; stopping meanwhile
+		// leaves the queue
+		const got_turn = await turn.request();
+		if (this_attempt !== attempt || destroyed) return;
+		if (!got_turn) {
+			await close_stream();
+			return;
+		}
+		admitted = true;
 
 		const [local_stream, rtc_configuration] = await Promise.all([
 			open_mic(selected_device?.deviceId),
@@ -209,7 +233,7 @@
 		if (!local_stream || rtc_configuration.error) {
 			stop_tracks(local_stream);
 			if (rtc_configuration.error) onerror?.(rtc_configuration.error);
-			stream_state = "closed";
+			await close_stream();
 			return;
 		}
 		stream = local_stream;
@@ -258,11 +282,7 @@
 			}
 		} catch (e) {
 			console.debug("WebRTC offer failed", e);
-			if (pc === connection) {
-				pc = null;
-				release_mic();
-				stream_state = "closed";
-			}
+			if (pc === connection) await close_stream();
 		} finally {
 			clearTimeout(timeout);
 		}
@@ -284,6 +304,7 @@
 	}
 
 	onDestroy(() => {
+		if (stream_state !== "closed") turn.end();
 		destroyed = true;
 		attempt++;
 		stop(pc);

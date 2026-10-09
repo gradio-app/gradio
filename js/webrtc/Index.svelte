@@ -5,6 +5,8 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type {
 		ControlMessage,
+		QueueTurn,
+		StreamState,
 		WebRTCEvents,
 		WebRTCProps,
 		WebRTCServer
@@ -43,6 +45,56 @@
 		gradio.shared.label || (is_video ? "Video" : gradio.i18n("audio.audio"))
 	);
 
+	// The state of the stream's queue event: "waiting" in line, "open" once its
+	// turn has come, "closed" when it has ended
+	let queue_state = $state<StreamState | null>(null);
+	// The loading status also reports the events that only take this
+	// component as an input, such as the one that pushes the input values, and
+	// those report a "closed" stream_state when they complete. Only the status
+	// of the stream's own event counts, which is the one that reports "waiting".
+	let stream_fn_index: number | null = null;
+
+	let pending_turn: {
+		resolve: (admitted: boolean) => void;
+		saw_waiting: boolean;
+	} | null = null;
+
+	function settle_turn(admitted: boolean): void {
+		pending_turn?.resolve(admitted);
+		pending_turn = null;
+	}
+
+	// The value must already hold the stream's id: the queue event gets it
+	// as its first input.
+	const turn: QueueTurn = {
+		request: () =>
+			new Promise((resolve) => {
+				settle_turn(false);
+				pending_turn = { resolve, saw_waiting: false };
+				gradio.dispatch("stream");
+			}),
+		end: () => {
+			settle_turn(false);
+			gradio.dispatch("close_stream");
+		}
+	};
+
+	$effect(() => {
+		const status = gradio.shared.loading_status;
+		const state = status?.stream_state ?? null;
+		if (pending_turn && state === "waiting") stream_fn_index = status.fn_index;
+		if (status?.fn_index !== stream_fn_index) return;
+		queue_state = state;
+		if (!pending_turn) return;
+		// Until the new event reports "waiting", the state can still be the one
+		// a previous stream left behind
+		if (state === "waiting") {
+			pending_turn.saw_waiting = true;
+		} else if (pending_turn.saw_waiting) {
+			settle_turn(state === "open");
+		}
+	});
+
 	function handle_message(msg: ControlMessage): void {
 		const text = typeof msg.data === "string" ? msg.data : (msg.message ?? "");
 		switch (msg.type) {
@@ -52,9 +104,6 @@
 			case "warning":
 			case "end_stream":
 				gradio.dispatch("warning", text);
-				break;
-			case "fetch_output":
-				gradio.dispatch("state_change");
 				break;
 			case "send_input":
 				gradio.dispatch("tick");
@@ -106,6 +155,8 @@
 			value={gradio.props.value}
 			onvalue={(v) => (gradio.props.value = v)}
 			{server}
+			{turn}
+			{queue_state}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}
@@ -116,6 +167,8 @@
 			value={gradio.props.value}
 			onvalue={(v) => (gradio.props.value = v)}
 			{server}
+			{turn}
+			{queue_state}
 			icon={gradio.props.icon}
 			icon_button_color={gradio.props.icon_button_color ??
 				"var(--color-accent)"}
@@ -144,6 +197,8 @@
 			icon_radius={gradio.props.icon_radius ?? 50}
 			i18n={gradio.i18n}
 			{server}
+			{turn}
+			{queue_state}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}
@@ -167,6 +222,8 @@
 			icon_radius={gradio.props.icon_radius ?? 50}
 			i18n={gradio.i18n}
 			{server}
+			{turn}
+			{queue_state}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}

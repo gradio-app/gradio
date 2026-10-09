@@ -7,6 +7,7 @@
 	import {
 		START_STREAM,
 		type ControlMessage,
+		type QueueTurn,
 		type StreamState,
 		type WebRTCServer
 	} from "../types";
@@ -15,6 +16,8 @@
 		value = null,
 		onvalue,
 		server,
+		turn,
+		queue_state = null,
 		icon = null,
 		icon_button_color = "var(--color-accent)",
 		pulse_color = "var(--color-accent)",
@@ -27,6 +30,8 @@
 		value?: string | null;
 		onvalue?: (value: string | null) => void;
 		server: WebRTCServer;
+		turn: QueueTurn;
+		queue_state?: StreamState | null;
 		icon?: string | null;
 		icon_button_color?: string;
 		pulse_color?: string;
@@ -40,6 +45,8 @@
 	let audio_player = $state<HTMLAudioElement>();
 	let pc: RTCPeerConnection | null = null;
 	let stream_state = $state<StreamState>("closed");
+	// Whether the stream's turn in the queue has come
+	let admitted = $state(false);
 
 	$effect(() => {
 		if (value === START_STREAM) {
@@ -47,10 +54,21 @@
 		}
 	});
 
+	// The server ended the stream's queue event, for example at the time limit
+	$effect(() => {
+		if (admitted && queue_state !== "open") untrack(() => close_stream());
+	});
+
+	function is_waiting(): boolean {
+		return stream_state === "waiting";
+	}
+
 	function close_stream(): void {
 		const connection = pc;
 		pc = null;
 		stop(connection);
+		admitted = false;
+		if (stream_state !== "closed") turn.end();
 		stream_state = "closed";
 	}
 
@@ -67,6 +85,14 @@
 		onvalue?.(webrtc_id);
 		stream_state = "waiting";
 
+		const got_turn = await turn.request();
+		if (!is_waiting()) return;
+		if (!got_turn) {
+			close_stream();
+			return;
+		}
+		admitted = true;
+
 		let rtc_configuration: Record<string, any> = {};
 		try {
 			rtc_configuration = (await server.get_rtc_configuration()) ?? {};
@@ -75,7 +101,7 @@
 		}
 		if (rtc_configuration.error) {
 			onerror?.(rtc_configuration.error);
-			stream_state = "closed";
+			close_stream();
 			return;
 		}
 
@@ -121,7 +147,10 @@
 		}
 	}
 
-	onDestroy(() => stop(pc));
+	onDestroy(() => {
+		if (stream_state !== "closed") turn.end();
+		stop(pc);
+	});
 </script>
 
 <audio class="hidden" bind:this={audio_player}></audio>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
+	import { onDestroy, untrack } from "svelte";
 	import {
 		Circle,
 		Square,
@@ -19,7 +19,12 @@
 		with_device,
 		click_outside
 	} from "./devices";
-	import type { ControlMessage, StreamState, WebRTCServer } from "../types";
+	import type {
+		ControlMessage,
+		QueueTurn,
+		StreamState,
+		WebRTCServer
+	} from "../types";
 
 	let {
 		value = null,
@@ -37,6 +42,8 @@
 		icon_radius = 50,
 		i18n,
 		server,
+		turn,
+		queue_state = null,
 		onmessage,
 		onreject,
 		onerror,
@@ -59,6 +66,8 @@
 		icon_radius?: number;
 		i18n: I18nFormatter;
 		server: WebRTCServer;
+		turn: QueueTurn;
+		queue_state?: StreamState | null;
 		onmessage?: (msg: ControlMessage) => void;
 		onreject?: (response: Record<string, any>) => void;
 		onerror?: (error: string) => void;
@@ -79,6 +88,13 @@
 	let active_time_limit = $state<number | null>(null);
 	// The time limit the server reported in its answer, if any
 	let negotiated_time_limit: number | null = null;
+	// Whether the stream's turn in the queue has come
+	let admitted = $state(false);
+
+	// The server ended the stream's queue event, for example at the time limit
+	$effect(() => {
+		if (admitted && queue_state !== "open") untrack(() => close_stream());
+	});
 
 	const mirrored = $derived(
 		mirror_webcam === "auto" ? facing_mode !== "environment" : mirror_webcam
@@ -100,6 +116,10 @@
 	// while toggle_stream() is awaiting, which TypeScript cannot see.
 	function is_open(): boolean {
 		return stream_state === "open";
+	}
+
+	function is_waiting(): boolean {
+		return stream_state === "waiting";
 	}
 
 	function set_stream(local_stream: MediaStream): void {
@@ -153,7 +173,9 @@
 		const connection = pc;
 		pc = null;
 		stop(connection);
+		admitted = false;
 		if (stream_state !== "closed") {
+			turn.end();
 			onstop_recording?.();
 		}
 		stream_state = "closed";
@@ -173,6 +195,15 @@
 		const webrtc_id = new_webrtc_id();
 		onvalue?.(webrtc_id);
 
+		// Wait in line; stopping meanwhile leaves the queue and closes the stream
+		const got_turn = await turn.request();
+		if (!is_waiting()) return;
+		if (!got_turn) {
+			await close_stream();
+			return;
+		}
+		admitted = true;
+
 		let rtc_configuration: Record<string, any> = {};
 		try {
 			rtc_configuration = (await server.get_rtc_configuration()) ?? {};
@@ -181,7 +212,7 @@
 		}
 		if (rtc_configuration.error) {
 			onerror?.(rtc_configuration.error);
-			stream_state = "closed";
+			await close_stream();
 			return;
 		}
 
@@ -228,16 +259,14 @@
 			}
 		} catch (e) {
 			console.debug("WebRTC offer failed", e);
-			if (pc === connection) {
-				pc = null;
-				stream_state = "closed";
-			}
+			if (pc === connection) await close_stream();
 		} finally {
 			clearTimeout(timeout);
 		}
 	}
 
 	onDestroy(() => {
+		if (stream_state !== "closed") turn.end();
 		stop(pc);
 		stream?.getTracks().forEach((track) => track.stop());
 	});

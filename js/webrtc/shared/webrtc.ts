@@ -124,8 +124,8 @@ export function stop(pc: RTCPeerConnection | null | undefined): void {
 export function rejection_message(response: Record<string, any>): string {
 	const error = response?.meta?.error;
 	switch (error) {
-		case "concurrency_limit_reached":
-			return "Too many users are connected right now. Please try again later.";
+		case "not_admitted":
+			return "The stream's turn in the queue ended before it connected. Please try again.";
 		case "connection_already_exists":
 			return "A connection with this id already exists.";
 		case "unsupported_track":
