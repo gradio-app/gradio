@@ -1335,6 +1335,41 @@ class TestVideoTracks:
         assert Handler.received[0][0, -1 if mirror else 0, 0] == 255
 
     @pytest.mark.asyncio
+    async def test_frames_are_rgb_both_ways(self):
+        import fractions
+
+        import numpy as np
+        from av import VideoFrame
+
+        from gradio.webrtc.tracks import ServerToClientVideo
+        from gradio.webrtc.utils import Context
+
+        red = np.zeros((16, 16, 3), dtype=np.uint8)
+        red[..., 0] = 255
+        received = []
+
+        def handler(frame):
+            received.append(frame)
+            return red
+
+        cb = self.callback(handler)
+        incoming = VideoFrame.from_ndarray(red, "rgb24")
+        incoming.pts, incoming.time_base = 0, fractions.Fraction(1, 90000)
+        cb.frame_queue.put_nowait(incoming)
+        out = await cb.recv()
+        # Like the numpy arrays of gr.Image and gr.Video
+        assert received[0][0, 0].tolist() == [255, 0, 0]
+        assert out.to_ndarray(format="rgb24")[0, 0].tolist() == [255, 0, 0]
+
+        def generate():
+            yield red
+
+        track = ServerToClientVideo(generate, context=Context("id"))
+        track.set_args([])
+        frame = await track.recv()
+        assert frame.to_ndarray(format="rgb24")[0, 0].tolist() == [255, 0, 0]
+
+    @pytest.mark.asyncio
     async def test_sync_handler_does_not_block_the_event_loop(self):
         def slow(frame):
             time.sleep(0.3)

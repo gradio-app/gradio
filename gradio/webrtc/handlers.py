@@ -262,12 +262,12 @@ class AudioVideoStreamHandler(StreamHandler):
 
     @abstractmethod
     def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
-        """Called with each incoming video frame as a BGR24 array."""
+        """Called with each incoming video frame as an RGB uint8 array."""
         pass
 
     @abstractmethod
     def video_emit(self) -> VideoEmitType:
-        """Returns the next video frame to send, as a BGR24 array."""
+        """Returns the next video frame to send, as an RGB uint8 array."""
         pass
 
 

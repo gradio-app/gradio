@@ -46,13 +46,15 @@ model = YOLOv10(model_file)
 
 def detection(image, conf_threshold=0.3):
     image = cv2.resize(image, (model.input_width, model.input_height))
+    # This model's code expects OpenCV's BGR layout
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     new_image = model.detect_objects(image, conf_threshold)
-    return new_image
+    return cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB)
 ```
 
 Our inference function, `detection`, accepts a numpy array from the webcam and a desired confidence threshold. Object detection models like YOLO identify many objects and assign a confidence score to each. The lower the confidence, the higher the chance of a false positive. We'll let users adjust the confidence threshold.
 
-The function returns a numpy array corresponding to the same input image with all detected objects in bounding boxes. `gr.WebRTC` passes frames as BGR arrays (the layout OpenCV uses) and expects a BGR array back.
+The function returns a numpy array corresponding to the same input image with all detected objects in bounding boxes. `gr.WebRTC` passes frames as RGB arrays, like the numpy value of `gr.Image`, and expects an RGB array back. The inference class works on OpenCV's BGR layout, so the function converts to BGR and back.
 
 ## The Gradio Demo
 

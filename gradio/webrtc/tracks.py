@@ -100,11 +100,12 @@ class VideoCallback(VideoStreamTrack):
     def set_args(self, args: list[Any]):
         self.latest_args = list(args)
 
+    # Frames are RGB arrays, like the numpy values of gr.Image and gr.Video
     def array_to_frame(self, array: Any) -> VideoFrame:
-        return VideoFrame.from_ndarray(array, format="bgr24")
+        return VideoFrame.from_ndarray(array, format="rgb24")
 
     def frame_to_array(self, frame: VideoFrame) -> npt.NDArray[np.uint8]:
-        array = cast(npt.NDArray[np.uint8], frame.to_ndarray(format="bgr24"))
+        array = cast(npt.NDArray[np.uint8], frame.to_ndarray(format="rgb24"))
         if self.mirror:
             # What the mirrored preview showed, as in gr.Image captures;
             # contiguous so that handlers can draw on it in place
@@ -461,7 +462,7 @@ class ServerToClientVideo(VideoStreamTrack):
         self._clock_timestamp: int | None = None
 
     def array_to_frame(self, array: Any) -> VideoFrame:
-        return VideoFrame.from_ndarray(array, format="bgr24")
+        return VideoFrame.from_ndarray(array, format="rgb24")
 
     def set_channel(self, channel: DataChannel):
         self.channel = channel
