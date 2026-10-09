@@ -15,6 +15,7 @@
 	import AudioWave from "./AudioWave.svelte";
 	import PulsingIcon from "./PulsingIcon.svelte";
 	import { start, stop, new_webrtc_id } from "./webrtc";
+	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		get_devices,
 		current_device,
@@ -88,16 +89,13 @@
 	let active_time_limit = $state<number | null>(null);
 	// The time limit the server reported in its answer, if any
 	let negotiated_time_limit: number | null = null;
-	// Bumped whenever a recording is started or stopped, so an attempt that
-	// is still awaiting can tell it has been superseded
-	let attempt = 0;
-	let destroyed = false;
-	// Whether the stream's turn in the queue has come
-	let admitted = $state(false);
+	const attempts = new StreamAttempts(() => turn);
 
 	// The server ended the stream's queue event, for example at the time limit
 	$effect(() => {
-		if (admitted && queue_state !== "open") untrack(() => close_stream());
+		if (attempts.admitted && queue_state !== "open") {
+			untrack(() => close_stream());
+		}
 	});
 
 	// What the visualizer listens to: the reply in send-receive, the mic in send
@@ -151,7 +149,7 @@
 	async function access_mic(): Promise<void> {
 		const local_stream = await open_mic(selected_device?.deviceId);
 		if (!local_stream) return;
-		if (destroyed) {
+		if (attempts.destroyed) {
 			stop_tracks(local_stream);
 			return;
 		}
@@ -182,13 +180,11 @@
 
 	async function close_stream(): Promise<void> {
 		const connection = pc;
-		attempt++;
+		attempts.end();
 		pc = null;
 		stop(connection);
 		release_mic();
-		admitted = false;
 		if (stream_state !== "closed") {
-			turn.end();
 			onstop_recording?.();
 		}
 		stream_state = "closed";
@@ -202,7 +198,7 @@
 			return;
 		}
 		if (!mic_accessed) return;
-		const this_attempt = ++attempt;
+		const token = attempts.begin();
 		onstart_recording?.();
 		stream_state = "waiting";
 		const webrtc_id = new_webrtc_id();
@@ -210,13 +206,12 @@
 
 		// Wait in line before opening the microphone; stopping meanwhile
 		// leaves the queue
-		const got_turn = await turn.request();
-		if (this_attempt !== attempt || destroyed) return;
-		if (!got_turn) {
+		const turn_result = await attempts.request_turn(token);
+		if (turn_result === "superseded") return;
+		if (turn_result === "refused") {
 			await close_stream();
 			return;
 		}
-		admitted = true;
 
 		const [local_stream, rtc_configuration] = await Promise.all([
 			open_mic(selected_device?.deviceId),
@@ -226,7 +221,7 @@
 				.catch((e): Record<string, any> => ({ error: String(e) }))
 		]);
 		// Stopped (or unmounted) while the microphone was being opened
-		if (this_attempt !== attempt || destroyed) {
+		if (!attempts.is_current(token)) {
 			stop_tracks(local_stream);
 			return;
 		}
@@ -304,9 +299,7 @@
 	}
 
 	onDestroy(() => {
-		if (stream_state !== "closed") turn.end();
-		destroyed = true;
-		attempt++;
+		attempts.destroy();
 		stop(pc);
 		release_mic();
 	});

@@ -3,6 +3,7 @@
 	import { Empty } from "@gradio/atoms";
 	import { Video } from "@gradio/icons";
 	import { start, stop, new_webrtc_id } from "./webrtc";
+	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		START_STREAM,
 		type ControlMessage,
@@ -36,11 +37,7 @@
 	let video_element = $state<HTMLVideoElement>();
 	let pc: RTCPeerConnection | null = null;
 	let stream_state = $state<StreamState>("closed");
-	// Whether the stream's turn in the queue has come
-	let admitted = $state(false);
-	// Bumped by every start and stop, so that an attempt still awaiting can
-	// tell it has been superseded
-	let attempt = 0;
+	const attempts = new StreamAttempts(() => turn);
 
 	$effect(() => {
 		if (value === START_STREAM) {
@@ -50,20 +47,16 @@
 
 	// The server ended the stream's queue event, for example at the time limit
 	$effect(() => {
-		if (admitted && queue_state !== "open") untrack(() => close_stream());
+		if (attempts.admitted && queue_state !== "open") {
+			untrack(() => close_stream());
+		}
 	});
 
-	function is_waiting(): boolean {
-		return stream_state === "waiting";
-	}
-
 	function close_stream(): void {
-		attempt++;
+		attempts.end();
 		const connection = pc;
 		pc = null;
 		stop(connection);
-		admitted = false;
-		if (stream_state !== "closed") turn.end();
 		stream_state = "closed";
 	}
 
@@ -76,18 +69,17 @@
 
 	async function start_stream(): Promise<void> {
 		if (stream_state !== "closed") close_stream();
-		const this_attempt = ++attempt;
+		const token = attempts.begin();
 		const webrtc_id = new_webrtc_id();
 		onvalue?.(webrtc_id);
 		stream_state = "waiting";
 
-		const got_turn = await turn.request();
-		if (this_attempt !== attempt || !is_waiting()) return;
-		if (!got_turn) {
+		const turn_result = await attempts.request_turn(token);
+		if (turn_result === "superseded") return;
+		if (turn_result === "refused") {
 			close_stream();
 			return;
 		}
-		admitted = true;
 
 		let rtc_configuration: Record<string, any> = {};
 		try {
@@ -95,7 +87,7 @@
 		} catch (e) {
 			rtc_configuration = { error: String(e) };
 		}
-		if (this_attempt !== attempt) return;
+		if (!attempts.is_current(token)) return;
 		if (rtc_configuration.error) {
 			onerror?.(rtc_configuration.error);
 			close_stream();
@@ -145,9 +137,7 @@
 	}
 
 	onDestroy(() => {
-		// An attempt still awaiting must not connect after the unmount
-		attempt++;
-		if (stream_state !== "closed") turn.end();
+		attempts.destroy();
 		stop(pc);
 	});
 </script>

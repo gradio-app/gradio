@@ -13,6 +13,7 @@
 	import Permissions from "./Permissions.svelte";
 	import PulsingIcon from "./PulsingIcon.svelte";
 	import { start, stop, new_webrtc_id } from "./webrtc";
+	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		get_devices,
 		current_device,
@@ -88,16 +89,13 @@
 	let active_time_limit = $state<number | null>(null);
 	// The time limit the server reported in its answer, if any
 	let negotiated_time_limit: number | null = null;
-	// Whether the stream's turn in the queue has come
-	let admitted = $state(false);
-	// Bumped by every start and stop, so that an attempt still awaiting can
-	// tell it has been superseded
-	let attempt = 0;
-	let destroyed = false;
+	const attempts = new StreamAttempts(() => turn);
 
 	// The server ended the stream's queue event, for example at the time limit
 	$effect(() => {
-		if (admitted && queue_state !== "open") untrack(() => close_stream());
+		if (attempts.admitted && queue_state !== "open") {
+			untrack(() => close_stream());
+		}
 	});
 
 	const mirrored = $derived(
@@ -120,10 +118,6 @@
 	// while toggle_stream() is awaiting, which TypeScript cannot see.
 	function is_open(): boolean {
 		return stream_state === "open";
-	}
-
-	function is_waiting(): boolean {
-		return stream_state === "waiting";
 	}
 
 	function set_stream(local_stream: MediaStream): void {
@@ -174,13 +168,11 @@
 	}
 
 	async function close_stream(): Promise<void> {
-		attempt++;
+		attempts.end();
 		const connection = pc;
 		pc = null;
 		stop(connection);
-		admitted = false;
 		if (stream_state !== "closed") {
-			turn.end();
 			onstop_recording?.();
 		}
 		stream_state = "closed";
@@ -197,20 +189,19 @@
 			return;
 		}
 		if (!stream) return;
-		const this_attempt = ++attempt;
+		const token = attempts.begin();
 		onstart_recording?.();
 		stream_state = "waiting";
 		const webrtc_id = new_webrtc_id();
 		onvalue?.(webrtc_id);
 
 		// Wait in line; stopping meanwhile leaves the queue and closes the stream
-		const got_turn = await turn.request();
-		if (this_attempt !== attempt || destroyed || !is_waiting()) return;
-		if (!got_turn) {
+		const turn_result = await attempts.request_turn(token);
+		if (turn_result === "superseded") return;
+		if (turn_result === "refused") {
 			await close_stream();
 			return;
 		}
-		admitted = true;
 
 		let rtc_configuration: Record<string, any> = {};
 		try {
@@ -219,7 +210,7 @@
 			rtc_configuration = { error: String(e) };
 		}
 		// Stopped (or unmounted) while the configuration was loading
-		if (this_attempt !== attempt || destroyed) return;
+		if (!attempts.is_current(token)) return;
 		if (rtc_configuration.error) {
 			onerror?.(rtc_configuration.error);
 			await close_stream();
@@ -276,9 +267,7 @@
 	}
 
 	onDestroy(() => {
-		destroyed = true;
-		attempt++;
-		if (stream_state !== "closed") turn.end();
+		attempts.destroy();
 		stop(pc);
 		stream?.getTracks().forEach((track) => track.stop());
 	});
