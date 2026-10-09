@@ -325,6 +325,39 @@ describe("WebRTC send-receive video", () => {
 		expect(pc.closed).toBe(true);
 	});
 
+	test("a page restored from the back/forward cache shows the stream ended", async () => {
+		const server = make_server();
+		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
+			...base_props,
+			server
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalled());
+		FakePeerConnection.instances[0].set_state("connected");
+		await waitFor(() => {
+			expect(getByRole("button", { name: "stop stream" })).toBeVisible();
+		});
+		const close_stream = listen("close_stream");
+
+		window.dispatchEvent(
+			new PageTransitionEvent("pagehide", { persisted: true })
+		);
+		window.dispatchEvent(
+			new PageTransitionEvent("pageshow", { persisted: true })
+		);
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
+				"audio.record"
+			);
+		});
+		expect(close_stream).toHaveBeenCalled();
+	});
+
 	test("a rejected offer dispatches an error and ends the turn", async () => {
 		const server = make_server({
 			status: "failed",

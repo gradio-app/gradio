@@ -129,14 +129,33 @@ export function stop(pc: RTCPeerConnection | null | undefined): void {
  * Otherwise the server only ends the stream after the queue's reconnection
  * grace period, and a handler holding a GPU keeps it that long. `stop()`
  * defers the close, which never runs on a page that is going away.
- * Returns a function that removes the listener.
+ * A page kept in the back/forward cache comes back with the connection
+ * closed, which fires no connectionstatechange, so `on_restored` is called
+ * then to end the stream on the page.
+ * Returns a function that removes the listeners.
  */
 export function close_on_pagehide(
-	get_pc: () => RTCPeerConnection | null
+	get_pc: () => RTCPeerConnection | null,
+	on_restored: () => void
 ): () => void {
-	const close = (): void => get_pc()?.close();
+	let closed = false;
+	const close = (): void => {
+		const pc = get_pc();
+		if (!pc) return;
+		pc.close();
+		closed = true;
+	};
+	const restore = (event: PageTransitionEvent): void => {
+		if (!event.persisted || !closed) return;
+		closed = false;
+		on_restored();
+	};
 	window.addEventListener("pagehide", close);
-	return () => window.removeEventListener("pagehide", close);
+	window.addEventListener("pageshow", restore);
+	return () => {
+		window.removeEventListener("pagehide", close);
+		window.removeEventListener("pageshow", restore);
+	};
 }
 
 /** Turns an offer rejection into a message for the user. */

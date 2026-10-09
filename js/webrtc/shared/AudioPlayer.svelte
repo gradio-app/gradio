@@ -150,7 +150,7 @@
 		}
 	}
 
-	$effect(() => close_on_pagehide(() => pc));
+	$effect(() => close_on_pagehide(() => pc, close_stream));
 
 	onDestroy(() => {
 		attempts.destroy();
