@@ -939,11 +939,14 @@ class Queue:
         if event_queue.current_concurrency == event_queue.concurrency_limit:
             expected_end_times = []
             for fn, start_times in event_queue.start_times_per_fn.items():
-                if fn not in self.process_time_per_fn:
+                # A stream holds its slot until it is closed or reaches its
+                # time limit, so without a time limit there is no telling
+                # when the slot frees up
+                if fn.connection == "stream" and fn.time_limit is not None:
+                    process_time = fn.time_limit
+                elif fn.connection == "stream" or fn not in self.process_time_per_fn:
                     time_till_available_worker = None
                     break
-                if fn.connection == "stream":
-                    process_time = fn.time_limit or 0
                 else:
                     process_time = self.process_time_per_fn[fn].avg_time
                 expected_end_times += [
@@ -959,6 +962,8 @@ class Queue:
             process_time_for_fn = (
                 self.process_time_per_fn[event.fn].avg_time
                 if event.fn in self.process_time_per_fn
+                else 0
+                if event.streaming
                 else None
             )
 
@@ -985,13 +990,17 @@ class Queue:
                 )
             if event_queue.concurrency_limit is None:
                 wait_so_far = 0
+            elif event.streaming and event.fn.time_limit is None:
+                wait_so_far = None
             elif wait_so_far is not None and process_time_for_fn is not None:
-                delta = process_time_for_fn / event_queue.concurrency_limit
-                if event.streaming:
-                    delta = (
-                        time_till_available_worker or 0
-                    ) / event_queue.concurrency_limit
-                wait_so_far += delta
+                # A stream ahead in line can hold its slot for its whole time
+                # limit once it gets one
+                held_for = (
+                    cast(float, event.fn.time_limit)
+                    if event.streaming
+                    else process_time_for_fn
+                )
+                wait_so_far += held_for / event_queue.concurrency_limit
             else:
                 wait_so_far = None
 

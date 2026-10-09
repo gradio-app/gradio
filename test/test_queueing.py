@@ -616,6 +616,73 @@ def test_history_is_only_kept_for_clients_that_may_resume():
         demo.close()
 
 
+@pytest.mark.parametrize("time_limit", [10, None])
+def test_eta_of_a_stream_waiting_for_a_slot(time_limit):
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(
+            lambda x: "chunk",
+            audio,
+            heard,
+            concurrency_limit=1,
+            time_limit=time_limit,
+        )
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+
+            def join(session_hash):
+                return http.post(
+                    f"{api}/queue/join",
+                    json={"data": [None], "fn_index": 0, "session_hash": session_hash},
+                ).json()["event_id"]
+
+            stream_queue = demo._queue.event_queue_per_concurrency_id
+
+            def wait_for_streams(count):
+                deadline = time.monotonic() + 5
+                group = stream_queue[demo.fns[0].concurrency_id]
+                while group.current_concurrency != count:
+                    if time.monotonic() > deadline:
+                        pytest.fail(f"Expected {count} running streams")
+                    time.sleep(0.05)
+
+            # A stream that already ran gives the queue a processing time for
+            # the function, which must not be taken as the time a stream holds
+            # its slot
+            http.post(f"{api}/stream/{join('earlier')}/close")
+            wait_for_streams(0)
+
+            join("first")
+            wait_for_streams(1)
+            join("second")
+            join("third")
+
+            etas = {}
+            for session_hash in ("second", "third"):
+                with http.stream(
+                    "GET", f"{api}/queue/data", params={"session_hash": session_hash}
+                ) as messages:
+                    for line in messages.iter_lines():
+                        if line.startswith("data:"):
+                            message = json.loads(line[5:])
+                            if message.get("msg") == "estimation":
+                                etas[session_hash] = message["rank_eta"]
+                                break
+        if time_limit is None:
+            # A stream without a time limit can hold its slot for any time
+            assert etas == {"second": None, "third": None}
+        else:
+            # The first stream frees its slot within its time limit, and each
+            # stream ahead in line can then hold it for a full time limit
+            assert 8 < etas["second"] <= 10
+            assert 18 < etas["third"] <= 20
+    finally:
+        demo.close()
+
+
 def test_streams_waiting_for_chunks_do_not_block_other_events():
     with gr.Blocks() as demo:
         audio = gr.Audio(sources=["microphone"], streaming=True)
