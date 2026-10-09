@@ -454,6 +454,29 @@ describe("WebRTC queue turn", () => {
 		expect(server.offer).not.toHaveBeenCalled();
 	});
 
+	test("a receive player unmounted while its configuration loads does not connect", async () => {
+		const server = make_server();
+		let resolve_config: (config: Record<string, any>) => void = () => {};
+		server.get_rtc_configuration.mockImplementationOnce(
+			() => new Promise((resolve) => (resolve_config = resolve))
+		);
+		const { set_data, unmount } = await render(WebRTC, {
+			...base_props,
+			mode: "receive",
+			server
+		});
+		await set_data({ value: START_STREAM });
+		await admit(set_data);
+		await waitFor(() =>
+			expect(server.get_rtc_configuration).toHaveBeenCalled()
+		);
+		unmount();
+		resolve_config({ iceServers: [] });
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		expect(FakePeerConnection.instances).toHaveLength(0);
+		expect(server.offer).not.toHaveBeenCalled();
+	});
+
 	test("starting a receive stream again while waiting keeps the new attempt", async () => {
 		const server = make_server();
 		const { listen, set_data } = await render(WebRTC, {

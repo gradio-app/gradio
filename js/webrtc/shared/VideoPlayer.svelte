@@ -145,6 +145,8 @@
 	}
 
 	onDestroy(() => {
+		// An attempt still awaiting must not connect after the unmount
+		attempt++;
 		if (stream_state !== "closed") turn.end();
 		stop(pc);
 	});
