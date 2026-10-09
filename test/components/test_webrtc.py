@@ -30,6 +30,13 @@ def flip(frame, *args):
     return frame
 
 
+def three_frames(*args):
+    import numpy as np
+
+    for _ in range(3):
+        yield np.zeros((16, 16, 3), dtype=np.uint8)
+
+
 class EchoHandler(AsyncStreamHandler):
     async def receive(self, frame):
         pass
@@ -260,6 +267,17 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(3, "c"))
             assert await webrtc._run_stream("other") == (skip, 3, "c")
             assert "other" not in manager.sessions
+
+            # A stream that ends still delivers what it emitted before, and
+            # its event finishes once nothing is pending
+            set_outputs(AdditionalOutputs(5, "e"))
+            set_outputs(AdditionalOutputs(6, "f"))
+            manager.end("abc")
+            assert not event.closed
+            assert await webrtc._run_stream("abc") == (skip, 5, "e")
+            assert not event.closed
+            assert await webrtc._run_stream("abc") == (skip, 6, "f")
+            assert event.closed
 
             set_outputs(AdditionalOutputs(4))
             with pytest.raises(ValueError, match="2 outputs besides"):
@@ -699,6 +717,45 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_offers_racing_for_one_turn_get_one_connection(self, launched):
+        h = launched
+        first_event = await h.start("zero")
+        await h.join("one")
+        offers = [await make_offer(video=True) for _ in range(2)]
+
+        async def free_the_slot():
+            await asyncio.sleep(0.1)
+            await h.http.post(f"{h.api}/stream/{first_event}/close")
+
+        # Both offers wait for "one" to be admitted
+        responses = await asyncio.gather(
+            h.offer(offers[0], "one"), h.offer(offers[1], "one"), free_the_slot()
+        )
+        answers = [r for r in responses[:2] if r.get("type") == "answer"]
+        assert len(answers) == 1
+        assert {r.get("meta", {}).get("error") for r in responses[:2]} >= {
+            "connection_already_exists"
+        }
+        for pc in offers:
+            await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"mode": "receive", "handler": three_frames}], indirect=True
+    )
+    async def test_a_finished_receive_stream_closes_its_connection(self, launched):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(receive="video")
+        await h.connect(pc, "one")
+        server_pc = h.manager.pcs["one"]
+        await h.webrtc._push_inputs("one", 0)
+        # The generator runs out: the server closes its side of the connection
+        # instead of leaving it to the client
+        await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
+        await pc.close()
+
+    @pytest.mark.asyncio
     async def test_rtc_configuration_resolution(self):
         calls = []
 
@@ -723,6 +780,49 @@ class TestStreams:
             "error": "no credentials"
         }
         await asyncio.sleep(0)
+
+
+@pytest.mark.asyncio
+async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
+    monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+    with gr.Blocks() as demo:
+        webrtc = gr.WebRTC()
+        number = gr.Number()
+        # Outputs on every frame keep waking the stream's event, which then
+        # waits for the worker slot the long job holds
+        webrtc.stream(
+            lambda frame, *args: (frame, AdditionalOutputs(1)),
+            inputs=[webrtc],
+            outputs=[webrtc, number],
+            time_limit=1,
+        )
+        busy = gr.Button()
+        busy.click(lambda: time.sleep(4), None, None, concurrency_limit=None)
+    busy_fn = next(
+        fn
+        for fn in demo.fns.values()
+        if (busy._id, "click") in [tuple(t) for t in fn.targets]
+    )
+    with closing(demo):
+        _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=1)
+        h = Harness(demo, local_url, webrtc)
+        await h.start("one")
+        started = time.monotonic()
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        server_pc = h.manager.pcs["one"]
+        await h.webrtc._push_inputs("one")
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        # A long job takes the only worker slot while the stream waits
+        await h.http.post(
+            f"{h.api}/queue/join",
+            json={"data": [], "fn_index": busy_fn._id, "session_hash": "busy"},
+        )
+        await h.wait_until(lambda: h.demo._queue.get_active_worker_count() == 1)
+        # The media stops at the time limit, not when a worker frees up
+        await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=4)
+        assert time.monotonic() - started < 2.5
+        await pc.close()
 
 
 def video_frame(pts: int):

@@ -259,16 +259,23 @@ class ConnectionManager:
 
     def end(self, webrtc_id: str) -> None:
         """
-        Ends a stream: its queue event makes one last call, which delivers the
-        outputs still pending, and then finishes; the watcher then closes the
-        peer connection.
+        Ends a stream. The media stops at once: closing the peer connection
+        does not wait for the queue. The queue event then delivers the outputs
+        still pending and finishes (see `take_outputs`), which needs a worker
+        slot, so the stream's place in the concurrency limit is released only
+        once one is free.
         """
+        self._close_connection(webrtc_id)
         session = self.sessions.get(webrtc_id)
         if session is None or session.ended:
             return
         session.ended = True
-        session.event.closed = True
         session.wake()
+
+    def _close_connection(self, webrtc_id: str) -> None:
+        pc = self.pcs.get(webrtc_id)
+        if pc is not None and pc.connectionState != "closed":
+            asyncio.create_task(pc.close())
 
     def take_outputs(self, webrtc_id: str) -> AdditionalOutputs | None:
         session = self.sessions.get(webrtc_id)
@@ -280,8 +287,20 @@ class ConnectionManager:
             session.wake()
         return outputs
 
+    def finish_if_drained(self, webrtc_id: str) -> None:
+        """
+        Lets the queue event of an ended stream finish once its outputs are
+        delivered. Called at the end of each of the event's calls.
+        """
+        session = self.sessions.get(webrtc_id)
+        if session is not None and session.ended and not session.outputs:
+            session.event.closed = True
+
     def clean_up(self, webrtc_id: str) -> list[Track]:
         self.handlers.pop(webrtc_id, None)
+        # Close before letting go: a track that ended (a receive-mode
+        # generator ran out) leaves the connection open otherwise
+        self._close_connection(webrtc_id)
         self.pcs.pop(webrtc_id, None)
         connection = self.connections.pop(webrtc_id, [])
         for conn in connection:
@@ -337,6 +356,10 @@ class ConnectionManager:
         session = await self._wait_for_admission(webrtc_id)
         if session is None or session.ended:
             return _failed("not_admitted")
+        # Another offer for the same id may have waited for the admission too.
+        # Nothing awaits between this check and claiming the id below.
+        if webrtc_id in self.pcs:
+            return _failed("connection_already_exists")
 
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)

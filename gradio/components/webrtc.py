@@ -284,7 +284,7 @@ class WebRTC(Component):
         Parameters:
             fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`.
             inputs: the components whose values are passed to the handler. In mode="send" and mode="send-receive", the first element must be this component. The values of the other inputs are passed to video functions after the frame, to receive-mode generators as arguments, and to stream handlers through `latest_args` after `wait_for_args()`.
-            outputs: this component, plus the components that receive the values of `AdditionalOutputs`, in order.
+            outputs: this component, plus the components that receive the values of `AdditionalOutputs`, in order. Each `AdditionalOutputs` is delivered, oldest first; if a handler emits faster than they can be delivered and more than 64 are waiting, the oldest are dropped.
             time_limit: the maximum duration of a stream in seconds, counted from when its turn in the queue comes. The stream is closed when it is reached, and the next user in line gets the slot.
             concurrency_limit: the maximum number of simultaneous streams of this component. Further streams wait in the queue, showing their position, until a stream ends. "default" uses the queue's default concurrency limit (1 unless set with `Blocks.queue(default_concurrency_limit=...)`), None means no limit.
             trigger: in mode="receive", the event that starts the stream, for example `button.click`.
@@ -487,14 +487,17 @@ class WebRTC(Component):
             if stream_id is None:
                 if webrtc_id:
                     manager.admit(webrtc_id, event, queue)
-            elif (outputs := manager.take_outputs(stream_id)) is not None:
-                if len(outputs.args) != self._num_extra_outputs:
-                    raise ValueError(
-                        f"AdditionalOutputs has {len(outputs.args)} values, but "
-                        f"stream() has {self._num_extra_outputs} outputs besides "
-                        "the WebRTC component."
-                    )
-                nothing = [skip(), *outputs.args]
+            else:
+                outputs = manager.take_outputs(stream_id)
+                manager.finish_if_drained(stream_id)
+                if outputs is not None:
+                    if len(outputs.args) != self._num_extra_outputs:
+                        raise ValueError(
+                            f"AdditionalOutputs has {len(outputs.args)} values, "
+                            f"but stream() has {self._num_extra_outputs} outputs "
+                            "besides the WebRTC component."
+                        )
+                    nothing = [skip(), *outputs.args]
         return nothing[0] if len(nothing) == 1 else tuple(nothing)
 
     async def _resolve_rtc_configuration(self) -> dict[str, Any]:
