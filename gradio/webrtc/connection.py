@@ -22,7 +22,7 @@ import inspect
 import logging
 import time
 import weakref
-from collections import defaultdict, deque
+from collections import OrderedDict, defaultdict, deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -70,6 +70,8 @@ ADMISSION_WAIT = 5
 KEEPALIVE_INTERVAL = 10
 WATCH_INTERVAL = 0.25
 MAX_PENDING_OUTPUTS = 64
+MAX_PENDING_CANDIDATES = 32
+MAX_PENDING_CANDIDATE_IDS = 256
 
 # The stream each queue event admitted. Weak, so that an event is forgotten
 # once the queue drops it; module-level, so that it outlives a manager that
@@ -203,20 +205,34 @@ class ConnectionManager:
         self.connections: dict[str, list[Track]] = defaultdict(list)
         self.data_channels: dict[str, Any] = {}
         self.handlers: dict[str, HandlerType] = {}
+        # ICE candidates that arrive before their peer connection exists: the
+        # browser trickles them while its offer waits for the stream's turn
+        self.pending_candidates: OrderedDict[str, list[RTCIceCandidate]] = OrderedDict()
+        self.tasks: set[asyncio.Task] = set()
 
-    def admit(self, webrtc_id: str, event: Event, queue: Queue) -> None:
+    def admit(self, webrtc_id: str, event: Event, queue: Queue) -> bool:
         """
         Lets a stream in. Called by the first call of the stream's queue event,
         that is, once the stream's turn has come. An event admits one stream,
-        and a stream id is admitted once.
+        and a stream id is admitted once: returns False when another event
+        already holds the id.
         """
+        session = self.sessions.get(webrtc_id)
+        if session is not None:
+            return session.event is event
         _admitted[event] = webrtc_id
-        if webrtc_id in self.sessions:
-            return
         session = Session(event=event, queue=queue)
         self.sessions[webrtc_id] = session
-        session.watcher = asyncio.create_task(self._watch(webrtc_id, session))
+        session.watcher = self._spawn(self._watch(webrtc_id, session))
         self.admissions[webrtc_id].set()
+        return True
+
+    def _spawn(self, coroutine: Any) -> asyncio.Task:
+        # The event loop keeps only weak references to tasks
+        task = asyncio.create_task(coroutine)
+        self.tasks.add(task)
+        task.add_done_callback(self.tasks.discard)
+        return task
 
     async def _watch(self, webrtc_id: str, session: Session) -> None:
         """
@@ -275,7 +291,7 @@ class ConnectionManager:
     def _close_connection(self, webrtc_id: str) -> None:
         pc = self.pcs.get(webrtc_id)
         if pc is not None and pc.connectionState != "closed":
-            asyncio.create_task(pc.close())
+            self._spawn(pc.close())
 
     def take_outputs(self, webrtc_id: str) -> AdditionalOutputs | None:
         session = self.sessions.get(webrtc_id)
@@ -306,11 +322,12 @@ class ConnectionManager:
         for conn in connection:
             if isinstance(conn, AudioCallback):
                 if inspect.iscoroutinefunction(conn.event_handler.shutdown):
-                    asyncio.create_task(conn.event_handler.shutdown())
+                    self._spawn(conn.event_handler.shutdown())
                 else:
                     conn.event_handler.shutdown()
                 conn.event_handler.reset()
         self.data_channels.pop(webrtc_id, None)
+        self.pending_candidates.pop(webrtc_id, None)
         self.end(webrtc_id)
         return connection
 
@@ -336,6 +353,7 @@ class ConnectionManager:
                 )
             except (asyncio.TimeoutError, TimeoutError):
                 self.admissions.pop(webrtc_id, None)
+                self.pending_candidates.pop(webrtc_id, None)
                 return None
         return self.sessions.get(webrtc_id)
 
@@ -436,13 +454,16 @@ class ConnectionManager:
                 return
 
             self.connections[webrtc_id].append(cb)
+            # A handler that returns CloseStream stops its track: end the
+            # stream here, whether or not the browser reacts to "end_stream"
+            cb.on("ended", lambda: self.clean_up(webrtc_id))
             if webrtc_id in self.data_channels:
                 for conn in self.connections[webrtc_id]:
                     conn.set_channel(self.data_channels[webrtc_id])
             if self.mode == "send-receive":
                 pc.addTrack(cb)
             elif self.mode == "send":
-                asyncio.create_task(cb.start())
+                self._spawn(cb.start())
 
         if self.mode == "receive":
             cb: Track
@@ -483,13 +504,18 @@ class ConnectionManager:
                 for conn in self.connections[webrtc_id]:
                     conn.set_channel(channel)
 
-            asyncio.create_task(set_channel())
+            self._spawn(set_channel())
 
         await pc.setRemoteDescription(offer)
         if rejected:
             await pc.close()
             self.clean_up(webrtc_id)
             return _failed("unsupported_track", message=rejected[0])
+        for candidate in self.pending_candidates.pop(webrtc_id, []):
+            try:
+                await pc.addIceCandidate(candidate)
+            except Exception as e:
+                logger.error("Error adding ICE candidate: %s", e, exc_info=True)
 
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
@@ -503,19 +529,25 @@ class ConnectionManager:
 
     async def _add_ice_candidate(self, body: dict[str, Any]) -> dict[str, Any]:
         webrtc_id = body.get("webrtc_id")
-        pc = self.pcs.get(cast(str, webrtc_id))
-        if pc is None:
-            logger.warning(
-                "Received ICE candidate for unknown connection: %s", webrtc_id
-            )
+        if not webrtc_id:
             return _failed("unknown_connection")
-        if pc.connectionState == "closed":
+        pc = self.pcs.get(webrtc_id)
+        if pc is not None and pc.connectionState == "closed":
             return _failed("connection_closed")
         try:
             candidate = _parse_ice_candidate(body["candidate"])
             if candidate is None:
                 logger.error("Invalid candidate format: %s", body["candidate"])
                 return _failed("invalid_candidate_format")
+            if pc is None:
+                # Kept until the offer creates the connection, within bounds:
+                # an id that never makes an offer is evicted eventually
+                pending = self.pending_candidates.setdefault(webrtc_id, [])
+                if len(pending) < MAX_PENDING_CANDIDATES:
+                    pending.append(candidate)
+                while len(self.pending_candidates) > MAX_PENDING_CANDIDATE_IDS:
+                    self.pending_candidates.popitem(last=False)
+                return {"status": "success"}
             await pc.addIceCandidate(candidate)
             return {"status": "success"}
         except Exception as e:

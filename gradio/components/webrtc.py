@@ -485,8 +485,10 @@ class WebRTC(Component):
             # serves the stream that the first call admitted
             stream_id = admitted_id(event)
             if stream_id is None:
-                if webrtc_id:
-                    manager.admit(webrtc_id, event, queue)
+                if webrtc_id and not manager.admit(webrtc_id, event, queue):
+                    # The id belongs to another event's stream: end this event
+                    # instead of letting it hold a place it cannot use
+                    event.closed = True
             else:
                 outputs = manager.take_outputs(stream_id)
                 manager.finish_if_drained(stream_id)

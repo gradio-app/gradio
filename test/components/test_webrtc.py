@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 import httpx2
 import pytest
+import pytest_asyncio
 from aiortc import (
     AudioStreamTrack,
     RTCPeerConnection,
@@ -19,6 +20,7 @@ from gradio.route_utils import API_PREFIX
 from gradio.webrtc import (
     AdditionalOutputs,
     AsyncStreamHandler,
+    CloseStream,
     StreamHandler,
     VideoStreamHandler,
 )
@@ -282,6 +284,19 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(4))
             with pytest.raises(ValueError, match="2 outputs besides"):
                 await webrtc._run_stream("abc")
+
+            # Another queue event that joins with an id already in use ends at
+            # once instead of holding a place it can never use
+            other = FakeEvent()
+            other._id = "other"
+            queue.event_ids_to_events["other"] = other
+            other_token = LocalContext.event_id.set("other")
+            try:
+                assert await webrtc._run_stream("abc") == (skip, skip, skip)
+            finally:
+                LocalContext.event_id.reset(other_token)
+            assert other.closed
+            assert manager.sessions["abc"].event is event
         finally:
             LocalContext.blocks.reset(blocks_token)
             LocalContext.event_id.reset(event_token)
@@ -395,8 +410,8 @@ def completed(messages):
 
 
 class TestStreams:
-    @pytest.fixture
-    def launched(self, request, monkeypatch):
+    @pytest_asyncio.fixture
+    async def launched(self, request, monkeypatch):
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
         params = dict(getattr(request, "param", {}))
         handler = params.pop("handler", flip)
@@ -423,7 +438,11 @@ class TestStreams:
                 )
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True)
-            yield Harness(demo, local_url, webrtc)
+            harness = Harness(demo, local_url, webrtc)
+            try:
+                yield harness
+            finally:
+                await harness.http.aclose()
 
     @pytest.mark.asyncio
     async def test_video_offer_gets_answer_once_admitted(self, launched):
@@ -641,10 +660,10 @@ class TestStreams:
             {
                 "type": "ice-candidate",
                 "webrtc_id": "missing",
-                "candidate": {"candidate": "candidate:1 1 udp 1 1.2.3.4 1 typ host"},
+                "candidate": {"candidate": "not a candidate"},
             },
         )
-        assert candidate["meta"]["error"] == "unknown_connection"
+        assert candidate["meta"]["error"] == "invalid_candidate_format"
         for pc in (first, second):
             await pc.close()
 
@@ -714,6 +733,51 @@ class TestStreams:
         assert not track.args_set.is_set()
         await h.webrtc._push_inputs("one", 3)
         assert track.latest_args == [3]
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [{"handler": lambda frame, *args: CloseStream("done")}],
+        indirect=True,
+    )
+    async def test_close_stream_ends_a_send_receive_stream(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        server_pc = h.manager.pcs["one"]
+        await h.webrtc._push_inputs("one", 0)
+        # The handler ends the stream: the server closes its side and the
+        # event, whether or not the browser reacts to "end_stream"
+        await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
+        await h.wait_until(lambda: not h.event_running(event_id))
+        await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_candidates_sent_before_the_turn_are_kept(self, launched):
+        h = launched
+        first_event = await h.start("zero")
+        await h.join("one")
+        # The browser trickles its candidates while its offer waits for the turn
+        candidate = await h.server_fn(
+            "offer",
+            {
+                "type": "ice-candidate",
+                "webrtc_id": "one",
+                "candidate": {
+                    "candidate": "candidate:1 1 udp 1 127.0.0.1 9 typ host",
+                    "sdpMid": "0",
+                    "sdpMLineIndex": 0,
+                },
+            },
+        )
+        assert candidate.get("status") == "success"
+        await h.http.post(f"{h.api}/stream/{first_event}/close")
+        await h.wait_until(lambda: "one" in h.manager.sessions)
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        assert "one" not in h.manager.pending_candidates
         await pc.close()
 
     @pytest.mark.asyncio
@@ -823,6 +887,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=4)
         assert time.monotonic() - started < 2.5
         await pc.close()
+        await h.http.aclose()
 
 
 def video_frame(pts: int):
