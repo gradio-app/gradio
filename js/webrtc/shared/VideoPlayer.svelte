@@ -3,7 +3,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import { Empty } from "@gradio/atoms";
 	import { Video } from "@gradio/icons";
-	import { start, stop, new_webrtc_id } from "./webrtc";
+	import { start, stop, new_webrtc_id, close_on_pagehide } from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		START_STREAM,
@@ -140,6 +140,8 @@
 			clearTimeout(timeout);
 		}
 	}
+
+	$effect(() => close_on_pagehide(() => pc));
 
 	onDestroy(() => {
 		attempts.destroy();

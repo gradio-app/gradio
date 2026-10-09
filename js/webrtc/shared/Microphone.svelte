@@ -14,7 +14,7 @@
 	import Permissions from "./Permissions.svelte";
 	import AudioWave from "./AudioWave.svelte";
 	import PulsingIcon from "./PulsingIcon.svelte";
-	import { start, stop, new_webrtc_id } from "./webrtc";
+	import { start, stop, new_webrtc_id, close_on_pagehide } from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		get_devices,
@@ -299,6 +299,8 @@
 			is_mic_muted = !track.enabled;
 		}
 	}
+
+	$effect(() => close_on_pagehide(() => pc));
 
 	onDestroy(() => {
 		attempts.destroy();

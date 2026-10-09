@@ -5,14 +5,16 @@
 		Square,
 		DropdownArrow,
 		Spinner,
+		Clear,
 		Microphone as Mic
 	} from "@gradio/icons";
+	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
 	import { fade } from "svelte/transition";
 	import Permissions from "./Permissions.svelte";
 	import PulsingIcon from "./PulsingIcon.svelte";
-	import { start, stop, new_webrtc_id } from "./webrtc";
+	import { start, stop, new_webrtc_id, close_on_pagehide } from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		get_devices,
@@ -133,16 +135,25 @@
 		}
 	}
 
+	// Only the latest request may keep its camera: turning the camera off
+	// while a request is pending (e.g. the reopen after a stream) wins
+	let camera_request = 0;
+
 	async function access_webcam(device_id?: string | null): Promise<void> {
 		if (!navigator.mediaDevices?.getUserMedia) {
 			onerror?.(i18n("image.no_webcam_support"));
 			return;
 		}
+		const request = ++camera_request;
 		try {
 			const local_stream = await navigator.mediaDevices.getUserMedia({
 				video: with_device(video_constraints, device_id),
 				audio: audio_constraints
 			});
+			if (request !== camera_request) {
+				local_stream.getTracks().forEach((track) => track.stop());
+				return;
+			}
 			set_stream(local_stream);
 			webcam_accessed = true;
 			devices = await get_devices("videoinput");
@@ -154,6 +165,17 @@
 			}
 			throw err;
 		}
+	}
+
+	// Releases the camera (and, for audio-video, the microphone) that the
+	// preview holds; the access button brings it back.
+	function turn_off_camera(): void {
+		camera_request++;
+		stream?.getTracks().forEach((track) => track.stop());
+		stream = null;
+		if (video_source) video_source.srcObject = null;
+		webcam_accessed = false;
+		options_open = false;
 	}
 
 	async function handle_device_change(event: Event): Promise<void> {
@@ -270,6 +292,8 @@
 		}
 	}
 
+	$effect(() => close_on_pagehide(() => pc));
+
 	onDestroy(() => {
 		attempts.destroy();
 		stop(pc);
@@ -308,6 +332,15 @@
 			<Permissions kind="webcam" onclick={() => access_webcam()} />
 		</div>
 	{:else}
+		{#if stream_state === "closed"}
+			<IconButtonWrapper>
+				<IconButton
+					Icon={Clear}
+					label="Turn off the camera"
+					onclick={turn_off_camera}
+				/>
+			</IconButtonWrapper>
+		{/if}
 		<div class="button-wrap">
 			<button
 				class="stream-button"

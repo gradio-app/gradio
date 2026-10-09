@@ -124,6 +124,21 @@ export function stop(pc: RTCPeerConnection | null | undefined): void {
 	setTimeout(() => pc.close(), 500);
 }
 
+/**
+ * Closes the connection when the page goes away (tab closed, navigation).
+ * Otherwise the server only ends the stream after the queue's reconnection
+ * grace period, and a handler holding a GPU keeps it that long. `stop()`
+ * defers the close, which never runs on a page that is going away.
+ * Returns a function that removes the listener.
+ */
+export function close_on_pagehide(
+	get_pc: () => RTCPeerConnection | null
+): () => void {
+	const close = (): void => get_pc()?.close();
+	window.addEventListener("pagehide", close);
+	return () => window.removeEventListener("pagehide", close);
+}
+
 /** Turns an offer rejection into a message for the user. */
 export function rejection_message(response: Record<string, any>): string {
 	const error = response?.meta?.error;

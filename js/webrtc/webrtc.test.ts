@@ -251,6 +251,62 @@ describe("WebRTC send-receive video", () => {
 		}
 	);
 
+	test("the camera can be turned off while no stream runs", async () => {
+		const server = make_server();
+		const get_user_media = vi.mocked(navigator.mediaDevices.getUserMedia);
+		const { getByRole, getByText, queryByRole, set_data } = await render(
+			WebRTC,
+			{ ...base_props, server }
+		);
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+
+		// Not while streaming: the stop button ends the stream first
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalled());
+		expect(queryByRole("button", { name: "Turn off the camera" })).toBeNull();
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
+				"audio.record"
+			);
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Turn off the camera" }));
+		// The preview the stream's end reopened
+		const latest: MediaStream = await get_user_media.mock.results.at(-1)!.value;
+		expect(latest.getTracks().every((t) => t.readyState === "ended")).toBe(
+			true
+		);
+		await waitFor(() => {
+			expect(getByText("Click to Access Webcam")).toBeVisible();
+		});
+	});
+
+	test("leaving the page closes the connection at once", async () => {
+		const server = make_server();
+		const { getByRole, getByText, set_data } = await render(WebRTC, {
+			...base_props,
+			server
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalled());
+		const pc = FakePeerConnection.instances[0];
+		pc.set_state("connected");
+
+		// No later task runs once the page is gone, so this cannot wait
+		window.dispatchEvent(new PageTransitionEvent("pagehide"));
+		expect(pc.closed).toBe(true);
+	});
+
 	test("a rejected offer dispatches an error and ends the turn", async () => {
 		const server = make_server({
 			status: "failed",

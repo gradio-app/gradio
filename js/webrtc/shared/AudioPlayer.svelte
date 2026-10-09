@@ -4,7 +4,7 @@
 	import { Empty } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import AudioWave from "./AudioWave.svelte";
-	import { start, stop, new_webrtc_id } from "./webrtc";
+	import { start, stop, new_webrtc_id, close_on_pagehide } from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		START_STREAM,
@@ -149,6 +149,8 @@
 			clearTimeout(timeout);
 		}
 	}
+
+	$effect(() => close_on_pagehide(() => pc));
 
 	onDestroy(() => {
 		attempts.destroy();
