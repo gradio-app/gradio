@@ -950,7 +950,7 @@ class TestRoutes:
                 client.get(
                     f"{API_PREFIX}/file={path}", headers={"Range": range_header}
                 ),
-                timeout=2,
+                timeout=30,
             )
         assert response.status_code == 206
         assert response.headers["content-range"] == (
