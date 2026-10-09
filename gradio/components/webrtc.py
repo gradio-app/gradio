@@ -583,17 +583,17 @@ class WebRTC(Component):
     async def get_rtc_configuration(
         self, _: Any = None, request: Request | None = None
     ) -> dict[str, Any]:
-        # The component_server route passes the raw fastapi request
-        if request is not None and not isinstance(request, Request):
-            request = Request(request=request)
         try:
             return await self._resolve_rtc_configuration(request)
-        except Error as e:
-            # A message for the visitor (e.g. "sign in first"), not a failure
-            return {"error": e.message}
         except Exception as e:
-            logger.exception("Could not resolve rtc_configuration")
-            return {"error": str(e)}
+            # A gr.Error is a message for the visitor (e.g. "sign in first"),
+            # not a failure
+            if not isinstance(e, Error):
+                logger.exception("Could not resolve rtc_configuration")
+            # Shown like the error of an event
+            blocks = LocalContext.blocks.get(None)
+            payload = utils.error_payload(e, bool(blocks and blocks.show_error))
+            return {"error": payload["error"] or "An error occurred."}
 
     @server
     async def offer(
@@ -605,7 +605,4 @@ class WebRTC(Component):
                 "status": "failed",
                 "meta": {"error": "no_stream_handler"},
             }
-        # The component_server route passes the raw fastapi request
-        if request is not None and not isinstance(request, Request):
-            request = Request(request=request)
         return await manager.handle_offer(body, request)

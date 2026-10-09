@@ -1139,13 +1139,44 @@ class TestStreams:
             rtc_configuration=lambda: {"iceServers": []}
         ).get_rtc_configuration() == {"iceServers": []}
 
-        def broken():
-            raise RuntimeError("no credentials")
-
-        assert await gr.WebRTC(rtc_configuration=broken).get_rtc_configuration() == {
-            "error": "no credentials"
-        }
         await asyncio.sleep(0)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("show_error", [False, True])
+    async def test_rtc_configuration_errors_follow_show_error(self, show_error):
+        def broken():
+            raise RuntimeError("internal detail")
+
+        def not_signed_in():
+            raise gr.Error("Sign in first.")
+
+        with gr.Blocks() as demo:
+            broken_webrtc = gr.WebRTC(rtc_configuration=broken)
+            signed_in_webrtc = gr.WebRTC(rtc_configuration=not_signed_in)
+        with closing(demo):
+            _, local_url, _ = demo.launch(
+                prevent_thread_lock=True, show_error=show_error
+            )
+            async with httpx2.AsyncClient(timeout=10) as http:
+
+                async def resolve(webrtc):
+                    response = await http.post(
+                        f"{local_url.rstrip('/')}{API_PREFIX}/component_server/",
+                        json={
+                            "session_hash": "session",
+                            "component_id": webrtc._id,
+                            "fn_name": "get_rtc_configuration",
+                            "data": None,
+                        },
+                    )
+                    return response.json()
+
+                # Like the error of an event: the message of a gr.Error, other
+                # messages only with show_error
+                assert await resolve(broken_webrtc) == {
+                    "error": "internal detail" if show_error else "An error occurred."
+                }
+                assert await resolve(signed_in_webrtc) == {"error": "Sign in first."}
 
     @pytest.mark.asyncio
     async def test_rtc_configuration_gets_the_request_of_the_page(self):
@@ -1183,7 +1214,7 @@ class TestStreams:
             scope = {"type": "http", "headers": []}
             if session is not None:
                 scope["session"] = session
-            return Request(scope)
+            return gr.Request(request=Request(scope))
 
         session = {
             "oauth_info": {

@@ -3526,6 +3526,38 @@ def test_server_fn_passes_request():
     assert response.json()["_url"].endswith("/gradio_api/component_server")
 
 
+def test_server_fn_request_has_the_session_and_user():
+    from gradio.components.base import server
+
+    def whoami(self, request: gr.Request):
+        return {"session_hash": request.session_hash, "username": request.username}
+
+    tb = gr.Textbox()
+    tb.whoami = server(whoami)  # type: ignore
+    iface = gr.Interface(lambda x: x, inputs=tb, outputs="text")
+    component_id = next(
+        c["id"]
+        for c in iface.config["components"]
+        if c["type"] == "textbox"  # type: ignore
+    )
+    app, _, _ = iface.launch(
+        auth=("test", "correct_password"), prevent_thread_lock=True
+    )
+    client = TestClient(app)
+    client.post("/login", data={"username": "test", "password": "correct_password"})
+    response = client.post(
+        f"{API_PREFIX}/component_server",
+        json={
+            "session_hash": "foo",
+            "component_id": component_id,
+            "fn_name": "whoami",
+            "data": json.dumps({}),
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == {"session_hash": "foo", "username": "test"}
+
+
 def test_server_fn_forwards_x_ip_token_via_local_context():
     """/component_server must set LocalContext.request so gradio_client.Client
     can forward the caller's x-ip-token to downstream ZeroGPU Spaces."""

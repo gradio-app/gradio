@@ -2153,8 +2153,11 @@ class App(FastAPI):
         )
         async def component_server(
             request: fastapi.Request,
+            username: str = Depends(get_current_user),
         ):
             body = await get_item_or_file(request)
+            # The visitor's session and login, as event listeners get them
+            gr_request = Request(request, username, session_hash=body.session_hash)
             state = app.state_holder[body.session_hash]
             component_id = body.component_id
             block: Block
@@ -2171,7 +2174,7 @@ class App(FastAPI):
             processed_input, *_ = special_args(
                 fn,
                 [body.data],
-                request,  # type: ignore
+                gr_request,
                 None,
             )
             fn = utils.get_function_with_locals(
@@ -2179,7 +2182,7 @@ class App(FastAPI):
                 app.get_blocks(),
                 event_id=None,
                 in_event_listener=False,
-                request=request,  # type: ignore
+                request=gr_request,
                 state=state,
             )
             if inspect.iscoroutinefunction(fn):
