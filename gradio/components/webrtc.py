@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import inspect
 import logging
 from collections.abc import Callable, Sequence
@@ -85,6 +86,34 @@ def _check_video_bitrate(video_bitrate: dict[str, int] | None) -> None:
         )
 
 
+@document()
+@dataclasses.dataclass
+class StreamOptions:
+    """
+    A dataclass for specifying how the stream controls of `gr.WebRTC` look. An instance of this class can be passed into the `stream_options` parameter of `gr.WebRTC`.
+    Parameters:
+        button_labels: the text of the start, stop and waiting buttons, as a dict with any of the keys "start", "stop" and "waiting". The values can be strings or translations made with `gr.I18n`. Defaults to Gradio's translated "Record", "Stop" and "Waiting".
+        icon: a path or URL to an image shown in place of the default pulsing icon while an audio stream is active.
+        icon_button_color: the CSS color of the icon button of an audio stream. Defaults to the accent color of the theme.
+        pulse_color: the CSS color of the pulse animation around the icon of an audio stream. Defaults to the accent color of the theme.
+        icon_radius: the border radius of the icon button as a percentage of its size. Defaults to 50.
+    """
+
+    button_labels: dict[str, str | I18nData] | None = None
+    icon: str | None = None
+    icon_button_color: str | None = None
+    pulse_color: str | None = None
+    icon_radius: int | None = None
+
+    def __post_init__(self):
+        unknown = set(self.button_labels or {}) - {"start", "stop", "waiting"}
+        if unknown:
+            raise ValueError(
+                'button_labels takes the keys "start", "stop" and "waiting", '
+                f"got {sorted(unknown)}"
+            )
+
+
 def _to_list(blocks: Block | Sequence[Block] | set[Block] | None) -> list[Block]:
     from gradio.blocks import Block
 
@@ -119,11 +148,7 @@ class WebRTC(Component):
         rtp_params: dict[str, Any] | None = None,
         video_bitrate: dict[str, int] | None = None,
         allow_extra_tracks: bool = False,
-        icon: str | None = None,
-        icon_button_color: str | None = None,
-        pulse_color: str | None = None,
-        icon_radius: int | None = None,
-        button_labels: dict[str, str] | None = None,
+        stream_options: StreamOptions | dict | None = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | I18nData | None = None,
@@ -153,11 +178,7 @@ class WebRTC(Component):
             rtp_params: parameters passed to `RTCRtpSender.setParameters` for the tracks the browser sends. For example, `{"degradationPreference": "maintain-framerate"}` keeps the frame rate steady when the resolution has to drop.
             video_bitrate: the bitrate range of the video in kbps, as a dict with any of the keys "min", "start" and "max", e.g. `{"min": 1000, "start": 1500, "max": 4000}`. WebRTC starts video at a low bitrate and raises it as it finds bandwidth, so the first seconds of a stream are blurry and the browser may send a smaller picture than the camera captures; a higher "start" and "min" avoid that at the cost of bandwidth. The range applies to the video the server sends back, and is passed on to the browser for the video it sends, which Chromium-based browsers honor and others ignore. If None, the defaults of the browser and of aiortc apply (aiortc starts VP8 at 500 kbps and keeps it between 250 kbps and 1.5 Mbps).
             allow_extra_tracks: if True, connections that carry tracks beyond the modality (for example an audio track on a "video" stream) are accepted and the extra tracks are ignored. If False, such connections are rejected.
-            icon: a path or URL to an image shown in place of the default pulsing icon while an audio stream is active.
-            icon_button_color: the CSS color of the icon button of an audio stream. Defaults to the accent color of the theme.
-            pulse_color: the CSS color of the pulse animation around the icon of an audio stream. Defaults to the accent color of the theme.
-            icon_radius: the border radius of the icon button as a percentage of its size. Defaults to 50.
-            button_labels: the text of the start, stop and waiting buttons, as a dict with any of the keys "start", "stop" and "waiting".
+            stream_options: a `gr.StreamOptions` instance, or a dict of its arguments, that sets the text of the start, stop and waiting buttons and the look of the icon shown during audio streams. [See `gr.StreamOptions` docs](#stream-options).
             height: the height of the component, in pixels if a number is passed, or in CSS units if a string is passed.
             width: the width of the component, in pixels if a number is passed, or in CSS units if a string is passed.
             label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
@@ -206,15 +227,12 @@ class WebRTC(Component):
         _check_video_bitrate(video_bitrate)
         self.video_bitrate = video_bitrate
         self.allow_extra_tracks = allow_extra_tracks
-        self.icon_button_color = icon_button_color
-        self.pulse_color = pulse_color
-        self.icon_radius = icon_radius
-        self.button_labels = {
-            "start": "",
-            "stop": "",
-            "waiting": "",
-            **(button_labels or {}),
-        }
+        if stream_options is None:
+            self.stream_options = StreamOptions()
+        elif isinstance(stream_options, dict):
+            self.stream_options = StreamOptions(**stream_options)
+        else:
+            self.stream_options = stream_options
         self.height = height
         self.width = width
         # Set by stream()
@@ -238,8 +256,9 @@ class WebRTC(Component):
             value=value,
         )
         # After super().__init__ so that the proxy url is known
+        icon = self.stream_options.icon
         served_icon = self.serve_static_file(icon) if icon else None
-        self.icon = served_icon["url"] if served_icon else None
+        self._icon_url = served_icon["url"] if served_icon else None
 
     def _track_constraints(self) -> dict[str, Any]:
         # User constraints are merged over the defaults rather than replacing
@@ -269,6 +288,17 @@ class WebRTC(Component):
         config["track_constraints"] = self._track_constraints()
         config["mirror_webcam"] = self.webcam_options.mirror
         config["has_stream"] = manager is not None
+        options = self.stream_options
+        config["stream_options"] = {
+            # gr.I18n translations become markers that the frontend translates
+            "button_labels": {
+                key: str(label) for key, label in (options.button_labels or {}).items()
+            },
+            "icon": self._icon_url,
+            "icon_button_color": options.icon_button_color,
+            "pulse_color": options.pulse_color,
+            "icon_radius": options.icon_radius,
+        }
         return config
 
     def preprocess(self, payload: WebRTCModel | None) -> str | None:

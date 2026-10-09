@@ -136,11 +136,13 @@ const base_props = {
 	track_constraints: {},
 	mirror_webcam: "auto" as const,
 	time_limit: null as number | null,
-	icon: null,
-	icon_button_color: null,
-	pulse_color: null,
-	icon_radius: null,
-	button_labels: { start: "", stop: "", waiting: "" },
+	stream_options: {
+		button_labels: {},
+		icon: null,
+		icon_button_color: null,
+		pulse_color: null,
+		icon_radius: null
+	},
 	height: null,
 	width: null,
 	has_stream: true,
@@ -250,6 +252,22 @@ describe("WebRTC send-receive video", () => {
 			expect(server.offer.mock.calls[0][0].mirror).toBe(expected);
 		}
 	);
+
+	test("stream_options sets the text of the stream button", async () => {
+		const { getByRole, getByText } = await render(WebRTC, {
+			...base_props,
+			stream_options: {
+				...base_props.stream_options,
+				button_labels: { start: "Start talking" }
+			}
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
+				"Start talking"
+			);
+		});
+	});
 
 	test("the camera can be turned off while no stream runs", async () => {
 		const server = make_server();

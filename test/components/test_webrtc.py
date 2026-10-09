@@ -168,6 +168,25 @@ class TestWebRTC:
         with pytest.raises(ValueError, match="audio-video"):
             gr.WebRTC(modality="audio-video", mode="send")
 
+    def test_stream_options(self):
+        i18n = gr.I18n(en={"talk": "Start talking"})
+        webrtc = gr.WebRTC(
+            modality="audio",
+            stream_options={
+                "button_labels": {"start": i18n("talk"), "stop": "Done"},
+                "pulse_color": "red",
+            },
+        )
+        options = webrtc.get_config()["stream_options"]
+        assert options["button_labels"]["stop"] == "Done"
+        # Translated in the frontend
+        assert options["button_labels"]["start"].startswith("__i18n__")
+        assert options["pulse_color"] == "red"
+        assert options["icon"] is None
+        assert "button_labels" not in webrtc.get_config()
+        with pytest.raises(ValueError, match="button_labels"):
+            gr.StreamOptions(button_labels={"begin": "Go"})
+
     @pytest.mark.parametrize(
         "video_bitrate",
         [{"maximum": 4000}, {"min": 0}, {"start": 1.5}, {"min": 2000, "max": 1000}],

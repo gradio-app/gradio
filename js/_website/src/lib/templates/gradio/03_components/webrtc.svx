@@ -11,6 +11,7 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("webrtc");
+    let stream_options_obj = get_object("streamoptions");
 </script>
 
 <!--- Title -->
@@ -52,6 +53,27 @@ gradio.WebRTC(···)
 ### Event Listeners
 <FunctionsSection fns={obj.fns} event_listeners={true} />
 {/if}
+
+<!-- Helper Classes -->
+### Helper Classes
+<div style="margin-left: 3rem">
+
+<!--- Title -->
+### StreamOptions
+
+<!--- Usage -->
+```python
+gradio.StreamOptions(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(stream_options_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={stream_options_obj.parameters} anchor_links={stream_options_obj.name}/>
+</div>
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->

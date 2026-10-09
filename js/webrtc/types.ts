@@ -40,11 +40,14 @@ export interface WebRTCProps {
 	track_constraints: Record<string, any>;
 	mirror_webcam: boolean | "auto";
 	time_limit: number | null;
-	icon: string | null;
-	icon_button_color: string | null;
-	pulse_color: string | null;
-	icon_radius: number | null;
-	button_labels: { start: string; stop: string; waiting: string };
+	/** gr.StreamOptions; labels may be translation markers. */
+	stream_options: {
+		button_labels: { start?: string; stop?: string; waiting?: string };
+		icon: string | null;
+		icon_button_color: string | null;
+		pulse_color: string | null;
+		icon_radius: number | null;
+	};
 	height: number | string | null;
 	width: number | string | null;
 	/** Whether a handler is attached with `.stream()`. */
@@ -58,9 +61,19 @@ export interface WebRTCEvents {
 	close_stream: never;
 	start_recording: never;
 	stop_recording: never;
-	error: string;
-	warning: string;
+	error: string | Toast;
+	warning: string | Toast;
+	info: Toast;
+	success: Toast;
 	clear_status: LoadingStatus;
+}
+
+/** A toast from the stream's handler, shown like an event's. */
+export interface Toast {
+	message: string;
+	title?: string;
+	duration?: number | null;
+	visible?: boolean;
 }
 
 /** Setting the component value to this string starts a stream in mode="receive". */

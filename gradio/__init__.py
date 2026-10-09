@@ -79,6 +79,7 @@ from gradio.components.image_editor import (
     WatermarkOptions,
     WebcamOptions,
 )
+from gradio.components.webrtc import StreamOptions
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
@@ -261,6 +262,7 @@ __all__ = [
     "Step",
     "Warning",
     "WaveformOptions",
+    "StreamOptions",
     "WebRTC",
     "WebcamOptions",
     "WatermarkOptions",

@@ -26,11 +26,13 @@
 		track_constraints: {},
 		mirror_webcam: "auto",
 		time_limit: null,
-		icon: null,
-		icon_button_color: null,
-		pulse_color: null,
-		icon_radius: null,
-		button_labels: { start: "", stop: "", waiting: "" },
+		stream_options: {
+			button_labels: {},
+			icon: null,
+			icon_button_color: null,
+			pulse_color: null,
+			icon_radius: null
+		},
 		height: null,
 		width: null,
 		has_stream: false
@@ -38,6 +40,21 @@
 	gradio.watch_for_change();
 
 	let server = $derived(gradio.shared.server as unknown as WebRTCServer);
+	let options = $derived(gradio.props.stream_options);
+	// Labels given with gr.I18n arrive as markers; an empty label falls back
+	// to the translated default in the players
+	const translate_label = (text: string | undefined): string =>
+		text ? gradio.live_i18n(text) : "";
+	let button_labels = $derived({
+		start: translate_label(options.button_labels.start),
+		stop: translate_label(options.button_labels.stop),
+		waiting: translate_label(options.button_labels.waiting)
+	});
+	let icon_button_color = $derived(
+		options.icon_button_color ?? "var(--color-accent)"
+	);
+	let pulse_color = $derived(options.pulse_color ?? "var(--color-accent)");
+	let icon_radius = $derived(options.icon_radius ?? 50);
 	let is_send = $derived(
 		gradio.props.mode === "send" || gradio.props.mode === "send-receive"
 	);
@@ -220,11 +237,10 @@
 			{turn}
 			{queue_state}
 			{queue_detail}
-			icon={gradio.props.icon}
-			icon_button_color={gradio.props.icon_button_color ??
-				"var(--color-accent)"}
-			pulse_color={gradio.props.pulse_color ?? "var(--color-accent)"}
-			icon_radius={gradio.props.icon_radius ?? 50}
+			icon={options.icon}
+			{icon_button_color}
+			{pulse_color}
+			{icon_radius}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}
@@ -240,12 +256,11 @@
 			mirror_webcam={gradio.props.mirror_webcam}
 			rtp_params={gradio.props.rtp_params}
 			time_limit={gradio.props.time_limit}
-			button_labels={gradio.props.button_labels}
-			icon={gradio.props.icon}
-			icon_button_color={gradio.props.icon_button_color ??
-				"var(--color-accent)"}
-			pulse_color={gradio.props.pulse_color ?? "var(--color-accent)"}
-			icon_radius={gradio.props.icon_radius ?? 50}
+			{button_labels}
+			icon={options.icon}
+			{icon_button_color}
+			{pulse_color}
+			{icon_radius}
 			i18n={gradio.i18n}
 			{server}
 			{turn}
@@ -266,12 +281,11 @@
 			track_constraints={gradio.props.track_constraints}
 			rtp_params={gradio.props.rtp_params}
 			time_limit={gradio.props.time_limit}
-			button_labels={gradio.props.button_labels}
-			icon={gradio.props.icon}
-			icon_button_color={gradio.props.icon_button_color ??
-				"var(--color-accent)"}
-			pulse_color={gradio.props.pulse_color ?? "var(--color-accent)"}
-			icon_radius={gradio.props.icon_radius ?? 50}
+			{button_labels}
+			icon={options.icon}
+			{icon_button_color}
+			{pulse_color}
+			{icon_radius}
 			i18n={gradio.i18n}
 			{server}
 			{turn}
