@@ -1,5 +1,11 @@
 # gradio
 
+## 6.30.1
+
+### Features
+
+- [#13949](https://github.com/gradio-app/gradio/pull/13949) [`526c243`](https://github.com/gradio-app/gradio/commit/526c24340024dfae9c9a7709aad552382ed99f86) - Fix infinite loop when a file range extends past EOF.  Thanks @cbensimon!
+
 ## 6.30.0
 
 ### Features
