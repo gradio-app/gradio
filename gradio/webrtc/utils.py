@@ -117,10 +117,16 @@ class StreamNotifier:
     """
 
     def __init__(
-        self, loop: asyncio.AbstractEventLoop, end_stream: Callable[[], None]
+        self,
+        loop: asyncio.AbstractEventLoop,
+        end_stream: Callable[[], None],
+        show_error: bool = False,
     ) -> None:
         self.loop = loop
         self.end_stream = end_stream
+        # Taken when the stream starts: the threads that run sync handlers do
+        # not have the app in their context
+        self.show_error = show_error
         self.channel: Any = None
         self.pending: list[str] = []
         self.failed = False
@@ -181,11 +187,9 @@ class StreamNotifier:
             if self.failed:
                 return
             self.failed = True
-        from gradio.context import LocalContext
         from gradio.utils import error_payload
 
-        blocks = LocalContext.blocks.get(None)
-        payload = error_payload(error, bool(blocks and blocks.show_error))
+        payload = error_payload(error, self.show_error)
         self.send(
             "error",
             cast(str | None, payload["error"]) or "",

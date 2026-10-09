@@ -110,6 +110,16 @@ def fail_then_audio(*args):
     yield
 
 
+class ValueErrorOnEmit(SyncHandler):
+    def emit(self):
+        raise ValueError("internal detail")
+
+
+def value_error_then_audio(*args):
+    raise ValueError("internal detail")
+    yield
+
+
 def info_then_audio(*args):
     import numpy as np
 
@@ -654,14 +664,29 @@ class TestStreams:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("show_error", [False, True])
     @pytest.mark.parametrize(
-        "launched", [{"handler": fail_with_value_error}], indirect=True
+        "launched, offer",
+        [
+            ({"handler": fail_with_value_error}, {"video": True}),
+            # Sync emit() and receive-mode audio generators run in executor
+            # threads
+            ({"modality": "audio", "handler": ValueErrorOnEmit}, {"audio": True}),
+            (
+                {
+                    "mode": "receive",
+                    "modality": "audio",
+                    "handler": value_error_then_audio,
+                },
+                {"receive": "audio"},
+            ),
+        ],
+        indirect=["launched"],
     )
     async def test_other_errors_are_shown_only_with_show_error(
-        self, launched, show_error
+        self, launched, offer, show_error
     ):
         h = launched
         h.demo.show_error = show_error
-        pc = await make_offer(video=True)
+        pc = await make_offer(**offer)
         message = await self.stream_until_message(h, pc, "error")
         assert message["message"] == ("internal detail" if show_error else "")
         assert message["title"] == "Error"

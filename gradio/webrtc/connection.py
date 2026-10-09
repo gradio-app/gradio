@@ -418,8 +418,11 @@ class ConnectionManager:
 
         # The handler's tasks and threads are all started from here, so they
         # inherit it: errors, gr.Warning and gr.Info reach this stream's page
+        blocks = LocalContext.blocks.get(None)
         notifier = StreamNotifier(
-            asyncio.get_running_loop(), end_stream=lambda: self.end(webrtc_id)
+            asyncio.get_running_loop(),
+            end_stream=lambda: self.end(webrtc_id),
+            show_error=bool(blocks and blocks.show_error),
         )
         LocalContext.stream_notifier.set(notifier)
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
