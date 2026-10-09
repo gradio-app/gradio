@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:ensure the correct default FileData are rendered in components
+fix:serve the real default file in /info instead of the component's example payload
