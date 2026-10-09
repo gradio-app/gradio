@@ -435,6 +435,25 @@ describe("WebRTC queue turn", () => {
 		expect(get_user_media.mock.calls.length).toBe(opened);
 	});
 
+	test("stopping while the RTC configuration loads does not connect", async () => {
+		const { getByRole, set_data, server } = await ready_webcam();
+		let resolve_config: (config: Record<string, any>) => void = () => {};
+		server.get_rtc_configuration.mockImplementationOnce(
+			() => new Promise((resolve) => (resolve_config = resolve))
+		);
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() =>
+			expect(server.get_rtc_configuration).toHaveBeenCalled()
+		);
+		// Stop while the configuration is still on its way
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		resolve_config({ iceServers: [] });
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		expect(FakePeerConnection.instances).toHaveLength(0);
+		expect(server.offer).not.toHaveBeenCalled();
+	});
+
 	test("starting a receive stream again while waiting keeps the new attempt", async () => {
 		const server = make_server();
 		const { listen, set_data } = await render(WebRTC, {

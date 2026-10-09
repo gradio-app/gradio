@@ -90,6 +90,10 @@
 	let negotiated_time_limit: number | null = null;
 	// Whether the stream's turn in the queue has come
 	let admitted = $state(false);
+	// Bumped by every start and stop, so that an attempt still awaiting can
+	// tell it has been superseded
+	let attempt = 0;
+	let destroyed = false;
 
 	// The server ended the stream's queue event, for example at the time limit
 	$effect(() => {
@@ -170,6 +174,7 @@
 	}
 
 	async function close_stream(): Promise<void> {
+		attempt++;
 		const connection = pc;
 		pc = null;
 		stop(connection);
@@ -192,6 +197,7 @@
 			return;
 		}
 		if (!stream) return;
+		const this_attempt = ++attempt;
 		onstart_recording?.();
 		stream_state = "waiting";
 		const webrtc_id = new_webrtc_id();
@@ -199,7 +205,7 @@
 
 		// Wait in line; stopping meanwhile leaves the queue and closes the stream
 		const got_turn = await turn.request();
-		if (!is_waiting()) return;
+		if (this_attempt !== attempt || destroyed || !is_waiting()) return;
 		if (!got_turn) {
 			await close_stream();
 			return;
@@ -212,6 +218,8 @@
 		} catch (e) {
 			rtc_configuration = { error: String(e) };
 		}
+		// Stopped (or unmounted) while the configuration was loading
+		if (this_attempt !== attempt || destroyed) return;
 		if (rtc_configuration.error) {
 			onerror?.(rtc_configuration.error);
 			await close_stream();
@@ -268,6 +276,8 @@
 	}
 
 	onDestroy(() => {
+		destroyed = true;
+		attempt++;
 		if (stream_state !== "closed") turn.end();
 		stop(pc);
 		stream?.getTracks().forEach((track) => track.stop());
