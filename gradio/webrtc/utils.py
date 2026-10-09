@@ -14,6 +14,7 @@ import inspect
 import json
 import logging
 import threading
+import warnings
 from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -218,11 +219,12 @@ def handler_failed(error: BaseException) -> HandlerFailedError:
     return HandlerFailedError(str(error))
 
 
-def check_audio(frame: Any) -> tuple[int, NDArray[np.int16 | np.float32]]:
+def check_audio(frame: Any) -> tuple[int, NDArray[np.integer | np.floating]]:
     """
     Checks audio returned by a handler: `(sample_rate, array)` with the array
     in gr.Audio's numpy layout, (samples,) for mono or (samples, 2) for
-    stereo, int16 or float (e.g. float32, float64) in [-1, 1].
+    stereo, int16, float (e.g. float32, float64) in [-1, 1], or int32, uint16,
+    uint8 or int8 as gr.Audio takes them.
     """
     layout_hint = (
         "Audio must be returned as a (sample_rate, numpy array) tuple, with the "
@@ -267,31 +269,52 @@ def split_output(
     return data, None
 
 
+# Integer types that gr.Audio converts to int16 with a fixed scale
+_SCALED_INTEGER_TYPES = (np.int32, np.uint16, np.uint8, np.int8)
+
+
+def _scaled_integer_to_int16(audio: np.ndarray) -> NDArray[np.int16]:
+    from gradio.processing_utils import convert_to_16_bit_audio
+
+    with warnings.catch_warnings():
+        # Accepted as is in a stream, not worth a warning per chunk
+        warnings.simplefilter("ignore")
+        return convert_to_16_bit_audio(audio)
+
+
 def audio_to_float32(
-    audio: NDArray[np.int16 | np.floating],
+    audio: NDArray[np.integer | np.floating],
 ) -> NDArray[np.float32]:
     """
     Converts an int16 audio array to float32 in the range [-1.0, 1.0). A float
-    array (in [-1.0, 1.0]) is returned as float32.
+    array (in [-1.0, 1.0]) is returned as float32. int32, uint16, uint8 and
+    int8 arrays are first scaled to int16 as `gr.Audio` does.
     """
     if audio.dtype == np.int16:
         return audio.astype(np.float32) / 32768.0
     if np.issubdtype(audio.dtype, np.floating):
         return audio.astype(np.float32, copy=False)
+    if audio.dtype in _SCALED_INTEGER_TYPES:
+        return _scaled_integer_to_int16(audio).astype(np.float32) / 32768.0
     raise TypeError(f"Unsupported audio data type: {audio.dtype}")
 
 
 def audio_to_int16(
-    audio: NDArray[np.int16 | np.floating],
+    audio: NDArray[np.integer | np.floating],
 ) -> NDArray[np.int16]:
     """
-    Converts a float audio array in the range [-1.0, 1.0] to int16. An int16
-    array is returned unchanged.
+    Converts a float audio array in the range [-1.0, 1.0] to int16. Unlike
+    `gr.Audio`, a float array is not scaled to its own peak, which would give
+    every chunk of a stream the same loudness. An int16 array is returned
+    unchanged, and int32, uint16, uint8 and int8 arrays are scaled as
+    `gr.Audio` does.
     """
     if audio.dtype == np.int16:
         return cast(NDArray[np.int16], audio)
     if np.issubdtype(audio.dtype, np.floating):
         return (audio.astype(np.float32, copy=False) * 32767.0).astype(np.int16)
+    if audio.dtype in _SCALED_INTEGER_TYPES:
+        return _scaled_integer_to_int16(audio)
     raise TypeError(f"Unsupported audio data type: {audio.dtype}")
 
 

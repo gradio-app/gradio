@@ -1657,6 +1657,41 @@ class TestAudioArrays:
         )
         assert sum(f.samples for f in frames) > 0
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("dtype", ["int32", "uint8", "int8", "uint16"])
+    async def test_emit_takes_other_integer_arrays(self, dtype):
+        import numpy as np
+
+        frames = await self.decode((24000, np.zeros(4800, dtype=dtype)))
+        assert sum(f.samples for f in frames) > 0
+
+    @pytest.mark.parametrize("dtype", ["int32", "uint8", "int8", "uint16"])
+    def test_integer_arrays_are_scaled_like_gr_audio(self, dtype):
+        import warnings
+
+        import numpy as np
+
+        from gradio.processing_utils import convert_to_16_bit_audio
+        from gradio.webrtc import audio_to_float32, audio_to_int16
+
+        info = np.iinfo(dtype)
+        audio = np.array([info.min, 0, info.max // 2, info.max], dtype=dtype)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            expected = convert_to_16_bit_audio(audio)
+        np.testing.assert_array_equal(audio_to_int16(audio), expected)
+        np.testing.assert_allclose(audio_to_float32(audio), expected / 32768.0)
+
+    def test_float_arrays_are_not_normalized_per_chunk(self):
+        import numpy as np
+
+        from gradio.webrtc import audio_to_int16
+
+        # gr.Audio scales each numpy value to its own peak; a stream keeps the
+        # level of every chunk
+        quiet = np.full(4, 0.1, dtype=np.float32)
+        assert audio_to_int16(quiet)[0] == 3276
+
     @pytest.mark.parametrize("dtype", ["float64", "float16"])
     def test_audio_helpers_take_other_float_arrays(self, dtype):
         import numpy as np
