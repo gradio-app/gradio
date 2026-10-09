@@ -66,6 +66,25 @@ class WebRTCModel(GradioRootModel):
     root: str
 
 
+def _check_video_bitrate(video_bitrate: dict[str, int] | None) -> None:
+    if video_bitrate is None:
+        return
+    keys = ("min", "start", "max")
+    unknown = set(video_bitrate) - set(keys)
+    if unknown:
+        raise ValueError(f"video_bitrate takes the keys {keys}, got {sorted(unknown)}")
+    for key, kbps in video_bitrate.items():
+        if not isinstance(kbps, int) or isinstance(kbps, bool) or kbps <= 0:
+            raise ValueError(
+                f"video_bitrate[{key!r}] must be a positive int (kbps), got {kbps!r}"
+            )
+    given = [video_bitrate[key] for key in keys if key in video_bitrate]
+    if given != sorted(given):
+        raise ValueError(
+            f'video_bitrate must have "min" <= "start" <= "max", got {video_bitrate}'
+        )
+
+
 def _to_list(blocks: Block | Sequence[Block] | set[Block] | None) -> list[Block]:
     from gradio.blocks import Block
 
@@ -98,6 +117,7 @@ class WebRTC(Component):
         webcam_options: WebcamOptions | None = None,
         microphone_options: MicrophoneOptions | dict | None = None,
         rtp_params: dict[str, Any] | None = None,
+        video_bitrate: dict[str, int] | None = None,
         allow_extra_tracks: bool = False,
         icon: str | None = None,
         icon_button_color: str | None = None,
@@ -131,6 +151,7 @@ class WebRTC(Component):
             webcam_options: a `gr.WebcamOptions` instance that sets whether the webcam is mirrored and the media constraints of the video track, for "video" and "audio-video" streams. As in `gr.Image`, a mirrored webcam also gives the handler mirrored frames, so the processed video looks like the preview; set `mirror=False` when the handler needs the camera's own view (e.g. to read text). As in `gr.Image`, the video track constraints go under the "video" key of `constraints`, e.g. `gr.WebcamOptions(constraints={"video": {"facingMode": "environment"}})`. They are merged over the defaults (front camera, 1280x720 and 30 fps, all as ideal values), so only the keys that differ need to be given. The audio track of "audio-video" streams is set with `microphone_options`.
             microphone_options: a `gr.MicrophoneOptions` instance, or a dict of its arguments, that sets the media constraints of the audio track for "audio" and "audio-video" streams, e.g. `gr.MicrophoneOptions(constraints={"echoCancellation": False})`. The constraints are merged over the defaults, which turn on echo cancellation, noise suppression and automatic gain control and ask for a single channel at 24 kHz, so only the keys that differ need to be given.
             rtp_params: parameters passed to `RTCRtpSender.setParameters` for the tracks the browser sends. For example, `{"degradationPreference": "maintain-framerate"}` keeps the frame rate steady when the resolution has to drop.
+            video_bitrate: the bitrate range of the video in kbps, as a dict with any of the keys "min", "start" and "max", e.g. `{"min": 1000, "start": 1500, "max": 4000}`. WebRTC starts video at a low bitrate and raises it as it finds bandwidth, so the first seconds of a stream are blurry and the browser may send a smaller picture than the camera captures; a higher "start" and "min" avoid that at the cost of bandwidth. The range applies to the video the server sends back, and is passed on to the browser for the video it sends, which Chromium-based browsers honor and others ignore. If None, the defaults of the browser and of aiortc apply (aiortc starts VP8 at 500 kbps and keeps it between 250 kbps and 1.5 Mbps).
             allow_extra_tracks: if True, connections that carry tracks beyond the modality (for example an audio track on a "video" stream) are accepted and the extra tracks are ignored. If False, such connections are rejected.
             icon: a path or URL to an image shown in place of the default pulsing icon while an audio stream is active.
             icon_button_color: the CSS color of the icon button of an audio stream. Defaults to the accent color of the theme.
@@ -182,6 +203,8 @@ class WebRTC(Component):
         else:
             self.microphone_options = microphone_options
         self.rtp_params = rtp_params or {}
+        _check_video_bitrate(video_bitrate)
+        self.video_bitrate = video_bitrate
         self.allow_extra_tracks = allow_extra_tracks
         self.icon_button_color = icon_button_color
         self.pulse_color = pulse_color
@@ -240,6 +263,7 @@ class WebRTC(Component):
     def get_config(self, cls: type[Block] | None = None) -> dict[str, Any]:
         config = super().get_config(cls)
         config.pop("server_rtc_configuration", None)
+        config.pop("video_bitrate", None)
         manager = self._manager()
         config["time_limit"] = manager.time_limit if manager else self.time_limit
         config["track_constraints"] = self._track_constraints()
@@ -351,6 +375,7 @@ class WebRTC(Component):
             time_limit=time_limit,
             allow_extra_tracks=self.allow_extra_tracks,
             server_rtc_configuration=self.server_rtc_configuration,
+            video_bitrate=self.video_bitrate,
         )
 
         # Each stream is one queue event: the frontend fires "stream" when the

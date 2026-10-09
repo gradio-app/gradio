@@ -37,6 +37,7 @@ from aiortc import (
 from aiortc.contrib.media import MediaRelay
 from aiortc.mediastreams import MediaStreamError
 
+from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
 from gradio.webrtc.handlers import (
     AudioVideoStreamHandlerImpl,
     HandlerType,
@@ -193,6 +194,7 @@ class ConnectionManager:
         time_limit: float | None,
         allow_extra_tracks: bool,
         server_rtc_configuration: dict[str, Any] | None,
+        video_bitrate: dict[str, int] | None = None,
     ) -> None:
         self.handler = handler
         self.mode = mode
@@ -200,6 +202,7 @@ class ConnectionManager:
         self.time_limit = time_limit
         self.allow_extra_tracks = allow_extra_tracks
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
+        self.video_bitrate = video_bitrate
         self.sessions: dict[str, Session] = {}
         self.admissions: dict[str, asyncio.Event] = defaultdict(asyncio.Event)
         self.pcs: dict[str, RTCPeerConnection] = {}
@@ -546,8 +549,12 @@ class ConnectionManager:
 
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
+        sdp = pc.localDescription.sdp
+        if self.video_bitrate:
+            limit_video_encoders(pc, self.video_bitrate)
+            sdp = add_bitrate_hints(sdp, self.video_bitrate)
         return {
-            "sdp": pc.localDescription.sdp,
+            "sdp": sdp,
             "type": pc.localDescription.type,
             # Counted from the stream's admission, so the browser can show
             # what is left of it

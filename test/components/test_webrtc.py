@@ -142,6 +142,48 @@ class TestWebRTC:
         with pytest.raises(ValueError, match="audio-video"):
             gr.WebRTC(modality="audio-video", mode="send")
 
+    @pytest.mark.parametrize(
+        "video_bitrate",
+        [{"maximum": 4000}, {"min": 0}, {"start": 1.5}, {"min": 2000, "max": 1000}],
+    )
+    def test_invalid_video_bitrate(self, video_bitrate):
+        with pytest.raises(ValueError, match="video_bitrate"):
+            gr.WebRTC(video_bitrate=video_bitrate)
+
+    def test_bitrate_hints_go_to_video_codecs_only(self):
+        from gradio.webrtc.bitrate import add_bitrate_hints
+
+        sdp = "\r\n".join(
+            [
+                "v=0",
+                "m=audio 9 UDP/TLS/RTP/SAVPF 96",
+                "a=rtpmap:96 opus/48000/2",
+                "a=fmtp:96 minptime=10",
+                "m=video 9 UDP/TLS/RTP/SAVPF 96 97 98",
+                "a=rtpmap:96 VP8/90000",
+                "a=rtpmap:97 rtx/90000",
+                "a=fmtp:97 apt=96",
+                "a=rtpmap:98 H264/90000",
+                "a=fmtp:98 packetization-mode=1",
+                "",
+            ]
+        )
+        assert add_bitrate_hints(sdp, {"min": 1000, "max": 4000}).split("\r\n") == [
+            "v=0",
+            "m=audio 9 UDP/TLS/RTP/SAVPF 96",
+            "a=rtpmap:96 opus/48000/2",
+            "a=fmtp:96 minptime=10",
+            "m=video 9 UDP/TLS/RTP/SAVPF 96 97 98",
+            "a=rtpmap:96 VP8/90000",
+            "a=fmtp:96 x-google-min-bitrate=1000;x-google-max-bitrate=4000",
+            "a=rtpmap:97 rtx/90000",
+            "a=fmtp:97 apt=96",
+            "a=rtpmap:98 H264/90000",
+            "a=fmtp:98 packetization-mode=1;x-google-min-bitrate=1000;"
+            "x-google-max-bitrate=4000",
+            "",
+        ]
+
     def test_stream_validation(self):
         with gr.Blocks():
             slider = gr.Slider()
@@ -475,6 +517,41 @@ class TestStreams:
         assert "webrtc-datachannel" in answer["sdp"]
         assert answer["time_limit"] is None
         assert "one" in h.manager.pcs
+        await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_video_bitrate_is_off_by_default(self, launched):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        answer = await h.connect(pc, "one")
+        assert "x-google" not in answer["sdp"]
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [{"video_bitrate": {"min": 1000, "start": 1500, "max": 4000}}],
+        indirect=True,
+    )
+    async def test_video_bitrate_applies_in_both_directions(self, launched):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        answer = await h.connect(pc, "one")
+        # The video the browser sends
+        assert (
+            "x-google-min-bitrate=1000;x-google-start-bitrate=1500;"
+            "x-google-max-bitrate=4000" in answer["sdp"]
+        )
+        # The video the server sends back
+        (sender,) = [s for s in h.manager.pcs["one"].getSenders() if s.track]
+        encoder = sender._RTCRtpSender__encoder
+        assert encoder.target_bitrate == 1_500_000
+        encoder.target_bitrate = 10_000_000
+        assert encoder.target_bitrate == 4_000_000
+        encoder.target_bitrate = 1
+        assert encoder.target_bitrate == 1_000_000
         await pc.close()
 
     @pytest.mark.asyncio
