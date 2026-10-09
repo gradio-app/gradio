@@ -180,8 +180,10 @@
 		}
 		stream_state = "closed";
 		active_time_limit = null;
-		// stop() ends the local tracks too, so reopen the camera for the preview
-		await access_webcam(selected_device?.deviceId);
+		// stop() ends the local tracks too, so reopen the camera for the
+		// preview. Without a connection (stopped while waiting in line, or it
+		// never connected) the preview is still running.
+		if (connection) await access_webcam(selected_device?.deviceId);
 	}
 
 	async function toggle_stream(): Promise<void> {

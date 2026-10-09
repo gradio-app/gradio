@@ -32,7 +32,8 @@
 		icon_radius: null,
 		button_labels: { start: "", stop: "", waiting: "" },
 		height: null,
-		width: null
+		width: null,
+		has_stream: false
 	});
 	gradio.watch_for_change();
 
@@ -51,8 +52,10 @@
 	// The loading status also reports the events that only take this
 	// component as an input, such as the one that pushes the input values, and
 	// those report a "closed" stream_state when they complete. Only the status
-	// of the stream's own event counts, which is the one that reports "waiting".
+	// of the stream's own event counts, the only one that reports "waiting".
 	let stream_fn_index: number | null = null;
+	// Whether the page wants a stream: from the request until it ends
+	let wants_stream = false;
 
 	let pending_turn: {
 		resolve: (admitted: boolean) => void;
@@ -70,10 +73,20 @@
 		request: () =>
 			new Promise((resolve) => {
 				settle_turn(false);
+				if (!gradio.props.has_stream) {
+					gradio.dispatch(
+						"error",
+						rejection_message({ meta: { error: "no_stream_handler" } })
+					);
+					resolve(false);
+					return;
+				}
+				wants_stream = true;
 				pending_turn = { resolve, saw_waiting: false };
 				gradio.dispatch("stream");
 			}),
 		end: () => {
+			wants_stream = false;
 			settle_turn(false);
 			gradio.dispatch("close_stream");
 		}
@@ -82,9 +95,16 @@
 	$effect(() => {
 		const status = gradio.shared.loading_status;
 		const state = status?.stream_state ?? null;
-		if (pending_turn && state === "waiting") stream_fn_index = status.fn_index;
+		if (state === "waiting") stream_fn_index = status.fn_index;
 		if (status?.fn_index !== stream_fn_index) return;
 		queue_state = state;
+		if (!wants_stream && (state === "waiting" || state === "open")) {
+			// A stream event the page no longer wants, e.g. one whose join was
+			// still on its way when the user pressed stop: end it before it
+			// takes a turn nobody uses
+			gradio.dispatch("close_stream");
+			return;
+		}
 		if (!pending_turn) return;
 		// Until the new event reports "waiting", the state can still be the one
 		// a previous stream left behind

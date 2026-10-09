@@ -38,6 +38,9 @@
 	let stream_state = $state<StreamState>("closed");
 	// Whether the stream's turn in the queue has come
 	let admitted = $state(false);
+	// Bumped by every start and stop, so that an attempt still awaiting can
+	// tell it has been superseded
+	let attempt = 0;
 
 	$effect(() => {
 		if (value === START_STREAM) {
@@ -55,6 +58,7 @@
 	}
 
 	function close_stream(): void {
+		attempt++;
 		const connection = pc;
 		pc = null;
 		stop(connection);
@@ -71,13 +75,14 @@
 	}
 
 	async function start_stream(): Promise<void> {
-		if (pc) close_stream();
+		if (stream_state !== "closed") close_stream();
+		const this_attempt = ++attempt;
 		const webrtc_id = new_webrtc_id();
 		onvalue?.(webrtc_id);
 		stream_state = "waiting";
 
 		const got_turn = await turn.request();
-		if (!is_waiting()) return;
+		if (this_attempt !== attempt || !is_waiting()) return;
 		if (!got_turn) {
 			close_stream();
 			return;
@@ -90,6 +95,7 @@
 		} catch (e) {
 			rtc_configuration = { error: String(e) };
 		}
+		if (this_attempt !== attempt) return;
 		if (rtc_configuration.error) {
 			onerror?.(rtc_configuration.error);
 			close_stream();

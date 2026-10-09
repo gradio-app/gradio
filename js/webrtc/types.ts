@@ -43,6 +43,8 @@ export interface WebRTCProps {
 	button_labels: { start: string; stop: string; waiting: string };
 	height: number | string | null;
 	width: number | string | null;
+	/** Whether a handler is attached with `.stream()`. */
+	has_stream: boolean;
 }
 
 export interface WebRTCEvents {

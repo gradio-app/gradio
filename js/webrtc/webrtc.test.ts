@@ -143,6 +143,7 @@ const base_props = {
 	button_labels: { start: "", stop: "", waiting: "" },
 	height: null,
 	width: null,
+	has_stream: true,
 	interactive: true,
 	server: make_server()
 };
@@ -373,6 +374,83 @@ describe("WebRTC send-receive video", () => {
 		await waitFor(() => {
 			expect(getByRole("button", { name: "start stream" })).toBeVisible();
 		});
+	});
+});
+
+describe("WebRTC queue turn", () => {
+	async function ready_webcam(props: Record<string, any> = {}) {
+		const server = make_server();
+		const result = await render(WebRTC, { ...base_props, server, ...props });
+		await fireEvent.click(result.getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(
+				result.getByRole("button", { name: "start stream" })
+			).toBeVisible();
+		});
+		return { server, ...result };
+	}
+
+	test("without a stream handler, starting reports an error at once", async () => {
+		const { getByRole, listen, server } = await ready_webcam({
+			has_stream: false
+		});
+		const error = listen("error");
+		const stream = listen("stream");
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await waitFor(() => {
+			expect(error).toHaveBeenCalledWith(
+				"No stream handler is attached to this component."
+			);
+		});
+		expect(stream).not.toHaveBeenCalled();
+		expect(server.offer).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
+				"audio.record"
+			);
+		});
+	});
+
+	test("a stream event the page no longer wants is ended", async () => {
+		const { getByRole, listen, set_data } = await ready_webcam();
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		// Stopped before the join went out
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		const close_stream = listen("close_stream");
+		// The join still reaches the queue
+		await queue_reports(set_data, "waiting");
+		await waitFor(() => expect(close_stream).toHaveBeenCalled());
+	});
+
+	test("stopping while waiting keeps the one camera preview", async () => {
+		const { getByRole, set_data } = await ready_webcam();
+		const get_user_media = vi.mocked(navigator.mediaDevices.getUserMedia);
+		const opened = get_user_media.mock.calls.length;
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await queue_reports(set_data, "waiting");
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await queue_reports(set_data, "closed");
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		// The preview was never stopped, so nothing reopens the camera
+		expect(get_user_media.mock.calls.length).toBe(opened);
+	});
+
+	test("starting a receive stream again while waiting keeps the new attempt", async () => {
+		const server = make_server();
+		const { listen, set_data } = await render(WebRTC, {
+			...base_props,
+			mode: "receive",
+			server
+		});
+		const stream = listen("stream");
+		await set_data({ value: START_STREAM });
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+		await queue_reports(set_data, "waiting");
+		// The trigger fires again while the first attempt waits in line
+		await set_data({ value: START_STREAM });
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(2));
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalledTimes(1));
 	});
 });
 
