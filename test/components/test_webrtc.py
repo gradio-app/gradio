@@ -55,6 +55,23 @@ class SyncHandler(StreamHandler):
         return None
 
 
+class FailingShutdown(SyncHandler):
+    def copy(self):
+        return FailingShutdown()
+
+    def shutdown(self):
+        raise RuntimeError("shutdown failed")
+
+
+class CloseOnEmit(AsyncStreamHandler):
+    async def receive(self, frame):
+        pass
+
+    async def emit(self):
+        await asyncio.sleep(0.2)
+        return CloseStream("done")
+
+
 class TestWebRTC:
     def test_component_functions(self):
         webrtc = gr.WebRTC(
@@ -750,6 +767,38 @@ class TestStreams:
         await h.webrtc._push_inputs("one", 0)
         # The handler ends the stream: the server closes its side and the
         # event, whether or not the browser reacts to "end_stream"
+        await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
+        await h.wait_until(lambda: not h.event_running(event_id))
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"modality": "audio", "handler": FailingShutdown}], indirect=True
+    )
+    async def test_a_failing_shutdown_still_ends_the_stream(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(audio=True)
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        # The browser leaves; the handler's shutdown() raises while cleaning up
+        await pc.close()
+        await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [{"modality": "audio", "mode": "send", "handler": CloseOnEmit}],
+        indirect=True,
+    )
+    async def test_close_stream_ends_a_send_only_audio_stream(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(audio=True)
+        await h.connect(pc, "one")
+        server_pc = h.manager.pcs["one"]
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        # Nothing plays back in "send", but CloseStream still ends the stream
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
         await h.wait_until(lambda: not h.event_running(event_id))
         await pc.close()

@@ -35,6 +35,7 @@ from aiortc import (
     RTCSessionDescription,
 )
 from aiortc.contrib.media import MediaRelay
+from aiortc.mediastreams import MediaStreamError
 
 from gradio.webrtc.handlers import (
     AudioVideoStreamHandlerImpl,
@@ -227,6 +228,19 @@ class ConnectionManager:
         self.admissions[webrtc_id].set()
         return True
 
+    @staticmethod
+    async def _drain(track: AudioCallback) -> None:
+        """
+        Runs an audio handler whose output nobody plays (mode="send"): its
+        output still has to be read, or CloseStream never takes effect and
+        the frames pile up.
+        """
+        while track.readyState != "ended":
+            try:
+                await track.recv()
+            except MediaStreamError:
+                return
+
     def _spawn(self, coroutine: Any) -> asyncio.Task:
         # The event loop keeps only weak references to tasks
         task = asyncio.create_task(coroutine)
@@ -319,16 +333,23 @@ class ConnectionManager:
         self._close_connection(webrtc_id)
         self.pcs.pop(webrtc_id, None)
         connection = self.connections.pop(webrtc_id, [])
-        for conn in connection:
-            if isinstance(conn, AudioCallback):
-                if inspect.iscoroutinefunction(conn.event_handler.shutdown):
-                    self._spawn(conn.event_handler.shutdown())
-                else:
-                    conn.event_handler.shutdown()
-                conn.event_handler.reset()
         self.data_channels.pop(webrtc_id, None)
         self.pending_candidates.pop(webrtc_id, None)
-        self.end(webrtc_id)
+        try:
+            for conn in connection:
+                if not isinstance(conn, AudioCallback):
+                    continue
+                # The handler's own clean-up must not keep the stream going
+                try:
+                    if inspect.iscoroutinefunction(conn.event_handler.shutdown):
+                        self._spawn(conn.event_handler.shutdown())
+                    else:
+                        conn.event_handler.shutdown()
+                except Exception:
+                    logger.exception("Stream handler shutdown() failed")
+                conn.event_handler.reset()
+        finally:
+            self.end(webrtc_id)
         return connection
 
     def set_input(self, webrtc_id: str, *args: Any) -> None:
@@ -462,6 +483,8 @@ class ConnectionManager:
                     conn.set_channel(self.data_channels[webrtc_id])
             if self.mode == "send-receive":
                 pc.addTrack(cb)
+            elif self.mode == "send" and isinstance(cb, AudioCallback):
+                self._spawn(self._drain(cb))
             elif self.mode == "send":
                 self._spawn(cb.start())
 
