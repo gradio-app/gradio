@@ -959,6 +959,34 @@ class TestRoutes:
         assert response.headers["content-length"] == str(len(expected))
         assert response.content == expected
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "content, range_header",
+        [
+            (b"abc", "bytes=3-4"),
+            (b"abc", "bytes=99-100"),
+            (b"", "bytes=0-0"),
+            (b"", "bytes=0-3"),
+        ],
+    )
+    async def test_file_range_unsatisfiable(self, tmp_path, content, range_header):
+        path = tmp_path / "file.txt"
+        path.write_bytes(content)
+        gr.set_static_paths(paths=[path])
+        with gr.Blocks() as demo:
+            pass
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=demo.app), base_url="http://test"
+        ) as client:
+            response = await asyncio.wait_for(
+                client.get(
+                    f"{API_PREFIX}/file={path}", headers={"Range": range_header}
+                ),
+                timeout=30,
+            )
+        assert response.status_code == 416
+        assert response.headers["content-range"] == f"bytes */{len(content)}"
+
     def test_mount_gradio_app(self):
         app = FastAPI()
 

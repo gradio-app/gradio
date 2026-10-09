@@ -107,6 +107,12 @@ class RangedFileResponse(Response):
                 if not stat.S_ISREG(mode):
                     raise RuntimeError(f"File at path {self.path} is not a file.")
 
+        if self.range.start >= self.stat_result.st_size:
+            raise HTTPException(
+                status_code=416,
+                headers={"Content-Range": f"bytes */{self.stat_result.st_size}"},
+            )
+
         byte_range = self.range.clamp(0, self.stat_result.st_size - 1)
         self.set_range_headers(byte_range)
 
@@ -135,6 +141,12 @@ class RangedFileResponse(Response):
                 while remaining_bytes > 0:
                     chunk_size = min(self.chunk_size, remaining_bytes)
                     chunk = await file.read(chunk_size)
+                    if not chunk:
+                        # Headers have already been sent; abort the response rather
+                        # than completing it with fewer bytes than Content-Length.
+                        raise RuntimeError(
+                            "File ended before the requested range was read."
+                        )
                     remaining_bytes -= len(chunk)
                     await send(
                         {
