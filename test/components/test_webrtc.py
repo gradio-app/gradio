@@ -32,6 +32,14 @@ def flip(frame, *args):
     return frame
 
 
+seen_requests: list = []
+
+
+def needs_request(frame, value, request: gr.Request):
+    seen_requests.append(request)
+    return frame
+
+
 def fail_with_gr_error(frame, *args):
     raise gr.Error("Bad frame", title="Oops")
 
@@ -58,6 +66,11 @@ class EchoHandler(AsyncStreamHandler):
 
     async def emit(self):
         return None
+
+
+class StartsWithRequest(EchoHandler):
+    async def start_up(self, request: gr.Request):
+        seen_requests.append(request)
 
 
 class SyncHandler(StreamHandler):
@@ -582,6 +595,28 @@ class TestStreams:
         message = await self.stream_until_message(h, pc, "warning")
         assert message["message"] == "Careful"
         assert "one" in h.manager.pcs
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched, tracks",
+        [
+            ({"handler": needs_request}, {"video": True}),
+            ({"modality": "audio", "handler": StartsWithRequest}, {"audio": True}),
+        ],
+        indirect=["launched"],
+    )
+    async def test_handlers_can_take_the_request(self, launched, tracks):
+        h = launched
+        seen_requests.clear()
+        await h.start("one")
+        pc = await make_offer(**tracks)
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.webrtc._push_inputs("one", 0.2)
+        await h.wait_until(lambda: bool(seen_requests))
+        assert isinstance(seen_requests[0], gr.Request)
+        assert seen_requests[0].headers["host"]
         await pc.close()
 
     @pytest.mark.asyncio

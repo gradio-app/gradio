@@ -58,6 +58,7 @@ from gradio.webrtc.utils import (
     AdditionalOutputs,
     Context,
     StreamNotifier,
+    bind_special_args,
     webrtc_error_handler,
 )
 
@@ -135,12 +136,14 @@ def to_rtc_configuration(
     )
 
 
-def instantiate_handler(handler: HandlerType) -> HandlerType:
+def instantiate_handler(handler: HandlerType, request: Any = None) -> HandlerType:
     """
     Returns the handler object for a new connection: a new instance when a
     handler class was given, a copy when an instance was given, and the
     callable itself otherwise. Handler methods are wrapped so that exceptions
-    reach the client as errors.
+    reach the client as errors. Functions, and `start_up()` of handler
+    classes, can take `gr.Request`, `gr.OAuthProfile` and `gr.OAuthToken`
+    parameters like event listeners; `request` is the visitor's.
     """
     instance: StreamHandlerImpl
     if inspect.isclass(handler) and issubclass(handler, StreamHandlerBase):
@@ -149,12 +152,13 @@ def instantiate_handler(handler: HandlerType) -> HandlerType:
         instance = cast(StreamHandlerImpl, handler).copy()
     elif isinstance(handler, VideoStreamHandler):
         return VideoStreamHandler(
-            callable=webrtc_error_handler(handler.callable),
+            callable=webrtc_error_handler(bind_special_args(handler.callable, request)),
             fps=handler.fps,
             skip_frames=handler.skip_frames,
         )
     else:
-        return webrtc_error_handler(cast(Callable, handler))
+        return webrtc_error_handler(bind_special_args(cast(Callable, handler), request))
+    cast(Any, instance).start_up = bind_special_args(instance.start_up, request)
     for name in (
         "emit",
         "receive",
@@ -387,11 +391,14 @@ class ConnectionManager:
                 return None
         return self.sessions.get(webrtc_id)
 
-    async def handle_offer(self, body: dict[str, Any]) -> dict[str, Any]:
+    async def handle_offer(
+        self, body: dict[str, Any], request: Any = None
+    ) -> dict[str, Any]:
         """
         Handles one signalling message from the client: an SDP offer, which
         creates the peer connection and returns the answer, or a trickled ICE
-        candidate for an existing connection.
+        candidate for an existing connection. `request` is the visitor's
+        `gr.Request`, for the handler's special parameters.
         """
         if body.get("type") == "ice-candidate" and "candidate" in body:
             return await self._add_ice_candidate(body)
@@ -418,7 +425,7 @@ class ConnectionManager:
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
         self.pcs[webrtc_id] = pc
-        handler = instantiate_handler(self.handler)
+        handler = instantiate_handler(self.handler, request)
         self.handlers[webrtc_id] = handler
         set_outputs = self._output_setter(webrtc_id)
         context = Context(webrtc_id=webrtc_id)

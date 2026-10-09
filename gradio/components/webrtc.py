@@ -308,7 +308,7 @@ class WebRTC(Component):
         """
         Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as a numpy array (BGR) followed by the values of the other inputs, and returns the frame to show. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
         Parameters:
-            fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`.
+            fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`. Like an event listener, a function (and the `start_up` method of a handler class) can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, which receive the values of the visitor who started the stream.
             inputs: the components whose values are passed to the handler. In mode="send" and mode="send-receive", the first element must be this component. The values of the other inputs are passed to video functions after the frame, to receive-mode generators as arguments, and to stream handlers through `latest_args` after `wait_for_args()`.
             outputs: this component, plus the components that receive the values of `AdditionalOutputs`, in order. Each `AdditionalOutputs` is delivered, oldest first; if a handler emits faster than they can be delivered and more than 64 are waiting, the oldest are dropped.
             time_limit: the maximum duration of a stream in seconds, counted from when its turn in the queue comes. The stream is closed when it is reached, and the next user in line gets the slot.
@@ -566,11 +566,16 @@ class WebRTC(Component):
             return {"error": str(e)}
 
     @server
-    async def offer(self, body: dict[str, Any]) -> dict[str, Any]:
+    async def offer(
+        self, body: dict[str, Any], request: Request | None = None
+    ) -> dict[str, Any]:
         manager = self._manager()
         if manager is None:
             return {
                 "status": "failed",
                 "meta": {"error": "no_stream_handler"},
             }
-        return await manager.handle_offer(body)
+        # The component_server route passes the raw fastapi request
+        if request is not None and not isinstance(request, Request):
+            request = Request(request=request)
+        return await manager.handle_offer(body, request)

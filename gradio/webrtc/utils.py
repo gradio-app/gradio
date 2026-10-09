@@ -276,6 +276,48 @@ async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
         return None
 
 
+def bind_special_args(fn: Callable, request: Any) -> Callable:
+    """
+    Returns `fn` with its special parameters (`gr.Request`, `gr.OAuthProfile`,
+    `gr.OAuthToken`) filled in for one connection, as for an event listener;
+    the stream passes the other arguments. The values are computed on the
+    first call, inside the handler, so that e.g. a missing sign-in is reported
+    like any other handler error.
+    """
+    from gradio.helpers import special_args
+
+    # Where to insert what, by the number of arguments the stream passes
+    inserts: dict[int, list[tuple[int, Any]]] = {}
+
+    def with_specials(args: tuple) -> list:
+        if len(args) not in inserts:
+            marks = [object() for _ in args]
+            filled, *_ = special_args(fn, list(marks), request)
+            inserts[len(args)] = [
+                (i, value)
+                for i, value in enumerate(filled)
+                if not any(value is mark for mark in marks)
+            ]
+        call = list(args)
+        for i, value in inserts[len(args)]:
+            call.insert(i, value)
+        return call
+
+    if inspect.iscoroutinefunction(fn):
+
+        @functools.wraps(fn)
+        async def async_bound(*args):
+            return await fn(*with_specials(args))
+
+        return async_bound
+
+    @functools.wraps(fn)
+    def bound(*args):
+        return fn(*with_specials(args))
+
+    return bound
+
+
 def webrtc_error_handler(func: Callable) -> Callable:
     """Wraps handler methods so that their errors are reported (see handler_failed)."""
 
