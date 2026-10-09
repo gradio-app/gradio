@@ -438,6 +438,30 @@ describe("DependencyManager.resume", () => {
 		expect(dispatch).not.toHaveBeenCalled();
 	});
 
+	test("ends a stream that was running when the page was reloaded", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
+		}
+		const stream = dependency(0, "stream", []);
+		stream.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager([stream], client);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		// Its chunks came from the page that is gone, so it would only hold its
+		// place in the concurrency limit until it timed out
+		expect(resumed.close_stream).toHaveBeenCalled();
+		expect(resumed.acknowledge).toHaveBeenCalled();
+		// The next "stream" event from the component starts a new stream
+		// instead of sending a chunk to this one
+		expect((dependency_manager as any).submissions.has(0)).toBe(false);
+	});
+
 	test("builds the block of a resumed render function", async () => {
 		const render_data = {
 			layout: {},

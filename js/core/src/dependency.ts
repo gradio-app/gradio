@@ -778,6 +778,16 @@ export class DependencyManager {
 				if (!dep) return;
 
 				const submission = submissions[index];
+				if (dep.connection_type === "stream") {
+					// A stream does not outlive the page: its chunks (or, for
+					// gr.WebRTC, its peer connection) came from the page that was
+					// reloaded, so the event would only hold its place in the
+					// concurrency limit until it timed out. End it, and leave the
+					// component to start a new stream.
+					submission.close_stream();
+					await submission.acknowledge();
+					return;
+				}
 				this.submissions.set(fn_index, submission);
 				this.loading_stati.update({
 					status: "pending",
