@@ -180,17 +180,40 @@ class PendingAsset:
 
 
 class HistoryTarget(NamedTuple):
-    """Where history goes: which bucket, whose credential, which app."""
+    """Where history goes: which bucket, whose credential, which app.
+
+    The credential is always one that can write this one bucket on the caller's
+    behalf, but it reaches the app two ways. Either the caller delegated to the
+    app directly — a local app, a self-hosted one, an OAuth sign-in — or the
+    platform hosting the app minted one for them, narrow enough that handing it
+    to code they never agreed to trust stays a small thing to do. `managed`
+    says which, because a minted credential is scoped to a bucket that already
+    exists and cannot create one.
+    """
 
     bucket: str
     token: str
     app_id: str
+    #: Whether the platform minted this credential rather than the caller
+    #: handing it over.
+    managed: bool = False
 
     @classmethod
-    def build(cls, bucket: str, token: str, app_id: str) -> HistoryTarget:
+    def build(
+        cls, bucket: str, token: str, app_id: str, managed: bool = False
+    ) -> HistoryTarget:
         validate_bucket_id(bucket)
         validate_segment(app_id)
-        return cls(bucket, token, app_id)
+        return cls(bucket, token, app_id, managed)
+
+    def save(self, record: HistoryRecord, assets: dict[str, PendingAsset] | None):
+        return save_record(self, record, assets)
+
+    def records(self, limit: int = 50) -> list[HistoryRecord]:
+        return list_records(self, limit)
+
+    def asset(self, endpoint: str, record_id: str, filename: str):
+        return get_asset_bytes(self, endpoint, record_id, filename)
 
 
 def _api(target: HistoryTarget) -> HfApi:
@@ -230,6 +253,11 @@ def _invalidate_list_cache(bucket: str, app_id: str) -> None:
 
 def ensure_bucket(target: HistoryTarget) -> None:
     """Create the bucket if it does not exist; new ones default to private."""
+    if target.managed:
+        # A minted credential is scoped to one bucket that the platform has
+        # already created, and creating repos is exactly the power it was
+        # narrowed to exclude. Asking would only ever 403.
+        return
     key = (target.token, target.bucket)
     with _ensure_lock:
         if key in _ensured:
@@ -475,6 +503,18 @@ def _content_type_of(node, path_or_url: str) -> str:
 
 
 BUCKET_HEADER = "x-gradio-history-bucket"
+
+# What a platform hosting this app attaches to a request when it is willing to
+# keep history for whoever is calling: the bucket it keeps that caller's runs
+# in, and a credential narrowed to that one bucket. The pair is used whole or
+# not at all — a token scoped to one bucket is meaningless against another.
+#
+# Nothing here is trusted because of what it says. The headers are only ever
+# believed because the platform sits in front of the app and sets them itself,
+# the way the Spaces proxy already replaces what a browser sent with what it
+# will vouch for.
+PLATFORM_TOKEN_HEADER = "x-hf-history-token"
+PLATFORM_BUCKET_HEADER = "x-hf-history-bucket"
 MAX_CONCURRENT_WRITES = 8
 
 
@@ -551,7 +591,11 @@ def resolve_token(request) -> str | None:
     except Exception:
         info = None
     token = (info or {}).get("access_token")
-    if isinstance(token, str) and token:
+    # Off Spaces, `attach_oauth` mocks the login routes and puts a sentinel in the
+    # session rather than a real credential. Returning it would send it to the Hub
+    # and 401, so a locally "signed in" user falls through to the host's own token
+    # — which is the identity the mocked session is standing in for anyway.
+    if isinstance(token, str) and token and token != oauth.MOCKED_OAUTH_TOKEN:
         return token
     if raw is not None and (
         _request_has_write_token(raw) or _is_direct_local_request(raw)
@@ -566,6 +610,21 @@ def require_token(request: Request) -> str:
     if not token:
         raise fastapi.HTTPException(401, "sign in to use run history")
     return token
+
+
+def resolve_platform_credentials(request) -> tuple[str, str] | None:
+    """The bucket and credential this app's platform minted for the caller."""
+    raw = _fastapi_request(request)
+    if raw is None:
+        return None
+    try:
+        token = raw.headers.get(PLATFORM_TOKEN_HEADER)
+        bucket = raw.headers.get(PLATFORM_BUCKET_HEADER)
+    except Exception:
+        return None
+    if not token or not bucket:
+        return None
+    return bucket.strip(), token
 
 
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
@@ -591,18 +650,33 @@ def resolve_target(
     bucket_id: str | None = None,
     app_id: str | None = None,
 ) -> HistoryTarget | None:
-    """The history target for this caller, or None if history is off."""
+    """Where this caller's runs go, or None if nothing can be recorded.
+
+    A credential the caller handed this app directly wins: they chose to
+    delegate, and they chose the bucket, and a platform default must not
+    quietly overrule either. Only when there is no such credential does the
+    minted one come into play — which is the ordinary case for a visitor to a
+    Space, who has delegated nothing and is not being asked to.
+
+    The two never mix. A minted token is scoped to the bucket it came with, so
+    pairing it with a bucket the caller named would only produce a write that
+    is refused.
+    """
     blocks = app.get_blocks()
     if not getattr(blocks, "run_history", True):
         return None
+    app_id = app_id or app_id_of(blocks)
     bucket = resolve_bucket_id(blocks, request, bucket_id)
-    if not bucket:
-        return None
     token = resolve_token(request)
-    if token is None:
-        return None
+    managed = False
+    if not (bucket and token is not None):
+        platform = resolve_platform_credentials(request)
+        if platform is None:
+            return None
+        bucket, token = platform
+        managed = True
     try:
-        return HistoryTarget.build(bucket, token, app_id or app_id_of(blocks))
+        return HistoryTarget.build(bucket, token, app_id, managed)
     except ValueError:
         logger.debug("history: ignoring invalid bucket id %r", bucket)
         return None
@@ -650,7 +724,7 @@ async def record_run(
 
     limiter: anyio.CapacityLimiter = app.state.history_write_limiter
     async with limiter:
-        await anyio.to_thread.run_sync(save_record, target, record, merged)
+        await anyio.to_thread.run_sync(target.save, record, merged)
     return record
 
 
@@ -693,15 +767,32 @@ async def offload(fn, *args):
 
 def get_target(
     request: Request,
-    token: Annotated[str, Depends(require_token)],
-    bucket: Annotated[str, Query(min_length=3, max_length=200)],
+    bucket: Annotated[str | None, Query(min_length=3, max_length=200)] = None,
 ) -> HistoryTarget:
-    """The bucket named on this request, addressed with the caller's token."""
-    blocks = request.app.get_blocks()
-    try:
-        return HistoryTarget.build(bucket, token, app_id_of(blocks))
-    except ValueError as exc:
-        raise fastapi.HTTPException(422, "invalid bucket id") from exc
+    """Which history this request reads, resolved the way a write would be.
+
+    Reading has to match writing or a run would be recorded somewhere it could
+    never be read back from. A named bucket is addressed with the caller's own
+    token, as before; otherwise the platform's own bucket and credential
+    answer, and the caller needs to name nothing — which is just as well, since
+    a visitor has no idea where their history is kept.
+    """
+    app_id = app_id_of(request.app.get_blocks())
+    token = resolve_token(request)
+    if bucket and token:
+        try:
+            return HistoryTarget.build(bucket, token, app_id)
+        except ValueError as exc:
+            raise fastapi.HTTPException(422, "invalid bucket id") from exc
+    platform = resolve_platform_credentials(request)
+    if platform is not None:
+        try:
+            return HistoryTarget.build(platform[0], platform[1], app_id, True)
+        except ValueError as exc:
+            raise fastapi.HTTPException(422, "invalid bucket id") from exc
+    if not token:
+        raise fastapi.HTTPException(401, "sign in to use run history")
+    raise fastapi.HTTPException(422, "bucket is required")
 
 
 TargetDep = Annotated[HistoryTarget, Depends(get_target)]

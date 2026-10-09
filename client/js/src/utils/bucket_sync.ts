@@ -127,18 +127,28 @@ export async function list_user_buckets(
 	);
 }
 
+/**
+ * `bucket` is omitted when the app records through its platform rather than to
+ * a bucket the caller named: there is no bucket to ask for, and the server
+ * answers for whoever the request says is calling.
+ */
 export async function list_bucket_records(
 	root: string,
-	bucket: string
+	bucket?: string | null,
+	limit?: number
 ): Promise<HistoryResult<HistoryRecord[]>> {
-	return request(url(root, "records", { bucket }), {}, [], (b) =>
+	const params = {
+		...(bucket ? { bucket } : {}),
+		...(limit ? { limit: String(limit) } : {})
+	};
+	return request(url(root, "records", params), {}, [], (b) =>
 		Array.isArray(b?.records) ? b.records : []
 	);
 }
 
 export function asset_url(
 	root: string,
-	bucket: string,
+	bucket: string | null | undefined,
 	endpoint: string,
 	record_id: string,
 	filename: string
@@ -148,6 +158,49 @@ export function asset_url(
 		`records/${encodeURIComponent(endpoint)}/${encodeURIComponent(
 			record_id
 		)}/assets/${encodeURIComponent(filename)}`,
-		{ bucket }
+		bucket ? { bucket } : undefined
 	);
+}
+
+/**
+ * Swap every `{"__asset__": "a001.png"}` marker in a record for a node the
+ * browser can actually fetch. The bytes live in a private bucket, so the URL
+ * points at this app's proxy route rather than at the Hub.
+ *
+ * Shaped like a gradio `FileData` so that a frontend can hand the value
+ * straight to a component, and idempotent, so re-resolving a record is safe.
+ */
+export function resolve_record_assets(
+	root: string,
+	bucket: string | null | undefined,
+	record: HistoryRecord
+): HistoryRecord {
+	const resolve = (value: unknown): unknown => {
+		if (Array.isArray(value)) return value.map(resolve);
+		if (!value || typeof value !== "object") return value;
+		const marker = (value as { __asset__?: unknown }).__asset__;
+		if (typeof marker === "string") {
+			const url = asset_url(
+				root,
+				bucket,
+				record.endpoint,
+				record.record_id,
+				marker
+			);
+			return {
+				path: url,
+				url,
+				orig_name: marker,
+				meta: { _type: "gradio.FileData" }
+			};
+		}
+		return Object.fromEntries(
+			Object.entries(value).map(([key, item]) => [key, resolve(item)])
+		);
+	};
+	return {
+		...record,
+		inputs: resolve(record.inputs),
+		outputs: resolve(record.outputs)
+	};
 }

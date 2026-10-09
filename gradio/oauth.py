@@ -15,6 +15,11 @@ from huggingface_hub import get_token, whoami
 from gradio.utils import get_space
 
 OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID")
+
+# The access token the mocked local-dev OAuth routes put in the session. It is
+# not a real credential, so anything that would send a token to the Hub has to
+# recognise it and fall back to the host's own token instead.
+MOCKED_OAUTH_TOKEN = "mock-oauth-token-for-local-dev"
 OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET")
 OAUTH_SCOPES = os.environ.get("OAUTH_SCOPES")
 OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
@@ -383,7 +388,7 @@ def _get_mocked_oauth_info() -> typing.Dict:
         )
 
     return {
-        "access_token": "mock-oauth-token-for-local-dev",
+        "access_token": MOCKED_OAUTH_TOKEN,
         "token_type": "bearer",
         "expires_in": 3600,
         "id_token": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
