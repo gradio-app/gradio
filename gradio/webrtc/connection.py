@@ -407,6 +407,8 @@ class ConnectionManager:
         self.handlers[webrtc_id] = handler
         set_outputs = self._output_setter(webrtc_id)
         context = Context(webrtc_id=webrtc_id)
+        # Whether the webcam preview is mirrored on the client
+        mirror = body.get("mirror") is True
         rejected: list[str] = []
 
         @pc.on("iceconnectionstatechange")
@@ -446,6 +448,7 @@ class ConnectionManager:
                     set_additional_outputs=set_outputs,
                     mode=cast(Literal["send", "send-receive"], self.mode),
                     context=context,
+                    mirror=mirror,
                     **extra,
                 )
             elif self.modality == "audio-video" and track.kind == "video":
@@ -456,6 +459,7 @@ class ConnectionManager:
                     set_additional_outputs=set_outputs,
                     fps=av_handler.fps,
                     context=context,
+                    mirror=mirror,
                 )
             elif self.modality in ["audio", "audio-video"] and track.kind == "audio":
                 audio_handler = cast(StreamHandlerImpl, handler)

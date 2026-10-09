@@ -374,8 +374,12 @@ class Harness:
         await self.wait_until(lambda: webrtc_id in self.manager.sessions)
         return event_id
 
-    async def offer(self, pc, webrtc_id, component=None):
-        body = {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
+    async def offer(self, pc, webrtc_id, component=None, **extra):
+        body = {
+            "sdp": pc.localDescription.sdp,
+            "type": pc.localDescription.type,
+            **extra,
+        }
         if webrtc_id is not None:
             body["webrtc_id"] = webrtc_id
         return await self.server_fn("offer", body, component)
@@ -471,6 +475,19 @@ class TestStreams:
         assert "webrtc-datachannel" in answer["sdp"]
         assert answer["time_limit"] is None
         assert "one" in h.manager.pcs
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mirror", [True, False])
+    async def test_the_offer_says_whether_the_webcam_is_mirrored(
+        self, launched, mirror
+    ):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        answer = await h.offer(pc, "one", mirror=mirror)
+        assert answer["type"] == "answer"
+        assert h.manager.connections["one"][0].mirror is mirror
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1022,6 +1039,20 @@ def video_frame(pts: int):
     return frame
 
 
+def left_column_frame():
+    import fractions
+
+    import numpy as np
+    from av import VideoFrame
+
+    array = np.zeros((16, 16, 3), dtype=np.uint8)
+    array[:, 0] = 255
+    frame = VideoFrame.from_ndarray(array, "bgr24")
+    frame.pts = 0
+    frame.time_base = fractions.Fraction(1, 90000)
+    return frame
+
+
 async def count_ticks_while(coro):
     """Awaits `coro` and returns its result plus how often the loop ticked."""
     ticks = 0
@@ -1069,6 +1100,62 @@ class TestVideoTracks:
         out = await cb.recv()
         assert out.pts == expected_pts
         assert cb.frame_queue.qsize() == (0 if skip_frames else 4)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mirror", [True, False])
+    async def test_mirrored_webcam_gives_the_handler_mirrored_frames(self, mirror):
+        received = []
+
+        def handler(frame):
+            received.append(frame)
+            return frame
+
+        cb = self.callback(handler, mirror=mirror)
+        cb.frame_queue.put_nowait(left_column_frame())
+        await cb.recv()
+        # What the preview showed: the white column is now on the right
+        assert received[0][0, -1 if mirror else 0, 0] == 255
+        # Handlers draw on it in place (e.g. with OpenCV)
+        assert received[0].flags.c_contiguous
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mirror", [True, False])
+    async def test_mirrored_webcam_gives_video_receive_mirrored_frames(self, mirror):
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc import AudioVideoStreamHandler
+        from gradio.webrtc.tracks import HandlerVideoTrack
+        from gradio.webrtc.utils import Context
+
+        class OneFrame:
+            frames = [left_column_frame()]
+
+            async def recv(self):
+                if self.frames:
+                    return self.frames.pop()
+                raise MediaStreamError
+
+        class Handler(AudioVideoStreamHandler):
+            received = []
+
+            def receive(self, frame):
+                pass
+
+            def emit(self):
+                pass
+
+            def video_receive(self, frame):
+                self.received.append(frame)
+
+            def video_emit(self):
+                pass
+
+        track = HandlerVideoTrack(
+            OneFrame(), event_handler=Handler(), context=Context("id"), mirror=mirror
+        )
+        track.channel_set.set()
+        await track.process_frames()
+        assert Handler.received[0][0, -1 if mirror else 0, 0] == 255
 
     @pytest.mark.asyncio
     async def test_sync_handler_does_not_block_the_event_loop(self):

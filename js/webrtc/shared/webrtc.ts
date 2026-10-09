@@ -11,6 +11,8 @@ export interface StartOptions {
 	/** Track kind to receive when no local stream is sent. */
 	modality: "video" | "audio";
 	rtp_params?: Record<string, any>;
+	/** Whether the server should mirror the frames, as the webcam preview is. */
+	mirror?: boolean;
 	on_message?: (msg: ControlMessage) => void;
 	on_reject?: (response: Record<string, any>) => void;
 }
@@ -51,6 +53,7 @@ export async function start({
 	webrtc_id,
 	modality,
 	rtp_params = {},
+	mirror = false,
 	on_message = () => {},
 	on_reject = () => {}
 }: StartOptions): Promise<Record<string, any>> {
@@ -94,7 +97,8 @@ export async function start({
 	const response = await offer({
 		sdp: pc.localDescription?.sdp,
 		type: pc.localDescription?.type,
-		webrtc_id
+		webrtc_id,
+		mirror
 	});
 	if (!response || response.status === "failed") {
 		on_reject(response ?? {});

@@ -69,9 +69,11 @@ class VideoCallback(VideoStreamTrack):
         mode: Literal["send-receive", "send"] = "send-receive",
         fps: int = 30,
         skip_frames: bool = True,
+        mirror: bool = False,
     ) -> None:
         super().__init__()
         self.track = track
+        self.mirror = mirror
         self.event_handler = event_handler
         self.latest_args: list[Any] | None = None
         self.channel = channel
@@ -99,6 +101,14 @@ class VideoCallback(VideoStreamTrack):
 
     def array_to_frame(self, array: Any) -> VideoFrame:
         return VideoFrame.from_ndarray(array, format="bgr24")
+
+    def frame_to_array(self, frame: VideoFrame) -> npt.NDArray[np.uint8]:
+        array = cast(npt.NDArray[np.uint8], frame.to_ndarray(format="bgr24"))
+        if self.mirror:
+            # What the mirrored preview showed, as in gr.Image captures;
+            # contiguous so that handlers can draw on it in place
+            array = np.ascontiguousarray(array[:, ::-1])
+        return array
 
     async def process_frames(self):
         while not self.thread_quit.is_set():
@@ -144,10 +154,15 @@ class VideoCallback(VideoStreamTrack):
                 while not self.frame_queue.empty():
                     frame = self.frame_queue.get_nowait()
             await self.wait_for_channel()
-            frame_array = frame.to_ndarray(format="bgr24")
+            frame_array = self.frame_to_array(frame)
             if self.latest_args is None:
                 # The values of the extra inputs have not arrived yet.
-                return frame
+                if not self.mirror:
+                    return frame
+                unprocessed = self.array_to_frame(frame_array)
+                unprocessed.pts = frame.pts
+                unprocessed.time_base = frame.time_base
+                return unprocessed
 
             # Run the handler in a worker thread: it is usually a model call,
             # and on the event loop it would stall every other connection and
@@ -213,9 +228,7 @@ class HandlerVideoTrack(VideoCallback):
             try:
                 await self.channel_set.wait()
                 frame = cast(VideoFrame, await self.track.recv())
-                frame_array = cast(
-                    npt.NDArray[np.uint8], frame.to_ndarray(format="bgr24")
-                )
+                frame_array = self.frame_to_array(frame)
                 handler = cast(AudioVideoStreamHandlerImpl, self.event_handler)
                 if inspect.iscoroutinefunction(handler.video_receive):
                     await handler.video_receive(frame_array)

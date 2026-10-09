@@ -228,6 +228,29 @@ describe("WebRTC send-receive video", () => {
 		expect(tick).toHaveBeenCalledTimes(1);
 	});
 
+	test.each([
+		["auto", true],
+		[false, false]
+	] as const)(
+		"with mirror_webcam=%s the offer asks for mirrored frames: %s",
+		async (mirror_webcam, expected) => {
+			const server = make_server();
+			const { getByRole, getByText, set_data } = await render(WebRTC, {
+				...base_props,
+				mirror_webcam,
+				server
+			});
+			await fireEvent.click(getByText("Click to Access Webcam"));
+			await waitFor(() => {
+				expect(getByRole("button", { name: "start stream" })).toBeVisible();
+			});
+			await fireEvent.click(getByRole("button", { name: "start stream" }));
+			await admit(set_data);
+			await waitFor(() => expect(server.offer).toHaveBeenCalled());
+			expect(server.offer.mock.calls[0][0].mirror).toBe(expected);
+		}
+	);
+
 	test("a rejected offer dispatches an error and ends the turn", async () => {
 		const server = make_server({
 			status: "failed",

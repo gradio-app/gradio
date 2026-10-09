@@ -103,7 +103,8 @@
 	const mirrored = $derived(
 		mirror_webcam === "auto" ? facing_mode !== "environment" : mirror_webcam
 	);
-	// The local preview is mirrored; the processed stream coming back is not.
+	// The server mirrors the frames it hands to the handler, so the processed
+	// stream coming back is already mirrored.
 	const show_mirrored = $derived(
 		mirrored && (stream_state !== "open" || mode === "send")
 	);
@@ -253,6 +254,7 @@
 				webrtc_id,
 				modality: "video",
 				rtp_params,
+				mirror: mirrored,
 				on_message: handle_message,
 				on_reject: (response) => onreject?.(response)
 			});
