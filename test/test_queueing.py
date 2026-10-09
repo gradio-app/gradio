@@ -849,3 +849,41 @@ def test_leaving_the_line_completes_the_event_for_the_client():
             assert completed
     finally:
         demo.close()
+
+
+def test_a_stream_dropped_while_waiting_for_a_worker_does_not_run_again():
+    calls = []
+
+    def record(x):
+        calls.append(time.monotonic())
+        return "chunk"
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(record, audio, heard)
+        gr.Button().click(lambda: time.sleep(2), None, None)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=1)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: len(calls) == 1)
+            # A long job takes the only worker slot while the stream waits
+            http.post(
+                f"{api}/queue/join",
+                json={"data": [], "fn_index": 1, "session_hash": "busy"},
+            )
+            _wait_for(lambda: demo._queue.get_active_worker_count() == 1)
+            # The next chunk wakes the stream, which waits for the slot...
+            http.post(
+                f"{api}/stream/{event_id}",
+                json={"data": [None], "fn_index": 0, "session_hash": "s"},
+            )
+            time.sleep(0.2)
+            # ...and its session drops it meanwhile (e.g. a reload)
+            http.post(f"{api}/reset", json={"event_id": event_id})
+            time.sleep(2.5)
+            assert len(calls) == 1
+    finally:
+        demo.close()

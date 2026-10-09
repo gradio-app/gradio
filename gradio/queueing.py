@@ -1063,12 +1063,21 @@ class Queue:
                 closed_events.append(event)
         return awake_events, closed_events
 
-    async def take_worker_back(self, job: list[Event]) -> None:
+    async def take_worker_back(self, job: list[Event]) -> bool:
+        """
+        Waits for a worker slot for a stream that got its next chunk. Returns
+        False, without a slot, when its events were dropped meanwhile.
+        """
         self.streams_waiting_for_worker += 1
         try:
             while None not in self.active_jobs:
+                if not any(event.alive for event in job):
+                    return False
                 await asyncio.sleep(self.sleep_when_free)
+            if not any(event.alive for event in job):
+                return False
             self.active_jobs[self.active_jobs.index(None)] = job
+            return True
         finally:
             self.streams_waiting_for_worker -= 1
 
@@ -1241,7 +1250,11 @@ class Queue:
                         if not awake_events:
                             break
                         if awake_events[0].streaming:
-                            await self.take_worker_back(job)
+                            if not await self.take_worker_back(job):
+                                break
+                            awake_events = [
+                                event for event in awake_events if event.alive
+                            ]
                         # Re-read the event's fn, which may have been swapped out
                         # if the app was hot-reloaded while this event was generating
                         fn = awake_events[0].fn
