@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:ensure the correct default files are rendered
+fix:ensure the correct default files are rendered
