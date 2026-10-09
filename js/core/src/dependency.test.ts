@@ -355,6 +355,39 @@ describe("DependencyManager.dispatch", () => {
 	});
 });
 
+describe("DependencyManager.close_stream", () => {
+	test("closes only the stream events of the component", async () => {
+		const stream = dependency(0, "stream", []);
+		stream.connection = "stream";
+		stream.targets = [[5, "stream"]];
+		const on_start = dependency(1, "on_start", [6]);
+		on_start.targets = [[5, "start_recording"]];
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[stream, on_start],
+			{} as Client,
+			update_state
+		);
+		const submissions = (dependency_manager as any).submissions as Map<
+			number,
+			{ close_stream: () => void }
+		>;
+		const stream_submission = { close_stream: vi.fn() };
+		const start_submission = { close_stream: vi.fn() };
+		submissions.set(0, stream_submission);
+		submissions.set(1, start_submission);
+
+		dependency_manager.close_stream(5);
+
+		expect(stream_submission.close_stream).toHaveBeenCalled();
+		expect(submissions.has(0)).toBe(false);
+		// A handler of another event of the component keeps running, and its
+		// outputs still get its result
+		expect(start_submission.close_stream).not.toHaveBeenCalled();
+		expect(submissions.has(1)).toBe(true);
+	});
+});
+
 describe("DependencyManager.dispatch_load_events", () => {
 	test("dispatches load handlers that are not already being resumed", () => {
 		const resumed_load = dependency(0, "resumed_load", []);

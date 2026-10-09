@@ -1113,6 +1113,10 @@ export class DependencyManager {
 		const fn_ids = this.get_fns_from_targets(id);
 
 		for (const fn_id of fn_ids) {
+			// Other events of the component (e.g. start_recording) keep running
+			if (this.dependencies_by_fn.get(fn_id)?.connection_type !== "stream") {
+				continue;
+			}
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
 				submission.close_stream();
