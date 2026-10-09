@@ -255,10 +255,21 @@ class WebRTC(Component):
             preserved_by_key=preserved_by_key,
             value=value,
         )
-        # After super().__init__ so that the proxy url is known
-        icon = self.stream_options.icon
-        served_icon = self.serve_static_file(icon) if icon else None
-        self._icon_url = served_icon["url"] if served_icon else None
+        # Kept in the form the frontend takes (like gr.Button's icon), since
+        # gr.update(stream_options=...) sends this attribute as is: the served
+        # url of the icon, and no labels left as None (they keep the default).
+        # After super().__init__ so that the proxy url is known.
+        options = self.stream_options
+        served_icon = self.serve_static_file(options.icon) if options.icon else None
+        self.stream_options = dataclasses.replace(
+            options,
+            button_labels={
+                key: label
+                for key, label in (options.button_labels or {}).items()
+                if label is not None
+            },
+            icon=served_icon["url"] if served_icon else None,
+        )
 
     def _track_constraints(self) -> dict[str, Any]:
         # User constraints are merged over the defaults rather than replacing
@@ -294,7 +305,7 @@ class WebRTC(Component):
             "button_labels": {
                 key: str(label) for key, label in (options.button_labels or {}).items()
             },
-            "icon": self._icon_url,
+            "icon": options.icon,
             "icon_button_color": options.icon_button_color,
             "pulse_color": options.pulse_color,
             "icon_radius": options.icon_radius,

@@ -206,6 +206,39 @@ class TestWebRTC:
         with pytest.raises(ValueError, match="button_labels"):
             gr.StreamOptions(button_labels={"begin": "Go"})
 
+    def test_a_label_left_as_none_keeps_the_default(self):
+        webrtc = gr.WebRTC(
+            stream_options={"button_labels": {"start": None, "stop": "Done"}}
+        )
+        assert webrtc.get_config()["stream_options"]["button_labels"] == {
+            "stop": "Done"
+        }
+
+    @pytest.mark.asyncio
+    async def test_stream_options_update_like_the_config(self):
+        from gradio.routes import ORJSONResponse
+
+        i18n = gr.I18n(en={"talk": "Start talking"})
+        options = gr.StreamOptions(
+            button_labels={"start": i18n("talk")},
+            icon="test/test_files/bus.png",
+            pulse_color="red",
+        )
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC(modality="audio")
+            button = gr.Button()
+            button.click(lambda: gr.update(stream_options=options), None, webrtc)
+
+        output = await demo.process_api(0, [], state=None)
+        sent = json.loads(ORJSONResponse._render_str(output["data"][0]))
+        config = gr.WebRTC(modality="audio", stream_options=options).get_config()
+        assert sent["stream_options"] == json.loads(
+            ORJSONResponse._render_str(config["stream_options"])
+        )
+        assert sent["stream_options"]["button_labels"]["start"].startswith("__i18n__")
+        assert sent["stream_options"]["icon"].endswith("bus.png")
+        assert "test/test_files" not in sent["stream_options"]["icon"]
+
     @pytest.mark.parametrize(
         "video_bitrate",
         [{"maximum": 4000}, {"min": 0}, {"start": 1.5}, {"min": 2000, "max": 1000}],
